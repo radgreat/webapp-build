@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premiere Life Store - Register Free Account</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+  <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between gap-4">
+        <a id="brand-home-link" href="/store.html" class="inline-flex items-center"><img src="/brand_assets/Logos/L%26D%20Logo_Cropped.png" alt="L&D logo" class="h-10 w-auto"></a>
+
+        <div class="flex items-center gap-2">
+          <a id="header-member-login-link" href="/login.html" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700 sm:text-sm">Member Login</a>
+          <a id="header-store-link" href="/store.html" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500 sm:text-sm">Back to Store</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">New Customers</p>
+        <h1 class="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">Register your Free Account</h1>
+        <p class="mt-2 text-sm text-slate-600">Create your registration details and click Register to lock in your 15% checkout discount.</p>
+        <p id="register-attribution-note" class="mt-2 hidden rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700"></p>
+      </div>
+
+      <form id="free-account-register-form" class="mt-5 space-y-3" novalidate>
+        <div>
+          <label for="register-name" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Full Name</label>
+          <input id="register-name" name="buyerName" type="text" required autocomplete="name" placeholder="Full name" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+        </div>
+
+        <div>
+          <label for="register-email" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Email Address</label>
+          <input id="register-email" name="buyerEmail" type="email" required autocomplete="email" placeholder="Email address" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+        </div>
+
+        <div>
+          <label for="register-username" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Username</label>
+          <input id="register-username" name="memberUsername" type="text" required autocomplete="username" placeholder="newmember01" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+          <p class="mt-1 text-xs text-slate-500">3-24 characters. Letters, numbers, dot, underscore, and dash.</p>
+        </div>
+
+        <div>
+          <label for="register-phone" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Phone Number (Optional)</label>
+          <input id="register-phone" name="phone" type="text" autocomplete="tel" placeholder="+1 555 000 0000" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+        </div>
+
+        <div>
+          <label for="register-country" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Country</label>
+          <select id="register-country" name="countryFlag" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+            <option value="us" selected>United States</option>
+            <option value="ph">Philippines</option>
+            <option value="ca">Canada</option>
+            <option value="mx">Mexico</option>
+            <option value="gb">United Kingdom</option>
+            <option value="au">Australia</option>
+            <option value="nz">New Zealand</option>
+            <option value="sg">Singapore</option>
+            <option value="my">Malaysia</option>
+            <option value="id">Indonesia</option>
+            <option value="th">Thailand</option>
+            <option value="vn">Vietnam</option>
+            <option value="jp">Japan</option>
+            <option value="kr">South Korea</option>
+            <option value="ae">United Arab Emirates</option>
+          </select>
+        </div>
+
+        <label for="register-terms-agreement" class="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700">
+          <input id="register-terms-agreement" name="termsAgreement" type="checkbox" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+          <span>I have read and agree to the Terms and Agreements.</span>
+        </label>
+        <div id="register-legal-documents" class="hidden rounded-lg border border-slate-200 bg-white px-3 py-3 text-xs leading-6 text-slate-600"></div>
+
+        <p id="register-feedback" class="hidden rounded-lg border px-3 py-2 text-sm" role="alert"></p>
+
+        <div class="flex flex-wrap gap-2 pt-1">
+          <button id="register-submit" type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500">Register</button>
+          <a id="register-checkout-link" href="/store-checkout.html" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Go to Checkout</a>
+          <a id="register-preferred-login-link" href="/store-login.html" class="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100">Already have a Free Account?</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="/storefront-shared.js"></script>
+  <script>
+    const shared = window.StorefrontShared;
+    const FREE_ACCOUNT_USERNAME_PATTERN = /^[a-zA-Z0-9._-]{3,24}$/;
+    const REGISTRATION_DRAFT_STORAGE_KEY = 'charge-free-account-registration-draft-v1';
+
+    const brandHomeLinkElement = document.getElementById('brand-home-link');
+    const headerStoreLinkElement = document.getElementById('header-store-link');
+    const registerAttributionNoteElement = document.getElementById('register-attribution-note');
+
+    const registerFormElement = document.getElementById('free-account-register-form');
+    const registerNameInputElement = document.getElementById('register-name');
+    const registerEmailInputElement = document.getElementById('register-email');
+    const registerUsernameInputElement = document.getElementById('register-username');
+    const registerPhoneInputElement = document.getElementById('register-phone');
+    const registerCountryInputElement = document.getElementById('register-country');
+    const registerTermsAgreementInputElement = document.getElementById('register-terms-agreement');
+    const registerLegalDocumentsElement = document.getElementById('register-legal-documents');
+    const registerSubmitButtonElement = document.getElementById('register-submit');
+    const registerCheckoutLinkElement = document.getElementById('register-checkout-link');
+    const registerPreferredLoginLinkElement = document.getElementById('register-preferred-login-link');
+    const registerFeedbackElement = document.getElementById('register-feedback');
+    const REGISTER_LEGAL_DOCUMENT_META = [
+      { key: 'termsOfService', label: 'Terms of Service' },
+      { key: 'agreement', label: 'Agreement' },
+      { key: 'shippingPolicy', label: 'Shipping Policy' },
+      { key: 'refundPolicy', label: 'Refund Policy' },
+    ];
+
+    function safeStorageSet(storage, key, value) {
+      try {
+        if (!storage) {
+          return false;
+        }
+        storage.setItem(key, value);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function safeStorageGet(storage, key) {
+      try {
+        if (!storage) {
+          return null;
+        }
+        return storage.getItem(key);
+      } catch {
+        return null;
+      }
+    }
+
+    function setFeedback(message, isError = false) {
+      if (!registerFeedbackElement) {
+        return;
+      }
+
+      const normalizedMessage = String(message || '').trim();
+      if (!normalizedMessage) {
+        registerFeedbackElement.textContent = '';
+        registerFeedbackElement.classList.add('hidden');
+        registerFeedbackElement.classList.remove('border-rose-300', 'bg-rose-50', 'text-rose-700', 'border-emerald-300', 'bg-emerald-50', 'text-emerald-700');
+        return;
+      }
+
+      registerFeedbackElement.textContent = normalizedMessage;
+      registerFeedbackElement.classList.remove('hidden', 'border-rose-300', 'bg-rose-50', 'text-rose-700', 'border-emerald-300', 'bg-emerald-50', 'text-emerald-700');
+      registerFeedbackElement.classList.add(
+        isError ? 'border-rose-300' : 'border-emerald-300',
+        isError ? 'bg-rose-50' : 'bg-emerald-50',
+        isError ? 'text-rose-700' : 'text-emerald-700',
+      );
+    }
+
+    function resolveRouteStoreCode() {
+      const queryParams = new URLSearchParams(window.location.search);
+      return shared.normalizeStoreCode(queryParams.get('store'));
+    }
+
+    function buildCheckoutRegistrationUrl(storeCode) {
+      const checkoutUrl = new URL(shared.buildCheckoutUrl(storeCode), window.location.origin);
+      checkoutUrl.searchParams.set('mode', shared.CHECKOUT_MODE_FREE_ACCOUNT);
+      checkoutUrl.searchParams.set('register', '1');
+      return `${checkoutUrl.pathname}${checkoutUrl.search}`;
+    }
+
+    function syncPageLinks(activeStoreCode) {
+      const storefrontUrl = shared.buildStorefrontUrl(activeStoreCode);
+      const checkoutUrl = shared.buildCheckoutUrl(activeStoreCode);
+      const checkoutRegistrationUrl = buildCheckoutRegistrationUrl(activeStoreCode);
+      const preferredLoginUrl = shared.buildFreeLoginUrl(activeStoreCode);
+
+      if (brandHomeLinkElement) {
+        brandHomeLinkElement.href = storefrontUrl;
+      }
+      if (headerStoreLinkElement) {
+        headerStoreLinkElement.href = storefrontUrl;
+      }
+      if (registerCheckoutLinkElement) {
+        registerCheckoutLinkElement.href = checkoutUrl;
+      }
+      if (registerPreferredLoginLinkElement) {
+        registerPreferredLoginLinkElement.href = preferredLoginUrl;
+      }
+
+      if (registerAttributionNoteElement) {
+        if (activeStoreCode) {
+          registerAttributionNoteElement.textContent = `Referral attribution detected: ${activeStoreCode}. Your registration will follow this store referral during checkout.`;
+          registerAttributionNoteElement.classList.remove('hidden');
+        } else {
+          registerAttributionNoteElement.classList.add('hidden');
+          registerAttributionNoteElement.textContent = '';
+        }
+      }
+
+      return {
+        checkoutRegistrationUrl,
+      };
+    }
+
+    function readRegistrationDraft() {
+      const rawDraft = safeStorageGet(window.sessionStorage, REGISTRATION_DRAFT_STORAGE_KEY)
+        || safeStorageGet(window.localStorage, REGISTRATION_DRAFT_STORAGE_KEY);
+      if (!rawDraft) {
+        return null;
+      }
+      try {
+        const parsedDraft = JSON.parse(rawDraft);
+        return parsedDraft && typeof parsedDraft === 'object' ? parsedDraft : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function applyDraftToForm(draft) {
+      if (!draft || typeof draft !== 'object') {
+        return;
+      }
+      const fields = draft.fields && typeof draft.fields === 'object' ? draft.fields : {};
+
+      if (registerNameInputElement) {
+        registerNameInputElement.value = String(fields.buyerName || '').trim();
+      }
+      if (registerEmailInputElement) {
+        registerEmailInputElement.value = String(fields.buyerEmail || '').trim();
+      }
+      if (registerUsernameInputElement) {
+        registerUsernameInputElement.value = String(fields.freeAccountMemberUsername || '').trim();
+      }
+      if (registerPhoneInputElement) {
+        registerPhoneInputElement.value = String(fields.freeAccountPhone || '').trim();
+      }
+      if (registerCountryInputElement) {
+        registerCountryInputElement.value = String(fields.freeAccountCountryFlag || 'us').trim().toLowerCase() || 'us';
+      }
+    }
+
+    function collectRegistrationFields() {
+      const buyerName = String(registerNameInputElement?.value || '').trim();
+      const buyerEmail = String(registerEmailInputElement?.value || '').trim();
+      const freeAccountMemberUsername = String(registerUsernameInputElement?.value || '').trim();
+      const freeAccountPhone = String(registerPhoneInputElement?.value || '').trim();
+      const freeAccountCountryFlag = String(registerCountryInputElement?.value || 'us').trim().toLowerCase() || 'us';
+      const freeAccountNotes = '';
+
+      if (!buyerName) {
+        return {
+          ok: false,
+          message: 'Full name is required.',
+        };
+      }
+
+      if (!buyerEmail || !buyerEmail.includes('@')) {
+        return {
+          ok: false,
+          message: 'Valid email address is required.',
+        };
+      }
+
+      if (!freeAccountMemberUsername) {
+        return {
+          ok: false,
+          message: 'Username is required for Free Account registration.',
+        };
+      }
+
+      if (!FREE_ACCOUNT_USERNAME_PATTERN.test(freeAccountMemberUsername)) {
+        return {
+          ok: false,
+          message: 'Username must be 3-24 characters and can include letters, numbers, dot, underscore, and dash.',
+        };
+      }
+
+      if (!registerTermsAgreementInputElement?.checked) {
+        return {
+          ok: false,
+          message: 'Please read and accept the Terms and Agreements before registering.',
+        };
+      }
+
+      return {
+        ok: true,
+        fields: {
+          buyerName,
+          buyerEmail,
+          freeAccountMemberUsername,
+          freeAccountPhone,
+          freeAccountCountryFlag,
+          freeAccountNotes,
+        },
+      };
+    }
+
+    function renderRegisterLegalDocuments(legalDocuments) {
+      if (!registerLegalDocumentsElement) {
+        return;
+      }
+
+      const normalizedLegalDocuments = shared.normalizeLegalDocuments(legalDocuments);
+      const sections = REGISTER_LEGAL_DOCUMENT_META
+        .map(({ key, label }) => {
+          const content = String(normalizedLegalDocuments?.[key] || '').trim();
+          if (!content) {
+            return '';
+          }
+
+          const escapedTitle = shared.escapeHtml(label);
+          const sanitizedContentHtml = shared.sanitizeLegalHtml(content);
+          if (!sanitizedContentHtml) {
+            return '';
+          }
+          return `
+            <section>
+              <h3 class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">${escapedTitle}</h3>
+              <div class="mt-1 space-y-2 text-xs leading-6 text-slate-600">${sanitizedContentHtml}</div>
+            </section>
+          `;
+        })
+        .filter(Boolean);
+
+      if (sections.length === 0) {
+        registerLegalDocumentsElement.classList.add('hidden');
+        registerLegalDocumentsElement.innerHTML = '';
+        return;
+      }
+
+      registerLegalDocumentsElement.classList.remove('hidden');
+      registerLegalDocumentsElement.innerHTML = `
+        <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Legal Documents</p>
+        <div class="mt-2 space-y-3">${sections.join('')}</div>
+      `;
+    }
+
+    async function hydrateRegisterLegalDocuments() {
+      const result = await shared.fetchLegalDocuments();
+      renderRegisterLegalDocuments(result.legal);
+    }
+
+    function persistRegistrationDraft(activeStoreCode, fields) {
+      const payload = {
+        version: 1,
+        source: 'store-register-page',
+        createdAt: new Date().toISOString(),
+        storeCode: shared.normalizeStoreCode(activeStoreCode),
+        fields,
+      };
+
+      const serializedPayload = JSON.stringify(payload);
+      const wroteSession = safeStorageSet(window.sessionStorage, REGISTRATION_DRAFT_STORAGE_KEY, serializedPayload);
+      const wroteLocal = safeStorageSet(window.localStorage, REGISTRATION_DRAFT_STORAGE_KEY, serializedPayload);
+      return wroteSession || wroteLocal;
+    }
+
+    function bindRegistrationForm(activeStoreCode, checkoutRegistrationUrl) {
+      if (!registerFormElement) {
+        return;
+      }
+
+      registerFormElement.addEventListener('submit', (event) => {
+        event.preventDefault();
+        setFeedback('');
+
+        const registrationResult = collectRegistrationFields();
+        if (!registrationResult.ok) {
+          setFeedback(registrationResult.message || 'Unable to continue registration.', true);
+          return;
+        }
+
+        const persisted = persistRegistrationDraft(activeStoreCode, registrationResult.fields);
+        if (!persisted) {
+          setFeedback('Unable to save registration details in this browser. Please try again.', true);
+          return;
+        }
+
+        if (registerSubmitButtonElement) {
+          registerSubmitButtonElement.disabled = true;
+        }
+
+        window.location.assign(checkoutRegistrationUrl);
+      });
+    }
+
+    function initRegistrationPage() {
+      const activeStoreCode = resolveRouteStoreCode();
+      shared.setActiveStoreCode(activeStoreCode);
+
+      const { checkoutRegistrationUrl } = syncPageLinks(activeStoreCode);
+      const existingDraft = readRegistrationDraft();
+      applyDraftToForm(existingDraft);
+      bindRegistrationForm(activeStoreCode, checkoutRegistrationUrl);
+      void hydrateRegisterLegalDocuments();
+    }
+
+    initRegistrationPage();
+  </script>
+</body>
+</html>

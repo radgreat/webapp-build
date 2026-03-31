@@ -1,0 +1,16 @@
+{
+  "type": "module",
+  "scripts": {
+    "dev": "node backend/app.js",
+    "backfill:store-links": "node backend/scripts/backfill-user-store-links.mjs",
+    "backfill:preferred-customers": "node backend/scripts/backfill-preferred-customers-from-invoices.mjs"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "flag-icons": "^7.5.0",
+    "pg": "^8.20.0",
+    "puppeteer": "^24.37.5",
+    "stripe": "^21.0.0"
+  }
+}

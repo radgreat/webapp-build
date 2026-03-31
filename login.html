@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>Premiere Life - Login</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              400: '#1AFFB6',
+              500: '#0FD4A4',
+            },
+            surface: {
+              base: '#0A0F14',
+              raised: '#111920',
+              border: '#2A3A4A',
+            },
+            text: {
+              primary: '#F0F4F8',
+              secondary: '#A0B4C8',
+              tertiary: '#6B8299',
+              inverse: '#0A0F14',
+            },
+            semantic: {
+              'danger-bg': 'rgba(244,91,105,0.1)',
+              danger: '#F45B69',
+            },
+          },
+          fontFamily: {
+            display: ['"DM Serif Display"', 'serif'],
+            body: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            'depth-3': '0 4px 8px rgba(15,212,164,0.08), 0 16px 48px rgba(0,0,0,0.45), 0 1px 0 rgba(15,212,164,0.1) inset',
+          },
+          transitionTimingFunction: {
+            spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .grain::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        filter: url(#grain);
+        opacity: 0.03;
+        pointer-events: none;
+        z-index: 1;
+        mix-blend-mode: overlay;
+      }
+    }
+  </style>
+  <style>
+    :root {
+      font-size: 16px;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      text-rendering: optimizeLegibility;
+      font-synthesis: none;
+    }
+  </style>
+</head>
+<body class="bg-surface-base text-text-primary font-body min-h-screen">
+  <svg class="hidden" aria-hidden="true">
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </svg>
+
+  <div class="relative min-h-screen grain flex items-center justify-center px-4 py-10" style="background-image:
+    radial-gradient(ellipse 80% 50% at 10% 0%, rgba(15,212,164,0.07) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(91,184,244,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 60% at 50% 50%, rgba(167,139,250,0.03) 0%, transparent 60%);">
+    <div class="absolute inset-0 bg-surface-base/80 backdrop-blur-sm"></div>
+
+    <section class="relative w-full max-w-md rounded-2xl border border-surface-border bg-surface-raised/95 p-7 sm:p-8 shadow-depth-3">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-500/15 border border-brand-500/30">
+          <svg class="w-6 h-6 text-brand-400" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 3L5.5 8.2v7.3c0 6.8 4.2 13.1 10.5 15.2 6.3-2.1 10.5-8.4 10.5-15.2V8.2L16 3z"/>
+            <path d="M17.3 10.5L12.3 17h4.2l-1.7 4.5 5-6.6h-4.1l1.6-4.4z"/>
+          </svg>
+        </span>
+        <div>
+          <h1 class="font-body font-semibold text-2xl text-text-primary">Premiere Life</h1>
+          <p class="text-sm text-text-tertiary">Sign in to access your dashboard</p>
+        </div>
+      </div>
+
+      <form id="login-form" class="space-y-4" novalidate>
+        <div>
+          <label for="login-identifier" class="block text-sm text-text-secondary mb-1.5">Username or email</label>
+          <input
+            id="login-identifier"
+            name="identifier"
+            type="text"
+            autocomplete="username"
+            placeholder="Enter your username or email"
+            class="w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2.5 text-[16px] sm:text-sm text-text-primary placeholder-text-tertiary focus:border-brand-500/60 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            required
+          />
+        </div>
+
+        <div>
+          <label for="login-password" class="block text-sm text-text-secondary mb-1.5">Password</label>
+          <input
+            id="login-password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Enter your password"
+            class="w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2.5 text-[16px] sm:text-sm text-text-primary placeholder-text-tertiary focus:border-brand-500/60 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            required
+          />
+        </div>
+
+        <p id="login-error" class="hidden rounded-lg border border-semantic-danger/40 bg-semantic-danger-bg px-3 py-2 text-sm text-semantic-danger" role="alert"></p>
+
+        <button
+          id="login-submit"
+          type="submit"
+          class="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-text-inverse transition-transform duration-150 ease-spring hover:bg-brand-400 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          Sign In
+        </button>
+      </form>
+
+      <div class="mt-5 rounded-lg border border-surface-border bg-surface-base/40 p-3">
+        <p class="text-xs text-text-tertiary">Mock auth source: <span class="text-text-secondary">/api/member-auth/login + mock-users.json</span></p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const AUTH_STORAGE_KEY = 'vault-auth-user';
+    const AUTH_COOKIE_KEY = 'vault-auth-user-cookie';
+    const REGISTERED_MEMBERS_API = '/api/registered-members';
+    const FAST_TRACK_PACKAGE_META = {
+      'preferred-customer-pack': { label: 'Free Account', price: 0, bv: 0 },
+      'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
+      'business-builder-pack': { label: 'Business Builder Pack', price: 360, bv: 360 },
+      'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 560, bv: 560 },
+      'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 960, bv: 960 },
+    };
+    const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
+    const FREE_ACCOUNT_RANK_KEY_SET = new Set(['preferred customer', 'free account', 'free']);
+
+    const loginForm = document.getElementById('login-form');
+    const loginIdentifierInput = document.getElementById('login-identifier');
+    const loginPasswordInput = document.getElementById('login-password');
+    const loginSubmitButton = document.getElementById('login-submit');
+    const loginError = document.getElementById('login-error');
+
+    function normalizeCredential(value) {
+      return String(value || '').trim().toLowerCase();
+    }
+
+    function normalizeMemberKey(value) {
+      return normalizeCredential(value);
+    }
+
+    function normalizeStoreCode(value) {
+      return String(value || '')
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9-]/g, '');
+    }
+
+    function isFreeAccountUser(user) {
+      if (!user || typeof user !== 'object') {
+        return false;
+      }
+
+      const packageKey = normalizeMemberKey(user?.enrollmentPackage);
+      if (packageKey === FREE_ACCOUNT_PACKAGE_KEY) {
+        return true;
+      }
+
+      const rankKey = normalizeMemberKey(user?.accountRank || user?.rank);
+      return FREE_ACCOUNT_RANK_KEY_SET.has(rankKey);
+    }
+
+    function toWholeNumber(value, fallback = 0) {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) {
+        return fallback;
+      }
+      return Math.max(0, Math.floor(numeric));
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function safeStorageGet(storage, key) {
+      try {
+        if (!storage) {
+          return null;
+        }
+        return storage.getItem(key);
+      } catch {
+        return null;
+      }
+    }
+
+    function safeStorageSet(storage, key, value) {
+      try {
+        if (!storage) {
+          return false;
+        }
+        storage.setItem(key, value);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function readCookieValue(key) {
+      const source = document.cookie || '';
+      const encodedKey = `${encodeURIComponent(key)}=`;
+      const pairs = source.split(';');
+
+      for (const pair of pairs) {
+        const trimmedPair = pair.trim();
+        if (!trimmedPair.startsWith(encodedKey)) {
+          continue;
+        }
+
+        return decodeURIComponent(trimmedPair.slice(encodedKey.length));
+      }
+
+      return null;
+    }
+
+    function writeCookieValue(key, value) {
+      try {
+        document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(value)}; path=/; SameSite=Lax`;
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function parseSessionPayload(raw) {
+      if (!raw) {
+        return null;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') {
+          return null;
+        }
+
+        return parsed;
+      } catch {
+        return null;
+      }
+    }
+
+    function readUserSession() {
+      const localSession = parseSessionPayload(safeStorageGet(window.localStorage, AUTH_STORAGE_KEY));
+      if (localSession) {
+        return localSession;
+      }
+
+      const tabSession = parseSessionPayload(safeStorageGet(window.sessionStorage, AUTH_STORAGE_KEY));
+      if (tabSession) {
+        return tabSession;
+      }
+
+      return parseSessionPayload(readCookieValue(AUTH_COOKIE_KEY));
+    }
+
+    function persistUserSession(user) {
+      const enrollmentPackageBvRaw = Number(user?.enrollmentPackageBv);
+      const enrollmentPackageBv = Number.isFinite(enrollmentPackageBvRaw) ? Math.max(0, Math.floor(enrollmentPackageBvRaw)) : 0;
+      const starterPersonalPvRaw = Number(user?.starterPersonalPv);
+      const starterPersonalPv = Number.isFinite(starterPersonalPvRaw) ? Math.max(0, Math.floor(starterPersonalPvRaw)) : enrollmentPackageBv;
+      const starterTotalCyclesRaw = Number(user?.starterTotalCycles);
+      const starterTotalCycles = Number.isFinite(starterTotalCyclesRaw) ? Math.max(0, Math.floor(starterTotalCyclesRaw)) : 0;
+
+      const sessionUser = {
+        id: user?.id || null,
+        name: user?.name || user?.username || 'User',
+        username: user?.username || '',
+        email: user?.email || '',
+        countryFlag: typeof user?.countryFlag === 'string' ? user.countryFlag : '',
+        accountStatus: typeof user?.accountStatus === 'string' ? user.accountStatus : '',
+        attributionStoreCode: typeof user?.attributionStoreCode === 'string' ? user.attributionStoreCode : '',
+        publicStoreCode: typeof user?.publicStoreCode === 'string' ? user.publicStoreCode : '',
+        storeCode: typeof user?.storeCode === 'string' ? user.storeCode : '',
+        enrollmentPackage: user?.enrollmentPackage || '',
+        enrollmentPackageLabel: user?.enrollmentPackageLabel || '',
+        enrollmentPackagePrice: Number.isFinite(Number(user?.enrollmentPackagePrice))
+          ? Number(user.enrollmentPackagePrice)
+          : 0,
+        enrollmentPackageBv,
+        starterPersonalPv,
+        starterTotalCycles,
+        createdAt: typeof user?.createdAt === 'string' ? user.createdAt : '',
+        rank: typeof user?.rank === 'string' ? user.rank : '',
+        accountRank: typeof user?.accountRank === 'string'
+          ? user.accountRank
+          : (typeof user?.rank === 'string' ? user.rank : ''),
+        activityActiveUntilAt: typeof user?.activityActiveUntilAt === 'string' ? user.activityActiveUntilAt : '',
+        lastProductPurchaseAt: typeof user?.lastProductPurchaseAt === 'string' ? user.lastProductPurchaseAt : '',
+        lastPurchaseAt: typeof user?.lastPurchaseAt === 'string' ? user.lastPurchaseAt : '',
+      };
+
+      const serializedSession = JSON.stringify(sessionUser);
+      const wroteLocal = safeStorageSet(window.localStorage, AUTH_STORAGE_KEY, serializedSession);
+      const wroteSession = safeStorageSet(window.sessionStorage, AUTH_STORAGE_KEY, serializedSession);
+      const wroteCookie = writeCookieValue(AUTH_COOKIE_KEY, serializedSession);
+
+      if (!wroteLocal && !wroteSession && !wroteCookie) {
+        throw new Error('AUTH_STORAGE_UNAVAILABLE');
+      }
+
+      return sessionUser;
+    }
+
+    function hideLoginError() {
+      loginError.textContent = '';
+      loginError.classList.add('hidden');
+    }
+
+    function showLoginError(message) {
+      loginError.textContent = message;
+      loginError.classList.remove('hidden');
+    }
+
+    function showPasswordSetupRequiredError(message, setupLink) {
+      const normalizedMessage = String(message || '').trim() || 'Password setup required.';
+      const normalizedSetupLink = String(setupLink || '').trim();
+      if (!/^\/(?:password-setup|store-password-setup)\.html\?token=/.test(normalizedSetupLink)) {
+        showLoginError(normalizedMessage);
+        return;
+      }
+
+      loginError.innerHTML = `${escapeHtml(normalizedMessage)} <a href="${escapeHtml(normalizedSetupLink)}" class="underline text-brand-400 hover:text-brand-300">Open setup link</a>`;
+      loginError.classList.remove('hidden');
+    }
+
+    function showFreeAccountRedirectError(user) {
+      const redirectUrl = new URL('/store-login.html', window.location.origin);
+      const candidateStoreCode = normalizeStoreCode(
+        user?.attributionStoreCode || user?.publicStoreCode || user?.storeCode,
+      );
+      if (candidateStoreCode) {
+        redirectUrl.searchParams.set('store', candidateStoreCode);
+      }
+
+      loginError.innerHTML = `This account uses Free Member Login. <a href="${escapeHtml(`${redirectUrl.pathname}${redirectUrl.search}`)}" class="underline text-brand-400 hover:text-brand-300">Go to Free Member Login</a>`;
+      loginError.classList.remove('hidden');
+    }
+
+    function setLoginBusy(isBusy) {
+      loginIdentifierInput.disabled = isBusy;
+      loginPasswordInput.disabled = isBusy;
+      loginSubmitButton.disabled = isBusy;
+      loginSubmitButton.textContent = isBusy ? 'Signing In...' : 'Sign In';
+    }
+
+    async function authenticateUser(identifier, password) {
+      const response = await fetch('/api/member-auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          identifier,
+          password,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload?.user) {
+        return payload.user;
+      }
+
+      const loginError = new Error(
+        typeof payload?.error === 'string'
+          ? payload.error
+          : `Sign-in failed (${response.status}).`,
+      );
+      loginError.code = typeof payload?.code === 'string' ? payload.code : '';
+      loginError.status = response.status;
+      loginError.setupLink = typeof payload?.setupLink === 'string' ? payload.setupLink : '';
+      throw loginError;
+    }
+
+    function resolveEnrollmentPackageMeta(packageKey) {
+      const normalizedKey = normalizeCredential(packageKey);
+      return FAST_TRACK_PACKAGE_META[normalizedKey] || null;
+    }
+
+    function hasStarterDashboardProfile(user) {
+      const packageBv = toWholeNumber(user?.enrollmentPackageBv, 0);
+      const starterPv = toWholeNumber(user?.starterPersonalPv, 0);
+      return packageBv > 0 || starterPv > 0;
+    }
+
+    function resolveRegisteredMemberMatch(user, members) {
+      if (!Array.isArray(members) || !user) {
+        return null;
+      }
+
+      const normalizedEmail = normalizeCredential(user?.email);
+      const normalizedUsername = normalizeCredential(user?.username);
+
+      return members.find((member) => {
+        const memberEmail = normalizeCredential(member?.email);
+        const memberUsername = normalizeCredential(member?.memberUsername);
+        const emailMatch = normalizedEmail && memberEmail === normalizedEmail;
+        const usernameMatch = normalizedUsername && memberUsername === normalizedUsername;
+        return emailMatch || usernameMatch;
+      }) || null;
+    }
+
+    async function loadRegisteredMembersForHydration() {
+      const endpoints = [REGISTERED_MEMBERS_API, './registered-members.json'];
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint, { cache: 'no-store' });
+          if (!response.ok) {
+            continue;
+          }
+
+          const payload = await response.json().catch(() => null);
+          if (Array.isArray(payload)) {
+            return payload;
+          }
+          if (Array.isArray(payload?.members)) {
+            return payload.members;
+          }
+        } catch {
+          // Continue to fallback endpoint.
+        }
+      }
+
+      return [];
+    }
+
+    function mergeStarterDashboardProfile(user, registeredMember) {
+      const packageKey = normalizeCredential(user?.enrollmentPackage || registeredMember?.enrollmentPackage);
+      const packageMeta = resolveEnrollmentPackageMeta(packageKey);
+      const fallbackPackagePrice = packageMeta ? Number(packageMeta.price) : 0;
+      const packagePriceFromUser = Number(user?.enrollmentPackagePrice);
+      const packagePriceFromMember = Number(registeredMember?.packagePrice);
+      const packagePrice = Number.isFinite(packagePriceFromUser)
+        ? packagePriceFromUser
+        : (Number.isFinite(packagePriceFromMember) ? packagePriceFromMember : fallbackPackagePrice);
+      const packageBvFromUser = toWholeNumber(user?.enrollmentPackageBv, 0);
+      const packageBvFromMember = toWholeNumber(registeredMember?.packageBv, 0);
+      const packageBvFromMeta = toWholeNumber(packageMeta?.bv, toWholeNumber(packagePrice, 0));
+      const packageBv = packageBvFromUser > 0
+        ? packageBvFromUser
+        : (packageBvFromMember > 0 ? packageBvFromMember : packageBvFromMeta);
+
+      if (packageBv <= 0 && !packageKey) {
+        return user;
+      }
+
+      const starterPersonalPv = toWholeNumber(user?.starterPersonalPv, packageBv);
+      const starterTotalCycles = toWholeNumber(user?.starterTotalCycles, 0);
+
+      return {
+        ...user,
+        countryFlag: user?.countryFlag || registeredMember?.countryFlag || '',
+        enrollmentPackage: packageKey || user?.enrollmentPackage || '',
+        enrollmentPackageLabel: user?.enrollmentPackageLabel || registeredMember?.enrollmentPackageLabel || packageMeta?.label || '',
+        enrollmentPackagePrice: packagePrice,
+        enrollmentPackageBv: packageBv,
+        starterPersonalPv: starterPersonalPv > 0 ? starterPersonalPv : packageBv,
+        starterTotalCycles,
+      };
+    }
+
+    async function hydrateStarterDashboardProfile(user) {
+      if (!user || hasStarterDashboardProfile(user)) {
+        return user;
+      }
+
+      const members = await loadRegisteredMembersForHydration();
+      const matchedMember = resolveRegisteredMemberMatch(user, members);
+      if (!matchedMember) {
+        return user;
+      }
+
+      return mergeStarterDashboardProfile(user, matchedMember);
+    }
+
+    const existingSession = readUserSession();
+    if (existingSession) {
+      const accountLabel = String(
+        existingSession?.name
+        || existingSession?.username
+        || existingSession?.email
+        || 'current account',
+      ).trim();
+      showLoginError(`Currently signed in as ${accountLabel}. Sign in below to switch accounts.`);
+    }
+    loginIdentifierInput.focus();
+
+    [loginIdentifierInput, loginPasswordInput].forEach((input) => {
+      input.addEventListener('input', hideLoginError);
+    });
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      hideLoginError();
+
+      const identifier = loginIdentifierInput.value;
+      const password = loginPasswordInput.value;
+
+      if (!identifier.trim() || !password) {
+        showLoginError('Enter your username or email and password.');
+        return;
+      }
+
+      setLoginBusy(true);
+
+      try {
+        const matchedUser = await authenticateUser(identifier, password);
+        if (!matchedUser) {
+          showLoginError('Invalid credentials. Please try again.');
+          return;
+        }
+
+        const hydratedUser = await hydrateStarterDashboardProfile(matchedUser);
+        if (isFreeAccountUser(hydratedUser)) {
+          showFreeAccountRedirectError(hydratedUser);
+          return;
+        }
+        persistUserSession(hydratedUser);
+        loginForm.reset();
+        window.location.replace('./index.html');
+      } catch (error) {
+        if (error instanceof Error && error.message === 'AUTH_STORAGE_UNAVAILABLE') {
+          showLoginError('Sign-in blocked by browser storage settings. Disable private mode and retry.');
+        } else if (error instanceof Error && error.code === 'PASSWORD_SETUP_REQUIRED') {
+          showPasswordSetupRequiredError(
+            error.message,
+            typeof error.setupLink === 'string' ? error.setupLink : '',
+          );
+        } else {
+          showLoginError(error instanceof Error ? error.message : 'Unable to sign in.');
+        }
+      } finally {
+        setLoginBusy(false);
+      }
+    });
+  </script>
+</body>
+</html>

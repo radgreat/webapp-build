@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premiere Life Store - Checkout</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+  <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      <div class="flex items-center">
+        <a href="/store.html" class="inline-flex items-center"><img src="/brand_assets/Logos/L%26D%20Logo_Cropped.png" alt="L&D logo" class="h-10 w-auto"></a>
+      </div>
+
+      <nav class="mt-3 flex flex-wrap items-center gap-5 text-sm font-medium text-slate-700">
+        <a href="/" class="transition hover:text-emerald-600">Home</a>
+        <a id="nav-products-link" href="/store.html" class="transition hover:text-emerald-600">Products</a>
+        <a id="nav-support-link" href="/store-support.html" class="transition hover:text-emerald-600">Support</a>
+        <div class="ml-auto flex items-center gap-2">
+          <button id="header-login-trigger" type="button" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500 sm:text-sm">Login</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <a id="back-to-products" href="/store.html" class="text-sm font-medium text-emerald-700 hover:underline">&larr; Continue shopping</a>
+          <h1 class="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">Checkout</h1>
+          <p class="mt-2 text-sm text-slate-600">Finalize your order after reviewing products in your cart.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div class="space-y-6 lg:col-span-2">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="mb-4 flex items-center justify-between gap-3">
+            <h2 class="text-lg font-semibold text-slate-900">Cart Items</h2>
+            <span id="cart-item-count" class="text-sm text-slate-500">0 items</span>
+          </div>
+
+          <div id="cart-empty-state" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+            Your cart is empty. Return to products to add items.
+          </div>
+
+          <div id="cart-items-list" class="space-y-3"></div>
+
+          <div class="mt-5 border-t border-slate-200 pt-4">
+            <div class="flex items-center justify-between text-sm text-slate-600">
+              <span>Subtotal</span>
+              <span id="cart-subtotal" class="font-medium text-slate-900">$0.00</span>
+            </div>
+            <div id="cart-discount-row" class="mt-2 hidden items-center justify-between text-sm text-slate-600">
+              <span>Discount: 15%</span>
+              <span id="cart-discount" class="font-medium text-emerald-700">-$0.00</span>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-base font-semibold text-slate-900">
+              <span>Total</span>
+              <span id="cart-total">$0.00</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <aside class="space-y-6">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 class="text-lg font-semibold text-slate-900">Customer Details</h2>
+          <p class="mt-1 text-sm text-slate-600">
+            Complete payment here with our secure Stripe-powered checkout.
+          </p>
+
+          <form id="checkout-form" class="mt-4 space-y-3" novalidate>
+            <div id="store-code-lockup">
+              <label for="store-code" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Member Store Code</label>
+              <input id="store-code" name="storeCode" type="text" readonly aria-readonly="true" placeholder="CHG-XXXX" autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm uppercase text-slate-900 outline-none">
+              <p class="mt-1 text-xs text-slate-500">Attribution is locked to the shared store link for checkout integrity.</p>
+            </div>
+
+            <fieldset class="rounded-lg border border-slate-300 bg-slate-50 p-3">
+              <legend class="px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Checkout Type</legend>
+              <label class="mt-2 flex cursor-pointer items-start gap-2 text-sm text-slate-700">
+                <input type="radio" name="checkoutMode" value="guest" checked class="mt-1 h-4 w-4 border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                <span>
+                  <span class="font-semibold text-slate-900">Guest Checkout</span>
+                  <span class="block text-xs text-slate-500">Purchase only. No account is created.</span>
+                </span>
+              </label>
+              <label class="mt-2 flex cursor-pointer items-start gap-2 text-sm text-slate-700">
+                <input type="radio" name="checkoutMode" value="free-account" class="mt-1 h-4 w-4 border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                <span>
+                  <span class="font-semibold text-slate-900">Free Account</span>
+                  <span class="block text-xs text-slate-500">Creates a pending account and sends a password setup email.</span>
+                </span>
+              </label>
+            </fieldset>
+
+            <div>
+              <label for="buyer-name" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Full Name</label>
+              <input id="buyer-name" name="buyerName" type="text" required placeholder="Full name" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+            </div>
+
+            <div>
+              <label for="buyer-email" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Email Address</label>
+              <input id="buyer-email" name="buyerEmail" type="email" required placeholder="Email address" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+            </div>
+
+            <section id="free-account-hint" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+              <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Free Account Registration</p>
+              <p class="mt-1 text-xs text-emerald-800/80">
+                Create your free account today and unlock an exclusive 15% discount on your checkout. Sign up now and start saving instantly.
+              </p>
+            </section>
+
+            <input id="free-account-member-username" name="freeAccountMemberUsername" type="hidden" value="">
+            <input id="free-account-phone" name="freeAccountPhone" type="hidden" value="">
+            <input id="free-account-country-flag" name="freeAccountCountryFlag" type="hidden" value="us">
+            <input id="free-account-notes" name="freeAccountNotes" type="hidden" value="">
+
+            <select name="shippingMode" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+              <option value="Standard Shipping">Standard Shipping</option>
+              <option value="Expedited Shipping">Expedited Shipping</option>
+            </select>
+            <input name="shippingAddress" type="text" required placeholder="Shipping address" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+
+            <div class="rounded-lg border border-slate-300 bg-white px-3 py-2">
+              <label for="card-element" class="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">Payment Details</label>
+              <div id="card-element" class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2"></div>
+              <p id="card-error" class="mt-2 hidden text-xs text-rose-600"></p>
+            </div>
+
+            <button id="place-order-button" type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-40">
+              Pay Now
+            </button>
+            <p id="checkout-feedback" class="hidden text-sm"></p>
+          </form>
+        </article>
+      </aside>
+    </section>
+
+  </main>
+
+  <div id="free-account-registration-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/60" data-free-account-modal-close></div>
+    <section class="relative z-10 w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Free Account Setup</p>
+          <h2 class="mt-1 text-xl font-bold text-slate-900">Register Before Payment</h2>
+          <p class="mt-1 text-sm text-slate-600">Complete these details, then continue to secure checkout.</p>
+        </div>
+        <button type="button" data-free-account-modal-close class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">Close</button>
+      </div>
+
+      <form id="free-account-registration-form" class="mt-4 space-y-3" novalidate>
+        <div>
+          <label for="free-account-modal-name" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Full Name</label>
+          <input id="free-account-modal-name" type="text" required autocomplete="name" placeholder="Full name" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+        </div>
+
+        <div>
+          <label for="free-account-modal-email" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Email Address</label>
+          <input id="free-account-modal-email" type="email" required autocomplete="email" placeholder="Email address" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+        </div>
+
+        <div>
+          <label for="free-account-modal-username" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Username</label>
+          <input id="free-account-modal-username" type="text" required autocomplete="username" placeholder="newmember01" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+          <p class="mt-1 text-xs text-slate-500">3-24 characters. Letters, numbers, dot, underscore, and dash.</p>
+        </div>
+
+        <div>
+          <label for="free-account-modal-phone" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Phone Number (Optional)</label>
+          <input id="free-account-modal-phone" type="text" autocomplete="tel" placeholder="+1 555 000 0000" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+        </div>
+
+        <div>
+          <label for="free-account-modal-country-flag" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Country</label>
+          <select id="free-account-modal-country-flag" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+            <option value="us" selected>United States</option>
+            <option value="ph">Philippines</option>
+            <option value="ca">Canada</option>
+            <option value="mx">Mexico</option>
+            <option value="gb">United Kingdom</option>
+            <option value="au">Australia</option>
+            <option value="nz">New Zealand</option>
+            <option value="sg">Singapore</option>
+            <option value="my">Malaysia</option>
+            <option value="id">Indonesia</option>
+            <option value="th">Thailand</option>
+            <option value="vn">Vietnam</option>
+            <option value="jp">Japan</option>
+            <option value="kr">South Korea</option>
+            <option value="ae">United Arab Emirates</option>
+          </select>
+        </div>
+
+        <label for="free-account-modal-terms-agreement" class="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700">
+          <input id="free-account-modal-terms-agreement" type="checkbox" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+          <span>I have read and agree to the Terms and Agreements.</span>
+        </label>
+        <div id="free-account-modal-legal-documents" class="hidden rounded-lg border border-slate-200 bg-white px-3 py-3 text-xs leading-6 text-slate-600"></div>
+
+        <p id="free-account-registration-feedback" class="hidden text-sm"></p>
+
+        <div class="flex flex-wrap gap-2 pt-1">
+          <button id="free-account-modal-pay-button" type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500">Pay Checkout</button>
+          <button type="button" data-free-account-modal-close class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Cancel</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="header-login-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/60" data-login-modal-close></div>
+    <section class="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Account Access</p>
+          <h2 class="mt-1 text-xl font-bold text-slate-900">Choose Your Login</h2>
+          <p class="mt-1 text-sm text-slate-600">Select the account type you want to access.</p>
+        </div>
+        <button type="button" data-login-modal-close class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">Close</button>
+      </div>
+      <div class="mt-4 grid gap-3">
+        <a id="header-login-member-link" href="/login.html" class="rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">Member Login</a>
+        <a id="header-login-preferred-link" href="/store-login.html" class="rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">Preferred Account Login</a>
+      </div>
+      <p class="mt-4 text-sm text-slate-600">
+        Don't have an account?
+        <a id="header-login-register-link" href="/store-register.html" class="font-semibold text-emerald-700 underline hover:text-emerald-600">Register now</a>
+        to get 15% discount on your checkout.
+      </p>
+    </section>
+  </div>
+
+  <div id="checkout-success-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/60" data-success-close></div>
+    <section class="relative z-10 w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Order Confirmed</p>
+          <h2 class="mt-1 text-xl font-bold text-slate-900">Thank you for your purchase</h2>
+          <p class="mt-1 text-sm text-slate-600">Your payment is complete. Invoice summary is below.</p>
+        </div>
+        <button type="button" data-success-close class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">Close</button>
+      </div>
+
+      <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div class="grid grid-cols-2 gap-2 text-sm">
+          <p class="text-slate-500">Invoice</p>
+          <p id="success-invoice-id" class="text-right font-semibold text-slate-900">--</p>
+          <p class="text-slate-500">Status</p>
+          <p id="success-invoice-status" class="text-right font-semibold text-slate-900">--</p>
+          <p class="text-slate-500">Amount</p>
+          <p id="success-invoice-amount" class="text-right font-semibold text-slate-900">$0.00</p>
+          <p class="text-slate-500">Discount</p>
+          <p id="success-invoice-discount" class="text-right font-semibold text-slate-900">$0.00</p>
+          <p class="text-slate-500">BV</p>
+          <p id="success-invoice-bp" class="text-right font-semibold text-slate-900">0 BP</p>
+          <p class="text-slate-500">Date</p>
+          <p id="success-invoice-date" class="text-right font-semibold text-slate-900">--</p>
+        </div>
+      </div>
+
+      <div id="success-setup-wrap" class="mt-4 hidden rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+        <p class="text-sm font-semibold text-emerald-800">Free Account Setup Link</p>
+        <a id="success-setup-link" href="#" target="_blank" rel="noopener noreferrer" class="mt-1 block break-all text-sm text-emerald-700 underline hover:text-emerald-600"></a>
+      </div>
+
+      <p id="success-secondary-note" class="mt-3 text-xs text-slate-500"></p>
+
+      <div class="mt-5 flex flex-wrap gap-2">
+        <button type="button" data-success-close class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500">Continue</button>
+        <a id="success-preferred-login" href="/store-login.html" class="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">Free Member Login</a>
+        <a id="success-back-to-products" href="/store.html" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Back to products</a>
+      </div>
+    </section>
+  </div>
+
+  <script src="/storefront-shared.js"></script>
+  <script>
+    const shared = window.StorefrontShared;
+
+    const navProductsLinkElement = document.getElementById('nav-products-link');
+    const navSupportLinkElement = document.getElementById('nav-support-link');
+    const backToProductsElement = document.getElementById('back-to-products');
+    const headerLoginTriggerElement = document.getElementById('header-login-trigger');
+    const headerLoginModalElement = document.getElementById('header-login-modal');
+    const headerLoginMemberLinkElement = document.getElementById('header-login-member-link');
+    const headerLoginPreferredLinkElement = document.getElementById('header-login-preferred-link');
+    const headerLoginRegisterLinkElement = document.getElementById('header-login-register-link');
+    const headerLoginModalCloseElements = Array.from(document.querySelectorAll('[data-login-modal-close]'));
+
+    const cartItemCountElement = document.getElementById('cart-item-count');
+    const cartEmptyStateElement = document.getElementById('cart-empty-state');
+    const cartItemsListElement = document.getElementById('cart-items-list');
+    const cartSubtotalElement = document.getElementById('cart-subtotal');
+    const cartDiscountRowElement = document.getElementById('cart-discount-row');
+    const cartDiscountElement = document.getElementById('cart-discount');
+    const cartTotalElement = document.getElementById('cart-total');
+
+    const checkoutFormElement = document.getElementById('checkout-form');
+    const placeOrderButtonElement = document.getElementById('place-order-button');
+    const checkoutFeedbackElement = document.getElementById('checkout-feedback');
+    const storeCodeLockupElement = document.getElementById('store-code-lockup');
+    const storeCodeInputElement = document.getElementById('store-code');
+    const buyerNameInputElement = document.getElementById('buyer-name');
+    const buyerEmailInputElement = document.getElementById('buyer-email');
+    const checkoutModeInputElements = Array.from(document.querySelectorAll('input[name="checkoutMode"]'));
+    const freeAccountHintElement = document.getElementById('free-account-hint');
+    const freeAccountMemberUsernameInputElement = document.getElementById('free-account-member-username');
+    const freeAccountPhoneInputElement = document.getElementById('free-account-phone');
+    const freeAccountCountryFlagInputElement = document.getElementById('free-account-country-flag');
+    const freeAccountNotesInputElement = document.getElementById('free-account-notes');
+    const freeAccountRegistrationModalElement = document.getElementById('free-account-registration-modal');
+    const freeAccountRegistrationFormElement = document.getElementById('free-account-registration-form');
+    const freeAccountRegistrationFeedbackElement = document.getElementById('free-account-registration-feedback');
+    const freeAccountModalNameInputElement = document.getElementById('free-account-modal-name');
+    const freeAccountModalEmailInputElement = document.getElementById('free-account-modal-email');
+    const freeAccountModalUsernameInputElement = document.getElementById('free-account-modal-username');
+    const freeAccountModalPhoneInputElement = document.getElementById('free-account-modal-phone');
+    const freeAccountModalCountryFlagInputElement = document.getElementById('free-account-modal-country-flag');
+    const freeAccountModalTermsAgreementInputElement = document.getElementById('free-account-modal-terms-agreement');
+    const freeAccountModalLegalDocumentsElement = document.getElementById('free-account-modal-legal-documents');
+    const freeAccountModalPayButtonElement = document.getElementById('free-account-modal-pay-button');
+    const freeAccountModalCloseButtons = Array.from(document.querySelectorAll('[data-free-account-modal-close]'));
+    const cardErrorElement = document.getElementById('card-error');
+    const cardElementMountNode = document.getElementById('card-element');
+    const checkoutSuccessModalElement = document.getElementById('checkout-success-modal');
+    const successInvoiceIdElement = document.getElementById('success-invoice-id');
+    const successInvoiceStatusElement = document.getElementById('success-invoice-status');
+    const successInvoiceAmountElement = document.getElementById('success-invoice-amount');
+    const successInvoiceDiscountElement = document.getElementById('success-invoice-discount');
+    const successInvoiceBpElement = document.getElementById('success-invoice-bp');
+    const successInvoiceDateElement = document.getElementById('success-invoice-date');
+    const successSetupWrapElement = document.getElementById('success-setup-wrap');
+    const successSetupLinkElement = document.getElementById('success-setup-link');
+    const successSecondaryNoteElement = document.getElementById('success-secondary-note');
+    const successPreferredLoginElement = document.getElementById('success-preferred-login');
+    const successBackToProductsElement = document.getElementById('success-back-to-products');
+    const successCloseButtons = Array.from(document.querySelectorAll('[data-success-close]'));
+
+    const DEFAULT_SUBMIT_LABEL_GUEST = 'Pay Now';
+    const DEFAULT_SUBMIT_LABEL_FREE = 'Register and Pay';
+    const FREE_ACCOUNT_MODAL_SUBMIT_LABEL_PAY = 'Pay Checkout';
+    const FREE_ACCOUNT_MODAL_SUBMIT_LABEL_REGISTER = 'Register';
+    const STRIPE_LOADING_LABEL = 'Loading secure payment...';
+    const FREE_ACCOUNT_USERNAME_PATTERN = /^[a-zA-Z0-9._-]{3,24}$/;
+    const REGISTRATION_DRAFT_STORAGE_KEY = 'charge-free-account-registration-draft-v1';
+    const LEGAL_DOCUMENT_META = [
+      { key: 'termsOfService', label: 'Terms of Service' },
+      { key: 'agreement', label: 'Agreement' },
+      { key: 'shippingPolicy', label: 'Shipping Policy' },
+      { key: 'refundPolicy', label: 'Refund Policy' },
+    ];
+
+    let storeProducts = [];
+    let activeStoreCode = '';
+    let isCheckoutPending = false;
+    let isStripeReady = false;
+    let stripeClient = null;
+    let stripeCardElement = null;
+    let shouldPromptFreeAccountRegistration = false;
+
+    function safeStorageGet(storage, key) {
+      try {
+        if (!storage) {
+          return null;
+        }
+        return storage.getItem(key);
+      } catch {
+        return null;
+      }
+    }
+
+    function safeStorageRemove(storage, key) {
+      try {
+        if (!storage) {
+          return false;
+        }
+        storage.removeItem(key);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function readRegistrationDraft() {
+      const rawDraft = safeStorageGet(window.sessionStorage, REGISTRATION_DRAFT_STORAGE_KEY)
+        || safeStorageGet(window.localStorage, REGISTRATION_DRAFT_STORAGE_KEY);
+      if (!rawDraft) {
+        return null;
+      }
+      try {
+        const parsedDraft = JSON.parse(rawDraft);
+        return parsedDraft && typeof parsedDraft === 'object' ? parsedDraft : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function clearRegistrationDraft() {
+      safeStorageRemove(window.sessionStorage, REGISTRATION_DRAFT_STORAGE_KEY);
+      safeStorageRemove(window.localStorage, REGISTRATION_DRAFT_STORAGE_KEY);
+    }
+
+    function resolveRouteCheckoutOptions() {
+      const queryParams = new URLSearchParams(window.location.search);
+      const modeParam = String(queryParams.get('mode') || '').trim().toLowerCase();
+      const registerParam = String(queryParams.get('register') || '').trim().toLowerCase();
+
+      return {
+        storeCode: shared.normalizeStoreCode(queryParams.get('store')),
+        shouldUseFreeAccount: modeParam === shared.CHECKOUT_MODE_FREE_ACCOUNT,
+        shouldPromptRegistration: registerParam === '1' || registerParam === 'true' || registerParam === 'yes',
+      };
+    }
+
+    function syncAuthLinks() {
+      const sessionUser = shared.readUserSession();
+      const hasSession = Boolean(sessionUser && typeof sessionUser === 'object');
+      const isFreeSession = shared.isFreeAccountUser(sessionUser);
+
+      if (headerLoginPreferredLinkElement) {
+        headerLoginPreferredLinkElement.href = isFreeSession
+          ? shared.buildDashboardUrl(activeStoreCode)
+          : shared.buildFreeLoginUrl(activeStoreCode);
+        headerLoginPreferredLinkElement.textContent = isFreeSession ? 'My Dashboard' : 'Preferred Account Login';
+      }
+
+      if (headerLoginMemberLinkElement) {
+        headerLoginMemberLinkElement.href = hasSession && !isFreeSession ? '/index.html' : '/login.html';
+        headerLoginMemberLinkElement.textContent = hasSession && !isFreeSession ? 'Member Dashboard' : 'Member Login';
+      }
+
+      if (headerLoginRegisterLinkElement) {
+        headerLoginRegisterLinkElement.href = shared.buildRegisterUrl(activeStoreCode);
+      }
+    }
+
+    function hideHeaderLoginModal() {
+      if (!headerLoginModalElement) {
+        return;
+      }
+      headerLoginModalElement.classList.add('hidden');
+      headerLoginModalElement.classList.remove('flex');
+    }
+
+    function showHeaderLoginModal() {
+      if (!headerLoginModalElement) {
+        return;
+      }
+      syncAuthLinks();
+      headerLoginModalElement.classList.remove('hidden');
+      headerLoginModalElement.classList.add('flex');
+    }
+
+    function bindHeaderLoginModal() {
+      if (headerLoginTriggerElement) {
+        headerLoginTriggerElement.addEventListener('click', showHeaderLoginModal);
+      }
+
+      headerLoginModalCloseElements.forEach((closeElement) => {
+        closeElement.addEventListener('click', hideHeaderLoginModal);
+      });
+    }
+
+    function setCheckoutFeedback(message, isError = false) {
+      if (!checkoutFeedbackElement) {
+        return;
+      }
+      checkoutFeedbackElement.textContent = message;
+      checkoutFeedbackElement.classList.remove('hidden', 'text-emerald-700', 'text-rose-600');
+      checkoutFeedbackElement.classList.add(isError ? 'text-rose-600' : 'text-emerald-700');
+    }
+
+    function clearCheckoutFeedback() {
+      if (!checkoutFeedbackElement) {
+        return;
+      }
+      checkoutFeedbackElement.classList.add('hidden');
+    }
+
+    function setFreeAccountRegistrationFeedback(message, isError = false) {
+      if (!freeAccountRegistrationFeedbackElement) {
+        return;
+      }
+
+      const normalizedMessage = String(message || '').trim();
+      if (!normalizedMessage) {
+        freeAccountRegistrationFeedbackElement.textContent = '';
+        freeAccountRegistrationFeedbackElement.classList.add('hidden');
+        return;
+      }
+
+      freeAccountRegistrationFeedbackElement.textContent = normalizedMessage;
+      freeAccountRegistrationFeedbackElement.classList.remove('hidden', 'text-emerald-700', 'text-rose-600');
+      freeAccountRegistrationFeedbackElement.classList.add(isError ? 'text-rose-600' : 'text-emerald-700');
+    }
+
+    function hideFreeAccountRegistrationModal() {
+      if (!freeAccountRegistrationModalElement) {
+        return;
+      }
+      freeAccountRegistrationModalElement.classList.add('hidden');
+      freeAccountRegistrationModalElement.classList.remove('flex');
+      setFreeAccountRegistrationFeedback('');
+    }
+
+    function showFreeAccountRegistrationModal(options = {}) {
+      if (!freeAccountRegistrationModalElement) {
+        return;
+      }
+      const isRegisterEntry = Boolean(options.registerEntry);
+
+      if (freeAccountModalNameInputElement && buyerNameInputElement) {
+        freeAccountModalNameInputElement.value = String(buyerNameInputElement.value || '').trim();
+      }
+      if (freeAccountModalEmailInputElement && buyerEmailInputElement) {
+        freeAccountModalEmailInputElement.value = String(buyerEmailInputElement.value || '').trim();
+      }
+      if (freeAccountModalUsernameInputElement && freeAccountMemberUsernameInputElement) {
+        freeAccountModalUsernameInputElement.value = String(freeAccountMemberUsernameInputElement.value || '').trim();
+      }
+      if (freeAccountModalPhoneInputElement && freeAccountPhoneInputElement) {
+        freeAccountModalPhoneInputElement.value = String(freeAccountPhoneInputElement.value || '').trim();
+      }
+      if (freeAccountModalCountryFlagInputElement && freeAccountCountryFlagInputElement) {
+        const existingCountryFlag = String(freeAccountCountryFlagInputElement.value || '').trim().toLowerCase() || 'us';
+        freeAccountModalCountryFlagInputElement.value = existingCountryFlag;
+      }
+      if (freeAccountModalTermsAgreementInputElement) {
+        freeAccountModalTermsAgreementInputElement.checked = false;
+      }
+      if (freeAccountModalPayButtonElement) {
+        freeAccountModalPayButtonElement.disabled = false;
+        freeAccountModalPayButtonElement.textContent = isRegisterEntry
+          ? FREE_ACCOUNT_MODAL_SUBMIT_LABEL_REGISTER
+          : FREE_ACCOUNT_MODAL_SUBMIT_LABEL_PAY;
+        freeAccountModalPayButtonElement.dataset.modalIntent = isRegisterEntry ? 'register' : 'pay';
+      }
+
+      setFreeAccountRegistrationFeedback('');
+      freeAccountRegistrationModalElement.classList.remove('hidden');
+      freeAccountRegistrationModalElement.classList.add('flex');
+      freeAccountModalNameInputElement?.focus({ preventScroll: true });
+    }
+
+    function captureFreeAccountRegistrationFromModal() {
+      const buyerName = String(freeAccountModalNameInputElement?.value || '').trim();
+      const buyerEmail = String(freeAccountModalEmailInputElement?.value || '').trim();
+      const memberUsername = String(freeAccountModalUsernameInputElement?.value || '').trim();
+      const phone = String(freeAccountModalPhoneInputElement?.value || '').trim();
+      const countryFlag = String(freeAccountModalCountryFlagInputElement?.value || 'us').trim().toLowerCase() || 'us';
+
+      if (!buyerName) {
+        return {
+          ok: false,
+          message: 'Full name is required.',
+        };
+      }
+
+      if (!buyerEmail || !buyerEmail.includes('@')) {
+        return {
+          ok: false,
+          message: 'Valid email address is required.',
+        };
+      }
+
+      if (!memberUsername) {
+        return {
+          ok: false,
+          message: 'Username is required for Free Account registration.',
+        };
+      }
+
+      if (!FREE_ACCOUNT_USERNAME_PATTERN.test(memberUsername)) {
+        return {
+          ok: false,
+          message: 'Username must be 3-24 characters and can include letters, numbers, dot, underscore, and dash.',
+        };
+      }
+
+      if (!freeAccountModalTermsAgreementInputElement?.checked) {
+        return {
+          ok: false,
+          message: 'Please read and accept the Terms and Agreements before registering.',
+        };
+      }
+
+      if (buyerNameInputElement) {
+        buyerNameInputElement.value = buyerName;
+      }
+      if (buyerEmailInputElement) {
+        buyerEmailInputElement.value = buyerEmail;
+      }
+      if (freeAccountMemberUsernameInputElement) {
+        freeAccountMemberUsernameInputElement.value = memberUsername;
+      }
+      if (freeAccountPhoneInputElement) {
+        freeAccountPhoneInputElement.value = phone;
+      }
+      if (freeAccountCountryFlagInputElement) {
+        freeAccountCountryFlagInputElement.value = countryFlag;
+      }
+      return {
+        ok: true,
+      };
+    }
+
+    function hasFreeAccountRegistrationDetails() {
+      const buyerName = String(buyerNameInputElement?.value || '').trim();
+      const buyerEmail = String(buyerEmailInputElement?.value || '').trim();
+      const memberUsername = String(freeAccountMemberUsernameInputElement?.value || '').trim();
+
+      if (!buyerName || !buyerEmail.includes('@') || !memberUsername) {
+        return false;
+      }
+      return FREE_ACCOUNT_USERNAME_PATTERN.test(memberUsername);
+    }
+
+    function renderFreeAccountModalLegalDocuments(legalDocuments) {
+      if (!freeAccountModalLegalDocumentsElement) {
+        return;
+      }
+
+      const normalizedLegalDocuments = shared.normalizeLegalDocuments(legalDocuments);
+      const sections = LEGAL_DOCUMENT_META
+        .map(({ key, label }) => {
+          const content = String(normalizedLegalDocuments?.[key] || '').trim();
+          if (!content) {
+            return '';
+          }
+
+          const escapedTitle = shared.escapeHtml(label);
+          const sanitizedContentHtml = shared.sanitizeLegalHtml(content);
+          if (!sanitizedContentHtml) {
+            return '';
+          }
+          return `
+            <section>
+              <h3 class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">${escapedTitle}</h3>
+              <div class="mt-1 space-y-2 text-xs leading-6 text-slate-600">${sanitizedContentHtml}</div>
+            </section>
+          `;
+        })
+        .filter(Boolean);
+
+      if (sections.length === 0) {
+        freeAccountModalLegalDocumentsElement.classList.add('hidden');
+        freeAccountModalLegalDocumentsElement.innerHTML = '';
+        return;
+      }
+
+      freeAccountModalLegalDocumentsElement.classList.remove('hidden');
+      freeAccountModalLegalDocumentsElement.innerHTML = `
+        <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Legal Documents</p>
+        <div class="mt-2 space-y-3">${sections.join('')}</div>
+      `;
+    }
+
+    async function hydrateFreeAccountModalLegalDocuments() {
+      const result = await shared.fetchLegalDocuments();
+      renderFreeAccountModalLegalDocuments(result.legal);
+    }
+
+    function applyRegistrationDraftToCheckout(draft) {
+      if (!draft || typeof draft !== 'object') {
+        return false;
+      }
+
+      const fields = draft.fields && typeof draft.fields === 'object' ? draft.fields : null;
+      if (!fields) {
+        return false;
+      }
+
+      if (buyerNameInputElement && !String(buyerNameInputElement.value || '').trim()) {
+        buyerNameInputElement.value = String(fields.buyerName || '').trim();
+      }
+      if (buyerEmailInputElement && !String(buyerEmailInputElement.value || '').trim()) {
+        buyerEmailInputElement.value = String(fields.buyerEmail || '').trim();
+      }
+      if (freeAccountMemberUsernameInputElement) {
+        freeAccountMemberUsernameInputElement.value = String(fields.freeAccountMemberUsername || '').trim();
+      }
+      if (freeAccountPhoneInputElement) {
+        freeAccountPhoneInputElement.value = String(fields.freeAccountPhone || '').trim();
+      }
+      if (freeAccountCountryFlagInputElement) {
+        freeAccountCountryFlagInputElement.value = String(fields.freeAccountCountryFlag || 'us').trim().toLowerCase() || 'us';
+      }
+      if (freeAccountNotesInputElement) {
+        freeAccountNotesInputElement.value = String(fields.freeAccountNotes || '').trim();
+      }
+
+      return true;
+    }
+
+    function setCardError(message = '') {
+      if (!cardErrorElement) {
+        return;
+      }
+
+      const normalizedMessage = String(message || '').trim();
+      if (!normalizedMessage) {
+        cardErrorElement.textContent = '';
+        cardErrorElement.classList.add('hidden');
+        return;
+      }
+
+      cardErrorElement.textContent = normalizedMessage;
+      cardErrorElement.classList.remove('hidden');
+    }
+
+    function resolveSubmitButtonLabel() {
+      if (!isStripeReady) {
+        return STRIPE_LOADING_LABEL;
+      }
+
+      return resolveSelectedCheckoutMode() === shared.CHECKOUT_MODE_FREE_ACCOUNT
+        ? DEFAULT_SUBMIT_LABEL_FREE
+        : DEFAULT_SUBMIT_LABEL_GUEST;
+    }
+
+    function setCheckoutButtonState(disabled, label = resolveSubmitButtonLabel()) {
+      if (!placeOrderButtonElement) {
+        return;
+      }
+      placeOrderButtonElement.disabled = Boolean(disabled);
+      placeOrderButtonElement.textContent = label;
+    }
+
+    function formatCheckoutDate(value) {
+      const parsedMs = Date.parse(String(value || ''));
+      if (!Number.isFinite(parsedMs)) {
+        return '--';
+      }
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(parsedMs));
+    }
+
+    function hideCheckoutSuccessModal() {
+      if (!checkoutSuccessModalElement) {
+        return;
+      }
+      checkoutSuccessModalElement.classList.add('hidden');
+      checkoutSuccessModalElement.classList.remove('flex');
+    }
+
+    function showCheckoutSuccessModal(completion) {
+      if (!checkoutSuccessModalElement) {
+        return;
+      }
+
+      const invoice = completion?.invoice || completion?.payload?.invoice || {};
+      const preferredCustomer = completion?.payload?.preferredCustomer || {};
+
+      if (successInvoiceIdElement) {
+        successInvoiceIdElement.textContent = String(invoice?.id || '--');
+      }
+      if (successInvoiceStatusElement) {
+        successInvoiceStatusElement.textContent = String(invoice?.status || 'Posted');
+      }
+      if (successInvoiceAmountElement) {
+        successInvoiceAmountElement.textContent = shared.formatCurrency(Number(invoice?.amount || 0));
+      }
+      if (successInvoiceDiscountElement) {
+        successInvoiceDiscountElement.textContent = shared.formatCurrency(Number(invoice?.discount || 0));
+      }
+      if (successInvoiceBpElement) {
+        successInvoiceBpElement.textContent = `${shared.formatInteger(Number(invoice?.bp || 0))} BP`;
+      }
+      if (successInvoiceDateElement) {
+        successInvoiceDateElement.textContent = formatCheckoutDate(invoice?.createdAt);
+      }
+
+      const setupLink = String(preferredCustomer?.setupLink || '').trim();
+      if (successSetupWrapElement && successSetupLinkElement) {
+        if (setupLink && /^\/(?:password-setup|store-password-setup)\.html\?token=/.test(setupLink)) {
+          successSetupWrapElement.classList.remove('hidden');
+          successSetupLinkElement.href = setupLink;
+          successSetupLinkElement.textContent = setupLink;
+        } else {
+          successSetupWrapElement.classList.add('hidden');
+          successSetupLinkElement.href = '#';
+          successSetupLinkElement.textContent = '';
+        }
+      }
+
+      if (successSecondaryNoteElement) {
+        const usedFallbackStaffAttribution = !activeStoreCode && preferredCustomer?.ok === true;
+        if (usedFallbackStaffAttribution) {
+          successSecondaryNoteElement.textContent = setupLink
+            ? 'No referral link was used. This Free Account is temporarily attributed to authorized staff until reassignment.'
+            : 'No referral link was used. This Free Account is temporarily attributed to authorized staff until reassignment after first sign-in.';
+        } else {
+          successSecondaryNoteElement.textContent = setupLink
+            ? 'You can also use this setup link from Free Member Login.'
+            : 'If you selected Free Account, setup-link access is available from Free Member Login after first sign-in attempt.';
+        }
+      }
+
+      if (successBackToProductsElement) {
+        successBackToProductsElement.href = shared.buildStorefrontUrl(activeStoreCode);
+      }
+      if (successPreferredLoginElement) {
+        const preferredLoginUrl = new URL('/store-login.html', window.location.origin);
+        if (activeStoreCode) {
+          preferredLoginUrl.searchParams.set('store', activeStoreCode);
+        }
+        successPreferredLoginElement.href = `${preferredLoginUrl.pathname}${preferredLoginUrl.search}`;
+      }
+
+      checkoutSuccessModalElement.classList.remove('hidden');
+      checkoutSuccessModalElement.classList.add('flex');
+    }
+
+    function syncLinks() {
+      const productsUrl = shared.buildStorefrontUrl(activeStoreCode);
+      const supportUrl = shared.buildSupportUrl(activeStoreCode);
+      if (navProductsLinkElement) {
+        navProductsLinkElement.href = productsUrl;
+      }
+      if (navSupportLinkElement) {
+        navSupportLinkElement.href = supportUrl;
+      }
+      if (backToProductsElement) {
+        backToProductsElement.href = productsUrl;
+      }
+      syncAuthLinks();
+    }
+
+    function renderCart() {
+      const cartLines = shared.getCart(storeProducts);
+      const summary = shared.resolveCartSummary(cartLines, storeProducts, {
+        discountPercent: resolveSelectedDiscountPercent(),
+      });
+
+      if (cartItemCountElement) {
+        cartItemCountElement.textContent = `${shared.formatInteger(summary.itemCount)} items`;
+      }
+      if (cartSubtotalElement) {
+        cartSubtotalElement.textContent = shared.formatCurrency(summary.subtotal);
+      }
+      if (cartDiscountElement) {
+        cartDiscountElement.textContent = `-${shared.formatCurrency(summary.discount)}`;
+      }
+      if (cartTotalElement) {
+        cartTotalElement.textContent = shared.formatCurrency(summary.total);
+      }
+
+      const isCheckoutDisabled = cartLines.length === 0 || isCheckoutPending || !isStripeReady;
+      const label = resolveSubmitButtonLabel();
+      setCheckoutButtonState(isCheckoutDisabled, label);
+
+      if (!cartItemsListElement || !cartEmptyStateElement) {
+        return;
+      }
+
+      if (cartLines.length === 0) {
+        cartEmptyStateElement.classList.remove('hidden');
+        cartItemsListElement.innerHTML = '';
+        return;
+      }
+
+      cartEmptyStateElement.classList.add('hidden');
+      cartItemsListElement.innerHTML = cartLines.map((line) => {
+        const product = shared.resolveProductById(storeProducts, line.productId);
+        if (!product) {
+          return '';
+        }
+
+        const lineTotal = shared.roundCurrency(product.price * line.quantity);
+        const productUrl = shared.buildProductUrl(product.id, activeStoreCode);
+
+        return `
+          <article class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <a href="${productUrl}" class="text-sm font-semibold text-slate-900 hover:text-emerald-700 hover:underline">${shared.escapeHtml(product.title)}</a>
+                <p class="mt-1 text-xs text-slate-600">${shared.formatCurrency(product.price)} each</p>
+              </div>
+              <p class="text-sm font-semibold text-slate-900">${shared.formatCurrency(lineTotal)}</p>
+            </div>
+
+            <div class="mt-3 flex items-center gap-2">
+              <button type="button" data-cart-action="decrease" data-product-id="${shared.escapeHtml(product.id)}" class="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 hover:bg-slate-100">-</button>
+              <span class="text-xs font-medium text-slate-700">${shared.formatInteger(line.quantity)}</span>
+              <button type="button" data-cart-action="increase" data-product-id="${shared.escapeHtml(product.id)}" class="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 hover:bg-slate-100">+</button>
+              <button type="button" data-cart-action="remove" data-product-id="${shared.escapeHtml(product.id)}" class="ml-auto rounded border border-rose-300 bg-rose-50 px-2 py-1 text-xs text-rose-600 hover:bg-rose-100">Remove</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function bindCartEvents() {
+      if (!cartItemsListElement) {
+        return;
+      }
+
+      cartItemsListElement.addEventListener('click', (event) => {
+        const actionButton = event.target.closest('[data-cart-action]');
+        if (!actionButton) {
+          return;
+        }
+
+        const action = actionButton.dataset.cartAction;
+        const productId = actionButton.dataset.productId;
+        if (!action || !productId) {
+          return;
+        }
+
+        const cartLines = shared.getCart(storeProducts);
+        const line = cartLines.find((entry) => entry.productId === productId);
+        if (!line && action !== 'remove') {
+          return;
+        }
+
+        if (action === 'increase') {
+          shared.updateCartQuantity(productId, (line?.quantity || 0) + 1, storeProducts);
+        } else if (action === 'decrease') {
+          shared.updateCartQuantity(productId, Math.max(0, (line?.quantity || 0) - 1), storeProducts);
+        } else if (action === 'remove') {
+          shared.removeFromCart(productId, storeProducts);
+        }
+
+        clearCheckoutFeedback();
+        setCardError('');
+        renderCart();
+      });
+    }
+
+    function getCheckoutFormFields() {
+      const formData = new FormData(checkoutFormElement);
+      return {
+        buyerName: String(formData.get('buyerName') || '').trim(),
+        buyerEmail: String(formData.get('buyerEmail') || '').trim(),
+        shippingAddress: String(formData.get('shippingAddress') || '').trim(),
+        shippingMode: String(formData.get('shippingMode') || 'Standard Shipping').trim(),
+        freeAccountMemberUsername: String(formData.get('freeAccountMemberUsername') || '').trim(),
+        freeAccountPhone: String(formData.get('freeAccountPhone') || '').trim(),
+        freeAccountCountryFlag: String(formData.get('freeAccountCountryFlag') || 'us').trim(),
+        freeAccountNotes: String(formData.get('freeAccountNotes') || '').trim(),
+      };
+    }
+
+    function resolveSelectedCheckoutMode() {
+      const selectedInput = checkoutModeInputElements.find((input) => input.checked);
+      const selectedValue = String(selectedInput?.value || '').trim().toLowerCase();
+      return selectedValue === shared.CHECKOUT_MODE_FREE_ACCOUNT
+        ? shared.CHECKOUT_MODE_FREE_ACCOUNT
+        : shared.CHECKOUT_MODE_GUEST;
+    }
+
+    function resolveSelectedDiscountPercent() {
+      return resolveSelectedCheckoutMode() === shared.CHECKOUT_MODE_FREE_ACCOUNT
+        ? shared.PUBLIC_DISCOUNT_PERCENT
+        : 0;
+    }
+
+    function syncStoreCodeUi() {
+      const hasStoreCode = Boolean(activeStoreCode);
+
+      if (storeCodeLockupElement) {
+        storeCodeLockupElement.classList.toggle('hidden', !hasStoreCode);
+      }
+
+      if (storeCodeInputElement) {
+        storeCodeInputElement.value = hasStoreCode ? activeStoreCode : '';
+      }
+    }
+
+    function syncCheckoutModeUi() {
+      const selectedMode = resolveSelectedCheckoutMode();
+      const isFreeAccountMode = selectedMode === shared.CHECKOUT_MODE_FREE_ACCOUNT;
+      const discountPercent = resolveSelectedDiscountPercent();
+      const isDiscountActive = discountPercent > 0;
+
+      if (freeAccountHintElement) {
+        freeAccountHintElement.classList.toggle('hidden', !isFreeAccountMode);
+      }
+      if (cartDiscountRowElement) {
+        cartDiscountRowElement.classList.toggle('hidden', !isDiscountActive);
+        cartDiscountRowElement.classList.toggle('flex', isDiscountActive);
+      }
+      syncStoreCodeUi();
+
+      renderCart();
+    }
+
+    async function initializeStripeCheckout() {
+      if (typeof window.Stripe !== 'function') {
+        setCheckoutFeedback('Stripe.js failed to load. Refresh and try again.', true);
+        return;
+      }
+
+      const configResult = await shared.fetchCheckoutConfig();
+      if (!configResult.ok) {
+        setCheckoutFeedback(configResult.message || 'Unable to load Stripe checkout.', true);
+        return;
+      }
+
+      try {
+        stripeClient = window.Stripe(configResult.publishableKey);
+        if (!stripeClient) {
+          throw new Error('Stripe client could not be initialized.');
+        }
+
+        const elements = stripeClient.elements({
+          appearance: {
+            theme: 'stripe',
+          },
+        });
+        stripeCardElement = elements.create('card', {
+          hidePostalCode: true,
+        });
+
+        if (!cardElementMountNode) {
+          throw new Error('Payment card container is missing.');
+        }
+
+        stripeCardElement.mount(cardElementMountNode);
+        stripeCardElement.on('change', (event) => {
+          setCardError(event?.error?.message || '');
+        });
+
+        isStripeReady = true;
+        clearCheckoutFeedback();
+      } catch (error) {
+        console.warn('Unable to initialize Stripe Elements:', error);
+        setCheckoutFeedback('Unable to initialize secure card checkout.', true);
+      }
+
+      renderCart();
+    }
+
+    async function processEmbeddedCheckout() {
+      if (!stripeClient || !stripeCardElement || !isStripeReady) {
+        setCheckoutFeedback('Secure payment form is still loading. Please wait a moment.', true);
+        return;
+      }
+
+      const checkoutFields = getCheckoutFormFields();
+      const checkoutMode = resolveSelectedCheckoutMode();
+      const discountPercent = resolveSelectedDiscountPercent();
+      isCheckoutPending = true;
+      setCardError('');
+      setCheckoutButtonState(true, 'Preparing payment...');
+
+      const intentResult = await shared.createCheckoutPaymentIntent({
+        products: storeProducts,
+        storeCode: activeStoreCode,
+        checkoutMode,
+        discountPercent,
+        checkoutFields,
+      });
+
+      if (!intentResult.ok) {
+        isCheckoutPending = false;
+        setCheckoutFeedback(intentResult.message || 'Unable to start Stripe payment.', true);
+        renderCart();
+        return;
+      }
+
+      setCheckoutFeedback('Confirming your payment with Stripe...', false);
+      setCheckoutButtonState(true, 'Confirming card...');
+
+      const { error: stripeError, paymentIntent } = await stripeClient.confirmCardPayment(
+        intentResult.clientSecret,
+        {
+          payment_method: {
+            card: stripeCardElement,
+            billing_details: {
+              name: checkoutFields.buyerName,
+              email: checkoutFields.buyerEmail,
+              address: {
+                line1: checkoutFields.shippingAddress,
+              },
+            },
+          },
+        },
+      );
+
+      if (stripeError) {
+        isCheckoutPending = false;
+        setCardError(stripeError.message || 'Payment could not be confirmed.');
+        setCheckoutFeedback('Payment failed. Please verify your details and try again.', true);
+        renderCart();
+        return;
+      }
+
+      const finalizedIntentId = String(paymentIntent?.id || intentResult.paymentIntentId || '').trim();
+      if (!finalizedIntentId) {
+        isCheckoutPending = false;
+        setCheckoutFeedback('Payment was submitted but confirmation ID is missing.', true);
+        renderCart();
+        return;
+      }
+
+      setCheckoutButtonState(true, 'Finalizing order...');
+      setCheckoutFeedback('Finalizing your order...', false);
+
+      const completion = await shared.completeCheckoutPaymentIntent(finalizedIntentId);
+      if (!completion.ok) {
+        isCheckoutPending = false;
+        setCheckoutFeedback(completion.message || 'Unable to finalize payment.', true);
+        renderCart();
+        return;
+      }
+
+      if (!completion.completed) {
+        isCheckoutPending = false;
+        setCheckoutFeedback(completion.message || 'Payment is processing. Please refresh shortly.', false);
+        renderCart();
+        return;
+      }
+
+      if (checkoutFormElement) {
+        checkoutFormElement.reset();
+      }
+      syncStoreCodeUi();
+      if (stripeCardElement) {
+        stripeCardElement.clear();
+      }
+
+      setCardError('');
+      setCheckoutFeedback(completion.message || 'Payment confirmed successfully.', false);
+      showCheckoutSuccessModal(completion);
+      if (checkoutMode === shared.CHECKOUT_MODE_FREE_ACCOUNT) {
+        clearRegistrationDraft();
+      }
+      isCheckoutPending = false;
+      syncCheckoutModeUi();
+      renderCart();
+    }
+
+    function bindCheckoutForm() {
+      if (!checkoutFormElement) {
+        return;
+      }
+
+      checkoutFormElement.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        syncStoreCodeUi();
+        syncLinks();
+
+        if (resolveSelectedCheckoutMode() === shared.CHECKOUT_MODE_FREE_ACCOUNT) {
+          if (hasFreeAccountRegistrationDetails()) {
+            await processEmbeddedCheckout();
+            return;
+          }
+          showFreeAccountRegistrationModal({ registerEntry: false });
+          return;
+        }
+
+        await processEmbeddedCheckout();
+      });
+    }
+
+    function bindFreeAccountRegistrationModal() {
+      freeAccountModalCloseButtons.forEach((button) => {
+        button.addEventListener('click', hideFreeAccountRegistrationModal);
+      });
+
+      if (freeAccountRegistrationModalElement) {
+        freeAccountRegistrationModalElement.addEventListener('click', (event) => {
+          if (event.target === freeAccountRegistrationModalElement) {
+            hideFreeAccountRegistrationModal();
+          }
+        });
+      }
+
+      if (!freeAccountRegistrationFormElement) {
+        return;
+      }
+
+      freeAccountRegistrationFormElement.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const captureResult = captureFreeAccountRegistrationFromModal();
+        if (!captureResult.ok) {
+          setFreeAccountRegistrationFeedback(captureResult.message || 'Unable to continue with registration.', true);
+          return;
+        }
+
+        hideFreeAccountRegistrationModal();
+        clearCheckoutFeedback();
+        setCardError('');
+        const modalIntent = String(freeAccountModalPayButtonElement?.dataset.modalIntent || 'pay').trim().toLowerCase();
+        const isRegisterIntent = modalIntent === 'register';
+        const cartLines = shared.getCart(storeProducts);
+        if (isRegisterIntent && cartLines.length === 0) {
+          setCheckoutFeedback('Registration details saved. Add products to cart, then click Register and Pay to complete checkout with your 15% discount.', false);
+          return;
+        }
+
+        if (freeAccountModalPayButtonElement) {
+          freeAccountModalPayButtonElement.disabled = true;
+        }
+
+        try {
+          await processEmbeddedCheckout();
+        } finally {
+          if (freeAccountModalPayButtonElement) {
+            freeAccountModalPayButtonElement.disabled = false;
+          }
+        }
+      });
+    }
+
+    function bindCheckoutModeInputs() {
+      checkoutModeInputElements.forEach((modeInput) => {
+        modeInput.addEventListener('change', () => {
+          clearCheckoutFeedback();
+          setCardError('');
+          syncCheckoutModeUi();
+        });
+      });
+    }
+
+    function bindCheckoutSuccessModal() {
+      successCloseButtons.forEach((button) => {
+        button.addEventListener('click', hideCheckoutSuccessModal);
+      });
+
+      if (checkoutSuccessModalElement) {
+        checkoutSuccessModalElement.addEventListener('click', (event) => {
+          if (event.target === checkoutSuccessModalElement) {
+            hideCheckoutSuccessModal();
+          }
+        });
+      }
+    }
+
+    function applyRouteCheckoutMode(shouldUseFreeAccount) {
+      if (!shouldUseFreeAccount) {
+        return;
+      }
+      const freeAccountInput = checkoutModeInputElements.find((input) => (
+        String(input?.value || '').trim().toLowerCase() === shared.CHECKOUT_MODE_FREE_ACCOUNT
+      ));
+      if (freeAccountInput) {
+        freeAccountInput.checked = true;
+      }
+    }
+
+    function maybePromptFreeAccountRegistration() {
+      if (!shouldPromptFreeAccountRegistration) {
+        return;
+      }
+      shouldPromptFreeAccountRegistration = false;
+
+      if (resolveSelectedCheckoutMode() !== shared.CHECKOUT_MODE_FREE_ACCOUNT) {
+        return;
+      }
+
+      const registrationDraft = readRegistrationDraft();
+      const applied = applyRegistrationDraftToCheckout(registrationDraft);
+
+      if (!applied) {
+        showFreeAccountRegistrationModal({ registerEntry: true });
+        return;
+      }
+
+      const cartLines = shared.getCart(storeProducts);
+      if (cartLines.length === 0) {
+        setCheckoutFeedback('Registration details loaded. Add products to cart, then click Register and Pay.', false);
+      } else {
+        setCheckoutFeedback('Registration details loaded. Review your cart and click Register and Pay to continue.', false);
+      }
+    }
+
+    async function initCheckoutPage() {
+      const routeOptions = resolveRouteCheckoutOptions();
+      activeStoreCode = routeOptions.storeCode;
+      shouldPromptFreeAccountRegistration = routeOptions.shouldPromptRegistration;
+      if (!activeStoreCode && shouldPromptFreeAccountRegistration) {
+        const registrationDraft = readRegistrationDraft();
+        const draftStoreCode = shared.normalizeStoreCode(registrationDraft?.storeCode || '');
+        if (draftStoreCode) {
+          activeStoreCode = draftStoreCode;
+        }
+      }
+      shared.setActiveStoreCode(activeStoreCode);
+      syncLinks();
+      syncStoreCodeUi();
+
+      try {
+        storeProducts = await shared.fetchProducts();
+      } catch (error) {
+        console.warn('Unable to load store products:', error);
+        storeProducts = [];
+      }
+
+      renderCart();
+      bindCartEvents();
+      bindCheckoutForm();
+      bindFreeAccountRegistrationModal();
+      bindCheckoutModeInputs();
+      applyRouteCheckoutMode(routeOptions.shouldUseFreeAccount);
+      syncCheckoutModeUi();
+      bindCheckoutSuccessModal();
+      bindHeaderLoginModal();
+      await hydrateFreeAccountModalLegalDocuments();
+      await initializeStripeCheckout();
+      maybePromptFreeAccountRegistration();
+    }
+
+    void initCheckoutPage();
+  </script>
+</body>
+</html>

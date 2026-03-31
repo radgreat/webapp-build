@@ -1,0 +1,1 @@
+Always use the Stripe MCP server when the task involves Stripe APIs, payments, webhooks, checkout, subscriptions, or Stripe documentation.

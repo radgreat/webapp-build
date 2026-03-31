@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premiere Life Store - Product Overview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+  <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      <div class="flex items-center">
+        <a href="/store.html" class="inline-flex items-center"><img src="/brand_assets/Logos/L%26D%20Logo_Cropped.png" alt="L&D logo" class="h-10 w-auto"></a>
+      </div>
+
+      <nav class="mt-3 flex flex-wrap items-center gap-5 text-sm font-medium text-slate-700">
+        <a href="/" class="transition hover:text-emerald-600">Home</a>
+        <a id="nav-products-link" href="/store.html" class="text-emerald-700">Products</a>
+        <a id="nav-support-link" href="/store-support.html" class="transition hover:text-emerald-600">Support</a>
+        <div class="ml-auto flex items-center gap-2">
+          <a id="header-checkout-link" href="/store-checkout.html" aria-label="Cart and checkout" class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5">
+              <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2zM7.17 13h9.92c.75 0 1.41-.41 1.75-1.03L22 6.5a1 1 0 0 0-.87-1.5H6.21l-.94-2H2v2h2l3.6 7.59L6.25 15c-.16.28-.25.61-.25.95 0 1.1.9 2 2 2h12v-2H8.42c-.14 0-.25-.11-.25-.25l.03-.12L9.1 14h7.55c.75 0 1.41-.41 1.75-1.03L21 8H8.53l-.45-1H19l-1.91 3.5H9.53l-2.36-5H20.3L17.17 13H7.17z"/>
+            </svg>
+            <span id="cart-count-top" class="absolute -right-1 -top-1 min-w-4 rounded-full bg-emerald-600 px-1 text-center text-[10px] font-semibold leading-4 text-white">0</span>
+            <span class="sr-only">Cart / Checkout</span>
+          </a>
+          <button id="header-login-trigger" type="button" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500 sm:text-sm">Login</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div>
+        <a id="back-to-products" href="/store.html" class="text-sm font-medium text-emerald-700 hover:underline">&larr; Back to Products</a>
+        <h1 class="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">Product Overview</h1>
+        <p class="mt-2 text-sm text-slate-600">Review product information, then add to cart or continue to checkout.</p>
+      </div>
+    </section>
+
+    <section id="product-shell" class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div id="product-not-found" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-6 text-sm text-rose-700">
+        Product not found. Please return to the products page.
+      </div>
+
+      <div id="product-content" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div class="space-y-3">
+          <img id="product-image" src="https://placehold.co/960x560?text=Product" alt="Product image" class="h-72 w-full rounded-xl border border-slate-200 object-cover sm:h-96">
+          <div id="product-image-thumbnails" class="hidden grid grid-cols-4 gap-2 sm:grid-cols-5"></div>
+        </div>
+
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Featured Item</p>
+          <h2 id="product-title" class="mt-2 text-2xl font-bold text-slate-900">Loading product...</h2>
+          <p id="product-price" class="mt-3 text-3xl font-bold text-emerald-700">$0.00</p>
+
+          <div class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <h3 class="text-sm font-semibold text-slate-900">Description</h3>
+            <div id="product-description-body" class="mt-3 space-y-3 text-sm leading-7 text-slate-700">
+              <p>Please wait while we load product details.</p>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <label for="product-quantity" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Quantity</label>
+            <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input id="product-quantity" type="number" min="1" value="1" class="w-28 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+              <button id="add-to-cart-button" type="button" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Add to Cart</button>
+              <a id="checkout-link" href="/store-checkout.html" class="rounded-lg bg-emerald-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-500">Go to Checkout</a>
+            </div>
+            <p id="action-feedback" class="mt-3 hidden text-sm"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="header-login-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/60" data-login-modal-close></div>
+    <section class="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Account Access</p>
+          <h2 class="mt-1 text-xl font-bold text-slate-900">Choose Your Login</h2>
+          <p class="mt-1 text-sm text-slate-600">Select the account type you want to access.</p>
+        </div>
+        <button type="button" data-login-modal-close class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">Close</button>
+      </div>
+      <div class="mt-4 grid gap-3">
+        <a id="header-login-member-link" href="/login.html" class="rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">Member Login</a>
+        <a id="header-login-preferred-link" href="/store-login.html" class="rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">Preferred Account Login</a>
+      </div>
+      <p class="mt-4 text-sm text-slate-600">
+        Don't have an account?
+        <a id="header-login-register-link" href="/store-register.html" class="font-semibold text-emerald-700 underline hover:text-emerald-600">Register now</a>
+        to get 15% discount on your checkout.
+      </p>
+    </section>
+  </div>
+
+  <script src="/storefront-shared.js"></script>
+  <script>
+    const shared = window.StorefrontShared;
+
+    const navProductsLinkElement = document.getElementById('nav-products-link');
+    const navSupportLinkElement = document.getElementById('nav-support-link');
+    const backToProductsElement = document.getElementById('back-to-products');
+    const headerCheckoutLinkElement = document.getElementById('header-checkout-link');
+    const checkoutLinkElement = document.getElementById('checkout-link');
+    const cartCountTopElement = document.getElementById('cart-count-top');
+    const headerLoginTriggerElement = document.getElementById('header-login-trigger');
+    const headerLoginModalElement = document.getElementById('header-login-modal');
+    const headerLoginMemberLinkElement = document.getElementById('header-login-member-link');
+    const headerLoginPreferredLinkElement = document.getElementById('header-login-preferred-link');
+    const headerLoginRegisterLinkElement = document.getElementById('header-login-register-link');
+    const headerLoginModalCloseElements = Array.from(document.querySelectorAll('[data-login-modal-close]'));
+
+    const productNotFoundElement = document.getElementById('product-not-found');
+    const productContentElement = document.getElementById('product-content');
+    const productImageElement = document.getElementById('product-image');
+    const productImageThumbnailsElement = document.getElementById('product-image-thumbnails');
+    const productTitleElement = document.getElementById('product-title');
+    const productPriceElement = document.getElementById('product-price');
+    const productDescriptionBodyElement = document.getElementById('product-description-body');
+    const quantityElement = document.getElementById('product-quantity');
+    const addToCartButtonElement = document.getElementById('add-to-cart-button');
+    const feedbackElement = document.getElementById('action-feedback');
+
+    let storeProducts = [];
+    let selectedProduct = null;
+    let selectedProductImageIndex = 0;
+    let activeStoreCode = '';
+
+    function syncAuthLinks() {
+      const sessionUser = shared.readUserSession();
+      const hasSession = Boolean(sessionUser && typeof sessionUser === 'object');
+      const isFreeSession = shared.isFreeAccountUser(sessionUser);
+
+      if (headerLoginPreferredLinkElement) {
+        headerLoginPreferredLinkElement.href = isFreeSession
+          ? shared.buildDashboardUrl(activeStoreCode)
+          : shared.buildFreeLoginUrl(activeStoreCode);
+        headerLoginPreferredLinkElement.textContent = isFreeSession ? 'My Dashboard' : 'Preferred Account Login';
+      }
+
+      if (headerLoginMemberLinkElement) {
+        headerLoginMemberLinkElement.href = hasSession && !isFreeSession ? '/index.html' : '/login.html';
+        headerLoginMemberLinkElement.textContent = hasSession && !isFreeSession ? 'Member Dashboard' : 'Member Login';
+      }
+
+      if (headerLoginRegisterLinkElement) {
+        headerLoginRegisterLinkElement.href = shared.buildRegisterUrl(activeStoreCode);
+      }
+    }
+
+    function hideHeaderLoginModal() {
+      if (!headerLoginModalElement) {
+        return;
+      }
+      headerLoginModalElement.classList.add('hidden');
+      headerLoginModalElement.classList.remove('flex');
+    }
+
+    function showHeaderLoginModal() {
+      if (!headerLoginModalElement) {
+        return;
+      }
+      syncAuthLinks();
+      headerLoginModalElement.classList.remove('hidden');
+      headerLoginModalElement.classList.add('flex');
+    }
+
+    function bindHeaderLoginModal() {
+      if (headerLoginTriggerElement) {
+        headerLoginTriggerElement.addEventListener('click', showHeaderLoginModal);
+      }
+
+      headerLoginModalCloseElements.forEach((closeElement) => {
+        closeElement.addEventListener('click', hideHeaderLoginModal);
+      });
+    }
+
+    function setFeedback(message, isError = false) {
+      if (!feedbackElement) {
+        return;
+      }
+      feedbackElement.textContent = message;
+      feedbackElement.classList.remove('hidden', 'text-emerald-700', 'text-rose-600');
+      feedbackElement.classList.add(isError ? 'text-rose-600' : 'text-emerald-700');
+    }
+
+    function hideFeedback() {
+      if (!feedbackElement) {
+        return;
+      }
+      feedbackElement.classList.add('hidden');
+    }
+
+    function syncLinks() {
+      const productsUrl = shared.buildStorefrontUrl(activeStoreCode);
+      const checkoutUrl = shared.buildCheckoutUrl(activeStoreCode);
+      const supportUrl = shared.buildSupportUrl(activeStoreCode);
+
+      if (navProductsLinkElement) {
+        navProductsLinkElement.href = productsUrl;
+      }
+      if (navSupportLinkElement) {
+        navSupportLinkElement.href = supportUrl;
+      }
+      if (backToProductsElement) {
+        backToProductsElement.href = productsUrl;
+      }
+      if (headerCheckoutLinkElement) {
+        headerCheckoutLinkElement.href = checkoutUrl;
+      }
+      if (checkoutLinkElement) {
+        checkoutLinkElement.href = checkoutUrl;
+      }
+    }
+
+    function renderCartCount() {
+      const summary = shared.resolveCartSummary(shared.getCart(storeProducts), storeProducts);
+      if (cartCountTopElement) {
+        cartCountTopElement.textContent = shared.formatInteger(summary.itemCount);
+      }
+    }
+
+    function buildProductDescriptionParagraphs(product) {
+      const descriptionParagraphs = String(product?.description || '')
+        .split(/\r?\n+/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean);
+
+      if (descriptionParagraphs.length > 0) {
+        return descriptionParagraphs;
+      }
+
+      return ['This product description is being updated.'];
+    }
+
+    function getProductImages(product) {
+      const images = Array.isArray(product?.images)
+        ? product.images
+        : [];
+
+      const normalizedImages = images
+        .map((imageValue) => String(imageValue || '').trim())
+        .filter(Boolean);
+
+      if (normalizedImages.length > 0) {
+        return normalizedImages;
+      }
+
+      const fallbackImage = String(product?.image || '').trim();
+      return [fallbackImage || 'https://placehold.co/960x560?text=Product'];
+    }
+
+    function renderSelectedProductImageGallery() {
+      const productImages = getProductImages(selectedProduct);
+      const clampedImageIndex = Math.max(0, Math.min(selectedProductImageIndex, productImages.length - 1));
+      selectedProductImageIndex = clampedImageIndex;
+      const selectedImageUrl = productImages[clampedImageIndex] || 'https://placehold.co/960x560?text=Product';
+
+      if (productImageElement) {
+        productImageElement.src = selectedImageUrl;
+        productImageElement.alt = selectedProduct?.title || 'Product image';
+      }
+
+      if (!productImageThumbnailsElement) {
+        return;
+      }
+
+      if (productImages.length <= 1) {
+        productImageThumbnailsElement.classList.add('hidden');
+        productImageThumbnailsElement.innerHTML = '';
+        return;
+      }
+
+      productImageThumbnailsElement.classList.remove('hidden');
+      productImageThumbnailsElement.innerHTML = productImages
+        .map((imageUrl, index) => {
+          const isSelected = index === clampedImageIndex;
+          return `
+            <button
+              type="button"
+              data-product-image-index="${index}"
+              class="overflow-hidden rounded-lg border transition ${isSelected ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200 hover:border-emerald-300'}"
+              aria-label="View product image ${index + 1}"
+              aria-pressed="${isSelected ? 'true' : 'false'}"
+            >
+              <img src="${shared.escapeHtml(imageUrl)}" alt="${shared.escapeHtml(selectedProduct?.title || 'Product image')}" class="h-16 w-full object-cover">
+            </button>
+          `;
+        })
+        .join('');
+    }
+
+    function renderSelectedProduct() {
+      if (!selectedProduct) {
+        if (productNotFoundElement) {
+          productNotFoundElement.classList.remove('hidden');
+        }
+        if (productContentElement) {
+          productContentElement.classList.add('hidden');
+        }
+        if (productImageThumbnailsElement) {
+          productImageThumbnailsElement.classList.add('hidden');
+          productImageThumbnailsElement.innerHTML = '';
+        }
+        return;
+      }
+
+      if (productNotFoundElement) {
+        productNotFoundElement.classList.add('hidden');
+      }
+      if (productContentElement) {
+        productContentElement.classList.remove('hidden');
+      }
+      selectedProductImageIndex = 0;
+      renderSelectedProductImageGallery();
+      if (productTitleElement) {
+        productTitleElement.textContent = selectedProduct.title;
+      }
+      if (productPriceElement) {
+        productPriceElement.textContent = shared.formatCurrency(selectedProduct.price);
+      }
+      const descriptionParagraphs = buildProductDescriptionParagraphs(selectedProduct);
+      if (productDescriptionBodyElement) {
+        productDescriptionBodyElement.innerHTML = descriptionParagraphs
+          .map((paragraph) => `<p>${shared.escapeHtml(paragraph)}</p>`)
+          .join('');
+      }
+      if (quantityElement) {
+        quantityElement.value = '1';
+      }
+    }
+
+    function bindActions() {
+      if (productImageThumbnailsElement) {
+        productImageThumbnailsElement.addEventListener('click', (event) => {
+          const targetButton = event.target.closest('[data-product-image-index]');
+          if (!targetButton || !selectedProduct) {
+            return;
+          }
+
+          const requestedIndex = Number.parseInt(targetButton.dataset.productImageIndex || '', 10);
+          if (!Number.isFinite(requestedIndex) || requestedIndex < 0) {
+            return;
+          }
+
+          selectedProductImageIndex = requestedIndex;
+          renderSelectedProductImageGallery();
+        });
+      }
+
+      if (!addToCartButtonElement) {
+        return;
+      }
+
+      addToCartButtonElement.addEventListener('click', () => {
+        if (!selectedProduct) {
+          setFeedback('Product is unavailable.', true);
+          return;
+        }
+
+        const quantity = Math.max(1, shared.toWholeNumber(quantityElement?.value, 1));
+        const result = shared.addToCart(selectedProduct.id, quantity, storeProducts);
+        if (!result.ok) {
+          setFeedback(result.message || 'Unable to add item to cart.', true);
+          return;
+        }
+
+        renderCartCount();
+        setFeedback(result.message || 'Added to cart.', false);
+      });
+    }
+
+    async function initProductPage() {
+      activeStoreCode = shared.getActiveStoreCode();
+      syncLinks();
+      syncAuthLinks();
+      bindHeaderLoginModal();
+      hideFeedback();
+
+      let requestedProductId = '';
+      try {
+        requestedProductId = String(new URLSearchParams(window.location.search).get('product') || '').trim();
+      } catch {
+        requestedProductId = '';
+      }
+
+      try {
+        storeProducts = await shared.fetchProducts();
+      } catch (error) {
+        console.warn('Unable to load store products:', error);
+        storeProducts = [];
+      }
+
+      selectedProduct = shared.resolveProductById(storeProducts, requestedProductId)
+        || (storeProducts.length > 0 ? storeProducts[0] : null);
+
+      renderSelectedProduct();
+      renderCartCount();
+      bindActions();
+    }
+
+    void initProductPage();
+  </script>
+</body>
+</html>

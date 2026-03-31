@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premiere Life Store - Free Account Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+  <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between gap-4">
+        <a id="brand-home-link" href="/store.html" class="inline-flex items-center"><img src="/brand_assets/Logos/L%26D%20Logo_Cropped.png" alt="L&D logo" class="h-10 w-auto"></a>
+
+        <div class="flex items-center gap-2">
+          <a id="nav-products-link" href="/store.html" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700 sm:text-sm">Products</a>
+          <a id="nav-support-link" href="/store-support.html" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700 sm:text-sm">Support</a>
+          <button id="logout-button" type="button" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500 sm:text-sm">Log Out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Welcome Back</p>
+          <h1 id="welcome-heading" class="mt-1 text-2xl font-bold text-slate-900">Free Account</h1>
+          <p id="welcome-subtitle" class="mt-1 text-sm text-slate-600">Manage your purchases, profile, and saved address.</p>
+          <div class="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
+            <span id="welcome-username" class="rounded-md border border-slate-200 bg-slate-50 px-2 py-1">Username: --</span>
+            <span id="welcome-email" class="rounded-md border border-slate-200 bg-slate-50 px-2 py-1">Email: --</span>
+            <span class="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-emerald-700">Plan: Free Account</span>
+          </div>
+        </div>
+
+        <a id="shop-now-link" href="/store.html" class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500">Shop Products</a>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">Upgrade Account</h2>
+          <p class="mt-1 text-sm text-slate-600">Move from Free Account to a paid builder package.</p>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div class="sm:min-w-72">
+          <label for="upgrade-package-select" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Target Package</label>
+          <select id="upgrade-package-select" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+            <option value="personal-builder-pack">Personal Builder Pack</option>
+            <option value="business-builder-pack">Business Builder Pack</option>
+            <option value="infinity-builder-pack">Infinity Builder Pack</option>
+            <option value="legacy-builder-pack">Legacy Builder Pack</option>
+          </select>
+        </div>
+
+        <button id="upgrade-account-button" type="button" class="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50">
+          Upgrade Account
+        </button>
+      </div>
+
+      <p id="upgrade-feedback" class="mt-3 hidden rounded-lg border px-3 py-2 text-sm" role="status"></p>
+    </section>
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">Purchase Activity</h2>
+          <p class="text-sm text-slate-600">Recent purchases tied to your account identity.</p>
+        </div>
+        <button id="refresh-purchases-button" type="button" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700 sm:text-sm">Refresh</button>
+      </div>
+
+      <div class="mt-4 grid gap-3 sm:grid-cols-3">
+        <article class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <p class="text-xs uppercase tracking-wide text-slate-500">Orders</p>
+          <p id="purchase-order-count" class="mt-1 text-xl font-semibold text-slate-900">0</p>
+        </article>
+        <article class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <p class="text-xs uppercase tracking-wide text-slate-500">Total Spent</p>
+          <p id="purchase-total-spent" class="mt-1 text-xl font-semibold text-slate-900">$0.00</p>
+        </article>
+        <article class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <p class="text-xs uppercase tracking-wide text-slate-500">Total BV</p>
+          <p id="purchase-total-bv" class="mt-1 text-xl font-semibold text-slate-900">0 BV</p>
+        </article>
+      </div>
+
+      <p id="purchase-feedback" class="mt-3 hidden rounded-lg border px-3 py-2 text-sm" role="status"></p>
+
+      <div id="purchase-empty" class="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
+        No purchases found yet. Shop products to generate your first order.
+      </div>
+      <div id="purchase-list" class="mt-4 space-y-3"></div>
+    </section>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <h2 class="text-lg font-semibold text-slate-900">Profile</h2>
+        <p class="mt-1 text-sm text-slate-600">Your basic account details for storefront checkout and support.</p>
+
+        <form id="profile-form" class="mt-4 space-y-3" novalidate>
+          <div>
+            <label for="profile-display-name" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Display Name</label>
+            <input id="profile-display-name" name="displayName" type="text" required class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+          </div>
+
+          <div>
+            <label for="profile-username" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Username</label>
+            <input id="profile-username" name="username" type="text" readonly class="mt-1 w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700">
+          </div>
+
+          <div>
+            <label for="profile-email" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</label>
+            <input id="profile-email" name="email" type="email" readonly class="mt-1 w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700">
+          </div>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label for="profile-phone" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Phone</label>
+              <input id="profile-phone" name="phone" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+            </div>
+
+            <div>
+              <label for="profile-country" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Country Code</label>
+              <input id="profile-country" name="country" type="text" maxlength="2" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+            </div>
+          </div>
+
+          <p id="profile-feedback" class="hidden rounded-lg border px-3 py-2 text-sm" role="status"></p>
+
+          <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500">Save Profile</button>
+        </form>
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <h2 class="text-lg font-semibold text-slate-900">Saved Address</h2>
+        <p class="mt-1 text-sm text-slate-600">Store your default shipping address for faster checkout.</p>
+
+        <form id="address-form" class="mt-4 space-y-3" novalidate>
+          <div>
+            <label for="address-full-name" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Full Name</label>
+            <input id="address-full-name" name="fullName" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+          </div>
+
+          <div>
+            <label for="address-line-1" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Address Line 1</label>
+            <input id="address-line-1" name="line1" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+          </div>
+
+          <div>
+            <label for="address-line-2" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Address Line 2</label>
+            <input id="address-line-2" name="line2" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+          </div>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div class="sm:col-span-1">
+              <label for="address-city" class="text-xs font-semibold uppercase tracking-wide text-slate-500">City</label>
+              <input id="address-city" name="city" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+            </div>
+            <div class="sm:col-span-1">
+              <label for="address-state" class="text-xs font-semibold uppercase tracking-wide text-slate-500">State</label>
+              <input id="address-state" name="state" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+            </div>
+            <div class="sm:col-span-1">
+              <label for="address-postal" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Postal</label>
+              <input id="address-postal" name="postal" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+            </div>
+          </div>
+
+          <div>
+            <label for="address-country" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Country</label>
+            <input id="address-country" name="country" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
+          </div>
+
+          <p id="address-feedback" class="hidden rounded-lg border px-3 py-2 text-sm" role="status"></p>
+
+          <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500">Save Address</button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const AUTH_STORAGE_KEY = 'vault-auth-user';
+    const AUTH_COOKIE_KEY = 'vault-auth-user-cookie';
+    const MEMBER_ACCOUNT_UPGRADE_API = '/api/member-auth/upgrade-account';
+    const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
+    const FREE_ACCOUNT_RANK_KEY_SET = new Set(['preferred customer', 'free account', 'free']);
+    const UPGRADE_PACKAGE_LABEL_BY_KEY = Object.freeze({
+      'personal-builder-pack': 'Personal Builder Pack',
+      'business-builder-pack': 'Business Builder Pack',
+      'infinity-builder-pack': 'Infinity Builder Pack',
+      'legacy-builder-pack': 'Legacy Builder Pack',
+    });
+
+    const purchaseOrderCountElement = document.getElementById('purchase-order-count');
+    const purchaseTotalSpentElement = document.getElementById('purchase-total-spent');
+    const purchaseTotalBvElement = document.getElementById('purchase-total-bv');
+    const purchaseFeedbackElement = document.getElementById('purchase-feedback');
+    const purchaseEmptyElement = document.getElementById('purchase-empty');
+    const purchaseListElement = document.getElementById('purchase-list');
+    const refreshPurchasesButton = document.getElementById('refresh-purchases-button');
+
+    const profileForm = document.getElementById('profile-form');
+    const profileDisplayNameInput = document.getElementById('profile-display-name');
+    const profileUsernameInput = document.getElementById('profile-username');
+    const profileEmailInput = document.getElementById('profile-email');
+    const profilePhoneInput = document.getElementById('profile-phone');
+    const profileCountryInput = document.getElementById('profile-country');
+    const profileFeedbackElement = document.getElementById('profile-feedback');
+
+    const addressForm = document.getElementById('address-form');
+    const addressFullNameInput = document.getElementById('address-full-name');
+    const addressLine1Input = document.getElementById('address-line-1');
+    const addressLine2Input = document.getElementById('address-line-2');
+    const addressCityInput = document.getElementById('address-city');
+    const addressStateInput = document.getElementById('address-state');
+    const addressPostalInput = document.getElementById('address-postal');
+    const addressCountryInput = document.getElementById('address-country');
+    const addressFeedbackElement = document.getElementById('address-feedback');
+    const upgradePackageSelectElement = document.getElementById('upgrade-package-select');
+    const upgradeAccountButtonElement = document.getElementById('upgrade-account-button');
+    const upgradeFeedbackElement = document.getElementById('upgrade-feedback');
+
+    const welcomeHeadingElement = document.getElementById('welcome-heading');
+    const welcomeSubtitleElement = document.getElementById('welcome-subtitle');
+    const welcomeUsernameElement = document.getElementById('welcome-username');
+    const welcomeEmailElement = document.getElementById('welcome-email');
+
+    const brandHomeLinkElement = document.getElementById('brand-home-link');
+    const navProductsLinkElement = document.getElementById('nav-products-link');
+    const navSupportLinkElement = document.getElementById('nav-support-link');
+    const shopNowLinkElement = document.getElementById('shop-now-link');
+    const logoutButton = document.getElementById('logout-button');
+
+    const queryParams = new URLSearchParams(window.location.search);
+
+    let currentSessionUser = null;
+    let activeStoreCode = '';
+
+    function normalizeText(value) {
+      return String(value || '').trim();
+    }
+
+    function normalizeCredential(value) {
+      return normalizeText(value).toLowerCase();
+    }
+
+    function normalizeStoreCode(value) {
+      return normalizeText(value).toUpperCase().replace(/[^A-Z0-9-]/g, '');
+    }
+
+    function normalizeMemberKey(value) {
+      return normalizeCredential(value);
+    }
+
+    function parseSessionPayload(raw) {
+      if (!raw) {
+        return null;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function safeStorageGet(storage, key) {
+      try {
+        if (!storage) {
+          return null;
+        }
+        return storage.getItem(key);
+      } catch {
+        return null;
+      }
+    }
+
+    function safeStorageSet(storage, key, value) {
+      try {
+        if (!storage) {
+          return false;
+        }
+        storage.setItem(key, value);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function safeStorageRemove(storage, key) {
+      try {
+        if (!storage) {
+          return;
+        }
+        storage.removeItem(key);
+      } catch {
+        // Ignore storage failures.
+      }
+    }
+
+    function readCookieValue(key) {
+      const source = document.cookie || '';
+      const encodedKey = `${encodeURIComponent(key)}=`;
+      const pairs = source.split(';');
+      for (const pair of pairs) {
+        const trimmedPair = pair.trim();
+        if (!trimmedPair.startsWith(encodedKey)) {
+          continue;
+        }
+        return decodeURIComponent(trimmedPair.slice(encodedKey.length));
+      }
+      return null;
+    }
+
+    function writeCookieValue(key, value) {
+      try {
+        document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(value)}; path=/; SameSite=Lax`;
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function clearCookieValue(key) {
+      try {
+        document.cookie = `${encodeURIComponent(key)}=; Max-Age=0; path=/; SameSite=Lax`;
+      } catch {
+        // Ignore cookie failures.
+      }
+    }
+
+    function readUserSession() {
+      const localSession = parseSessionPayload(safeStorageGet(window.localStorage, AUTH_STORAGE_KEY));
+      if (localSession) {
+        return localSession;
+      }
+
+      const tabSession = parseSessionPayload(safeStorageGet(window.sessionStorage, AUTH_STORAGE_KEY));
+      if (tabSession) {
+        return tabSession;
+      }
+
+      return parseSessionPayload(readCookieValue(AUTH_COOKIE_KEY));
+    }
+
+    function persistUserSession(user) {
+      const serialized = JSON.stringify(user || {});
+      const wroteLocal = safeStorageSet(window.localStorage, AUTH_STORAGE_KEY, serialized);
+      const wroteSession = safeStorageSet(window.sessionStorage, AUTH_STORAGE_KEY, serialized);
+      const wroteCookie = writeCookieValue(AUTH_COOKIE_KEY, serialized);
+      return wroteLocal || wroteSession || wroteCookie;
+    }
+
+    function clearUserSession() {
+      safeStorageRemove(window.localStorage, AUTH_STORAGE_KEY);
+      safeStorageRemove(window.sessionStorage, AUTH_STORAGE_KEY);
+      clearCookieValue(AUTH_COOKIE_KEY);
+    }
+
+    function isFreeAccountUser(user) {
+      if (!user || typeof user !== 'object') {
+        return false;
+      }
+
+      const packageKey = normalizeMemberKey(user?.enrollmentPackage);
+      if (packageKey === FREE_ACCOUNT_PACKAGE_KEY) {
+        return true;
+      }
+
+      const rankKey = normalizeMemberKey(user?.accountRank || user?.rank);
+      return FREE_ACCOUNT_RANK_KEY_SET.has(rankKey);
+    }
+
+    function resolveStoreCodeForSession(user) {
+      return normalizeStoreCode(
+        queryParams.get('store')
+        || user?.attributionStoreCode
+        || user?.publicStoreCode
+        || user?.storeCode,
+      );
+    }
+
+    function resolveStoreScopedUrl(pathname) {
+      const url = new URL(pathname, window.location.origin);
+      if (activeStoreCode) {
+        url.searchParams.set('store', activeStoreCode);
+      }
+      return `${url.pathname}${url.search}`;
+    }
+
+    function bindNavigationLinks() {
+      const storeUrl = resolveStoreScopedUrl('/store.html');
+      const supportUrl = resolveStoreScopedUrl('/store-support.html');
+      if (brandHomeLinkElement) {
+        brandHomeLinkElement.href = storeUrl;
+      }
+      if (navProductsLinkElement) {
+        navProductsLinkElement.href = storeUrl;
+      }
+      if (shopNowLinkElement) {
+        shopNowLinkElement.href = storeUrl;
+      }
+      if (navSupportLinkElement) {
+        navSupportLinkElement.href = supportUrl;
+      }
+    }
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(Math.max(0, Number(value) || 0));
+    }
+
+    function formatInteger(value) {
+      return new Intl.NumberFormat('en-US').format(Math.max(0, Math.floor(Number(value) || 0)));
+    }
+
+    function formatDateTime(value) {
+      const parsedMs = Date.parse(String(value || ''));
+      if (!Number.isFinite(parsedMs)) {
+        return '--';
+      }
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(parsedMs));
+    }
+
+    function setFeedback(element, message, isError = false) {
+      if (!element) {
+        return;
+      }
+
+      const normalizedMessage = normalizeText(message);
+      if (!normalizedMessage) {
+        element.classList.add('hidden');
+        element.textContent = '';
+        element.classList.remove('border-rose-300', 'bg-rose-50', 'text-rose-700', 'border-emerald-300', 'bg-emerald-50', 'text-emerald-700');
+        return;
+      }
+
+      element.textContent = normalizedMessage;
+      element.classList.remove('hidden', 'border-rose-300', 'bg-rose-50', 'text-rose-700', 'border-emerald-300', 'bg-emerald-50', 'text-emerald-700');
+      if (isError) {
+        element.classList.add('border-rose-300', 'bg-rose-50', 'text-rose-700');
+      } else {
+        element.classList.add('border-emerald-300', 'bg-emerald-50', 'text-emerald-700');
+      }
+    }
+
+    function setUpgradeBusy(isBusy) {
+      if (!upgradeAccountButtonElement || !upgradePackageSelectElement) {
+        return;
+      }
+      upgradeAccountButtonElement.disabled = isBusy;
+      upgradePackageSelectElement.disabled = isBusy;
+      upgradeAccountButtonElement.textContent = isBusy ? 'Upgrading...' : 'Upgrade Account';
+    }
+
+    function registerUpgradeHandler() {
+      if (!upgradeAccountButtonElement || !upgradePackageSelectElement) {
+        return;
+      }
+
+      upgradeAccountButtonElement.addEventListener('click', async () => {
+        const targetPackage = normalizeMemberKey(upgradePackageSelectElement.value);
+        if (!targetPackage || !UPGRADE_PACKAGE_LABEL_BY_KEY[targetPackage]) {
+          setFeedback(upgradeFeedbackElement, 'Select a valid package to upgrade.', true);
+          return;
+        }
+
+        setUpgradeBusy(true);
+        setFeedback(upgradeFeedbackElement, '');
+
+        try {
+          const response = await fetch(MEMBER_ACCOUNT_UPGRADE_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: String(currentSessionUser?.id || '').trim(),
+              username: String(currentSessionUser?.username || '').trim(),
+              email: String(currentSessionUser?.email || '').trim(),
+              targetPackage,
+            }),
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const errorMessage = typeof payload?.error === 'string'
+              ? payload.error
+              : `Upgrade failed (${response.status}).`;
+            throw new Error(errorMessage);
+          }
+
+          const upgradedUser = payload?.user && typeof payload.user === 'object'
+            ? payload.user
+            : {};
+          currentSessionUser = {
+            ...currentSessionUser,
+            ...upgradedUser,
+          };
+          persistUserSession(currentSessionUser);
+
+          const upgradedLabel = UPGRADE_PACKAGE_LABEL_BY_KEY[targetPackage] || 'selected package';
+          setFeedback(upgradeFeedbackElement, `Upgrade complete: ${upgradedLabel}. Redirecting to member dashboard...`);
+          window.setTimeout(() => {
+            window.location.replace('/index.html');
+          }, 1200);
+        } catch (error) {
+          setFeedback(
+            upgradeFeedbackElement,
+            error instanceof Error ? error.message : 'Unable to process account upgrade.',
+            true,
+          );
+        } finally {
+          setUpgradeBusy(false);
+        }
+      });
+    }
+
+    function resolveIdentityKey(user) {
+      return normalizeText(user?.id || user?.username || user?.email || 'free-account');
+    }
+
+    function profileStorageKey(user) {
+      return `charge-store-profile-v1:${resolveIdentityKey(user)}`;
+    }
+
+    function addressStorageKey(user) {
+      return `charge-store-address-v1:${resolveIdentityKey(user)}`;
+    }
+
+    function readJsonStorage(key) {
+      const raw = safeStorageGet(window.localStorage, key);
+      if (!raw) {
+        return null;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function writeJsonStorage(key, value) {
+      return safeStorageSet(window.localStorage, key, JSON.stringify(value || {}));
+    }
+
+    function renderWelcome(user) {
+      const displayName = normalizeText(user?.name || user?.username || 'Free Account');
+      const username = normalizeText(user?.username || '--');
+      const email = normalizeText(user?.email || '--');
+
+      if (welcomeHeadingElement) {
+        welcomeHeadingElement.textContent = `Hi ${displayName}`;
+      }
+      if (welcomeSubtitleElement) {
+        welcomeSubtitleElement.textContent = 'Manage your purchases, profile, and saved address from one place.';
+      }
+      if (welcomeUsernameElement) {
+        welcomeUsernameElement.textContent = `Username: ${username}`;
+      }
+      if (welcomeEmailElement) {
+        welcomeEmailElement.textContent = `Email: ${email}`;
+      }
+    }
+
+    function invoiceBelongsToCurrentUser(invoice, user) {
+      const userId = normalizeMemberKey(user?.id);
+      const username = normalizeMemberKey(user?.username);
+      const email = normalizeMemberKey(user?.email);
+
+      const invoiceUserId = normalizeMemberKey(invoice?.buyerUserId);
+      const invoiceUsername = normalizeMemberKey(invoice?.buyerUsername);
+      const invoiceEmail = normalizeMemberKey(invoice?.buyerEmail);
+
+      return Boolean(
+        (userId && invoiceUserId && userId === invoiceUserId)
+        || (username && invoiceUsername && username === invoiceUsername)
+        || (email && invoiceEmail && email === invoiceEmail),
+      );
+    }
+
+    function renderPurchases(invoices) {
+      const safeInvoices = Array.isArray(invoices) ? invoices : [];
+
+      const totalOrders = safeInvoices.length;
+      const totalSpent = safeInvoices.reduce((sum, invoice) => sum + Math.max(0, Number(invoice?.amount) || 0), 0);
+      const totalBv = safeInvoices.reduce((sum, invoice) => sum + Math.max(0, Number(invoice?.bp) || 0), 0);
+
+      if (purchaseOrderCountElement) {
+        purchaseOrderCountElement.textContent = formatInteger(totalOrders);
+      }
+      if (purchaseTotalSpentElement) {
+        purchaseTotalSpentElement.textContent = formatCurrency(totalSpent);
+      }
+      if (purchaseTotalBvElement) {
+        purchaseTotalBvElement.textContent = `${formatInteger(totalBv)} BV`;
+      }
+
+      if (!purchaseListElement || !purchaseEmptyElement) {
+        return;
+      }
+
+      if (safeInvoices.length === 0) {
+        purchaseEmptyElement.classList.remove('hidden');
+        purchaseListElement.innerHTML = '';
+        return;
+      }
+
+      purchaseEmptyElement.classList.add('hidden');
+      purchaseListElement.innerHTML = safeInvoices.map((invoice) => {
+        const status = normalizeText(invoice?.status || 'Posted');
+        const statusClass = normalizeMemberKey(status) === 'pending'
+          ? 'border-amber-200 bg-amber-50 text-amber-700'
+          : 'border-emerald-200 bg-emerald-50 text-emerald-700';
+
+        return `
+          <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">${normalizeText(invoice?.id || '--')}</p>
+                <p class="mt-1 text-xs text-slate-500">${formatDateTime(invoice?.createdAt)}</p>
+              </div>
+              <span class="rounded-md border px-2 py-1 text-xs font-semibold ${statusClass}">${status || 'Posted'}</span>
+            </div>
+            <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <p class="text-slate-500">Amount</p>
+              <p class="text-right font-semibold text-slate-900">${formatCurrency(invoice?.amount)}</p>
+              <p class="text-slate-500">Discount</p>
+              <p class="text-right font-semibold text-slate-900">${formatCurrency(invoice?.discount)}</p>
+              <p class="text-slate-500">BV</p>
+              <p class="text-right font-semibold text-slate-900">${formatInteger(invoice?.bp)} BV</p>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    async function loadPurchaseActivity() {
+      setFeedback(purchaseFeedbackElement, 'Loading purchase activity...');
+
+      try {
+        const response = await fetch('/api/store-invoices', { cache: 'no-store' });
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(typeof payload?.error === 'string' ? payload.error : 'Unable to load purchases.');
+        }
+
+        const allInvoices = Array.isArray(payload?.invoices) ? payload.invoices : [];
+        const ownedInvoices = allInvoices
+          .filter((invoice) => invoiceBelongsToCurrentUser(invoice, currentSessionUser))
+          .sort((left, right) => Date.parse(String(right?.createdAt || '')) - Date.parse(String(left?.createdAt || '')))
+          .slice(0, 20);
+
+        renderPurchases(ownedInvoices);
+        setFeedback(purchaseFeedbackElement, 'Purchase activity is up to date.');
+      } catch (error) {
+        renderPurchases([]);
+        setFeedback(
+          purchaseFeedbackElement,
+          error instanceof Error ? error.message : 'Unable to load purchases right now.',
+          true,
+        );
+      }
+    }
+
+    function hydrateProfileForm(user) {
+      const storedProfile = readJsonStorage(profileStorageKey(user)) || {};
+      const displayName = normalizeText(storedProfile?.displayName || user?.name || user?.username || '');
+      const phone = normalizeText(storedProfile?.phone || user?.phone || '');
+      const country = normalizeText(storedProfile?.country || user?.countryFlag || 'us').slice(0, 2).toUpperCase();
+
+      profileDisplayNameInput.value = displayName;
+      profileUsernameInput.value = normalizeText(user?.username || '');
+      profileEmailInput.value = normalizeText(user?.email || '');
+      profilePhoneInput.value = phone;
+      profileCountryInput.value = country;
+    }
+
+    function hydrateAddressForm(user) {
+      const storedAddress = readJsonStorage(addressStorageKey(user)) || {};
+      addressFullNameInput.value = normalizeText(storedAddress?.fullName || user?.name || '');
+      addressLine1Input.value = normalizeText(storedAddress?.line1 || '');
+      addressLine2Input.value = normalizeText(storedAddress?.line2 || '');
+      addressCityInput.value = normalizeText(storedAddress?.city || '');
+      addressStateInput.value = normalizeText(storedAddress?.state || '');
+      addressPostalInput.value = normalizeText(storedAddress?.postal || '');
+      addressCountryInput.value = normalizeText(storedAddress?.country || '');
+    }
+
+    function registerProfileSaveHandler() {
+      profileForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const displayName = normalizeText(profileDisplayNameInput.value);
+        const phone = normalizeText(profilePhoneInput.value);
+        const country = normalizeText(profileCountryInput.value).slice(0, 2).toUpperCase();
+
+        if (!displayName) {
+          setFeedback(profileFeedbackElement, 'Display name is required.', true);
+          return;
+        }
+
+        const saved = writeJsonStorage(profileStorageKey(currentSessionUser), {
+          displayName,
+          phone,
+          country,
+        });
+
+        currentSessionUser = {
+          ...currentSessionUser,
+          name: displayName,
+          countryFlag: normalizeText(country || currentSessionUser?.countryFlag || 'us').toLowerCase(),
+        };
+        persistUserSession(currentSessionUser);
+        renderWelcome(currentSessionUser);
+
+        if (!saved) {
+          setFeedback(profileFeedbackElement, 'Profile save may be blocked by browser storage settings.', true);
+          return;
+        }
+
+        setFeedback(profileFeedbackElement, 'Profile saved.');
+      });
+    }
+
+    function registerAddressSaveHandler() {
+      addressForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const payload = {
+          fullName: normalizeText(addressFullNameInput.value),
+          line1: normalizeText(addressLine1Input.value),
+          line2: normalizeText(addressLine2Input.value),
+          city: normalizeText(addressCityInput.value),
+          state: normalizeText(addressStateInput.value),
+          postal: normalizeText(addressPostalInput.value),
+          country: normalizeText(addressCountryInput.value),
+        };
+
+        if (!payload.line1 || !payload.city || !payload.country) {
+          setFeedback(addressFeedbackElement, 'Address Line 1, City, and Country are required.', true);
+          return;
+        }
+
+        const saved = writeJsonStorage(addressStorageKey(currentSessionUser), payload);
+        if (!saved) {
+          setFeedback(addressFeedbackElement, 'Address save may be blocked by browser storage settings.', true);
+          return;
+        }
+
+        setFeedback(addressFeedbackElement, 'Saved address updated.');
+      });
+    }
+
+    function setupLogout() {
+      if (!logoutButton) {
+        return;
+      }
+
+      logoutButton.addEventListener('click', () => {
+        clearUserSession();
+        window.location.replace(resolveStoreScopedUrl('/store-login.html'));
+      });
+    }
+
+    function bootstrap() {
+      const sessionUser = readUserSession();
+      if (!sessionUser) {
+        window.location.replace(resolveStoreScopedUrl('/store-login.html'));
+        return;
+      }
+
+      if (!isFreeAccountUser(sessionUser)) {
+        window.location.replace('/login.html');
+        return;
+      }
+
+      currentSessionUser = sessionUser;
+      activeStoreCode = resolveStoreCodeForSession(currentSessionUser);
+
+      bindNavigationLinks();
+      renderWelcome(currentSessionUser);
+      hydrateProfileForm(currentSessionUser);
+      hydrateAddressForm(currentSessionUser);
+      registerProfileSaveHandler();
+      registerAddressSaveHandler();
+      registerUpgradeHandler();
+      setupLogout();
+
+      refreshPurchasesButton?.addEventListener('click', () => {
+        loadPurchaseActivity();
+      });
+
+      loadPurchaseActivity();
+    }
+
+    bootstrap();
+  </script>
+</body>
+</html>
