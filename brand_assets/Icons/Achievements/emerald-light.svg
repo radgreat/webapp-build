@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="emerald-light-bg" x1="10" y1="8" x2="118" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F4FCF7"/>
+      <stop offset="1" stop-color="#E7F5EC"/>
+    </linearGradient>
+    <linearGradient id="emerald-light-gem" x1="32" y1="24" x2="96" y2="104" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#B9F4D4"/>
+      <stop offset="0.5" stop-color="#40C485"/>
+      <stop offset="1" stop-color="#228A5D"/>
+    </linearGradient>
+    <linearGradient id="emerald-light-facet" x1="64" y1="24" x2="64" y2="104" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.98"/>
+      <stop offset="1" stop-color="#C8F0D9" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#emerald-light-bg)" stroke="#89B7A0" stroke-opacity="0.9" stroke-width="2"/>
+  <circle cx="64" cy="66" r="38" fill="#41BE81" fill-opacity="0.15"/>
+
+  <path d="M64 24L96 52L64 104L32 52L64 24Z" fill="url(#emerald-light-gem)" stroke="#F3FFF8" stroke-opacity="0.94" stroke-width="2"/>
+  <path d="M64 24L80 52H48L64 24Z" fill="url(#emerald-light-facet)"/>
+  <path d="M48 52H80L64 104L48 52Z" fill="#FFFFFF" fill-opacity="0.22"/>
+  <path d="M32 52H48L64 104L32 52Z" fill="#E1FBEA" fill-opacity="0.17"/>
+  <path d="M96 52H80L64 104L96 52Z" fill="#E1FBEA" fill-opacity="0.17"/>
+  <path d="M64 24L48 52" stroke="#F8FFFB" stroke-opacity="0.9" stroke-width="1.5"/>
+  <path d="M64 24L80 52" stroke="#F8FFFB" stroke-opacity="0.9" stroke-width="1.5"/>
+
+  <path d="M22 31L24 35L28 37L24 39L22 43L20 39L16 37L20 35L22 31Z" fill="#6ED69E" fill-opacity="0.88"/>
+  <path d="M106 37L107.5 40L111 41.5L107.5 43L106 46L104.5 43L101 41.5L104.5 40L106 37Z" fill="#6ED69E" fill-opacity="0.84"/>
+</svg>

@@ -1,29 +1,85 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 128 128">
+  <!-- Generator: Adobe Illustrator 30.2.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 1)  -->
   <defs>
-    <linearGradient id="royal-crown-bg" x1="10" y1="8" x2="118" y2="120" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#281D3F"/>
-      <stop offset="1" stop-color="#0E0A1B"/>
+    <style>
+      .st0 {
+        fill-opacity: .7;
+      }
+
+      .st0, .st1 {
+        fill: #c5a5ff;
+      }
+
+      .st1 {
+        fill-opacity: .78;
+      }
+
+      .st2 {
+        fill: #b57aff;
+        fill-opacity: .09;
+      }
+
+      .st3 {
+        fill: #fff2cc;
+      }
+
+      .st4 {
+        fill: url(#linear-gradient);
+        stroke: #69439d;
+        stroke-opacity: .6;
+      }
+
+      .st4, .st5 {
+        stroke-width: 2px;
+      }
+
+      .st6 {
+        fill: #6be7d4;
+      }
+
+      .st5 {
+        fill: url(#linear-gradient1);
+        stroke: #ffecc0;
+        stroke-opacity: .84;
+      }
+
+      .st7 {
+        fill: #a86bff;
+      }
+
+      .st8 {
+        fill: #fff1cb;
+      }
+
+      .st9 {
+        fill: #f2bb45;
+        stroke: #ffe3a8;
+        stroke-opacity: .78;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="10" y1="122" x2="118" y2="10" gradientTransform="translate(0 130) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#281d3f"/>
+      <stop offset="1" stop-color="#0e0a1b"/>
     </linearGradient>
-    <linearGradient id="royal-crown-main" x1="22" y1="32" x2="106" y2="104" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFE9B3"/>
-      <stop offset="0.52" stop-color="#FFC94B"/>
-      <stop offset="1" stop-color="#C98809"/>
+    <linearGradient id="linear-gradient1" x1="18.26" y1="93.64" x2="102.26" y2="21.64" gradientTransform="translate(0 130) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffe9b3"/>
+      <stop offset=".52" stop-color="#ffc94b"/>
+      <stop offset="1" stop-color="#c98809"/>
     </linearGradient>
   </defs>
-
-  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#royal-crown-bg)" stroke="#69439D" stroke-opacity="0.6" stroke-width="2"/>
-  <circle cx="64" cy="66" r="40" fill="#B57AFF" fill-opacity="0.09"/>
-
-  <path d="M24 90L30 56L44 74L56 50L64 34L72 50L84 74L98 56L104 90H24Z" fill="url(#royal-crown-main)" stroke="#FFECC0" stroke-opacity="0.84" stroke-width="2"/>
-  <rect x="27" y="88" width="74" height="13" rx="4" fill="#F2BB45" stroke="#FFE3A8" stroke-opacity="0.78"/>
-
-  <path d="M64 20L67 27H74L68.5 31.5L70.5 38.5L64 34L57.5 38.5L59.5 31.5L54 27H61L64 20Z" fill="#FFF2CC"/>
-  <circle cx="64" cy="60" r="6" fill="#A86BFF"/>
-  <circle cx="44" cy="69" r="4.3" fill="#6BE7D4"/>
-  <circle cx="84" cy="69" r="4.3" fill="#6BE7D4"/>
-  <circle cx="30" cy="56" r="3.6" fill="#FFF1CB"/>
-  <circle cx="98" cy="56" r="3.6" fill="#FFF1CB"/>
-
-  <path d="M14 39L16.2 43.4L20.8 45.4L16.2 47.4L14 51.8L11.8 47.4L7.2 45.4L11.8 43.4L14 39Z" fill="#C5A5FF" fill-opacity="0.78"/>
-  <path d="M114 34L116 38L120 40L116 42L114 46L112 42L108 40L112 38L114 34Z" fill="#C5A5FF" fill-opacity="0.7"/>
+  <rect class="st4" x="4" y="4" width="120" height="120" rx="28" ry="28"/>
+  <circle class="st2" cx="64" cy="66" r="40"/>
+  <g>
+    <path class="st5" d="M24,90l6-34,14,18,12-24,8-16,8,16,12,24,14-18,6,34H24Z"/>
+    <rect class="st9" x="27" y="88" width="74" height="13" rx="4" ry="4"/>
+    <path class="st3" d="M64,20l3,7h7l-5.5,4.5,2,7-6.5-4.5-6.5,4.5,2-7-5.5-4.5h7l3-7Z"/>
+    <circle class="st7" cx="64" cy="60" r="6"/>
+    <circle class="st6" cx="33.6" cy="73.8" r="4.3"/>
+    <circle class="st6" cx="94.01" cy="73.8" r="4.3"/>
+    <circle class="st8" cx="30" cy="56" r="3.6"/>
+    <circle class="st8" cx="98" cy="56" r="3.6"/>
+    <path class="st1" d="M14,39l2.2,4.4,4.6,2-4.6,2-2.2,4.4-2.2-4.4-4.6-2,4.6-2,2.2-4.4Z"/>
+    <path class="st0" d="M114,34l2,4,4,2-4,2-2,4-2-4-4-2,4-2,2-4Z"/>
+  </g>
 </svg>

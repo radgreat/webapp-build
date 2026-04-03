@@ -1,28 +1,86 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 128 128">
+  <!-- Generator: Adobe Illustrator 30.2.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 1)  -->
   <defs>
-    <linearGradient id="double-crown-bg" x1="10" y1="8" x2="118" y2="120" gradientUnits="userSpaceOnUse">
+    <style>
+      .st0 {
+        fill: #fff1c8;
+      }
+
+      .st1 {
+        fill: url(#linear-gradient);
+        stroke: #8f6523;
+        stroke-opacity: .62;
+      }
+
+      .st1, .st2, .st3 {
+        stroke-width: 2px;
+      }
+
+      .st4 {
+        fill: #42dfc5;
+        fill-opacity: .78;
+      }
+
+      .st5 {
+        fill: #89f8e5;
+      }
+
+      .st6 {
+        fill: #f5c04b;
+        fill-opacity: .1;
+      }
+
+      .st7 {
+        fill: #f0b741;
+        stroke: #ffe2a7;
+        stroke-opacity: .75;
+      }
+
+      .st2 {
+        fill: url(#linear-gradient2);
+      }
+
+      .st2, .st3 {
+        stroke: #ffe9b8;
+        stroke-opacity: .8;
+      }
+
+      .st3 {
+        fill: url(#linear-gradient1);
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="10" y1="122" x2="118" y2="10" gradientTransform="translate(0 130) scale(1 -1)" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#312415"/>
-      <stop offset="1" stop-color="#120B04"/>
+      <stop offset="1" stop-color="#120b04"/>
     </linearGradient>
-    <linearGradient id="double-crown-main" x1="22" y1="34" x2="104" y2="102" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFE9AF"/>
-      <stop offset="0.52" stop-color="#FFC648"/>
-      <stop offset="1" stop-color="#C88408"/>
+    <linearGradient id="linear-gradient1" x1="32.65" y1="92.19" x2="87.32" y2="46.85" gradientTransform="translate(0 130) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffe9af"/>
+      <stop offset=".52" stop-color="#ffc648"/>
+      <stop offset="1" stop-color="#c88408"/>
     </linearGradient>
+    <linearGradient id="linear-gradient2" x1="17.25" y1="101.28" x2="99.25" y2="33.28" xlink:href="#linear-gradient1"/>
   </defs>
-
-  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#double-crown-bg)" stroke="#8F6523" stroke-opacity="0.62" stroke-width="2"/>
-  <circle cx="64" cy="66" r="40" fill="#F5C04B" fill-opacity="0.1"/>
-
-  <path d="M38 66L42 44L51 55L60 40L68 55L77 44L81 66H38Z" fill="url(#double-crown-main)" stroke="#FFE9B8" stroke-opacity="0.76" stroke-width="1.8"/>
-  <rect x="39" y="65" width="41" height="8" rx="3" fill="#F4BD45" stroke="#FFE2A7" stroke-opacity="0.72"/>
-
-  <path d="M24 92L30 60L46 76L64 48L82 76L98 60L104 92H24Z" fill="url(#double-crown-main)" stroke="#FFE9B8" stroke-opacity="0.8" stroke-width="2"/>
-  <rect x="27" y="90" width="74" height="12" rx="4" fill="#F0B741" stroke="#FFE2A7" stroke-opacity="0.75"/>
-
-  <circle cx="64" cy="63" r="4" fill="#89F8E5"/>
-  <circle cx="64" cy="62" r="5" fill="#42DFC5" fill-opacity="0.78"/>
-  <circle cx="64" cy="48" r="4.2" fill="#FFF1C8"/>
-  <circle cx="30" cy="60" r="3.5" fill="#FFF1C8"/>
-  <circle cx="98" cy="60" r="3.5" fill="#FFF1C8"/>
+  <rect class="st1" x="4" y="4" width="120" height="120" rx="28" ry="28"/>
+  <circle class="st6" cx="64" cy="66" r="40"/>
+  <g>
+    <path class="st3" d="M37.15,72.67l4-21.34,10.67,10.67,12-18.67,12,18.67,10.67-10.67,4,21.34h-53.34Z"/>
+    <g>
+      <path class="st2" d="M24,81l6-32,16,16,18-28,18,28,16-16,6,32H24Z"/>
+      <rect class="st7" x="27" y="79" width="74" height="12" rx="4" ry="4"/>
+    </g>
+    <g>
+      <circle class="st5" cx="56.16" cy="64" r="4"/>
+      <circle class="st4" cx="56.16" cy="64" r="5"/>
+    </g>
+    <g>
+      <circle class="st5" cx="71.84" cy="64" r="4"/>
+      <circle class="st4" cx="71.84" cy="64" r="5"/>
+    </g>
+    <circle class="st0" cx="64" cy="34.39" r="4.2"/>
+    <circle class="st0" cx="29.35" cy="46.61" r="3.5"/>
+    <circle class="st0" cx="98" cy="47.37" r="3.5"/>
+    <circle class="st0" cx="86.88" cy="50.11" r="2.07"/>
+    <circle class="st0" cx="41.05" cy="50.11" r="2.07"/>
+  </g>
 </svg>

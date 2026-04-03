@@ -1,25 +1,61 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 128 128">
+  <!-- Generator: Adobe Illustrator 30.2.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 1)  -->
   <defs>
-    <linearGradient id="crown-light-bg" x1="10" y1="8" x2="118" y2="120" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFF8E8"/>
-      <stop offset="1" stop-color="#F8EDD0"/>
+    <style>
+      .st0 {
+        fill: #f0bc43;
+        fill-opacity: .13;
+      }
+
+      .st1 {
+        fill: url(#linear-gradient1);
+        stroke: #ffe9b7;
+        stroke-opacity: .78;
+      }
+
+      .st1, .st2 {
+        stroke-width: 2px;
+      }
+
+      .st3 {
+        fill: #ffe087;
+      }
+
+      .st4 {
+        fill: #efb73a;
+        stroke: #ffdfa0;
+        stroke-opacity: .72;
+      }
+
+      .st2 {
+        fill: url(#linear-gradient);
+        stroke: #c7a45f;
+        stroke-opacity: .9;
+      }
+
+      .st5 {
+        fill: #4ce0c5;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="10" y1="122" x2="118" y2="10" gradientTransform="translate(0 130) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff8e8"/>
+      <stop offset="1" stop-color="#f8edd0"/>
     </linearGradient>
-    <linearGradient id="crown-light-main" x1="26" y1="42" x2="102" y2="98" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFE9A8"/>
-      <stop offset="0.52" stop-color="#F2BE46"/>
-      <stop offset="1" stop-color="#BB7C09"/>
+    <linearGradient id="linear-gradient1" x1="25.42" y1="90.97" x2="101.42" y2="34.97" gradientTransform="translate(0 130) scale(1 -1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffe7a2"/>
+      <stop offset=".52" stop-color="#f8bf39"/>
+      <stop offset="1" stop-color="#c48205"/>
     </linearGradient>
   </defs>
-
-  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#crown-light-bg)" stroke="#C7A45F" stroke-opacity="0.9" stroke-width="2"/>
-  <circle cx="64" cy="66" r="38" fill="#F0BC43" fill-opacity="0.13"/>
-
-  <path d="M28 86L34 52L50 68L64 42L78 68L94 52L100 86H28Z" fill="url(#crown-light-main)" stroke="#FFF0CA" stroke-opacity="0.9" stroke-width="2"/>
-  <rect x="30" y="84" width="68" height="13" rx="4" fill="#E6B03F" stroke="#FFE5AF" stroke-opacity="0.84"/>
-  <circle cx="64" cy="56" r="5" fill="#36CDB1"/>
-  <circle cx="44" cy="64" r="4" fill="#84ECDD"/>
-  <circle cx="84" cy="64" r="4" fill="#84ECDD"/>
-  <circle cx="34" cy="52" r="3.5" fill="#FFF4D7"/>
-  <circle cx="64" cy="42" r="3.5" fill="#FFF4D7"/>
-  <circle cx="94" cy="52" r="3.5" fill="#FFF4D7"/>
+  <rect class="st2" x="4" y="4" width="120" height="120" rx="28" ry="28"/>
+  <circle class="st0" cx="64" cy="66" r="38"/>
+  <g>
+    <path class="st1" d="M28,82.25l6-34,16,16,14-26,14,26,16-16,6,34H28Z"/>
+    <rect class="st4" x="30" y="80.25" width="68" height="13" rx="4" ry="4"/>
+    <circle class="st5" cx="64" cy="60.25" r="5"/>
+    <circle class="st3" cx="34" cy="48.25" r="3.5"/>
+    <circle class="st3" cx="64" cy="38.25" r="3.5"/>
+    <circle class="st3" cx="94" cy="48.25" r="3.5"/>
+  </g>
 </svg>

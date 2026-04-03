@@ -216,6 +216,16 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
+    .achievement-icon-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: auto;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
     ::selection {
       background-color: rgb(var(--selection-bg) / var(--selection-bg-alpha));
       color: rgb(var(--selection-text));
@@ -2942,12 +2952,38 @@
             </article>
           </div>
 
+          <section id="profile-rank-ladder-panel" class="relative overflow-hidden bg-surface-raised border border-surface-border rounded-2xl p-4 sm:p-5 lg:p-6 shadow-depth-1">
+            <div class="pointer-events-none absolute -top-20 -right-14 h-56 w-56 rounded-full bg-brand-500/12 blur-3xl"></div>
+            <div class="pointer-events-none absolute -bottom-24 -left-14 h-56 w-56 rounded-full bg-semantic-info/10 blur-3xl"></div>
+            <div class="relative flex flex-col gap-2">
+              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Rank Advancement</p>
+              <h3 class="font-body font-medium text-display-sm text-text-primary">Rank Advancement Bonus</h3>
+              <p class="text-body-sm text-text-secondary">Track your monthly rank run. You can claim only one reward per month, and it must be the highest eligible rank you reached.</p>
+              <p id="profile-rank-ladder-overview" class="text-caption text-text-tertiary">Current status: --</p>
+            </div>
+            <div id="profile-rank-ladder-list" class="relative mt-4 space-y-0"></div>
+            <p id="profile-rank-ladder-feedback" class="mt-3 hidden text-caption"></p>
+          </section>
+
+          <section id="profile-good-life-panel" class="relative overflow-hidden bg-surface-raised border border-surface-border rounded-2xl p-4 sm:p-5 lg:p-6 shadow-depth-1">
+            <div class="pointer-events-none absolute -top-20 -left-14 h-56 w-56 rounded-full bg-brand-500/10 blur-3xl"></div>
+            <div class="pointer-events-none absolute -bottom-24 -right-14 h-56 w-56 rounded-full bg-semantic-info/10 blur-3xl"></div>
+            <div class="relative flex flex-col gap-2">
+              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Good Life Bonus</p>
+              <h3 class="font-body font-medium text-display-sm text-text-primary">Good Life Monthly Progression</h3>
+              <p class="text-body-sm text-text-secondary">The highest rank you reach this month becomes your only claimable reward.</p>
+              <p id="profile-good-life-overview" class="text-caption text-text-tertiary">Current status: --</p>
+            </div>
+            <div id="profile-good-life-content" class="relative mt-4"></div>
+            <p id="profile-good-life-feedback" class="mt-3 hidden text-caption"></p>
+          </section>
+
           <section id="profile-achievement-panel" class="bg-surface-raised border border-surface-border rounded-2xl p-4 sm:p-5 lg:p-6 shadow-depth-1">
             <div class="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Achievement Center</p>
                 <h3 class="mt-1 font-body font-medium text-display-sm text-text-primary">Profile Achievements</h3>
-                <p class="mt-2 text-body-sm text-text-secondary">Claim your milestone rewards after reaching the required rank.</p>
+                <p class="mt-2 text-body-sm text-text-secondary">General achievement tracks and claims.</p>
               </div>
               <div id="profile-achievement-tabs" role="tablist" aria-label="Achievement tracks" class="inline-flex w-full sm:w-auto items-center rounded-full border border-surface-border bg-surface-base/70 p-1 gap-1">
                 <button
@@ -2958,15 +2994,6 @@
                   class="inline-flex items-center justify-center rounded-full px-4 py-2 text-body-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring"
                 >
                   Premiere Life
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                  data-profile-achievement-tab="rank"
-                  class="inline-flex items-center justify-center rounded-full px-4 py-2 text-body-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring"
-                >
-                  Rank
                 </button>
               </div>
             </div>
@@ -2979,8 +3006,8 @@
 
               <div class="rounded-xl border border-surface-border bg-surface-base/35 p-3 sm:p-4">
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                  <p id="profile-achievement-active-category-label" class="font-body font-medium text-body text-text-primary">Good Life</p>
-                  <p id="profile-achievement-rank-status" class="text-caption text-text-tertiary">Current rank: --</p>
+                  <p id="profile-achievement-active-category-label" class="font-body font-medium text-body text-text-primary">Premiere Journey</p>
+                  <p id="profile-achievement-rank-status" class="text-caption text-text-tertiary">Progress: --</p>
                 </div>
                 <div id="profile-achievement-list" class="mt-3 space-y-3"></div>
                 <p id="profile-achievement-feedback" class="mt-3 hidden text-caption"></p>
@@ -4590,6 +4617,14 @@
       const profileAchievementRankStatusElement = document.getElementById('profile-achievement-rank-status');
       const profileAchievementListElement = document.getElementById('profile-achievement-list');
       const profileAchievementFeedbackElement = document.getElementById('profile-achievement-feedback');
+      const profileRankLadderPanelElement = document.getElementById('profile-rank-ladder-panel');
+      const profileRankLadderOverviewElement = document.getElementById('profile-rank-ladder-overview');
+      const profileRankLadderListElement = document.getElementById('profile-rank-ladder-list');
+      const profileRankLadderFeedbackElement = document.getElementById('profile-rank-ladder-feedback');
+      const profileGoodLifePanelElement = document.getElementById('profile-good-life-panel');
+      const profileGoodLifeOverviewElement = document.getElementById('profile-good-life-overview');
+      const profileGoodLifeContentElement = document.getElementById('profile-good-life-content');
+      const profileGoodLifeFeedbackElement = document.getElementById('profile-good-life-feedback');
       const enrollMemberForm = document.getElementById('enroll-member-form');
       const enrollMemberSubmitButton = document.getElementById('enroll-member-submit-button');
       const enrollMemberSubmitFeedback = document.getElementById('enroll-member-submit-feedback');
@@ -4646,6 +4681,7 @@
       const MEMBER_PURCHASE_ACTIVITY_API = '/api/member-auth/record-purchase';
       const MEMBER_ACCOUNT_UPGRADE_API = '/api/member-auth/upgrade-account';
       const MEMBER_ACHIEVEMENTS_API = '/api/member-auth/achievements';
+      const MEMBER_GOOD_LIFE_MONTHLY_API = '/api/member-auth/good-life/monthly';
       const PROFILE_ACHIEVEMENT_ICON_PATHS_BY_ID = Object.freeze({
         'good-life-diamond': Object.freeze({
           dark: '/brand_assets/Icons/Achievements/diamond.svg',
@@ -4668,6 +4704,46 @@
           light: '/brand_assets/Icons/Achievements/double-crown-light.svg',
         }),
         'good-life-royal-crown': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/royal-crown.svg',
+          light: '/brand_assets/Icons/Achievements/royal-crown-light.svg',
+        }),
+        'premiere-journey-enroll-member': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/placeholder.svg',
+          light: '/brand_assets/Icons/Achievements/placeholder-light.svg',
+        }),
+        'rank-ruby': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/ruby.svg',
+          light: '/brand_assets/Icons/Achievements/ruby-light.svg',
+        }),
+        'rank-emerald': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/emerald.svg',
+          light: '/brand_assets/Icons/Achievements/emerald-light.svg',
+        }),
+        'rank-sapphire': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/sapphire.svg',
+          light: '/brand_assets/Icons/Achievements/sapphire-light.svg',
+        }),
+        'rank-diamond': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/diamond.svg',
+          light: '/brand_assets/Icons/Achievements/diamond-light.svg',
+        }),
+        'rank-blue-diamond': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/blue-diamond.svg',
+          light: '/brand_assets/Icons/Achievements/blue-diamond-light.svg',
+        }),
+        'rank-black-diamond': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/black-diamond.svg',
+          light: '/brand_assets/Icons/Achievements/black-diamond-light.svg',
+        }),
+        'rank-crown': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/crown.svg',
+          light: '/brand_assets/Icons/Achievements/crown-light.svg',
+        }),
+        'rank-double-crown': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/double-crown.svg',
+          light: '/brand_assets/Icons/Achievements/double-crown-light.svg',
+        }),
+        'rank-royal-crown': Object.freeze({
           dark: '/brand_assets/Icons/Achievements/royal-crown.svg',
           light: '/brand_assets/Icons/Achievements/royal-crown-light.svg',
         }),
@@ -4752,6 +4828,9 @@
       let profileEditLastTriggerElement = null;
       let profileAchievementsSnapshot = null;
       let profileAchievementsLoading = false;
+      let profileGoodLifeSnapshot = null;
+      let profileGoodLifeLoading = false;
+      let profileRankLadderSlideIndex = 0;
       let activeProfileAchievementTabId = 'premiere-life';
       const activeProfileAchievementCategoryByTab = {};
       const MINIMUM_PAYOUT_REQUEST_USD = 0.01;
@@ -6116,115 +6195,256 @@
         return {
           tabs: [
             { id: 'premiere-life', label: 'Premiere Life' },
-            { id: 'rank', label: 'Rank' },
           ],
           categories: [
             {
-              id: 'good-life',
+              id: 'premiere-journey',
               tabId: 'premiere-life',
-              label: 'Good Life',
-              description: 'Good Life bonus milestones based on rank achievement.',
-            },
-            {
-              id: 'rank-track',
-              tabId: 'rank',
-              label: 'Rank',
-              description: 'Additional rank achievement tracks will be added here.',
+              label: 'Premiere Journey',
+              description: 'Foundational achievements for your member journey.',
             },
           ],
           achievements: [
             {
-              id: 'good-life-diamond',
+              id: 'premiere-journey-enroll-member',
               tabId: 'premiere-life',
-              categoryId: 'good-life',
+              categoryId: 'premiere-journey',
+              title: 'Enroll a Member',
+              description: 'Enroll 1 member',
+              requiredDirectSponsorsTotal: 1,
+              rewardUsd: 0,
+              rewardLabel: 'Merch',
+              payoutSchedule: 'Claim merch',
+              requiresActive: false,
+              requiresSystemVerification: false,
+              iconPath: '/brand_assets/Icons/Achievements/placeholder.svg',
+              iconLightPath: '/brand_assets/Icons/Achievements/placeholder-light.svg',
+              eligible: false,
+              status: 'locked',
+              lockReason: '',
+              claimId: '',
+              claimedAt: '',
+            },
+            {
+              id: 'rank-ruby',
+              tabId: 'rank',
+              categoryId: 'rank-track',
+              title: 'Ruby',
+              description: 'Monthly rank run reward',
+              requiredRank: 'Ruby',
+              requiresRank: false,
+              requiredDirectSponsorsPerSide: 1,
+              requiredCycles: 5,
+              rewardUsd: 62.5,
+              deductionPerBottleUsd: 0.4,
+              payoutSchedule: 'Paid monthly after verification',
+              requiresActive: true,
+              requiresSystemVerification: true,
+              iconPath: '/brand_assets/Icons/Achievements/ruby.svg',
+              iconLightPath: '/brand_assets/Icons/Achievements/ruby-light.svg',
+              eligible: false,
+              status: 'locked',
+              lockReason: '',
+              claimId: '',
+              claimedAt: '',
+            },
+            {
+              id: 'rank-emerald',
+              tabId: 'rank',
+              categoryId: 'rank-track',
+              title: 'Emerald',
+              description: 'Monthly rank run reward',
+              requiredRank: 'Emerald',
+              requiresRank: false,
+              requiredDirectSponsorsPerSide: 2,
+              requiredCycles: 10,
+              rewardUsd: 125,
+              deductionPerBottleUsd: 0.4,
+              payoutSchedule: 'Paid monthly after verification',
+              requiresActive: true,
+              requiresSystemVerification: true,
+              iconPath: '/brand_assets/Icons/Achievements/emerald.svg',
+              iconLightPath: '/brand_assets/Icons/Achievements/emerald-light.svg',
+              eligible: false,
+              status: 'locked',
+              lockReason: '',
+              claimId: '',
+              claimedAt: '',
+            },
+            {
+              id: 'rank-sapphire',
+              tabId: 'rank',
+              categoryId: 'rank-track',
+              title: 'Sapphire',
+              description: 'Monthly rank run reward',
+              requiredRank: 'Sapphire',
+              requiresRank: false,
+              requiredDirectSponsorsPerSide: 3,
+              requiredCycles: 20,
+              rewardUsd: 250,
+              deductionPerBottleUsd: 0.4,
+              payoutSchedule: 'Paid monthly after verification',
+              requiresActive: true,
+              requiresSystemVerification: true,
+              iconPath: '/brand_assets/Icons/Achievements/sapphire.svg',
+              iconLightPath: '/brand_assets/Icons/Achievements/sapphire-light.svg',
+              eligible: false,
+              status: 'locked',
+              lockReason: '',
+              claimId: '',
+              claimedAt: '',
+            },
+            {
+              id: 'rank-diamond',
+              tabId: 'rank',
+              categoryId: 'rank-track',
               title: 'Diamond',
-              description: 'Reach Diamond Rank',
+              description: 'Monthly rank run reward',
               requiredRank: 'Diamond',
+              requiresRank: false,
+              requiredDirectSponsorsPerSide: 4,
+              requiredCycles: 40,
               rewardUsd: 500,
+              deductionPerBottleUsd: 0.4,
+              payoutSchedule: 'Paid monthly after verification',
+              requiresActive: true,
+              requiresSystemVerification: true,
               iconPath: '/brand_assets/Icons/Achievements/diamond.svg',
               iconLightPath: '/brand_assets/Icons/Achievements/diamond-light.svg',
               eligible: false,
               status: 'locked',
+              lockReason: '',
               claimId: '',
               claimedAt: '',
             },
             {
-              id: 'good-life-blue-diamond',
-              tabId: 'premiere-life',
-              categoryId: 'good-life',
+              id: 'rank-blue-diamond',
+              tabId: 'rank',
+              categoryId: 'rank-track',
               title: 'Blue Diamond',
-              description: 'Reach Blue Diamond Rank',
+              description: 'Monthly rank run reward',
               requiredRank: 'Blue Diamond',
+              requiresRank: false,
+              requiredDirectSponsorsPerSide: 5,
+              requiredCycles: 80,
               rewardUsd: 1000,
+              deductionPerBottleUsd: 0.4,
+              payoutSchedule: 'Paid monthly after verification',
+              requiresActive: true,
+              requiresSystemVerification: true,
               iconPath: '/brand_assets/Icons/Achievements/blue-diamond.svg',
               iconLightPath: '/brand_assets/Icons/Achievements/blue-diamond-light.svg',
               eligible: false,
               status: 'locked',
+              lockReason: '',
               claimId: '',
               claimedAt: '',
             },
             {
-              id: 'good-life-black-diamond',
-              tabId: 'premiere-life',
-              categoryId: 'good-life',
+              id: 'rank-black-diamond',
+              tabId: 'rank',
+              categoryId: 'rank-track',
               title: 'Black Diamond',
-              description: 'Reach Black Diamond Rank',
+              description: 'Monthly rank run reward',
               requiredRank: 'Black Diamond',
+              requiresRank: false,
+              requiredDirectSponsorsPerSide: 6,
+              requiredCycles: 160,
               rewardUsd: 2000,
+              deductionPerBottleUsd: 0.4,
+              payoutSchedule: 'Paid monthly after verification',
+              requiresActive: true,
+              requiresSystemVerification: true,
               iconPath: '/brand_assets/Icons/Achievements/black-diamond.svg',
               iconLightPath: '/brand_assets/Icons/Achievements/black-diamond-light.svg',
               eligible: false,
               status: 'locked',
+              lockReason: '',
               claimId: '',
               claimedAt: '',
             },
             {
-              id: 'good-life-crown',
-              tabId: 'premiere-life',
-              categoryId: 'good-life',
+              id: 'rank-crown',
+              tabId: 'rank',
+              categoryId: 'rank-track',
               title: 'Crown',
-              description: 'Reach Crown Rank',
+              description: 'Monthly rank run reward',
               requiredRank: 'Crown',
+              requiresRank: false,
+              requiredDirectSponsorsPerSide: 7,
+              requiredCycles: 320,
               rewardUsd: 4000,
+              deductionPerBottleUsd: 0.4,
+              payoutSchedule: 'Paid monthly after verification',
+              requiresActive: true,
+              requiresSystemVerification: true,
               iconPath: '/brand_assets/Icons/Achievements/crown.svg',
               iconLightPath: '/brand_assets/Icons/Achievements/crown-light.svg',
               eligible: false,
               status: 'locked',
+              lockReason: '',
               claimId: '',
               claimedAt: '',
             },
             {
-              id: 'good-life-double-crown',
-              tabId: 'premiere-life',
-              categoryId: 'good-life',
+              id: 'rank-double-crown',
+              tabId: 'rank',
+              categoryId: 'rank-track',
               title: 'Double Crown',
-              description: 'Reach Double Crown Rank',
+              description: 'Monthly rank run reward',
               requiredRank: 'Double Crown',
+              requiresRank: false,
+              requiredDirectSponsorsPerSide: 8,
+              requiredCycles: 640,
               rewardUsd: 8000,
+              deductionPerBottleUsd: 0.4,
+              payoutSchedule: 'Paid monthly after verification',
+              requiresActive: true,
+              requiresSystemVerification: true,
               iconPath: '/brand_assets/Icons/Achievements/double-crown.svg',
               iconLightPath: '/brand_assets/Icons/Achievements/double-crown-light.svg',
               eligible: false,
               status: 'locked',
+              lockReason: '',
               claimId: '',
               claimedAt: '',
             },
             {
-              id: 'good-life-royal-crown',
-              tabId: 'premiere-life',
-              categoryId: 'good-life',
+              id: 'rank-royal-crown',
+              tabId: 'rank',
+              categoryId: 'rank-track',
               title: 'Royal Crown',
-              description: 'Reach Royal Crown Rank',
+              description: 'Monthly rank run reward',
               requiredRank: 'Royal Crown',
+              requiresRank: false,
+              requiredDirectSponsorsPerSide: 9,
+              requiredCycles: 1000,
               rewardUsd: 12500,
+              deductionPerBottleUsd: 0.4,
+              payoutSchedule: 'Paid monthly after verification',
+              requiresActive: true,
+              requiresSystemVerification: true,
               iconPath: '/brand_assets/Icons/Achievements/royal-crown.svg',
               iconLightPath: '/brand_assets/Icons/Achievements/royal-crown-light.svg',
               eligible: false,
               status: 'locked',
+              lockReason: '',
               claimId: '',
               claimedAt: '',
             },
           ],
           currentRank: '',
+          leftDirectSponsors: 0,
+          rightDirectSponsors: 0,
+          totalDirectSponsors: 0,
+          currentCycles: 0,
+          rankClaimPeriod: '',
+          rankClaimPeriodLabel: '',
+          rankClaimedAchievementId: '',
+          rankClaimedAchievementTitle: '',
+          isActive: false,
+          activityStatus: '',
+          activityActiveUntilAt: '',
         };
       }
 
@@ -6260,6 +6480,209 @@
         profileAchievementFeedbackElement.classList.add('text-text-tertiary');
       }
 
+      function setProfileRankLadderFeedback(message, tone = 'info') {
+        if (!profileRankLadderFeedbackElement) {
+          return;
+        }
+
+        const safeMessage = String(message || '').trim();
+        profileRankLadderFeedbackElement.classList.remove(
+          'hidden',
+          'text-semantic-success',
+          'text-semantic-danger',
+          'text-text-tertiary',
+        );
+
+        if (!safeMessage) {
+          profileRankLadderFeedbackElement.textContent = '';
+          profileRankLadderFeedbackElement.classList.add('hidden');
+          return;
+        }
+
+        profileRankLadderFeedbackElement.textContent = safeMessage;
+        if (tone === 'success') {
+          profileRankLadderFeedbackElement.classList.add('text-semantic-success');
+          return;
+        }
+        if (tone === 'error') {
+          profileRankLadderFeedbackElement.classList.add('text-semantic-danger');
+          return;
+        }
+
+        profileRankLadderFeedbackElement.classList.add('text-text-tertiary');
+      }
+
+      function setProfileGoodLifeFeedback(message, tone = 'info') {
+        if (!profileGoodLifeFeedbackElement) {
+          return;
+        }
+
+        const safeMessage = String(message || '').trim();
+        profileGoodLifeFeedbackElement.classList.remove(
+          'hidden',
+          'text-semantic-success',
+          'text-semantic-danger',
+          'text-text-tertiary',
+        );
+
+        if (!safeMessage) {
+          profileGoodLifeFeedbackElement.textContent = '';
+          profileGoodLifeFeedbackElement.classList.add('hidden');
+          return;
+        }
+
+        profileGoodLifeFeedbackElement.textContent = safeMessage;
+        if (tone === 'success') {
+          profileGoodLifeFeedbackElement.classList.add('text-semantic-success');
+          return;
+        }
+        if (tone === 'error') {
+          profileGoodLifeFeedbackElement.classList.add('text-semantic-danger');
+          return;
+        }
+
+        profileGoodLifeFeedbackElement.classList.add('text-text-tertiary');
+      }
+
+      function buildProfileGoodLifeFallbackSnapshot() {
+        const milestones = [
+          {
+            id: 'good-life-diamond',
+            title: 'Diamond',
+            requiredRank: 'Diamond',
+            rankIndex: 8,
+            rewardUsd: 500,
+            iconPath: '/brand_assets/Icons/Achievements/diamond.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/diamond-light.svg',
+          },
+          {
+            id: 'good-life-blue-diamond',
+            title: 'Blue Diamond',
+            requiredRank: 'Blue Diamond',
+            rankIndex: 9,
+            rewardUsd: 1000,
+            iconPath: '/brand_assets/Icons/Achievements/blue-diamond.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/blue-diamond-light.svg',
+          },
+          {
+            id: 'good-life-black-diamond',
+            title: 'Black Diamond',
+            requiredRank: 'Black Diamond',
+            rankIndex: 10,
+            rewardUsd: 2000,
+            iconPath: '/brand_assets/Icons/Achievements/black-diamond.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/black-diamond-light.svg',
+          },
+          {
+            id: 'good-life-crown',
+            title: 'Crown',
+            requiredRank: 'Crown',
+            rankIndex: 11,
+            rewardUsd: 4000,
+            iconPath: '/brand_assets/Icons/Achievements/crown.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/crown-light.svg',
+          },
+          {
+            id: 'good-life-double-crown',
+            title: 'Double Crown',
+            requiredRank: 'Double Crown',
+            rankIndex: 12,
+            rewardUsd: 8000,
+            iconPath: '/brand_assets/Icons/Achievements/double-crown.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/double-crown-light.svg',
+          },
+          {
+            id: 'good-life-royal-crown',
+            title: 'Royal Crown',
+            requiredRank: 'Royal Crown',
+            rankIndex: 13,
+            rewardUsd: 12500,
+            iconPath: '/brand_assets/Icons/Achievements/royal-crown.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/royal-crown-light.svg',
+          },
+        ].map((milestone) => ({
+          ...milestone,
+          reached: false,
+          passed: false,
+          claimed: false,
+          claimable: false,
+          status: 'locked',
+        }));
+
+        return {
+          periodKey: '',
+          periodLabel: 'This Month',
+          currentRank: resolveProfileAchievementCurrentRankLabel(),
+          currentRankIndex: -1,
+          highestRecordedRank: '',
+          highestRecordedRankIndex: -1,
+          highestRecordedAchievementId: '',
+          highestRecordedRewardUsd: 0,
+          claimedAt: '',
+          claimedAchievementId: '',
+          claimedRank: '',
+          claimedRewardUsd: 0,
+          canClaim: false,
+          progressPercent: 0,
+          milestones,
+          featuredMilestone: {
+            id: milestones[0]?.id || '',
+            title: milestones[0]?.title || 'Diamond',
+            requiredRank: milestones[0]?.requiredRank || 'Diamond',
+            rewardUsd: milestones[0]?.rewardUsd || 500,
+            iconPath: milestones[0]?.iconPath || '/brand_assets/Icons/Achievements/diamond.svg',
+            iconLightPath: milestones[0]?.iconLightPath || '/brand_assets/Icons/Achievements/diamond-light.svg',
+          },
+        };
+      }
+
+      function applyProfileGoodLifePayload(payload = {}) {
+        const fallback = buildProfileGoodLifeFallbackSnapshot();
+        const sourceMilestones = Array.isArray(payload?.milestones)
+          ? payload.milestones
+          : fallback.milestones;
+        profileGoodLifeSnapshot = {
+          periodKey: String(payload?.periodKey || fallback.periodKey).trim(),
+          periodLabel: String(payload?.periodLabel || fallback.periodLabel).trim(),
+          currentRank: String(payload?.currentRank || fallback.currentRank).trim(),
+          currentRankIndex: toWholeNumber(payload?.currentRankIndex, fallback.currentRankIndex),
+          highestRecordedRank: String(payload?.highestRecordedRank || '').trim(),
+          highestRecordedRankIndex: toWholeNumber(payload?.highestRecordedRankIndex, -1),
+          highestRecordedAchievementId: String(payload?.highestRecordedAchievementId || '').trim(),
+          highestRecordedRewardUsd: Math.max(0, Number(payload?.highestRecordedRewardUsd) || 0),
+          claimedAt: String(payload?.claimedAt || '').trim(),
+          claimedAchievementId: String(payload?.claimedAchievementId || '').trim(),
+          claimedRank: String(payload?.claimedRank || '').trim(),
+          claimedRewardUsd: Math.max(0, Number(payload?.claimedRewardUsd) || 0),
+          canClaim: Boolean(payload?.canClaim),
+          progressPercent: Math.max(0, Math.min(100, Number(payload?.progressPercent) || 0)),
+          milestones: sourceMilestones.map((milestone) => ({
+            id: String(milestone?.id || '').trim(),
+            title: String(milestone?.title || 'Milestone').trim(),
+            requiredRank: String(milestone?.requiredRank || '').trim(),
+            rankIndex: toWholeNumber(milestone?.rankIndex, -1),
+            rewardUsd: Math.max(0, Number(milestone?.rewardUsd) || 0),
+            iconPath: String(milestone?.iconPath || '').trim(),
+            iconLightPath: String(milestone?.iconLightPath || '').trim(),
+            reached: Boolean(milestone?.reached),
+            passed: Boolean(milestone?.passed),
+            claimed: Boolean(milestone?.claimed),
+            claimable: Boolean(milestone?.claimable),
+            status: String(milestone?.status || '').trim().toLowerCase(),
+          })),
+          featuredMilestone: payload?.featuredMilestone && typeof payload.featuredMilestone === 'object'
+            ? {
+              id: String(payload.featuredMilestone?.id || '').trim(),
+              title: String(payload.featuredMilestone?.title || 'Milestone').trim(),
+              requiredRank: String(payload.featuredMilestone?.requiredRank || '').trim(),
+              rewardUsd: Math.max(0, Number(payload.featuredMilestone?.rewardUsd) || 0),
+              iconPath: String(payload.featuredMilestone?.iconPath || '').trim(),
+              iconLightPath: String(payload.featuredMilestone?.iconLightPath || '').trim(),
+            }
+            : fallback.featuredMilestone,
+        };
+      }
+
       function resolveProfileAchievementTabs() {
         const sourceTabs = Array.isArray(profileAchievementsSnapshot?.tabs)
           ? profileAchievementsSnapshot.tabs
@@ -6290,6 +6713,22 @@
         return String(tabs[0]?.id || 'premiere-life').trim() || 'premiere-life';
       }
 
+      function resolveVisibleProfileAchievementTabId(candidateTabId) {
+        const safeCandidateTabId = String(candidateTabId || '').trim();
+        const visibleTabIds = Array.isArray(profileAchievementTabButtons)
+          ? profileAchievementTabButtons
+            .map((button) => String(button?.getAttribute('data-profile-achievement-tab') || '').trim())
+            .filter(Boolean)
+          : [];
+        if (visibleTabIds.length === 0) {
+          return safeCandidateTabId || 'premiere-life';
+        }
+        if (safeCandidateTabId && visibleTabIds.includes(safeCandidateTabId)) {
+          return safeCandidateTabId;
+        }
+        return visibleTabIds[0];
+      }
+
       function resolveDefaultProfileAchievementCategoryId(tabId) {
         const safeTabId = String(tabId || '').trim();
         const categories = resolveProfileAchievementCategoriesByTab(safeTabId);
@@ -6317,8 +6756,33 @@
         return clientRank || 'Unranked';
       }
 
+      function resolveProfileAchievementCurrentCycleValue() {
+        const serverCycles = Number(profileAchievementsSnapshot?.currentCycles);
+        if (Number.isFinite(serverCycles) && serverCycles > 0) {
+          return Math.max(0, Math.floor(serverCycles));
+        }
+
+        const fallbackCycles = toWholeNumber(currentDashboardTotalCycles, 0);
+        return Math.max(0, fallbackCycles);
+      }
+
+      function resolveProfileAchievementActivityStatusLabel() {
+        const serverStatus = String(profileAchievementsSnapshot?.activityStatus || '').trim();
+        if (serverStatus) {
+          return serverStatus;
+        }
+        return resolveAccountRankActivityState(currentSessionUser).label;
+      }
+
+      function resolveProfileAchievementDirectSponsorPair() {
+        return {
+          left: Math.max(0, toWholeNumber(profileAchievementsSnapshot?.leftDirectSponsors, 0)),
+          right: Math.max(0, toWholeNumber(profileAchievementsSnapshot?.rightDirectSponsors, 0)),
+        };
+      }
+
       function ensureActiveProfileAchievementSelection() {
-        const nextTabId = resolveDefaultProfileAchievementTabId();
+        const nextTabId = resolveVisibleProfileAchievementTabId(resolveDefaultProfileAchievementTabId());
         activeProfileAchievementTabId = nextTabId || 'premiere-life';
 
         const nextCategoryId = resolveDefaultProfileAchievementCategoryId(activeProfileAchievementTabId);
@@ -6396,6 +6860,511 @@
         ));
       }
 
+      function resolveRankAdvancementLadderItems() {
+        const sourceAchievements = Array.isArray(profileAchievementsSnapshot?.achievements)
+          ? profileAchievementsSnapshot.achievements
+          : [];
+        const sortRankMilestones = (items) => items
+          .filter((achievement) => String(achievement?.tabId || '').trim() === 'rank')
+          .sort((left, right) => {
+            const leftCycles = toWholeNumber(left?.requiredCycles, 0);
+            const rightCycles = toWholeNumber(right?.requiredCycles, 0);
+            if (leftCycles !== rightCycles) {
+              return leftCycles - rightCycles;
+            }
+            const leftPair = toWholeNumber(left?.requiredDirectSponsorsPerSide, 0);
+            const rightPair = toWholeNumber(right?.requiredDirectSponsorsPerSide, 0);
+            if (leftPair !== rightPair) {
+              return leftPair - rightPair;
+            }
+            return String(left?.title || '').localeCompare(String(right?.title || ''));
+          });
+
+        const rankedSourceItems = sortRankMilestones(sourceAchievements);
+        if (rankedSourceItems.length > 0) {
+          return rankedSourceItems;
+        }
+
+        const fallback = buildProfileAchievementFallbackSnapshot();
+        const fallbackAchievements = Array.isArray(fallback?.achievements)
+          ? fallback.achievements
+          : [];
+        return sortRankMilestones(fallbackAchievements);
+      }
+
+      function renderProfileRankAdvancementLadder() {
+        if (!profileRankLadderPanelElement || !profileRankLadderListElement) {
+          return;
+        }
+
+        const currentRankLabel = resolveProfileAchievementCurrentRankLabel();
+        const currentCycleValue = resolveProfileAchievementCurrentCycleValue();
+        const currentActivityStatusLabel = resolveProfileAchievementActivityStatusLabel();
+        const directSponsorPair = resolveProfileAchievementDirectSponsorPair();
+        const rankClaimPeriodLabel = String(profileAchievementsSnapshot?.rankClaimPeriodLabel || '').trim() || 'This Month';
+        const rankClaimedAchievementTitle = String(profileAchievementsSnapshot?.rankClaimedAchievementTitle || '').trim();
+        const claimedSummary = rankClaimedAchievementTitle
+          ? ` | Claimed: ${rankClaimedAchievementTitle}`
+          : '';
+        if (profileRankLadderOverviewElement) {
+          profileRankLadderOverviewElement.textContent = `Current status (${rankClaimPeriodLabel}): Rank ${currentRankLabel} | Cycles ${currentCycleValue.toLocaleString()} | Direct L:${directSponsorPair.left.toLocaleString()} R:${directSponsorPair.right.toLocaleString()} | ${currentActivityStatusLabel}${claimedSummary}`;
+        }
+
+        if (profileAchievementsLoading) {
+          profileRankLadderListElement.innerHTML = `
+            <div class="rounded-xl border border-surface-border bg-surface-base/35 px-4 py-4">
+              <p class="text-body-sm text-text-secondary">Loading ladder...</p>
+            </div>
+          `;
+          return;
+        }
+
+        const ladderItems = resolveRankAdvancementLadderItems();
+        if (ladderItems.length === 0) {
+          profileRankLadderListElement.innerHTML = `
+            <div class="rounded-xl border border-dashed border-surface-border px-4 py-4">
+              <p class="text-body-sm text-text-secondary">No monthly rank targets are configured yet.</p>
+            </div>
+          `;
+          return;
+        }
+
+        const maxSlideIndex = Math.max(0, ladderItems.length - 1);
+        profileRankLadderSlideIndex = Math.min(
+          maxSlideIndex,
+          Math.max(0, toWholeNumber(profileRankLadderSlideIndex, 0)),
+        );
+        const activeSlideIndex = profileRankLadderSlideIndex;
+        const prevDisabled = activeSlideIndex <= 0;
+        const nextDisabled = activeSlideIndex >= maxSlideIndex;
+        const activeLadderItem = ladderItems[activeSlideIndex] || null;
+        const activeLadderTitle = String(activeLadderItem?.title || '').trim() || 'Rank Target';
+
+        profileRankLadderListElement.innerHTML = `
+          <section class="rounded-2xl border border-surface-border bg-gradient-to-br from-brand-500/10 via-surface-base/55 to-surface-base p-3 sm:p-5 shadow-depth-1">
+            <div class="overflow-hidden rounded-2xl border border-surface-border bg-surface-base/45">
+              <div
+                class="flex transition-transform duration-300 ease-spring will-change-transform"
+                style="transform: translateX(-${(activeSlideIndex * 100).toFixed(2)}%);"
+              >
+                ${ladderItems.map((achievement, index) => {
+                  const safeId = String(achievement?.id || '').trim();
+                  const title = String(achievement?.title || 'Milestone').trim() || 'Milestone';
+                  const rewardUsd = Math.max(0, Number(achievement?.rewardUsd) || 0);
+                  const requirements = Array.isArray(achievement?.requirements)
+                    ? achievement.requirements
+                    : [];
+                  const prerequisites = Array.isArray(achievement?.prerequisites)
+                    ? achievement.prerequisites
+                    : [];
+                  const cycleRequirement = requirements.find(
+                    (entry) => String(entry?.id || '').trim() === 'cycles',
+                  ) || null;
+                  const directSponsorPairRequirement = requirements.find(
+                    (entry) => String(entry?.id || '').trim() === 'direct-sponsor-pairs',
+                  ) || null;
+                  const activePrerequisite = prerequisites.find(
+                    (entry) => String(entry?.id || '').trim() === 'active',
+                  ) || null;
+                  const requiredCycles = Math.max(
+                    0,
+                    toWholeNumber(
+                      cycleRequirement?.required,
+                      toWholeNumber(achievement?.requiredCycles, 0),
+                    ),
+                  );
+                  const currentCycles = Math.max(
+                    0,
+                    toWholeNumber(
+                      cycleRequirement?.current,
+                      currentCycleValue,
+                    ),
+                  );
+                  const fallbackRequiredDirectPerSide = Math.max(
+                    0,
+                    toWholeNumber(achievement?.requiredDirectSponsorsPerSide, 0),
+                  );
+                  const requiredLeft = Math.max(
+                    0,
+                    toWholeNumber(
+                      directSponsorPairRequirement?.required?.left,
+                      fallbackRequiredDirectPerSide,
+                    ),
+                  );
+                  const requiredRight = Math.max(
+                    0,
+                    toWholeNumber(
+                      directSponsorPairRequirement?.required?.right,
+                      fallbackRequiredDirectPerSide,
+                    ),
+                  );
+                  const currentLeft = Math.max(
+                    0,
+                    toWholeNumber(
+                      directSponsorPairRequirement?.current?.left,
+                      toWholeNumber(
+                        achievement?.currentLeftDirectSponsors,
+                        toWholeNumber(profileAchievementsSnapshot?.leftDirectSponsors, 0),
+                      ),
+                    ),
+                  );
+                  const currentRight = Math.max(
+                    0,
+                    toWholeNumber(
+                      directSponsorPairRequirement?.current?.right,
+                      toWholeNumber(
+                        achievement?.currentRightDirectSponsors,
+                        toWholeNumber(profileAchievementsSnapshot?.rightDirectSponsors, 0),
+                      ),
+                    ),
+                  );
+                  const hasPairRequirement = (requiredLeft > 0 || requiredRight > 0);
+                  const hasCycleRequirement = requiredCycles > 0;
+                  const claimedAt = String(achievement?.claimedAt || '').trim();
+                  const status = String(achievement?.status || '').trim().toLowerCase();
+                  const isClaimed = status === 'claimed';
+                  const isEligible = status === 'eligible';
+                  const lockReason = String(achievement?.lockReason || '').trim();
+                  const iconPath = resolveProfileAchievementIconPath(achievement);
+                  const buttonLabel = isClaimed ? 'Claimed' : (isEligible ? 'Claim' : 'Locked');
+                  const buttonDisabled = !isEligible;
+                  const buttonClasses = isClaimed
+                    ? 'border-semantic-success/40 bg-semantic-success-bg text-semantic-success cursor-default'
+                    : (isEligible
+                      ? 'bg-brand-500 text-text-inverse hover:bg-brand-400 hover:-translate-y-0.5'
+                      : 'border-surface-border bg-surface-base text-text-tertiary cursor-not-allowed opacity-70');
+                  const cycleRequirementMet = hasCycleRequirement
+                    ? (cycleRequirement ? Boolean(cycleRequirement?.met) : currentCycles >= requiredCycles)
+                    : true;
+                  const pairRequirementMet = hasPairRequirement
+                    ? (
+                      directSponsorPairRequirement
+                        ? Boolean(directSponsorPairRequirement?.met)
+                        : (currentLeft >= requiredLeft && currentRight >= requiredRight)
+                    )
+                    : true;
+                  const activityRequirementMet = activePrerequisite
+                    ? Boolean(activePrerequisite?.met)
+                    : Boolean(profileAchievementsSnapshot?.isActive);
+                  const pairRequirementLabel = `${requiredLeft.toLocaleString()}:${requiredRight.toLocaleString()}`;
+                  const pairCurrentLabel = `${currentLeft.toLocaleString()}:${currentRight.toLocaleString()}`;
+                  const directSponsorProgressLabel = hasPairRequirement
+                    ? `Direct Personal: L ${currentLeft.toLocaleString()}/${requiredLeft.toLocaleString()} | R ${currentRight.toLocaleString()}/${requiredRight.toLocaleString()}`
+                    : `Direct Personal: L ${currentLeft.toLocaleString()} | R ${currentRight.toLocaleString()}`;
+                  const cycleProgressLabel = hasCycleRequirement
+                    ? `Cycles: ${currentCycles.toLocaleString()}/${requiredCycles.toLocaleString()}`
+                    : `Cycles: ${currentCycles.toLocaleString()}`;
+                  const claimDateLabel = isClaimed ? formatProfileAchievementClaimDate(claimedAt) : '';
+                  const claimDateMarkup = isClaimed
+                    ? `<p class="mt-2 text-caption text-semantic-success">Claimed on ${escapeHtml(claimDateLabel)}</p>`
+                    : '';
+                  const lockReasonMarkup = (!isClaimed && !isEligible && lockReason)
+                    ? `<p class="mt-2 text-caption text-semantic-warning">${escapeHtml(lockReason)}</p>`
+                    : '';
+                  const leftPercent = requiredLeft > 0
+                    ? Math.min(100, Math.round((currentLeft / requiredLeft) * 100))
+                    : 100;
+                  const rightPercent = requiredRight > 0
+                    ? Math.min(100, Math.round((currentRight / requiredRight) * 100))
+                    : 100;
+                  const cyclePercent = requiredCycles > 0
+                    ? Math.min(100, Math.round((currentCycles / requiredCycles) * 100))
+                    : 100;
+                  const statusChipClass = isClaimed
+                    ? 'border-semantic-success/35 bg-semantic-success-bg text-semantic-success'
+                    : (isEligible
+                      ? 'border-brand-500/35 bg-brand-500/15 text-brand-300'
+                      : 'border-surface-border bg-surface-elevated text-text-tertiary');
+                  const checklistRows = [
+                    { label: `Pair ${pairRequirementLabel} (Now ${pairCurrentLabel})`, met: pairRequirementMet },
+                    { label: hasCycleRequirement ? `Cycles ${currentCycles.toLocaleString()}/${requiredCycles.toLocaleString()}` : `Cycles ${currentCycles.toLocaleString()}`, met: cycleRequirementMet },
+                    { label: 'Must be Active', met: activityRequirementMet },
+                  ];
+
+                  return `
+                    <article class="min-w-full rounded-2xl border border-surface-border bg-gradient-to-br from-surface-base/80 to-brand-500/10 p-4 sm:p-5">
+                      <header class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="inline-flex items-center rounded-full border border-brand-500/35 bg-brand-500/10 px-2.5 py-1 text-caption font-medium text-brand-300">${escapeHtml(title)}</span>
+                          <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Monthly Rank Target</p>
+                        </div>
+                        <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-caption font-medium ${statusChipClass}">${escapeHtml(isClaimed ? 'Claimed' : (isEligible ? 'Ready to Claim' : 'Locked'))}</span>
+                      </header>
+
+                      <div class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr),18rem]">
+                        <section class="min-w-0 space-y-4">
+                          <div class="flex items-start gap-3">
+                            <figure class="h-16 w-16 shrink-0 rounded-2xl border border-surface-border bg-surface-elevated/75 p-2 shadow-inner">
+                              <img
+                                src="${escapeHtml(iconPath)}"
+                                alt="${escapeHtml(`${title} icon`)}"
+                                loading="lazy"
+                                decoding="async"
+                                class="achievement-icon-image"
+                              />
+                            </figure>
+                            <div class="min-w-0">
+                              <p class="font-body font-medium text-display-sm text-text-primary">${escapeHtml(title)}</p>
+                              <p class="mt-1 text-caption text-text-secondary">${escapeHtml(directSponsorProgressLabel)}</p>
+                              <p class="mt-1 text-caption text-text-tertiary">${escapeHtml(cycleProgressLabel)}</p>
+                            </div>
+                          </div>
+
+                          <ul class="space-y-3">
+                            <li>
+                              <div class="flex items-center justify-between gap-2 text-[11px] text-text-tertiary">
+                                <span>Left Direct</span>
+                                <span>${escapeHtml(`${currentLeft.toLocaleString()} / ${requiredLeft.toLocaleString()}`)}</span>
+                              </div>
+                              <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-border/70">
+                                <span class="block h-full rounded-full ${pairRequirementMet ? 'bg-semantic-success' : 'bg-brand-500'}" style="width: ${leftPercent.toString()}%;"></span>
+                              </div>
+                            </li>
+                            <li>
+                              <div class="flex items-center justify-between gap-2 text-[11px] text-text-tertiary">
+                                <span>Right Direct</span>
+                                <span>${escapeHtml(`${currentRight.toLocaleString()} / ${requiredRight.toLocaleString()}`)}</span>
+                              </div>
+                              <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-border/70">
+                                <span class="block h-full rounded-full ${pairRequirementMet ? 'bg-semantic-success' : 'bg-brand-500'}" style="width: ${rightPercent.toString()}%;"></span>
+                              </div>
+                            </li>
+                            <li>
+                              <div class="flex items-center justify-between gap-2 text-[11px] text-text-tertiary">
+                                <span>Cycle Progress</span>
+                                <span>${escapeHtml(hasCycleRequirement ? `${currentCycles.toLocaleString()} / ${requiredCycles.toLocaleString()}` : currentCycles.toLocaleString())}</span>
+                              </div>
+                              <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-border/70">
+                                <span class="block h-full rounded-full ${cycleRequirementMet ? 'bg-semantic-success' : 'bg-brand-500'}" style="width: ${cyclePercent.toString()}%;"></span>
+                              </div>
+                            </li>
+                          </ul>
+                        </section>
+
+                        <aside class="rounded-xl border border-surface-border bg-surface-base/60 p-3 sm:p-4">
+                          <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Claim Panel</p>
+                          <p class="mt-2 text-display-xs font-body font-semibold text-brand-300">${escapeHtml(formatCurrency(rewardUsd))}</p>
+                          <button
+                            type="button"
+                            data-profile-rank-ladder-claim-id="${escapeHtml(safeId)}"
+                            ${buttonDisabled ? 'disabled' : ''}
+                            class="mt-3 inline-flex w-full items-center justify-center rounded-lg border px-3.5 py-2 text-body-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-transform duration-150 ease-spring ${buttonClasses}"
+                          >
+                            ${escapeHtml(buttonLabel)}
+                          </button>
+                          <ul class="mt-3 space-y-1.5">
+                            ${checklistRows.map((row) => `
+                              <li class="text-caption ${row.met ? 'text-semantic-success' : 'text-text-secondary'}">${escapeHtml(row.label)}</li>
+                            `).join('')}
+                          </ul>
+                          ${lockReasonMarkup}
+                          ${claimDateMarkup}
+                        </aside>
+                      </div>
+                    </article>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+            <nav class="mt-4 grid grid-cols-[auto,minmax(0,1fr),auto] items-center gap-2 sm:gap-3" aria-label="Rank target carousel controls">
+              <button
+                type="button"
+                data-profile-rank-ladder-nav="prev"
+                ${prevDisabled ? 'disabled' : ''}
+                class="inline-flex h-9 w-9 items-center justify-center rounded-full border text-body-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-transform duration-150 ease-spring ${prevDisabled ? 'border-surface-border bg-surface-base text-text-tertiary cursor-not-allowed opacity-60' : 'border-surface-border-light bg-surface-elevated text-text-primary hover:bg-surface-floating hover:-translate-y-0.5'}"
+                aria-label="Previous rank target"
+              >
+                <
+              </button>
+              <div class="min-w-0 overflow-x-auto">
+                <div class="flex w-max min-w-full items-center gap-1.5 sm:gap-2 sm:justify-center">
+                ${ladderItems.map((achievement, index) => {
+                  const title = String(achievement?.title || `Rank ${index + 1}`).trim() || `Rank ${index + 1}`;
+                  const compactTitle = title.split(/\s+/)[0] || title;
+                  const isActive = index === activeSlideIndex;
+                  return `
+                    <button
+                      type="button"
+                      data-profile-rank-ladder-go-index="${index}"
+                      aria-label="${escapeHtml(`Go to ${title}`)}"
+                      aria-current="${isActive ? 'true' : 'false'}"
+                      class="inline-flex shrink-0 items-center justify-center rounded-full border px-2 py-1 text-[10px] sm:px-3 sm:text-[11px] font-medium transition-transform duration-150 ease-spring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-95 ${isActive ? 'border-brand-500 bg-brand-500/20 text-brand-300' : 'border-surface-border bg-surface-elevated text-text-tertiary hover:border-brand-500/60 hover:text-text-primary'}"
+                    >
+                      <span class="sm:hidden">${escapeHtml(compactTitle)}</span>
+                      <span class="hidden sm:inline">${escapeHtml(title)}</span>
+                    </button>
+                  `;
+                }).join('')}
+                </div>
+              </div>
+              <button
+                type="button"
+                data-profile-rank-ladder-nav="next"
+                ${nextDisabled ? 'disabled' : ''}
+                class="inline-flex h-9 w-9 items-center justify-center rounded-full border text-body-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-transform duration-150 ease-spring ${nextDisabled ? 'border-surface-border bg-surface-base text-text-tertiary cursor-not-allowed opacity-60' : 'border-surface-border-light bg-surface-elevated text-text-primary hover:bg-surface-floating hover:-translate-y-0.5'}"
+                aria-label="Next rank target"
+              >
+                >
+              </button>
+            </nav>
+            <p class="mt-2 text-center text-caption text-text-tertiary leading-relaxed">
+              <span class="block sm:inline">${escapeHtml(`Viewing: ${activeLadderTitle}`)}</span>
+              <span class="hidden sm:inline"> | </span>
+              <span class="block sm:inline">One claim, highest eligible rank, per month</span>
+            </p>
+          </section>
+        `;
+      }
+
+
+      function renderProfileGoodLifePanel() {
+        if (!profileGoodLifePanelElement || !profileGoodLifeContentElement) {
+          return;
+        }
+
+        const snapshot = profileGoodLifeSnapshot || buildProfileGoodLifeFallbackSnapshot();
+        const periodLabel = String(snapshot?.periodLabel || 'This Month').trim() || 'This Month';
+        const currentRank = String(snapshot?.currentRank || '').trim() || 'Unranked';
+        const highestRank = String(snapshot?.highestRecordedRank || '').trim() || '--';
+        const claimedAt = String(snapshot?.claimedAt || '').trim();
+        const milestones = Array.isArray(snapshot?.milestones) ? snapshot.milestones : [];
+        const progressPercent = Math.max(0, Math.min(100, Number(snapshot?.progressPercent) || 0));
+        const claimableMilestone = milestones.find((entry) => Boolean(entry?.claimable)) || null;
+        const claimedMilestone = milestones.find((entry) => Boolean(entry?.claimed)) || null;
+        const featuredMilestone = claimedMilestone
+          || claimableMilestone
+          || (snapshot?.featuredMilestone && typeof snapshot.featuredMilestone === 'object' ? snapshot.featuredMilestone : null)
+          || milestones.find((entry) => Boolean(entry?.reached))
+          || milestones[0]
+          || null;
+        const hasClaimed = Boolean(claimedAt);
+        const canClaim = Boolean(snapshot?.canClaim) && !hasClaimed;
+        const claimRewardValue = Math.max(
+          0,
+          Number(
+            claimedMilestone?.rewardUsd
+            ?? claimableMilestone?.rewardUsd
+            ?? featuredMilestone?.rewardUsd
+            ?? snapshot?.highestRecordedRewardUsd,
+          ) || 0,
+        );
+        const claimLabel = hasClaimed ? 'Claimed' : (canClaim ? 'Claim Highest Reward' : 'Locked');
+        const claimDisabled = !canClaim || profileGoodLifeLoading;
+        const claimClasses = hasClaimed
+          ? 'border-semantic-success/40 bg-semantic-success-bg text-semantic-success cursor-default'
+          : (canClaim
+            ? 'bg-brand-500 text-text-inverse hover:bg-brand-400 hover:-translate-y-0.5'
+            : 'border-surface-border bg-surface-base text-text-tertiary cursor-not-allowed opacity-70');
+        const featureIconPath = resolveProfileAchievementIconPath({
+          id: String(featuredMilestone?.id || '').trim(),
+          iconPath: String(featuredMilestone?.iconPath || '').trim(),
+          iconLightPath: String(featuredMilestone?.iconLightPath || '').trim(),
+        });
+        const featureTitle = String(featuredMilestone?.title || 'Good Life').trim() || 'Good Life';
+        const claimDateLabel = claimedAt ? formatProfileAchievementClaimDate(claimedAt) : '';
+        const claimDateMarkup = claimDateLabel
+          ? `<p class="mt-1 text-caption text-semantic-success">Claimed on ${escapeHtml(claimDateLabel)}</p>`
+          : '';
+
+        if (profileGoodLifeOverviewElement) {
+          profileGoodLifeOverviewElement.textContent = `${periodLabel}: Current rank ${currentRank} | Highest this month ${highestRank}`;
+        }
+
+        if (profileGoodLifeLoading) {
+          profileGoodLifeContentElement.innerHTML = `
+            <div class="rounded-xl border border-surface-border bg-surface-base/35 px-4 py-4">
+              <p class="text-body-sm text-text-secondary">Loading Good Life monthly progression...</p>
+            </div>
+          `;
+          return;
+        }
+
+        if (milestones.length === 0) {
+          profileGoodLifeContentElement.innerHTML = `
+            <div class="rounded-xl border border-dashed border-surface-border px-4 py-4">
+              <p class="text-body-sm text-text-secondary">No Good Life milestones are configured yet.</p>
+            </div>
+          `;
+          return;
+        }
+
+        profileGoodLifeContentElement.innerHTML = `
+          <section class="rounded-2xl border border-surface-border bg-gradient-to-br from-brand-500/10 via-surface-base/55 to-surface-base p-4 sm:p-5 shadow-depth-1">
+            <div class="flex flex-col gap-3 rounded-xl border border-surface-border bg-surface-base/55 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+              <div class="min-w-0 flex items-center gap-3">
+                <div class="h-14 w-14 shrink-0 rounded-xl border border-surface-border bg-surface-elevated/75 p-1.5 shadow-inner">
+                  <img src="${escapeHtml(featureIconPath)}" alt="${escapeHtml(`${featureTitle} icon`)}" class="achievement-icon-image" loading="lazy" decoding="async" />
+                </div>
+                <div class="min-w-0">
+                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">${escapeHtml(periodLabel)}</p>
+                  <p class="mt-1 text-body font-medium text-text-primary">${escapeHtml(featureTitle)}</p>
+                  <p class="mt-1 text-caption text-text-secondary">Highest rank reached this month: ${escapeHtml(highestRank)}</p>
+                </div>
+              </div>
+              <div class="sm:text-right">
+                <p class="text-display-xs font-body font-semibold text-brand-300">${escapeHtml(formatCurrency(claimRewardValue))}</p>
+                <button
+                  type="button"
+                  data-profile-good-life-claim="true"
+                  ${claimDisabled ? 'disabled' : ''}
+                  class="mt-2 inline-flex w-full items-center justify-center rounded-lg border px-3.5 py-2 text-body-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-transform duration-150 ease-spring sm:w-auto ${claimClasses}"
+                >
+                  ${escapeHtml(claimLabel)}
+                </button>
+                ${claimDateMarkup}
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <div class="h-2 overflow-hidden rounded-full bg-surface-border/70">
+                <span class="block h-full rounded-full bg-brand-500 transition-[width] duration-300 ease-spring" style="width: ${progressPercent.toString()}%;"></span>
+              </div>
+              <ol class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                ${milestones.map((milestone) => {
+                  const status = String(milestone?.status || '').trim().toLowerCase();
+                  const isClaimed = status === 'claimed';
+                  const isClaimable = status === 'claimable';
+                  const isPassed = status === 'passed' || status === 'reached';
+                  const milestoneIconPath = resolveProfileAchievementIconPath(milestone);
+                  const cardClasses = isClaimed
+                    ? 'border-semantic-success/40 bg-semantic-success-bg'
+                    : (isClaimable
+                      ? 'border-brand-500/40 bg-brand-500/10'
+                      : (isPassed
+                        ? 'border-surface-border-light bg-surface-elevated/70'
+                        : 'border-surface-border bg-surface-base/55 opacity-85'));
+                  const badgeLabel = isClaimed
+                    ? 'Claimed'
+                    : (isClaimable
+                      ? 'Ready'
+                      : (isPassed ? 'Passed' : 'Locked'));
+                  const badgeClasses = isClaimed
+                    ? 'text-semantic-success'
+                    : (isClaimable
+                      ? 'text-brand-300'
+                      : (isPassed ? 'text-text-secondary' : 'text-text-tertiary'));
+                  return `
+                    <li class="rounded-xl border p-2.5 ${cardClasses}">
+                      <div class="flex items-center gap-2">
+                        <div class="h-9 w-9 shrink-0 rounded-lg border border-surface-border bg-surface-base/70 p-1">
+                          <img src="${escapeHtml(milestoneIconPath)}" alt="${escapeHtml(`${String(milestone?.title || 'Milestone')} icon`)}" class="achievement-icon-image" loading="lazy" decoding="async" />
+                        </div>
+                        <div class="min-w-0">
+                          <p class="truncate text-caption font-medium text-text-primary">${escapeHtml(String(milestone?.title || 'Milestone'))}</p>
+                          <p class="text-[11px] ${badgeClasses}">${escapeHtml(badgeLabel)}</p>
+                        </div>
+                      </div>
+                      <p class="mt-2 text-caption text-text-tertiary">${escapeHtml(formatCurrency(Math.max(0, Number(milestone?.rewardUsd) || 0)))}</p>
+                    </li>
+                  `;
+                }).join('')}
+              </ol>
+              <p class="mt-3 text-caption text-text-tertiary">Only your highest reached rank this month is claimable.</p>
+            </div>
+          </section>
+        `;
+      }
+
       function formatProfileAchievementClaimDate(value) {
         const parsedMs = Date.parse(String(value || ''));
         if (!Number.isFinite(parsedMs)) {
@@ -6461,10 +7430,205 @@
           const title = String(achievement?.title || 'Achievement').trim() || 'Achievement';
           const description = String(achievement?.description || '').trim();
           const rewardUsd = Math.max(0, Number(achievement?.rewardUsd) || 0);
+          const rewardLabel = String(achievement?.rewardLabel || '').trim();
           const claimedAt = String(achievement?.claimedAt || '').trim();
           const status = String(achievement?.status || '').trim().toLowerCase();
           const isClaimed = status === 'claimed';
           const isEligible = status === 'eligible';
+          const lockReason = String(achievement?.lockReason || '').trim();
+          const payoutSchedule = String(achievement?.payoutSchedule || '').trim();
+          const requirements = Array.isArray(achievement?.requirements)
+            ? achievement.requirements
+            : [];
+          const prerequisites = Array.isArray(achievement?.prerequisites)
+            ? achievement.prerequisites
+            : [];
+          const requiredRankLabel = String(achievement?.requiredRank || '').trim();
+          const requiresRankRequirement = achievement?.requiresRank !== false;
+          const requiredDirectSponsorsPerSide = Math.max(
+            0,
+            toWholeNumber(achievement?.requiredDirectSponsorsPerSide, 0),
+          );
+          const requiredDirectSponsorsTotal = Math.max(
+            0,
+            toWholeNumber(achievement?.requiredDirectSponsorsTotal, 0),
+          );
+          const currentLeftDirectSponsors = Math.max(
+            0,
+            toWholeNumber(
+              achievement?.currentLeftDirectSponsors,
+              profileAchievementsSnapshot?.leftDirectSponsors,
+            ),
+          );
+          const currentRightDirectSponsors = Math.max(
+            0,
+            toWholeNumber(
+              achievement?.currentRightDirectSponsors,
+              profileAchievementsSnapshot?.rightDirectSponsors,
+            ),
+          );
+          const currentDirectSponsorsTotal = Math.max(
+            0,
+            toWholeNumber(
+              achievement?.currentDirectSponsorsTotal,
+              profileAchievementsSnapshot?.totalDirectSponsors,
+            ),
+          );
+          const requiredCyclesRaw = Number(achievement?.requiredCycles);
+          const requiredCycles = Number.isFinite(requiredCyclesRaw) && requiredCyclesRaw > 0
+            ? Math.max(0, Math.floor(requiredCyclesRaw))
+            : 0;
+
+          const requirementEntries = requirements.length > 0
+            ? requirements
+            : [
+              ...(requiredRankLabel && requiresRankRequirement ? [{
+                id: 'rank',
+                label: `Reach ${requiredRankLabel} rank`,
+                met: Boolean(isEligible || isClaimed),
+              }] : []),
+              ...(requiredDirectSponsorsPerSide > 0 ? [{
+                id: 'direct-sponsor-pairs',
+                label: `Enroll ${requiredDirectSponsorsPerSide.toLocaleString()} direct sponsors on Left and ${requiredDirectSponsorsPerSide.toLocaleString()} direct sponsors on Right`,
+                met: (
+                  currentLeftDirectSponsors >= requiredDirectSponsorsPerSide
+                  && currentRightDirectSponsors >= requiredDirectSponsorsPerSide
+                ),
+                current: {
+                  left: currentLeftDirectSponsors,
+                  right: currentRightDirectSponsors,
+                },
+                required: {
+                  left: requiredDirectSponsorsPerSide,
+                  right: requiredDirectSponsorsPerSide,
+                },
+              }] : []),
+              ...(requiredDirectSponsorsTotal > 0 ? [{
+                id: 'direct-sponsors-total',
+                label: `Enroll ${requiredDirectSponsorsTotal.toLocaleString()} member${requiredDirectSponsorsTotal === 1 ? '' : 's'}`,
+                met: currentDirectSponsorsTotal >= requiredDirectSponsorsTotal,
+                current: currentDirectSponsorsTotal,
+                required: requiredDirectSponsorsTotal,
+              }] : []),
+              ...(requiredCycles > 0 ? [{
+                id: 'cycles',
+                label: `Complete ${requiredCycles.toLocaleString()} cycles`,
+                met: false,
+                current: 0,
+                required: requiredCycles,
+              }] : []),
+            ];
+          const prerequisiteEntries = (prerequisites.length > 0
+            ? prerequisites
+            : [
+              ...(achievement?.requiresActive === true ? [{
+                id: 'active',
+                label: 'Must be Active',
+                met: Boolean(profileAchievementsSnapshot?.isActive),
+              }] : []),
+            ]).filter((entry) => {
+              const entryId = String(entry?.id || '').trim().toLowerCase();
+              const entryLabel = String(entry?.label || '').trim().toLowerCase();
+              return (
+                entryId !== 'system-verification'
+                && entryId !== 'system_verified'
+                && entryLabel !== 'system verified'
+                && entryLabel !== 'verified by system'
+              );
+            });
+
+          const requirementSummary = requirementEntries
+            .map((entry) => {
+              const label = String(entry?.label || '').trim();
+              if (!label) {
+                return '';
+              }
+              return label;
+            })
+            .filter(Boolean)
+            .join(' | ');
+          const prerequisiteSummary = prerequisiteEntries
+            .map((entry) => {
+              const label = String(entry?.label || '').trim();
+              if (!label) {
+                return '';
+              }
+              return label;
+            })
+            .filter(Boolean)
+            .join(' | ');
+          const cycleRequirement = requirementEntries.find((entry) => String(entry?.id || '').trim() === 'cycles') || null;
+          const directSponsorPairRequirement = requirementEntries.find(
+            (entry) => String(entry?.id || '').trim() === 'direct-sponsor-pairs',
+          ) || null;
+          const directSponsorTotalRequirement = requirementEntries.find(
+            (entry) => String(entry?.id || '').trim() === 'direct-sponsors-total',
+          ) || null;
+          const cycleRequiredValue = Math.max(
+            0,
+            toWholeNumber(cycleRequirement?.required, requiredCycles),
+          );
+          const cycleCurrentValue = Math.max(
+            0,
+            toWholeNumber(
+              cycleRequirement?.current,
+              Number(profileAchievementsSnapshot?.currentCycles) || 0,
+            ),
+          );
+          const hasCycleRequirement = cycleRequiredValue > 0;
+          const directSponsorRequiredLeft = Math.max(
+            0,
+            toWholeNumber(
+              directSponsorPairRequirement?.required?.left,
+              requiredDirectSponsorsPerSide,
+            ),
+          );
+          const directSponsorRequiredRight = Math.max(
+            0,
+            toWholeNumber(
+              directSponsorPairRequirement?.required?.right,
+              requiredDirectSponsorsPerSide,
+            ),
+          );
+          const directSponsorCurrentLeft = Math.max(
+            0,
+            toWholeNumber(
+              directSponsorPairRequirement?.current?.left,
+              currentLeftDirectSponsors,
+            ),
+          );
+          const directSponsorCurrentRight = Math.max(
+            0,
+            toWholeNumber(
+              directSponsorPairRequirement?.current?.right,
+              currentRightDirectSponsors,
+            ),
+          );
+          const hasDirectSponsorPairRequirement = (
+            directSponsorRequiredLeft > 0
+            || directSponsorRequiredRight > 0
+          );
+          const directSponsorPairRequirementMet = (
+            directSponsorCurrentLeft >= directSponsorRequiredLeft
+            && directSponsorCurrentRight >= directSponsorRequiredRight
+          );
+          const directSponsorTotalRequired = Math.max(
+            0,
+            toWholeNumber(
+              directSponsorTotalRequirement?.required,
+              requiredDirectSponsorsTotal,
+            ),
+          );
+          const directSponsorTotalCurrent = Math.max(
+            0,
+            toWholeNumber(
+              directSponsorTotalRequirement?.current,
+              currentDirectSponsorsTotal,
+            ),
+          );
+          const hasDirectSponsorTotalRequirement = directSponsorTotalRequired > 0;
+          const directSponsorTotalRequirementMet = directSponsorTotalCurrent >= directSponsorTotalRequired;
+
           const iconPath = resolveProfileAchievementIconPath(achievement);
           const iconAlt = `${title} icon`;
           const claimDateLabel = isClaimed ? formatProfileAchievementClaimDate(claimedAt) : '';
@@ -6474,7 +7638,29 @@
           const statusMarkup = statusText
             ? `<p class="mt-1 text-caption text-semantic-success">${escapeHtml(statusText)}</p>`
             : '';
-          const buttonLabel = isClaimed ? 'Claimed' : (isEligible ? 'Claim' : 'Locked');
+          const requirementMarkup = requirementSummary
+            ? `<p class="mt-1 text-caption text-text-tertiary">${escapeHtml(`Requirements: ${requirementSummary}`)}</p>`
+            : '';
+          const prerequisiteMarkup = prerequisiteSummary
+            ? `<p class="mt-1 text-caption text-text-tertiary">${escapeHtml(`Prerequisites: ${prerequisiteSummary}`)}</p>`
+            : '';
+          const cycleProgressMarkup = hasCycleRequirement
+            ? `<p class="mt-1 text-caption ${cycleCurrentValue >= cycleRequiredValue ? 'text-semantic-success' : 'text-text-tertiary'}">${escapeHtml(`Cycles: ${cycleCurrentValue.toLocaleString()} / ${cycleRequiredValue.toLocaleString()}`)}</p>`
+            : '';
+          const directSponsorPairProgressMarkup = hasDirectSponsorPairRequirement
+            ? `<p class="mt-1 text-caption ${directSponsorPairRequirementMet ? 'text-semantic-success' : 'text-text-tertiary'}">${escapeHtml(`Direct Sponsors (Personal Enrollments): Left ${directSponsorCurrentLeft.toLocaleString()} / ${directSponsorRequiredLeft.toLocaleString()} | Right ${directSponsorCurrentRight.toLocaleString()} / ${directSponsorRequiredRight.toLocaleString()}`)}</p>`
+            : '';
+          const directSponsorTotalProgressMarkup = hasDirectSponsorTotalRequirement
+            ? `<p class="mt-1 text-caption ${directSponsorTotalRequirementMet ? 'text-semantic-success' : 'text-text-tertiary'}">${escapeHtml(`Enrolled Members: ${directSponsorTotalCurrent.toLocaleString()} / ${directSponsorTotalRequired.toLocaleString()}`)}</p>`
+            : '';
+          const payoutScheduleMarkup = payoutSchedule
+            ? `<p class="mt-1 text-caption text-text-tertiary">${escapeHtml(payoutSchedule)}</p>`
+            : '';
+          const lockReasonMarkup = (!isClaimed && !isEligible && lockReason)
+            ? `<p class="mt-1 text-caption text-semantic-warning">${escapeHtml(lockReason)}</p>`
+            : '';
+          const claimActionLabel = rewardLabel ? `Claim ${rewardLabel.toLowerCase()}` : 'Claim';
+          const buttonLabel = isClaimed ? 'Claimed' : (isEligible ? claimActionLabel : 'Locked');
           const buttonDisabled = !isEligible;
           const buttonClasses = isClaimed
             ? 'border-semantic-success/40 bg-semantic-success-bg text-semantic-success cursor-default'
@@ -6486,23 +7672,30 @@
             <article class="rounded-xl border border-surface-border bg-surface-raised/70 p-3 sm:p-4 shadow-depth-1">
               <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div class="min-w-0 flex items-start gap-3">
-                  <div class="h-11 w-11 shrink-0 rounded-lg border border-surface-border bg-surface-elevated/70 p-1 shadow-inner">
+                  <div class="h-12 w-12 shrink-0 rounded-xl border border-surface-border bg-surface-elevated/75 p-1.5 shadow-inner">
                     <img
                       src="${escapeHtml(iconPath)}"
                       alt="${escapeHtml(iconAlt)}"
                       loading="lazy"
                       decoding="async"
-                      class="h-full w-full object-contain"
+                      class="achievement-icon-image"
                     />
                   </div>
                   <div class="min-w-0">
                     <p class="text-body-sm font-medium text-text-primary">${escapeHtml(title)}</p>
                     <p class="mt-1 text-caption text-text-secondary">${escapeHtml(description)}</p>
+                    ${requirementMarkup}
+                    ${prerequisiteMarkup}
+                    ${directSponsorPairProgressMarkup}
+                    ${directSponsorTotalProgressMarkup}
+                    ${cycleProgressMarkup}
+                    ${payoutScheduleMarkup}
+                    ${lockReasonMarkup}
                     ${statusMarkup}
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="text-caption text-brand-300 font-medium whitespace-nowrap">${escapeHtml(formatCurrency(rewardUsd))}</span>
+                  <span class="text-caption text-brand-300 font-medium whitespace-nowrap">${escapeHtml(rewardLabel || formatCurrency(rewardUsd))}</span>
                   <button
                     type="button"
                     data-profile-achievement-claim-id="${escapeHtml(safeId)}"
@@ -6523,9 +7716,19 @@
         renderProfileAchievementTabs();
         renderProfileAchievementCategories();
         renderProfileAchievementList();
+        renderProfileRankAdvancementLadder();
 
         if (profileAchievementRankStatusElement) {
-          profileAchievementRankStatusElement.textContent = `Current rank: ${resolveProfileAchievementCurrentRankLabel()}`;
+          const activityStatusLabel = resolveProfileAchievementActivityStatusLabel();
+          const directSponsorPair = resolveProfileAchievementDirectSponsorPair();
+          const totalDirectSponsors = Math.max(
+            0,
+            toWholeNumber(
+              profileAchievementsSnapshot?.totalDirectSponsors,
+              directSponsorPair.left + directSponsorPair.right,
+            ),
+          );
+          profileAchievementRankStatusElement.textContent = `Enrolled members: ${totalDirectSponsors.toLocaleString()} | ${activityStatusLabel}`;
         }
       }
 
@@ -6536,7 +7739,116 @@
           categories: Array.isArray(payload?.categories) ? payload.categories : fallback.categories,
           achievements: Array.isArray(payload?.achievements) ? payload.achievements : [],
           currentRank: String(payload?.currentRank || '').trim(),
+          leftDirectSponsors: toWholeNumber(payload?.leftDirectSponsors, 0),
+          rightDirectSponsors: toWholeNumber(payload?.rightDirectSponsors, 0),
+          totalDirectSponsors: toWholeNumber(payload?.totalDirectSponsors, 0),
+          currentCycles: toWholeNumber(payload?.currentCycles, 0),
+          rankClaimPeriod: String(payload?.rankClaimPeriod || '').trim(),
+          rankClaimPeriodLabel: String(payload?.rankClaimPeriodLabel || '').trim(),
+          rankClaimedAchievementId: String(payload?.rankClaimedAchievementId || '').trim(),
+          rankClaimedAchievementTitle: String(payload?.rankClaimedAchievementTitle || '').trim(),
+          isActive: Boolean(payload?.isActive),
+          activityStatus: String(payload?.activityStatus || '').trim(),
+          activityActiveUntilAt: String(payload?.activityActiveUntilAt || '').trim(),
         };
+      }
+
+      async function loadProfileGoodLifeMonthly(options = {}) {
+        if (!profileGoodLifeContentElement) {
+          return;
+        }
+
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          if (!profileGoodLifeSnapshot) {
+            profileGoodLifeSnapshot = buildProfileGoodLifeFallbackSnapshot();
+          }
+          profileGoodLifeLoading = false;
+          renderProfileGoodLifePanel();
+          if (!options?.silent) {
+            setProfileGoodLifeFeedback('Sign in again to load your Good Life monthly progression.', 'error');
+          }
+          return;
+        }
+
+        profileGoodLifeLoading = true;
+        if (!profileGoodLifeSnapshot) {
+          profileGoodLifeSnapshot = buildProfileGoodLifeFallbackSnapshot();
+        }
+        renderProfileGoodLifePanel();
+
+        try {
+          const response = await fetch(MEMBER_GOOD_LIFE_MONTHLY_API, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string'
+              ? payload.error
+              : `Unable to load Good Life progression (${response.status}).`;
+            throw new Error(message);
+          }
+
+          applyProfileGoodLifePayload(payload);
+          if (!options?.silent) {
+            setProfileGoodLifeFeedback('');
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to load Good Life progression.';
+          setProfileGoodLifeFeedback(message, 'error');
+        } finally {
+          profileGoodLifeLoading = false;
+          renderProfileGoodLifePanel();
+        }
+      }
+
+      async function claimProfileGoodLifeMonthlyReward() {
+        if (profileGoodLifeLoading) {
+          return;
+        }
+
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          setProfileGoodLifeFeedback('Sign in again before claiming Good Life rewards.', 'error');
+          return;
+        }
+
+        profileGoodLifeLoading = true;
+        setProfileGoodLifeFeedback('');
+        renderProfileGoodLifePanel();
+
+        try {
+          const response = await fetch(`${MEMBER_GOOD_LIFE_MONTHLY_API}/claim`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (payload && typeof payload === 'object') {
+            applyProfileGoodLifePayload(payload);
+          }
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string'
+              ? payload.error
+              : `Unable to claim Good Life reward (${response.status}).`;
+            throw new Error(message);
+          }
+
+          const claimTitle = String(payload?.claim?.title || payload?.claimedRank || 'Good Life reward').trim();
+          const claimDateLabel = formatProfileAchievementClaimDate(payload?.claim?.claimedAt || payload?.claimedAt);
+          setProfileGoodLifeFeedback(`${claimTitle} claimed on ${claimDateLabel}.`, 'success');
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to claim Good Life reward.';
+          setProfileGoodLifeFeedback(message, 'error');
+        } finally {
+          profileGoodLifeLoading = false;
+          renderProfileGoodLifePanel();
+        }
       }
 
       async function loadProfileAchievements(options = {}) {
@@ -6592,18 +7904,28 @@
         }
       }
 
-      async function claimProfileAchievementById(achievementId) {
+      async function claimProfileAchievementById(achievementId, options = {}) {
         const safeAchievementId = String(achievementId || '').trim();
         if (!safeAchievementId || profileAchievementsLoading) {
           return;
         }
+        const feedbackChannel = String(options?.feedbackChannel || '').trim().toLowerCase();
+        const useRankLadderFeedback = feedbackChannel === 'rank-ladder';
+        const writeFeedback = (message, tone = 'info') => {
+          if (useRankLadderFeedback) {
+            setProfileRankLadderFeedback(message, tone);
+            return;
+          }
+          setProfileAchievementFeedback(message, tone);
+        };
 
         const authToken = resolveMemberAuthToken();
         if (!authToken) {
-          setProfileAchievementFeedback('Sign in again before claiming achievements.', 'error');
+          writeFeedback('Sign in again before claiming achievements.', 'error');
           return;
         }
 
+        writeFeedback('');
         profileAchievementsLoading = true;
         renderProfileAchievementsPanel();
 
@@ -6635,10 +7957,10 @@
             .find((entry) => String(entry?.id || '').trim() === safeAchievementId);
           const claimDateLabel = formatProfileAchievementClaimDate(claimedAchievement?.claimedAt);
           const claimTitle = String(claimedAchievement?.title || 'Achievement').trim() || 'Achievement';
-          setProfileAchievementFeedback(`${claimTitle} claimed on ${claimDateLabel}.`, 'success');
+          writeFeedback(`${claimTitle} claimed on ${claimDateLabel}.`, 'success');
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unable to claim achievement.';
-          setProfileAchievementFeedback(message, 'error');
+          writeFeedback(message, 'error');
         } finally {
           profileAchievementsLoading = false;
           renderProfileAchievementsPanel();
@@ -6715,8 +8037,11 @@
         renderProfileLifetimeCards();
         setProfileEditModalOpen(false);
         profileAchievementsSnapshot = buildProfileAchievementFallbackSnapshot();
+        profileGoodLifeSnapshot = buildProfileGoodLifeFallbackSnapshot();
         renderProfileAchievementsPanel();
+        renderProfileGoodLifePanel();
         setProfileAchievementFeedback('');
+        setProfileGoodLifeFeedback('');
 
         if (profileEditOpenButton) {
           profileEditOpenButton.addEventListener('click', (event) => {
@@ -6861,7 +8186,91 @@
           });
         }
 
+        if (profileRankLadderListElement && profileRankLadderListElement.dataset.bound !== 'true') {
+          profileRankLadderListElement.dataset.bound = 'true';
+          profileRankLadderListElement.addEventListener('click', (event) => {
+            const navTarget = event.target instanceof Element
+              ? event.target.closest('[data-profile-rank-ladder-nav]')
+              : null;
+            if (navTarget && profileRankLadderListElement.contains(navTarget)) {
+              const navButton = navTarget instanceof HTMLButtonElement ? navTarget : null;
+              if (navButton && navButton.disabled) {
+                return;
+              }
+              const direction = String(navTarget.getAttribute('data-profile-rank-ladder-nav') || '').trim();
+              const itemCount = resolveRankAdvancementLadderItems().length;
+              if (itemCount > 0) {
+                const delta = direction === 'prev' ? -1 : (direction === 'next' ? 1 : 0);
+                if (delta !== 0) {
+                  const maxIndex = Math.max(0, itemCount - 1);
+                  profileRankLadderSlideIndex = Math.min(
+                    maxIndex,
+                    Math.max(0, profileRankLadderSlideIndex + delta),
+                  );
+                  renderProfileRankAdvancementLadder();
+                }
+              }
+              return;
+            }
+
+            const jumpTarget = event.target instanceof Element
+              ? event.target.closest('[data-profile-rank-ladder-go-index]')
+              : null;
+            if (jumpTarget && profileRankLadderListElement.contains(jumpTarget)) {
+              const safeIndex = Number.parseInt(
+                String(jumpTarget.getAttribute('data-profile-rank-ladder-go-index') || ''),
+                10,
+              );
+              const itemCount = resolveRankAdvancementLadderItems().length;
+              if (Number.isFinite(safeIndex) && itemCount > 0) {
+                const maxIndex = Math.max(0, itemCount - 1);
+                profileRankLadderSlideIndex = Math.min(maxIndex, Math.max(0, safeIndex));
+                renderProfileRankAdvancementLadder();
+              }
+              return;
+            }
+
+            const claimTarget = event.target instanceof Element
+              ? event.target.closest('[data-profile-rank-ladder-claim-id]')
+              : null;
+            if (!claimTarget || !profileRankLadderListElement.contains(claimTarget)) {
+              return;
+            }
+
+            const claimButton = claimTarget instanceof HTMLButtonElement ? claimTarget : null;
+            if (claimButton && claimButton.disabled) {
+              return;
+            }
+
+            const achievementId = String(claimTarget.getAttribute('data-profile-rank-ladder-claim-id') || '').trim();
+            if (!achievementId) {
+              return;
+            }
+            void claimProfileAchievementById(achievementId, { feedbackChannel: 'rank-ladder' });
+          });
+        }
+
+        if (profileGoodLifeContentElement && profileGoodLifeContentElement.dataset.bound !== 'true') {
+          profileGoodLifeContentElement.dataset.bound = 'true';
+          profileGoodLifeContentElement.addEventListener('click', (event) => {
+            const target = event.target instanceof Element
+              ? event.target.closest('[data-profile-good-life-claim]')
+              : null;
+            if (!target || !profileGoodLifeContentElement.contains(target)) {
+              return;
+            }
+
+            const claimButton = target instanceof HTMLButtonElement ? target : null;
+            if (claimButton && claimButton.disabled) {
+              return;
+            }
+
+            void claimProfileGoodLifeMonthlyReward();
+          });
+        }
+
         void loadProfileAchievements({ silent: true });
+        void loadProfileGoodLifeMonthly({ silent: true });
       }
 
       function resolveInfinityBuilderClaimOwnerKey() {
@@ -7956,6 +9365,7 @@
         renderLegacyLeadershipDashboardCard();
         renderRecentActivityFeed();
         renderProfileAchievementList();
+        renderProfileGoodLifePanel();
       }
 
       function initializeThemeFromSettings() {
@@ -14282,8 +15692,10 @@
         currentAccountRank = accountRank;
         if (previousAccountRank !== currentAccountRank) {
           void loadProfileAchievements({ silent: true });
+          void loadProfileGoodLifeMonthly({ silent: true });
         } else {
           renderProfileAchievementsPanel();
+          renderProfileGoodLifePanel();
         }
         syncAccountRankUpgradeCta(currentSessionUser);
         syncAutoFastTrackTierFromRank();

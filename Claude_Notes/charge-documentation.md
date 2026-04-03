@@ -15,6 +15,95 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+## Update (2026-04-03) - Requirement Semantics Clarified (Left/Right Pair + Personal Direct Sponsors)
+
+### What Was Changed
+
+- Updated rank-achievement requirement logic to treat requirement numbers as **paired left/right counts** (e.g., `1:1`, `2:2`, `3:3`, and so on).
+- Added server-side direct sponsor pair validation based on **personally enrolled users only**:
+  - direct sponsor identity is derived from `sponsorUsername === currentMember.username`
+  - side assignment is derived from enrolled member placement (`left` / `right`, including spillover side normalization)
+- Added rank milestone-side requirements per tier:
+  - Ruby `1:1`
+  - Emerald `2:2`
+  - Sapphire `3:3`
+  - Diamond `4:4`
+  - Blue Diamond `5:5`
+  - Black Diamond `6:6`
+  - Crown `7:7`
+  - Double Crown `8:8`
+  - Royal Crown `9:9`
+- Profile achievement cards now display direct sponsor pair progress as:
+  - `Direct Sponsors (Personal Enrollments): Left X / Y | Right X / Y`
+- Profile achievement status strip now includes live direct pair values (`Direct L:x R:y`).
+
+### Files Affected
+
+- `backend/services/member-achievement.service.js`
+- `index.html`
+
+### Design Decisions
+
+- Direct sponsor counting is server-authoritative and read from `registered_members` data so claims cannot be bypassed in UI.
+- Spillover placement is normalized to left/right buckets to keep pair counting deterministic.
+
+### Known Limitations
+
+- Direct sponsor requirement mapping currently follows linear pair progression (`1:1` to `9:9`) aligned to the nine rank milestones; if business policy changes these ratios, the per-rank constants should be updated.
+
+---
+
+## Update (2026-04-03) - Rank Advancement System Added to Profile Achievements
+
+### What Was Changed
+
+- Implemented Rank Advancement milestones in profile achievements using `MLM Business Logic.md` section `# 5️⃣ Rank Advancement Bonus` (line 114).
+- Added rank achievement entries for:
+  - Ruby (5 cycles, `$62.50`)
+  - Emerald (10 cycles, `$125`)
+  - Sapphire (20 cycles, `$250`)
+  - Diamond (40 cycles, `$500`)
+  - Blue Diamond (80 cycles, `$1,000`)
+  - Black Diamond (160 cycles, `$2,000`)
+  - Crown (320 cycles, `$4,000`)
+  - Double Crown (640 cycles, `$8,000`)
+  - Royal Crown (1000 cycles, `$12,500`)
+- Added prerequisite and requirement enforcement for Rank Advancement claims:
+  - cycle threshold required
+  - account must be active
+  - verified by system (server-side eligibility evaluation)
+  - one-time claim behavior remains enforced by unique claim constraints
+- Updated profile achievement UI rows to show:
+  - requirements summary
+  - prerequisites summary
+  - cycle progress
+  - lock reason when not claimable
+  - payout schedule note (`Paid monthly after verification`)
+- Updated profile achievement status header to include rank + cycles + activity status.
+
+### Files Affected
+
+- `backend/services/member-achievement.service.js`
+- `index.html`
+
+### Design Decisions
+
+- Rank Advancement eligibility is server-authoritative and derived from authenticated member data + binary tree metrics snapshot cycles.
+- `requiresRank` is disabled for rank-advancement milestones because the MLM table maps cycles to rank bonus milestones; cycles are the primary requirement.
+- Active/inactive gating follows the same activity-window interpretation already used elsewhere in the app.
+
+### Validation
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse checks for `index.html` passed.
+
+### Known Limitations
+
+- Ruby/Emerald/Sapphire currently reuse existing diamond icon assets because dedicated icon files are not yet in `brand_assets/Icons/Achievements/`.
+- System verification is currently represented by deterministic server-side rule evaluation; no separate manual review queue is implemented in this step.
+
+---
+
 ## Update (2026-04-03) - Achievement Icon Drafts (SVG Pack)
 
 ### What Was Changed
@@ -8960,6 +9049,647 @@ File: `index.html`
 ### Validation
 
 - Inline script parse check for `index.html` passed (`Parsed 2 inline script block(s) successfully.`).
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Rank Advancement Ladder Component (2026-04-03)
+
+### What changed
+
+- File: `index.html`
+- Created a dedicated profile component for rank progression:
+  - `#profile-rank-ladder-panel`
+  - `#profile-rank-ladder-overview`
+  - `#profile-rank-ladder-list`
+  - `#profile-rank-ladder-feedback`
+- Moved rank-advancement presentation out of the achievement tab layout into this new ladder-focused section.
+- Kept the existing achievement center focused on `Premiere Life` milestones; rank advancement now has its own rendering surface.
+
+### Rank ladder logic wiring
+
+- Added/finished rank ladder rendering pipeline:
+  - `resolveRankAdvancementLadderItems()`
+  - `renderProfileRankAdvancementLadder()`
+- Ladder now consumes rank achievements (`tabId === 'rank'`) and sorts rungs by cycles and direct-pair requirement.
+- Ladder cards now use server requirement/prerequisite payload values when present:
+  - direct sponsor pair requirement (`direct-sponsor-pairs`)
+  - cycle requirement (`cycles`)
+  - activity prerequisite (`active`)
+  - verification prerequisite (`system-verification`)
+- Requirement copy explicitly preserves left/right pair semantics (e.g., `1:1`, `2:2`) and labels direct sponsors as personal enrollments.
+
+### Claim + feedback behavior
+
+- Added ladder claim button event delegation on `#profile-rank-ladder-list` using `data-profile-rank-ladder-claim-id`.
+- Updated `claimProfileAchievementById()` to accept an options channel and route success/error feedback to either:
+  - achievement feedback area, or
+  - rank ladder feedback area.
+- Updated achievement load flow to support both panels and keep feedback clearing/error display in sync.
+
+### Additional UI/selection adjustments
+
+- Added visible-tab guard logic so achievement tab selection cannot drift to hidden tabs.
+- Simplified the achievement panel rank status line to rank + activity only; cycle/direct pair progression is now shown in the ladder component.
+
+### Validation
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse check for `index.html` passed (`index-inline-script:ok`).
+- Captured two localhost QA screenshots:
+  - `temporary screenshots/screenshot-1-ladder-pass1.png`
+  - `temporary screenshots/screenshot-1-ladder-pass2.png`
+  Note: these captures landed on the auth-gated login screen, so ladder visuals were not directly captured in this pass.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Rank Advancement Carousel Update (2026-04-03)
+
+### What changed
+
+- File: `index.html`
+- Replaced the Rank Advancement `Success Ladder` list/timeline layout with a carousel layout.
+- Added carousel state tracking with `profileRankLadderSlideIndex`.
+- Updated `renderProfileRankAdvancementLadder()` to render one milestone card per slide inside a horizontal track.
+- Added in-component carousel controls:
+  - Previous / Next buttons
+  - dot indicators (jump to slide)
+  - current step counter (`Step X of Y`)
+- Kept claim behavior per slide using existing claim API flow and ladder feedback channel.
+
+### Interaction wiring
+
+- Updated rank ladder event delegation to support:
+  - `data-profile-rank-ladder-nav="prev|next"`
+  - `data-profile-rank-ladder-go-index`
+  - existing `data-profile-rank-ladder-claim-id`
+- Navigation is clamped between first and last milestone and remains stable across re-renders.
+
+### Validation
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse check for `index.html` passed (`index-inline-script:ok`).
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Rank Advancement Carousel Redesign (2026-04-03)
+
+### What changed
+
+- File: `index.html`
+- Redesigned the Rank Advancement component into a richer carousel UI while preserving existing business logic and claim actions.
+- Updated section shell styling for stronger visual hierarchy:
+  - layered gradient glow background
+  - updated heading to `Success Ladder Carousel`
+  - clearer status summary copy.
+
+### Carousel slide redesign
+
+- Reworked each slide into a structured milestone card with:
+  - milestone badge (`Milestone X of Y`)
+  - status chip (`Locked`, `Ready to Claim`, `Claimed`)
+  - rank icon + milestone title
+  - direct sponsor and cycle progress copy
+  - progress bars for Left direct, Right direct, and cycles
+  - dedicated right-side `Claim Panel` with payout value and checklist rows.
+- Navigation redesign:
+  - circular previous/next controls
+  - numbered pill indicators for direct milestone jumping
+  - centered step counter (`Step X of Y`).
+
+### Reliability fix included
+
+- Added rank-carousel data fallback in `resolveRankAdvancementLadderItems()`:
+  - if server payload has no rank achievements, it now falls back to `buildProfileAchievementFallbackSnapshot()` rank milestones.
+- Result: carousel UI still renders for accounts where rank-track payload is currently missing.
+
+### Validation and QA
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse check for `index.html` passed (`index-inline-script:ok`).
+- Authenticated visual QA screenshots captured on profile page (login + route to profile automated via Puppeteer):
+  - `temporary screenshots/screenshot-4-profile-redesign-pass5.png`
+  - `temporary screenshots/screenshot-5-profile-redesign-pass6.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Icon Size Increase (2026-04-03)
+
+### What changed
+
+- File: `index.html`
+- Enlarged achievement icon containers for better visual prominence:
+  - Rank carousel milestone icon increased from `h-12 w-12` to `h-16 w-16` with larger padding and radius.
+  - Profile achievement list icon increased from `h-11 w-11` to `h-12 w-12` with updated padding/radius.
+
+### Validation
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse check for `index.html` passed (`index-inline-script:ok`).
+- Authenticated visual QA run completed with two screenshot passes on Profile page.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Monthly Rank Claim Rules + Highest-Only Enforcement (2026-04-03)
+
+### What changed
+
+- Files: `backend/stores/member-achievement.store.js`, `backend/services/member-achievement.service.js`, `index.html`
+- Converted Rank Advancement behavior from lifetime milestone claims to monthly claim windows.
+- Implemented monthly claim period handling for rank rewards (`YYYY-MM`) and kept lifetime claim period for non-rank achievements (`lifetime`).
+
+### Backend claim model updates
+
+- Added `claim_period` support to achievement claims storage and app mapping.
+- Added idempotent schema migration logic:
+  - backfills `claim_period` for existing rows (rank rows -> claim month, others -> `lifetime`)
+  - replaces old unique constraint `(user_id, achievement_id)` with `(user_id, achievement_id, claim_period)`
+  - adds rank-month unique index so each user can only claim one rank reward per month.
+
+### Business rules implemented
+
+- Rank rewards now reset by month (new month = new claim period).
+- Claiming rank rewards now enforces:
+  - only one rank reward claim per month
+  - only highest currently eligible rank can be claimed
+  - lower ranks are blocked when a higher eligible rank exists
+  - lower ranks are blocked once a monthly rank reward is already claimed.
+- Non-rank achievements remain one-time claim behavior.
+
+### Payload/UI support updates
+
+- Achievement catalog now includes monthly rank context fields:
+  - `rankClaimPeriod`
+  - `rankClaimPeriodLabel`
+  - `rankClaimedAchievementId`
+  - `rankClaimedAchievementTitle`
+- Rank lock reasons updated to monthly-run wording (e.g., cycle/direct sponsor checks reference this month).
+- Profile rank carousel copy updated to monthly-run messaging and highest-only claim rule guidance.
+
+### Validation / QA
+
+- `node --check backend/stores/member-achievement.store.js` passed.
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse check for `index.html` passed (`index-inline-script:ok`).
+- Authenticated profile screenshot QA completed (2 passes) confirming monthly wording in rank carousel.
+
+### Files affected
+
+- `backend/stores/member-achievement.store.js`
+- `backend/services/member-achievement.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Rank Carousel Position + Name-Based Indicators (2026-04-03)
+
+### What changed
+
+- File: `index.html`
+- Moved the `Success Ladder Carousel` component to render **before** the `Profile Achievements` component on the profile page.
+- Replaced number-based rank indicator presentation (`1..9`) with rank-name-based labels in the carousel UI:
+  - top target badge now uses rank name
+  - center navigation chips now display rank names (`Ruby`, `Emerald`, etc.) instead of numbers
+  - bottom helper line now shows `Viewing: <Rank Name>` instead of `Step X of Y`.
+
+### Validation / QA
+
+- `node --check backend/stores/member-achievement.store.js` passed.
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse check for `index.html` passed (`index-inline-script:ok`).
+- Authenticated profile screenshot QA completed (2 passes) confirming new component order and name-based rank indicators.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Rank Carousel Markup Simplification (2026-04-03)
+
+### What changed
+
+- File: `index.html`
+- Reduced container/wrapper nesting in the Profile Rank carousel component to make the structure cleaner and easier to maintain.
+- Removed extra decorative wrapper layers and flattened slide structure while preserving:
+  - carousel navigation behavior (prev/next + direct jump chips)
+  - claim panel behavior and claim-state UI
+  - progress bars and requirement checklist
+  - mobile-friendly text handling added in prior update.
+
+### Design decisions
+
+- Kept semantic structure by using `section`, `header`, `article`, `aside`, and list (`ul/li`) elements where appropriate.
+- Consolidated nested blocks without changing data bindings, status logic, or event selector attributes.
+
+### Known limitations
+
+- This refactor focuses on markup simplification only; no ranking business-rule changes were made.
+
+### Validation / QA
+
+- Inline script parse check for `index.html` passed (`index-inline-script:ok`).
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Rank Panel Header Copy + Caption Styling (2026-04-03)
+
+### What changed
+
+- File: `index.html`
+- Updated profile rank panel heading text from `Success Ladder Carousel` to `Rank Advancement Bonus`.
+- Changed the small header tag styling from uppercase/tag-like treatment to a simple caption style.
+
+### Design decisions
+
+- Kept the same information hierarchy while reducing visual noise in the header line.
+
+### Known limitations
+
+- Header/caption copy update only; no rank logic or interaction behavior was changed.
+
+### Validation / QA
+
+- Inline script parse check for `index.html` passed (`index-inline-script:ok`).
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Rank Advancement Bonus Component Recovery (2026-04-03)
+
+### What changed
+
+- File: `index.html`
+- Rebuilt the Profile `Rank Advancement Bonus` component after an accidental overwrite with Good Life monthly progression content.
+- Restored rank-carousel rendering to use rank achievements data (`profileAchievementsSnapshot`) and rank requirement progress (direct left/right + cycles), including monthly highest-eligible claim behavior messaging.
+- Restored rank claim button selector wiring (`data-profile-rank-ladder-claim-id`) so rank claim actions route through the standard achievement claim endpoint again.
+- Restored panel header copy:
+  - caption: `Rank Advancement`
+  - title: `Rank Advancement Bonus`
+
+### Design decisions
+
+- Kept the rank component isolated within `profile-rank-ladder-*` ids and rendering function (`renderProfileRankAdvancementLadder`) to avoid impacting the New Good Life area.
+- Preserved mobile-friendly carousel chips and condensed progress labels from prior responsive work.
+
+### Known limitations
+
+- Legacy Good Life monthly helper functions/constants remain in code but are not used by the restored Rank Advancement Bonus renderer.
+
+### Validation / QA
+
+- Inline script parse check for `index.html` passed (`index-inline-script:ok`).
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Standalone Good Life Monthly Progression (2026-04-03)
+
+### What changed
+
+- File: `index.html`
+- Kept `Rank Advancement Bonus` intact and added/rewired a separate `Good Life Monthly Progression` section to run independently above Achievements.
+- Decoupled Good Life runtime from rank-ladder rendering/feedback:
+  - `loadProfileGoodLifeMonthly()` now reads/writes only `profile-good-life-*` UI targets.
+  - `claimProfileGoodLifeMonthlyReward()` now uses Good Life-specific feedback and rerender flow.
+  - Added delegated claim click binding for `[data-profile-good-life-claim]` on `#profile-good-life-content`.
+- Updated profile init flow to hydrate Good Life separately:
+  - seed fallback snapshot,
+  - initial render,
+  - silent server fetch for monthly snapshot.
+- Added rank-change refresh hook so Good Life monthly snapshot reloads when the member rank changes.
+- Added theme refresh hook so Good Life icon paths switch correctly between dark/light variants.
+
+- Files: `backend/app.js`, `backend/routes/member-good-life.routes.js`, `backend/controllers/member-good-life.controller.js`, `backend/services/member-good-life.service.js`, `backend/stores/member-good-life.store.js`
+- Maintained server-side monthly Good Life progression module:
+  - authenticated endpoints for monthly status + monthly claim,
+  - database-backed monthly highest-rank tracking and one-claim-per-month enforcement,
+  - milestone payload with claimable highest-rank-only behavior.
+
+### Design decisions
+
+- Preserved `Rank Advancement Bonus` event selectors/renderer (`profile-rank-ladder-*`) so existing rank logic is not affected.
+- Kept Good Life outside the achievement tab/category data model to align with the monthly progression requirement.
+- Reused achievement icon resolver to support dark/light icon variants without duplicating icon logic.
+
+### Known limitations
+
+- Automated screenshot verification via `screenshot.mjs` currently lands on the login view, so an authenticated profile-page visual diff for the Good Life section could not be captured in this pass.
+
+### Validation / QA
+
+- `node --check backend/app.js` passed.
+- `node --check backend/controllers/member-good-life.controller.js` passed.
+- `node --check backend/routes/member-good-life.routes.js` passed.
+- `node --check backend/services/member-good-life.service.js` passed.
+- `node --check backend/stores/member-good-life.store.js` passed.
+- `node --check backend/services/member-achievement.service.js` passed.
+- `node --check backend/stores/member-achievement.store.js` passed.
+- `index.html` inline script parse check passed (`Inline scripts parse OK: 4`).
+- Screenshot passes executed:
+  - `temporary screenshots/screenshot-1-good-life-round1.png`
+  - `temporary screenshots/screenshot-2-good-life-round2.png`
+
+### Files affected
+
+- `index.html`
+- `backend/app.js`
+- `backend/routes/member-good-life.routes.js`
+- `backend/controllers/member-good-life.controller.js`
+- `backend/services/member-good-life.service.js`
+- `backend/stores/member-good-life.store.js`
+- `backend/services/member-achievement.service.js`
+- `backend/stores/member-achievement.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Achievement Component - Premiere Life Restore (2026-04-03)
+
+### What changed
+
+- File: `index.html`
+- Updated the Achievement panel to remove rank from the visible achievement tab flow:
+  - restored tab button to `Premiere Life` (`data-profile-achievement-tab="premiere-life"`)
+  - default active category label set to `Premiere Journey`
+  - status text changed from rank-centric copy to enrolled-member progress copy.
+- Added client fallback achievement for Premiere Journey:
+  - `Enroll a Member`
+  - reward label `Merch`
+  - payout note `Claim merch`
+  - claim unlock requirement based on enrolled member count.
+- Added reward label support in achievement card rendering:
+  - if `rewardLabel` exists, display label (e.g. `Merch`) instead of currency.
+  - claim button now reads `Claim merch` for this achievement when eligible.
+- Added direct-total enrollment progress support in rendering (`direct-sponsors-total`) so card can show `Enrolled Members: X / Y`.
+
+- File: `backend/services/member-achievement.service.js`
+- Restored achievement catalog to Premiere Life for the Achievement component while preserving rank achievement data for the separate Rank Advancement Bonus component:
+  - tabs now return `Premiere Life`
+  - categories now return `Premiere Journey`
+  - added `premiere-journey-enroll-member` achievement (server-side)
+- Added server-side eligibility support for total direct sponsor requirements:
+  - new field: `requiredDirectSponsorsTotal`
+  - requirement evaluation now supports total personal enrollments (`>= 1` for this achievement)
+  - lock reason and requirement payload updated accordingly.
+- Added `rewardLabel` and `requiredDirectSponsorsTotal` to returned achievement payload.
+
+### Design decisions
+
+- Kept rank achievements in the backend achievement list for compatibility with the standalone `Rank Advancement Bonus` component, while removing rank from the visible Achievement tab/category UI.
+- Implemented `Enroll a Member` as a server-validated requirement (not client-only), using direct sponsor counts already resolved from registered members data.
+
+### Known limitations
+
+- `member_achievement_claims` persists numeric `reward_amount`; merch label is a catalog/render label and not a separate DB reward-type field yet.
+
+### Validation / QA
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+### Files affected
+
+- `index.html`
+- `backend/services/member-achievement.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Rank Achievement Icon Expansion - Ruby to Sapphire (2026-04-03)
+
+### What changed
+
+- Added six new rank achievement SVG assets in `brand_assets/Icons/Achievements/`:
+  - `ruby.svg`
+  - `ruby-light.svg`
+  - `emerald.svg`
+  - `emerald-light.svg`
+  - `sapphire.svg`
+  - `sapphire-light.svg`
+- Updated rank achievement icon mappings so Ruby/Emerald/Sapphire no longer reuse Diamond art.
+- Wired the new icon paths in both server payload and client fallback data:
+  - `backend/services/member-achievement.service.js`
+  - `index.html`
+- Updated icon pack documentation list:
+  - `brand_assets/Icons/Achievements/README.md`
+
+### Design decisions
+
+- Kept the existing icon visual system (rounded tile + center gem + facet highlights) to match the current Achievement icon set.
+- Added both dark and light variants for each rank so theme-based icon switching continues to work without extra logic changes.
+- Left Diamond and above icons untouched to avoid regressions in existing mapped ranks.
+
+### Known limitations
+
+- New Ruby/Emerald/Sapphire icons were introduced as first-pass originals; final art polish can be refined later if brand-specific vector references are provided.
+
+### Validation / QA
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+### Files affected
+
+- `brand_assets/Icons/Achievements/ruby.svg`
+- `brand_assets/Icons/Achievements/ruby-light.svg`
+- `brand_assets/Icons/Achievements/emerald.svg`
+- `brand_assets/Icons/Achievements/emerald-light.svg`
+- `brand_assets/Icons/Achievements/sapphire.svg`
+- `brand_assets/Icons/Achievements/sapphire-light.svg`
+- `brand_assets/Icons/Achievements/README.md`
+- `backend/services/member-achievement.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Achievement Icon Sharpness Pass - Ruby/Emerald/Sapphire (2026-04-03)
+
+### What changed
+
+- Refined six rank icon SVGs to reduce perceived blur/jagged edges at small render sizes:
+  - `ruby.svg`, `ruby-light.svg`
+  - `emerald.svg`, `emerald-light.svg`
+  - `sapphire.svg`, `sapphire-light.svg`
+- Rebuilt these icons with cleaner geometry and less micro-detail:
+  - removed soft halo circles and tiny sparkle paths,
+  - removed thin `1.5px` line accents,
+  - increased edge definition with thicker primary strokes,
+  - added `shape-rendering="geometricPrecision"` and `vector-effect="non-scaling-stroke"` on key stroked shapes.
+- Added a shared achievement icon rendering helper class in `index.html`:
+  - `.achievement-icon-image`
+  - used for rank ladder, Good Life featured icon, Good Life milestone icons, and achievement list icons.
+
+### Design decisions
+
+- Prioritized legibility at the smallest in-app icon slots over extra decorative facets.
+- Kept color identity and rank differentiation intact while simplifying edges for cleaner rasterization in browser rendering.
+- Scoped this pass to Ruby/Emerald/Sapphire to immediately fix the newly added lower-rank icons without altering Diamond/Crown assets yet.
+
+### Known limitations
+
+- Older Diamond/Crown family icons still use the previous detailed style and may still appear softer in very small icon slots compared with the new Ruby/Emerald/Sapphire set.
+
+### Validation / QA
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+### Files affected
+
+- `brand_assets/Icons/Achievements/ruby.svg`
+- `brand_assets/Icons/Achievements/ruby-light.svg`
+- `brand_assets/Icons/Achievements/emerald.svg`
+- `brand_assets/Icons/Achievements/emerald-light.svg`
+- `brand_assets/Icons/Achievements/sapphire.svg`
+- `brand_assets/Icons/Achievements/sapphire-light.svg`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Icon Sharpness Pass Rollback (2026-04-03)
+
+### What changed
+
+- Reverted Ruby/Emerald/Sapphire icon artwork (dark + light variants) back to the prior visual style after design feedback.
+- Restored previous detailed gem treatment (halo/sparkle/facet detail) for:
+  - `ruby.svg`, `ruby-light.svg`
+  - `emerald.svg`, `emerald-light.svg`
+  - `sapphire.svg`, `sapphire-light.svg`
+- Left icon mapping paths and rendering hooks in place so no behavior/regression risk was introduced.
+
+### Design decisions
+
+- Prioritized preserving the earlier visual language you preferred over the sharper simplified style.
+
+### Known limitations
+
+- The previous detailed style can still appear softer at smaller icon sizes in some browser/device combinations.
+
+### Validation / QA
+
+- `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+### Files affected
+
+- `brand_assets/Icons/Achievements/ruby.svg`
+- `brand_assets/Icons/Achievements/ruby-light.svg`
+- `brand_assets/Icons/Achievements/emerald.svg`
+- `brand_assets/Icons/Achievements/emerald-light.svg`
+- `brand_assets/Icons/Achievements/sapphire.svg`
+- `brand_assets/Icons/Achievements/sapphire-light.svg`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Profile Text Cleanup - Rank/Good Life/Achievements (2026-04-03)
+
+### What changed
+
+- Cleaned profile-page achievement text output by removing checkbox marker symbols (`[x]` / `[ ]`) from displayed requirement and prerequisite copy.
+- Removed the visible `System Verified` checklist row from the `Rank Advancement Bonus` claim panel.
+- Removed `Verified by system` from fallback prerequisite rendering and added a guard filter so system-verification prerequisite labels are not shown in the UI.
+- Kept requirement/prerequisite status color styling and layout intact; only text content was simplified.
+
+### Design decisions
+
+- Prioritized cleaner, less noisy text in the three requested profile areas without changing claim logic, reward amounts, or progression calculations.
+- Scoped the change to presentation text only so existing achievement eligibility behavior remains stable.
+
+### Known limitations
+
+- Requirement/prerequisite summaries now present plain labels (no explicit checkbox glyphs), so completion state is conveyed primarily through existing color treatment.
+
+### Validation / QA
+
+- `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Achievement Placeholder Icon Added + Diamond Replaced for Premiere Journey (2026-04-03)
+
+### What changed
+
+- Added new placeholder achievement icons:
+  - `brand_assets/Icons/Achievements/placeholder.svg`
+  - `brand_assets/Icons/Achievements/placeholder-light.svg`
+- Replaced the `premiere-journey-enroll-member` achievement icon from Diamond to Placeholder across payload + frontend fallback:
+  - `backend/services/member-achievement.service.js`
+  - `index.html`
+- Updated icon pack README listing to include placeholder assets.
+
+### Design decisions
+
+- Scoped replacement only to the Premiere Journey achievement item (`Enroll a Member`) so rank-specific Diamond milestones remain unchanged.
+- Added both dark and light variants so theme switching keeps parity with existing icon behavior.
+
+### Known limitations
+
+- Global fallback for unknown achievement ids still resolves to Diamond; this change only remaps the Premiere Journey achievement explicitly.
+
+### Validation / QA
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+### Files affected
+
+- `brand_assets/Icons/Achievements/placeholder.svg`
+- `brand_assets/Icons/Achievements/placeholder-light.svg`
+- `brand_assets/Icons/Achievements/README.md`
+- `backend/services/member-achievement.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Good Life Panel Copy Cleanup (2026-04-03)
+
+### What changed
+
+- Removed the phrase `Battlepass-style monthly progression.` from the Good Life profile panel subtitle copy.
+- Kept the remaining explanatory sentence intact: `The highest rank you reach this month becomes your only claimable reward.`
+
+### Design decisions
+
+- Applied a minimal copy-only edit to match requested wording without changing layout or behavior.
+
+### Known limitations
+
+- None introduced (text-only change).
+
+### Validation / QA
+
+- Not run (text-only single-line copy update).
 
 ### Files affected
 

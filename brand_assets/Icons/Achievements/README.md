@@ -2,6 +2,14 @@
 
 Initial icon set for profile achievements:
 
+- `placeholder.svg`
+- `placeholder-light.svg`
+- `ruby.svg`
+- `ruby-light.svg`
+- `emerald.svg`
+- `emerald-light.svg`
+- `sapphire.svg`
+- `sapphire-light.svg`
 - `diamond.svg`
 - `diamond-light.svg`
 - `blue-diamond.svg`
