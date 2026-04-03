@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=face,face_retouching_off,settings" rel="stylesheet">
   <link rel="stylesheet" href="/node_modules/flag-icons/css/flag-icons.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css">
 
@@ -133,6 +134,29 @@
     ::-webkit-scrollbar-thumb { background: #2A3A4A; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #3A4E62; }
     * { scrollbar-width: thin; scrollbar-color: #2A3A4A transparent; }
+
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-style: normal;
+      font-weight: normal;
+      font-size: 1rem;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      -webkit-font-feature-settings: 'liga';
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 500,
+        'GRAD' 0,
+        'opsz' 20;
+    }
 
     #binary-tree-canvas canvas {
       width: 100%;
@@ -743,11 +767,93 @@
     #tree-mobile-search-top-row,
     #tree-mobile-search-pill,
     #tree-mobile-furthest-segment,
+    #tree-mobile-enroll-toggle,
+    #tree-mobile-right-actions,
     #tree-mobile-root-focus,
+    #tree-mobile-settings-toggle,
     #tree-mobile-minimap-toggle,
     #tree-selected-mobile-close,
     #tree-search-mobile-close {
       display: none;
+    }
+
+    #binary-tree-panel.tree-pan-mode-active #binary-tree-canvas,
+    #binary-tree-panel.tree-pan-mode-active #binary-tree-canvas canvas {
+      cursor: grab !important;
+    }
+
+    #binary-tree-panel.tree-pan-mode-dragging #binary-tree-canvas,
+    #binary-tree-panel.tree-pan-mode-dragging #binary-tree-canvas canvas {
+      cursor: grabbing !important;
+    }
+
+    #binary-tree-panel.tree-pan-mode-active button:focus,
+    #binary-tree-panel.tree-pan-mode-active button:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+
+    #tree-settings-window {
+      display: none;
+    }
+
+    #binary-tree-panel.tree-settings-open #tree-settings-window {
+      display: flex;
+      position: absolute;
+      inset: 0;
+      z-index: 18;
+      padding: 16px;
+      align-items: flex-start;
+      justify-content: flex-end;
+      background: rgb(var(--theme-overlay) / 0.5);
+      backdrop-filter: blur(4px);
+    }
+
+    #binary-tree-panel.tree-fullscreen-mode.tree-settings-open #tree-mobile-search-anchor,
+    #binary-tree-panel.tree-fullscreen-mode.tree-settings-open #tree-tools-dock {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #tree-settings-panel {
+      width: min(24rem, 100%);
+      max-height: min(86dvh, calc(100vh - 52px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgb(var(--surface-border) / 0.78);
+      background: rgb(var(--surface-raised) / 0.96);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.52);
+    }
+
+    #tree-settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgb(var(--surface-border) / 0.58);
+      background: linear-gradient(180deg, rgb(var(--theme-surface-gradient-top) / 0.98) 0%, rgb(var(--theme-surface-gradient-bottom) / 0.96) 100%);
+    }
+
+    #tree-settings-body {
+      min-height: 0;
+      overflow-y: auto;
+      padding: 14px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    #tree-settings-zoom-strength {
+      accent-color: rgb(var(--brand-500));
+    }
+
+    #tree-mobile-settings-toggle .material-symbols-outlined {
+      font-size: 1.14rem;
+      line-height: 1;
+      font-variation-settings: 'FILL' 0, 'wght' 520, 'GRAD' 0, 'opsz' 24;
     }
 
     @media (max-width: 640px) {
@@ -763,6 +869,72 @@
 
     #binary-tree-panel.tree-fullscreen-mode.tree-details-hidden #tree-detail-panels {
       display: none;
+    }
+
+    #tree-enroll-modal-overlay {
+      display: none;
+    }
+
+    #binary-tree-panel.tree-fullscreen-mode #tree-enroll-modal-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 19;
+      padding: 16px;
+      align-items: center;
+      justify-content: center;
+      background: rgb(var(--theme-overlay) / 0.56);
+      backdrop-filter: blur(5px);
+    }
+
+    #binary-tree-panel.tree-fullscreen-mode.tree-enroll-window-open #tree-enroll-modal-overlay {
+      display: flex;
+    }
+
+    #binary-tree-panel.tree-fullscreen-mode.tree-enroll-window-open #tree-mobile-search-anchor {
+      transform: translate(-50%, 26px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #binary-tree-panel.tree-fullscreen-mode.tree-enroll-window-open #tree-tools-dock {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #tree-enroll-modal {
+      width: min(42rem, 100%);
+      max-height: min(86dvh, calc(100vh - 52px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgb(var(--surface-border) / 0.78);
+      background: rgb(var(--surface-raised) / 0.96);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.52);
+    }
+
+    #tree-enroll-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgb(var(--surface-border) / 0.58);
+      background: linear-gradient(180deg, rgb(var(--theme-surface-gradient-top) / 0.98) 0%, rgb(var(--theme-surface-gradient-bottom) / 0.96) 100%);
+    }
+
+    #tree-enroll-modal-body {
+      min-height: 0;
+      overflow-y: auto;
+      padding: 14px 16px 16px;
+    }
+
+    #tree-enroll-modal-feedback {
+      display: none;
+    }
+
+    #tree-enroll-modal-feedback:not(.hidden) {
+      display: block;
     }
 
     @media (max-width: 640px) {
@@ -896,8 +1068,17 @@
       #binary-tree-panel.tree-fullscreen-mode #tree-mobile-search-top-row {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
+        gap: 8px;
         width: 100%;
+        pointer-events: none;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-right-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
         pointer-events: none;
       }
 
@@ -936,6 +1117,33 @@
         background: rgba(58, 78, 98, 0.82);
       }
 
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-enroll-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 2rem;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(58, 78, 98, 0.78);
+        background: rgba(17, 25, 32, 0.92);
+        color: #d5e2ee;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.42);
+        pointer-events: auto;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-enroll-toggle[aria-pressed='true'] {
+        border-color: rgba(16, 228, 160, 0.76);
+        background: rgba(16, 228, 160, 0.2);
+        color: #eef8f5;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-enroll-toggle:active {
+        transform: translateY(1px);
+      }
+
       #binary-tree-panel.tree-fullscreen-mode #tree-mobile-root-focus {
         display: inline-flex;
         align-items: center;
@@ -955,8 +1163,58 @@
         background: rgba(58, 78, 98, 0.24);
       }
 
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-direct-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        border-radius: 999px;
+        border: 1px solid rgba(58, 78, 98, 0.78);
+        background: rgba(17, 25, 32, 0.92);
+        color: #d5e2ee;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.42);
+        pointer-events: auto;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-direct-toggle[aria-pressed='true'] {
+        border-color: rgba(16, 228, 160, 0.58);
+        background: rgba(16, 228, 160, 0.16);
+        color: #10e4a0;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-direct-toggle:active {
+        background: rgba(58, 78, 98, 0.24);
+      }
+
       #binary-tree-panel.tree-fullscreen-mode #tree-mobile-minimap-toggle {
         display: none;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-settings-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        border-radius: 999px;
+        border: 1px solid rgba(58, 78, 98, 0.78);
+        background: rgba(17, 25, 32, 0.92);
+        color: #d5e2ee;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.42);
+        pointer-events: auto;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-settings-toggle[aria-expanded='true'] {
+        border-color: rgba(16, 228, 160, 0.58);
+        background: rgba(16, 228, 160, 0.16);
+        color: #10e4a0;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-settings-toggle:active {
+        background: rgba(58, 78, 98, 0.24);
       }
 
       #binary-tree-panel.tree-fullscreen-mode #tree-mobile-search-pill {
@@ -1032,6 +1290,38 @@
 
       #binary-tree-panel.tree-fullscreen-mode #tree-minimap-panel {
         display: none;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-enroll-modal-overlay {
+        padding: 10px;
+        align-items: flex-start;
+      }
+
+      #binary-tree-panel.tree-settings-open #tree-settings-window {
+        padding: 10px;
+        align-items: flex-start;
+      }
+
+      #tree-settings-panel {
+        width: 100%;
+        max-height: calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom) - 20px);
+        margin-top: calc(8px + var(--safe-area-top));
+        border-radius: 16px;
+      }
+
+      #tree-enroll-modal {
+        width: 100%;
+        max-height: calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom) - 20px);
+        margin-top: calc(8px + var(--safe-area-top));
+        border-radius: 16px;
+      }
+
+      #tree-enroll-modal-header {
+        padding: 12px 14px;
+      }
+
+      #tree-enroll-modal-body {
+        padding: 12px 14px 14px;
       }
 
       #tree-minimap-canvas {
@@ -1179,6 +1469,14 @@
         pointer-events: none;
       }
 
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-right-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+        pointer-events: none;
+      }
+
       #binary-tree-panel.tree-fullscreen-mode #tree-mobile-furthest-segment {
         display: inline-flex;
         align-items: center;
@@ -1214,6 +1512,33 @@
         background: rgba(58, 78, 98, 0.82);
       }
 
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-enroll-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 2.25rem;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(58, 78, 98, 0.78);
+        background: rgba(17, 25, 32, 0.92);
+        color: #d5e2ee;
+        font-size: 0.76rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.42);
+        pointer-events: auto;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-enroll-toggle[aria-pressed='true'] {
+        border-color: rgba(16, 228, 160, 0.76);
+        background: rgba(16, 228, 160, 0.2);
+        color: #eef8f5;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-enroll-toggle:active {
+        transform: translateY(1px);
+      }
+
       #binary-tree-panel.tree-fullscreen-mode #tree-mobile-root-focus {
         display: inline-flex;
         align-items: center;
@@ -1221,7 +1546,6 @@
         width: 2.25rem;
         height: 2.25rem;
         padding: 0;
-        margin-left: auto;
         border-radius: 999px;
         border: 1px solid rgba(58, 78, 98, 0.78);
         background: rgba(17, 25, 32, 0.92);
@@ -1231,6 +1555,31 @@
       }
 
       #binary-tree-panel.tree-fullscreen-mode #tree-mobile-root-focus:active {
+        background: rgba(58, 78, 98, 0.24);
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-direct-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        padding: 0;
+        border-radius: 999px;
+        border: 1px solid rgba(58, 78, 98, 0.78);
+        background: rgba(17, 25, 32, 0.92);
+        color: #d5e2ee;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.42);
+        pointer-events: auto;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-direct-toggle[aria-pressed='true'] {
+        border-color: rgba(16, 228, 160, 0.58);
+        background: rgba(16, 228, 160, 0.16);
+        color: #10e4a0;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-direct-toggle:active {
         background: rgba(58, 78, 98, 0.24);
       }
 
@@ -1254,6 +1603,31 @@
       }
 
       #binary-tree-panel.tree-fullscreen-mode #tree-mobile-minimap-toggle:active {
+        background: rgba(58, 78, 98, 0.24);
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-settings-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        padding: 0;
+        border-radius: 999px;
+        border: 1px solid rgba(58, 78, 98, 0.78);
+        background: rgba(17, 25, 32, 0.92);
+        color: #d5e2ee;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.42);
+        pointer-events: auto;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-settings-toggle[aria-expanded='true'] {
+        border-color: rgba(16, 228, 160, 0.58);
+        background: rgba(16, 228, 160, 0.16);
+        color: #10e4a0;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-mobile-settings-toggle:active {
         background: rgba(58, 78, 98, 0.24);
       }
 
@@ -1468,6 +1842,14 @@
 
       #binary-tree-panel.tree-fullscreen-mode #tree-mobile-visibility-controls {
         display: none !important;
+      }
+
+      #binary-tree-panel.tree-fullscreen-mode #tree-enroll-modal-overlay {
+        padding: 18px;
+      }
+
+      #binary-tree-panel.tree-settings-open #tree-settings-window {
+        padding: 18px;
       }
 
       #settings-legal-editor-toolbar.ql-toolbar.ql-snow {
@@ -2451,7 +2833,10 @@
                   <select id="enroll-member-placement" name="placementLeg" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
                     <option value="left">Left</option>
                     <option value="right">Right</option>
-                    <option value="spillover">Spillover</option>
+                    <option value="spillover-left">Spill Over Left</option>
+                    <option value="spillover-right">Spill Over Right</option>
+                    <option value="extreme-left">Spillover Extreme Left</option>
+                    <option value="extreme-right">Spillover Extreme Right</option>
                   </select>
                 </div>
                 <div class="md:col-span-1">
@@ -2465,8 +2850,16 @@
                     <option value="right">Spillover Right</option>
                   </select>
                 </div>
+                <div id="enroll-member-spillover-parent-mode-wrap" class="md:col-span-1 hidden">
+                  <label for="enroll-member-spillover-parent-mode" class="block text-caption text-text-tertiary">Spillover Parent Assignment</label>
+                  <select id="enroll-member-spillover-parent-mode" name="spilloverParentMode" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                    <option value="auto">Auto Assign Parent</option>
+                    <option value="manual">Assign Specific Parent</option>
+                  </select>
+                  <p class="text-caption text-text-tertiary mt-1">Auto uses the next available slot on your selected spillover side.</p>
+                </div>
                 <div id="enroll-member-spillover-parent-wrap" class="md:col-span-1 hidden">
-                  <label for="enroll-member-spillover-parent" class="block text-caption text-text-tertiary">Receiving Parent ID or Sponsor Username</label>
+                  <label for="enroll-member-spillover-parent" class="block text-caption text-text-tertiary">Assigned Parent ID or Username</label>
                   <input id="enroll-member-spillover-parent" name="spilloverParentReference" type="text" autocomplete="off" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="Type existing child member ID or sponsor username"/>
                   <div id="enroll-member-spillover-parent-results-shell" class="mt-2 hidden rounded-lg border border-surface-border bg-surface-base/60 p-2">
                     <p id="enroll-member-spillover-parent-results-count" class="text-caption text-text-secondary">Showing 0 matches.</p>
@@ -2537,7 +2930,7 @@
         </section>
         <section id="page-binary-tree" data-page-view="binary-tree" class="hidden space-y-6">
           <div id="tree-summary-overview" class="space-y-2">
-            <div id="tree-summary-overview-deck" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div id="tree-summary-overview-deck" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
             <article class="tree-summary-overview-card is-active relative overflow-hidden bg-surface-raised border border-surface-border rounded-xl p-4 sm:p-5 shadow-depth-1 hover:shadow-depth-2 hover:border-surface-border-light hover:-translate-y-0.5 transition-transform duration-150 ease-spring" data-tree-summary-card>
               <div class="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-brand-500/10 blur-2xl"></div>
               <div class="flex items-start justify-between gap-3">
@@ -2559,6 +2952,16 @@
               <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary mt-4">Account Rank</p>
               <p id="tree-summary-account-rank" class="font-body font-semibold text-mono-data text-text-primary mt-2">Legacy</p>
               <p class="text-caption text-text-tertiary mt-2">Direct sponsors: <span id="tree-summary-direct-sponsors" class="text-text-secondary">0</span></p>
+            </article>
+
+            <article class="tree-summary-overview-card relative overflow-hidden bg-surface-raised border border-surface-border rounded-xl p-4 sm:p-5 shadow-depth-1 hover:shadow-depth-2 hover:border-surface-border-light hover:-translate-y-0.5 transition-transform duration-150 ease-spring" data-tree-summary-card>
+              <div class="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-semantic-info/10 blur-2xl"></div>
+              <div class="w-10 h-10 rounded-lg bg-semantic-info-bg border border-semantic-info/20 flex items-center justify-center text-semantic-info">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3M15 19.5a5.25 5.25 0 00-10.5 0M12 7.5a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary mt-4">Total Direct Sponsor</p>
+              <p id="tree-summary-total-direct-sponsor" class="font-body font-semibold text-mono-data text-text-primary mt-2">0</p>
+              <p class="text-caption text-text-tertiary mt-2">Personally enrolled frontline</p>
             </article>
 
             <article class="tree-summary-overview-card relative overflow-hidden bg-surface-raised border border-surface-border rounded-xl p-4 sm:p-5 shadow-depth-1 hover:shadow-depth-2 hover:border-surface-border-light hover:-translate-y-0.5 transition-transform duration-150 ease-spring" data-tree-summary-card>
@@ -2614,6 +3017,15 @@
                     <p class="tree-fullscreen-metric-label">Network Members</p>
                     <p id="tree-fullscreen-summary-member-count" class="tree-fullscreen-metric-value">0</p>
                     <p class="tree-fullscreen-metric-subtext">Organization scope</p>
+                  </article>
+                  <article class="tree-fullscreen-metric-card metric-accent-info" data-tree-fullscreen-metric-card aria-hidden="true">
+                    <span class="tree-fullscreen-metric-glow" aria-hidden="true"></span>
+                    <span class="tree-fullscreen-metric-icon-wrap" aria-hidden="true">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3M15 19.5a5.25 5.25 0 00-10.5 0M12 7.5a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </span>
+                    <p class="tree-fullscreen-metric-label">Total Direct Sponsor</p>
+                    <p id="tree-fullscreen-summary-total-direct-sponsor" class="tree-fullscreen-metric-value">0</p>
+                    <p class="tree-fullscreen-metric-subtext">Personally enrolled</p>
                   </article>
                   <article class="tree-fullscreen-metric-card metric-accent-success" data-tree-fullscreen-metric-card aria-hidden="true">
                     <span class="tree-fullscreen-metric-glow" aria-hidden="true"></span>
@@ -2710,12 +3122,25 @@
                 <button id="tree-nav-furthest-right" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
                   Furthest Right
                 </button>
+                <button id="tree-settings-toggle" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring" aria-expanded="false" aria-controls="tree-settings-window">
+                  <span class="material-symbols-outlined text-[1rem] leading-none" aria-hidden="true">settings</span>
+                  Settings
+                </button>
               </div>
 
               <div id="tree-search-panel" class="rounded-lg border border-surface-border bg-surface-raised/65 p-3">
                 <div class="flex items-center justify-between gap-3">
                   <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Advanced Search</p>
                   <div class="flex items-center gap-2">
+                    <button
+                      id="tree-search-direct-toggle"
+                      type="button"
+                      aria-pressed="false"
+                      class="inline-flex items-center gap-1 rounded-full border border-surface-border bg-surface-base px-2.5 py-1 text-caption text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring"
+                    >
+                      <span id="tree-search-direct-toggle-icon" class="material-symbols-outlined text-[0.95rem]" aria-hidden="true">face</span>
+                      <span id="tree-search-direct-toggle-label">Direct Sponsors</span>
+                    </button>
                     <button id="tree-search-clear" class="text-caption text-brand-400 hover:text-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
                       Clear
                     </button>
@@ -2772,17 +3197,28 @@
                     <span aria-hidden="true">&gt;</span>
                   </button>
                 </div>
-                <button id="tree-mobile-root-focus" type="button" class="hidden" aria-label="Go to root">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5M5.25 9.75V21h13.5V9.75M9.75 21v-6h4.5v6"/>
-                  </svg>
+                <button id="tree-mobile-enroll-toggle" type="button" class="hidden" aria-label="Enable enroll mode" aria-pressed="false">
+                  Enroll Member
                 </button>
-                <button id="tree-mobile-minimap-toggle" type="button" class="hidden" aria-label="Hide minimap" aria-pressed="true">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5v13.5H3.75V5.25z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5.25v13.5M15 5.25v13.5"/>
-                  </svg>
-                </button>
+                <div id="tree-mobile-right-actions" class="hidden">
+                  <button id="tree-mobile-direct-toggle" type="button" class="hidden" aria-label="Enable direct sponsors filter" aria-pressed="false" title="Enable direct sponsors filter">
+                    <span id="tree-mobile-direct-toggle-icon" class="material-symbols-outlined text-[1.05rem]" aria-hidden="true">face</span>
+                  </button>
+                  <button id="tree-mobile-minimap-toggle" type="button" class="hidden" aria-label="Hide minimap" aria-pressed="true">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5v13.5H3.75V5.25z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5.25v13.5M15 5.25v13.5"/>
+                    </svg>
+                  </button>
+                  <button id="tree-mobile-root-focus" type="button" class="hidden" aria-label="Go to root">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5M5.25 9.75V21h13.5V9.75M9.75 21v-6h4.5v6"/>
+                    </svg>
+                  </button>
+                  <button id="tree-mobile-settings-toggle" type="button" class="hidden" aria-label="Open tree settings" aria-expanded="false" aria-controls="tree-settings-window">
+                    <span class="material-symbols-outlined" aria-hidden="true">settings</span>
+                  </button>
+                </div>
               </div>
               <button id="tree-mobile-search-pill" type="button" class="hidden">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A6.5 6.5 0 105.8 5.8a6.5 6.5 0 0010.85 10.85z"/></svg>
@@ -2858,11 +3294,11 @@
                     <p id="tree-selected-cycles" class="text-text-primary">-</p>
                   </div>
                   <div class="rounded-lg border border-surface-border bg-surface-base/55 p-2">
-                    <p class="text-caption text-text-tertiary">Left Team BV</p>
+                    <p class="text-caption text-text-tertiary">Left BV</p>
                     <p id="tree-selected-left" class="text-text-primary">-</p>
                   </div>
                   <div class="rounded-lg border border-surface-border bg-surface-base/55 p-2">
-                    <p class="text-caption text-text-tertiary">Right Team BV</p>
+                    <p class="text-caption text-text-tertiary">Right BV</p>
                     <p id="tree-selected-right" class="text-text-primary">-</p>
                   </div>
                   <div class="col-span-2 rounded-lg border border-surface-border bg-surface-base/55 p-2">
@@ -2898,6 +3334,150 @@
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div id="tree-settings-window" aria-hidden="true">
+              <section id="tree-settings-panel" role="dialog" aria-modal="true" aria-labelledby="tree-settings-title">
+                <header id="tree-settings-header">
+                  <div class="min-w-0">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Binary Tree</p>
+                    <h3 id="tree-settings-title" class="mt-1 font-body font-medium text-body text-text-primary">Settings</h3>
+                  </div>
+                  <button id="tree-settings-close" type="button" class="inline-flex items-center gap-1 rounded-full border border-surface-border bg-surface-base px-2.5 py-1 text-caption text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                    Dismiss
+                  </button>
+                </header>
+                <div id="tree-settings-body">
+                  <section class="rounded-xl border border-surface-border bg-surface-base/50 p-3 space-y-2">
+                    <h4 class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Account Overview</h4>
+                    <p class="text-body-sm text-text-primary">Name: <span id="tree-settings-account-name">-</span></p>
+                    <p class="text-body-sm text-text-primary">Username: <span id="tree-settings-account-handle">-</span></p>
+                    <p class="text-body-sm text-text-primary">Rank: <span id="tree-settings-account-rank">-</span></p>
+                  </section>
+
+                  <section class="rounded-xl border border-surface-border bg-surface-base/50 p-3 space-y-3">
+                    <h4 class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Accessibility</h4>
+                    <label for="tree-settings-reverse-trackpad-toggle" class="flex items-center justify-between gap-3 text-body-sm text-text-primary">
+                      <span>Trackpad reverse movement</span>
+                      <input id="tree-settings-reverse-trackpad-toggle" type="checkbox" class="h-4 w-4 rounded border-surface-border bg-surface-base accent-brand-500">
+                    </label>
+                    <label for="tree-settings-zoom-strength" class="block">
+                      <span class="text-body-sm text-text-primary">Zoom strength (<span id="tree-settings-zoom-strength-value">30%</span>)</span>
+                      <input id="tree-settings-zoom-strength" type="range" min="0.05" max="1" step="0.01" value="0.30" class="mt-2 w-full">
+                    </label>
+                  </section>
+
+                  <section class="rounded-xl border border-surface-border bg-surface-base/50 p-3 space-y-3">
+                    <h4 class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Themes</h4>
+                    <label for="theme-switcher" class="block">
+                      <span class="text-body-sm text-text-primary">Active Theme</span>
+                      <select id="theme-switcher" class="mt-2 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                      </select>
+                    </label>
+                    <p class="text-caption text-text-tertiary">Changes apply instantly and stay saved after reload.</p>
+                  </section>
+
+                  <button id="tree-settings-logout" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-semantic-danger/45 bg-semantic-danger-bg px-4 py-2.5 text-body-sm font-medium text-semantic-danger hover:bg-semantic-danger/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semantic-danger/60 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                    Logout
+                  </button>
+                </div>
+              </section>
+            </div>
+
+            <div id="tree-enroll-modal-overlay" aria-hidden="true">
+              <section id="tree-enroll-modal" role="dialog" aria-modal="true" aria-labelledby="tree-enroll-modal-title">
+                <header id="tree-enroll-modal-header">
+                  <div class="min-w-0">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Enroll Member</p>
+                    <h3 id="tree-enroll-modal-title" class="mt-1 font-body font-medium text-body text-text-primary">Direct Placement</h3>
+                  </div>
+                  <button id="tree-enroll-modal-dismiss" type="button" class="inline-flex items-center gap-1 rounded-full border border-surface-border bg-surface-base px-2.5 py-1 text-caption text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                    Dismiss
+                  </button>
+                </header>
+
+                <div id="tree-enroll-modal-body">
+                  <form id="tree-enroll-modal-form" class="space-y-4">
+                    <p id="tree-enroll-placement-summary" class="text-body-sm text-semantic-success">Placement locked: LEFT under selected member.</p>
+                    <input id="tree-enroll-placement-leg" name="placementLeg" type="hidden" value="left"/>
+                    <input id="tree-enroll-placement-parent-id" name="placementParentId" type="hidden" value=""/>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <label class="block">
+                        <span class="text-caption text-text-tertiary">Full Name</span>
+                        <input id="tree-enroll-full-name" name="fullName" type="text" autocomplete="name" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="Juan Dela Cruz"/>
+                      </label>
+                      <label class="block">
+                        <span class="text-caption text-text-tertiary">Email Address</span>
+                        <input id="tree-enroll-email" name="email" type="email" autocomplete="email" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="member@email.com"/>
+                      </label>
+                      <label class="block">
+                        <span class="text-caption text-text-tertiary">Member Username</span>
+                        <input id="tree-enroll-username" name="memberUsername" type="text" autocomplete="username" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="newmember01"/>
+                      </label>
+                      <label class="block">
+                        <span class="text-caption text-text-tertiary">Phone Number</span>
+                        <input id="tree-enroll-phone" name="phone" type="tel" autocomplete="tel" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="+1 (555) 000-0000"/>
+                      </label>
+                      <label class="block">
+                        <span class="text-caption text-text-tertiary">Country Flag</span>
+                        <select id="tree-enroll-country-flag" name="countryFlag" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                          <option value="">Select country</option>
+                          <option value="us">United States</option>
+                          <option value="ph">Philippines</option>
+                          <option value="ca">Canada</option>
+                          <option value="mx">Mexico</option>
+                          <option value="gb">United Kingdom</option>
+                          <option value="sg">Singapore</option>
+                        </select>
+                      </label>
+                      <label class="block">
+                        <span class="text-caption text-text-tertiary">Enrollment Package</span>
+                      <select id="tree-enroll-package" name="enrollmentPackage" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                          <option value="preferred-customer-pack">Free Account - $0</option>
+                          <option value="personal-builder-pack">Personal Builder Pack - $192</option>
+                          <option value="business-builder-pack">Business Builder Pack - $360</option>
+                          <option value="infinity-builder-pack">Infinity Builder Pack - $560</option>
+                          <option value="legacy-builder-pack">Legacy Builder Pack - $960</option>
+                      </select>
+                      </label>
+                    </div>
+
+                    <label class="block">
+                      <span class="text-caption text-text-tertiary">Registration Notes</span>
+                      <textarea id="tree-enroll-notes" name="notes" rows="3" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="Optional internal notes for onboarding."></textarea>
+                    </label>
+
+                    <input id="tree-enroll-fast-track-tier" name="fastTrackTier" type="hidden" value="personal-pack"/>
+
+                    <div class="rounded-lg border border-surface-border bg-surface-base/50 p-3 text-caption text-text-secondary">
+                      <p class="text-text-tertiary">Fast Track Preview (placement is locked to selected tree slot)</p>
+                      <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <p>Package Price: <span id="tree-enroll-preview-package-price" class="text-semantic-success font-medium">$0.00</span></p>
+                        <p>Package BV: <span id="tree-enroll-preview-package-bv" class="text-text-primary">0 BV</span></p>
+                        <p>Fast Track Bonus: <span id="tree-enroll-preview-fast-track-bonus" class="text-semantic-success font-medium">$0.00</span></p>
+                        <p>Tier Applied: <span id="tree-enroll-preview-tier-label" class="text-text-primary">Personal Pack</span></p>
+                      </div>
+                    </div>
+
+                    <p id="tree-enroll-modal-feedback" class="hidden text-caption text-semantic-danger"></p>
+                    <a id="tree-enroll-password-setup-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden text-caption text-semantic-info underline break-all">
+                      Open password setup link
+                    </a>
+
+                    <div class="flex justify-end">
+                      <button id="tree-enroll-submit" type="submit" class="inline-flex items-center gap-2 rounded-xl bg-semantic-success px-4 py-2.5 text-body-sm font-medium text-surface-base shadow-depth-1 hover:shadow-depth-2 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semantic-success/60 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                        Register Member
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </section>
             </div>
 
             <div id="tree-fallback-message" class="hidden rounded-lg border border-semantic-danger/30 bg-semantic-danger-bg text-semantic-danger text-body-sm px-3 py-2">
@@ -3908,6 +4488,8 @@
       const enrollMemberPlacementInput = document.getElementById('enroll-member-placement');
       const enrollMemberSpilloverSideWrap = document.getElementById('enroll-member-spillover-side-wrap');
       const enrollMemberSpilloverSideInput = document.getElementById('enroll-member-spillover-side');
+      const enrollMemberSpilloverParentModeWrap = document.getElementById('enroll-member-spillover-parent-mode-wrap');
+      const enrollMemberSpilloverParentModeInput = document.getElementById('enroll-member-spillover-parent-mode');
       const enrollMemberSpilloverParentWrap = document.getElementById('enroll-member-spillover-parent-wrap');
       const enrollMemberSpilloverParentInput = document.getElementById('enroll-member-spillover-parent');
       const enrollMemberSpilloverParentResultsShell = document.getElementById('enroll-member-spillover-parent-results-shell');
@@ -3975,6 +4557,15 @@
       const IS_ADMIN_ENROLLMENT_MODE = true;
       const ACCOUNT_ACTIVITY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
       const DEFAULT_COUNTRY_FLAG = 'un';
+      const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
+      const FREE_ACCOUNT_RANK_LABEL = 'Preferred Customer';
+      const PLACEMENT_LEG_LEFT = 'left';
+      const PLACEMENT_LEG_RIGHT = 'right';
+      const PLACEMENT_LEG_SPILLOVER = 'spillover';
+      const PLACEMENT_OPTION_SPILLOVER_LEFT = 'spillover-left';
+      const PLACEMENT_OPTION_SPILLOVER_RIGHT = 'spillover-right';
+      const PLACEMENT_LEG_EXTREME_LEFT = 'extreme-left';
+      const PLACEMENT_LEG_EXTREME_RIGHT = 'extreme-right';
       const COUNTRY_FLAG_CODE_BY_EMOJI = Object.freeze({
         '🇺🇸': 'us',
         '🇵🇭': 'ph',
@@ -4295,6 +4886,35 @@
       const newMembersJoinedValueElement = document.getElementById('new-members-joined-value');
       const totalDirectSponsorsValueElement = document.getElementById('total-direct-sponsors-value');
       const treeOpenFullscreenButton = document.getElementById('tree-open-fullscreen');
+      const binaryTreePanelElement = document.getElementById('binary-tree-panel');
+      const treeSettingsToggleButton = document.getElementById('tree-settings-toggle');
+      const treeMobileSettingsToggleButton = document.getElementById('tree-mobile-settings-toggle');
+      const treeSettingsWindowElement = document.getElementById('tree-settings-window');
+      const treeSettingsCloseButton = document.getElementById('tree-settings-close');
+      const treeSettingsAccountNameValueElement = document.getElementById('tree-settings-account-name');
+      const treeSettingsAccountHandleValueElement = document.getElementById('tree-settings-account-handle');
+      const treeSettingsAccountRankValueElement = document.getElementById('tree-settings-account-rank');
+      const treeSettingsReverseTrackpadToggleElement = document.getElementById('tree-settings-reverse-trackpad-toggle');
+      const treeSettingsZoomStrengthElement = document.getElementById('tree-settings-zoom-strength');
+      const treeSettingsZoomStrengthValueElement = document.getElementById('tree-settings-zoom-strength-value');
+      const treeSettingsLogoutButton = document.getElementById('tree-settings-logout');
+      const treeEnrollModalOverlayElement = document.getElementById('tree-enroll-modal-overlay');
+      const treeEnrollModalDismissButton = document.getElementById('tree-enroll-modal-dismiss');
+      const treeEnrollModalForm = document.getElementById('tree-enroll-modal-form');
+      const treeEnrollModalSubmitButton = document.getElementById('tree-enroll-submit');
+      const treeEnrollModalFeedback = document.getElementById('tree-enroll-modal-feedback');
+      const treeEnrollPasswordSetupLinkElement = document.getElementById('tree-enroll-password-setup-link');
+      const treeEnrollPlacementSummaryElement = document.getElementById('tree-enroll-placement-summary');
+      const treeEnrollPlacementLegInput = document.getElementById('tree-enroll-placement-leg');
+      const treeEnrollPlacementParentIdInput = document.getElementById('tree-enroll-placement-parent-id');
+      const treeEnrollFullNameInput = document.getElementById('tree-enroll-full-name');
+      const treeEnrollCountryFlagInput = document.getElementById('tree-enroll-country-flag');
+      const treeEnrollPackageInput = document.getElementById('tree-enroll-package');
+      const treeEnrollFastTrackTierInput = document.getElementById('tree-enroll-fast-track-tier');
+      const treeEnrollPreviewPackagePrice = document.getElementById('tree-enroll-preview-package-price');
+      const treeEnrollPreviewPackageBv = document.getElementById('tree-enroll-preview-package-bv');
+      const treeEnrollPreviewFastTrackBonus = document.getElementById('tree-enroll-preview-fast-track-bonus');
+      const treeEnrollPreviewTierLabel = document.getElementById('tree-enroll-preview-tier-label');
       const treeSummaryAccountRankValueElement = document.getElementById('tree-summary-account-rank');
       const treeSummaryMemberCountValueElement = document.getElementById('tree-summary-member-count');
       const treeSummaryNewMembersValueElement = document.getElementById('tree-summary-new-members');
@@ -4303,12 +4923,14 @@
       const treeSummaryLeftLegBvValueElement = document.getElementById('tree-summary-left-leg-bv');
       const treeSummaryRightLegBvValueElement = document.getElementById('tree-summary-right-leg-bv');
       const treeSummaryDirectSponsorsValueElement = document.getElementById('tree-summary-direct-sponsors');
+      const treeSummaryTotalDirectSponsorValueElement = document.getElementById('tree-summary-total-direct-sponsor');
       const treeSummaryOverviewDeckElement = document.getElementById('tree-summary-overview-deck');
       const treeSummaryOverviewDotsElement = document.getElementById('tree-summary-overview-dots');
       const treeSummaryOverviewCardElements = treeSummaryOverviewDeckElement
         ? Array.from(treeSummaryOverviewDeckElement.querySelectorAll('[data-tree-summary-card]'))
         : [];
       const treeFullscreenSummaryMemberCountValueElement = document.getElementById('tree-fullscreen-summary-member-count');
+      const treeFullscreenSummaryTotalDirectSponsorValueElement = document.getElementById('tree-fullscreen-summary-total-direct-sponsor');
       const treeFullscreenSummaryLifetimeTotalOrganizationBvValueElement = document.getElementById('tree-fullscreen-summary-lifetime-total-organization-bv');
       const treeFullscreenSummaryLifetimePersonalOrganizationBvValueElement = document.getElementById('tree-fullscreen-summary-lifetime-personal-organization-bv');
       const treeFullscreenSummaryAccountRankValueElement = document.getElementById('tree-fullscreen-summary-account-rank');
@@ -4325,6 +4947,10 @@
       let binaryTreeTargetNodeCount = null;
       let treeSummaryOverviewCardIndex = 0;
       let treeSummaryOverviewTouchStartX = null;
+      let treeEnrollPlacementLock = null;
+      let treeEnrollLastTriggerElement = null;
+      let treeSettingsLastTriggerElement = null;
+      const DEFAULT_TREE_TRACKPAD_ZOOM_SENSITIVITY = 0.3;
       const CYCLE_RULE_LOWER_BV = 500;
       const CYCLE_RULE_HIGHER_BV = 1000;
       const ACCOUNT_OVERVIEW_TREND_STORAGE_KEY = 'charge-admin-account-overview-trend-v1';
@@ -4401,6 +5027,132 @@
 
       function normalizeMemberKey(value) {
         return String(value || '').trim().toLowerCase();
+      }
+
+      function normalizePlacementLegValue(value, options = {}) {
+        const allowSpillover = options.allowSpillover !== false;
+        const fallback = typeof options.fallback === 'string' ? options.fallback : PLACEMENT_LEG_LEFT;
+        const normalizedValue = normalizeMemberKey(value);
+        const defaultSpilloverSide = normalizeMemberKey(options.defaultSpilloverSide) === PLACEMENT_LEG_RIGHT
+          ? PLACEMENT_LEG_RIGHT
+          : PLACEMENT_LEG_LEFT;
+        if (normalizedValue === PLACEMENT_LEG_LEFT) {
+          return PLACEMENT_LEG_LEFT;
+        }
+        if (normalizedValue === PLACEMENT_LEG_RIGHT) {
+          return PLACEMENT_LEG_RIGHT;
+        }
+        if (
+          allowSpillover
+          && (
+            normalizedValue === PLACEMENT_OPTION_SPILLOVER_LEFT
+            || normalizedValue === 'spillover_left'
+            || normalizedValue === 'spillover left'
+          )
+        ) {
+          return PLACEMENT_OPTION_SPILLOVER_LEFT;
+        }
+        if (
+          allowSpillover
+          && (
+            normalizedValue === PLACEMENT_OPTION_SPILLOVER_RIGHT
+            || normalizedValue === 'spillover_right'
+            || normalizedValue === 'spillover right'
+          )
+        ) {
+          return PLACEMENT_OPTION_SPILLOVER_RIGHT;
+        }
+        if (
+          normalizedValue === PLACEMENT_LEG_EXTREME_LEFT
+          || normalizedValue === 'extremeleft'
+          || normalizedValue === 'extreme_left'
+          || normalizedValue === 'extreme left'
+        ) {
+          return PLACEMENT_LEG_EXTREME_LEFT;
+        }
+        if (
+          normalizedValue === PLACEMENT_LEG_EXTREME_RIGHT
+          || normalizedValue === 'extremeright'
+          || normalizedValue === 'extreme_right'
+          || normalizedValue === 'extreme right'
+        ) {
+          return PLACEMENT_LEG_EXTREME_RIGHT;
+        }
+        if (allowSpillover && normalizedValue === PLACEMENT_LEG_SPILLOVER) {
+          return defaultSpilloverSide === PLACEMENT_LEG_RIGHT
+            ? PLACEMENT_OPTION_SPILLOVER_RIGHT
+            : PLACEMENT_OPTION_SPILLOVER_LEFT;
+        }
+        return fallback;
+      }
+
+      function isSpilloverPlacementOption(value) {
+        const normalizedValue = normalizePlacementLegValue(value, {
+          allowSpillover: true,
+          fallback: PLACEMENT_LEG_LEFT,
+        });
+        return normalizedValue === PLACEMENT_OPTION_SPILLOVER_LEFT
+          || normalizedValue === PLACEMENT_OPTION_SPILLOVER_RIGHT;
+      }
+
+      function resolveSpilloverSideFromPlacementOption(value, fallback = PLACEMENT_LEG_LEFT) {
+        const normalizedValue = normalizePlacementLegValue(value, {
+          allowSpillover: true,
+          fallback: fallback === PLACEMENT_LEG_RIGHT ? PLACEMENT_OPTION_SPILLOVER_RIGHT : PLACEMENT_OPTION_SPILLOVER_LEFT,
+          defaultSpilloverSide: fallback,
+        });
+        return normalizedValue === PLACEMENT_OPTION_SPILLOVER_RIGHT ? PLACEMENT_LEG_RIGHT : PLACEMENT_LEG_LEFT;
+      }
+
+      function resolvePlacementOptionFromMember(member = {}) {
+        const normalizedLeg = normalizeMemberKey(member?.placementLeg);
+        if (normalizedLeg === PLACEMENT_LEG_SPILLOVER) {
+          return normalizeMemberKey(member?.spilloverPlacementSide) === PLACEMENT_LEG_RIGHT
+            ? PLACEMENT_OPTION_SPILLOVER_RIGHT
+            : PLACEMENT_OPTION_SPILLOVER_LEFT;
+        }
+        return normalizePlacementLegValue(normalizedLeg, {
+          allowSpillover: true,
+          fallback: PLACEMENT_LEG_LEFT,
+        });
+      }
+
+      function resolvePlacementLegLabel(value) {
+        const placementLeg = normalizePlacementLegValue(value, {
+          allowSpillover: true,
+          fallback: PLACEMENT_LEG_LEFT,
+        });
+        if (placementLeg === PLACEMENT_OPTION_SPILLOVER_LEFT) {
+          return 'Spill Over Left';
+        }
+        if (placementLeg === PLACEMENT_OPTION_SPILLOVER_RIGHT) {
+          return 'Spill Over Right';
+        }
+        if (placementLeg === PLACEMENT_LEG_EXTREME_LEFT) {
+          return 'Spillover Extreme Left';
+        }
+        if (placementLeg === PLACEMENT_LEG_EXTREME_RIGHT) {
+          return 'Spillover Extreme Right';
+        }
+        if (placementLeg === PLACEMENT_LEG_RIGHT) {
+          return 'Right';
+        }
+        if (placementLeg === PLACEMENT_LEG_SPILLOVER) {
+          return 'Spillover';
+        }
+        return 'Left';
+      }
+
+      function isPreferredCustomerPackageKey(packageKey) {
+        const normalizedPackageKey = normalizeMemberKey(packageKey);
+        return normalizedPackageKey === normalizeMemberKey(FREE_ACCOUNT_PACKAGE_KEY);
+      }
+
+      function isPreferredCustomerRank(rankValue) {
+        const normalizedRank = normalizeMemberKey(normalizeRankLabel(rankValue));
+        return normalizedRank === normalizeMemberKey(FREE_ACCOUNT_RANK_LABEL)
+          || normalizedRank === 'free account'
+          || normalizedRank === 'free';
       }
 
       function normalizeRankLabel(rawRank) {
@@ -4809,6 +5561,7 @@
         }
 
         syncEnrollPreview();
+        applyTreeEnrollTierFromRank();
       }
 
       function getFastTrackBonusAmount(packageKey, tierKey) {
@@ -4835,7 +5588,18 @@
       }
 
       function resolveMemberServerCutoffBaselineVolume(member, fallbackValue = 0) {
-        return Math.max(0, toWholeNumber(member?.serverCutoffBaselineStarterPersonalPv, fallbackValue));
+        const baselineValue = Math.max(0, toWholeNumber(member?.serverCutoffBaselineStarterPersonalPv, fallbackValue));
+        const baselineSetAtMs = Date.parse(String(member?.serverCutoffBaselineSetAt || '').trim());
+        const createdAtMs = Date.parse(String(member?.createdAt || member?.enrolledAt || '').trim());
+        if (
+          baselineValue > 0
+          && Number.isFinite(baselineSetAtMs)
+          && Number.isFinite(createdAtMs)
+          && createdAtMs > baselineSetAtMs
+        ) {
+          return 0;
+        }
+        return baselineValue;
       }
 
       function resolveMemberBinaryVolume(member) {
@@ -4844,6 +5608,14 @@
         const starterPersonalPv = starterPersonalPvRaw > 0 ? starterPersonalPvRaw : packageBv;
         const cutoffBaselinePv = resolveMemberServerCutoffBaselineVolume(member, 0);
         return Math.max(0, starterPersonalPv - cutoffBaselinePv);
+      }
+
+      function isBinaryTreeEligibleMember(member) {
+        if (!member || typeof member !== 'object') {
+          return false;
+        }
+        return !isPreferredCustomerPackageKey(member?.enrollmentPackage)
+          && !isPreferredCustomerRank(member?.accountRank || member?.rank);
       }
 
       function resolveMemberLifetimeBinaryVolume(member) {
@@ -4958,7 +5730,7 @@
         const rootId = 'root';
         const globalRootId = '__global-root__';
         const now = Date.now();
-        const rootUsername = String(currentSessionUser?.username || currentSponsorUsername || 'company-root').trim() || 'company-root';
+        const rootUsername = String(currentSessionUser?.username || currentSponsorUsername || 'member-root').trim() || 'member-root';
         const nodes = {};
         const usedNodeIds = new Set([globalRootId]);
         const memberNodeIdByIndex = new Map();
@@ -4973,6 +5745,7 @@
         };
 
         const sortedMembers = (Array.isArray(registeredMembers) ? registeredMembers : [])
+          .filter((member) => isBinaryTreeEligibleMember(member))
           .slice()
           .sort((left, right) => {
             const leftMs = Date.parse(String(left?.createdAt || ''));
@@ -5018,6 +5791,7 @@
             rightPersonalPv: 0,
             lifetimePersonalPv: memberLifetimeBinaryVolume,
             rank: resolveMemberTreeRank(member),
+            enrollmentPackage: normalizeMemberKey(member?.enrollmentPackage),
             countryFlag: normalizeCountryFlag(member?.countryFlag),
             addedAt: createdAtMs,
           };
@@ -5028,9 +5802,9 @@
         });
 
         const findOpenPlacement = (startingParentId, preferredSide) => {
-          const normalizedPreferred = preferredSide === 'right' ? 'right' : 'left';
-          const primaryKey = normalizedPreferred === 'right' ? 'rightChildId' : 'leftChildId';
-          const secondaryKey = normalizedPreferred === 'right' ? 'leftChildId' : 'rightChildId';
+          const normalizedPreferred = preferredSide === PLACEMENT_LEG_RIGHT ? PLACEMENT_LEG_RIGHT : PLACEMENT_LEG_LEFT;
+          const primaryKey = normalizedPreferred === PLACEMENT_LEG_RIGHT ? 'rightChildId' : 'leftChildId';
+          const secondaryKey = normalizedPreferred === PLACEMENT_LEG_RIGHT ? 'leftChildId' : 'rightChildId';
           const queue = [];
           const visited = new Set();
           const resolvedStartParentId = nodes[startingParentId] ? startingParentId : globalRootId;
@@ -5057,7 +5831,7 @@
               return { parentId, side: normalizedPreferred };
             }
             if (!parentNode[secondaryKey]) {
-              return { parentId, side: normalizedPreferred === 'right' ? 'left' : 'right' };
+              return { parentId, side: normalizedPreferred === PLACEMENT_LEG_RIGHT ? PLACEMENT_LEG_LEFT : PLACEMENT_LEG_RIGHT };
             }
 
             const primaryChildId = parentNode[primaryKey];
@@ -5073,6 +5847,26 @@
           return null;
         };
 
+        const findExtremePlacement = (startingParentId, preferredSide) => {
+          const normalizedPreferred = preferredSide === PLACEMENT_LEG_RIGHT ? PLACEMENT_LEG_RIGHT : PLACEMENT_LEG_LEFT;
+          const childKey = normalizedPreferred === PLACEMENT_LEG_RIGHT ? 'rightChildId' : 'leftChildId';
+          const resolvedStartParentId = nodes[startingParentId] ? startingParentId : globalRootId;
+          let currentParentId = resolvedStartParentId;
+          const visited = new Set();
+
+          while (currentParentId && nodes[currentParentId] && !visited.has(currentParentId)) {
+            visited.add(currentParentId);
+            const currentNode = nodes[currentParentId];
+            const nextChildId = currentNode[childKey];
+            if (!nextChildId || !nodes[nextChildId]) {
+              return { parentId: currentParentId, side: normalizedPreferred };
+            }
+            currentParentId = nextChildId;
+          }
+
+          return null;
+        };
+
         sortedMembers.forEach((member, index) => {
           const nodeId = memberNodeIdByIndex.get(index);
           const node = nodes[nodeId];
@@ -5082,27 +5876,38 @@
 
           const normalizedSponsorUsername = normalizeMemberKey(member?.sponsorUsername);
           const sponsorNodeId = lookupToNodeId.get(normalizedSponsorUsername) || globalRootId;
-          const placementLeg = normalizeMemberKey(member?.placementLeg || 'left');
-          const preferredSide = placementLeg === 'right'
-            ? 'right'
-            : (placementLeg === 'spillover' && normalizeMemberKey(member?.spilloverPlacementSide) === 'right'
-              ? 'right'
-              : 'left');
+          const placementLeg = resolvePlacementOptionFromMember(member);
+          const isSpilloverPlacement = isSpilloverPlacementOption(placementLeg);
+          const preferredSide = (
+            placementLeg === PLACEMENT_LEG_RIGHT
+            || placementLeg === PLACEMENT_LEG_EXTREME_RIGHT
+            || placementLeg === PLACEMENT_OPTION_SPILLOVER_RIGHT
+          )
+            ? PLACEMENT_LEG_RIGHT
+            : PLACEMENT_LEG_LEFT;
+          const placementMode = (
+            placementLeg === PLACEMENT_LEG_EXTREME_LEFT
+            || placementLeg === PLACEMENT_LEG_EXTREME_RIGHT
+          )
+            ? 'extreme'
+            : 'auto';
 
-          const requestedParentLookup = placementLeg === 'spillover'
+          const requestedParentLookup = isSpilloverPlacement
             ? normalizeMemberKey(member?.spilloverParentReference)
             : '';
           const requestedParentId = requestedParentLookup && lookupToNodeId.has(requestedParentLookup)
             ? lookupToNodeId.get(requestedParentLookup)
             : sponsorNodeId;
 
-          const placement = findOpenPlacement(requestedParentId, preferredSide);
+          const placement = placementMode === 'extreme'
+            ? findExtremePlacement(requestedParentId, preferredSide)
+            : findOpenPlacement(requestedParentId, preferredSide);
           if (!placement || !nodes[placement.parentId]) {
             return;
           }
 
           const parentNode = nodes[placement.parentId];
-          if (placement.side === 'right') {
+          if (placement.side === PLACEMENT_LEG_RIGHT) {
             parentNode.rightChildId = nodeId;
           } else {
             parentNode.leftChildId = nodeId;
@@ -5117,8 +5922,10 @@
           }
         });
 
+        const viewerLookupKey = normalizeMemberKey(currentSponsorUsername);
+        const viewerNodeId = lookupToNodeId.get(viewerLookupKey) || globalRootId;
         const includedNodeIds = new Set();
-        const traverseQueue = [globalRootId];
+        const traverseQueue = [viewerNodeId];
 
         while (traverseQueue.length > 0) {
           const nextNodeId = traverseQueue.shift();
@@ -5136,35 +5943,67 @@
           }
         }
 
+        // Track the viewer's sponsor-based organization ownership (direct + downline by sponsor graph),
+        // independent from placement subtree visibility.
+        const sponsoredChildrenBySponsorId = new Map();
+        for (const [candidateNodeId, candidateNode] of Object.entries(nodes)) {
+          const candidateSponsorId = candidateNode?.sponsorId;
+          if (!candidateSponsorId || !nodes[candidateSponsorId] || candidateSponsorId === candidateNodeId) {
+            continue;
+          }
+          if (!sponsoredChildrenBySponsorId.has(candidateSponsorId)) {
+            sponsoredChildrenBySponsorId.set(candidateSponsorId, []);
+          }
+          sponsoredChildrenBySponsorId.get(candidateSponsorId).push(candidateNodeId);
+        }
+
+        const viewerSponsoredOrganizationNodeIds = new Set();
+        const sponsorQueue = [viewerNodeId];
+        while (sponsorQueue.length > 0) {
+          const nextSponsorId = sponsorQueue.shift();
+          const sponsoredChildIds = sponsoredChildrenBySponsorId.get(nextSponsorId) || [];
+          for (const sponsoredChildId of sponsoredChildIds) {
+            if (!sponsoredChildId || viewerSponsoredOrganizationNodeIds.has(sponsoredChildId) || !nodes[sponsoredChildId]) {
+              continue;
+            }
+            viewerSponsoredOrganizationNodeIds.add(sponsoredChildId);
+            sponsorQueue.push(sponsoredChildId);
+          }
+        }
+
         const scopedNodes = {};
-        const sourceRootNode = nodes[globalRootId];
+        const sourceRootNode = nodes[viewerNodeId] || nodes[globalRootId];
+        const sourceRootAddedAt = Number(sourceRootNode?.addedAt);
         scopedNodes[rootId] = {
           id: rootId,
           memberCode: rootUsername,
           name: 'You',
-          status: 'active',
+          status: resolveBinaryNodeStatus(currentSessionUser),
           leftPersonalPv: 0,
           rightPersonalPv: 0,
           lifetimePersonalPv: 0,
           rank: resolveRootNodeRank(),
           countryFlag: normalizeCountryFlag(currentSessionUser?.countryFlag),
-          addedAt: Number.isFinite(Number(sourceRootNode?.addedAt)) ? Number(sourceRootNode.addedAt) : now,
+          addedAt: Number.isFinite(sourceRootAddedAt) ? sourceRootAddedAt : now,
         };
 
-        if (sourceRootNode?.leftChildId && includedNodeIds.has(sourceRootNode.leftChildId)) {
-          scopedNodes[rootId].leftChildId = sourceRootNode.leftChildId;
+        const sourceRootLeftId = sourceRootNode?.leftChildId;
+        if (sourceRootLeftId && includedNodeIds.has(sourceRootLeftId) && sourceRootLeftId !== viewerNodeId) {
+          scopedNodes[rootId].leftChildId = sourceRootLeftId;
         }
-        if (sourceRootNode?.rightChildId && includedNodeIds.has(sourceRootNode.rightChildId)) {
-          scopedNodes[rootId].rightChildId = sourceRootNode.rightChildId;
+        const sourceRootRightId = sourceRootNode?.rightChildId;
+        if (sourceRootRightId && includedNodeIds.has(sourceRootRightId) && sourceRootRightId !== viewerNodeId) {
+          scopedNodes[rootId].rightChildId = sourceRootRightId;
         }
 
         for (const nodeId of includedNodeIds) {
-          if (nodeId === globalRootId || !nodes[nodeId]) {
+          if (nodeId === viewerNodeId || !nodes[nodeId]) {
             continue;
           }
           scopedNodes[nodeId] = { ...nodes[nodeId] };
         }
 
+        const externalSpilloverSourceNodeIds = new Set();
         for (const [nodeId, scopedNode] of Object.entries(scopedNodes)) {
           if (nodeId === rootId) {
             scopedNode.sponsorId = undefined;
@@ -5180,33 +6019,107 @@
             continue;
           }
 
-          const leftChildId = sourceNode.leftChildId;
-          scopedNode.leftChildId = leftChildId && includedNodeIds.has(leftChildId)
-            ? leftChildId
+          const mappedLeftChildId = sourceNode.leftChildId;
+          scopedNode.leftChildId = mappedLeftChildId && includedNodeIds.has(mappedLeftChildId) && mappedLeftChildId !== viewerNodeId
+            ? mappedLeftChildId
             : undefined;
 
-          const rightChildId = sourceNode.rightChildId;
-          scopedNode.rightChildId = rightChildId && includedNodeIds.has(rightChildId)
-            ? rightChildId
+          const mappedRightChildId = sourceNode.rightChildId;
+          scopedNode.rightChildId = mappedRightChildId && includedNodeIds.has(mappedRightChildId) && mappedRightChildId !== viewerNodeId
+            ? mappedRightChildId
             : undefined;
 
-          scopedNode.placementParentId = sourceNode.placementParentId === globalRootId
+          const sourcePlacementParentId = sourceNode.placementParentId;
+          scopedNode.placementParentId = sourcePlacementParentId === viewerNodeId
             ? rootId
-            : (sourceNode.placementParentId && includedNodeIds.has(sourceNode.placementParentId) ? sourceNode.placementParentId : undefined);
+            : (sourcePlacementParentId && includedNodeIds.has(sourcePlacementParentId) ? sourcePlacementParentId : undefined);
           scopedNode.placementSide = sourceNode.placementSide;
 
-          scopedNode.sponsorId = sourceNode.sponsorId === globalRootId
+          const sourceSponsorId = sourceNode.sponsorId;
+          scopedNode.sponsorId = sourceSponsorId === viewerNodeId
             ? rootId
-            : (sourceNode.sponsorId && includedNodeIds.has(sourceNode.sponsorId) ? sourceNode.sponsorId : undefined);
+            : (sourceSponsorId && includedNodeIds.has(sourceSponsorId) ? sourceSponsorId : undefined);
+          const sourceWasSpillover = Boolean(sourceNode.isSpillover);
           scopedNode.sponsorLeg = sourceNode.sponsorLeg;
           if (scopedNode.sponsorId === scopedNode.placementParentId && scopedNode.placementSide) {
             scopedNode.sponsorLeg = scopedNode.placementSide;
           }
-          scopedNode.isSpillover = Boolean(
+          scopedNode.isSpillover = sourceWasSpillover || Boolean(
             scopedNode.sponsorId
             && scopedNode.placementParentId
             && scopedNode.sponsorId !== scopedNode.placementParentId
           );
+
+          // Outside-org spillover source: sponsor exists globally but is outside this scoped subtree.
+          const sourceSponsorOutsideScopedOrganization = Boolean(
+            sourceWasSpillover
+            && sourceSponsorId
+            && sourceSponsorId !== viewerNodeId
+            && !includedNodeIds.has(sourceSponsorId)
+          );
+          if (sourceSponsorOutsideScopedOrganization) {
+            externalSpilloverSourceNodeIds.add(nodeId);
+          }
+        }
+
+        const spilloverRootNodeIds = Array.from(externalSpilloverSourceNodeIds)
+          .filter((nodeId) => {
+            if (!nodeId || !scopedNodes[nodeId]) {
+              return false;
+            }
+            const parentId = scopedNodes[nodeId].placementParentId;
+            return !parentId || !externalSpilloverSourceNodeIds.has(parentId);
+          });
+        const anonymizedNodeIdSet = new Set();
+        const anonymizedQueue = spilloverRootNodeIds.slice();
+
+        while (anonymizedQueue.length > 0) {
+          const nextNodeId = anonymizedQueue.shift();
+          if (!nextNodeId || anonymizedNodeIdSet.has(nextNodeId) || !scopedNodes[nextNodeId]) {
+            continue;
+          }
+
+          const isViewerOwnedSponsorBranchNode = viewerSponsoredOrganizationNodeIds.has(nextNodeId);
+          if (!isViewerOwnedSponsorBranchNode) {
+            anonymizedNodeIdSet.add(nextNodeId);
+          }
+          const nextNode = scopedNodes[nextNodeId];
+          if (nextNode.leftChildId && scopedNodes[nextNode.leftChildId]) {
+            anonymizedQueue.push(nextNode.leftChildId);
+          }
+          if (nextNode.rightChildId && scopedNodes[nextNode.rightChildId]) {
+            anonymizedQueue.push(nextNode.rightChildId);
+          }
+        }
+
+        const anonymizedNodeIds = Array.from(anonymizedNodeIdSet)
+          .sort((leftId, rightId) => {
+            const leftAddedAt = Number(scopedNodes[leftId]?.addedAt);
+            const rightAddedAt = Number(scopedNodes[rightId]?.addedAt);
+            const safeLeft = Number.isFinite(leftAddedAt) ? leftAddedAt : 0;
+            const safeRight = Number.isFinite(rightAddedAt) ? rightAddedAt : 0;
+            return safeLeft - safeRight;
+          });
+
+        let spilloverDirectCount = 0;
+        let spilloverNetworkCount = 0;
+        for (const nodeId of anonymizedNodeIds) {
+          const node = scopedNodes[nodeId];
+          if (!node) {
+            continue;
+          }
+
+          const isDirectPlacement = node.placementParentId === rootId;
+          if (isDirectPlacement) {
+            spilloverDirectCount += 1;
+            node.name = `Spillover Direct ${spilloverDirectCount}`;
+            node.memberCode = `spillover-${String(spilloverDirectCount).padStart(3, '0')}`;
+          } else {
+            spilloverNetworkCount += 1;
+            node.name = `Spillover Network ${spilloverNetworkCount}`;
+            node.memberCode = `spillover-network-${String(spilloverNetworkCount).padStart(3, '0')}`;
+          }
+          node.countryFlag = DEFAULT_COUNTRY_FLAG;
         }
 
         return {
@@ -5250,6 +6163,77 @@
           .catch((error) => {
             console.error('Unable to summarize synced binary tree data:', error);
           });
+      }
+
+      function isManualSpilloverParentAssignment() {
+        const mode = normalizeMemberKey(enrollMemberSpilloverParentModeInput?.value || 'auto');
+        return mode === 'manual';
+      }
+
+      function resolveCurrentSponsorDirectLegAvailability() {
+        const rootId = normalizeMemberKey(binaryTreeMockData?.rootId || '');
+        const rootNode = rootId && binaryTreeMockData?.nodes
+          ? binaryTreeMockData.nodes[rootId]
+          : null;
+        const hasLeftDirect = Boolean(String(rootNode?.leftChildId || '').trim());
+        const hasRightDirect = Boolean(String(rootNode?.rightChildId || '').trim());
+        return {
+          leftAvailable: !hasLeftDirect,
+          rightAvailable: !hasRightDirect,
+        };
+      }
+
+      function syncEnrollPlacementLegOptions() {
+        if (!enrollMemberPlacementInput) {
+          return PLACEMENT_LEG_LEFT;
+        }
+
+        const { leftAvailable, rightAvailable } = resolveCurrentSponsorDirectLegAvailability();
+        const leftOption = enrollMemberPlacementInput.querySelector('option[value="left"]');
+        const rightOption = enrollMemberPlacementInput.querySelector('option[value="right"]');
+        const spilloverLeftOption = enrollMemberPlacementInput.querySelector('option[value="spillover-left"]');
+        const spilloverRightOption = enrollMemberPlacementInput.querySelector('option[value="spillover-right"]');
+        const extremeLeftOption = enrollMemberPlacementInput.querySelector('option[value="extreme-left"]');
+        const extremeRightOption = enrollMemberPlacementInput.querySelector('option[value="extreme-right"]');
+        if (leftOption) {
+          leftOption.disabled = !leftAvailable;
+          leftOption.textContent = leftAvailable ? 'Left' : 'Left (Filled)';
+        }
+        if (rightOption) {
+          rightOption.disabled = !rightAvailable;
+          rightOption.textContent = rightAvailable ? 'Right' : 'Right (Filled)';
+        }
+        if (spilloverLeftOption) {
+          spilloverLeftOption.disabled = false;
+          spilloverLeftOption.textContent = 'Spill Over Left';
+        }
+        if (spilloverRightOption) {
+          spilloverRightOption.disabled = false;
+          spilloverRightOption.textContent = 'Spill Over Right';
+        }
+        if (extremeLeftOption) {
+          extremeLeftOption.disabled = false;
+          extremeLeftOption.textContent = 'Spillover Extreme Left';
+        }
+        if (extremeRightOption) {
+          extremeRightOption.disabled = false;
+          extremeRightOption.textContent = 'Spillover Extreme Right';
+        }
+
+        const selectedPlacementRaw = normalizeMemberKey(enrollMemberPlacementInput.value || PLACEMENT_LEG_LEFT);
+        const nextPlacement = normalizePlacementLegValue(selectedPlacementRaw, {
+          allowSpillover: true,
+          fallback: PLACEMENT_LEG_LEFT,
+        });
+
+        if (nextPlacement !== selectedPlacementRaw) {
+          enrollMemberPlacementInput.value = nextPlacement;
+        }
+
+        return normalizePlacementLegValue(enrollMemberPlacementInput.value || nextPlacement, {
+          allowSpillover: true,
+          fallback: PLACEMENT_LEG_LEFT,
+        });
       }
 
       function refreshSpilloverParentSuggestions() {
@@ -5298,7 +6282,7 @@
         spilloverParentSuggestionItems = optionItems;
 
         if (!optionItems.length) {
-          enrollMemberSpilloverParentHint.textContent = 'No direct child references found yet. Enroll direct members first, then use spillover.';
+          enrollMemberSpilloverParentHint.textContent = 'No direct child references found yet. Switch to Auto Assign Parent or enroll direct children first.';
           renderSpilloverParentSuggestionResults();
           return;
         }
@@ -5334,8 +6318,9 @@
         }
 
         const placementMode = normalizeMemberKey(enrollMemberPlacementInput?.value || 'left');
+        const manualParentAssignment = isManualSpilloverParentAssignment();
         const shouldShow = options.show === true || document.activeElement === enrollMemberSpilloverParentInput;
-        if (placementMode !== 'spillover' || !shouldShow) {
+        if (!isSpilloverPlacementOption(placementMode) || !manualParentAssignment || !shouldShow) {
           hideSpilloverParentSuggestionResults();
           return;
         }
@@ -5367,34 +6352,47 @@
       }
 
       function syncSpilloverPlacementState() {
-        const placementMode = normalizeMemberKey(enrollMemberPlacementInput?.value || 'left');
-        const isSpillover = placementMode === 'spillover';
+        const placementMode = syncEnrollPlacementLegOptions();
+        const isSpillover = isSpilloverPlacementOption(placementMode);
+        const manualParentAssignment = isManualSpilloverParentAssignment();
 
         if (enrollMemberSpilloverSideWrap) {
-          enrollMemberSpilloverSideWrap.classList.toggle('hidden', !isSpillover);
+          enrollMemberSpilloverSideWrap.classList.add('hidden');
         }
         if (enrollMemberSpilloverSideInput) {
           enrollMemberSpilloverSideInput.required = isSpillover;
-          enrollMemberSpilloverSideInput.disabled = !isSpillover;
+          enrollMemberSpilloverSideInput.disabled = true;
+          enrollMemberSpilloverSideInput.value = resolveSpilloverSideFromPlacementOption(placementMode, PLACEMENT_LEG_LEFT);
           if (!isSpillover) {
-            enrollMemberSpilloverSideInput.value = 'left';
+            enrollMemberSpilloverSideInput.value = PLACEMENT_LEG_LEFT;
           }
         }
 
+        if (enrollMemberSpilloverParentModeWrap) {
+          enrollMemberSpilloverParentModeWrap.classList.toggle('hidden', !isSpillover);
+        }
+        if (enrollMemberSpilloverParentModeInput) {
+          enrollMemberSpilloverParentModeInput.disabled = !isSpillover;
+          if (!isSpillover) {
+            enrollMemberSpilloverParentModeInput.value = 'auto';
+          }
+        }
+
+        const shouldRequireManualParent = isSpillover && manualParentAssignment;
         if (enrollMemberSpilloverParentWrap) {
-          enrollMemberSpilloverParentWrap.classList.toggle('hidden', !isSpillover);
+          enrollMemberSpilloverParentWrap.classList.toggle('hidden', !shouldRequireManualParent);
         }
 
         if (enrollMemberSpilloverParentInput) {
-          enrollMemberSpilloverParentInput.required = isSpillover;
-          enrollMemberSpilloverParentInput.disabled = !isSpillover;
-          if (!isSpillover) {
+          enrollMemberSpilloverParentInput.required = shouldRequireManualParent;
+          enrollMemberSpilloverParentInput.disabled = !shouldRequireManualParent;
+          if (!shouldRequireManualParent) {
             enrollMemberSpilloverParentInput.value = '';
             hideSpilloverParentSuggestionResults();
           }
         }
 
-        if (isSpillover) {
+        if (shouldRequireManualParent) {
           refreshSpilloverParentSuggestions();
           renderSpilloverParentSuggestionResults({ show: true });
         }
@@ -7300,16 +8298,21 @@
         enrollMemberEmptyState.classList.add('hidden');
         enrollMemberRecordsFeed.innerHTML = sponsorMembers.slice(0, 8).map((member) => {
           const bonusAmount = parseCurrencyAmount(member?.fastTrackBonusAmount, 0);
+          const isPendingPreferred = isPreferredCustomerPackageKey(member?.enrollmentPackage)
+            || isPreferredCustomerRank(member?.accountRank || member?.rank);
           const memberName = escapeHtml(member?.fullName || member?.memberUsername || member?.email || 'Unnamed member');
           const memberUsername = escapeHtml(member?.memberUsername || '--');
           const packageLabel = escapeHtml(member?.enrollmentPackageLabel || getFastTrackPackageLabel(member?.enrollmentPackage));
           const tierLabel = escapeHtml(member?.fastTrackTierLabel || getFastTrackTierLabel(member?.fastTrackTier));
-          const placementLegValue = normalizeMemberKey(member?.placementLeg || 'left');
-          const spilloverParentReference = escapeHtml(member?.spilloverParentReference || '--');
-          const spilloverSideLabel = escapeHtml(String(member?.spilloverPlacementSide || 'left').toUpperCase());
-          const placementBadge = placementLegValue === 'spillover'
+          const placementLegValue = resolvePlacementOptionFromMember(member);
+          const spilloverParentReference = escapeHtml(member?.spilloverParentReference || 'AUTO');
+          const spilloverSideLabel = escapeHtml(resolveSpilloverSideFromPlacementOption(
+            placementLegValue,
+            normalizeMemberKey(member?.spilloverPlacementSide) === PLACEMENT_LEG_RIGHT ? PLACEMENT_LEG_RIGHT : PLACEMENT_LEG_LEFT,
+          ).toUpperCase());
+          const placementBadge = isSpilloverPlacementOption(placementLegValue)
             ? `Spillover ${spilloverSideLabel} -> ${spilloverParentReference}`
-            : `${escapeHtml(String(placementLegValue || 'left').toUpperCase())} leg`;
+            : `${escapeHtml(resolvePlacementLegLabel(placementLegValue))} leg`;
           const createdLabel = escapeHtml(formatMemberDateTime(member?.createdAt));
 
           return `
@@ -7319,10 +8322,14 @@
                   <p class="text-body-sm font-medium text-text-primary">${memberName}</p>
                   <p class="text-caption text-text-tertiary mt-1">@${memberUsername} - ${packageLabel}</p>
                 </div>
-                <span class="text-body-sm font-semibold text-semantic-success">${formatCurrency(bonusAmount)}</span>
+                <span class="text-body-sm font-semibold ${isPendingPreferred ? 'text-text-secondary' : 'text-semantic-success'}">${formatCurrency(bonusAmount)}</span>
               </div>
               <div class="mt-3 flex flex-wrap items-center gap-2">
                 <span class="text-caption px-2 py-0.5 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">${tierLabel}</span>
+                ${isPendingPreferred
+                  ? '<span class="text-caption px-2 py-0.5 rounded-md bg-semantic-warning-bg border border-semantic-warning/30 text-semantic-warning">Pending Upgrade</span>'
+                  : ''
+                }
                 <span class="text-caption px-2 py-0.5 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">${placementBadge}</span>
                 <span class="text-caption text-text-tertiary">${createdLabel}</span>
               </div>
@@ -7410,6 +8417,564 @@
         enrollMemberSponsorInput.value = currentSponsorUsername || 'unknown-sponsor';
       }
 
+      function isTreeEnrollModalOpen() {
+        return Boolean(binaryTreePanelElement?.classList.contains('tree-enroll-window-open'));
+      }
+
+      function setTreeEnrollModalOpen(isOpen) {
+        if (!binaryTreePanelElement) {
+          return;
+        }
+        const nextOpen = Boolean(isOpen);
+        if (nextOpen) {
+          closeTreeSettings({ restoreFocus: false });
+        }
+        binaryTreePanelElement.classList.toggle('tree-enroll-window-open', nextOpen);
+        if (treeEnrollModalOverlayElement) {
+          treeEnrollModalOverlayElement.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
+        }
+      }
+
+      function sanitizeTreeTrackpadZoomSensitivity(value) {
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue)) {
+          return DEFAULT_TREE_TRACKPAD_ZOOM_SENSITIVITY;
+        }
+        return Math.max(0.05, Math.min(1, numericValue));
+      }
+
+      function formatTreeZoomStrengthLabel(value) {
+        const normalizedValue = sanitizeTreeTrackpadZoomSensitivity(value);
+        return `${Math.round(normalizedValue * 100)}%`;
+      }
+
+      function getTreeInteractionSettingsSnapshot() {
+        const fallback = {
+          reverseTrackpadMovement: false,
+          trackpadZoomSensitivity: DEFAULT_TREE_TRACKPAD_ZOOM_SENSITIVITY,
+        };
+        const controller = window.binaryTreeController;
+        if (!controller || typeof controller.getInteractionSettings !== 'function') {
+          return fallback;
+        }
+        const settings = controller.getInteractionSettings();
+        return {
+          reverseTrackpadMovement: Boolean(settings?.reverseTrackpadMovement),
+          trackpadZoomSensitivity: sanitizeTreeTrackpadZoomSensitivity(settings?.trackpadZoomSensitivity),
+        };
+      }
+
+      function syncTreeSettingsZoomStrengthUi(value) {
+        if (treeSettingsZoomStrengthValueElement) {
+          treeSettingsZoomStrengthValueElement.textContent = formatTreeZoomStrengthLabel(value);
+        }
+      }
+
+      function syncTreeSettingsControlsFromState() {
+        const settings = getTreeInteractionSettingsSnapshot();
+
+        if (treeSettingsReverseTrackpadToggleElement) {
+          treeSettingsReverseTrackpadToggleElement.checked = Boolean(settings.reverseTrackpadMovement);
+        }
+        if (treeSettingsZoomStrengthElement) {
+          treeSettingsZoomStrengthElement.value = sanitizeTreeTrackpadZoomSensitivity(settings.trackpadZoomSensitivity).toFixed(2);
+        }
+        syncTreeSettingsZoomStrengthUi(settings.trackpadZoomSensitivity);
+      }
+
+      function syncTreeSettingsAccountOverview() {
+        const displayName = String(currentSessionUser?.name || currentSessionUser?.fullName || currentSessionUser?.username || 'Admin').trim();
+        const username = String(currentSessionUser?.username || 'admin').trim().replace(/^@+/, '');
+        const rankedLabel = normalizeRankLabel(resolveSessionAccountRank(currentSessionUser))
+          || normalizeRankLabel(currentAccountRank)
+          || 'Legacy';
+
+        if (treeSettingsAccountNameValueElement) {
+          treeSettingsAccountNameValueElement.textContent = displayName || 'Admin';
+        }
+        if (treeSettingsAccountHandleValueElement) {
+          treeSettingsAccountHandleValueElement.textContent = `@${username || 'admin'}`;
+        }
+        if (treeSettingsAccountRankValueElement) {
+          treeSettingsAccountRankValueElement.textContent = rankedLabel;
+        }
+      }
+
+      function isTreeSettingsOpen() {
+        return Boolean(binaryTreePanelElement?.classList.contains('tree-settings-open'));
+      }
+
+      function setTreeSettingsOpen(isOpen) {
+        if (!binaryTreePanelElement) {
+          return;
+        }
+
+        const nextOpen = Boolean(isOpen);
+        if (nextOpen && isTreeEnrollModalOpen()) {
+          closeTreeEnrollModal({ restoreFocus: false });
+        }
+
+        binaryTreePanelElement.classList.toggle('tree-settings-open', nextOpen);
+        if (treeSettingsWindowElement) {
+          treeSettingsWindowElement.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
+        }
+        if (treeSettingsToggleButton) {
+          treeSettingsToggleButton.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+        }
+        if (treeMobileSettingsToggleButton) {
+          treeMobileSettingsToggleButton.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+        }
+
+        if (nextOpen) {
+          syncTreeSettingsAccountOverview();
+          syncTreeSettingsControlsFromState();
+        }
+      }
+
+      function closeTreeSettings(options = {}) {
+        if (!isTreeSettingsOpen()) {
+          return;
+        }
+
+        setTreeSettingsOpen(false);
+        const shouldRestoreFocus = options.restoreFocus !== false;
+        if (shouldRestoreFocus && treeSettingsLastTriggerElement && typeof treeSettingsLastTriggerElement.focus === 'function') {
+          treeSettingsLastTriggerElement.focus({ preventScroll: true });
+        }
+        treeSettingsLastTriggerElement = null;
+      }
+
+      function updateTreeInteractionSettings(settings) {
+        return ensureBinaryTreeReady()
+          .then((controller) => {
+            if (!controller || typeof controller.updateInteractionSettings !== 'function') {
+              return getTreeInteractionSettingsSnapshot();
+            }
+            return controller.updateInteractionSettings(settings || {});
+          })
+          .catch((error) => {
+            console.error('Unable to update tree interaction settings:', error);
+            return getTreeInteractionSettingsSnapshot();
+          });
+      }
+
+      function setTreeEnrollFeedback(message, isSuccess = true) {
+        if (!treeEnrollModalFeedback) {
+          return;
+        }
+
+        treeEnrollModalFeedback.textContent = message;
+        treeEnrollModalFeedback.classList.remove('hidden', 'text-semantic-success', 'text-semantic-danger');
+        treeEnrollModalFeedback.classList.add(isSuccess ? 'text-semantic-success' : 'text-semantic-danger');
+      }
+
+      function clearTreeEnrollFeedback() {
+        if (!treeEnrollModalFeedback) {
+          return;
+        }
+
+        treeEnrollModalFeedback.textContent = '';
+        treeEnrollModalFeedback.classList.add('hidden');
+        treeEnrollModalFeedback.classList.remove('text-semantic-success', 'text-semantic-danger');
+        setTreeEnrollPasswordSetupLink('');
+      }
+
+      function setTreeEnrollPasswordSetupLink(linkHref, linkLabel = 'Open password setup link') {
+        if (!treeEnrollPasswordSetupLinkElement) {
+          return;
+        }
+
+        const normalizedLink = String(linkHref || '').trim();
+        if (!normalizedLink) {
+          treeEnrollPasswordSetupLinkElement.href = '#';
+          treeEnrollPasswordSetupLinkElement.textContent = '';
+          treeEnrollPasswordSetupLinkElement.classList.add('hidden');
+          return;
+        }
+
+        treeEnrollPasswordSetupLinkElement.href = normalizedLink;
+        treeEnrollPasswordSetupLinkElement.textContent = String(linkLabel || 'Open password setup link');
+        treeEnrollPasswordSetupLinkElement.classList.remove('hidden');
+      }
+
+      function syncTreeEnrollPreview() {
+        const packageKey = treeEnrollPackageInput?.value || 'personal-builder-pack';
+        const tierKey = treeEnrollFastTrackTierInput?.value || 'personal-pack';
+        const packagePrice = getFastTrackPackagePrice(packageKey);
+        const packageBv = getFastTrackPackageBv(packageKey);
+        const bonusAmount = IS_ADMIN_ENROLLMENT_MODE ? 0 : getFastTrackBonusAmount(packageKey, tierKey);
+
+        if (treeEnrollPreviewPackagePrice) {
+          treeEnrollPreviewPackagePrice.textContent = formatCurrency(packagePrice);
+        }
+        if (treeEnrollPreviewPackageBv) {
+          treeEnrollPreviewPackageBv.textContent = `${packageBv.toLocaleString()} BV`;
+        }
+        if (treeEnrollPreviewFastTrackBonus) {
+          treeEnrollPreviewFastTrackBonus.textContent = formatCurrency(bonusAmount);
+        }
+        if (treeEnrollPreviewTierLabel) {
+          treeEnrollPreviewTierLabel.textContent = getFastTrackTierLabel(tierKey);
+        }
+      }
+
+      function applyTreeEnrollTierFromRank() {
+        const nextTier = resolveAutoFastTrackTierFromRank(currentAccountRank);
+        if (treeEnrollFastTrackTierInput) {
+          treeEnrollFastTrackTierInput.value = nextTier;
+        }
+        syncTreeEnrollPreview();
+      }
+
+      function closeTreeEnrollModal(options = {}) {
+        if (!isTreeEnrollModalOpen()) {
+          return;
+        }
+
+        setTreeEnrollModalOpen(false);
+        if (options.clearFeedback !== false) {
+          clearTreeEnrollFeedback();
+        }
+        if (options.resetForm === true && treeEnrollModalForm) {
+          treeEnrollModalForm.reset();
+        }
+
+        const shouldRestoreFocus = options.restoreFocus !== false;
+        if (shouldRestoreFocus && treeEnrollLastTriggerElement && typeof treeEnrollLastTriggerElement.focus === 'function') {
+          treeEnrollLastTriggerElement.focus({ preventScroll: true });
+        }
+        treeEnrollLastTriggerElement = null;
+        treeEnrollPlacementLock = null;
+      }
+
+      function openTreeEnrollModal(requestDetail = {}) {
+        if (!binaryTreePanelElement || !treeEnrollModalForm || !treeEnrollPlacementLegInput) {
+          return;
+        }
+        if (!binaryTreePanelElement.classList.contains('tree-fullscreen-mode')) {
+          return;
+        }
+
+        treeEnrollLastTriggerElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        treeEnrollModalForm.reset();
+        clearTreeEnrollFeedback();
+
+        const placementLeg = normalizeMemberKey(requestDetail?.placementLeg) === 'right' ? 'right' : 'left';
+        const parentId = String(requestDetail?.parentId || '').trim();
+        const parentName = String(
+          requestDetail?.parentName
+          || requestDetail?.parentMemberCode
+          || requestDetail?.parentId
+          || 'selected member',
+        ).trim();
+
+        treeEnrollPlacementLock = {
+          placementLeg,
+          parentId,
+          parentName,
+          parentReference: String(requestDetail?.parentMemberCode || requestDetail?.parentId || '').trim(),
+        };
+
+        treeEnrollPlacementLegInput.value = placementLeg;
+        if (treeEnrollPlacementParentIdInput) {
+          treeEnrollPlacementParentIdInput.value = parentId;
+        }
+        if (treeEnrollPlacementSummaryElement) {
+          treeEnrollPlacementSummaryElement.textContent = `Placement locked: ${placementLeg.toUpperCase()} under ${parentName}.`;
+        }
+
+        const preferredPackage = enrollMemberPackageInput?.value || 'personal-builder-pack';
+        if (treeEnrollPackageInput && FAST_TRACK_PACKAGE_META[preferredPackage]) {
+          treeEnrollPackageInput.value = preferredPackage;
+        }
+        if (treeEnrollCountryFlagInput && !treeEnrollCountryFlagInput.value) {
+          treeEnrollCountryFlagInput.value = 'us';
+        }
+
+        applyTreeEnrollTierFromRank();
+        setTreeEnrollModalOpen(true);
+
+        window.requestAnimationFrame(() => {
+          treeEnrollFullNameInput?.focus({ preventScroll: true });
+        });
+      }
+
+      async function handleTreeEnrollModalSubmit(event) {
+        event.preventDefault();
+        clearTreeEnrollFeedback();
+
+        if (!treeEnrollModalForm || !treeEnrollPlacementLock) {
+          setTreeEnrollFeedback('Placement context is missing. Select an anticipation node again.', false);
+          return;
+        }
+
+        const formData = new FormData(treeEnrollModalForm);
+        const fullName = String(formData.get('fullName') || '').trim();
+        const email = String(formData.get('email') || '').trim();
+        const memberUsername = String(formData.get('memberUsername') || '').trim();
+        const phone = String(formData.get('phone') || '').trim();
+        const notes = String(formData.get('notes') || '').trim();
+        const countryFlag = String(formData.get('countryFlag') || '').trim();
+        const packageKey = String(formData.get('enrollmentPackage') || '').trim();
+        const tierKey = String(formData.get('fastTrackTier') || '').trim();
+        const placementLeg = normalizeMemberKey(treeEnrollPlacementLock.placementLeg) === 'right' ? 'right' : 'left';
+        const spilloverParentReference = String(treeEnrollPlacementLock.parentReference || '').trim();
+
+        if (!fullName || !email) {
+          setTreeEnrollFeedback('Full name and email are required.', false);
+          return;
+        }
+
+        if (!countryFlag) {
+          setTreeEnrollFeedback('Country flag is required.', false);
+          return;
+        }
+
+        if (!FAST_TRACK_PACKAGE_META[packageKey] || !FAST_TRACK_TIER_META[tierKey]) {
+          setTreeEnrollFeedback('Select a valid package and Fast Track tier.', false);
+          return;
+        }
+
+        if (!spilloverParentReference) {
+          setTreeEnrollFeedback('Placement target is missing. Select an anticipation slot again.', false);
+          return;
+        }
+
+        const submitLabel = treeEnrollModalSubmitButton?.textContent || 'Register Member';
+        if (treeEnrollModalSubmitButton) {
+          treeEnrollModalSubmitButton.disabled = true;
+          treeEnrollModalSubmitButton.textContent = 'Registering...';
+        }
+
+        try {
+          const response = await fetch(REGISTERED_MEMBERS_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+              fullName,
+              email,
+              memberUsername,
+              phone,
+              notes,
+              countryFlag,
+              placementLeg: PLACEMENT_LEG_SPILLOVER,
+              spilloverPlacementSide: placementLeg,
+              spilloverParentMode: 'manual',
+              spilloverParentReference,
+              enrollmentPackage: packageKey,
+              fastTrackTier: tierKey,
+              sponsorUsername: currentSponsorUsername,
+              sponsorName: currentSessionUser.name || currentSessionUser.username || 'User',
+            }),
+          });
+
+          const payload = await response.json().catch(() => null);
+          if (!response.ok) {
+            const failureMessage = typeof payload?.error === 'string'
+              ? payload.error
+              : 'Registration request failed.';
+            throw new Error(failureMessage);
+          }
+
+          const createdMember = payload?.member;
+          if (!createdMember || typeof createdMember !== 'object') {
+            const responseContentType = String(response.headers.get('content-type') || '').toLowerCase();
+            if (!responseContentType.includes('application/json')) {
+              throw new Error('Enrollment API returned a non-JSON response. Restart your local server and retry.');
+            }
+            throw new Error('Registration completed but response payload is invalid.');
+          }
+
+          registeredMembers = [createdMember, ...registeredMembers];
+          await loadMemberRankLookup().catch((error) => {
+            console.warn('Unable to refresh member rank lookup after enrollment:', error);
+          });
+          recalculateEnrollDerivedMetrics();
+          syncBinaryTreeFromRegisteredMembers({ forceFit: true });
+
+          if (enrollMemberPackageInput && FAST_TRACK_PACKAGE_META[packageKey]) {
+            enrollMemberPackageInput.value = packageKey;
+          }
+          syncAutoFastTrackTierFromRank();
+          syncSpilloverPlacementState();
+          syncEnrollPreview();
+
+          const creditedMember = createdMember.fullName || fullName;
+          const setupEmailQueued = createdMember.passwordSetupEmailQueued ? ' Password setup email is queued.' : '';
+          const assignedRankLabel = normalizeRankLabel(
+            createdMember.accountRank
+            || createdMember.rank
+            || resolveStartingRankFromEnrollmentPackage(packageKey),
+          ) || resolveStartingRankFromEnrollmentPackage(packageKey);
+          const successMessage = `${creditedMember} enrolled under admin placement (Spillover ${placementLeg.toUpperCase()} -> ${spilloverParentReference}). Assigned rank: ${assignedRankLabel}.${setupEmailQueued} No Fast Track credit applied.`;
+          setEnrollMemberFeedback(successMessage);
+          setTreeEnrollFeedback(successMessage, true);
+
+          if (createdMember.passwordSetupLink) {
+            setEnrollMemberPasswordSetupLink(
+              createdMember.passwordSetupLink,
+              `Open mock password setup link for ${creditedMember}`,
+            );
+            setTreeEnrollPasswordSetupLink(
+              createdMember.passwordSetupLink,
+              `Open mock password setup link for ${creditedMember}`,
+            );
+          } else {
+            setTreeEnrollPasswordSetupLink('');
+          }
+
+          treeEnrollModalForm.reset();
+          if (treeEnrollPlacementLegInput) {
+            treeEnrollPlacementLegInput.value = placementLeg;
+          }
+          if (treeEnrollPlacementParentIdInput) {
+            treeEnrollPlacementParentIdInput.value = String(treeEnrollPlacementLock?.parentId || '');
+          }
+          if (treeEnrollCountryFlagInput && !treeEnrollCountryFlagInput.value) {
+            treeEnrollCountryFlagInput.value = 'us';
+          }
+          applyTreeEnrollTierFromRank();
+          window.requestAnimationFrame(() => {
+            treeEnrollFullNameInput?.focus({ preventScroll: true });
+          });
+        } catch (error) {
+          const fallbackMessage = error instanceof Error ? error.message : 'Unable to register member right now.';
+          setTreeEnrollFeedback(fallbackMessage, false);
+        } finally {
+          if (treeEnrollModalSubmitButton) {
+            treeEnrollModalSubmitButton.disabled = false;
+            treeEnrollModalSubmitButton.textContent = submitLabel;
+          }
+        }
+      }
+
+      function initTreeEnrollModal() {
+        applyTreeEnrollTierFromRank();
+        clearTreeEnrollFeedback();
+
+        if (treeEnrollPackageInput) {
+          treeEnrollPackageInput.addEventListener('change', syncTreeEnrollPreview);
+        }
+        if (treeEnrollModalDismissButton) {
+          treeEnrollModalDismissButton.addEventListener('click', () => {
+            closeTreeEnrollModal({ restoreFocus: true });
+          });
+        }
+        if (treeEnrollModalOverlayElement) {
+          treeEnrollModalOverlayElement.addEventListener('pointerdown', (event) => {
+            if (event.target !== treeEnrollModalOverlayElement) {
+              return;
+            }
+            closeTreeEnrollModal({ restoreFocus: true });
+          });
+        }
+        if (treeEnrollModalForm) {
+          treeEnrollModalForm.addEventListener('submit', handleTreeEnrollModalSubmit);
+        }
+
+        window.addEventListener('binary-tree-enroll-member-request', (event) => {
+          openTreeEnrollModal(event.detail || {});
+        });
+        window.addEventListener('binary-tree-enroll-mode-changed', (event) => {
+          const isActive = Boolean(event?.detail?.active);
+          const isFullscreen = Boolean(event?.detail?.fullscreen);
+          if (!isActive || !isFullscreen) {
+            closeTreeEnrollModal({ clearFeedback: true, resetForm: false, restoreFocus: false });
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          if (isTreeEnrollModalOpen()) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            closeTreeEnrollModal({ restoreFocus: true });
+            return;
+          }
+          if (!isTreeSettingsOpen()) {
+            return;
+          }
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          closeTreeSettings({ restoreFocus: true });
+        }, true);
+      }
+
+      function initTreeSettingsPanel() {
+        syncTreeSettingsAccountOverview();
+        syncTreeSettingsControlsFromState();
+
+        const handleToggleSettings = () => {
+          const shouldOpen = !isTreeSettingsOpen();
+          if (!shouldOpen) {
+            closeTreeSettings({ restoreFocus: true });
+            return;
+          }
+
+          treeSettingsLastTriggerElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          setTreeSettingsOpen(true);
+        };
+
+        if (treeSettingsToggleButton) {
+          treeSettingsToggleButton.addEventListener('click', handleToggleSettings);
+        }
+        if (treeMobileSettingsToggleButton) {
+          treeMobileSettingsToggleButton.addEventListener('click', handleToggleSettings);
+        }
+        if (treeSettingsCloseButton) {
+          treeSettingsCloseButton.addEventListener('click', () => {
+            closeTreeSettings({ restoreFocus: true });
+          });
+        }
+        if (treeSettingsWindowElement) {
+          treeSettingsWindowElement.addEventListener('pointerdown', (event) => {
+            if (event.target !== treeSettingsWindowElement) {
+              return;
+            }
+            closeTreeSettings({ restoreFocus: true });
+          });
+        }
+        if (treeSettingsReverseTrackpadToggleElement) {
+          treeSettingsReverseTrackpadToggleElement.addEventListener('change', () => {
+            updateTreeInteractionSettings({
+              reverseTrackpadMovement: Boolean(treeSettingsReverseTrackpadToggleElement.checked),
+            }).then((nextSettings) => {
+              if (treeSettingsReverseTrackpadToggleElement) {
+                treeSettingsReverseTrackpadToggleElement.checked = Boolean(nextSettings?.reverseTrackpadMovement);
+              }
+            });
+          });
+        }
+        if (treeSettingsZoomStrengthElement) {
+          treeSettingsZoomStrengthElement.addEventListener('input', () => {
+            const nextValue = sanitizeTreeTrackpadZoomSensitivity(treeSettingsZoomStrengthElement.value);
+            syncTreeSettingsZoomStrengthUi(nextValue);
+            updateTreeInteractionSettings({
+              trackpadZoomSensitivity: nextValue,
+            }).then((nextSettings) => {
+              const normalizedValue = sanitizeTreeTrackpadZoomSensitivity(nextSettings?.trackpadZoomSensitivity);
+              if (treeSettingsZoomStrengthElement) {
+                treeSettingsZoomStrengthElement.value = normalizedValue.toFixed(2);
+              }
+              syncTreeSettingsZoomStrengthUi(normalizedValue);
+            });
+          });
+        }
+        if (treeSettingsLogoutButton) {
+          treeSettingsLogoutButton.addEventListener('click', () => {
+            closeTreeSettings({ restoreFocus: false });
+            clearUserSession();
+            window.history.replaceState({}, '', ADMIN_PAGE_URL);
+            window.location.reload();
+          });
+        }
+      }
+
       async function loadRegisteredMembers() {
         try {
           const response = await fetch(REGISTERED_MEMBERS_API, {
@@ -7457,13 +9022,24 @@
         const countryFlag = String(formData.get('countryFlag') || '').trim();
         const packageKey = String(formData.get('enrollmentPackage') || '').trim();
         const tierKey = String(formData.get('fastTrackTier') || '').trim();
-        const placementLegRaw = String(formData.get('placementLeg') || 'left').trim().toLowerCase();
-        const placementLeg = placementLegRaw === 'right'
-          ? 'right'
-          : (placementLegRaw === 'spillover' ? 'spillover' : 'left');
-        const spilloverPlacementSideRaw = String(formData.get('spilloverPlacementSide') || 'left').trim().toLowerCase();
-        const spilloverPlacementSide = spilloverPlacementSideRaw === 'right' ? 'right' : 'left';
+        const placementLegRaw = String(formData.get('placementLeg') || PLACEMENT_LEG_LEFT).trim().toLowerCase();
+        const placementControl = normalizePlacementLegValue(placementLegRaw, {
+          allowSpillover: true,
+          fallback: PLACEMENT_LEG_LEFT,
+        });
+        const isSpilloverPlacement = isSpilloverPlacementOption(placementControl);
+        const placementLeg = isSpilloverPlacement ? PLACEMENT_LEG_SPILLOVER : placementControl;
+        const spilloverPlacementSide = isSpilloverPlacement
+          ? resolveSpilloverSideFromPlacementOption(placementControl, PLACEMENT_LEG_LEFT)
+          : PLACEMENT_LEG_LEFT;
+        const spilloverParentModeRaw = String(formData.get('spilloverParentMode') || 'auto').trim().toLowerCase();
+        const spilloverParentMode = spilloverParentModeRaw === 'manual' ? 'manual' : 'auto';
         const spilloverParentReference = String(formData.get('spilloverParentReference') || '').trim();
+        const effectiveSpilloverParentReference = (
+          isSpilloverPlacement && spilloverParentMode === 'manual'
+        )
+          ? spilloverParentReference
+          : '';
 
         if (!fullName || !email) {
           setEnrollMemberFeedback('Full name and email are required.', false);
@@ -7480,15 +9056,30 @@
           return;
         }
 
-        if (placementLeg === 'spillover') {
+        const { leftAvailable, rightAvailable } = resolveCurrentSponsorDirectLegAvailability();
+        if (placementControl === PLACEMENT_LEG_LEFT && !leftAvailable) {
+          setEnrollMemberFeedback('Left direct slot is already filled. Choose Spill Over Left or Spillover Extreme Left.', false);
+          return;
+        }
+        if (placementControl === PLACEMENT_LEG_RIGHT && !rightAvailable) {
+          setEnrollMemberFeedback('Right direct slot is already filled. Choose Spill Over Right or Spillover Extreme Right.', false);
+          return;
+        }
+
+        if (isSpilloverPlacement && spilloverParentMode === 'manual') {
           if (!spilloverParentReference) {
-            setEnrollMemberFeedback('Spillover requires a receiving parent ID or sponsor username.', false);
+            setEnrollMemberFeedback('Assigned parent is required when using manual spillover.', false);
             return;
           }
 
           const normalizedSpilloverReference = normalizeMemberKey(spilloverParentReference);
-          if (!IS_ADMIN_ENROLLMENT_MODE && spilloverParentSuggestionKeys.size > 0 && !spilloverParentSuggestionKeys.has(normalizedSpilloverReference)) {
-            setEnrollMemberFeedback('Spillover target must match one of your existing direct child references.', false);
+          if (spilloverParentSuggestionKeys.size === 0) {
+            setEnrollMemberFeedback('No direct child references found. Use Auto Assign Parent or add direct children first.', false);
+            return;
+          }
+
+          if (!spilloverParentSuggestionKeys.has(normalizedSpilloverReference)) {
+            setEnrollMemberFeedback('Assigned parent must match one of your direct child references.', false);
             return;
           }
         }
@@ -7515,7 +9106,8 @@
               countryFlag,
               placementLeg,
               spilloverPlacementSide,
-              spilloverParentReference,
+              spilloverParentMode,
+              spilloverParentReference: effectiveSpilloverParentReference,
               enrollmentPackage: packageKey,
               fastTrackTier: tierKey,
               sponsorUsername: currentSponsorUsername,
@@ -7557,8 +9149,8 @@
 
           const creditedMember = createdMember.fullName || fullName;
           const setupEmailQueued = createdMember.passwordSetupEmailQueued ? ' Password setup email is queued.' : '';
-          const placementText = placementLeg === 'spillover'
-            ? `Spillover ${spilloverPlacementSide.toUpperCase()} -> ${spilloverParentReference}`
+          const placementText = isSpilloverPlacement
+            ? `Spillover ${spilloverPlacementSide.toUpperCase()} -> ${effectiveSpilloverParentReference || 'AUTO'}`
             : `${placementLeg.toUpperCase()} leg`;
           const assignedRankLabel = normalizeRankLabel(
             createdMember.accountRank
@@ -7592,9 +9184,11 @@
       function initEnrollMemberModule() {
         syncEnrollMemberIdentity();
         syncAutoFastTrackTierFromRank();
+        applyTreeEnrollTierFromRank();
         syncSpilloverPlacementState();
         refreshSpilloverParentSuggestions();
         syncEnrollPreview();
+        syncTreeEnrollPreview();
 
         if (enrollMemberPackageInput) {
           enrollMemberPackageInput.addEventListener('change', syncEnrollPreview);
@@ -7607,6 +9201,12 @@
         }
         if (enrollMemberSpilloverSideInput) {
           enrollMemberSpilloverSideInput.addEventListener('change', clearEnrollMemberFeedback);
+        }
+        if (enrollMemberSpilloverParentModeInput) {
+          enrollMemberSpilloverParentModeInput.addEventListener('change', () => {
+            syncSpilloverPlacementState();
+            clearEnrollMemberFeedback();
+          });
         }
         if (enrollMemberSpilloverParentInput) {
           enrollMemberSpilloverParentInput.addEventListener('input', () => {
@@ -7642,6 +9242,8 @@
         if (enrollMemberForm) {
           enrollMemberForm.addEventListener('submit', handleEnrollMemberSubmit);
         }
+        initTreeEnrollModal();
+        initTreeSettingsPanel();
         if (quickActionEnrollMemberButton) {
           quickActionEnrollMemberButton.addEventListener('click', () => {
             setPage('enroll-member', { routeMode: 'push' });
@@ -7894,6 +9496,12 @@
         if (treeSummaryDirectSponsorsValueElement) {
           treeSummaryDirectSponsorsValueElement.textContent = totalDirectSponsors.toLocaleString();
         }
+        if (treeSummaryTotalDirectSponsorValueElement) {
+          treeSummaryTotalDirectSponsorValueElement.textContent = totalDirectSponsors.toLocaleString();
+        }
+        if (treeFullscreenSummaryTotalDirectSponsorValueElement) {
+          treeFullscreenSummaryTotalDirectSponsorValueElement.textContent = totalDirectSponsors.toLocaleString();
+        }
         if (accountRankValueElement) {
           accountRankValueElement.textContent = accountRank;
         }
@@ -7977,7 +9585,7 @@
             const treeController = initBinaryTree({
               cycleRule: { leftPvThreshold: CYCLE_RULE_LOWER_BV, rightPvThreshold: CYCLE_RULE_HIGHER_BV },
               secondaryMetricMode: 'rank',
-              spilloverHighlightMode: 'none',
+              spilloverHighlightMode: 'received-only',
             });
 
             treeController.setData(binaryTreeMockData);

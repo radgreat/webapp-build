@@ -8452,3 +8452,167 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
   - `/store-dashboard.html`
   - `/store/login`
   - `/store/dashboard`
+
+## Admin Binary Tree Parity Update From User-Side Tree Logic (2026-04-03)
+
+- **What changed:** ported the latest user-side binary-tree placement/scoping behavior into admin so admin tree rendering now matches updated member-tree rules.
+- **Files affected:**
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+### Admin tree logic updates (`admin.html`)
+
+- Added placement normalization constants + helpers used by user-side tree builder:
+  - supports legacy + newer placement values:
+    - `left`, `right`, `spillover`
+    - `spillover-left`, `spillover-right`
+    - `extreme-left`, `extreme-right`
+- Added member eligibility gate used by user-side tree rendering:
+  - excludes free/preferred-customer members from binary-tree node construction.
+- Updated member cutoff baseline handling:
+  - if a member was created after the stored cutoff baseline timestamp, baseline volume is treated as `0` for that member (prevents incorrect negative/zero carryover on new post-cutoff enrollments).
+- Updated `createBinaryTreeDataFromRegisteredMembers()` to match user-side behavior:
+  - filters tree nodes to eligible binary-tree members.
+  - supports spillover + extreme placement resolution.
+  - stores normalized `enrollmentPackage` on node payload.
+  - scopes rendered subtree from current viewer node (not only global root traversal).
+  - preserves spillover identity and anonymizes outside-org spillover sponsor branches consistently with user-side behavior.
+  - applies root-node status from current session state.
+
+### Design decisions
+
+- Kept admin fallback root identity label as `company-root` (admin-specific convention) while applying user-side tree traversal/placement behavior.
+- Limited this update to binary-tree parity logic; no additional admin enrollment form UX expansion was introduced in this pass.
+
+### Known limitations
+
+- Admin enrollment form still exposes legacy placement UI options (`left`/`right`/`spillover`) rather than the full newer placement option set shown on user-side flows.
+- Despite that UI limitation, admin tree rendering now correctly interprets newer placement values when they already exist in member records.
+
+### Validation performed
+
+- Inline script parse check passed for `admin.html` via `new Function(...)` extraction test (`2` inline script blocks parsed).
+
+### Follow-up parity pass (same day)
+
+- **What changed (follow-up):** completed the remaining user-side parity items that were still missing after the first pass.
+- Added admin enroll UI parity for placement controls:
+  - replaced legacy single `spillover` option with:
+    - `spillover-left`
+    - `spillover-right`
+    - `extreme-left`
+    - `extreme-right`
+  - added spillover parent assignment mode selector (`auto` vs `manual`).
+- Added missing placement helper parity in admin script:
+  - `resolveSpilloverSideFromPlacementOption(...)`
+  - `resolvePlacementLegLabel(...)`
+  - `isManualSpilloverParentAssignment(...)`
+  - `resolveCurrentSponsorDirectLegAvailability(...)`
+  - `syncEnrollPlacementLegOptions(...)`
+- Updated spillover parent suggestion behavior to match user-side:
+  - suggestion list only shown for spillover + manual parent assignment.
+  - hint/empty-state copy aligned with user-side behavior.
+- Updated admin enrollment submit flow to user-side placement logic:
+  - normalized placement control parsing for direct/spillover/extreme.
+  - direct leg availability guard (`left`/`right` filled checks).
+  - manual spillover parent validation against direct-child suggestions.
+  - payload now includes normalized spillover parent mode + effective parent reference.
+  - success placement summary now reflects `AUTO` parent when auto-assignment is used.
+- Updated binary-tree renderer init options to match user-side spillover visibility behavior:
+  - `spilloverHighlightMode: 'received-only'` (previously `none` on admin).
+- Updated enrolled-member placement badges to user-side formatting:
+  - uses normalized placement label resolution and spillover side resolution instead of legacy raw-string checks.
+
+- **Validation (follow-up):**
+  - re-ran inline script parse check for `admin.html` successfully.
+
+## Admin Binary Tree UI Controls + Pan Cursor Parity (2026-04-03)
+
+- Completed a full user-side binary-tree UI control parity pass on admin tree UI.
+- Objective addressed:
+  - make admin binary-tree controls and behavior match user-side tree behavior 1:1 (including cursor/pan interaction states and tree enroll/settings UX).
+
+### Files affected
+
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Admin binary-tree parity updates applied
+
+- CSS parity added for user-side tree interaction classes:
+  - `tree-pan-mode-active` cursor state (`grab`)
+  - `tree-pan-mode-dragging` cursor state (`grabbing`)
+  - focus suppression while pan-mode is active (matches user-side behavior).
+- Added missing tree overlay/modal CSS and fullscreen states:
+  - `#tree-settings-window` / `#tree-settings-panel`
+  - `#tree-enroll-modal-overlay` / `#tree-enroll-modal`
+  - fullscreen hide/show transitions for tools/search when settings/enroll overlays are open.
+- Added missing mobile action control CSS parity:
+  - `#tree-mobile-right-actions`
+  - `#tree-mobile-enroll-toggle`
+  - `#tree-mobile-direct-toggle`
+  - `#tree-mobile-settings-toggle`
+  - parity for small-screen and medium-screen fullscreen breakpoints.
+
+### Markup parity applied
+
+- Binary tree section now matches user-side structure for controls/modals:
+  - added desktop settings button in tools bar (`tree-settings-toggle`)
+  - added direct-sponsor search toggle (`tree-search-direct-toggle`)
+  - added mobile right-actions cluster (`tree-mobile-right-actions`) with enroll/direct/minimap/root/settings buttons
+  - added tree settings modal markup (`tree-settings-window`, account/accessibility/theme/logout controls)
+  - added tree enroll modal markup (`tree-enroll-modal-overlay`, form fields, placement lock summary, preview, feedback, password setup link)
+- Added user-side summary parity cards/metrics IDs:
+  - `tree-summary-total-direct-sponsor`
+  - `tree-fullscreen-summary-total-direct-sponsor`
+- Binary-tree section diff check against user-side (`index.html`) now returns no section-level differences.
+
+### Script parity applied
+
+- Added missing admin bindings/state for new tree UI controls/modals.
+- Added tree interaction settings support functions (matching user-side behavior):
+  - `sanitizeTreeTrackpadZoomSensitivity`
+  - `getTreeInteractionSettingsSnapshot`
+  - `updateTreeInteractionSettings`
+  - settings panel open/close/sync handlers.
+- Added tree settings panel lifecycle handlers:
+  - open/close state + aria sync
+  - reverse trackpad toggle wiring
+  - zoom-strength range wiring
+  - overlay click + Escape close behavior
+  - logout action wired to admin session clear + reload flow.
+- Added tree enroll modal lifecycle handlers:
+  - listens to `binary-tree-enroll-member-request`
+  - listens to `binary-tree-enroll-mode-changed`
+  - placement lock capture from tree anticipation-slot request
+  - modal submit flow posts to admin member registration API (`REGISTERED_MEMBERS_API`), then refreshes tree data + feedback links.
+- Updated admin enroll module init path to initialize both:
+  - `initTreeEnrollModal()`
+  - `initTreeSettingsPanel()`
+- Updated summary sync to populate newly added total-direct-sponsor metric targets.
+
+### Admin-specific decisions retained
+
+- Enrollment request target remains admin path via existing `REGISTERED_MEMBERS_API` wiring.
+- Admin enrollment success copy still reflects admin placement mode (no Fast Track payout credit), preserving admin-side business logic.
+
+### Validation
+
+- `node --check` passed on extracted inline admin script (`/tmp/admin-inline.js`).
+- Binary-tree section structure diff (`index.html` vs `admin.html`) reported no differences for the section slice (`page-binary-tree` through `page-my-store`).
+
+## Admin Binary Tree Icon Rendering Fix (2026-04-03)
+
+- Fixed missing icon glyph rendering on newly ported admin tree controls (`face` / `settings`).
+- Root cause:
+  - `admin.html` did not include the Material Symbols font import used on user-side.
+  - base `.material-symbols-outlined` class definition was also missing in admin CSS.
+- Changes made:
+  - added Google Fonts Material Symbols stylesheet link with required icon names.
+  - added `.material-symbols-outlined` base style block (font family + variation settings) to admin stylesheet.
+- Affected file:
+  - `admin.html`
+- Validation:
+  - inline script syntax check still passes for `admin.html`.
