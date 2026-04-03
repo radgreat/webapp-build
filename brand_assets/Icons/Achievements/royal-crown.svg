@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="royal-crown-bg" x1="10" y1="8" x2="118" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#281D3F"/>
+      <stop offset="1" stop-color="#0E0A1B"/>
+    </linearGradient>
+    <linearGradient id="royal-crown-main" x1="22" y1="32" x2="106" y2="104" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE9B3"/>
+      <stop offset="0.52" stop-color="#FFC94B"/>
+      <stop offset="1" stop-color="#C98809"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#royal-crown-bg)" stroke="#69439D" stroke-opacity="0.6" stroke-width="2"/>
+  <circle cx="64" cy="66" r="40" fill="#B57AFF" fill-opacity="0.09"/>
+
+  <path d="M24 90L30 56L44 74L56 50L64 34L72 50L84 74L98 56L104 90H24Z" fill="url(#royal-crown-main)" stroke="#FFECC0" stroke-opacity="0.84" stroke-width="2"/>
+  <rect x="27" y="88" width="74" height="13" rx="4" fill="#F2BB45" stroke="#FFE3A8" stroke-opacity="0.78"/>
+
+  <path d="M64 20L67 27H74L68.5 31.5L70.5 38.5L64 34L57.5 38.5L59.5 31.5L54 27H61L64 20Z" fill="#FFF2CC"/>
+  <circle cx="64" cy="60" r="6" fill="#A86BFF"/>
+  <circle cx="44" cy="69" r="4.3" fill="#6BE7D4"/>
+  <circle cx="84" cy="69" r="4.3" fill="#6BE7D4"/>
+  <circle cx="30" cy="56" r="3.6" fill="#FFF1CB"/>
+  <circle cx="98" cy="56" r="3.6" fill="#FFF1CB"/>
+
+  <path d="M14 39L16.2 43.4L20.8 45.4L16.2 47.4L14 51.8L11.8 47.4L7.2 45.4L11.8 43.4L14 39Z" fill="#C5A5FF" fill-opacity="0.78"/>
+  <path d="M114 34L116 38L120 40L116 42L114 46L112 42L108 40L112 38L114 34Z" fill="#C5A5FF" fill-opacity="0.7"/>
+</svg>

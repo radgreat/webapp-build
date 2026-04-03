@@ -16,6 +16,7 @@ import emailRoutes from './routes/email.routes.js';
 import commissionContainerRoutes from './routes/commission-container.routes.js';
 import storeProductRoutes from './routes/store-product.routes.js';
 import storeCheckoutRoutes from './routes/store-checkout.routes.js';
+import memberAchievementRoutes from './routes/member-achievement.routes.js';
 
 const app = express();
 const PORT = Number.parseInt(process.env.PORT || '3000', 10);
@@ -29,6 +30,7 @@ app.use(express.json({ limit: '12mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/member-auth', authRoutes);
+app.use('/api/member-auth', memberAchievementRoutes);
 app.use('/api/admin-auth', adminAuthRoutes);
 app.use('/api', memberRoutes);
 app.use('/api', metricsRoutes);

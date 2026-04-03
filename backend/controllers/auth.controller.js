@@ -3,6 +3,7 @@ import {
   validatePasswordSetupToken,
   updatePasswordFromSetupToken,
 } from '../services/auth.service.js';
+import { issueMemberAuthSessionForUser } from '../services/member-auth-session.service.js';
 
 export async function loginMember(req, res) {
   try {
@@ -28,7 +29,20 @@ export async function loginMember(req, res) {
       });
     }
 
-    return res.status(200).json({ user: result.user });
+    const sessionResult = await issueMemberAuthSessionForUser(result.user);
+    if (!sessionResult.success) {
+      return res.status(sessionResult.status).json({
+        error: sessionResult.error || 'Unable to establish member auth session.',
+      });
+    }
+
+    return res.status(200).json({
+      user: {
+        ...result.user,
+        authToken: sessionResult.authToken,
+        authTokenExpiresAt: sessionResult.authTokenExpiresAt,
+      },
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({

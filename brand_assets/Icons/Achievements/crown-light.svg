@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="crown-light-bg" x1="10" y1="8" x2="118" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF8E8"/>
+      <stop offset="1" stop-color="#F8EDD0"/>
+    </linearGradient>
+    <linearGradient id="crown-light-main" x1="26" y1="42" x2="102" y2="98" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE9A8"/>
+      <stop offset="0.52" stop-color="#F2BE46"/>
+      <stop offset="1" stop-color="#BB7C09"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#crown-light-bg)" stroke="#C7A45F" stroke-opacity="0.9" stroke-width="2"/>
+  <circle cx="64" cy="66" r="38" fill="#F0BC43" fill-opacity="0.13"/>
+
+  <path d="M28 86L34 52L50 68L64 42L78 68L94 52L100 86H28Z" fill="url(#crown-light-main)" stroke="#FFF0CA" stroke-opacity="0.9" stroke-width="2"/>
+  <rect x="30" y="84" width="68" height="13" rx="4" fill="#E6B03F" stroke="#FFE5AF" stroke-opacity="0.84"/>
+  <circle cx="64" cy="56" r="5" fill="#36CDB1"/>
+  <circle cx="44" cy="64" r="4" fill="#84ECDD"/>
+  <circle cx="84" cy="64" r="4" fill="#84ECDD"/>
+  <circle cx="34" cy="52" r="3.5" fill="#FFF4D7"/>
+  <circle cx="64" cy="42" r="3.5" fill="#FFF4D7"/>
+  <circle cx="94" cy="52" r="3.5" fill="#FFF4D7"/>
+</svg>

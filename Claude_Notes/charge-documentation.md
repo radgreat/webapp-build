@@ -15,6 +15,174 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+## Update (2026-04-03) - Achievement Icon Drafts (SVG Pack)
+
+### What Was Changed
+
+- Generated a draft icon pack for profile achievement list left-side visuals.
+- Icons created for current Good Life context:
+  - Diamond
+  - Blue Diamond
+  - Black Diamond
+  - Crown
+  - Double Crown
+  - Royal Crown
+- Saved as standalone SVG assets for easy frontend integration.
+
+### Files Affected
+
+- `brand_assets/Icons/Achievements/diamond.svg`
+- `brand_assets/Icons/Achievements/blue-diamond.svg`
+- `brand_assets/Icons/Achievements/black-diamond.svg`
+- `brand_assets/Icons/Achievements/crown.svg`
+- `brand_assets/Icons/Achievements/double-crown.svg`
+- `brand_assets/Icons/Achievements/royal-crown.svg`
+- `brand_assets/Icons/Achievements/README.md`
+
+### Design Decisions
+
+- Used SVG format (not bitmap) to keep icons crisp at multiple sizes in list rows.
+- Matched existing app tone with dark-surface backgrounds and brand-adjacent teal/gold accents.
+- Kept each icon self-contained so they can be dropped directly into the profile component.
+
+### Known Limitations
+
+- These are draft visual assets only; list-row integration/mapping in `index.html` is not yet wired in this step.
+
+---
+
+## Update (2026-04-03) - Profile Achievement System (Server-Side Auth + DB Claims)
+
+### What Was Changed
+
+- Added a new achievement panel to member profile page (`index.html`) with:
+  - top-right tabs: `Premiere Life`, `Rank`
+  - left category sidebar
+  - right achievement cards with claim state buttons
+  - claim-date rendering when an achievement is claimed
+- Added `Premiere Life -> Good Life` achievement track with rewards aligned to `brand_assets/MLM Business Logic.md`:
+  - Diamond Rank -> `$500`
+  - Blue Diamond Rank -> `$1,000`
+  - Black Diamond Rank -> `$2,000`
+  - Crown Rank -> `$4,000`
+  - Double Crown Rank -> `$8,000`
+  - Royal Crown Rank -> `$12,500`
+- Replaced client-only claim persistence with authenticated server APIs:
+  - `GET /api/member-auth/achievements`
+  - `POST /api/member-auth/achievements/:achievementId/claim`
+- Added member auth-session issuance during login:
+  - `/api/member-auth/login` now returns `authToken` and `authTokenExpiresAt` inside the `user` payload.
+- Added member bearer-auth middleware for protected achievement endpoints.
+- Added DB-backed stores/services for:
+  - member auth sessions
+  - member achievement claim records
+- Added DB schema installers with fallback strategy:
+  - first attempt via admin DB connection
+  - fallback attempt via service-role DB connection if admin credentials are unavailable.
+
+### Files Affected
+
+- Frontend:
+  - `index.html`
+  - `login.html`
+  - `store-login.html`
+- Backend:
+  - `backend/app.js`
+  - `backend/controllers/auth.controller.js`
+  - `backend/controllers/member-achievement.controller.js`
+  - `backend/routes/member-achievement.routes.js`
+  - `backend/middleware/member-auth.middleware.js`
+  - `backend/services/member-auth-session.service.js`
+  - `backend/services/member-achievement.service.js`
+  - `backend/stores/member-auth-session.store.js`
+  - `backend/stores/member-achievement.store.js`
+  - `backend/db/admin-db.js`
+
+### Design Decisions
+
+- Achievement eligibility is validated server-side from authenticated member rank, not trusted from client state.
+- Claim records are authoritative in PostgreSQL (`charge.member_achievement_claims`) with unique `(user_id, achievement_id)` guard to prevent duplicate claims.
+- Session auth uses server-issued bearer tokens persisted in DB (`charge.member_auth_sessions`) and required by achievements API middleware.
+- Profile UI fetches and renders tabs/categories/achievement states from server payload to keep claims authoritative and auditable.
+
+### Validation
+
+- `node --check` passed for all new/updated backend JS modules.
+- Inline script parse checks passed for:
+  - `index.html`
+  - `login.html`
+  - `store-login.html`
+- Runtime smoke checks on `http://localhost:5500`:
+  - unauthenticated achievements request returns `401`.
+  - login returns auth token.
+  - authenticated achievements list returns server payload.
+  - claim endpoint enforces rank eligibility server-side.
+- Screenshot rounds completed:
+  - `temporary screenshots/screenshot-3-round1c.png`
+  - `temporary screenshots/screenshot-4-round2.png`
+
+### Known Limitations
+
+- Existing sessions created before this change do not include auth tokens; users on old sessions must sign in again for achievements API access.
+- Current `Rank` tab is scaffolded for expansion but intentionally minimal in this pass.
+- Good Life eligibility is rank-order based; if business policy changes rank hierarchy, rank map must be updated in backend service.
+
+---
+
+## Update (2026-04-03) - Achievement Category Caption Removed
+
+### What Was Changed
+
+- Simplified the profile achievement category rail item so it shows label-only text.
+- Removed the category subtitle/caption under `Good Life`.
+
+### Files Affected
+
+- `index.html`
+
+### Design Decision
+
+- Kept the category panel visually cleaner and aligned with requested copy density by removing descriptive subtext from category items.
+
+---
+
+## Update (2026-04-03) - Good Life List Row Template Update
+
+### What Was Changed
+
+- Updated Good Life list rows to match requested template style:
+  - title-only rank label (example: `Diamond`)
+  - description line (`Reach Diamond Rank`)
+  - right-side reward format (`= $500`) and claim/locked button
+- Aligned backend achievement titles to label-only values:
+  - `Diamond`, `Blue Diamond`, `Black Diamond`, `Crown`, `Double Crown`, `Royal Crown`
+- Added frontend fallback Good Life list entries so category list remains visible while waiting for authenticated server response.
+
+### Files Affected
+
+- `index.html`
+- `backend/services/member-achievement.service.js`
+
+### Known Limitation
+
+- Claim status remains server-authoritative; fallback entries are for UI continuity only until API payload loads.
+
+---
+
+## Update (2026-04-03) - Good Life Row Subtext/Reward Format Cleanup
+
+### What Was Changed
+
+- Removed redundant locked-state row subtext in Good Life cards (the `Reach ... to claim this reward` line).
+- Preserved claimed-date messaging only when an achievement is already claimed.
+- Removed the leading `=` marker from reward amounts in row action area.
+
+### Files Affected
+
+- `index.html`
+
+---
+
 ## Update (2026-03-27) - Legal Editor Headings + Link Theme Refinement
 
 - Added legal editor heading scale controls in toolbar:
@@ -8616,3 +8784,185 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
   - `admin.html`
 - Validation:
   - inline script syntax check still passes for `admin.html`.
+
+## Achievement Icon Draft Set (2026-04-03)
+
+### What changed
+
+- Created a dedicated achievement icon asset folder for profile achievement rows:
+  - `brand_assets/Icons/Achievements/`
+- Added six SVG draft icons for context-based rank visuals:
+  - `diamond.svg`
+  - `blue-diamond.svg`
+  - `black-diamond.svg`
+  - `crown.svg`
+  - `double-crown.svg`
+  - `royal-crown.svg`
+- Added icon set notes file:
+  - `brand_assets/Icons/Achievements/README.md`
+
+### Design decisions
+
+- Kept a consistent 128x128 badge format across all icons for predictable sizing in left-side achievement list slots.
+- Used dark-background framed badges with high-contrast center glyphs (diamond/crown motifs) so icons remain readable on current dark profile UI surfaces.
+- Split icon motif by context:
+  - diamond variants for diamond-family ranks
+  - crown variants for crown-family ranks.
+
+### Known limitations
+
+- This pass started as asset generation only; icon wiring was completed later the same day (see `Profile Achievement Icon Wiring (2026-04-03)` below).
+- No PNG exports included yet (SVG-only draft pack for immediate UI integration).
+
+### Files affected
+
+- `brand_assets/Icons/Achievements/README.md`
+- `brand_assets/Icons/Achievements/diamond.svg`
+- `brand_assets/Icons/Achievements/blue-diamond.svg`
+- `brand_assets/Icons/Achievements/black-diamond.svg`
+- `brand_assets/Icons/Achievements/crown.svg`
+- `brand_assets/Icons/Achievements/double-crown.svg`
+- `brand_assets/Icons/Achievements/royal-crown.svg`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Profile Achievement Icon Wiring (2026-04-03)
+
+### What changed
+
+- Wired achievement row icons into the profile achievement list UI (left side of title/description block).
+- Updated server-side achievement catalog definitions to include icon metadata per achievement.
+- Exposed icon path in the authenticated achievement payload so icon selection is server-authoritative.
+
+### Server-side updates
+
+- File: `backend/services/member-achievement.service.js`
+- Added `iconPath` to each Good Life achievement definition:
+  - Diamond → `/brand_assets/Icons/Achievements/diamond.svg`
+  - Blue Diamond → `/brand_assets/Icons/Achievements/blue-diamond.svg`
+  - Black Diamond → `/brand_assets/Icons/Achievements/black-diamond.svg`
+  - Crown → `/brand_assets/Icons/Achievements/crown.svg`
+  - Double Crown → `/brand_assets/Icons/Achievements/double-crown.svg`
+  - Royal Crown → `/brand_assets/Icons/Achievements/royal-crown.svg`
+- Included `iconPath` in `buildAchievementCatalogForMember()` return objects.
+
+### Frontend updates
+
+- File: `index.html`
+- Added `PROFILE_ACHIEVEMENT_ICON_PATH_BY_ID` fallback map for local fallback snapshot consistency.
+- Added `iconPath` to the achievement fallback snapshot entries.
+- Added `resolveProfileAchievementIconPath()` with strict path validation (`/brand_assets/Icons/Achievements/*.svg`) to avoid unsafe image source values.
+- Updated achievement list row markup to render a leading icon container with image, then title/description/status text.
+
+### Design/implementation decisions
+
+- Kept icon source primarily server-driven (`iconPath` from API), with client fallback mapping only as a resilience layer.
+- Restricted rendered icon URLs to achievement asset path pattern to avoid arbitrary client-side `img src` injection.
+- Preserved existing claim/locked/claimed state behavior and reward + button layout.
+
+### Validation
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse check for `index.html` passed (`Parsed 4 inline script block(s) successfully.`).
+
+### Files affected
+
+- `backend/services/member-achievement.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Achievement Light Icon Set + Theme Swap (2026-04-03)
+
+### What changed
+
+- Created a full light-theme icon variant set for profile achievements.
+- Added server-side light icon metadata (`iconLightPath`) for each Good Life achievement.
+- Updated profile achievement icon resolver to pick light icons automatically when `appTheme` is `light`.
+- Ensured icon swap happens immediately when theme is changed by re-rendering the achievement list in `applyAppTheme()`.
+
+### Asset updates
+
+Added files in `brand_assets/Icons/Achievements/`:
+- `diamond-light.svg`
+- `blue-diamond-light.svg`
+- `black-diamond-light.svg`
+- `crown-light.svg`
+- `double-crown-light.svg`
+- `royal-crown-light.svg`
+
+Updated:
+- `brand_assets/Icons/Achievements/README.md` with dark/light usage notes.
+
+### Server-side updates
+
+File: `backend/services/member-achievement.service.js`
+- Added `iconLightPath` in each Good Life achievement definition.
+- Included `iconLightPath` in achievement objects returned by `buildAchievementCatalogForMember()`.
+
+### Frontend updates
+
+File: `index.html`
+- Replaced single-path fallback map with themed icon map (`dark`/`light` per achievement id).
+- Added `iconLightPath` values in fallback achievement snapshot entries.
+- Updated `resolveProfileAchievementIconPath()` to:
+  - detect current app theme (`appTheme`),
+  - prefer `iconLightPath` in light theme,
+  - fallback safely through mapped/default asset paths,
+  - keep strict achievement-asset path validation.
+- Updated `applyAppTheme()` to call `renderProfileAchievementList()` so icons swap as soon as theme changes.
+
+### Validation
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse check for `index.html` passed (`Parsed 4 inline script block(s) successfully.`).
+
+### Files affected
+
+- `brand_assets/Icons/Achievements/diamond-light.svg`
+- `brand_assets/Icons/Achievements/blue-diamond-light.svg`
+- `brand_assets/Icons/Achievements/black-diamond-light.svg`
+- `brand_assets/Icons/Achievements/crown-light.svg`
+- `brand_assets/Icons/Achievements/double-crown-light.svg`
+- `brand_assets/Icons/Achievements/royal-crown-light.svg`
+- `brand_assets/Icons/Achievements/README.md`
+- `backend/services/member-achievement.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Update (2026-04-03) - User Sidebar Settings Routed to Dedicated Settings Page
+
+### What changed
+
+- Fixed user-side sidebar `Settings` behavior so it no longer forces navigation to `Binary Tree`.
+- Converted bottom sidebar `Settings` link into a routed app nav item:
+  - `href="/Settings"`
+  - `data-nav-link`
+  - `data-page="settings"`
+- Added a dedicated user settings page view in `index.html`:
+  - `#page-settings` with account summary, theme selector, profile shortcut, and logout action.
+- Added routing metadata for the new page:
+  - `pageMeta.settings`
+  - `pagePathByPage.settings = '/Settings'`
+- Added `syncSettingsPageAccountOverview()` to populate settings page account values from the current session.
+- Updated theme synchronization so both selectors stay aligned:
+  - tree settings theme selector (`#theme-switcher`)
+  - settings page theme selector (`#settings-theme-switcher`)
+- Removed the old special sidebar settings click handler that opened Binary Tree settings modal directly.
+
+### Design decisions
+
+- Kept Binary Tree’s internal settings modal intact for tree interaction controls (reverse trackpad, zoom strength).
+- Routed sidebar Settings to a separate page to match expected IA while preserving existing Binary Tree control surface.
+- Reused existing `applyAppTheme()` flow so theme persistence behavior remains unchanged.
+
+### Validation
+
+- Inline script parse check for `index.html` passed (`Parsed 2 inline script block(s) successfully.`).
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`

@@ -198,6 +198,8 @@
         activityActiveUntilAt: typeof user?.activityActiveUntilAt === 'string' ? user.activityActiveUntilAt : '',
         lastProductPurchaseAt: typeof user?.lastProductPurchaseAt === 'string' ? user.lastProductPurchaseAt : '',
         lastPurchaseAt: typeof user?.lastPurchaseAt === 'string' ? user.lastPurchaseAt : '',
+        authToken: typeof user?.authToken === 'string' ? user.authToken : '',
+        authTokenExpiresAt: typeof user?.authTokenExpiresAt === 'string' ? user.authTokenExpiresAt : '',
       };
 
       const serializedSession = JSON.stringify(sessionUser);

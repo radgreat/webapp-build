@@ -2146,7 +2146,7 @@
 
       <!-- Bottom: Settings -->
       <div class="p-4 border-t border-surface-border">
-        <a id="sidebar-settings-link" href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-tertiary transition-transform duration-150 ease-spring hover:text-text-secondary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+        <a id="sidebar-settings-link" href="/Settings" data-nav-link data-page="settings" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           Settings
         </a>
@@ -2633,6 +2633,48 @@
         </div>
 
         </section>
+        <section id="page-settings" data-page-view="settings" class="hidden space-y-6">
+          <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
+            <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Workspace Preferences</p>
+            <h3 class="mt-1 font-body font-medium text-display-sm text-text-primary">Settings</h3>
+            <p class="mt-2 text-body-sm text-text-secondary">Manage your account details, app appearance, and session controls from one page.</p>
+          </div>
+
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <article class="bg-surface-raised border border-surface-border rounded-xl p-5 shadow-depth-1 space-y-4">
+              <div>
+                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Account</p>
+                <h4 class="mt-1 font-body font-medium text-body text-text-primary">Profile Summary</h4>
+              </div>
+              <div class="rounded-xl border border-surface-border bg-surface-base/50 p-4 space-y-2">
+                <p class="text-body-sm text-text-primary">Name: <span id="settings-account-name">-</span></p>
+                <p class="text-body-sm text-text-primary">Username: <span id="settings-account-handle">-</span></p>
+                <p class="text-body-sm text-text-primary">Rank: <span id="settings-account-rank">-</span></p>
+              </div>
+              <button id="settings-open-profile-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-light bg-surface-elevated px-4 py-2.5 text-body-sm font-medium text-text-primary hover:bg-surface-floating hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                Open Profile
+              </button>
+            </article>
+
+            <article class="bg-surface-raised border border-surface-border rounded-xl p-5 shadow-depth-1 space-y-4">
+              <div>
+                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Appearance</p>
+                <h4 class="mt-1 font-body font-medium text-body text-text-primary">Theme</h4>
+              </div>
+              <label for="settings-theme-switcher" class="block">
+                <span class="text-body-sm text-text-primary">Active Theme</span>
+                <select id="settings-theme-switcher" class="mt-2 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                </select>
+              </label>
+              <p class="text-caption text-text-tertiary">Theme changes apply instantly and remain saved after reload.</p>
+              <button id="settings-logout-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-semantic-danger/45 bg-semantic-danger-bg px-4 py-2.5 text-body-sm font-medium text-semantic-danger hover:bg-semantic-danger/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semantic-danger/60 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                Logout
+              </button>
+            </article>
+          </div>
+        </section>
         <section id="page-e-wallet" data-page-view="e-wallet" class="hidden space-y-7">
           <article class="relative overflow-hidden rounded-[1.75rem] border border-surface-border bg-surface-raised shadow-depth-1">
             <div class="pointer-events-none absolute -top-24 right-6 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl"></div>
@@ -2899,6 +2941,52 @@
               <p class="mt-2 text-caption text-text-tertiary">All-time volume from your personally sponsored organization.</p>
             </article>
           </div>
+
+          <section id="profile-achievement-panel" class="bg-surface-raised border border-surface-border rounded-2xl p-4 sm:p-5 lg:p-6 shadow-depth-1">
+            <div class="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Achievement Center</p>
+                <h3 class="mt-1 font-body font-medium text-display-sm text-text-primary">Profile Achievements</h3>
+                <p class="mt-2 text-body-sm text-text-secondary">Claim your milestone rewards after reaching the required rank.</p>
+              </div>
+              <div id="profile-achievement-tabs" role="tablist" aria-label="Achievement tracks" class="inline-flex w-full sm:w-auto items-center rounded-full border border-surface-border bg-surface-base/70 p-1 gap-1">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                  data-profile-achievement-tab="premiere-life"
+                  class="inline-flex items-center justify-center rounded-full px-4 py-2 text-body-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring"
+                >
+                  Premiere Life
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  data-profile-achievement-tab="rank"
+                  class="inline-flex items-center justify-center rounded-full px-4 py-2 text-body-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring"
+                >
+                  Rank
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-1 lg:grid-cols-[15rem,minmax(0,1fr)] gap-4">
+              <aside class="rounded-xl border border-surface-border bg-surface-base/45 p-3 sm:p-4">
+                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Category</p>
+                <div id="profile-achievement-category-list" class="mt-3 space-y-2"></div>
+              </aside>
+
+              <div class="rounded-xl border border-surface-border bg-surface-base/35 p-3 sm:p-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <p id="profile-achievement-active-category-label" class="font-body font-medium text-body text-text-primary">Good Life</p>
+                  <p id="profile-achievement-rank-status" class="text-caption text-text-tertiary">Current rank: --</p>
+                </div>
+                <div id="profile-achievement-list" class="mt-3 space-y-3"></div>
+                <p id="profile-achievement-feedback" class="mt-3 hidden text-caption"></p>
+              </div>
+            </div>
+          </section>
 
           <div id="profile-edit-modal-overlay" class="fixed inset-0 z-50 hidden bg-surface-base/70 backdrop-blur-sm px-4 py-5 sm:px-6 sm:py-8" aria-hidden="true">
             <section id="profile-edit-modal" role="dialog" aria-modal="true" aria-labelledby="profile-edit-modal-title" class="mx-auto flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-surface-border bg-surface-raised shadow-depth-3">
@@ -4418,6 +4506,12 @@
       const logoutButton = document.getElementById('logout-button');
       const sidebarSettingsLink = document.getElementById('sidebar-settings-link');
       const themeSwitcher = document.getElementById('theme-switcher');
+      const settingsThemeSwitcher = document.getElementById('settings-theme-switcher');
+      const settingsAccountNameValueElement = document.getElementById('settings-account-name');
+      const settingsAccountHandleValueElement = document.getElementById('settings-account-handle');
+      const settingsAccountRankValueElement = document.getElementById('settings-account-rank');
+      const settingsOpenProfileButton = document.getElementById('settings-open-profile-button');
+      const settingsLogoutButton = document.getElementById('settings-logout-button');
       const currentUserName = document.getElementById('current-user-name');
       const headerProfileButton = document.getElementById('header-profile-button');
       const headerProfileAvatar = document.getElementById('header-profile-avatar');
@@ -4489,6 +4583,13 @@
       const profileBioCounterElement = document.getElementById('profile-bio-counter');
       const profileResetButton = document.getElementById('profile-reset-button');
       const profileEditFeedbackElement = document.getElementById('profile-edit-feedback');
+      const profileAchievementTabsElement = document.getElementById('profile-achievement-tabs');
+      const profileAchievementTabButtons = Array.from(document.querySelectorAll('[data-profile-achievement-tab]'));
+      const profileAchievementCategoryListElement = document.getElementById('profile-achievement-category-list');
+      const profileAchievementActiveCategoryLabelElement = document.getElementById('profile-achievement-active-category-label');
+      const profileAchievementRankStatusElement = document.getElementById('profile-achievement-rank-status');
+      const profileAchievementListElement = document.getElementById('profile-achievement-list');
+      const profileAchievementFeedbackElement = document.getElementById('profile-achievement-feedback');
       const enrollMemberForm = document.getElementById('enroll-member-form');
       const enrollMemberSubmitButton = document.getElementById('enroll-member-submit-button');
       const enrollMemberSubmitFeedback = document.getElementById('enroll-member-submit-feedback');
@@ -4544,6 +4645,33 @@
       const MEMBER_RANKS_API = '/api/member-ranks';
       const MEMBER_PURCHASE_ACTIVITY_API = '/api/member-auth/record-purchase';
       const MEMBER_ACCOUNT_UPGRADE_API = '/api/member-auth/upgrade-account';
+      const MEMBER_ACHIEVEMENTS_API = '/api/member-auth/achievements';
+      const PROFILE_ACHIEVEMENT_ICON_PATHS_BY_ID = Object.freeze({
+        'good-life-diamond': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/diamond.svg',
+          light: '/brand_assets/Icons/Achievements/diamond-light.svg',
+        }),
+        'good-life-blue-diamond': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/blue-diamond.svg',
+          light: '/brand_assets/Icons/Achievements/blue-diamond-light.svg',
+        }),
+        'good-life-black-diamond': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/black-diamond.svg',
+          light: '/brand_assets/Icons/Achievements/black-diamond-light.svg',
+        }),
+        'good-life-crown': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/crown.svg',
+          light: '/brand_assets/Icons/Achievements/crown-light.svg',
+        }),
+        'good-life-double-crown': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/double-crown.svg',
+          light: '/brand_assets/Icons/Achievements/double-crown-light.svg',
+        }),
+        'good-life-royal-crown': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/royal-crown.svg',
+          light: '/brand_assets/Icons/Achievements/royal-crown-light.svg',
+        }),
+      });
       const STORE_INVOICES_API = '/api/store-invoices';
       const STORE_PRODUCTS_API = '/api/store-products';
       const E_WALLET_API = '/api/e-wallet';
@@ -4622,6 +4750,10 @@
       let spilloverParentSuggestionKeys = new Set();
       let spilloverParentSuggestionItems = [];
       let profileEditLastTriggerElement = null;
+      let profileAchievementsSnapshot = null;
+      let profileAchievementsLoading = false;
+      let activeProfileAchievementTabId = 'premiere-life';
+      const activeProfileAchievementCategoryByTab = {};
       const MINIMUM_PAYOUT_REQUEST_USD = 0.01;
       const MAX_RECENT_ACTIVITY_ITEMS = 12;
       const recentActivityRuntimeEntries = [];
@@ -4734,6 +4866,10 @@
           title: 'Binary Tree',
           searchPlaceholder: 'Search binary tree members...',
         },
+        settings: {
+          title: 'Settings',
+          searchPlaceholder: 'Search account and appearance settings...',
+        },
       };
 
       const pagePathByPage = {
@@ -4744,6 +4880,7 @@
         'enroll-member': '/EnrollMember',
         'preferred-customer': '/PreferredCustomer',
         'binary-tree': '/BinaryTree',
+        settings: '/Settings',
       };
 
       const pageByPath = Object.fromEntries(
@@ -5971,6 +6108,543 @@
         }
       }
 
+      function resolveMemberAuthToken() {
+        return String(currentSessionUser?.authToken || '').trim();
+      }
+
+      function buildProfileAchievementFallbackSnapshot() {
+        return {
+          tabs: [
+            { id: 'premiere-life', label: 'Premiere Life' },
+            { id: 'rank', label: 'Rank' },
+          ],
+          categories: [
+            {
+              id: 'good-life',
+              tabId: 'premiere-life',
+              label: 'Good Life',
+              description: 'Good Life bonus milestones based on rank achievement.',
+            },
+            {
+              id: 'rank-track',
+              tabId: 'rank',
+              label: 'Rank',
+              description: 'Additional rank achievement tracks will be added here.',
+            },
+          ],
+          achievements: [
+            {
+              id: 'good-life-diamond',
+              tabId: 'premiere-life',
+              categoryId: 'good-life',
+              title: 'Diamond',
+              description: 'Reach Diamond Rank',
+              requiredRank: 'Diamond',
+              rewardUsd: 500,
+              iconPath: '/brand_assets/Icons/Achievements/diamond.svg',
+              iconLightPath: '/brand_assets/Icons/Achievements/diamond-light.svg',
+              eligible: false,
+              status: 'locked',
+              claimId: '',
+              claimedAt: '',
+            },
+            {
+              id: 'good-life-blue-diamond',
+              tabId: 'premiere-life',
+              categoryId: 'good-life',
+              title: 'Blue Diamond',
+              description: 'Reach Blue Diamond Rank',
+              requiredRank: 'Blue Diamond',
+              rewardUsd: 1000,
+              iconPath: '/brand_assets/Icons/Achievements/blue-diamond.svg',
+              iconLightPath: '/brand_assets/Icons/Achievements/blue-diamond-light.svg',
+              eligible: false,
+              status: 'locked',
+              claimId: '',
+              claimedAt: '',
+            },
+            {
+              id: 'good-life-black-diamond',
+              tabId: 'premiere-life',
+              categoryId: 'good-life',
+              title: 'Black Diamond',
+              description: 'Reach Black Diamond Rank',
+              requiredRank: 'Black Diamond',
+              rewardUsd: 2000,
+              iconPath: '/brand_assets/Icons/Achievements/black-diamond.svg',
+              iconLightPath: '/brand_assets/Icons/Achievements/black-diamond-light.svg',
+              eligible: false,
+              status: 'locked',
+              claimId: '',
+              claimedAt: '',
+            },
+            {
+              id: 'good-life-crown',
+              tabId: 'premiere-life',
+              categoryId: 'good-life',
+              title: 'Crown',
+              description: 'Reach Crown Rank',
+              requiredRank: 'Crown',
+              rewardUsd: 4000,
+              iconPath: '/brand_assets/Icons/Achievements/crown.svg',
+              iconLightPath: '/brand_assets/Icons/Achievements/crown-light.svg',
+              eligible: false,
+              status: 'locked',
+              claimId: '',
+              claimedAt: '',
+            },
+            {
+              id: 'good-life-double-crown',
+              tabId: 'premiere-life',
+              categoryId: 'good-life',
+              title: 'Double Crown',
+              description: 'Reach Double Crown Rank',
+              requiredRank: 'Double Crown',
+              rewardUsd: 8000,
+              iconPath: '/brand_assets/Icons/Achievements/double-crown.svg',
+              iconLightPath: '/brand_assets/Icons/Achievements/double-crown-light.svg',
+              eligible: false,
+              status: 'locked',
+              claimId: '',
+              claimedAt: '',
+            },
+            {
+              id: 'good-life-royal-crown',
+              tabId: 'premiere-life',
+              categoryId: 'good-life',
+              title: 'Royal Crown',
+              description: 'Reach Royal Crown Rank',
+              requiredRank: 'Royal Crown',
+              rewardUsd: 12500,
+              iconPath: '/brand_assets/Icons/Achievements/royal-crown.svg',
+              iconLightPath: '/brand_assets/Icons/Achievements/royal-crown-light.svg',
+              eligible: false,
+              status: 'locked',
+              claimId: '',
+              claimedAt: '',
+            },
+          ],
+          currentRank: '',
+        };
+      }
+
+      function setProfileAchievementFeedback(message, tone = 'info') {
+        if (!profileAchievementFeedbackElement) {
+          return;
+        }
+
+        const safeMessage = String(message || '').trim();
+        profileAchievementFeedbackElement.classList.remove(
+          'hidden',
+          'text-semantic-success',
+          'text-semantic-danger',
+          'text-text-tertiary',
+        );
+
+        if (!safeMessage) {
+          profileAchievementFeedbackElement.textContent = '';
+          profileAchievementFeedbackElement.classList.add('hidden');
+          return;
+        }
+
+        profileAchievementFeedbackElement.textContent = safeMessage;
+        if (tone === 'success') {
+          profileAchievementFeedbackElement.classList.add('text-semantic-success');
+          return;
+        }
+        if (tone === 'error') {
+          profileAchievementFeedbackElement.classList.add('text-semantic-danger');
+          return;
+        }
+
+        profileAchievementFeedbackElement.classList.add('text-text-tertiary');
+      }
+
+      function resolveProfileAchievementTabs() {
+        const sourceTabs = Array.isArray(profileAchievementsSnapshot?.tabs)
+          ? profileAchievementsSnapshot.tabs
+          : [];
+        if (sourceTabs.length > 0) {
+          return sourceTabs;
+        }
+        return buildProfileAchievementFallbackSnapshot().tabs;
+      }
+
+      function resolveProfileAchievementCategoriesByTab(tabId) {
+        const safeTabId = String(tabId || '').trim();
+        const sourceCategories = Array.isArray(profileAchievementsSnapshot?.categories)
+          ? profileAchievementsSnapshot.categories
+          : [];
+        return sourceCategories.filter((category) => String(category?.tabId || '').trim() === safeTabId);
+      }
+
+      function resolveDefaultProfileAchievementTabId() {
+        const tabs = resolveProfileAchievementTabs();
+        if (tabs.length === 0) {
+          return 'premiere-life';
+        }
+        const matchedTab = tabs.find((tab) => String(tab?.id || '').trim() === activeProfileAchievementTabId);
+        if (matchedTab) {
+          return String(matchedTab.id).trim();
+        }
+        return String(tabs[0]?.id || 'premiere-life').trim() || 'premiere-life';
+      }
+
+      function resolveDefaultProfileAchievementCategoryId(tabId) {
+        const safeTabId = String(tabId || '').trim();
+        const categories = resolveProfileAchievementCategoriesByTab(safeTabId);
+        if (categories.length === 0) {
+          return '';
+        }
+
+        const candidateCategoryId = String(activeProfileAchievementCategoryByTab[safeTabId] || '').trim();
+        if (candidateCategoryId) {
+          const matchedCategory = categories.find((category) => String(category?.id || '').trim() === candidateCategoryId);
+          if (matchedCategory) {
+            return candidateCategoryId;
+          }
+        }
+
+        return String(categories[0]?.id || '').trim();
+      }
+
+      function resolveProfileAchievementCurrentRankLabel() {
+        const serverRank = String(profileAchievementsSnapshot?.currentRank || '').trim();
+        if (serverRank) {
+          return serverRank;
+        }
+        const clientRank = normalizeRankLabel(resolveSessionAccountRank(currentSessionUser) || currentAccountRank || '');
+        return clientRank || 'Unranked';
+      }
+
+      function ensureActiveProfileAchievementSelection() {
+        const nextTabId = resolveDefaultProfileAchievementTabId();
+        activeProfileAchievementTabId = nextTabId || 'premiere-life';
+
+        const nextCategoryId = resolveDefaultProfileAchievementCategoryId(activeProfileAchievementTabId);
+        activeProfileAchievementCategoryByTab[activeProfileAchievementTabId] = nextCategoryId;
+      }
+
+      function renderProfileAchievementTabs() {
+        if (!Array.isArray(profileAchievementTabButtons) || profileAchievementTabButtons.length === 0) {
+          return;
+        }
+
+        const activeTabClasses = ['bg-brand-500', 'text-text-inverse', 'shadow-glow'];
+        const inactiveTabClasses = ['text-text-secondary', 'hover:text-text-primary', 'hover:bg-surface-elevated'];
+        const activeTabId = activeProfileAchievementTabId;
+
+        profileAchievementTabButtons.forEach((button) => {
+          const tabId = String(button?.getAttribute('data-profile-achievement-tab') || '').trim();
+          const isActive = tabId === activeTabId;
+          button.classList.remove(...activeTabClasses, ...inactiveTabClasses);
+          button.classList.add(...(isActive ? activeTabClasses : inactiveTabClasses));
+          button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+      }
+
+      function renderProfileAchievementCategories() {
+        if (!profileAchievementCategoryListElement) {
+          return;
+        }
+
+        const categories = resolveProfileAchievementCategoriesByTab(activeProfileAchievementTabId);
+        const activeCategoryId = String(activeProfileAchievementCategoryByTab[activeProfileAchievementTabId] || '').trim();
+
+        if (categories.length === 0) {
+          profileAchievementCategoryListElement.innerHTML = '<p class="text-caption text-text-tertiary">No categories available.</p>';
+          if (profileAchievementActiveCategoryLabelElement) {
+            profileAchievementActiveCategoryLabelElement.textContent = 'No Category';
+          }
+          return;
+        }
+
+        profileAchievementCategoryListElement.innerHTML = categories.map((category) => {
+          const categoryId = String(category?.id || '').trim();
+          const isActive = categoryId === activeCategoryId;
+          const buttonClasses = isActive
+            ? 'border-brand-500/35 bg-brand-500/10 text-brand-400'
+            : 'border-surface-border text-text-secondary hover:bg-surface-floating hover:text-text-primary';
+          return `
+            <button
+              type="button"
+              data-profile-achievement-category-id="${escapeHtml(categoryId)}"
+              class="w-full text-left rounded-lg border px-3 py-2 transition-transform duration-150 ease-spring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.98] ${buttonClasses}"
+            >
+              <p class="text-body-sm font-medium">${escapeHtml(category?.label || 'Category')}</p>
+            </button>
+          `;
+        }).join('');
+
+        const activeCategory = categories.find(
+          (category) => String(category?.id || '').trim() === activeCategoryId,
+        ) || categories[0];
+        if (profileAchievementActiveCategoryLabelElement) {
+          profileAchievementActiveCategoryLabelElement.textContent = String(activeCategory?.label || 'Category').trim() || 'Category';
+        }
+      }
+
+      function resolveProfileAchievementItemsForActiveView() {
+        const activeCategoryId = String(activeProfileAchievementCategoryByTab[activeProfileAchievementTabId] || '').trim();
+        const sourceAchievements = Array.isArray(profileAchievementsSnapshot?.achievements)
+          ? profileAchievementsSnapshot.achievements
+          : [];
+
+        return sourceAchievements.filter((achievement) => (
+          String(achievement?.tabId || '').trim() === activeProfileAchievementTabId
+          && String(achievement?.categoryId || '').trim() === activeCategoryId
+        ));
+      }
+
+      function formatProfileAchievementClaimDate(value) {
+        const parsedMs = Date.parse(String(value || ''));
+        if (!Number.isFinite(parsedMs)) {
+          return '--';
+        }
+        return new Intl.DateTimeFormat('en-US', {
+          month: 'short',
+          day: '2-digit',
+          year: 'numeric',
+        }).format(parsedMs);
+      }
+
+      function resolveProfileAchievementIconPath(achievement = {}) {
+        const iconPathPattern = /^\/brand_assets\/Icons\/Achievements\/[a-z0-9-]+\.svg$/i;
+        const safeAchievementId = String(achievement?.id || '').trim();
+        const mappedPaths = PROFILE_ACHIEVEMENT_ICON_PATHS_BY_ID[safeAchievementId] || {};
+        const isLightTheme = appTheme === 'light';
+        const explicitDarkPath = String(achievement?.iconPath || '').trim();
+        const explicitLightPath = String(achievement?.iconLightPath || '').trim();
+        const mappedDarkPath = String(mappedPaths?.dark || '').trim();
+        const mappedLightPath = String(mappedPaths?.light || '').trim();
+        const candidatePaths = isLightTheme
+          ? [explicitLightPath, mappedLightPath, explicitDarkPath, mappedDarkPath]
+          : [explicitDarkPath, mappedDarkPath, explicitLightPath, mappedLightPath];
+
+        for (const candidatePath of candidatePaths) {
+          if (iconPathPattern.test(candidatePath)) {
+            return candidatePath;
+          }
+        }
+
+        return isLightTheme
+          ? '/brand_assets/Icons/Achievements/diamond-light.svg'
+          : '/brand_assets/Icons/Achievements/diamond.svg';
+      }
+
+      function renderProfileAchievementList() {
+        if (!profileAchievementListElement) {
+          return;
+        }
+
+        if (profileAchievementsLoading) {
+          profileAchievementListElement.innerHTML = `
+            <div class="rounded-xl border border-surface-border bg-surface-raised/70 px-4 py-3">
+              <p class="text-body-sm text-text-secondary">Loading achievements...</p>
+            </div>
+          `;
+          return;
+        }
+
+        const items = resolveProfileAchievementItemsForActiveView();
+        if (items.length === 0) {
+          profileAchievementListElement.innerHTML = `
+            <div class="rounded-xl border border-dashed border-surface-border px-4 py-4">
+              <p class="text-body-sm text-text-secondary">No achievements are configured for this category yet.</p>
+            </div>
+          `;
+          return;
+        }
+
+        profileAchievementListElement.innerHTML = items.map((achievement) => {
+          const safeId = String(achievement?.id || '').trim();
+          const title = String(achievement?.title || 'Achievement').trim() || 'Achievement';
+          const description = String(achievement?.description || '').trim();
+          const rewardUsd = Math.max(0, Number(achievement?.rewardUsd) || 0);
+          const claimedAt = String(achievement?.claimedAt || '').trim();
+          const status = String(achievement?.status || '').trim().toLowerCase();
+          const isClaimed = status === 'claimed';
+          const isEligible = status === 'eligible';
+          const iconPath = resolveProfileAchievementIconPath(achievement);
+          const iconAlt = `${title} icon`;
+          const claimDateLabel = isClaimed ? formatProfileAchievementClaimDate(claimedAt) : '';
+          const statusText = isClaimed
+            ? `Claimed on ${claimDateLabel}`
+            : '';
+          const statusMarkup = statusText
+            ? `<p class="mt-1 text-caption text-semantic-success">${escapeHtml(statusText)}</p>`
+            : '';
+          const buttonLabel = isClaimed ? 'Claimed' : (isEligible ? 'Claim' : 'Locked');
+          const buttonDisabled = !isEligible;
+          const buttonClasses = isClaimed
+            ? 'border-semantic-success/40 bg-semantic-success-bg text-semantic-success cursor-default'
+            : (isEligible
+              ? 'bg-brand-500 text-text-inverse hover:bg-brand-400 hover:-translate-y-0.5'
+              : 'border-surface-border bg-surface-base text-text-tertiary cursor-not-allowed opacity-70');
+
+          return `
+            <article class="rounded-xl border border-surface-border bg-surface-raised/70 p-3 sm:p-4 shadow-depth-1">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="min-w-0 flex items-start gap-3">
+                  <div class="h-11 w-11 shrink-0 rounded-lg border border-surface-border bg-surface-elevated/70 p-1 shadow-inner">
+                    <img
+                      src="${escapeHtml(iconPath)}"
+                      alt="${escapeHtml(iconAlt)}"
+                      loading="lazy"
+                      decoding="async"
+                      class="h-full w-full object-contain"
+                    />
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-body-sm font-medium text-text-primary">${escapeHtml(title)}</p>
+                    <p class="mt-1 text-caption text-text-secondary">${escapeHtml(description)}</p>
+                    ${statusMarkup}
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-caption text-brand-300 font-medium whitespace-nowrap">${escapeHtml(formatCurrency(rewardUsd))}</span>
+                  <button
+                    type="button"
+                    data-profile-achievement-claim-id="${escapeHtml(safeId)}"
+                    ${buttonDisabled ? 'disabled' : ''}
+                    class="inline-flex items-center justify-center rounded-lg border px-3.5 py-2 text-body-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-transform duration-150 ease-spring ${buttonClasses}"
+                  >
+                    ${escapeHtml(buttonLabel)}
+                  </button>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      function renderProfileAchievementsPanel() {
+        ensureActiveProfileAchievementSelection();
+        renderProfileAchievementTabs();
+        renderProfileAchievementCategories();
+        renderProfileAchievementList();
+
+        if (profileAchievementRankStatusElement) {
+          profileAchievementRankStatusElement.textContent = `Current rank: ${resolveProfileAchievementCurrentRankLabel()}`;
+        }
+      }
+
+      function applyProfileAchievementPayload(payload = {}) {
+        const fallback = buildProfileAchievementFallbackSnapshot();
+        profileAchievementsSnapshot = {
+          tabs: Array.isArray(payload?.tabs) ? payload.tabs : fallback.tabs,
+          categories: Array.isArray(payload?.categories) ? payload.categories : fallback.categories,
+          achievements: Array.isArray(payload?.achievements) ? payload.achievements : [],
+          currentRank: String(payload?.currentRank || '').trim(),
+        };
+      }
+
+      async function loadProfileAchievements(options = {}) {
+        if (!profileAchievementListElement) {
+          return;
+        }
+
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          if (!profileAchievementsSnapshot) {
+            profileAchievementsSnapshot = buildProfileAchievementFallbackSnapshot();
+          }
+          profileAchievementsLoading = false;
+          renderProfileAchievementsPanel();
+          if (!options?.silent) {
+            setProfileAchievementFeedback('Sign in again to load your server-side achievements.', 'error');
+          }
+          return;
+        }
+
+        profileAchievementsLoading = true;
+        if (!profileAchievementsSnapshot) {
+          profileAchievementsSnapshot = buildProfileAchievementFallbackSnapshot();
+        }
+        renderProfileAchievementsPanel();
+
+        try {
+          const response = await fetch(MEMBER_ACHIEVEMENTS_API, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string'
+              ? payload.error
+              : `Unable to load achievements (${response.status}).`;
+            throw new Error(message);
+          }
+
+          applyProfileAchievementPayload(payload);
+          if (!options?.silent) {
+            setProfileAchievementFeedback('');
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to load achievements.';
+          setProfileAchievementFeedback(message, 'error');
+        } finally {
+          profileAchievementsLoading = false;
+          renderProfileAchievementsPanel();
+        }
+      }
+
+      async function claimProfileAchievementById(achievementId) {
+        const safeAchievementId = String(achievementId || '').trim();
+        if (!safeAchievementId || profileAchievementsLoading) {
+          return;
+        }
+
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          setProfileAchievementFeedback('Sign in again before claiming achievements.', 'error');
+          return;
+        }
+
+        profileAchievementsLoading = true;
+        renderProfileAchievementsPanel();
+
+        try {
+          const response = await fetch(
+            `${MEMBER_ACHIEVEMENTS_API}/${encodeURIComponent(safeAchievementId)}/claim`,
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+            },
+          );
+          const payload = await response.json().catch(() => ({}));
+
+          if (Array.isArray(payload?.achievements)) {
+            applyProfileAchievementPayload(payload);
+          }
+
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string'
+              ? payload.error
+              : `Unable to claim achievement (${response.status}).`;
+            throw new Error(message);
+          }
+
+          applyProfileAchievementPayload(payload);
+          const claimedAchievement = (Array.isArray(payload?.achievements) ? payload.achievements : [])
+            .find((entry) => String(entry?.id || '').trim() === safeAchievementId);
+          const claimDateLabel = formatProfileAchievementClaimDate(claimedAchievement?.claimedAt);
+          const claimTitle = String(claimedAchievement?.title || 'Achievement').trim() || 'Achievement';
+          setProfileAchievementFeedback(`${claimTitle} claimed on ${claimDateLabel}.`, 'success');
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to claim achievement.';
+          setProfileAchievementFeedback(message, 'error');
+        } finally {
+          profileAchievementsLoading = false;
+          renderProfileAchievementsPanel();
+        }
+      }
+
       function syncProfilePageFromState(profileState = resolveEffectiveMemberProfile(), options = {}) {
         const safeProfileState = sanitizeMemberProfileCustomization(profileState);
         applyProfileStateToSession(safeProfileState);
@@ -6040,6 +6714,9 @@
         clearProfileEditFeedback();
         renderProfileLifetimeCards();
         setProfileEditModalOpen(false);
+        profileAchievementsSnapshot = buildProfileAchievementFallbackSnapshot();
+        renderProfileAchievementsPanel();
+        setProfileAchievementFeedback('');
 
         if (profileEditOpenButton) {
           profileEditOpenButton.addEventListener('click', (event) => {
@@ -6121,6 +6798,70 @@
             setProfileEditFeedback('Profile saved.');
           });
         }
+
+        if (profileAchievementTabsElement && profileAchievementTabsElement.dataset.bound !== 'true') {
+          profileAchievementTabsElement.dataset.bound = 'true';
+          profileAchievementTabsElement.addEventListener('click', (event) => {
+            const target = event.target instanceof Element
+              ? event.target.closest('[data-profile-achievement-tab]')
+              : null;
+            if (!target || !profileAchievementTabsElement.contains(target)) {
+              return;
+            }
+
+            const nextTabId = String(target.getAttribute('data-profile-achievement-tab') || '').trim();
+            if (!nextTabId || nextTabId === activeProfileAchievementTabId) {
+              return;
+            }
+            activeProfileAchievementTabId = nextTabId;
+            ensureActiveProfileAchievementSelection();
+            renderProfileAchievementsPanel();
+          });
+        }
+
+        if (profileAchievementCategoryListElement && profileAchievementCategoryListElement.dataset.bound !== 'true') {
+          profileAchievementCategoryListElement.dataset.bound = 'true';
+          profileAchievementCategoryListElement.addEventListener('click', (event) => {
+            const target = event.target instanceof Element
+              ? event.target.closest('[data-profile-achievement-category-id]')
+              : null;
+            if (!target || !profileAchievementCategoryListElement.contains(target)) {
+              return;
+            }
+
+            const nextCategoryId = String(target.getAttribute('data-profile-achievement-category-id') || '').trim();
+            if (!nextCategoryId) {
+              return;
+            }
+            activeProfileAchievementCategoryByTab[activeProfileAchievementTabId] = nextCategoryId;
+            renderProfileAchievementsPanel();
+          });
+        }
+
+        if (profileAchievementListElement && profileAchievementListElement.dataset.bound !== 'true') {
+          profileAchievementListElement.dataset.bound = 'true';
+          profileAchievementListElement.addEventListener('click', (event) => {
+            const target = event.target instanceof Element
+              ? event.target.closest('[data-profile-achievement-claim-id]')
+              : null;
+            if (!target || !profileAchievementListElement.contains(target)) {
+              return;
+            }
+
+            const claimButton = target instanceof HTMLButtonElement ? target : null;
+            if (claimButton && claimButton.disabled) {
+              return;
+            }
+
+            const achievementId = String(target.getAttribute('data-profile-achievement-claim-id') || '').trim();
+            if (!achievementId) {
+              return;
+            }
+            void claimProfileAchievementById(achievementId);
+          });
+        }
+
+        void loadProfileAchievements({ silent: true });
       }
 
       function resolveInfinityBuilderClaimOwnerKey() {
@@ -7191,6 +7932,9 @@
           if (themeSwitcher) {
             themeSwitcher.value = nextTheme;
           }
+          if (settingsThemeSwitcher) {
+            settingsThemeSwitcher.value = nextTheme;
+          }
           return;
         }
 
@@ -7200,6 +7944,9 @@
         if (themeSwitcher) {
           themeSwitcher.value = nextTheme;
         }
+        if (settingsThemeSwitcher) {
+          settingsThemeSwitcher.value = nextTheme;
+        }
 
         if (options.persist !== false) {
           writeRuntimeSettingsFallback({ appTheme: nextTheme });
@@ -7208,6 +7955,7 @@
         renderInfinityBuilderDashboardCard();
         renderLegacyLeadershipDashboardCard();
         renderRecentActivityFeed();
+        renderProfileAchievementList();
       }
 
       function initializeThemeFromSettings() {
@@ -12577,6 +13325,24 @@
         }
       }
 
+      function syncSettingsPageAccountOverview() {
+        const displayName = String(currentSessionUser?.name || currentSessionUser?.fullName || currentSessionUser?.username || 'Member').trim();
+        const username = String(currentSessionUser?.username || 'unknown').trim().replace(/^@+/, '');
+        const rankedLabel = normalizeRankLabel(resolveSessionAccountRank(currentSessionUser))
+          || normalizeRankLabel(currentAccountRank)
+          || 'Legacy';
+
+        if (settingsAccountNameValueElement) {
+          settingsAccountNameValueElement.textContent = displayName || 'Member';
+        }
+        if (settingsAccountHandleValueElement) {
+          settingsAccountHandleValueElement.textContent = `@${username || 'unknown'}`;
+        }
+        if (settingsAccountRankValueElement) {
+          settingsAccountRankValueElement.textContent = rankedLabel;
+        }
+      }
+
       function isTreeSettingsOpen() {
         return Boolean(binaryTreePanelElement?.classList.contains('tree-settings-open'));
       }
@@ -13455,6 +14221,7 @@
           const normalizedFallbackRank = normalizeRankLabel(fallbackRank);
           accountRank = summaryRank || normalizedFallbackRank || 'Legacy';
         }
+        const previousAccountRank = currentAccountRank;
 
         if (dashboardPersonalVolumeValueElement) {
           dashboardPersonalVolumeValueElement.textContent = `${dashboardPersonalVolume.toLocaleString()} PV`;
@@ -13513,6 +14280,11 @@
           accountOverviewCardElement.dataset.accountRank = accountRank;
         }
         currentAccountRank = accountRank;
+        if (previousAccountRank !== currentAccountRank) {
+          void loadProfileAchievements({ silent: true });
+        } else {
+          renderProfileAchievementsPanel();
+        }
         syncAccountRankUpgradeCta(currentSessionUser);
         syncAutoFastTrackTierFromRank();
         if (totalAccumulatedPvValueElement) {
@@ -15917,6 +16689,10 @@
             });
         }
 
+        if (pageViewKey === 'settings') {
+          syncSettingsPageAccountOverview();
+        }
+
         if (pageViewKey === 'binary-tree') {
           const shouldAutoEnterBinaryTreeFullscreen = options.autoEnterBinaryTreeFullscreen === true;
           ensureBinaryTreeReady()
@@ -15995,29 +16771,25 @@
         });
       }
 
-      if (sidebarSettingsLink) {
-        sidebarSettingsLink.addEventListener('click', (event) => {
-          event.preventDefault();
-          setPage('binary-tree', { routeMode: 'push' });
-          treeSettingsLastTriggerElement = sidebarSettingsLink;
-          setTreeSettingsOpen(true);
-          ensureBinaryTreeReady()
-            .then(() => {
-              refreshBinaryTreeLayout({ forceFit: true });
-            })
-            .catch((error) => {
-              console.warn('Unable to open settings panel:', error);
-            });
-
-          if (window.innerWidth < 1024) {
-            closeSidebar();
-          }
-        });
-      }
-
       if (themeSwitcher) {
         themeSwitcher.addEventListener('change', (event) => {
           applyAppTheme(event?.target?.value || 'dark');
+        });
+      }
+      if (settingsThemeSwitcher) {
+        settingsThemeSwitcher.addEventListener('change', (event) => {
+          applyAppTheme(event?.target?.value || 'dark');
+        });
+      }
+      if (settingsOpenProfileButton) {
+        settingsOpenProfileButton.addEventListener('click', () => {
+          setPage('profile', { routeMode: 'push' });
+        });
+      }
+      if (settingsLogoutButton) {
+        settingsLogoutButton.addEventListener('click', () => {
+          clearUserSession();
+          window.location.replace('./login.html');
         });
       }
 
@@ -16042,6 +16814,7 @@
         binaryTreeSummarySnapshot = event?.detail || null;
         applyBinaryTreeDashboardSummary(binaryTreeSummarySnapshot);
         syncTreeSettingsAccountOverview();
+        syncSettingsPageAccountOverview();
       });
 
       initializeServerCutoffCard();

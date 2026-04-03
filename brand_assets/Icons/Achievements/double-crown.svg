@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="double-crown-bg" x1="10" y1="8" x2="118" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#312415"/>
+      <stop offset="1" stop-color="#120B04"/>
+    </linearGradient>
+    <linearGradient id="double-crown-main" x1="22" y1="34" x2="104" y2="102" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE9AF"/>
+      <stop offset="0.52" stop-color="#FFC648"/>
+      <stop offset="1" stop-color="#C88408"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#double-crown-bg)" stroke="#8F6523" stroke-opacity="0.62" stroke-width="2"/>
+  <circle cx="64" cy="66" r="40" fill="#F5C04B" fill-opacity="0.1"/>
+
+  <path d="M38 66L42 44L51 55L60 40L68 55L77 44L81 66H38Z" fill="url(#double-crown-main)" stroke="#FFE9B8" stroke-opacity="0.76" stroke-width="1.8"/>
+  <rect x="39" y="65" width="41" height="8" rx="3" fill="#F4BD45" stroke="#FFE2A7" stroke-opacity="0.72"/>
+
+  <path d="M24 92L30 60L46 76L64 48L82 76L98 60L104 92H24Z" fill="url(#double-crown-main)" stroke="#FFE9B8" stroke-opacity="0.8" stroke-width="2"/>
+  <rect x="27" y="90" width="74" height="12" rx="4" fill="#F0B741" stroke="#FFE2A7" stroke-opacity="0.75"/>
+
+  <circle cx="64" cy="63" r="4" fill="#89F8E5"/>
+  <circle cx="64" cy="62" r="5" fill="#42DFC5" fill-opacity="0.78"/>
+  <circle cx="64" cy="48" r="4.2" fill="#FFF1C8"/>
+  <circle cx="30" cy="60" r="3.5" fill="#FFF1C8"/>
+  <circle cx="98" cy="60" r="3.5" fill="#FFF1C8"/>
+</svg>

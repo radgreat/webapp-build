@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="black-diamond-bg" x1="10" y1="8" x2="118" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#212B39"/>
+      <stop offset="1" stop-color="#090D14"/>
+    </linearGradient>
+    <linearGradient id="black-diamond-gem" x1="32" y1="24" x2="96" y2="104" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E4EDF7"/>
+      <stop offset="0.52" stop-color="#6B7A92"/>
+      <stop offset="1" stop-color="#161E2B"/>
+    </linearGradient>
+    <linearGradient id="black-diamond-facet" x1="64" y1="24" x2="64" y2="104" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.82"/>
+      <stop offset="1" stop-color="#DFE7F1" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#black-diamond-bg)" stroke="#4F5B70" stroke-opacity="0.62" stroke-width="2"/>
+  <circle cx="64" cy="66" r="38" fill="#9BA9BD" fill-opacity="0.1"/>
+
+  <path d="M64 24L96 52L64 104L32 52L64 24Z" fill="url(#black-diamond-gem)" stroke="#F1F5FA" stroke-opacity="0.72" stroke-width="2"/>
+  <path d="M64 24L80 52H48L64 24Z" fill="url(#black-diamond-facet)"/>
+  <path d="M48 52H80L64 104L48 52Z" fill="#F7FAFF" fill-opacity="0.13"/>
+  <path d="M32 52H48L64 104L32 52Z" fill="#F7FAFF" fill-opacity="0.08"/>
+  <path d="M96 52H80L64 104L96 52Z" fill="#F7FAFF" fill-opacity="0.08"/>
+  <path d="M64 24L48 52" stroke="#FFFFFF" stroke-opacity="0.62" stroke-width="1.5"/>
+  <path d="M64 24L80 52" stroke="#FFFFFF" stroke-opacity="0.62" stroke-width="1.5"/>
+
+  <path d="M22 31L24 35L28 37L24 39L22 43L20 39L16 37L20 35L22 31Z" fill="#D7DFEA" fill-opacity="0.7"/>
+  <path d="M106 37L107.5 40L111 41.5L107.5 43L106 46L104.5 43L101 41.5L104.5 40L106 37Z" fill="#D7DFEA" fill-opacity="0.66"/>
+</svg>
