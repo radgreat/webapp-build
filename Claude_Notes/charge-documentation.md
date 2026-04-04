@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 173
+**Times Updated:** 174
 
 ## Overview
 
@@ -12,6 +12,130 @@
 
 ## Major Update (Lead Devloper Notes)
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.
+
+---
+
+## Update (2026-04-03) - Profile Edit Title Dropdown + Badge Label/Order Update
+
+### What Was Changed
+
+- Updated the `Edit Profile` modal label from `Account Title` to `Title`.
+- Replaced the free-text title input with a dropdown (`select`) sourced from claimed titles only.
+- Added a title preview row (icon + title text) above the dropdown so the selected title always shows its matching icon.
+- Renamed the badge visibility legend from `Username Badges` to `Badge`.
+- Reordered the modal form so `Title` appears directly above the `Badge` section.
+- Updated profile title badge icon logic so the title badge resolves from title-specific mappings/claims instead of reusing the rank icon.
+- Wired claimable title metadata from achievement payload (`claimableTitles`) into frontend title icon resolution.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept existing element id `profile-account-title-input` while changing it to a `select` to preserve submit/reset/event wiring and avoid regressions.
+- Used server-authoritative sources (`accountTitles` + `claimableTitles`) as primary title option/icon inputs, then rank-title mapping fallbacks for robust rendering.
+- Added a visual preview shell instead of custom dropdown rendering to keep accessibility and native select behavior intact.
+
+### Validation
+
+- Inline app script parse check passed:
+  - `sed -n '4644,19263p' index.html | sed '1d;$d' > /tmp/index-inline-app.js && node --check /tmp/index-inline-app.js`
+- Screenshot workflow run on required URL (2 passes):
+  - `temporary screenshots/screenshot-7-profile-edit-pass1.png`
+  - `temporary screenshots/screenshot-8-profile-edit-pass2.png`
+- Authenticated modal verification run on app server (`127.0.0.1:3000`) to confirm final field state/order:
+  - DOM checks confirmed:
+    - title field tag is `SELECT`
+    - label is `Title`
+    - badge legend is `Badge`
+    - title block is above badge block
+  - screenshots:
+    - `temporary screenshots/screenshot-9-profile-edit-auth-check.png`
+    - `temporary screenshots/screenshot-10-profile-edit-auth-check-pass2.png`
+
+### Known Limitations
+
+- Live-server endpoint `127.0.0.1:5500` serves static pages but does not support member login API (returned `501` during auth attempt), so authenticated visual QA used `127.0.0.1:3000`.
+- Current test account (`zeroone`) has no claimed titles yet, so dropdown verification was limited to placeholder/empty-state behavior; multi-title icon switching is implemented but not visually exercised with awarded titles in this pass.
+
+---
+
+## Update (2026-04-03) - Limited-Time Title Star Icons + `Title-Icons` Folder
+
+### What Was Changed
+
+- Added a new gold star icon set (dark + light variants) for limited-time title rewards:
+  - `Legacy Founder`
+  - `Legacy Director`
+  - `Legacy Ambassador`
+  - `Presidential Circle`
+- Created a dedicated folder for title reward icons:
+  - `brand_assets/Icons/Title-Icons/`
+- Moved the new title icon assets into the new folder and updated all achievement/title references to the new paths.
+- Updated frontend icon lookup and fallback achievement snapshot so the new title icons render consistently in both server and fallback flows.
+- Added a dedicated icon README for the new folder and cross-referenced it from the achievements README.
+
+### Files Affected
+
+- `backend/services/member-achievement.service.js`
+- `index.html`
+- `brand_assets/Icons/Title-Icons/README.md` (new)
+- `brand_assets/Icons/Title-Icons/legacy-founder-star.svg` (new)
+- `brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg` (new)
+- `brand_assets/Icons/Title-Icons/legacy-director-star.svg` (new)
+- `brand_assets/Icons/Title-Icons/legacy-director-star-light.svg` (new)
+- `brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg` (new)
+- `brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg` (new)
+- `brand_assets/Icons/Title-Icons/presidential-circle-star.svg` (new)
+- `brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg` (new)
+- `brand_assets/Icons/Achievements/README.md`
+
+### Design Decisions
+
+- Separated title reward icon assets from rank/achievement icon assets to keep future title-specific iterations isolated and easier to manage.
+- Kept paired dark/light variants for each title icon to maintain theme correctness.
+
+### Validation
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse check passed for `index.html`:
+  - `Inline scripts parse OK: 2`
+
+### Known Limitations
+
+- Existing non-title achievement icons remain in `brand_assets/Icons/Achievements/`; this update only relocates title reward icons.
+
+---
+
+## Update (2026-04-03) - Limited-Time Event Icon Resolver Fixed (Diamond Fallback Removed)
+
+### What Was Changed
+
+- Fixed profile achievement icon resolution so title icon assets in `brand_assets/Icons/Title-Icons/` are treated as valid icon paths.
+- This resolves the limited-time event rows rendering as diamond fallback icons even when the new title star icons were configured.
+
+### Files Affected
+
+- `index.html`
+
+### Design Decisions
+
+- Expanded the icon path validator from only `Icons/Achievements` to both:
+  - `Icons/Achievements`
+  - `Icons/Title-Icons`
+- Kept the fallback behavior (`diamond`/`diamond-light`) unchanged for truly invalid/missing paths.
+
+### Validation
+
+- Inline script parse check passed for `index.html`:
+  - `Inline scripts parse OK: 2`
+
+### Known Limitations
+
+- Any future icon folders must be added to the same validator pattern unless this is generalized further.
 
 ---
 

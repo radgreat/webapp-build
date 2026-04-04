@@ -7,6 +7,78 @@ Last Updated: 2026-04-03
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
 
+## Recent Update (2026-04-03) - Profile Edit Title Dropdown + Badge Label/Order Alignment
+
+- Changed `Edit Profile` field label:
+  - `Account Title` -> `Title`
+- Converted title field from free-text input to claimed-title dropdown (`select`).
+- Added title preview row (icon + label) so selected title and icon stay synchronized.
+- Renamed badge section legend:
+  - `Username Badges` -> `Badge`
+- Reordered profile edit form:
+  - `Title` now appears directly above `Badge`.
+- Updated profile title badge icon resolution:
+  - title badge now resolves title-specific icon mapping/claimed-title icon instead of rank icon reuse.
+- Added payload wiring for `claimableTitles` to strengthen icon matching.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline app script parse passed (`node --check /tmp/index-inline-app.js`)
+  - screenshot passes on required URL:
+    - `temporary screenshots/screenshot-7-profile-edit-pass1.png`
+    - `temporary screenshots/screenshot-8-profile-edit-pass2.png`
+  - authenticated modal QA screenshots:
+    - `temporary screenshots/screenshot-9-profile-edit-auth-check.png`
+    - `temporary screenshots/screenshot-10-profile-edit-auth-check-pass2.png`
+  - runtime DOM assertions confirmed:
+    - title field renders as `SELECT`
+    - label text is `Title`
+    - legend text is `Badge`
+    - title block position is above badge block
+- Known constraints:
+  - `127.0.0.1:5500` login API path returned `501`, so authenticated QA ran on `127.0.0.1:3000`.
+  - active test member has no claimed titles, so dropdown showed empty-state placeholder in this run.
+
+## Recent Update (2026-04-03) - Limited-Time Title Icons Moved to Dedicated `Title-Icons` Folder
+
+- Added new limited-time title reward icon set (gold star style, dark/light variants):
+  - `Legacy Founder`
+  - `Legacy Director`
+  - `Legacy Ambassador`
+  - `Presidential Circle`
+- Created and adopted new folder:
+  - `brand_assets/Icons/Title-Icons/`
+- Updated backend title catalog + achievement icon paths to point to `Title-Icons`.
+- Updated frontend icon map and fallback snapshot to use the new `Title-Icons` paths.
+- Added folder-level README:
+  - `brand_assets/Icons/Title-Icons/README.md`
+- Files updated:
+  - `backend/services/member-achievement.service.js`
+  - `index.html`
+  - `brand_assets/Icons/Title-Icons/README.md`
+  - `brand_assets/Icons/Achievements/README.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - `node --check backend/services/member-achievement.service.js` passed
+  - inline script parse passed for `index.html` (`Inline scripts parse OK: 2`)
+
+## Recent Update (2026-04-03) - Limited-Time Event Achievement Icons No Longer Falling Back to Diamond
+
+- Root cause fixed: frontend icon path validator accepted only `brand_assets/Icons/Achievements/*.svg`, causing new title icon paths in `brand_assets/Icons/Title-Icons/*.svg` to be rejected and replaced by diamond fallback.
+- Updated icon validator to accept both folders:
+  - `Icons/Achievements`
+  - `Icons/Title-Icons`
+- Limited-time event rows now resolve to the configured title star icons.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline script parse passed for `index.html` (`Inline scripts parse OK: 2`)
+
 ## Recent Update (2026-04-03) - Global Claimable Title Catalog Added
 
 - Added server-wide claimable title storage for achievement rewards.

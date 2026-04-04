@@ -3271,29 +3271,6 @@
                     <span class="text-caption text-text-tertiary">Display Name</span>
                     <input id="profile-display-name-input" name="displayName" type="text" maxlength="80" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="Your name"/>
                   </label>
-                  <label class="block md:col-span-2">
-                    <span class="text-caption text-text-tertiary">Account Title</span>
-                    <input
-                      id="profile-account-title-input"
-                      name="accountTitle"
-                      type="text"
-                      maxlength="80"
-                      list="profile-account-title-options"
-                      class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150"
-                      placeholder="Royal Crown Director"
-                    />
-                    <datalist id="profile-account-title-options">
-                      <option value="Ruby Director"></option>
-                      <option value="Emerald Director"></option>
-                      <option value="Sapphire Director"></option>
-                      <option value="Diamond Director"></option>
-                      <option value="Blue Diamond Director"></option>
-                      <option value="Black Diamond Director"></option>
-                      <option value="Crown Director"></option>
-                      <option value="Double Crown Director"></option>
-                      <option value="Royal Crown Director"></option>
-                    </datalist>
-                  </label>
                   <label class="block">
                     <span class="text-caption text-text-tertiary">Country</span>
                     <select id="profile-country-flag-input" name="countryFlag" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
@@ -3323,8 +3300,27 @@
                     <textarea id="profile-bio-input" name="bio" rows="4" maxlength="280" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="Tell your organization about your mission, values, or milestones."></textarea>
                     <p class="mt-1 text-caption text-text-tertiary"><span id="profile-bio-counter">0</span>/280</p>
                   </label>
+                  <label class="block md:col-span-2">
+                    <span class="text-caption text-text-tertiary">Title</span>
+                    <div class="mt-1 flex items-center gap-2 rounded-lg border border-surface-border bg-surface-raised/65 px-2.5 py-2">
+                      <img
+                        id="profile-account-title-preview-icon"
+                        src="/brand_assets/Icons/Achievements/diamond.svg"
+                        alt=""
+                        class="h-5 w-5 rounded-full border border-surface-border bg-surface-base object-contain p-0.5"
+                      />
+                      <span id="profile-account-title-preview-label" class="text-body-sm text-text-secondary">No claimed titles yet</span>
+                    </div>
+                    <select
+                      id="profile-account-title-input"
+                      name="accountTitle"
+                      class="mt-2 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150"
+                    >
+                      <option value="">No claimed titles yet</option>
+                    </select>
+                  </label>
                   <fieldset class="md:col-span-2 rounded-xl border border-surface-border bg-surface-base/55 px-3 py-3">
-                    <legend class="px-1 text-caption text-text-tertiary">Username Badges</legend>
+                    <legend class="px-1 text-caption text-text-tertiary">Badge</legend>
                     <div class="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
                       <label class="inline-flex items-center gap-2 rounded-lg border border-surface-border bg-surface-raised/60 px-2.5 py-2 text-body-sm text-text-secondary">
                         <input id="profile-badge-show-rank-input" type="checkbox" class="h-4 w-4 rounded border-surface-border text-brand-500 focus:ring-brand-500/40" checked/>
@@ -4864,6 +4860,8 @@
       const profileEditForm = document.getElementById('profile-edit-form');
       const profileDisplayNameInput = document.getElementById('profile-display-name-input');
       const profileAccountTitleInput = document.getElementById('profile-account-title-input');
+      const profileAccountTitlePreviewIconElement = document.getElementById('profile-account-title-preview-icon');
+      const profileAccountTitlePreviewLabelElement = document.getElementById('profile-account-title-preview-label');
       const profileCountryFlagInput = document.getElementById('profile-country-flag-input');
       const profileRegionInput = document.getElementById('profile-region-input');
       const profileBioInput = document.getElementById('profile-bio-input');
@@ -4975,20 +4973,20 @@
           light: '/brand_assets/Icons/Achievements/placeholder-light.svg',
         }),
         'time-limited-event-legacy-founder': Object.freeze({
-          dark: '/brand_assets/Icons/Achievements/legacy.svg',
-          light: '/brand_assets/Icons/Achievements/legacy-light.svg',
+          dark: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+          light: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
         }),
         'time-limited-event-legacy-director': Object.freeze({
-          dark: '/brand_assets/Icons/Achievements/legacy.svg',
-          light: '/brand_assets/Icons/Achievements/legacy-light.svg',
+          dark: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg',
+          light: '/brand_assets/Icons/Title-Icons/legacy-director-star-light.svg',
         }),
         'time-limited-event-legacy-ambassador': Object.freeze({
-          dark: '/brand_assets/Icons/Achievements/legacy.svg',
-          light: '/brand_assets/Icons/Achievements/legacy-light.svg',
+          dark: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg',
+          light: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg',
         }),
         'time-limited-event-presidential-circle': Object.freeze({
-          dark: '/brand_assets/Icons/Achievements/legacy.svg',
-          light: '/brand_assets/Icons/Achievements/legacy-light.svg',
+          dark: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
+          light: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg',
         }),
         'rank-personal': Object.freeze({
           dark: '/brand_assets/Icons/Achievements/personal.svg',
@@ -5073,6 +5071,25 @@
         business: 'Business Builder',
         personal: 'Personal Builder',
         'preferred customer': 'Preferred Customer',
+      });
+      const PROFILE_TITLE_ACHIEVEMENT_ID_BY_KEY = Object.freeze({
+        'legacy founder': 'time-limited-event-legacy-founder',
+        'legacy director': 'time-limited-event-legacy-director',
+        'legacy ambassador': 'time-limited-event-legacy-ambassador',
+        'presidential circle': 'time-limited-event-presidential-circle',
+        'ruby director': 'rank-ruby',
+        'emerald director': 'rank-emerald',
+        'sapphire director': 'rank-sapphire',
+        'diamond director': 'rank-diamond',
+        'blue diamond director': 'rank-blue-diamond',
+        'black diamond director': 'rank-black-diamond',
+        'crown director': 'rank-crown',
+        'double crown director': 'rank-double-crown',
+        'royal crown director': 'rank-royal-crown',
+        'legacy leader': 'rank-legacy',
+        'infinity leader': 'rank-infinity',
+        'business builder': 'rank-business',
+        'personal builder': 'rank-personal',
       });
       const PROFILE_BADGE_PLACEHOLDER_ID = 'premiere-journey-enroll-member';
       const PROFILE_BADGE_HOVER_HIDE_DELAY_MS = 90;
@@ -6232,11 +6249,142 @@
         return normalizedValue.slice(0, 80);
       }
 
-      function sanitizeProfileAccountTitle(value, fallback = '') {
+      function normalizeProfileAccountTitleLabel(value) {
         const normalizedValue = String(value || '').trim().replace(/\s+/g, ' ');
-        const clampedValue = normalizedValue.slice(0, 80);
-        const fallbackValue = String(fallback || '').trim().replace(/\s+/g, ' ').slice(0, 80);
-        return clampedValue || fallbackValue;
+        return normalizedValue.slice(0, 80);
+      }
+
+      function normalizeProfileTitleSlug(value) {
+        return String(value || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+      }
+
+      function resolveProfileTitleAchievementIdByLabel(titleLabel, rankLabel = '') {
+        const normalizedTitleKey = normalizeMemberKey(titleLabel).replace(/\s+/g, ' ');
+        if (normalizedTitleKey && Object.prototype.hasOwnProperty.call(PROFILE_TITLE_ACHIEVEMENT_ID_BY_KEY, normalizedTitleKey)) {
+          return PROFILE_TITLE_ACHIEVEMENT_ID_BY_KEY[normalizedTitleKey];
+        }
+
+        const normalizedRank = normalizeMemberKey(rankLabel).replace(/\s+/g, ' ');
+        if (normalizedRank && Object.prototype.hasOwnProperty.call(PROFILE_BADGE_RANK_ACHIEVEMENT_ID_BY_KEY, normalizedRank)) {
+          return PROFILE_BADGE_RANK_ACHIEVEMENT_ID_BY_KEY[normalizedRank];
+        }
+        return '';
+      }
+
+      function resolveProfileCatalogIconPath(entry = {}) {
+        const iconPathPattern = /^\/brand_assets\/Icons\/(?:Achievements|Title-Icons)\/[a-z0-9-]+\.svg$/i;
+        const explicitDarkPath = String(entry?.iconPath || '').trim();
+        const explicitLightPath = String(entry?.iconLightPath || '').trim();
+        const candidatePaths = appTheme === 'light'
+          ? [explicitLightPath, explicitDarkPath]
+          : [explicitDarkPath, explicitLightPath];
+        for (const candidatePath of candidatePaths) {
+          if (iconPathPattern.test(candidatePath)) {
+            return candidatePath;
+          }
+        }
+        return '';
+      }
+
+      function resolveProfileClaimedTitleEntries() {
+        const sourceAchievements = Array.isArray(profileAchievementsSnapshot?.achievements)
+          ? profileAchievementsSnapshot.achievements
+          : [];
+        const titleRewardIconBySlug = new Map();
+        const titleRewardIconByTitleKey = new Map();
+        const achievementIconById = new Map();
+        sourceAchievements.forEach((achievement) => {
+          const safeAchievementId = String(achievement?.id || '').trim();
+          const resolvedAchievementIconPath = resolveProfileAchievementIconPath(achievement);
+          if (safeAchievementId) {
+            achievementIconById.set(safeAchievementId, resolvedAchievementIconPath);
+          }
+
+          if (normalizeMemberKey(achievement?.rewardType) !== 'title') {
+            return;
+          }
+          const rewardTitleLabel = normalizeProfileAccountTitleLabel(achievement?.rewardTitle);
+          const rewardTitleSlug = normalizeProfileTitleSlug(achievement?.rewardTitleSlug || rewardTitleLabel);
+          const rewardTitleKey = normalizeMemberKey(rewardTitleLabel);
+          if (rewardTitleSlug && !titleRewardIconBySlug.has(rewardTitleSlug)) {
+            titleRewardIconBySlug.set(rewardTitleSlug, resolvedAchievementIconPath);
+          }
+          if (rewardTitleKey && !titleRewardIconByTitleKey.has(rewardTitleKey)) {
+            titleRewardIconByTitleKey.set(rewardTitleKey, resolvedAchievementIconPath);
+          }
+        });
+
+        const claimableTitles = Array.isArray(profileAchievementsSnapshot?.claimableTitles)
+          ? profileAchievementsSnapshot.claimableTitles
+          : [];
+        const claimableTitleIconBySlug = new Map();
+        claimableTitles.forEach((entry) => {
+          const safeTitleSlug = normalizeProfileTitleSlug(entry?.titleSlug || entry?.title);
+          const resolvedIconPath = resolveProfileCatalogIconPath(entry);
+          if (!safeTitleSlug || !resolvedIconPath || claimableTitleIconBySlug.has(safeTitleSlug)) {
+            return;
+          }
+          claimableTitleIconBySlug.set(safeTitleSlug, resolvedIconPath);
+        });
+
+        const awardedTitles = Array.isArray(profileAchievementsSnapshot?.accountTitles)
+          ? profileAchievementsSnapshot.accountTitles
+          : [];
+        const seenTitleKeys = new Set();
+        const entries = [];
+        awardedTitles.forEach((entry) => {
+          const title = normalizeProfileAccountTitleLabel(entry?.title);
+          const titleKey = normalizeMemberKey(title);
+          if (!title || !titleKey || seenTitleKeys.has(titleKey)) {
+            return;
+          }
+          const titleSlug = normalizeProfileTitleSlug(entry?.titleSlug || title);
+          const sourceAchievementId = String(entry?.sourceAchievementId || '').trim();
+          const fallbackAchievementId = resolveProfileTitleAchievementIdByLabel(title);
+          const iconPath = achievementIconById.get(sourceAchievementId)
+            || claimableTitleIconBySlug.get(titleSlug)
+            || titleRewardIconBySlug.get(titleSlug)
+            || titleRewardIconByTitleKey.get(titleKey)
+            || resolveProfileBadgeIconPathByAchievementId(fallbackAchievementId || PROFILE_BADGE_PLACEHOLDER_ID);
+          entries.push({
+            title,
+            titleKey,
+            titleSlug,
+            sourceAchievementId,
+            iconPath,
+          });
+          seenTitleKeys.add(titleKey);
+        });
+        return entries;
+      }
+
+      function sanitizeProfileAccountTitle(value, fallback = '') {
+        const clampedValue = normalizeProfileAccountTitleLabel(value);
+        const fallbackValue = normalizeProfileAccountTitleLabel(fallback);
+        const claimedTitleEntries = resolveProfileClaimedTitleEntries();
+        if (claimedTitleEntries.length === 0) {
+          if (profileAchievementsSnapshot && typeof profileAchievementsSnapshot === 'object') {
+            return '';
+          }
+          return clampedValue || fallbackValue;
+        }
+
+        const canonicalTitleByKey = new Map(
+          claimedTitleEntries.map((entry) => [entry.titleKey, entry.title]),
+        );
+        const clampedKey = normalizeMemberKey(clampedValue);
+        if (clampedKey && canonicalTitleByKey.has(clampedKey)) {
+          return canonicalTitleByKey.get(clampedKey);
+        }
+        const fallbackKey = normalizeMemberKey(fallbackValue);
+        if (fallbackKey && canonicalTitleByKey.has(fallbackKey)) {
+          return canonicalTitleByKey.get(fallbackKey);
+        }
+        return claimedTitleEntries[0]?.title || '';
       }
 
       function sanitizeProfileBadgeVisibility(value) {
@@ -6545,6 +6693,7 @@
         ) || 'Unranked';
         const rankAchievementId = resolveProfileBadgeRankAchievementId(activeRankLabel);
         const accountTitleLabel = resolveProfileAccountTitleLabel(activeRankLabel, safeProfileState);
+        const accountTitleIconPath = resolveProfileAccountTitleIconPath(accountTitleLabel, activeRankLabel);
         const memberSinceDateLabel = formatProfileBadgeSinceDateLabel(
           currentSessionUser?.createdAt
             || currentSessionUser?.enrolledAt
@@ -6576,7 +6725,7 @@
             slotLabel: 'Title',
             cardTitle: accountTitleLabel,
             cardSubtitle: subscriberSinceLabel,
-            iconPath: resolveProfileBadgeIconPathByAchievementId(rankAchievementId),
+            iconPath: accountTitleIconPath,
           });
         }
         if (badgeVisibility.extra) {
@@ -6846,6 +6995,68 @@
         profileBioCounterElement.textContent = String(Math.max(0, Math.min(PROFILE_BIO_MAX_LENGTH, bioLength)));
       }
 
+      function resolveProfileAccountTitleIconPath(titleLabel, rankLabel = '') {
+        const normalizedTitle = normalizeProfileAccountTitleLabel(titleLabel);
+        const titleKey = normalizeMemberKey(normalizedTitle);
+        const claimedTitleEntries = resolveProfileClaimedTitleEntries();
+        const matchingClaimedTitleEntry = claimedTitleEntries.find((entry) => entry.titleKey === titleKey) || null;
+        if (matchingClaimedTitleEntry?.iconPath) {
+          return matchingClaimedTitleEntry.iconPath;
+        }
+        const fallbackAchievementId = resolveProfileTitleAchievementIdByLabel(normalizedTitle, rankLabel);
+        return resolveProfileBadgeIconPathByAchievementId(fallbackAchievementId || PROFILE_BADGE_PLACEHOLDER_ID);
+      }
+
+      function syncProfileAccountTitlePreview(selectedTitleLabel, claimedTitleEntries = []) {
+        if (!profileAccountTitlePreviewIconElement || !profileAccountTitlePreviewLabelElement) {
+          return;
+        }
+
+        if (!Array.isArray(claimedTitleEntries) || claimedTitleEntries.length === 0) {
+          profileAccountTitlePreviewIconElement.src = resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID);
+          profileAccountTitlePreviewLabelElement.textContent = 'No claimed titles yet';
+          return;
+        }
+
+        const selectedTitleKey = normalizeMemberKey(selectedTitleLabel);
+        const matchingEntry = claimedTitleEntries.find((entry) => entry.titleKey === selectedTitleKey)
+          || claimedTitleEntries[0];
+        profileAccountTitlePreviewIconElement.src = String(matchingEntry?.iconPath || resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID));
+        profileAccountTitlePreviewLabelElement.textContent = String(matchingEntry?.title || 'Title');
+      }
+
+      function syncProfileAccountTitleOptions(selectedTitleValue = '', fallbackTitleValue = '') {
+        if (!profileAccountTitleInput) {
+          return '';
+        }
+
+        const claimedTitleEntries = resolveProfileClaimedTitleEntries();
+        profileAccountTitleInput.innerHTML = '';
+        profileAccountTitleInput.disabled = claimedTitleEntries.length === 0;
+
+        if (claimedTitleEntries.length === 0) {
+          const emptyOption = document.createElement('option');
+          emptyOption.value = '';
+          emptyOption.textContent = 'No claimed titles yet';
+          profileAccountTitleInput.appendChild(emptyOption);
+          profileAccountTitleInput.value = '';
+          syncProfileAccountTitlePreview('', claimedTitleEntries);
+          return '';
+        }
+
+        claimedTitleEntries.forEach((entry) => {
+          const optionElement = document.createElement('option');
+          optionElement.value = entry.title;
+          optionElement.textContent = entry.title;
+          profileAccountTitleInput.appendChild(optionElement);
+        });
+
+        const selectedTitle = sanitizeProfileAccountTitle(selectedTitleValue, fallbackTitleValue);
+        profileAccountTitleInput.value = selectedTitle;
+        syncProfileAccountTitlePreview(selectedTitle, claimedTitleEntries);
+        return selectedTitle;
+      }
+
       function syncProfileEditForm(profileState) {
         const safeProfileState = sanitizeMemberProfileCustomization(profileState);
         if (profileDisplayNameInput) {
@@ -6860,9 +7071,10 @@
         if (profileBioInput) {
           profileBioInput.value = safeProfileState.bio;
         }
-        if (profileAccountTitleInput) {
-          profileAccountTitleInput.value = safeProfileState.accountTitle || '';
-        }
+        syncProfileAccountTitleOptions(
+          safeProfileState.accountTitle || '',
+          String(resolvePrimaryAccountTitleAward()?.title || '').trim(),
+        );
         if (profileBadgeShowRankInput) {
           profileBadgeShowRankInput.checked = Boolean(safeProfileState.badgeVisibility?.rank);
         }
@@ -6989,8 +7201,8 @@
               eventName: 'Legacy Builder Leadership Program',
               eventStartAt: '2026-04-01T00:00:00.000Z',
               eventEndAt: '2026-06-30T23:59:59.999Z',
-              iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/legacy-light.svg',
+              iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
               requirements: [
                 {
                   id: 'legacy-package-ownership',
@@ -7022,8 +7234,8 @@
               eventName: 'Legacy Builder Leadership Program',
               eventStartAt: '2026-04-01T00:00:00.000Z',
               eventEndAt: '2026-06-30T23:59:59.999Z',
-              iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/legacy-light.svg',
+              iconPath: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg',
+              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-director-star-light.svg',
               requirements: [
                 {
                   id: 'legacy-builder-direct',
@@ -7056,8 +7268,8 @@
               eventName: 'Legacy Builder Leadership Program',
               eventStartAt: '2026-04-01T00:00:00.000Z',
               eventEndAt: '2026-06-30T23:59:59.999Z',
-              iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/legacy-light.svg',
+              iconPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg',
+              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg',
               requirements: [
                 {
                   id: 'second-level-legacy-builder-enrollments',
@@ -7090,8 +7302,8 @@
               eventName: 'Legacy Builder Leadership Program',
               eventStartAt: '2026-04-01T00:00:00.000Z',
               eventEndAt: '2026-06-30T23:59:59.999Z',
-              iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/legacy-light.svg',
+              iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
+              iconLightPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg',
               requirements: [
                 {
                   id: 'third-level-legacy-builder-enrollments',
@@ -7343,6 +7555,32 @@
           currentCycles: 0,
           directLegacyBuilderEnrollments: 0,
           packageEnrollmentsByKey: {},
+          claimableTitles: [
+            {
+              titleSlug: 'legacy-founder',
+              title: 'Legacy Founder',
+              iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
+            },
+            {
+              titleSlug: 'legacy-director',
+              title: 'Legacy Director',
+              iconPath: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg',
+              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-director-star-light.svg',
+            },
+            {
+              titleSlug: 'legacy-ambassador',
+              title: 'Legacy Ambassador',
+              iconPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg',
+              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg',
+            },
+            {
+              titleSlug: 'presidential-circle',
+              title: 'Presidential Circle',
+              iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
+              iconLightPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg',
+            },
+          ],
           accountTitles: [],
           rankClaimPeriod: '',
           rankClaimPeriodLabel: '',
@@ -8285,7 +8523,7 @@
       }
 
       function resolveProfileAchievementIconPath(achievement = {}) {
-        const iconPathPattern = /^\/brand_assets\/Icons\/Achievements\/[a-z0-9-]+\.svg$/i;
+        const iconPathPattern = /^\/brand_assets\/Icons\/(?:Achievements|Title-Icons)\/[a-z0-9-]+\.svg$/i;
         const safeAchievementId = String(achievement?.id || '').trim();
         const mappedPaths = PROFILE_ACHIEVEMENT_ICON_PATHS_BY_ID[safeAchievementId] || {};
         const isLightTheme = appTheme === 'light';
@@ -8438,6 +8676,7 @@
           packageEnrollmentsByKey: payload?.packageEnrollmentsByKey && typeof payload.packageEnrollmentsByKey === 'object'
             ? payload.packageEnrollmentsByKey
             : {},
+          claimableTitles: Array.isArray(payload?.claimableTitles) ? payload.claimableTitles : [],
           accountTitles: Array.isArray(payload?.accountTitles) ? payload.accountTitles : [],
           rankClaimPeriod: String(payload?.rankClaimPeriod || '').trim(),
           rankClaimPeriodLabel: String(payload?.rankClaimPeriodLabel || '').trim(),
@@ -8447,6 +8686,11 @@
           activityStatus: String(payload?.activityStatus || '').trim(),
           activityActiveUntilAt: String(payload?.activityActiveUntilAt || '').trim(),
         };
+        const effectiveProfile = resolveEffectiveMemberProfile();
+        syncProfileAccountTitleOptions(
+          profileAccountTitleInput?.value || effectiveProfile.accountTitle || '',
+          String(resolvePrimaryAccountTitleAward()?.title || '').trim(),
+        );
         renderProfileHandleBadges(resolveEffectiveMemberProfile());
       }
 
@@ -8803,6 +9047,18 @@
         if (profileBioInput) {
           profileBioInput.addEventListener('input', () => {
             syncProfileBioCounter();
+          });
+        }
+        if (profileAccountTitleInput) {
+          profileAccountTitleInput.addEventListener('change', () => {
+            const selectedTitle = sanitizeProfileAccountTitle(
+              profileAccountTitleInput.value,
+              profileAccountTitleInput.value,
+            );
+            if (profileAccountTitleInput.value !== selectedTitle) {
+              profileAccountTitleInput.value = selectedTitle;
+            }
+            syncProfileAccountTitlePreview(selectedTitle, resolveProfileClaimedTitleEntries());
           });
         }
         if (profileCoverUploadButton && profileCoverFileInput) {

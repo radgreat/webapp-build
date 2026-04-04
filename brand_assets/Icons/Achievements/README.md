@@ -35,3 +35,7 @@ These are SVG assets intended for left-side list icons in the profile achievemen
 
 - Default dark-theme icons use `*.svg`.
 - Light-theme icons use `*-light.svg`.
+
+Title reward icon assets are maintained separately in:
+
+- `brand_assets/Icons/Title-Icons/`

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="lf-light-ribbon-left" x1="44" y1="18" x2="60" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EFC966"/>
+      <stop offset="1" stop-color="#C49126"/>
+    </linearGradient>
+    <linearGradient id="lf-light-ribbon-right" x1="68" y1="18" x2="84" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E4BD58"/>
+      <stop offset="1" stop-color="#B8841B"/>
+    </linearGradient>
+    <radialGradient id="lf-light-core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(64 72) rotate(90) scale(40)">
+      <stop offset="0" stop-color="#FFFBE2"/>
+      <stop offset="0.55" stop-color="#F1CD63"/>
+      <stop offset="1" stop-color="#B98922"/>
+    </radialGradient>
+  </defs>
+
+  <path d="M46 18H58V48L50 58L42 45L46 18Z" fill="url(#lf-light-ribbon-left)"/>
+  <path d="M70 18H82L86 45L78 58L70 48V18Z" fill="url(#lf-light-ribbon-right)"/>
+
+  <circle cx="64" cy="74" r="30" fill="url(#lf-light-core)" stroke="#FFF8DE" stroke-opacity="0.96" stroke-width="2.5"/>
+  <path d="M64 50L71 67H89L74.5 77.2L80.2 95L64 84.2L47.8 95L53.5 77.2L39 67H57L64 50Z" fill="#FFFFFF" fill-opacity="0.95"/>
+</svg>

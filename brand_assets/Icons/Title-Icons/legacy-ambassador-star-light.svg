@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="la-light-ribbon-left" x1="44" y1="18" x2="60" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EFC966"/>
+      <stop offset="1" stop-color="#C49126"/>
+    </linearGradient>
+    <linearGradient id="la-light-ribbon-right" x1="68" y1="18" x2="84" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E4BD58"/>
+      <stop offset="1" stop-color="#B8841B"/>
+    </linearGradient>
+    <radialGradient id="la-light-core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(64 76) rotate(90) scale(40)">
+      <stop offset="0" stop-color="#FFFBE2"/>
+      <stop offset="0.55" stop-color="#F1CD63"/>
+      <stop offset="1" stop-color="#B98922"/>
+    </radialGradient>
+  </defs>
+
+  <path d="M46 18H58V48L50 58L42 45L46 18Z" fill="url(#la-light-ribbon-left)"/>
+  <path d="M70 18H82L86 45L78 58L70 48V18Z" fill="url(#la-light-ribbon-right)"/>
+
+  <circle cx="64" cy="76" r="30" fill="url(#la-light-core)" stroke="#FFF8DE" stroke-opacity="0.96" stroke-width="2.5"/>
+  <path d="M64 57L69.5 70H83.5L72 78.2L76.5 92L64 83.5L51.5 92L56 78.2L44.5 70H58.5L64 57Z" fill="#FFFFFF" fill-opacity="0.95"/>
+
+  <path d="M64 42L66 47H71L67 50L68.5 55L64 52L59.5 55L61 50L57 47H62L64 42Z" fill="#FFE9A3"/>
+  <path d="M45 50L47 54.8H52L48 57.8L49.5 62.6L45 59.6L40.5 62.6L42 57.8L38 54.8H43L45 50Z" fill="#FFE9A3"/>
+  <path d="M83 50L85 54.8H90L86 57.8L87.5 62.6L83 59.6L78.5 62.6L80 57.8L76 54.8H81L83 50Z" fill="#FFE9A3"/>
+</svg>
