@@ -9721,3 +9721,36 @@ File: `index.html`
 - `backend/services/member-achievement.service.js`
 - `Claude_Notes/charge-documentation.md`
 - `Claude_Notes/Current Project Status.md`
+
+## Rank Direct-Sponsor Requirement Grouping Fix (2026-04-03)
+
+### What changed
+
+- Corrected left/right direct sponsor requirements for rank groups:
+  - `Ruby` to `Sapphire` now require `1:1`.
+  - `Diamond` to `Black Diamond` now require `2:2`.
+  - `Crown` to `Royal Crown` now require `3:3`.
+- Applied this mapping in both:
+  - backend rank achievement definitions (eligibility/claim logic)
+  - frontend fallback rank achievement definitions (UI consistency when fallback data is used)
+
+### Design decisions
+
+- Kept cycle requirements unchanged and only corrected direct sponsor pair thresholds.
+- Updated both server and client definitions together to prevent mismatch between displayed requirements and claim evaluation.
+
+### Known limitations
+
+- None introduced; this is a data-definition correction.
+
+### Validation / QA
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- `index.html` inline script parse check passed (`index-inline-script:ok`).
+
+### Files affected
+
+- `backend/services/member-achievement.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`

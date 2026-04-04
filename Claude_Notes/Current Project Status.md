@@ -4384,3 +4384,22 @@ Last Updated: 2026-04-03
 
 - Validation:
   - `node --check backend/services/member-achievement.service.js` passed.
+
+## Recent Update (2026-04-03) - Rank Direct Requirement Groups Fixed
+
+- Completed:
+  - fixed rank direct sponsor pair requirements to the correct grouped logic:
+    - Ruby/Emerald/Sapphire = `1:1`
+    - Diamond/Blue Diamond/Black Diamond = `2:2`
+    - Crown/Double Crown/Royal Crown = `3:3`
+  - applied the fix in both backend achievement definitions and frontend fallback rank definitions.
+
+- Files updated:
+  - `backend/services/member-achievement.service.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - `index.html` inline script parse check passed (`index-inline-script:ok`).
