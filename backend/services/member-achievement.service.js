@@ -791,7 +791,7 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     lockReason = `Enroll ${requiredDirectSponsorsTotal.toLocaleString()} member${requiredDirectSponsorsTotal === 1 ? '' : 's'} (${currentDirectSponsorsTotal.toLocaleString()}/${requiredDirectSponsorsTotal.toLocaleString()}).`;
   } else if (!alreadyClaimed && requiredDirectSponsorsPerSide > 0 && !meetsDirectSponsorRequirement) {
     lockReason = isRankTrack
-      ? `Direct sponsors this month must be balanced at ${requiredDirectSponsorsPerSide.toLocaleString()}:${requiredDirectSponsorsPerSide.toLocaleString()} (Left ${currentLeftDirectSponsors.toLocaleString()}, Right ${currentRightDirectSponsors.toLocaleString()}).`
+      ? `Direct sponsors for this rank must be balanced at ${requiredDirectSponsorsPerSide.toLocaleString()}:${requiredDirectSponsorsPerSide.toLocaleString()} (Left ${currentLeftDirectSponsors.toLocaleString()}, Right ${currentRightDirectSponsors.toLocaleString()}).`
       : `Direct sponsors must be balanced at ${requiredDirectSponsorsPerSide.toLocaleString()}:${requiredDirectSponsorsPerSide.toLocaleString()} (Left ${currentLeftDirectSponsors.toLocaleString()}, Right ${currentRightDirectSponsors.toLocaleString()}).`;
   } else if (!alreadyClaimed && requiredCycles > 0 && !meetsCycleRequirement) {
     lockReason = isRankTrack

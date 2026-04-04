@@ -4370,3 +4370,17 @@ Last Updated: 2026-04-03
 
 - Validation:
   - not run (text-only copy change).
+
+## Recent Update (2026-04-03) - Rank Balance Message Copy Clarified
+
+- Completed:
+  - changed rank lock-reason copy from `Direct sponsors this month must be balanced...` to `Direct sponsors for this rank must be balanced...`.
+  - preserved all requirement logic and progress values.
+
+- Files updated:
+  - `backend/services/member-achievement.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check backend/services/member-achievement.service.js` passed.

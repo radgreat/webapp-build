@@ -9696,3 +9696,28 @@ File: `index.html`
 - `index.html`
 - `Claude_Notes/charge-documentation.md`
 - `Claude_Notes/Current Project Status.md`
+
+## Rank Lock-Reason Copy Update - "For This Rank" (2026-04-03)
+
+### What changed
+
+- Updated rank-track lock reason wording from `Direct sponsors this month must be balanced...` to `Direct sponsors for this rank must be balanced...`.
+- Kept numeric requirement and left/right progress interpolation unchanged.
+
+### Design decisions
+
+- Switched to rank-scoped wording so users targeting higher ranks are not constrained by month-specific phrasing in this message.
+
+### Known limitations
+
+- None introduced (copy-only change in backend response text).
+
+### Validation / QA
+
+- `node --check backend/services/member-achievement.service.js` passed.
+
+### Files affected
+
+- `backend/services/member-achievement.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
