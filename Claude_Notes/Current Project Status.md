@@ -7,6 +7,149 @@ Last Updated: 2026-04-03
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
 
+## Recent Update (2026-04-03) - Global Claimable Title Catalog Added
+
+- Added server-wide claimable title storage for achievement rewards.
+- New table/store:
+  - `charge.member_title_catalog`
+  - file: `backend/stores/member-title-catalog.store.js`
+- Achievement service now seeds and reads the global catalog, and validates title reward claims against active catalog entries.
+- Catalog is now separate from per-user awards:
+  - `member_title_catalog` = global claimable definitions
+  - `member_title_awards` = user-level claimed titles
+- Seeded active title:
+  - `presidential-ambassador` (`Presidential Ambassador`)
+- Files updated:
+  - `backend/stores/member-title-catalog.store.js`
+  - `backend/services/member-achievement.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - `node --check backend/services/member-achievement.service.js` passed
+  - `node --check backend/stores/member-title-catalog.store.js` passed
+  - DB check confirms `charge.member_title_catalog` exists and seeded row is present
+
+## Recent Update (2026-04-03) - Time-Limited Event Text Cleanup
+
+- Removed event-card lines from Profile Achievements UI:
+  - `Prerequisites: Legacy Builder Leadership Program`
+  - `Account-bound title reward`
+- Backend logic for event windows and claim eligibility is unchanged.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline script parse passed for `index.html` (`Parsed 2 inline scripts successfully.`)
+
+## Recent Update (2026-04-03) - Achievement Center Time-Limited Event + Account-Bound Title Storage
+
+- Added new top-tab order in Profile Achievement Center:
+  - `Time-Limited Event`
+  - `Premiere Life`
+- Added `Legacy Builder Leadership Program` category under `Time-Limited Event`.
+- Added event achievement:
+  - `1st Matrix Completion`
+  - requirement: `Enroll 3 Legacy Package`
+  - reward: `Title: Presidential Ambassador`
+- Implemented server-side account title persistence for event rewards:
+  - new DB-backed `member_title_awards` store/table
+  - deduplicated by account + title slug
+  - linked to source achievement claim metadata
+- Added achievement payload support for server-awarded titles (`accountTitles`) and profile title fallback usage from awarded title records.
+- Files updated:
+  - `index.html`
+  - `backend/services/member-achievement.service.js`
+  - `backend/stores/member-title-award.store.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - `node --check backend/services/member-achievement.service.js` passed
+  - `node --check backend/stores/member-title-award.store.js` passed
+  - inline script parse passed for `index.html` (`Parsed 2 inline scripts successfully.`)
+
+## Recent Update (2026-04-03) - Hovered Username Badge Size Increased
+
+- Increased badge chip size effect on hover/focus for stronger interaction feedback.
+- Hover transform updated from `1.08` to `1.14`.
+- Added hover/focus scaling for inner badge icon.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation screenshot:
+  - `temporary screenshots/screenshot-6-profile-badge-hover-size-up.png`
+
+## Recent Update (2026-04-03) - Circle Badge Icon Size Increased
+
+- Increased profile username badge icon size inside circular chips for clearer visual weight.
+- Updated icon dimension from `1.15rem` to `1.3rem`.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation screenshot:
+  - `temporary screenshots/screenshot-5-profile-badge-icon-bigger.png`
+
+## Recent Update (2026-04-03) - Badge Hover Card Rolled Back to Original V1 Styling
+
+- Reverted profile username badge hover card back to the first approved visual version.
+- Removed the added orange/green top-left circles from hover card UI.
+- Restored the earlier compact hover card dimensions/spacing while retaining circular badge chips.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation screenshot:
+  - `temporary screenshots/screenshot-4-profile-badge-hover-v1-restored.png`
+
+## Recent Update (2026-04-03) - Profile Header Badge Icons + Discord-Style Hover + Edit Controls
+
+- Profile header `@username` now supports ordered badge icons:
+  - `Rank`
+  - `Title`
+  - `Extra`
+- Added Discord-inspired badge hover card behavior:
+  - large floating dark card
+  - icon-focused hero area
+  - title/subtitle text treatment
+  - hover/focus-triggered reveal with pointer notch
+- Added editable profile controls for badge system:
+  - `Account Title` input
+  - show/hide toggles for rank/title/extra badges
+- Badge rendering is now re-synced when:
+  - profile state changes
+  - Good Life/achievement payloads refresh
+  - theme changes
+  - account rank snapshot updates
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline script parse check passed for `index.html`
+  - visual pass done in 2 rounds:
+    - `temporary screenshots/screenshot-1-profile-badge-round1.png`
+    - `temporary screenshots/screenshot-2-profile-badge-round2.png`
+
+## Recent Update (2026-04-03) - Good Life Bound to Rank Advancement Monthly Run (Not Persistent Account Rank)
+
+- Implemented monthly rank-run high watermark tracking for Rank Advancement in backend:
+  - added DB-backed monthly progress table for rank run (`user_id + period_key`)
+  - records highest rank milestone reached in the month and carries it forward until month reset
+- Updated Rank Advancement evaluation behavior:
+  - rank reward eligibility can now remain unlocked for the month if the member already hit the milestone earlier in the same month
+  - monthly reset behavior remains period-key based (`YYYY-MM`)
+- Updated Good Life monthly progression source:
+  - Good Life no longer derives from persistent `accountRank`/title
+  - Good Life now derives from Rank Advancement monthly run high watermark
+- Account rank/title persistence behavior remains unchanged:
+  - account rank can stay on the account record independent of monthly bonus loops
+- Files updated:
+  - `backend/services/member-achievement.service.js`
+  - `backend/services/member-good-life.service.js`
+  - `backend/stores/member-rank-advancement.store.js`
+
 ## Recent Update (2026-04-03) - Direct Sponsor Requirement Interpretation Applied
 
 - Requirement numbers are now interpreted as **left/right pair counts**:
@@ -4248,6 +4391,86 @@ Last Updated: 2026-04-03
   - `node --check backend/services/member-achievement.service.js` passed.
   - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
 
+## Recent Update (2026-04-03) - Achievement List Reduced to Two Text Lines
+
+- Completed:
+  - list cards now render only:
+    - achievement title
+    - one detail line (requirement text or fallback description)
+  - removed additional list text lines (prerequisites, progress lines, lock/status/payout text, reward label text chip).
+  - kept claim button logic unchanged.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+## Recent Update (2026-04-03) - Legacy Director "0/3" Text Removed
+
+- Completed:
+  - removed the Legacy Director text line that displayed `...Legacy Builder Package members 0/3`.
+  - suppressed the same message from lock-reason rendering for Legacy Director.
+  - kept eligibility logic intact; this is display/copy cleanup.
+
+- Files updated:
+  - `backend/services/member-achievement.service.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+## Recent Update (2026-04-03) - Requirements Label Removal Follow-Up
+
+- Completed:
+  - removed replacement label (`Checklist`) and kept plain requirement text only.
+  - adjusted bonus completion copy to avoid introducing a new replacement label phrase.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+## Recent Update (2026-04-03) - Legacy Director Text Simplified
+
+- Completed:
+  - removed `Personally enroll ...` wording for Legacy Director text and replaced with `Enroll ...`.
+  - updated backend and fallback copy so the same phrase is consistent across UI and lock messages.
+  - no achievement logic changes.
+
+- Files updated:
+  - `backend/services/member-achievement.service.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+## Recent Update (2026-04-03) - Duplicate Middle Text Removed in Achievement Card
+
+- Completed:
+  - removed duplicated middle text line from achievement card body.
+  - removed unused `requirementSummary` computation.
+  - retained progress lines and all claim/eligibility behavior.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
 ## Recent Update (2026-04-03) - Rank Icon Expansion (Ruby/Emerald/Sapphire + Light Variants)
 
 - Completed:
@@ -4403,3 +4626,105 @@ Last Updated: 2026-04-03
 - Validation:
   - `node --check backend/services/member-achievement.service.js` passed.
   - `index.html` inline script parse check passed (`index-inline-script:ok`).
+
+## Recent Update (2026-04-03) - Pack Rank Icons Added (Personal/Business/Infinity/Legacy)
+
+- Completed:
+  - added icon set (dark + light) for pack ranks:
+    - Personal (`Bronze`)
+    - Business (`Silver`)
+    - Infinity (`Gold`)
+    - Legacy (`Platinum`)
+  - added new rank icon ids to profile icon map:
+    - `rank-personal`, `rank-business`, `rank-infinity`, `rank-legacy`
+  - extended profile badge rank matching so these ranks now resolve to their own icons.
+  - updated achievements icon README to include new icon files and metal mapping labels.
+
+- Files updated:
+  - `brand_assets/Icons/Achievements/personal.svg`
+  - `brand_assets/Icons/Achievements/personal-light.svg`
+  - `brand_assets/Icons/Achievements/business.svg`
+  - `brand_assets/Icons/Achievements/business-light.svg`
+  - `brand_assets/Icons/Achievements/infinity.svg`
+  - `brand_assets/Icons/Achievements/infinity-light.svg`
+  - `brand_assets/Icons/Achievements/legacy.svg`
+  - `brand_assets/Icons/Achievements/legacy-light.svg`
+  - `brand_assets/Icons/Achievements/README.md`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+## Recent Update (2026-04-03) - Pack Icons Redesigned (No Background Box)
+
+- Completed:
+  - redesigned pack rank icon set for:
+    - Personal (Bronze)
+    - Business (Silver)
+    - Infinity (Gold)
+    - Legacy (Platinum)
+  - removed square/tile background from these icons (transparent outer canvas).
+  - kept dark + light variants and existing filenames so mappings continue to work without code changes.
+
+- Files updated:
+  - `brand_assets/Icons/Achievements/personal.svg`
+  - `brand_assets/Icons/Achievements/personal-light.svg`
+  - `brand_assets/Icons/Achievements/business.svg`
+  - `brand_assets/Icons/Achievements/business-light.svg`
+  - `brand_assets/Icons/Achievements/infinity.svg`
+  - `brand_assets/Icons/Achievements/infinity-light.svg`
+  - `brand_assets/Icons/Achievements/legacy.svg`
+  - `brand_assets/Icons/Achievements/legacy-light.svg`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - verified no outer background box layers in redesigned pack icons.
+  - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+## Recent Update (2026-04-03) - Time-Limited Event Title Ladder + Catalog Cleanup
+
+- Completed:
+  - finalized Time-Limited Event to 4 claimable title rewards:
+    - Foundation Level: `Legacy Founder`
+    - Level 2: `Legacy Director`
+    - Level 3: `Legacy Ambassador`
+    - Top Level: `Presidential Circle`
+  - updated fallback achievement snapshot in `index.html` to match backend ids/copy and removed old `Presidential Ambassador` legacy fallback item.
+  - added seed-sync cleanup logic so stale system-seeded event titles are auto-deactivated from `member_title_catalog`.
+  - verified catalog now returns the intended active claimable titles only.
+
+- Files updated:
+  - `backend/services/member-achievement.service.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - `node --check backend/stores/member-title-catalog.store.js` passed.
+  - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+  - DB check confirmed:
+    - active: `legacy-founder`, `legacy-director`, `legacy-ambassador`, `presidential-circle`
+    - old `presidential-ambassador` is inactive.
+
+## Recent Update (2026-04-03) - Removed "Requirements" Wording from UI Copy
+
+- Completed:
+  - replaced visible `Requirements:` label with `Checklist:` in profile achievements.
+  - removed `Requirements` wording from direct sponsorship and tier unlock helper text.
+  - changed bonus completion text from `requirements met` to `conditions met`.
+  - changed backend fallback error message to `Current progress does not meet ...`.
+  - preserved all achievement logic/data shape (text-only update).
+
+- Files updated:
+  - `index.html`
+  - `backend/services/member-achievement.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).

@@ -2,6 +2,7 @@ import {
   upsertMemberGoodLifeMonthlyHighest,
   markMemberGoodLifeMonthlyClaim,
 } from '../stores/member-good-life.store.js';
+import { resolveRankAdvancementRunSnapshotForMember } from './member-achievement.service.js';
 
 const RANK_PROGRESSION = Object.freeze([
   'Preferred Customer',
@@ -118,11 +119,6 @@ function resolveRankIndex(rankValue) {
   }
   const lookupKey = normalizeCredential(normalizedLabel);
   return RANK_INDEX_BY_KEY.has(lookupKey) ? RANK_INDEX_BY_KEY.get(lookupKey) : -1;
-}
-
-function resolveCurrentMemberRank(member = {}) {
-  const rawRank = normalizeText(member?.accountRank || member?.rank);
-  return normalizeRankLabelForGoodLife(rawRank) || 'Unranked';
 }
 
 function resolvePeriodKeyFromDate(value = Date.now()) {
@@ -289,7 +285,14 @@ async function buildGoodLifeMonthlySnapshot(member = {}) {
   const periodKey = resolvePeriodKeyFromDate(Date.now());
   const periodLabel = formatPeriodLabel(periodKey) || 'This Month';
 
-  const currentRank = resolveCurrentMemberRank(member);
+  let rankAdvancementRunSnapshot = null;
+  try {
+    rankAdvancementRunSnapshot = await resolveRankAdvancementRunSnapshotForMember(member);
+  } catch {
+    rankAdvancementRunSnapshot = null;
+  }
+
+  const currentRank = normalizeRankLabelForGoodLife(rankAdvancementRunSnapshot?.runRankTitle) || 'Unranked';
   const currentRankIndex = resolveRankIndex(currentRank);
   const highestCurrentMilestone = resolveHighestMilestoneForRankIndex(currentRankIndex);
 

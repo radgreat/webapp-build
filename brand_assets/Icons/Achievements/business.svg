@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="business-ribbon-left" x1="43" y1="22" x2="62" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#C9D6E3"/>
+      <stop offset="1" stop-color="#98A8B9"/>
+    </linearGradient>
+    <linearGradient id="business-ribbon-right" x1="66" y1="22" x2="85" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#AAB9C8"/>
+      <stop offset="1" stop-color="#7F8EA0"/>
+    </linearGradient>
+    <linearGradient id="business-medal" x1="40" y1="47" x2="88" y2="97" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F5FAFF"/>
+      <stop offset="0.55" stop-color="#BCC9D8"/>
+      <stop offset="1" stop-color="#8295A9"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M46 22H59V51L50 61L41 47L46 22Z" fill="url(#business-ribbon-left)"/>
+  <path d="M69 22H82L87 47L78 61L69 51V22Z" fill="url(#business-ribbon-right)"/>
+
+  <circle cx="64" cy="74" r="27" fill="url(#business-medal)" stroke="#F8FCFF" stroke-opacity="0.88" stroke-width="2"/>
+  <circle cx="64" cy="74" r="17" fill="#58697D" fill-opacity="0.3"/>
+
+  <rect x="54" y="68" width="20" height="13" rx="2.5" fill="#F8FCFF"/>
+  <path d="M58 68V64.5C58 62.6 59.6 61 61.5 61H66.5C68.4 61 70 62.6 70 64.5V68" stroke="#60758C" stroke-width="2" stroke-linecap="round"/>
+</svg>

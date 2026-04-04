@@ -4,6 +4,14 @@ Initial icon set for profile achievements:
 
 - `placeholder.svg`
 - `placeholder-light.svg`
+- `personal.svg` (Bronze)
+- `personal-light.svg` (Bronze)
+- `business.svg` (Silver)
+- `business-light.svg` (Silver)
+- `infinity.svg` (Gold)
+- `infinity-light.svg` (Gold)
+- `legacy.svg` (Platinum)
+- `legacy-light.svg` (Platinum)
 - `ruby.svg`
 - `ruby-light.svg`
 - `emerald.svg`

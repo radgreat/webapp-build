@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="legacy-ribbon-left" x1="43" y1="22" x2="62" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D2DEEB"/>
+      <stop offset="1" stop-color="#A5B7CA"/>
+    </linearGradient>
+    <linearGradient id="legacy-ribbon-right" x1="66" y1="22" x2="85" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#B6C7D8"/>
+      <stop offset="1" stop-color="#889DB2"/>
+    </linearGradient>
+    <linearGradient id="legacy-medal" x1="40" y1="47" x2="88" y2="97" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F7FBFF"/>
+      <stop offset="0.55" stop-color="#CBD9E8"/>
+      <stop offset="1" stop-color="#90A6BC"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M46 22H59V51L50 61L41 47L46 22Z" fill="url(#legacy-ribbon-left)"/>
+  <path d="M69 22H82L87 47L78 61L69 51V22Z" fill="url(#legacy-ribbon-right)"/>
+
+  <circle cx="64" cy="74" r="27" fill="url(#legacy-medal)" stroke="#FAFDFF" stroke-opacity="0.9" stroke-width="2"/>
+  <circle cx="64" cy="74" r="17" fill="#60788F" fill-opacity="0.3"/>
+
+  <path d="M52 80V69L58.5 73.5L64 65L69.5 73.5L76 69V80H52Z" fill="#FFFFFF" fill-opacity="0.96"/>
+  <rect x="52" y="80" width="24" height="3.5" rx="1.75" fill="#E9F1F8"/>
+  <circle cx="64" cy="72" r="2" fill="#8EA8C0"/>
+</svg>

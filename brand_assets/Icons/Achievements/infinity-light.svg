@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="infinity-light-ribbon-left" x1="43" y1="22" x2="62" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EAC85F"/>
+      <stop offset="1" stop-color="#CB9F34"/>
+    </linearGradient>
+    <linearGradient id="infinity-light-ribbon-right" x1="66" y1="22" x2="85" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#DDB44B"/>
+      <stop offset="1" stop-color="#B08628"/>
+    </linearGradient>
+    <linearGradient id="infinity-light-medal" x1="40" y1="47" x2="88" y2="97" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF6CC"/>
+      <stop offset="0.55" stop-color="#E9C654"/>
+      <stop offset="1" stop-color="#BE932A"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M46 22H59V51L50 61L41 47L46 22Z" fill="url(#infinity-light-ribbon-left)"/>
+  <path d="M69 22H82L87 47L78 61L69 51V22Z" fill="url(#infinity-light-ribbon-right)"/>
+
+  <circle cx="64" cy="74" r="27" fill="url(#infinity-light-medal)" stroke="#FFFBE8" stroke-opacity="0.96" stroke-width="2"/>
+  <circle cx="64" cy="74" r="17" fill="#9D761E" fill-opacity="0.2"/>
+
+  <path d="M45 74C45 69.0294 49.0294 65 54 65C58.4532 65 61.5266 68.2997 64 72C66.4734 68.2997 69.5468 65 74 65C78.9706 65 83 69.0294 83 74C83 78.9706 78.9706 83 74 83C69.5468 83 66.4734 79.7003 64 76C61.5266 79.7003 58.4532 83 54 83C49.0294 83 45 78.9706 45 74Z" stroke="#FFFDF1" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

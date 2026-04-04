@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="personal-ribbon-left" x1="43" y1="22" x2="62" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D49361"/>
+      <stop offset="1" stop-color="#A4633B"/>
+    </linearGradient>
+    <linearGradient id="personal-ribbon-right" x1="66" y1="22" x2="85" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#B87548"/>
+      <stop offset="1" stop-color="#8D542F"/>
+    </linearGradient>
+    <linearGradient id="personal-medal" x1="40" y1="47" x2="88" y2="97" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F8D0AF"/>
+      <stop offset="0.55" stop-color="#C48351"/>
+      <stop offset="1" stop-color="#8E5935"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M46 22H59V51L50 61L41 47L46 22Z" fill="url(#personal-ribbon-left)"/>
+  <path d="M69 22H82L87 47L78 61L69 51V22Z" fill="url(#personal-ribbon-right)"/>
+
+  <circle cx="64" cy="74" r="27" fill="url(#personal-medal)" stroke="#FFE7D5" stroke-opacity="0.86" stroke-width="2"/>
+  <circle cx="64" cy="74" r="17" fill="#734528" fill-opacity="0.32"/>
+  <path d="M64 61L67.2 69.5H76.2L69 74.7L71.8 83.2L64 77.9L56.2 83.2L59 74.7L51.8 69.5H60.8L64 61Z" fill="#FFF3E7"/>
+</svg>

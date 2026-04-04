@@ -5,16 +5,111 @@ import {
   findMemberAchievementClaimByUserIdAndAchievementIdAndPeriod,
   insertMemberAchievementClaim,
 } from '../stores/member-achievement.store.js';
+import {
+  upsertMemberRankAdvancementMonthlyHighest,
+} from '../stores/member-rank-advancement.store.js';
+import {
+  listActiveMemberTitleAwardsByUserId,
+  findActiveMemberTitleAwardByUserIdAndSlug,
+  insertMemberTitleAward,
+} from '../stores/member-title-award.store.js';
+import {
+  listActiveMemberTitleCatalogEntries,
+  findActiveMemberTitleCatalogEntryBySlug,
+  upsertMemberTitleCatalogEntry,
+} from '../stores/member-title-catalog.store.js';
 import { getBinaryTreeMetrics } from './metrics.service.js';
 import { readRegisteredMembersStore } from '../stores/member.store.js';
 
 const ACCOUNT_ACTIVITY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+const LEGACY_BUILDER_EVENT_ID = 'legacy-builder-leadership-program-q2-2026';
+const LEGACY_BUILDER_EVENT_START_AT = '2026-04-01T00:00:00.000Z';
+const LEGACY_BUILDER_EVENT_END_AT = '2026-06-30T23:59:59.999Z';
+const LEGACY_BUILDER_PACKAGE_KEY_SET = new Set([
+  'legacy-builder-pack',
+  'legacy-builder-package',
+  'legacy-pack',
+  'legacy-package',
+]);
+const DEFAULT_MEMBER_TITLE_CATALOG_SEED = Object.freeze([
+  Object.freeze({
+    titleSlug: 'legacy-founder',
+    title: 'Legacy Founder',
+    description: 'Foundation title rewarded for enrolling or upgrading to Legacy Package.',
+    iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
+    sourceAchievementId: 'time-limited-event-legacy-founder',
+    sourceEventId: LEGACY_BUILDER_EVENT_ID,
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Legacy Builder Leadership Program',
+      rewardType: 'title',
+      level: 1,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'legacy-director',
+    title: 'Legacy Director',
+    description: 'Level 2 title rewarded for enrolling 3 Legacy Builder Package members.',
+    iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
+    sourceAchievementId: 'time-limited-event-legacy-director',
+    sourceEventId: LEGACY_BUILDER_EVENT_ID,
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Legacy Builder Leadership Program',
+      rewardType: 'title',
+      level: 2,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'legacy-ambassador',
+    title: 'Legacy Ambassador',
+    description: 'Level 3 title rewarded for building 9 second-level Legacy Package members.',
+    iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
+    sourceAchievementId: 'time-limited-event-legacy-ambassador',
+    sourceEventId: LEGACY_BUILDER_EVENT_ID,
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Legacy Builder Leadership Program',
+      rewardType: 'title',
+      level: 3,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'presidential-circle',
+    title: 'Presidential Circle',
+    description: 'Top title rewarded for completing the Legacy Leadership Tier Card or building 27 third-level Legacy Package members.',
+    iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
+    sourceAchievementId: 'time-limited-event-presidential-circle',
+    sourceEventId: LEGACY_BUILDER_EVENT_ID,
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Legacy Builder Leadership Program',
+      rewardType: 'title',
+      level: 4,
+      managedBy: 'system-seed',
+    }),
+  }),
+]);
 
 const PROFILE_ACHIEVEMENT_TABS = Object.freeze([
+  Object.freeze({ id: 'time-limited-event', label: 'Time-Limited Event' }),
   Object.freeze({ id: 'premiere-life', label: 'Premiere Life' }),
 ]);
 
 const PROFILE_ACHIEVEMENT_CATEGORIES = Object.freeze([
+  Object.freeze({
+    id: 'legacy-builder-leadership-program',
+    tabId: 'time-limited-event',
+    label: 'Legacy Builder Leadership Program',
+    description: 'Limited-time account title reward track.',
+  }),
   Object.freeze({
     id: 'premiere-journey',
     tabId: 'premiere-life',
@@ -24,6 +119,91 @@ const PROFILE_ACHIEVEMENT_CATEGORIES = Object.freeze([
 ]);
 
 const PROFILE_ACHIEVEMENTS = Object.freeze([
+  Object.freeze({
+    id: 'time-limited-event-legacy-founder',
+    tabId: 'time-limited-event',
+    categoryId: 'legacy-builder-leadership-program',
+    title: 'Foundation Level: Legacy Founder',
+    description: 'Enroll or upgrade to Legacy Package',
+    requiresLegacyPackageOwnership: true,
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'legacy-founder',
+    rewardTitle: 'Legacy Founder',
+    rewardLabel: 'Title: Legacy Founder',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    eventId: LEGACY_BUILDER_EVENT_ID,
+    eventName: 'Legacy Builder Leadership Program',
+    eventStartAt: LEGACY_BUILDER_EVENT_START_AT,
+    eventEndAt: LEGACY_BUILDER_EVENT_END_AT,
+    iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
+    iconLightPath: '/brand_assets/Icons/Achievements/legacy-light.svg',
+  }),
+  Object.freeze({
+    id: 'time-limited-event-legacy-director',
+    tabId: 'time-limited-event',
+    categoryId: 'legacy-builder-leadership-program',
+    title: 'Level 2: Legacy Director',
+    description: 'Enroll 3 Legacy Builder Package members',
+    requiredLegacyBuilderDirectEnrollments: 3,
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'legacy-director',
+    rewardTitle: 'Legacy Director',
+    rewardLabel: 'Title: Legacy Director',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    eventId: LEGACY_BUILDER_EVENT_ID,
+    eventName: 'Legacy Builder Leadership Program',
+    eventStartAt: LEGACY_BUILDER_EVENT_START_AT,
+    eventEndAt: LEGACY_BUILDER_EVENT_END_AT,
+    iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
+    iconLightPath: '/brand_assets/Icons/Achievements/legacy-light.svg',
+  }),
+  Object.freeze({
+    id: 'time-limited-event-legacy-ambassador',
+    tabId: 'time-limited-event',
+    categoryId: 'legacy-builder-leadership-program',
+    title: 'Level 3: Legacy Ambassador',
+    description: 'Build 9 second-level Legacy Package members (3 personally enrolled Legacy Builder members each enroll 3 Legacy Package members).',
+    requiredLegacyBuilderSecondLevelEnrollments: 9,
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'legacy-ambassador',
+    rewardTitle: 'Legacy Ambassador',
+    rewardLabel: 'Title: Legacy Ambassador',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    eventId: LEGACY_BUILDER_EVENT_ID,
+    eventName: 'Legacy Builder Leadership Program',
+    eventStartAt: LEGACY_BUILDER_EVENT_START_AT,
+    eventEndAt: LEGACY_BUILDER_EVENT_END_AT,
+    iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
+    iconLightPath: '/brand_assets/Icons/Achievements/legacy-light.svg',
+  }),
+  Object.freeze({
+    id: 'time-limited-event-presidential-circle',
+    tabId: 'time-limited-event',
+    categoryId: 'legacy-builder-leadership-program',
+    title: 'Top Level: Presidential Circle',
+    description: 'Complete the Legacy Leadership Tier Card or build 27 third-level Legacy Package members (9x3 structure).',
+    requiredLegacyBuilderThirdLevelEnrollments: 27,
+    allowLegacyLeadershipTierCardCompletion: true,
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'presidential-circle',
+    rewardTitle: 'Presidential Circle',
+    rewardLabel: 'Title: Presidential Circle',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    eventId: LEGACY_BUILDER_EVENT_ID,
+    eventName: 'Legacy Builder Leadership Program',
+    eventStartAt: LEGACY_BUILDER_EVENT_START_AT,
+    eventEndAt: LEGACY_BUILDER_EVENT_END_AT,
+    iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
+    iconLightPath: '/brand_assets/Icons/Achievements/legacy-light.svg',
+  }),
   Object.freeze({
     id: 'premiere-journey-enroll-member',
     tabId: 'premiere-life',
@@ -226,6 +406,10 @@ const RANK_TRACK_ACHIEVEMENTS = Object.freeze(
     }),
 );
 
+const RANK_TRACK_ACHIEVEMENT_BY_ID = new Map(
+  RANK_TRACK_ACHIEVEMENTS.map((achievement) => [normalizeText(achievement?.id), achievement]),
+);
+
 const RANK_PROGRESSION = Object.freeze([
   'Preferred Customer',
   'Personal',
@@ -246,6 +430,8 @@ const RANK_PROGRESSION = Object.freeze([
 const RANK_INDEX_BY_KEY = new Map(
   RANK_PROGRESSION.map((label, index) => [String(label).toLowerCase(), index]),
 );
+let memberTitleCatalogSeedReady = false;
+let memberTitleCatalogSeedPromise = null;
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -267,6 +453,101 @@ function roundCurrencyAmount(value) {
   return Math.round((Math.max(0, Number(value) || 0)) * 100) / 100;
 }
 
+function normalizePackageKey(value) {
+  const normalizedPackageKey = normalizeCredential(value).replace(/[_\s]+/g, '-');
+  if (LEGACY_BUILDER_PACKAGE_KEY_SET.has(normalizedPackageKey)) {
+    return 'legacy-builder-pack';
+  }
+  return normalizedPackageKey;
+}
+
+function normalizeTitleSlug(value) {
+  const normalized = normalizeCredential(value)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return normalized || 'untitled';
+}
+
+function formatEventDateLabel(value) {
+  const parsedMs = Date.parse(normalizeText(value));
+  if (!Number.isFinite(parsedMs)) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(parsedMs);
+}
+
+function resolveAchievementEventWindowState(achievement = {}, nowMs = Date.now()) {
+  const eventId = normalizeText(achievement?.eventId);
+  const eventName = normalizeText(achievement?.eventName);
+  const eventStartAt = formatDateIso(achievement?.eventStartAt);
+  const eventEndAt = formatDateIso(achievement?.eventEndAt);
+  const eventStartMs = Date.parse(eventStartAt);
+  const eventEndMs = Date.parse(eventEndAt);
+  const hasStart = Number.isFinite(eventStartMs);
+  const hasEnd = Number.isFinite(eventEndMs);
+  const hasWindow = hasStart || hasEnd;
+
+  if (!hasWindow) {
+    return {
+      eventId,
+      eventName,
+      eventStartAt: '',
+      eventEndAt: '',
+      hasWindow: false,
+      isOpen: true,
+      lockReason: '',
+    };
+  }
+
+  if (hasStart && nowMs < eventStartMs) {
+    return {
+      eventId,
+      eventName,
+      eventStartAt,
+      eventEndAt,
+      hasWindow: true,
+      isOpen: false,
+      lockReason: `This event starts on ${formatEventDateLabel(eventStartAt) || 'the scheduled start date'}.`,
+    };
+  }
+
+  if (hasEnd && nowMs > eventEndMs) {
+    return {
+      eventId,
+      eventName,
+      eventStartAt,
+      eventEndAt,
+      hasWindow: true,
+      isOpen: false,
+      lockReason: `This event ended on ${formatEventDateLabel(eventEndAt) || 'the scheduled end date'}.`,
+    };
+  }
+
+  return {
+    eventId,
+    eventName,
+    eventStartAt,
+    eventEndAt,
+    hasWindow: true,
+    isOpen: true,
+    lockReason: '',
+  };
+}
+
+function toSignedWholeNumber(value, fallback = -1) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return fallback;
+  }
+  return Math.floor(numeric);
+}
+
 function formatDateIso(value) {
   const normalized = normalizeText(value);
   if (!normalized) {
@@ -283,6 +564,92 @@ function formatDateIso(value) {
 
 function isRankAdvancementAchievement(achievement = {}) {
   return normalizeCredential(achievement?.tabId) === 'rank';
+}
+
+function isTitleRewardAchievement(achievement = {}) {
+  return (
+    normalizeCredential(achievement?.rewardType) === 'title'
+    && Boolean(normalizeText(achievement?.rewardTitle))
+  );
+}
+
+function resolveAchievementRewardTitleSlug(achievement = {}) {
+  return normalizeTitleSlug(achievement?.rewardTitleSlug || achievement?.rewardTitle);
+}
+
+async function ensureMemberTitleCatalogSeed() {
+  if (memberTitleCatalogSeedReady) {
+    return;
+  }
+
+  if (memberTitleCatalogSeedPromise) {
+    return memberTitleCatalogSeedPromise;
+  }
+
+  memberTitleCatalogSeedPromise = (async () => {
+    const seededTitleSlugs = new Set();
+    for (const entry of DEFAULT_MEMBER_TITLE_CATALOG_SEED) {
+      const titleSlug = normalizeTitleSlug(entry?.titleSlug || entry?.title);
+      const title = normalizeText(entry?.title);
+      if (!titleSlug || !title) {
+        continue;
+      }
+      seededTitleSlugs.add(titleSlug);
+
+      await upsertMemberTitleCatalogEntry({
+        titleId: `ttlcat_${titleSlug}`,
+        titleSlug,
+        title,
+        description: normalizeText(entry?.description),
+        iconPath: normalizeText(entry?.iconPath),
+        sourceAchievementId: normalizeText(entry?.sourceAchievementId),
+        sourceEventId: normalizeText(entry?.sourceEventId),
+        claimRule: normalizeText(entry?.claimRule) || 'achievement',
+        isActive: entry?.isActive !== false,
+        metadata: entry?.metadata && typeof entry.metadata === 'object' ? entry.metadata : {},
+      });
+    }
+
+    const activeCatalogEntries = await listActiveMemberTitleCatalogEntries();
+    for (const catalogEntry of activeCatalogEntries) {
+      const titleSlug = normalizeTitleSlug(catalogEntry?.titleSlug || catalogEntry?.title);
+      if (!titleSlug || seededTitleSlugs.has(titleSlug)) {
+        continue;
+      }
+
+      const sourceEventId = normalizeText(catalogEntry?.sourceEventId);
+      const managedBy = normalizeText(catalogEntry?.metadata?.managedBy).toLowerCase();
+      if (sourceEventId !== LEGACY_BUILDER_EVENT_ID || managedBy !== 'system-seed') {
+        continue;
+      }
+
+      await upsertMemberTitleCatalogEntry({
+        titleId: normalizeText(catalogEntry?.titleId) || `ttlcat_${titleSlug}`,
+        titleSlug,
+        title: normalizeText(catalogEntry?.title) || titleSlug,
+        description: normalizeText(catalogEntry?.description),
+        iconPath: normalizeText(catalogEntry?.iconPath),
+        sourceAchievementId: normalizeText(catalogEntry?.sourceAchievementId),
+        sourceEventId,
+        claimRule: normalizeText(catalogEntry?.claimRule) || 'achievement',
+        isActive: false,
+        metadata: catalogEntry?.metadata && typeof catalogEntry.metadata === 'object'
+          ? catalogEntry.metadata
+          : {},
+      });
+    }
+
+    memberTitleCatalogSeedReady = true;
+  })().catch((error) => {
+    memberTitleCatalogSeedReady = false;
+    throw error;
+  }).finally(() => {
+    if (!memberTitleCatalogSeedReady) {
+      memberTitleCatalogSeedPromise = null;
+    }
+  });
+
+  return memberTitleCatalogSeedPromise;
 }
 
 function resolveClaimPeriodKeyFromDate(value = Date.now()) {
@@ -507,6 +874,10 @@ async function resolveCurrentMemberDirectSponsorSummary(member = {}) {
       leftDirectSponsors: 0,
       rightDirectSponsors: 0,
       totalDirectSponsors: 0,
+      packageEnrollmentsByKey: {},
+      directLegacyBuilderEnrollments: 0,
+      secondLevelLegacyBuilderEnrollments: 0,
+      thirdLevelLegacyBuilderEnrollments: 0,
     };
   }
 
@@ -514,9 +885,16 @@ async function resolveCurrentMemberDirectSponsorSummary(member = {}) {
     const registeredMembers = await readRegisteredMembersStore();
     let leftDirectSponsors = 0;
     let rightDirectSponsors = 0;
+    const packageEnrollmentsByKey = {};
+    const sponsoredMembersBySponsorKey = new Map();
 
     (Array.isArray(registeredMembers) ? registeredMembers : []).forEach((entry) => {
       const entrySponsorUsername = normalizeCredential(entry?.sponsorUsername);
+      if (entrySponsorUsername) {
+        const bucket = sponsoredMembersBySponsorKey.get(entrySponsorUsername) || [];
+        bucket.push(entry);
+        sponsoredMembersBySponsorKey.set(entrySponsorUsername, bucket);
+      }
       if (!entrySponsorUsername || entrySponsorUsername !== sponsorUsername) {
         return;
       }
@@ -527,18 +905,78 @@ async function resolveCurrentMemberDirectSponsorSummary(member = {}) {
       } else {
         leftDirectSponsors += 1;
       }
+
+      const normalizedPackageKey = normalizePackageKey(entry?.enrollmentPackage);
+      if (normalizedPackageKey) {
+        packageEnrollmentsByKey[normalizedPackageKey] = toWholeNumber(
+          packageEnrollmentsByKey[normalizedPackageKey],
+          0,
+        ) + 1;
+      }
     });
+
+    const directLegacyBuilderEnrollments = Object.entries(packageEnrollmentsByKey).reduce((count, [packageKey, total]) => {
+      if (!LEGACY_BUILDER_PACKAGE_KEY_SET.has(packageKey)) {
+        return count;
+      }
+      return count + toWholeNumber(total, 0);
+    }, 0);
+    const countLegacyBuilderMembersAtDepth = (depthInput = 1) => {
+      const depth = Math.max(1, toWholeNumber(depthInput, 1));
+      let layerSponsorKeys = [sponsorUsername];
+      let layerMembers = [];
+
+      for (let level = 1; level <= depth; level += 1) {
+        layerMembers = [];
+        const nextLayerSponsorKeys = [];
+
+        layerSponsorKeys.forEach((sponsorKey) => {
+          const sponsoredMembers = sponsoredMembersBySponsorKey.get(sponsorKey) || [];
+          sponsoredMembers.forEach((sponsoredMember) => {
+            layerMembers.push(sponsoredMember);
+            const sponsoredUsername = normalizeCredential(
+              sponsoredMember?.memberUsername || sponsoredMember?.username,
+            );
+            if (sponsoredUsername) {
+              nextLayerSponsorKeys.push(sponsoredUsername);
+            }
+          });
+        });
+
+        if (level < depth) {
+          layerSponsorKeys = nextLayerSponsorKeys;
+        }
+      }
+
+      return layerMembers.reduce((count, entry) => {
+        const packageKey = normalizePackageKey(entry?.enrollmentPackage);
+        if (!LEGACY_BUILDER_PACKAGE_KEY_SET.has(packageKey)) {
+          return count;
+        }
+        return count + 1;
+      }, 0);
+    };
+    const secondLevelLegacyBuilderEnrollments = countLegacyBuilderMembersAtDepth(2);
+    const thirdLevelLegacyBuilderEnrollments = countLegacyBuilderMembersAtDepth(3);
 
     return {
       leftDirectSponsors,
       rightDirectSponsors,
       totalDirectSponsors: leftDirectSponsors + rightDirectSponsors,
+      packageEnrollmentsByKey,
+      directLegacyBuilderEnrollments,
+      secondLevelLegacyBuilderEnrollments,
+      thirdLevelLegacyBuilderEnrollments,
     };
   } catch {
     return {
       leftDirectSponsors: 0,
       rightDirectSponsors: 0,
       totalDirectSponsors: 0,
+      packageEnrollmentsByKey: {},
+      directLegacyBuilderEnrollments: 0,
+      secondLevelLegacyBuilderEnrollments: 0,
+      thirdLevelLegacyBuilderEnrollments: 0,
     };
   }
 }
@@ -569,11 +1007,30 @@ async function resolveCurrentMemberProgressContext(member = {}) {
     resolveCurrentMemberDirectSponsorSummary(member),
   ]);
   const activityState = resolveMemberActivityState(member);
+  const currentEnrollmentPackageKey = normalizePackageKey(
+    member?.enrollmentPackage
+    || member?.enrollmentPackageKey
+    || member?.accountPackage,
+  );
+  const upgradedToLegacyPackageKey = normalizePackageKey(member?.lastAccountUpgradeToPackage);
+  const hasLegacyPackageOwnership = (
+    LEGACY_BUILDER_PACKAGE_KEY_SET.has(currentEnrollmentPackageKey)
+    || LEGACY_BUILDER_PACKAGE_KEY_SET.has(upgradedToLegacyPackageKey)
+  );
+  const legacyLeadershipTierCardCompleted = Boolean(
+    member?.legacyLeadershipTierCardCompleted
+    || member?.legacyLeadershipTierCompleted
+    || normalizeCredential(member?.legacyLeadershipTierCardStatus) === 'completed'
+    || normalizeCredential(member?.legacyLeadershipTierStatus) === 'completed',
+  );
 
   return {
     currentRank,
     currentCycles,
     ...directSponsorSummary,
+    currentEnrollmentPackageKey,
+    hasLegacyPackageOwnership,
+    legacyLeadershipTierCardCompleted,
     activityState,
   };
 }
@@ -620,6 +1077,20 @@ function resolveCurrentPeriodRankClaim(claims = [], rankClaimPeriod = '') {
   )) || null;
 }
 
+function resolveHighestRankAchievementByRankIndex(rankIndexInput = -1) {
+  const rankIndex = Math.max(-1, toSignedWholeNumber(rankIndexInput, -1));
+  let highestRankAchievement = null;
+
+  RANK_TRACK_ACHIEVEMENTS.forEach((achievement) => {
+    const achievementRankIndex = resolveRankIndex(achievement?.title || achievement?.requiredRank);
+    if (achievementRankIndex >= 0 && rankIndex >= achievementRankIndex) {
+      highestRankAchievement = achievement;
+    }
+  });
+
+  return highestRankAchievement;
+}
+
 function resolveHighestEligibleRankAchievement(progressContext = {}) {
   let highestEligibleAchievement = null;
 
@@ -640,18 +1111,109 @@ function resolveHighestEligibleRankAchievement(progressContext = {}) {
   return highestEligibleAchievement;
 }
 
-function resolveRankMonthlyClaimContext(progressContext = {}, claims = [], rankClaimPeriod = '') {
+async function resolveRankMonthlyRunProgress(member = {}, progressContext = {}, rankClaimPeriod = '') {
+  const safeRankClaimPeriod = normalizeText(rankClaimPeriod) || resolveClaimPeriodKeyFromDate(Date.now());
+  const userId = normalizeText(member?.id);
+  const currentHighestEligibleRankAchievement = resolveHighestEligibleRankAchievement(progressContext);
+  const currentHighestEligibleRankIndex = resolveRankIndex(
+    currentHighestEligibleRankAchievement?.title || currentHighestEligibleRankAchievement?.requiredRank,
+  );
+
+  let persistedProgress = null;
+  if (userId && safeRankClaimPeriod) {
+    try {
+      persistedProgress = await upsertMemberRankAdvancementMonthlyHighest({
+        userId,
+        periodKey: safeRankClaimPeriod,
+        highestRank: normalizeText(
+          currentHighestEligibleRankAchievement?.title
+          || currentHighestEligibleRankAchievement?.requiredRank,
+        ),
+        highestRankIndex: currentHighestEligibleRankIndex,
+        highestRankAchievementId: normalizeText(currentHighestEligibleRankAchievement?.id),
+        highestRequiredCycles: toWholeNumber(currentHighestEligibleRankAchievement?.requiredCycles, 0),
+      });
+    } catch {
+      persistedProgress = null;
+    }
+  }
+
+  const persistedHighestRankIndex = Math.max(
+    -1,
+    toSignedWholeNumber(persistedProgress?.highestRankIndex, currentHighestEligibleRankIndex),
+  );
+  const persistedHighestAchievementId = normalizeText(persistedProgress?.highestRankAchievementId);
+  const persistedHighestRankLabel = normalizeRankLabelForAchievement(persistedProgress?.highestRank);
+
+  let highestRecordedRankAchievement = persistedHighestAchievementId
+    ? (RANK_TRACK_ACHIEVEMENT_BY_ID.get(persistedHighestAchievementId) || null)
+    : null;
+
+  if (!highestRecordedRankAchievement && persistedHighestRankLabel) {
+    highestRecordedRankAchievement = RANK_TRACK_ACHIEVEMENTS.find((achievement) => {
+      const achievementRankLabel = normalizeRankLabelForAchievement(
+        achievement?.title || achievement?.requiredRank,
+      );
+      return achievementRankLabel && achievementRankLabel === persistedHighestRankLabel;
+    }) || null;
+  }
+
+  if (!highestRecordedRankAchievement) {
+    highestRecordedRankAchievement = resolveHighestRankAchievementByRankIndex(persistedHighestRankIndex);
+  }
+
+  if (!highestRecordedRankAchievement && currentHighestEligibleRankAchievement) {
+    highestRecordedRankAchievement = currentHighestEligibleRankAchievement;
+  }
+
+  const highestRecordedRankIndex = highestRecordedRankAchievement
+    ? resolveRankIndex(highestRecordedRankAchievement?.title || highestRecordedRankAchievement?.requiredRank)
+    : persistedHighestRankIndex;
+
+  return {
+    rankClaimPeriod: safeRankClaimPeriod,
+    currentHighestEligibleRankAchievementId: normalizeText(currentHighestEligibleRankAchievement?.id),
+    currentHighestEligibleRankTitle: normalizeText(currentHighestEligibleRankAchievement?.title),
+    currentHighestEligibleRankIndex,
+    highestRecordedRankAchievementId: normalizeText(highestRecordedRankAchievement?.id),
+    highestRecordedRankTitle: normalizeText(
+      highestRecordedRankAchievement?.title || highestRecordedRankAchievement?.requiredRank,
+    ),
+    highestRecordedRankIndex,
+    highestRecordedRequiredCycles: toWholeNumber(highestRecordedRankAchievement?.requiredCycles, 0),
+    highestRecordedAt: formatDateIso(persistedProgress?.highestAchievedAt),
+  };
+}
+
+function resolveRankMonthlyClaimContext(
+  progressContext = {},
+  claims = [],
+  rankClaimPeriod = '',
+  options = {},
+) {
   const safeRankClaimPeriod = normalizeText(rankClaimPeriod);
   const currentPeriodLabel = formatClaimPeriodLabel(safeRankClaimPeriod) || 'this month';
   const claimedRankClaim = resolveCurrentPeriodRankClaim(claims, safeRankClaimPeriod);
+  const rankRunProgress = options?.rankRunProgress && typeof options.rankRunProgress === 'object'
+    ? options.rankRunProgress
+    : {};
   const highestEligibleRankAchievement = resolveHighestEligibleRankAchievement(progressContext);
+  const highestRecordedRankAchievementId = normalizeText(rankRunProgress?.highestRecordedRankAchievementId);
+  const highestRecordedRankTitle = normalizeText(rankRunProgress?.highestRecordedRankTitle);
+  const highestRecordedRankIndex = Math.max(
+    -1,
+    toSignedWholeNumber(rankRunProgress?.highestRecordedRankIndex, -1),
+  );
 
   return {
     rankClaimPeriod: safeRankClaimPeriod,
     currentPeriodLabel,
     claimedRankClaim,
-    highestEligibleRankAchievementId: normalizeText(highestEligibleRankAchievement?.id),
-    highestEligibleRankTitle: normalizeText(highestEligibleRankAchievement?.title),
+    highestEligibleRankAchievementId: highestRecordedRankAchievementId
+      || normalizeText(highestEligibleRankAchievement?.id),
+    highestEligibleRankTitle: highestRecordedRankTitle
+      || normalizeText(highestEligibleRankAchievement?.title),
+    highestRecordedRankIndex,
   };
 }
 
@@ -661,15 +1223,48 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   const requiredDirectSponsorsTotal = toWholeNumber(achievement?.requiredDirectSponsorsTotal, 0);
   const requiredDirectSponsorsPerSide = toWholeNumber(achievement?.requiredDirectSponsorsPerSide, 0);
   const requiredCycles = toWholeNumber(achievement?.requiredCycles, 0);
+  const requiresLegacyPackageOwnership = achievement?.requiresLegacyPackageOwnership === true;
+  const requiredLegacyBuilderDirectEnrollments = toWholeNumber(
+    achievement?.requiredLegacyBuilderDirectEnrollments,
+    0,
+  );
+  const requiredLegacyBuilderSecondLevelEnrollments = toWholeNumber(
+    achievement?.requiredLegacyBuilderSecondLevelEnrollments,
+    0,
+  );
+  const requiredLegacyBuilderThirdLevelEnrollments = toWholeNumber(
+    achievement?.requiredLegacyBuilderThirdLevelEnrollments,
+    0,
+  );
+  const allowLegacyLeadershipTierCardCompletion = achievement?.allowLegacyLeadershipTierCardCompletion === true;
+  const requiredPackageEnrollments = (Array.isArray(achievement?.requiredPackageEnrollments)
+    ? achievement.requiredPackageEnrollments
+    : [])
+    .map((entry) => {
+      const packageKey = normalizePackageKey(entry?.packageKey || entry?.id);
+      const required = Math.max(0, toWholeNumber(entry?.required, 0));
+      const packageLabel = normalizeText(entry?.label || entry?.packageLabel || packageKey || 'Package');
+      return {
+        packageKey,
+        packageLabel,
+        required,
+      };
+    })
+    .filter((entry) => entry.packageKey && entry.required > 0);
   const requiresActive = achievement?.requiresActive === true;
   const requiresSystemVerification = achievement?.requiresSystemVerification === true;
   const isRankTrack = isRankAdvancementAchievement(achievement);
+  const eventWindowState = resolveAchievementEventWindowState(achievement);
   const rankMonthlyContext = options?.rankMonthlyContext && typeof options.rankMonthlyContext === 'object'
     ? options.rankMonthlyContext
     : {};
   const currentPeriodLabel = normalizeText(rankMonthlyContext?.currentPeriodLabel) || 'this month';
   const highestEligibleRankAchievementId = normalizeText(rankMonthlyContext?.highestEligibleRankAchievementId);
   const highestEligibleRankTitle = normalizeText(rankMonthlyContext?.highestEligibleRankTitle);
+  const highestRecordedRankIndex = Math.max(
+    -1,
+    toSignedWholeNumber(rankMonthlyContext?.highestRecordedRankIndex, -1),
+  );
   const claimedRankClaim = rankMonthlyContext?.claimedRankClaim && typeof rankMonthlyContext.claimedRankClaim === 'object'
     ? rankMonthlyContext.claimedRankClaim
     : null;
@@ -685,32 +1280,123 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   const activityState = progressContext?.activityState && typeof progressContext.activityState === 'object'
     ? progressContext.activityState
     : { isActive: false, label: 'Inactive', activeUntilAt: '' };
+  const packageEnrollmentsByKey = progressContext?.packageEnrollmentsByKey && typeof progressContext.packageEnrollmentsByKey === 'object'
+    ? progressContext.packageEnrollmentsByKey
+    : {};
+  const hasLegacyPackageOwnership = (
+    Boolean(progressContext?.hasLegacyPackageOwnership)
+    || LEGACY_BUILDER_PACKAGE_KEY_SET.has(normalizePackageKey(progressContext?.currentEnrollmentPackageKey))
+  );
+  const currentLegacyBuilderDirectEnrollments = Math.max(
+    0,
+    toWholeNumber(
+      progressContext?.directLegacyBuilderEnrollments,
+      packageEnrollmentsByKey['legacy-builder-pack'],
+    ),
+  );
+  const currentLegacyBuilderSecondLevelEnrollments = Math.max(
+    0,
+    toWholeNumber(progressContext?.secondLevelLegacyBuilderEnrollments, 0),
+  );
+  const currentLegacyBuilderThirdLevelEnrollments = Math.max(
+    0,
+    toWholeNumber(progressContext?.thirdLevelLegacyBuilderEnrollments, 0),
+  );
+  const legacyLeadershipTierCardCompleted = Boolean(progressContext?.legacyLeadershipTierCardCompleted);
+  const achievementRankIndex = resolveRankIndex(achievement?.title || achievement?.requiredRank);
+  const meetsMonthlyRecordedRankRun = (
+    isRankTrack
+    && achievementRankIndex >= 0
+    && highestRecordedRankIndex >= achievementRankIndex
+  );
 
   const alreadyClaimed = Boolean(claim?.claimedAt);
   const meetsRankRequirement = requiresRank
     ? isRankEligibleForAchievement(currentRank, requiredRank)
     : true;
-  const meetsDirectSponsorTotalRequirement = requiredDirectSponsorsTotal > 0
+  const meetsDirectSponsorTotalRequirementNow = requiredDirectSponsorsTotal > 0
     ? currentDirectSponsorsTotal >= requiredDirectSponsorsTotal
     : true;
-  const meetsDirectSponsorRequirement = requiredDirectSponsorsPerSide > 0
+  const meetsDirectSponsorRequirementNow = requiredDirectSponsorsPerSide > 0
     ? (
       currentLeftDirectSponsors >= requiredDirectSponsorsPerSide
       && currentRightDirectSponsors >= requiredDirectSponsorsPerSide
     )
     : true;
-  const meetsCycleRequirement = requiredCycles > 0
+  const meetsCycleRequirementNow = requiredCycles > 0
     ? currentCycles >= requiredCycles
     : true;
-  const meetsActiveRequirement = requiresActive
+  const packageEnrollmentSnapshot = requiredPackageEnrollments.map((entry) => {
+    const current = Math.max(0, toWholeNumber(packageEnrollmentsByKey[entry.packageKey], 0));
+    return {
+      packageKey: entry.packageKey,
+      packageLabel: entry.packageLabel,
+      required: entry.required,
+      current,
+      met: current >= entry.required,
+    };
+  });
+  const meetsPackageEnrollmentRequirementNow = packageEnrollmentSnapshot.every((entry) => entry.met);
+  const meetsLegacyPackageOwnershipRequirementNow = requiresLegacyPackageOwnership
+    ? hasLegacyPackageOwnership
+    : true;
+  const meetsLegacyBuilderDirectRequirementNow = requiredLegacyBuilderDirectEnrollments > 0
+    ? currentLegacyBuilderDirectEnrollments >= requiredLegacyBuilderDirectEnrollments
+    : true;
+  const meetsLegacyBuilderSecondLevelRequirementNow = requiredLegacyBuilderSecondLevelEnrollments > 0
+    ? currentLegacyBuilderSecondLevelEnrollments >= requiredLegacyBuilderSecondLevelEnrollments
+    : true;
+  const meetsLegacyBuilderThirdThresholdNow = requiredLegacyBuilderThirdLevelEnrollments > 0
+    ? currentLegacyBuilderThirdLevelEnrollments >= requiredLegacyBuilderThirdLevelEnrollments
+    : true;
+  const meetsLegacyBuilderThirdLevelRequirementNow = requiredLegacyBuilderThirdLevelEnrollments > 0
+    ? (
+      allowLegacyLeadershipTierCardCompletion
+        ? (legacyLeadershipTierCardCompleted || meetsLegacyBuilderThirdThresholdNow)
+        : meetsLegacyBuilderThirdThresholdNow
+    )
+    : true;
+  const meetsActiveRequirementNow = requiresActive
     ? Boolean(activityState.isActive)
     : true;
+  const meetsDirectSponsorTotalRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsDirectSponsorTotalRequirementNow;
+  const meetsDirectSponsorRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsDirectSponsorRequirementNow;
+  const meetsCycleRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsCycleRequirementNow;
+  const meetsPackageEnrollmentRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsPackageEnrollmentRequirementNow;
+  const meetsLegacyPackageOwnershipRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsLegacyPackageOwnershipRequirementNow;
+  const meetsLegacyBuilderDirectRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsLegacyBuilderDirectRequirementNow;
+  const meetsLegacyBuilderSecondLevelRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsLegacyBuilderSecondLevelRequirementNow;
+  const meetsLegacyBuilderThirdLevelRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsLegacyBuilderThirdLevelRequirementNow;
+  const meetsActiveRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsActiveRequirementNow;
 
   const baseRequirementsMet = (
     meetsRankRequirement
     && meetsDirectSponsorTotalRequirement
     && meetsDirectSponsorRequirement
     && meetsCycleRequirement
+    && meetsPackageEnrollmentRequirement
+    && meetsLegacyPackageOwnershipRequirement
+    && meetsLegacyBuilderDirectRequirement
+    && meetsLegacyBuilderSecondLevelRequirement
+    && meetsLegacyBuilderThirdLevelRequirement
     && meetsActiveRequirement
   );
   const systemVerified = alreadyClaimed
@@ -718,7 +1404,7 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     : (requiresSystemVerification ? baseRequirementsMet : true);
   let eligible = alreadyClaimed
     ? true
-    : (baseRequirementsMet && systemVerified);
+    : (baseRequirementsMet && systemVerified && eventWindowState.isOpen);
   let status = alreadyClaimed
     ? 'claimed'
     : (eligible ? 'eligible' : 'locked');
@@ -767,6 +1453,55 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
       required: requiredCycles,
     });
   }
+  packageEnrollmentSnapshot.forEach((entry) => {
+    requirements.push({
+      id: `package-enrollment-${entry.packageKey}`,
+      label: `Enroll ${entry.required.toLocaleString()} ${entry.packageLabel}`,
+      met: entry.met,
+      packageKey: entry.packageKey,
+      current: entry.current,
+      required: entry.required,
+    });
+  });
+  if (requiresLegacyPackageOwnership) {
+    requirements.push({
+      id: 'legacy-package-self',
+      label: 'Enroll or upgrade to Legacy Package',
+      met: meetsLegacyPackageOwnershipRequirement,
+      current: hasLegacyPackageOwnership ? 'Legacy Package' : 'Not Legacy Package',
+      required: 'Legacy Package',
+    });
+  }
+  if (requiredLegacyBuilderDirectEnrollments > 0) {
+    requirements.push({
+      id: 'legacy-builder-direct',
+      label: `Enroll ${requiredLegacyBuilderDirectEnrollments.toLocaleString()} Legacy Builder Package member${requiredLegacyBuilderDirectEnrollments === 1 ? '' : 's'}`,
+      met: meetsLegacyBuilderDirectRequirement,
+      current: currentLegacyBuilderDirectEnrollments,
+      required: requiredLegacyBuilderDirectEnrollments,
+    });
+  }
+  if (requiredLegacyBuilderSecondLevelEnrollments > 0) {
+    requirements.push({
+      id: 'legacy-builder-second-level',
+      label: `Build ${requiredLegacyBuilderSecondLevelEnrollments.toLocaleString()} second-level Legacy Package members (3 personally enrolled Legacy Builder members each enroll 3 Legacy Package members).`,
+      met: meetsLegacyBuilderSecondLevelRequirement,
+      current: currentLegacyBuilderSecondLevelEnrollments,
+      required: requiredLegacyBuilderSecondLevelEnrollments,
+    });
+  }
+  if (requiredLegacyBuilderThirdLevelEnrollments > 0) {
+    requirements.push({
+      id: 'legacy-builder-third-level',
+      label: allowLegacyLeadershipTierCardCompletion
+        ? `Complete Legacy Leadership Tier Card or build ${requiredLegacyBuilderThirdLevelEnrollments.toLocaleString()} third-level Legacy Package members (9x3 structure).`
+        : `Build ${requiredLegacyBuilderThirdLevelEnrollments.toLocaleString()} third-level Legacy Package members.`,
+      met: meetsLegacyBuilderThirdLevelRequirement,
+      current: currentLegacyBuilderThirdLevelEnrollments,
+      required: requiredLegacyBuilderThirdLevelEnrollments,
+      alternateMet: allowLegacyLeadershipTierCardCompletion ? legacyLeadershipTierCardCompleted : false,
+    });
+  }
 
   const prerequisites = [];
   if (requiresActive) {
@@ -783,9 +1518,21 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
       met: systemVerified,
     });
   }
+  if (eventWindowState.hasWindow) {
+    prerequisites.push({
+      id: 'event-window',
+      label: normalizeText(eventWindowState.eventName) || 'Time-Limited Event',
+      met: eventWindowState.isOpen,
+      startsAt: eventWindowState.eventStartAt,
+      endsAt: eventWindowState.eventEndAt,
+    });
+  }
 
   let lockReason = '';
-  if (!alreadyClaimed && requiresRank && !meetsRankRequirement) {
+  const unmetPackageRequirement = packageEnrollmentSnapshot.find((entry) => !entry.met) || null;
+  if (!alreadyClaimed && !eventWindowState.isOpen) {
+    lockReason = eventWindowState.lockReason || 'This event is not currently open.';
+  } else if (!alreadyClaimed && requiresRank && !meetsRankRequirement) {
     lockReason = `Reach ${requiredRank} rank to unlock this bonus.`;
   } else if (!alreadyClaimed && requiredDirectSponsorsTotal > 0 && !meetsDirectSponsorTotalRequirement) {
     lockReason = `Enroll ${requiredDirectSponsorsTotal.toLocaleString()} member${requiredDirectSponsorsTotal === 1 ? '' : 's'} (${currentDirectSponsorsTotal.toLocaleString()}/${requiredDirectSponsorsTotal.toLocaleString()}).`;
@@ -797,6 +1544,20 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     lockReason = isRankTrack
       ? `Complete ${requiredCycles.toLocaleString()} cycles this month (${currentCycles.toLocaleString()} completed).`
       : `Complete ${requiredCycles.toLocaleString()} cycles (${currentCycles.toLocaleString()} completed).`;
+  } else if (!alreadyClaimed && requiresLegacyPackageOwnership && !meetsLegacyPackageOwnershipRequirement) {
+    lockReason = 'Enroll or upgrade to Legacy Package to unlock this title.';
+  } else if (!alreadyClaimed && requiredLegacyBuilderDirectEnrollments > 0 && !meetsLegacyBuilderDirectRequirement) {
+    lockReason = normalizeText(achievement?.id) === 'time-limited-event-legacy-director'
+      ? ''
+      : `Enroll ${requiredLegacyBuilderDirectEnrollments.toLocaleString()} Legacy Builder Package member${requiredLegacyBuilderDirectEnrollments === 1 ? '' : 's'} (${currentLegacyBuilderDirectEnrollments.toLocaleString()}/${requiredLegacyBuilderDirectEnrollments.toLocaleString()}).`;
+  } else if (!alreadyClaimed && requiredLegacyBuilderSecondLevelEnrollments > 0 && !meetsLegacyBuilderSecondLevelRequirement) {
+    lockReason = `Build ${requiredLegacyBuilderSecondLevelEnrollments.toLocaleString()} second-level Legacy Package members (${currentLegacyBuilderSecondLevelEnrollments.toLocaleString()}/${requiredLegacyBuilderSecondLevelEnrollments.toLocaleString()}).`;
+  } else if (!alreadyClaimed && requiredLegacyBuilderThirdLevelEnrollments > 0 && !meetsLegacyBuilderThirdLevelRequirement) {
+    lockReason = allowLegacyLeadershipTierCardCompletion
+      ? `Complete Legacy Leadership Tier Card or build ${requiredLegacyBuilderThirdLevelEnrollments.toLocaleString()} third-level Legacy Package members (${currentLegacyBuilderThirdLevelEnrollments.toLocaleString()}/${requiredLegacyBuilderThirdLevelEnrollments.toLocaleString()}).`
+      : `Build ${requiredLegacyBuilderThirdLevelEnrollments.toLocaleString()} third-level Legacy Package members (${currentLegacyBuilderThirdLevelEnrollments.toLocaleString()}/${requiredLegacyBuilderThirdLevelEnrollments.toLocaleString()}).`;
+  } else if (!alreadyClaimed && unmetPackageRequirement) {
+    lockReason = `Enroll ${unmetPackageRequirement.required.toLocaleString()} ${unmetPackageRequirement.packageLabel} (${unmetPackageRequirement.current.toLocaleString()}/${unmetPackageRequirement.required.toLocaleString()}).`;
   } else if (!alreadyClaimed && requiresActive && !meetsActiveRequirement) {
     lockReason = isRankTrack
       ? 'Account must be Active this month to claim this rank reward.'
@@ -837,10 +1598,27 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     currentDirectSponsorsTotal,
     requiredCycles,
     currentCycles,
+    requiresLegacyPackageOwnership,
+    hasLegacyPackageOwnership,
+    requiredLegacyBuilderDirectEnrollments,
+    currentLegacyBuilderDirectEnrollments,
+    requiredLegacyBuilderSecondLevelEnrollments,
+    currentLegacyBuilderSecondLevelEnrollments,
+    requiredLegacyBuilderThirdLevelEnrollments,
+    currentLegacyBuilderThirdLevelEnrollments,
+    allowLegacyLeadershipTierCardCompletion,
+    legacyLeadershipTierCardCompleted,
+    requiredPackageEnrollments: packageEnrollmentSnapshot,
+    packageEnrollmentsByKey,
     requiresActive,
     requiresSystemVerification,
     systemVerified,
     verificationStatus: systemVerified ? 'verified' : 'pending',
+    eventId: eventWindowState.eventId,
+    eventName: eventWindowState.eventName,
+    eventStartAt: eventWindowState.eventStartAt,
+    eventEndAt: eventWindowState.eventEndAt,
+    eventIsOpen: eventWindowState.isOpen,
     requirements,
     prerequisites,
   };
@@ -849,6 +1627,21 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
 function buildAchievementCatalogForMember(member, claims = [], progressContext = {}, options = {}) {
   const rankClaimPeriod = normalizeText(options?.rankClaimPeriod)
     || resolveClaimPeriodKeyFromDate(Date.now());
+  const rankRunProgress = options?.rankRunProgress && typeof options.rankRunProgress === 'object'
+    ? options.rankRunProgress
+    : {};
+  const titleAwards = Array.isArray(options?.titleAwards)
+    ? options.titleAwards
+    : [];
+  const titleCatalog = Array.isArray(options?.titleCatalog)
+    ? options.titleCatalog
+    : [];
+  const titleCatalogBySlug = new Map(
+    titleCatalog.map((entry) => [
+      normalizeTitleSlug(entry?.titleSlug || entry?.title),
+      entry,
+    ]),
+  );
   const currentRank = normalizeRankLabelForAchievement(progressContext?.currentRank)
     || resolveCurrentMemberRank(member);
   const currentLeftDirectSponsors = toWholeNumber(progressContext?.leftDirectSponsors, 0);
@@ -858,6 +1651,13 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     currentLeftDirectSponsors + currentRightDirectSponsors,
   );
   const currentCycles = toWholeNumber(progressContext?.currentCycles, 0);
+  const packageEnrollmentsByKey = progressContext?.packageEnrollmentsByKey && typeof progressContext.packageEnrollmentsByKey === 'object'
+    ? progressContext.packageEnrollmentsByKey
+    : {};
+  const directLegacyBuilderEnrollments = Math.max(
+    0,
+    toWholeNumber(progressContext?.directLegacyBuilderEnrollments, packageEnrollmentsByKey['legacy-builder-pack']),
+  );
   const activityState = progressContext?.activityState && typeof progressContext.activityState === 'object'
     ? progressContext.activityState
     : resolveMemberActivityState(member);
@@ -868,17 +1668,26 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     totalDirectSponsors: currentDirectSponsorsTotal,
     currentCycles,
     activityState,
-  }, claims, rankClaimPeriod);
+  }, claims, rankClaimPeriod, { rankRunProgress });
   const claimMap = mapClaimsByAchievementId(claims, { rankClaimPeriod });
 
   const achievements = PROFILE_ACHIEVEMENTS.map((achievement) => {
     const claim = claimMap.get(achievement.id) || null;
+    const rewardTitleSlug = resolveAchievementRewardTitleSlug(achievement);
+    const catalogTitleEntry = isTitleRewardAchievement(achievement)
+      ? (titleCatalogBySlug.get(rewardTitleSlug) || null)
+      : null;
+    const resolvedRewardTitle = normalizeText(catalogTitleEntry?.title || achievement?.rewardTitle);
+    const resolvedRewardLabel = isTitleRewardAchievement(achievement)
+      ? (resolvedRewardTitle ? `Title: ${resolvedRewardTitle}` : '')
+      : normalizeText(achievement.rewardLabel);
     const eligibility = evaluateAchievementEligibility(achievement, {
       currentRank,
       leftDirectSponsors: currentLeftDirectSponsors,
       rightDirectSponsors: currentRightDirectSponsors,
       totalDirectSponsors: currentDirectSponsorsTotal,
       currentCycles,
+      packageEnrollmentsByKey,
       activityState,
     }, claim, {
       rankMonthlyContext,
@@ -898,8 +1707,22 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
       currentRightDirectSponsors: eligibility.currentRightDirectSponsors,
       currentDirectSponsorsTotal: eligibility.currentDirectSponsorsTotal,
       requiredCycles: eligibility.requiredCycles,
+      requiresLegacyPackageOwnership: eligibility.requiresLegacyPackageOwnership,
+      hasLegacyPackageOwnership: eligibility.hasLegacyPackageOwnership,
+      requiredLegacyBuilderDirectEnrollments: eligibility.requiredLegacyBuilderDirectEnrollments,
+      currentLegacyBuilderDirectEnrollments: eligibility.currentLegacyBuilderDirectEnrollments,
+      requiredLegacyBuilderSecondLevelEnrollments: eligibility.requiredLegacyBuilderSecondLevelEnrollments,
+      currentLegacyBuilderSecondLevelEnrollments: eligibility.currentLegacyBuilderSecondLevelEnrollments,
+      requiredLegacyBuilderThirdLevelEnrollments: eligibility.requiredLegacyBuilderThirdLevelEnrollments,
+      currentLegacyBuilderThirdLevelEnrollments: eligibility.currentLegacyBuilderThirdLevelEnrollments,
+      allowLegacyLeadershipTierCardCompletion: eligibility.allowLegacyLeadershipTierCardCompletion,
+      legacyLeadershipTierCardCompleted: eligibility.legacyLeadershipTierCardCompleted,
+      requiredPackageEnrollments: eligibility.requiredPackageEnrollments,
       rewardUsd: roundCurrencyAmount(achievement.rewardUsd),
-      rewardLabel: normalizeText(achievement.rewardLabel),
+      rewardType: normalizeText(achievement.rewardType),
+      rewardTitleSlug,
+      rewardTitle: resolvedRewardTitle,
+      rewardLabel: resolvedRewardLabel,
       deductionPerBottleUsd: roundCurrencyAmount(achievement.deductionPerBottleUsd),
       payoutSchedule: normalizeText(achievement.payoutSchedule),
       iconPath: normalizeText(achievement.iconPath),
@@ -911,6 +1734,11 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
       requiresSystemVerification: eligibility.requiresSystemVerification,
       systemVerified: eligibility.systemVerified,
       verificationStatus: eligibility.verificationStatus,
+      eventId: eligibility.eventId,
+      eventName: eligibility.eventName,
+      eventStartAt: eligibility.eventStartAt,
+      eventEndAt: eligibility.eventEndAt,
+      eventIsOpen: eligibility.eventIsOpen,
       requirements: eligibility.requirements,
       prerequisites: eligibility.prerequisites,
       claimId: claim?.claimId || '',
@@ -928,6 +1756,10 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     rightDirectSponsors: currentRightDirectSponsors,
     totalDirectSponsors: currentDirectSponsorsTotal,
     currentCycles,
+    directLegacyBuilderEnrollments,
+    packageEnrollmentsByKey,
+    accountTitles: titleAwards,
+    claimableTitles: titleCatalog,
     rankClaimPeriod,
     rankClaimPeriodLabel: rankMonthlyContext.currentPeriodLabel,
     rankClaimedAchievementId: normalizeText(rankMonthlyContext?.claimedRankClaim?.achievementId),
@@ -944,14 +1776,48 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
 async function buildCatalogForMemberWithLatestState(member = {}, userId = '', options = {}) {
   const rankClaimPeriod = normalizeText(options?.rankClaimPeriod)
     || resolveClaimPeriodKeyFromDate(Date.now());
-  const [claims, progressContext] = await Promise.all([
+  await ensureMemberTitleCatalogSeed();
+  const [claims, progressContext, titleAwards, titleCatalog] = await Promise.all([
     listMemberAchievementClaimsByUserId(userId),
     resolveCurrentMemberProgressContext(member),
+    listActiveMemberTitleAwardsByUserId(userId),
+    listActiveMemberTitleCatalogEntries(),
   ]);
+  const rankRunProgress = await resolveRankMonthlyRunProgress(member, progressContext, rankClaimPeriod);
 
   return buildAchievementCatalogForMember(member, claims, progressContext, {
     rankClaimPeriod,
+    rankRunProgress,
+    titleAwards,
+    titleCatalog,
   });
+}
+
+export async function resolveRankAdvancementRunSnapshotForMember(member = {}) {
+  const progressContext = await resolveCurrentMemberProgressContext(member);
+  const rankClaimPeriod = resolveClaimPeriodKeyFromDate(Date.now());
+  const rankRunProgress = await resolveRankMonthlyRunProgress(member, progressContext, rankClaimPeriod);
+  const leftDirectSponsors = toWholeNumber(progressContext?.leftDirectSponsors, 0);
+  const rightDirectSponsors = toWholeNumber(progressContext?.rightDirectSponsors, 0);
+  const totalDirectSponsors = toWholeNumber(
+    progressContext?.totalDirectSponsors,
+    leftDirectSponsors + rightDirectSponsors,
+  );
+
+  return {
+    rankClaimPeriod,
+    rankClaimPeriodLabel: formatClaimPeriodLabel(rankClaimPeriod) || 'this month',
+    currentRank: normalizeRankLabelForAchievement(progressContext?.currentRank) || 'Unranked',
+    currentCycles: toWholeNumber(progressContext?.currentCycles, 0),
+    leftDirectSponsors,
+    rightDirectSponsors,
+    totalDirectSponsors,
+    isActive: Boolean(progressContext?.activityState?.isActive),
+    runRankAchievementId: normalizeText(rankRunProgress?.highestRecordedRankAchievementId),
+    runRankTitle: normalizeText(rankRunProgress?.highestRecordedRankTitle),
+    runRankRequiredCycles: toWholeNumber(rankRunProgress?.highestRecordedRequiredCycles, 0),
+    runRankRecordedAt: formatDateIso(rankRunProgress?.highestRecordedAt),
+  };
 }
 
 export async function listProfileAchievementsForMember(member = {}) {
@@ -996,6 +1862,8 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
     };
   }
 
+  await ensureMemberTitleCatalogSeed();
+
   const claimAttemptMs = Date.now();
   const rankClaimPeriod = resolveClaimPeriodKeyFromDate(claimAttemptMs);
   const claimPeriod = resolveAchievementClaimPeriod(achievement, claimAttemptMs);
@@ -1029,11 +1897,26 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
     };
   }
 
-  const [allClaims, progressContext] = await Promise.all([
+  const [allClaims, progressContext, titleAwards, titleCatalog] = await Promise.all([
     listMemberAchievementClaimsByUserId(userId),
     resolveCurrentMemberProgressContext(member),
+    listActiveMemberTitleAwardsByUserId(userId),
+    listActiveMemberTitleCatalogEntries(),
   ]);
-  const rankMonthlyContext = resolveRankMonthlyClaimContext(progressContext, allClaims, rankClaimPeriod);
+  const rankRunProgress = await resolveRankMonthlyRunProgress(member, progressContext, rankClaimPeriod);
+  const rankMonthlyContext = resolveRankMonthlyClaimContext(
+    progressContext,
+    allClaims,
+    rankClaimPeriod,
+    { rankRunProgress },
+  );
+  const rewardTitleSlug = resolveAchievementRewardTitleSlug(achievement);
+  const rewardTitleCatalogEntry = isTitleRewardAchievement(achievement)
+    ? (await findActiveMemberTitleCatalogEntryBySlug(rewardTitleSlug))
+    : null;
+  const rewardTitleForAward = normalizeText(
+    rewardTitleCatalogEntry?.title || achievement?.rewardTitle,
+  );
 
   if (isRankAdvancementAchievement(achievement) && rankMonthlyContext?.claimedRankClaim) {
     const claimedRankTitle = normalizeText(
@@ -1042,6 +1925,9 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
     ) || 'another rank';
     const catalog = buildAchievementCatalogForMember(member, allClaims, progressContext, {
       rankClaimPeriod,
+      rankRunProgress,
+      titleAwards,
+      titleCatalog,
     });
     return {
       success: false,
@@ -1058,17 +1944,60 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
   const achievementEligibility = evaluateAchievementEligibility(achievement, progressContext, null, {
     rankMonthlyContext,
   });
-  if (!achievementEligibility.eligible) {
+  if (isTitleRewardAchievement(achievement) && !rewardTitleCatalogEntry) {
     const catalog = buildAchievementCatalogForMember(member, allClaims, progressContext, {
       rankClaimPeriod,
+      rankRunProgress,
+      titleAwards,
+      titleCatalog,
     });
     return {
       success: false,
-      status: 403,
-      error: achievementEligibility.lockReason || `Current requirements do not meet ${achievement.title}.`,
+      status: 409,
+      error: 'This title reward is not currently configured as claimable on the server.',
       data: {
         success: false,
         ...catalog,
+      },
+    };
+  }
+  if (isTitleRewardAchievement(achievement)) {
+    const existingTitleAward = await findActiveMemberTitleAwardByUserIdAndSlug(
+      userId,
+      rewardTitleSlug,
+    );
+    if (existingTitleAward) {
+      const catalog = buildAchievementCatalogForMember(member, allClaims, progressContext, {
+        rankClaimPeriod,
+        rankRunProgress,
+        titleAwards,
+        titleCatalog,
+      });
+      return {
+        success: false,
+        status: 409,
+        error: `${rewardTitleForAward || 'This account title'} is already awarded on this account.`,
+        data: {
+          success: false,
+          ...catalog,
+        },
+      };
+    }
+  }
+  if (!achievementEligibility.eligible) {
+    const catalog = buildAchievementCatalogForMember(member, allClaims, progressContext, {
+      rankClaimPeriod,
+      rankRunProgress,
+      titleAwards,
+      titleCatalog,
+    });
+      return {
+        success: false,
+        status: 403,
+        error: achievementEligibility.lockReason || `Current progress does not meet ${achievement.title}.`,
+        data: {
+          success: false,
+          ...catalog,
       },
     };
   }
@@ -1122,6 +2051,36 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
     }
 
     throw error;
+  }
+
+  if (claimRecord && isTitleRewardAchievement(achievement)) {
+    const existingTitleAward = await findActiveMemberTitleAwardByUserIdAndSlug(userId, rewardTitleSlug);
+    if (!existingTitleAward) {
+      try {
+        await insertMemberTitleAward({
+          awardId: `ttl_${Date.now()}_${randomUUID().slice(0, 8)}`,
+          userId,
+          titleSlug: rewardTitleSlug,
+          title: rewardTitleForAward,
+          titleDescription: normalizeText(achievement?.description),
+          sourceAchievementId: normalizeText(achievement?.id),
+          sourceClaimId: normalizeText(claimRecord?.claimId),
+          eventId: normalizeText(achievement?.eventId),
+          awardedAt: new Date().toISOString(),
+          metadata: {
+            achievementId: normalizeText(achievement?.id),
+            achievementTitle: normalizeText(achievement?.title),
+            eventId: normalizeText(achievement?.eventId),
+            eventName: normalizeText(achievement?.eventName),
+            rewardType: 'title',
+          },
+        });
+      } catch (error) {
+        if (error?.code !== '23505') {
+          throw error;
+        }
+      }
+    }
   }
 
   const catalog = await buildCatalogForMemberWithLatestState(member, userId, { rankClaimPeriod });
