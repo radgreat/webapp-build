@@ -8336,8 +8336,10 @@
           const safeId = String(achievement?.id || '').trim();
           const title = String(achievement?.title || 'Achievement').trim() || 'Achievement';
           const description = String(achievement?.description || '').trim();
+          const rewardUsd = Math.max(0, Number(achievement?.rewardUsd) || 0);
           const rewardType = String(achievement?.rewardType || '').trim().toLowerCase();
           const rewardTitle = String(achievement?.rewardTitle || '').trim();
+          const rewardLabel = String(achievement?.rewardLabel || '').trim();
           const status = String(achievement?.status || '').trim().toLowerCase();
           const isClaimed = status === 'claimed';
           const isEligible = status === 'eligible';
@@ -8355,6 +8357,8 @@
           const claimActionLabel = rewardType === 'title'
             ? `Claim ${rewardTitle ? `"${rewardTitle}"` : 'title'}`
             : 'Claim';
+          const rewardDisplayLabel = rewardLabel
+            || (rewardType === 'title' && rewardTitle ? `Title: ${rewardTitle}` : formatCurrency(rewardUsd));
           const buttonLabel = isClaimed ? 'Claimed' : (isEligible ? claimActionLabel : 'Locked');
           const buttonDisabled = !isEligible;
           const buttonClasses = isClaimed
@@ -8381,7 +8385,8 @@
                     <p class="mt-1 text-caption text-text-secondary">${escapeHtml(detailText)}</p>
                   </div>
                 </div>
-                <div class="flex items-center">
+                <div class="flex items-center gap-2">
+                  <span class="text-caption text-brand-300 font-medium whitespace-nowrap">${escapeHtml(rewardDisplayLabel)}</span>
                   <button
                     type="button"
                     data-profile-achievement-claim-id="${escapeHtml(safeId)}"

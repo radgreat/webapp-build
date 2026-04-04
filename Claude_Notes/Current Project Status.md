@@ -4408,6 +4408,20 @@ Last Updated: 2026-04-03
 - Validation:
   - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
 
+## Recent Update (2026-04-03) - Reward Text Re-added to Achievement List
+
+- Completed:
+  - restored reward text chip in achievement list cards.
+  - retained simplified left content structure.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
 ## Recent Update (2026-04-03) - Legacy Director "0/3" Text Removed
 
 - Completed:

@@ -9292,6 +9292,23 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 - `Claude_Notes/charge-documentation.md`
 - `Claude_Notes/Current Project Status.md`
 
+## Achievement List Follow-Up - Reward Text Restored (2026-04-03)
+
+### What changed
+
+- Restored visible reward text chip on achievement list cards (right side), e.g. `Title: ...` or amount label.
+- Kept prior simplification on left content (title + single detail line).
+
+### Validation / QA
+
+- `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
 ## Legacy Director Text Removal - Hidden "… 0/3" Line (2026-04-03)
 
 ### What changed
