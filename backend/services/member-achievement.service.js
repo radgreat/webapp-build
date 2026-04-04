@@ -1670,6 +1670,17 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     activityState,
   }, claims, rankClaimPeriod, { rankRunProgress });
   const claimMap = mapClaimsByAchievementId(claims, { rankClaimPeriod });
+  const achievementProgressContext = {
+    ...progressContext,
+    currentRank,
+    leftDirectSponsors: currentLeftDirectSponsors,
+    rightDirectSponsors: currentRightDirectSponsors,
+    totalDirectSponsors: currentDirectSponsorsTotal,
+    currentCycles,
+    packageEnrollmentsByKey,
+    directLegacyBuilderEnrollments,
+    activityState,
+  };
 
   const achievements = PROFILE_ACHIEVEMENTS.map((achievement) => {
     const claim = claimMap.get(achievement.id) || null;
@@ -1681,15 +1692,7 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     const resolvedRewardLabel = isTitleRewardAchievement(achievement)
       ? (resolvedRewardTitle ? `Title: ${resolvedRewardTitle}` : '')
       : normalizeText(achievement.rewardLabel);
-    const eligibility = evaluateAchievementEligibility(achievement, {
-      currentRank,
-      leftDirectSponsors: currentLeftDirectSponsors,
-      rightDirectSponsors: currentRightDirectSponsors,
-      totalDirectSponsors: currentDirectSponsorsTotal,
-      currentCycles,
-      packageEnrollmentsByKey,
-      activityState,
-    }, claim, {
+    const eligibility = evaluateAchievementEligibility(achievement, achievementProgressContext, claim, {
       rankMonthlyContext,
     });
 

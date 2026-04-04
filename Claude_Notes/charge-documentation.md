@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 174
+**Times Updated:** 182
 
 ## Overview
 
@@ -12,6 +12,377 @@
 
 ## Major Update (Lead Devloper Notes)
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.
+
+---
+
+## Update (2026-04-04) - Unverified Reset + Manual Verify Link/Button in Settings
+
+### What Was Changed
+
+- Reset the active member account (`zeroone`) email verification state in DB:
+  - `email_verified = false`
+  - `email_verified_at = null`
+- Added a dedicated `Verify Email` button in Settings -> Account -> Email row.
+- Added a manual verification link panel under the email status:
+  - shown when a valid unexpired verification link exists
+  - hidden when email is verified or no active link exists.
+- Updated frontend verification UX:
+  - `Change Email` now clears stale manual verification links.
+  - `Verify Email` button requests a fresh verification token/link from server.
+  - account-save flow now stores and surfaces the returned manual link.
+  - verification status message now explicitly prompts: use button/link when unverified.
+- Hardened backend status payload to return only active verification links:
+  - `resolveMemberEmailVerificationStatus(...)` now includes `verificationLink`/`verificationLinkSource`.
+  - outbox links are filtered and cross-checked against active token records (no used/expired token links).
+
+### Files Affected
+
+- `backend/services/auth.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept verification in a user-driven click flow (manual link) while SMTP sending is not available.
+- Added explicit UI controls (`Verify Email` button + link row) so verification can be completed without leaving Settings workflow assumptions.
+- Ensured stale links are not surfaced by validating link token activity server-side before exposing `verificationLink` in status.
+
+### Validation
+
+- Backend syntax checks passed:
+  - `node --check backend/services/auth.service.js`
+  - `node --check backend/stores/user.store.js`
+  - `node --check backend/stores/email-verification.store.js`
+  - `node --check backend/controllers/auth.controller.js`
+  - `node --check backend/routes/auth.routes.js`
+- Frontend parse checks passed:
+  - `Inline scripts parse OK: 2`
+- API behavior verification:
+  - before request: `verified=false`, `hasVerificationLink=false`
+  - after request: `verified=false`, `hasVerificationLink=true`, link returned under `/api/member-auth/verify-email?token=...`
+
+### Known Limitations
+
+- Verification still uses mock outbox/manual link mode until real email sender integration is added.
+
+---
+
+## Update (2026-04-04) - Real Server-Side Email Verification Flow (Settings Account)
+
+### What Was Changed
+
+- Implemented real backend email verification support for member accounts (not UI-only status text):
+  - schema support in `charge.member_users`:
+    - `email_verified` (boolean)
+    - `email_verified_at` (timestamp)
+  - new token table:
+    - `charge.member_email_verification_tokens`
+- Added server APIs:
+  - `GET /api/member-auth/email-verification-status` (auth required)
+  - `POST /api/member-auth/email-verification/request` (auth required)
+  - `GET /api/member-auth/verify-email?token=...` (token-based verification)
+- Added token lifecycle handling:
+  - create secure token hash (SHA-256)
+  - revoke previous active tokens on new request
+  - enforce token expiry (48h)
+  - mark token used after successful verification
+- Added mock email delivery integration:
+  - verification link is written to existing mock email outbox.
+- Wired Settings Account save flow to request verification from server and refresh server verification status label.
+
+### Files Affected
+
+- `backend/routes/auth.routes.js`
+- `backend/controllers/auth.controller.js`
+- `backend/services/auth.service.js`
+- `backend/stores/user.store.js`
+- `backend/stores/email-verification.store.js` (new)
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept verification state authoritative on server (`member_users.email_verified`) so UI status reflects real backend truth.
+- Used hashed verification tokens in DB instead of storing raw tokens.
+- Reused existing mock email outbox pattern for link delivery to avoid introducing an external email dependency in this phase.
+- Kept verification endpoint token-based and unauthenticated (`GET /verify-email`) so email link flow works independently from active session state.
+
+### Validation
+
+- Syntax checks passed:
+  - `node --check backend/stores/email-verification.store.js`
+  - `node --check backend/stores/user.store.js`
+  - `node --check backend/services/auth.service.js`
+  - `node --check backend/controllers/auth.controller.js`
+  - `node --check backend/routes/auth.routes.js`
+- Frontend inline script parse passed:
+  - `Inline scripts parse OK: 2`
+- End-to-end backend verification flow passed on fresh app process:
+  - login -> request verification -> verify token -> status reflects `verified: true`
+- Live port `3000` check confirms verify route now resolves (no stale 404):
+  - `GET /api/member-auth/verify-email` returns `400` with missing-token error (expected).
+
+### Known Limitations
+
+- Verification email delivery currently writes to mock outbox only; SMTP/provider send is not wired yet.
+- Verification link currently targets API route path and returns JSON response (success/error), not a dedicated branded confirmation page.
+
+---
+
+## Update (2026-04-04) - Title Hover Card Now Shows Acquisition Date
+
+### What Was Changed
+
+- Extended profile claimed-title data mapping to include acquisition timestamp (`awardedAt` / fallback sources) per title award entry.
+- Updated title badge hover subtitle rendering to include two lines:
+  - `Exclusive {Event Name}`
+  - `Acquired MM/DD/YYYY`
+- Added date fallback behavior:
+  - when acquisition timestamp is unavailable, subtitle shows `Acquired --`.
+- Enabled multi-line subtitle rendering in the hover card style using `white-space: pre-line`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept the event label as the first line to preserve existing context and appended acquisition timing as a second line for clarity.
+- Used `MM/DD/YYYY` formatting to match the requested output example (`04/03/2026`).
+- Reused existing title award payload fields and fallback claim timestamps to reduce dependency on a single data source.
+
+### Validation
+
+- Inline app script parse passed:
+  - `sed -n '4663,19496p' index.html | sed '1d;$d' > /tmp/index-inline-app.js && node --check /tmp/index-inline-app.js`
+- Static code verification confirms:
+  - subtitle formatter appends `Acquired ...` line.
+  - title entry resolver now carries `acquiredAt`.
+  - hover card subtitle CSS supports line breaks.
+
+### Known Limitations
+
+- If older title award records do not include award/claim timestamps, the subtitle will render `Acquired --` until data is available.
+
+---
+
+## Update (2026-04-04) - Profile Edit Supports Two Claimed Titles (Title 1 + Title 2)
+
+### What Was Changed
+
+- Replaced the old placeholder `Show Extra Icon` flow with a real second-title path:
+  - `Title 1` select (primary claimed title)
+  - `Title 2` select (secondary claimed title)
+- Updated badge labels:
+  - `Show Title 1 Icon`
+  - `Show Title 2 Icon`
+- Added two-title option sync behavior:
+  - `Title 2` options are filtered to exclude the currently selected `Title 1`.
+  - secondary title persists in profile customization payload/state.
+- Updated badge rendering data:
+  - first title badge slot now maps to `Title 1`
+  - second title badge slot maps to `Title 2`
+- Added availability guards:
+  - `Show Title 1 Icon` is disabled when no claimed titles exist.
+  - `Show Title 2 Icon` is disabled when fewer than two claimed titles exist.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Bound `Title 2` directly to claimed-title inventory instead of keeping a generic placeholder badge so profile badges remain claim-driven and deterministic.
+- Kept selection rules mutually exclusive (`Title 2` cannot duplicate `Title 1`) to prevent duplicate icon chips on the profile handle.
+
+### Validation
+
+- Inline app script parse passed:
+  - `sed -n '4662,19471p' index.html | sed '1d;$d' > /tmp/index-inline-app.js && node --check /tmp/index-inline-app.js`
+- Authenticated visual + runtime checks:
+  - `temporary screenshots/screenshot-15-title1-title2-pass1.png`
+  - `temporary screenshots/screenshot-16-title1-title2-pass2.png`
+- Verified states:
+  - no-claimed-title pass: both title toggles disabled/unchecked, empty-state selects shown.
+  - two-claimed-title pass: both title toggles enabled; `Title 2` list excludes selected `Title 1`.
+
+### Known Limitations
+
+- `Title 2` is available only when the member has at least two claimed titles; otherwise it remains intentionally disabled.
+
+---
+
+## Update (2026-04-04) - Disabled WebKit Long-Hover Native Tooltip on Profile Badge Chips
+
+### What Was Changed
+
+- Removed native `title` attribute assignment from profile handle badge chip buttons.
+- Badge chips now rely only on:
+  - custom hover card
+  - `aria-label` for accessibility
+- Result: WebKit/browser default long-hover tooltip no longer appears over profile badge icons.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept `aria-label` intact to preserve screen-reader context while removing browser-native tooltip rendering.
+- Scoped change only to profile badge chips to avoid impacting other UI controls that may intentionally use `title`.
+
+### Validation
+
+- Inline app script parse passed:
+  - `sed -n '4649,19336p' index.html | sed '1d;$d' > /tmp/index-inline-app.js && node --check /tmp/index-inline-app.js`
+- Authenticated runtime DOM check:
+  - `.profile-handle-badge-button` count: `1`
+  - `title` attribute count on badge buttons: `0`
+
+### Known Limitations
+
+- This removes native hover tooltips only for profile handle badge chips; other controls elsewhere may still use `title` by design.
+
+---
+
+## Update (2026-04-04) - Title Hover Card Subtitle Switched to Event Binding
+
+### What Was Changed
+
+- Removed `Subscriber since ...` from the `Title` hover card subtitle path.
+- Implemented title-event subtitle binding:
+  - title subtitle now resolves from claimed title award event metadata when available.
+  - subtitle format: `Exclusive {Event Name}`.
+- Added fallback for known legacy event titles:
+  - `Legacy Founder`
+  - `Legacy Director`
+  - `Legacy Ambassador`
+  - `Presidential Circle`
+  - fallback subtitle: `Exclusive Legacy Builder Leadership Program`.
+- Expanded claimed-title resolver output to carry event context (`eventId`, `eventName`) so hover-card rendering can stay data-driven.
+- Rank badge subtitle remains unchanged and still uses `Subscriber since ...`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Bound subtitle at title-resolution layer rather than hardcoding in hover-card render to keep future title events reusable.
+- Added deterministic title-name fallback mapping so subtitle remains correct even if event metadata is missing on a claim record.
+
+### Validation
+
+- Inline app script parse passed:
+  - `sed -n '4649,19340p' index.html | sed '1d;$d' > /tmp/index-inline-app.js && node --check /tmp/index-inline-app.js`
+- Authenticated hover-card QA (2 passes, seeded claimed-title state):
+  - `temporary screenshots/screenshot-13-title-hover-event-bound-pass1.png`
+  - `temporary screenshots/screenshot-14-title-hover-event-bound-pass2.png`
+- Runtime subtitle result:
+  - `Exclusive Legacy Builder Leadership Program` (metadata-bound pass and fallback pass).
+
+### Known Limitations
+
+- Verification used seeded in-session claimed-title data for visibility; production path is the same but live account data may vary by current award metadata completeness.
+
+---
+
+## Update (2026-04-04) - Time-Limited Event Legacy Founder Backfill + Eligibility Context Fix
+
+### What Was Changed
+
+- Backfilled the Legacy account (`zeroone`) for the Time-Limited Event founder achievement:
+  - inserted claim for `time-limited-event-legacy-founder`
+  - inserted linked title award for `legacy-founder`
+- Fixed server-side achievement list eligibility evaluation path:
+  - `buildAchievementCatalogForMember(...)` now passes the full progress context object into `evaluateAchievementEligibility(...)`.
+  - this retains event-critical fields like:
+    - `hasLegacyPackageOwnership`
+    - `currentEnrollmentPackageKey`
+    - legacy builder depth counters
+- Result: Legacy package users now evaluate correctly inside Time-Limited event list payloads instead of appearing incorrectly locked due to dropped context.
+
+### Files Affected
+
+- `backend/services/member-achievement.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used the existing claim service path for backfill to preserve business logic parity (claim insert + title award insert + duplicate guards) instead of writing raw SQL-only rows.
+- Fixed the root cause in catalog evaluation context wiring so future Legacy accounts do not require manual backfill intervention for visibility/eligibility correctness.
+
+### Validation
+
+- `node --check backend/services/member-achievement.service.js` passed.
+- DB verification:
+  - `charge.member_achievement_claims` contains `time-limited-event-legacy-founder` for user `zeroone`.
+  - `charge.member_title_awards` contains `legacy-founder` award for user `zeroone`.
+- Service verification:
+  - Time-Limited list payload now reports `hasLegacyPackageOwnership: true` for Legacy account context.
+
+### Known Limitations
+
+- This update backfilled the current Legacy account only; any broader historical multi-user backfill job would require a dedicated batch script if requested.
+
+---
+
+## Update (2026-04-03) - Title Dropdown Arrow Alignment + Badge Toggle Lock (No Claimed Titles)
+
+### What Was Changed
+
+- Improved `Title` dropdown caret placement by replacing the browser-default caret with a custom inline chevron icon.
+- Updated title dropdown shell:
+  - added `appearance-none`
+  - added right padding to reserve caret space (`pr-9`)
+  - anchored custom chevron at `right-3` for consistent visual alignment.
+- Added conditional badge toggle availability logic:
+  - when claimed titles are empty, both `Show Title Icon` and `Show Extra Icon` are now:
+    - disabled
+    - unchecked
+    - visually muted (`opacity-60`, `cursor-not-allowed`)
+- Kept `Show Rank Icon` behavior unchanged.
+- Updated profile handle badge rendering to prevent `Title` and `Extra` badge chips from rendering when no claimed titles exist (prevents placeholder-only icon display).
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used a custom chevron rather than browser-native select arrows to keep caret position stable across browsers/themes.
+- Applied disable logic from claimed-title availability so the edit controls reflect true data readiness.
+- Enforced the same title availability rule at badge-render level for consistent UI behavior outside form state.
+
+### Validation
+
+- Inline app script parse passed:
+  - `sed -n '4649,19294p' index.html | sed '1d;$d' > /tmp/index-inline-app.js && node --check /tmp/index-inline-app.js`
+- Authenticated visual QA screenshots:
+  - `temporary screenshots/screenshot-11-profile-edit-arrow-badge-pass1.png`
+  - `temporary screenshots/screenshot-12-profile-edit-arrow-badge-pass2.png`
+- Runtime checks confirmed in browser:
+  - custom title arrow present
+  - arrow right padding = `12px`
+  - `Show Title Icon`: disabled + unchecked when no claimed titles
+  - `Show Extra Icon`: disabled + unchecked when no claimed titles
+
+### Known Limitations
+
+- Active test account still has zero claimed titles, so enabled-state behavior for title/extra toggles with awarded titles was not exercised in this pass.
 
 ---
 
@@ -10488,6 +10859,302 @@ File: `index.html`
 ### Files affected
 
 - `backend/services/member-achievement.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## User Dashboard Account Rank Card Icon Updated to Rank Badge (2026-04-03)
+
+### What changed
+
+- Updated the **User Dashboard -> Account Overview -> Account Rank** card icon in `index.html`.
+- Replaced the old inline star SVG with a theme-aware rank badge image slot:
+  - added `<img id="account-rank-icon" ...>` in the Account Rank card header.
+- Added runtime icon sync logic:
+  - new `renderAccountRankIcon(rankLabel)` function resolves the current rank to the correct achievement icon using existing rank/icon resolvers.
+  - invoked on initial load, rank refresh (`applyBinaryTreeDashboardSummary`), and theme changes (`applyAppTheme`) so icon stays accurate and theme-correct.
+
+### Design decisions
+
+- Reused existing rank mapping + icon path resolvers (`resolveProfileBadgeRankAchievementId`, `resolveProfileBadgeIconPathByAchievementId`) instead of creating a second mapping path.
+- Kept the change scoped to the specific User Dashboard Account Rank card requested.
+
+### Known limitations
+
+- The required screenshot target `http://127.0.0.1:5500` returned `ERR_EMPTY_RESPONSE` during automation.
+- Visual capture was run on `http://localhost:3000`, which lands on the login screen in headless mode without an authenticated session; dashboard-card verification was completed via direct code-path inspection.
+
+### Validation / QA
+
+- Ran screenshot workflow twice with `screenshot.mjs`:
+  - `temporary screenshots/screenshot-17-rank-icon-pass1.png`
+  - `temporary screenshots/screenshot-18-rank-icon-pass2.png`
+- Confirmed icon render hooks are wired in all required update paths:
+  - initial render
+  - rank state updates
+  - app theme toggles
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Settings Page UI Redesign - Category + List Layout (2026-04-03)
+
+### What changed
+
+- Rebuilt `#page-settings` in `index.html` from a two-card block into a full **category-first list UI**.
+- New structure:
+  - left category rail (Account & Identity, Appearance, Session & Security)
+  - right stacked category sections rendered as setting rows/lists
+- Preserved all existing settings behavior IDs so JS bindings continue to work without logic rewrites:
+  - `settings-account-name`
+  - `settings-account-handle`
+  - `settings-account-rank`
+  - `settings-open-profile-button`
+  - `settings-theme-switcher`
+  - `settings-logout-button`
+- Added refreshed visual hierarchy for Settings header and section cards while keeping existing design tokens and interaction patterns.
+- Improved row-description readability in mobile/compact view by increasing helper copy sizing to `12px` with `leading-5`.
+
+### Design decisions
+
+- Kept the established dashboard visual language (surface, border, brand accent system) to stay consistent with the existing product.
+- Implemented category navigation as anchors (`#settings-cat-*`) for fast scanning and predictable section jumps.
+- Kept controls in list rows (instead of tiled blocks) to match your requested “category then list” workflow.
+
+### Known limitations
+
+- The prescribed screenshot command target `http://127.0.0.1:5500` still returns `ERR_EMPTY_RESPONSE` in this environment; validation was run against the active localhost app on port `3000`.
+
+### Validation / QA
+
+- Syntax validation:
+  - `Inline scripts parse OK: 2`
+- Visual passes (authenticated Settings page):
+  - `temporary screenshots/screenshot-19-settings-redesign-pass1.png`
+  - `temporary screenshots/screenshot-22-settings-redesign-pass2-desktop-final.png`
+  - `temporary screenshots/screenshot-23-settings-redesign-pass3-mobile-final.png`
+- Confirmed desktop + mobile layouts render and preserved IDs remain present for existing JS event handlers.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Settings Category Side-Nav Refinement - Single Active Panel (2026-04-03)
+
+### What changed
+
+- Converted Settings left categories into interactive side-nav buttons:
+  - `1. Account`
+  - `2. Appearance`
+  - `3. Security`
+- Added active-state behavior so clicking a category marks it active and shows only that category panel.
+- Added panel switching logic through `data-settings-category-tab` and `data-settings-category-panel` mappings.
+- Updated Security category content to include three action rows:
+  - Forgot Password (`settings-security-forgot-password-button`)
+  - Change Password (`settings-security-change-password-button`)
+  - Logout All Sessions (`settings-logout-button`)
+- Added contextual security feedback area (`settings-security-feedback`) for actions that are not yet server-wired.
+- Updated Settings search placeholder copy to include security.
+
+### Design decisions
+
+- Used button-based side nav instead of anchor links so category switching stays in-page and fully state-driven.
+- Kept existing IDs for account/theme/logout controls to preserve current event wiring and avoid regressions.
+- Defaulted to `Account` as initial active category for predictable first render.
+
+### Known limitations
+
+- Forgot Password / Change Password in this panel currently show informational feedback only (no backend recovery endpoints wired from this view yet).
+- `Logout All` currently clears local session and redirects to login as the immediate session-control behavior.
+
+### Validation / QA
+
+- `Inline scripts parse OK: 2`
+- Desktop category switching screenshots:
+  - `temporary screenshots/screenshot-24-settings-cats-pass1-account.png`
+  - `temporary screenshots/screenshot-25-settings-cats-pass1-appearance.png`
+  - `temporary screenshots/screenshot-26-settings-cats-pass1-security.png`
+- Mobile category switching screenshots:
+  - `temporary screenshots/screenshot-27-settings-cats-pass2-mobile-account.png`
+  - `temporary screenshots/screenshot-28-settings-cats-pass2-mobile-security.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Settings Category Refinement - Account Personal Details + Payment/Billing Expansion (2026-04-04)
+
+### What changed
+
+- Expanded the Settings category system in `index.html` to match the requested structure and detail level:
+  - `Account`
+  - `Payment and Billing`
+  - `Security`
+  - `Appearance`
+- Updated the left category side-nav labels to remove visible numeric prefixes from category names.
+- Built full Account forms under a dedicated Account panel:
+  - Account Details:
+    - Display Name (editable)
+    - Username (read-only)
+    - Email (editable)
+  - Personal Information:
+    - First Name
+    - Last Name
+    - Birthdate
+    - Gender (Male, Female, Prefer Not to Say)
+    - Address Line
+    - City
+    - Region
+    - Zip
+    - Country
+- Added `Payment and Billing` category panel with:
+  - Card Details block and Payment Element placeholder mount area
+  - Billing Address fields
+  - `Same as address` toggle that mirrors personal address fields and disables billing inputs while active
+- Wired settings form persistence so Account + Billing updates write back to session snapshot and refresh displayed identity values.
+- Added Stripe documentation links in UI copy for billing details and address capture behavior.
+
+### Design decisions
+
+- Kept category switching in-page via active side-nav state (`data-settings-category-tab` + `data-settings-category-panel`) to keep Settings fast and focused.
+- Kept existing theming and component tokens for visual consistency with the rest of the member dashboard.
+- Linked directly to Stripe docs from the Payment section so implementation details are discoverable from the UI.
+
+### Known limitations
+
+- Card fields area is currently a Payment Element mount placeholder; Stripe element initialization is not yet wired in this Settings panel.
+- Security actions for Forgot/Change Password still show informational messaging until dedicated server-backed flows are connected.
+
+### Validation / QA
+
+- Inline JS parse validation passed:
+  - `Inline scripts parse OK: 1`
+- Screenshot passes:
+  - `temporary screenshots/screenshot-33-settings-redesign-pass1.png` (unauthenticated login gate pass)
+  - `temporary screenshots/screenshot-34-settings-redesign-pass2-auth.png` (authenticated Account category)
+  - `temporary screenshots/screenshot-35-settings-redesign-pass3-payment-auth.png` (authenticated Payment category active + Account hidden)
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Settings Account Details Layout Alignment + Change Email Action (2026-04-04)
+
+### What changed
+
+- Updated the Account category’s `Account Details` area to match the same list-row interaction pattern used by Security.
+- Replaced the old visible account detail input grid with row-based items:
+  - Display Name (value + action button)
+  - Username (value + non-editable badge)
+  - Email (value + `Change Email` button)
+- Added explicit `Change Email` action flow so email is not presented as an inline editable field by default.
+- Preserved existing account save behavior by keeping account form fields as hidden inputs and using action buttons to update those values before save.
+
+### Interaction behavior
+
+- `Edit Display Name` opens a prompt and updates the Display Name row value.
+- `Change Email` opens a prompt, validates email format, and updates the Email row value.
+- `Save Account Details` persists the updated account/personal values through the existing session persistence flow.
+
+### Design decisions
+
+- Kept button styling and row spacing consistent with Security rows for visual parity.
+- Kept `Username` read-only with an explicit `Not editable` badge to reinforce account constraint.
+- Used button-first edits for account identity fields to match the requested interaction model.
+
+### Known limitations
+
+- Display name/email edit interactions currently use browser prompt dialogs for fast action-first editing; no custom inline modal is wired yet.
+
+### Validation / QA
+
+- Inline script parse check passed:
+  - `Inline scripts parse OK: 1`
+- Authenticated screenshot passes:
+  - `temporary screenshots/screenshot-36-settings-account-security-layout-pass1-auth.png` (Account panel with row/button layout)
+  - `temporary screenshots/screenshot-37-settings-security-layout-pass2-auth.png` (Security panel reference layout)
+- Interaction smoke test:
+  - `No console/page errors detected in Account Details button flow.`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Settings Email Verification Status - Server Authenticated Indicator (2026-04-04)
+
+### What changed
+
+- Added a server-backed email verification status flow for Settings -> Account -> Email.
+- Added a new authenticated API endpoint:
+  - `GET /api/member-auth/email-verification-status`
+  - guarded by `requireMemberAuthSession` (Bearer token required)
+- Added backend verification resolver that reads verification support/state from server-side schema safely:
+  - checks whether `charge.member_users.email_verified` / `email_verified_at` columns exist
+  - returns verification metadata without breaking environments where these columns are not yet configured
+- Updated Account email row UI to display server-authenticated verification text status under the email value.
+- Wired frontend status refresh to run when opening Settings, after changing email locally, and after saving Account details.
+
+### Response behavior
+
+- API returns:
+  - `authenticated`
+  - `email`
+  - `verified`
+  - `verifiedAt`
+  - `verificationSupported`
+  - `verificationSource`
+  - `checkedAt`
+- UI states include:
+  - server authenticated + verified
+  - server authenticated + not verified
+  - server authenticated + verification not configured
+  - local email mismatch vs server record (not verified)
+  - missing/invalid auth token or fetch error states
+
+### Design decisions
+
+- Implemented server truth as the source of verification state to avoid client-only “verified” labels.
+- Added schema-introspection fallback rather than hard-coding new DB columns, so current environments continue to function without migration failures.
+- Kept the status inline and compact in Account Details for quick trust visibility next to the email itself.
+
+### Known limitations
+
+- Current database schema does not yet expose `member_users.email_verified`, so the live status currently resolves to `verification not configured` unless schema support is added.
+- Existing account edit flow still saves to session snapshot on frontend; local email changes can intentionally show mismatch until server profile update is wired.
+
+### Validation / QA
+
+- Backend syntax checks passed:
+  - `node --check backend/stores/user.store.js`
+  - `node --check backend/services/auth.service.js`
+  - `node --check backend/controllers/auth.controller.js`
+  - `node --check backend/routes/auth.routes.js`
+- Frontend inline script parse check passed:
+  - `Inline scripts parse OK: 1`
+- Endpoint smoke test with live auth token:
+  - `POST /api/member-auth/login` -> `200`
+  - `GET /api/member-auth/email-verification-status` -> `200`
+- Screenshot passes:
+  - `temporary screenshots/screenshot-38-settings-email-verification-pass1-auth.png`
+  - `temporary screenshots/screenshot-39-settings-email-verification-pass2-local-mismatch.png`
+
+### Files affected
+
+- `backend/stores/user.store.js`
+- `backend/services/auth.service.js`
+- `backend/controllers/auth.controller.js`
+- `backend/routes/auth.routes.js`
 - `index.html`
 - `Claude_Notes/charge-documentation.md`
 - `Claude_Notes/Current Project Status.md`

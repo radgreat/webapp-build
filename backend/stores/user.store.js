@@ -104,6 +104,35 @@ function mapAppUserToDbUser(user) {
   };
 }
 
+let memberUsersEmailVerificationColumnsCache = null;
+
+export function invalidateMemberUsersEmailVerificationColumnsCache() {
+  memberUsersEmailVerificationColumnsCache = null;
+}
+
+async function resolveMemberUsersEmailVerificationColumns(options = {}) {
+  const forceRefresh = options?.forceRefresh === true;
+  if (!forceRefresh && memberUsersEmailVerificationColumnsCache) {
+    return memberUsersEmailVerificationColumnsCache;
+  }
+
+  const result = await pool.query(`
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'charge'
+      AND table_name = 'member_users'
+      AND column_name IN ('email_verified', 'email_verified_at')
+  `);
+
+  const columnNames = new Set(result.rows.map((row) => String(row?.column_name || '').trim()));
+  memberUsersEmailVerificationColumnsCache = {
+    hasEmailVerified: columnNames.has('email_verified'),
+    hasEmailVerifiedAt: columnNames.has('email_verified_at'),
+  };
+
+  return memberUsersEmailVerificationColumnsCache;
+}
+
 export async function readMockUsersStore() {
   const result = await pool.query(`
     SELECT
@@ -444,4 +473,132 @@ export async function updateUserById(userIdInput, updater) {
   ]);
 
   return mapDbUserToAppUser(result.rows[0] || null);
+}
+
+export async function readUserEmailVerificationStatusById(userIdInput) {
+  const userId = String(userIdInput || '').trim();
+  if (!userId) {
+    return null;
+  }
+
+  const columns = await resolveMemberUsersEmailVerificationColumns();
+  if (!columns.hasEmailVerified) {
+    return {
+      supported: false,
+      verified: false,
+      verifiedAt: '',
+      source: 'member_users.email_verified:not_configured',
+    };
+  }
+
+  const verificationTimestampSelect = columns.hasEmailVerifiedAt
+    ? 'email_verified_at'
+    : 'NULL::timestamptz AS email_verified_at';
+
+  const result = await pool.query(`
+    SELECT
+      COALESCE(email_verified, FALSE) AS email_verified,
+      ${verificationTimestampSelect}
+    FROM charge.member_users
+    WHERE id = $1
+    LIMIT 1
+  `, [userId]);
+
+  const row = result.rows[0] || null;
+  if (!row) {
+    return null;
+  }
+
+  return {
+    supported: true,
+    verified: Boolean(row.email_verified),
+    verifiedAt: toIsoStringOrEmpty(row.email_verified_at),
+    source: columns.hasEmailVerifiedAt
+      ? 'member_users.email_verified+email_verified_at'
+      : 'member_users.email_verified',
+  };
+}
+
+export async function updateUserEmailAddressById(userIdInput, nextEmailInput, options = {}, executor = pool) {
+  const userId = String(userIdInput || '').trim();
+  const nextEmail = normalizeCredential(nextEmailInput);
+  if (!userId || !nextEmail) {
+    return null;
+  }
+
+  const columns = await resolveMemberUsersEmailVerificationColumns();
+  const shouldSetVerification = Object.prototype.hasOwnProperty.call(options || {}, 'emailVerified');
+  const queryValues = [userId, nextEmail];
+  const setClauses = [
+    'email = $2',
+    'updated_at = NOW()',
+  ];
+
+  if (shouldSetVerification && columns.hasEmailVerified) {
+    const emailVerified = options?.emailVerified === true;
+    const verifiedAt = emailVerified
+      ? (String(options?.verifiedAt || '').trim() || new Date().toISOString())
+      : null;
+    queryValues.push(emailVerified);
+    setClauses.push(`email_verified = $${queryValues.length}`);
+    if (columns.hasEmailVerifiedAt) {
+      queryValues.push(verifiedAt);
+      setClauses.push(`email_verified_at = $${queryValues.length}::timestamptz`);
+    }
+  }
+
+  const result = await executor.query(`
+    UPDATE charge.member_users
+    SET ${setClauses.join(', ')}
+    WHERE id = $1
+    RETURNING id
+  `, queryValues);
+
+  if (!result.rows[0]?.id) {
+    return null;
+  }
+
+  return findUserById(userId);
+}
+
+export async function updateUserEmailVerificationStateById(userIdInput, options = {}, executor = pool) {
+  const userId = String(userIdInput || '').trim();
+  if (!userId) {
+    return null;
+  }
+
+  const columns = await resolveMemberUsersEmailVerificationColumns();
+  if (!columns.hasEmailVerified) {
+    return findUserById(userId);
+  }
+
+  const emailVerified = options?.emailVerified === true;
+  const verifiedAt = emailVerified
+    ? (String(options?.verifiedAt || '').trim() || new Date().toISOString())
+    : null;
+
+  const result = columns.hasEmailVerifiedAt
+    ? await executor.query(`
+      UPDATE charge.member_users
+      SET
+        email_verified = $2,
+        email_verified_at = $3::timestamptz,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `, [userId, emailVerified, verifiedAt])
+    : await executor.query(`
+      UPDATE charge.member_users
+      SET
+        email_verified = $2,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `, [userId, emailVerified]);
+
+  if (!result.rows[0]?.id) {
+    return null;
+  }
+
+  return findUserById(userId);
 }

@@ -2,6 +2,9 @@ import {
   authenticateUser,
   validatePasswordSetupToken,
   updatePasswordFromSetupToken,
+  resolveMemberEmailVerificationStatus,
+  requestMemberEmailVerification,
+  verifyMemberEmailByToken,
 } from '../services/auth.service.js';
 import { issueMemberAuthSessionForUser } from '../services/member-auth-session.service.js';
 
@@ -94,6 +97,61 @@ export async function postSetupPassword(req, res) {
     console.error(error);
     return res.status(500).json({
       error: 'Unable to set password.',
+    });
+  }
+}
+
+export async function getMemberEmailVerificationStatus(req, res) {
+  try {
+    const result = await resolveMemberEmailVerificationStatus(req.authenticatedMember || {});
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to resolve email verification status.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to load email verification status.',
+    });
+  }
+}
+
+export async function postMemberEmailVerificationRequest(req, res) {
+  try {
+    const nextEmail = req.body?.email;
+    const result = await requestMemberEmailVerification(req.authenticatedMember || {}, nextEmail);
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to request email verification.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to request email verification.',
+    });
+  }
+}
+
+export async function getVerifyMemberEmail(req, res) {
+  try {
+    const result = await verifyMemberEmailByToken(req.query?.token);
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to verify email token.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to verify email token.',
     });
   }
 }

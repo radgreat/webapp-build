@@ -1,11 +1,200 @@
 # Current Project Status
 
-Last Updated: 2026-04-03
+Last Updated: 2026-04-04
 
 ## Purpose
 
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
+
+## Recent Update (2026-04-04) - Added `Verify Email` Button + Manual Link Row; Account Reset to Unverified
+
+- Reset account verification state for active member account (`zeroone`) to unverified.
+- Settings Account email row now includes:
+  - `Verify Email` button (shown for unverified email states)
+  - manual verification link section directly under email status text.
+- Verification link behavior:
+  - generated from `POST /api/member-auth/email-verification/request`
+  - surfaced in UI under email field for manual click verification
+  - hidden automatically when account is verified.
+- Backend status API enhancement:
+  - `GET /api/member-auth/email-verification-status` now returns `verificationLink` only when link token is currently active (not expired/used/revoked).
+  - avoids stale link exposure from historical outbox rows.
+- Files updated:
+  - `backend/services/auth.service.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - backend syntax checks passed for auth/store/controller/routes touched in email-verification flow.
+  - inline app script parse passed (`Inline scripts parse OK: 2`).
+  - API checks confirm:
+    - before request: unverified + no link
+    - after request: unverified + active verification link available.
+
+## Recent Update (2026-04-04) - Real Server-Side Email Verification Added
+
+- Implemented real server-side email verification for Settings Account email status (not display-only).
+- Added backend routes:
+  - `GET /api/member-auth/email-verification-status` (auth required)
+  - `POST /api/member-auth/email-verification/request` (auth required)
+  - `GET /api/member-auth/verify-email?token=...` (token verify)
+- Added schema/token storage support:
+  - `member_users.email_verified`
+  - `member_users.email_verified_at`
+  - `member_email_verification_tokens` table with active/expiry indexes.
+- Added token lifecycle rules:
+  - hash token storage
+  - revoke prior active tokens on re-request
+  - 48-hour expiry
+  - mark token used on successful verification.
+- Settings page integration now:
+  - requests verification on account save/email update
+  - refreshes server-authenticated verification status text (`Verified by server` / `Not verified by server`).
+- Files updated:
+  - `backend/routes/auth.routes.js`
+  - `backend/controllers/auth.controller.js`
+  - `backend/services/auth.service.js`
+  - `backend/stores/user.store.js`
+  - `backend/stores/email-verification.store.js` (new)
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - node syntax checks passed for all touched backend auth/store files.
+  - inline app script parse passed (`Inline scripts parse OK: 2`).
+  - end-to-end API flow passed on fresh run:
+    - login -> request verification -> verify link token -> status `verified: true`.
+
+## Recent Update (2026-04-04) - Title Hover Card Adds Acquisition Date Line
+
+- Enhanced title hover-card subtitle content to include acquisition timing.
+- Subtitle now renders as two lines for title badges:
+  - `Exclusive {Event Name}`
+  - `Acquired MM/DD/YYYY`
+- Added acquisition timestamp propagation in claimed title entries:
+  - reads `awardedAt` first, then falls back to claim/metadata date fields.
+- Added graceful fallback:
+  - when no date exists, subtitle shows `Acquired --`.
+- Updated hover-card subtitle style to support visible line breaks (`white-space: pre-line`).
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline app script parse passed (`node --check /tmp/index-inline-app.js`)
+  - code checks confirm title entries now include `acquiredAt` and subtitle builder appends acquisition date line.
+
+## Recent Update (2026-04-04) - Edit Profile Now Supports `Title 1` + `Title 2` Claimed Title Badges
+
+- Replaced the placeholder extra icon path with a second claimed-title slot.
+- Updated profile edit labels:
+  - `Title 1`
+  - `Title 2`
+  - `Show Title 1 Icon`
+  - `Show Title 2 Icon`
+- Added secondary-title selection rules:
+  - `Title 2` options are derived from claimed titles excluding selected `Title 1`.
+  - both selected titles persist in profile customization state on save.
+- Updated profile handle badge slot mapping:
+  - title slot renders as `Title 1`
+  - extra slot now renders as `Title 2`
+- Added title inventory guards for toggles:
+  - no claimed titles: `Show Title 1 Icon` disabled + unchecked
+  - fewer than two claimed titles: `Show Title 2 Icon` disabled + unchecked
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline app script parse passed (`node --check /tmp/index-inline-app.js`)
+  - authenticated screenshots:
+    - `temporary screenshots/screenshot-15-title1-title2-pass1.png`
+    - `temporary screenshots/screenshot-16-title1-title2-pass2.png`
+  - runtime checks confirmed:
+    - empty-state pass: both title toggles disabled
+    - two-title pass: both title toggles enabled and `Title 2` excludes selected `Title 1`
+
+## Recent Update (2026-04-04) - Native WebKit Hover Tooltip Removed from Profile Badge Chips
+
+- Removed browser-native tooltip trigger on profile handle badges by deleting the `title` attribute assignment in badge button creation.
+- Kept custom hover card behavior and accessibility label (`aria-label`) intact.
+- Outcome:
+  - long-hover no longer surfaces WebKit default tooltip overlay on profile badge icons.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline app script parse passed (`node --check /tmp/index-inline-app.js`)
+  - authenticated DOM check confirms:
+    - `.profile-handle-badge-button` has `title` attribute count of `0`
+
+## Recent Update (2026-04-04) - Title Hover Subtitle Bound to Event (No Subscriber Since)
+
+- Updated profile title hover card behavior:
+  - removed `Subscriber since ...` from `Title` badge subtitle.
+  - title subtitle now binds to title-event metadata and renders as `Exclusive {Event Name}`.
+- Added title fallback binding for legacy event titles when metadata is missing:
+  - `Legacy Founder`, `Legacy Director`, `Legacy Ambassador`, `Presidential Circle`
+  - fallback output: `Exclusive Legacy Builder Leadership Program`.
+- Kept rank badge subtitle behavior unchanged (`Subscriber since ...` remains on rank card only).
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline app script parse passed (`node --check /tmp/index-inline-app.js`)
+  - authenticated hover-card screenshots:
+    - `temporary screenshots/screenshot-13-title-hover-event-bound-pass1.png`
+    - `temporary screenshots/screenshot-14-title-hover-event-bound-pass2.png`
+  - subtitle verification output:
+    - `Exclusive Legacy Builder Leadership Program` in both metadata and fallback scenarios.
+
+## Recent Update (2026-04-04) - Time-Limited Event Legacy Founder Backfill + Eligibility Context Fix
+
+- Backfilled the authenticated Legacy account (`zeroone`) for:
+  - Time-Limited Event claim: `time-limited-event-legacy-founder`
+  - Linked account title award: `legacy-founder`
+- Fixed achievement catalog eligibility context wiring in backend:
+  - `buildAchievementCatalogForMember(...)` now passes full member progress context into `evaluateAchievementEligibility(...)` instead of a narrowed subset.
+  - This preserves event-specific fields (for example: legacy package ownership and legacy builder depth counts) during list rendering.
+- Result:
+  - Legacy package accounts now correctly reflect `hasLegacyPackageOwnership` in the Time-Limited Event list payload.
+  - Legacy Founder no longer appears incorrectly locked due to dropped context.
+- Files updated:
+  - `backend/services/member-achievement.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - DB verification confirms backfill rows exist:
+    - `charge.member_achievement_claims` includes `time-limited-event-legacy-founder` for `zeroone`.
+    - `charge.member_title_awards` includes `legacy-founder` for `zeroone`.
+  - Service verification confirms Time-Limited event payload now reports `hasLegacyPackageOwnership: true` for Legacy account context.
+
+## Recent Update (2026-04-03) - Title Select Arrow Position + No-Title Badge Toggle Disable
+
+- Refined `Title` dropdown caret alignment in `Edit Profile`:
+  - replaced default browser caret with custom chevron icon
+  - applied `appearance-none` + right-side caret spacing for consistent placement.
+- Added claimed-title gating for badge controls:
+  - `Show Title Icon` is now disabled/unchecked when no claimed titles exist
+  - `Show Extra Icon` is now disabled/unchecked when no claimed titles exist (placeholder flow)
+- Added matching render guard:
+  - `Title` and `Extra` profile-handle badges no longer render when title inventory is empty.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline app script parse passed (`node --check /tmp/index-inline-app.js`)
+  - authenticated screenshots:
+    - `temporary screenshots/screenshot-11-profile-edit-arrow-badge-pass1.png`
+    - `temporary screenshots/screenshot-12-profile-edit-arrow-badge-pass2.png`
+  - runtime checks confirmed:
+    - custom arrow exists with ~`12px` right inset
+    - title/extra toggles disabled + unchecked when no claimed titles
 
 ## Recent Update (2026-04-03) - Profile Edit Title Dropdown + Badge Label/Order Alignment
 
@@ -4814,3 +5003,167 @@ Last Updated: 2026-04-03
 - Validation:
   - `node --check backend/services/member-achievement.service.js` passed.
   - `index.html` inline script parse check passed (`Inline scripts parse OK: 2`).
+
+## Recent Update (2026-04-03) - User Dashboard Account Rank Card Uses Rank Icon
+
+- Completed:
+  - replaced the Account Overview -> Account Rank card’s static star icon with a rank badge image element.
+  - added `renderAccountRankIcon()` so the icon tracks the current account rank dynamically.
+  - hooked icon refresh into:
+    - initial load
+    - binary tree summary rank updates
+    - theme changes (dark/light icon variants)
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot command against `http://127.0.0.1:5500` failed (`ERR_EMPTY_RESPONSE`).
+  - executed two screenshot passes on `http://localhost:3000`:
+    - `temporary screenshots/screenshot-17-rank-icon-pass1.png`
+    - `temporary screenshots/screenshot-18-rank-icon-pass2.png`
+  - verified code wiring for icon updates across initialization, rank refresh, and theme switch paths.
+
+## Recent Update (2026-04-03) - Settings Page Redesigned to Category + List UI
+
+- Completed:
+  - redesigned `Settings` page from dual cards to a category-first list layout.
+  - added a left category rail and right-side list sections:
+    - Account & Identity
+    - Appearance
+    - Session & Security
+  - retained all existing settings page behavior IDs to avoid JS regressions.
+  - adjusted helper text sizing in setting rows for improved mobile readability.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `Inline scripts parse OK: 2`.
+  - authenticated desktop pass:
+    - `temporary screenshots/screenshot-22-settings-redesign-pass2-desktop-final.png`
+  - authenticated mobile pass:
+    - `temporary screenshots/screenshot-23-settings-redesign-pass3-mobile-final.png`
+  - note: required `127.0.0.1:5500` screenshot target returned `ERR_EMPTY_RESPONSE`; verification used active localhost app on `3000`.
+
+## Recent Update (2026-04-03) - Settings Categories Now Use Active Side-Nav Switching
+
+- Completed:
+  - converted Settings category list into side-nav buttons:
+    - Account
+    - Appearance
+    - Security
+  - implemented active category state and one-panel visibility behavior.
+  - only the selected category panel is shown at a time.
+  - expanded Security panel rows for:
+    - Forgot Password
+    - Change Password
+    - Logout All Sessions
+  - added security feedback messaging for non-wired password actions.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `Inline scripts parse OK: 2`.
+  - desktop switch flow:
+    - `temporary screenshots/screenshot-24-settings-cats-pass1-account.png`
+    - `temporary screenshots/screenshot-25-settings-cats-pass1-appearance.png`
+    - `temporary screenshots/screenshot-26-settings-cats-pass1-security.png`
+  - mobile switch flow:
+    - `temporary screenshots/screenshot-27-settings-cats-pass2-mobile-account.png`
+    - `temporary screenshots/screenshot-28-settings-cats-pass2-mobile-security.png`
+
+## Recent Update (2026-04-04) - Settings Personal Details + Payment/Billing Categories Finalized
+
+- Completed:
+  - finalized Settings side-nav categories to:
+    - Account
+    - Payment and Billing
+    - Security
+    - Appearance
+  - removed numeric-looking category labels from Settings side-nav text.
+  - expanded Account category with editable personal/profile fields:
+    - Display Name, Email
+    - read-only Username
+    - Personal Information (name, birthdate, gender, address, city, region, zip, country)
+  - removed Current Rank from Settings Account form scope as requested.
+  - added Payment and Billing category panel with:
+    - card details mount placeholder
+    - Stripe billing/address documentation links
+    - billing address fields
+    - `Same as address` toggle linked to personal address inputs
+  - retained Security + Appearance categories under active one-panel-at-a-time switching.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `Inline scripts parse OK: 1`.
+  - screenshot pass (unauthenticated gate):
+    - `temporary screenshots/screenshot-33-settings-redesign-pass1.png`
+  - authenticated Settings pass (Account active):
+    - `temporary screenshots/screenshot-34-settings-redesign-pass2-auth.png`
+  - authenticated Settings pass (Payment active, Account hidden):
+    - `temporary screenshots/screenshot-35-settings-redesign-pass3-payment-auth.png`
+
+## Recent Update (2026-04-04) - Account Details Now Matches Security Layout + Change Email Button
+
+- Completed:
+  - refactored Settings -> Account -> Account Details into Security-style row/list layout.
+  - removed direct inline email input from Account Details.
+  - added `Change Email` action button (button-first interaction).
+  - added `Edit Display Name` action button to keep Account Details interaction style consistent.
+  - kept Username read-only with a visible `Not editable` status badge.
+  - retained existing `Save Account Details` persistence flow using hidden account fields as state carriers.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `Inline scripts parse OK: 1`.
+  - account layout pass:
+    - `temporary screenshots/screenshot-36-settings-account-security-layout-pass1-auth.png`
+  - security layout reference pass:
+    - `temporary screenshots/screenshot-37-settings-security-layout-pass2-auth.png`
+  - account action flow check:
+    - `No console/page errors detected in Account Details button flow.`
+
+## Recent Update (2026-04-04) - Email Verification Label Is Now Server-Authenticated
+
+- Completed:
+  - added new authenticated endpoint `GET /api/member-auth/email-verification-status`.
+  - endpoint now returns server-derived email verification state and metadata.
+  - wired Settings Account email row to show server-authenticated verification status text.
+  - added mismatch detection when local email differs from server email.
+  - status refresh now runs when opening Settings and after email/account updates.
+
+- Files updated:
+  - `backend/stores/user.store.js`
+  - `backend/services/auth.service.js`
+  - `backend/controllers/auth.controller.js`
+  - `backend/routes/auth.routes.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - backend `node --check` passed for all changed auth/store files.
+  - `Inline scripts parse OK: 1`.
+  - API smoke check:
+    - login `200`
+    - email verification status `200`
+  - screenshot pass 1 (server-authenticated status):
+    - `temporary screenshots/screenshot-38-settings-email-verification-pass1-auth.png`
+  - screenshot pass 2 (local email mismatch state):
+    - `temporary screenshots/screenshot-39-settings-email-verification-pass2-local-mismatch.png`

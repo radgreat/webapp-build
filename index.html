@@ -400,6 +400,7 @@
       line-height: 1.3;
       text-align: center;
       color: rgb(206 222 241 / 95%);
+      white-space: pre-line;
     }
 
     @media (max-width: 640px) {
@@ -2502,8 +2503,15 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="bg-surface-elevated border border-surface-border-light rounded-xl p-5 shadow-depth-1 hover:shadow-depth-2 hover:bg-surface-floating hover:-translate-y-0.5 transition-transform duration-150 ease-spring">
                   <div class="flex items-start justify-between mb-4">
-                    <div class="w-10 h-10 rounded-lg bg-brand-500/10 flex items-center justify-center">
-                      <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75L12 16.5l3.75 2.25-.994-4.224L18 11.25l-4.354-.37L12 6.75 10.354 10.88 6 11.25l3.244 3.276-.994 4.224z"/></svg>
+                    <div class="w-10 h-10 rounded-lg bg-brand-500/10 flex items-center justify-center p-1.5">
+                      <img
+                        id="account-rank-icon"
+                        src="/brand_assets/Icons/Achievements/legacy.svg"
+                        alt="Account rank icon"
+                        class="w-full h-full object-contain"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </div>
                     <span id="account-rank-activity-badge" class="inline-flex items-center gap-1 text-caption font-medium px-2 py-0.5 rounded-full bg-semantic-danger-bg text-semantic-danger">Inactive</span>
                   </div>
@@ -2826,44 +2834,309 @@
 
         </section>
         <section id="page-settings" data-page-view="settings" class="hidden space-y-6">
-          <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-            <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Workspace Preferences</p>
-            <h3 class="mt-1 font-body font-medium text-display-sm text-text-primary">Settings</h3>
-            <p class="mt-2 text-body-sm text-text-secondary">Manage your account details, app appearance, and session controls from one page.</p>
+          <div class="relative overflow-hidden rounded-2xl border border-surface-border bg-surface-raised p-6 shadow-depth-1">
+            <div class="pointer-events-none absolute -top-20 right-6 h-56 w-56 rounded-full bg-brand-500/15 blur-3xl"></div>
+            <div class="pointer-events-none absolute -bottom-20 left-10 h-52 w-52 rounded-full bg-semantic-info/12 blur-3xl"></div>
+            <div class="relative">
+              <p class="text-caption uppercase tracking-[0.1em] text-text-tertiary">Workspace Preferences</p>
+              <h3 class="mt-1 font-body font-medium text-display-sm text-text-primary">Settings</h3>
+              <p class="mt-2 max-w-3xl text-body-sm text-text-secondary">Navigate by category, then manage each setting in a focused list. Account details, appearance controls, and session actions are organized in one flow.</p>
+            </div>
           </div>
 
-          <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <article class="bg-surface-raised border border-surface-border rounded-xl p-5 shadow-depth-1 space-y-4">
-              <div>
-                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Account</p>
-                <h4 class="mt-1 font-body font-medium text-body text-text-primary">Profile Summary</h4>
-              </div>
-              <div class="rounded-xl border border-surface-border bg-surface-base/50 p-4 space-y-2">
-                <p class="text-body-sm text-text-primary">Name: <span id="settings-account-name">-</span></p>
-                <p class="text-body-sm text-text-primary">Username: <span id="settings-account-handle">-</span></p>
-                <p class="text-body-sm text-text-primary">Rank: <span id="settings-account-rank">-</span></p>
-              </div>
-              <button id="settings-open-profile-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-light bg-surface-elevated px-4 py-2.5 text-body-sm font-medium text-text-primary hover:bg-surface-floating hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                Open Profile
-              </button>
-            </article>
+          <div class="grid grid-cols-1 xl:grid-cols-[16rem_minmax(0,1fr)] gap-6">
+            <aside class="rounded-2xl border border-surface-border bg-surface-raised p-4 shadow-depth-1 xl:sticky xl:top-6 self-start">
+              <p class="text-caption uppercase tracking-[0.1em] text-text-tertiary">Categories</p>
+              <nav class="mt-3 space-y-2" aria-label="Settings categories">
+                <button
+                  type="button"
+                  data-settings-category-tab="account"
+                  aria-controls="settings-cat-account"
+                  aria-pressed="true"
+                  class="flex w-full items-start justify-between rounded-lg border border-brand-500/40 bg-brand-500/10 px-3 py-2 text-left text-body-sm text-brand-300 hover:bg-brand-500/15 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.98] transition-transform duration-150 ease-spring"
+                >
+                  <span class="min-w-0">
+                    <span class="block font-medium">Account</span>
+                    <span class="mt-0.5 block text-[11px] leading-4 text-text-tertiary">Edit your info</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  data-settings-category-tab="payment"
+                  aria-controls="settings-cat-payment"
+                  aria-pressed="false"
+                  class="flex w-full items-start justify-between rounded-lg border border-surface-border bg-surface-base/60 px-3 py-2 text-left text-body-sm text-text-primary hover:bg-surface-elevated hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.98] transition-transform duration-150 ease-spring"
+                >
+                  <span class="min-w-0">
+                    <span class="block font-medium">Payment and Billing</span>
+                    <span class="mt-0.5 block text-[11px] leading-4 text-text-tertiary">Cards and billing address</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  data-settings-category-tab="security"
+                  aria-controls="settings-cat-security"
+                  aria-pressed="false"
+                  class="flex w-full items-start justify-between rounded-lg border border-surface-border bg-surface-base/60 px-3 py-2 text-left text-body-sm text-text-primary hover:bg-surface-elevated hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.98] transition-transform duration-150 ease-spring"
+                >
+                  <span class="min-w-0">
+                    <span class="block font-medium">Security</span>
+                    <span class="mt-0.5 block text-[11px] leading-4 text-text-tertiary">Password and session controls</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  data-settings-category-tab="appearance"
+                  aria-controls="settings-cat-appearance"
+                  aria-pressed="false"
+                  class="flex w-full items-start justify-between rounded-lg border border-surface-border bg-surface-base/60 px-3 py-2 text-left text-body-sm text-text-primary hover:bg-surface-elevated hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.98] transition-transform duration-150 ease-spring"
+                >
+                  <span class="min-w-0">
+                    <span class="block font-medium">Appearance</span>
+                    <span class="mt-0.5 block text-[11px] leading-4 text-text-tertiary">App customization</span>
+                  </span>
+                </button>
+              </nav>
+            </aside>
 
-            <article class="bg-surface-raised border border-surface-border rounded-xl p-5 shadow-depth-1 space-y-4">
-              <div>
-                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Appearance</p>
-                <h4 class="mt-1 font-body font-medium text-body text-text-primary">Theme</h4>
-              </div>
-              <label for="settings-theme-switcher" class="block">
-                <span class="text-body-sm text-text-primary">Active Theme</span>
-                <select id="settings-theme-switcher" class="mt-2 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                  <option value="dark">Dark</option>
-                  <option value="light">Light</option>
-                </select>
-              </label>
-              <p class="text-caption text-text-tertiary">Theme changes apply instantly and remain saved after reload.</p>
-              <button id="settings-logout-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-semantic-danger/45 bg-semantic-danger-bg px-4 py-2.5 text-body-sm font-medium text-semantic-danger hover:bg-semantic-danger/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semantic-danger/60 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                Logout
-              </button>
+            <article class="space-y-5">
+              <section id="settings-cat-account" data-settings-category-panel="account" class="rounded-2xl border border-surface-border bg-surface-raised shadow-depth-1">
+                <header class="border-b border-surface-border px-5 py-4">
+                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Category</p>
+                  <h4 class="mt-1 font-body font-medium text-body text-text-primary">Account</h4>
+                </header>
+                <form id="settings-account-form" class="px-5 py-4 space-y-5">
+                  <input id="settings-account-display-name-input" type="hidden" />
+                  <input id="settings-account-username-input" type="hidden" />
+                  <input id="settings-account-email-input" type="hidden" />
+
+                  <section class="rounded-xl border border-surface-border bg-surface-base/50 p-4">
+                    <h5 class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Account Details</h5>
+                    <ul class="mt-3 divide-y divide-surface-border">
+                      <li class="py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p class="text-body-sm font-medium text-text-primary">Display Name</p>
+                          <p id="settings-account-display-name-value" class="text-[12px] leading-5 text-text-tertiary">-</p>
+                        </div>
+                        <button id="settings-account-edit-display-name-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-light bg-surface-elevated px-4 py-2.5 text-body-sm font-medium text-text-primary hover:bg-surface-floating hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                          Edit Display Name
+                        </button>
+                      </li>
+                      <li class="py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p class="text-body-sm font-medium text-text-primary">Username</p>
+                          <p id="settings-account-username-value" class="text-[12px] leading-5 text-text-tertiary">-</p>
+                        </div>
+                        <span class="inline-flex items-center rounded-lg border border-surface-border bg-surface-base/60 px-3 py-1.5 text-caption text-text-tertiary">Not editable</span>
+                      </li>
+                      <li class="py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p class="text-body-sm font-medium text-text-primary">Email</p>
+                          <p id="settings-account-email-value" class="text-[12px] leading-5 text-text-tertiary">No email added</p>
+                          <p id="settings-account-email-verification-status" class="mt-1 text-[11px] leading-4 text-text-tertiary">Server authentication and verification check pending.</p>
+                          <div id="settings-account-email-verification-link-wrap" class="mt-2 hidden">
+                            <p class="text-[11px] leading-4 text-text-tertiary">No email sender yet. Use this link to verify manually:</p>
+                            <a
+                              id="settings-account-email-verification-link"
+                              href="#"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="mt-1 inline-flex items-center rounded-lg border border-brand-500/35 bg-brand-500/10 px-3 py-1.5 text-caption text-brand-300 underline-offset-2 hover:bg-brand-500/15 hover:text-brand-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
+                            >
+                              Open verification link
+                            </a>
+                          </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                          <button id="settings-account-change-email-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-light bg-surface-elevated px-4 py-2.5 text-body-sm font-medium text-text-primary hover:bg-surface-floating hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                            Change Email
+                          </button>
+                          <button id="settings-account-verify-email-button" type="button" class="hidden inline-flex items-center justify-center gap-2 rounded-xl border border-brand-500/35 bg-brand-500/10 px-4 py-2.5 text-body-sm font-medium text-brand-300 hover:bg-brand-500/15 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                            Verify Email
+                          </button>
+                        </div>
+                      </li>
+                    </ul>
+                  </section>
+
+                  <section class="rounded-xl border border-surface-border bg-surface-base/50 p-4">
+                    <h5 class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Personal Information</h5>
+                    <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <label for="settings-personal-first-name-input" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">First Name</span>
+                        <input id="settings-personal-first-name-input" type="text" maxlength="80" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                      <label for="settings-personal-last-name-input" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">Last Name</span>
+                        <input id="settings-personal-last-name-input" type="text" maxlength="80" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                      <label for="settings-personal-birthdate-input" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">Birthdate</span>
+                        <input id="settings-personal-birthdate-input" type="date" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                      <label for="settings-personal-gender-select" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">Gender</span>
+                        <select id="settings-personal-gender-select" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                          <option value="">Select gender</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="prefer_not_to_say">Prefer Not to Say</option>
+                        </select>
+                      </label>
+                      <label for="settings-personal-address-line-input" class="block md:col-span-2">
+                        <span class="text-body-sm font-medium text-text-primary">Address Line</span>
+                        <input id="settings-personal-address-line-input" type="text" maxlength="140" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                      <label for="settings-personal-city-input" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">City</span>
+                        <input id="settings-personal-city-input" type="text" maxlength="80" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                      <label for="settings-personal-region-input" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">Region</span>
+                        <input id="settings-personal-region-input" type="text" maxlength="80" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                      <label for="settings-personal-zip-input" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">Zip</span>
+                        <input id="settings-personal-zip-input" type="text" maxlength="20" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                      <label for="settings-personal-country-input" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">Country</span>
+                        <input id="settings-personal-country-input" type="text" maxlength="80" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                    </div>
+                  </section>
+
+                  <div class="flex flex-wrap gap-3">
+                    <button id="settings-account-save-button" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-500/35 bg-brand-500/10 px-4 py-2.5 text-body-sm font-medium text-brand-300 hover:bg-brand-500/15 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Save Account Details
+                    </button>
+                    <button id="settings-open-profile-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-light bg-surface-elevated px-4 py-2.5 text-body-sm font-medium text-text-primary hover:bg-surface-floating hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Open Profile
+                    </button>
+                  </div>
+                  <p id="settings-account-feedback" class="hidden text-caption text-text-tertiary"></p>
+                </form>
+              </section>
+
+              <section id="settings-cat-payment" data-settings-category-panel="payment" class="hidden rounded-2xl border border-surface-border bg-surface-raised shadow-depth-1">
+                <header class="border-b border-surface-border px-5 py-4">
+                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Category</p>
+                  <h4 class="mt-1 font-body font-medium text-body text-text-primary">Payment and Billing</h4>
+                </header>
+                <form id="settings-billing-form" class="px-5 py-4 space-y-5">
+                  <section class="rounded-xl border border-surface-border bg-surface-base/50 p-4 space-y-3">
+                    <div>
+                      <h5 class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Card Details</h5>
+                      <p class="mt-2 text-[12px] leading-5 text-text-tertiary">Stripe Payment Element handles card number, expiry, and CVC automatically. Billing details can be controlled with `fields.billingDetails` (`auto`, `if_required`, or `never`), and full billing address capture is best paired with Address Element in billing mode.</p>
+                    </div>
+                    <div id="settings-stripe-card-placeholder" class="rounded-lg border border-dashed border-surface-border bg-surface-base/60 px-3 py-3 text-caption text-text-tertiary">
+                      Stripe card fields mount area (Payment Element)
+                    </div>
+                    <div class="text-[12px] leading-5 text-text-tertiary flex flex-wrap gap-x-3 gap-y-1">
+                      <a href="https://docs.stripe.com/payments/payment-element/control-billing-details-collection" target="_blank" rel="noopener noreferrer" class="text-brand-300 underline hover:text-brand-200">Payment Element billing details</a>
+                      <a href="https://docs.stripe.com/elements/address-element" target="_blank" rel="noopener noreferrer" class="text-brand-300 underline hover:text-brand-200">Address Element docs</a>
+                    </div>
+                  </section>
+
+                  <section class="rounded-xl border border-surface-border bg-surface-base/50 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                      <h5 class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Billing Address</h5>
+                      <label for="settings-billing-same-as-personal-toggle" class="inline-flex items-center gap-2 text-caption text-text-secondary">
+                        <input id="settings-billing-same-as-personal-toggle" type="checkbox" class="h-4 w-4 rounded border-surface-border bg-surface-base accent-brand-500" />
+                        Same as address
+                      </label>
+                    </div>
+                    <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <label for="settings-billing-address-line-input" class="block md:col-span-2">
+                        <span class="text-body-sm font-medium text-text-primary">Billing Address Line</span>
+                        <input id="settings-billing-address-line-input" type="text" maxlength="140" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                      <label for="settings-billing-city-input" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">City</span>
+                        <input id="settings-billing-city-input" type="text" maxlength="80" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                      <label for="settings-billing-region-input" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">Region</span>
+                        <input id="settings-billing-region-input" type="text" maxlength="80" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                      <label for="settings-billing-zip-input" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">Zip</span>
+                        <input id="settings-billing-zip-input" type="text" maxlength="20" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                      <label for="settings-billing-country-input" class="block">
+                        <span class="text-body-sm font-medium text-text-primary">Country</span>
+                        <input id="settings-billing-country-input" type="text" maxlength="80" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
+                      </label>
+                    </div>
+                  </section>
+
+                  <div class="flex flex-wrap gap-3">
+                    <button id="settings-billing-save-button" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-500/35 bg-brand-500/10 px-4 py-2.5 text-body-sm font-medium text-brand-300 hover:bg-brand-500/15 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Save Billing Details
+                    </button>
+                  </div>
+                  <p id="settings-billing-feedback" class="hidden text-caption text-text-tertiary"></p>
+                </form>
+              </section>
+
+              <section id="settings-cat-security" data-settings-category-panel="security" class="hidden rounded-2xl border border-surface-border bg-surface-raised shadow-depth-1">
+                <header class="border-b border-surface-border px-5 py-4">
+                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Category</p>
+                  <h4 class="mt-1 font-body font-medium text-body text-text-primary">Security</h4>
+                </header>
+                <ul class="px-5 divide-y divide-surface-border">
+                  <li class="py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p class="text-body-sm font-medium text-text-primary">Forgot Password</p>
+                      <p class="text-[12px] leading-5 text-text-tertiary">Request a password reset flow from support or account recovery.</p>
+                    </div>
+                    <button id="settings-security-forgot-password-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-light bg-surface-elevated px-4 py-2.5 text-body-sm font-medium text-text-primary hover:bg-surface-floating hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Request Reset
+                    </button>
+                  </li>
+                  <li class="py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p class="text-body-sm font-medium text-text-primary">Change Password</p>
+                      <p class="text-[12px] leading-5 text-text-tertiary">Update your password and rotate account access credentials.</p>
+                    </div>
+                    <button id="settings-security-change-password-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-light bg-surface-elevated px-4 py-2.5 text-body-sm font-medium text-text-primary hover:bg-surface-floating hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Change Password
+                    </button>
+                  </li>
+                  <li class="py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p class="text-body-sm font-medium text-text-primary">Logout All Sessions</p>
+                      <p class="text-[12px] leading-5 text-text-tertiary">End your active session now and force re-authentication on every device.</p>
+                    </div>
+                    <button id="settings-logout-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-semantic-danger/45 bg-semantic-danger-bg px-4 py-2.5 text-body-sm font-medium text-semantic-danger hover:bg-semantic-danger/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semantic-danger/60 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Logout All
+                    </button>
+                  </li>
+                </ul>
+                <p id="settings-security-feedback" class="hidden px-5 pb-4 text-caption text-text-tertiary"></p>
+              </section>
+
+              <section id="settings-cat-appearance" data-settings-category-panel="appearance" class="hidden rounded-2xl border border-surface-border bg-surface-raised shadow-depth-1">
+                <header class="border-b border-surface-border px-5 py-4">
+                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Category</p>
+                  <h4 class="mt-1 font-body font-medium text-body text-text-primary">Appearance</h4>
+                </header>
+                <ul class="px-5 divide-y divide-surface-border">
+                  <li class="py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="sm:max-w-[65%]">
+                      <p class="text-body-sm font-medium text-text-primary">Active Theme</p>
+                      <p class="text-[12px] leading-5 text-text-tertiary">Switch between dark and light workspace themes. Changes apply instantly and stay saved after reload.</p>
+                    </div>
+                    <label for="settings-theme-switcher" class="sm:w-56">
+                      <span class="sr-only">Active Theme</span>
+                      <select id="settings-theme-switcher" class="w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                      </select>
+                    </label>
+                  </li>
+                </ul>
+              </section>
             </article>
           </div>
         </section>
@@ -3301,7 +3574,7 @@
                     <p class="mt-1 text-caption text-text-tertiary"><span id="profile-bio-counter">0</span>/280</p>
                   </label>
                   <label class="block md:col-span-2">
-                    <span class="text-caption text-text-tertiary">Title</span>
+                    <span class="text-caption text-text-tertiary">Title 1</span>
                     <div class="mt-1 flex items-center gap-2 rounded-lg border border-surface-border bg-surface-raised/65 px-2.5 py-2">
                       <img
                         id="profile-account-title-preview-icon"
@@ -3311,13 +3584,31 @@
                       />
                       <span id="profile-account-title-preview-label" class="text-body-sm text-text-secondary">No claimed titles yet</span>
                     </div>
-                    <select
-                      id="profile-account-title-input"
-                      name="accountTitle"
-                      class="mt-2 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150"
-                    >
-                      <option value="">No claimed titles yet</option>
-                    </select>
+                    <div class="relative mt-2">
+                      <select
+                        id="profile-account-title-input"
+                        name="accountTitle"
+                        class="w-full appearance-none bg-surface-base border border-surface-border rounded-lg pl-3 pr-9 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150"
+                      >
+                        <option value="">No claimed titles yet</option>
+                      </select>
+                      <svg class="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-tertiary" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    <span class="mt-2 block text-caption text-text-tertiary">Title 2</span>
+                    <div class="relative mt-1">
+                      <select
+                        id="profile-account-title-secondary-input"
+                        name="accountTitleSecondary"
+                        class="w-full appearance-none bg-surface-base border border-surface-border rounded-lg pl-3 pr-9 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150"
+                      >
+                        <option value="">No second title available</option>
+                      </select>
+                      <svg class="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-tertiary" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
                   </label>
                   <fieldset class="md:col-span-2 rounded-xl border border-surface-border bg-surface-base/55 px-3 py-3">
                     <legend class="px-1 text-caption text-text-tertiary">Badge</legend>
@@ -3328,11 +3619,11 @@
                       </label>
                       <label class="inline-flex items-center gap-2 rounded-lg border border-surface-border bg-surface-raised/60 px-2.5 py-2 text-body-sm text-text-secondary">
                         <input id="profile-badge-show-title-input" type="checkbox" class="h-4 w-4 rounded border-surface-border text-brand-500 focus:ring-brand-500/40" checked/>
-                        <span>Show Title Icon</span>
+                        <span>Show Title 1 Icon</span>
                       </label>
                       <label class="inline-flex items-center gap-2 rounded-lg border border-surface-border bg-surface-raised/60 px-2.5 py-2 text-body-sm text-text-secondary">
                         <input id="profile-badge-show-extra-input" type="checkbox" class="h-4 w-4 rounded border-surface-border text-brand-500 focus:ring-brand-500/40" checked/>
-                        <span>Show Extra Icon</span>
+                        <span>Show Title 2 Icon</span>
                       </label>
                     </div>
                   </fieldset>
@@ -4784,11 +5075,46 @@
       const sidebarSettingsLink = document.getElementById('sidebar-settings-link');
       const themeSwitcher = document.getElementById('theme-switcher');
       const settingsThemeSwitcher = document.getElementById('settings-theme-switcher');
-      const settingsAccountNameValueElement = document.getElementById('settings-account-name');
-      const settingsAccountHandleValueElement = document.getElementById('settings-account-handle');
-      const settingsAccountRankValueElement = document.getElementById('settings-account-rank');
+      const settingsAccountFormElement = document.getElementById('settings-account-form');
+      const settingsAccountDisplayNameInput = document.getElementById('settings-account-display-name-input');
+      const settingsAccountUsernameInput = document.getElementById('settings-account-username-input');
+      const settingsAccountEmailInput = document.getElementById('settings-account-email-input');
+      const settingsAccountDisplayNameValueElement = document.getElementById('settings-account-display-name-value');
+      const settingsAccountUsernameValueElement = document.getElementById('settings-account-username-value');
+      const settingsAccountEmailValueElement = document.getElementById('settings-account-email-value');
+      const settingsAccountEmailVerificationStatusElement = document.getElementById('settings-account-email-verification-status');
+      const settingsAccountEmailVerificationLinkWrapElement = document.getElementById('settings-account-email-verification-link-wrap');
+      const settingsAccountEmailVerificationLinkElement = document.getElementById('settings-account-email-verification-link');
+      const settingsAccountEditDisplayNameButton = document.getElementById('settings-account-edit-display-name-button');
+      const settingsAccountChangeEmailButton = document.getElementById('settings-account-change-email-button');
+      const settingsAccountVerifyEmailButton = document.getElementById('settings-account-verify-email-button');
+      const settingsAccountSaveButton = document.getElementById('settings-account-save-button');
+      const settingsAccountFeedbackElement = document.getElementById('settings-account-feedback');
+      const settingsPersonalFirstNameInput = document.getElementById('settings-personal-first-name-input');
+      const settingsPersonalLastNameInput = document.getElementById('settings-personal-last-name-input');
+      const settingsPersonalBirthdateInput = document.getElementById('settings-personal-birthdate-input');
+      const settingsPersonalGenderSelect = document.getElementById('settings-personal-gender-select');
+      const settingsPersonalAddressLineInput = document.getElementById('settings-personal-address-line-input');
+      const settingsPersonalCityInput = document.getElementById('settings-personal-city-input');
+      const settingsPersonalRegionInput = document.getElementById('settings-personal-region-input');
+      const settingsPersonalZipInput = document.getElementById('settings-personal-zip-input');
+      const settingsPersonalCountryInput = document.getElementById('settings-personal-country-input');
+      const settingsBillingFormElement = document.getElementById('settings-billing-form');
+      const settingsBillingSameAsPersonalToggle = document.getElementById('settings-billing-same-as-personal-toggle');
+      const settingsBillingAddressLineInput = document.getElementById('settings-billing-address-line-input');
+      const settingsBillingCityInput = document.getElementById('settings-billing-city-input');
+      const settingsBillingRegionInput = document.getElementById('settings-billing-region-input');
+      const settingsBillingZipInput = document.getElementById('settings-billing-zip-input');
+      const settingsBillingCountryInput = document.getElementById('settings-billing-country-input');
+      const settingsBillingSaveButton = document.getElementById('settings-billing-save-button');
+      const settingsBillingFeedbackElement = document.getElementById('settings-billing-feedback');
       const settingsOpenProfileButton = document.getElementById('settings-open-profile-button');
       const settingsLogoutButton = document.getElementById('settings-logout-button');
+      const settingsSecurityForgotPasswordButton = document.getElementById('settings-security-forgot-password-button');
+      const settingsSecurityChangePasswordButton = document.getElementById('settings-security-change-password-button');
+      const settingsSecurityFeedbackElement = document.getElementById('settings-security-feedback');
+      const settingsCategoryTabButtons = Array.from(document.querySelectorAll('[data-settings-category-tab]'));
+      const settingsCategoryPanels = Array.from(document.querySelectorAll('[data-settings-category-panel]'));
       const currentUserName = document.getElementById('current-user-name');
       const headerProfileButton = document.getElementById('header-profile-button');
       const headerProfileAvatar = document.getElementById('header-profile-avatar');
@@ -4860,6 +5186,7 @@
       const profileEditForm = document.getElementById('profile-edit-form');
       const profileDisplayNameInput = document.getElementById('profile-display-name-input');
       const profileAccountTitleInput = document.getElementById('profile-account-title-input');
+      const profileAccountTitleSecondaryInput = document.getElementById('profile-account-title-secondary-input');
       const profileAccountTitlePreviewIconElement = document.getElementById('profile-account-title-preview-icon');
       const profileAccountTitlePreviewLabelElement = document.getElementById('profile-account-title-preview-label');
       const profileCountryFlagInput = document.getElementById('profile-country-flag-input');
@@ -4943,6 +5270,8 @@
       const MEMBER_ACCOUNT_UPGRADE_API = '/api/member-auth/upgrade-account';
       const MEMBER_ACHIEVEMENTS_API = '/api/member-auth/achievements';
       const MEMBER_GOOD_LIFE_MONTHLY_API = '/api/member-auth/good-life/monthly';
+      const MEMBER_EMAIL_VERIFICATION_STATUS_API = '/api/member-auth/email-verification-status';
+      const MEMBER_EMAIL_VERIFICATION_REQUEST_API = '/api/member-auth/email-verification/request';
       const PROFILE_ACHIEVEMENT_ICON_PATHS_BY_ID = Object.freeze({
         'good-life-diamond': Object.freeze({
           dark: '/brand_assets/Icons/Achievements/diamond.svg',
@@ -5292,7 +5621,7 @@
         },
         settings: {
           title: 'Settings',
-          searchPlaceholder: 'Search account and appearance settings...',
+          searchPlaceholder: 'Search account, payment, security, and appearance settings...',
         },
       };
 
@@ -5366,6 +5695,18 @@
         'hover:bg-surface-elevated',
         'hover:text-text-primary',
       ];
+      const settingsCategoryTabActiveClasses = [
+        'border-brand-500/40',
+        'bg-brand-500/10',
+        'text-brand-300',
+      ];
+      const settingsCategoryTabInactiveClasses = [
+        'border-surface-border',
+        'bg-surface-base/60',
+        'text-text-primary',
+      ];
+      let activeSettingsCategory = 'account';
+      let settingsEmailVerificationRequestSequence = 0;
 
       const storeTabButtons = Array.from(document.querySelectorAll('[data-store-tab]'));
       const storeTabViews = Array.from(document.querySelectorAll('[data-store-view]'));
@@ -5490,6 +5831,7 @@
       const legacyLeadershipPageNextButtonElement = document.getElementById('legacy-leadership-page-next');
       const accountOverviewCardElement = document.getElementById('account-overview-card');
       const accountRankActivityBadgeElement = document.getElementById('account-rank-activity-badge');
+      const accountRankIconElement = document.getElementById('account-rank-icon');
       const accountRankValueElement = document.getElementById('account-rank-value');
       const accountRankSourceElement = document.getElementById('account-rank-source');
       const accountRankUpgradeWrapElement = document.getElementById('account-rank-upgrade-wrap');
@@ -6059,6 +6401,22 @@
         accountRankActivityBadgeElement.classList.add(...(isActive ? accountRankActivityActiveClasses : accountRankActivityInactiveClasses));
       }
 
+      function renderAccountRankIcon(rankLabel = currentAccountRank) {
+        if (!accountRankIconElement) {
+          return;
+        }
+
+        const resolvedRankLabel = normalizeRankLabel(
+          rankLabel
+          || resolveSessionAccountRank(currentSessionUser)
+          || currentAccountRank
+          || 'Legacy',
+        ) || 'Legacy';
+        const rankAchievementId = resolveProfileBadgeRankAchievementId(resolvedRankLabel);
+        accountRankIconElement.src = resolveProfileBadgeIconPathByAchievementId(rankAchievementId, PROFILE_BADGE_PLACEHOLDER_ID);
+        accountRankIconElement.alt = `${resolvedRankLabel} rank icon`;
+      }
+
       renderAccountRankActivityBadge(currentSessionUser);
       syncAccountRankUpgradeCta(currentSessionUser);
       renderSalesTeamCommissionsCard(currentDashboardTotalCycles, currentSessionUser);
@@ -6070,6 +6428,7 @@
       if (initialSessionRank) {
         currentAccountRank = initialSessionRank;
       }
+      renderAccountRankIcon(currentAccountRank);
 
       function resolveStarterDashboardMetrics(user) {
         const enrollmentPackageBv = toWholeNumber(user?.enrollmentPackageBv, 0);
@@ -6297,11 +6656,17 @@
         const titleRewardIconBySlug = new Map();
         const titleRewardIconByTitleKey = new Map();
         const achievementIconById = new Map();
+        const achievementEventMetaById = new Map();
         sourceAchievements.forEach((achievement) => {
           const safeAchievementId = String(achievement?.id || '').trim();
           const resolvedAchievementIconPath = resolveProfileAchievementIconPath(achievement);
           if (safeAchievementId) {
             achievementIconById.set(safeAchievementId, resolvedAchievementIconPath);
+            achievementEventMetaById.set(safeAchievementId, {
+              eventId: String(achievement?.eventId || '').trim(),
+              eventName: String(achievement?.eventName || '').trim(),
+              claimedAt: String(achievement?.claimedAt || '').trim(),
+            });
           }
 
           if (normalizeMemberKey(achievement?.rewardType) !== 'title') {
@@ -6344,6 +6709,20 @@
           }
           const titleSlug = normalizeProfileTitleSlug(entry?.titleSlug || title);
           const sourceAchievementId = String(entry?.sourceAchievementId || '').trim();
+          const sourceAchievementEventMeta = sourceAchievementId
+            ? (achievementEventMetaById.get(sourceAchievementId) || {})
+            : {};
+          const safeMetadata = entry?.metadata && typeof entry.metadata === 'object'
+            ? entry.metadata
+            : {};
+          const acquiredAt = String(
+            entry?.awardedAt
+            || entry?.createdAt
+            || safeMetadata?.awardedAt
+            || safeMetadata?.claimedAt
+            || sourceAchievementEventMeta?.claimedAt
+            || '',
+          ).trim();
           const fallbackAchievementId = resolveProfileTitleAchievementIdByLabel(title);
           const iconPath = achievementIconById.get(sourceAchievementId)
             || claimableTitleIconBySlug.get(titleSlug)
@@ -6355,6 +6734,9 @@
             titleKey,
             titleSlug,
             sourceAchievementId,
+            eventId: String(entry?.eventId || sourceAchievementEventMeta?.eventId || '').trim(),
+            eventName: String(safeMetadata?.eventName || sourceAchievementEventMeta?.eventName || '').trim(),
+            acquiredAt,
             iconPath,
           });
           seenTitleKeys.add(titleKey);
@@ -6362,11 +6744,13 @@
         return entries;
       }
 
-      function sanitizeProfileAccountTitle(value, fallback = '') {
+      function sanitizeProfileAccountTitle(value, fallback = '', options = {}) {
         const clampedValue = normalizeProfileAccountTitleLabel(value);
         const fallbackValue = normalizeProfileAccountTitleLabel(fallback);
-        const claimedTitleEntries = resolveProfileClaimedTitleEntries();
-        if (claimedTitleEntries.length === 0) {
+        const allowedEntries = Array.isArray(options?.allowedEntries)
+          ? options.allowedEntries.filter((entry) => entry && typeof entry === 'object')
+          : resolveProfileClaimedTitleEntries();
+        if (allowedEntries.length === 0) {
           if (profileAchievementsSnapshot && typeof profileAchievementsSnapshot === 'object') {
             return '';
           }
@@ -6374,7 +6758,7 @@
         }
 
         const canonicalTitleByKey = new Map(
-          claimedTitleEntries.map((entry) => [entry.titleKey, entry.title]),
+          allowedEntries.map((entry) => [entry.titleKey, entry.title]),
         );
         const clampedKey = normalizeMemberKey(clampedValue);
         if (clampedKey && canonicalTitleByKey.has(clampedKey)) {
@@ -6384,7 +6768,7 @@
         if (fallbackKey && canonicalTitleByKey.has(fallbackKey)) {
           return canonicalTitleByKey.get(fallbackKey);
         }
-        return claimedTitleEntries[0]?.title || '';
+        return allowedEntries[0]?.title || '';
       }
 
       function sanitizeProfileBadgeVisibility(value) {
@@ -6462,12 +6846,28 @@
           || currentSessionUser?.accountTitle
           || currentSessionUser?.title
           || '';
+        const claimedTitleEntries = resolveProfileClaimedTitleEntries();
+        const accountTitle = sanitizeProfileAccountTitle(
+          entry?.accountTitle,
+          fallbackAccountTitle,
+          { allowedEntries: claimedTitleEntries },
+        );
+        const secondaryAllowedEntries = claimedTitleEntries.filter((titleEntry) => (
+          titleEntry.titleKey !== normalizeMemberKey(accountTitle)
+        ));
+        const fallbackAccountTitleSecondary = currentSessionUser?.profileAccountTitleSecondary || '';
+        const accountTitleSecondary = sanitizeProfileAccountTitle(
+          entry?.accountTitleSecondary,
+          fallbackAccountTitleSecondary,
+          { allowedEntries: secondaryAllowedEntries },
+        );
         return {
           displayName: sanitizeProfileDisplayName(entry?.displayName, fallbackDisplayName),
           countryFlag: normalizeCountryFlag(entry?.countryFlag || currentSessionUser?.countryFlag || DEFAULT_COUNTRY_FLAG),
           region: sanitizeProfileRegion(entry?.region || ''),
           bio: sanitizeProfileBio(entry?.bio || ''),
-          accountTitle: sanitizeProfileAccountTitle(entry?.accountTitle, fallbackAccountTitle),
+          accountTitle,
+          accountTitleSecondary,
           badgeVisibility: sanitizeProfileBadgeVisibility(entry?.badgeVisibility),
           avatarDataUrl: sanitizeProfileImageSource(entry?.avatarDataUrl || ''),
           coverDataUrl: sanitizeProfileImageSource(entry?.coverDataUrl || ''),
@@ -6511,6 +6911,7 @@
           region: storedProfile.region || currentSessionUser?.profileRegion || '',
           bio: storedProfile.bio || currentSessionUser?.profileBio || '',
           accountTitle: storedProfile.accountTitle || currentSessionUser?.profileAccountTitle || currentSessionUser?.accountTitle || currentSessionUser?.title || '',
+          accountTitleSecondary: storedProfile.accountTitleSecondary || currentSessionUser?.profileAccountTitleSecondary || '',
           badgeVisibility: storedProfile.badgeVisibility || currentSessionUser?.profileBadgeVisibility || {},
           avatarDataUrl: storedProfile.avatarDataUrl || currentSessionUser?.profileAvatarUrl || '',
           coverDataUrl: storedProfile.coverDataUrl || currentSessionUser?.profileCoverUrl || '',
@@ -6559,6 +6960,10 @@
           currentSessionUser.profileAccountTitle = safeProfileState.accountTitle;
           sessionChanged = true;
         }
+        if (currentSessionUser.profileAccountTitleSecondary !== safeProfileState.accountTitleSecondary) {
+          currentSessionUser.profileAccountTitleSecondary = safeProfileState.accountTitleSecondary;
+          sessionChanged = true;
+        }
         if (!areProfileBadgeVisibilityEqual(currentSessionUser.profileBadgeVisibility, safeProfileState.badgeVisibility)) {
           currentSessionUser.profileBadgeVisibility = sanitizeProfileBadgeVisibility(safeProfileState.badgeVisibility);
           sessionChanged = true;
@@ -6586,6 +6991,18 @@
           month: 'numeric',
           day: 'numeric',
           year: '2-digit',
+        }).format(parsedMs);
+      }
+
+      function formatProfileTitleAcquiredDateLabel(dateValue) {
+        const parsedMs = Date.parse(String(dateValue || '').trim());
+        if (!Number.isFinite(parsedMs)) {
+          return '--';
+        }
+        return new Intl.DateTimeFormat('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
         }).format(parsedMs);
       }
 
@@ -6682,9 +7099,59 @@
         return `${rankLabel} Title`;
       }
 
+      function resolveProfileSecondaryAccountTitleLabel(profileState, primaryTitleLabel = '') {
+        const safeProfileState = sanitizeMemberProfileCustomization(profileState);
+        const claimedTitleEntries = resolveProfileClaimedTitleEntries();
+        const primaryTitleKey = normalizeMemberKey(primaryTitleLabel || safeProfileState.accountTitle);
+        const secondaryAllowedEntries = claimedTitleEntries.filter((titleEntry) => (
+          titleEntry.titleKey !== primaryTitleKey
+        ));
+        return sanitizeProfileAccountTitle(
+          safeProfileState.accountTitleSecondary || currentSessionUser?.profileAccountTitleSecondary || '',
+          '',
+          { allowedEntries: secondaryAllowedEntries },
+        );
+      }
+
+      function resolveProfileTitleBadgeSubtitle(titleLabel) {
+        const normalizedTitleKey = normalizeMemberKey(titleLabel).replace(/\s+/g, ' ');
+        const claimedTitleEntries = resolveProfileClaimedTitleEntries();
+        const matchingEntry = claimedTitleEntries.find((entry) => entry.titleKey === normalizedTitleKey) || null;
+        const acquiredDateLabel = formatProfileTitleAcquiredDateLabel(matchingEntry?.acquiredAt);
+        const acquiredLabel = `Acquired ${acquiredDateLabel}`;
+        const formatExclusiveEventLabel = (eventLabel) => {
+          const safeEventLabel = String(eventLabel || '').trim();
+          if (!safeEventLabel) {
+            return '';
+          }
+          if (/^exclusive\s+/i.test(safeEventLabel)) {
+            return safeEventLabel;
+          }
+          return `Exclusive ${safeEventLabel}`;
+        };
+
+        const explicitEventLabel = formatExclusiveEventLabel(matchingEntry?.eventName);
+        if (explicitEventLabel) {
+          return `${explicitEventLabel}\n${acquiredLabel}`;
+        }
+
+        const legacyBuilderLeadershipTitleKeySet = new Set([
+          'legacy founder',
+          'legacy director',
+          'legacy ambassador',
+          'presidential circle',
+        ]);
+        if (legacyBuilderLeadershipTitleKeySet.has(normalizedTitleKey)) {
+          return `Exclusive Legacy Builder Leadership Program\n${acquiredLabel}`;
+        }
+        return `Exclusive title reward\n${acquiredLabel}`;
+      }
+
       function resolveProfileHandleBadgeEntries(profileState) {
         const safeProfileState = sanitizeMemberProfileCustomization(profileState);
         const badgeVisibility = sanitizeProfileBadgeVisibility(safeProfileState.badgeVisibility);
+        const claimedTitleEntries = resolveProfileClaimedTitleEntries();
+        const hasClaimedTitles = claimedTitleEntries.length > 0;
         const activeRankLabel = normalizeRankLabel(
           resolveSessionAccountRank(currentSessionUser)
           || currentAccountRank
@@ -6694,6 +7161,10 @@
         const rankAchievementId = resolveProfileBadgeRankAchievementId(activeRankLabel);
         const accountTitleLabel = resolveProfileAccountTitleLabel(activeRankLabel, safeProfileState);
         const accountTitleIconPath = resolveProfileAccountTitleIconPath(accountTitleLabel, activeRankLabel);
+        const accountTitleSubtitle = resolveProfileTitleBadgeSubtitle(accountTitleLabel);
+        const accountTitleSecondaryLabel = resolveProfileSecondaryAccountTitleLabel(safeProfileState, accountTitleLabel);
+        const accountTitleSecondaryIconPath = resolveProfileAccountTitleIconPath(accountTitleSecondaryLabel, activeRankLabel);
+        const accountTitleSecondarySubtitle = resolveProfileTitleBadgeSubtitle(accountTitleSecondaryLabel);
         const memberSinceDateLabel = formatProfileBadgeSinceDateLabel(
           currentSessionUser?.createdAt
             || currentSessionUser?.enrolledAt
@@ -6703,11 +7174,6 @@
         const subscriberSinceLabel = memberSinceDateLabel
           ? `Subscriber since ${memberSinceDateLabel}`
           : 'Subscriber since --';
-        const featuredMilestone = profileGoodLifeSnapshot?.featuredMilestone && typeof profileGoodLifeSnapshot.featuredMilestone === 'object'
-          ? profileGoodLifeSnapshot.featuredMilestone
-          : {};
-        const extraBadgeTitle = String(featuredMilestone?.title || 'Premiere Life').trim() || 'Premiere Life';
-        const extraBadgePeriodLabel = String(profileGoodLifeSnapshot?.periodLabel || '').trim();
 
         const entries = [];
         if (badgeVisibility.rank) {
@@ -6719,23 +7185,22 @@
             iconPath: resolveProfileBadgeIconPathByAchievementId(rankAchievementId),
           });
         }
-        if (badgeVisibility.title) {
+        if (badgeVisibility.title && hasClaimedTitles) {
           entries.push({
             key: 'title',
-            slotLabel: 'Title',
+            slotLabel: 'Title 1',
             cardTitle: accountTitleLabel,
-            cardSubtitle: subscriberSinceLabel,
+            cardSubtitle: accountTitleSubtitle,
             iconPath: accountTitleIconPath,
           });
         }
-        if (badgeVisibility.extra) {
-          const extraBadgeAchievementId = String(featuredMilestone?.id || '').trim() || PROFILE_BADGE_PLACEHOLDER_ID;
+        if (badgeVisibility.extra && hasClaimedTitles && accountTitleSecondaryLabel) {
           entries.push({
             key: 'extra',
-            slotLabel: 'Extra',
-            cardTitle: extraBadgeTitle,
-            cardSubtitle: extraBadgePeriodLabel ? `${extraBadgePeriodLabel} loop badge` : 'Premiere loop badge',
-            iconPath: resolveProfileBadgeIconPathByAchievementId(extraBadgeAchievementId),
+            slotLabel: 'Title 2',
+            cardTitle: accountTitleSecondaryLabel,
+            cardSubtitle: accountTitleSecondarySubtitle,
+            iconPath: accountTitleSecondaryIconPath,
           });
         }
         return entries;
@@ -6860,10 +7325,6 @@
         buttonElement.className = 'profile-handle-badge-button';
         buttonElement.setAttribute(
           'aria-label',
-          `${String(safeBadgeEntry.slotLabel || 'Badge')}: ${String(safeBadgeEntry.cardTitle || '').trim() || 'Badge'}`,
-        );
-        buttonElement.setAttribute(
-          'title',
           `${String(safeBadgeEntry.slotLabel || 'Badge')}: ${String(safeBadgeEntry.cardTitle || '').trim() || 'Badge'}`,
         );
 
@@ -7025,14 +7486,46 @@
         profileAccountTitlePreviewLabelElement.textContent = String(matchingEntry?.title || 'Title');
       }
 
-      function syncProfileAccountTitleOptions(selectedTitleValue = '', fallbackTitleValue = '') {
+      function syncProfileBadgeToggleAvailability(claimedTitleEntries = []) {
+        const hasClaimedTitles = Array.isArray(claimedTitleEntries) && claimedTitleEntries.length > 0;
+        const hasSecondClaimedTitle = Array.isArray(claimedTitleEntries) && claimedTitleEntries.length > 1;
+        const applyDisabledState = (inputElement, shouldDisable) => {
+          if (!inputElement) {
+            return;
+          }
+          inputElement.disabled = shouldDisable;
+          inputElement.setAttribute('aria-disabled', shouldDisable ? 'true' : 'false');
+          if (shouldDisable) {
+            inputElement.checked = false;
+          }
+          const parentLabel = inputElement.closest('label');
+          if (parentLabel) {
+            parentLabel.classList.toggle('opacity-60', shouldDisable);
+            parentLabel.classList.toggle('cursor-not-allowed', shouldDisable);
+          }
+        };
+
+        applyDisabledState(profileBadgeShowTitleInput, !hasClaimedTitles);
+        applyDisabledState(profileBadgeShowExtraInput, !hasSecondClaimedTitle);
+      }
+
+      function syncProfileAccountTitleOptions(
+        selectedTitleValue = '',
+        fallbackTitleValue = '',
+        selectedSecondaryTitleValue = '',
+        fallbackSecondaryTitleValue = '',
+      ) {
         if (!profileAccountTitleInput) {
-          return '';
+          return { title1: '', title2: '' };
         }
 
         const claimedTitleEntries = resolveProfileClaimedTitleEntries();
         profileAccountTitleInput.innerHTML = '';
+        if (profileAccountTitleSecondaryInput) {
+          profileAccountTitleSecondaryInput.innerHTML = '';
+        }
         profileAccountTitleInput.disabled = claimedTitleEntries.length === 0;
+        syncProfileBadgeToggleAvailability(claimedTitleEntries);
 
         if (claimedTitleEntries.length === 0) {
           const emptyOption = document.createElement('option');
@@ -7040,8 +7533,16 @@
           emptyOption.textContent = 'No claimed titles yet';
           profileAccountTitleInput.appendChild(emptyOption);
           profileAccountTitleInput.value = '';
+          if (profileAccountTitleSecondaryInput) {
+            const secondaryEmptyOption = document.createElement('option');
+            secondaryEmptyOption.value = '';
+            secondaryEmptyOption.textContent = 'No second title available';
+            profileAccountTitleSecondaryInput.appendChild(secondaryEmptyOption);
+            profileAccountTitleSecondaryInput.value = '';
+            profileAccountTitleSecondaryInput.disabled = true;
+          }
           syncProfileAccountTitlePreview('', claimedTitleEntries);
-          return '';
+          return { title1: '', title2: '' };
         }
 
         claimedTitleEntries.forEach((entry) => {
@@ -7051,10 +7552,40 @@
           profileAccountTitleInput.appendChild(optionElement);
         });
 
-        const selectedTitle = sanitizeProfileAccountTitle(selectedTitleValue, fallbackTitleValue);
+        const selectedTitle = sanitizeProfileAccountTitle(selectedTitleValue, fallbackTitleValue, {
+          allowedEntries: claimedTitleEntries,
+        });
         profileAccountTitleInput.value = selectedTitle;
         syncProfileAccountTitlePreview(selectedTitle, claimedTitleEntries);
-        return selectedTitle;
+
+        const secondaryAllowedEntries = claimedTitleEntries.filter((entry) => (
+          entry.titleKey !== normalizeMemberKey(selectedTitle)
+        ));
+        let selectedSecondaryTitle = '';
+        if (profileAccountTitleSecondaryInput) {
+          profileAccountTitleSecondaryInput.disabled = secondaryAllowedEntries.length === 0;
+          if (secondaryAllowedEntries.length === 0) {
+            const secondaryEmptyOption = document.createElement('option');
+            secondaryEmptyOption.value = '';
+            secondaryEmptyOption.textContent = 'No second title available';
+            profileAccountTitleSecondaryInput.appendChild(secondaryEmptyOption);
+            profileAccountTitleSecondaryInput.value = '';
+          } else {
+            secondaryAllowedEntries.forEach((entry) => {
+              const optionElement = document.createElement('option');
+              optionElement.value = entry.title;
+              optionElement.textContent = entry.title;
+              profileAccountTitleSecondaryInput.appendChild(optionElement);
+            });
+            selectedSecondaryTitle = sanitizeProfileAccountTitle(
+              selectedSecondaryTitleValue,
+              fallbackSecondaryTitleValue,
+              { allowedEntries: secondaryAllowedEntries },
+            );
+            profileAccountTitleSecondaryInput.value = selectedSecondaryTitle;
+          }
+        }
+        return { title1: selectedTitle, title2: selectedSecondaryTitle };
       }
 
       function syncProfileEditForm(profileState) {
@@ -7074,6 +7605,8 @@
         syncProfileAccountTitleOptions(
           safeProfileState.accountTitle || '',
           String(resolvePrimaryAccountTitleAward()?.title || '').trim(),
+          safeProfileState.accountTitleSecondary || '',
+          '',
         );
         if (profileBadgeShowRankInput) {
           profileBadgeShowRankInput.checked = Boolean(safeProfileState.badgeVisibility?.rank);
@@ -7084,6 +7617,7 @@
         if (profileBadgeShowExtraInput) {
           profileBadgeShowExtraInput.checked = Boolean(safeProfileState.badgeVisibility?.extra);
         }
+        syncProfileBadgeToggleAvailability(resolveProfileClaimedTitleEntries());
         syncProfileBioCounter();
       }
 
@@ -8690,6 +9224,8 @@
         syncProfileAccountTitleOptions(
           profileAccountTitleInput?.value || effectiveProfile.accountTitle || '',
           String(resolvePrimaryAccountTitleAward()?.title || '').trim(),
+          profileAccountTitleSecondaryInput?.value || effectiveProfile.accountTitleSecondary || '',
+          '',
         );
         renderProfileHandleBadges(resolveEffectiveMemberProfile());
       }
@@ -9051,14 +9587,40 @@
         }
         if (profileAccountTitleInput) {
           profileAccountTitleInput.addEventListener('change', () => {
-            const selectedTitle = sanitizeProfileAccountTitle(
+            const effectiveProfile = resolveEffectiveMemberProfile();
+            const syncedTitles = syncProfileAccountTitleOptions(
               profileAccountTitleInput.value,
-              profileAccountTitleInput.value,
+              effectiveProfile.accountTitle || profileAccountTitleInput.value,
+              profileAccountTitleSecondaryInput?.value || effectiveProfile.accountTitleSecondary || '',
+              effectiveProfile.accountTitleSecondary || '',
             );
-            if (profileAccountTitleInput.value !== selectedTitle) {
-              profileAccountTitleInput.value = selectedTitle;
+            if (profileAccountTitleInput.value !== syncedTitles.title1) {
+              profileAccountTitleInput.value = syncedTitles.title1;
             }
-            syncProfileAccountTitlePreview(selectedTitle, resolveProfileClaimedTitleEntries());
+            if (profileAccountTitleSecondaryInput && profileAccountTitleSecondaryInput.value !== syncedTitles.title2) {
+              profileAccountTitleSecondaryInput.value = syncedTitles.title2;
+            }
+          });
+        }
+        if (profileAccountTitleSecondaryInput) {
+          profileAccountTitleSecondaryInput.addEventListener('change', () => {
+            const claimedTitleEntries = resolveProfileClaimedTitleEntries();
+            const primaryTitle = sanitizeProfileAccountTitle(
+              profileAccountTitleInput?.value,
+              profileAccountTitleInput?.value,
+              { allowedEntries: claimedTitleEntries },
+            );
+            const secondaryAllowedEntries = claimedTitleEntries.filter((entry) => (
+              entry.titleKey !== normalizeMemberKey(primaryTitle)
+            ));
+            const selectedSecondaryTitle = sanitizeProfileAccountTitle(
+              profileAccountTitleSecondaryInput.value,
+              profileAccountTitleSecondaryInput.value,
+              { allowedEntries: secondaryAllowedEntries },
+            );
+            if (profileAccountTitleSecondaryInput.value !== selectedSecondaryTitle) {
+              profileAccountTitleSecondaryInput.value = selectedSecondaryTitle;
+            }
           });
         }
         if (profileCoverUploadButton && profileCoverFileInput) {
@@ -9101,6 +9663,15 @@
             const accountTitle = sanitizeProfileAccountTitle(
               profileAccountTitleInput?.value,
               effectiveProfile.accountTitle || '',
+              { allowedEntries: resolveProfileClaimedTitleEntries() },
+            );
+            const secondaryAllowedEntries = resolveProfileClaimedTitleEntries().filter((entry) => (
+              entry.titleKey !== normalizeMemberKey(accountTitle)
+            ));
+            const accountTitleSecondary = sanitizeProfileAccountTitle(
+              profileAccountTitleSecondaryInput?.value,
+              effectiveProfile.accountTitleSecondary || '',
+              { allowedEntries: secondaryAllowedEntries },
             );
             const badgeVisibility = sanitizeProfileBadgeVisibility({
               rank: profileBadgeShowRankInput?.checked,
@@ -9115,6 +9686,7 @@
               region,
               bio,
               accountTitle,
+              accountTitleSecondary,
               badgeVisibility,
             });
             syncProfilePageFromState(nextProfile);
@@ -10366,6 +10938,7 @@
         renderProfileAchievementList();
         renderProfileGoodLifePanel();
         renderProfileHandleBadges(resolveEffectiveMemberProfile());
+        renderAccountRankIcon(currentAccountRank);
       }
 
       function initializeThemeFromSettings() {
@@ -15736,21 +16309,517 @@
       }
 
       function syncSettingsPageAccountOverview() {
-        const displayName = String(currentSessionUser?.name || currentSessionUser?.fullName || currentSessionUser?.username || 'Member').trim();
-        const username = String(currentSessionUser?.username || 'unknown').trim().replace(/^@+/, '');
-        const rankedLabel = normalizeRankLabel(resolveSessionAccountRank(currentSessionUser))
-          || normalizeRankLabel(currentAccountRank)
-          || 'Legacy';
+        const displayName = String(currentSessionUser?.name || currentSessionUser?.fullName || currentSessionUser?.username || 'Member').trim() || 'Member';
+        const username = String(currentSessionUser?.username || 'unknown').trim().replace(/^@+/, '') || 'unknown';
+        const parsedNameParts = parseSettingsDisplayName(displayName);
+        const nextUsernameValue = `@${username}`;
+        const nextEmailValue = sanitizeSettingsEmail(currentSessionUser?.email, '');
 
-        if (settingsAccountNameValueElement) {
-          settingsAccountNameValueElement.textContent = displayName || 'Member';
+        if (settingsAccountDisplayNameInput) {
+          settingsAccountDisplayNameInput.value = displayName;
         }
-        if (settingsAccountHandleValueElement) {
-          settingsAccountHandleValueElement.textContent = `@${username || 'unknown'}`;
+        if (settingsAccountUsernameInput) {
+          settingsAccountUsernameInput.value = nextUsernameValue;
         }
-        if (settingsAccountRankValueElement) {
-          settingsAccountRankValueElement.textContent = rankedLabel;
+        if (settingsAccountEmailInput) {
+          settingsAccountEmailInput.value = nextEmailValue;
         }
+        if (settingsAccountDisplayNameValueElement) {
+          settingsAccountDisplayNameValueElement.textContent = displayName;
+        }
+        if (settingsAccountUsernameValueElement) {
+          settingsAccountUsernameValueElement.textContent = nextUsernameValue;
+        }
+        if (settingsAccountEmailValueElement) {
+          settingsAccountEmailValueElement.textContent = nextEmailValue || 'No email added';
+        }
+        if (!nextEmailValue) {
+          setSettingsEmailVerificationStatus('No email set yet. Add an email and save before server verification.', 'warning');
+          setSettingsVerifyEmailButtonState({ show: false, disabled: true });
+          setSettingsEmailVerificationLink('', { persist: false });
+        } else {
+          setSettingsVerifyEmailButtonState({ show: true, disabled: false });
+          setSettingsEmailVerificationLink(currentSessionUser?.pendingEmailVerificationLink, { persist: false });
+        }
+        if (settingsPersonalFirstNameInput) {
+          settingsPersonalFirstNameInput.value = sanitizeSettingsText(currentSessionUser?.firstName, 80) || parsedNameParts.firstName;
+        }
+        if (settingsPersonalLastNameInput) {
+          settingsPersonalLastNameInput.value = sanitizeSettingsText(currentSessionUser?.lastName, 80) || parsedNameParts.lastName;
+        }
+        if (settingsPersonalBirthdateInput) {
+          settingsPersonalBirthdateInput.value = formatSettingsDateInputValue(currentSessionUser?.birthdate || currentSessionUser?.dateOfBirth || '');
+        }
+        if (settingsPersonalGenderSelect) {
+          settingsPersonalGenderSelect.value = normalizeSettingsGender(currentSessionUser?.gender);
+        }
+        if (settingsPersonalAddressLineInput) {
+          settingsPersonalAddressLineInput.value = sanitizeSettingsText(currentSessionUser?.addressLine, 140);
+        }
+        if (settingsPersonalCityInput) {
+          settingsPersonalCityInput.value = sanitizeSettingsText(currentSessionUser?.city, 80);
+        }
+        if (settingsPersonalRegionInput) {
+          settingsPersonalRegionInput.value = sanitizeSettingsText(currentSessionUser?.region, 80);
+        }
+        if (settingsPersonalZipInput) {
+          settingsPersonalZipInput.value = sanitizeSettingsText(currentSessionUser?.zip, 20);
+        }
+        if (settingsPersonalCountryInput) {
+          settingsPersonalCountryInput.value = sanitizeSettingsText(currentSessionUser?.country, 80);
+        }
+
+        const billingAddressSnapshot = {
+          addressLine: sanitizeSettingsText(currentSessionUser?.billingAddressLine, 140),
+          city: sanitizeSettingsText(currentSessionUser?.billingCity, 80),
+          region: sanitizeSettingsText(currentSessionUser?.billingRegion, 80),
+          zip: sanitizeSettingsText(currentSessionUser?.billingZip, 20),
+          country: sanitizeSettingsText(currentSessionUser?.billingCountry, 80),
+        };
+
+        if (settingsBillingAddressLineInput) {
+          settingsBillingAddressLineInput.value = billingAddressSnapshot.addressLine;
+        }
+        if (settingsBillingCityInput) {
+          settingsBillingCityInput.value = billingAddressSnapshot.city;
+        }
+        if (settingsBillingRegionInput) {
+          settingsBillingRegionInput.value = billingAddressSnapshot.region;
+        }
+        if (settingsBillingZipInput) {
+          settingsBillingZipInput.value = billingAddressSnapshot.zip;
+        }
+        if (settingsBillingCountryInput) {
+          settingsBillingCountryInput.value = billingAddressSnapshot.country;
+        }
+
+        const sameAsAddressDefault = !billingAddressSnapshot.addressLine && !billingAddressSnapshot.city
+          && !billingAddressSnapshot.region && !billingAddressSnapshot.zip && !billingAddressSnapshot.country;
+        if (settingsBillingSameAsPersonalToggle) {
+          settingsBillingSameAsPersonalToggle.checked = currentSessionUser?.billingSameAsAddress === true || sameAsAddressDefault;
+        }
+        syncBillingAddressFieldsDisabledState({ copyFromPersonal: Boolean(settingsBillingSameAsPersonalToggle?.checked) });
+      }
+
+      function sanitizeSettingsText(value, maxLength = 120) {
+        const normalized = String(value || '').trim().replace(/\s+/g, ' ');
+        return normalized.slice(0, Math.max(0, Number(maxLength) || 120));
+      }
+
+      function sanitizeSettingsEmail(value, fallback = '') {
+        const normalized = String(value || '').trim().toLowerCase();
+        if (!normalized) {
+          return String(fallback || '').trim().toLowerCase();
+        }
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized) ? normalized : String(fallback || '').trim().toLowerCase();
+      }
+
+      function parseSettingsDisplayName(displayName) {
+        const safeDisplayName = sanitizeSettingsText(displayName, 120);
+        const parts = safeDisplayName.split(' ').filter(Boolean);
+        if (parts.length === 0) {
+          return { firstName: '', lastName: '' };
+        }
+        if (parts.length === 1) {
+          return { firstName: parts[0], lastName: '' };
+        }
+        return {
+          firstName: parts[0],
+          lastName: parts.slice(1).join(' '),
+        };
+      }
+
+      function formatSettingsDateInputValue(value) {
+        const rawValue = String(value || '').trim();
+        if (!rawValue) {
+          return '';
+        }
+        if (/^\d{4}-\d{2}-\d{2}$/.test(rawValue)) {
+          return rawValue;
+        }
+        const parsedMs = Date.parse(rawValue);
+        if (!Number.isFinite(parsedMs)) {
+          return '';
+        }
+        const date = new Date(parsedMs);
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      function normalizeSettingsGender(value) {
+        const normalized = normalizeMemberKey(value).replace(/\s+/g, '_');
+        if (normalized === 'male') {
+          return 'male';
+        }
+        if (normalized === 'female') {
+          return 'female';
+        }
+        if (normalized === 'prefer_not_to_say' || normalized === 'prefer_not' || normalized === 'not_to_say') {
+          return 'prefer_not_to_say';
+        }
+        return '';
+      }
+
+      function readSettingsPersonalAddressSnapshot() {
+        return {
+          addressLine: sanitizeSettingsText(settingsPersonalAddressLineInput?.value, 140),
+          city: sanitizeSettingsText(settingsPersonalCityInput?.value, 80),
+          region: sanitizeSettingsText(settingsPersonalRegionInput?.value, 80),
+          zip: sanitizeSettingsText(settingsPersonalZipInput?.value, 20),
+          country: sanitizeSettingsText(settingsPersonalCountryInput?.value, 80),
+        };
+      }
+
+      function applySettingsBillingSnapshot(snapshot = {}) {
+        if (settingsBillingAddressLineInput) {
+          settingsBillingAddressLineInput.value = sanitizeSettingsText(snapshot.addressLine, 140);
+        }
+        if (settingsBillingCityInput) {
+          settingsBillingCityInput.value = sanitizeSettingsText(snapshot.city, 80);
+        }
+        if (settingsBillingRegionInput) {
+          settingsBillingRegionInput.value = sanitizeSettingsText(snapshot.region, 80);
+        }
+        if (settingsBillingZipInput) {
+          settingsBillingZipInput.value = sanitizeSettingsText(snapshot.zip, 20);
+        }
+        if (settingsBillingCountryInput) {
+          settingsBillingCountryInput.value = sanitizeSettingsText(snapshot.country, 80);
+        }
+      }
+
+      function syncBillingAddressFieldsDisabledState(options = {}) {
+        const sameAsAddress = Boolean(settingsBillingSameAsPersonalToggle?.checked);
+        if (sameAsAddress && options.copyFromPersonal !== false) {
+          applySettingsBillingSnapshot(readSettingsPersonalAddressSnapshot());
+        }
+
+        [
+          settingsBillingAddressLineInput,
+          settingsBillingCityInput,
+          settingsBillingRegionInput,
+          settingsBillingZipInput,
+          settingsBillingCountryInput,
+        ].forEach((fieldElement) => {
+          if (!fieldElement) {
+            return;
+          }
+          fieldElement.disabled = sameAsAddress;
+          if (sameAsAddress) {
+            fieldElement.classList.add('opacity-70', 'cursor-not-allowed');
+          } else {
+            fieldElement.classList.remove('opacity-70', 'cursor-not-allowed');
+          }
+        });
+      }
+
+      function setSettingsFeedback(element, message = '', tone = 'info') {
+        if (!element) {
+          return;
+        }
+
+        const safeMessage = String(message || '').trim();
+        element.classList.remove('hidden', 'text-semantic-info', 'text-semantic-success', 'text-semantic-danger', 'text-text-tertiary');
+        if (!safeMessage) {
+          element.textContent = '';
+          element.classList.add('hidden');
+          return;
+        }
+
+        element.textContent = safeMessage;
+        if (tone === 'success') {
+          element.classList.add('text-semantic-success');
+          return;
+        }
+        if (tone === 'error') {
+          element.classList.add('text-semantic-danger');
+          return;
+        }
+        if (tone === 'info') {
+          element.classList.add('text-semantic-info');
+          return;
+        }
+        element.classList.add('text-text-tertiary');
+      }
+
+      function setSettingsAccountFeedback(message = '', tone = 'info') {
+        setSettingsFeedback(settingsAccountFeedbackElement, message, tone);
+      }
+
+      function setSettingsBillingFeedback(message = '', tone = 'info') {
+        setSettingsFeedback(settingsBillingFeedbackElement, message, tone);
+      }
+
+      function setSettingsSecurityFeedback(message = '', tone = 'info') {
+        setSettingsFeedback(settingsSecurityFeedbackElement, message, tone);
+      }
+
+      function setSettingsEmailVerificationStatus(message = '', tone = 'info') {
+        if (!settingsAccountEmailVerificationStatusElement) {
+          return;
+        }
+
+        const safeMessage = String(message || '').trim() || 'Server authentication and verification check pending.';
+        settingsAccountEmailVerificationStatusElement.textContent = safeMessage;
+        settingsAccountEmailVerificationStatusElement.classList.remove(
+          'text-semantic-success',
+          'text-semantic-danger',
+          'text-brand-300',
+          'text-text-tertiary',
+          'text-semantic-info',
+        );
+
+        if (tone === 'success') {
+          settingsAccountEmailVerificationStatusElement.classList.add('text-semantic-success');
+          return;
+        }
+        if (tone === 'error') {
+          settingsAccountEmailVerificationStatusElement.classList.add('text-semantic-danger');
+          return;
+        }
+        if (tone === 'warning') {
+          settingsAccountEmailVerificationStatusElement.classList.add('text-brand-300');
+          return;
+        }
+        if (tone === 'info') {
+          settingsAccountEmailVerificationStatusElement.classList.add('text-semantic-info');
+          return;
+        }
+
+        settingsAccountEmailVerificationStatusElement.classList.add('text-text-tertiary');
+      }
+
+      function setSettingsVerifyEmailButtonState(options = {}) {
+        if (!settingsAccountVerifyEmailButton) {
+          return;
+        }
+
+        const shouldShow = options.show === true;
+        const shouldDisable = options.disabled === true;
+        settingsAccountVerifyEmailButton.classList.toggle('hidden', !shouldShow);
+        settingsAccountVerifyEmailButton.disabled = shouldDisable;
+        settingsAccountVerifyEmailButton.classList.toggle('opacity-60', shouldDisable);
+        settingsAccountVerifyEmailButton.classList.toggle('cursor-not-allowed', shouldDisable);
+      }
+
+      function setSettingsEmailVerificationLink(linkInput = '', options = {}) {
+        const persistValue = options.persist !== false;
+        const rawLink = String(linkInput || '').trim();
+        const hasValidRelativeLink = rawLink.startsWith('/api/member-auth/verify-email?token=');
+
+        if (!settingsAccountEmailVerificationLinkWrapElement || !settingsAccountEmailVerificationLinkElement || !hasValidRelativeLink) {
+          if (settingsAccountEmailVerificationLinkWrapElement) {
+            settingsAccountEmailVerificationLinkWrapElement.classList.add('hidden');
+          }
+          if (settingsAccountEmailVerificationLinkElement) {
+            settingsAccountEmailVerificationLinkElement.href = '#';
+          }
+          if (persistValue && currentSessionUser?.pendingEmailVerificationLink) {
+            currentSessionUser.pendingEmailVerificationLink = '';
+            persistUserSessionSnapshot(currentSessionUser);
+          }
+          return;
+        }
+
+        settingsAccountEmailVerificationLinkElement.href = rawLink;
+        settingsAccountEmailVerificationLinkWrapElement.classList.remove('hidden');
+
+        if (persistValue && currentSessionUser?.pendingEmailVerificationLink !== rawLink) {
+          currentSessionUser.pendingEmailVerificationLink = rawLink;
+          persistUserSessionSnapshot(currentSessionUser);
+        }
+      }
+
+      async function refreshSettingsEmailVerificationStatus(options = {}) {
+        const requestSequence = Number(options.requestSequence || 0) || (settingsEmailVerificationRequestSequence + 1);
+        settingsEmailVerificationRequestSequence = requestSequence;
+
+        const localEmail = sanitizeSettingsEmail(settingsAccountEmailInput?.value || currentSessionUser?.email, '');
+        if (!localEmail) {
+          setSettingsVerifyEmailButtonState({ show: false, disabled: true });
+          setSettingsEmailVerificationLink('');
+          setSettingsEmailVerificationStatus('No email set yet. Add an email and save before server verification.', 'warning');
+          return;
+        }
+
+        setSettingsVerifyEmailButtonState({ show: true, disabled: false });
+
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          setSettingsEmailVerificationLink('');
+          setSettingsEmailVerificationStatus('Server authentication token is missing. Sign in again to verify email.', 'error');
+          return;
+        }
+
+        setSettingsEmailVerificationStatus('Checking server authentication and email verification status...', 'info');
+
+        try {
+          const response = await fetch(MEMBER_EMAIL_VERIFICATION_STATUS_API, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (requestSequence !== settingsEmailVerificationRequestSequence) {
+            return;
+          }
+
+          if (!response.ok) {
+            const errorMessage = typeof payload?.error === 'string'
+              ? payload.error
+              : 'Unable to verify email status with server.';
+            setSettingsEmailVerificationStatus(errorMessage, 'error');
+            setSettingsEmailVerificationLink('');
+            return;
+          }
+
+          const serverEmail = sanitizeSettingsEmail(payload?.email, '');
+          const verificationSupported = payload?.verificationSupported === true;
+          const verified = payload?.verified === true;
+          const verificationLink = String(payload?.verificationLink || '').trim();
+          const emailMatchesServerRecord = !localEmail || !serverEmail || localEmail === serverEmail;
+
+          if (!emailMatchesServerRecord) {
+            setSettingsEmailVerificationStatus('Server authenticated. Current local email does not match server record and is not verified.', 'warning');
+            setSettingsVerifyEmailButtonState({ show: true, disabled: false });
+            setSettingsEmailVerificationLink('');
+            return;
+          }
+
+          if (!verificationSupported) {
+            setSettingsEmailVerificationStatus('Server authenticated. Email verification is not configured on server yet.', 'warning');
+            setSettingsVerifyEmailButtonState({ show: false, disabled: true });
+            setSettingsEmailVerificationLink('');
+            return;
+          }
+
+          if (verified) {
+            setSettingsEmailVerificationStatus('Server authenticated. Verified by server.', 'success');
+            setSettingsVerifyEmailButtonState({ show: false, disabled: true });
+            setSettingsEmailVerificationLink('');
+            return;
+          }
+
+          setSettingsVerifyEmailButtonState({ show: true, disabled: false });
+          setSettingsEmailVerificationLink(verificationLink || currentSessionUser?.pendingEmailVerificationLink || '');
+          setSettingsEmailVerificationStatus('Server authenticated. Not verified by server. Use Verify Email or the link below.', 'warning');
+        } catch (error) {
+          if (requestSequence !== settingsEmailVerificationRequestSequence) {
+            return;
+          }
+          const errorMessage = error instanceof Error && error.message
+            ? error.message
+            : 'Unable to verify email status with server.';
+          setSettingsEmailVerificationStatus(errorMessage, 'error');
+          setSettingsEmailVerificationLink('');
+        }
+      }
+
+      async function requestSettingsEmailVerificationForCurrentEmail(emailInput = '') {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          return {
+            success: false,
+            error: 'Server authentication token is missing. Sign in again to request email verification.',
+          };
+        }
+
+        const requestedEmail = sanitizeSettingsEmail(emailInput || settingsAccountEmailInput?.value || currentSessionUser?.email, '');
+        if (!requestedEmail) {
+          return {
+            success: false,
+            error: 'A valid email is required before requesting verification.',
+          };
+        }
+
+        try {
+          const response = await fetch(MEMBER_EMAIL_VERIFICATION_REQUEST_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({ email: requestedEmail }),
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            return {
+              success: false,
+              error: typeof payload?.error === 'string'
+                ? payload.error
+                : 'Unable to request email verification from server.',
+            };
+          }
+
+          return {
+            success: true,
+            data: payload && typeof payload === 'object' ? payload : {},
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error && error.message
+              ? error.message
+              : 'Unable to request email verification from server.',
+          };
+        }
+      }
+
+      function setActiveSettingsCategory(categoryKeyInput = 'account') {
+        const safeCategoryKey = ['account', 'payment', 'security', 'appearance'].includes(String(categoryKeyInput || '').trim())
+          ? String(categoryKeyInput || '').trim()
+          : 'account';
+        activeSettingsCategory = safeCategoryKey;
+        if (safeCategoryKey !== 'security') {
+          setSettingsSecurityFeedback('');
+        }
+        if (safeCategoryKey !== 'account') {
+          setSettingsAccountFeedback('');
+        }
+        if (safeCategoryKey !== 'payment') {
+          setSettingsBillingFeedback('');
+        }
+
+        settingsCategoryTabButtons.forEach((button) => {
+          const buttonCategoryKey = String(button?.getAttribute('data-settings-category-tab') || '').trim();
+          const isActive = buttonCategoryKey === safeCategoryKey;
+          button.classList.remove(...settingsCategoryTabActiveClasses, ...settingsCategoryTabInactiveClasses);
+          button.classList.add(...(isActive ? settingsCategoryTabActiveClasses : settingsCategoryTabInactiveClasses));
+          button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+          if (isActive) {
+            button.setAttribute('aria-current', 'true');
+          } else {
+            button.removeAttribute('aria-current');
+          }
+        });
+
+        settingsCategoryPanels.forEach((panel) => {
+          const panelCategoryKey = String(panel?.getAttribute('data-settings-category-panel') || '').trim();
+          panel.classList.toggle('hidden', panelCategoryKey !== safeCategoryKey);
+        });
+      }
+
+      function initializeSettingsCategoryNavigation() {
+        if (!settingsCategoryTabButtons.length || !settingsCategoryPanels.length) {
+          return;
+        }
+
+        settingsCategoryTabButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            const nextCategoryKey = String(button.getAttribute('data-settings-category-tab') || '').trim();
+            setActiveSettingsCategory(nextCategoryKey);
+          });
+        });
+
+        const hasPanelForActiveCategory = settingsCategoryPanels.some((panel) => (
+          String(panel?.getAttribute('data-settings-category-panel') || '').trim() === activeSettingsCategory
+        ));
+        setActiveSettingsCategory(hasPanelForActiveCategory ? activeSettingsCategory : 'account');
       }
 
       function isTreeSettingsOpen() {
@@ -16690,6 +17759,7 @@
           accountOverviewCardElement.dataset.accountRank = accountRank;
         }
         currentAccountRank = accountRank;
+        renderAccountRankIcon(accountRank);
         if (previousAccountRank !== currentAccountRank) {
           void loadProfileAchievements({ silent: true });
           void loadProfileGoodLifeMonthly({ silent: true });
@@ -19104,6 +20174,8 @@
 
         if (pageViewKey === 'settings') {
           syncSettingsPageAccountOverview();
+          setActiveSettingsCategory(activeSettingsCategory);
+          void refreshSettingsEmailVerificationStatus();
         }
 
         if (pageViewKey === 'binary-tree') {
@@ -19199,12 +20271,291 @@
           setPage('profile', { routeMode: 'push' });
         });
       }
+      if (settingsAccountEditDisplayNameButton) {
+        settingsAccountEditDisplayNameButton.addEventListener('click', () => {
+          setSettingsAccountFeedback('');
+          const currentValue = sanitizeProfileDisplayName(
+            settingsAccountDisplayNameInput?.value || currentSessionUser?.name || 'Member',
+            'Member',
+          );
+          const nextPromptValue = window.prompt('Enter your new display name:', currentValue);
+          if (nextPromptValue === null) {
+            return;
+          }
+
+          const nextDisplayName = sanitizeProfileDisplayName(nextPromptValue, '');
+          if (!nextDisplayName) {
+            setSettingsAccountFeedback('Display name is required.', 'error');
+            return;
+          }
+
+          if (settingsAccountDisplayNameInput) {
+            settingsAccountDisplayNameInput.value = nextDisplayName;
+          }
+          if (settingsAccountDisplayNameValueElement) {
+            settingsAccountDisplayNameValueElement.textContent = nextDisplayName;
+          }
+          setSettingsAccountFeedback('Display name updated. Click Save Account Details to apply.', 'info');
+        });
+      }
+      if (settingsAccountChangeEmailButton) {
+        settingsAccountChangeEmailButton.addEventListener('click', () => {
+          setSettingsAccountFeedback('');
+          const currentValue = sanitizeSettingsEmail(settingsAccountEmailInput?.value || currentSessionUser?.email, '');
+          const nextPromptValue = window.prompt('Enter your new email address:', currentValue);
+          if (nextPromptValue === null) {
+            return;
+          }
+
+          const trimmedValue = String(nextPromptValue || '').trim();
+          if (!trimmedValue) {
+            setSettingsAccountFeedback('Email is required.', 'error');
+            return;
+          }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedValue)) {
+            setSettingsAccountFeedback('Please enter a valid email address.', 'error');
+            return;
+          }
+
+          const nextEmail = sanitizeSettingsEmail(trimmedValue, '');
+          if (!nextEmail) {
+            setSettingsAccountFeedback('Please enter a valid email address.', 'error');
+            return;
+          }
+
+          if (settingsAccountEmailInput) {
+            settingsAccountEmailInput.value = nextEmail;
+          }
+          if (settingsAccountEmailValueElement) {
+            settingsAccountEmailValueElement.textContent = nextEmail;
+          }
+          setSettingsVerifyEmailButtonState({ show: true, disabled: false });
+          setSettingsEmailVerificationLink('');
+          setSettingsAccountFeedback('Email updated. Click Save Account Details to apply.', 'info');
+          void refreshSettingsEmailVerificationStatus();
+        });
+      }
+      if (settingsAccountVerifyEmailButton) {
+        settingsAccountVerifyEmailButton.addEventListener('click', async () => {
+          setSettingsAccountFeedback('');
+
+          const currentEmail = sanitizeSettingsEmail(settingsAccountEmailInput?.value || currentSessionUser?.email, '');
+          if (!currentEmail) {
+            setSettingsAccountFeedback('Add a valid email first before requesting verification.', 'error');
+            return;
+          }
+
+          const previousButtonLabel = settingsAccountVerifyEmailButton.textContent;
+          settingsAccountVerifyEmailButton.textContent = 'Preparing...';
+          setSettingsVerifyEmailButtonState({ show: true, disabled: true });
+
+          const verificationRequestResult = await requestSettingsEmailVerificationForCurrentEmail(currentEmail);
+          settingsAccountVerifyEmailButton.textContent = previousButtonLabel;
+          setSettingsVerifyEmailButtonState({ show: true, disabled: false });
+
+          if (!verificationRequestResult.success) {
+            setSettingsAccountFeedback(
+              String(verificationRequestResult.error || 'Unable to request email verification right now.'),
+              'error',
+            );
+            return;
+          }
+
+          const verificationPayload = verificationRequestResult.data || {};
+          if (verificationPayload.alreadyVerified === true) {
+            setSettingsEmailVerificationLink('');
+            setSettingsAccountFeedback('This email is already verified by server.', 'success');
+            void refreshSettingsEmailVerificationStatus();
+            return;
+          }
+
+          const verificationLink = String(verificationPayload.verificationLink || '').trim();
+          if (verificationLink) {
+            setSettingsEmailVerificationLink(verificationLink);
+            setSettingsAccountFeedback('Verification link is ready below. Click it to verify this email.', 'success');
+          } else {
+            setSettingsAccountFeedback('Verification request sent. Refreshing status...', 'info');
+          }
+
+          void refreshSettingsEmailVerificationStatus();
+        });
+      }
+      if (settingsAccountEmailVerificationLinkElement) {
+        settingsAccountEmailVerificationLinkElement.addEventListener('click', () => {
+          window.setTimeout(() => {
+            void refreshSettingsEmailVerificationStatus();
+          }, 1200);
+        });
+      }
+      if (settingsBillingSameAsPersonalToggle) {
+        settingsBillingSameAsPersonalToggle.addEventListener('change', () => {
+          syncBillingAddressFieldsDisabledState({ copyFromPersonal: true });
+          setSettingsBillingFeedback('');
+        });
+      }
+      [
+        settingsPersonalAddressLineInput,
+        settingsPersonalCityInput,
+        settingsPersonalRegionInput,
+        settingsPersonalZipInput,
+        settingsPersonalCountryInput,
+      ].forEach((fieldElement) => {
+        if (!fieldElement) {
+          return;
+        }
+        fieldElement.addEventListener('input', () => {
+          if (settingsBillingSameAsPersonalToggle?.checked) {
+            syncBillingAddressFieldsDisabledState({ copyFromPersonal: true });
+          }
+        });
+      });
+      if (settingsAccountFormElement) {
+        settingsAccountFormElement.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          setSettingsAccountFeedback('');
+
+          const nextDisplayName = sanitizeProfileDisplayName(
+            settingsAccountDisplayNameInput?.value || currentSessionUser?.name || 'Member',
+            'Member',
+          );
+          if (!nextDisplayName) {
+            setSettingsAccountFeedback('Display name is required.', 'error');
+            return;
+          }
+
+          const rawEmailValue = String(settingsAccountEmailInput?.value || '').trim();
+          if (rawEmailValue && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmailValue)) {
+            setSettingsAccountFeedback('Please enter a valid email address.', 'error');
+            return;
+          }
+          const nextEmail = sanitizeSettingsEmail(rawEmailValue, currentSessionUser?.email || '');
+
+          const nextFirstName = sanitizeSettingsText(settingsPersonalFirstNameInput?.value, 80);
+          const nextLastName = sanitizeSettingsText(settingsPersonalLastNameInput?.value, 80);
+          const nextBirthdate = formatSettingsDateInputValue(settingsPersonalBirthdateInput?.value || '');
+          const nextGender = normalizeSettingsGender(settingsPersonalGenderSelect?.value);
+          const nextAddressSnapshot = readSettingsPersonalAddressSnapshot();
+          const billingSameAsAddress = Boolean(settingsBillingSameAsPersonalToggle?.checked);
+          if (billingSameAsAddress) {
+            applySettingsBillingSnapshot(nextAddressSnapshot);
+          }
+          const nextBillingSnapshot = billingSameAsAddress
+            ? nextAddressSnapshot
+            : {
+              addressLine: sanitizeSettingsText(settingsBillingAddressLineInput?.value, 140),
+              city: sanitizeSettingsText(settingsBillingCityInput?.value, 80),
+              region: sanitizeSettingsText(settingsBillingRegionInput?.value, 80),
+              zip: sanitizeSettingsText(settingsBillingZipInput?.value, 20),
+              country: sanitizeSettingsText(settingsBillingCountryInput?.value, 80),
+            };
+
+          currentSessionUser.name = nextDisplayName;
+          currentSessionUser.fullName = nextDisplayName;
+          currentSessionUser.email = nextEmail;
+          currentSessionUser.firstName = nextFirstName;
+          currentSessionUser.lastName = nextLastName;
+          currentSessionUser.birthdate = nextBirthdate;
+          currentSessionUser.gender = nextGender;
+          currentSessionUser.addressLine = nextAddressSnapshot.addressLine;
+          currentSessionUser.city = nextAddressSnapshot.city;
+          currentSessionUser.region = nextAddressSnapshot.region;
+          currentSessionUser.zip = nextAddressSnapshot.zip;
+          currentSessionUser.country = nextAddressSnapshot.country;
+          currentSessionUser.profileRegion = nextAddressSnapshot.region;
+          currentSessionUser.billingSameAsAddress = billingSameAsAddress;
+          currentSessionUser.billingAddressLine = nextBillingSnapshot.addressLine;
+          currentSessionUser.billingCity = nextBillingSnapshot.city;
+          currentSessionUser.billingRegion = nextBillingSnapshot.region;
+          currentSessionUser.billingZip = nextBillingSnapshot.zip;
+          currentSessionUser.billingCountry = nextBillingSnapshot.country;
+
+          persistUserSessionSnapshot(currentSessionUser);
+          const nextEffectiveProfile = persistEffectiveMemberProfile({
+            displayName: nextDisplayName,
+            region: nextAddressSnapshot.region,
+          });
+          syncHeaderProfileIdentity(nextEffectiveProfile);
+          syncSettingsPageAccountOverview();
+          let feedbackMessage = 'Account and personal information saved.';
+          let feedbackTone = 'success';
+          if (nextEmail) {
+            const verificationRequestResult = await requestSettingsEmailVerificationForCurrentEmail(nextEmail);
+            if (verificationRequestResult.success) {
+              const verificationPayload = verificationRequestResult.data || {};
+              if (verificationPayload.alreadyVerified === true) {
+                setSettingsEmailVerificationLink('');
+                feedbackMessage = `${feedbackMessage} Server confirms this email is already verified.`;
+              } else if (verificationPayload.verificationRequested === true) {
+                const verificationLink = String(verificationPayload.verificationLink || '').trim();
+                setSettingsEmailVerificationLink(verificationLink);
+                feedbackMessage = verificationLink
+                  ? `${feedbackMessage} Verification link is ready below.`
+                  : `${feedbackMessage} Verification request sent (mock email outbox).`;
+              } else {
+                feedbackMessage = `${feedbackMessage} Server verification status refreshed.`;
+              }
+            } else {
+              const verificationError = String(verificationRequestResult.error || '').trim();
+              feedbackMessage = verificationError
+                ? `${feedbackMessage} Unable to request email verification: ${verificationError}`
+                : `${feedbackMessage} Unable to request email verification right now.`;
+              feedbackTone = 'info';
+            }
+          }
+
+          setSettingsAccountFeedback(feedbackMessage, feedbackTone);
+          void refreshSettingsEmailVerificationStatus();
+        });
+      }
+      if (settingsBillingFormElement) {
+        settingsBillingFormElement.addEventListener('submit', (event) => {
+          event.preventDefault();
+          setSettingsBillingFeedback('');
+
+          const sameAsAddress = Boolean(settingsBillingSameAsPersonalToggle?.checked);
+          const nextBillingSnapshot = sameAsAddress
+            ? readSettingsPersonalAddressSnapshot()
+            : {
+              addressLine: sanitizeSettingsText(settingsBillingAddressLineInput?.value, 140),
+              city: sanitizeSettingsText(settingsBillingCityInput?.value, 80),
+              region: sanitizeSettingsText(settingsBillingRegionInput?.value, 80),
+              zip: sanitizeSettingsText(settingsBillingZipInput?.value, 20),
+              country: sanitizeSettingsText(settingsBillingCountryInput?.value, 80),
+            };
+
+          if (sameAsAddress) {
+            applySettingsBillingSnapshot(nextBillingSnapshot);
+          }
+
+          currentSessionUser.billingSameAsAddress = sameAsAddress;
+          currentSessionUser.billingAddressLine = nextBillingSnapshot.addressLine;
+          currentSessionUser.billingCity = nextBillingSnapshot.city;
+          currentSessionUser.billingRegion = nextBillingSnapshot.region;
+          currentSessionUser.billingZip = nextBillingSnapshot.zip;
+          currentSessionUser.billingCountry = nextBillingSnapshot.country;
+
+          persistUserSessionSnapshot(currentSessionUser);
+          syncSettingsPageAccountOverview();
+          setSettingsBillingFeedback('Billing details saved.', 'success');
+        });
+      }
+      if (settingsSecurityForgotPasswordButton) {
+        settingsSecurityForgotPasswordButton.addEventListener('click', () => {
+          setSettingsSecurityFeedback('Forgot password request is not yet wired to server recovery in this panel. Contact support to reset your password right now.', 'info');
+        });
+      }
+      if (settingsSecurityChangePasswordButton) {
+        settingsSecurityChangePasswordButton.addEventListener('click', () => {
+          setSettingsSecurityFeedback('Change password flow requires a secure reset token and is not available from this panel yet.', 'info');
+        });
+      }
       if (settingsLogoutButton) {
         settingsLogoutButton.addEventListener('click', () => {
           clearUserSession();
           window.location.replace('./login.html');
         });
       }
+      initializeSettingsCategoryNavigation();
 
       window.addEventListener('binary-tree-ready', () => {
         const binaryTreePage = document.querySelector('[data-page-view="binary-tree"]');
