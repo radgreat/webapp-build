@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="color-scheme" content="light dark"/>
-  <title>Vault — Finance Dashboard</title>
+  <title>Dashboard - Premiere Life</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -4441,85 +4441,30 @@
         </section>
 
         <section id="page-my-store" data-page-view="my-store" class="hidden space-y-6">
-          <div class="bg-surface-raised border border-surface-border rounded-xl p-4 sm:p-6 shadow-depth-1">
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-              <div>
-                <h3 class="font-body font-medium text-display-sm text-text-primary">My Store Workspace</h3>
-                <p class="text-caption text-text-tertiary mt-1">Switch between Storefront, Analytics, and Store Setup.</p>
-              </div>
-              <span class="inline-flex items-center gap-1 rounded-full bg-semantic-info-bg text-semantic-info px-2 py-0.5 text-caption font-medium">Attribution is locked</span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4">
-              <button data-store-tab="storefront" class="px-3 py-2 rounded-lg bg-brand-500/10 text-brand-400 border border-brand-500/20 font-medium text-body-sm hover:bg-brand-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                Storefront
-              </button>
-              <button data-store-tab="analytics" class="px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                Analytics
-              </button>
-              <button data-store-tab="setup" class="px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                Store Setup
-              </button>
-            </div>
-          </div>
-
-          <div data-store-view="analytics" class="hidden space-y-6">
-          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-            <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1 hover:shadow-depth-2 hover:bg-surface-elevated hover:border-surface-border-light hover:-translate-y-0.5 transition-transform duration-150 ease-spring">
-              <div class="flex items-center justify-between mb-4">
-                <span class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Conversion Rate</span>
-                <span class="inline-flex items-center gap-1 text-caption font-medium px-2 py-0.5 rounded-full bg-semantic-success-bg text-semantic-success">+1.9%</span>
-              </div>
-              <p class="font-body font-semibold text-mono-data text-text-primary">21.5%</p>
-              <p class="text-caption text-text-tertiary mt-2">Visits converted to attributed invoices</p>
-            </div>
-
-            <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1 hover:shadow-depth-2 hover:bg-surface-elevated hover:border-surface-border-light hover:-translate-y-0.5 transition-transform duration-150 ease-spring">
-              <div class="flex items-center justify-between mb-4">
-                <span class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Store Link Visits</span>
-                <span class="inline-flex items-center gap-1 text-caption font-medium px-2 py-0.5 rounded-full bg-semantic-info-bg text-semantic-info">+24</span>
-              </div>
-              <p class="font-body font-semibold text-mono-data text-text-primary">214</p>
-              <p class="text-caption text-text-tertiary mt-2">Visits currently mapped to your sponsor route</p>
-            </div>
-
-            <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1 hover:shadow-depth-2 hover:bg-surface-elevated hover:border-surface-border-light hover:-translate-y-0.5 transition-transform duration-150 ease-spring">
-              <div class="flex items-center justify-between mb-4">
-                <span class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Attributed Invoices</span>
-                <span class="inline-flex items-center gap-1 text-caption font-medium px-2 py-0.5 rounded-full bg-semantic-success-bg text-semantic-success">This month</span>
-              </div>
-              <p id="store-kpi-invoices" class="font-body font-semibold text-mono-data text-text-primary">46</p>
-              <p class="text-caption text-text-tertiary mt-2">Invoices attributed through your assigned sponsor line</p>
-            </div>
-
-            <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1 hover:shadow-depth-2 hover:bg-surface-elevated hover:border-surface-border-light hover:-translate-y-0.5 transition-transform duration-150 ease-spring">
-              <div class="flex items-center justify-between mb-4">
-                <span class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Sponsor Credit</span>
-                <span class="inline-flex items-center gap-1 text-caption font-medium px-2 py-0.5 rounded-full bg-semantic-warning-bg text-semantic-warning">Pending + Posted</span>
-              </div>
-              <p id="store-kpi-owner-credit" class="font-body font-semibold text-mono-data text-text-primary">$3,482</p>
-              <p class="text-caption text-text-tertiary mt-2">Business Points: <span id="store-kpi-owner-bp" class="text-text-secondary">1,920 BP</span></p>
-            </div>
-          </div>
-
-          </div>
-
           <div data-store-view="storefront" class="space-y-6">
             <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
               <div class="flex items-start justify-between gap-4">
                 <div>
-                  <h3 class="font-body font-medium text-display-sm text-text-primary">Storefront Flow</h3>
-                  <p class="text-caption text-text-tertiary mt-1">Product Grid -> Product Page -> Checkout. Discount is applied from your current rank percentage.</p>
+                  <h3 class="font-body font-medium text-display-sm text-text-primary">Store Products</h3>
+                  <p class="text-caption text-text-tertiary mt-1">Simple product browsing and checkout powered directly by your live admin catalog.</p>
                 </div>
                 <div class="flex flex-col sm:items-end gap-1">
                   <span id="store-rank-discount-badge" class="inline-flex items-center gap-1 rounded-full bg-semantic-success-bg text-semantic-success px-2 py-0.5 text-caption font-medium">Rank Discount: 0%</span>
                   <span id="store-grid-cart-count-badge" class="inline-flex items-center gap-1 rounded-full bg-semantic-info-bg text-semantic-info px-2 py-0.5 text-caption font-medium">0 items in cart</span>
                 </div>
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4">
-                <button type="button" data-store-flow-indicator="grid" class="rounded-lg border border-brand-500/30 bg-brand-500/10 px-3 py-2 text-body-sm font-medium text-brand-400 text-left">1. Product Grid</button>
-                <button type="button" data-store-flow-indicator="product" class="rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-secondary text-left">2. Product Page</button>
-                <button type="button" data-store-flow-indicator="checkout" class="rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-secondary text-left">3. Checkout</button>
+              <div class="mt-5 rounded-lg border border-surface-border bg-surface-base/40 p-3">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="text-caption text-text-tertiary">Shareable Store Link</p>
+                    <p id="store-link-value" class="text-body-sm text-text-primary mt-1 break-all">shop.premierelife.com?store=CHG-ZERO</p>
+                    <p class="text-caption text-text-tertiary mt-1">Share this link with customers to open your store directly.</p>
+                  </div>
+                  <button id="copy-store-link-button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                    Copy Store Link
+                  </button>
+                </div>
+                <p id="copy-store-link-feedback" class="hidden text-caption text-semantic-success mt-2">Store link copied.</p>
               </div>
             </div>
 
@@ -4663,20 +4608,6 @@
                   </div>
                 </div>
 
-                <div class="rounded-lg border border-surface-border bg-surface-base/40 p-4">
-                  <h4 class="text-body-sm font-medium text-text-primary">Store Attribution (Dev Testing)</h4>
-                  <p class="text-caption text-text-tertiary mt-1">No public link needed. Enter a member public store code to route this checkout.</p>
-                  <label class="block text-caption text-text-tertiary mt-3">Member Store Code (Optional)
-                    <input
-                      name="storeAttributionCode"
-                      type="text"
-                      placeholder="CHG-XXXX"
-                      autocomplete="off"
-                      class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
-                    >
-                  </label>
-                  <p class="text-caption text-text-tertiary mt-2">Leave blank to use your current mapped store routing.</p>
-                </div>
               </form>
 
               <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
@@ -4896,13 +4827,13 @@
                   </div>
                   <div class="rounded-lg border border-surface-border bg-surface-base/40 p-3">
                     <p class="text-caption text-text-tertiary">Public Store Link</p>
-                    <p id="store-link-value" class="text-body-sm text-text-primary mt-1 break-all">shop.charge.com?store=CHG-ZERO</p>
+                    <p id="store-link-value-setup" class="text-body-sm text-text-primary mt-1 break-all">shop.premierelife.com?store=CHG-ZERO</p>
                     <p class="text-caption text-text-tertiary mt-1">Send this link to guests to auto-apply your public store identity.</p>
                     <div class="mt-3 flex items-center gap-3">
-                      <button id="copy-store-link-button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      <button id="copy-store-link-button-setup" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
                         Copy Store Link
                       </button>
-                      <p id="copy-store-link-feedback" class="hidden text-caption text-semantic-success">Store link copied.</p>
+                      <p id="copy-store-link-feedback-setup" class="hidden text-caption text-semantic-success">Store link copied.</p>
                     </div>
                   </div>
                   <div class="rounded-lg border border-surface-border bg-surface-base/40 p-3">
@@ -5711,9 +5642,7 @@
       const storeTabButtons = Array.from(document.querySelectorAll('[data-store-tab]'));
       const storeTabViews = Array.from(document.querySelectorAll('[data-store-view]'));
       const storeTabMeta = {
-        storefront: { searchPlaceholder: 'Search product grid, product pages, and checkout...' },
-        analytics: { searchPlaceholder: 'Search invoices and analytics...' },
-        setup: { searchPlaceholder: 'Search store setup...' },
+        storefront: { searchPlaceholder: 'Search store products and checkout...' },
       };
       const VIEW_STATE_STORAGE_KEY = 'charge-dashboard-view-state';
       const activeStoreTabClasses = [
@@ -17958,10 +17887,13 @@
       const storeSettlementPendingBp = document.getElementById('store-settlement-pending-bp');
       const storeCodeValueElement = document.getElementById('store-code-value');
       const storeLinkValueElement = document.getElementById('store-link-value');
+      const storeLinkValueSetupElement = document.getElementById('store-link-value-setup');
       const copyStoreCodeButton = document.getElementById('copy-store-code-button');
       const copyStoreLinkButton = document.getElementById('copy-store-link-button');
+      const copyStoreLinkButtonSetup = document.getElementById('copy-store-link-button-setup');
       const copyStoreCodeFeedback = document.getElementById('copy-store-code-feedback');
       const copyStoreLinkFeedback = document.getElementById('copy-store-link-feedback');
+      const copyStoreLinkFeedbackSetup = document.getElementById('copy-store-link-feedback-setup');
 
       const defaultUplineStoreCode = 'REGISTRATION_LOCKED';
       const defaultPublicStoreCode = 'CHG-ZERO';
@@ -17982,74 +17914,6 @@
       const publicStoreCodeByUser = {
         alexm: 'CHG-ZERO',
       };
-      const STORE_DEFAULT_PRODUCT_CATALOG = Object.freeze([
-        {
-          id: 'hydration-stack',
-          title: 'Hydration Stack Bundle',
-          description: 'Electrolyte-first hydration bundle for active daily routines.',
-          details: ['30-day supply', 'Lemon and citrus flavor profile', '48 BV points per unit'],
-          price: 89,
-          bp: 48,
-          stock: 34,
-          image: 'https://placehold.co/960x560?text=Hydration+Stack',
-          status: 'active',
-        },
-        {
-          id: 'daily-energy',
-          title: 'Daily Energy Kit',
-          description: 'Morning performance stack with sustained release support.',
-          details: ['Daily powder + capsule format', 'No added sugar blend', '34 BV points per unit'],
-          price: 64,
-          bp: 34,
-          stock: 21,
-          image: 'https://placehold.co/960x560?text=Daily+Energy+Kit',
-          status: 'active',
-        },
-        {
-          id: 'recover-pack',
-          title: 'Reset and Recover Pack',
-          description: 'Post-training formulation built for muscle recovery windows.',
-          details: ['Includes magnesium and amino support', 'Berry profile', '40 BV points per unit'],
-          price: 72,
-          bp: 40,
-          stock: 29,
-          image: 'https://placehold.co/960x560?text=Recover+Pack',
-          status: 'active',
-        },
-        {
-          id: 'immune-core',
-          title: 'Immune Core Formula',
-          description: 'Daily immunity support pack with antioxidant ingredients.',
-          details: ['Vitamin C + Zinc profile', 'Plant-based capsules', '30 BV points per unit'],
-          price: 54,
-          bp: 30,
-          stock: 43,
-          image: 'https://placehold.co/960x560?text=Immune+Core',
-          status: 'active',
-        },
-        {
-          id: 'focus-nootropics',
-          title: 'Focus Nootropics',
-          description: 'Nootropic blend designed for deep-focus work sessions.',
-          details: ['Caffeine + L-theanine stack', 'Once-daily format', '26 BV points per unit'],
-          price: 49,
-          bp: 26,
-          stock: 37,
-          image: 'https://placehold.co/960x560?text=Focus+Nootropics',
-          status: 'active',
-        },
-        {
-          id: 'night-reset',
-          title: 'Night Reset Formula',
-          description: 'Nightly wind-down formula to support recovery and sleep.',
-          details: ['Calming blend and minerals', '30 servings per pack', '32 BV points per unit'],
-          price: 59,
-          bp: 32,
-          stock: 18,
-          image: 'https://placehold.co/960x560?text=Night+Reset',
-          status: 'active',
-        },
-      ]);
       const STORE_INVOICE_MOCK_SEED = Object.freeze([
         { id: 'INV-240921', buyer: 'A. Rivera', attributionKey: defaultUplineStoreCode, amount: 184, bp: 96, status: 'Posted', discount: 20.44, mockSeed: true },
         { id: 'INV-240918', buyer: 'J. Thomas', attributionKey: defaultUplineStoreCode, amount: 72, bp: 40, status: 'Pending', discount: 8.0, mockSeed: true },
@@ -18300,37 +18164,12 @@
         return `${publicStoreHost}?store=${normalizedStoreCode}`;
       }
 
-      function resolveCheckoutStoreRouting(storeCodeOverride = '') {
-        const normalizedOverride = normalizeStoreCode(storeCodeOverride);
-        if (normalizedOverride) {
-          return {
-            mode: 'manual',
-            storeCode: normalizedOverride,
-            attributionKey: normalizedOverride,
-            storeLink: buildPublicStoreLink(normalizedOverride),
-          };
-        }
-
+      function resolveCheckoutStoreRouting() {
         return {
-          mode: 'mapped',
           storeCode: normalizeStoreCode(storePublicCode || ''),
           attributionKey: normalizeStoreCode(storeAppliedUplineCode || ''),
           storeLink: buildPublicStoreLink(storePublicCode),
         };
-      }
-
-      function isStoreCodeOwnedByCurrentSessionUser(storeCodeInput = '') {
-        const normalizedStoreCode = normalizeStoreCode(storeCodeInput);
-        if (!normalizedStoreCode) {
-          return false;
-        }
-
-        const currentUserStoreCodes = new Set([
-          normalizeStoreCode(currentSessionUser?.storeCode || ''),
-          normalizeStoreCode(currentSessionUser?.publicStoreCode || ''),
-        ].filter(Boolean));
-
-        return currentUserStoreCodes.has(normalizedStoreCode);
       }
 
       function hydrateStoreSetupIdentity() {
@@ -18338,8 +18177,13 @@
           storeCodeValueElement.textContent = storePublicCode;
         }
 
+        const publicStoreLink = buildPublicStoreLink();
         if (storeLinkValueElement) {
-          storeLinkValueElement.textContent = buildPublicStoreLink();
+          storeLinkValueElement.textContent = publicStoreLink;
+        }
+
+        if (storeLinkValueSetupElement) {
+          storeLinkValueSetupElement.textContent = publicStoreLink;
         }
       }
 
@@ -18369,13 +18213,6 @@
           successFeedbackElement.classList.remove('hidden', 'text-semantic-success');
           successFeedbackElement.classList.add('text-semantic-danger');
         }
-      }
-
-      function createDefaultStoreProductCatalog() {
-        return STORE_DEFAULT_PRODUCT_CATALOG.map((product) => ({
-          ...product,
-          details: Array.isArray(product.details) ? product.details.map((detail) => String(detail)) : [],
-        }));
       }
 
       function normalizeStoreProductId(value, fallbackId = 'product') {
@@ -18558,11 +18395,7 @@
 
       async function loadStoreProductCatalog() {
         const normalizedApiCatalog = normalizeStoreProductCatalog(await readStoreProductCatalogFromApi());
-        if (normalizedApiCatalog.length > 0) {
-          storeProducts = normalizedApiCatalog;
-        } else {
-          storeProducts = normalizeStoreProductCatalog(createDefaultStoreProductCatalog());
-        }
+        storeProducts = normalizedApiCatalog;
 
         normalizeCartAfterCatalogChange();
       }
@@ -19000,16 +18833,9 @@
           return { ok: false, message: 'Select a mode of shipping.' };
         }
 
-        const storeAttributionCodeRaw = String(formData.get('storeAttributionCode') || '').trim();
-        const storeAttributionCode = normalizeStoreCode(storeAttributionCodeRaw);
-        if (storeAttributionCodeRaw && !/^[A-Z0-9]+-[A-Z0-9]+$/.test(storeAttributionCode)) {
-          return { ok: false, message: 'Store code format must look like CHG-XXXX.' };
-        }
-
         return {
           ok: true,
           shippingMode,
-          storeAttributionCode,
         };
       }
 
@@ -19282,8 +19108,8 @@
         return syncMemberPurchaseActivityWindowForIdentity(currentIdentity, pvGain, { updateSession: true });
       }
 
-      async function createInvoiceFromLines(lines, sourceLabel, options = {}) {
-        const checkoutStoreRouting = resolveCheckoutStoreRouting(options?.storeAttributionCode || '');
+      async function createInvoiceFromLines(lines, sourceLabel) {
+        const checkoutStoreRouting = resolveCheckoutStoreRouting();
         if (!checkoutStoreRouting.attributionKey) {
           updateCheckoutFeedback('Attribution mapping is unavailable. Please contact support.', false);
           return false;
@@ -19375,16 +19201,9 @@
         syncStoreMetrics();
         renderRecentActivityFeed();
         const invoiceId = String(persistedInvoice?.id || '').trim() || `INV-${storeInvoiceSeed}`;
-        const attributionMessage = checkoutStoreRouting.mode === 'manual'
-          ? ` (routed to ${checkoutStoreRouting.storeCode})`
-          : '';
-        updateCheckoutFeedback(`${invoiceId} created from ${sourceLabel}${attributionMessage}.`);
+        updateCheckoutFeedback(`${invoiceId} created from ${sourceLabel}.`);
 
-        const manualExternalStoreCheckout = (
-          checkoutStoreRouting.mode === 'manual'
-          && !isStoreCodeOwnedByCurrentSessionUser(checkoutStoreRouting.storeCode)
-        );
-        const buyerReceivesBv = shouldBuyerReceiveStorePurchaseBv(currentSessionUser) && !manualExternalStoreCheckout;
+        const buyerReceivesBv = shouldBuyerReceiveStorePurchaseBv(currentSessionUser);
         if (buyerReceivesBv) {
           void syncMemberPurchaseActivityWindow(summary.bp).then((syncResult) => {
             if (!syncResult?.ok) {
@@ -19395,9 +19214,7 @@
             }
           });
         } else {
-          const fallbackOwnerIdentity = checkoutStoreRouting.mode === 'manual'
-            ? null
-            : resolvePreferredBuyerAttributionOwnerIdentityFallback();
+          const fallbackOwnerIdentity = resolvePreferredBuyerAttributionOwnerIdentityFallback();
           const ownerIdentity = attributionOwnerIdentity || fallbackOwnerIdentity;
           if (ownerIdentity && (ownerIdentity.userId || ownerIdentity.username || ownerIdentity.email)) {
             const shouldUpdateSession = doesIdentityBelongToCurrentSessionUser(ownerIdentity);
@@ -19459,9 +19276,7 @@
         }
 
         const shippingMode = checkoutValidation.shippingMode || 'Standard Shipping';
-        const invoiceCreated = await createInvoiceFromLines(storeCart, `checkout - ${shippingMode}`, {
-          storeAttributionCode: checkoutValidation.storeAttributionCode || '',
-        });
+        const invoiceCreated = await createInvoiceFromLines(storeCart, `checkout - ${shippingMode}`);
         if (!invoiceCreated) {
           return;
         }
@@ -19650,6 +19465,12 @@
         if (copyStoreLinkButton && storeLinkValueElement && copyStoreLinkFeedback) {
           copyStoreLinkButton.addEventListener('click', async () => {
             await copyTextValue(storeLinkValueElement.textContent.trim(), copyStoreLinkFeedback, 'Store link copied.');
+          });
+        }
+
+        if (copyStoreLinkButtonSetup && storeLinkValueSetupElement && copyStoreLinkFeedbackSetup) {
+          copyStoreLinkButtonSetup.addEventListener('click', async () => {
+            await copyTextValue(storeLinkValueSetupElement.textContent.trim(), copyStoreLinkFeedbackSetup, 'Store link copied.');
           });
         }
 

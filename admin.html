@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="color-scheme" content="dark"/>
-  <title>Premiere Life - Admin Dashboard</title>
+  <title>Premiere Life Admin</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2062,7 +2062,7 @@
       </form>
 
       <div class="mt-5 rounded-lg border border-surface-border bg-surface-base/40 p-3">
-        <p class="text-xs text-text-tertiary">Auth source: <span class="text-text-secondary">/api/admin-auth/login + charge.admin_users</span></p>
+        <p class="text-xs text-text-tertiary">Auth source: <span class="text-text-secondary">/api/admin-auth/login + admin_users</span></p>
         <p class="text-xs text-text-tertiary mt-1">Demo login: <span class="text-text-secondary">admin / Admin1234!</span></p>
       </div>
     </section>
@@ -2120,7 +2120,7 @@
           Enroll Member
         </a>
 
-        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+        <a href="/admin/PreferredCustomers" data-nav-link data-page="preferred-customers" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 6a3 3 0 11-6 0 3 3 0 016 0zM2.25 19.5a8.25 8.25 0 0119.5 0M19.5 7.5a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zM22.5 19.5a6 6 0 00-3.938-5.625"/></svg>
           Preferred Customers
         </a>
@@ -2926,6 +2926,42 @@
             </div>
             <div id="enroll-member-records-feed" class="mt-4 space-y-3"></div>
             <p id="enroll-member-empty-state" class="mt-3 text-body-sm text-text-tertiary">No enrolled members yet. Submit the form above to create the first record.</p>
+          </div>
+        </section>
+        <section id="page-preferred-customers" data-page-view="preferred-customers" class="hidden space-y-6">
+          <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <h3 class="font-body font-medium text-display-sm text-text-primary">Preferred Customers</h3>
+                <p class="text-body-sm text-text-secondary mt-1">
+                  Free Account profiles are listed here. Unattributed signups are parked under Admin Holding until reassigned.
+                </p>
+              </div>
+              <button id="preferred-customers-refresh-button" type="button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                Refresh
+              </button>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Total Preferred</p>
+                <p id="preferred-customers-total-count" class="mt-2 font-body font-semibold text-mono-data text-text-primary">0</p>
+              </div>
+              <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Parked (Admin Holding)</p>
+                <p id="preferred-customers-parked-count" class="mt-2 font-body font-semibold text-mono-data text-semantic-warning">0</p>
+              </div>
+              <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Assigned To Members</p>
+                <p id="preferred-customers-assigned-count" class="mt-2 font-body font-semibold text-mono-data text-semantic-success">0</p>
+              </div>
+            </div>
+
+            <p id="preferred-customers-feedback" class="hidden mt-4 text-body-sm"></p>
+            <div id="preferred-customers-list" class="mt-4 space-y-3"></div>
+            <p id="preferred-customers-empty-state" class="mt-3 text-body-sm text-text-tertiary">
+              No preferred customers found yet.
+            </p>
           </div>
         </section>
         <section id="page-binary-tree" data-page-view="binary-tree" class="hidden space-y-6">
@@ -3916,7 +3952,7 @@
                   </div>
                   <div class="rounded-lg border border-surface-border bg-surface-base/40 p-3">
                     <p class="text-caption text-text-tertiary">Public Store Link</p>
-                    <p id="store-link-value" class="text-body-sm text-text-primary mt-1 break-all">shop.charge.com?store=CHG-7X42</p>
+                    <p id="store-link-value" class="text-body-sm text-text-primary mt-1 break-all">shop.premierelife.com?store=CHG-7X42</p>
                     <p class="text-caption text-text-tertiary mt-1">Send this link to guests to auto-apply your public store identity.</p>
                     <div class="mt-3 flex items-center gap-3">
                       <button id="copy-store-link-button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
@@ -4499,6 +4535,13 @@
       const enrollMemberRecordCount = document.getElementById('enroll-member-record-count');
       const enrollMemberRecordsFeed = document.getElementById('enroll-member-records-feed');
       const enrollMemberEmptyState = document.getElementById('enroll-member-empty-state');
+      const preferredCustomersRefreshButtonElement = document.getElementById('preferred-customers-refresh-button');
+      const preferredCustomersTotalCountElement = document.getElementById('preferred-customers-total-count');
+      const preferredCustomersParkedCountElement = document.getElementById('preferred-customers-parked-count');
+      const preferredCustomersAssignedCountElement = document.getElementById('preferred-customers-assigned-count');
+      const preferredCustomersFeedbackElement = document.getElementById('preferred-customers-feedback');
+      const preferredCustomersListElement = document.getElementById('preferred-customers-list');
+      const preferredCustomersEmptyStateElement = document.getElementById('preferred-customers-empty-state');
       const enrollPreviewPackagePrice = document.getElementById('enroll-preview-package-price');
       const enrollPreviewPackageBv = document.getElementById('enroll-preview-package-bv');
       const enrollPreviewFastTrackBonus = document.getElementById('enroll-preview-fast-track-bonus');
@@ -4676,6 +4719,10 @@
           title: 'Enroll Member',
           searchPlaceholder: 'Search enrolled members...',
         },
+        'preferred-customers': {
+          title: 'Preferred Customers',
+          searchPlaceholder: 'Search preferred customers...',
+        },
         'binary-tree': {
           title: 'Binary Tree',
           searchPlaceholder: 'Search binary tree members...',
@@ -4698,6 +4745,7 @@
         dashboard: '/admin/dashboard',
         'my-store': '/admin/MyStore',
         'enroll-member': '/admin/EnrollMember',
+        'preferred-customers': '/admin/PreferredCustomers',
         'binary-tree': '/admin/BinaryTree',
         commissions: '/admin/Commissions',
         'commission-order': '/admin/Commissions/Order',
@@ -5651,6 +5699,117 @@
         return registeredMembers.filter((member) => {
           return normalizeMemberKey(member?.sponsorUsername) === currentSponsorUsername;
         });
+      }
+
+      function isPreferredCustomerMember(member = {}) {
+        return isPreferredCustomerPackageKey(member?.enrollmentPackage)
+          || isPreferredCustomerRank(member?.accountRank || member?.rank);
+      }
+
+      function resolveAdminHoldingSponsorKeySet() {
+        const adminHoldingKeys = new Set(['admin']);
+        const currentSessionUsername = normalizeMemberKey(currentSessionUser?.username);
+        if (currentSessionUsername && currentSessionUsername.includes('admin')) {
+          adminHoldingKeys.add(currentSessionUsername);
+        }
+        return adminHoldingKeys;
+      }
+
+      function isAdminHoldingPreferredCustomer(member = {}) {
+        if (!isPreferredCustomerMember(member)) {
+          return false;
+        }
+
+        const sponsorKey = normalizeMemberKey(member?.sponsorUsername);
+        const adminHoldingSponsorKeys = resolveAdminHoldingSponsorKeySet();
+        return Boolean(sponsorKey && adminHoldingSponsorKeys.has(sponsorKey));
+      }
+
+      function setPreferredCustomersFeedback(message = '', isError = false) {
+        if (!preferredCustomersFeedbackElement) {
+          return;
+        }
+
+        const normalizedMessage = String(message || '').trim();
+        if (!normalizedMessage) {
+          preferredCustomersFeedbackElement.textContent = '';
+          preferredCustomersFeedbackElement.classList.add('hidden');
+          preferredCustomersFeedbackElement.classList.remove('text-semantic-danger', 'text-semantic-success');
+          return;
+        }
+
+        preferredCustomersFeedbackElement.textContent = normalizedMessage;
+        preferredCustomersFeedbackElement.classList.remove('hidden', 'text-semantic-danger', 'text-semantic-success');
+        preferredCustomersFeedbackElement.classList.add(isError ? 'text-semantic-danger' : 'text-semantic-success');
+      }
+
+      function renderPreferredCustomersPage() {
+        if (
+          !preferredCustomersListElement
+          || !preferredCustomersEmptyStateElement
+        ) {
+          return;
+        }
+
+        const preferredMembers = (Array.isArray(registeredMembers) ? registeredMembers : [])
+          .filter((member) => isPreferredCustomerMember(member))
+          .slice()
+          .sort((left, right) => {
+            const leftTime = Date.parse(String(left?.createdAt || ''));
+            const rightTime = Date.parse(String(right?.createdAt || ''));
+            return (Number.isFinite(rightTime) ? rightTime : 0) - (Number.isFinite(leftTime) ? leftTime : 0);
+          });
+
+        const parkedMembers = preferredMembers.filter((member) => isAdminHoldingPreferredCustomer(member));
+        const assignedMembersCount = Math.max(0, preferredMembers.length - parkedMembers.length);
+
+        if (preferredCustomersTotalCountElement) {
+          preferredCustomersTotalCountElement.textContent = preferredMembers.length.toLocaleString();
+        }
+        if (preferredCustomersParkedCountElement) {
+          preferredCustomersParkedCountElement.textContent = parkedMembers.length.toLocaleString();
+        }
+        if (preferredCustomersAssignedCountElement) {
+          preferredCustomersAssignedCountElement.textContent = assignedMembersCount.toLocaleString();
+        }
+
+        if (preferredMembers.length === 0) {
+          preferredCustomersListElement.innerHTML = '';
+          preferredCustomersEmptyStateElement.classList.remove('hidden');
+          return;
+        }
+
+        preferredCustomersEmptyStateElement.classList.add('hidden');
+        preferredCustomersListElement.innerHTML = preferredMembers.map((member) => {
+          const memberName = escapeHtml(member?.fullName || member?.memberUsername || member?.email || 'Unnamed preferred customer');
+          const memberUsername = escapeHtml(member?.memberUsername || '--');
+          const memberEmail = escapeHtml(member?.email || '--');
+          const sponsorUsername = escapeHtml(member?.sponsorUsername || 'unassigned');
+          const sponsorName = escapeHtml(member?.sponsorName || member?.sponsorUsername || 'Sponsor');
+          const createdLabel = escapeHtml(formatMemberDateTime(member?.createdAt));
+          const isParked = isAdminHoldingPreferredCustomer(member);
+
+          return `
+            <article class="rounded-xl border border-surface-border bg-surface-base/40 p-4">
+              <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                <div>
+                  <p class="text-body-sm font-medium text-text-primary">${memberName}</p>
+                  <p class="text-caption text-text-tertiary mt-1">@${memberUsername} - ${memberEmail}</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  ${isParked
+                    ? '<span class="text-caption px-2 py-0.5 rounded-md bg-semantic-warning-bg border border-semantic-warning/30 text-semantic-warning">Parked (Admin Holding)</span>'
+                    : '<span class="text-caption px-2 py-0.5 rounded-md bg-semantic-success-bg border border-semantic-success/30 text-semantic-success">Assigned</span>'
+                  }
+                </div>
+              </div>
+              <div class="mt-3 flex flex-wrap items-center gap-2">
+                <span class="text-caption px-2 py-0.5 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">Sponsor: ${sponsorName} (@${sponsorUsername})</span>
+                <span class="text-caption px-2 py-0.5 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">Created: ${createdLabel}</span>
+              </div>
+            </article>
+          `;
+        }).join('');
       }
 
       function getOrganizationMembersForCurrentSponsor() {
@@ -8348,6 +8507,7 @@
         renderFastTrackBonusBalance();
         renderOrganizationSummaryRollups();
         renderRegisteredMembersFeed();
+        renderPreferredCustomersPage();
         refreshSpilloverParentSuggestions();
       }
 
@@ -9678,74 +9838,6 @@
       const publicStoreCodeByUser = {
         alexm: 'CHG-7X42',
       };
-      const STORE_DEFAULT_PRODUCT_CATALOG = Object.freeze([
-        {
-          id: 'hydration-stack',
-          title: 'Hydration Stack Bundle',
-          description: 'Electrolyte-first hydration bundle for active daily routines.',
-          details: ['30-day supply', 'Lemon and citrus flavor profile', '48 BV points per unit'],
-          price: 89,
-          bp: 48,
-          stock: 34,
-          image: 'https://placehold.co/960x560?text=Hydration+Stack',
-          status: 'active',
-        },
-        {
-          id: 'daily-energy',
-          title: 'Daily Energy Kit',
-          description: 'Morning performance stack with sustained release support.',
-          details: ['Daily powder + capsule format', 'No added sugar blend', '34 BV points per unit'],
-          price: 64,
-          bp: 34,
-          stock: 21,
-          image: 'https://placehold.co/960x560?text=Daily+Energy+Kit',
-          status: 'active',
-        },
-        {
-          id: 'recover-pack',
-          title: 'Reset and Recover Pack',
-          description: 'Post-training formulation built for muscle recovery windows.',
-          details: ['Includes magnesium and amino support', 'Berry profile', '40 BV points per unit'],
-          price: 72,
-          bp: 40,
-          stock: 29,
-          image: 'https://placehold.co/960x560?text=Recover+Pack',
-          status: 'active',
-        },
-        {
-          id: 'immune-core',
-          title: 'Immune Core Formula',
-          description: 'Daily immunity support pack with antioxidant ingredients.',
-          details: ['Vitamin C + Zinc profile', 'Plant-based capsules', '30 BV points per unit'],
-          price: 54,
-          bp: 30,
-          stock: 43,
-          image: 'https://placehold.co/960x560?text=Immune+Core',
-          status: 'active',
-        },
-        {
-          id: 'focus-nootropics',
-          title: 'Focus Nootropics',
-          description: 'Nootropic blend designed for deep-focus work sessions.',
-          details: ['Caffeine + L-theanine stack', 'Once-daily format', '26 BV points per unit'],
-          price: 49,
-          bp: 26,
-          stock: 37,
-          image: 'https://placehold.co/960x560?text=Focus+Nootropics',
-          status: 'active',
-        },
-        {
-          id: 'night-reset',
-          title: 'Night Reset Formula',
-          description: 'Nightly wind-down formula to support recovery and sleep.',
-          details: ['Calming blend and minerals', '30 servings per pack', '32 BV points per unit'],
-          price: 59,
-          bp: 32,
-          stock: 18,
-          image: 'https://placehold.co/960x560?text=Night+Reset',
-          status: 'active',
-        },
-      ]);
 
       let storeProducts = [];
       let storeAppliedUplineCode = '';
@@ -9829,14 +9921,6 @@
           successFeedbackElement.classList.remove('hidden', 'text-semantic-success');
           successFeedbackElement.classList.add('text-semantic-danger');
         }
-      }
-
-      function createDefaultStoreProductCatalog() {
-        return STORE_DEFAULT_PRODUCT_CATALOG.map((product) => ({
-          ...product,
-          details: Array.isArray(product.details) ? product.details.map((detail) => String(detail)) : [],
-          images: Array.isArray(product.images) ? product.images.map((image) => String(image || '').trim()).filter(Boolean) : [String(product.image || '').trim()].filter(Boolean),
-        }));
       }
 
       function normalizeStoreProductId(value, fallbackId = 'product') {
@@ -10033,13 +10117,7 @@
 
       async function loadStoreProductCatalog() {
         const loadedProducts = normalizeStoreProductCatalog(await readStoreProductCatalogFromApi());
-        if (loadedProducts.length > 0) {
-          storeProducts = loadedProducts;
-          return;
-        }
-
-        storeProducts = normalizeStoreProductCatalog(createDefaultStoreProductCatalog());
-        await persistStoreProductCatalog();
+        storeProducts = loadedProducts;
       }
 
       function getProductById(productId, options = {}) {
@@ -11245,6 +11323,10 @@
           setStoreTab(activeStoreTab, { persist: false });
         }
 
+        if (nextPage === 'preferred-customers') {
+          renderPreferredCustomersPage();
+        }
+
         if (nextPage === 'commissions' || nextPage === 'commission-order') {
           loadCommissionOrders().catch((error) => {
             const message = error instanceof Error ? error.message : 'Unable to load commission orders.';
@@ -11298,6 +11380,23 @@
           }
         });
       });
+
+      if (preferredCustomersRefreshButtonElement) {
+        preferredCustomersRefreshButtonElement.addEventListener('click', () => {
+          setPreferredCustomersFeedback('Refreshing preferred customers...');
+          loadRegisteredMembers()
+            .then(() => {
+              setPreferredCustomersFeedback('Preferred customers refreshed.');
+              window.setTimeout(() => setPreferredCustomersFeedback(''), 1400);
+            })
+            .catch((error) => {
+              const message = error instanceof Error
+                ? error.message
+                : 'Unable to refresh preferred customers.';
+              setPreferredCustomersFeedback(message, true);
+            });
+        });
+      }
 
       window.addEventListener('popstate', () => {
         const routePage = resolvePageFromPath(window.location.pathname);

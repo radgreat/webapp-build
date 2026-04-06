@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 182
+**Times Updated:** 186
 
 ## Overview
 
@@ -12,6 +12,151 @@
 
 ## Major Update (Lead Devloper Notes)
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.
+
+---
+
+## Update (2026-04-06) - User Store Shareable Link Exposed in Storefront
+
+### What Was Changed
+
+- Added a visible `Shareable Store Link` block at the top of the member dashboard `My Store` storefront view so users can immediately see and copy their store URL.
+- Moved primary link-copy element IDs to the visible storefront block and renamed hidden setup-block link IDs to setup-scoped variants to prevent duplicate DOM IDs.
+- Extended existing link hydration/copy handling so both visible storefront and hidden setup link blocks stay synchronized to the same runtime store link value.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Reused existing `buildPublicStoreLink(...)` and `copyTextValue(...)` logic to keep one source of truth for link generation and clipboard behavior.
+- Kept setup-view link controls functional while making storefront link sharing accessible in the default user view.
+
+### Validation
+
+- DOM ID check passed for share-link controls (no duplicate active IDs for the primary storefront link block).
+- Inline script parse check passed for `index.html`:
+  - `Inline scripts parse OK: 2`
+
+### Known Limitations
+
+- Shareable link output still depends on the current session-resolved `storePublicCode`; if session identity/store metadata is incorrect, link content will reflect that runtime state.
+
+---
+
+## Update (2026-04-06) - Store Product Source Unification + Dashboard Store UI Simplification
+
+### What Was Changed
+
+- Removed legacy sample-product auto-population and fallback behavior across store surfaces:
+  - backend no longer seeds sample products into store catalog
+  - admin store product loader no longer backfills default sample catalog
+  - dashboard (`My Store`) loader no longer backfills default sample catalog
+- Added legacy sample ID exclusion in store product API response so old demo SKUs are not returned to user/admin pages.
+- Updated dashboard `My Store` page UI:
+  - removed `My Store Workspace` board and tab switcher
+  - removed `Storefront Flow` step-indicator board
+  - kept a cleaner product-first heading with cart/rank badges and existing working product/cart/checkout interactions.
+
+### Files Affected
+
+- `backend/services/store-product.service.js`
+- `admin.html`
+- `index.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Enforced server-admin catalog as the single source of truth for storefront products.
+- Prevented silent reintroduction of demo/sample products by removing all fallback injection paths.
+- Simplified dashboard store UX by removing high-noise scaffolding while preserving cart and checkout flow behavior.
+
+### Validation
+
+- Backend syntax checks:
+  - `node --check backend/services/store-product.service.js`
+  - `node --check backend/stores/store-product.store.js`
+- Frontend inline parse checks:
+  - `index.html` inline scripts parse OK
+  - `admin.html` inline scripts parse OK
+- Runtime API verification on fresh app process (`PORT=3131`):
+  - `/api/store-products` returns `0` products in current sample-only dataset (sample IDs excluded)
+  - `/api/admin/store-products` returns `0` products in current sample-only dataset (sample IDs excluded)
+- Screenshot QA (2 rounds):
+  - `temporary screenshots/screenshot-42-pass1-store-after-fix.png`
+  - `temporary screenshots/screenshot-43-pass2-store-after-fix.png`
+
+### Known Limitations
+
+- If no custom product is saved yet (for example `Metacharge`) and only legacy sample rows exist, storefront now correctly shows empty state until a real product is saved in admin.
+
+---
+
+## Update (2026-04-06) - MetaCharge Catalog Restoration
+
+### What Was Changed
+
+- Restored `MetaCharge` into the persisted store product catalog via admin API update.
+- Applied existing uploaded MetaCharge images from:
+  - `/uploads/store-products/20260326024244945-69b8tl-metacharge-blue-bottle-1.jpg`
+  - `/uploads/store-products/20260326024247970-uwcmmv-metacharge-blue-bottle-2.jpg`
+  - `/uploads/store-products/20260326024250756-261i9p-metacharge-blue-bottle-1.jpg`
+- Current live catalog state is now one product:
+  - `metacharge` (`MetaCharge`)
+
+### Validation
+
+- API checks passed:
+  - `/api/admin/store-products` -> `admin count: 1`, `MetaCharge:metacharge`
+  - `/api/store-products` -> `public count: 1`, `MetaCharge:metacharge`
+- Visual confirmation:
+  - `temporary screenshots/screenshot-44-metacharge-restored.png`
+
+### Notes
+
+- Storefront appeared empty because legacy sample IDs are excluded by current API filter and no custom products were present until this restore action.
+
+---
+
+## Update (2026-04-06) - Removed Manual Store Attribution Override (My Store Checkout)
+
+### What Was Changed
+
+- Removed the `Store Attribution (Dev Testing)` section from the member dashboard `My Store` checkout form.
+- Removed `storeAttributionCode` checkout input handling and validation from client-side checkout logic.
+- Checkout invoice creation now always uses mapped attribution routing (current user/upline mapping), with no manual override path in the member UI.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Enforced attribution consistency for user-side checkout so sponsor/upline routing remains deterministic.
+- Removed the manual testing input to prevent accidental rerouting of checkout attribution and BV flow.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+- Code search confirms removal:
+  - no `Store Attribution (Dev Testing)` block
+  - no `storeAttributionCode` field handling
+  - no manual routing mode branch in checkout flow.
+- Screenshot pass (route currently redirects to auth page without session):
+  - `temporary screenshots/screenshot-45-pass1-no-dev-attribution.png`
+  - `temporary screenshots/screenshot-45-pass2-no-dev-attribution.png`
+  - `temporary screenshots/screenshot-46-pass1-my-store-no-dev-attribution.png`
+  - `temporary screenshots/screenshot-46-pass2-my-store-no-dev-attribution.png`
+
+### Known Limitations
+
+- Direct visual confirmation of the protected `My Store` checkout section requires an authenticated session in the screenshot run.
 
 ---
 
@@ -11158,3 +11303,142 @@ File: `index.html`
 - `index.html`
 - `Claude_Notes/charge-documentation.md`
 - `Claude_Notes/Current Project Status.md`
+
+## Tab Titles + Visible "Charge" Brand Cleanup (2026-04-06)
+
+### What changed
+
+- Finalized browser tab titles to the updated Premiere Life naming convention across member, store, and admin pages.
+- Updated member login tab title to match request:
+  - `Login to Premiere Life`
+- Updated dashboard tab titles (member + admin + store dashboard) to:
+  - `Dashboard - Premiere Life`
+- Standardized other page-level tab titles to the same `Page - Premiere Life` style for consistency.
+- Removed remaining user-visible `charge` strings from HTML page content:
+  - admin auth source helper text now shows `admin_users` (no schema prefix in UI copy)
+  - fallback public store-link text now uses `shop.premierelife.com?...` in member/admin views
+
+### Design decisions
+
+- Limited this pass to user-facing naming only (tab titles and visible UI copy), so platform/internal identifiers remain stable.
+- Left internal technical keys (e.g., localStorage keys with `charge-` prefix and DB schema references in JavaScript/backend) unchanged to avoid migration and compatibility risk.
+
+### Known limitations
+
+- Internal implementation identifiers still include `charge` where they are non-brand technical artifacts; this is intentional for backward compatibility in this change set.
+
+### Validation / QA
+
+- Verified all HTML `<title>` tags now follow Premiere Life naming:
+  - `rg -n "document\\.title|<title>" -S *.html`
+- Verified no remaining visible HTML text includes `charge`:
+  - `rg -n "(?i)>[^<]*charge[^<]*<" -S --pcre2 *.html`
+- Verified no `shop.charge.com` or `charge.admin_users` remains in HTML:
+  - `rg -n "shop\\.charge\\.com|charge\\.admin_users" -S *.html`
+
+### Files affected
+
+- `login.html`
+- `index.html`
+- `admin.html`
+- `admin-login.html`
+- `password-setup.html`
+- `store.html`
+- `store-login.html`
+- `store-dashboard.html`
+- `store-register.html`
+- `store-password-setup.html`
+- `store-product.html`
+- `store-checkout.html`
+- `store-support.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Follow-up adjustment (2026-04-06)
+
+- Updated `login.html` wording from `Login to Premiere Life` to exact requested text `Premiere Life Login`.
+- Applied to both browser tab title and the login page hero heading for wording consistency.
+
+## Unattributed Free Account Holding + Admin Sponsor Reassignment (2026-04-06)
+
+### What changed
+
+- Updated storefront free-account attribution logic so checkout can proceed without a `?store=` code and no longer hard-fails when referral attribution is missing.
+- For no-attribution free-account checkouts:
+  - checkout intent/session metadata now carries empty `attributionKey` (instead of force-fallback owner attribution), preventing automatic upstream BV credit to fallback users.
+  - preferred-customer auto-enrollment now routes to an admin holding sponsor model (default username `admin`, configurable via env keys) so accounts can be reassigned later.
+- Added admin sponsor reassignment support in placement updates:
+  - `PATCH /api/admin/registered-members/:memberId/placement` now passes `isAdminPlacement=true`.
+  - backend placement update now allows sponsor transfer for admin requests.
+  - when sponsor is reassigned, member sponsor fields are updated and linked user `attributionStoreCode` is synchronized to the new sponsor's attribution code.
+
+### Files affected
+
+- `backend/services/store-checkout.service.js`
+- `backend/services/member.service.js`
+- `backend/controllers/member.controller.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+### Validation / QA
+
+- Syntax checks passed:
+  - `node --check backend/services/store-checkout.service.js`
+  - `node --check backend/services/member.service.js`
+  - `node --check backend/controllers/member.controller.js`
+- Live API validation on fresh backend process (`PORT=3132`):
+  - No-attribution free-account checkout intent returns empty attribution key:
+    - `POST /api/store-checkout/intent` -> `checkout.attributionKey: ""`
+  - Attributed link checkout still maps correctly:
+    - `POST /api/store-checkout/intent` with `storeCode=CHG-ZERO` -> `checkout.attributionKey: "CHG-ZERO"`
+- Admin sponsor reassignment validation:
+  - `PATCH /api/admin/registered-members/:memberId/placement` with new `sponsorUsername` now succeeds.
+  - linked member user `attributionStoreCode` updated to new sponsor's code, then restored to original state during test rollback.
+
+### Known limitations
+
+- No dedicated admin UI control was added in this pass for one-click sponsor reassignment; backend/admin API support is now in place.
+- If the configured holding sponsor username does not exist as a member user, registration still succeeds but downstream attribution code remains `REGISTRATION_LOCKED` until reassigned.
+
+## Admin Preferred Customers Page + Parked Free Account Visibility (2026-04-06)
+
+### What changed
+
+- Added a dedicated Admin sidebar route for Preferred Customers:
+  - sidebar item now navigates with `data-nav-link` to `/admin/PreferredCustomers`.
+- Added new Admin page view:
+  - `data-page-view="preferred-customers"` section with summary metrics and list feed.
+  - metrics shown:
+    - Total Preferred
+    - Parked (Admin Holding)
+    - Assigned To Members
+- Wired admin page routing/state for the new view:
+  - `pageMeta.preferred-customers`
+  - `pagePathByPage['preferred-customers']`
+  - `setPage('preferred-customers')` render hook
+- Implemented rendering logic from `registeredMembers`:
+  - filters preferred/free-account records using package/rank checks.
+  - marks parked entries when sponsor is admin holding (`admin` / current admin sponsor key).
+  - renders sponsor + created timestamp per record.
+- Added Preferred Customers refresh button behavior that reloads registered members and updates the view.
+
+### Files affected
+
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation / QA
+
+- Inline script parse check passed:
+  - `Inline scripts parse OK: 5`
+- Source validation:
+  - new nav route + section + page meta + render bindings confirmed via `rg`.
+- Route response check:
+  - `GET /admin/PreferredCustomers` returns admin shell containing `page-preferred-customers` section.
+
+### Known limitations
+
+- This pass adds visibility/listing for parked preferred customers on Admin side; it does not add an in-page one-click transfer action yet.
+- Sponsor reassignment remains available through admin placement workflows/API.

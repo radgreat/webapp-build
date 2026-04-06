@@ -46,9 +46,12 @@ export async function registerMember(req, res) {
 
 export async function patchRegisteredMemberPlacement(req, res) {
   try {
+    const requestPath = String(req.path || '').toLowerCase();
+    const isAdminPlacementRequest = requestPath.startsWith('/admin/');
     const result = await updateRegisteredMemberPlacement({
       ...(req.body || {}),
       memberId: req.params?.memberId,
+      isAdminPlacement: isAdminPlacementRequest,
     });
 
     if (!result.success) {

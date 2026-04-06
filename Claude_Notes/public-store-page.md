@@ -9,6 +9,111 @@
 - Removed upfront checkout UI from the storefront landing page.
 - Kept the existing green/slate color direction while adding a reusable top navbar and cleaner page hierarchy.
 
+## Update (2026-04-06) - Dashboard My Store Shareable Link Visibility
+
+### What Was Changed
+
+- Added a visible `Shareable Store Link` panel to the member dashboard `My Store` storefront view (`index.html`) so users can access and copy their store URL in the default store experience.
+- Kept hidden setup-view link controls available with setup-scoped IDs and updated runtime link hydration/copy handlers to support both storefront and setup contexts.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized the primary user path (storefront-first) for share-link visibility rather than requiring setup-tab navigation.
+- Reused existing runtime store-link generation logic to avoid parallel link-building code paths.
+
+### Validation
+
+- Share-link element IDs verified for uniqueness in the storefront-visible implementation.
+- Inline script parsing in `index.html` passed:
+  - `Inline scripts parse OK: 2`
+
+### Known Limitations
+
+- Link output remains tied to session-resolved store identity (`storePublicCode`) and reflects current runtime user data.
+
+## Update (2026-04-06) - Admin/Product Source Parity + Legacy Sample Product Removal
+
+### What Was Changed
+
+- Store product data is now strictly API-driven from persisted admin/server catalog data.
+- Removed all sample-product fallback logic from:
+  - backend product service seeding
+  - `admin.html` product loader fallback
+  - `index.html` dashboard store loader fallback
+- Added legacy sample product filtering at API response layer so old demo SKUs are no longer returned:
+  - `hydration-stack`
+  - `daily-energy`
+  - `recover-pack`
+  - `immune-core`
+  - `focus-nootropics`
+  - `night-reset`
+- Simplified dashboard `My Store` UI by removing high-noise scaffolding cards:
+  - removed `My Store Workspace` board/tab switcher
+  - removed `Storefront Flow` step indicator board
+  - retained product/cart/checkout functional flow while presenting a cleaner product-first header.
+
+### Files Affected
+
+- `backend/services/store-product.service.js`
+- `admin.html`
+- `index.html`
+
+### Design Decisions
+
+- Prioritized single-source-of-truth behavior so user-facing store pages and admin views read the same canonical catalog.
+- Prevented re-seeding/re-hydrating demo data to stop product drift between admin setup and user storefront.
+- Kept existing cart/checkout logic intact while reducing visual complexity in dashboard store workspace.
+
+### Validation
+
+- Syntax checks passed:
+  - `node --check backend/services/store-product.service.js`
+  - `node --check backend/stores/store-product.store.js`
+- Inline parse checks passed:
+  - `index.html` inline scripts
+  - `admin.html` inline scripts
+- Runtime API check on fresh process (`PORT=3131`) confirms sample products are excluded:
+  - `GET /api/store-products` -> `0` products with current sample-only DB state
+  - `GET /api/admin/store-products` -> `0` products with current sample-only DB state
+- Screenshot passes completed:
+  - `temporary screenshots/screenshot-42-pass1-store-after-fix.png`
+  - `temporary screenshots/screenshot-43-pass2-store-after-fix.png`
+
+### Known Limitations
+
+- If the catalog currently contains only legacy sample products and no custom products (for example `Metacharge`), storefront will show an empty-state message until a real product is saved from admin product management.
+
+## Update (2026-04-06) - MetaCharge Product Restored
+
+### What Was Changed
+
+- Restored `MetaCharge` into the live store product catalog through admin API persistence.
+- Catalog now contains exactly one active product:
+  - `metacharge` (`MetaCharge`)
+- Assigned existing uploaded media from `uploads/store-products/` to the product image gallery.
+
+### Validation
+
+- `GET /api/admin/store-products` returns:
+  - `count: 1`
+  - `MetaCharge:metacharge`
+- `GET /api/store-products` returns:
+  - `count: 1`
+  - `MetaCharge:metacharge`
+- Storefront visual confirmation:
+  - `temporary screenshots/screenshot-44-metacharge-restored.png`
+
+### Notes
+
+- Because the previous catalog only contained legacy sample product IDs (now excluded from API output), the storefront appeared empty until `MetaCharge` was re-added.
+
 ## Files Added / Updated
 
 - Added:
@@ -323,3 +428,30 @@
 - Improved link color + link tooltip theming to match admin visual style.
 - File updated:
   - `admin.html`
+
+## Unattributed Free Account Holding Behavior (2026-04-06)
+
+- Updated public checkout attribution behavior for Free Account mode when no `store` query code is present.
+- New behavior:
+  - checkout intent proceeds with empty `attributionKey` (no forced fallback sponsor attribution).
+  - successful free-account completion parks new account under admin holding sponsor routing (default `admin`, env-configurable).
+  - this keeps no-attribution signups reassignable by admin without automatically crediting fallback upline ownership from missing referral links.
+
+### Backend support added
+
+- Admin placement API now supports sponsor reassignment in admin context:
+  - route: `PATCH /api/admin/registered-members/:memberId/placement`
+  - allows updating `sponsorUsername` and syncs linked member user `attributionStoreCode` to the reassigned sponsor.
+
+### Files updated
+
+- `backend/services/store-checkout.service.js`
+- `backend/services/member.service.js`
+- `backend/controllers/member.controller.js`
+
+### Validation notes
+
+- Fresh backend test on `PORT=3132` confirmed:
+  - no-attribution free-account intent returns `checkout.attributionKey: ""`
+  - attributed (`CHG-ZERO`) flow still returns `checkout.attributionKey: "CHG-ZERO"`
+- Admin sponsor reassignment API test confirmed member sponsor + user attribution sync, with rollback applied.

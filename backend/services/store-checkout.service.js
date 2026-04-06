@@ -36,19 +36,12 @@ const FREE_ACCOUNT_USERNAME_PATTERN = /^[a-zA-Z0-9._-]{3,24}$/;
 const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
 const PLACEMENT_LEG_EXTREME_LEFT = 'extreme-left';
 const PLACEMENT_LEG_EXTREME_RIGHT = 'extreme-right';
-const FALLBACK_SPONSOR_USERNAME_ENV_KEYS = Object.freeze([
-  'CHECKOUT_FALLBACK_SPONSOR_USERNAME',
-  'STORE_CHECKOUT_FALLBACK_SPONSOR_USERNAME',
-  'PREFERRED_CUSTOMER_FALLBACK_SPONSOR_USERNAME',
+const UNATTRIBUTED_FREE_ACCOUNT_SPONSOR_ENV_KEYS = Object.freeze([
+  'UNATTRIBUTED_FREE_ACCOUNT_SPONSOR_USERNAME',
+  'FREE_ACCOUNT_HOLDING_SPONSOR_USERNAME',
+  'PREFERRED_CUSTOMER_HOLDING_SPONSOR_USERNAME',
 ]);
-const FALLBACK_SPONSOR_USERNAME_HINTS = Object.freeze([
-  'staff',
-  'support',
-  'admin',
-  'operations',
-  'ops',
-  'system',
-]);
+const DEFAULT_UNATTRIBUTED_FREE_ACCOUNT_SPONSOR_USERNAME = 'admin';
 
 let cachedStripeClient = null;
 let cachedStripeApiKey = '';
@@ -229,65 +222,15 @@ function resolveStoreOwnerByAttributionCode(users, storeCode) {
   }) || null;
 }
 
-function resolveAttributionStoreCodeForUser(user = {}) {
-  const candidateCodes = [
-    user?.storeCode,
-    user?.publicStoreCode,
-    user?.attributionStoreCode,
-  ].map((candidate) => normalizeStoreCode(candidate));
-
-  return candidateCodes.find(Boolean) || '';
-}
-
-function resolveConfiguredFallbackSponsorUsername() {
-  for (const envKey of FALLBACK_SPONSOR_USERNAME_ENV_KEYS) {
+function resolveConfiguredUnattributedFreeAccountSponsorUsername() {
+  for (const envKey of UNATTRIBUTED_FREE_ACCOUNT_SPONSOR_ENV_KEYS) {
     const candidateValue = normalizeText(process.env[envKey]);
     if (candidateValue) {
-      return candidateValue.toLowerCase();
-    }
-  }
-  return '';
-}
-
-function resolveFallbackSponsorUser(users = []) {
-  const safeUsers = Array.isArray(users) ? users : [];
-  const configuredFallbackUsername = resolveConfiguredFallbackSponsorUsername();
-
-  if (configuredFallbackUsername) {
-    const configuredMatch = safeUsers.find((user) => {
-      const username = normalizeText(user?.username).toLowerCase();
-      const email = normalizeEmail(user?.email);
-      return (
-        username === configuredFallbackUsername
-        || email === configuredFallbackUsername
-      );
-    }) || null;
-
-    if (configuredMatch && resolveAttributionStoreCodeForUser(configuredMatch)) {
-      return configuredMatch;
+      return candidateValue;
     }
   }
 
-  const likelyStaffByName = safeUsers.find((user) => {
-    const username = normalizeText(user?.username).toLowerCase();
-    const hasHint = FALLBACK_SPONSOR_USERNAME_HINTS.some((hint) => username.includes(hint));
-    if (!hasHint) {
-      return false;
-    }
-
-    return (
-      resolveAttributionStoreCodeForUser(user)
-      && normalizeText(user?.enrollmentPackage).toLowerCase() !== FREE_ACCOUNT_PACKAGE_KEY
-    );
-  }) || null;
-  if (likelyStaffByName) {
-    return likelyStaffByName;
-  }
-
-  return safeUsers.find((user) => (
-    resolveAttributionStoreCodeForUser(user)
-    && normalizeText(user?.enrollmentPackage).toLowerCase() !== FREE_ACCOUNT_PACKAGE_KEY
-  )) || null;
+  return DEFAULT_UNATTRIBUTED_FREE_ACCOUNT_SPONSOR_USERNAME;
 }
 
 function resolveCheckoutAttribution({
@@ -316,25 +259,12 @@ function resolveCheckoutAttribution({
   }
 
   if (checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT) {
-    const fallbackSponsorUser = resolveFallbackSponsorUser(users);
-    const fallbackStoreCode = resolveAttributionStoreCodeForUser(fallbackSponsorUser);
-    if (!fallbackSponsorUser || !fallbackStoreCode) {
-      const configuredFallbackUsername = resolveConfiguredFallbackSponsorUsername();
-      return {
-        ok: false,
-        status: 503,
-        error: configuredFallbackUsername
-          ? `Configured fallback sponsor "${configuredFallbackUsername}" was not found or has no store code.`
-          : 'Free Account checkout without referral requires an authorized fallback sponsor account.',
-      };
-    }
-
     return {
       ok: true,
-      attributionOwner: fallbackSponsorUser,
-      attributionStoreCode: fallbackStoreCode,
+      attributionOwner: null,
+      attributionStoreCode: '',
       hasLinkAttribution: false,
-      fallbackAttributionUsed: true,
+      fallbackAttributionUsed: false,
     };
   }
 
@@ -686,7 +616,8 @@ async function resolveCheckoutBuyerPreferredCustomerIdentity({
   const requestedMemberUsername = normalizeText(normalizedFreeAccountRegistration.memberUsername);
   const requestedPhone = normalizeText(normalizedFreeAccountRegistration.phone);
   const requestedCountryFlag = normalizeText(normalizedFreeAccountRegistration.countryFlag).toLowerCase() || 'us';
-  const defaultRegistrationNote = `Auto-created from store checkout (${normalizedAttributionKey}).`;
+  const attributionLabel = normalizedAttributionKey || 'NO-ATTRIBUTION';
+  const defaultRegistrationNote = `Auto-created from store checkout (${attributionLabel}).`;
   const requestedNotes = normalizeText(normalizedFreeAccountRegistration.notes);
   const registrationNotes = requestedNotes
     ? `${requestedNotes} | ${defaultRegistrationNote}`
@@ -701,13 +632,6 @@ async function resolveCheckoutBuyerPreferredCustomerIdentity({
     setupLink: '',
     reason: '',
   };
-
-  if (!normalizedAttributionKey) {
-    return {
-      ...fallbackIdentity,
-      reason: 'Attribution store code is missing.',
-    };
-  }
 
   if (!normalizedBuyerEmail) {
     return {
@@ -738,12 +662,40 @@ async function resolveCheckoutBuyerPreferredCustomerIdentity({
     };
   }
 
-  const sponsorUser = resolveStoreOwnerByAttributionCode(users, normalizedAttributionKey);
-  const sponsorUsername = normalizeText(sponsorUser?.username);
+  const sponsorUser = normalizedAttributionKey
+    ? resolveStoreOwnerByAttributionCode(users, normalizedAttributionKey)
+    : null;
+  let sponsorUsername = normalizeText(sponsorUser?.username);
+  let sponsorName = normalizeText(sponsorUser?.name || sponsorUser?.username || 'Store Owner');
+
+  // Free-account checkouts without referral attribution are parked under a holding sponsor
+  // (defaults to "admin") so Admin can reassign later without crediting random uplines.
+  if (!sponsorUsername && !normalizedAttributionKey) {
+    const configuredHoldingSponsorUsername = normalizeText(resolveConfiguredUnattributedFreeAccountSponsorUsername());
+    const matchedHoldingSponsorUser = (Array.isArray(users) ? users : []).find((user) => {
+      const username = normalizeText(user?.username).toLowerCase();
+      const email = normalizeEmail(user?.email);
+      const targetKey = configuredHoldingSponsorUsername.toLowerCase();
+      return username === targetKey || email === targetKey;
+    }) || null;
+
+    sponsorUsername = normalizeText(
+      matchedHoldingSponsorUser?.username || configuredHoldingSponsorUsername
+    );
+    sponsorName = normalizeText(
+      matchedHoldingSponsorUser?.name
+      || matchedHoldingSponsorUser?.username
+      || configuredHoldingSponsorUsername
+      || 'Admin Holding',
+    );
+  }
+
   if (!sponsorUsername) {
     return {
       ...fallbackIdentity,
-      reason: 'Unable to resolve store owner for preferred-customer attribution.',
+      reason: normalizedAttributionKey
+        ? 'Unable to resolve store owner for preferred-customer attribution.'
+        : 'Unable to resolve holding sponsor for unattributed free-account registration.',
     };
   }
 
@@ -774,7 +726,7 @@ async function resolveCheckoutBuyerPreferredCustomerIdentity({
     enrollmentPackage: 'preferred-customer-pack',
     fastTrackTier: 'personal-pack',
     sponsorUsername,
-    sponsorName: normalizeText(sponsorUser?.name || sponsorUser?.username || 'Store Owner'),
+    sponsorName,
   });
 
   if (registrationResult?.success) {

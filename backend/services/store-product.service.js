@@ -16,80 +16,19 @@ const ALLOWED_UPLOAD_MIME_TO_EXT = Object.freeze({
   'image/webp': 'webp',
   'image/gif': 'gif',
 });
+const LEGACY_SAMPLE_PRODUCT_ID_SET = new Set([
+  'hydration-stack',
+  'daily-energy',
+  'recover-pack',
+  'immune-core',
+  'focus-nootropics',
+  'night-reset',
+]);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.join(__dirname, '..', '..');
 const productImageUploadDirectory = path.join(projectRoot, 'uploads', 'store-products');
-
-const STORE_DEFAULT_PRODUCT_CATALOG = Object.freeze([
-  {
-    id: 'hydration-stack',
-    title: 'Hydration Stack Bundle',
-    description: 'Electrolyte-first hydration bundle for active daily routines.',
-    details: ['30-day supply', 'Lemon and citrus flavor profile', '48 BV points per unit'],
-    price: 89,
-    bp: 48,
-    stock: 34,
-    image: 'https://placehold.co/960x560?text=Hydration+Stack',
-    status: 'active',
-  },
-  {
-    id: 'daily-energy',
-    title: 'Daily Energy Kit',
-    description: 'Morning performance stack with sustained release support.',
-    details: ['Daily powder + capsule format', 'No added sugar blend', '34 BV points per unit'],
-    price: 64,
-    bp: 34,
-    stock: 21,
-    image: 'https://placehold.co/960x560?text=Daily+Energy+Kit',
-    status: 'active',
-  },
-  {
-    id: 'recover-pack',
-    title: 'Reset and Recover Pack',
-    description: 'Post-training formulation built for muscle recovery windows.',
-    details: ['Includes magnesium and amino support', 'Berry profile', '40 BV points per unit'],
-    price: 72,
-    bp: 40,
-    stock: 29,
-    image: 'https://placehold.co/960x560?text=Recover+Pack',
-    status: 'active',
-  },
-  {
-    id: 'immune-core',
-    title: 'Immune Core Formula',
-    description: 'Daily immunity support pack with antioxidant ingredients.',
-    details: ['Vitamin C + Zinc profile', 'Plant-based capsules', '30 BV points per unit'],
-    price: 54,
-    bp: 30,
-    stock: 43,
-    image: 'https://placehold.co/960x560?text=Immune+Core',
-    status: 'active',
-  },
-  {
-    id: 'focus-nootropics',
-    title: 'Focus Nootropics',
-    description: 'Nootropic blend designed for deep-focus work sessions.',
-    details: ['Caffeine + L-theanine stack', 'Once-daily format', '26 BV points per unit'],
-    price: 49,
-    bp: 26,
-    stock: 37,
-    image: 'https://placehold.co/960x560?text=Focus+Nootropics',
-    status: 'active',
-  },
-  {
-    id: 'night-reset',
-    title: 'Night Reset Formula',
-    description: 'Nightly wind-down formula to support recovery and sleep.',
-    details: ['Calming blend and minerals', '30 servings per pack', '32 BV points per unit'],
-    price: 59,
-    bp: 32,
-    stock: 18,
-    image: 'https://placehold.co/960x560?text=Night+Reset',
-    status: 'active',
-  },
-]);
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -248,30 +187,16 @@ function normalizeStoreProductCatalog(rawCatalog) {
   return normalizedProducts;
 }
 
-async function ensureCatalogSeeded() {
-  const existingProducts = await readStoreProductsStore({ includeArchived: true });
-  if (existingProducts.length > 0) {
-    return existingProducts;
-  }
-
-  const seededProducts = normalizeStoreProductCatalog(STORE_DEFAULT_PRODUCT_CATALOG);
-  if (seededProducts.length === 0) {
-    return [];
-  }
-
-  return writeStoreProductsStore(seededProducts);
-}
-
 export async function getStoreProducts(options = {}) {
-  await ensureCatalogSeeded();
   const includeArchived = options?.includeArchived === true;
   const products = await readStoreProductsStore({ includeArchived });
+  const filteredProducts = products.filter((product) => !LEGACY_SAMPLE_PRODUCT_ID_SET.has(product?.id));
 
   return {
     success: true,
     status: 200,
     data: {
-      products,
+      products: filteredProducts,
     },
   };
 }

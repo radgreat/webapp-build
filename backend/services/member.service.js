@@ -528,6 +528,8 @@ export async function createRegisteredMember(payload) {
 export async function updateRegisteredMemberPlacement(payload = {}) {
   const memberId = normalizeText(payload?.memberId);
   const sponsorUsername = normalizeCredential(payload?.sponsorUsername);
+  const sponsorName = normalizeText(payload?.sponsorName);
+  const isAdminPlacement = Boolean(payload?.isAdminPlacement);
   const placementLegInput = normalizePlacementLeg(payload?.placementLeg, {
     allowSpillover: true,
     fallback: '',
@@ -558,12 +560,34 @@ export async function updateRegisteredMemberPlacement(payload = {}) {
 
   const existingMember = members[memberIndex];
   const memberSponsorUsername = normalizeCredential(existingMember?.sponsorUsername);
-  if (sponsorUsername && memberSponsorUsername && sponsorUsername !== memberSponsorUsername) {
+  const shouldReassignSponsor = Boolean(
+    sponsorUsername
+    && sponsorUsername !== memberSponsorUsername
+  );
+
+  if (shouldReassignSponsor && !isAdminPlacement) {
     return {
       success: false,
       status: 403,
       error: 'You can only update placement for members under your sponsor line.',
     };
+  }
+
+  let nextSponsorUsername = normalizeText(existingMember?.sponsorUsername);
+  let nextSponsorName = normalizeText(existingMember?.sponsorName);
+  let memberUserAttributionStoreCodePatch = '';
+  let shouldPatchMemberUserAttribution = false;
+  const users = shouldReassignSponsor ? await readMockUsersStore() : [];
+
+  if (shouldReassignSponsor) {
+    const matchedSponsorUser = users.find(
+      (user) => normalizeCredential(user?.username) === sponsorUsername
+    ) || null;
+    nextSponsorUsername = sponsorUsername;
+    nextSponsorName = sponsorName
+      || normalizeText(matchedSponsorUser?.name || matchedSponsorUser?.username || sponsorUsername);
+    memberUserAttributionStoreCodePatch = resolveSponsorAttributionStoreCode(matchedSponsorUser);
+    shouldPatchMemberUserAttribution = true;
   }
 
   const fallbackPlacementLeg = normalizePlacementLeg(existingMember?.placementLeg, {
@@ -609,6 +633,8 @@ export async function updateRegisteredMemberPlacement(payload = {}) {
 
   const updatedMember = {
     ...existingMember,
+    sponsorUsername: shouldReassignSponsor ? nextSponsorUsername : existingMember?.sponsorUsername,
+    sponsorName: shouldReassignSponsor ? nextSponsorName : existingMember?.sponsorName,
     placementLeg,
     isSpillover: placementLeg === PLACEMENT_LEG_SPILLOVER,
     spilloverPlacementSide: placementLeg === PLACEMENT_LEG_SPILLOVER ? spilloverPlacementSide : '',
@@ -617,6 +643,33 @@ export async function updateRegisteredMemberPlacement(payload = {}) {
 
   members[memberIndex] = updatedMember;
   await writeRegisteredMembersStore(members);
+
+  if (shouldPatchMemberUserAttribution) {
+    const updatedMemberUserId = normalizeText(updatedMember?.userId || updatedMember?.id);
+    const updatedMemberUsername = normalizeCredential(updatedMember?.memberUsername || updatedMember?.username);
+    const updatedMemberEmail = normalizeCredential(updatedMember?.email);
+
+    const matchedUserIndex = users.findIndex((user) => {
+      if (updatedMemberUserId && normalizeText(user?.id) === updatedMemberUserId) {
+        return true;
+      }
+
+      const userUsername = normalizeCredential(user?.username);
+      const userEmail = normalizeCredential(user?.email);
+      return (
+        (updatedMemberUsername && userUsername === updatedMemberUsername)
+        || (updatedMemberEmail && userEmail === updatedMemberEmail)
+      );
+    });
+
+    if (matchedUserIndex >= 0) {
+      users[matchedUserIndex] = {
+        ...users[matchedUserIndex],
+        attributionStoreCode: memberUserAttributionStoreCodePatch,
+      };
+      await writeMockUsersStore(users);
+    }
+  }
 
   return {
     success: true,
