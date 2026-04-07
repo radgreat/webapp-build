@@ -5631,3 +5631,21 @@ Last Updated: 2026-04-06
 - Validation:
   - inline script parse check passed:
     - `All inline scripts parsed successfully. Blocks: 2`
+
+## Recent Update (2026-04-06) - User Preferred Customer List Now Shows Admin-Transferred Accounts
+
+- Completed:
+  - fixed user-side `Preferred Customer` planner visibility so assigned/transferred preferred members appear even with zero purchases.
+  - removed invoice-only visibility gate that previously filtered out transferred records lacking matched invoice history.
+  - preserved invoice aggregation metrics for members with purchases.
+  - updated empty-state copy to assignment-based wording.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`

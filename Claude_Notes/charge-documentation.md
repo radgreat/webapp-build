@@ -11872,6 +11872,41 @@ File: `index.html`
 - `Claude_Notes/Current Project Status.md`
 - `Claude_Notes/public-store-page.md`
 
+## User Preferred Customers Visibility Fix After Admin Transfer (2026-04-06)
+
+### What changed
+
+- Fixed user-side `Preferred Customer` planner visibility in `index.html` so transferred preferred accounts show even before they have purchase invoices.
+- Updated planner row builder logic:
+  - removed the invoice-required gate that previously discarded preferred members with zero matched invoices.
+  - retained purchase aggregation when invoices exist.
+  - added stable secondary sort fallback by member `createdAt` when purchase dates are absent.
+- Updated empty-state copy:
+  - from `No preferred customer purchases found yet.`
+  - to `No preferred customers assigned yet.`
+
+### Root cause
+
+- The planner filtered to preferred members under current sponsor, but then immediately removed any member without matching owner-attributed invoices.
+- Admin sponsor transfer updates `registered_members.sponsor_username`; however, transferred records with no matching invoice history were excluded from the rendered user list.
+
+### Design decisions
+
+- Kept purchase totals/invoice count behavior unchanged for members who do have invoice history.
+- Chose to display transferred preferred members with zeroed metrics (`$0.00`, `0 BP`, `0 invoices`) to align assignment visibility with admin transfer outcomes.
+
+### Validation / QA
+
+- Frontend inline script parse check passed:
+  - `All inline scripts parsed successfully. Blocks: 2`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
 ## User Dashboard My Store Flow Correction - Internal Checkout Restored (2026-04-06)
 
 ### What changed

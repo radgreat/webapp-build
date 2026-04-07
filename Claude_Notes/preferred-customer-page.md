@@ -175,3 +175,28 @@ Status: In Progress (Phase 1 foundation complete)
 - Inline script parse check passed:
   - `index.html` (2 script blocks)
   - `login.html` (2 script blocks)
+
+## Recent Update (2026-04-06) - User Preferred Customer Visibility After Admin Transfer
+
+- Fixed member-side `Preferred Customer` list rendering in `index.html` so admin-transferred preferred accounts are visible even when they have no invoice history yet.
+- Previous behavior:
+  - planner filtered preferred members under sponsor, then removed rows when `matchedInvoices.length === 0`.
+  - transferred preferred accounts could disappear from user view if invoice attribution/history did not match owner filters.
+- New behavior:
+  - assigned preferred members now remain visible with zeroed totals until purchases exist.
+  - purchase metrics still aggregate when matching invoices are present.
+  - list sort now falls back to member `createdAt` when purchase timestamps are absent.
+- UI copy update:
+  - empty-state text changed from purchase-centric wording to assignment-centric wording.
+
+### Files updated
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- `index.html` inline scripts parse OK:
+  - `All inline scripts parsed successfully. Blocks: 2`
