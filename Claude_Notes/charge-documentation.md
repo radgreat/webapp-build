@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 225
+**Times Updated:** 229
 
 ## Overview
 
@@ -12,6 +12,1015 @@
 
 ## Major Update (Lead Devloper Notes)
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.
+
+---
+
+## Update (2026-04-07) - Recent Activity Subtitle Removed + View All Toggle Fixed
+
+### What Was Changed
+
+- Removed the helper subtitle text under the `Recent Activity` header:
+  - deleted: `Live feed of enrollments, commissions, payouts, and wallet transfers`
+- Replaced the non-functional `View All` anchor with a real button (`#recent-activity-view-all-button`).
+- Added expand/collapse behavior for Recent Activity list rendering:
+  - default still shows up to `MAX_RECENT_ACTIVITY_ITEMS` (`12`)
+  - button appears only when entry count exceeds the limit
+  - button toggles between `View All` and `Collapse`
+  - expanded state re-renders the full merged feed list.
+- Added dedicated control initialization:
+  - `initializeRecentActivityPanelControls()` now binds the toggle click once and reuses existing render flow.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Recent Activity UI Cleanup + Legacy Height Match
+
+### What Was Changed
+
+- Redesigned the `Recent Activity` panel shell in `index.html` without changing activity data content logic.
+- Visual cleanup updates:
+  - upgraded outer surface to match current dashboard visual language (`rounded-2xl`, elevated background, subtle glow)
+  - replaced large title row with compact caption-style header and helper subtitle
+  - retained existing `#recent-activity-feed` data list rendering and item content behavior.
+- Added desktop height synchronization so `Recent Activity` matches `Legacy Leadership Bonus` panel height:
+  - source: `#legacy-leadership-bonus-panel`
+  - target: `#recent-activity-panel`
+  - sync triggers on init, resize, breakpoint change, feed render, and `ResizeObserver` updates.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept all activity entry generation/render logic untouched to preserve the exact data the user approved.
+- Scoped changes to panel presentation and layout-height behavior only.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Fast Track Outer Container Removed
+
+### What Was Changed
+
+- Removed the extra outer wrapper around `Fast Track Bonus` in `index.html` to reduce nested container depth.
+- `#fast-track-bonus-card` now serves as the single top-level Fast Track surface in the right column.
+- Updated Fast Track height-sync binding to target `#fast-track-bonus-card` directly so Infinity-height matching behavior remains active.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Layout Impact
+
+- No layout conflict introduced.
+- Right column stacking remains:
+  - Server Cut-Off
+  - Fast Track Bonus
+  - Recent Activity.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Fast Track Audit Filter Corrected (Bonus-Only Records)
+
+### What Was Changed
+
+- Corrected Fast Track audit feed logic in `index.html` to exclude non-commission enrollments.
+- `buildFastTrackCommissionAuditEntries()` now includes enrollment entries only when `fastTrackBonusAmount > 0`.
+- Removed pending/zero-amount enrollment rows from the Fast Track audit list so only real Fast Track bonus credits appear.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Fast Track Commission Audit Feed + Infinity Height Match
+
+### What Was Changed
+
+- Added an audit trail section inside the `Fast Track Bonus` component in `index.html`.
+- New Fast Track audit UI includes:
+  - record counter (`#fast-track-commission-audit-count`)
+  - empty state (`#fast-track-commission-audit-empty`)
+  - scrollable record list (`#fast-track-commission-audit-list`).
+- Implemented Fast Track audit data rendering from live dashboard state:
+  - enrollment-based Fast Track commission credits from direct sponsored member records
+  - Fast Track transfer-out/payout records sourced from persisted commission payout activity entries.
+- Added desktop height synchronization so Fast Track panel matches `Infinity Builder Bonus` panel height:
+  - panel IDs:
+    - `#fast-track-bonus-panel`
+    - `#infinity-builder-bonus-panel`
+  - sync triggers:
+    - on init
+    - on data re-render
+    - on resize/breakpoint changes
+    - via `ResizeObserver` on Infinity Builder panel changes.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept Fast Track card’s existing payout CTA and balance area untouched, and appended audit feed below to preserve current behavior.
+- Used a compact audit row pattern similar to dashboard activity styling for readability and quick historical scan.
+- Implemented height match in JS for deterministic alignment, rather than static min-height guessing.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Dashboard Layout Reflow (Infinity/Legacy Left, Fast Track Right)
+
+### What Was Changed
+
+- Reflowed Row 2 dashboard component placement in `index.html`:
+  - `Infinity Builders Bonus` and `Legacy Leadership Bonus` remain in the left two-column lane directly below `Weekly Total Organization BV`.
+  - `Fast Track Bonus` was moved from under Account Overview to the right lane.
+  - Right lane now stacks:
+    1. `Server Cut-Off`
+    2. `Fast Track Bonus`
+    3. `Recent Activity`.
+- Preserved all original IDs and controls for the moved Fast Track container:
+  - `#fast-track-bonus-card`
+  - `#fast-track-bonus-value`
+  - `#fast-track-request-payout-button`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used component relocation (not rebuild) so existing JS hooks and state wiring continue without additional logic changes.
+- Kept Server Cut-Off in the right column and placed Fast Track above Recent Activity as requested.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Server Cut-Off Restyled to Match Weekly Total BV Panel
+
+### What Was Changed
+
+- Restyled `Server Cut-Off` in `index.html` to match the cleaner visual style of the `Weekly Total Organization BV` area.
+- Removed the previous nested “mini-card” blocks and converted the panel to a single-surface composition:
+  - top caption row with compact status pill
+  - primary countdown value line
+  - simple divider-based metric sections.
+- Updated typography and spacing to mirror the Weekly Total panel:
+  - uppercase caption labels with shared tracking
+  - `text-[2rem]` main metric treatment
+  - border separators (`border-t`) instead of stacked boxed containers.
+- Preserved all data hooks/IDs:
+  - `#cutoff-countdown-value`
+  - `#left-leg-bv-value`
+  - `#right-leg-bv-value`
+  - `#estimated-cycles-value`
+  - `#cycle-bv-value`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Matched visual language to the Weekly Total panel to improve cross-panel consistency in Row 2.
+- Kept the same metric hierarchy but reduced container noise for a cleaner scan pattern.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Server Cut-Off Height Sync Fix (Weekly Total Match)
+
+### What Was Changed
+
+- Fixed Server Cut-Off vertical mismatch in `index.html` where the panel was visually stretching beyond the intended target area.
+- Removed stretch-driven sizing behavior from the Server Cut-Off wrapper/card:
+  - wrapper now uses `lg:self-start`
+  - removed forced `h-full` sizing from `#server-cutoff-card`
+  - removed `mt-auto` push behavior in the cycles row to avoid “hidden/empty container” look.
+- Added runtime desktop height synchronization so `#server-cutoff-card` matches the rendered height of `#account-overview-card` (Weekly Total Organization BV component area):
+  - sync on init
+  - sync after data/metric updates
+  - sync on `resize` and desktop breakpoint changes
+  - sync via `ResizeObserver` when account overview height changes.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used direct card-to-card height synchronization for deterministic matching rather than relying on grid row stretching, which was inheriting extra layout height from adjacent content blocks.
+- Kept all existing Server Cut-Off data IDs and fetch/render behavior intact.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Server Cut-Off Panel Tightened + Timer Simplified
+
+### What Was Changed
+
+- Refined the Dashboard `Server Cut-Off` panel in `index.html` for tighter visual rhythm and better parity with the `Weekly Total Organization BV` panel style.
+- Updated the card shell to a matching elevated treatment:
+  - `rounded-2xl`
+  - subtle glow accent
+  - denser internal spacing
+  - `h-full` flex layout with `min-h` target for closer height parity.
+- Cleaned the timer area:
+  - removed extra `Next cut-off ...` line (`#cutoff-next-target`)
+  - changed heading copy to `Cut-Off Timer`
+  - timer now displays compact time-only output format (`Xd Xh Xm`, `Xh Xm`, `Xm`) with no “remaining” wording.
+- Tightened metric blocks:
+  - compacted Left/Right leg BV card spacing
+  - shortened cycles footnote copy for a cleaner final row.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Matched the Server Cut-Off visual language to the new Account Overview primary panel so the row feels more uniform.
+- Kept all existing metric IDs used by data bindings (`left/right leg`, `cycles`, countdown value) to avoid regressions.
+- Removed nonessential timer text to prioritize rapid scanability of the countdown value.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Dashboard Right Column Simplified (Quick Actions Removed)
+
+### What Was Changed
+
+- Removed the `Quick Actions` panel markup from the dashboard right column in `index.html`.
+- Repositioned `Server Cut-Off` as the primary top-right component (same section slot previously shared in the stacked layout).
+- Updated container structure:
+  - removed `flex` stack wrapper used for `Quick Actions + Server Cut-Off`
+  - right column now directly renders `#server-cutoff-card` container.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Weekly Boundary Dividers for Account Overview Comparison Graph
+
+### What Was Changed
+
+- Enhanced the new Account Overview dual-series 30-day graph in `index.html` by adding weekly separation markers.
+- Added subtle vertical divider lines at week boundaries to make weekly groupings visually obvious.
+- Boundary logic:
+  - renders separator when a chart day falls on Sunday (start of weekly bucket)
+  - aligns with existing dashboard note that server weekly cutoff occurs Saturday night.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Account Overview Main Metric Graph Added (Total vs Personal BV)
+
+### What Was Changed
+
+- Added a comparison chart to the left/main Account Overview panel (`Weekly Total Organization BV`) in `index.html`.
+- Chart behavior follows the same interaction style as the Personal Volume KPI graph:
+  - animated bar reveal using existing `.dashboard-pv-data-bar` animation class
+  - hover/focus tooltip
+  - compact caption summarizing trend change.
+- Implemented dual-series daily comparison:
+  - series 1: `Total Organization BV` (darker bar)
+  - series 2: `Weekly Personal Organization BV` (lighter bar)
+  - rendered as two bars per day for a 30-day timeline.
+- Added new Account Overview BV trend persistence/state pipeline:
+  - storage key: `charge-account-overview-bv-trend-v1`
+  - per-user partitioning via normalized user key
+  - daily dedupe logic (latest entry per day retained)
+  - 30-day series builder + tooltip renderer + caption builder.
+- Wired graph updates into existing dashboard summary lifecycle in `applyBinaryTreeDashboardSummary(...)`:
+  - compares `totalAccumulatedPv` against `organizationRollups.personalOrganizationBv`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Reused the Personal Volume chart animation system to keep interaction and motion consistent across dashboard KPI visuals.
+- Kept existing text/trend IDs untouched so existing metric updates continue to work without regressions.
+- Used two contrast levels of brand color in-chart plus an explicit legend for quick comparison readability.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Account Overview Header Strip Removed (Cleaner Alignment)
+
+### What Was Changed
+
+- Applied a cleanup pass to Dashboard `Account Overview` in `index.html` per latest request.
+- Removed the entire internal heading strip above the metrics:
+  - `Account Overview`
+  - `Your Organization Summary`
+  - `Live Stats` pill.
+- The metric board now begins immediately at the top of the component, improving visual alignment with `Quick Actions`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Account Overview Visual Pivot (Asymmetric Command Board)
+
+### What Was Changed
+
+- Applied another Account Overview redesign pass in `index.html` after “not hitting the mark” feedback.
+- Replaced the prior uniform segment rail with an asymmetric command-board composition:
+  - left side: dominant primary metric panel for `Weekly Total Organization BV`
+  - right side: compact stacked/segmented secondary metrics for:
+    - `New Members`
+    - `Direct Sponsors`
+    - `Cycles`
+- Kept all existing IDs and render hooks intact:
+  - `#account-overview-total-bv-trend`
+  - `#total-accumulated-pv-value`
+  - `#account-overview-personal-organization-bv`
+  - `#account-overview-new-members-trend`
+  - `#new-members-joined-value`
+  - `#account-overview-direct-sponsors-trend`
+  - `#total-direct-sponsors-value`
+  - `#dashboard-total-cycles-value`
+- `Fast Track Bonus` remains separated below Account Overview.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Account Overview Style Pivot (Unified Segment Rail)
+
+### What Was Changed
+
+- Applied a second visual redesign pass to Dashboard `Account Overview` in `index.html` after the ledger style was rejected.
+- Updated the overview to a single segmented metric rail:
+  - one shared surface with subtle background treatment
+  - four equal metric segments separated by divider lines
+  - no stacked mini cards, no per-row ledger blocks.
+- Kept all metric IDs and data wiring stable:
+  - `#total-accumulated-pv-value`
+  - `#account-overview-total-bv-trend`
+  - `#account-overview-personal-organization-bv`
+  - `#new-members-joined-value`
+  - `#account-overview-new-members-trend`
+  - `#total-direct-sponsors-value`
+  - `#account-overview-direct-sponsors-trend`
+  - `#dashboard-total-cycles-value`
+- `Fast Track Bonus` remains in its own separate container below the overview component.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html` after this redesign.
+
+---
+
+## Update (2026-04-07) - Account Overview Visual Redesign (Card Grid -> Ledger Rows)
+
+### What Was Changed
+
+- Applied a style-only redesign pass to Dashboard `Account Overview` in `index.html` after layout feedback.
+- Replaced the previously introduced 4-card stat layout with a unified non-card ledger presentation:
+  - one shared surface
+  - four separated metric rows (`divide-y`)
+  - row pattern: icon + label/subtext on the left, trend/value on the right.
+- Kept all requested metrics and bindings unchanged:
+  - `Weekly Total Organization BV` (`#total-accumulated-pv-value`, `#account-overview-total-bv-trend`, `#account-overview-personal-organization-bv`)
+  - `New Members Joined Your Network` (`#new-members-joined-value`, `#account-overview-new-members-trend`)
+  - `Total Direct Sponsors` (`#total-direct-sponsors-value`, `#account-overview-direct-sponsors-trend`)
+  - `Cycles` (`#dashboard-total-cycles-value`)
+- `Fast Track Bonus` container remains separate below Account Overview (from prior pass).
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Maintained existing ID hooks so no dashboard metric render logic needed to change.
+- Reduced “card-in-card” visual density by switching to a single structured stats panel for clearer scan flow.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html` after the style redesign.
+
+---
+
+## Update (2026-04-07) - Dashboard Account Overview Refactor (Rank Card Removed + Fast Track Separated)
+
+### What Was Changed
+
+- Refactored the Dashboard `Account Overview` block in `index.html`:
+  - removed the previous `Account Rank` panel from the Account Overview component.
+  - reorganized overview metrics into a clean 4-card grid.
+- Metrics now shown in Account Overview:
+  - `Weekly Total Organization BV`
+  - `New Members Joined Your Network`
+  - `Total Direct Sponsors`
+  - `Cycles` (new) using existing runtime binding `#dashboard-total-cycles-value`.
+- Separated `Fast Track Bonus` into its own container:
+  - moved from inside the Account Overview card to a dedicated sibling container below it in the left dashboard column.
+  - retained all existing Fast Track IDs and transfer button behavior.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved existing metric/trend IDs used by runtime update functions to avoid data-binding regressions.
+- Kept `account-overview-card` and rank dataset metadata (`data-account-rank`) in place for compatibility with existing rank-related logic.
+- Introduced `Cycles` as a first-class overview metric so cycle visibility is now within the same summary cluster requested by UX.
+
+### Known Limitations
+
+- Account rank upgrade controls remain in script logic but are no longer exposed in the Dashboard Account Overview UI after this pass.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html` after markup changes.
+
+---
+
+## Update (2026-04-07) - E-Wallet KPI Card: Single Action + 30-Day Balance Trend
+
+### What Was Changed
+
+- Updated the Home dashboard `E-Wallet Balance` KPI card in `index.html` to match the latest UX request:
+  - removed the two existing CTA buttons (`Send`, `Transfer`)
+  - added one CTA only: `Go to E-Wallet`
+  - CTA now opens the `e-wallet` page view via `setPage('e-wallet', { routeMode: 'push' })`.
+- Added a 30-day balance graph block directly in the E-Wallet KPI card:
+  - `#dashboard-ewallet-balance-bars`
+  - `#dashboard-ewallet-balance-tooltip`
+  - `#dashboard-ewallet-balance-tooltip-date`
+  - `#dashboard-ewallet-balance-tooltip-value`
+  - `#dashboard-ewallet-balance-graph-caption`
+- Implemented E-Wallet trend state + renderer in dashboard script:
+  - persistent trend key: `charge-dashboard-ewallet-trend-v1`
+  - per-user trend partitioning with normalized member key
+  - daily bucket dedupe (latest server timestamp per day wins)
+  - 30-day daily series render with tooltip and animated bar reveal (aligned with Personal Volume graph behavior).
+- Wired KPI graph refresh into E-Wallet summary lifecycle:
+  - `renderEWalletSummary()` now updates E-Wallet KPI trend each time wallet snapshot data is rendered.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept graph interaction parity with Personal Volume (compact bars, hover/focus tooltip, dynamic caption) so KPI cards feel consistent.
+- Kept CTA behavior explicit and navigation-first (`Go to E-Wallet`) to reduce action ambiguity at KPI level.
+- Used server-confirmed wallet snapshot timestamps for trend writes and avoided synthetic historical reconstruction.
+
+### Known Limitations
+
+- Historical day values are accumulated over time from observed server snapshots; this pass does not retroactively rebuild all prior days from transfer history.
+
+---
+
+## Update (2026-04-07) - Account Active Until KPI Icons Now Have Hover Tooltips
+
+### What Was Changed
+
+- Added hover/focus interaction for `Rank`, `Title 1`, and `Title 2` icons in the `Account Active Until` KPI badge row.
+- Implemented custom tooltip behavior per badge icon (no native `title` tooltip):
+  - tooltip appears on hover/focus
+  - subtle hover lift/scale and border highlight
+  - tooltip includes title + subtitle values from profile badge metadata.
+- Reused existing profile badge content source so tooltip content remains synchronized with Profile state.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept KPI badge interactions lightweight and non-click actions; hover/focus reveals context without opening modals.
+- Used dedicated KPI tooltip classes to avoid affecting Profile page hovercard behavior.
+
+### Validation
+
+- Headless DOM check confirms:
+  - 3 KPI badges render
+  - all 3 are hover/focus-capable (`tabindex="0"`)
+  - all 3 include tooltip elements with mapped content.
+
+---
+
+## Update (2026-04-07) - Account Active Until KPI Badge Shell Shadows Removed
+
+### What Was Changed
+
+- Follow-up to prior icon-shadow tweak in `index.html`:
+  - removed shadow from the KPI badge shells themselves (`Rank`, `Title 1`, `Title 2` icon circles)
+  - specifically removed `box-shadow` from `.dashboard-account-kpi-badge`
+- This is in addition to the earlier removal of icon-image drop shadow on `.dashboard-account-kpi-badge-icon`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed both KPI icon layer shadows are now removed:
+  - no `box-shadow` on badge shell
+  - no `filter: drop-shadow(...)` on icon image
+
+---
+
+## Update (2026-04-07) - Account Active Until KPI Icon Shadow Removed
+
+### What Was Changed
+
+- Removed drop shadow styling from the `Account Active Until` KPI badge icons in `index.html`.
+- Updated `.dashboard-account-kpi-badge-icon` by removing the `filter: drop-shadow(...)` rule.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed KPI icon class no longer applies drop shadow filter.
+
+---
+
+## Update (2026-04-07) - Account Active Until KPI Badge Icons Added (Reuse Profile Badges)
+
+### What Was Changed
+
+- Enhanced the `Account Active Until` KPI card in `index.html` to reduce empty space in the bottom area by adding a 3-icon badge strip.
+- Added badges for:
+  - Rank Icon
+  - Title 1 Icon
+  - Title 2 Icon
+- Reused the existing Profile badge data pipeline instead of duplicating logic:
+  - reads from `resolveProfileHandleBadgeEntries(...)`
+  - keeps icons in sync with Profile badge state and visibility.
+- Added fallback behavior:
+  - when Title 1/Title 2 are not available yet, placeholders are shown so the row remains visually balanced.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Introduced a dedicated KPI badge shell style (`dashboard-account-kpi-*`) that visually matches Profile badge treatment while remaining non-interactive.
+- Rendered exactly three slots in KPI for stable layout rhythm (Rank, Title 1, Title 2).
+
+### Validation
+
+- Headless DOM check confirmed:
+  - KPI badge strip exists
+  - exactly 3 badge items render
+  - icon sources are populated from profile-derived entries (with placeholders for locked titles).
+
+### Known Limitations
+
+- KPI badge strip is icon-only and non-interactive (no hover card); detailed badge context remains in the Profile page badge hovercard.
+
+---
+
+## Update (2026-04-07) - Account Status Tooltip Copy Updated (Paraphrased)
+
+### What Was Changed
+
+- Updated `Account Active Until` tooltip copy in `index.html` with the new paraphrased sentence.
+- Applied the same new sentence to both:
+  - visible tooltip text
+  - badge `aria-label` (including runtime setter)
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed the old tooltip sentence no longer appears and the new sentence is used in all badge tooltip references.
+
+---
+
+## Update (2026-04-07) - Account Status Tooltip Duplicate (Native WebKit) Removed
+
+### What Was Changed
+
+- Fixed duplicate tooltip behavior on `Account Active Until` badge in `index.html`.
+- Root cause: both custom tooltip and native browser tooltip were active because the badge used `title`.
+- Replaced badge native tooltip attributes with accessibility-only labeling:
+  - removed `title`
+  - now uses `aria-label`
+- Updated render logic to maintain `aria-label` instead of `title`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed no `title="To remain active, ..."` remains on the badge.
+- Custom tooltip remains visible on hover/focus; native WebKit tooltip no longer appears.
+
+---
+
+## Update (2026-04-07) - Account Status Tooltip Typography Reduced (Compact)
+
+### What Was Changed
+
+- Reduced `Account Active Until` tooltip typography to a more compact tooltip size in `index.html` after feedback.
+- Updated tooltip classes:
+  - `text-sm font-medium leading-5` -> `text-xs leading-4`
+- White text was kept as requested.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed tooltip class now uses compact tooltip sizing with white text.
+
+---
+
+## Update (2026-04-07) - Account Status Tooltip Typography (White + Medium)
+
+### What Was Changed
+
+- Updated the `Account Active Until` badge tooltip text styling in `index.html`:
+  - text color changed to white
+  - size increased to `text-sm`
+  - weight set to `font-medium`
+  - line-height increased to `leading-5`
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed tooltip class now renders with white medium-sized text in markup.
+
+---
+
+## Update (2026-04-07) - Account Status Badge Tooltip Background Matched to Logo Popup
+
+### What Was Changed
+
+- Updated the `Account Active Until` KPI badge tooltip background in `index.html` to match the logo popup menu color exactly.
+- Added a dedicated tooltip class:
+  - `.dashboard-account-status-tooltip`
+  - background set to `rgb(20 22 28 / 0.96)`, the same value used by `#sidebar-brand-menu`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Matched the exact RGB alpha background value from the existing logo popup instead of using a token approximation (`bg-surface-floating/95`) to ensure visual parity.
+
+### Validation
+
+- Verified `#sidebar-brand-menu` background and tooltip background now use the same color value in CSS/markup.
+
+### Known Limitations
+
+- Match is scoped to background color only; border and shadow remain as previously configured for the KPI tooltip.
+
+---
+
+## Update (2026-04-07) - Account Status KPI Copy Update + Active Badge Tooltip
+
+### What Was Changed
+
+- Updated the Home KPI card copy in `index.html`:
+  - top caption changed from `Account Status` to `Account Active Until`
+  - heading now shows timer-only text (no phrases like `Active for ... remaining`)
+  - supporting note text changed to: `Account must be active to enjoy earning commissions.`
+- Added hover/focus tooltip behavior to the status badge (`Active`/`Inactive`):
+  - tooltip text: `To remain active, you must purchase a product every month`
+  - also applied via badge `title` attribute for native fallback.
+- Updated KPI timer rendering behavior:
+  - no record -> `--`
+  - active window -> duration only (example: `5d 3h 14m`)
+  - expired window -> `0m`
+  - descriptive state is still kept in `aria-label` for accessibility.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Headless DOM check confirms:
+  - badge text and tooltip title are present
+  - timer renders as duration-only string
+  - note text renders exactly as requested.
+
+### Known Limitations
+
+- Badge tooltip is hover/focus-driven on desktop; touch devices rely primarily on the `title` fallback behavior and badge context.
+
+---
+
+## Update (2026-04-07) - Sidebar Layout Regression Fix + Sidebar State Persistence
+
+### What Was Changed
+
+- Fixed a structural HTML regression in `index.html` that caused these page sections to render outside the shared `main`/`lg:ml-64` dashboard wrapper:
+  - `Profile`
+  - `My Store`
+  - `Enroll Member`
+  - `Preferred Customers`
+  - `Binary Tree`
+- Root cause was an extra closing `</div>` near the end of the `E-Wallet` section, which broke expected DOM nesting and made affected pages ignore sidebar offset behavior.
+- Added desktop sidebar collapse persistence across reloads by extending existing dashboard view-state storage:
+  - stores `sidebarCollapsed` in `charge-dashboard-view-state`
+  - restores collapsed/open state on initialization before `setPage(...)`
+  - keeps state synced when sidebar is collapsed/opened on desktop
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept sidebar persistence inside the existing view-state storage key instead of introducing a second localStorage key to avoid fragmented UI state.
+- Limited persistence to desktop collapsed/open behavior (`data-sidebar-collapsed`) to preserve expected mobile overlay navigation behavior.
+
+### Validation
+
+- DOM structure verification (headless browser) confirms all page views now mount inside `main` and the shared wrapper:
+  - `page-dashboard`, `page-profile`, `page-enroll-member`, `page-preferred-customer`, `page-binary-tree`, `page-my-store`, `page-e-wallet`, `page-settings`
+- Sidebar persistence verification (headless browser):
+  - collapse -> reload remains collapsed
+  - reopen -> reload remains open
+  - wrapper margin-left transitions as expected (`0px` collapsed, `256px` open on current desktop shell)
+
+### Known Limitations
+
+- Mobile sidebar overlay open/closed state is not persisted by this pass; only desktop collapsed/open state is persisted.
+
+---
+
+## Update (2026-04-07) - KPI Follow-Up Polish (Spacing + Order + Button Style)
+
+### What Was Changed
+
+- Refined the Home KPI strip in `index.html` after visual feedback:
+  - removed excess bottom whitespace feeling by preventing KPI grid item stretch (`items-start`)
+  - swapped KPI order so `Sales Team Commissions` is now 2nd and `Personal Volume` is 3rd
+  - changed Sales Team Commissions button styling to match active sidebar/nav tone
+  - renamed KPI label from `Account Overview` to `Account Status`
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Applied active nav visual language (`bg-brand-500/10`, border brand tint, brand text) to the sales transfer CTA for cohesive dashboard styling.
+- Kept all logic IDs and bindings unchanged while only adjusting card order and visual treatment.
+
+### Validation
+
+- Captured authenticated screenshot passes:
+  - `temporary screenshots/screenshot-91-kpi-spacing-swap-pass1.png`
+  - `temporary screenshots/screenshot-92-kpi-spacing-swap-pass2-crop.png`
+- Confirmed:
+  - reduced visual empty space in KPI row
+  - Sales card appears in 2nd position
+  - Account Status label applied
+
+### Known Limitations
+
+- KPI layout verified in dark mode only during this pass; light-mode verification can be run next if required.
+
+---
+
+## Update (2026-04-07) - KPI Card Rework (E-Wallet + Account Overview Swap)
+
+### What Was Changed
+
+- Updated Home KPI cards in `index.html` based on focused UX feedback:
+  - Reframed `Total Balance` KPI as `E-Wallet Balance` (same data binding/ID, clearer card intent).
+  - Kept `Personal Volume` KPI.
+  - Removed `Cycles` KPI card from the top KPI strip.
+  - Moved `Sales Team Commissions` into the former cycles position.
+  - Removed visible `Per cycle` and `Weekly cap` text row from the Sales Team Commissions KPI to reduce clutter.
+  - Added a new `Account Overview` KPI card showing:
+    - account activity state (`Active`/`Inactive`)
+    - remaining/elapsed activity window
+    - current rank label
+- Added KPI-specific bindings and render updates:
+  - new DOM refs for account overview KPI status/rank/time
+  - new renderer `renderDashboardAccountOverviewKpi(...)`
+  - activity/rank rendering now syncs both the existing account section and the new KPI card.
+- Removed decorative bottom filler styling from KPI cards to eliminate the “graph-like empty space” feel.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized primary values and immediate readability over secondary explanatory rows.
+- Kept existing logic-sensitive IDs and business hooks intact where possible, with additive KPI-specific IDs for the new Account Overview card.
+- Preserved Sales Team cap/progression logic while simplifying visible KPI copy.
+
+### Validation
+
+- Authenticated screenshot passes captured:
+  - `temporary screenshots/screenshot-89-kpi-rework-request-pass1.png`
+  - `temporary screenshots/screenshot-90-kpi-rework-request-pass2-crop.png`
+- Confirmed KPI strip now reflects:
+  - E-Wallet Balance
+  - Personal Volume
+  - Sales Team Commissions (without visible per-cycle/weekly-cap text row)
+  - Account Overview (status + active window + rank)
+
+### Known Limitations
+
+- `Sales Team Commissions` still references cycle-cap usage summary/progress (by design) even though the dedicated Cycles KPI card was removed.
+- This pass is focused on dark-mode visual verification; a dedicated light-mode check can be done next.
+
+---
+
+## Update (2026-04-07) - Home Dashboard KPI + Account Overview Declutter Pass
+
+### What Was Changed
+
+- Redesigned the top `Home` KPI strip in `index.html` to reduce visual fatigue and card clutter while preserving all existing KPI data IDs and payout actions.
+- Reworked KPI presentation for:
+  - `Total Balance`
+  - `Personal Volume`
+  - `Cycles`
+  - `Sales Team Commissions`
+- Shifted KPI layout behavior to reduce compression:
+  - standard desktop keeps a 2-column KPI rhythm
+  - very wide desktop (`2xl`) uses 4 columns
+- Redesigned `Account Overview` into a calmer two-pane composition:
+  - left pane: rank + status + upgrade controls
+  - right pane: simplified metric rows for weekly BV, new members, and direct sponsors
+- Kept logic-sensitive bonus modules untouched (structure and JS hooks preserved):
+  - Fast Track Bonus
+  - Infinity Builder Bonus
+  - Legacy Leadership Bonus
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized readability and scan flow over dense card count to address user-reported eye fatigue.
+- Preserved all existing IDs tied to dashboard JS/render flows to avoid behavior regressions.
+- Used subtle brand-tinted glows, quieter typography hierarchy, and reduced nested surfaces to align with Apple/Shopify-inspired clarity.
+
+### Validation
+
+- Captured authenticated dashboard screenshots after implementation and refinement:
+  - `temporary screenshots/screenshot-86-kpi-overview-redesign-pass1.png`
+  - `temporary screenshots/screenshot-87-kpi-overview-redesign-pass2.png`
+  - `temporary screenshots/screenshot-88-kpi-overview-redesign-pass2-crop.png`
+- Confirmed KPI and Account Overview redesign render while preserving Fast Track, Infinity Builder, and Legacy Leadership module structure.
+
+### Known Limitations
+
+- This pass focuses on KPI + Account Overview composition only; the right-column utility cards and deeper module-level typography harmonization can be refined in a follow-up.
+- Light-mode-only visual QA for this exact redesign was not completed in this pass.
 
 ---
 
@@ -12982,3 +13991,711 @@ File: `index.html`
 - `index.html`
 - `Claude_Notes/charge-documentation.md`
 - `Claude_Notes/Current Project Status.md`
+
+## Dashboard KPI Refresh: Uniform Card Heights + Date-Based Personal Volume Bars (2026-04-07)
+
+### What changed
+
+- Reworked KPI row to keep consistent card sizing and cleaner vertical rhythm:
+  - KPI grid switched to `items-stretch`.
+  - All four KPI cards now use `h-full` + `min-h-[220px]` + internal flex layout for consistent heights.
+  - E-Wallet and Sales CTA rows are anchored to the bottom for visual alignment.
+- Updated E-Wallet KPI card to match requested structure:
+  - removed top icon from card heading area.
+  - kept value + support copy.
+  - added in-card CTA pair: `Send` + `Transfer`.
+- Wired E-Wallet KPI CTA behavior:
+  - `Send` opens E-Wallet transfer modal.
+  - `Transfer` opens E-Wallet payout modal.
+- Preserved KPI ordering and prior request updates:
+  - E-Wallet
+  - Sales Team Commissions
+  - Personal Volume
+  - Account Status
+- Kept Account Status priority text treatment:
+  - timer/active window remains the headline text.
+  - rank now renders as `Rank: <label>`.
+
+### Personal Volume graph redesign (new)
+
+- Replaced sparkline/gradient line with an Apple Screen Time-inspired micro bar chart:
+  - rectangular vertical bars
+  - per-day date labels (format: `M/D`)
+  - 7-day rolling window
+  - today’s bar highlighted
+- Added dynamic KPI chart containers:
+  - `#dashboard-personal-volume-bars`
+  - `#dashboard-personal-volume-dates`
+  - `#dashboard-personal-volume-graph-caption`
+- Implemented persistent daily PV trend state:
+  - storage key: `charge-dashboard-pv-trend-v1`
+  - supports structured `entries` with `{ value, timestampMs }`
+  - legacy migration support for old numeric `points` arrays
+  - max retained entries: `30`
+- Chart rendering logic now:
+  - normalizes/loads saved entries for current user
+  - updates today’s entry when PV changes
+  - builds 7-day daily series
+  - renders bars + date labels + trend caption
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation / QA
+
+- KPI visual verification (uniform sizing + CTA structure):
+  - `temporary screenshots/screenshot-99-kpi-bars-dates-pass1.png`
+- Personal Volume date-bar chart verification (rectangular bars + dates + dynamic values):
+  - `temporary screenshots/screenshot-100-kpi-bars-dates-pass2.png`
+
+### Known limitations
+
+- Daily bars reflect local runtime/session trend history; on a fresh account with limited PV history, earlier dates can render low/zero values until more daily snapshots accumulate.
+
+## Personal Volume Graph Interaction Pass: Tighter Layout + Hover Details (2026-04-07)
+
+### What changed
+
+- Refined Personal Volume KPI graph layout to feel tighter and more compact:
+  - chart rail reduced to `h-14`
+  - spacing tightened (`gap-1`, reduced chart padding)
+  - slimmer bar width (`w-2.5`) for denser visual rhythm
+- Added interactive graph tooltip with hover/focus details:
+  - tooltip container: `#dashboard-personal-volume-tooltip`
+  - dynamic fields:
+    - `#dashboard-personal-volume-tooltip-date`
+    - `#dashboard-personal-volume-tooltip-value`
+  - displays bar-specific date + PV amount
+  - supports mouse hover and keyboard focus events
+- Added motion polish to chart bars:
+  - subtle staged load animation (`scaleY` + `opacity`, origin bottom)
+  - micro hover lift on active bar (`-translate-y-0.5`)
+  - transitions limited to transform/opacity behavior
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation / QA
+
+- static tightened chart pass:
+  - `temporary screenshots/screenshot-101-kpi-bars-hover-pass1.png`
+- hover detail pass (date + PV tooltip visible):
+  - `temporary screenshots/screenshot-102-kpi-bars-hover-pass2-tooltip.png`
+
+### Known limitations
+
+- Tooltip visibility is currently optimized for desktop pointer/focus interactions; touch-device tap lock behavior can be expanded if needed in a follow-up pass.
+
+## Personal Volume Tightness Tweak: Frame Removed + Cleaner Bar Strip (2026-04-07)
+
+### What changed
+
+- Updated Personal Volume graph styling to match the tighter Apple-like treatment from user reference:
+  - removed graph rail frame/border/background block.
+  - reduced graph strip height and spacing for a cleaner baseline presentation.
+  - tightened date/caption spacing below bars.
+- Kept interactive behavior from previous pass:
+  - hover/focus tooltip still shows date + PV.
+  - subtle bar motion and hover lift remain.
+- Refined bar visual tone for cleaner readability:
+  - neutral monochrome bar palette (non-neon look).
+  - today bar remains visually emphasized.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation / QA
+
+- no-frame chart pass:
+  - `temporary screenshots/screenshot-104-kpi-bars-clean-noframe-pass1.png`
+- no-frame + hover tooltip pass:
+  - `temporary screenshots/screenshot-105-kpi-bars-clean-noframe-pass2-hover.png`
+
+### Known limitations
+
+- Date labels remain visible to preserve the previously requested “has date” behavior; can be reduced to only first/last/today labels in a follow-up if desired.
+
+## Personal Volume Graph Tightening Pass: Date Row Removed + 30-Day Window (2026-04-07)
+
+### What changed
+
+- Removed bottom date labels (`4/1`, `4/2`, etc.) from Personal Volume KPI graph area.
+- Tightened chart spacing further:
+  - reduced chart strip height from `h-12` to `h-10`
+  - reduced inter-bar spacing to `gap-0.5`
+  - reduced top spacing before chart block (`pt-3`)
+- Upgraded chart duration from 7 days to 30 days (one month):
+  - added `DASHBOARD_PERSONAL_VOLUME_CHART_DAYS = 30`
+  - daily series generator now renders 30 bars.
+- Updated summary caption copy to match monthly duration:
+  - `Last 30 days: ...`
+- Kept interactivity unchanged:
+  - hover/focus tooltip still displays exact `date + PV` for each bar.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation / QA
+
+- one-month no-date chart pass:
+  - `temporary screenshots/screenshot-106-kpi-bars-month-tight-pass1.png`
+- one-month no-date chart + hover tooltip pass:
+  - `temporary screenshots/screenshot-107-kpi-bars-month-tight-pass2-hover.png`
+
+### Known limitations
+
+- 30-bar density is intentionally compact; if needed, we can add slight weekly separators while keeping no date row.
+
+## Personal Volume Server Accuracy Fix: Remove Client-Dated Trend Inference (2026-04-07)
+
+### Root cause identified
+
+- The Personal Volume trend chart was inferring timestamps from client runtime (`Date.now()`) during KPI refreshes.
+- Result: PV could appear as if it was earned “today” (e.g., April 7) even when server-side purchase date was earlier.
+
+### What changed
+
+- Enforced server-timestamp-only trend writes for Personal Volume chart data:
+  - trend entries now require source type `server`.
+  - entries without explicit server source are ignored during sanitization.
+  - legacy local trend points are no longer used for chart history.
+- Added server timestamp resolver for PV events:
+  - `resolveServerPersonalVolumeObservedAtMs(...)`
+  - prefers server fields like `lastProductPurchaseAt`, `lastPurchaseAt`, `lastAccountUpgradeAt`, `updatedAt`, `createdAt`.
+- Updated trend append behavior:
+  - `appendDashboardPersonalVolumeTrendPoint(...)` now requires an observed timestamp.
+  - no valid server timestamp = no new trend point is written.
+- Updated all Personal Volume KPI update call-sites to pass observed server timestamps.
+- Preserved monthly chart duration and tooltip behavior while improving date correctness.
+
+### UX/result impact
+
+- PV bars no longer get falsely stamped to the current day by frontend refresh timing.
+- Tooltip date now tracks the server-observed PV activity date when available.
+- If no server history point exists within the last 30 days, caption now clearly indicates missing server history.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation / QA
+
+- server-date behavior pass (single server-observed date point):
+  - `temporary screenshots/screenshot-108-pv-server-date-pass1.png`
+- hover tooltip verification (shows server date `4/1` instead of client today):
+  - `temporary screenshots/screenshot-109-pv-server-date-pass2-hover.png`
+
+### Known limitations
+
+- Current backend payloads expose authoritative current PV and key activity timestamps, but not full day-by-day PV ledger history.
+- For fully granular daily monthly bars sourced 100% from server history, backend would need a dedicated per-day PV history endpoint.
+
+## Personal Volume Loading Wait Duration Increased (2026-04-07)
+
+### What changed
+
+- Increased Personal Volume server-wait loading window before fallback render:
+  - `DASHBOARD_PERSONAL_VOLUME_SERVER_WAIT_MS`
+  - from `1400ms` to `3000ms`
+
+### Why
+
+- User requested a longer loading period before the graph renders.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Notes
+
+- No screenshot validation was run in this pass per user request.
+
+## Personal Volume Loading Animation Refinement: Non-Repeating Motion (2026-04-07)
+
+### What changed
+
+- Reworked Personal Volume loading graph animation to remove repetitive pulse pattern.
+- Added custom loading animation keyframes for smoother, premium motion.
+- Loading bars now use non-repeating height + delay + duration variation based on mixed wave math (not modulo repetition).
+- Updated loading caption copy to:
+  - `Syncing monthly PV from server...`
+
+### Implementation details
+
+- Added runtime style injector:
+  - `ensureDashboardPersonalVolumeLoadingStyles()`
+  - injects `@keyframes dashboard-pv-loading-bar` once.
+- Loading bars now use:
+  - class `dashboard-pv-loading-bar`
+  - dynamic per-bar `height`, `animationDelay`, and `animationDuration`.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Notes
+
+- Screenshot validation intentionally skipped in this pass.
+
+## Personal Volume Data Animation + Right Feather Rolloff (2026-04-07)
+
+### What changed
+
+- Upgraded the Personal Volume real-data graph animation from basic staggered style updates to smooth keyframe-based reveal motion.
+- Added a right-edge feather overlay roll-off effect that appears during graph reveal and fades out automatically.
+- Ensured the feather effect is reset/hidden when loading-state graph renders.
+
+### Implementation details
+
+- Added/updated animation keyframes:
+  - `@keyframes dashboard-pv-data-reveal`
+  - `@keyframes dashboard-pv-feather-rolloff` (now includes fade-in then opacity roll-off)
+- Data bars now render with class:
+  - `dashboard-pv-data-bar`
+- Each bar now receives dynamic per-bar timing:
+  - `animationDelay` based on chart position + light wave offset
+  - `animationDuration` scaled by relative PV height
+- Removed previous JS-only animation approach in the data renderer:
+  - removed `requestAnimationFrame` + `setTimeout` transform/opacity mutation loop
+- Added feather roll-off lifecycle logic inside graph render:
+  - clear previous timer if present
+  - force animation restart with `animation = 'none'` + reflow
+  - run feather roll-off and auto-hide at completion
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design decision
+
+- Kept graph area borderless/tight while improving perceived polish via motion layering (bars first, subtle right feather second).
+
+### Known limitations
+
+- Feather roll-off is tied to graph re-render events (new render signature); if data signature does not change, the effect does not replay.
+
+### Validation
+
+- Visual verification pending in-browser check for this specific pass.
+
+## Personal Volume Animation Timing Slowdown (2026-04-07)
+
+### What changed
+
+- Slowed down Personal Volume real-data bar reveal timing for a calmer animation pace.
+- Slowed down right-edge feather roll-off timing to match the longer bar reveal.
+
+### Implementation details
+
+- Updated bar animation timing in `renderDashboardPersonalVolumeGraph(...)`:
+  - increased per-bar stagger window (`animationDelay`)
+  - increased per-bar duration (`animationDuration`)
+- Updated feather timing:
+  - animation duration: `1260ms` (from `760ms`)
+  - hide timeout: `1320ms` (from `810ms`)
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Quick iterative tuning pass; no screenshot run in this micro-adjustment.
+
+## Personal Volume Bar Reveal Straightening (Crooked Motion Fix) (2026-04-07)
+
+### What changed
+
+- Refined the Personal Volume real-data bar animation to remove the “crooked/slanted” feel during reveal.
+- Bars now animate with a cleaner vertical scale-up motion from the baseline.
+
+### Root cause
+
+- Previous reveal combined vertical translation + blur + overshoot + per-bar timing variation, which could visually read as slanted/crooked while animating.
+
+### Implementation details
+
+- Updated `@keyframes dashboard-pv-data-reveal`:
+  - removed `translateY(...)` movement
+  - removed `filter: blur(...)`
+  - retained subtle overshoot only on scale for smoother but straighter motion
+- Updated `.dashboard-pv-data-bar`:
+  - removed `filter` from `will-change`
+  - added `backface-visibility: hidden`
+  - added `transform: translateZ(0)` for cleaner rasterization during transform
+- Simplified per-bar timing in renderer:
+  - removed sinusoidal jitter from delay
+  - switched to linear left-to-right delay progression
+  - reduced duration variance so bars feel more uniform
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Behavior-tuning pass completed in code; screenshot validation not run in this micro-fix pass.
+
+## E-Wallet KPI Layout Alignment Fix (2026-04-07)
+
+### What changed
+
+- Updated the E-Wallet KPI card structure so it follows the same layout rhythm as other KPI cards.
+- Added a consistent header row structure and normalized action button sizing/spacing.
+
+### Implementation details
+
+- E-Wallet card now uses:
+  - top row (`title + compact badge`)
+  - primary value block
+  - supporting text
+  - bottom action zone with consistent padding
+- Normalized CTA button shape and typography to match KPI card system:
+  - `rounded-xl`
+  - `py-2.5`
+  - `text-body-sm`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Quick layout consistency pass in code; screenshot not run in this micro-fix.
+
+## KPI Uniform Layout + Dashboard Skeleton Loading System (2026-04-07)
+
+### What changed
+
+- Standardized KPI card composition and spacing for the Home top-row cards.
+- Implemented an initial dashboard skeleton loading system that covers the dashboard shell while core data hydrates.
+
+### KPI layout standardization
+
+- Updated KPI cards to follow a common vertical rhythm:
+  - header row
+  - primary value
+  - support copy
+  - footer/action zone (`mt-auto pt-3` pattern)
+- E-Wallet card:
+  - aligned to shared KPI rhythm and retained Send/Transfer actions
+- Sales Team Commissions card:
+  - moved cycle summary/progress into footer zone with transfer action
+  - added support copy line for consistency with other cards
+- Personal Volume card:
+  - replaced icon chip with compact status badge (`30 days`) to align with other card header treatment
+- Account Status card:
+  - normalized spacing to include support copy + footer rank slot for better structural consistency
+
+### Dashboard skeleton system
+
+- Added a dashboard-level skeleton shell:
+  - `#dashboard-initial-skeleton`
+  - shown while dashboard core data is loading
+- Wrapped existing dashboard content in:
+  - `#dashboard-live-content`
+  - hidden while skeleton is active
+- Added skeleton visual primitives:
+  - `.dashboard-skeleton-block`
+  - `.dashboard-skeleton-bar`
+  - shimmer keyframes (`dashboard-skeleton-shimmer`)
+- Added loading state attribute gate:
+  - `#page-dashboard[data-dashboard-loading='true']`
+
+### Skeleton lifecycle logic
+
+- Added lifecycle helpers:
+  - `beginDashboardSkeletonLoading()`
+  - `markDashboardSkeletonStepComplete(stepName)`
+  - `setDashboardSkeletonLoading(isLoading)`
+- Added tracked completion steps:
+  - `summary` (binary tree/dashboard summary)
+  - `cutoff` (server cutoff metrics sync)
+  - `ewallet` (E-Wallet snapshot preload)
+- Added force-stop fallback timeout:
+  - `DASHBOARD_SKELETON_MAX_WAIT_MS = 9000`
+- Hooked completion marks to real hydration paths:
+  - `applyBinaryTreeDashboardSummary(...)` -> `summary`
+  - server cutoff sync/apply flow -> `cutoff`
+  - `loadEWalletSnapshotForCurrentUser(...)` -> `ewallet`
+- Added startup preload call:
+  - `loadEWalletSnapshotForCurrentUser({ silent: true })`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design decisions
+
+- Skeleton covers dashboard shell rather than per-widget ad hoc spinners to reduce visual flicker and create one coherent loading state.
+- Completion is data-step-driven (not purely timer-driven), with timeout fallback as safety.
+
+### Known limitations
+
+- Skeleton completion currently tracks core dashboard hydration steps only (`summary`, `cutoff`, `ewallet`), not every downstream module request.
+- Further per-module skeleton refinement can be layered later if needed.
+
+### Validation
+
+- Code-level validation pass completed across layout and hydration hooks.
+- Screenshot validation was not run in this pass.
+
+## Dashboard KPI Badge Hovercard Fix (2026-04-07)
+
+### What changed
+
+- Replaced the Account Status KPI badge inline tooltip behavior with a floating hovercard pattern (same interaction model used in the Profile badge strip).
+- Removed inline KPI badge tooltip node creation from `renderDashboardAccountKpiBadges(...)` and wired each KPI badge to show/hide a shared hovercard rendered outside the dashboard card container.
+- Added full hover/focus/touch handling for KPI badges:
+  - `mouseenter` / `focus` -> show hovercard
+  - `mouseleave` / `blur` -> delayed hide
+  - `pointerdown` for touch/pen -> show hovercard
+- Added dashboard KPI hovercard lifecycle helpers:
+  - clear hide timer
+  - schedule hide
+  - immediate/animated hide
+  - viewport-safe positioning with top/bottom placement fallback
+- Added one-time global listeners for the KPI hovercard:
+  - keep open while pointer is over hovercard
+  - close on outside pointer down
+  - reposition on `resize` and `scroll`
+- Added dedicated dashboard KPI hovercard state tracking to prevent stale active keys/anchors.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design decisions made
+
+- Used one shared floating hovercard node outside `<main>` so tooltip-like content is not clipped by card boundaries/overflow contexts.
+- Reused existing Profile hovercard visuals/placement behavior to keep interaction consistency and reduce duplicate styling systems.
+
+### Known limitations
+
+- KPI badges are rendered as focusable `span[role="img"]` elements (existing approach), not semantic `button` elements.
+- Hovercard content remains badge-driven and does not include additional metadata beyond title/subtitle/icon.
+
+### Validation
+
+- Verified by code-path inspection:
+  - no remaining `dashboard-account-kpi-badge-tooltip` inline tooltip creation paths.
+  - dashboard KPI badges now call floating hovercard show/hide/position utilities.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## KPI Badge Source Logic Alignment (2026-04-07)
+
+### What changed
+
+- Updated `resolveDashboardAccountKpiBadgeEntries(...)` to mirror the Profile badge selection list directly, instead of enforcing a fixed 3-slot rank/title/extra scaffold.
+- Removed KPI-side placeholder slot generation that previously produced extra placeholder icons when only one badge was enabled/unlocked.
+- Added empty-state handling in `renderDashboardAccountKpiBadges(...)`:
+  - hide KPI badge strip when no profile badges are selected/available
+  - hide KPI hovercard immediately when list is empty
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design decisions made
+
+- KPI badge strip now follows Profile as the single source of truth for which badges should be displayed.
+- KPI no longer invents or fills absent badge slots.
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## KPI Badge Refresh Sync Fix (2026-04-07)
+
+### Root cause
+
+- Several data refresh/theme update flows were only calling `renderProfileHandleBadges(...)`.
+- The Dashboard KPI badge strip (`renderDashboardAccountKpiBadges(...)`) was not being refreshed in those same flows.
+- Result: Profile badge strip could show updated title badges while KPI stayed stale (often rank-only).
+
+### What changed
+
+- Added `syncProfileBadgeDisplays(...)` helper to update both:
+  - `renderProfileHandleBadges(...)`
+  - `renderDashboardAccountKpiBadges(...)`
+- Updated `syncHeaderProfileIdentity(...)` to use the shared badge-sync helper.
+- Replaced standalone `renderProfileHandleBadges(resolveEffectiveMemberProfile())` calls in refresh paths with `syncProfileBadgeDisplays(resolveEffectiveMemberProfile())`.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Badge Hover Window Visual Redesign (2026-04-07)
+
+### What changed
+
+- Redesigned the shared badge hover window styling (`.profile-handle-badge-hovercard*`) used by both Profile and Dashboard KPI badges.
+- Removed oversized circular visual treatment by restyling `.profile-handle-badge-hovercard-icon-shell` into a compact rounded-square icon tile.
+- Changed hover window layout from stacked/centered to compact two-column structure:
+  - left: icon tile
+  - right: title + subtitle
+- Reduced popup footprint and visual weight:
+  - smaller card width/padding
+  - lighter shadow depth
+  - cleaner pointer/arrow sizing
+  - removed heavy text italicization and large uppercase emphasis
+- Kept behavior/positioning logic unchanged (only visual redesign).
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design decisions made
+
+- Prioritized a cleaner, less generic tooltip appearance with better information density.
+- Reduced ornamental effects (large circular shell, oversized icon, heavy title styling) while preserving premium surface treatment.
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Hover Window Background Match (2026-04-07)
+
+### What changed
+
+- Updated `.profile-handle-badge-hovercard` background to exactly match the tooltip/pop-up background color:
+  - `rgb(20 22 28 / 0.96)`
+- Updated hovercard border to match tooltip/pop-up edge treatment:
+  - `1px solid rgb(255 255 255 / 0.14)`
+- Updated hovercard pointer arrow (`::after`) to the same background and border values so the pointer visually matches the window body.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Hover Window Pointer Removed (2026-04-07)
+
+### What changed
+
+- Removed the diamond pointer/arrow from the shared badge hover window style.
+- Updated `.profile-handle-badge-hovercard::after` to `content: none;` so no pointer is rendered.
+- Kept hover window behavior/positioning logic intact; this is a visual-only cleanup.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Hover Window Background + Click Shift Stabilization (2026-04-07)
+
+### What changed
+
+- Restored the badge hover window to the original styled gradient look and removed translucent background fill.
+- Updated `.profile-handle-badge-hovercard` background to fully opaque gradient colors (no alpha in background colors).
+- Reduced click/focus anchor motion to prevent hover window jump:
+  - removed transform-lift from badge `:focus-visible`/`data-hovered` states
+  - removed profile badge `:active` scale transform
+- Added same-anchor guard in both hovercard show functions so re-triggering on click/focus does not reset card coordinates to `-9999px` before reposition.
+- Simplified focus handlers to show hovercards without forcing hovered transform state.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Hover Jump Hard Fix (2026-04-07)
+
+### What changed
+
+- Added guard in both hovercard show functions to ignore redundant re-open calls when the same badge anchor/key is already active and visible.
+- Removed badge transform motion from hover states on both Profile and KPI badge anchors so anchor geometry stays stable while popup is open.
+- Kept highlight treatment (border/shadow changes) without positional movement.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Hover Window Text-Selection Keep-Open Fix (2026-04-07)
+
+### What changed
+
+- Fixed popup auto-hide when clicking/selecting text inside badge hover windows.
+- Added `shouldKeepProfileHandleBadgeHovercardOpen()` and `shouldKeepDashboardAccountKpiBadgeHovercardOpen()` guards.
+- Updated badge `blur` handlers to skip hide scheduling when popup is still hovered/focused.
+- Added popup listeners to keep hovercards open during direct interaction:
+  - `pointerdown` -> clear hide timer
+  - `focusin` -> clear hide timer
+  - `focusout` -> schedule hide only when focus leaves popup
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
