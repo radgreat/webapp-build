@@ -11786,3 +11786,211 @@ File: `index.html`
 
 - This pass adds visibility/listing for parked preferred customers on Admin side; it does not add an in-page one-click transfer action yet.
 - Sponsor reassignment remains available through admin placement workflows/API.
+
+## User Dashboard My Store Redesign - Checkout Removed From Member View (2026-04-06)
+
+### What changed
+
+- Fully redesigned the member-side `My Store` storefront UI in `index.html` to a cleaner browse-first experience.
+- Removed checkout/cart interface blocks from the member dashboard store view:
+  - removed in-page checkout form panel
+  - removed order summary/cart board from this page
+  - removed `Continue To Checkout` and `Go To Checkout` CTAs in the member storefront section
+- Introduced a new storefront visual structure:
+  - impact hero panel (`My Storefront`) with layered gradient accents
+  - prominent shareable store link area with copy action
+  - modernized product cards (image-first, BV/stock badges, compact metadata, `Quick View` + `Open Store` actions)
+  - redesigned product detail panel with simplified data blocks (`Price`, `Stock`, `Member Savings`, `Business Volume`)
+  - product detail actions now focus on `Open Live Store` and `Copy Store Link`
+
+### JS/behavior updates
+
+- Preserved server/admin catalog source wiring (`GET /api/store-products`) and existing normalization logic.
+- Updated member storefront flow logic to remove checkout step reachability:
+  - `resolveStoreFlowStep(...)` now supports `grid` and `product` only
+  - removed checkout-target event branches from storefront action listeners
+- Added `openLiveStorefront()` helper:
+  - opens the generated public store link in a new tab (with same-tab fallback when popup blocking occurs)
+- Updated card/listeners:
+  - grid card action changed from `Add To Cart` to `Open Store`
+  - product detail action changed from checkout/cart actions to `Open Live Store` + `Copy Store Link`
+- Updated storefront search placeholder text:
+  - `Search store products and checkout...` -> `Search store products and details...`
+
+### Design decisions
+
+- Kept backend checkout/invoice code paths untouched to avoid breaking existing purchase/BV attribution systems used in other flows.
+- Restricted this pass to member dashboard storefront UX scope only (no public storefront route or backend API contract changes).
+- Maintained existing DOM IDs where practical for compatibility (`store-link-value`, copy feedback hooks), while removing checkout-only DOM nodes from the member storefront section.
+
+### Known limitations
+
+- Checkout helper functions remain in `index.html` for backward compatibility but are no longer reachable from the member `My Store` UI.
+- Authenticated screenshot verification of the actual `My Store` page still requires a logged-in automation/session context; current screenshot run captured only the login gate.
+
+### Validation / QA
+
+- Inline scripts parse check passed:
+  - `All inline scripts parsed successfully.`
+- Screenshot smoke check (server render + no runtime crash at shell load):
+  - `temporary screenshots/screenshot-47-my-store-redesign-pass1.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+## User Dashboard Stripe Card Text Theme Sync Hardening (2026-04-06)
+
+### What changed
+
+- Strengthened Stripe Card Element theming in `index.html` so typed card text and placeholder text are explicitly theme-aware.
+- Added `resolveStoreStripeCardStyle()` with dark/light style tokens:
+  - dark theme uses light input text and muted light placeholders
+  - light theme uses dark input text and muted dark placeholders
+- Updated runtime theme sync path to push both:
+  - `elements.update({ appearance })`
+  - `cardElement.update({ style })`
+- Updated card initialization to mount with explicit style tokens immediately (before any theme toggles).
+
+### Design decisions
+
+- Kept the existing `appearance` API wiring and added explicit `card` style updates because Card Element text color can still default in some theme/layout situations.
+- Reused the app theme source (`document.documentElement.dataset.theme` + `normalizeAppTheme`) to avoid splitting theme logic.
+
+### Validation / QA
+
+- Frontend inline script parse check passed:
+  - `All inline scripts parsed successfully. Blocks: 2`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+## User Dashboard My Store Flow Correction - Internal Checkout Restored (2026-04-06)
+
+### What changed
+
+- Corrected member `My Store` flow so purchases remain inside the dashboard system and do not route to public storefront checkout.
+- Restored in-dashboard checkout pathway in `index.html`:
+  - re-added checkout step container `#store-flow-checkout-view`
+  - re-added checkout form `#store-checkout-form` and order summary panel IDs used by existing cart/checkout logic
+  - restored cart summary badge in storefront header row (`#store-grid-cart-count-badge`)
+- Updated storefront/product actions back to internal-cart behavior:
+  - product cards: `Quick View` + `Add To Cart`
+  - product detail: `Add To Cart` + `Go To Checkout`
+  - storefront action button: `Go To Checkout` (member dashboard flow)
+- Restored checkout step routing logic:
+  - `resolveStoreFlowStep(...)` now supports `checkout` again
+  - `data-store-flow-action="go-checkout"` and product `go-checkout` handlers now route to in-app checkout step
+  - checkout guard (requires non-empty cart) restored
+- Removed temporary public-store launch helper/actions from the member flow:
+  - removed `openLiveStorefront()` helper and `open-store*` action branches
+
+### Design decisions
+
+- Kept the redesigned card/hero visual style from the previous pass, but corrected flow semantics to preserve internal dashboard checkout ownership.
+- Reused existing checkout validation + invoice creation logic (no backend contract change) for a safe behavior rollback with minimal risk.
+
+### Validation / QA
+
+- Inline script parse check passed:
+  - `Inline scripts parse OK.`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+## User Dashboard My Store Stripe Checkout Integration (2026-04-06)
+
+### What changed
+
+- Implemented Stripe payment support directly inside member dashboard `My Store` checkout (no redirect to public store page).
+- Added Stripe.js loader to member shell:
+  - `https://js.stripe.com/v3/`
+- Updated checkout card UI in `index.html`:
+  - replaced manual card number/expiry/cvv fields with embedded Stripe Card Element mount
+  - retained cardholder name + buyer email + billing/shipping inputs
+  - checkout CTA now reflects Stripe payment action (`Pay With Stripe`)
+- Added member checkout Stripe runtime flow in `index.html`:
+  - loads publishable key from `GET /api/store-checkout/config`
+  - initializes Stripe Elements card field in checkout view
+  - creates payment intent via `POST /api/store-checkout/intent`
+  - confirms payment using `stripe.confirmCardPayment(...)`
+  - on successful payment, reuses existing internal invoice + BV logic (`createInvoiceFromLines`) so compensation and PV processing remain tied to current dashboard behavior
+  - preserves in-dashboard cart/checkout UX and does not route buyer to `store-checkout.html`
+
+### Backend support update
+
+- Updated checkout discount resolution logic in `backend/services/store-checkout.service.js`:
+  - allows `member-dashboard` sourced payment intents (with buyer identity fields) to honor passed discount percent, instead of forcing guest-mode 0% discount.
+  - keeps public guest checkout behavior unchanged unless `source` + buyer identity match member-dashboard path.
+
+### Design decisions
+
+- Deliberately kept invoice creation + BV upstream syncing on existing dashboard pipeline to avoid changing binary tree/compensation behavior during Stripe rollout.
+- Stripe intent endpoint is used for payment authorization only in member dashboard flow; order recording remains on the established internal invoice path.
+
+### Known limitations
+
+- If backend process is already running, server restart is required for the updated discount-resolution logic in `backend/services/store-checkout.service.js` to take effect in live runtime.
+- Full end-to-end card charge validation still depends on active Stripe test/live keys in environment.
+
+### Validation / QA
+
+- Frontend inline script parse check passed:
+  - `All inline scripts parsed successfully.`
+- Backend syntax checks passed:
+  - `node --check backend/services/store-checkout.service.js`
+  - `node --check backend/controllers/store-checkout.controller.js`
+  - `node --check backend/routes/store-checkout.routes.js`
+- API smoke checks passed for Stripe config and payment-intent endpoint shape:
+  - `GET /api/store-checkout/config`
+  - `POST /api/store-checkout/intent`
+  - isolated runtime check (`PORT=3132`) confirmed member-dashboard discount application in intent response:
+    - subtotal `79.00`
+    - discount `15.80`
+    - total `63.20`
+
+### Files affected
+
+- `index.html`
+- `backend/services/store-checkout.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+## User Dashboard My Store Stripe Card Theme-Aware Styling (2026-04-06)
+
+### What changed
+
+- Updated Stripe Card Element appearance in dashboard `My Store` checkout so text is readable in both dark and light themes.
+- Added a theme-aware Stripe appearance resolver in `index.html`:
+  - dark app theme -> Stripe `night` appearance with light text/placeholder tokens
+  - light app theme -> Stripe `stripe` appearance with dark text tokens
+- Added live appearance sync when app theme changes so the card UI updates instantly without remounting checkout.
+
+### Design decisions
+
+- Hooked Stripe appearance updates into existing app theme flow (`applyAppTheme`) to keep a single source of truth.
+- Used Stripe Elements `update({ appearance })` API for low-friction runtime updates.
+
+### Validation / QA
+
+- Frontend inline script parse check passed:
+  - `All inline scripts parsed successfully.`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`

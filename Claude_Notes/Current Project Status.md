@@ -7,6 +7,98 @@ Last Updated: 2026-04-06
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
 
+## Recent Update (2026-04-06) - Stripe Card Is Now Theme-Aware (Dark/Light)
+
+- Updated dashboard `My Store` Stripe card styling to follow app theme mode.
+- Dark mode now uses Stripe night appearance with light text/placeholder colors.
+- Light mode now uses Stripe light appearance with dark text for readability.
+- Added live theme-sync for Stripe Elements when user switches theme in app settings.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation status:
+  - frontend inline script parse passed (`All inline scripts parsed successfully.`)
+
+## Recent Update (2026-04-06) - User My Store Checkout Now Supports Stripe (In-Dashboard)
+
+- Implemented Stripe payment inside user dashboard `My Store` checkout flow.
+- Checkout remains in-system (`index.html`) and no public-store checkout redirect is used.
+- UI updates:
+  - embedded Stripe card element field in checkout form
+  - retained cardholder/email + billing/shipping data capture
+  - checkout CTA updated to Stripe payment action label
+- Behavior updates:
+  - load Stripe config from `/api/store-checkout/config`
+  - create payment intent from `/api/store-checkout/intent`
+  - confirm card via `stripe.confirmCardPayment(...)`
+  - after Stripe success, continue existing internal invoice/BV processing pipeline
+- Backend support:
+  - updated store-checkout discount resolver so `member-dashboard` sourced intents can honor member discount percent when buyer identity fields are present.
+- Files updated:
+  - `index.html`
+  - `backend/services/store-checkout.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation status:
+  - frontend inline script parse passed (`All inline scripts parsed successfully.`)
+  - backend syntax checks passed for updated Stripe checkout service/routes/controllers
+  - API smoke checks for `/api/store-checkout/config` and `/api/store-checkout/intent` returned success payloads
+- Notes:
+  - backend process restart is required for live runtime to pick up the new discount resolver behavior if server was already running.
+
+## Recent Update (2026-04-06) - User My Store Flow Correction (Internal Checkout Restored)
+
+- Corrected member `My Store` behavior to keep checkout inside dashboard system flow.
+- Restored internal checkout step and wiring:
+  - checkout view section (`#store-flow-checkout-view`)
+  - checkout form (`#store-checkout-form`)
+  - order summary/cart IDs required by existing cart renderer
+- Reverted user-facing actions from public-store redirects back to internal cart flow:
+  - product card action: `Add To Cart`
+  - product detail actions: `Add To Cart`, `Go To Checkout`
+  - storefront action: `Go To Checkout`
+- Removed temporary public-store redirect helper/action branches from member flow.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation status:
+  - `Inline scripts parse OK.`
+- Notes:
+  - this correction supersedes the prior dashboard pass that temporarily removed in-app checkout from member `My Store`.
+
+## Recent Update (2026-04-06) - User My Store Redesign (Checkout Removed In Dashboard View)
+
+- Completed a full member-side `My Store` storefront redesign in `index.html` with cleaner, browse-first UX.
+- Removed checkout/cart UI from the user dashboard store page:
+  - checkout form panel removed
+  - order/cart summary board removed
+  - checkout-target buttons removed from grid and product detail actions
+- Added refreshed storefront composition:
+  - `My Storefront` hero with share-link focus
+  - modernized product cards (`Quick View` + `Open Store`)
+  - simplified product detail pane with `Price`, `Stock`, `Member Savings`, and `Business Volume`
+  - detail actions now: `Open Live Store` and `Copy Store Link`
+- Updated storefront interaction logic:
+  - store flow is now `grid` and `product` in member dashboard UI
+  - no checkout step navigation exposed in this page
+  - added `openLiveStorefront()` helper for opening generated public store link
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation status:
+  - inline script parse check passed (`All inline scripts parsed successfully.`)
+  - render smoke screenshot captured (unauthenticated shell):
+    - `temporary screenshots/screenshot-47-my-store-redesign-pass1.png`
+- Notes:
+  - checkout/invoice backend code paths were intentionally left intact for compatibility with other purchase flows; this pass removes checkout from the member dashboard `My Store` UI only.
+
 ## Recent Update (2026-04-06) - Admin My Store Mobile Product List Simplified
 
 - Simplified Admin `My Store` mobile product rows to a normal compact list view.
@@ -5521,3 +5613,21 @@ Last Updated: 2026-04-06
 - Notes:
   - this update focuses on parked preferred-customer visibility in Admin.
   - transfer/reassignment action buttons are not yet embedded in this page UI (backend reassignment support is already available).
+
+## Recent Update (2026-04-06) - User Dashboard Stripe Card Text Now Dark/Light Theme-Aware
+
+- Completed:
+  - hardened dashboard checkout Stripe card field styling so typed text/placeholder colors adapt to app theme.
+  - added dedicated card style resolver for dark/light tokens (`resolveStoreStripeCardStyle`).
+  - updated theme-sync flow to refresh both Stripe Elements appearance and the mounted Card Element style.
+  - updated initial Card Element mount config to include theme-aware style at creation time.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`

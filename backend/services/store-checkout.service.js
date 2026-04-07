@@ -82,8 +82,16 @@ function normalizeDiscountPercent(value, fallbackPercent = DEFAULT_DISCOUNT_PERC
   return Math.max(0, Math.min(60, Math.round(numericValue * 100) / 100));
 }
 
-function resolveDiscountPercentForCheckoutMode(value, checkoutMode = CHECKOUT_MODE_GUEST) {
-  if (checkoutMode !== CHECKOUT_MODE_FREE_ACCOUNT) {
+function resolveDiscountPercentForCheckoutMode(value, checkoutMode = CHECKOUT_MODE_GUEST, options = {}) {
+  const source = normalizeText(options?.source).toLowerCase();
+  const buyerIdentityPresent = Boolean(
+    normalizeText(options?.buyerUserId)
+    || normalizeText(options?.buyerUsername)
+    || normalizeEmail(options?.buyerEmail),
+  );
+  const allowMemberDashboardDiscount = source === 'member-dashboard' && buyerIdentityPresent;
+
+  if (checkoutMode !== CHECKOUT_MODE_FREE_ACCOUNT && !allowMemberDashboardDiscount) {
     return 0;
   }
   return normalizeDiscountPercent(value, DEFAULT_DISCOUNT_PERCENT);
@@ -1039,7 +1047,12 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
     : '';
 
   const products = await readStoreProductsStore({ includeArchived: false });
-  const discountPercent = resolveDiscountPercentForCheckoutMode(payload.discountPercent, checkoutMode);
+  const discountPercent = resolveDiscountPercentForCheckoutMode(payload.discountPercent, checkoutMode, {
+    source: payload.source,
+    buyerUserId: payload.buyerUserId,
+    buyerUsername: payload.buyerUsername,
+    buyerEmail,
+  });
   const discountRate = discountPercent / 100;
 
   const checkoutSummary = buildCheckoutLineItems(cartLines, products, discountRate);
@@ -1206,7 +1219,12 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     : '';
 
   const products = await readStoreProductsStore({ includeArchived: false });
-  const discountPercent = resolveDiscountPercentForCheckoutMode(payload.discountPercent, checkoutMode);
+  const discountPercent = resolveDiscountPercentForCheckoutMode(payload.discountPercent, checkoutMode, {
+    source: payload.source,
+    buyerUserId: payload.buyerUserId,
+    buyerUsername: payload.buyerUsername,
+    buyerEmail,
+  });
   const discountRate = discountPercent / 100;
 
   const checkoutSummary = buildCheckoutLineItems(cartLines, products, discountRate);

@@ -9,6 +9,152 @@
 - Removed upfront checkout UI from the storefront landing page.
 - Kept the existing green/slate color direction while adding a reusable top navbar and cleaner page hierarchy.
 
+## Update (2026-04-06) - User Dashboard My Store Redesign (No Checkout In Dashboard Store View)
+
+### What Was Changed
+
+- Redesigned member dashboard `My Store` storefront section in `index.html` to a cleaner product-browse experience.
+- Removed dashboard-store checkout/cart UI blocks from user side:
+  - removed checkout form section from `My Store` view
+  - removed order summary/cart board from `My Store` view
+  - removed checkout-focused CTAs in storefront/product detail area
+- Added a new visual hierarchy for user-side store management:
+  - `My Storefront` hero with shareable-link emphasis
+  - refreshed product card treatment (image-first, BV + stock badges, concise details)
+  - simplified product details layout with focused commerce metadata
+  - actions now prioritize link-sharing and opening the live/public store
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept the member dashboard experience lightweight: browse + details + share/open live store.
+- Preserved backend/admin catalog connection and product rendering pipeline so user-side cards still reflect current admin product setup.
+- Left checkout/invoice logic in code for compatibility with existing flows outside this dashboard UI path.
+
+### Validation
+
+- Inline scripts parse check passed:
+  - `All inline scripts parsed successfully.`
+- Local render smoke screenshot:
+  - `temporary screenshots/screenshot-47-my-store-redesign-pass1.png`
+
+### Known Limitations
+
+- Screenshot pass in this run captured unauthenticated shell/login state only; authenticated `My Store` screenshot requires session automation context.
+
+## Update (2026-04-06) - User Dashboard My Store Flow Correction (Keep Checkout In-System)
+
+### What Was Changed
+
+- Corrected the member dashboard store flow so checkout stays inside `index.html` My Store flow.
+- Restored checkout/cart UI blocks in user dashboard store area:
+  - checkout step view
+  - checkout form
+  - cart/order summary panel
+- Reverted user-side store actions to internal cart flow:
+  - product cards now use `Add To Cart`
+  - product details now use `Add To Cart` and `Go To Checkout`
+  - storefront header actions now include in-dashboard `Go To Checkout`
+- Removed temporary public-store redirection action wiring from dashboard My Store.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept the refreshed visual design language from the redesign pass while restoring the correct internal purchase path.
+- Reused existing checkout validation + invoice/cart handlers to avoid backend side-effects.
+
+### Validation
+
+- Inline scripts parse check passed:
+  - `Inline scripts parse OK.`
+
+### Known Limitations
+
+- Authenticated screenshot verification for the exact dashboard `My Store` checkout step was not executed in this pass (session automation context required).
+
+## Update (2026-04-06) - User Dashboard My Store Stripe Checkout (In-System)
+
+### What Was Changed
+
+- Added Stripe payment support directly in member dashboard checkout (`index.html`), keeping the user in the same internal store flow.
+- Added Stripe.js in dashboard shell and embedded Stripe Card Element in checkout form.
+- Replaced manual card number/expiry/cvv form controls with Stripe-managed secure card input.
+- Checkout action now:
+  - creates Stripe payment intent via `/api/store-checkout/intent`
+  - confirms card with Stripe Elements
+  - then records order through existing internal invoice/BV logic in dashboard store flow
+
+### Backend Support
+
+- Updated `backend/services/store-checkout.service.js` discount resolver so payment intents from `member-dashboard` source can honor member discount percent (when buyer identity is present), while preserving existing guest/public behavior.
+
+### Files Affected
+
+- `index.html`
+- `backend/services/store-checkout.service.js`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved existing dashboard invoice/BV pipeline to avoid regression in compensation logic while adding Stripe payment confirmation.
+- Kept flow strictly in-system for member-side checkout.
+
+### Validation
+
+- Frontend inline scripts parse passed.
+- Backend syntax checks passed for updated store-checkout service and related controller/route.
+- API smoke checks:
+  - `GET /api/store-checkout/config`
+  - `POST /api/store-checkout/intent`
+
+### Known Limitations
+
+- Live backend restart is required to activate updated discount-resolution behavior if existing server process was already running.
+
+## Update (2026-04-06) - User Dashboard Stripe Card Theme Awareness (Dark/Light)
+
+### What Was Changed
+
+- Updated `index.html` member dashboard Stripe card rendering so card text/input colors follow app theme mode.
+- Added Stripe appearance resolver:
+  - dark theme -> `night` appearance with high-contrast light text
+  - light theme -> `stripe` appearance with dark text
+- Added live appearance sync so Stripe card updates when user switches theme in dashboard settings.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used Stripe Elements appearance update API instead of remounting to avoid flicker and preserve current field focus/state.
+
+### Validation
+
+- Frontend inline scripts parse passed:
+  - `All inline scripts parsed successfully.`
+
+### Known Limitations
+
+- Visual confirmation requires an authenticated dashboard session where checkout view is open while toggling theme.
+
 ## Update (2026-04-06) - Admin My Store Mobile Rows Simplified (Normal List Style)
 
 ### What Was Changed
@@ -604,3 +750,14 @@
   - no-attribution free-account intent returns `checkout.attributionKey: ""`
   - attributed (`CHG-ZERO`) flow still returns `checkout.attributionKey: "CHG-ZERO"`
 - Admin sponsor reassignment API test confirmed member sponsor + user attribution sync, with rollback applied.
+
+## Dashboard Store Checkout Stripe Card Theme Fix (2026-04-06)
+
+- Updated user dashboard (`index.html`) Stripe card field to avoid black text in dark mode.
+- Added explicit theme-based Card Element style resolver and live theme-sync update hooks.
+- Theme updates now refresh both:
+  - Stripe appearance tokens
+  - Card Element text/placeholder/icon colors
+- Validation:
+  - inline script parse passed:
+    - `All inline scripts parsed successfully. Blocks: 2`

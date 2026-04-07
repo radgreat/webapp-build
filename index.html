@@ -15,6 +15,7 @@
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://js.stripe.com/v3/"></script>
   <script src="/vendor/pixi.min.js"></script>
   <script>
     tailwind.config = {
@@ -4442,203 +4443,210 @@
 
         <section id="page-my-store" data-page-view="my-store" class="hidden space-y-6">
           <div data-store-view="storefront" class="space-y-6">
-            <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-              <div class="flex items-start justify-between gap-4">
-                <div>
-                  <h3 class="font-body font-medium text-display-sm text-text-primary">Store Products</h3>
-                  <p class="text-caption text-text-tertiary mt-1">Simple product browsing and checkout powered directly by your live admin catalog.</p>
-                </div>
-                <div class="flex flex-col sm:items-end gap-1">
-                  <span id="store-rank-discount-badge" class="inline-flex items-center gap-1 rounded-full bg-semantic-success-bg text-semantic-success px-2 py-0.5 text-caption font-medium">Rank Discount: 0%</span>
-                  <span id="store-grid-cart-count-badge" class="inline-flex items-center gap-1 rounded-full bg-semantic-info-bg text-semantic-info px-2 py-0.5 text-caption font-medium">0 items in cart</span>
-                </div>
+            <div class="relative overflow-hidden rounded-2xl border border-surface-border bg-surface-raised p-6 shadow-depth-2">
+              <div class="pointer-events-none absolute inset-0">
+                <div class="absolute -top-16 left-0 h-40 w-40 rounded-full bg-brand-500/20 blur-3xl"></div>
+                <div class="absolute -bottom-20 right-4 h-44 w-44 rounded-full bg-semantic-info/20 blur-3xl"></div>
               </div>
-              <div class="mt-5 rounded-lg border border-surface-border bg-surface-base/40 p-3">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                  <div class="min-w-0">
-                    <p class="text-caption text-text-tertiary">Shareable Store Link</p>
-                    <p id="store-link-value" class="text-body-sm text-text-primary mt-1 break-all">shop.premierelife.com?store=CHG-ZERO</p>
-                    <p class="text-caption text-text-tertiary mt-1">Share this link with customers to open your store directly.</p>
+              <div class="relative">
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                  <div class="max-w-2xl">
+                    <h3 class="font-body font-medium text-display-sm text-text-primary">My Storefront</h3>
+                    <p class="text-caption text-text-tertiary mt-1">Simple, clean product browsing powered by your live admin catalog.</p>
                   </div>
-                  <button id="copy-store-link-button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                    Copy Store Link
+                  <span id="store-rank-discount-badge" class="inline-flex items-center gap-1 rounded-full bg-semantic-success-bg text-semantic-success px-3 py-1 text-caption font-medium">
+                    Member Discount: 0%
+                  </span>
+                </div>
+
+                <div class="mt-5 rounded-xl border border-surface-border bg-surface-base/50 p-4">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div class="min-w-0">
+                      <p class="text-caption text-text-tertiary">Shareable Store Link</p>
+                      <p id="store-link-value" class="text-body-sm text-text-primary mt-1 break-all">shop.premierelife.com?store=CHG-ZERO</p>
+                      <p class="text-caption text-text-tertiary mt-1">Send this link to customers to open your storefront directly.</p>
+                    </div>
+                    <button id="copy-store-link-button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Copy Store Link
+                    </button>
+                  </div>
+                  <p id="copy-store-link-feedback" class="hidden text-caption text-semantic-success mt-2">Store link copied.</p>
+                </div>
+
+                <p id="store-checkout-feedback" class="hidden text-caption mt-4"></p>
+              </div>
+            </div>
+
+            <div id="store-flow-grid-view" class="space-y-5">
+              <div class="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h3 class="font-body font-medium text-display-sm text-text-primary">Featured Products</h3>
+                  <p class="text-caption text-text-tertiary mt-1">Tap a card for details, add products to cart, and checkout inside this dashboard.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <p id="store-grid-product-count" class="text-caption text-text-tertiary">0 live products</p>
+                  <span id="store-grid-cart-count-badge" class="inline-flex items-center gap-1 rounded-full bg-semantic-info-bg text-semantic-info px-2 py-0.5 text-caption font-medium">0 items in cart</span>
+                  <button type="button" data-store-flow-action="go-checkout" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-500 text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                    Go To Checkout
                   </button>
                 </div>
-                <p id="copy-store-link-feedback" class="hidden text-caption text-semantic-success mt-2">Store link copied.</p>
               </div>
+              <div id="store-product-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
             </div>
 
-            <div id="store-flow-grid-view" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div class="lg:col-span-2 bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-                <div class="flex items-start justify-between gap-3 mb-5">
-                  <div>
-                    <h3 class="font-body font-medium text-display-sm text-text-primary">Product Grid</h3>
-                    <p class="text-caption text-text-tertiary mt-1">Browse active products, then open a product page for full details.</p>
+            <div id="store-flow-product-view" class="hidden">
+              <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-6">
+                <article class="overflow-hidden rounded-2xl border border-surface-border bg-surface-raised shadow-depth-1">
+                  <div class="p-4">
+                    <button type="button" data-store-flow-action="back-to-grid" class="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Back To Products
+                    </button>
                   </div>
-                </div>
-                <div id="store-product-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
-              </div>
+                  <div class="relative border-t border-surface-border">
+                    <img id="store-selected-product-image" src="https://placehold.co/1000x1250?text=Product" alt="Selected product image" draggable="false" class="w-full aspect-[4/5] select-none object-cover" style="-webkit-user-drag: none;">
+                    <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-surface-base/80 via-surface-base/20 to-transparent"></div>
+                  </div>
+                </article>
 
-              <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-                <h3 class="font-body font-medium text-display-sm text-text-primary">Current Cart</h3>
-                <p class="text-caption text-text-tertiary mt-1 mb-4">You can start checkout from here or after reviewing a product page.</p>
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between text-body-sm">
-                    <span class="text-text-secondary">Items</span>
-                    <span id="store-grid-summary-items" class="text-text-primary">0</span>
-                  </div>
-                  <div class="flex items-center justify-between text-body-sm">
-                    <span class="text-text-secondary">Subtotal</span>
-                    <span id="store-grid-summary-total" class="text-text-primary">$0.00</span>
-                  </div>
-                  <div class="flex items-center justify-between text-body-sm">
-                    <span id="store-grid-discount-label" class="text-text-secondary">Rank Discount (0%)</span>
-                    <span id="store-grid-summary-discount" class="text-semantic-success">-$0.00</span>
-                  </div>
-                  <div class="flex items-center justify-between text-body-sm">
-                    <span class="text-text-secondary">BV Points</span>
-                    <span id="store-grid-summary-bp" class="text-text-primary">0 BV</span>
-                  </div>
-                </div>
-                <button type="button" data-store-flow-action="go-checkout" class="mt-4 w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-500 text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                  Continue To Checkout
-                </button>
-              </div>
-            </div>
-
-            <div id="store-flow-product-view" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div class="lg:col-span-2 bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-                <button type="button" data-store-flow-action="back-to-grid" class="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">Back To Product Grid</button>
-                <div class="mt-4 overflow-hidden rounded-xl border border-surface-border bg-surface-base/40">
-                  <img id="store-selected-product-image" src="https://placehold.co/1000x1250?text=Product" alt="Selected product image" draggable="false" class="w-full aspect-[4/5] select-none object-cover" style="-webkit-user-drag: none;">
-                </div>
-                <div class="mt-4">
+                <article class="rounded-2xl border border-surface-border bg-surface-raised p-6 shadow-depth-1">
                   <h3 id="store-selected-product-title" class="font-body font-medium text-display-sm text-text-primary">Select a product</h3>
-                  <p id="store-selected-product-description" class="text-body-sm text-text-secondary mt-2">Choose a product from the grid to open a full product page.</p>
-                  <ul id="store-selected-product-details" class="mt-3 space-y-2 text-body-sm text-text-secondary"></ul>
-                </div>
-              </div>
+                  <p id="store-selected-product-description" class="text-body-sm text-text-secondary mt-2">Choose a product from the grid to open full details.</p>
 
-              <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-                <h4 class="font-body font-medium text-display-sm text-text-primary">Product Purchase</h4>
-                <div class="mt-4 space-y-2">
-                  <div class="flex items-center justify-between text-body-sm">
-                    <span class="text-text-secondary">Price</span>
-                    <span id="store-selected-product-price" class="text-text-primary">$0.00</span>
+                  <dl class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
+                      <dt class="text-caption text-text-tertiary">Price</dt>
+                      <dd id="store-selected-product-price" class="text-body-sm text-text-primary mt-1">$0.00</dd>
+                    </div>
+                    <div class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
+                      <dt class="text-caption text-text-tertiary">Stock</dt>
+                      <dd id="store-selected-product-stock" class="text-body-sm text-text-primary mt-1">0 available</dd>
+                    </div>
+                    <div class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
+                      <dt class="text-caption text-text-tertiary">Member Savings</dt>
+                      <dd id="store-selected-product-rank-discount" class="text-body-sm text-semantic-success mt-1">0%</dd>
+                    </div>
+                    <div class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
+                      <dt class="text-caption text-text-tertiary">Business Volume</dt>
+                      <dd id="store-selected-product-bv" class="text-body-sm text-text-primary mt-1">0 BV</dd>
+                    </div>
+                  </dl>
+
+                  <ul id="store-selected-product-details" class="mt-5 space-y-2 text-body-sm text-text-secondary"></ul>
+
+                  <label for="store-product-quantity-input" class="mt-5 block text-caption text-text-tertiary">Quantity</label>
+                  <input id="store-product-quantity-input" type="number" min="1" value="1" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+
+                  <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button type="button" data-product-page-action="add-to-cart" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Add To Cart
+                    </button>
+                    <button type="button" data-product-page-action="go-checkout" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-500 text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Go To Checkout
+                    </button>
                   </div>
-                  <div class="flex items-center justify-between text-body-sm">
-                    <span class="text-text-secondary">Rank Discount</span>
-                    <span id="store-selected-product-rank-discount" class="text-semantic-success">0%</span>
-                  </div>
-                  <div class="flex items-center justify-between text-body-sm">
-                    <span class="text-text-secondary">Stock</span>
-                    <span id="store-selected-product-stock" class="text-text-primary">0 available</span>
-                  </div>
-                </div>
-                <label for="store-product-quantity-input" class="mt-4 block text-caption text-text-tertiary">Quantity</label>
-                <input id="store-product-quantity-input" type="number" min="1" value="1" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                <div class="mt-4 space-y-2">
-                  <button type="button" data-product-page-action="add-to-cart" class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">Add To Cart</button>
-                  <button type="button" data-product-page-action="go-checkout" class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-500 text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">Go To Checkout</button>
-                </div>
+                </article>
               </div>
             </div>
 
-            <div id="store-flow-checkout-view" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <form id="store-checkout-form" class="lg:col-span-2 bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1 space-y-6">
+            <div id="store-flow-checkout-view" class="hidden space-y-5">
+              <div class="flex flex-wrap items-end justify-between gap-3">
                 <div>
                   <h3 class="font-body font-medium text-display-sm text-text-primary">Checkout</h3>
-                  <p class="text-caption text-text-tertiary mt-1">Enter card, billing, and shipping details to place your order.</p>
+                  <p class="text-caption text-text-tertiary mt-1">Complete payment directly in your dashboard store flow.</p>
                 </div>
+                <button type="button" data-store-flow-action="back-to-grid" class="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                  Back To Products
+                </button>
+              </div>
 
-                <div>
-                  <h4 class="text-body-sm font-medium text-text-primary mb-3">Card Details</h4>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <label class="text-caption text-text-tertiary md:col-span-2">Cardholder Name
-                      <input name="cardholderName" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                    </label>
-                    <label class="text-caption text-text-tertiary md:col-span-2">Card Number
-                      <input name="cardNumber" type="text" inputmode="numeric" autocomplete="cc-number" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                    </label>
-                    <label class="text-caption text-text-tertiary">Expiration (MM/YY)
-                      <input name="cardExpiration" type="text" autocomplete="cc-exp" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                    </label>
-                    <label class="text-caption text-text-tertiary">CVV
-                      <input name="cardCvv" type="text" inputmode="numeric" autocomplete="cc-csc" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                    </label>
+              <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-6">
+                <form id="store-checkout-form" class="rounded-2xl border border-surface-border bg-surface-raised p-6 shadow-depth-1 space-y-6">
+                  <div>
+                    <h4 class="text-body-sm font-medium text-text-primary mb-3">Card Details</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <label class="text-caption text-text-tertiary">Cardholder Name
+                        <input name="cardholderName" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                      </label>
+                      <label class="text-caption text-text-tertiary">Email
+                        <input name="buyerEmail" type="email" autocomplete="email" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                      </label>
+                      <div class="md:col-span-2">
+                        <p class="text-caption text-text-tertiary mb-1">Secure Card (Stripe)</p>
+                        <div id="store-stripe-card-element" class="rounded-lg border border-surface-border bg-surface-base px-3 py-3 min-h-[44px]"></div>
+                        <p id="store-stripe-card-error" class="hidden mt-2 text-caption text-semantic-danger"></p>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <h4 class="text-body-sm font-medium text-text-primary mb-3">Billing Address</h4>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <label class="text-caption text-text-tertiary md:col-span-2">Address
-                      <input name="billingAddress" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                    </label>
-                    <label class="text-caption text-text-tertiary">City
-                      <input name="billingCity" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                    </label>
-                    <label class="text-caption text-text-tertiary">State
-                      <input name="billingState" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                    </label>
-                    <label class="text-caption text-text-tertiary">ZIP / Postal Code
-                      <input name="billingPostalCode" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                    </label>
-                    <label class="text-caption text-text-tertiary">Country
-                      <input name="billingCountry" type="text" value="United States" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                    </label>
+                  <div>
+                    <h4 class="text-body-sm font-medium text-text-primary mb-3">Billing Address</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <label class="text-caption text-text-tertiary md:col-span-2">Address
+                        <input name="billingAddress" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                      </label>
+                      <label class="text-caption text-text-tertiary">City
+                        <input name="billingCity" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                      </label>
+                      <label class="text-caption text-text-tertiary">State
+                        <input name="billingState" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                      </label>
+                      <label class="text-caption text-text-tertiary">ZIP / Postal Code
+                        <input name="billingPostalCode" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                      </label>
+                      <label class="text-caption text-text-tertiary">Country
+                        <input name="billingCountry" type="text" value="United States" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                      </label>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <h4 class="text-body-sm font-medium text-text-primary mb-3">Mode Of Shipping</h4>
-                  <div class="space-y-2">
-                    <label class="flex items-center gap-2 rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2 text-body-sm text-text-secondary">
-                      <input type="radio" name="shippingMode" value="Standard Shipping" checked class="accent-brand-500">
-                      Standard Shipping (3-5 business days)
-                    </label>
-                    <label class="flex items-center gap-2 rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2 text-body-sm text-text-secondary">
-                      <input type="radio" name="shippingMode" value="Express Shipping" class="accent-brand-500">
-                      Express Shipping (2 business days)
-                    </label>
-                    <label class="flex items-center gap-2 rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2 text-body-sm text-text-secondary">
-                      <input type="radio" name="shippingMode" value="Overnight Shipping" class="accent-brand-500">
-                      Overnight Shipping (next day)
-                    </label>
+                  <div>
+                    <h4 class="text-body-sm font-medium text-text-primary mb-3">Shipping</h4>
+                    <div class="space-y-2">
+                      <label class="flex items-center gap-2 rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2 text-body-sm text-text-secondary">
+                        <input type="radio" name="shippingMode" value="Standard Shipping" checked class="accent-brand-500">
+                        Standard Shipping (3-5 business days)
+                      </label>
+                      <label class="flex items-center gap-2 rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2 text-body-sm text-text-secondary">
+                        <input type="radio" name="shippingMode" value="Express Shipping" class="accent-brand-500">
+                        Express Shipping (2 business days)
+                      </label>
+                      <label class="flex items-center gap-2 rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2 text-body-sm text-text-secondary">
+                        <input type="radio" name="shippingMode" value="Overnight Shipping" class="accent-brand-500">
+                        Overnight Shipping (next day)
+                      </label>
+                    </div>
                   </div>
-                </div>
+                </form>
 
-              </form>
-
-              <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="font-body font-medium text-display-sm text-text-primary">Order Summary</h3>
-                  <span id="store-cart-count" class="text-caption text-text-tertiary">0 items</span>
-                </div>
-                <div id="store-cart-empty" class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-4 text-body-sm text-text-secondary">Your cart is empty.</div>
-                <div id="store-cart-items" class="space-y-2"></div>
-                <div class="mt-4 space-y-2 border-t border-surface-border pt-4">
-                  <div class="flex items-center justify-between text-body-sm">
-                    <span class="text-text-secondary">Subtotal</span>
-                    <span id="store-cart-subtotal" class="text-text-primary">$0.00</span>
+                <aside class="rounded-2xl border border-surface-border bg-surface-raised p-6 shadow-depth-1">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-body font-medium text-display-sm text-text-primary">Order Summary</h4>
+                    <span id="store-cart-count" class="text-caption text-text-tertiary">0 items</span>
                   </div>
-                  <div class="flex items-center justify-between text-body-sm">
-                    <span id="store-cart-discount-label" class="text-text-secondary">Discount (Rank 0%)</span>
-                    <span id="store-cart-discount" class="text-semantic-success">-$0.00</span>
+                  <div id="store-cart-empty" class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-4 text-body-sm text-text-secondary">Your cart is empty.</div>
+                  <div id="store-cart-items" class="space-y-2"></div>
+                  <div class="mt-4 space-y-2 border-t border-surface-border pt-4">
+                    <div class="flex items-center justify-between text-body-sm">
+                      <span class="text-text-secondary">Subtotal</span>
+                      <span id="store-cart-subtotal" class="text-text-primary">$0.00</span>
+                    </div>
+                    <div class="flex items-center justify-between text-body-sm">
+                      <span id="store-cart-discount-label" class="text-text-secondary">Discount (Rank 0%)</span>
+                      <span id="store-cart-discount" class="text-semantic-success">-$0.00</span>
+                    </div>
+                    <div class="flex items-center justify-between text-body-sm">
+                      <span class="text-text-secondary">Total</span>
+                      <span id="store-cart-total" class="text-text-primary">$0.00</span>
+                    </div>
+                    <div class="flex items-center justify-between text-body-sm">
+                      <span class="text-text-secondary">Business Volume</span>
+                      <span id="store-cart-bp" class="text-text-primary">0 BV</span>
+                    </div>
+                    <button id="store-checkout-btn" type="submit" form="store-checkout-form" class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-500 text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                      Pay With Stripe
+                    </button>
                   </div>
-                  <div class="flex items-center justify-between text-body-sm">
-                    <span class="text-text-secondary">Total</span>
-                    <span id="store-cart-total" class="text-text-primary">$0.00</span>
-                  </div>
-                  <div class="flex items-center justify-between text-body-sm">
-                    <span class="text-text-secondary">Business Points</span>
-                    <span id="store-cart-bp" class="text-text-primary">0 BV</span>
-                  </div>
-                  <button id="store-checkout-btn" type="submit" form="store-checkout-form" class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-500 text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring disabled:opacity-40 disabled:cursor-not-allowed" disabled>
-                    Place Order
-                  </button>
-                  <p id="store-checkout-feedback" class="hidden text-caption text-semantic-success"></p>
-                </div>
+                </aside>
               </div>
             </div>
           </div>
@@ -5355,6 +5363,8 @@
       const PROFILE_BADGE_HOVER_HIDE_DELAY_MS = 90;
       const STORE_INVOICES_API = '/api/store-invoices';
       const STORE_PRODUCTS_API = '/api/store-products';
+      const STORE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
+      const STORE_CHECKOUT_INTENT_API = '/api/store-checkout/intent';
       const E_WALLET_API = '/api/e-wallet';
       const E_WALLET_PEER_TRANSFER_API = '/api/e-wallet/peer-transfer';
       const E_WALLET_COMMISSION_TRANSFER_API = '/api/e-wallet/commission-transfer';
@@ -10856,6 +10866,8 @@
         if (settingsThemeSwitcher) {
           settingsThemeSwitcher.value = nextTheme;
         }
+
+        syncStoreStripeAppearanceToTheme();
 
         if (options.persist !== false) {
           writeRuntimeSettingsFallback({ appTheme: nextTheme });
@@ -17852,6 +17864,7 @@
       const storeFlowIndicatorButtons = Array.from(document.querySelectorAll('[data-store-flow-indicator]'));
       const storeFlowActionButtons = Array.from(document.querySelectorAll('[data-store-flow-action]'));
       const storeGridCartCountBadgeElement = document.getElementById('store-grid-cart-count-badge');
+      const storeGridProductCountElement = document.getElementById('store-grid-product-count');
       const storeGridSummaryItemsElement = document.getElementById('store-grid-summary-items');
       const storeGridSummaryTotalElement = document.getElementById('store-grid-summary-total');
       const storeGridSummaryDiscountElement = document.getElementById('store-grid-summary-discount');
@@ -17865,8 +17878,11 @@
       const storeSelectedProductPriceElement = document.getElementById('store-selected-product-price');
       const storeSelectedProductRankDiscountElement = document.getElementById('store-selected-product-rank-discount');
       const storeSelectedProductStockElement = document.getElementById('store-selected-product-stock');
+      const storeSelectedProductBvElement = document.getElementById('store-selected-product-bv');
       const storeProductQuantityInputElement = document.getElementById('store-product-quantity-input');
       const storeCheckoutFormElement = document.getElementById('store-checkout-form');
+      const storeStripeCardElementMountNode = document.getElementById('store-stripe-card-element');
+      const storeStripeCardErrorElement = document.getElementById('store-stripe-card-error');
       const storeCartCountElement = document.getElementById('store-cart-count');
       const storeCartItemsElement = document.getElementById('store-cart-items');
       const storeCartEmptyElement = document.getElementById('store-cart-empty');
@@ -17930,6 +17946,12 @@
       let storeInvoices = [];
       let selectedStoreProductId = '';
       let activeStoreFlowStep = 'grid';
+      let storeStripeClient = null;
+      let storeStripeElements = null;
+      let storeStripeCardElement = null;
+      let isStoreStripeReady = false;
+      let isStoreStripeCheckoutPending = false;
+      let isStoreStripeCardComplete = false;
 
       function resolveStoreInvoiceSeedValue(invoiceId) {
         const match = String(invoiceId || '').trim().toUpperCase().match(/^INV-(\d+)$/);
@@ -18215,6 +18237,240 @@
         }
       }
 
+      function setStoreStripeCardError(message = '') {
+        if (!storeStripeCardErrorElement) {
+          return;
+        }
+
+        const normalizedMessage = String(message || '').trim();
+        if (!normalizedMessage) {
+          storeStripeCardErrorElement.classList.add('hidden');
+          storeStripeCardErrorElement.textContent = '';
+          return;
+        }
+
+        storeStripeCardErrorElement.textContent = normalizedMessage;
+        storeStripeCardErrorElement.classList.remove('hidden');
+      }
+
+      function resolveStoreStripeAppearance() {
+        const activeTheme = normalizeAppTheme(document.documentElement?.dataset?.theme || appTheme || 'dark');
+        const isLightTheme = activeTheme === 'light';
+
+        if (isLightTheme) {
+          return {
+            theme: 'stripe',
+            variables: {
+              colorPrimary: '#0fd4a4',
+              colorText: '#1f2937',
+              colorTextPlaceholder: '#6b7280',
+              colorDanger: '#d92d20',
+              fontFamily: 'Inter, system-ui, sans-serif',
+            },
+          };
+        }
+
+        return {
+          theme: 'night',
+          variables: {
+            colorPrimary: '#0fd4a4',
+            colorBackground: '#111922',
+            colorText: '#eaf2fa',
+            colorTextPlaceholder: '#8ea2b5',
+            colorDanger: '#f45b69',
+            fontFamily: 'Inter, system-ui, sans-serif',
+          },
+        };
+      }
+
+      function resolveStoreStripeCardStyle() {
+        const activeTheme = normalizeAppTheme(document.documentElement?.dataset?.theme || appTheme || 'dark');
+        const isLightTheme = activeTheme === 'light';
+
+        if (isLightTheme) {
+          return {
+            base: {
+              color: '#1f2937',
+              iconColor: '#6b7280',
+              fontFamily: 'Inter, system-ui, sans-serif',
+              fontSize: '16px',
+              fontSmoothing: 'antialiased',
+              '::placeholder': {
+                color: '#6b7280',
+              },
+            },
+            invalid: {
+              color: '#d92d20',
+              iconColor: '#d92d20',
+            },
+          };
+        }
+
+        return {
+          base: {
+            color: '#eaf2fa',
+            iconColor: '#8ea2b5',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            fontSize: '16px',
+            fontSmoothing: 'antialiased',
+            '::placeholder': {
+              color: '#8ea2b5',
+            },
+          },
+          invalid: {
+            color: '#f45b69',
+            iconColor: '#f45b69',
+          },
+        };
+      }
+
+      function syncStoreStripeAppearanceToTheme() {
+        if (!storeStripeElements && !storeStripeCardElement) {
+          return;
+        }
+
+        try {
+          if (storeStripeElements && typeof storeStripeElements.update === 'function') {
+            storeStripeElements.update({
+              appearance: resolveStoreStripeAppearance(),
+            });
+          }
+          if (storeStripeCardElement && typeof storeStripeCardElement.update === 'function') {
+            storeStripeCardElement.update({
+              style: resolveStoreStripeCardStyle(),
+            });
+          }
+        } catch (error) {
+          console.warn('Unable to update Stripe appearance for current theme:', error);
+        }
+      }
+
+      async function fetchStoreStripeCheckoutConfig() {
+        try {
+          const response = await fetch(STORE_CHECKOUT_CONFIG_API, {
+            method: 'GET',
+            cache: 'no-store',
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string' && payload.error.trim()
+              ? payload.error.trim()
+              : `Unable to load Stripe checkout config (${response.status}).`;
+            throw new Error(message);
+          }
+
+          const publishableKey = String(payload?.publishableKey || '').trim();
+          if (!publishableKey) {
+            throw new Error('Stripe publishable key was not returned.');
+          }
+
+          return {
+            ok: true,
+            publishableKey,
+          };
+        } catch (error) {
+          const message = error instanceof Error && error.message
+            ? error.message
+            : 'Unable to load Stripe checkout config.';
+          return {
+            ok: false,
+            message,
+          };
+        }
+      }
+
+      async function initializeStoreStripeCheckout(options = {}) {
+        if (isStoreStripeReady && storeStripeClient && storeStripeCardElement) {
+          return true;
+        }
+        if (!storeStripeCardElementMountNode) {
+          updateCheckoutFeedback('Stripe card container is unavailable.', false);
+          return false;
+        }
+        if (typeof window.Stripe !== 'function') {
+          updateCheckoutFeedback('Stripe.js failed to load. Refresh and try again.', false);
+          return false;
+        }
+
+        const configResult = await fetchStoreStripeCheckoutConfig();
+        if (!configResult.ok) {
+          updateCheckoutFeedback(configResult.message || 'Unable to initialize Stripe checkout.', false);
+          return false;
+        }
+
+        try {
+          storeStripeClient = window.Stripe(configResult.publishableKey);
+          if (!storeStripeClient) {
+            throw new Error('Stripe client could not be initialized.');
+          }
+
+          storeStripeElements = storeStripeClient.elements({
+            appearance: resolveStoreStripeAppearance(),
+          });
+          storeStripeCardElement = storeStripeElements.create('card', {
+            hidePostalCode: true,
+            style: resolveStoreStripeCardStyle(),
+          });
+          storeStripeCardElement.mount(storeStripeCardElementMountNode);
+          storeStripeCardElement.on('change', (event) => {
+            isStoreStripeCardComplete = event?.complete === true;
+            setStoreStripeCardError(event?.error?.message || '');
+          });
+
+          isStoreStripeReady = true;
+          setStoreStripeCardError('');
+          if (options.silent !== true) {
+            updateCheckoutFeedback('Secure Stripe card checkout is ready.', true);
+          }
+          renderCart();
+          return true;
+        } catch (error) {
+          console.warn('Unable to initialize store Stripe checkout:', error);
+          updateCheckoutFeedback('Unable to initialize secure Stripe checkout.', false);
+          return false;
+        }
+      }
+
+      async function createStoreStripePaymentIntent(checkoutData = {}) {
+        try {
+          const response = await fetch(STORE_CHECKOUT_INTENT_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(checkoutData),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string' && payload.error.trim()
+              ? payload.error.trim()
+              : `Unable to create Stripe payment intent (${response.status}).`;
+            throw new Error(message);
+          }
+
+          const clientSecret = String(payload?.clientSecret || '').trim();
+          const paymentIntentId = String(payload?.paymentIntentId || '').trim();
+          if (!clientSecret || !paymentIntentId) {
+            throw new Error('Stripe payment intent did not return required credentials.');
+          }
+
+          return {
+            ok: true,
+            clientSecret,
+            paymentIntentId,
+            payload,
+          };
+        } catch (error) {
+          const message = error instanceof Error && error.message
+            ? error.message
+            : 'Unable to create Stripe payment intent.';
+          return {
+            ok: false,
+            message,
+          };
+        }
+      }
+
       function normalizeStoreProductId(value, fallbackId = 'product') {
         const normalizedValue = String(value || '')
           .trim()
@@ -18459,6 +18715,9 @@
         if (storeFlowCheckoutView) {
           storeFlowCheckoutView.classList.toggle('hidden', nextStep !== 'checkout');
         }
+        if (nextStep === 'checkout') {
+          void initializeStoreStripeCheckout({ silent: true });
+        }
 
         storeFlowIndicatorButtons.forEach((button) => {
           const isActive = button.dataset.storeFlowIndicator === nextStep;
@@ -18519,10 +18778,15 @@
         }
 
         const storefrontProducts = resolveStorefrontProducts();
+        if (storeGridProductCountElement) {
+          const productCount = storefrontProducts.length;
+          storeGridProductCountElement.textContent = `${formatInteger(productCount)} live product${productCount === 1 ? '' : 's'}`;
+        }
+
         if (storefrontProducts.length === 0) {
           storeProductGrid.innerHTML = `
-            <div class="sm:col-span-2 xl:col-span-3 rounded-lg border border-surface-border bg-surface-base/40 p-4 text-body-sm text-text-secondary">
-              No active products are currently available. Please check back later.
+            <div class="sm:col-span-2 xl:col-span-3 rounded-2xl border border-surface-border bg-surface-raised/70 p-6 text-body-sm text-text-secondary shadow-depth-1">
+              No active products are currently available. Add products in Admin Store Setup to publish them here.
             </div>
           `;
           return;
@@ -18532,24 +18796,42 @@
           const unitPrice = resolveProductUnitPrice(product);
           const stockLabel = product.stock > 0 ? `${formatInteger(product.stock)} in stock` : 'Out of stock';
           const canAddToCart = product.stock > 0;
+          const stockChipClass = product.stock > 0
+            ? 'border-semantic-success/30 bg-semantic-success-bg text-semantic-success'
+            : 'border-semantic-danger/30 bg-semantic-danger-bg text-semantic-danger';
+          const stockChipLabel = product.stock > 0 ? 'In Stock' : 'Out Of Stock';
+          const detailPreview = product.details.slice(0, 2).map((detail) => (
+            `<li class="truncate">${escapeHtml(detail)}</li>`
+          )).join('');
           return `
-            <article class="rounded-xl border border-surface-border bg-surface-base/40 overflow-hidden">
-              <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" draggable="false" class="w-full aspect-[4/5] select-none object-cover" style="-webkit-user-drag: none;"/>
+            <article class="group overflow-hidden rounded-2xl border border-surface-border bg-surface-raised shadow-depth-1">
+              <div class="relative overflow-hidden">
+                <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" draggable="false" class="w-full aspect-[4/5] select-none object-cover transition-transform duration-300 ease-out-expo group-hover:scale-[1.02]" style="-webkit-user-drag: none;"/>
+                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-surface-base/90 via-surface-base/20 to-transparent"></div>
+                <div class="absolute left-3 top-3 inline-flex items-center rounded-full border border-surface-border bg-surface-base/80 px-2 py-0.5 text-caption text-text-primary">
+                  ${formatInteger(product.bp)} BV
+                </div>
+                <div class="absolute right-3 top-3 inline-flex items-center rounded-full border px-2 py-0.5 text-caption ${stockChipClass}">
+                  ${stockChipLabel}
+                </div>
+              </div>
               <div class="p-4 space-y-3">
                 <div>
                   <h4 class="text-body-sm font-medium text-text-primary">${escapeHtml(product.title)}</h4>
                   <p class="text-caption text-text-tertiary mt-1">${escapeHtml(product.description)}</p>
-                  <p class="text-caption text-text-tertiary mt-2">${formatInteger(product.bp)} BV - ${escapeHtml(stockLabel)}</p>
                 </div>
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-baseline gap-2">
                     <span class="font-body font-semibold text-body text-text-primary">${formatCurrency(unitPrice)}</span>
                   </div>
-                  <span class="text-caption text-text-tertiary">Rank discount applies at checkout</span>
+                  <span class="text-caption text-text-tertiary">${escapeHtml(stockLabel)}</span>
                 </div>
+                <ul class="space-y-1 text-caption text-text-tertiary">
+                  ${detailPreview}
+                </ul>
                 <div class="grid grid-cols-2 gap-2">
                   <button data-product-action="view" data-product-id="${escapeHtml(product.id)}" class="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-surface-border bg-surface-raised text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                    View Product
+                    Quick View
                   </button>
                   <button data-product-action="add" data-product-id="${escapeHtml(product.id)}" class="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-brand-500 text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring ${canAddToCart ? '' : 'opacity-40 cursor-not-allowed'}" ${canAddToCart ? '' : 'disabled'}>
                     Add To Cart
@@ -18588,6 +18870,9 @@
           if (storeSelectedProductStockElement) {
             storeSelectedProductStockElement.textContent = '0 available';
           }
+          if (storeSelectedProductBvElement) {
+            storeSelectedProductBvElement.textContent = '0 BV';
+          }
           if (storeProductQuantityInputElement) {
             storeProductQuantityInputElement.value = '1';
           }
@@ -18623,6 +18908,9 @@
         if (storeSelectedProductStockElement) {
           storeSelectedProductStockElement.textContent = `${formatInteger(selectedProduct.stock)} available`;
         }
+        if (storeSelectedProductBvElement) {
+          storeSelectedProductBvElement.textContent = `${formatInteger(selectedProduct.bp)} BV`;
+        }
         if (storeProductQuantityInputElement) {
           const safeMax = Math.max(1, toWholeNumber(selectedProduct.stock, 1));
           const currentValue = Math.max(1, toWholeNumber(storeProductQuantityInputElement.value, 1));
@@ -18657,7 +18945,15 @@
           storeCartTotalElement.textContent = formatCurrency(totals.total);
         }
         storeCartBpElement.textContent = `${formatInteger(totals.bp)} BV`;
-        storeCheckoutButton.disabled = totals.items === 0 || !storeAppliedUplineCode;
+        const isStripeUnavailable = !isStoreStripeReady || !storeStripeClient || !storeStripeCardElement;
+        storeCheckoutButton.disabled = totals.items === 0 || !storeAppliedUplineCode || isStripeUnavailable || isStoreStripeCheckoutPending;
+        if (isStoreStripeCheckoutPending) {
+          storeCheckoutButton.textContent = 'Processing...';
+        } else if (isStripeUnavailable) {
+          storeCheckoutButton.textContent = 'Loading Stripe...';
+        } else {
+          storeCheckoutButton.textContent = 'Pay With Stripe';
+        }
 
         if (storeCart.length === 0) {
           storeCartEmptyElement.classList.remove('hidden');
@@ -18793,6 +19089,37 @@
         return Math.min(quantity, maxQuantity);
       }
 
+      function hydrateStoreCheckoutIdentityFields() {
+        if (!storeCheckoutFormElement) {
+          return;
+        }
+
+        const defaultBuyerName = String(currentSessionUser?.name || currentSessionUser?.username || '').trim();
+        const defaultBuyerEmail = String(currentSessionUser?.email || '').trim();
+
+        const buyerNameInput = storeCheckoutFormElement.elements.namedItem('cardholderName');
+        if (
+          buyerNameInput
+          && typeof buyerNameInput === 'object'
+          && 'value' in buyerNameInput
+          && !String(buyerNameInput.value || '').trim()
+          && defaultBuyerName
+        ) {
+          buyerNameInput.value = defaultBuyerName;
+        }
+
+        const buyerEmailInput = storeCheckoutFormElement.elements.namedItem('buyerEmail');
+        if (
+          buyerEmailInput
+          && typeof buyerEmailInput === 'object'
+          && 'value' in buyerEmailInput
+          && !String(buyerEmailInput.value || '').trim()
+          && defaultBuyerEmail
+        ) {
+          buyerEmailInput.value = defaultBuyerEmail;
+        }
+      }
+
       function validateCheckoutForm() {
         if (!storeCheckoutFormElement) {
           return { ok: false, message: 'Checkout form is unavailable.' };
@@ -18801,9 +19128,7 @@
         const formData = new FormData(storeCheckoutFormElement);
         const requiredFieldDefinitions = [
           ['cardholderName', 'Cardholder name'],
-          ['cardNumber', 'Card number'],
-          ['cardExpiration', 'Card expiration'],
-          ['cardCvv', 'Card CVV'],
+          ['buyerEmail', 'Email'],
           ['billingAddress', 'Billing address'],
           ['billingCity', 'Billing city'],
           ['billingState', 'Billing state'],
@@ -18818,24 +19143,42 @@
           }
         }
 
-        const normalizedCardNumber = String(formData.get('cardNumber') || '').replace(/\D+/g, '');
-        if (normalizedCardNumber.length < 12) {
-          return { ok: false, message: 'Card number must have at least 12 digits.' };
-        }
-
-        const normalizedCvv = String(formData.get('cardCvv') || '').replace(/\D+/g, '');
-        if (normalizedCvv.length < 3 || normalizedCvv.length > 4) {
-          return { ok: false, message: 'CVV must be 3 to 4 digits.' };
+        const buyerEmail = String(formData.get('buyerEmail') || '').trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) {
+          return { ok: false, message: 'Enter a valid email address.' };
         }
 
         const shippingMode = String(formData.get('shippingMode') || '').trim();
         if (!shippingMode) {
           return { ok: false, message: 'Select a mode of shipping.' };
         }
+        if (!isStoreStripeReady || !storeStripeClient || !storeStripeCardElement) {
+          return { ok: false, message: 'Stripe checkout is still loading. Please wait a moment.' };
+        }
+        if (!isStoreStripeCardComplete) {
+          return { ok: false, message: 'Enter your full card details in the Stripe card form.' };
+        }
+
+        const billingAddress = String(formData.get('billingAddress') || '').trim();
+        const billingCity = String(formData.get('billingCity') || '').trim();
+        const billingState = String(formData.get('billingState') || '').trim();
+        const billingPostalCode = String(formData.get('billingPostalCode') || '').trim();
+        const billingCountry = String(formData.get('billingCountry') || '').trim();
+        const shippingAddress = `${billingAddress}, ${billingCity}, ${billingState} ${billingPostalCode}, ${billingCountry}`;
 
         return {
           ok: true,
           shippingMode,
+          checkoutFields: {
+            buyerName: String(formData.get('cardholderName') || '').trim(),
+            buyerEmail,
+            shippingAddress,
+            billingAddress,
+            billingCity,
+            billingState,
+            billingPostalCode,
+            billingCountry,
+          },
         };
       }
 
@@ -18889,6 +19232,7 @@
         syncStoreRankDiscountState();
         renderProductGrid();
         renderSelectedProductPage();
+        hydrateStoreCheckoutIdentityFields();
         renderCart();
         renderDashboardTotalBalance();
         renderPreferredCustomerPlanner();
@@ -19269,15 +19613,109 @@
           return;
         }
 
+        const stripeReady = isStoreStripeReady && storeStripeClient && storeStripeCardElement;
+        if (!stripeReady) {
+          const initialized = await initializeStoreStripeCheckout();
+          if (!initialized) {
+            return;
+          }
+        }
+
         const checkoutValidation = validateCheckoutForm();
         if (!checkoutValidation.ok) {
           updateCheckoutFeedback(checkoutValidation.message, false);
           return;
         }
 
+        const checkoutFields = checkoutValidation.checkoutFields || {};
         const shippingMode = checkoutValidation.shippingMode || 'Standard Shipping';
-        const invoiceCreated = await createInvoiceFromLines(storeCart, `checkout - ${shippingMode}`);
+        const buyerName = String(checkoutFields.buyerName || currentSessionUser?.name || currentSessionUser?.username || 'Store Buyer').trim();
+        const buyerEmail = String(checkoutFields.buyerEmail || currentSessionUser?.email || '').trim().toLowerCase();
+        const billingAddress = String(checkoutFields.billingAddress || '').trim();
+        const billingCity = String(checkoutFields.billingCity || '').trim();
+        const billingState = String(checkoutFields.billingState || '').trim();
+        const billingPostalCode = String(checkoutFields.billingPostalCode || '').trim();
+        const billingCountry = String(checkoutFields.billingCountry || '').trim();
+
+        const checkoutLinesSnapshot = storeCart.map((line) => ({
+          productId: String(line?.productId || '').trim(),
+          quantity: Math.max(1, toWholeNumber(line?.quantity, 1)),
+        })).filter((line) => line.productId);
+
+        const stripeIntentPayload = {
+          cartLines: checkoutLinesSnapshot,
+          storeCode: '',
+          buyerName,
+          buyerEmail,
+          shippingAddress: String(checkoutFields.shippingAddress || '').trim(),
+          shippingMode,
+          source: 'member-dashboard',
+          returnPath: '/index.html',
+          memberStoreLink: buildPublicStoreLink(storePublicCode),
+          discountPercent: storeRankDiscountPercent,
+          checkoutMode: 'guest',
+          buyerUserId: String(currentSessionUser?.id || '').trim(),
+          buyerUsername: String(currentSessionUser?.username || '').trim(),
+        };
+
+        isStoreStripeCheckoutPending = true;
+        setStoreStripeCardError('');
+        renderCart();
+        updateCheckoutFeedback('Preparing Stripe payment...', true);
+
+        const intentResult = await createStoreStripePaymentIntent(stripeIntentPayload);
+        if (!intentResult.ok) {
+          isStoreStripeCheckoutPending = false;
+          renderCart();
+          updateCheckoutFeedback(intentResult.message || 'Unable to start Stripe payment.', false);
+          return;
+        }
+
+        const { error: stripeError, paymentIntent } = await storeStripeClient.confirmCardPayment(
+          intentResult.clientSecret,
+          {
+            payment_method: {
+              card: storeStripeCardElement,
+              billing_details: {
+                name: buyerName,
+                email: buyerEmail,
+                address: {
+                  line1: billingAddress,
+                  city: billingCity,
+                  state: billingState,
+                  postal_code: billingPostalCode,
+                  country: billingCountry,
+                },
+              },
+            },
+          },
+        );
+
+        if (stripeError) {
+          isStoreStripeCheckoutPending = false;
+          renderCart();
+          setStoreStripeCardError(stripeError.message || 'Payment could not be confirmed.');
+          updateCheckoutFeedback('Stripe payment failed. Please review your card details and try again.', false);
+          return;
+        }
+
+        const confirmedPaymentIntentId = String(paymentIntent?.id || intentResult.paymentIntentId || '').trim();
+        if (!confirmedPaymentIntentId) {
+          isStoreStripeCheckoutPending = false;
+          renderCart();
+          updateCheckoutFeedback('Stripe payment confirmation ID is missing. Please contact support.', false);
+          return;
+        }
+
+        updateCheckoutFeedback('Payment confirmed. Recording your order...', true);
+        const invoiceCreated = await createInvoiceFromLines(checkoutLinesSnapshot, `stripe checkout - ${shippingMode}`);
         if (!invoiceCreated) {
+          isStoreStripeCheckoutPending = false;
+          renderCart();
+          updateCheckoutFeedback(
+            `Payment ${confirmedPaymentIntentId} succeeded, but order recording failed. Please contact support immediately.`,
+            false,
+          );
           return;
         }
 
@@ -19285,6 +19723,12 @@
         if (storeCheckoutFormElement) {
           storeCheckoutFormElement.reset();
         }
+        if (storeStripeCardElement) {
+          storeStripeCardElement.clear();
+        }
+        isStoreStripeCardComplete = false;
+        hydrateStoreCheckoutIdentityFields();
+        isStoreStripeCheckoutPending = false;
         renderCart();
         renderSelectedProductPage();
       }
@@ -19306,6 +19750,7 @@
         syncStoreRankDiscountState();
         await loadStoreProductCatalog();
         hydrateStoreSetupIdentity();
+        hydrateStoreCheckoutIdentityFields();
         renderProductGrid();
         renderSelectedProductPage();
         renderCart();
@@ -19392,6 +19837,7 @@
 
             if (action === 'back-to-grid') {
               setStoreFlowStep('grid');
+              clearCheckoutFeedback();
             }
           });
         });
