@@ -6,7 +6,7 @@ import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const DEFAULT_PRODUCT_IMAGE = 'https://placehold.co/960x560?text=Product';
+const DEFAULT_PRODUCT_IMAGE = 'https://placehold.co/1000x1250?text=Product';
 const MAX_PRODUCT_IMAGES = 12;
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const UPLOAD_ROUTE_BASE = '/uploads/store-products';

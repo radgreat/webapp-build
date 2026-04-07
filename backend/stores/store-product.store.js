@@ -1,7 +1,7 @@
 import pool from '../db/db.js';
 import adminPool from '../db/admin-db.js';
 
-const DEFAULT_PRODUCT_IMAGE = 'https://placehold.co/960x560?text=Product';
+const DEFAULT_PRODUCT_IMAGE = 'https://placehold.co/1000x1250?text=Product';
 
 function normalizeText(value) {
   return String(value || '').trim();

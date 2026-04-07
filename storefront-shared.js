@@ -12,7 +12,7 @@
   const PUBLIC_DISCOUNT_PERCENT = 15;
   const PUBLIC_DISCOUNT_RATE = PUBLIC_DISCOUNT_PERCENT / 100;
   const MAX_CHECKOUT_DISCOUNT_PERCENT = 60;
-  const DEFAULT_PRODUCT_IMAGE = 'https://placehold.co/960x560?text=Product';
+  const DEFAULT_PRODUCT_IMAGE = 'https://placehold.co/1000x1250?text=Product';
   const CHECKOUT_MODE_GUEST = 'guest';
   const CHECKOUT_MODE_FREE_ACCOUNT = 'free-account';
   const AUTH_STORAGE_KEY = 'vault-auth-user';

@@ -9,6 +9,155 @@
 - Removed upfront checkout UI from the storefront landing page.
 - Kept the existing green/slate color direction while adding a reusable top navbar and cleaner page hierarchy.
 
+## Update (2026-04-06) - Admin My Store Mobile Rows Simplified (Normal List Style)
+
+### What Was Changed
+
+- Simplified Admin `My Store` mobile product row UI to a normal list style.
+- Removed mobile segmented metric containers and replaced with a compact row structure:
+  - image + product name/id + status
+  - one metadata line (`Price`, `Stock`, `BV`, `Updated`)
+  - compact action button row
+- Desktop grid/table mode remains unchanged.
+- Product description preview remains hidden in admin list rows.
+
+### Files Affected
+
+- `admin.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Aligned to user preference for a simpler mobile list presentation with fewer visual containers and reduced row height.
+- Preserved all management actions and status logic.
+
+### Validation
+
+- Inline script parse check passed:
+  - `admin.html` inline scripts parse OK (`2` script blocks)
+
+### Known Limitations
+
+- Screenshot automation attempts remain blocked in this environment (`ERR_CONNECTION_REFUSED` to `127.0.0.1:5500`).
+
+## Update (2026-04-06) - Admin My Store Product List Mobile Optimization + Description Removal
+
+### What Was Changed
+
+- Removed product description preview text from Admin `My Store` product list rows.
+- Admin product list now displays name + product ID only in the identity block.
+- Optimized admin product list rows for mobile:
+  - larger, better-framed product thumbnails on mobile
+  - labeled metric rows for `Price`, `Inventory`, and `Updated`
+  - mobile status badge shown within product identity row
+  - action buttons arranged as a 2-column mobile action grid
+
+### Files Affected
+
+- `admin.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept desktop table parity while enhancing mobile scanability and touch-target clarity.
+- Product description remains available in product editor; removed only from list preview display.
+
+### Validation
+
+- Inline script parse check passed:
+  - `admin.html` inline scripts parse OK (`2` script blocks)
+- Render audit confirms product description is no longer emitted in admin list row markup.
+
+### Known Limitations
+
+- Screenshot automation attempts to `http://127.0.0.1:5500/admin.html` still failed with `ERR_CONNECTION_REFUSED` in this runtime environment.
+
+## Update (2026-04-06) - Product Media Interaction Rule (No Drag / No Highlight)
+
+### What Was Changed
+
+- Added interaction locks on product media to prevent drag and selection/highlight behavior.
+- Applied rules to product images in:
+  - public store product cards
+  - public product page hero image
+  - public product page thumbnail gallery
+  - dashboard store product grid
+  - dashboard selected product image
+  - admin product preview/list thumbnails
+
+### Files Affected
+
+- `store.html`
+- `store-product.html`
+- `index.html`
+- `admin.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used element-level attributes/classes to keep behavior explicit on product media only:
+  - `draggable="false"`
+  - `select-none`
+  - `-webkit-user-drag: none;`
+- Avoided global image rules to reduce unintended side effects on unrelated UI icons/media.
+
+### Validation
+
+- Product media render paths verified to include non-drag/non-select attributes in all affected storefront/admin product views.
+
+### Known Limitations
+
+- Non-product media across the rest of the app remains unchanged by design.
+
+## Update (2026-04-06) - Product Media Ratio Standardization (4:5)
+
+### What Was Changed
+
+- Updated storefront product media presentation to `4:5` portrait ratio across:
+  - public store product cards (`store.html`)
+  - public product detail hero + thumbnail gallery (`store-product.html`)
+  - dashboard `My Store` product grid + selected product image (`index.html`)
+- Updated fallback product placeholder defaults to a `4:5` image source:
+  - `https://placehold.co/1000x1250?text=Product`
+
+### Files Affected
+
+- `store.html`
+- `store-product.html`
+- `index.html`
+- `storefront-shared.js`
+- `admin.html`
+- `backend/services/store-product.service.js`
+- `backend/stores/store-product.store.js`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used `aspect-[4/5]` on product media elements so ratio is enforced consistently without hardcoded height utilities.
+- Kept `object-cover` behavior to preserve visual consistency for existing uploaded images.
+- Matched admin guidance text and admin thumbnail previews to the same ratio to keep upload expectations aligned with storefront rendering.
+
+### Validation
+
+- Syntax checks passed:
+  - `node --check storefront-shared.js`
+  - `node --check backend/services/store-product.service.js`
+  - `node --check backend/stores/store-product.store.js`
+- Ratio/default audit passed:
+  - no remaining `960x560` product placeholder references in active source files.
+
+### Known Limitations
+
+- Non-`4:5` source images still rely on crop behavior via `object-cover`.
+
 ## Update (2026-04-06) - Dashboard My Store Shareable Link Visibility
 
 ### What Was Changed

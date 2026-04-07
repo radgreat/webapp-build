@@ -583,6 +583,13 @@ export async function updateRegisteredMemberPlacement(payload = {}) {
     const matchedSponsorUser = users.find(
       (user) => normalizeCredential(user?.username) === sponsorUsername
     ) || null;
+    if (!matchedSponsorUser) {
+      return {
+        success: false,
+        status: 404,
+        error: 'Sponsor username was not found.',
+      };
+    }
     nextSponsorUsername = sponsorUsername;
     nextSponsorName = sponsorName
       || normalizeText(matchedSponsorUser?.name || matchedSponsorUser?.username || sponsorUsername);

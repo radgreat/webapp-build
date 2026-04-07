@@ -1,7 +1,71 @@
 # Preferred Customer Page Notes
 
-Last Updated: 2026-03-27
+Last Updated: 2026-04-06
 Status: In Progress (Phase 1 foundation complete)
+
+## Recent Update (2026-04-06) - Sponsor Action Row Alignment Fix
+
+- Corrected misalignment in detail-page sponsor action row.
+- Sponsor hint text now renders below the action row instead of inside the same alignment row.
+- `Transfer/Update` button now aligns with the sponsor input field cleanly and no longer appears crooked.
+- Visual alignment update only; transfer logic remains unchanged.
+
+## Recent Update (2026-04-06) - Preferred Customer Action Buttons Standardized
+
+- Standardized Admin Preferred Customer action buttons to a unified size and type scale.
+- Updated button labels to fit uniform button widths cleanly:
+  - `Back to List`
+  - `Transfer`
+  - `Update`
+- Uniform sizing now applies to:
+  - list refresh action
+  - detail page back/transfer/update actions
+  - table row open action
+- This change is visual-only and does not alter transfer/business logic.
+
+## Recent Update (2026-04-06) - Admin Preferred Customers Table + Pending/Transferred/Updated Status + Custom Sponsor Suggestions
+
+- Replaced preferred-customer list card layout with a structured table in Admin page.
+- Added explicit transfer-state statuses in admin transfer workflow:
+  - `Pending`
+  - `Transferred`
+  - `Updated`
+- Detail-page sponsor selector now uses custom suggestion panel instead of browser-native datalist UI:
+  - searchable by username, name, or email
+  - click-to-select sponsor username
+  - avoids webkit dropdown rendering inconsistency
+- Transfer validation now checks selected sponsor against assignable sponsor records sourced by suggestion logic.
+- Transfer endpoint unchanged:
+  - `PATCH /api/admin/registered-members/:memberId/placement`
+
+## Recent Update (2026-04-06) - Sponsor Typeahead Dropdown + Cleaner Transfer UI
+
+- Reduced visual clutter in Admin `Preferred Customers` screens:
+  - simplified list row structure
+  - simplified detail page wrappers/panels
+- Updated transfer control on detail page:
+  - sponsor input now supports type-and-select dropdown suggestions (`datalist`)
+  - suggestions are populated from assignable non-preferred member usernames
+- Transfer submit now validates that selected sponsor exists in assignable member list before calling API.
+- Transfer flow remains sponsor reassignment only; no placement controls are included.
+- Endpoint unchanged:
+  - `PATCH /api/admin/registered-members/:memberId/placement`
+
+## Recent Update (2026-04-06) - Admin Preferred Customers Assignment Actions
+
+- Updated Admin `Preferred Customers` to a list -> detail-page assignment flow:
+  - click a preferred-customer row in the list
+  - app routes to `/admin/PreferredCustomers/Detail`
+- Detail page controls include:
+  - `Sponsor Username` input
+  - `Transfer/Update Transfer` button
+- Preferred-customer reassignment now runs from the detail page using:
+  - `PATCH /api/admin/registered-members/:memberId/placement`
+- Placement controls are intentionally removed from this transfer screen; existing placement values are preserved.
+- Added backend validation in `updateRegisteredMemberPlacement(...)`:
+  - sponsor username must exist in member users store
+  - invalid sponsor now returns `404` with message: `Sponsor username was not found.`
+- This unblocks Admin workflow for parked free accounts by letting Admin transfer ownership immediately from the parking list.
 
 ## Recent Update (2026-03-27) - Placement Control Expansion
 

@@ -4510,7 +4510,7 @@
               <div class="lg:col-span-2 bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
                 <button type="button" data-store-flow-action="back-to-grid" class="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">Back To Product Grid</button>
                 <div class="mt-4 overflow-hidden rounded-xl border border-surface-border bg-surface-base/40">
-                  <img id="store-selected-product-image" src="https://placehold.co/960x560?text=Product" alt="Selected product image" class="w-full h-64 object-cover">
+                  <img id="store-selected-product-image" src="https://placehold.co/1000x1250?text=Product" alt="Selected product image" draggable="false" class="w-full aspect-[4/5] select-none object-cover" style="-webkit-user-drag: none;">
                 </div>
                 <div class="mt-4">
                   <h3 id="store-selected-product-title" class="font-body font-medium text-display-sm text-text-primary">Select a product</h3>
@@ -18275,7 +18275,7 @@
         const description = String(rawProduct?.description || rawProduct?.summary || `${title} product description.`).trim();
         const details = parseStoreProductDetails(rawProduct?.details, bp);
 
-        const image = String(rawProduct?.image || rawProduct?.imageUrl || 'https://placehold.co/960x560?text=Product').trim() || 'https://placehold.co/960x560?text=Product';
+        const image = String(rawProduct?.image || rawProduct?.imageUrl || 'https://placehold.co/1000x1250?text=Product').trim() || 'https://placehold.co/1000x1250?text=Product';
         const statusCandidate = String(rawProduct?.status || 'active').trim().toLowerCase();
         const status = statusCandidate === 'archived' ? 'archived' : 'active';
 
@@ -18534,7 +18534,7 @@
           const canAddToCart = product.stock > 0;
           return `
             <article class="rounded-xl border border-surface-border bg-surface-base/40 overflow-hidden">
-              <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" class="w-full h-44 object-cover"/>
+              <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" draggable="false" class="w-full aspect-[4/5] select-none object-cover" style="-webkit-user-drag: none;"/>
               <div class="p-4 space-y-3">
                 <div>
                   <h4 class="text-body-sm font-medium text-text-primary">${escapeHtml(product.title)}</h4>
@@ -18567,7 +18567,7 @@
 
         if (!selectedProduct) {
           if (storeSelectedProductImageElement) {
-            storeSelectedProductImageElement.src = 'https://placehold.co/960x560?text=No+Product+Selected';
+            storeSelectedProductImageElement.src = 'https://placehold.co/1000x1250?text=No+Product+Selected';
             storeSelectedProductImageElement.alt = 'No product selected';
           }
           if (storeSelectedProductTitleElement) {

@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 186
+**Times Updated:** 197
 
 ## Overview
 
@@ -12,6 +12,350 @@
 
 ## Major Update (Lead Devloper Notes)
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.
+
+---
+
+## Update (2026-04-06) - Admin My Store Mobile Product Rows Simplified To Normal List
+
+### What Was Changed
+
+- Reworked Admin `My Store` mobile product row rendering from card-like metric containers to a normal compact list style.
+- Mobile row now uses:
+  - small thumbnail
+  - product name + product ID
+  - one compact metadata line (`Price`, `Stock`, `BV`, `Updated`)
+  - two compact action buttons (`Manage`, `Archive/Unarchive`)
+- Desktop table/grid row rendering remains unchanged.
+- Product description preview remains removed from admin product list rows.
+
+### Files Affected
+
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+### Design Decisions
+
+- Prioritized a cleaner, lower-noise mobile list presentation over segmented metric containers.
+- Kept action flow and product management behavior unchanged while simplifying visual structure.
+
+### Validation
+
+- Frontend inline parse check passed:
+  - `admin.html` inline scripts parse OK (`2` script blocks)
+- Renderer audit confirms no product description line in list output and mobile list layout branch is active.
+
+### Known Limitations
+
+- Screenshot automation via the provided Puppeteer flow remains unavailable in this runtime (`ERR_CONNECTION_REFUSED` on `127.0.0.1:5500`).
+
+---
+
+## Update (2026-04-06) - Admin My Store Product List Cleanup + Mobile Layout Optimization
+
+### What Was Changed
+
+- Updated Admin `My Store` product list rows to remove inline product description text from list/table display.
+- Product list now shows product name + product ID in the product identity block (no description preview line).
+- Improved mobile rendering for admin product rows:
+  - resized product thumbnails for mobile with more stable portrait framing
+  - added mobile-friendly labeled metric rows for `Price`, `Inventory`, and `Updated`
+  - surfaced status badge at the top-right on mobile while preserving desktop status column
+  - converted action controls to a 2-column button grid on mobile for clearer tap targets
+
+### Files Affected
+
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+### Design Decisions
+
+- Preserved desktop table/grid structure while adding mobile-first card-like metric rows to improve scanability on small screens.
+- Kept product description editable in product editor forms; only removed from list preview row per request.
+- Maintained existing action semantics (`Manage`, `Archive/Unarchive`) and status behavior.
+
+### Validation
+
+- Frontend inline parse check passed:
+  - `admin.html` inline scripts parse OK (`2` script blocks)
+- Renderer audit confirms no description line is output in admin product list rows.
+
+### Known Limitations
+
+- Screenshot automation using the provided Puppeteer workflow still returned `ERR_CONNECTION_REFUSED` to `127.0.0.1:5500` in this runtime, so image artifacts were not captured here.
+
+---
+
+## Update (2026-04-06) - Product Media Interaction Lock (No Drag / No Highlight)
+
+### What Was Changed
+
+- Added interaction lock rules on product media so images are not draggable and do not allow selection highlight behavior.
+- Applied on storefront, dashboard store view, and admin product media previews/lists.
+- Product media now consistently includes:
+  - `draggable="false"`
+  - `select-none`
+  - inline `-webkit-user-drag: none;`
+
+### Files Affected
+
+- `store.html`
+- `store-product.html`
+- `index.html`
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+### Design Decisions
+
+- Scoped this interaction lock to product-media image elements to avoid unexpected behavior changes in unrelated UI/media.
+- Kept existing hover/scale transitions and button/card interactions unchanged.
+
+### Validation
+
+- Code audit check confirms product-media render paths now carry non-drag/non-select attributes:
+  - public store grid image
+  - product detail hero image
+  - product detail thumbnail gallery images
+  - dashboard store grid + selected product image
+  - admin product preview and admin product list thumbnail
+
+### Known Limitations
+
+- This update targets product media only; non-product image assets in other modules were intentionally left untouched.
+
+---
+
+## Update (2026-04-06) - Product Media Ratio Standardized To 4:5
+
+### What Was Changed
+
+- Updated product media presentation from landscape to portrait `4:5` across storefront and admin product surfaces.
+- Updated product image placeholders/defaults to a `4:5` asset size (`1000x1250`) so fallback media matches the new ratio.
+- Updated admin product media guidance text to recommend `1600x2000 (4:5)` uploads.
+
+### Files Affected
+
+- `store.html`
+- `store-product.html`
+- `index.html`
+- `admin.html`
+- `storefront-shared.js`
+- `backend/services/store-product.service.js`
+- `backend/stores/store-product.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+### Design Decisions
+
+- Applied `aspect-[4/5]` directly on product image elements for consistent ratio behavior across grid cards, detail views, thumbnails, and admin previews.
+- Kept `object-cover` so existing product photos still fill frames cleanly without layout shifts.
+- Standardized fallback image dimensions to prevent mixed aspect-ratio rendering when product media is missing.
+
+### Validation
+
+- Syntax checks passed:
+  - `node --check storefront-shared.js`
+  - `node --check backend/services/store-product.service.js`
+  - `node --check backend/stores/store-product.store.js`
+- Code search check passed: no remaining `960x560` or `16:9` product-media defaults in active source files.
+
+### Known Limitations
+
+- Existing uploaded source images that are not `4:5` are still center-cropped by `object-cover`.
+
+---
+
+## Update (2026-04-06) - Preferred Customer Sponsor Action Alignment Fix
+
+### What Was Changed
+
+- Corrected misalignment in Preferred Customer detail transfer controls:
+  - separated sponsor hint text from the input/button row
+  - aligned action button to the sponsor input line instead of the hint text baseline
+- Updated layout spacing so action button no longer appears visually crooked when hint text is shown.
+
+### Files Affected
+
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Design Decisions
+
+- Kept hint text visible for guidance but moved it below the control row so helper copy does not distort control alignment.
+- Preserved existing button size standardization and sponsor suggestion behavior.
+
+### Validation
+
+- Frontend inline parse check passed:
+  - `admin.html` inline scripts parse OK (`2` script blocks)
+
+### Known Limitations
+
+- No behavior changes; this is a layout/alignment fix only.
+
+---
+
+## Update (2026-04-06) - Preferred Customer Buttons Standardized (Uniform Size)
+
+### What Was Changed
+
+- Standardized Admin `Preferred Customers` action buttons to consistent sizing:
+  - unified height/width and typography across `Refresh`, `Back`, `Transfer`, and table-row `Open` actions
+- Shortened long button labels in detail view to keep button dimensions visually consistent:
+  - `Back To Preferred Customers` -> `Back to List`
+  - `Transfer Preferred Customer` -> `Transfer`
+  - `Update Transfer` -> `Update`
+
+### Files Affected
+
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Design Decisions
+
+- Used one fixed button size (`h-10 w-32`) for primary Preferred Customer page actions to improve visual rhythm and reduce layout noise.
+- Kept existing button color hierarchy and interaction states unchanged.
+
+### Validation
+
+- Frontend inline parse check passed:
+  - `admin.html` inline scripts parse OK (`2` script blocks)
+
+### Known Limitations
+
+- This standardization targets the Admin Preferred Customer flow buttons only; other admin modules keep their current button scales.
+
+---
+
+## Update (2026-04-06) - Preferred Customer Admin List Converted To Table + Custom Sponsor Picker
+
+### What Was Changed
+
+- Rebuilt Admin `Preferred Customers` list from card rows into a full table layout (product/operations style):
+  - columns: preferred customer, sponsor, created, updated, status, action
+  - list rows remain clickable to open detail page
+- Added explicit preferred-customer transfer statuses in Admin list/detail:
+  - `Pending`
+  - `Transferred`
+  - `Updated`
+- Replaced browser-native sponsor `datalist` with an in-app custom suggestion dropdown in detail view:
+  - type search by username/name/email
+  - click a result to populate sponsor username field
+  - avoids webkit-native list behavior inconsistency
+- Transfer submit now validates sponsor selection against assignable member records from the custom suggestion source.
+
+### Files Affected
+
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Design Decisions
+
+- Used table presentation for easier scanning and parity with admin operational lists.
+- Kept transfer flow sponsor-only; no placement controls added back.
+- Status derivation:
+  - `Pending` when parked under admin holding
+  - `Updated` when member has an update timestamp after create timestamp
+  - `Transferred` for assigned records without a post-create update timestamp
+
+### Validation
+
+- Frontend inline parse check passed:
+  - `admin.html` inline scripts parse OK (`2` script blocks)
+
+### Known Limitations
+
+- Screenshot automation using the provided local Puppeteer flow could not connect to `127.0.0.1:5500` from this runtime (`ERR_CONNECTION_REFUSED`), so visual pass artifacts were not generated in this environment.
+
+---
+
+## Update (2026-04-06) - Preferred Customer Transfer UI Simplified + Sponsor Dropdown
+
+### What Was Changed
+
+- Refined Admin `Preferred Customers` UI to reduce visual nesting:
+  - removed extra wrapper density in list and detail layouts
+  - simplified list row composition to cleaner, lighter cards
+- Added type-to-select sponsor control on preferred-customer detail page:
+  - `Sponsor Username` input now uses datalist suggestions
+  - suggestions are populated from assignable member usernames
+- Assignment action now validates selected sponsor against known assignable members before submitting.
+
+### Files Affected
+
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Design Decisions
+
+- Kept the transfer flow single-purpose (sponsor transfer only) while improving sponsor selection reliability.
+- Filtered dropdown suggestions to non-preferred member accounts so assignment targets active users, not parked preferred profiles.
+- Preserved backend assignment API (`PATCH /api/admin/registered-members/:memberId/placement`) unchanged to avoid commission/tree logic side effects.
+
+### Validation
+
+- Frontend inline parse check passed:
+  - `admin.html` inline scripts parse OK (`2` script blocks)
+
+### Known Limitations
+
+- Native `datalist` dropdown UX depends on browser rendering and may vary slightly between environments.
+
+---
+
+## Update (2026-04-06) - Admin Preferred Customers Assignment Controls Added
+
+### What Was Changed
+
+- Updated Admin `Preferred Customers` UX to a page-based flow:
+  - list page: clickable preferred-customer rows
+  - detail page: `/admin/PreferredCustomers/Detail`
+- Transfer controls are now only in the dedicated detail page:
+  - `Sponsor Username` input
+  - `Transfer/Update Transfer` action button
+- Wired assignment actions to existing admin placement API:
+  - `PATCH /api/admin/registered-members/:memberId/placement`
+- Placement fields are not shown in this flow; transfer only changes sponsor ownership and keeps existing placement metadata unchanged.
+- Added backend validation guard in placement update service so reassignment fails with clear error when sponsor username does not exist.
+
+### Files Affected
+
+- `admin.html`
+- `backend/services/member.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Design Decisions
+
+- Moved assignment into a dedicated page so list browsing stays clean and assignment happens in a focused screen.
+- Reused existing placement + spillover normalization rules to keep assignment behavior aligned with enrollment/tree logic.
+- Enforced sponsor existence at service layer to prevent invalid reassignment records.
+
+### Validation
+
+- Backend syntax check passed:
+  - `node --check backend/services/member.service.js`
+- Frontend inline parse check passed:
+  - `admin.html` inline scripts parse OK
+
+### Known Limitations
+
+- Transfer currently requires entering the exact sponsor username manually (no autocomplete list yet).
 
 ---
 

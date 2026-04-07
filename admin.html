@@ -2928,40 +2928,112 @@
             <p id="enroll-member-empty-state" class="mt-3 text-body-sm text-text-tertiary">No enrolled members yet. Submit the form above to create the first record.</p>
           </div>
         </section>
-        <section id="page-preferred-customers" data-page-view="preferred-customers" class="hidden space-y-6">
-          <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div>
-                <h3 class="font-body font-medium text-display-sm text-text-primary">Preferred Customers</h3>
-                <p class="text-body-sm text-text-secondary mt-1">
-                  Free Account profiles are listed here. Unattributed signups are parked under Admin Holding until reassigned.
-                </p>
-              </div>
-              <button id="preferred-customers-refresh-button" type="button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                Refresh
-              </button>
+        <section id="page-preferred-customers" data-page-view="preferred-customers" class="hidden space-y-4">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div>
+              <h3 class="font-body font-medium text-display-sm text-text-primary">Preferred Customers</h3>
+              <p class="text-body-sm text-text-secondary mt-1">
+                Free Account profiles are listed here. Unattributed signups are parked under Admin Holding until reassigned.
+              </p>
             </div>
+            <button id="preferred-customers-refresh-button" type="button" class="inline-flex h-10 w-32 items-center justify-center gap-2 rounded-lg border border-surface-border bg-surface-base text-body-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring whitespace-nowrap">
+              Refresh
+            </button>
+          </div>
 
-            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
-                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Total Preferred</p>
-                <p id="preferred-customers-total-count" class="mt-2 font-body font-semibold text-mono-data text-text-primary">0</p>
-              </div>
-              <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
-                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Parked (Admin Holding)</p>
-                <p id="preferred-customers-parked-count" class="mt-2 font-body font-semibold text-mono-data text-semantic-warning">0</p>
-              </div>
-              <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
-                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Assigned To Members</p>
-                <p id="preferred-customers-assigned-count" class="mt-2 font-body font-semibold text-mono-data text-semantic-success">0</p>
-              </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <article class="rounded-lg border border-surface-border bg-surface-base/45 px-3 py-2.5">
+              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Total Preferred</p>
+              <p id="preferred-customers-total-count" class="mt-1.5 font-body font-semibold text-mono-data text-text-primary">0</p>
+            </article>
+            <article class="rounded-lg border border-surface-border bg-surface-base/45 px-3 py-2.5">
+              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Parked (Admin Holding)</p>
+              <p id="preferred-customers-parked-count" class="mt-1.5 font-body font-semibold text-mono-data text-semantic-warning">0</p>
+            </article>
+            <article class="rounded-lg border border-surface-border bg-surface-base/45 px-3 py-2.5">
+              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Assigned To Members</p>
+              <p id="preferred-customers-assigned-count" class="mt-1.5 font-body font-semibold text-mono-data text-semantic-success">0</p>
+            </article>
+          </div>
+
+          <p id="preferred-customers-feedback" class="hidden text-body-sm"></p>
+          <div id="preferred-customers-list" class="rounded-lg border border-surface-border bg-surface-raised overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="min-w-[980px] w-full text-left">
+                <thead class="bg-surface-base/85 border-b border-surface-border">
+                  <tr class="text-caption uppercase tracking-[0.08em] text-text-tertiary">
+                    <th class="px-4 py-3 font-medium">Preferred Customer</th>
+                    <th class="px-4 py-3 font-medium">Sponsor</th>
+                    <th class="px-4 py-3 font-medium">Created</th>
+                    <th class="px-4 py-3 font-medium">Updated</th>
+                    <th class="px-4 py-3 font-medium">Status</th>
+                    <th class="px-4 py-3 font-medium text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="preferred-customers-table-body" class="divide-y divide-surface-border"></tbody>
+              </table>
             </div>
-
-            <p id="preferred-customers-feedback" class="hidden mt-4 text-body-sm"></p>
-            <div id="preferred-customers-list" class="mt-4 space-y-3"></div>
-            <p id="preferred-customers-empty-state" class="mt-3 text-body-sm text-text-tertiary">
+            <div id="preferred-customers-empty-state" class="hidden border-t border-surface-border px-4 py-4 text-body-sm text-text-tertiary">
               No preferred customers found yet.
+            </div>
+          </div>
+        </section>
+        <section id="page-preferred-customer-detail" data-page-view="preferred-customer-detail" class="hidden space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h3 class="font-body font-medium text-display-sm text-text-primary">Preferred Customer Details</h3>
+              <p class="text-body-sm text-text-secondary mt-1">Transfer this profile to a member sponsor.</p>
+            </div>
+            <button id="preferred-customer-detail-back-button" type="button" class="inline-flex h-10 w-32 items-center justify-center gap-2 rounded-lg border border-surface-border bg-surface-base text-body-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring whitespace-nowrap">
+              Back to List
+            </button>
+          </div>
+
+          <div id="preferred-customer-detail-panel" class="rounded-lg border border-surface-border bg-surface-base/45 p-4">
+            <p id="preferred-customer-detail-empty-state" class="text-body-sm text-text-tertiary">
+              Select a preferred customer from the list first.
             </p>
+            <div id="preferred-customer-detail-content" class="hidden space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                <div class="min-w-0">
+                  <p id="preferred-customer-detail-name" class="text-body-sm font-medium text-text-primary truncate">--</p>
+                  <p id="preferred-customer-detail-handle" class="text-caption text-text-tertiary mt-1 truncate">--</p>
+                </div>
+                <span id="preferred-customer-detail-status" class="inline-flex items-center text-caption px-2 py-0.5 rounded-md border border-surface-border bg-surface-elevated text-text-secondary">
+                  --
+                </span>
+              </div>
+              <div class="text-caption text-text-tertiary space-y-1">
+                <p>Created: <span id="preferred-customer-detail-created" class="text-text-secondary">--</span></p>
+                <p>Current Sponsor: <span id="preferred-customer-detail-current-sponsor" class="text-text-secondary">--</span></p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] gap-2 items-start">
+                <div class="relative">
+                  <label for="preferred-customer-detail-sponsor-input" class="text-caption text-text-tertiary">
+                    Sponsor Username
+                  </label>
+                  <input
+                    id="preferred-customer-detail-sponsor-input"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="Type username, name, or email"
+                    class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
+                  />
+                  <div id="preferred-customer-detail-sponsor-results-shell" class="hidden absolute left-0 right-0 z-20 mt-1 rounded-lg border border-surface-border bg-surface-raised shadow-depth-1 overflow-hidden">
+                    <p id="preferred-customer-detail-sponsor-results-count" class="px-3 py-2 text-caption text-text-tertiary border-b border-surface-border">0 members</p>
+                    <div id="preferred-customer-detail-sponsor-results" class="max-h-56 overflow-auto divide-y divide-surface-border"></div>
+                  </div>
+                </div>
+                <button
+                  id="preferred-customer-detail-assign-button"
+                  type="button"
+                  class="mt-2 md:mt-[1.625rem] inline-flex h-10 w-32 items-center justify-center gap-2 rounded-lg bg-brand-500 text-body-sm font-medium text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring whitespace-nowrap"
+                >
+                  Transfer
+                </button>
+              </div>
+              <p id="preferred-customer-detail-sponsor-hint" class="text-caption text-text-tertiary">Select a sponsor from the list below the field.</p>
+            </div>
           </div>
         </section>
         <section id="page-binary-tree" data-page-view="binary-tree" class="hidden space-y-6">
@@ -3710,9 +3782,9 @@
                           </button>
                         </div>
                         <input id="admin-product-image-file-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden">
-                        <p class="mt-1 text-[11px] text-text-tertiary">Recommended image: 1600x900 (16:9). Max file size: 5 MB.</p>
+                        <p class="mt-1 text-[11px] text-text-tertiary">Recommended image: 1600x2000 (4:5). Max file size: 5 MB.</p>
                         <p id="admin-product-image-upload-status" class="mt-1 hidden text-caption"></p>
-                        <img id="admin-product-image-preview" src="" alt="Selected product preview" class="mt-2 hidden h-28 w-28 rounded-lg border border-surface-border object-cover">
+                        <img id="admin-product-image-preview" src="" alt="Selected product preview" draggable="false" class="mt-2 hidden w-28 aspect-[4/5] select-none rounded-lg border border-surface-border object-cover" style="-webkit-user-drag: none;">
                       </div>
 
                       <label class="mt-4 block text-caption text-text-tertiary">
@@ -4541,7 +4613,23 @@
       const preferredCustomersAssignedCountElement = document.getElementById('preferred-customers-assigned-count');
       const preferredCustomersFeedbackElement = document.getElementById('preferred-customers-feedback');
       const preferredCustomersListElement = document.getElementById('preferred-customers-list');
+      const preferredCustomersTableBodyElement = document.getElementById('preferred-customers-table-body');
       const preferredCustomersEmptyStateElement = document.getElementById('preferred-customers-empty-state');
+      const preferredCustomerDetailBackButtonElement = document.getElementById('preferred-customer-detail-back-button');
+      const preferredCustomerDetailPanelElement = document.getElementById('preferred-customer-detail-panel');
+      const preferredCustomerDetailEmptyStateElement = document.getElementById('preferred-customer-detail-empty-state');
+      const preferredCustomerDetailContentElement = document.getElementById('preferred-customer-detail-content');
+      const preferredCustomerDetailNameElement = document.getElementById('preferred-customer-detail-name');
+      const preferredCustomerDetailHandleElement = document.getElementById('preferred-customer-detail-handle');
+      const preferredCustomerDetailStatusElement = document.getElementById('preferred-customer-detail-status');
+      const preferredCustomerDetailCreatedElement = document.getElementById('preferred-customer-detail-created');
+      const preferredCustomerDetailCurrentSponsorElement = document.getElementById('preferred-customer-detail-current-sponsor');
+      const preferredCustomerDetailSponsorInputElement = document.getElementById('preferred-customer-detail-sponsor-input');
+      const preferredCustomerDetailSponsorResultsShellElement = document.getElementById('preferred-customer-detail-sponsor-results-shell');
+      const preferredCustomerDetailSponsorResultsCountElement = document.getElementById('preferred-customer-detail-sponsor-results-count');
+      const preferredCustomerDetailSponsorResultsElement = document.getElementById('preferred-customer-detail-sponsor-results');
+      const preferredCustomerDetailSponsorHintElement = document.getElementById('preferred-customer-detail-sponsor-hint');
+      const preferredCustomerDetailAssignButtonElement = document.getElementById('preferred-customer-detail-assign-button');
       const enrollPreviewPackagePrice = document.getElementById('enroll-preview-package-price');
       const enrollPreviewPackageBv = document.getElementById('enroll-preview-package-bv');
       const enrollPreviewFastTrackBonus = document.getElementById('enroll-preview-fast-track-bonus');
@@ -4677,6 +4765,7 @@
 
       const currentSponsorUsername = resolveSponsorUsername(currentSessionUser) || 'unknown-sponsor';
       let registeredMembers = [];
+      let selectedPreferredCustomerMemberId = '';
       let memberRankLookupByKey = new Map();
       let baseBinaryTreeNewMembersJoined = 0;
       let baseBinaryTreeDirectSponsors = 0;
@@ -4723,6 +4812,10 @@
           title: 'Preferred Customers',
           searchPlaceholder: 'Search preferred customers...',
         },
+        'preferred-customer-detail': {
+          title: 'Preferred Customer Details',
+          searchPlaceholder: 'Search preferred customer details...',
+        },
         'binary-tree': {
           title: 'Binary Tree',
           searchPlaceholder: 'Search binary tree members...',
@@ -4746,6 +4839,7 @@
         'my-store': '/admin/MyStore',
         'enroll-member': '/admin/EnrollMember',
         'preferred-customers': '/admin/PreferredCustomers',
+        'preferred-customer-detail': '/admin/PreferredCustomers/Detail',
         'binary-tree': '/admin/BinaryTree',
         commissions: '/admin/Commissions',
         'commission-order': '/admin/Commissions/Order',
@@ -5743,9 +5837,328 @@
         preferredCustomersFeedbackElement.classList.add(isError ? 'text-semantic-danger' : 'text-semantic-success');
       }
 
+      function resolveRegisteredMemberById(memberId = '') {
+        const normalizedMemberId = String(memberId || '').trim();
+        if (!normalizedMemberId) {
+          return null;
+        }
+        return (Array.isArray(registeredMembers) ? registeredMembers : []).find((member) => {
+          return String(member?.id || '').trim() === normalizedMemberId;
+        }) || null;
+      }
+
+      function resolvePreferredCustomerAdminStatus(member = {}) {
+        if (isAdminHoldingPreferredCustomer(member)) {
+          return {
+            key: 'pending',
+            label: 'Pending',
+            badgeClass: 'bg-semantic-warning-bg border-semantic-warning/30 text-semantic-warning',
+          };
+        }
+
+        const createdTime = Date.parse(String(member?.createdAt || ''));
+        const updatedRawValue = String(
+          member?.updatedAt
+          || member?.updated_at
+          || member?.modifiedAt
+          || member?.modified_at
+          || '',
+        ).trim();
+        const updatedTime = Date.parse(updatedRawValue);
+        const hasUpdateAfterCreate = Number.isFinite(updatedTime)
+          && (
+            !Number.isFinite(createdTime)
+            || updatedTime > (createdTime + 1000)
+          );
+
+        if (hasUpdateAfterCreate) {
+          return {
+            key: 'updated',
+            label: 'Updated',
+            badgeClass: 'bg-semantic-info-bg border-brand-500/30 text-brand-300',
+          };
+        }
+
+        return {
+          key: 'transferred',
+          label: 'Transferred',
+          badgeClass: 'bg-semantic-success-bg border-semantic-success/30 text-semantic-success',
+        };
+      }
+
+      function getPreferredCustomerAssignableSponsors({ excludeMemberId = '' } = {}) {
+        const normalizedExcludeId = String(excludeMemberId || '').trim();
+        const adminHoldingKeys = resolveAdminHoldingSponsorKeySet();
+        return (Array.isArray(registeredMembers) ? registeredMembers : [])
+          .filter((member) => {
+            const candidateId = String(member?.id || '').trim();
+            const candidateUsername = String(member?.memberUsername || member?.username || '').trim();
+            if (!candidateUsername) {
+              return false;
+            }
+            if (normalizedExcludeId && candidateId === normalizedExcludeId) {
+              return false;
+            }
+            if (isPreferredCustomerMember(member)) {
+              return false;
+            }
+            return !adminHoldingKeys.has(normalizeMemberKey(candidateUsername));
+          })
+          .slice()
+          .sort((left, right) => {
+            const leftKey = normalizeMemberKey(left?.memberUsername || left?.username);
+            const rightKey = normalizeMemberKey(right?.memberUsername || right?.username);
+            return leftKey.localeCompare(rightKey);
+          });
+      }
+
+      function resolvePreferredCustomerAssignableSponsor({
+        sponsorUsername = '',
+        excludeMemberId = '',
+      } = {}) {
+        const normalizedInputKey = normalizeMemberKey(sponsorUsername).replace(/^@+/, '');
+        if (!normalizedInputKey) {
+          return null;
+        }
+
+        const assignableSponsors = getPreferredCustomerAssignableSponsors({
+          excludeMemberId,
+        });
+        return assignableSponsors.find((member) => {
+          const memberUsername = normalizeMemberKey(member?.memberUsername || member?.username);
+          return memberUsername === normalizedInputKey;
+        }) || null;
+      }
+
+      function hidePreferredCustomerSponsorResults() {
+        if (!preferredCustomerDetailSponsorResultsShellElement) {
+          return;
+        }
+        preferredCustomerDetailSponsorResultsShellElement.classList.add('hidden');
+      }
+
+      function renderPreferredCustomerSponsorSuggestions(member = null, options = {}) {
+        if (
+          !preferredCustomerDetailSponsorResultsShellElement
+          || !preferredCustomerDetailSponsorResultsCountElement
+          || !preferredCustomerDetailSponsorResultsElement
+        ) {
+          return;
+        }
+
+        const query = String(options?.query || '').trim();
+        const showPanel = options?.showPanel === true;
+        const limit = Number.isFinite(options?.limit) ? Math.max(1, Math.floor(options.limit)) : 30;
+        const normalizedQuery = normalizeMemberKey(query).replace(/^@+/, '');
+        const memberId = String(member?.id || selectedPreferredCustomerMemberId || '').trim();
+        const assignableSponsors = getPreferredCustomerAssignableSponsors({
+          excludeMemberId: memberId,
+        });
+        const filteredSponsors = normalizedQuery
+          ? assignableSponsors.filter((sponsorMember) => {
+            const usernameKey = normalizeMemberKey(sponsorMember?.memberUsername || sponsorMember?.username);
+            const fullNameKey = normalizeMemberKey(sponsorMember?.fullName);
+            const emailKey = normalizeMemberKey(sponsorMember?.email);
+            return usernameKey.includes(normalizedQuery)
+              || fullNameKey.includes(normalizedQuery)
+              || emailKey.includes(normalizedQuery);
+          })
+          : assignableSponsors;
+        const visibleSponsors = filteredSponsors.slice(0, limit);
+
+        preferredCustomerDetailSponsorResultsCountElement.textContent = `${visibleSponsors.length} member${visibleSponsors.length === 1 ? '' : 's'}`;
+        const resultsMarkup = visibleSponsors.map((sponsorMember) => {
+          const sponsorUsername = String(sponsorMember?.memberUsername || sponsorMember?.username || '').trim();
+          if (!sponsorUsername) {
+            return '';
+          }
+          const sponsorName = String(sponsorMember?.fullName || '').trim();
+          const sponsorEmail = String(sponsorMember?.email || '').trim();
+          const supportingMeta = [sponsorName, sponsorEmail].filter(Boolean).join(' · ') || 'Member account';
+          return `
+            <button
+              type="button"
+              data-preferred-customer-sponsor-username="${escapeHtml(sponsorUsername)}"
+              class="w-full text-left px-3 py-2 bg-surface-raised hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.99] transition-transform duration-150 ease-spring"
+            >
+              <p class="text-body-sm text-text-primary font-medium">@${escapeHtml(sponsorUsername)}</p>
+              <p class="text-caption text-text-tertiary mt-0.5 truncate">${escapeHtml(supportingMeta)}</p>
+            </button>
+          `;
+        }).filter(Boolean).join('');
+        preferredCustomerDetailSponsorResultsElement.innerHTML = resultsMarkup || `
+          <p class="px-3 py-2 text-caption text-text-tertiary">No matching sponsors found.</p>
+        `;
+
+        if (preferredCustomerDetailSponsorHintElement) {
+          preferredCustomerDetailSponsorHintElement.textContent = visibleSponsors.length
+            ? 'Select a sponsor from the list below the field.'
+            : 'No matching sponsors found. Keep typing to search.';
+        }
+
+        const shouldShowPanel = showPanel;
+        preferredCustomerDetailSponsorResultsShellElement.classList.toggle('hidden', !shouldShowPanel);
+      }
+
+      function renderPreferredCustomerDetailPanel(member = null) {
+        if (
+          !preferredCustomerDetailEmptyStateElement
+          || !preferredCustomerDetailContentElement
+          || !preferredCustomerDetailNameElement
+          || !preferredCustomerDetailHandleElement
+          || !preferredCustomerDetailStatusElement
+          || !preferredCustomerDetailCreatedElement
+          || !preferredCustomerDetailCurrentSponsorElement
+          || !preferredCustomerDetailSponsorInputElement
+          || !preferredCustomerDetailSponsorResultsShellElement
+          || !preferredCustomerDetailSponsorResultsCountElement
+          || !preferredCustomerDetailSponsorResultsElement
+          || !preferredCustomerDetailAssignButtonElement
+        ) {
+          return;
+        }
+
+        if (!member || typeof member !== 'object') {
+          renderPreferredCustomerSponsorSuggestions(null, { query: '', showPanel: false });
+          preferredCustomerDetailEmptyStateElement.classList.remove('hidden');
+          preferredCustomerDetailContentElement.classList.add('hidden');
+          preferredCustomerDetailNameElement.textContent = '--';
+          preferredCustomerDetailHandleElement.textContent = '--';
+          preferredCustomerDetailStatusElement.textContent = '--';
+          preferredCustomerDetailCreatedElement.textContent = '--';
+          preferredCustomerDetailCurrentSponsorElement.textContent = '--';
+          preferredCustomerDetailSponsorInputElement.value = '';
+          hidePreferredCustomerSponsorResults();
+          preferredCustomerDetailAssignButtonElement.disabled = true;
+          preferredCustomerDetailAssignButtonElement.textContent = 'Transfer';
+          return;
+        }
+
+        const memberId = String(member?.id || '').trim();
+        const memberName = String(member?.fullName || member?.memberUsername || member?.email || 'Unnamed preferred customer').trim();
+        const memberUsername = String(member?.memberUsername || '--').trim() || '--';
+        const memberEmail = String(member?.email || '--').trim() || '--';
+        const sponsorUsernameRaw = String(member?.sponsorUsername || '').trim();
+        const sponsorNameRaw = String(member?.sponsorName || '').trim();
+        const sponsorUsernameLabel = sponsorUsernameRaw ? `@${sponsorUsernameRaw}` : 'unassigned';
+        const sponsorLabel = sponsorNameRaw
+          ? `${sponsorNameRaw} (${sponsorUsernameLabel})`
+          : sponsorUsernameLabel;
+        const statusMeta = resolvePreferredCustomerAdminStatus(member);
+        const createdLabel = formatMemberDateTime(member?.createdAt);
+
+        renderPreferredCustomerSponsorSuggestions(member, {
+          query: '',
+          showPanel: false,
+        });
+        preferredCustomerDetailNameElement.textContent = memberName;
+        preferredCustomerDetailHandleElement.textContent = `@${memberUsername} - ${memberEmail}`;
+        preferredCustomerDetailCreatedElement.textContent = createdLabel;
+        preferredCustomerDetailCurrentSponsorElement.textContent = sponsorLabel;
+        preferredCustomerDetailSponsorInputElement.value = statusMeta.key === 'pending' ? '' : sponsorUsernameRaw;
+
+        preferredCustomerDetailStatusElement.className = `inline-flex items-center text-caption px-2 py-0.5 rounded-md border ${statusMeta.badgeClass}`;
+        preferredCustomerDetailStatusElement.textContent = statusMeta.label;
+
+        preferredCustomerDetailAssignButtonElement.textContent = statusMeta.key === 'pending'
+          ? 'Transfer'
+          : 'Update';
+        preferredCustomerDetailAssignButtonElement.disabled = !memberId;
+
+        preferredCustomerDetailEmptyStateElement.classList.add('hidden');
+        preferredCustomerDetailContentElement.classList.remove('hidden');
+      }
+
+      async function assignPreferredCustomerToSponsor({
+        memberId = '',
+        sponsorUsername = '',
+        actionButton = null,
+      } = {}) {
+        const normalizedMemberId = String(memberId || '').trim();
+        const normalizedSponsorUsername = String(sponsorUsername || '').trim();
+        const targetMember = resolveRegisteredMemberById(normalizedMemberId);
+
+        if (!normalizedMemberId || !targetMember) {
+          setPreferredCustomersFeedback('Select a valid preferred-customer record to assign.', true);
+          return;
+        }
+
+        if (!normalizedSponsorUsername) {
+          setPreferredCustomersFeedback('Sponsor username is required to assign this preferred customer.', true);
+          return;
+        }
+
+        const normalizedCurrentSponsorKey = normalizeMemberKey(targetMember?.sponsorUsername);
+        const normalizedNextSponsorKey = normalizeMemberKey(normalizedSponsorUsername);
+        if (normalizedCurrentSponsorKey && normalizedCurrentSponsorKey === normalizedNextSponsorKey) {
+          setPreferredCustomersFeedback('This preferred customer is already assigned to that sponsor.', true);
+          return;
+        }
+
+        const requestBody = {
+          sponsorUsername: normalizedSponsorUsername,
+        };
+
+        const previousButtonLabel = actionButton?.textContent || 'Transfer';
+        if (actionButton) {
+          actionButton.disabled = true;
+          actionButton.textContent = 'Assigning...';
+        }
+
+        setPreferredCustomersFeedback(`Assigning @${targetMember?.memberUsername || targetMember?.username || 'member'} to @${normalizedSponsorUsername}...`);
+
+        try {
+          const response = await fetch(`${REGISTERED_MEMBERS_API}/${encodeURIComponent(normalizedMemberId)}/placement`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(requestBody),
+          });
+
+          const payload = await response.json().catch(() => null);
+          if (!response.ok) {
+            const failureMessage = typeof payload?.error === 'string'
+              ? payload.error
+              : `Unable to assign preferred customer (${response.status}).`;
+            throw new Error(failureMessage);
+          }
+
+          const updatedMember = payload?.member;
+          if (updatedMember && typeof updatedMember === 'object') {
+            const updatedMemberId = String(updatedMember?.id || normalizedMemberId).trim();
+            const existingMemberIndex = registeredMembers.findIndex((member) => String(member?.id || '').trim() === updatedMemberId);
+            if (existingMemberIndex >= 0) {
+              registeredMembers[existingMemberIndex] = updatedMember;
+            }
+          }
+
+          selectedPreferredCustomerMemberId = normalizedMemberId;
+          await loadRegisteredMembers();
+          renderPreferredCustomersPage();
+
+          const updatedMemberLabel = String(updatedMember?.memberUsername || updatedMember?.fullName || targetMember?.memberUsername || 'Preferred customer').trim();
+          const updatedSponsorLabel = String(updatedMember?.sponsorUsername || normalizedSponsorUsername).trim();
+          setPreferredCustomersFeedback(`${updatedMemberLabel} is now assigned to @${updatedSponsorLabel}.`);
+          window.setTimeout(() => setPreferredCustomersFeedback(''), 1800);
+        } catch (error) {
+          const errorMessage = error instanceof Error
+            ? error.message
+            : 'Unable to assign preferred customer right now.';
+          setPreferredCustomersFeedback(errorMessage, true);
+        } finally {
+          if (actionButton && document.body.contains(actionButton)) {
+            actionButton.disabled = false;
+            actionButton.textContent = previousButtonLabel;
+          }
+        }
+      }
+
       function renderPreferredCustomersPage() {
         if (
           !preferredCustomersListElement
+          || !preferredCustomersTableBodyElement
           || !preferredCustomersEmptyStateElement
         ) {
           return;
@@ -5774,42 +6187,83 @@
         }
 
         if (preferredMembers.length === 0) {
-          preferredCustomersListElement.innerHTML = '';
+          selectedPreferredCustomerMemberId = '';
+          preferredCustomersTableBodyElement.innerHTML = '';
           preferredCustomersEmptyStateElement.classList.remove('hidden');
+          renderPreferredCustomerDetailPanel(null);
           return;
         }
 
+        const hasSelectedMember = preferredMembers.some((member) => {
+          return String(member?.id || '').trim() === selectedPreferredCustomerMemberId;
+        });
+        if (!hasSelectedMember) {
+          const parkedMember = preferredMembers.find((member) => isAdminHoldingPreferredCustomer(member));
+          selectedPreferredCustomerMemberId = String(parkedMember?.id || preferredMembers[0]?.id || '').trim();
+        }
+        const selectedMember = preferredMembers.find((member) => {
+          return String(member?.id || '').trim() === selectedPreferredCustomerMemberId;
+        }) || null;
+
         preferredCustomersEmptyStateElement.classList.add('hidden');
-        preferredCustomersListElement.innerHTML = preferredMembers.map((member) => {
+        preferredCustomersTableBodyElement.innerHTML = preferredMembers.map((member) => {
+          const memberId = String(member?.id || '').trim();
+          const memberIdAttribute = escapeHtml(memberId);
           const memberName = escapeHtml(member?.fullName || member?.memberUsername || member?.email || 'Unnamed preferred customer');
           const memberUsername = escapeHtml(member?.memberUsername || '--');
           const memberEmail = escapeHtml(member?.email || '--');
           const sponsorUsername = escapeHtml(member?.sponsorUsername || 'unassigned');
           const sponsorName = escapeHtml(member?.sponsorName || member?.sponsorUsername || 'Sponsor');
           const createdLabel = escapeHtml(formatMemberDateTime(member?.createdAt));
-          const isParked = isAdminHoldingPreferredCustomer(member);
+          const updatedLabel = escapeHtml(
+            formatMemberDateTime(
+              member?.updatedAt
+              || member?.updated_at
+              || member?.modifiedAt
+              || member?.modified_at
+              || member?.createdAt,
+            ),
+          );
+          const statusMeta = resolvePreferredCustomerAdminStatus(member);
+          const isSelected = memberId && memberId === selectedPreferredCustomerMemberId;
+          const rowStateClass = isSelected
+            ? 'bg-brand-500/10'
+            : 'hover:bg-surface-elevated/70';
 
           return `
-            <article class="rounded-xl border border-surface-border bg-surface-base/40 p-4">
-              <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                <div>
-                  <p class="text-body-sm font-medium text-text-primary">${memberName}</p>
-                  <p class="text-caption text-text-tertiary mt-1">@${memberUsername} - ${memberEmail}</p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                  ${isParked
-                    ? '<span class="text-caption px-2 py-0.5 rounded-md bg-semantic-warning-bg border border-semantic-warning/30 text-semantic-warning">Parked (Admin Holding)</span>'
-                    : '<span class="text-caption px-2 py-0.5 rounded-md bg-semantic-success-bg border border-semantic-success/30 text-semantic-success">Assigned</span>'
-                  }
-                </div>
-              </div>
-              <div class="mt-3 flex flex-wrap items-center gap-2">
-                <span class="text-caption px-2 py-0.5 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">Sponsor: ${sponsorName} (@${sponsorUsername})</span>
-                <span class="text-caption px-2 py-0.5 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">Created: ${createdLabel}</span>
-              </div>
-            </article>
+            <tr
+              data-preferred-customer-member-id="${memberIdAttribute}"
+              tabindex="0"
+              role="button"
+              class="cursor-pointer transition-colors duration-150 ${rowStateClass}"
+            >
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm font-medium text-text-primary">${memberName}</p>
+                <p class="mt-0.5 text-caption text-text-tertiary">@${memberUsername}</p>
+                <p class="mt-0.5 text-caption text-text-tertiary">${memberEmail}</p>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm text-text-primary">${sponsorName}</p>
+                <p class="mt-0.5 text-caption text-text-tertiary">@${sponsorUsername}</p>
+              </td>
+              <td class="px-4 py-3 align-top text-body-sm text-text-secondary">${createdLabel}</td>
+              <td class="px-4 py-3 align-top text-body-sm text-text-secondary">${updatedLabel}</td>
+              <td class="px-4 py-3 align-top">
+                <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-caption font-medium ${statusMeta.badgeClass}">${escapeHtml(statusMeta.label)}</span>
+              </td>
+              <td class="px-4 py-3 align-top text-right">
+                <button
+                  type="button"
+                  data-preferred-customer-member-id="${memberIdAttribute}"
+                  class="inline-flex h-10 w-32 items-center justify-center rounded-lg border border-surface-border bg-surface-base text-body-sm font-medium text-text-secondary hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring whitespace-nowrap"
+                >
+                  Open
+                </button>
+              </td>
+            </tr>
           `;
         }).join('');
+        renderPreferredCustomerDetailPanel(selectedMember);
       }
 
       function getOrganizationMembersForCurrentSponsor() {
@@ -10001,7 +10455,7 @@
         });
 
         if (uniqueImages.length === 0) {
-          uniqueImages.push('https://placehold.co/960x560?text=Product');
+          uniqueImages.push('https://placehold.co/1000x1250?text=Product');
         }
 
         return uniqueImages.slice(0, 12);
@@ -10019,7 +10473,7 @@
         const stock = Number.isFinite(numericStock) ? Math.max(0, Math.floor(numericStock)) : 0;
         const description = String(rawProduct?.description || rawProduct?.summary || `${title} product description.`).trim();
         const details = parseStoreProductDetails(rawProduct?.details, bp);
-        const image = String(rawProduct?.image || rawProduct?.imageUrl || 'https://placehold.co/960x560?text=Product').trim() || 'https://placehold.co/960x560?text=Product';
+        const image = String(rawProduct?.image || rawProduct?.imageUrl || 'https://placehold.co/1000x1250?text=Product').trim() || 'https://placehold.co/1000x1250?text=Product';
         const images = normalizeStoreProductImages(rawProduct?.images, image);
         const statusCandidate = String(rawProduct?.status || 'active').trim().toLowerCase();
         const status = statusCandidate === 'archived' ? 'archived' : 'active';
@@ -10552,12 +11006,31 @@
 
           return `
             <article class="px-4 py-3 hover:bg-surface-base/30 transition-colors">
-              <div class="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2.4fr)_130px_110px_130px_150px_180px] lg:items-center lg:gap-3">
+              <div class="space-y-2 lg:hidden">
+                <div class="flex items-center gap-3">
+                  <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" draggable="false" class="h-12 w-12 shrink-0 select-none rounded-md border border-surface-border object-cover object-center" style="-webkit-user-drag: none;">
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-body-sm font-medium text-text-primary">${escapeHtml(product.title)}</p>
+                    <p class="mt-0.5 text-[11px] uppercase tracking-[0.08em] text-text-tertiary">${escapeHtml(product.id)}</p>
+                  </div>
+                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-caption font-medium ${product.status === 'archived' ? 'bg-semantic-warning-bg text-semantic-warning' : 'bg-semantic-success-bg text-semantic-success'}">${statusLabel}</span>
+                </div>
+                <p class="text-caption text-text-tertiary">
+                  Price: <span class="text-text-secondary">${formatCurrency(product.price)}</span>
+                  · Stock: <span class="text-text-secondary">${formatInteger(product.stock)}</span>
+                  · BV: <span class="text-text-secondary">${formatInteger(product.bp)}</span>
+                  · Updated: <span class="text-text-secondary">${updatedLabel}</span>
+                </p>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" data-admin-product-action="open" data-product-id="${escapeHtml(product.id)}" class="inline-flex h-8 items-center justify-center rounded-lg border border-surface-border bg-surface-base px-3 text-caption text-text-secondary hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">Manage</button>
+                  <button type="button" data-admin-product-action="toggle-archive" data-product-id="${escapeHtml(product.id)}" class="inline-flex h-8 items-center justify-center rounded-lg border border-surface-border bg-surface-base px-3 text-caption text-text-secondary hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">${archiveActionLabel}</button>
+                </div>
+              </div>
+              <div class="hidden lg:grid lg:grid-cols-[minmax(0,2.4fr)_130px_110px_130px_150px_180px] lg:items-center lg:gap-3">
                 <div class="flex min-w-0 items-center gap-3">
-                  <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" class="h-14 w-14 shrink-0 rounded-lg border border-surface-border object-cover">
+                  <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" draggable="false" class="w-14 aspect-[4/5] shrink-0 select-none rounded-lg border border-surface-border object-cover object-center" style="-webkit-user-drag: none;">
                   <div class="min-w-0">
                     <p class="truncate text-body-sm font-medium text-text-primary">${escapeHtml(product.title)}</p>
-                    <p class="mt-0.5 truncate text-caption text-text-tertiary">${escapeHtml(product.description)}</p>
                     <p class="mt-1 text-[11px] uppercase tracking-[0.08em] text-text-tertiary">${escapeHtml(product.id)}</p>
                   </div>
                 </div>
@@ -10571,8 +11044,8 @@
                 </div>
                 <p class="text-caption text-text-secondary">${updatedLabel}</p>
                 <div class="flex flex-wrap items-center gap-2 lg:justify-end">
-                  <button type="button" data-admin-product-action="open" data-product-id="${escapeHtml(product.id)}" class="inline-flex items-center justify-center rounded-lg border border-surface-border bg-surface-base px-3 py-1.5 text-caption text-text-secondary hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">Manage</button>
-                  <button type="button" data-admin-product-action="toggle-archive" data-product-id="${escapeHtml(product.id)}" class="inline-flex items-center justify-center rounded-lg border border-surface-border bg-surface-base px-3 py-1.5 text-caption text-text-secondary hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">${archiveActionLabel}</button>
+                  <button type="button" data-admin-product-action="open" data-product-id="${escapeHtml(product.id)}" class="inline-flex h-9 items-center justify-center rounded-lg border border-surface-border bg-surface-base px-3 text-caption text-text-secondary hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">Manage</button>
+                  <button type="button" data-admin-product-action="toggle-archive" data-product-id="${escapeHtml(product.id)}" class="inline-flex h-9 items-center justify-center rounded-lg border border-surface-border bg-surface-base px-3 text-caption text-text-secondary hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">${archiveActionLabel}</button>
                 </div>
               </div>
             </article>
@@ -11262,7 +11735,9 @@
       }
 
       function setNavState(activePage) {
-        const navActivePage = activePage === 'commission-order' ? 'commissions' : activePage;
+        const navActivePage = activePage === 'commission-order'
+          ? 'commissions'
+          : (activePage === 'preferred-customer-detail' ? 'preferred-customers' : activePage);
         navLinks.forEach((link) => {
           const isActive = link.dataset.page === navActivePage;
 
@@ -11325,6 +11800,24 @@
 
         if (nextPage === 'preferred-customers') {
           renderPreferredCustomersPage();
+        }
+
+        if (nextPage === 'preferred-customer-detail') {
+          if (!selectedPreferredCustomerMemberId) {
+            renderPreferredCustomersPage();
+          }
+
+          const selectedMember = resolveRegisteredMemberById(selectedPreferredCustomerMemberId);
+          if (!selectedMember) {
+            setPreferredCustomersFeedback('Select a preferred customer first.', true);
+            setPage('preferred-customers', {
+              routeMode: 'replace',
+              updateRoute: true,
+            });
+            return;
+          }
+
+          renderPreferredCustomerDetailPanel(selectedMember);
         }
 
         if (nextPage === 'commissions' || nextPage === 'commission-order') {
@@ -11395,6 +11888,117 @@
                 : 'Unable to refresh preferred customers.';
               setPreferredCustomersFeedback(message, true);
             });
+        });
+      }
+
+      if (preferredCustomersListElement && preferredCustomersListElement.dataset.bound !== 'true') {
+        preferredCustomersListElement.dataset.bound = 'true';
+        preferredCustomersListElement.addEventListener('click', (event) => {
+          const memberSelectionButton = event.target.closest('[data-preferred-customer-member-id]');
+          if (!memberSelectionButton) {
+            return;
+          }
+
+          const memberId = String(memberSelectionButton.dataset.preferredCustomerMemberId || '').trim();
+          if (!memberId) {
+            setPreferredCustomersFeedback('Preferred customer details are unavailable for this record.', true);
+            return;
+          }
+
+          selectedPreferredCustomerMemberId = memberId;
+          setPage('preferred-customer-detail', { routeMode: 'push' });
+        });
+
+        preferredCustomersListElement.addEventListener('keydown', (event) => {
+          const targetRow = event.target.closest('tr[data-preferred-customer-member-id]');
+          if (!targetRow) {
+            return;
+          }
+          const isActionKey = event.key === 'Enter' || event.key === ' ';
+          if (!isActionKey) {
+            return;
+          }
+          event.preventDefault();
+          const memberId = String(targetRow.dataset.preferredCustomerMemberId || '').trim();
+          if (!memberId) {
+            return;
+          }
+          selectedPreferredCustomerMemberId = memberId;
+          setPage('preferred-customer-detail', { routeMode: 'push' });
+        });
+      }
+
+      if (preferredCustomerDetailBackButtonElement) {
+        preferredCustomerDetailBackButtonElement.addEventListener('click', () => {
+          setPage('preferred-customers', { routeMode: 'push' });
+        });
+      }
+
+      if (preferredCustomerDetailSponsorInputElement && preferredCustomerDetailSponsorInputElement.dataset.bound !== 'true') {
+        preferredCustomerDetailSponsorInputElement.dataset.bound = 'true';
+        preferredCustomerDetailSponsorInputElement.addEventListener('focus', () => {
+          const selectedMember = resolveRegisteredMemberById(selectedPreferredCustomerMemberId);
+          renderPreferredCustomerSponsorSuggestions(selectedMember, {
+            query: preferredCustomerDetailSponsorInputElement.value,
+            showPanel: true,
+          });
+        });
+        preferredCustomerDetailSponsorInputElement.addEventListener('input', () => {
+          const selectedMember = resolveRegisteredMemberById(selectedPreferredCustomerMemberId);
+          renderPreferredCustomerSponsorSuggestions(selectedMember, {
+            query: preferredCustomerDetailSponsorInputElement.value,
+            showPanel: true,
+          });
+        });
+        preferredCustomerDetailSponsorInputElement.addEventListener('blur', () => {
+          window.setTimeout(() => {
+            hidePreferredCustomerSponsorResults();
+          }, 120);
+        });
+        preferredCustomerDetailSponsorInputElement.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            hidePreferredCustomerSponsorResults();
+          }
+        });
+      }
+
+      if (preferredCustomerDetailSponsorResultsElement && preferredCustomerDetailSponsorResultsElement.dataset.bound !== 'true') {
+        preferredCustomerDetailSponsorResultsElement.dataset.bound = 'true';
+        preferredCustomerDetailSponsorResultsElement.addEventListener('click', (event) => {
+          const sponsorOptionButton = event.target.closest('[data-preferred-customer-sponsor-username]');
+          if (!sponsorOptionButton || !preferredCustomerDetailSponsorInputElement) {
+            return;
+          }
+          const sponsorUsername = String(sponsorOptionButton.dataset.preferredCustomerSponsorUsername || '').trim();
+          if (!sponsorUsername) {
+            return;
+          }
+          preferredCustomerDetailSponsorInputElement.value = sponsorUsername;
+          hidePreferredCustomerSponsorResults();
+          setPreferredCustomersFeedback('');
+        });
+      }
+
+      if (preferredCustomerDetailAssignButtonElement && preferredCustomerDetailAssignButtonElement.dataset.bound !== 'true') {
+        preferredCustomerDetailAssignButtonElement.dataset.bound = 'true';
+        preferredCustomerDetailAssignButtonElement.addEventListener('click', () => {
+          const memberId = String(selectedPreferredCustomerMemberId || '').trim();
+          const sponsorInputValue = String(preferredCustomerDetailSponsorInputElement?.value || '').trim();
+          const selectedSponsorMember = resolvePreferredCustomerAssignableSponsor({
+            sponsorUsername: sponsorInputValue,
+            excludeMemberId: memberId,
+          });
+          if (!selectedSponsorMember) {
+            setPreferredCustomersFeedback('Select a valid member username from the suggestion list.', true);
+            return;
+          }
+          const sponsorUsername = String(selectedSponsorMember?.memberUsername || selectedSponsorMember?.username || '').trim();
+
+          void assignPreferredCustomerToSponsor({
+            memberId,
+            sponsorUsername,
+            actionButton: preferredCustomerDetailAssignButtonElement,
+          });
         });
       }
 

@@ -7,6 +7,191 @@ Last Updated: 2026-04-06
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
 
+## Recent Update (2026-04-06) - Admin My Store Mobile Product List Simplified
+
+- Simplified Admin `My Store` mobile product rows to a normal compact list view.
+- Removed mobile segmented metric-container blocks and replaced with:
+  - compact header row (image + name + status)
+  - single metadata line (`Price`, `Stock`, `BV`, `Updated`)
+  - compact 2-button action row
+- Desktop product table/grid layout preserved.
+- Product list remains name-only (description preview still removed).
+- Files updated:
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation status:
+  - `admin.html` inline script parse passed (`Inline scripts parse OK: 2`).
+
+## Recent Update (2026-04-06) - Admin My Store Product List (Name-Only) + Mobile Row Optimization
+
+- Admin `My Store` product list no longer shows description previews in table/list rows.
+- Product identity block now emphasizes:
+  - product image
+  - product name
+  - product ID
+- Mobile row layout optimized for small screens:
+  - improved thumbnail sizing/framing
+  - labeled mobile metric blocks (`Price`, `Inventory`, `Updated`)
+  - mobile status badge surfaced in product header area
+  - action buttons switched to 2-column grid for touch-friendly controls
+- Desktop table structure remains intact.
+- Files updated:
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation status:
+  - `admin.html` inline script parse passed (`Inline scripts parse OK: 2`).
+- Notes:
+  - Puppeteer screenshot flow to `127.0.0.1:5500` still returned `ERR_CONNECTION_REFUSED` in this environment.
+
+## Recent Update (2026-04-06) - Product Media Drag/Highlight Disabled
+
+- Applied product-media interaction lock so storefront/admin product images are not draggable and do not support selection/highlight behavior.
+- Added on product media elements:
+  - `draggable="false"`
+  - `select-none`
+  - `style="-webkit-user-drag: none;"`
+- Coverage includes:
+  - public store grid (`store.html`)
+  - public product page hero + thumbnails (`store-product.html`)
+  - dashboard store grid + selected product image (`index.html`)
+  - admin product preview + product list thumbnail (`admin.html`)
+- Files updated:
+  - `store.html`
+  - `store-product.html`
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+
+## Recent Update (2026-04-06) - Product Media Ratio Updated To 4:5
+
+- Product image framing is now standardized to `4:5` across:
+  - public store grid (`store.html`)
+  - public product detail/gallery (`store-product.html`)
+  - member dashboard store grid + selected product view (`index.html`)
+  - admin product preview/list thumbnails (`admin.html`)
+- Product fallback/default media was updated to `https://placehold.co/1000x1250?text=Product` in shared frontend and backend normalization paths.
+- Admin product media recommendation now explicitly states:
+  - `1600x2000 (4:5)`
+- Files updated:
+  - `store.html`
+  - `store-product.html`
+  - `index.html`
+  - `admin.html`
+  - `storefront-shared.js`
+  - `backend/services/store-product.service.js`
+  - `backend/stores/store-product.store.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation status:
+  - `node --check storefront-shared.js` passed
+  - `node --check backend/services/store-product.service.js` passed
+  - `node --check backend/stores/store-product.store.js` passed
+
+## Recent Update (2026-04-06) - Preferred Customer Transfer Button Alignment Corrected
+
+- Fixed Sponsor-transfer control alignment issue on Admin Preferred Customer detail page.
+- Moved sponsor helper text (`Select a sponsor from the list below the field.`) below the control row so it no longer offsets action-button alignment.
+- Adjusted row alignment so the `Transfer/Update` button aligns with the sponsor input field consistently.
+- Files updated:
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation status:
+  - `admin.html` inline script parse passed (`Inline scripts parse OK: 2`).
+
+## Recent Update (2026-04-06) - Preferred Customer Button Sizes Unified
+
+- Standardized button dimensions in Admin `Preferred Customers` flow for visual consistency.
+- Applied uniform button scale to:
+  - `Refresh`
+  - `Back to List`
+  - `Transfer` / `Update`
+  - table row `Open`
+- Updated label text in detail page actions to fit uniform dimensions without wrapping.
+- Files updated:
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation status:
+  - `admin.html` inline script parse passed (`Inline scripts parse OK: 2`).
+
+## Recent Update (2026-04-06) - Preferred Customer Table View + Status Labels + Custom Sponsor Picker
+
+- Converted Admin `Preferred Customers` list into a full table layout with operation-friendly columns:
+  - preferred customer
+  - sponsor
+  - created
+  - updated
+  - status
+  - action
+- Added explicit status labels for transfer workflow visibility:
+  - `Pending`
+  - `Transferred`
+  - `Updated`
+- Replaced native browser sponsor `datalist` behavior with custom in-app suggestion dropdown:
+  - type search by username/name/email
+  - clickable result selection
+  - no webkit-native dropdown dependency
+- Detail-page transfer still uses:
+  - `PATCH /api/admin/registered-members/:memberId/placement`
+- Files updated:
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation status:
+  - `admin.html` inline script parse passed (`Inline scripts parse OK: 2`).
+- Notes:
+  - screenshot automation to `127.0.0.1:5500` was not reachable from this runtime (`ERR_CONNECTION_REFUSED`).
+
+## Recent Update (2026-04-06) - Preferred Customer Sponsor Dropdown + UI Cleanup
+
+- Simplified Admin `Preferred Customers` layout to reduce container density on both:
+  - list page
+  - detail page (`/admin/PreferredCustomers/Detail`)
+- Sponsor transfer control on detail page now supports type-to-select username selection using a dropdown suggestion list.
+- Sponsor selection now validates against assignable member accounts before transfer submit.
+- Transfer behavior remains sponsor-only (no placement controls added back).
+- Assignment endpoint remains:
+  - `PATCH /api/admin/registered-members/:memberId/placement`
+- Files updated:
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation status:
+  - `admin.html` inline script parse passed (`Inline scripts parse OK: 2`).
+
+## Recent Update (2026-04-06) - Admin Preferred Customers Assignment Controls
+
+- Admin `Preferred Customers` now uses a page-based detail flow.
+- Clicking a preferred-customer row opens dedicated detail route:
+  - `/admin/PreferredCustomers/Detail`
+- Assignment controls are shown only in that detail page.
+- Admin can now transfer preferred-customer records by entering sponsor username in the detail page.
+- Assignment actions now call:
+  - `PATCH /api/admin/registered-members/:memberId/placement`
+- Placement controls were removed from this transfer flow; existing placement metadata stays unchanged unless edited elsewhere.
+- Added backend safety guard so invalid sponsor usernames return an error instead of silently saving.
+- Files updated:
+  - `admin.html`
+  - `backend/services/member.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation status:
+  - `node --check backend/services/member.service.js` passed
+  - `admin.html` inline script parse passed.
+
 ## Recent Update (2026-04-06) - User Store Shareable Link Visible in Storefront
 
 - Member dashboard `My Store` now shows a visible `Shareable Store Link` block in the default storefront view.
