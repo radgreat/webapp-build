@@ -7,6 +7,22 @@ Last Updated: 2026-04-07
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
 
+## Recent Update (2026-04-07) - Home Skeleton Layout Synced to Current Dashboard
+
+- Updated `#dashboard-initial-skeleton` in `index.html` to match the current Home dashboard structure and spacing.
+- Replaced older condensed skeleton pattern with a full-layout loading shell:
+  - KPI row placeholders (4 cards)
+  - Weekly Total + Server Cut-Off top row placeholders
+  - Infinity/Legacy left stack + Fast Track/Recent Activity right stack placeholders.
+- Result:
+  - reload skeleton now aligns with the actual Home page composition instead of appearing like a centered/older layout.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
 ## Recent Update (2026-04-07) - Recent Activity Header Cleanup + Working View All Toggle
 
 - Removed the extra helper subtitle line under `Recent Activity` in `index.html` for a cleaner header.

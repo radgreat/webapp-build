@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 229
+**Times Updated:** 230
 
 ## Overview
 
@@ -12,6 +12,30 @@
 
 ## Major Update (Lead Devloper Notes)
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.
+
+---
+
+## Update (2026-04-07) - Dashboard Skeleton Layout Matched to Current Home Composition
+
+### What Was Changed
+
+- Rebuilt `#dashboard-initial-skeleton` in `index.html` so loading state mirrors the current Home dashboard structure instead of an older compact center-like layout.
+- Updated skeleton composition now follows live layout order:
+  - Row 1: four KPI card placeholders
+  - Row 2 top: `Weekly Total Organization BV` (left) + `Server Cut-Off` (right)
+  - Row 2 bottom: `Infinity Builder + Legacy Leadership` stack (left) + `Fast Track + Recent Activity` stack (right).
+- Added richer placeholder structure per section (header chips, value bars, chart strips, list rows) to align spacing/visual rhythm with the live dashboard.
+- Kept all loading-state logic intact (`data-dashboard-loading`, step-complete flow, force-stop timer); this update is markup-only for skeleton fidelity.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
 
 ---
 
