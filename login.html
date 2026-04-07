@@ -8,7 +8,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -17,31 +17,34 @@
         extend: {
           colors: {
             brand: {
-              400: '#1AFFB6',
-              500: '#0FD4A4',
+              300: '#9FEAFF',
+              400: '#63D8F6',
+              500: '#26B8DF',
+              600: '#1597BC',
             },
             surface: {
-              base: '#0A0F14',
-              raised: '#111920',
-              border: '#2A3A4A',
+              base: '#02010B',
+              raised: 'rgba(12,18,28,0.56)',
+              border: 'rgba(167,210,232,0.36)',
             },
             text: {
-              primary: '#F0F4F8',
-              secondary: '#A0B4C8',
-              tertiary: '#6B8299',
-              inverse: '#0A0F14',
+              primary: '#E8F3FF',
+              secondary: '#BDD4E6',
+              tertiary: '#8FA8BB',
+              inverse: '#03141B',
             },
             semantic: {
-              'danger-bg': 'rgba(244,91,105,0.1)',
-              danger: '#F45B69',
+              'danger-bg': 'rgba(255,105,141,0.14)',
+              danger: '#FF85A9',
             },
           },
           fontFamily: {
             display: ['"DM Serif Display"', 'serif'],
             body: ['Inter', 'system-ui', 'sans-serif'],
+            alt: ['"Space Grotesk"', 'Inter', 'system-ui', 'sans-serif'],
           },
           boxShadow: {
-            'depth-3': '0 4px 8px rgba(15,212,164,0.08), 0 16px 48px rgba(0,0,0,0.45), 0 1px 0 rgba(15,212,164,0.1) inset',
+            'depth-3': '0 36px 80px rgba(0,0,0,0.56), 0 12px 30px rgba(5,18,30,0.42), inset 0 1px 0 rgba(255,255,255,0.22)',
           },
           transitionTimingFunction: {
             spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -58,10 +61,20 @@
         position: absolute;
         inset: 0;
         filter: url(#grain);
-        opacity: 0.03;
+        opacity: 0.04;
         pointer-events: none;
-        z-index: 1;
-        mix-blend-mode: overlay;
+        z-index: 4;
+        mix-blend-mode: soft-light;
+      }
+
+      .color-bends-canvas > canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+        display: block;
       }
     }
   </style>
@@ -82,6 +95,15 @@
       min-height: 100dvh;
       text-rendering: optimizeLegibility;
       font-synthesis: none;
+      overflow-x: hidden;
+    }
+
+    .page-shell {
+      will-change: opacity, filter;
+    }
+
+    .reveal-up {
+      will-change: opacity, transform, filter;
     }
   </style>
 </head>
@@ -93,69 +115,395 @@
     </filter>
   </svg>
 
-  <div class="relative min-h-screen grain flex items-center justify-center px-4 py-10" style="background-image:
-    radial-gradient(ellipse 80% 50% at 10% 0%, rgba(15,212,164,0.07) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(91,184,244,0.06) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 60% at 50% 50%, rgba(167,139,250,0.03) 0%, transparent 60%);">
-    <div class="absolute inset-0 bg-surface-base/80 backdrop-blur-sm"></div>
+  <div class="relative min-h-screen bg-surface-base page-shell">
+    <div
+      id="color-bends-bg"
+      class="color-bends-canvas fixed inset-0 z-0 pointer-events-none"
+      style="background: #02010B; opacity: 0;"></div>
 
-    <section class="relative w-full max-w-md rounded-2xl border border-surface-border bg-surface-raised/95 p-7 sm:p-8 shadow-depth-3">
-      <div class="flex items-center gap-3 mb-6">
-        <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-500/15 border border-brand-500/30">
-          <svg class="w-6 h-6 text-brand-400" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 3L5.5 8.2v7.3c0 6.8 4.2 13.1 10.5 15.2 6.3-2.1 10.5-8.4 10.5-15.2V8.2L16 3z"/>
-            <path d="M17.3 10.5L12.3 17h4.2l-1.7 4.5 5-6.6h-4.1l1.6-4.4z"/>
-          </svg>
-        </span>
-        <div>
-          <h1 class="font-body font-semibold text-2xl text-text-primary">Premiere Life Login</h1>
-          <p class="text-sm text-text-tertiary">Sign in to access your dashboard</p>
+    <main class="relative z-10 min-h-screen flex items-center justify-center px-4 pt-10 pb-28" style="min-height: 100dvh;">
+      <section class="reveal-up relative w-full max-w-md overflow-hidden rounded-[28px] border border-white/30 bg-surface-raised/82 p-7 shadow-depth-3 backdrop-blur-[26px] sm:p-8" style="--reveal-delay: 520ms;">
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/24 via-white/10 to-transparent"></div>
+        <div class="relative">
+          <div class="reveal-up mb-7 flex flex-col items-center gap-3 text-center" style="--reveal-delay: 700ms;">
+            <img src="/brand_assets/Logos/L%26D%20White%20Icon.png" alt="L&D White Icon" class="h-12 w-12 select-none sm:h-14 sm:w-14">
+            <div>
+              <h1 id="login-inspiration-heading" class="flex h-[2.35rem] items-center justify-center whitespace-nowrap font-display text-[2rem] leading-[1.03] tracking-[-0.03em] text-text-primary transition-opacity duration-500 sm:h-[2.65rem] sm:text-[2.2rem]">Build with Purpose.</h1>
+              <p class="mt-2 text-sm leading-relaxed text-white">Sign in to access your dashboard</p>
+            </div>
+          </div>
+
+          <form id="login-form" class="reveal-up space-y-4" style="--reveal-delay: 860ms;" novalidate>
+            <div>
+              <label for="login-identifier" class="mb-1.5 block text-sm font-medium text-white">Username or Email</label>
+              <input
+                id="login-identifier"
+                name="identifier"
+                type="text"
+                autocomplete="username"
+                placeholder="Enter your username or email"
+                class="w-full rounded-xl border border-white/26 bg-white/[0.08] px-3.5 py-2.5 text-[16px] text-text-primary placeholder:text-white/60 backdrop-blur-[2px] transition-[border-color,box-shadow,background-color] duration-200 ease-spring hover:border-brand-300/55 hover:bg-white/[0.10] focus:border-brand-400 focus:bg-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-400/22 sm:text-sm"
+                required
+              />
+            </div>
+
+            <div>
+              <label for="login-password" class="mb-1.5 block text-sm font-medium text-white">Password</label>
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Enter your password"
+                class="w-full rounded-xl border border-white/26 bg-white/[0.08] px-3.5 py-2.5 text-[16px] text-text-primary placeholder:text-white/60 backdrop-blur-[2px] transition-[border-color,box-shadow,background-color] duration-200 ease-spring hover:border-brand-300/55 hover:bg-white/[0.10] focus:border-brand-400 focus:bg-white/[0.12] focus:outline-none focus:ring-2 focus:ring-brand-400/22 sm:text-sm"
+                required
+              />
+            </div>
+
+            <div class="min-h-[4.25rem]">
+              <p
+                id="login-error"
+                class="rounded-xl border border-transparent bg-transparent px-3 py-2 text-sm leading-relaxed text-semantic-danger opacity-0 transition-opacity duration-200 pointer-events-none"
+                role="alert"
+                aria-live="polite"
+              ></p>
+            </div>
+
+            <button
+              id="login-submit"
+              type="submit"
+              class="w-full rounded-xl border border-white/90 bg-white px-4 py-2.5 text-sm font-semibold text-[#06131a] transition-[transform,background-color,border-color,opacity] duration-150 ease-spring hover:-translate-y-0.5 hover:border-white hover:bg-white/92 active:translate-y-[1px] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <span class="inline-flex items-center justify-center gap-2">
+                <svg
+                  id="login-submit-spinner"
+                  class="hidden h-4 w-4 animate-spin text-[#06131a]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <circle class="opacity-30" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle>
+                  <path class="opacity-100" d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+                </svg>
+                <span id="login-submit-label">Login</span>
+              </span>
+            </button>
+          </form>
         </div>
-      </div>
-
-      <form id="login-form" class="space-y-4" novalidate>
-        <div>
-          <label for="login-identifier" class="block text-sm text-text-secondary mb-1.5">Username or email</label>
-          <input
-            id="login-identifier"
-            name="identifier"
-            type="text"
-            autocomplete="username"
-            placeholder="Enter your username or email"
-            class="w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2.5 text-[16px] sm:text-sm text-text-primary placeholder-text-tertiary focus:border-brand-500/60 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-            required
-          />
-        </div>
-
-        <div>
-          <label for="login-password" class="block text-sm text-text-secondary mb-1.5">Password</label>
-          <input
-            id="login-password"
-            name="password"
-            type="password"
-            autocomplete="current-password"
-            placeholder="Enter your password"
-            class="w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2.5 text-[16px] sm:text-sm text-text-primary placeholder-text-tertiary focus:border-brand-500/60 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-            required
-          />
-        </div>
-
-        <p id="login-error" class="hidden rounded-lg border border-semantic-danger/40 bg-semantic-danger-bg px-3 py-2 text-sm text-semantic-danger" role="alert"></p>
-
-        <button
-          id="login-submit"
-          type="submit"
-          class="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-text-inverse transition-transform duration-150 ease-spring hover:bg-brand-400 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          Sign In
-        </button>
-      </form>
-
-      <div class="mt-5 rounded-lg border border-surface-border bg-surface-base/40 p-3">
-        <p class="text-xs text-text-tertiary">Mock auth source: <span class="text-text-secondary">/api/member-auth/login + mock-users.json</span></p>
-      </div>
-    </section>
+      </section>
+    </main>
+    <footer class="reveal-up fixed inset-x-0 bottom-5 z-20 px-4 text-center text-[0.76rem] leading-relaxed text-white/74 sm:bottom-6 sm:text-xs" style="--reveal-delay: 1040ms;">
+      <p>
+        By logging in, you agree to our
+        <a
+          href="/terms-of-service"
+          class="rounded-sm text-white/94 underline decoration-white/80 underline-offset-[3px] transition-colors duration-150 ease-spring hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+        >Terms of Service</a>
+        and
+        <a
+          href="/privacy-policy"
+          class="rounded-sm text-white/94 underline decoration-white/80 underline-offset-[3px] transition-colors duration-150 ease-spring hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+        >Privacy Policy</a>.
+      </p>
+      <p class="mt-1 text-white/58">&copy; 2026 L&D Premiere</p>
+    </footer>
   </div>
+
+  <script type="module">
+    import * as THREE from '/node_modules/three/build/three.module.js';
+
+    (function initColorBends() {
+      const container = document.getElementById('color-bends-bg');
+      if (!container) {
+        return;
+      }
+
+      const colorBendsConfig = {
+        colors: ['#ff0000', '#00ff00', '#0000ff'],
+        rotation: -106,
+        speed: 0.35,
+        scale: 1,
+        frequency: 1,
+        warpStrength: 0.95,
+        mouseInfluence: 0.1,
+        parallax: 0.5,
+        noise: 0.1,
+        transparent: true,
+        autoRotate: 0.3,
+        color: '',
+      };
+      const introParamConfig = {
+        delayMs: 520,
+        durationMs: 1600,
+        from: {
+          speed: 0.025,
+          scale: 5,
+          frequency: 0.72,
+          warpStrength: 0.42,
+          mouseInfluence: 0.01,
+          parallax: 0.02,
+          noise: 0.0,
+          autoRotate: 0.0,
+        },
+      };
+      const FIXED_RENDER_WIDTH = 1920;
+      const FIXED_RENDER_HEIGHT = 1080;
+      const introState = {
+        startedAtMs: null,
+      };
+
+      const MAX_COLORS = 8;
+      const frag = `
+        #define MAX_COLORS ${MAX_COLORS}
+        uniform vec2 uCanvas;
+        uniform float uTime;
+        uniform float uSpeed;
+        uniform vec2 uRot;
+        uniform int uColorCount;
+        uniform vec3 uColors[MAX_COLORS];
+        uniform int uTransparent;
+        uniform float uScale;
+        uniform float uFrequency;
+        uniform float uWarpStrength;
+        uniform vec2 uPointer;
+        uniform float uMouseInfluence;
+        uniform float uParallax;
+        uniform float uNoise;
+        varying vec2 vUv;
+
+        void main() {
+          float t = uTime * uSpeed;
+          vec2 p = vUv * 2.0 - 1.0;
+          p += uPointer * uParallax * 0.1;
+          vec2 rp = vec2(p.x * uRot.x - p.y * uRot.y, p.x * uRot.y + p.y * uRot.x);
+          float aspect = uCanvas.x / max(uCanvas.y, 0.0001);
+          vec2 q = vec2(rp.x * aspect, rp.y);
+          q /= max(uScale, 0.0001);
+          q /= 0.5 + 0.2 * dot(q, q);
+          q += 0.2 * cos(t) - 7.56;
+          vec2 toward = (uPointer - rp);
+          q += toward * uMouseInfluence * 0.2;
+
+          vec3 col = vec3(0.0);
+          float a = 1.0;
+
+          if (uColorCount > 0) {
+            vec2 s = q;
+            vec3 sumCol = vec3(0.0);
+            float cover = 0.0;
+            for (int i = 0; i < MAX_COLORS; ++i) {
+              if (i >= uColorCount) break;
+              s -= 0.01;
+              vec2 r = sin(1.5 * (s.yx * uFrequency) + 2.0 * cos(s * uFrequency));
+              float m0 = length(r + sin(5.0 * r.y * uFrequency - 3.0 * t + float(i)) / 4.0);
+              float kBelow = clamp(uWarpStrength, 0.0, 1.0);
+              float kMix = pow(kBelow, 0.3);
+              float gain = 1.0 + max(uWarpStrength - 1.0, 0.0);
+              vec2 disp = (r - s) * kBelow;
+              vec2 warped = s + disp * gain;
+              float m1 = length(warped + sin(5.0 * warped.y * uFrequency - 3.0 * t + float(i)) / 4.0);
+              float m = mix(m0, m1, kMix);
+              float w = 1.0 - exp(-6.0 / exp(6.0 * m));
+              sumCol += uColors[i] * w;
+              cover = max(cover, w);
+            }
+            col = clamp(sumCol, 0.0, 1.0);
+            a = uTransparent > 0 ? cover : 1.0;
+          } else {
+            vec2 s = q;
+            for (int k = 0; k < 3; ++k) {
+              s -= 0.01;
+              vec2 r = sin(1.5 * (s.yx * uFrequency) + 2.0 * cos(s * uFrequency));
+              float m0 = length(r + sin(5.0 * r.y * uFrequency - 3.0 * t + float(k)) / 4.0);
+              float kBelow = clamp(uWarpStrength, 0.0, 1.0);
+              float kMix = pow(kBelow, 0.3);
+              float gain = 1.0 + max(uWarpStrength - 1.0, 0.0);
+              vec2 disp = (r - s) * kBelow;
+              vec2 warped = s + disp * gain;
+              float m1 = length(warped + sin(5.0 * warped.y * uFrequency - 3.0 * t + float(k)) / 4.0);
+              float m = mix(m0, m1, kMix);
+              col[k] = 1.0 - exp(-6.0 / exp(6.0 * m));
+            }
+            a = uTransparent > 0 ? max(max(col.r, col.g), col.b) : 1.0;
+          }
+
+          if (uNoise > 0.0001) {
+            float n = fract(sin(dot(gl_FragCoord.xy + vec2(uTime), vec2(12.9898, 78.233))) * 43758.5453123);
+            col += (n - 0.5) * uNoise;
+            col = clamp(col, 0.0, 1.0);
+          }
+
+          vec3 rgb = (uTransparent > 0) ? col * a : col;
+          gl_FragColor = vec4(rgb, a);
+        }
+      `;
+
+      const vert = `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = vec4(position, 1.0);
+        }
+      `;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      const geometry = new THREE.PlaneGeometry(2, 2);
+      const colors = colorBendsConfig.color
+        ? [colorBendsConfig.color]
+        : colorBendsConfig.colors;
+      const uniformColors = Array.from({ length: MAX_COLORS }, () => new THREE.Vector3(0, 0, 0));
+
+      const material = new THREE.ShaderMaterial({
+        vertexShader: vert,
+        fragmentShader: frag,
+        uniforms: {
+          uCanvas: { value: new THREE.Vector2(1, 1) },
+          uTime: { value: 0 },
+          uSpeed: { value: colorBendsConfig.speed },
+          uRot: { value: new THREE.Vector2(1, 0) },
+          uColorCount: { value: 0 },
+          uColors: { value: uniformColors },
+          uTransparent: { value: colorBendsConfig.transparent ? 1 : 0 },
+          uScale: { value: colorBendsConfig.scale },
+          uFrequency: { value: colorBendsConfig.frequency },
+          uWarpStrength: { value: colorBendsConfig.warpStrength },
+          uPointer: { value: new THREE.Vector2(0, 0) },
+          uMouseInfluence: { value: colorBendsConfig.mouseInfluence },
+          uParallax: { value: colorBendsConfig.parallax },
+          uNoise: { value: colorBendsConfig.noise },
+        },
+        premultipliedAlpha: true,
+        transparent: true,
+      });
+
+      function hexToVec3(hex) {
+        const safe = String(hex || '').replace('#', '').trim();
+        const normalized = safe.length === 3
+          ? `${safe[0]}${safe[0]}${safe[1]}${safe[1]}${safe[2]}${safe[2]}`
+          : safe;
+        const r = parseInt(normalized.slice(0, 2), 16) / 255;
+        const g = parseInt(normalized.slice(2, 4), 16) / 255;
+        const b = parseInt(normalized.slice(4, 6), 16) / 255;
+        return new THREE.Vector3(r, g, b);
+      }
+
+      const mappedColors = colors.map(hexToVec3).slice(0, MAX_COLORS);
+      for (let index = 0; index < MAX_COLORS; index += 1) {
+        if (index < mappedColors.length) {
+          material.uniforms.uColors.value[index].copy(mappedColors[index]);
+        } else {
+          material.uniforms.uColors.value[index].set(0, 0, 0);
+        }
+      }
+      material.uniforms.uColorCount.value = mappedColors.length;
+
+      const mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+
+      let renderer;
+      try {
+        renderer = new THREE.WebGLRenderer({
+          antialias: false,
+          powerPreference: 'high-performance',
+          alpha: true,
+        });
+      } catch (error) {
+        return;
+      }
+
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.setPixelRatio(Math.max(1, window.devicePixelRatio || 1));
+      renderer.setClearColor(0x000000, 0);
+      container.appendChild(renderer.domElement);
+
+      const pointerTarget = new THREE.Vector2(0, 0);
+      const pointerCurrent = new THREE.Vector2(0, 0);
+
+      renderer.setSize(FIXED_RENDER_WIDTH, FIXED_RENDER_HEIGHT, false);
+      material.uniforms.uCanvas.value.set(FIXED_RENDER_WIDTH, FIXED_RENDER_HEIGHT);
+
+      const mix = (from, to, progress) => from + (to - from) * progress;
+      const clamp01 = (value) => Math.min(1, Math.max(0, value));
+      const easeOutCubic = (value) => 1 - Math.pow(1 - clamp01(value), 3);
+
+      function getPointerViewportSize() {
+        const visualViewport = window.visualViewport;
+        const width = Math.max(1, Math.round(visualViewport?.width || window.innerWidth || document.documentElement.clientWidth || 1));
+        const height = Math.max(1, Math.round(visualViewport?.height || window.innerHeight || document.documentElement.clientHeight || 1));
+        return { width, height };
+      }
+
+      const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let prefersReducedMotion = motionQuery.matches;
+      let speedTarget = colorBendsConfig.speed;
+      let mouseInfluenceTarget = colorBendsConfig.mouseInfluence;
+      let autoRotateTarget = colorBendsConfig.autoRotate;
+      function applyMotionPreference() {
+        prefersReducedMotion = motionQuery.matches;
+        speedTarget = prefersReducedMotion ? colorBendsConfig.speed * 0.45 : colorBendsConfig.speed;
+        mouseInfluenceTarget = prefersReducedMotion
+          ? Math.max(0.2, colorBendsConfig.mouseInfluence * 0.6)
+          : colorBendsConfig.mouseInfluence;
+        autoRotateTarget = prefersReducedMotion ? colorBendsConfig.autoRotate * 0.5 : colorBendsConfig.autoRotate;
+      }
+      applyMotionPreference();
+      if (typeof motionQuery.addEventListener === 'function') {
+        motionQuery.addEventListener('change', applyMotionPreference);
+      }
+
+      window.startColorBendsIntro = () => {
+        introState.startedAtMs = performance.now();
+      };
+
+      const handlePointerMove = event => {
+        const { width, height } = getPointerViewportSize();
+        const x = (event.clientX / width) * 2 - 1;
+        const y = -((event.clientY / height) * 2 - 1);
+        pointerTarget.set(x, y);
+      };
+
+      const handlePointerLeave = () => {
+        pointerTarget.set(0, 0);
+      };
+
+      window.addEventListener('pointermove', handlePointerMove, { passive: true });
+      window.addEventListener('pointerleave', handlePointerLeave, { passive: true });
+      window.addEventListener('blur', handlePointerLeave, { passive: true });
+
+      const clock = new THREE.Clock();
+      function renderFrame() {
+        const dt = clock.getDelta();
+        const elapsed = clock.elapsedTime;
+        material.uniforms.uTime.value = elapsed;
+
+        const hasIntroStarted = Number.isFinite(introState.startedAtMs);
+        const introElapsedMs = hasIntroStarted ? (performance.now() - introState.startedAtMs) : 0;
+        const introRawProgress = clamp01((introElapsedMs - introParamConfig.delayMs) / introParamConfig.durationMs);
+        const introProgress = easeOutCubic(introRawProgress);
+
+        material.uniforms.uSpeed.value = mix(introParamConfig.from.speed, speedTarget, introProgress);
+        material.uniforms.uScale.value = mix(introParamConfig.from.scale, colorBendsConfig.scale, introProgress);
+        material.uniforms.uFrequency.value = mix(introParamConfig.from.frequency, colorBendsConfig.frequency, introProgress);
+        material.uniforms.uWarpStrength.value = mix(introParamConfig.from.warpStrength, colorBendsConfig.warpStrength, introProgress);
+        material.uniforms.uMouseInfluence.value = mix(introParamConfig.from.mouseInfluence, mouseInfluenceTarget, introProgress);
+        material.uniforms.uParallax.value = mix(introParamConfig.from.parallax, colorBendsConfig.parallax, introProgress);
+        material.uniforms.uNoise.value = mix(introParamConfig.from.noise, colorBendsConfig.noise, introProgress);
+
+        const currentAutoRotate = mix(introParamConfig.from.autoRotate, autoRotateTarget, introProgress);
+        const rotationDeg = (colorBendsConfig.rotation % 360) + currentAutoRotate * elapsed;
+        const rotationRad = (rotationDeg * Math.PI) / 180;
+        material.uniforms.uRot.value.set(Math.cos(rotationRad), Math.sin(rotationRad));
+
+        pointerCurrent.lerp(pointerTarget, Math.min(1, dt * 10));
+        material.uniforms.uPointer.value.copy(pointerCurrent);
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(renderFrame);
+      }
+      requestAnimationFrame(renderFrame);
+    })();
+  </script>
 
   <script>
     const AUTH_STORAGE_KEY = 'vault-auth-user';
@@ -170,12 +518,58 @@
     };
     const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
     const FREE_ACCOUNT_RANK_KEY_SET = new Set(['preferred customer', 'free account', 'free']);
+    const LEGACY_STORE_CODE_ALIASES = Object.freeze({
+      'CHG-7X42': 'CHG-ZERO',
+    });
 
     const loginForm = document.getElementById('login-form');
     const loginIdentifierInput = document.getElementById('login-identifier');
     const loginPasswordInput = document.getElementById('login-password');
     const loginSubmitButton = document.getElementById('login-submit');
+    const loginSubmitSpinner = document.getElementById('login-submit-spinner');
+    const loginSubmitLabel = document.getElementById('login-submit-label');
     const loginError = document.getElementById('login-error');
+    const loginInspirationHeading = document.getElementById('login-inspiration-heading');
+
+    const INSPIRATION_ROTATE_MS = 4200;
+    const INSPIRATION_ENTRIES = [
+      { text: 'Build with Purpose.', fontClass: 'font-body' },
+      { text: 'Lead with Vision.', fontClass: 'font-alt' },
+      { text: 'Grow Beyond Limits.', fontClass: 'font-display' },
+      { text: 'Make Today Count.', fontClass: 'font-body' },
+      { text: 'Next Level Starts Now.', fontClass: 'font-alt' },
+    ];
+    const INSPIRATION_FONT_CLASSES = ['font-display', 'font-body', 'font-alt'];
+
+    function applyInspirationEntry(entry) {
+      if (!loginInspirationHeading || !entry) {
+        return;
+      }
+      loginInspirationHeading.classList.remove(...INSPIRATION_FONT_CLASSES);
+      loginInspirationHeading.classList.add(entry.fontClass || 'font-display');
+      loginInspirationHeading.textContent = entry.text || '';
+    }
+
+    function startInspirationRotation() {
+      if (!loginInspirationHeading || !INSPIRATION_ENTRIES.length) {
+        return;
+      }
+      let currentIndex = 0;
+      applyInspirationEntry(INSPIRATION_ENTRIES[currentIndex]);
+
+      window.setInterval(() => {
+        if (!loginInspirationHeading.isConnected) {
+          return;
+        }
+
+        currentIndex = (currentIndex + 1) % INSPIRATION_ENTRIES.length;
+        loginInspirationHeading.classList.add('opacity-0');
+        window.setTimeout(() => {
+          applyInspirationEntry(INSPIRATION_ENTRIES[currentIndex]);
+          loginInspirationHeading.classList.remove('opacity-0');
+        }, 260);
+      }, INSPIRATION_ROTATE_MS);
+    }
 
     function normalizeCredential(value) {
       return String(value || '').trim().toLowerCase();
@@ -186,10 +580,11 @@
     }
 
     function normalizeStoreCode(value) {
-      return String(value || '')
+      const normalizedValue = String(value || '')
         .trim()
         .toUpperCase()
         .replace(/[^A-Z0-9-]/g, '');
+      return LEGACY_STORE_CODE_ALIASES[normalizedValue] || normalizedValue;
     }
 
     function isFreeAccountUser(user) {
@@ -353,14 +748,20 @@
       return sessionUser;
     }
 
+    function revealLoginError() {
+      loginError.classList.remove('opacity-0', 'pointer-events-none', 'border-transparent', 'bg-transparent');
+      loginError.classList.add('opacity-100', 'border-semantic-danger/40', 'bg-semantic-danger-bg');
+    }
+
     function hideLoginError() {
       loginError.textContent = '';
-      loginError.classList.add('hidden');
+      loginError.classList.remove('opacity-100', 'border-semantic-danger/40', 'bg-semantic-danger-bg');
+      loginError.classList.add('opacity-0', 'pointer-events-none', 'border-transparent', 'bg-transparent');
     }
 
     function showLoginError(message) {
       loginError.textContent = message;
-      loginError.classList.remove('hidden');
+      revealLoginError();
     }
 
     function showPasswordSetupRequiredError(message, setupLink) {
@@ -372,27 +773,38 @@
       }
 
       loginError.innerHTML = `${escapeHtml(normalizedMessage)} <a href="${escapeHtml(normalizedSetupLink)}" class="underline text-brand-400 hover:text-brand-300">Open setup link</a>`;
-      loginError.classList.remove('hidden');
-    }
-
-    function showFreeAccountRedirectError(user) {
-      const redirectUrl = new URL('/store-login.html', window.location.origin);
-      const candidateStoreCode = normalizeStoreCode(
-        user?.attributionStoreCode || user?.publicStoreCode || user?.storeCode,
-      );
-      if (candidateStoreCode) {
-        redirectUrl.searchParams.set('store', candidateStoreCode);
-      }
-
-      loginError.innerHTML = `This account uses Free Member Login. <a href="${escapeHtml(`${redirectUrl.pathname}${redirectUrl.search}`)}" class="underline text-brand-400 hover:text-brand-300">Go to Free Member Login</a>`;
-      loginError.classList.remove('hidden');
+      revealLoginError();
     }
 
     function setLoginBusy(isBusy) {
       loginIdentifierInput.disabled = isBusy;
       loginPasswordInput.disabled = isBusy;
       loginSubmitButton.disabled = isBusy;
-      loginSubmitButton.textContent = isBusy ? 'Signing In...' : 'Sign In';
+      loginSubmitButton.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+      loginSubmitButton.classList.toggle('cursor-wait', isBusy);
+      if (loginSubmitSpinner) {
+        loginSubmitSpinner.classList.toggle('hidden', !isBusy);
+      }
+      if (loginSubmitLabel) {
+        loginSubmitLabel.textContent = isBusy ? 'Logging In...' : 'Login';
+      }
+    }
+
+    function resolvePostLoginDestination(user) {
+      if (!isFreeAccountUser(user)) {
+        return './index.html';
+      }
+
+      const destinationUrl = new URL('/store-dashboard.html', window.location.origin);
+      const loginQueryParams = new URLSearchParams(window.location.search);
+      const candidateStoreCode = normalizeStoreCode(
+        user?.attributionStoreCode || user?.publicStoreCode || user?.storeCode || loginQueryParams.get('store'),
+      );
+      if (candidateStoreCode) {
+        destinationUrl.searchParams.set('store', candidateStoreCode);
+      }
+
+      return `${destinationUrl.pathname}${destinationUrl.search}`;
     }
 
     async function authenticateUser(identifier, password) {
@@ -525,6 +937,94 @@
       return mergeStarterDashboardProfile(user, matchedMember);
     }
 
+    function runLoginIntroAnimation() {
+      const pageShell = document.querySelector('.page-shell');
+      const revealItems = Array.from(document.querySelectorAll('.reveal-up'));
+      const colorBendsBackground = document.getElementById('color-bends-bg');
+      if (!pageShell || !revealItems.length) {
+        return;
+      }
+
+      if (typeof window.startColorBendsIntro === 'function') {
+        window.startColorBendsIntro();
+      }
+
+      const targets = [pageShell, ...revealItems];
+      for (const target of targets) {
+        if (typeof target.getAnimations === 'function') {
+          for (const animation of target.getAnimations()) {
+            animation.cancel();
+          }
+        }
+        target.style.opacity = '';
+        target.style.transform = '';
+        target.style.filter = '';
+      }
+
+      if (colorBendsBackground) {
+        if (typeof colorBendsBackground.getAnimations === 'function') {
+          for (const animation of colorBendsBackground.getAnimations()) {
+            animation.cancel();
+          }
+        }
+        colorBendsBackground.style.opacity = '0';
+      }
+
+      pageShell.animate(
+        [
+          { opacity: 0, filter: 'blur(22px) saturate(0.88)' },
+          { opacity: 1, filter: 'blur(0px) saturate(1)' },
+        ],
+        {
+          duration: 880,
+          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          fill: 'both',
+        },
+      );
+
+      if (colorBendsBackground) {
+        colorBendsBackground.animate(
+          [
+            { opacity: 0 },
+            { opacity: 1 },
+          ],
+          {
+            duration: 980,
+            delay: 520,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            fill: 'both',
+          },
+        );
+      }
+
+      for (const item of revealItems) {
+        const delay = Number.parseInt(item.style.getPropertyValue('--reveal-delay'), 10) || 0;
+        item.animate(
+          [
+            { opacity: 0, transform: 'translate3d(0, 34px, 0)', filter: 'blur(16px)' },
+            { opacity: 1, transform: 'translate3d(0, 0, 0)', filter: 'blur(0px)' },
+          ],
+          {
+            duration: 940,
+            delay,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            fill: 'both',
+          },
+        );
+      }
+    }
+
+    window.requestAnimationFrame(() => {
+      window.setTimeout(runLoginIntroAnimation, 60);
+    });
+    window.addEventListener('pageshow', () => {
+      window.requestAnimationFrame(() => {
+        window.setTimeout(runLoginIntroAnimation, 60);
+      });
+    });
+
+    startInspirationRotation();
+
     const existingSession = readUserSession();
     if (existingSession) {
       const accountLabel = String(
@@ -549,7 +1049,7 @@
       const password = loginPasswordInput.value;
 
       if (!identifier.trim() || !password) {
-        showLoginError('Enter your username or email and password.');
+        showLoginError('Enter your Username or Email and Password.');
         return;
       }
 
@@ -563,13 +1063,10 @@
         }
 
         const hydratedUser = await hydrateStarterDashboardProfile(matchedUser);
-        if (isFreeAccountUser(hydratedUser)) {
-          showFreeAccountRedirectError(hydratedUser);
-          return;
-        }
-        persistUserSession(hydratedUser);
+        const persistedUser = persistUserSession(hydratedUser);
+        const destination = resolvePostLoginDestination(persistedUser);
         loginForm.reset();
-        window.location.replace('./index.html');
+        window.location.replace(destination);
       } catch (error) {
         if (error instanceof Error && error.message === 'AUTH_STORAGE_UNAVAILABLE') {
           showLoginError('Sign-in blocked by browser storage settings. Disable private mode and retry.');

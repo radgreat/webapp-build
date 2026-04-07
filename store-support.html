@@ -85,7 +85,7 @@
       </div>
       <div class="mt-4 grid gap-3">
         <a id="header-login-member-link" href="/login.html" class="rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">Member Login</a>
-        <a id="header-login-preferred-link" href="/store-login.html" class="rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">Preferred Account Login</a>
+        <a id="header-login-preferred-link" href="/login.html" class="rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">Customer Login</a>
       </div>
       <p class="mt-4 text-sm text-slate-600">
         Don't have an account?
@@ -120,7 +120,7 @@
         headerLoginPreferredLinkElement.href = isFreeSession
           ? shared.buildDashboardUrl(activeStoreCode)
           : shared.buildFreeLoginUrl(activeStoreCode);
-        headerLoginPreferredLinkElement.textContent = isFreeSession ? 'My Dashboard' : 'Preferred Account Login';
+        headerLoginPreferredLinkElement.textContent = isFreeSession ? 'My Dashboard' : 'Customer Login';
       }
 
       if (headerLoginMemberLinkElement) {

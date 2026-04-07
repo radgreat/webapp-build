@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 230
+**Times Updated:** 246
 
 ## Overview
 
@@ -12,6 +12,567 @@
 
 ## Major Update (Lead Devloper Notes)
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.
+
+---
+
+## Update (2026-04-07) - Login Button Loading Animation
+
+### What Was Changed
+
+- Added a visual loading state to the `Login` submit button in `login.html`.
+- Button now shows:
+  - animated spinner icon
+  - dynamic label swap (`Login` -> `Logging In...`).
+- Updated busy-state logic (`setLoginBusy`) to:
+  - toggle spinner visibility
+  - update button label via dedicated label element
+  - apply `aria-busy` and wait cursor while request is in progress.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Non-module inline script parse checks passed for edited HTML files.
+
+---
+
+## Update (2026-04-07) - Unified Member + Free Account Login Flow
+
+### What Was Changed
+
+- Merged login behavior so both paid members and free/preferred customers authenticate from `login.html`.
+- Updated post-login routing in `login.html`:
+  - paid/member accounts -> `/index.html`
+  - free/preferred accounts -> `/store-dashboard.html` (with `?store=` preserved when available).
+- Removed free-account rejection behavior from `login.html` (no more forced "Go to Free Member Login" detour).
+- Added legacy store-code alias handling in login routing (`CHG-7X42` -> `CHG-ZERO`) to avoid referral-code regressions.
+- Converted `store-login.html` into a backward-compatible redirect page that forwards to unified `login.html` while preserving `?store=`.
+- Updated shared storefront helper route `buildFreeLoginUrl(...)` to target `/login.html`.
+- Updated storefront pages/modals/messages/links that referenced separate free login labels/URLs to the unified login route.
+- Updated password setup flows to send both free and paid users to `/login.html`.
+
+### Files Affected
+
+- `login.html`
+- `storefront-shared.js`
+- `store-login.html`
+- `store-dashboard.html`
+- `store.html`
+- `store-product.html`
+- `store-support.html`
+- `store-checkout.html`
+- `store-register.html`
+- `store-password-setup.html`
+- `password-setup.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Design / Behavior Decisions
+
+- Kept Admin login untouched (`admin.html` / admin auth path remains separate).
+- Preserved legacy `/store-login.html` URL compatibility through redirect instead of hard removal.
+- Kept existing account-type checks for destination routing only (not for rejecting authentication).
+
+### Known Limitations
+
+- Public-store login modal still presents two account options, but both unauthenticated flows now converge on `/login.html`.
+- `store-login.html` remains as a compatibility shell for older bookmarks and links.
+
+### Validation
+
+- `node --check storefront-shared.js` passed.
+- Non-module inline script parse checks passed for edited HTML files.
+
+---
+
+## Update (2026-04-07) - Login Input Colors Aligned To Glass Panel Theme
+
+### What Was Changed
+
+- Retuned login form input styling in `login.html` so fields match current glass panel palette.
+- Updated both `Username or Email` and `Password` inputs:
+  - switched from flat dark fill + hard border color to translucent glass fill (`bg-white/[0.08]`)
+  - standardized border to subtle frosted tint (`border-white/26`)
+  - aligned placeholder color to theme token (`placeholder:text-text-tertiary`)
+  - added gentle hover/focus background and border transitions to stay cohesive with panel.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Login Panel Recolor (No Purple) + Button Glow Removed
+
+### What Was Changed
+
+- Recolored login panel visual system in `login.html` away from purple into cyan/ice tones.
+- Updated panel glassmorphism treatment:
+  - adjusted panel surface/background alpha and border tint
+  - refined panel highlight gradient for frosted-glass feel.
+- Updated input fields:
+  - replaced purple border/placeholder tones with neutral blue-gray and cyan focus accents.
+- Removed glow styling from `Login` button:
+  - removed custom shadow glow classes
+  - kept clean flat glass-compatible button with subtle border/focus states.
+- Updated shared Tailwind tokens used by the panel (`brand`, `surface`, `text`, `depth-3`) to remove purple bias.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Resize-Locked Background Rendering (No Stretch/Squeeze On Window Resize)
+
+### What Was Changed
+
+- Reworked ColorBends runtime in `login.html` so resize no longer re-scales shader space:
+  - introduced fixed internal render resolution:
+    - `FIXED_RENDER_WIDTH = 1920`
+    - `FIXED_RENDER_HEIGHT = 1080`
+  - shader `uCanvas` is now locked to fixed resolution (not resized per viewport).
+- Canvas presentation now uses cover behavior for responsive framing:
+  - added `object-fit: cover` + `object-position: center center` on background canvas.
+- Removed dynamic resize-driven shader resizing/listeners for aspect recalculation.
+- Kept pointer math viewport-aware via `getPointerViewportSize()` so interaction still tracks current screen.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Mobile Squeeze Follow-Up v3 (Canvas Size Sync + Aspect Clamp)
+
+### What Was Changed
+
+- Applied additional anti-squeeze adjustments in `login.html` ColorBends shader/runtime:
+  - shader aspect handling now uses clamped aspect range (`0.72` to `1.4`) to reduce extreme portrait distortion.
+  - resize sizing now prioritizes real rendered host bounds via `container.getBoundingClientRect()`.
+  - WebGL resize switched to `renderer.setSize(width, height, true)` to force CSS canvas size sync with render buffer dimensions.
+- Retained visual-viewport listener approach from v2 while improving primary size source to actual fixed background host rect.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Mobile Squeeze Follow-Up Fix (Viewport-Fixed Background)
+
+### What Was Changed
+
+- Applied a deeper mobile background fix in `login.html` after initial aspect correction was still insufficient.
+- Switched ColorBends background host from document-relative absolute positioning to viewport-fixed positioning:
+  - `#color-bends-bg` now uses `fixed inset-0` so it always matches the visual viewport rather than growing with page content height.
+- Updated shader resize plumbing to use viewport-aware dimensions:
+  - added `getViewportSize()` with `window.visualViewport` fallback chain
+  - resize updates now bind to:
+    - `window.resize`
+    - `window.orientationchange`
+    - `visualViewport.resize`
+    - `visualViewport.scroll`.
+- Pointer normalization now uses the same viewport-aware dimensions to keep interaction aligned on mobile.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Mobile ColorBends Squeeze Fix (Portrait Aspect)
+
+### What Was Changed
+
+- Corrected ColorBends shader aspect mapping in `login.html` to prevent compressed background appearance on mobile portrait layouts.
+- Replaced single-axis aspect scale:
+  - previous: `q.x *= (uCanvas.x / uCanvas.y)`
+  - updated: conditional cover-style mapping:
+    - wide screens (`aspect > 1`): scale `q.x`
+    - tall screens (`aspect <= 1`): scale `q.y` inversely.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Rotating Heading Length + Height Stabilization
+
+### What Was Changed
+
+- Replaced long rotating phrase in `login.html`:
+  - `Your Next Level Starts Here.` -> `Next Level Starts Now.`
+- Stabilized heading region height to prevent panel shift during text rotation:
+  - applied fixed heading height classes on `#login-inspiration-heading`
+  - added `whitespace-nowrap` so configured short phrases stay one-line.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Login Panel Height Stabilized (No Jump On Error)
+
+### What Was Changed
+
+- Updated `login.html` login error area to prevent panel height snapping when validation/runtime errors appear.
+- Replaced `hidden` toggling (display removal) with a reserved error slot:
+  - added fixed reserved space wrapper (`min-h-[4.25rem]`)
+  - error paragraph now stays in layout and fades in/out via opacity.
+- Added state class helpers for error visibility:
+  - `revealLoginError()` applies visible styling (`border-semantic-danger/40`, `bg-semantic-danger-bg`, `opacity-100`)
+  - `hideLoginError()` resets to transparent/inactive state while preserving layout height.
+- Updated all error display paths (`showLoginError`, password-setup link error, free-account redirect error) to use shared reveal behavior.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots taken in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Login Panel Content Refresh (Logo, Rotating Heading, Copy Cleanup)
+
+### What Was Changed
+
+- Updated login panel branding in `login.html`:
+  - replaced top logo with `/brand_assets/Logos/L&D White Icon.png`.
+- Replaced static `Member Login` title with rotating inspirational heading text:
+  - added phrase array with timed rotation every `4200ms` (> 3 seconds)
+  - added per-phrase font switching across `font-body` (Inter), `font-alt` (Space Grotesk), and `font-display`.
+- Updated label capitalization:
+  - `Username or email` -> `Username or Email`.
+- Updated primary action copy:
+  - button text `Sign In` -> `Login`
+  - busy state text `Signing In...` -> `Logging In...`.
+- Removed deprecated auth-source panel from login card:
+  - deleted “Auth source …” info block now that auth is DB-backed.
+- Added `Space Grotesk` font import and Tailwind font family alias `alt` for heading variation.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Design Decisions
+
+- Kept rotating heading in the same title slot to avoid layout drift while adding the requested dynamic messaging.
+- Preserved the existing auth flow and IDs; changes are presentation/copy only.
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per latest instruction.
+
+---
+
+## Update (2026-04-07) - Ultra-High Resolution Capture + Higher Shader Pixel Density
+
+### What Was Changed
+
+- Increased screenshot capture defaults in `screenshot.mjs`:
+  - viewport defaults changed from `1440x900` to `3840x2160`
+  - added `deviceScaleFactor` default `2`
+  - result default capture output is now `7680x4320` (8K UHD) when using the screenshot script.
+- Added env override support for capture resolution in `screenshot.mjs`:
+  - `SCREENSHOT_WIDTH`
+  - `SCREENSHOT_HEIGHT`
+  - `SCREENSHOT_DSF`
+- Increased ColorBends canvas render resolution in `login.html`:
+  - replaced capped pixel ratio (`min(..., 2)`) with uncapped device ratio (`max(1, devicePixelRatio)`).
+
+### Files Affected
+
+- `screenshot.mjs`
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- High-resolution capture verification:
+  - `temporary screenshots/screenshot-127-login-ultrares-pass1.png`
+  - measured size: `7680 x 4320` pixels.
+
+---
+
+## Update (2026-04-07) - Login ColorBends Config Set To Exact User Values
+
+### What Was Changed
+
+- Updated `colorBendsConfig` in `login.html` to match the exact requested settings:
+  - `rotation: 0`
+  - `speed: 0.15`
+  - `colors: ["#ff0000", "#00ff00", "#0000ff"]`
+  - `transparent: true`
+  - `autoRotate: 0.3`
+  - `scale: 1.8`
+  - `frequency: 1`
+  - `warpStrength: 1`
+  - `mouseInfluence: 0.1`
+  - `parallax: 0.1`
+  - `noise: 0.05`
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Screenshot verification passes:
+  - `temporary screenshots/screenshot-125-login-exact-settings-pass1.png`
+  - `temporary screenshots/screenshot-126-login-exact-settings-pass2.png`
+
+---
+
+## Update (2026-04-07) - Login Background Layer Cleanup (Single Background Source)
+
+### What Was Changed
+
+- Cleaned up extra background stacking in `login.html` behind the Color Bends canvas.
+- Removed non-essential fallback/background layers:
+  - removed radial-gradient fallback composition applied directly on `#color-bends-bg`
+  - removed additional radial vignette overlay layer behind content.
+- Kept only:
+  - base black canvas fallback (`#02010B`)
+  - live shader-rendered Color Bends layer.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Screenshot verification:
+  - `temporary screenshots/screenshot-124-login-background-cleanup-pass1.png`
+
+---
+
+## Update (2026-04-07) - Login Color Bends Palette + Hover Interaction Tuning
+
+### What Was Changed
+
+- Tuned login background palette to better match requested reference composition (cyan/pink/green over black).
+- Updated Color Bends config values in `login.html` to the requested Usage-style values:
+  - `colors: ["#ff5c7a", "#8a5cff", "#00ffd1"]`
+  - `mouseInfluence: 1`
+  - `noise: 0.1`
+- Improved hover interaction reliability by moving pointer tracking from background element listeners to global window listeners:
+  - `window.addEventListener('pointermove', ...)`
+  - `window.addEventListener('pointerleave', ...)`
+  - `window.addEventListener('blur', ...)`
+- Kept implementation JS/CSS-only (no video sources).
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Screenshot tuning passes generated:
+  - `temporary screenshots/screenshot-120-login-black-colorbends-tune-pass1.png`
+  - `temporary screenshots/screenshot-121-login-black-colorbends-tune-pass2.png`
+  - `temporary screenshots/screenshot-122-login-black-colorbends-tune-pass3.png`
+  - `temporary screenshots/screenshot-123-login-black-colorbends-tune-pass4.png`
+
+---
+
+## Update (2026-04-07) - Color Bends Converted to Custom JS/CSS Only (No Video Layer)
+
+### What Was Changed
+
+- Removed the Color Bends background video layer from `login.html`.
+- Installed `three` (`npm install three`) and switched the login background runtime to local module import:
+  - `import * as THREE from '/node_modules/three/build/three.module.js'`
+  - removed broken CDN reference that was returning `404` and preventing shader startup.
+- Added a single `colorBendsConfig` object in `login.html` that mirrors the Usage API fields, so customization now maps 1:1 to provided props.
+- Kept the background implementation fully generated by:
+  - live Three.js shader (Color Bends fragment/vertex logic)
+  - CSS gradient fallback bends behind the shader for non-WebGL/headless cases.
+- Retained black background composition and dark glassmorphism login surface.
+- Preserved provided Color Bends prop profile values in shader setup (`colors`, `rotation`, `speed`, `scale`, `frequency`, `warpStrength`, `mouseInfluence`, `parallax`, `noise`).
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Design Decisions
+
+- Removed media playback dependency so the effect reads as custom-generated rather than video playback.
+- Added CSS fallback intentionally to keep the intended bend composition visible when WebGL output is constrained (e.g., some headless screenshot environments).
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- Screenshot comparison rounds for JS/CSS-only background:
+  - `temporary screenshots/screenshot-115-login-black-colorbends-js-only-pass1.png`
+  - `temporary screenshots/screenshot-116-login-black-colorbends-js-only-pass2.png`
+
+---
+
+## Update (2026-04-07) - Member Login Background Matched to Black Color Bends Reference
+
+### What Was Changed
+
+- Updated `login.html` again to match the provided black Color Bends reference direction.
+- Applied the provided Color Bends parameter profile in implementation:
+  - `colors: ["#ff5c7a", "#8a5cff", "#00ffd1"]`
+  - `rotation: 0`
+  - `speed: 0.2`
+  - `scale: 1`
+  - `frequency: 1`
+  - `warpStrength: 1`
+  - `mouseInfluence: 1`
+  - `parallax: 0.5`
+  - `noise: 0.1`
+  - `transparent: true`
+  - `autoRotate: 0`
+- Shifted page visual mode back to dark (`color-scheme: dark`) so the login screen background reads as black-first.
+- Kept the login card in a dark glassmorphism style so the content remains readable over bright bends.
+- Added the official Color Bends media layer as a visual base and kept shader overlay active to preserve live behavior and close screenshot matching.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Design Decisions
+
+- Prioritized visual alignment to the provided screenshot (black base and neon arc composition) over the previous light-theme login pass.
+- Preserved existing login/auth IDs and JS auth flow; changes remained presentation-focused.
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- Screenshot comparison rounds completed for black reference alignment:
+  - `temporary screenshots/screenshot-113-login-black-colorbends-pass1.png`
+  - `temporary screenshots/screenshot-114-login-black-colorbends-pass2.png`
+
+---
+
+## Update (2026-04-07) - Member Login Light Theme + Color Bends Glassmorph
+
+### What Was Changed
+
+- Restyled `login.html` from dark mode to a light-first default (`<meta name="color-scheme" content="light">`).
+- Replaced the previous static login backdrop with a ReactBits-inspired `Color Bends` treatment:
+  - added animated shader canvas (Three.js) based on the Color Bends fragment/vertex flow
+  - added official Color Bends fallback media layer sourced from ReactBits assets for visual continuity.
+- Rebuilt the login card shell into a glassmorphism surface:
+  - translucent panel (`bg-white` alpha), heavy backdrop blur, soft highlight overlay, and tinted layered shadows
+  - preserved existing login form IDs and auth wiring (`#login-form`, `#login-identifier`, `#login-password`, `#login-submit`).
+- Updated typography and color tokens to match the light theme while preserving brand-purple direction.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Design Decisions
+
+- Used brand logo asset (`/brand_assets/Logos/Premiere Life Logo_Transparent.svg`) instead of placeholder branding.
+- Kept the auth logic untouched and scoped work to visual/theming layer only.
+- Added progressive fallback for background rendering (video + shader) so the page still visually matches the Color Bends request when WebGL support varies.
+
+### Validation
+
+- Inline script syntax validation passed for updated `login.html`.
+- Screenshot review rounds completed:
+  - `temporary screenshots/screenshot-110-login-light-glass-pass1.png`
+  - `temporary screenshots/screenshot-111-login-light-glass-pass2.png`
+  - `temporary screenshots/screenshot-112-login-light-glass-pass3.png`
 
 ---
 
@@ -14722,4 +15283,218 @@ File: `index.html`
 ### Validation
 
 - Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login CTA White Button Update (2026-04-07)
+
+### What changed
+
+- Updated the member login submit button to a solid white style for cleaner contrast against the dark ColorBends background.
+- Kept dark text for readability and retained subtle hover/active/focus states without glow.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Button styling verified in markup/class configuration.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Field Label White Text Update (2026-04-07)
+
+### What changed
+
+- Updated the static form labels for `Username or Email` and `Password` from themed secondary text to pure white.
+- This keeps label contrast consistent with the black background and glass panel direction.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Label class names verified in markup (`text-white`).
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Placeholder Grayish White Update (2026-04-07)
+
+### What changed
+
+- Updated login input placeholders from themed tertiary text to a grayish-white tone (`placeholder:text-white/60`).
+- Applied to both identifier and password fields for visual consistency.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Placeholder class names verified in markup.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Footer Legal Copy Update (2026-04-07)
+
+### What changed
+
+- Added a bottom-centered footer on the login screen with the exact copy:
+  - `By logging in, you agree to our Terms of Service and Privacy Policy.`
+  - `© 2026 LD Premiere`
+- Added underlined hyperlinks for `Terms of Service` and `Privacy Policy`.
+- Increased bottom spacing on the main layout to reduce overlap risk with the fixed footer on short screens.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Footer markup and link styles verified in `login.html`.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Subtitle White Text Update (2026-04-07)
+
+### What changed
+
+- Updated subtitle text `Sign in to access your dashboard` to pure white.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Subtitle class verified in markup (`text-white`).
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login First-Load Entrance Animation Update (2026-04-07)
+
+### What changed
+
+- Added Apple-style first-load entrance motion to the login page.
+- Implemented page-level blur/fade intro (`pageBlurFadeIn` keyframe) on the main shell.
+- Added staggered bottom-up blur/fade reveal animation (`revealUpBlurFade`) for:
+  - login card container
+  - logo/heading block
+  - login form
+  - footer legal text
+- Added `prefers-reduced-motion: reduce` fallback to disable these animations for accessibility.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script parse check passed for `login.html`.
+- Animation classes and delays verified in markup.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Intro Animation Reliability Fix (2026-04-07)
+
+### What changed
+
+- Updated the entrance animation trigger from passive CSS-on-load to a JS-driven class toggle (`body.intro-run`).
+- Added `playLoginIntroAnimation()` to explicitly restart intro animation on initial load.
+- Added `pageshow` handling for BFCache restores so intro plays reliably when returning to the login page.
+- Kept reduced-motion behavior intact.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script parse check passed for `login.html`.
+- Intro animation trigger/class wiring verified in markup and script.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Background Reveal + Shader Parameter Animation (2026-04-07)
+
+### What changed
+
+- Added a black-first background reveal effect by animating `#color-bends-bg` opacity from `0` to `1`, delayed to align with panel intro timing.
+- Added intro interpolation for ColorBends shader controls so background behavior transitions into its final look instead of jumping:
+  - `speed`
+  - `scale`
+  - `frequency`
+  - `warpStrength`
+  - `mouseInfluence`
+  - `parallax`
+  - `noise`
+  - `autoRotate`
+- Added easing + timing controls (`introParamConfig`) and a reduced-motion-aware target mapping.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script parse checks passed for both module and non-module scripts in `login.html`.
+- Background reveal timing and parameter-ramp logic verified in script.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Intro Scale Start Update (2026-04-07)
+
+### What changed
+
+- Updated ColorBends intro parameter ramp to start at `scale: 5` before easing back to the configured final scale.
+- This creates a stronger zoomed-in opening look before settling to the original background state.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Intro parameter config verified in `login.html` (`introParamConfig.from.scale = 5`).
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Shader Intro Trigger Sync Fix (2026-04-07)
+
+### What changed
+
+- Added `window.startColorBendsIntro()` in the ColorBends module script and switched intro timing to begin when this function is called.
+- Updated login intro runner (`runLoginIntroAnimation`) to call `window.startColorBendsIntro()` at sequence start.
+- This removed timing drift between page load and intro start, making `scale: 5 -> configured scale` visibly tied to panel entrance.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Script parse checks passed for both module and non-module blocks.
+- Verified trigger wiring: `runLoginIntroAnimation()` -> `window.startColorBendsIntro()`.
 - Screenshot validation was not run in this pass (per user instruction).
