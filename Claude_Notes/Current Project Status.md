@@ -1,11 +1,187 @@
 # Current Project Status
 
-Last Updated: 2026-04-06
+Last Updated: 2026-04-07
 
 ## Purpose
 
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
+
+## Recent Update (2026-04-06) - Sidebar Light Mode Fix + Logo Clipping Fix
+
+- Resolved reported issue where left sidebar stayed dark in light mode after previous shell pass.
+- Implemented theme-aware sidebar background selectors in `index.html`:
+  - dark/default/shopify keep dark sidebar styling
+  - light/apple now use light surface-based sidebar styling
+- Resolved clipped logo at top of sidebar:
+  - increased logo shell dimensions
+  - removed clipping (`overflow: visible`)
+  - constrained logo with `max-height` + contain fit for stable rendering
+  - switched light-mode logo source to cropped brand asset for cleaner small-size display
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - light-mode screenshot captured and reviewed
+  - sidebar now renders light, logo no longer clipped
+- Known limitation:
+  - additional micro-polish (spacing/typography parity) may still be needed for final visual perfection.
+
+## Recent Update (2026-04-06) - 21st.dev Home-Inspired Dashboard Shell Pass
+
+- Restyled dashboard shell in `index.html` to match the visual feel of `https://21st.dev/home`.
+- Core updates delivered:
+  - dark token system switched to near-black neutrals + subtle borders + muted cool-blue accents
+  - sidebar navigation restructured with search row (`⌘ K`), section labels, tighter spacing, and neutral active-state treatment
+  - dashboard nav label changed from `Dashboard` to `Home` (also reflected in page meta title)
+  - top header density simplified and centered-title behavior tuned
+  - top search hidden for cleaner 21st-style top-bar composition
+  - dashboard cards/containers tuned to flatter, less-glow-heavy visual depth
+  - mono-white logo variant used in dark mode for a cleaner left-rail look
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - live reference screenshot captured from `https://21st.dev/home`
+  - confirmed token/layout/sidebar changes in `index.html`
+- Known limitation:
+  - this pass matches style feel and hierarchy, not a strict one-to-one copy of every homepage content module.
+
+## Recent Update (2026-04-06) - Light Mode Converted To Apple-Inspired Visual System
+
+- Fully replaced light-mode color tokens in `index.html` to deliver an Apple-like look and feel.
+- Light-mode direction now emphasizes:
+  - cool neutral page/surface layers (`#F5F5F7` family)
+  - white elevated cards
+  - graphite text hierarchy
+  - clean action blue accent ramp centered on `#0071E3`
+- Token groups updated in the `html[data-theme='light']` block:
+  - `--brand-50..950`
+  - `--surface-*`
+  - `--text-*`
+  - `--semantic-*`
+  - `--shadow-*`
+  - overlay/minimap/selection/scrollbar/page-gradient light tokens
+- Readability correction included:
+  - `--text-inverse` reverted to white in light mode so blue CTA buttons keep high legibility.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - confirmed full replacement of light token block
+  - quick contrast checks run for primary text and button text combinations
+- Known limitation:
+  - this pass is token-driven; module-level visual fine-tuning can follow after focused light-mode walkthrough.
+
+## Recent Update (2026-04-06) - Light Mode Palette Realignment (Brand-Consistent)
+
+- Light-mode color system in `index.html` was reworked to match brand direction more closely.
+- Primary shift completed:
+  - replaced lavender-forward light palette with an emerald-led brand ramp
+  - anchored palette to logo green (`#67B392`)
+  - preserved logo purple (`#7853A2`) as an accent semantic/info tone
+- Updated light-theme tokens include:
+  - `--brand-50..950`
+  - `--surface-*`
+  - `--text-*`
+  - `--semantic-*`
+  - minimap/overlay/selection/scrollbar light tokens
+- Readability adjustment:
+  - set light-mode `--text-inverse` to dark ink for better contrast on lighter brand buttons.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - confirmed full replacement of the `html[data-theme='light']` token block.
+- Known limitation:
+  - this pass updates global tokens only; component-level visual polish in light mode can be tuned in a follow-up review.
+
+## Recent Update (2026-04-06) - Notification Center Mobile Sheet + Header Spacing Fix
+
+- Addressed mobile usability issues in notification center and top-bar controls.
+- Mobile-specific improvements:
+  - notification center now opens as a fixed, viewport-safe sheet
+  - panel/list max-height adapted for phone viewport
+  - body scroll locks while sheet is open on mobile
+  - reduced top-bar crowding with tighter spacing and smaller profile-button padding
+  - top-right logout button hidden on mobile (`sm+` only) to reduce header compression
+- Desktop notification behavior/layout preserved via `sm:` overrides.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline scripts parse passed (`inline_scripts_checked=2`)
+
+## Recent Update (2026-04-06) - Notification Center Opacity Removed For Clearer Visuals
+
+- Updated notification center to use solid backgrounds (removed translucent panel/list accents in this module).
+- Opaque refinements completed:
+  - panel background made solid
+  - segmented tab container made solid
+  - list divider opacity removed
+  - notification row/indicator read opacity fades removed
+  - CTA button background made solid
+  - row hover state changed to solid elevated background
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline scripts parse passed (`inline_scripts_checked=2`)
+
+## Recent Update (2026-04-06) - Notification Center UI Simplified (Apple-Inspired)
+
+- Simplified the member header notification center visual structure in `index.html`.
+- Replaced card-heavy list blocks with lighter divider-based rows and reduced surface nesting.
+- Updated panel styling toward a cleaner frosted/segmented look with softer hierarchy and less visual clutter.
+- Kept all behaviors unchanged:
+  - notifications + announcements tabs
+  - unread badges
+  - mark read / mark all read
+  - CTA routing
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline scripts parse passed (`inline_scripts_checked=2`)
+
+## Recent Update (2026-04-06) - Member Notification Center + Announcements (Member Auth)
+
+- Implemented an authenticated member notification center with announcement support.
+- Backend additions:
+  - `GET /api/member-auth/notifications`
+  - `POST /api/member-auth/notifications/:notificationId/read`
+  - `POST /api/member-auth/notifications/mark-all-read`
+  - server-side notification/announcement seed + member read-state persistence
+- Frontend additions:
+  - header notification center panel in `index.html`
+  - Notifications/Announcements tab switching
+  - unread count badges
+  - mark-read and mark-all-read actions
+  - CTA routing from notification items
+- Files updated:
+  - `index.html`
+  - `backend/app.js`
+  - `backend/routes/member-notification.routes.js`
+  - `backend/controllers/member-notification.controller.js`
+  - `backend/services/member-notification.service.js`
+  - `backend/stores/member-notification.store.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - backend syntax checks passed for all new notification modules + `backend/app.js`
+  - local smoke checks passed:
+    - `/api/health` returned `200`
+    - new notification endpoints returned `401 AUTH_REQUIRED` without bearer token (expected auth gate behavior)
+  - served `index.html` includes notification center IDs and announcement tab controls
+- Current limitation:
+  - no admin announcement management UI in this pass (seed-based feed only)
 
 ## Recent Update (2026-04-06) - Stripe Card Is Now Theme-Aware (Dark/Light)
 
@@ -5649,3 +5825,367 @@ Last Updated: 2026-04-06
 - Validation:
   - inline script parse check passed:
     - `All inline scripts parsed successfully. Blocks: 2`
+
+## Recent Update (2026-04-07) - Light Mode Sidebar Polish, Nav Reorder, Material Icons, Premiere Logo Enforcement
+
+- Completed:
+  - removed sidebar/header search UI from dashboard shell.
+  - applied exact requested sidebar nav structure:
+    - `Explore > General`: Home, My Store, E-Wallet
+    - `Build`: Binary Tree, Enroll Member, Preferred Customers
+    - `Records`: Purchases, Commissions, Library
+  - migrated sidebar navigation icons to official Google Material Symbols and fixed icon text-fallback issue by broadening font import.
+  - tuned light-mode sidebar surface and interaction states for cleaner Apple/21st-style feel.
+  - enforced Premiere Life-only logo usage in sidebar (removed non-Premiere light variant in active markup).
+  - increased logo shell/image sizing to avoid clipped/undersized logo in light mode.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - light-mode screenshot verification completed across multiple passes:
+    - `temporary screenshots/screenshot-48-light-sidebar-check-pass1.png`
+    - `temporary screenshots/screenshot-49-light-sidebar-check-pass2.png`
+    - `temporary screenshots/screenshot-50-light-sidebar-check-pass3.png`
+    - `temporary screenshots/screenshot-51-light-sidebar-premiere-only.png`
+
+## Recent Update (2026-04-07) - Sidebar Header Updated To New L&D Icon
+
+- Completed:
+  - replaced sidebar top logo image with new icon asset:
+    - `/brand_assets/Logos/L&D Icon.svg`
+  - removed theme-dependent sidebar logo swapping and switched to one icon-only header treatment.
+  - tuned icon shell/image sizing so the icon sits cleanly and consistently in the sidebar header.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot verification completed in both themes:
+    - `temporary screenshots/screenshot-52-sidebar-icon-light.png`
+    - `temporary screenshots/screenshot-53-sidebar-icon-dark.png`
+
+## Recent Update (2026-04-07) - Sidebar Header Switched To L&D Logo_Cropped
+
+- Completed:
+  - replaced sidebar top logo asset with:
+    - `/brand_assets/Logos/L&D Logo_Cropped.svg`
+  - adjusted logo shell/image sizing for horizontal wordmark display instead of icon-only display.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot verification completed in both themes:
+    - `temporary screenshots/screenshot-54-sidebar-cropped-logo-light.png`
+    - `temporary screenshots/screenshot-55-sidebar-cropped-logo-dark.png`
+
+## Recent Update (2026-04-07) - Sidebar Logo Made Smaller + Clickable Dropdown (21st-Style)
+
+- Completed:
+  - converted sidebar top brand area into a clickable dropdown trigger.
+  - reduced logo wordmark size for a smaller top-left presence.
+  - added brand dropdown menu with quick actions:
+    - Home
+    - My Store
+    - Settings
+  - implemented interaction behavior:
+    - toggle on button click
+    - close on outside click
+    - close on `Esc`
+    - close after selecting destination
+    - route updates through existing SPA page switch logic
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot comparison rounds completed:
+    - `temporary screenshots/screenshot-56-brand-dropdown-light-pass1.png`
+    - `temporary screenshots/screenshot-57-brand-dropdown-dark-pass1.png`
+    - `temporary screenshots/screenshot-58-brand-dropdown-open-dark-pass1.png`
+    - `temporary screenshots/screenshot-59-brand-dropdown-light-pass2.png`
+    - `temporary screenshots/screenshot-60-brand-dropdown-open-dark-pass2.png`
+  - interaction check:
+    - dropdown `Settings` action routes to `/Settings`, updates header title, and closes menu.
+
+## Recent Update (2026-04-07) - General Label + Sidebar/Header Alignment + Smaller Logo
+
+- Completed:
+  - changed sidebar section label from `Explore > General` to `General`.
+  - corrected sidebar/header vertical alignment by matching sidebar brand row height to header height.
+  - reduced top-left logo size again while keeping brand dropdown behavior intact.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - measured alignment confirms exact match:
+    - `headerHeight: 65`
+    - `sidebarTopHeight: 65`
+    - `deltaBottom: 0`
+  - screenshot comparison rounds:
+    - `temporary screenshots/screenshot-61-nav-align-light-pass1.png`
+    - `temporary screenshots/screenshot-62-nav-align-dark-open-pass1.png`
+    - `temporary screenshots/screenshot-63-nav-align-light-pass2.png`
+    - `temporary screenshots/screenshot-64-nav-align-dark-open-pass2.png`
+
+## Recent Update (2026-04-07) - Logo Bumped To Medium Size
+
+- Completed:
+  - increased top-left sidebar logo from small to medium.
+  - switched logo source from cropped SVG to cropped PNG for consistent visible size rendering.
+  - kept dropdown trigger behavior and top-row alignment unchanged.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot comparison rounds:
+    - `temporary screenshots/screenshot-65-logo-medium-light-pass1.png`
+    - `temporary screenshots/screenshot-66-logo-medium-dark-open-pass1.png`
+    - `temporary screenshots/screenshot-67-logo-medium-light-pass2.png`
+    - `temporary screenshots/screenshot-68-logo-medium-dark-open-pass2.png`
+  - alignment metrics remain exact:
+    - `headerHeight: 65`
+    - `sidebarTopHeight: 65`
+    - `deltaBottom: 0`
+
+## Recent Update (2026-04-07) - Sidebar Logo Switched Back To SVG (White Background Removal)
+
+- Completed:
+  - replaced sidebar brand logo source with SVG asset to remove white-background artifact on light mode:
+    - `/brand_assets/Logos/L&D Logo_Cropped.svg`
+  - increased SVG logo shell/image constraints to keep medium readable size:
+    - `.sidebar-brand-logo-shell` max-width `9.5rem`
+    - `.sidebar-brand-logo` max-height `2.05rem`
+  - kept brand dropdown behavior and sidebar/header top-row alignment unchanged.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot comparison rounds:
+    - `temporary screenshots/screenshot-69-logo-svg-light-pass1.png`
+    - `temporary screenshots/screenshot-70-logo-svg-dark-open-pass1.png`
+    - `temporary screenshots/screenshot-71-logo-svg-medium-light-pass2.png`
+    - `temporary screenshots/screenshot-72-logo-svg-medium-dark-open-pass2.png`
+  - measured alignment still exact:
+    - `headerHeight: 65`
+    - `sidebarTopHeight: 65`
+    - `deltaBottom: 0`
+
+## Recent Update (2026-04-07) - Sidebar Logo Reverted To Earlier Medium Size
+
+- Completed:
+  - reverted sidebar top logo back to earlier medium setup requested by user.
+  - switched logo source from SVG back to PNG:
+    - `/brand_assets/Logos/L&D Logo_Cropped.png`
+  - restored earlier medium sizing values:
+    - `.sidebar-brand-logo-shell` max-width `7.6rem`
+    - `.sidebar-brand-logo` max-height `1.92rem`
+  - retained brand dropdown behavior and existing sidebar/header alignment.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - White Sidebar Logo Added For Dark Mode
+
+- Completed:
+  - mapped sidebar logo by theme so dark-mode surfaces use the new white logo asset.
+  - preserved earlier medium-size logo setup for light mode.
+  - implemented CSS theme selectors:
+    - `light`/`apple` -> `L&D Logo_Cropped.png`
+    - `default`/`dark`/`shopify` -> `L&D Logo_Cropped_White.png`
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Sidebar Footer Theme Toggle Beside Settings
+
+- Completed:
+  - added a dedicated light/dark toggle button beside the sidebar `Settings` button.
+  - wired toggle click to existing app theme flow (`applyAppTheme`) so it persists and updates all theme-bound UI.
+  - added `syncSidebarThemeToggle()` so icon/action text updates automatically when theme is changed from any control.
+  - preserved current navigation order and medium logo treatment.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+
+## Recent Update (2026-04-07) - Sidebar Logo Container Background Removed
+
+- Completed:
+  - removed the gray container background from the top-left sidebar logo trigger so it matches the sidebar surface.
+  - set default/hover/open states of `#sidebar-brand-button` background to transparent.
+  - kept logo sizing, dropdown interaction, and focus ring behavior unchanged.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Sidebar Logo Hover State Restored
+
+- Completed:
+  - kept the sidebar logo trigger base background transparent.
+  - restored hover and expanded/open background state for visible interaction feedback.
+  - preserved dropdown behavior and focus ring.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Sidebar Brand Dropdown Dark Popup Theme
+
+- Completed:
+  - changed sidebar brand dropdown popup to a black/gray background.
+  - switched popup text and icon colors to white for stronger contrast.
+  - tuned menu hover styling for white-on-dark readability and clear interaction.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+
+## Recent Update (2026-04-07) - Sidebar Brand Popup Account Menu + Smaller Typography
+
+- Completed:
+  - removed `Quick Switch` label from sidebar brand popup.
+  - moved `Profile` action into popup and removed top-header profile button.
+  - moved logout into popup as last action and removed top-header logout button.
+  - added top profile header inside popup:
+    - avatar/icon
+    - display name
+    - email line under name
+  - reduced popup typography sizes to better match requested visual density:
+    - profile name/email and menu item text/icon slightly smaller.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+  - dropdown visual verification screenshots:
+    - `temporary screenshots/screenshot-73-brand-popup-profile-layout.png`
+    - `temporary screenshots/screenshot-74-brand-popup-fonts-smaller.png`
+
+## Recent Update (2026-04-07) - Sidebar Brand Popup Typography Rebalanced (Less Small, More Tight)
+
+- Completed:
+  - increased popup text slightly from the previous pass to restore readability.
+  - tightened spacing/padding and icon-text gaps so the menu feels compact.
+  - preserved the new account-menu structure (profile header, actions, logout at bottom).
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+  - screenshot:
+    - `temporary screenshots/screenshot-75-brand-popup-fonts-medium-tight.png`
+
+## Recent Update (2026-04-07) - Sidebar/Header Re-Alignment + Desktop Collapse Toggle
+
+- Completed:
+  - re-aligned top separator line by matching header height to sidebar top row (`65px` each).
+  - added desktop sidebar hide control in sidebar header with Material icon:
+    - `keyboard_double_arrow_left`
+  - added desktop reopen behavior:
+    - when sidebar is hidden, burger icon appears on left side of top bar
+    - clicking burger reopens sidebar
+  - preserved mobile sidebar behavior and overlay interaction.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+  - measured alignment:
+    - `headerHeight: 65`
+    - `sidebarTopHeight: 65`
+    - `deltaBottom: 0`
+  - screenshot verification:
+    - `temporary screenshots/screenshot-79-align-icon-before-collapse.png`
+    - `temporary screenshots/screenshot-80-collapsed-burger-visible.png`
+    - `temporary screenshots/screenshot-81-reopened-via-burger.png`
+
+## Recent Update (2026-04-07) - Sidebar Collapse Transition Sync Polish
+
+- Completed:
+  - synchronized desktop hide/show animation timing between:
+    - sidebar transform
+    - main content left offset
+  - changed both to:
+    - `0.38s`
+    - `cubic-bezier(0.22, 1, 0.36, 1)`
+  - removed `!important` overrides on collapsed-state transform/margin to keep animation interpolation smooth.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - transition sampling logs show both moving layers use the same duration/easing.
+  - screenshot verification:
+    - `temporary screenshots/screenshot-82-transition-sync-collapsed.png`
+    - `temporary screenshots/screenshot-83-transition-sync-reopened.png`
+
+## Recent Update (2026-04-07) - Records Group Font Size Matched To Upper Nav
+
+- Completed:
+  - applied the same sidebar nav typography rules to the `Records` links (`Purchases`, `Commissions`, `Library`).
+  - introduced `data-nav-static` on those links and mapped it into shared sidebar nav selectors.
+  - ensured icon size + text size + line-height match upper nav groups.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+  - measured style match:
+    - top font `14.08px`, records font `14.08px`
+    - top line-height `18.4px`, records line-height `18.4px`
+  - screenshot:
+    - `temporary screenshots/screenshot-84-records-font-match.png`
