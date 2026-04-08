@@ -18,7 +18,10 @@ const filename = label ? `screenshot-${next}-${label}.png` : `screenshot-${next}
 
 const browser = await puppeteer.launch({ headless: true });
 const page = await browser.newPage();
-await page.setViewport({ width: 1440, height: 900 });
+const viewportWidth = Number(process.env.SCREENSHOT_WIDTH || 3840);
+const viewportHeight = Number(process.env.SCREENSHOT_HEIGHT || 2160);
+const deviceScaleFactor = Number(process.env.SCREENSHOT_DSF || 2);
+await page.setViewport({ width: viewportWidth, height: viewportHeight, deviceScaleFactor });
 await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 await page.screenshot({ path: join(dir, filename), fullPage: true });
 await browser.close();

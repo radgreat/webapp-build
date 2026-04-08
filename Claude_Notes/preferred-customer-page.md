@@ -1,7 +1,15 @@
 # Preferred Customer Page Notes
 
-Last Updated: 2026-04-06
+Last Updated: 2026-04-07
 Status: In Progress (Phase 1 foundation complete)
+
+## Recent Update (2026-04-07) - Preferred/Free Login Merged Into Unified Login
+
+- Updated preferred/free account auth entry points to use unified `login.html` instead of a separate active login page.
+- `store-login.html` is now a compatibility redirect that forwards to `/login.html` and keeps `?store=` query context.
+- Updated storefront references previously labeled as separate preferred/free login to point to unified login routing.
+- Store password setup return links now send users to `/login.html`.
+- Free/preferred accounts still route to `/store-dashboard.html` after successful sign-in.
 
 ## Recent Update (2026-04-06) - Sponsor Action Row Alignment Fix
 

@@ -228,7 +228,7 @@
       </div>
       <div class="mt-4 grid gap-3">
         <a id="header-login-member-link" href="/login.html" class="rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">Member Login</a>
-        <a id="header-login-preferred-link" href="/store-login.html" class="rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">Preferred Account Login</a>
+        <a id="header-login-preferred-link" href="/login.html" class="rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">Customer Login</a>
       </div>
       <p class="mt-4 text-sm text-slate-600">
         Don't have an account?
@@ -276,7 +276,7 @@
 
       <div class="mt-5 flex flex-wrap gap-2">
         <button type="button" data-success-close class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500">Continue</button>
-        <a id="success-preferred-login" href="/store-login.html" class="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">Free Member Login</a>
+        <a id="success-preferred-login" href="/login.html" class="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">Login</a>
         <a id="success-back-to-products" href="/store.html" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Back to products</a>
       </div>
     </section>
@@ -430,7 +430,7 @@
         headerLoginPreferredLinkElement.href = isFreeSession
           ? shared.buildDashboardUrl(activeStoreCode)
           : shared.buildFreeLoginUrl(activeStoreCode);
-        headerLoginPreferredLinkElement.textContent = isFreeSession ? 'My Dashboard' : 'Preferred Account Login';
+        headerLoginPreferredLinkElement.textContent = isFreeSession ? 'My Dashboard' : 'Customer Login';
       }
 
       if (headerLoginMemberLinkElement) {
@@ -805,8 +805,8 @@
             : 'No referral link was used. This Free Account is temporarily attributed to authorized staff until reassignment after first sign-in.';
         } else {
           successSecondaryNoteElement.textContent = setupLink
-            ? 'You can also use this setup link from Free Member Login.'
-            : 'If you selected Free Account, setup-link access is available from Free Member Login after first sign-in attempt.';
+            ? 'You can also use this setup link from Login.'
+            : 'If you selected Free Account, setup-link access is available from Login after first sign-in attempt.';
         }
       }
 
@@ -814,7 +814,7 @@
         successBackToProductsElement.href = shared.buildStorefrontUrl(activeStoreCode);
       }
       if (successPreferredLoginElement) {
-        const preferredLoginUrl = new URL('/store-login.html', window.location.origin);
+        const preferredLoginUrl = new URL('/login.html', window.location.origin);
         if (activeStoreCode) {
           preferredLoginUrl.searchParams.set('store', activeStoreCode);
         }

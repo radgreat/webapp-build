@@ -778,14 +778,14 @@
 
       logoutButton.addEventListener('click', () => {
         clearUserSession();
-        window.location.replace(resolveStoreScopedUrl('/store-login.html'));
+        window.location.replace(resolveStoreScopedUrl('/login.html'));
       });
     }
 
     function bootstrap() {
       const sessionUser = readUserSession();
       if (!sessionUser) {
-        window.location.replace(resolveStoreScopedUrl('/store-login.html'));
+        window.location.replace(resolveStoreScopedUrl('/login.html'));
         return;
       }
 

@@ -598,7 +598,7 @@
 
   function buildFreeLoginUrl(storeCode) {
     const normalizedStoreCode = normalizeStoreCode(storeCode);
-    const url = new URL('/store-login.html', window.location.origin);
+    const url = new URL('/login.html', window.location.origin);
     if (normalizedStoreCode) {
       url.searchParams.set('store', normalizedStoreCode);
     }
