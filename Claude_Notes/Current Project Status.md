@@ -7,6 +7,700 @@ Last Updated: 2026-04-08
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
 
+## Recent Update (2026-04-08) - Next Popup-Cover Implementation Note Prepared
+
+- Completed:
+  - created `Claude_Notes/binary-tree-popup-cover-next-implementation.md` for the next execution phase.
+  - documented all required routes to inspect:
+    - frontend pages: `/Profile`, `/BinaryTree`
+    - APIs: `/api/registered-members`, `/api/admin/registered-members`, placement patch routes.
+  - documented exact code touchpoints for follow-up implementation:
+    - cover data flow in `index.html` and `admin.html`
+    - popup render + placement logic in `binary-tree.mjs`
+    - backend member route/store references for persistence gap tracking.
+  - recorded recent bug recap for context:
+    - cover looked missing because popup top strip was clipped when near-top nodes forced above placement.
+- Outcome:
+  - next implementation has a single actionable note with route map, file map, scope, acceptance criteria, and QA checklist.
+- Files updated:
+  - `Claude_Notes/binary-tree-popup-cover-next-implementation.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - reviewed note content for route coverage + bug summary + implementation checklist completeness.
+
+## Recent Update (2026-04-08) - Popup Cover Clipping Fix (Locally Reproduced)
+
+- Completed:
+  - reproduced the “cover removed” behavior on local branch with scripted Binary Tree popup interactions.
+  - traced root cause to popup placement: top cover section was being clipped when popup tried to stay above near-top nodes.
+  - updated popup placement logic in `binary-tree.mjs` to support below-node fallback when above placement cannot fit.
+  - added bidirectional pointer rendering for selected-node popup so anchoring remains visually correct in both placements.
+  - retained top-strip cover mask and loader readiness flow after placement fix.
+- Outcome:
+  - cover strip now remains visible in popup window during top-node selections, and cover images render in the visible card area instead of appearing removed.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - local branch screenshots confirm repro + fix:
+    - `temporary screenshots/screenshot-188-cover-check-local-image.png`
+    - `temporary screenshots/screenshot-192-cover-check-yellow-canvas.png`.
+
+## Recent Update (2026-04-08) - Popup Cover Display Reliability (Node Panel)
+
+- Completed:
+  - hardened popup cover loader in `binary-tree.mjs` to wait for real texture readiness before switching to "image loaded" overlay styling.
+  - added popup source fallback keys (`profileCoverUrl`, `coverDataUrl`, `coverUrl`) so mixed node payload formats still render cover images.
+  - preserved procedural fallback visuals when texture load fails or times out, preventing blank/washed cover strip states.
+- Outcome:
+  - node popup cover no longer drops into a false loaded state where overlays change but the image is not actually rendered.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Cover-Only Revision (Container Style Preserved)
+
+- Adjusted popup cleanup implementation to preserve previous container/body styling and touch only the cover strip behavior.
+- Updated cover clip strategy in `binary-tree.mjs`:
+  - replaced full-card cover clipping with dedicated cover-strip mask (rounded top corners only)
+  - prevents cover bleed while keeping original popup container presentation.
+- Kept decorative blocking overlay suppression for real cover images.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Cover Cleaned To Match UI Feedback
+
+- Cleaned selected-node popup cover presentation in `binary-tree.mjs` based on screenshot feedback:
+  - removed blocking decorative cover overlays when a real cover image is present
+  - clipped cover image layer to popup rounded frame to prevent cover bleed across card radius/border.
+- Maintains subtle readability tint while allowing cover image to remain visible.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - visual verification screenshot: `temporary screenshots/screenshot-180-popup-cover-clean-check.png`.
+
+## Recent Update (2026-04-08) - Binary Tree Popup Cover Renderer Fixed
+
+- Investigated popup cover mismatch directly in binary-tree context and reproduced the renderer issue with known node cover URLs.
+- Applied renderer-level fixes in `binary-tree.mjs`:
+  - removed popup cover mask dependency that was blocking cover image visibility in current runtime
+  - added robust image decode fallback path for `data:image/...` cover URLs before/after PIXI loader attempts.
+- Result: node popup cover region now renders when valid cover source is present.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - verified with local popup cover harness screenshots (`screenshot-174`, `screenshot-178`, `screenshot-179`).
+
+## Recent Update (2026-04-08) - Popup Cover Visibility Investigation + Fallback Hydration
+
+- Investigated "changes not visible" report for node popup cover updates.
+- Root cause findings:
+  - popup cover image was layered under an almost-opaque procedural cover tint in `binary-tree.mjs`
+  - non-root member nodes often do not receive cover fields from backend registered-member payloads.
+  - profile cover updates from Profile page did not immediately rebuild binary-tree node payloads (stale in-session tree data).
+- Implemented fix in `binary-tree.mjs`:
+  - lowered cover tint opacity when custom image exists
+  - increased custom cover sprite opacity for clear visibility.
+- Implemented live-sync fix in `index.html`:
+  - profile image upload/save flows now call `syncBinaryTreeFromRegisteredMembers()` so popup cover updates without reload.
+- Added node-cover fallback hydration:
+  - `index.html` and `admin.html` now resolve cover from local profile customization store (`charge-member-profile-customizations-v1`) when member payload is missing cover data.
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - screenshot script could not load `http://127.0.0.1:5500` in this environment (`ERR_EMPTY_RESPONSE`); active local server validation was done on `http://127.0.0.1:3000`.
+
+## Recent Update (2026-04-08) - Node Cover Photos Now Sync From Profile Data
+
+- Updated binary-tree popup cover behavior so node cards can display saved profile cover images.
+- Applied to all eligible nodes with configured cover photos, not just the viewer/root profile node.
+- Data flow updates were added in both user and admin tree builders:
+  - member nodes now include `profileCoverUrl`
+  - root node payload includes effective profile cover.
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - More Space Above Metrics Container
+
+- Increased the vertical gap between `BINARY TREE DATA` and the metrics panel border in `binary-tree.mjs`.
+- Kept dynamic popup height enabled so this extra spacing does not squeeze lower metric rows.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - screenshot pass skipped in this quick spacing-only update.
+
+## Recent Update (2026-04-08) - Popup Height Made Dynamic For Metrics Space
+
+- Addressed concern about fixed panel constraints by moving selected-node popup height to a computed runtime value in `binary-tree.mjs`.
+- Popup now expands to guarantee minimum metrics-panel capacity when header/section spacing pushes content downward.
+- Updated pointer + viewport anchoring logic to respect dynamic popup height.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - screenshot pass deferred in this iteration.
+
+## Recent Update (2026-04-08) - Popup Metrics Container Restored
+
+- Fixed regression where `Cycles` and `Direct` appeared out of place after the large spacing pass.
+- Updated metrics panel top/bottom geometry in `binary-tree.mjs` to restore container height and row alignment.
+- Preserved requested hierarchy/spacing:
+  - `BINARY TREE DATA` remains below the separator line
+  - extra spacing from username/header area remains.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - screenshot pass skipped per user request.
+
+## Recent Update (2026-04-08) - Popup Cramped Spacing Reduced (Username vs Data Section)
+
+- Applied a small spacing refinement in `binary-tree.mjs` to reduce crowding between:
+  - username row
+  - `BINARY TREE DATA` heading.
+- Implementation details:
+  - username baseline shifted slightly upward
+  - section label shifted slightly downward
+  - no metrics panel resize changes (to avoid layout regressions).
+- Visual verification completed:
+  - `temporary screenshots/screenshot-164-popup-spacing-pass1.png`
+  - `temporary screenshots/screenshot-165-popup-spacing-pass2.png`
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Header Layout Reverted To Left-Anchor Pattern
+
+- Applied requested popup-header adjustment in `binary-tree.mjs`:
+  - profile avatar is no longer centered
+  - member name now renders under the profile icon
+  - name remains left-anchored
+  - username and badge icons remain inline/adjacent on the same row.
+- Maintained compact badge row spacing and prior subtitle/date sync behavior.
+- Visual verification completed:
+  - `temporary screenshots/screenshot-162-popup-layout-revert-pass1.png`
+  - `temporary screenshots/screenshot-163-popup-layout-revert-pass2.png`
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Identity Stack + Badge Subtitle Sync
+
+- Implemented the requested node-popup panel refinements in `binary-tree.mjs`:
+  - name + username now render directly under the profile photo
+  - badge icons moved into a compact row under the username
+  - icon spacing tightened (smaller icon size + reduced gap).
+- Synced node-popup badge hover descriptions with date-aware profile metadata:
+  - popup resolver now uses `profileBadgeRankSubtitle`, `profileBadgeTitleSubtitle`, `profileBadgeExtraSubtitle`
+  - rank fallback now reads `Subscriber since <addedAt>` when explicit subtitle data is unavailable.
+- Wired subtitle metadata through node payload creation:
+  - member/root builders in `index.html` and `admin.html`
+  - normalized fields in `binary-tree.mjs` node adapter.
+- Visual verification completed with iterative screenshot passes:
+  - `temporary screenshots/screenshot-157-popup-layout-pass3.png`
+  - `temporary screenshots/screenshot-161-popup-hovercard-pass7.png`
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Expanded For Spacious Readability
+
+- Applied explicit spacing-first expansion in `binary-tree.mjs` for node popup readability.
+- Increased popup frame and section dimensions:
+  - width/height increased
+  - cover and avatar enlarged
+  - identity, badges, and metric text scaled up.
+- Increased internal spacing for data comfort:
+  - larger badge pills and row offsets
+  - larger binary metrics panel padding
+  - larger metric row/column rhythm.
+- Visual check completed with updated screenshot:
+  - `temporary screenshots/screenshot-136-popup-spacious-pass.png`
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Refactor For Node Detail Clarity
+
+- Completed requested popup redesign pass in `binary-tree.mjs` focused on node-click details.
+- Popup now presents requested hierarchy:
+  - icon slot + cover
+  - username/handle/rank
+  - badge row (status, sponsor type, cycle eligibility, country when visible)
+  - binary tree metric data grid.
+- Added rank-to-brand-icon mapping for achievement icon assets in `brand_assets/Icons/Achievements`.
+- Increased popup dimensions and rebalanced spacing to avoid overlap between identity and badge rows.
+- Final visual verification included two iterative comparison rounds:
+  - `screenshot-132-popup-before-scripted.png`
+  - `screenshot-133-popup-after-pass1.png`
+  - `screenshot-134-popup-after-pass2.png`
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Layout Tightened End-to-End
+
+- Completed full popup layout cleanup in `binary-tree.mjs` to address "clean it up / tighten it up" feedback.
+- Implemented a structured layout grid instead of ad-hoc spacing:
+  - cleaner identity row alignment
+  - cleaner 2-column metric section
+  - reduced visual noise while increasing readability.
+- Increased popup canvas and spacing without reintroducing container-heavy styling.
+- Online/status icon remains removed.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Layout Expanded (No Online Icon)
+
+- Applied requested popup sizing adjustment in `binary-tree.mjs`:
+  - increased popup width/height
+  - increased cover and avatar sizing
+  - increased spacing between identity, divider, and metric rows.
+- Removed the online/status icon dot from the popup avatar block.
+- Kept simplified/minimal popup structure from the previous cleanup pass.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Simplified (Less Containers)
+
+- Applied requested cleanup pass for node popup visuals in `binary-tree.mjs`.
+- Removed high-density layout pieces introduced in prior pass:
+  - removed bubble row
+  - removed badge-strip container set
+  - removed elevated stats panel shell and decorative effects.
+- Current popup is intentionally minimal:
+  - cover + avatar/status
+  - name/handle/rank
+  - compact 2x2 binary metrics
+  - cycle eligibility line.
+- Adjusted popup size constants to reduce visual bulk and improve readability.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Discord-Inspired Popup Styling Pass
+
+- Redesigned selected-node popup visuals in `binary-tree.mjs` to follow the requested Discord-inspired direction while keeping project branding:
+  - wider/taller profile-card shell
+  - stylized cover/header composition
+  - header bio bubble
+  - larger avatar + status dot
+  - badge strip for rank/country/source context
+  - upgraded binary metrics panel (`BINARY SNAPSHOT`).
+- Adjusted spacing and panel metrics to avoid popup overflow/clipping after the redesign.
+- Existing behavior preserved:
+  - popup remains anchored above selected node
+  - camera pan/zoom/focus/minimap/resize syncing still active.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Node Popup Above Selected Binary Node
+
+- Implemented selected-node popup UI in `binary-tree.mjs` to show:
+  - profile cover + initials avatar
+  - rank and status chips
+  - binary data summary (`Left Team`, `Right Team`, `Cycles`, `Direct`) + cycle eligibility.
+- Popup now remains anchored above the selected node during:
+  - pan/zoom
+  - animated node focus transitions
+  - minimap viewport moves
+  - renderer resize/fullscreen layout changes.
+- Added popup lifecycle safeguards:
+  - rebuild on selection/visual refresh
+  - auto-destroy on clear/empty/destroy paths
+  - theme-aware text restyling + popup refresh support.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Deep Anticipation Line-Length Normalization
+
+- Addressed depth-6/7 anticipation inconsistency where some slot connectors appeared very long while others were short.
+- Implemented selected-parent local anticipation placement:
+  - left/right placeholders now anchor around selected parent with fixed offsets
+  - avoids misleading far-horizontal displacement that looked like wrong branch position.
+- Added local collision resolution strategy:
+  - resolve by vertical stepping first
+  - minimal horizontal side nudge only as fallback.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Selected Node Now Shows Any Open Slot
+
+- Adjusted selected-node anticipation logic:
+  - anticipated node(s) now render when selected node has any available child slot.
+- Behavior:
+  - one open side -> only that side shows
+  - two open sides -> both show.
+- This replaces previous leaf-only restriction while keeping click-selection trigger model.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Anticipation Slots Now On Selected Leaf Only
+
+- Implemented requested interaction model:
+  - clicking/selecting a node now controls anticipation visibility
+  - anticipated slots only render when selected node has no children.
+- Fullscreen selection flow now re-renders tree on select/clear:
+  - slot visibility updates immediately with each node click
+  - avoids stale anticipation layout from prior selection state.
+- `collectEnrollAnticipationSlots(...)` now enforces selected-leaf-only criteria.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Zoom Cascade Chunk Rendering Enabled
+
+- Implemented requested cascading behavior in fullscreen binary tree:
+  - global baseline shows depth `<= 4`
+  - deeper descendants appear when zooming into a viewport chunk.
+- New cascade resolver now:
+  - identifies focused depth-4 chunk roots in viewport area
+  - expands only those subtrees to current zoom depth limit (`mid`/`near`).
+- Added render safety and continuity:
+  - selected node ancestry is retained in visible set
+  - selecting a hidden node triggers re-render before focus.
+- Render pipeline now uses visible-node subset for links, nodes, spillover, and anticipation parents.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Additional Whole-Tree Spacing For Placement Clarity
+
+- Applied stronger spacing pass after continued overlap feedback (`LEFT LEFT` / `RIGHT RIGHT` crowding).
+- Updated `binary-tree.mjs` fullscreen anticipation geometry:
+  - larger global width boost for whole tree
+  - larger depth-cap boost for effective horizontal distribution
+  - middle corridor split now scales by depth.
+- Updated anticipation collision thresholds:
+  - higher base min-gap
+  - steeper depth amplification
+  - stronger side-offset enforcement from parent node anchor.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Increased Middle Spacing For Fullscreen Binary
+
+- Added a dedicated center-lane spacing expansion in `binary-tree.mjs` for fullscreen anticipation rendering.
+- New behavior widens the middle corridor:
+  - left-side nodes shift further left
+  - right-side nodes shift further right
+  - root remains centered.
+- Applied center-gap mapping to both base node geometry and anticipated-slot seed coordinates to keep alignment consistent.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Anticipation Nodes Always Active In Fullscreen
+
+- Implemented requested approach: anticipation nodes are now always active/visible in fullscreen mode.
+- Tree no longer depends on Enroll toggle state for anticipation visibility and spacing behavior.
+- Binary tree render path now uses fullscreen-based anticipation guards:
+  - anticipation slot collection runs whenever fullscreen is active
+  - LOD-disable path follows fullscreen anticipation state directly.
+- Enroll toggle control in fullscreen top row is now hidden via JS state sync, since anticipation is always on.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Enroll Mode Whole-Tree Shift Enabled
+
+- Applied requested behavior so Enroll Member mode shifts the full binary layout wider, not only anticipation nodes.
+- `binary-tree.mjs` render path now increases layout width while enroll mode is active:
+  - slot-width boost
+  - one-step width-depth-cap boost.
+- Added stronger anticipated-node anti-overlap spacing:
+  - larger base gap
+  - depth-progressive gap growth
+  - stronger side offset from parent to maintain left/right readability.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Enroll Mode T-Line Consistency + Anticipation Spacing Fix
+
+- Investigated reported Enroll Member mode regressions:
+  - anticipation connectors were still using curved legacy-style routing
+  - anticipated nodes could overlap with nearby nodes in compact layout.
+- Applied render fixes in `binary-tree.mjs`:
+  - switched anticipation connector path generation to orthogonal elbow routing (T-line language)
+  - added `resolveEnrollAnticipationPositions(...)` overlap pass for anticipated nodes by depth bucket
+  - enforced side-aware spacing offsets and min-gap collision resolution against existing + anticipated nodes.
+- Expected behavior now:
+  - Enroll mode connector visuals stay consistent with T/inverted-T tree style
+  - anticipated nodes no longer stack/collide in dense rows.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Enroll Mode No Longer Reverts To Legacy Layout
+
+- Investigated and fixed Enroll Member mode layout shift in `binary-tree.mjs`.
+- Issue source:
+  - enroll render used legacy full-slot layout options, making the tree jump to old spacing when toggled on.
+- Current behavior:
+  - Enroll mode keeps the same compact tree geometry as normal mode.
+  - Anticipated nodes render on top of that stable layout (no layout mode swap).
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Enroll Button Label Correction
+
+- Reverted fullscreen tree enroll toggle label from `Show Anticipated` back to `Enroll Member`.
+- Restored control semantics for assistive labels/title to enroll-mode wording (`Enable/Disable enroll mode`).
+- Anticipated node rendering behavior remains unchanged and still appears in enroll mode.
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Enroll Toggle Now Controls Anticipated Nodes + Visual Match
+
+- Updated fullscreen tree top-row toggle semantics:
+  - button copy now reads `Show Anticipated` / `Hide Anticipated`
+  - aria/title copy now explicitly references anticipated-node visibility.
+- Replaced anticipated slot cards with circle-based placeholders in `binary-tree.mjs`:
+  - circular node shell
+  - center `+` glyph
+  - side badge text (`LEFT` / `RIGHT`) under node.
+- Synced anticipation geometry to the new visuals:
+  - bounds now account for circular node radius + side label clearance
+  - dashed preview connector now lands at anticipated circle edge.
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Binary Tree Map-Style Semantic Zoom (LOD)
+
+- Implemented a map-style tree browsing pass in `binary-tree.mjs`:
+  - stable node coordinates retained
+  - semantic zoom visibility levels:
+    - far: depth `<= 3`
+    - mid: depth `<= 5`
+    - near: full depth.
+- Added hysteresis thresholds to reduce LOD mode flicker:
+  - far enter/exit: `0.48 / 0.58`
+  - near enter/exit: `0.72 / 0.64`.
+- Added `+N more` chips on visible frontier nodes to indicate collapsed descendants.
+- Camera hooks now trigger LOD refresh on zoom/fit/reset/focus/restore.
+- Visibility-aware rendering updates:
+  - links/spillover lines only for visible nodes
+  - fit bounds computed from visible set for better initial readability.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Binary Tree Width Compression Aligned To LOD
+
+- Follow-up compression tuning applied in `binary-tree.mjs`:
+  - layout width now respects active semantic-zoom depth cap (`widthDepthCap`)
+  - render pipeline now resolves LOD first, then computes layout with bounded width depth
+  - preserves binary direction while reducing wide spacing in far/mid views.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Binary Tree Layout Compaction (Usability)
+
+- Addressed reported usability issue where a 50-node tree appeared excessively spread out horizontally.
+- Updated `binary-tree.mjs` layout pipeline:
+  - rolled back structural compaction variants due visual quality issues
+  - default render now keeps original geometry and applies adaptive horizontal compression only
+  - enroll anticipation mode keeps prior full-slot spacing to protect placeholder-slot accuracy.
+- Expected outcome:
+  - denser default tree view
+  - less horizontal dead space
+  - improved usability for moderate-size trees.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Zeroone Binary Tree Simulation Retuned (50 Total Nodes, Random Sponsors)
+
+- Reintroduced simulation runner script at:
+  - `backend/scripts/simulate-zeroone-live-test.mjs`
+- Updated simulation logic to align with requested QA mode:
+  - fixed interpretation from "50 direct sponsors" to "50 total generated nodes"
+  - randomized sponsor routing so direct counts vary naturally
+  - randomized direct left/right spread
+  - excluded preferred customers from generated nodes.
+- Added integrated reset path before each run:
+  - clears prior `zeroone-sim-*` test users/members
+  - clears target binary/sales snapshot rows for clean metrics.
+- Added end-to-end report output (`backend/scripts/reports/...json`) including:
+  - BV volumes and cycles
+  - sales team commissions
+  - rewards/rank progression
+  - Infinity + Legacy tier-card snapshots.
+- Latest run result:
+  - Run ID: `zeroone:20260408012540525-tstltn`
+  - Created nodes: `50`
+  - Direct sponsors under `zeroone`: `3` (requested split left `1`, right `2`)
+  - Binary: left BV `20,426`, right BV `45,334`, cycles `40`
+  - Sales team net commission: `$2,500`
+  - Report path:
+    - `backend/scripts/reports/zeroone-live-test-zeroone-20260408012540525-tstltn.json`
+- Files updated:
+  - `backend/scripts/simulate-zeroone-live-test.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+
 ## Recent Update (2026-04-08) - Business Center Data Revert + Flush Settings Hardening
 
 - Reverted test activation data for `zeroone` in production-like member records:
@@ -7617,3 +8311,255 @@ Last Updated: 2026-04-08
 
 - Validation:
   - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-08) - Binary Tree Map-World Navigation
+
+- Completed:
+  - changed binary tree to keep full graph rendered in one global world during normal navigation.
+  - shifted semantic zoom from node pruning to detail-density control (far/mid/near).
+  - added map-home camera defaults centered on root.
+  - tightened baseline horizontal spread with capped world width depth and compact slot width.
+
+- Outcome:
+  - panning/zooming now behaves closer to map navigation, with node details progressively appearing by zoom level.
+  - default view is less horizontally stretched for medium-sized trees.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Binary Tree Circle Baseline
+
+- Completed:
+  - simplified node visuals to circles with initials only.
+  - switched branch connectors to straight line links.
+  - updated interaction hit testing and viewport bounds to circle-based geometry.
+  - reduced baseline horizontal spread with tighter layout width defaults.
+
+- Outcome:
+  - tree is now intentionally minimal to evaluate readability/spacing before re-introducing details.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Circle Node Overlap Fix
+
+- Completed:
+  - added collision-avoidance spacing per depth row in tree layout.
+  - enforced minimum horizontal gap between nodes in the same depth.
+  - recentered each adjusted row and refreshed layout bounds after spreading.
+
+- Outcome:
+  - overlapping circle nodes are separated for clearer readability in compressed layouts.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Non-Centered Child Connectors
+
+- Completed:
+  - replaced center-based node connectors with edge-anchored line segments.
+  - adjusted spillover links to start/end on circle boundaries as well.
+
+- Outcome:
+  - child connectors no longer run through node centers, reducing visual confusion.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Single-Child Side Branch Clarification
+
+- Completed:
+  - made child connectors explicitly branch-side anchored.
+  - left and right child lines now originate from distinct parent-side anchors.
+
+- Outcome:
+  - nodes with only one child no longer appear center-connected, improving left/right placement readability.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - T / Inverted-T Connector Layout
+
+- Completed:
+  - converted tree connectors to orthogonal branch routing.
+  - implemented inverted-T branch bars for two-child parents.
+  - implemented elbow routing for one-child parents while preserving left/right direction.
+
+- Outcome:
+  - branch direction is easier to parse visually, especially for parents with a single child.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - More Space For Deep Nodes
+
+- Completed:
+  - added progressive depth-based vertical spacing to layout Y positioning.
+  - kept upper levels compact while increasing row gaps on deeper levels.
+  - synced placeholder slot Y positioning to the same spacing model.
+
+- Outcome:
+  - bottom/deep node regions now have more breathing room where crowding was most visible.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Deep Nodes X-Axis Spacing Fix
+
+- Completed:
+  - removed depth-driven Y-axis expansion from layout.
+  - added depth-driven X-axis spacing expansion in overlap prevention per row.
+  - tuned deep-row horizontal spacing growth while keeping top rows compact.
+
+- Outcome:
+  - deep nodes now have more side-to-side spacing where crowding occurs, without stretching vertical gaps further.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Popup Icon Sync + Hover/Spacing Pass
+
+- Completed:
+  - synced popup handle-row icons to profile-selected rank/title1/title2 sources.
+  - forwarded profile badge/title metadata into tree node data from `index.html` and `admin.html`.
+  - expanded popup icon resolver support in `binary-tree.mjs` for explicit profile icon paths and title-based fallback mappings.
+  - reduced icon gap spacing for tighter alignment.
+  - added hover/press interaction feedback to popup icons (lift/scale/press state), matching KPI-card interaction feel.
+
+- Outcome:
+  - popup icons now follow user profile badge/title selections more closely and feel less static/cluttered.
+  - icon row appears denser and more intentional beside `@username`.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - screenshot capture ran, but popup-state visual verification was blocked because available captured routes resolved to unauthenticated/login views in this pass.
+
+## Recent Update (2026-04-08) - Popup Icon Hovercard + Stuck-Hover Fix
+
+- Completed:
+  - changed popup icon resolver output to structured entries with hover metadata.
+  - implemented a per-icon hover popup window (title/subtitle) for rank/title1/title2 icons.
+  - removed scale-up hover behavior that could remain visually stuck.
+  - added explicit reset/hide handlers on `pointerout`, `pointerup`, and `pointerupoutside`.
+
+- Outcome:
+  - icon hover now surfaces a real info popup window, closer to KPI/profile badge interaction expectations.
+  - icons no longer remain enlarged after hover interactions.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+
+## Recent Update (2026-04-08) - KPI Hovercard Style Match + Icon Placement Stabilization
+
+- Completed:
+  - removed in-canvas popup hover panel for icon row.
+  - implemented DOM hovercard flow aligned with Account Status KPI hovercard behavior.
+  - added viewport-aware hovercard positioning and delayed hide semantics.
+  - updated icon-row hover events to use the shared hovercard flow.
+  - corrected icon vertical anchoring to keep icons aligned to the `@username` row.
+  - added cleanup for hovercard timers/elements during popup/controller teardown.
+
+- Outcome:
+  - icon hover behavior now uses a true popup window pattern rather than sprite-only effects.
+  - icon placement is more stable and consistent with the handle row.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+
+## Recent Update (2026-04-08) - Popup Icon Hit-Box + Hovercard Visibility Repair
+
+- Completed:
+  - fixed popup icon sprite sizing instability by loading icon textures before render and enforcing fixed icon bounds.
+  - switched popup container to stable pointer event mode so hover targets resolve reliably.
+  - updated icon anchor-to-DOM mapping for hovercard placement against live canvas metrics.
+  - aligned hovercard style tokens to KPI card behavior and raised hovercard stacking layer to ensure it appears above tree canvas surfaces.
+
+- Outcome:
+  - popup icons no longer render as oversized/offset artifacts.
+  - hover popup now appears reliably when hovering rank/title icons in the selected-node card.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - authenticated `/BinaryTree` hover repro via Puppeteer (popup click + icon hover).

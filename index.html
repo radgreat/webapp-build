@@ -12403,6 +12403,7 @@
             [profileImageKey]: imageDataUrl,
           });
           syncProfilePageFromState(nextProfile, { syncForm: false });
+          syncBinaryTreeFromRegisteredMembers();
           setProfileEditFeedback(profileImageKey === 'coverDataUrl' ? 'Cover image updated.' : 'Profile image updated.');
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unable to update image.';
@@ -12658,6 +12659,7 @@
             });
             syncProfilePageFromState(nextProfile);
             syncTreeSettingsAccountOverview();
+            syncBinaryTreeFromRegisteredMembers();
             setProfileEditFeedback('Profile saved.');
           });
         }
@@ -16927,15 +16929,49 @@
         return nextId;
       }
 
+      function resolveMemberNodeCoverFromProfileStore(member = {}, profileStore = null) {
+        const safeProfileStore = profileStore && typeof profileStore === 'object'
+          ? profileStore
+          : readMemberProfileCustomizationStore();
+        const candidateKeys = Array.from(new Set([
+          normalizeMemberKey(member?.userId),
+          normalizeMemberKey(member?.memberUsername || member?.username),
+          normalizeMemberKey(member?.email),
+        ].filter(Boolean)));
+
+        for (const candidateKey of candidateKeys) {
+          const storedProfile = safeProfileStore[candidateKey];
+          if (!storedProfile || typeof storedProfile !== 'object') {
+            continue;
+          }
+
+          const storedCover = sanitizeProfileImageSource(
+            storedProfile?.coverDataUrl || storedProfile?.profileCoverUrl || '',
+          );
+          if (storedCover) {
+            return storedCover;
+          }
+        }
+
+        return '';
+      }
+
       function createBinaryTreeDataFromRegisteredMembers() {
         const rootId = 'root';
         const globalRootId = '__global-root__';
         const now = Date.now();
         const rootUsername = String(currentSessionUser?.username || currentSponsorUsername || 'member-root').trim() || 'member-root';
+        const rootDisplayName = String(
+          currentSessionUser?.name
+          || currentSessionUser?.fullName
+          || currentSessionUser?.username
+          || 'Member',
+        ).trim() || 'Member';
         const nodes = {};
         const usedNodeIds = new Set([globalRootId]);
         const memberNodeIdByIndex = new Map();
         const lookupToNodeId = new Map();
+        const memberProfileCustomizationStore = readMemberProfileCustomizationStore();
 
         const registerLookup = (rawValue, nodeId) => {
           const key = normalizeMemberKey(rawValue);
@@ -16993,6 +17029,13 @@
               || `Business Center #${Math.max(1, toWholeNumber(member?.businessCenterIndex, 1))}`,
             )
             : String(member?.fullName || member?.memberUsername || member?.email || `Member ${index + 1}`);
+          const memberProfileBadgeVisibility = member?.profileBadgeVisibility && typeof member.profileBadgeVisibility === 'object'
+            ? sanitizeProfileBadgeVisibility(member.profileBadgeVisibility)
+            : undefined;
+          const memberCoverFromProfileStore = resolveMemberNodeCoverFromProfileStore(
+            member,
+            memberProfileCustomizationStore,
+          );
 
           nodes[nodeId] = {
             id: nodeId,
@@ -17005,6 +17048,18 @@
             rank: resolveMemberTreeRank(member),
             enrollmentPackage: normalizeMemberKey(member?.enrollmentPackage),
             countryFlag: normalizeCountryFlag(member?.countryFlag),
+            profileCoverUrl: String(
+              member?.profileCoverUrl || member?.coverDataUrl || memberCoverFromProfileStore || '',
+            ).trim(),
+            profileAccountTitle: String(member?.profileAccountTitle || member?.accountTitle || member?.title || '').trim(),
+            profileAccountTitleSecondary: String(member?.profileAccountTitleSecondary || member?.accountTitleSecondary || '').trim(),
+            profileBadgeVisibility: memberProfileBadgeVisibility,
+            profileBadgeRankIconPath: String(member?.profileBadgeRankIconPath || member?.profileRankIconPath || '').trim(),
+            profileBadgeTitleIconPath: String(member?.profileBadgeTitleIconPath || member?.profileTitleIconPath || member?.profileTitle1IconPath || '').trim(),
+            profileBadgeExtraIconPath: String(member?.profileBadgeExtraIconPath || member?.profileExtraIconPath || member?.profileTitle2IconPath || '').trim(),
+            profileBadgeRankSubtitle: String(member?.profileBadgeRankSubtitle || member?.profileRankSubtitle || '').trim(),
+            profileBadgeTitleSubtitle: String(member?.profileBadgeTitleSubtitle || member?.profileTitleSubtitle || member?.profileTitle1Subtitle || '').trim(),
+            profileBadgeExtraSubtitle: String(member?.profileBadgeExtraSubtitle || member?.profileExtraSubtitle || member?.profileTitle2Subtitle || '').trim(),
             addedAt: createdAtMs,
             businessCenterNodeType,
             isBusinessCenterPlaceholder,
@@ -17189,16 +17244,33 @@
         const scopedNodes = {};
         const sourceRootNode = nodes[viewerNodeId] || nodes[globalRootId];
         const sourceRootAddedAt = Number(sourceRootNode?.addedAt);
+        const effectiveProfile = resolveEffectiveMemberProfile();
+        const rootBadgeEntries = resolveProfileHandleBadgeEntries(effectiveProfile);
+        const rootRankBadgeEntry = rootBadgeEntries.find((entry) => entry.key === 'rank') || null;
+        const rootTitleBadgeEntry = rootBadgeEntries.find((entry) => entry.key === 'title') || null;
+        const rootExtraBadgeEntry = rootBadgeEntries.find((entry) => entry.key === 'extra') || null;
         scopedNodes[rootId] = {
           id: rootId,
           memberCode: rootUsername,
-          name: 'You',
+          name: rootDisplayName,
           status: resolveBinaryNodeStatus(currentSessionUser),
           leftPersonalPv: 0,
           rightPersonalPv: 0,
           lifetimePersonalPv: 0,
           rank: resolveRootNodeRank(),
           countryFlag: normalizeCountryFlag(currentSessionUser?.countryFlag),
+          profileCoverUrl: String(effectiveProfile?.coverDataUrl || currentSessionUser?.profileCoverUrl || '').trim(),
+          profileAccountTitle: String(effectiveProfile?.accountTitle || currentSessionUser?.profileAccountTitle || '').trim(),
+          profileAccountTitleSecondary: String(effectiveProfile?.accountTitleSecondary || currentSessionUser?.profileAccountTitleSecondary || '').trim(),
+          profileBadgeVisibility: sanitizeProfileBadgeVisibility(
+            effectiveProfile?.badgeVisibility || currentSessionUser?.profileBadgeVisibility || {},
+          ),
+          profileBadgeRankIconPath: String(rootRankBadgeEntry?.iconPath || '').trim(),
+          profileBadgeTitleIconPath: String(rootTitleBadgeEntry?.iconPath || '').trim(),
+          profileBadgeExtraIconPath: String(rootExtraBadgeEntry?.iconPath || '').trim(),
+          profileBadgeRankSubtitle: String(rootRankBadgeEntry?.cardSubtitle || '').trim(),
+          profileBadgeTitleSubtitle: String(rootTitleBadgeEntry?.cardSubtitle || '').trim(),
+          profileBadgeExtraSubtitle: String(rootExtraBadgeEntry?.cardSubtitle || '').trim(),
           addedAt: Number.isFinite(sourceRootAddedAt) ? sourceRootAddedAt : now,
           businessCenterNodeType: 'primary',
           isBusinessCenterPlaceholder: false,
@@ -24857,6 +24929,7 @@
             region: nextAddressSnapshot.region,
           });
           syncHeaderProfileIdentity(nextEffectiveProfile);
+          syncBinaryTreeFromRegisteredMembers();
           syncSettingsPageAccountOverview();
           let feedbackMessage = 'Account and personal information saved.';
           let feedbackTone = 'success';

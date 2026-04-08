@@ -9,6 +9,212 @@ Last Updated: 2026-04-08
 
 ## What Changed
 
+- 2026-04-08 follow-up (next implementation note for popup cover rollout):
+  - added dedicated planning note: `Claude_Notes/binary-tree-popup-cover-next-implementation.md`
+  - documented exact routes and code touchpoints for next phase:
+    - `/Profile`, `/BinaryTree`
+    - `/api/registered-members`, `/api/admin/registered-members`
+    - `index.html`, `admin.html`, `binary-tree.mjs`, backend member route/store files
+  - captured recent bug recap: popup cover appeared removed because top strip was clipped when above-node placement exceeded viewport.
+- 2026-04-08 follow-up (cover-only revision, preserve prior popup container style):
+  - narrowed cleanup scope to cover strip only (no broader popup container styling changes)
+  - replaced cover clip with dedicated top-strip mask (top-radius clip + straight bottom) to remove edge bleed
+  - retained suppression of blocking accent overlays for nodes with real cover images.
+- 2026-04-08 follow-up (popup cover cleanup pass from visual QA screenshot):
+  - disabled blocking decorative cover overlays whenever a node has a real cover image
+  - clipped popup cover image layer to popup card frame so cover respects rounded border radius
+  - retained subtle tint overlay only for text/foreground readability.
+- 2026-04-08 follow-up (binary-tree popup cover renderer fix):
+  - reproduced popup cover non-render behavior even with populated node `profileCoverUrl`
+  - removed cover mask dependency in popup cover sprite path
+  - added explicit `Image` decode fallback in cover texture loader for uploaded `data:image/...` profile covers
+  - validated popup cover render with both local-asset and data-url node cover sources.
+- 2026-04-08 follow-up (cover investigation + render-layer fix):
+  - diagnosed missing popup cover visibility as layered-render conflict (custom cover image under near-opaque procedural tint)
+  - diagnosed stale in-session sync path: profile cover changes updated profile UI but tree node payloads were not immediately rebuilt
+  - patched profile save/upload flows to trigger `syncBinaryTreeFromRegisteredMembers()` for immediate popup refresh
+  - reduced tint opacity and increased cover-image alpha in selected-node popup rendering (`binary-tree.mjs`)
+  - added member cover fallback hydration from local profile customization store in:
+    - `index.html` tree member node builder
+    - `admin.html` tree member node builder
+  - known limitation: backend registered-member API still does not persist/serve profile cover fields globally for all members.
+- 2026-04-08 follow-up (node-wide cover-photo sync):
+  - wired selected-node popup cover to use per-node `profileCoverUrl` when present
+  - propagated `profileCoverUrl` from member/root tree payload builders in both `index.html` and `admin.html`
+  - behavior now applies to any node with configured profile cover, not only the active user profile.
+- 2026-04-08 follow-up (dynamic popup height for metrics capacity):
+  - replaced fixed popup-height dependency with runtime computed popup height for selected-node card
+  - ensured minimum metrics panel capacity when header spacing increases
+  - updated popup positioning/pointer math to use stored computed height.
+- 2026-04-08 follow-up (popup metrics panel recovery after spacing pass):
+  - corrected lower-row (`Cycles` / `Direct`) layout drift by increasing metrics panel usable height
+  - retained the requested section order (`BINARY TREE DATA` below separator) and added header/data breathing room.
+- 2026-04-08 follow-up (popup username/data spacing relief):
+  - reduced visual crowding between popup `@username` row and `BINARY TREE DATA` heading
+  - adjusted header text/section-label vertical offsets only (no metrics container resize)
+  - preserved left-avatar header alignment and inline username+icon row behavior from prior pass.
+- 2026-04-08 follow-up (popup header left-anchor restore):
+  - restored popup avatar position to left-side header placement (removed centered-avatar variant)
+  - moved member name to a row below the avatar while keeping text left-anchored
+  - kept `@username` and badge icons inline on the same row with compact spacing
+  - retained previously added badge subtitle/date synchronization logic for hovercard metadata.
+- 2026-04-08 follow-up (popup icon/date sync + centered identity stack):
+  - moved selected-node popup identity stack to centered avatar-first layout (name + `@username` directly under profile photo)
+  - tightened popup badge icon rhythm (`18px` icon size, `2px` icon gap) so badges render as a compact row
+  - synced badge hover popup subtitles with profile badge description/date metadata by consuming:
+    - `profileBadgeRankSubtitle`
+    - `profileBadgeTitleSubtitle`
+    - `profileBadgeExtraSubtitle`
+  - added rank subtitle fallback to `Subscriber since <addedAt>` when explicit subtitle metadata is not present
+  - propagated subtitle fields from `index.html` and `admin.html` node payload builders into `binary-tree.mjs` normalization.
+- 2026-04-08 follow-up (popup spacious-container expansion):
+  - expanded popup frame dimensions to reduce cramped text/metrics
+  - enlarged cover, avatar, and typography sizing for better legibility
+  - increased badge and metric panel spacing to give binary data more breathing room
+  - preserved existing popup data fields and privacy behavior.
+- 2026-04-08 follow-up (popup full cleanup + tighter grid):
+  - rewrote popup layout with a consistent spacing/grid system for cleaner visual rhythm
+  - increased card dimensions and redistributed identity/metrics spacing to prevent cramped text
+  - retained minimal component stack and removed online/status icon completely
+  - added subtle center divider for clearer left/right metric grouping.
+- 2026-04-08 follow-up (popup sizing + icon removal):
+  - increased popup card canvas and internal spacing to reduce cramped text/metrics
+  - increased cover and avatar sizing to match larger card proportions
+  - removed avatar online/status icon from popup UI
+  - kept simplified low-container popup structure.
+- 2026-04-08 follow-up (popup simplification pass):
+  - reduced popup complexity per UX feedback ("too much containers")
+  - removed bubble/badge/panel-heavy structures and decorative layering
+  - kept a minimal popup hierarchy: cover, avatar/status, identity text, rank line, compact 2x2 binary metrics.
+- 2026-04-08 follow-up (discord-inspired popup restyle):
+  - restyled selected-node popup into a richer profile-card presentation while keeping existing binary data semantics
+  - added layered banner treatment, bio bubble row, larger avatar with status dot, and badge strip
+  - introduced elevated `BINARY SNAPSHOT` panel for left/right/cycles/direct metrics
+  - increased popup dimensions and retuned internal spacing to avoid section clipping.
+- 2026-04-08 follow-up (selected-node popup profile card):
+  - added click popup anchored above selected node in `binary-tree.mjs`
+  - popup now presents quick profile context: cover header, initials avatar, rank, status
+  - included binary summary metrics in popup body (`Left Team`, `Right Team`, `Cycles`, `Direct`) and cycle eligibility text
+  - integrated popup position updates with pan/zoom/camera animations/minimap navigation
+  - added popup cleanup/rebuild paths during tree clear, empty state, and renderer lifecycle.
+- 2026-04-08 follow-up (deep anticipation consistency fix):
+  - added selected-parent local anticipation placement mode to keep left/right placeholders near parent context
+  - introduced fixed side offsets + vertical-step collision resolution before any large horizontal displacement
+  - reduced depth-level long/short anticipation connector variance that could imply wrong slot placement.
+- 2026-04-08 follow-up (selected-node open-slot anticipation):
+  - replaced leaf-only anticipation gating with available-slot gating
+  - selected node now renders anticipation for each missing side independently (`left`, `right`, or both).
+- 2026-04-08 follow-up (selected-leaf anticipation behavior):
+  - changed anticipated-slot rendering from broad fullscreen visibility to selected-node trigger
+  - anticipated slots now render only when selected node is a leaf (no left/right child)
+  - fullscreen select/clear actions now force tree re-render so anticipation visibility updates immediately.
+- 2026-04-08 follow-up (zoom cascade chunk reveal):
+  - implemented fullscreen cascade visibility with depth-4 baseline + zoom-depth chunk expansion
+  - focused viewport chunk roots (depth 4) now control deeper child reveal
+  - selected-node ancestor path is retained for continuity
+  - render pipeline now filters links/nodes/spillover/anticipation by resolved visible-node subset.
+- 2026-04-08 follow-up (aggressive spacing retune):
+  - increased fullscreen whole-tree width boost and width-depth-cap boost for placement readability
+  - made center-gap split depth-aware so deeper rows open wider around the middle lane
+  - increased anticipated-slot base collision gap, depth-growth multiplier, and side-offset strength.
+- 2026-04-08 follow-up (middle spacing expansion):
+  - added explicit center-gap transform for fullscreen anticipation layout (`ENROLL_MIDDLE_GAP`)
+  - left/right halves are pushed away from center while root stays centered
+  - applied same center-gap mapping to anticipated-slot seeds before overlap resolution.
+- 2026-04-08 follow-up (always-on anticipation mode):
+  - switched anticipation-slot visibility from enroll-toggle-driven to fullscreen-always-on
+  - `collectEnrollAnticipationSlots` now keys on fullscreen/data/layout only
+  - render path uses fullscreen anticipation state for LOD/spacing consistency
+  - mobile Enroll toggle control is hidden; fullscreen anticipation is now default behavior.
+- 2026-04-08 follow-up (enroll whole-tree shift request):
+  - enabled controlled global width shift when Enroll mode is active (slot-width + depth-cap boost)
+  - keeps modern compact layout path while widening world geometry for enrollment clarity
+  - tightened anticipated-node spacing constants to reduce residual overlap in dense/deep rows.
+- 2026-04-08 follow-up (enroll anticipation visual/spacing hardening):
+  - replaced enroll anticipation connector routing from curved Bezier paths to orthogonal elbow paths
+  - connector behavior now matches the active T/inverted-T connector direction language used by normal child edges
+  - added `resolveEnrollAnticipationPositions(...)` to prevent anticipated-slot overlap by depth bucket
+  - anticipation spacing now resolves collisions against both real nodes and other anticipation nodes while preserving left/right side intent.
+- 2026-04-08 follow-up (enroll layout stability fix):
+  - removed enroll-mode switch to legacy full-slot geometry in render path
+  - enroll mode now reuses the same compact layout options as standard tree view
+  - anticipated enrollment nodes remain enabled in enroll mode, now overlaid without shifting base layout
+  - supersedes prior note that enroll mode intentionally used full-slot spacing.
+- 2026-04-08 follow-up (enroll toggle naming correction):
+  - reverted fullscreen toggle visible label back to `Enroll Member`
+  - removed `Show Anticipated` / `Hide Anticipated` button copy
+  - kept anticipated-slot rendering behavior tied to enroll mode (behavior unchanged).
+- 2026-04-08 follow-up (anticipated-node visibility + visual alignment):
+  - updated fullscreen enroll toggle copy/state to `Show Anticipated` / `Hide Anticipated`
+  - adjusted aria/title labels to describe anticipated-node visibility directly
+  - replaced enroll anticipation rectangle cards with compact circular placeholders
+  - anticipated slot visuals now use center `+` glyph and explicit `LEFT`/`RIGHT` leg label
+  - updated anticipation bounds + connector target math for circle-node geometry.
+- 2026-04-08 follow-up (deep-node X-axis spacing correction):
+  - reverted the prior deep-level Y-axis spacing expansion
+  - added depth-aware horizontal spacing growth for deeper rows in collision/overlap handling
+  - preserves compact top levels while expanding bottom-row side-to-side spacing.
+- 2026-04-08 follow-up (deep-node vertical spacing expansion):
+  - added progressive depth-based Y spacing so deeper levels gain more vertical gap
+  - synced placeholder slot Y resolution to the same depth spacing function to keep alignments consistent.
+- 2026-04-08 follow-up (T / inverted-T branch connectors):
+  - changed parent-child connector rendering to orthogonal branch routing
+  - two-child nodes now render an inverted-T branch bar
+  - single-child nodes now render elbow-style left/right branches to avoid center ambiguity.
+- 2026-04-08 follow-up (single-child branch-side line anchor):
+  - updated parent-child connector routing to be side-aware (`left` or `right`)
+  - single-child nodes now draw from the correct side anchor instead of appearing center-attached.
+- 2026-04-08 follow-up (edge-anchored circle connectors):
+  - changed normal child connectors from center-to-center to edge-to-edge line anchors
+  - prevents lines from passing through circle initials and reduces visual ambiguity
+  - applied matching edge anchors for spillover connector geometry.
+- 2026-04-08 follow-up (circle-node overlap positioning fix):
+  - added per-depth collision-avoidance pass for normal tree layout
+  - enforces minimum horizontal spacing so compressed rows no longer stack circles at the same x
+  - recenters each adjusted depth row and recalculates bounds after spread.
+- 2026-04-08 follow-up (baseline simplified node rendering):
+  - simplified binary tree node visuals to circle nodes with initials only
+  - replaced card detail blocks with a single centered initials label per node
+  - switched normal parent-child connectors to simple straight lines
+  - updated node bounds/hit testing for circular interaction areas
+  - compressed normal layout spacing further by lowering base slot width and minimum layout width
+  - kept enroll placeholder rendering intact for enrollment mode.
+- 2026-04-08 follow-up (map-world zoom behavior + compact global spacing):
+  - switched normal binary-tree browsing to keep the full graph rendered in one stable world (no depth-cull node hiding)
+  - changed semantic zoom to control detail density only:
+    - far: minimal node card details
+    - mid: primary identity/status details
+    - near: full node details
+  - removed hidden-descendant `+N more` chips tied to visibility-pruned LOD
+  - added map-home camera defaults (`TREE_MAP_HOME_ZOOM`, `TREE_MAP_HOME_VIEWPORT_Y_RATIO`) for initial view/reset baseline
+  - tightened horizontal spread in normal mode with a capped world width depth (`TREE_WORLD_LAYOUT_WIDTH_DEPTH_CAP`) and compact slot width
+  - kept enroll anticipation mode uncapped to preserve placeholder placement clarity.
+- 2026-04-08 follow-up (map-style semantic zoom / LOD):
+  - implemented depth-based semantic zoom for tree usability:
+    - far depth `<= 3`
+    - mid depth `<= 5`
+    - near full depth
+  - added zoom hysteresis to stabilize mode transitions while zooming
+  - added `+N more` chips on frontier nodes to indicate hidden descendants
+  - updated camera hooks (zoom/focus/fit/reset/restore) to refresh LOD automatically
+  - filtered link + spillover rendering to visible-node set
+  - updated fit bounds to visible LOD scope for better starting readability.
+- 2026-04-08 follow-up (LOD width compression pass):
+  - added layout `widthDepthCap` option so tree width scales to active LOD depth
+  - render flow now resolves LOD before layout, then applies capped width depth in far/mid modes
+  - keeps geometry direction stable while compressing horizontal spacing.
+- 2026-04-08 follow-up (tree usability compaction):
+  - updated `binary-tree.mjs` layout strategy to reduce horizontal over-expansion in normal tree browsing mode
+  - rolled back structural compaction variants and kept original slot-based geometry
+  - added adaptive x-axis-only compression for sparse trees so direction is preserved while spread is reduced
+  - preserved legacy full-slot spacing only when enroll anticipation placeholders are active.
+- 2026-04-08 follow-up (simulation retune for live-testing):
+  - recreated missing script `backend/scripts/simulate-zeroone-live-test.mjs`
+  - added reset-first flow for `zeroone` simulation artifacts
+  - changed simulation behavior to generate exactly 50 total nodes with randomized sponsor graph (not 50 direct sponsors)
+  - enforced paid-only generated packages (preferred customers excluded)
+  - added report outputs for binary BV/cycles, sales team commissions, achievements, and tier cards
+  - validated run output via report: `backend/scripts/reports/zeroone-live-test-zeroone-20260408012540525-tstltn.json`.
 - 2026-04-08 follow-up (stability + reset hygiene):
   - reverted Business Center activation test data for `zeroone` by restoring original primary node and removing the generated replacement row
   - restored affected downline sponsor linkage from placeholder username back to `zeroone`
@@ -35,6 +241,30 @@ Last Updated: 2026-04-08
   - activate button + inline feedback
   - automatic progress sync from Legacy Leadership completed tiers.
 - Updated tree-level KPI logic to exclude Business Center placeholders from member KPIs while keeping placeholders visible.
+- 2026-04-08 follow-up (node popup icon hovercard + sticky-hover fix):
+  - switched popup icon resolver output to structured icon entries with hover metadata
+  - added per-icon hover popup window for rank/title1/title2 icon rows
+  - removed scale-up hover animation that could visually remain enlarged after interaction
+  - added explicit hover reset/hide handlers (`pointerout`, `pointerup`, `pointerupoutside`) for consistent icon state.
+- 2026-04-08 follow-up (KPI hovercard parity + icon placement alignment):
+  - replaced in-canvas icon hover window with DOM hovercard flow modeled after dashboard Account Status KPI badge behavior
+  - added viewport-aware top/bottom hovercard placement and delayed hide lifecycle
+  - adjusted popup icon row vertical anchoring to keep icons aligned with the `@username` text row
+  - added hovercard/timer cleanup during popup and controller teardown.
+- 2026-04-08 follow-up (popup icon hit-box + hover visibility repair):
+  - fixed popup header icon sprite sizing drift by loading textures before sprite mount and enforcing fixed icon bounds
+  - switched selected-node popup container to stable static event mode for consistent pointer interactions
+  - updated popup icon anchor mapping with live canvas metrics for accurate hovercard placement
+  - matched KPI hovercard style tokens and raised hovercard stack order so the tooltip stays visible above binary-tree canvas layers.
+- 2026-04-08 follow-up (popup cover reliability recovery):
+  - fixed selected-node cover strip logic to only enter image-overlay mode after confirmed texture readiness
+  - added popup cover source fallback support for `profileCoverUrl`, `coverDataUrl`, and `coverUrl`
+  - kept procedural fallback cover styling when image load fails or times out, preventing "cover removed" regressions in node popups.
+- 2026-04-08 follow-up (popup cover clipping/placement fix):
+  - locally reproduced node-popup cover disappearance and confirmed the visible issue was top-strip clipping on near-top node selections
+  - updated selected-node popup placement to support below-node fallback when above-node placement cannot fit viewport bounds
+  - added upward pointer rendering for below placement while preserving downward pointer rendering for above placement
+  - result: popup cover strip remains inside visible canvas card area instead of being clipped out.
 
 ## Files Updated
 
@@ -45,6 +275,7 @@ Last Updated: 2026-04-08
 - `backend/services/member-business-center.service.js`
 - `backend/services/member.service.js`
 - `backend/stores/member.store.js`
+- `backend/scripts/simulate-zeroone-live-test.mjs`
 - `binary-tree.mjs`
 - `index.html`
 - `Claude_Notes/charge-documentation.md`
@@ -63,6 +294,10 @@ Last Updated: 2026-04-08
 - Requires valid member auth bearer token to access/activate Business Centers.
 - Existing running server process must be restarted to pick up new mounted routes.
 - Staff/admin lockout depends on `isStaffTreeAccount` flag being set on target accounts.
+- Simulation runtime remains slow at scale because member enrollment currently performs full-store rewrite operations per creation.
+- LOD currently controls card-detail visibility only; it does not yet cluster deep subtrees into aggregate map tiles.
+- Selected-node popup is currently informational only (no inline actions/edit controls yet).
+- In headless screenshot captures, node-popup hovercards can be visually subtle on dark surfaces; subtitle correctness was additionally validated via DOM state/text reads.
 
 ## Validation
 
@@ -70,4 +305,10 @@ Last Updated: 2026-04-08
 - `node --check backend/controllers/member-business-center.controller.js`
 - `node --check backend/routes/member-business-center.routes.js`
 - `node --check backend/app.js`
+- `node --check backend/scripts/simulate-zeroone-live-test.mjs`
+- `node --check binary-tree.mjs`
+- `node backend/scripts/simulate-zeroone-live-test.mjs --target=zeroone --reset-only`
 - Extracted `index.html` inline script passed `node --check`.
+- Visual verification (admin binary tree popup):
+  - `temporary screenshots/screenshot-157-popup-layout-pass3.png`
+  - `temporary screenshots/screenshot-161-popup-hovercard-pass7.png`

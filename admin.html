@@ -6363,15 +6363,76 @@
         return nextId;
       }
 
+      function sanitizeBinaryTreeProfileImageSource(value) {
+        const normalizedValue = String(value || '').trim();
+        if (!normalizedValue) {
+          return '';
+        }
+        if (/^data:image\//i.test(normalizedValue)) {
+          return normalizedValue;
+        }
+        if (/^https?:\/\//i.test(normalizedValue)) {
+          return normalizedValue;
+        }
+        return '';
+      }
+
+      function readMemberProfileCustomizationStoreForBinaryTree() {
+        try {
+          const rawValue = safeStorageGet(window.localStorage, MEMBER_PROFILE_CUSTOMIZATION_STORAGE_KEY);
+          if (!rawValue) {
+            return {};
+          }
+          const parsedValue = JSON.parse(rawValue);
+          return parsedValue && typeof parsedValue === 'object' ? parsedValue : {};
+        } catch {
+          return {};
+        }
+      }
+
+      function resolveMemberNodeCoverFromProfileStore(member = {}, profileStore = null) {
+        const safeProfileStore = profileStore && typeof profileStore === 'object'
+          ? profileStore
+          : readMemberProfileCustomizationStoreForBinaryTree();
+        const candidateKeys = Array.from(new Set([
+          normalizeMemberKey(member?.userId),
+          normalizeMemberKey(member?.memberUsername || member?.username),
+          normalizeMemberKey(member?.email),
+        ].filter(Boolean)));
+
+        for (const candidateKey of candidateKeys) {
+          const storedProfile = safeProfileStore[candidateKey];
+          if (!storedProfile || typeof storedProfile !== 'object') {
+            continue;
+          }
+
+          const storedCover = sanitizeBinaryTreeProfileImageSource(
+            storedProfile?.coverDataUrl || storedProfile?.profileCoverUrl || '',
+          );
+          if (storedCover) {
+            return storedCover;
+          }
+        }
+
+        return '';
+      }
+
       function createBinaryTreeDataFromRegisteredMembers() {
         const rootId = 'root';
         const globalRootId = '__global-root__';
         const now = Date.now();
         const rootUsername = String(currentSessionUser?.username || currentSponsorUsername || 'member-root').trim() || 'member-root';
+        const rootDisplayName = String(
+          currentSessionUser?.name
+          || currentSessionUser?.fullName
+          || currentSessionUser?.username
+          || 'Member',
+        ).trim() || 'Member';
         const nodes = {};
         const usedNodeIds = new Set([globalRootId]);
         const memberNodeIdByIndex = new Map();
         const lookupToNodeId = new Map();
+        const memberProfileCustomizationStore = readMemberProfileCustomizationStoreForBinaryTree();
 
         const registerLookup = (rawValue, nodeId) => {
           const key = normalizeMemberKey(rawValue);
@@ -6418,6 +6479,13 @@
           const createdAtMs = Number.isFinite(createdAtMsRaw)
             ? createdAtMsRaw
             : (now - (sortedMembers.length - index) * 60000);
+          const memberProfileBadgeVisibility = member?.profileBadgeVisibility && typeof member.profileBadgeVisibility === 'object'
+            ? member.profileBadgeVisibility
+            : undefined;
+          const memberCoverFromProfileStore = resolveMemberNodeCoverFromProfileStore(
+            member,
+            memberProfileCustomizationStore,
+          );
 
           nodes[nodeId] = {
             id: nodeId,
@@ -6430,6 +6498,18 @@
             rank: resolveMemberTreeRank(member),
             enrollmentPackage: normalizeMemberKey(member?.enrollmentPackage),
             countryFlag: normalizeCountryFlag(member?.countryFlag),
+            profileCoverUrl: String(
+              member?.profileCoverUrl || member?.coverDataUrl || memberCoverFromProfileStore || '',
+            ).trim(),
+            profileAccountTitle: String(member?.profileAccountTitle || member?.accountTitle || member?.title || '').trim(),
+            profileAccountTitleSecondary: String(member?.profileAccountTitleSecondary || member?.accountTitleSecondary || '').trim(),
+            profileBadgeVisibility: memberProfileBadgeVisibility,
+            profileBadgeRankIconPath: String(member?.profileBadgeRankIconPath || member?.profileRankIconPath || '').trim(),
+            profileBadgeTitleIconPath: String(member?.profileBadgeTitleIconPath || member?.profileTitleIconPath || member?.profileTitle1IconPath || '').trim(),
+            profileBadgeExtraIconPath: String(member?.profileBadgeExtraIconPath || member?.profileExtraIconPath || member?.profileTitle2IconPath || '').trim(),
+            profileBadgeRankSubtitle: String(member?.profileBadgeRankSubtitle || member?.profileRankSubtitle || '').trim(),
+            profileBadgeTitleSubtitle: String(member?.profileBadgeTitleSubtitle || member?.profileTitleSubtitle || member?.profileTitle1Subtitle || '').trim(),
+            profileBadgeExtraSubtitle: String(member?.profileBadgeExtraSubtitle || member?.profileExtraSubtitle || member?.profileTitle2Subtitle || '').trim(),
             addedAt: createdAtMs,
           };
 
@@ -6614,13 +6694,25 @@
         scopedNodes[rootId] = {
           id: rootId,
           memberCode: rootUsername,
-          name: 'You',
+          name: rootDisplayName,
           status: resolveBinaryNodeStatus(currentSessionUser),
           leftPersonalPv: 0,
           rightPersonalPv: 0,
           lifetimePersonalPv: 0,
           rank: resolveRootNodeRank(),
           countryFlag: normalizeCountryFlag(currentSessionUser?.countryFlag),
+          profileCoverUrl: String(currentSessionUser?.profileCoverUrl || currentSessionUser?.coverDataUrl || '').trim(),
+          profileAccountTitle: String(currentSessionUser?.profileAccountTitle || currentSessionUser?.accountTitle || currentSessionUser?.title || '').trim(),
+          profileAccountTitleSecondary: String(currentSessionUser?.profileAccountTitleSecondary || '').trim(),
+          profileBadgeVisibility: currentSessionUser?.profileBadgeVisibility && typeof currentSessionUser.profileBadgeVisibility === 'object'
+            ? currentSessionUser.profileBadgeVisibility
+            : undefined,
+          profileBadgeRankIconPath: String(currentSessionUser?.profileBadgeRankIconPath || currentSessionUser?.profileRankIconPath || '').trim(),
+          profileBadgeTitleIconPath: String(currentSessionUser?.profileBadgeTitleIconPath || currentSessionUser?.profileTitleIconPath || currentSessionUser?.profileTitle1IconPath || '').trim(),
+          profileBadgeExtraIconPath: String(currentSessionUser?.profileBadgeExtraIconPath || currentSessionUser?.profileExtraIconPath || currentSessionUser?.profileTitle2IconPath || '').trim(),
+          profileBadgeRankSubtitle: String(currentSessionUser?.profileBadgeRankSubtitle || currentSessionUser?.profileRankSubtitle || '').trim(),
+          profileBadgeTitleSubtitle: String(currentSessionUser?.profileBadgeTitleSubtitle || currentSessionUser?.profileTitleSubtitle || currentSessionUser?.profileTitle1Subtitle || '').trim(),
+          profileBadgeExtraSubtitle: String(currentSessionUser?.profileBadgeExtraSubtitle || currentSessionUser?.profileExtraSubtitle || currentSessionUser?.profileTitle2Subtitle || '').trim(),
           addedAt: Number.isFinite(sourceRootAddedAt) ? sourceRootAddedAt : now,
         };
 
