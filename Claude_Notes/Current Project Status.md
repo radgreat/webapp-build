@@ -1,11 +1,66 @@
 # Current Project Status
 
-Last Updated: 2026-04-07
+Last Updated: 2026-04-08
 
 ## Purpose
 
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
+
+## Recent Update (2026-04-08) - Business Center Data Revert + Flush Settings Hardening
+
+- Reverted test activation data for `zeroone` in production-like member records:
+  - restored original primary member row
+  - removed generated replacement primary row
+  - restored rewired downline sponsor reference(s) from `zeroone-bc-1` to `zeroone`.
+- Confirmed admin flush behavior still clears Business Center DB fields via full `registered_members` table truncate.
+- Updated admin flush UX/cleanup in `admin.html`:
+  - expanded member-side browser cache clearing list for newly used localStorage keys
+  - updated flush confirmation text to include binary-tree/sales-team snapshots
+  - extended success feedback with `binaryTreeSnapshots` and `salesTeamCommissions` cleared counts.
+- Files updated:
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - DB post-check confirms `zeroone` is primary again and downline sponsor linkage is restored
+  - admin flush script now reports binary + sales-team snapshot clear totals.
+
+## Recent Update (2026-04-08) - Business Center Feature Integrated Into Binary Tree
+
+- Completed Business Center backend API surface for authenticated members:
+  - `GET /api/member-auth/business-centers`
+  - `POST /api/member-auth/business-centers/progress`
+  - `POST /api/member-auth/business-centers/activate`
+- Wired new Business Center route module into backend app startup.
+- Extended member storage/service implementation for Business Center ownership, node metadata, and progress counters.
+- Added dashboard activation UI in `index.html`:
+  - status/cap/pending/overflow summary
+  - side selector (left/right pin)
+  - manual activate CTA + feedback state.
+- Synced Legacy Leadership completed-tier totals into Business Center progress endpoint.
+- Updated tree summary KPI behavior to exclude Business Center placeholders from:
+  - member count
+  - new members
+  - direct sponsors.
+- Kept placeholder nodes visible in tree structure but non-qualifying for tier/direct-member counting and personal BV rollups.
+- Files updated:
+  - `backend/app.js`
+  - `backend/routes/member-business-center.routes.js`
+  - `backend/controllers/member-business-center.controller.js`
+  - `backend/services/member-business-center.service.js`
+  - `backend/services/member.service.js`
+  - `backend/stores/member.store.js`
+  - `binary-tree.mjs`
+  - `index.html`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check` passed for updated backend JS files
+  - extracted inline script from `index.html` passed `node --check`
+  - unauthenticated endpoint smoke test returns expected `401 AUTH_REQUIRED`.
 
 ## Recent Update (2026-04-07) - Login Button Loading Animation
 

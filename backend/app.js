@@ -19,6 +19,7 @@ import storeCheckoutRoutes from './routes/store-checkout.routes.js';
 import memberAchievementRoutes from './routes/member-achievement.routes.js';
 import memberGoodLifeRoutes from './routes/member-good-life.routes.js';
 import memberNotificationRoutes from './routes/member-notification.routes.js';
+import memberBusinessCenterRoutes from './routes/member-business-center.routes.js';
 
 const app = express();
 const PORT = Number.parseInt(process.env.PORT || '3000', 10);
@@ -35,6 +36,7 @@ app.use('/api/member-auth', authRoutes);
 app.use('/api/member-auth', memberAchievementRoutes);
 app.use('/api/member-auth', memberGoodLifeRoutes);
 app.use('/api/member-auth', memberNotificationRoutes);
+app.use('/api/member-auth', memberBusinessCenterRoutes);
 app.use('/api/admin-auth', adminAuthRoutes);
 app.use('/api', memberRoutes);
 app.use('/api', metricsRoutes);

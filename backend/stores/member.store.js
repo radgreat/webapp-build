@@ -1,5 +1,27 @@
 import pool from '../db/db.js';
 
+function normalizeText(value) {
+  return String(value || '').trim();
+}
+
+function normalizeCredential(value) {
+  return normalizeText(value).toLowerCase();
+}
+
+function toWholeNumber(value, fallback = 0) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return Math.max(0, Math.floor(Number(fallback) || 0));
+  }
+  return Math.max(0, Math.floor(numeric));
+}
+
+function normalizeBusinessCenterNodeType(value) {
+  return normalizeCredential(value) === 'placeholder'
+    ? 'placeholder'
+    : 'primary';
+}
+
 function toIsoStringOrEmpty(value) {
   if (!value) {
     return '';
@@ -58,6 +80,21 @@ function mapDbMemberToAppMember(row) {
     passwordSetupLink: row.password_setup_link,
     serverCutoffBaselineStarterPersonalPv: Number(row.server_cutoff_baseline_starter_personal_pv || 0),
     serverCutoffBaselineSetAt: toIsoStringOrEmpty(row.server_cutoff_baseline_set_at),
+    businessCenterOwnerUserId: row.business_center_owner_user_id,
+    businessCenterOwnerUsername: row.business_center_owner_username,
+    businessCenterOwnerEmail: row.business_center_owner_email,
+    businessCenterNodeType: normalizeBusinessCenterNodeType(row.business_center_node_type),
+    businessCenterIndex: toWholeNumber(row.business_center_index, 0),
+    businessCenterLabel: row.business_center_label,
+    businessCenterActivatedAt: toIsoStringOrEmpty(row.business_center_activated_at),
+    businessCenterPinnedSide: row.business_center_pinned_side,
+    legacyLeadershipCompletedTierCount: toWholeNumber(row.legacy_leadership_completed_tier_count, 0),
+    businessCentersEarnedLifetime: toWholeNumber(row.business_centers_earned_lifetime, 0),
+    businessCentersActivated: toWholeNumber(row.business_centers_activated, 0),
+    businessCentersPending: toWholeNumber(row.business_centers_pending, 0),
+    businessCentersOverflowPending: toWholeNumber(row.business_centers_overflow_pending, 0),
+    businessCentersCount: toWholeNumber(row.business_centers_count, 0),
+    isStaffTreeAccount: Boolean(row.is_staff_tree_account),
     createdAt: toIsoStringOrEmpty(row.created_at),
     updatedAt: toIsoStringOrEmpty(row.updated_at),
   };
@@ -104,11 +141,80 @@ function mapAppMemberToDbMember(member) {
     password_setup_link: member?.passwordSetupLink || '',
     server_cutoff_baseline_starter_personal_pv: Number(member?.serverCutoffBaselineStarterPersonalPv || 0),
     server_cutoff_baseline_set_at: member?.serverCutoffBaselineSetAt || null,
+    business_center_owner_user_id: member?.businessCenterOwnerUserId || null,
+    business_center_owner_username: member?.businessCenterOwnerUsername || '',
+    business_center_owner_email: member?.businessCenterOwnerEmail || '',
+    business_center_node_type: normalizeBusinessCenterNodeType(member?.businessCenterNodeType),
+    business_center_index: toWholeNumber(member?.businessCenterIndex, 0),
+    business_center_label: member?.businessCenterLabel || '',
+    business_center_activated_at: member?.businessCenterActivatedAt || null,
+    business_center_pinned_side: member?.businessCenterPinnedSide || '',
+    legacy_leadership_completed_tier_count: toWholeNumber(member?.legacyLeadershipCompletedTierCount, 0),
+    business_centers_earned_lifetime: toWholeNumber(member?.businessCentersEarnedLifetime, 0),
+    business_centers_activated: toWholeNumber(member?.businessCentersActivated, 0),
+    business_centers_pending: toWholeNumber(member?.businessCentersPending, 0),
+    business_centers_overflow_pending: toWholeNumber(member?.businessCentersOverflowPending, 0),
+    business_centers_count: toWholeNumber(member?.businessCentersCount, 0),
+    is_staff_tree_account: Boolean(member?.isStaffTreeAccount),
     created_at: member?.createdAt || new Date().toISOString(),
   };
 }
 
+let registeredMembersBusinessCenterColumnsReady = false;
+let registeredMembersBusinessCenterColumnsPromise = null;
+
+async function ensureRegisteredMembersBusinessCenterColumns() {
+  if (registeredMembersBusinessCenterColumnsReady) {
+    return;
+  }
+
+  if (registeredMembersBusinessCenterColumnsPromise) {
+    return registeredMembersBusinessCenterColumnsPromise;
+  }
+
+  registeredMembersBusinessCenterColumnsPromise = (async () => {
+    await pool.query(`
+      ALTER TABLE charge.registered_members
+        ADD COLUMN IF NOT EXISTS business_center_owner_user_id text,
+        ADD COLUMN IF NOT EXISTS business_center_owner_username text NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS business_center_owner_email text NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS business_center_node_type text NOT NULL DEFAULT 'primary',
+        ADD COLUMN IF NOT EXISTS business_center_index integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS business_center_label text NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS business_center_activated_at timestamptz,
+        ADD COLUMN IF NOT EXISTS business_center_pinned_side text NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS legacy_leadership_completed_tier_count integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS business_centers_earned_lifetime integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS business_centers_activated integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS business_centers_pending integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS business_centers_overflow_pending integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS business_centers_count integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS is_staff_tree_account boolean NOT NULL DEFAULT false
+    `);
+
+    await pool.query(`
+      UPDATE charge.registered_members
+      SET business_center_node_type = 'primary'
+      WHERE business_center_node_type IS NULL
+         OR BTRIM(business_center_node_type) = ''
+    `);
+
+    registeredMembersBusinessCenterColumnsReady = true;
+  })().catch((error) => {
+    registeredMembersBusinessCenterColumnsReady = false;
+    throw error;
+  }).finally(() => {
+    if (!registeredMembersBusinessCenterColumnsReady) {
+      registeredMembersBusinessCenterColumnsPromise = null;
+    }
+  });
+
+  return registeredMembersBusinessCenterColumnsPromise;
+}
+
 export async function readRegisteredMembersStore() {
+  await ensureRegisteredMembersBusinessCenterColumns();
+
   const result = await pool.query(`
     SELECT
       id,
@@ -150,6 +256,21 @@ export async function readRegisteredMembersStore() {
       password_setup_link,
       server_cutoff_baseline_starter_personal_pv,
       server_cutoff_baseline_set_at,
+      business_center_owner_user_id,
+      business_center_owner_username,
+      business_center_owner_email,
+      business_center_node_type,
+      business_center_index,
+      business_center_label,
+      business_center_activated_at,
+      business_center_pinned_side,
+      legacy_leadership_completed_tier_count,
+      business_centers_earned_lifetime,
+      business_centers_activated,
+      business_centers_pending,
+      business_centers_overflow_pending,
+      business_centers_count,
+      is_staff_tree_account,
       created_at,
       updated_at
     FROM charge.registered_members
@@ -160,6 +281,8 @@ export async function readRegisteredMembersStore() {
 }
 
 export async function writeRegisteredMembersStore(members) {
+  await ensureRegisteredMembersBusinessCenterColumns();
+
   const client = await pool.connect();
 
   try {
@@ -210,13 +333,30 @@ export async function writeRegisteredMembersStore(members) {
           password_setup_link,
           server_cutoff_baseline_starter_personal_pv,
           server_cutoff_baseline_set_at,
+          business_center_owner_user_id,
+          business_center_owner_username,
+          business_center_owner_email,
+          business_center_node_type,
+          business_center_index,
+          business_center_label,
+          business_center_activated_at,
+          business_center_pinned_side,
+          legacy_leadership_completed_tier_count,
+          business_centers_earned_lifetime,
+          business_centers_activated,
+          business_centers_pending,
+          business_centers_overflow_pending,
+          business_centers_count,
+          is_staff_tree_account,
           created_at
         )
         VALUES (
           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
           $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
           $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,
-          $31,$32,$33,$34,$35,$36,$37,$38,$39,$40
+          $31,$32,$33,$34,$35,$36,$37,$38,$39,$40,
+          $41,$42,$43,$44,$45,$46,$47,$48,$49,$50,
+          $51,$52,$53,$54,$55
         )
       `, [
         row.id,
@@ -258,6 +398,21 @@ export async function writeRegisteredMembersStore(members) {
         row.password_setup_link,
         row.server_cutoff_baseline_starter_personal_pv,
         row.server_cutoff_baseline_set_at,
+        row.business_center_owner_user_id,
+        row.business_center_owner_username,
+        row.business_center_owner_email,
+        row.business_center_node_type,
+        row.business_center_index,
+        row.business_center_label,
+        row.business_center_activated_at,
+        row.business_center_pinned_side,
+        row.legacy_leadership_completed_tier_count,
+        row.business_centers_earned_lifetime,
+        row.business_centers_activated,
+        row.business_centers_pending,
+        row.business_centers_overflow_pending,
+        row.business_centers_count,
+        row.is_staff_tree_account,
         row.created_at,
       ]);
     }

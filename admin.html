@@ -4294,7 +4294,30 @@
     const MEMBER_AUTH_COOKIE_KEY = 'vault-auth-user-cookie';
     const MEMBER_VIEW_STATE_STORAGE_KEY = 'charge-dashboard-view-state';
     const MEMBER_TREE_UI_STATE_STORAGE_KEY = 'charge-binary-tree-ui-state-v1';
+    const MEMBER_INFINITY_BUILDER_CLAIM_STORAGE_KEY = 'charge-infinity-builder-claims-v1';
+    const MEMBER_LEGACY_LEADERSHIP_CLAIM_STORAGE_KEY = 'charge-legacy-leadership-claims-v1';
+    const MEMBER_COMMISSION_PAYOUT_OFFSET_STORAGE_KEY = 'charge-commission-payout-offsets-v1';
+    const MEMBER_COMMISSION_PAYOUT_ACTIVITY_STORAGE_KEY = 'charge-commission-payout-activity-v1';
+    const MEMBER_ACCOUNT_OVERVIEW_TREND_STORAGE_KEY = 'charge-account-overview-trend-v1';
+    const MEMBER_ACCOUNT_OVERVIEW_BV_TREND_STORAGE_KEY = 'charge-account-overview-bv-trend-v1';
+    const MEMBER_DASHBOARD_EWALLET_BALANCE_TREND_STORAGE_KEY = 'charge-dashboard-ewallet-trend-v1';
+    const MEMBER_DASHBOARD_PERSONAL_VOLUME_TREND_STORAGE_KEY = 'charge-dashboard-pv-trend-v1';
+    const MEMBER_PROFILE_CUSTOMIZATION_STORAGE_KEY = 'charge-member-profile-customizations-v1';
     const RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY = 'charge-runtime-settings-v1';
+    const MEMBER_LOCAL_STORAGE_KEYS_TO_CLEAR = Object.freeze([
+      MEMBER_VIEW_STATE_STORAGE_KEY,
+      MEMBER_TREE_UI_STATE_STORAGE_KEY,
+      MEMBER_INFINITY_BUILDER_CLAIM_STORAGE_KEY,
+      MEMBER_LEGACY_LEADERSHIP_CLAIM_STORAGE_KEY,
+      MEMBER_COMMISSION_PAYOUT_OFFSET_STORAGE_KEY,
+      MEMBER_COMMISSION_PAYOUT_ACTIVITY_STORAGE_KEY,
+      MEMBER_ACCOUNT_OVERVIEW_TREND_STORAGE_KEY,
+      MEMBER_ACCOUNT_OVERVIEW_BV_TREND_STORAGE_KEY,
+      MEMBER_DASHBOARD_EWALLET_BALANCE_TREND_STORAGE_KEY,
+      MEMBER_DASHBOARD_PERSONAL_VOLUME_TREND_STORAGE_KEY,
+      MEMBER_PROFILE_CUSTOMIZATION_STORAGE_KEY,
+      RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY,
+    ]);
     const ADMIN_PAGE_URL = '/admin.html';
     const ADMIN_DASHBOARD_URL = '/admin.html#dashboard';
     const ADMIN_APP_URL = '/admin.html';
@@ -4427,8 +4450,9 @@
     function clearMemberSideBrowserState() {
       safeStorageRemove(window.localStorage, MEMBER_AUTH_STORAGE_KEY);
       safeStorageRemove(window.sessionStorage, MEMBER_AUTH_STORAGE_KEY);
-      safeStorageRemove(window.localStorage, MEMBER_VIEW_STATE_STORAGE_KEY);
-      safeStorageRemove(window.localStorage, MEMBER_TREE_UI_STATE_STORAGE_KEY);
+      MEMBER_LOCAL_STORAGE_KEYS_TO_CLEAR.forEach((storageKey) => {
+        safeStorageRemove(window.localStorage, storageKey);
+      });
       clearCookieValue(MEMBER_AUTH_COOKIE_KEY);
     }
 
@@ -8442,7 +8466,7 @@
       }
 
       async function flushAllAdminData() {
-        const confirmationMessage = 'Flush all mock data now? This deletes members, users, setup tokens, emails, invoices, and payout requests.';
+        const confirmationMessage = 'Flush all mock data now? This deletes members, users, setup tokens, emails, invoices, payout requests, binary tree snapshots, and sales-team commission snapshots.';
         if (!window.confirm(confirmationMessage)) {
           return;
         }
@@ -8502,10 +8526,12 @@
           const clearedEmails = toWholeNumber(cleared.emails, 0);
           const clearedInvoices = toWholeNumber(cleared.invoices, 0);
           const clearedPayoutRequests = toWholeNumber(cleared.payoutRequests, 0);
+          const clearedBinaryTreeSnapshots = toWholeNumber(cleared.binaryTreeSnapshots, 0);
+          const clearedSalesTeamCommissions = toWholeNumber(cleared.salesTeamCommissions, 0);
           const clearedForceCutoffHistory = toWholeNumber(cleared.forceServerCutoffHistory, 0);
           const clearedMemberServerCutoffStates = toWholeNumber(cleared.memberServerCutoffStates, 0);
           setSettingsFlushAllDataFeedback(
-            `All data flushed. Members ${clearedMembers}, Users ${clearedUsers}, Tokens ${clearedTokens}, Emails ${clearedEmails}, Invoices ${clearedInvoices}, Payout Requests ${clearedPayoutRequests}, Force Cut-Off History ${clearedForceCutoffHistory}, Member Cut-Off States ${clearedMemberServerCutoffStates}. User-side browser cache/session was also cleared on this device.`,
+            `All data flushed. Members ${clearedMembers}, Users ${clearedUsers}, Tokens ${clearedTokens}, Emails ${clearedEmails}, Invoices ${clearedInvoices}, Payout Requests ${clearedPayoutRequests}, Binary Tree Snapshots ${clearedBinaryTreeSnapshots}, Sales-Team Commissions ${clearedSalesTeamCommissions}, Force Cut-Off History ${clearedForceCutoffHistory}, Member Cut-Off States ${clearedMemberServerCutoffStates}. User-side browser cache/session was also cleared on this device.`,
             true,
           );
         } catch (error) {

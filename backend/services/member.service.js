@@ -23,6 +23,8 @@ const PLACEMENT_LEG_RIGHT = 'right';
 const PLACEMENT_LEG_SPILLOVER = 'spillover';
 const PLACEMENT_LEG_EXTREME_LEFT = 'extreme-left';
 const PLACEMENT_LEG_EXTREME_RIGHT = 'extreme-right';
+const BUSINESS_CENTER_NODE_TYPE_PRIMARY = 'primary';
+const BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER = 'placeholder';
 
 const FAST_TRACK_PACKAGE_META = {
   [FREE_ACCOUNT_PACKAGE_KEY]: { label: 'Free Account', price: 0, bv: 0 },
@@ -61,6 +63,68 @@ const FAST_TRACK_TIER_BY_PACKAGE = {
   'infinity-builder-pack': 'achievers-pack',
   'legacy-builder-pack': 'legacy-pack',
 };
+
+function toWholeNumber(value, fallback = 0) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return Math.max(0, Math.floor(Number(fallback) || 0));
+  }
+  return Math.max(0, Math.floor(numeric));
+}
+
+function normalizeBusinessCenterNodeType(value) {
+  return normalizeCredential(value) === BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER
+    ? BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER
+    : BUSINESS_CENTER_NODE_TYPE_PRIMARY;
+}
+
+function isBusinessCenterPlaceholderMember(member = {}) {
+  return normalizeBusinessCenterNodeType(member?.businessCenterNodeType) === BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER;
+}
+
+function doesMemberMatchIdentity(member = {}, identity = {}) {
+  const userIdKey = normalizeText(identity?.userId);
+  const usernameKey = normalizeCredential(identity?.username);
+  const emailKey = normalizeCredential(identity?.email);
+  const memberIdKey = normalizeText(member?.userId || member?.id);
+  const memberUsernameKey = normalizeCredential(member?.memberUsername || member?.username);
+  const memberEmailKey = normalizeCredential(member?.email);
+
+  return Boolean(
+    (userIdKey && memberIdKey === userIdKey)
+    || (usernameKey && memberUsernameKey === usernameKey)
+    || (emailKey && memberEmailKey === emailKey)
+  );
+}
+
+function resolvePrimaryMemberIndexForIdentity(members = [], identity = {}) {
+  const safeMembers = Array.isArray(members) ? members : [];
+  const matchingMemberIndexes = safeMembers
+    .map((member, index) => ({ member, index }))
+    .filter(({ member }) => doesMemberMatchIdentity(member, identity));
+
+  if (!matchingMemberIndexes.length) {
+    return -1;
+  }
+
+  const nonPlaceholderMatches = matchingMemberIndexes
+    .filter(({ member }) => !isBusinessCenterPlaceholderMember(member));
+  if (nonPlaceholderMatches.length === 0) {
+    return matchingMemberIndexes[0].index;
+  }
+
+  const usernameKey = normalizeCredential(identity?.username);
+  if (usernameKey) {
+    const strictUsernameMatch = nonPlaceholderMatches.find(({ member }) => (
+      normalizeCredential(member?.memberUsername || member?.username) === usernameKey
+    ));
+    if (strictUsernameMatch) {
+      return strictUsernameMatch.index;
+    }
+  }
+
+  return nonPlaceholderMatches[0].index;
+}
 
 function normalizeStoreCode(value) {
   return String(value || '')
@@ -323,6 +387,7 @@ export async function createRegisteredMember(payload) {
     : '';
   const enrollmentPackage = normalizeCredential(payload?.enrollmentPackage);
   const requestedFastTrackTier = normalizeCredential(payload?.fastTrackTier);
+  const isStaffTreeAccount = Boolean(payload?.isStaffTreeAccount);
 
   if (!fullName || !email) {
     return {
@@ -505,6 +570,21 @@ export async function createRegisteredMember(payload) {
     passwordSetupEmailQueued: true,
     passwordSetupTokenExpiresAt: tokenRecord.expiresAt,
     passwordSetupLink: setupLink,
+    businessCenterOwnerUserId: userId,
+    businessCenterOwnerUsername: memberUsername,
+    businessCenterOwnerEmail: email,
+    businessCenterNodeType: BUSINESS_CENTER_NODE_TYPE_PRIMARY,
+    businessCenterIndex: 0,
+    businessCenterLabel: '',
+    businessCenterActivatedAt: '',
+    businessCenterPinnedSide: '',
+    legacyLeadershipCompletedTierCount: 0,
+    businessCentersEarnedLifetime: 0,
+    businessCentersActivated: 0,
+    businessCentersPending: 0,
+    businessCentersOverflowPending: 0,
+    businessCentersCount: 0,
+    isStaffTreeAccount,
     createdAt,
   };
 
@@ -803,22 +883,15 @@ export async function recordMemberPurchase(payload) {
   await writeMockUsersStore(users);
 
   const matchedUser = users[userIndex];
-  const userIdKey = normalizeText(matchedUser?.id);
-  const usernameKey = normalizeCredential(matchedUser?.username);
-  const emailKey = normalizeCredential(matchedUser?.email);
+  const identity = {
+    userId: normalizeText(matchedUser?.id),
+    username: normalizeCredential(matchedUser?.username),
+    email: normalizeCredential(matchedUser?.email),
+  };
+  const primaryMemberIndex = resolvePrimaryMemberIndexForIdentity(members, identity);
 
-  const updatedMembers = members.map((member) => {
-    const memberIdKey = normalizeText(member?.userId || member?.id);
-    const memberUsernameKey = normalizeCredential(member?.memberUsername);
-    const memberEmailKey = normalizeCredential(member?.email);
-
-    const matchesMember = (
-      (userIdKey && memberIdKey === userIdKey)
-      || (usernameKey && memberUsernameKey === usernameKey)
-      || (emailKey && memberEmailKey === emailKey)
-    );
-
-    if (!matchesMember) {
+  const updatedMembers = members.map((member, index) => {
+    if (index !== primaryMemberIndex || isBusinessCenterPlaceholderMember(member)) {
       return member;
     }
 
@@ -1035,24 +1108,17 @@ export async function upgradeMemberAccount(payload) {
   };
 
   const matchedUser = users[userIndex];
-  const userIdKey = normalizeText(matchedUser?.id);
-  const usernameKey = normalizeCredential(matchedUser?.username);
-  const emailKey = normalizeCredential(matchedUser?.email);
+  const identity = {
+    userId: normalizeText(matchedUser?.id),
+    username: normalizeCredential(matchedUser?.username),
+    email: normalizeCredential(matchedUser?.email),
+  };
+  const primaryMemberIndex = resolvePrimaryMemberIndexForIdentity(members, identity);
 
   let updatedMemberRecord = null;
 
-  const updatedMembers = members.map((member) => {
-    const memberIdKey = normalizeText(member?.userId || member?.id);
-    const memberUsernameKey = normalizeCredential(member?.memberUsername);
-    const memberEmailKey = normalizeCredential(member?.email);
-
-    const matchesMember = (
-      (userIdKey && memberIdKey === userIdKey)
-      || (usernameKey && memberUsernameKey === usernameKey)
-      || (emailKey && memberEmailKey === emailKey)
-    );
-
-    if (!matchesMember) {
+  const updatedMembers = members.map((member, index) => {
+    if (index !== primaryMemberIndex || isBusinessCenterPlaceholderMember(member)) {
       return member;
     }
 

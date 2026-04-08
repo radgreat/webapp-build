@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 246
+**Times Updated:** 248
 
 ## Overview
 
@@ -12,6 +12,120 @@
 
 ## Major Update (Lead Devloper Notes)
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.
+
+---
+
+## Update (2026-04-08) - Business Center Test Data Revert + Flush Coverage Update
+
+### What Was Changed
+
+- Reverted Business Center activation test data for member `zeroone` in `charge.registered_members`:
+  - deleted the generated replacement primary row (`reg_1775608644331_f971cd61`)
+  - restored the original member row (`reg_1775181494655_5d3c5d3e`) from placeholder back to primary
+  - rewired impacted downline sponsor reference(s) from `zeroone-bc-1` back to `zeroone`.
+- Verified server-side data flush behavior for registered members:
+  - admin flush still truncates `charge.registered_members`, which clears all Business Center columns/counters by design.
+- Updated flush settings behavior in `admin.html`:
+  - expanded member-side browser cleanup list to include newer localStorage keys (Business Center-era claim/commission/trend/profile caches)
+  - updated flush confirmation copy to explicitly mention binary-tree and sales-team snapshots
+  - added `binaryTreeSnapshots` and `salesTeamCommissions` clear counts to success feedback.
+
+### Files Affected
+
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+
+### Design Decisions
+
+- Kept server flush as full-table truncate for canonical reset behavior.
+- Added explicit member-browser cache key cleanup on admin flush to reduce stale client-state artifacts after resets.
+- Applied DB rollback as a targeted transactional revert for the affected account only (no global flush).
+
+### Known Limitations
+
+- The rollback was intentionally scoped to current known affected records (`zeroone` + rewired descendants).
+- Admin flush remains an all-data operation; it is not a per-member reset tool.
+
+### Validation
+
+- Post-transaction verification query confirmed:
+  - `zeroone` restored as primary with expected sponsor linkage
+  - test-created primary clone removed
+  - downline sponsor reference restored from placeholder username to `zeroone`
+  - Business Center placeholder row `zeroone-bc-1` no longer present.
+
+---
+
+## Update (2026-04-08) - Business Center Binary Tree Feature (Backend + UI + KPI Scope)
+
+### What Was Changed
+
+- Implemented Business Center server-side lifecycle with manual activation, one-at-a-time flow, and side pinning:
+  - added authenticated endpoints:
+    - `GET /api/member-auth/business-centers`
+    - `POST /api/member-auth/business-centers/progress`
+    - `POST /api/member-auth/business-centers/activate`
+  - mounted Business Center routes in backend app bootstrap.
+- Completed Business Center row-model support in registered members storage:
+  - owner linkage fields
+  - node type/index/label/pinned side
+  - legacy completion counter + earned/activated/pending/overflow counters
+  - explicit `isStaffTreeAccount` exclusion flag
+  - schema migration guard to auto-add missing columns.
+- Hardened activation behavior in Business Center service:
+  - fixed sponsor rewire edge case that could self-reference placeholder node
+  - zeroed placeholder personal-volume fields to avoid double-counting after activation
+  - preserved manual side pin behavior and one-step activation sequence.
+- Added member dashboard UI controls for Business Center activation in `index.html`:
+  - status panel with active/pending/cap/overflow visibility
+  - side selector (left/right)
+  - activation button + feedback states.
+- Wired Legacy Leadership completion progress to server Business Center progress syncing.
+- Updated binary tree KPI behavior so Business Center placeholder nodes are excluded from member KPIs:
+  - node count
+  - new members joined
+  - direct sponsors
+  - while placeholders remain visible in tree topology.
+- Updated tree/tier calculations to treat Business Center placeholders as non-qualifying members for sponsor/tier counting.
+
+### Files Affected
+
+- `backend/app.js`
+- `backend/routes/member-business-center.routes.js`
+- `backend/controllers/member-business-center.controller.js`
+- `backend/services/member-business-center.service.js`
+- `backend/services/member.service.js`
+- `backend/stores/member.store.js`
+- `binary-tree.mjs`
+- `index.html`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Business Center placeholders are persisted as `registered_members` rows (no virtual runtime nodes).
+- Placeholders remain visible in the binary tree for lineage continuity, but KPI member counts exclude them.
+- Activation remains manual and explicit with user-selected legacy-network pin side.
+- Legacy completion source is synchronized to canonical server counter via `completedLegacyTierCount`.
+
+### Known Limitations
+
+- Business Center endpoints require member auth bearer token; unauthenticated calls return `401`.
+- Existing running dev servers must be restarted to load newly mounted routes.
+- Staff/admin exclusion is flag-driven; existing accounts require `isStaffTreeAccount=true` to enforce lockout.
+
+### Validation
+
+- `node --check backend/services/member-business-center.service.js` passed.
+- `node --check backend/controllers/member-business-center.controller.js` passed.
+- `node --check backend/routes/member-business-center.routes.js` passed.
+- `node --check backend/app.js` passed.
+- Inline script syntax extracted from `index.html` passed `node --check`.
+- Route smoke test on isolated port confirmed auth middleware response:
+  - `GET /api/member-auth/business-centers` -> `401 AUTH_REQUIRED` without token.
 
 ---
 

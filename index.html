@@ -3444,6 +3444,34 @@
                 </p>
               </div>
 
+              <section id="business-center-activation-panel" class="mb-4 rounded-2xl border border-surface-border bg-surface-elevated px-4 py-4 shadow-depth-1">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div>
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Business Centers</p>
+                    <p id="business-center-summary-value" class="mt-1 text-body-sm font-medium text-text-primary">Loading Business Center status...</p>
+                    <p id="business-center-summary-detail" class="mt-1 text-caption text-text-tertiary">Business Center placeholders stay visible in tree and are excluded from member KPIs.</p>
+                  </div>
+                  <span id="business-center-activation-status-chip" class="inline-flex w-fit items-center gap-1 rounded-full border border-surface-border bg-surface-base px-2 py-0.5 text-caption text-text-secondary">Syncing</span>
+                </div>
+                <div class="mt-3 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3">
+                  <label class="inline-flex items-center gap-2 text-caption text-text-secondary">
+                    <span>Pin legacy network side</span>
+                    <select id="business-center-activation-side" class="rounded-lg border border-surface-border bg-surface-base px-2 py-1 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated">
+                      <option value="left">Left</option>
+                      <option value="right">Right</option>
+                    </select>
+                  </label>
+                  <button
+                    id="business-center-activate-button"
+                    type="button"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-2 text-body-sm font-medium text-text-inverse shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated active:scale-[0.97] transition-transform duration-150 ease-spring disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Activate Business Center
+                  </button>
+                </div>
+                <p id="business-center-activation-feedback" class="mt-2 hidden text-caption"></p>
+              </section>
+
               <div class="mb-4 flex justify-end">
                 <fieldset class="inline-flex items-center gap-1 rounded-lg border border-surface-border-light bg-surface-elevated/70 p-1 shadow-depth-1" role="radiogroup" aria-label="Legacy Leadership view mode">
                   <legend class="sr-only">Legacy Leadership view mode</legend>
@@ -5973,6 +6001,9 @@
       const MEMBER_EMAIL_VERIFICATION_REQUEST_API = '/api/member-auth/email-verification/request';
       const MEMBER_NOTIFICATION_CENTER_API = '/api/member-auth/notifications';
       const MEMBER_NOTIFICATION_MARK_ALL_READ_API = '/api/member-auth/notifications/mark-all-read';
+      const MEMBER_BUSINESS_CENTERS_API = '/api/member-auth/business-centers';
+      const MEMBER_BUSINESS_CENTER_PROGRESS_API = '/api/member-auth/business-centers/progress';
+      const MEMBER_BUSINESS_CENTER_ACTIVATE_API = '/api/member-auth/business-centers/activate';
       const PROFILE_ACHIEVEMENT_ICON_PATHS_BY_ID = Object.freeze({
         'good-life-diamond': Object.freeze({
           dark: '/brand_assets/Icons/Achievements/diamond.svg',
@@ -7537,6 +7568,13 @@
       const legacyLeadershipPageLabelElement = document.getElementById('legacy-leadership-page-label');
       const legacyLeadershipPagePrevButtonElement = document.getElementById('legacy-leadership-page-prev');
       const legacyLeadershipPageNextButtonElement = document.getElementById('legacy-leadership-page-next');
+      const businessCenterActivationPanelElement = document.getElementById('business-center-activation-panel');
+      const businessCenterSummaryValueElement = document.getElementById('business-center-summary-value');
+      const businessCenterSummaryDetailElement = document.getElementById('business-center-summary-detail');
+      const businessCenterActivationStatusChipElement = document.getElementById('business-center-activation-status-chip');
+      const businessCenterActivationSideInput = document.getElementById('business-center-activation-side');
+      const businessCenterActivateButtonElement = document.getElementById('business-center-activate-button');
+      const businessCenterActivationFeedbackElement = document.getElementById('business-center-activation-feedback');
       const accountOverviewCardElement = document.getElementById('account-overview-card');
       const accountRankActivityBadgeElement = document.getElementById('account-rank-activity-badge');
       const accountRankIconElement = document.getElementById('account-rank-icon');
@@ -7779,6 +7817,13 @@
       let legacyLeadershipViewMode = 'active';
       let legacyLeadershipPageIndex = 0;
       let legacyLeadershipMockClaimsResetApplied = false;
+      let businessCenterStatus = null;
+      let businessCenterStatusHydrated = false;
+      let businessCenterStatusLoading = false;
+      let businessCenterActivationInFlight = false;
+      let businessCenterProgressSyncInFlight = false;
+      let pendingBusinessCenterProgressSyncCount = null;
+      let lastSyncedBusinessCenterProgressCount = null;
       let commissionPayoutMockResetApplied = false;
       let eWalletSnapshot = null;
       let eWalletTransferHistory = [];
@@ -10222,6 +10267,340 @@
 
       function resolveMemberAuthToken() {
         return String(currentSessionUser?.authToken || '').trim();
+      }
+
+      function clearBusinessCenterActivationFeedback() {
+        if (!businessCenterActivationFeedbackElement) {
+          return;
+        }
+
+        businessCenterActivationFeedbackElement.textContent = '';
+        businessCenterActivationFeedbackElement.classList.add('hidden');
+        businessCenterActivationFeedbackElement.classList.remove('text-semantic-success', 'text-semantic-danger', 'text-text-tertiary');
+      }
+
+      function setBusinessCenterActivationFeedback(message, isSuccess = true) {
+        if (!businessCenterActivationFeedbackElement) {
+          return;
+        }
+
+        const trimmedMessage = String(message || '').trim();
+        if (!trimmedMessage) {
+          clearBusinessCenterActivationFeedback();
+          return;
+        }
+
+        businessCenterActivationFeedbackElement.textContent = trimmedMessage;
+        businessCenterActivationFeedbackElement.classList.remove('hidden', 'text-semantic-success', 'text-semantic-danger', 'text-text-tertiary');
+        businessCenterActivationFeedbackElement.classList.add(isSuccess ? 'text-semantic-success' : 'text-semantic-danger');
+      }
+
+      function renderBusinessCenterActivationPanel() {
+        if (!businessCenterActivationPanelElement) {
+          return;
+        }
+
+        const authToken = resolveMemberAuthToken();
+        const hasAuthToken = Boolean(authToken);
+        businessCenterActivationPanelElement.classList.toggle('hidden', !hasAuthToken);
+        if (!hasAuthToken) {
+          return;
+        }
+
+        const businessCenters = businessCenterStatus?.businessCenters;
+        const cap = Math.max(1, toWholeNumber(businessCenters?.cap, 5));
+        const activated = toWholeNumber(businessCenters?.activated, 0);
+        const pendingTotal = toWholeNumber(businessCenters?.pendingTotal, 0);
+        const activatablePending = toWholeNumber(businessCenters?.activatablePending, 0);
+        const overflowPending = toWholeNumber(businessCenters?.overflowPending, 0);
+        const completedLegacyTierCount = toWholeNumber(businessCenters?.completedLegacyTierCount, 0);
+        const isAtCap = Boolean(businessCenters?.isAtCap);
+        const isStaffTreeAccount = Boolean(businessCenters?.isStaffTreeAccount);
+
+        const statusChipBaseClassName = 'inline-flex w-fit items-center gap-1 rounded-full border px-2 py-0.5 text-caption';
+        let statusChipClassName = `${statusChipBaseClassName} border-surface-border bg-surface-base text-text-secondary`;
+        let statusChipText = 'Syncing';
+        let canActivate = false;
+
+        if (!businessCenterStatusHydrated && businessCenterStatusLoading) {
+          statusChipText = 'Syncing';
+        } else if (!businessCenters) {
+          statusChipClassName = `${statusChipBaseClassName} border-semantic-danger/35 bg-semantic-danger-bg text-semantic-danger`;
+          statusChipText = 'Unavailable';
+        } else if (isStaffTreeAccount) {
+          statusChipClassName = `${statusChipBaseClassName} border-surface-border bg-surface-base text-text-tertiary`;
+          statusChipText = 'Staff Locked';
+        } else if (activatablePending > 0) {
+          statusChipClassName = `${statusChipBaseClassName} border-semantic-success/35 bg-semantic-success-bg text-semantic-success`;
+          statusChipText = 'Ready';
+          canActivate = true;
+        } else if (isAtCap) {
+          statusChipClassName = `${statusChipBaseClassName} border-semantic-warning/35 bg-semantic-warning-bg text-semantic-warning`;
+          statusChipText = 'At Cap';
+        } else {
+          statusChipClassName = `${statusChipBaseClassName} border-surface-border bg-surface-base text-text-tertiary`;
+          statusChipText = 'Not Eligible';
+        }
+
+        if (businessCenterActivationStatusChipElement) {
+          businessCenterActivationStatusChipElement.className = statusChipClassName;
+          businessCenterActivationStatusChipElement.textContent = statusChipText;
+        }
+
+        if (businessCenterSummaryValueElement) {
+          if (!businessCenters && !businessCenterStatusLoading) {
+            businessCenterSummaryValueElement.textContent = 'Unable to load Business Center status.';
+          } else {
+            businessCenterSummaryValueElement.textContent = `Active ${activated.toLocaleString()} / ${cap.toLocaleString()} · Pending ${pendingTotal.toLocaleString()}`;
+          }
+        }
+
+        if (businessCenterSummaryDetailElement) {
+          if (!businessCenters && businessCenterStatusLoading) {
+            businessCenterSummaryDetailElement.textContent = 'Loading Business Center metrics from your server record...';
+          } else if (isStaffTreeAccount) {
+            businessCenterSummaryDetailElement.textContent = 'This account is flagged as staff/admin and cannot activate Business Centers.';
+          } else {
+            const overflowLabel = overflowPending > 0
+              ? ` Overflow queued: ${overflowPending.toLocaleString()}.`
+              : '';
+            businessCenterSummaryDetailElement.textContent = `Completed legacy tiers: ${completedLegacyTierCount.toLocaleString()} (1 Business Center per 5 completions).${overflowLabel}`;
+          }
+        }
+
+        const disableControls = businessCenterActivationInFlight
+          || businessCenterStatusLoading
+          || !canActivate
+          || !businessCenters;
+
+        if (businessCenterActivationSideInput) {
+          businessCenterActivationSideInput.disabled = disableControls;
+        }
+        if (businessCenterActivateButtonElement) {
+          businessCenterActivateButtonElement.disabled = disableControls;
+          businessCenterActivateButtonElement.textContent = businessCenterActivationInFlight
+            ? 'Activating...'
+            : 'Activate Business Center';
+        }
+      }
+
+      async function loadBusinessCenterStatus(options = {}) {
+        if (!businessCenterActivationPanelElement) {
+          return null;
+        }
+
+        const silent = options?.silent === true;
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          businessCenterStatus = null;
+          businessCenterStatusHydrated = false;
+          renderBusinessCenterActivationPanel();
+          return null;
+        }
+
+        if (businessCenterStatusLoading) {
+          return businessCenterStatus;
+        }
+
+        businessCenterStatusLoading = true;
+        renderBusinessCenterActivationPanel();
+        try {
+          const response = await fetch(MEMBER_BUSINESS_CENTERS_API, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+          const payload = await response.json().catch(() => null);
+
+          if (!response.ok) {
+            const message = payload?.error
+              ? String(payload.error)
+              : `Unable to load Business Center status (${response.status}).`;
+            throw new Error(message);
+          }
+
+          businessCenterStatus = payload && typeof payload === 'object' ? payload : null;
+          businessCenterStatusHydrated = Boolean(businessCenterStatus);
+          const completedLegacyTierCount = toWholeNumber(
+            businessCenterStatus?.businessCenters?.completedLegacyTierCount,
+            0,
+          );
+          lastSyncedBusinessCenterProgressCount = completedLegacyTierCount;
+          if (!silent) {
+            clearBusinessCenterActivationFeedback();
+          }
+
+          return businessCenterStatus;
+        } catch (error) {
+          if (!silent) {
+            setBusinessCenterActivationFeedback(
+              error instanceof Error ? error.message : 'Unable to load Business Center status.',
+              false,
+            );
+          }
+          return null;
+        } finally {
+          businessCenterStatusLoading = false;
+          renderBusinessCenterActivationPanel();
+        }
+      }
+
+      async function syncBusinessCenterProgressNow(completedLegacyTierCount, options = {}) {
+        const silent = options?.silent !== false;
+        const force = options?.force === true;
+        const safeCompletedTierCount = Math.max(0, toWholeNumber(completedLegacyTierCount, 0));
+        if (!force && safeCompletedTierCount === lastSyncedBusinessCenterProgressCount) {
+          return businessCenterStatus;
+        }
+
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          return null;
+        }
+
+        const response = await fetch(MEMBER_BUSINESS_CENTER_PROGRESS_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({
+            completedLegacyTierCount: safeCompletedTierCount,
+          }),
+        });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+          const message = payload?.error
+            ? String(payload.error)
+            : `Unable to sync Business Center progress (${response.status}).`;
+          throw new Error(message);
+        }
+
+        businessCenterStatus = payload && typeof payload === 'object' ? payload : null;
+        businessCenterStatusHydrated = Boolean(businessCenterStatus);
+        lastSyncedBusinessCenterProgressCount = safeCompletedTierCount;
+        if (!silent) {
+          clearBusinessCenterActivationFeedback();
+        }
+        renderBusinessCenterActivationPanel();
+        return businessCenterStatus;
+      }
+
+      function queueBusinessCenterProgressSync(completedLegacyTierCount, options = {}) {
+        const safeCompletedTierCount = Math.max(0, toWholeNumber(completedLegacyTierCount, 0));
+        pendingBusinessCenterProgressSyncCount = safeCompletedTierCount;
+        if (businessCenterProgressSyncInFlight) {
+          return;
+        }
+
+        const silent = options?.silent !== false;
+        businessCenterProgressSyncInFlight = true;
+        (async () => {
+          while (pendingBusinessCenterProgressSyncCount !== null) {
+            const nextCount = pendingBusinessCenterProgressSyncCount;
+            pendingBusinessCenterProgressSyncCount = null;
+            await syncBusinessCenterProgressNow(nextCount, { silent });
+          }
+        })().catch((error) => {
+          if (!silent) {
+            setBusinessCenterActivationFeedback(
+              error instanceof Error ? error.message : 'Unable to sync Business Center progress.',
+              false,
+            );
+          }
+        }).finally(() => {
+          businessCenterProgressSyncInFlight = false;
+          renderBusinessCenterActivationPanel();
+        });
+      }
+
+      async function activateBusinessCenterFromPanel() {
+        if (businessCenterActivationInFlight) {
+          return;
+        }
+
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          setBusinessCenterActivationFeedback('You must be signed in to activate Business Centers.', false);
+          return;
+        }
+
+        const preferredSide = normalizeMemberKey(businessCenterActivationSideInput?.value) === 'right'
+          ? 'right'
+          : 'left';
+
+        businessCenterActivationInFlight = true;
+        clearBusinessCenterActivationFeedback();
+        renderBusinessCenterActivationPanel();
+
+        try {
+          const response = await fetch(MEMBER_BUSINESS_CENTER_ACTIVATE_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+              side: preferredSide,
+            }),
+          });
+          const payload = await response.json().catch(() => null);
+          if (!response.ok) {
+            if (payload && typeof payload === 'object' && payload.businessCenters) {
+              businessCenterStatus = payload;
+              businessCenterStatusHydrated = true;
+            }
+            const message = payload?.error
+              ? String(payload.error)
+              : `Unable to activate Business Center (${response.status}).`;
+            throw new Error(message);
+          }
+
+          businessCenterStatus = payload && typeof payload === 'object' ? payload : null;
+          businessCenterStatusHydrated = Boolean(businessCenterStatus);
+          const completedLegacyTierCount = toWholeNumber(
+            businessCenterStatus?.businessCenters?.completedLegacyTierCount,
+            0,
+          );
+          lastSyncedBusinessCenterProgressCount = completedLegacyTierCount;
+
+          const activatedIndex = toWholeNumber(payload?.activation?.businessCenterIndex, 0);
+          const activationLabel = activatedIndex > 0 ? `Business Center #${activatedIndex}` : 'Business Center';
+          setBusinessCenterActivationFeedback(
+            `${activationLabel} activated on the ${preferredSide.toUpperCase()} side.`,
+            true,
+          );
+
+          await loadRegisteredMembers();
+        } catch (error) {
+          setBusinessCenterActivationFeedback(
+            error instanceof Error ? error.message : 'Unable to activate Business Center.',
+            false,
+          );
+        } finally {
+          businessCenterActivationInFlight = false;
+          renderBusinessCenterActivationPanel();
+        }
+      }
+
+      function bindBusinessCenterActivationControls() {
+        renderBusinessCenterActivationPanel();
+
+        if (businessCenterActivateButtonElement && businessCenterActivateButtonElement.dataset.bound !== 'true') {
+          businessCenterActivateButtonElement.dataset.bound = 'true';
+          businessCenterActivateButtonElement.addEventListener('click', () => {
+            void activateBusinessCenterFromPanel();
+          });
+        }
+
+        if (businessCenterActivationSideInput && businessCenterActivationSideInput.dataset.bound !== 'true') {
+          businessCenterActivationSideInput.dataset.bound = 'true';
+          businessCenterActivationSideInput.addEventListener('change', () => {
+            clearBusinessCenterActivationFeedback();
+          });
+        }
       }
 
       function buildProfileAchievementFallbackSnapshot() {
@@ -14959,6 +15338,9 @@
       }
 
       function resolveMemberBinaryVolume(member) {
+        if (isBusinessCenterPlaceholderMember(member)) {
+          return 0;
+        }
         const packageBv = toWholeNumber(member?.packageBv, getFastTrackPackageBv(member?.enrollmentPackage));
         const starterPersonalPvRaw = toWholeNumber(member?.starterPersonalPv, 0);
         const starterPersonalPv = starterPersonalPvRaw > 0 ? starterPersonalPvRaw : packageBv;
@@ -14975,6 +15357,9 @@
       }
 
       function resolveMemberLifetimeBinaryVolume(member) {
+        if (isBusinessCenterPlaceholderMember(member)) {
+          return 0;
+        }
         const packageBv = toWholeNumber(member?.packageBv, getFastTrackPackageBv(member?.enrollmentPackage));
         const starterPersonalPvRaw = toWholeNumber(member?.starterPersonalPv, 0);
         return Math.max(0, starterPersonalPvRaw > 0 ? starterPersonalPvRaw : packageBv);
@@ -15091,6 +15476,21 @@
         return normalizeMemberKey(member?.memberUsername || member?.username || member?.id || member?.email);
       }
 
+      function normalizeBusinessCenterNodeType(value) {
+        return normalizeMemberKey(value) === 'placeholder'
+          ? 'placeholder'
+          : 'primary';
+      }
+
+      function isBusinessCenterPlaceholderMember(member = {}) {
+        return normalizeBusinessCenterNodeType(member?.businessCenterNodeType) === 'placeholder';
+      }
+
+      function isBusinessCenterPlaceholderNode(node = {}) {
+        return Boolean(node?.isBusinessCenterPlaceholder)
+          || normalizeBusinessCenterNodeType(node?.businessCenterNodeType) === 'placeholder';
+      }
+
       function findRegisteredMemberByHandle(handleOrUsername) {
         const rawKey = String(handleOrUsername || '').trim().replace(/^@+/, '');
         const normalizedKey = normalizeMemberKey(rawKey);
@@ -15105,14 +15505,21 @@
         }) || null;
       }
 
-      function getDirectMembersForSponsor(sponsorIdentity) {
+      function getDirectMembersForSponsor(sponsorIdentity, options = {}) {
         const normalizedSponsorIdentity = normalizeMemberKey(sponsorIdentity);
         if (!normalizedSponsorIdentity || !Array.isArray(registeredMembers) || registeredMembers.length === 0) {
           return [];
         }
 
+        const includeBusinessCenterPlaceholders = options?.includeBusinessCenterPlaceholders === true;
         return registeredMembers.filter((member) => {
-          return normalizeMemberKey(member?.sponsorUsername) === normalizedSponsorIdentity;
+          if (normalizeMemberKey(member?.sponsorUsername) !== normalizedSponsorIdentity) {
+            return false;
+          }
+          if (includeBusinessCenterPlaceholders) {
+            return true;
+          }
+          return !isBusinessCenterPlaceholderMember(member);
         });
       }
 
@@ -15120,12 +15527,13 @@
         return getDirectMembersForSponsor(currentSponsorUsername);
       }
 
-      function getOrganizationMembersForSponsor(sponsorIdentity) {
+      function getOrganizationMembersForSponsor(sponsorIdentity, options = {}) {
         const sponsorKey = normalizeMemberKey(sponsorIdentity);
         if (!sponsorKey || !Array.isArray(registeredMembers) || registeredMembers.length === 0) {
           return [];
         }
 
+        const includeBusinessCenterPlaceholders = options?.includeBusinessCenterPlaceholders === true;
         const membersBySponsor = new Map();
         for (const member of registeredMembers) {
           const memberSponsorKey = normalizeMemberKey(member?.sponsorUsername);
@@ -15148,7 +15556,8 @@
             const memberIdentityKey = normalizeMemberKey(
               resolveMemberIdentityKey(member) || `${member?.createdAt || ''}-${organizationMembers.length}`,
             );
-            if (!seenMemberKeys.has(memberIdentityKey)) {
+            const shouldCountMember = includeBusinessCenterPlaceholders || !isBusinessCenterPlaceholderMember(member);
+            if (shouldCountMember && !seenMemberKeys.has(memberIdentityKey)) {
               seenMemberKeys.add(memberIdentityKey);
               organizationMembers.push(member);
             }
@@ -15178,6 +15587,7 @@
         return nodeValues.filter((node) => {
           return node
             && normalizeMemberKey(node.id) !== rootId
+            && !isBusinessCenterPlaceholderNode(node)
             && normalizeMemberKey(node.sponsorId) === rootId;
         });
       }
@@ -15341,7 +15751,10 @@
         }
 
         const directSponsorNodeIds = (nodeIdsBySponsorId.get(rootNodeId) || [])
-          .filter((nodeId) => seedNodeQualifier(nodeById.get(nodeId), nodeId))
+          .filter((nodeId) => {
+            const node = nodeById.get(nodeId);
+            return !isBusinessCenterPlaceholderNode(node) && seedNodeQualifier(node, nodeId);
+          })
           .slice()
           .sort(sortNodeIdsByAddedAt);
         const fullySeededTierCount = Math.floor(directSponsorNodeIds.length / INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER);
@@ -15357,6 +15770,7 @@
 
           const queue = seedNodeIds.slice();
           const visitedNodeIds = new Set();
+          let qualifyingNodeCount = 0;
 
           while (queue.length > 0) {
             const nextNodeId = normalizeMemberKey(queue.shift());
@@ -15365,6 +15779,10 @@
             }
 
             visitedNodeIds.add(nextNodeId);
+            const nextNode = nodeById.get(nextNodeId);
+            if (!isBusinessCenterPlaceholderNode(nextNode)) {
+              qualifyingNodeCount += 1;
+            }
             const childNodeIds = nodeIdsBySponsorId.get(nextNodeId) || [];
             for (const childNodeId of childNodeIds) {
               if (!visitedNodeIds.has(childNodeId)) {
@@ -15373,7 +15791,7 @@
             }
           }
 
-          return visitedNodeIds.size;
+          return qualifyingNodeCount;
         };
 
         const tiers = [];
@@ -16134,6 +16552,7 @@
 
         const eligibility = resolveLegacyLeadershipEligibility(currentSessionUser);
         if (!eligibility.isEligible) {
+          queueBusinessCenterProgressSync(0, { silent: true });
           if (legacyLeadershipClaimableBonusValueElement) {
             legacyLeadershipClaimableBonusValueElement.textContent = '$0.00';
           }
@@ -16211,6 +16630,8 @@
         const unclaimedCompletedCount = activeTiers.reduce((count, tier) => (
           count + (tier?.isCompleted ? 1 : 0)
         ), 0);
+        const totalCompletedLegacyTierCount = claimedArchiveEntries.length + unclaimedCompletedCount;
+        queueBusinessCenterProgressSync(totalCompletedLegacyTierCount, { silent: true });
         const unclaimedBonusValue = unclaimedCompletedCount * INFINITY_BUILDER_TIER_BONUS;
         const claimedBonusBalanceValue = claimedArchiveEntries.reduce((sum, entry) => {
           return sum + Math.max(0, Number(entry?.amount) || 0);
@@ -16546,6 +16967,8 @@
           rank: 'Legacy',
           countryFlag: DEFAULT_COUNTRY_FLAG,
           addedAt: now,
+          businessCenterNodeType: 'primary',
+          isBusinessCenterPlaceholder: false,
         };
 
         registerLookup(globalRootId, globalRootId);
@@ -16561,11 +16984,20 @@
           const createdAtMs = Number.isFinite(createdAtMsRaw)
             ? createdAtMsRaw
             : (now - (sortedMembers.length - index) * 60000);
+          const businessCenterNodeType = normalizeBusinessCenterNodeType(member?.businessCenterNodeType);
+          const isBusinessCenterPlaceholder = businessCenterNodeType === 'placeholder';
+          const memberDisplayName = isBusinessCenterPlaceholder
+            ? String(
+              member?.businessCenterLabel
+              || member?.fullName
+              || `Business Center #${Math.max(1, toWholeNumber(member?.businessCenterIndex, 1))}`,
+            )
+            : String(member?.fullName || member?.memberUsername || member?.email || `Member ${index + 1}`);
 
           nodes[nodeId] = {
             id: nodeId,
             memberCode: String(member?.memberUsername || `member-${index + 1}`),
-            name: String(member?.fullName || member?.memberUsername || member?.email || `Member ${index + 1}`),
+            name: memberDisplayName,
             status: resolveBinaryNodeStatus(member),
             leftPersonalPv: memberBinaryVolume,
             rightPersonalPv: 0,
@@ -16574,6 +17006,9 @@
             enrollmentPackage: normalizeMemberKey(member?.enrollmentPackage),
             countryFlag: normalizeCountryFlag(member?.countryFlag),
             addedAt: createdAtMs,
+            businessCenterNodeType,
+            isBusinessCenterPlaceholder,
+            businessCentersCount: toWholeNumber(member?.businessCentersCount, 0),
           };
 
           registerLookup(member?.id, nodeId);
@@ -16765,6 +17200,8 @@
           rank: resolveRootNodeRank(),
           countryFlag: normalizeCountryFlag(currentSessionUser?.countryFlag),
           addedAt: Number.isFinite(sourceRootAddedAt) ? sourceRootAddedAt : now,
+          businessCenterNodeType: 'primary',
+          isBusinessCenterPlaceholder: false,
         };
 
         const sourceRootLeftId = sourceRootNode?.leftChildId;
@@ -20401,6 +20838,7 @@
           hasRegisteredMembersHydrated = true;
           syncBinaryTreeFromRegisteredMembers();
           recalculateEnrollDerivedMetrics();
+          void loadBusinessCenterStatus({ silent: true });
         } catch (error) {
           console.error('Failed to load registered members:', error);
           registeredMembers = [];
@@ -20408,6 +20846,7 @@
           resetMemberRankLookup([]);
           recalculateEnrollDerivedMetrics();
           syncBinaryTreeFromRegisteredMembers();
+          renderBusinessCenterActivationPanel();
         }
       }
 
@@ -24557,12 +24996,14 @@
       initializeRecentActivityPanelHeightSync();
       initializeRecentActivityPanelControls();
       initializeProfileModule();
+      bindBusinessCenterActivationControls();
       initEnrollMemberModule();
       initPreferredCustomerModule();
       renderFastTrackCommissionAuditFeed();
       renderRecentActivityFeed();
       renderNotificationCenter();
       void loadMemberNotificationCenter({ silent: true });
+      void loadBusinessCenterStatus({ silent: true });
       setDesktopSidebarCollapsed(initialDesktopSidebarCollapsed, { persist: false });
       setPage(activePage, { routeMode: 'replace' });
     }
