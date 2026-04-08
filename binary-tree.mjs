@@ -27,6 +27,8 @@
  * @property {string=} placementParentId
  * @property {'left' | 'right'=} placementSide
  * @property {boolean=} isSpillover
+ * @property {'primary' | 'placeholder'=} businessCenterNodeType
+ * @property {boolean=} isBusinessCenterPlaceholder
  */
 
 /**
@@ -748,6 +750,12 @@ function normalizeNode(id, node) {
   const rightPersonalPv = sanitizeVolume(
     node?.rightPersonalPv ?? node?.rightPersonalVolume ?? node?.rightPv,
   );
+  const businessCenterNodeTypeRaw = String(node?.businessCenterNodeType || '').trim().toLowerCase();
+  const businessCenterNodeType = businessCenterNodeTypeRaw === 'placeholder'
+    ? 'placeholder'
+    : 'primary';
+  const isBusinessCenterPlaceholder = Boolean(node?.isBusinessCenterPlaceholder)
+    || businessCenterNodeType === 'placeholder';
 
   return {
     id: String(node?.id || id),
@@ -771,7 +779,14 @@ function normalizeNode(id, node) {
     placementParentId: typeof node?.placementParentId === 'string' ? node.placementParentId : undefined,
     placementSide: normalizeSide(node?.placementSide),
     isSpillover: Boolean(node?.isSpillover),
+    businessCenterNodeType,
+    isBusinessCenterPlaceholder,
   };
+}
+
+function isBusinessCenterPlaceholderNode(node = {}) {
+  return Boolean(node?.isBusinessCenterPlaceholder)
+    || String(node?.businessCenterNodeType || '').trim().toLowerCase() === 'placeholder';
 }
 
 function resolveSponsorLeg(nodeId, sponsorId, nodes, placementByChild) {
@@ -1007,6 +1022,8 @@ function buildDashboardSummary(data) {
   }
 
   const nodeValues = Object.values(data.nodes);
+  const kpiNodeValues = nodeValues.filter((node) => !isBusinessCenterPlaceholderNode(node));
+  const kpiDownlineNodeValues = kpiNodeValues.filter((node) => node.id !== data.rootId);
   const totalPersonalVolume = nodeValues.reduce(
     (sum, node) => sum + (node.leftPersonalPv + node.rightPersonalPv),
     0,
@@ -1015,11 +1032,8 @@ function buildDashboardSummary(data) {
     (sum, node) => sum + node.cycles,
     0,
   );
-  const newMembersJoined = nodeValues.reduce(
-    (count, node) => count + (node.id !== data.rootId ? 1 : 0),
-    0,
-  );
-  const totalDirectSponsors = nodeValues.reduce(
+  const newMembersJoined = kpiDownlineNodeValues.length;
+  const totalDirectSponsors = kpiDownlineNodeValues.reduce(
     (count, node) => count + (node.sponsorId === data.rootId ? 1 : 0),
     0,
   );
@@ -1029,7 +1043,7 @@ function buildDashboardSummary(data) {
 
   return {
     rootId: data.rootId,
-    nodeCount: nodeValues.length,
+    nodeCount: kpiNodeValues.length,
     accountRank,
     accountPersonalVolume: rootNode.leftPersonalPv + rootNode.rightPersonalPv,
     leftLegBv: rootNode.leftPv,

@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 197
+**Times Updated:** 248
 
 ## Overview
 
@@ -12,6 +12,2058 @@
 
 ## Major Update (Lead Devloper Notes)
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.
+
+---
+
+## Update (2026-04-08) - Business Center Test Data Revert + Flush Coverage Update
+
+### What Was Changed
+
+- Reverted Business Center activation test data for member `zeroone` in `charge.registered_members`:
+  - deleted the generated replacement primary row (`reg_1775608644331_f971cd61`)
+  - restored the original member row (`reg_1775181494655_5d3c5d3e`) from placeholder back to primary
+  - rewired impacted downline sponsor reference(s) from `zeroone-bc-1` back to `zeroone`.
+- Verified server-side data flush behavior for registered members:
+  - admin flush still truncates `charge.registered_members`, which clears all Business Center columns/counters by design.
+- Updated flush settings behavior in `admin.html`:
+  - expanded member-side browser cleanup list to include newer localStorage keys (Business Center-era claim/commission/trend/profile caches)
+  - updated flush confirmation copy to explicitly mention binary-tree and sales-team snapshots
+  - added `binaryTreeSnapshots` and `salesTeamCommissions` clear counts to success feedback.
+
+### Files Affected
+
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+
+### Design Decisions
+
+- Kept server flush as full-table truncate for canonical reset behavior.
+- Added explicit member-browser cache key cleanup on admin flush to reduce stale client-state artifacts after resets.
+- Applied DB rollback as a targeted transactional revert for the affected account only (no global flush).
+
+### Known Limitations
+
+- The rollback was intentionally scoped to current known affected records (`zeroone` + rewired descendants).
+- Admin flush remains an all-data operation; it is not a per-member reset tool.
+
+### Validation
+
+- Post-transaction verification query confirmed:
+  - `zeroone` restored as primary with expected sponsor linkage
+  - test-created primary clone removed
+  - downline sponsor reference restored from placeholder username to `zeroone`
+  - Business Center placeholder row `zeroone-bc-1` no longer present.
+
+---
+
+## Update (2026-04-08) - Business Center Binary Tree Feature (Backend + UI + KPI Scope)
+
+### What Was Changed
+
+- Implemented Business Center server-side lifecycle with manual activation, one-at-a-time flow, and side pinning:
+  - added authenticated endpoints:
+    - `GET /api/member-auth/business-centers`
+    - `POST /api/member-auth/business-centers/progress`
+    - `POST /api/member-auth/business-centers/activate`
+  - mounted Business Center routes in backend app bootstrap.
+- Completed Business Center row-model support in registered members storage:
+  - owner linkage fields
+  - node type/index/label/pinned side
+  - legacy completion counter + earned/activated/pending/overflow counters
+  - explicit `isStaffTreeAccount` exclusion flag
+  - schema migration guard to auto-add missing columns.
+- Hardened activation behavior in Business Center service:
+  - fixed sponsor rewire edge case that could self-reference placeholder node
+  - zeroed placeholder personal-volume fields to avoid double-counting after activation
+  - preserved manual side pin behavior and one-step activation sequence.
+- Added member dashboard UI controls for Business Center activation in `index.html`:
+  - status panel with active/pending/cap/overflow visibility
+  - side selector (left/right)
+  - activation button + feedback states.
+- Wired Legacy Leadership completion progress to server Business Center progress syncing.
+- Updated binary tree KPI behavior so Business Center placeholder nodes are excluded from member KPIs:
+  - node count
+  - new members joined
+  - direct sponsors
+  - while placeholders remain visible in tree topology.
+- Updated tree/tier calculations to treat Business Center placeholders as non-qualifying members for sponsor/tier counting.
+
+### Files Affected
+
+- `backend/app.js`
+- `backend/routes/member-business-center.routes.js`
+- `backend/controllers/member-business-center.controller.js`
+- `backend/services/member-business-center.service.js`
+- `backend/services/member.service.js`
+- `backend/stores/member.store.js`
+- `binary-tree.mjs`
+- `index.html`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Business Center placeholders are persisted as `registered_members` rows (no virtual runtime nodes).
+- Placeholders remain visible in the binary tree for lineage continuity, but KPI member counts exclude them.
+- Activation remains manual and explicit with user-selected legacy-network pin side.
+- Legacy completion source is synchronized to canonical server counter via `completedLegacyTierCount`.
+
+### Known Limitations
+
+- Business Center endpoints require member auth bearer token; unauthenticated calls return `401`.
+- Existing running dev servers must be restarted to load newly mounted routes.
+- Staff/admin exclusion is flag-driven; existing accounts require `isStaffTreeAccount=true` to enforce lockout.
+
+### Validation
+
+- `node --check backend/services/member-business-center.service.js` passed.
+- `node --check backend/controllers/member-business-center.controller.js` passed.
+- `node --check backend/routes/member-business-center.routes.js` passed.
+- `node --check backend/app.js` passed.
+- Inline script syntax extracted from `index.html` passed `node --check`.
+- Route smoke test on isolated port confirmed auth middleware response:
+  - `GET /api/member-auth/business-centers` -> `401 AUTH_REQUIRED` without token.
+
+---
+
+## Update (2026-04-07) - Login Button Loading Animation
+
+### What Was Changed
+
+- Added a visual loading state to the `Login` submit button in `login.html`.
+- Button now shows:
+  - animated spinner icon
+  - dynamic label swap (`Login` -> `Logging In...`).
+- Updated busy-state logic (`setLoginBusy`) to:
+  - toggle spinner visibility
+  - update button label via dedicated label element
+  - apply `aria-busy` and wait cursor while request is in progress.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Non-module inline script parse checks passed for edited HTML files.
+
+---
+
+## Update (2026-04-07) - Unified Member + Free Account Login Flow
+
+### What Was Changed
+
+- Merged login behavior so both paid members and free/preferred customers authenticate from `login.html`.
+- Updated post-login routing in `login.html`:
+  - paid/member accounts -> `/index.html`
+  - free/preferred accounts -> `/store-dashboard.html` (with `?store=` preserved when available).
+- Removed free-account rejection behavior from `login.html` (no more forced "Go to Free Member Login" detour).
+- Added legacy store-code alias handling in login routing (`CHG-7X42` -> `CHG-ZERO`) to avoid referral-code regressions.
+- Converted `store-login.html` into a backward-compatible redirect page that forwards to unified `login.html` while preserving `?store=`.
+- Updated shared storefront helper route `buildFreeLoginUrl(...)` to target `/login.html`.
+- Updated storefront pages/modals/messages/links that referenced separate free login labels/URLs to the unified login route.
+- Updated password setup flows to send both free and paid users to `/login.html`.
+
+### Files Affected
+
+- `login.html`
+- `storefront-shared.js`
+- `store-login.html`
+- `store-dashboard.html`
+- `store.html`
+- `store-product.html`
+- `store-support.html`
+- `store-checkout.html`
+- `store-register.html`
+- `store-password-setup.html`
+- `password-setup.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Design / Behavior Decisions
+
+- Kept Admin login untouched (`admin.html` / admin auth path remains separate).
+- Preserved legacy `/store-login.html` URL compatibility through redirect instead of hard removal.
+- Kept existing account-type checks for destination routing only (not for rejecting authentication).
+
+### Known Limitations
+
+- Public-store login modal still presents two account options, but both unauthenticated flows now converge on `/login.html`.
+- `store-login.html` remains as a compatibility shell for older bookmarks and links.
+
+### Validation
+
+- `node --check storefront-shared.js` passed.
+- Non-module inline script parse checks passed for edited HTML files.
+
+---
+
+## Update (2026-04-07) - Login Input Colors Aligned To Glass Panel Theme
+
+### What Was Changed
+
+- Retuned login form input styling in `login.html` so fields match current glass panel palette.
+- Updated both `Username or Email` and `Password` inputs:
+  - switched from flat dark fill + hard border color to translucent glass fill (`bg-white/[0.08]`)
+  - standardized border to subtle frosted tint (`border-white/26`)
+  - aligned placeholder color to theme token (`placeholder:text-text-tertiary`)
+  - added gentle hover/focus background and border transitions to stay cohesive with panel.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Login Panel Recolor (No Purple) + Button Glow Removed
+
+### What Was Changed
+
+- Recolored login panel visual system in `login.html` away from purple into cyan/ice tones.
+- Updated panel glassmorphism treatment:
+  - adjusted panel surface/background alpha and border tint
+  - refined panel highlight gradient for frosted-glass feel.
+- Updated input fields:
+  - replaced purple border/placeholder tones with neutral blue-gray and cyan focus accents.
+- Removed glow styling from `Login` button:
+  - removed custom shadow glow classes
+  - kept clean flat glass-compatible button with subtle border/focus states.
+- Updated shared Tailwind tokens used by the panel (`brand`, `surface`, `text`, `depth-3`) to remove purple bias.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Resize-Locked Background Rendering (No Stretch/Squeeze On Window Resize)
+
+### What Was Changed
+
+- Reworked ColorBends runtime in `login.html` so resize no longer re-scales shader space:
+  - introduced fixed internal render resolution:
+    - `FIXED_RENDER_WIDTH = 1920`
+    - `FIXED_RENDER_HEIGHT = 1080`
+  - shader `uCanvas` is now locked to fixed resolution (not resized per viewport).
+- Canvas presentation now uses cover behavior for responsive framing:
+  - added `object-fit: cover` + `object-position: center center` on background canvas.
+- Removed dynamic resize-driven shader resizing/listeners for aspect recalculation.
+- Kept pointer math viewport-aware via `getPointerViewportSize()` so interaction still tracks current screen.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Mobile Squeeze Follow-Up v3 (Canvas Size Sync + Aspect Clamp)
+
+### What Was Changed
+
+- Applied additional anti-squeeze adjustments in `login.html` ColorBends shader/runtime:
+  - shader aspect handling now uses clamped aspect range (`0.72` to `1.4`) to reduce extreme portrait distortion.
+  - resize sizing now prioritizes real rendered host bounds via `container.getBoundingClientRect()`.
+  - WebGL resize switched to `renderer.setSize(width, height, true)` to force CSS canvas size sync with render buffer dimensions.
+- Retained visual-viewport listener approach from v2 while improving primary size source to actual fixed background host rect.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Mobile Squeeze Follow-Up Fix (Viewport-Fixed Background)
+
+### What Was Changed
+
+- Applied a deeper mobile background fix in `login.html` after initial aspect correction was still insufficient.
+- Switched ColorBends background host from document-relative absolute positioning to viewport-fixed positioning:
+  - `#color-bends-bg` now uses `fixed inset-0` so it always matches the visual viewport rather than growing with page content height.
+- Updated shader resize plumbing to use viewport-aware dimensions:
+  - added `getViewportSize()` with `window.visualViewport` fallback chain
+  - resize updates now bind to:
+    - `window.resize`
+    - `window.orientationchange`
+    - `visualViewport.resize`
+    - `visualViewport.scroll`.
+- Pointer normalization now uses the same viewport-aware dimensions to keep interaction aligned on mobile.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Mobile ColorBends Squeeze Fix (Portrait Aspect)
+
+### What Was Changed
+
+- Corrected ColorBends shader aspect mapping in `login.html` to prevent compressed background appearance on mobile portrait layouts.
+- Replaced single-axis aspect scale:
+  - previous: `q.x *= (uCanvas.x / uCanvas.y)`
+  - updated: conditional cover-style mapping:
+    - wide screens (`aspect > 1`): scale `q.x`
+    - tall screens (`aspect <= 1`): scale `q.y` inversely.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Rotating Heading Length + Height Stabilization
+
+### What Was Changed
+
+- Replaced long rotating phrase in `login.html`:
+  - `Your Next Level Starts Here.` -> `Next Level Starts Now.`
+- Stabilized heading region height to prevent panel shift during text rotation:
+  - applied fixed heading height classes on `#login-inspiration-heading`
+  - added `whitespace-nowrap` so configured short phrases stay one-line.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Login Panel Height Stabilized (No Jump On Error)
+
+### What Was Changed
+
+- Updated `login.html` login error area to prevent panel height snapping when validation/runtime errors appear.
+- Replaced `hidden` toggling (display removal) with a reserved error slot:
+  - added fixed reserved space wrapper (`min-h-[4.25rem]`)
+  - error paragraph now stays in layout and fades in/out via opacity.
+- Added state class helpers for error visibility:
+  - `revealLoginError()` applies visible styling (`border-semantic-danger/40`, `bg-semantic-danger-bg`, `opacity-100`)
+  - `hideLoginError()` resets to transparent/inactive state while preserving layout height.
+- Updated all error display paths (`showLoginError`, password-setup link error, free-account redirect error) to use shared reveal behavior.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots taken in this pass per instruction.
+
+---
+
+## Update (2026-04-07) - Login Panel Content Refresh (Logo, Rotating Heading, Copy Cleanup)
+
+### What Was Changed
+
+- Updated login panel branding in `login.html`:
+  - replaced top logo with `/brand_assets/Logos/L&D White Icon.png`.
+- Replaced static `Member Login` title with rotating inspirational heading text:
+  - added phrase array with timed rotation every `4200ms` (> 3 seconds)
+  - added per-phrase font switching across `font-body` (Inter), `font-alt` (Space Grotesk), and `font-display`.
+- Updated label capitalization:
+  - `Username or email` -> `Username or Email`.
+- Updated primary action copy:
+  - button text `Sign In` -> `Login`
+  - busy state text `Signing In...` -> `Logging In...`.
+- Removed deprecated auth-source panel from login card:
+  - deleted “Auth source …” info block now that auth is DB-backed.
+- Added `Space Grotesk` font import and Tailwind font family alias `alt` for heading variation.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Design Decisions
+
+- Kept rotating heading in the same title slot to avoid layout drift while adding the requested dynamic messaging.
+- Preserved the existing auth flow and IDs; changes are presentation/copy only.
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- No screenshots captured in this pass per latest instruction.
+
+---
+
+## Update (2026-04-07) - Ultra-High Resolution Capture + Higher Shader Pixel Density
+
+### What Was Changed
+
+- Increased screenshot capture defaults in `screenshot.mjs`:
+  - viewport defaults changed from `1440x900` to `3840x2160`
+  - added `deviceScaleFactor` default `2`
+  - result default capture output is now `7680x4320` (8K UHD) when using the screenshot script.
+- Added env override support for capture resolution in `screenshot.mjs`:
+  - `SCREENSHOT_WIDTH`
+  - `SCREENSHOT_HEIGHT`
+  - `SCREENSHOT_DSF`
+- Increased ColorBends canvas render resolution in `login.html`:
+  - replaced capped pixel ratio (`min(..., 2)`) with uncapped device ratio (`max(1, devicePixelRatio)`).
+
+### Files Affected
+
+- `screenshot.mjs`
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- High-resolution capture verification:
+  - `temporary screenshots/screenshot-127-login-ultrares-pass1.png`
+  - measured size: `7680 x 4320` pixels.
+
+---
+
+## Update (2026-04-07) - Login ColorBends Config Set To Exact User Values
+
+### What Was Changed
+
+- Updated `colorBendsConfig` in `login.html` to match the exact requested settings:
+  - `rotation: 0`
+  - `speed: 0.15`
+  - `colors: ["#ff0000", "#00ff00", "#0000ff"]`
+  - `transparent: true`
+  - `autoRotate: 0.3`
+  - `scale: 1.8`
+  - `frequency: 1`
+  - `warpStrength: 1`
+  - `mouseInfluence: 0.1`
+  - `parallax: 0.1`
+  - `noise: 0.05`
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Screenshot verification passes:
+  - `temporary screenshots/screenshot-125-login-exact-settings-pass1.png`
+  - `temporary screenshots/screenshot-126-login-exact-settings-pass2.png`
+
+---
+
+## Update (2026-04-07) - Login Background Layer Cleanup (Single Background Source)
+
+### What Was Changed
+
+- Cleaned up extra background stacking in `login.html` behind the Color Bends canvas.
+- Removed non-essential fallback/background layers:
+  - removed radial-gradient fallback composition applied directly on `#color-bends-bg`
+  - removed additional radial vignette overlay layer behind content.
+- Kept only:
+  - base black canvas fallback (`#02010B`)
+  - live shader-rendered Color Bends layer.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Screenshot verification:
+  - `temporary screenshots/screenshot-124-login-background-cleanup-pass1.png`
+
+---
+
+## Update (2026-04-07) - Login Color Bends Palette + Hover Interaction Tuning
+
+### What Was Changed
+
+- Tuned login background palette to better match requested reference composition (cyan/pink/green over black).
+- Updated Color Bends config values in `login.html` to the requested Usage-style values:
+  - `colors: ["#ff5c7a", "#8a5cff", "#00ffd1"]`
+  - `mouseInfluence: 1`
+  - `noise: 0.1`
+- Improved hover interaction reliability by moving pointer tracking from background element listeners to global window listeners:
+  - `window.addEventListener('pointermove', ...)`
+  - `window.addEventListener('pointerleave', ...)`
+  - `window.addEventListener('blur', ...)`
+- Kept implementation JS/CSS-only (no video sources).
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Screenshot tuning passes generated:
+  - `temporary screenshots/screenshot-120-login-black-colorbends-tune-pass1.png`
+  - `temporary screenshots/screenshot-121-login-black-colorbends-tune-pass2.png`
+  - `temporary screenshots/screenshot-122-login-black-colorbends-tune-pass3.png`
+  - `temporary screenshots/screenshot-123-login-black-colorbends-tune-pass4.png`
+
+---
+
+## Update (2026-04-07) - Color Bends Converted to Custom JS/CSS Only (No Video Layer)
+
+### What Was Changed
+
+- Removed the Color Bends background video layer from `login.html`.
+- Installed `three` (`npm install three`) and switched the login background runtime to local module import:
+  - `import * as THREE from '/node_modules/three/build/three.module.js'`
+  - removed broken CDN reference that was returning `404` and preventing shader startup.
+- Added a single `colorBendsConfig` object in `login.html` that mirrors the Usage API fields, so customization now maps 1:1 to provided props.
+- Kept the background implementation fully generated by:
+  - live Three.js shader (Color Bends fragment/vertex logic)
+  - CSS gradient fallback bends behind the shader for non-WebGL/headless cases.
+- Retained black background composition and dark glassmorphism login surface.
+- Preserved provided Color Bends prop profile values in shader setup (`colors`, `rotation`, `speed`, `scale`, `frequency`, `warpStrength`, `mouseInfluence`, `parallax`, `noise`).
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Design Decisions
+
+- Removed media playback dependency so the effect reads as custom-generated rather than video playback.
+- Added CSS fallback intentionally to keep the intended bend composition visible when WebGL output is constrained (e.g., some headless screenshot environments).
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- Screenshot comparison rounds for JS/CSS-only background:
+  - `temporary screenshots/screenshot-115-login-black-colorbends-js-only-pass1.png`
+  - `temporary screenshots/screenshot-116-login-black-colorbends-js-only-pass2.png`
+
+---
+
+## Update (2026-04-07) - Member Login Background Matched to Black Color Bends Reference
+
+### What Was Changed
+
+- Updated `login.html` again to match the provided black Color Bends reference direction.
+- Applied the provided Color Bends parameter profile in implementation:
+  - `colors: ["#ff5c7a", "#8a5cff", "#00ffd1"]`
+  - `rotation: 0`
+  - `speed: 0.2`
+  - `scale: 1`
+  - `frequency: 1`
+  - `warpStrength: 1`
+  - `mouseInfluence: 1`
+  - `parallax: 0.5`
+  - `noise: 0.1`
+  - `transparent: true`
+  - `autoRotate: 0`
+- Shifted page visual mode back to dark (`color-scheme: dark`) so the login screen background reads as black-first.
+- Kept the login card in a dark glassmorphism style so the content remains readable over bright bends.
+- Added the official Color Bends media layer as a visual base and kept shader overlay active to preserve live behavior and close screenshot matching.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Design Decisions
+
+- Prioritized visual alignment to the provided screenshot (black base and neon arc composition) over the previous light-theme login pass.
+- Preserved existing login/auth IDs and JS auth flow; changes remained presentation-focused.
+
+### Validation
+
+- Inline script syntax validation passed for `login.html`.
+- Screenshot comparison rounds completed for black reference alignment:
+  - `temporary screenshots/screenshot-113-login-black-colorbends-pass1.png`
+  - `temporary screenshots/screenshot-114-login-black-colorbends-pass2.png`
+
+---
+
+## Update (2026-04-07) - Member Login Light Theme + Color Bends Glassmorph
+
+### What Was Changed
+
+- Restyled `login.html` from dark mode to a light-first default (`<meta name="color-scheme" content="light">`).
+- Replaced the previous static login backdrop with a ReactBits-inspired `Color Bends` treatment:
+  - added animated shader canvas (Three.js) based on the Color Bends fragment/vertex flow
+  - added official Color Bends fallback media layer sourced from ReactBits assets for visual continuity.
+- Rebuilt the login card shell into a glassmorphism surface:
+  - translucent panel (`bg-white` alpha), heavy backdrop blur, soft highlight overlay, and tinted layered shadows
+  - preserved existing login form IDs and auth wiring (`#login-form`, `#login-identifier`, `#login-password`, `#login-submit`).
+- Updated typography and color tokens to match the light theme while preserving brand-purple direction.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-login-page.md`
+
+### Design Decisions
+
+- Used brand logo asset (`/brand_assets/Logos/Premiere Life Logo_Transparent.svg`) instead of placeholder branding.
+- Kept the auth logic untouched and scoped work to visual/theming layer only.
+- Added progressive fallback for background rendering (video + shader) so the page still visually matches the Color Bends request when WebGL support varies.
+
+### Validation
+
+- Inline script syntax validation passed for updated `login.html`.
+- Screenshot review rounds completed:
+  - `temporary screenshots/screenshot-110-login-light-glass-pass1.png`
+  - `temporary screenshots/screenshot-111-login-light-glass-pass2.png`
+  - `temporary screenshots/screenshot-112-login-light-glass-pass3.png`
+
+---
+
+## Update (2026-04-07) - Dashboard Skeleton Layout Matched to Current Home Composition
+
+### What Was Changed
+
+- Rebuilt `#dashboard-initial-skeleton` in `index.html` so loading state mirrors the current Home dashboard structure instead of an older compact center-like layout.
+- Updated skeleton composition now follows live layout order:
+  - Row 1: four KPI card placeholders
+  - Row 2 top: `Weekly Total Organization BV` (left) + `Server Cut-Off` (right)
+  - Row 2 bottom: `Infinity Builder + Legacy Leadership` stack (left) + `Fast Track + Recent Activity` stack (right).
+- Added richer placeholder structure per section (header chips, value bars, chart strips, list rows) to align spacing/visual rhythm with the live dashboard.
+- Kept all loading-state logic intact (`data-dashboard-loading`, step-complete flow, force-stop timer); this update is markup-only for skeleton fidelity.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Recent Activity Subtitle Removed + View All Toggle Fixed
+
+### What Was Changed
+
+- Removed the helper subtitle text under the `Recent Activity` header:
+  - deleted: `Live feed of enrollments, commissions, payouts, and wallet transfers`
+- Replaced the non-functional `View All` anchor with a real button (`#recent-activity-view-all-button`).
+- Added expand/collapse behavior for Recent Activity list rendering:
+  - default still shows up to `MAX_RECENT_ACTIVITY_ITEMS` (`12`)
+  - button appears only when entry count exceeds the limit
+  - button toggles between `View All` and `Collapse`
+  - expanded state re-renders the full merged feed list.
+- Added dedicated control initialization:
+  - `initializeRecentActivityPanelControls()` now binds the toggle click once and reuses existing render flow.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Recent Activity UI Cleanup + Legacy Height Match
+
+### What Was Changed
+
+- Redesigned the `Recent Activity` panel shell in `index.html` without changing activity data content logic.
+- Visual cleanup updates:
+  - upgraded outer surface to match current dashboard visual language (`rounded-2xl`, elevated background, subtle glow)
+  - replaced large title row with compact caption-style header and helper subtitle
+  - retained existing `#recent-activity-feed` data list rendering and item content behavior.
+- Added desktop height synchronization so `Recent Activity` matches `Legacy Leadership Bonus` panel height:
+  - source: `#legacy-leadership-bonus-panel`
+  - target: `#recent-activity-panel`
+  - sync triggers on init, resize, breakpoint change, feed render, and `ResizeObserver` updates.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept all activity entry generation/render logic untouched to preserve the exact data the user approved.
+- Scoped changes to panel presentation and layout-height behavior only.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Fast Track Outer Container Removed
+
+### What Was Changed
+
+- Removed the extra outer wrapper around `Fast Track Bonus` in `index.html` to reduce nested container depth.
+- `#fast-track-bonus-card` now serves as the single top-level Fast Track surface in the right column.
+- Updated Fast Track height-sync binding to target `#fast-track-bonus-card` directly so Infinity-height matching behavior remains active.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Layout Impact
+
+- No layout conflict introduced.
+- Right column stacking remains:
+  - Server Cut-Off
+  - Fast Track Bonus
+  - Recent Activity.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Fast Track Audit Filter Corrected (Bonus-Only Records)
+
+### What Was Changed
+
+- Corrected Fast Track audit feed logic in `index.html` to exclude non-commission enrollments.
+- `buildFastTrackCommissionAuditEntries()` now includes enrollment entries only when `fastTrackBonusAmount > 0`.
+- Removed pending/zero-amount enrollment rows from the Fast Track audit list so only real Fast Track bonus credits appear.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Fast Track Commission Audit Feed + Infinity Height Match
+
+### What Was Changed
+
+- Added an audit trail section inside the `Fast Track Bonus` component in `index.html`.
+- New Fast Track audit UI includes:
+  - record counter (`#fast-track-commission-audit-count`)
+  - empty state (`#fast-track-commission-audit-empty`)
+  - scrollable record list (`#fast-track-commission-audit-list`).
+- Implemented Fast Track audit data rendering from live dashboard state:
+  - enrollment-based Fast Track commission credits from direct sponsored member records
+  - Fast Track transfer-out/payout records sourced from persisted commission payout activity entries.
+- Added desktop height synchronization so Fast Track panel matches `Infinity Builder Bonus` panel height:
+  - panel IDs:
+    - `#fast-track-bonus-panel`
+    - `#infinity-builder-bonus-panel`
+  - sync triggers:
+    - on init
+    - on data re-render
+    - on resize/breakpoint changes
+    - via `ResizeObserver` on Infinity Builder panel changes.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept Fast Track card’s existing payout CTA and balance area untouched, and appended audit feed below to preserve current behavior.
+- Used a compact audit row pattern similar to dashboard activity styling for readability and quick historical scan.
+- Implemented height match in JS for deterministic alignment, rather than static min-height guessing.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Dashboard Layout Reflow (Infinity/Legacy Left, Fast Track Right)
+
+### What Was Changed
+
+- Reflowed Row 2 dashboard component placement in `index.html`:
+  - `Infinity Builders Bonus` and `Legacy Leadership Bonus` remain in the left two-column lane directly below `Weekly Total Organization BV`.
+  - `Fast Track Bonus` was moved from under Account Overview to the right lane.
+  - Right lane now stacks:
+    1. `Server Cut-Off`
+    2. `Fast Track Bonus`
+    3. `Recent Activity`.
+- Preserved all original IDs and controls for the moved Fast Track container:
+  - `#fast-track-bonus-card`
+  - `#fast-track-bonus-value`
+  - `#fast-track-request-payout-button`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used component relocation (not rebuild) so existing JS hooks and state wiring continue without additional logic changes.
+- Kept Server Cut-Off in the right column and placed Fast Track above Recent Activity as requested.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Server Cut-Off Restyled to Match Weekly Total BV Panel
+
+### What Was Changed
+
+- Restyled `Server Cut-Off` in `index.html` to match the cleaner visual style of the `Weekly Total Organization BV` area.
+- Removed the previous nested “mini-card” blocks and converted the panel to a single-surface composition:
+  - top caption row with compact status pill
+  - primary countdown value line
+  - simple divider-based metric sections.
+- Updated typography and spacing to mirror the Weekly Total panel:
+  - uppercase caption labels with shared tracking
+  - `text-[2rem]` main metric treatment
+  - border separators (`border-t`) instead of stacked boxed containers.
+- Preserved all data hooks/IDs:
+  - `#cutoff-countdown-value`
+  - `#left-leg-bv-value`
+  - `#right-leg-bv-value`
+  - `#estimated-cycles-value`
+  - `#cycle-bv-value`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Matched visual language to the Weekly Total panel to improve cross-panel consistency in Row 2.
+- Kept the same metric hierarchy but reduced container noise for a cleaner scan pattern.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Server Cut-Off Height Sync Fix (Weekly Total Match)
+
+### What Was Changed
+
+- Fixed Server Cut-Off vertical mismatch in `index.html` where the panel was visually stretching beyond the intended target area.
+- Removed stretch-driven sizing behavior from the Server Cut-Off wrapper/card:
+  - wrapper now uses `lg:self-start`
+  - removed forced `h-full` sizing from `#server-cutoff-card`
+  - removed `mt-auto` push behavior in the cycles row to avoid “hidden/empty container” look.
+- Added runtime desktop height synchronization so `#server-cutoff-card` matches the rendered height of `#account-overview-card` (Weekly Total Organization BV component area):
+  - sync on init
+  - sync after data/metric updates
+  - sync on `resize` and desktop breakpoint changes
+  - sync via `ResizeObserver` when account overview height changes.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used direct card-to-card height synchronization for deterministic matching rather than relying on grid row stretching, which was inheriting extra layout height from adjacent content blocks.
+- Kept all existing Server Cut-Off data IDs and fetch/render behavior intact.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Server Cut-Off Panel Tightened + Timer Simplified
+
+### What Was Changed
+
+- Refined the Dashboard `Server Cut-Off` panel in `index.html` for tighter visual rhythm and better parity with the `Weekly Total Organization BV` panel style.
+- Updated the card shell to a matching elevated treatment:
+  - `rounded-2xl`
+  - subtle glow accent
+  - denser internal spacing
+  - `h-full` flex layout with `min-h` target for closer height parity.
+- Cleaned the timer area:
+  - removed extra `Next cut-off ...` line (`#cutoff-next-target`)
+  - changed heading copy to `Cut-Off Timer`
+  - timer now displays compact time-only output format (`Xd Xh Xm`, `Xh Xm`, `Xm`) with no “remaining” wording.
+- Tightened metric blocks:
+  - compacted Left/Right leg BV card spacing
+  - shortened cycles footnote copy for a cleaner final row.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Matched the Server Cut-Off visual language to the new Account Overview primary panel so the row feels more uniform.
+- Kept all existing metric IDs used by data bindings (`left/right leg`, `cycles`, countdown value) to avoid regressions.
+- Removed nonessential timer text to prioritize rapid scanability of the countdown value.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Dashboard Right Column Simplified (Quick Actions Removed)
+
+### What Was Changed
+
+- Removed the `Quick Actions` panel markup from the dashboard right column in `index.html`.
+- Repositioned `Server Cut-Off` as the primary top-right component (same section slot previously shared in the stacked layout).
+- Updated container structure:
+  - removed `flex` stack wrapper used for `Quick Actions + Server Cut-Off`
+  - right column now directly renders `#server-cutoff-card` container.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Weekly Boundary Dividers for Account Overview Comparison Graph
+
+### What Was Changed
+
+- Enhanced the new Account Overview dual-series 30-day graph in `index.html` by adding weekly separation markers.
+- Added subtle vertical divider lines at week boundaries to make weekly groupings visually obvious.
+- Boundary logic:
+  - renders separator when a chart day falls on Sunday (start of weekly bucket)
+  - aligns with existing dashboard note that server weekly cutoff occurs Saturday night.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Account Overview Main Metric Graph Added (Total vs Personal BV)
+
+### What Was Changed
+
+- Added a comparison chart to the left/main Account Overview panel (`Weekly Total Organization BV`) in `index.html`.
+- Chart behavior follows the same interaction style as the Personal Volume KPI graph:
+  - animated bar reveal using existing `.dashboard-pv-data-bar` animation class
+  - hover/focus tooltip
+  - compact caption summarizing trend change.
+- Implemented dual-series daily comparison:
+  - series 1: `Total Organization BV` (darker bar)
+  - series 2: `Weekly Personal Organization BV` (lighter bar)
+  - rendered as two bars per day for a 30-day timeline.
+- Added new Account Overview BV trend persistence/state pipeline:
+  - storage key: `charge-account-overview-bv-trend-v1`
+  - per-user partitioning via normalized user key
+  - daily dedupe logic (latest entry per day retained)
+  - 30-day series builder + tooltip renderer + caption builder.
+- Wired graph updates into existing dashboard summary lifecycle in `applyBinaryTreeDashboardSummary(...)`:
+  - compares `totalAccumulatedPv` against `organizationRollups.personalOrganizationBv`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Reused the Personal Volume chart animation system to keep interaction and motion consistent across dashboard KPI visuals.
+- Kept existing text/trend IDs untouched so existing metric updates continue to work without regressions.
+- Used two contrast levels of brand color in-chart plus an explicit legend for quick comparison readability.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Account Overview Header Strip Removed (Cleaner Alignment)
+
+### What Was Changed
+
+- Applied a cleanup pass to Dashboard `Account Overview` in `index.html` per latest request.
+- Removed the entire internal heading strip above the metrics:
+  - `Account Overview`
+  - `Your Organization Summary`
+  - `Live Stats` pill.
+- The metric board now begins immediately at the top of the component, improving visual alignment with `Quick Actions`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Account Overview Visual Pivot (Asymmetric Command Board)
+
+### What Was Changed
+
+- Applied another Account Overview redesign pass in `index.html` after “not hitting the mark” feedback.
+- Replaced the prior uniform segment rail with an asymmetric command-board composition:
+  - left side: dominant primary metric panel for `Weekly Total Organization BV`
+  - right side: compact stacked/segmented secondary metrics for:
+    - `New Members`
+    - `Direct Sponsors`
+    - `Cycles`
+- Kept all existing IDs and render hooks intact:
+  - `#account-overview-total-bv-trend`
+  - `#total-accumulated-pv-value`
+  - `#account-overview-personal-organization-bv`
+  - `#account-overview-new-members-trend`
+  - `#new-members-joined-value`
+  - `#account-overview-direct-sponsors-trend`
+  - `#total-direct-sponsors-value`
+  - `#dashboard-total-cycles-value`
+- `Fast Track Bonus` remains separated below Account Overview.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html`.
+
+---
+
+## Update (2026-04-07) - Account Overview Style Pivot (Unified Segment Rail)
+
+### What Was Changed
+
+- Applied a second visual redesign pass to Dashboard `Account Overview` in `index.html` after the ledger style was rejected.
+- Updated the overview to a single segmented metric rail:
+  - one shared surface with subtle background treatment
+  - four equal metric segments separated by divider lines
+  - no stacked mini cards, no per-row ledger blocks.
+- Kept all metric IDs and data wiring stable:
+  - `#total-accumulated-pv-value`
+  - `#account-overview-total-bv-trend`
+  - `#account-overview-personal-organization-bv`
+  - `#new-members-joined-value`
+  - `#account-overview-new-members-trend`
+  - `#total-direct-sponsors-value`
+  - `#account-overview-direct-sponsors-trend`
+  - `#dashboard-total-cycles-value`
+- `Fast Track Bonus` remains in its own separate container below the overview component.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax validation passed for `index.html` after this redesign.
+
+---
+
+## Update (2026-04-07) - Account Overview Visual Redesign (Card Grid -> Ledger Rows)
+
+### What Was Changed
+
+- Applied a style-only redesign pass to Dashboard `Account Overview` in `index.html` after layout feedback.
+- Replaced the previously introduced 4-card stat layout with a unified non-card ledger presentation:
+  - one shared surface
+  - four separated metric rows (`divide-y`)
+  - row pattern: icon + label/subtext on the left, trend/value on the right.
+- Kept all requested metrics and bindings unchanged:
+  - `Weekly Total Organization BV` (`#total-accumulated-pv-value`, `#account-overview-total-bv-trend`, `#account-overview-personal-organization-bv`)
+  - `New Members Joined Your Network` (`#new-members-joined-value`, `#account-overview-new-members-trend`)
+  - `Total Direct Sponsors` (`#total-direct-sponsors-value`, `#account-overview-direct-sponsors-trend`)
+  - `Cycles` (`#dashboard-total-cycles-value`)
+- `Fast Track Bonus` container remains separate below Account Overview (from prior pass).
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Maintained existing ID hooks so no dashboard metric render logic needed to change.
+- Reduced “card-in-card” visual density by switching to a single structured stats panel for clearer scan flow.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html` after the style redesign.
+
+---
+
+## Update (2026-04-07) - Dashboard Account Overview Refactor (Rank Card Removed + Fast Track Separated)
+
+### What Was Changed
+
+- Refactored the Dashboard `Account Overview` block in `index.html`:
+  - removed the previous `Account Rank` panel from the Account Overview component.
+  - reorganized overview metrics into a clean 4-card grid.
+- Metrics now shown in Account Overview:
+  - `Weekly Total Organization BV`
+  - `New Members Joined Your Network`
+  - `Total Direct Sponsors`
+  - `Cycles` (new) using existing runtime binding `#dashboard-total-cycles-value`.
+- Separated `Fast Track Bonus` into its own container:
+  - moved from inside the Account Overview card to a dedicated sibling container below it in the left dashboard column.
+  - retained all existing Fast Track IDs and transfer button behavior.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved existing metric/trend IDs used by runtime update functions to avoid data-binding regressions.
+- Kept `account-overview-card` and rank dataset metadata (`data-account-rank`) in place for compatibility with existing rank-related logic.
+- Introduced `Cycles` as a first-class overview metric so cycle visibility is now within the same summary cluster requested by UX.
+
+### Known Limitations
+
+- Account rank upgrade controls remain in script logic but are no longer exposed in the Dashboard Account Overview UI after this pass.
+
+### Validation
+
+- Inline script syntax validation passed for `index.html` after markup changes.
+
+---
+
+## Update (2026-04-07) - E-Wallet KPI Card: Single Action + 30-Day Balance Trend
+
+### What Was Changed
+
+- Updated the Home dashboard `E-Wallet Balance` KPI card in `index.html` to match the latest UX request:
+  - removed the two existing CTA buttons (`Send`, `Transfer`)
+  - added one CTA only: `Go to E-Wallet`
+  - CTA now opens the `e-wallet` page view via `setPage('e-wallet', { routeMode: 'push' })`.
+- Added a 30-day balance graph block directly in the E-Wallet KPI card:
+  - `#dashboard-ewallet-balance-bars`
+  - `#dashboard-ewallet-balance-tooltip`
+  - `#dashboard-ewallet-balance-tooltip-date`
+  - `#dashboard-ewallet-balance-tooltip-value`
+  - `#dashboard-ewallet-balance-graph-caption`
+- Implemented E-Wallet trend state + renderer in dashboard script:
+  - persistent trend key: `charge-dashboard-ewallet-trend-v1`
+  - per-user trend partitioning with normalized member key
+  - daily bucket dedupe (latest server timestamp per day wins)
+  - 30-day daily series render with tooltip and animated bar reveal (aligned with Personal Volume graph behavior).
+- Wired KPI graph refresh into E-Wallet summary lifecycle:
+  - `renderEWalletSummary()` now updates E-Wallet KPI trend each time wallet snapshot data is rendered.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept graph interaction parity with Personal Volume (compact bars, hover/focus tooltip, dynamic caption) so KPI cards feel consistent.
+- Kept CTA behavior explicit and navigation-first (`Go to E-Wallet`) to reduce action ambiguity at KPI level.
+- Used server-confirmed wallet snapshot timestamps for trend writes and avoided synthetic historical reconstruction.
+
+### Known Limitations
+
+- Historical day values are accumulated over time from observed server snapshots; this pass does not retroactively rebuild all prior days from transfer history.
+
+---
+
+## Update (2026-04-07) - Account Active Until KPI Icons Now Have Hover Tooltips
+
+### What Was Changed
+
+- Added hover/focus interaction for `Rank`, `Title 1`, and `Title 2` icons in the `Account Active Until` KPI badge row.
+- Implemented custom tooltip behavior per badge icon (no native `title` tooltip):
+  - tooltip appears on hover/focus
+  - subtle hover lift/scale and border highlight
+  - tooltip includes title + subtitle values from profile badge metadata.
+- Reused existing profile badge content source so tooltip content remains synchronized with Profile state.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept KPI badge interactions lightweight and non-click actions; hover/focus reveals context without opening modals.
+- Used dedicated KPI tooltip classes to avoid affecting Profile page hovercard behavior.
+
+### Validation
+
+- Headless DOM check confirms:
+  - 3 KPI badges render
+  - all 3 are hover/focus-capable (`tabindex="0"`)
+  - all 3 include tooltip elements with mapped content.
+
+---
+
+## Update (2026-04-07) - Account Active Until KPI Badge Shell Shadows Removed
+
+### What Was Changed
+
+- Follow-up to prior icon-shadow tweak in `index.html`:
+  - removed shadow from the KPI badge shells themselves (`Rank`, `Title 1`, `Title 2` icon circles)
+  - specifically removed `box-shadow` from `.dashboard-account-kpi-badge`
+- This is in addition to the earlier removal of icon-image drop shadow on `.dashboard-account-kpi-badge-icon`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed both KPI icon layer shadows are now removed:
+  - no `box-shadow` on badge shell
+  - no `filter: drop-shadow(...)` on icon image
+
+---
+
+## Update (2026-04-07) - Account Active Until KPI Icon Shadow Removed
+
+### What Was Changed
+
+- Removed drop shadow styling from the `Account Active Until` KPI badge icons in `index.html`.
+- Updated `.dashboard-account-kpi-badge-icon` by removing the `filter: drop-shadow(...)` rule.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed KPI icon class no longer applies drop shadow filter.
+
+---
+
+## Update (2026-04-07) - Account Active Until KPI Badge Icons Added (Reuse Profile Badges)
+
+### What Was Changed
+
+- Enhanced the `Account Active Until` KPI card in `index.html` to reduce empty space in the bottom area by adding a 3-icon badge strip.
+- Added badges for:
+  - Rank Icon
+  - Title 1 Icon
+  - Title 2 Icon
+- Reused the existing Profile badge data pipeline instead of duplicating logic:
+  - reads from `resolveProfileHandleBadgeEntries(...)`
+  - keeps icons in sync with Profile badge state and visibility.
+- Added fallback behavior:
+  - when Title 1/Title 2 are not available yet, placeholders are shown so the row remains visually balanced.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Introduced a dedicated KPI badge shell style (`dashboard-account-kpi-*`) that visually matches Profile badge treatment while remaining non-interactive.
+- Rendered exactly three slots in KPI for stable layout rhythm (Rank, Title 1, Title 2).
+
+### Validation
+
+- Headless DOM check confirmed:
+  - KPI badge strip exists
+  - exactly 3 badge items render
+  - icon sources are populated from profile-derived entries (with placeholders for locked titles).
+
+### Known Limitations
+
+- KPI badge strip is icon-only and non-interactive (no hover card); detailed badge context remains in the Profile page badge hovercard.
+
+---
+
+## Update (2026-04-07) - Account Status Tooltip Copy Updated (Paraphrased)
+
+### What Was Changed
+
+- Updated `Account Active Until` tooltip copy in `index.html` with the new paraphrased sentence.
+- Applied the same new sentence to both:
+  - visible tooltip text
+  - badge `aria-label` (including runtime setter)
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed the old tooltip sentence no longer appears and the new sentence is used in all badge tooltip references.
+
+---
+
+## Update (2026-04-07) - Account Status Tooltip Duplicate (Native WebKit) Removed
+
+### What Was Changed
+
+- Fixed duplicate tooltip behavior on `Account Active Until` badge in `index.html`.
+- Root cause: both custom tooltip and native browser tooltip were active because the badge used `title`.
+- Replaced badge native tooltip attributes with accessibility-only labeling:
+  - removed `title`
+  - now uses `aria-label`
+- Updated render logic to maintain `aria-label` instead of `title`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed no `title="To remain active, ..."` remains on the badge.
+- Custom tooltip remains visible on hover/focus; native WebKit tooltip no longer appears.
+
+---
+
+## Update (2026-04-07) - Account Status Tooltip Typography Reduced (Compact)
+
+### What Was Changed
+
+- Reduced `Account Active Until` tooltip typography to a more compact tooltip size in `index.html` after feedback.
+- Updated tooltip classes:
+  - `text-sm font-medium leading-5` -> `text-xs leading-4`
+- White text was kept as requested.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed tooltip class now uses compact tooltip sizing with white text.
+
+---
+
+## Update (2026-04-07) - Account Status Tooltip Typography (White + Medium)
+
+### What Was Changed
+
+- Updated the `Account Active Until` badge tooltip text styling in `index.html`:
+  - text color changed to white
+  - size increased to `text-sm`
+  - weight set to `font-medium`
+  - line-height increased to `leading-5`
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Confirmed tooltip class now renders with white medium-sized text in markup.
+
+---
+
+## Update (2026-04-07) - Account Status Badge Tooltip Background Matched to Logo Popup
+
+### What Was Changed
+
+- Updated the `Account Active Until` KPI badge tooltip background in `index.html` to match the logo popup menu color exactly.
+- Added a dedicated tooltip class:
+  - `.dashboard-account-status-tooltip`
+  - background set to `rgb(20 22 28 / 0.96)`, the same value used by `#sidebar-brand-menu`.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Matched the exact RGB alpha background value from the existing logo popup instead of using a token approximation (`bg-surface-floating/95`) to ensure visual parity.
+
+### Validation
+
+- Verified `#sidebar-brand-menu` background and tooltip background now use the same color value in CSS/markup.
+
+### Known Limitations
+
+- Match is scoped to background color only; border and shadow remain as previously configured for the KPI tooltip.
+
+---
+
+## Update (2026-04-07) - Account Status KPI Copy Update + Active Badge Tooltip
+
+### What Was Changed
+
+- Updated the Home KPI card copy in `index.html`:
+  - top caption changed from `Account Status` to `Account Active Until`
+  - heading now shows timer-only text (no phrases like `Active for ... remaining`)
+  - supporting note text changed to: `Account must be active to enjoy earning commissions.`
+- Added hover/focus tooltip behavior to the status badge (`Active`/`Inactive`):
+  - tooltip text: `To remain active, you must purchase a product every month`
+  - also applied via badge `title` attribute for native fallback.
+- Updated KPI timer rendering behavior:
+  - no record -> `--`
+  - active window -> duration only (example: `5d 3h 14m`)
+  - expired window -> `0m`
+  - descriptive state is still kept in `aria-label` for accessibility.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Headless DOM check confirms:
+  - badge text and tooltip title are present
+  - timer renders as duration-only string
+  - note text renders exactly as requested.
+
+### Known Limitations
+
+- Badge tooltip is hover/focus-driven on desktop; touch devices rely primarily on the `title` fallback behavior and badge context.
+
+---
+
+## Update (2026-04-07) - Sidebar Layout Regression Fix + Sidebar State Persistence
+
+### What Was Changed
+
+- Fixed a structural HTML regression in `index.html` that caused these page sections to render outside the shared `main`/`lg:ml-64` dashboard wrapper:
+  - `Profile`
+  - `My Store`
+  - `Enroll Member`
+  - `Preferred Customers`
+  - `Binary Tree`
+- Root cause was an extra closing `</div>` near the end of the `E-Wallet` section, which broke expected DOM nesting and made affected pages ignore sidebar offset behavior.
+- Added desktop sidebar collapse persistence across reloads by extending existing dashboard view-state storage:
+  - stores `sidebarCollapsed` in `charge-dashboard-view-state`
+  - restores collapsed/open state on initialization before `setPage(...)`
+  - keeps state synced when sidebar is collapsed/opened on desktop
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept sidebar persistence inside the existing view-state storage key instead of introducing a second localStorage key to avoid fragmented UI state.
+- Limited persistence to desktop collapsed/open behavior (`data-sidebar-collapsed`) to preserve expected mobile overlay navigation behavior.
+
+### Validation
+
+- DOM structure verification (headless browser) confirms all page views now mount inside `main` and the shared wrapper:
+  - `page-dashboard`, `page-profile`, `page-enroll-member`, `page-preferred-customer`, `page-binary-tree`, `page-my-store`, `page-e-wallet`, `page-settings`
+- Sidebar persistence verification (headless browser):
+  - collapse -> reload remains collapsed
+  - reopen -> reload remains open
+  - wrapper margin-left transitions as expected (`0px` collapsed, `256px` open on current desktop shell)
+
+### Known Limitations
+
+- Mobile sidebar overlay open/closed state is not persisted by this pass; only desktop collapsed/open state is persisted.
+
+---
+
+## Update (2026-04-07) - KPI Follow-Up Polish (Spacing + Order + Button Style)
+
+### What Was Changed
+
+- Refined the Home KPI strip in `index.html` after visual feedback:
+  - removed excess bottom whitespace feeling by preventing KPI grid item stretch (`items-start`)
+  - swapped KPI order so `Sales Team Commissions` is now 2nd and `Personal Volume` is 3rd
+  - changed Sales Team Commissions button styling to match active sidebar/nav tone
+  - renamed KPI label from `Account Overview` to `Account Status`
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Applied active nav visual language (`bg-brand-500/10`, border brand tint, brand text) to the sales transfer CTA for cohesive dashboard styling.
+- Kept all logic IDs and bindings unchanged while only adjusting card order and visual treatment.
+
+### Validation
+
+- Captured authenticated screenshot passes:
+  - `temporary screenshots/screenshot-91-kpi-spacing-swap-pass1.png`
+  - `temporary screenshots/screenshot-92-kpi-spacing-swap-pass2-crop.png`
+- Confirmed:
+  - reduced visual empty space in KPI row
+  - Sales card appears in 2nd position
+  - Account Status label applied
+
+### Known Limitations
+
+- KPI layout verified in dark mode only during this pass; light-mode verification can be run next if required.
+
+---
+
+## Update (2026-04-07) - KPI Card Rework (E-Wallet + Account Overview Swap)
+
+### What Was Changed
+
+- Updated Home KPI cards in `index.html` based on focused UX feedback:
+  - Reframed `Total Balance` KPI as `E-Wallet Balance` (same data binding/ID, clearer card intent).
+  - Kept `Personal Volume` KPI.
+  - Removed `Cycles` KPI card from the top KPI strip.
+  - Moved `Sales Team Commissions` into the former cycles position.
+  - Removed visible `Per cycle` and `Weekly cap` text row from the Sales Team Commissions KPI to reduce clutter.
+  - Added a new `Account Overview` KPI card showing:
+    - account activity state (`Active`/`Inactive`)
+    - remaining/elapsed activity window
+    - current rank label
+- Added KPI-specific bindings and render updates:
+  - new DOM refs for account overview KPI status/rank/time
+  - new renderer `renderDashboardAccountOverviewKpi(...)`
+  - activity/rank rendering now syncs both the existing account section and the new KPI card.
+- Removed decorative bottom filler styling from KPI cards to eliminate the “graph-like empty space” feel.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized primary values and immediate readability over secondary explanatory rows.
+- Kept existing logic-sensitive IDs and business hooks intact where possible, with additive KPI-specific IDs for the new Account Overview card.
+- Preserved Sales Team cap/progression logic while simplifying visible KPI copy.
+
+### Validation
+
+- Authenticated screenshot passes captured:
+  - `temporary screenshots/screenshot-89-kpi-rework-request-pass1.png`
+  - `temporary screenshots/screenshot-90-kpi-rework-request-pass2-crop.png`
+- Confirmed KPI strip now reflects:
+  - E-Wallet Balance
+  - Personal Volume
+  - Sales Team Commissions (without visible per-cycle/weekly-cap text row)
+  - Account Overview (status + active window + rank)
+
+### Known Limitations
+
+- `Sales Team Commissions` still references cycle-cap usage summary/progress (by design) even though the dedicated Cycles KPI card was removed.
+- This pass is focused on dark-mode visual verification; a dedicated light-mode check can be done next.
+
+---
+
+## Update (2026-04-07) - Home Dashboard KPI + Account Overview Declutter Pass
+
+### What Was Changed
+
+- Redesigned the top `Home` KPI strip in `index.html` to reduce visual fatigue and card clutter while preserving all existing KPI data IDs and payout actions.
+- Reworked KPI presentation for:
+  - `Total Balance`
+  - `Personal Volume`
+  - `Cycles`
+  - `Sales Team Commissions`
+- Shifted KPI layout behavior to reduce compression:
+  - standard desktop keeps a 2-column KPI rhythm
+  - very wide desktop (`2xl`) uses 4 columns
+- Redesigned `Account Overview` into a calmer two-pane composition:
+  - left pane: rank + status + upgrade controls
+  - right pane: simplified metric rows for weekly BV, new members, and direct sponsors
+- Kept logic-sensitive bonus modules untouched (structure and JS hooks preserved):
+  - Fast Track Bonus
+  - Infinity Builder Bonus
+  - Legacy Leadership Bonus
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized readability and scan flow over dense card count to address user-reported eye fatigue.
+- Preserved all existing IDs tied to dashboard JS/render flows to avoid behavior regressions.
+- Used subtle brand-tinted glows, quieter typography hierarchy, and reduced nested surfaces to align with Apple/Shopify-inspired clarity.
+
+### Validation
+
+- Captured authenticated dashboard screenshots after implementation and refinement:
+  - `temporary screenshots/screenshot-86-kpi-overview-redesign-pass1.png`
+  - `temporary screenshots/screenshot-87-kpi-overview-redesign-pass2.png`
+  - `temporary screenshots/screenshot-88-kpi-overview-redesign-pass2-crop.png`
+- Confirmed KPI and Account Overview redesign render while preserving Fast Track, Infinity Builder, and Legacy Leadership module structure.
+
+### Known Limitations
+
+- This pass focuses on KPI + Account Overview composition only; the right-column utility cards and deeper module-level typography harmonization can be refined in a follow-up.
+- Light-mode-only visual QA for this exact redesign was not completed in this pass.
+
+---
+
+## Update (2026-04-06) - Sidebar Light-Mode Theme Fix + Logo Unclip
+
+### What Was Changed
+
+- Fixed light-mode sidebar rendering in `index.html` so it is no longer forced to dark background.
+- Updated sidebar background logic:
+  - dark/default/shopify themes keep dark translucent sidebar
+  - light/apple themes now use light surface-based sidebar background
+- Fixed clipped top sidebar logo by adjusting logo shell sizing rules:
+  - increased logo shell max width and height allowance
+  - removed clipping behavior (`overflow: visible`)
+  - constrained logo by `max-height` with `object-fit: contain` for clean scaling
+- Swapped light-mode sidebar logo asset to cropped brand file (`L&D Logo_Cropped.svg`) for cleaner rendering at small sidebar sizes.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept 21st-style dark sidebar treatment intact for dark-mode themes only.
+- Scoped the fix to theme-aware selectors so light mode can follow light token surfaces consistently.
+- Preferred CSS-level corrections over markup rewrites to minimize risk to existing navigation logic.
+
+### Validation
+
+- Captured and reviewed light-mode screenshot after applying local `appTheme='light'`.
+- Confirmed sidebar background now follows light theme and logo no longer appears clipped.
+
+### Known Limitations
+
+- This pass targets sidebar shell/logo behavior only; broader light-mode visual refinements can continue in follow-up passes.
+
+---
+
+## Update (2026-04-06) - 21st.dev Home Style Pass (Sidebar + Dashboard Shell)
+
+### What Was Changed
+
+- Updated `index.html` to follow the visual feel of `https://21st.dev/home` for the main dashboard shell.
+- Applied a new dark theme token system in `:root`:
+  - near-black neutral surfaces
+  - subtle border hierarchy
+  - muted cool-blue accent ramp
+  - reduced glow-heavy styling
+- Sidebar structure and rhythm were updated:
+  - tighter spacing
+  - added sidebar search field with `⌘ K` hint
+  - added section labels (`Explore`, `Build`)
+  - adjusted active nav styling to neutral 21st-like state (less saturated highlight)
+  - renamed dashboard nav label to `Home`
+- Top shell and content presentation were tuned:
+  - refined top bar density/blur/border treatment
+  - centered page title behavior on larger screens
+  - hid top-bar search to match the simpler 21st top layout feel
+  - tightened main content spacing and card corner radii
+  - flattened heavy gradient/glow card treatments in dashboard sections
+- Updated dark-mode logo treatment to a mono-white logo variant for a cleaner sidebar header look.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized matching visual mood and layout rhythm (not full content parity) so existing dashboard behavior remains intact.
+- Kept all routing/data interactions in place while making the shell look and feel closer to 21st.
+- Used token-level dark palette changes plus targeted layout CSS overrides to produce broad visual alignment without rewriting page logic.
+
+### Validation
+
+- Captured and reviewed live reference screenshot from `https://21st.dev/home`.
+- Confirmed dark token block, sidebar structure, and page-meta home title updates were applied in `index.html`.
+
+### Known Limitations
+
+- This pass focuses on shell feel and dashboard styling; it does not replicate every exact component/content pattern from 21st home.
+- Additional iteration may be needed for tighter one-to-one parity in card-level spacing and typography.
+
+---
+
+## Update (2026-04-06) - Light Mode Restyled To Apple-Inspired Palette
+
+### What Was Changed
+
+- Replaced the entire `html[data-theme='light']` color token set in `index.html` to shift from the prior lavender/emerald styling to an Apple-like light system.
+- New light mode direction:
+  - cool neutral surfaces (`#F5F5F7` style base)
+  - clean white raised/elevated layers
+  - dark graphite typography hierarchy
+  - blue accent ramp centered on Apple-like action blue (`#0071E3`)
+- Updated token groups in light mode:
+  - `--brand-50` to `--brand-950`
+  - `--surface-*`
+  - `--text-*`
+  - `--semantic-*`
+  - `--shadow-*`
+  - `--theme-page-gradient`, `--theme-overlay*`, minimap tokens
+  - selection and scrollbar tokens
+- Restored light-mode `--text-inverse` to white for improved contrast on blue primary action buttons.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept dark mode unchanged and scoped this pass to light-mode identity only.
+- Used an intentionally restrained Apple-style system: soft grays + subtle blue accents instead of saturated multi-color gradients.
+- Maintained accessibility-minded contrast for key button, text, and accent states used throughout the dashboard.
+
+### Validation
+
+- Confirmed full replacement of the `html[data-theme='light']` token block in `index.html`.
+- Performed quick contrast spot-checks for core combinations:
+  - white text on `--brand-500`
+  - primary/secondary text on surface base
+
+### Known Limitations
+
+- This was a global token pass; component-by-component visual polishing (if needed) should be done in a dedicated light-mode QA sweep.
+
+---
+
+## Update (2026-04-06) - Light Mode Palette Realignment (Brand-Consistent)
+
+### What Was Changed
+
+- Replaced the `html[data-theme='light']` token set in `index.html` to align light mode with brand direction.
+- Shifted the primary light palette from lavender-heavy to emerald-led values based on available brand assets:
+  - green anchor from logo assets (`#67B392`)
+  - purple preserved as semantic accent (`#7853A2`)
+- Updated token groups:
+  - `--brand-50` to `--brand-950`
+  - surface tokens (`--surface-*`)
+  - text tokens (`--text-*`)
+  - semantic tokens (`--semantic-*`)
+  - light-theme overlay/minimap/selection/scrollbar tokens
+- Set `--text-inverse` for light mode to a dark ink value so text remains readable on lighter green action buttons.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept dark mode untouched and focused this pass only on light-mode color fidelity.
+- Chose a soft off-white + green-neutral surface system to better match the logo family and reduce the previous cross-theme mismatch.
+- Kept purple in the system as an accent semantic/info color to preserve brand flexibility without making it the light-mode base.
+
+### Validation
+
+- Token audit completed by confirming replacement of the full `html[data-theme='light']` variable block in `index.html`.
+
+### Known Limitations
+
+- This was a token-level pass; no per-component visual QA sweep was performed in this change.
+- If needed, a follow-up pass can fine-tune specific module contrast (charts/badges/cards) after manual light-mode review.
+
+---
+
+## Update (2026-04-06) - Notification Center Mobile Layout Fix
+
+### What Was Changed
+
+- Improved notification center behavior and spacing for mobile view in `index.html`.
+- Notification panel now behaves as a mobile sheet:
+  - `fixed` positioning on small screens
+  - viewport-safe top offset using safe-area inset
+  - mobile max-height tied to viewport so content remains accessible
+  - desktop behavior preserved with `sm:` overrides
+- Notification list now uses a responsive max-height (`mobile viewport-based`, `desktop fixed`).
+- Header control crowding on mobile reduced:
+  - tightened right-side spacing
+  - reduced profile button padding on small screens
+  - hid top-bar logout button on mobile (`hidden sm:inline-flex`)
+- Added mobile scroll lock when notification sheet is open (`body overflow-hidden` on mobile only).
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized usable viewport space and predictable panel behavior on phones over desktop-style dropdown behavior.
+- Kept desktop notification experience unchanged while using responsive overrides to improve small-screen ergonomics.
+
+### Validation
+
+- Frontend inline script parse check passed:
+  - `inline_scripts_checked=2`
+
+### Known Limitations
+
+- This fix targets notification center mobile UX only; broader header layout refinements can be done in a separate pass if needed.
+
+---
+
+## Update (2026-04-06) - Notification Center Opaque Visual Pass
+
+### What Was Changed
+
+- Removed opacity-based backgrounds from the notification center to improve visual clarity.
+- Notification panel now uses solid surface fill (no translucent panel background).
+- Notification segmented tab container now uses solid background fill.
+- Notification list divider opacity was removed for clearer list separation.
+- Notification row readability refinements:
+  - removed read-state opacity fade on item rows
+  - removed tone-dot opacity reduction for read rows
+  - CTA action button background switched to solid fill
+  - hover background changed from semi-transparent to solid elevated state
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized legibility and contrast consistency over translucent depth effects in this component.
+- Kept the simplified Apple-inspired structure while removing transparency layers that reduced perceived clarity.
+
+### Validation
+
+- Frontend inline script parse check passed:
+  - `inline_scripts_checked=2`
+
+### Known Limitations
+
+- This pass only targets the notification center visual opacity; other application modules still use their existing opacity design language.
+
+---
+
+## Update (2026-04-06) - Notification Center Visual Simplification (Apple-Inspired)
+
+### What Was Changed
+
+- Refined notification center UI in `index.html` to reduce container-heavy visuals.
+- Converted the panel to a cleaner frosted style:
+  - softer border
+  - translucent raised surface
+  - reduced shadow weight
+- Simplified tab selector to a segmented-control style with quieter visual hierarchy.
+- Reworked list rendering from boxed cards to lightweight row items with divider flow.
+- Simplified row metadata and actions:
+  - subtle tone dot instead of multi-chip tone badges
+  - minimal `timestamp · pinned/read` metadata line
+  - understated action controls
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized minimal visual noise and clearer information scanning over decorative chips/containers.
+- Kept full functionality intact (tabs, unread counts, mark read, mark all, CTA routing) while reducing UI density.
+- Followed Apple-like principles in this context: restraint, spacing, subtle hierarchy, and fewer competing surfaces.
+
+### Validation
+
+- Frontend inline script parse check passed:
+  - `inline_scripts_checked=2`
+
+### Known Limitations
+
+- This pass is stylistic; backend notification/announcement behavior was unchanged.
+
+---
+
+## Update (2026-04-06) - Member Notification Center + Announcement System
+
+### What Was Changed
+
+- Implemented a new authenticated member notification system with announcement support.
+- Added backend notification APIs under member-auth:
+  - `GET /api/member-auth/notifications`
+  - `POST /api/member-auth/notifications/:notificationId/read`
+  - `POST /api/member-auth/notifications/mark-all-read`
+- Added server-side storage for:
+  - notifications/announcements records
+  - per-member read tracking
+  - seed data for initial notifications and announcements
+- Replaced static header bell in `index.html` with an interactive Notification Center panel:
+  - tabbed views (`Notifications`, `Announcements`)
+  - unread badges
+  - mark single item read
+  - mark active tab items read
+  - CTA routing from notification cards
+- Added client initialization + event wiring for open/close behavior, outside-click close, escape close, and authenticated API sync.
+
+### Files Affected
+
+- `index.html`
+- `backend/app.js`
+- `backend/routes/member-notification.routes.js`
+- `backend/controllers/member-notification.controller.js`
+- `backend/services/member-notification.service.js`
+- `backend/stores/member-notification.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept notifications and announcements in one API payload for simpler client hydration and a single header fetch path.
+- Persisted read-state server-side by member user id so unread counts are stable across sessions/devices.
+- Seeded default system entries so the notification center has meaningful first-run content without requiring admin setup.
+- Scoped this pass to member consumption and read-state actions; no admin creation/editor UI was added in this iteration.
+
+### Validation
+
+- Syntax checks passed:
+  - `node --check backend/stores/member-notification.store.js`
+  - `node --check backend/services/member-notification.service.js`
+  - `node --check backend/controllers/member-notification.controller.js`
+  - `node --check backend/routes/member-notification.routes.js`
+  - `node --check backend/app.js`
+- Escalated local smoke checks passed:
+  - `GET /api/health` -> `200`
+  - `GET /api/member-auth/notifications` without token -> `401 AUTH_REQUIRED`
+  - `POST /api/member-auth/notifications/:notificationId/read` without token -> `401 AUTH_REQUIRED`
+  - `POST /api/member-auth/notifications/mark-all-read` without token -> `401 AUTH_REQUIRED`
+- Served `index.html` confirms notification center markup IDs and tab controls are present in output.
+
+### Known Limitations
+
+- Admin CRUD for creating/editing announcements is not included yet (current content is seed-driven).
+- Authenticated end-to-end read-flow validation depends on a live member token session and was not executed in this pass.
 
 ---
 
@@ -10276,6 +12328,175 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 - `Claude_Notes/charge-documentation.md`
 - `Claude_Notes/Current Project Status.md`
 
+## Sidebar Logo Medium Size Finalization (2026-04-07)
+
+### What changed
+
+- Increased sidebar brand logo to a medium readable size per request.
+- Switched sidebar brand image source from cropped SVG to cropped PNG for reliable visual scale:
+  - from `/brand_assets/Logos/L&D Logo_Cropped.svg`
+  - to `/brand_assets/Logos/L&D Logo_Cropped.png`
+- Tuned medium sizing tokens:
+  - brand shell width/height constraints updated
+  - logo max-height adjusted to a medium footprint
+
+### Design decisions
+
+- Used the PNG asset to avoid SVG internal-canvas/whitespace rendering variance that caused the wordmark to appear too small despite CSS scaling.
+- Kept existing sidebar/header alignment lock and dropdown behavior untouched.
+
+### Validation / QA
+
+- Screenshot comparison rounds:
+  - initial medium attempt:
+    - `temporary screenshots/screenshot-65-logo-medium-light-pass1.png`
+    - `temporary screenshots/screenshot-66-logo-medium-dark-open-pass1.png`
+  - final medium pass after PNG swap:
+    - `temporary screenshots/screenshot-67-logo-medium-light-pass2.png`
+    - `temporary screenshots/screenshot-68-logo-medium-dark-open-pass2.png`
+- Alignment metrics remain correct:
+  - `headerHeight: 65`
+  - `sidebarTopHeight: 65`
+  - `deltaBottom: 0`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Nav Label + Header Alignment + Smaller Logo Pass (2026-04-07)
+
+### What changed
+
+- Updated sidebar section label text from `Explore > General` to `General`.
+- Fixed sidebar/header misalignment by introducing a dedicated fixed-height sidebar brand row (`65px`) that matches the top header height.
+- Reduced logo display size again while preserving dropdown behavior:
+  - smaller brand wordmark constraints in the sidebar brand trigger
+  - retained 21st-style brand dropdown interactions and quick-switch links
+
+### Design decisions
+
+- Used explicit height matching for the sidebar top row to remove visual drift and keep a consistent cross-axis baseline with the app header.
+- Applied a smaller-but-readable logo size after an initial overly small pass, then finalized with tuned max-width/max-height values.
+
+### Validation / QA
+
+- Alignment metrics check:
+  - `headerHeight: 65`
+  - `sidebarTopHeight: 65`
+  - `deltaBottom: 0`
+  - confirmed label text `General`
+- Screenshot comparison rounds:
+  - round 1:
+    - `temporary screenshots/screenshot-61-nav-align-light-pass1.png`
+    - `temporary screenshots/screenshot-62-nav-align-dark-open-pass1.png`
+  - round 2 (final logo size tune):
+    - `temporary screenshots/screenshot-63-nav-align-light-pass2.png`
+    - `temporary screenshots/screenshot-64-nav-align-dark-open-pass2.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Brand Button Downsized + 21st-Style Dropdown Trigger (2026-04-07)
+
+### What changed
+
+- Converted the sidebar header logo area into a clickable brand button with dropdown behavior.
+- Reduced the visible logo footprint (smaller wordmark) to match requested compact feel.
+- Added top-sidebar dropdown menu (`Quick Switch`) with shortcut actions:
+  - `Home`
+  - `My Store`
+  - `Settings`
+- Added dropdown interaction logic in `index.html`:
+  - click brand button to open/close
+  - click outside to close
+  - `Esc` key closes
+  - selecting a dropdown item routes via existing SPA `setPage(...)` logic and closes the menu
+  - menu auto-closes on regular page changes
+
+### Design decisions
+
+- Implemented as a minimal 21st-inspired sidebar trigger pattern without disturbing the existing nav order/content.
+- Kept dropdown motions transform/opacity-safe and consistent with existing spring/ease timing.
+
+### Validation / QA
+
+- Screenshot comparison rounds completed:
+  - Round 1:
+    - `temporary screenshots/screenshot-56-brand-dropdown-light-pass1.png`
+    - `temporary screenshots/screenshot-57-brand-dropdown-dark-pass1.png`
+    - `temporary screenshots/screenshot-58-brand-dropdown-open-dark-pass1.png`
+  - Round 2 (final size tuning):
+    - `temporary screenshots/screenshot-59-brand-dropdown-light-pass2.png`
+    - `temporary screenshots/screenshot-60-brand-dropdown-open-dark-pass2.png`
+- Interaction check passed:
+  - selecting dropdown `Settings` item updates route to `/Settings`, updates page title, and closes dropdown (`aria-expanded="false"`).
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Header Logo Switched To L&D Logo_Cropped (2026-04-07)
+
+### What changed
+
+- Replaced sidebar header logo source with:
+  - `/brand_assets/Logos/L&D Logo_Cropped.svg`
+- Updated sidebar logo sizing from icon footprint back to wordmark footprint:
+  - shell now supports wider horizontal logo
+  - image uses constrained max-height with left alignment for consistent placement
+
+### Design decisions
+
+- Applied the exact requested asset (`L&D Logo_Cropped`) and preserved single-logo rendering across themes.
+- Kept sizing compact enough to avoid crowding while maintaining clear brand readability in the top sidebar row.
+
+### Validation / QA
+
+- Verified via screenshots in both themes:
+  - `temporary screenshots/screenshot-54-sidebar-cropped-logo-light.png`
+  - `temporary screenshots/screenshot-55-sidebar-cropped-logo-dark.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Header Logo Switched To New L&D Icon Asset (2026-04-07)
+
+### What changed
+
+- Replaced the top-left sidebar brand logo markup with the newly added icon asset:
+  - `/brand_assets/Logos/L&D Icon.svg`
+- Removed theme-specific multi-logo switching for the sidebar header and moved to a single icon render across themes.
+- Updated sidebar logo shell sizing rules to a compact icon footprint for consistent placement:
+  - fixed icon container width/height
+  - center-fit image sizing for the icon
+
+### Design decisions
+
+- Honored latest design direction to use the icon-only treatment at the top of the sidebar.
+- Kept icon presentation identical between light and dark modes to maintain brand consistency.
+
+### Validation / QA
+
+- Verified visually in both light and dark themes using Puppeteer screenshots:
+  - `temporary screenshots/screenshot-52-sidebar-icon-light.png`
+  - `temporary screenshots/screenshot-53-sidebar-icon-dark.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
 ## Achievement List Follow-Up - Reward Text Restored (2026-04-03)
 
 ### What changed
@@ -12029,3 +14250,1365 @@ File: `index.html`
 - `Claude_Notes/charge-documentation.md`
 - `Claude_Notes/Current Project Status.md`
 - `Claude_Notes/public-store-page.md`
+
+## Sidebar Light Mode Alignment + Nav Structure + Material Icons (2026-04-07)
+
+### What changed
+
+- Updated the left navigation in `index.html` to match requested sectioning/order exactly:
+  - `Explore > General`: `Home`, `My Store`, `E-Wallet`
+  - `Build`: `Binary Tree`, `Enroll Member`, `Preferred Customers`
+  - `Records`: `Purchases`, `Commissions`, `Library`
+- Removed sidebar search row and removed the top header search UI block (navigation/header now search-free).
+- Replaced sidebar nav icon set with Google Material Symbols context-based icons:
+  - `home`, `storefront`, `account_balance_wallet`, `account_tree`, `person_add`, `groups_2`, `receipt_long`, `payments`, `menu_book`, `settings`
+- Fixed icon rendering regression by updating the Material Symbols font import to the full official family URL (removed restrictive `icon_names=` subset that caused text fallback).
+- Adjusted light-theme sidebar treatment to keep sidebar surface light and readable.
+- Updated logo treatment in sidebar header:
+  - enforced Premiere Life-only branding in light mode and removed the non-Premiere cropped logo asset from active use.
+  - increased logo shell/image sizing and scaling so the Premiere Life logo is visible and not clipped in light mode.
+
+### Design decisions
+
+- Kept icon implementation on Google’s official Material Symbols web font to avoid custom SVG maintenance and maintain consistent visual language.
+- Preserved Premiere Life logo variants by theme while ensuring light mode remains brand-correct and legible.
+
+### Validation / QA
+
+- Manual light-mode render verification via Puppeteer screenshots confirmed:
+  - correct nav order/section labels
+  - no sidebar/header search bar
+  - Material icons render as icons (no text fallback)
+  - Premiere Life logo displays in sidebar and remains unclipped
+- Screenshot artifacts generated in:
+  - `temporary screenshots/screenshot-48-light-sidebar-check-pass1.png`
+  - `temporary screenshots/screenshot-49-light-sidebar-check-pass2.png`
+  - `temporary screenshots/screenshot-50-light-sidebar-check-pass3.png`
+  - `temporary screenshots/screenshot-51-light-sidebar-premiere-only.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Logo White Background Fix (2026-04-07)
+
+### What changed
+
+- Updated sidebar brand logo source in `index.html` from PNG to SVG so the white background artifact is removed:
+  - from: `/brand_assets/Logos/L%26D%20Logo_Cropped.png`
+  - to: `/brand_assets/Logos/L%26D%20Logo_Cropped.svg`
+- Tuned logo sizing to keep the mark readable after switching back to SVG:
+  - `.sidebar-brand-logo-shell` max-width increased to `9.5rem`
+  - `.sidebar-brand-logo` max-height increased to `2.05rem`
+- Preserved brand dropdown behavior and existing sidebar/header row alignment.
+
+### Design decisions
+
+- Chose the provided SVG asset to avoid baked white-background pixels from raster exports and keep clean edges on light surfaces.
+- Kept a medium-size logo target so the mark remains visible while still matching the compact 21st-style sidebar header feel.
+
+### Validation / QA
+
+- Verified via Puppeteer screenshot passes:
+  - `temporary screenshots/screenshot-69-logo-svg-light-pass1.png`
+  - `temporary screenshots/screenshot-70-logo-svg-dark-open-pass1.png`
+  - `temporary screenshots/screenshot-71-logo-svg-medium-light-pass2.png`
+  - `temporary screenshots/screenshot-72-logo-svg-medium-dark-open-pass2.png`
+- Alignment metrics remain exact:
+  - `headerHeight: 65`
+  - `sidebarTopHeight: 65`
+  - `deltaBottom: 0`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Logo Revert To Earlier Medium Size (2026-04-07)
+
+### What changed
+
+- Reverted sidebar logo treatment in `index.html` back to the earlier medium setup requested by user.
+- Updated brand image source:
+  - from: `/brand_assets/Logos/L%26D%20Logo_Cropped.svg`
+  - to: `/brand_assets/Logos/L%26D%20Logo_Cropped.png`
+- Restored earlier medium logo sizing values:
+  - `.sidebar-brand-logo-shell` max-width: `7.6rem`
+  - `.sidebar-brand-logo` max-height: `1.92rem`
+
+### Design decisions
+
+- User preferred the earlier medium logo footprint and requested a direct rollback.
+- This change intentionally preserves existing dropdown behavior and header/sidebar alignment while only reverting logo asset + size.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Dark-Mode White Logo Mapping (2026-04-07)
+
+### What changed
+
+- Added theme-based sidebar brand logo rendering in `index.html`.
+- Light-mode themes (`light`, `apple`) now render:
+  - `/brand_assets/Logos/L%26D%20Logo_Cropped.png`
+- Dark-mode themes (`default`, `dark`, `shopify`) now render:
+  - `/brand_assets/Logos/L%26D%20Logo_Cropped_White.png`
+- Kept previously approved medium logo dimensions unchanged:
+  - `.sidebar-brand-logo-shell` max-width: `7.6rem`
+  - `.sidebar-brand-logo` max-height: `1.92rem`
+
+### Design decisions
+
+- Used CSS theme selectors tied to `html[data-theme]` so swapping is automatic and follows the existing theme switcher behavior.
+- Avoided JS logic changes and only updated markup/CSS for a low-risk visual-only update.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Footer Theme Toggle Added Beside Settings (2026-04-07)
+
+### What changed
+
+- Added a new light/dark mode toggle button to the sidebar footer, positioned directly next to `Settings`.
+- Updated sidebar footer layout in `index.html`:
+  - settings link + theme toggle now share one horizontal row.
+- Implemented sidebar theme toggle behavior:
+  - click toggles between `dark` and `light` via existing `applyAppTheme(...)`.
+  - icon/label state syncs to current theme using `syncSidebarThemeToggle()`.
+  - dark theme shows `light_mode` action icon; light theme shows `dark_mode` action icon.
+- Kept existing theme selector dropdowns in Settings synchronized with the new toggle (through shared theme application path).
+
+### Design decisions
+
+- Reused existing theme runtime (`normalizeAppTheme`, `applyAppTheme`) to avoid duplicate theme state logic.
+- Implemented this as a visual/control enhancement only; no backend or persistence contract changes.
+
+### Validation / QA
+
+- Inline script parse check passed:
+  - `All inline scripts parsed successfully. Blocks: 2`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Logo Container Background Removed (2026-04-07)
+
+### What changed
+
+- Removed the visible gray container fill behind the sidebar logo dropdown trigger in `index.html`.
+- Updated `#sidebar-brand-button` states:
+  - default background -> `transparent`
+  - hover background -> `transparent`
+  - expanded/open background -> `transparent`
+- Kept logo size, dropdown behavior, and focus-visible accessibility ring unchanged.
+
+### Design decisions
+
+- Matched the brand row to the sidebar surface so the logo appears integrated with the left rail instead of inside a separate card-like chip.
+- Limited this to style-only changes for low regression risk.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Logo Background Clarification - Keep Hover (2026-04-07)
+
+### What changed
+
+- Adjusted `#sidebar-brand-button` styling in `index.html` to keep only the base background removed while restoring hover/open visual states.
+- Current behavior:
+  - default state: transparent background
+  - hover state: `rgb(var(--surface-elevated))` background + border
+  - expanded/open state: `rgb(var(--surface-elevated))` background + border
+
+### Design decisions
+
+- This follows the requested behavior exactly: no persistent gray chip in idle state, but preserve interaction feedback on hover/open.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Brand Dropdown Dark Popup Styling (2026-04-07)
+
+### What changed
+
+- Updated the sidebar logo dropdown popup (`#sidebar-brand-menu`) in `index.html` to a black/gray surface with white text.
+- Applied dark popup styling:
+  - menu background: `rgb(20 22 28 / 0.96)`
+  - menu border: `rgb(255 255 255 / 0.14)`
+  - menu shadow: `0 14px 30px rgb(0 0 0 / 0.45)`
+- Updated popup text styling:
+  - label text to muted white (`rgb(255 255 255 / 0.62)`)
+  - menu item text to near-white (`rgb(255 255 255 / 0.92)`)
+  - hover state to brighter white with soft light overlay.
+
+### Design decisions
+
+- Kept this popup styling consistent across themes so the dropdown always reads as a high-contrast, focused command layer.
+- Limited changes to dropdown-only CSS so sidebar structure and behavior remain untouched.
+
+### Validation / QA
+
+- Inline script parse check passed:
+  - `All inline scripts parsed successfully. Blocks: 2`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Brand Dropdown Profile Card + Logout Menu (2026-04-07)
+
+### What changed
+
+- Reworked sidebar brand dropdown structure in `index.html` to match requested account-menu pattern:
+  - removed `Quick Switch` label text
+  - added profile identity header block (avatar/icon, name, email)
+  - moved `Profile` action into dropdown
+  - kept page actions (`Home`, `My Store`, `Settings`)
+  - added divider + `Log out` as the last action
+- Removed top-right header controls:
+  - removed header profile button
+  - removed header logout button
+- Added dropdown action handling:
+  - new `[data-sidebar-brand-action=\"logout\"]` handler now clears session and redirects to `login.html`
+- Added identity synchronization into dropdown profile header:
+  - name/email now synced from session identity
+  - avatar now synced from current profile avatar source
+
+### Design decisions
+
+- Modeled interaction flow after standard account popover hierarchy:
+  - account identity first
+  - navigation actions next
+  - logout isolated at bottom
+- Kept all routing and profile settings behavior on existing `setPage(...)` and auth utilities for consistency.
+
+### Validation / QA
+
+- Inline script parse check passed:
+  - `All inline scripts parsed successfully. Blocks: 2`
+- Visual verification screenshot captured with dropdown open:
+  - `temporary screenshots/screenshot-73-brand-popup-profile-layout.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Brand Dropdown Typography Reduced (2026-04-07)
+
+### What changed
+
+- Reduced text sizing in the sidebar brand popup to make the menu feel less oversized while keeping the same layout.
+- Updated typography tokens in `index.html`:
+  - profile name: `0.89rem` -> `0.82rem`
+  - profile email: `0.73rem` -> `0.68rem`
+  - menu item label: `0.96rem` -> `0.86rem`
+  - menu item icon: `0.96rem` -> `0.88rem`
+
+### Design decisions
+
+- Kept the spacing hierarchy and component structure unchanged so visual balance remains consistent with the previous pass.
+- Applied only a slight reduction per request (not a full compact redesign).
+
+### Validation / QA
+
+- Visual verification screenshot captured with dropdown open after font-size adjustment:
+  - `temporary screenshots/screenshot-74-brand-popup-fonts-smaller.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Brand Dropdown Typography Rebalanced + Tighter Spacing (2026-04-07)
+
+### What changed
+
+- Increased popup typography slightly from the previous too-small pass while tightening spacing for denser presentation.
+- Updated typography + spacing in `index.html`:
+  - profile name: `0.82rem` -> `0.85rem`
+  - profile email: `0.68rem` -> `0.70rem`
+  - menu text: `0.86rem` -> `0.90rem`
+  - menu icon: `0.88rem` -> `0.90rem`
+  - reduced profile row and menu row gaps/padding for a tighter overall block
+
+### Design decisions
+
+- Targeted a middle ground between readability and compactness:
+  - text no longer feels too small
+  - menu density is tighter and closer to account-menu references
+
+### Validation / QA
+
+- Inline script parse check passed:
+  - `All inline scripts parsed successfully. Blocks: 2`
+- Visual verification screenshot:
+  - `temporary screenshots/screenshot-75-brand-popup-fonts-medium-tight.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar/Header Realignment + Desktop Sidebar Collapse Controls (2026-04-07)
+
+### What changed
+
+- Fixed top separator alignment between sidebar and app header by matching heights exactly:
+  - sidebar brand row remains `65px`
+  - top header set to `h-[65px]` with full-height inner row
+- Added desktop sidebar collapse control in the sidebar header:
+  - new button `#sidebar-collapse-button`
+  - icon switched to Material Symbols `keyboard_double_arrow_left`
+- Added desktop reopen flow from the top bar:
+  - existing burger `#menu-toggle` now appears on desktop only when sidebar is collapsed
+  - clicking burger reopens sidebar
+- Added desktop collapsed layout behavior through `html[data-sidebar-collapsed='true']`:
+  - sidebar translates fully off-canvas
+  - main content left margin collapses to `0`
+
+### Design decisions
+
+- Reused existing menu toggle and sidebar transform system to minimize JS churn.
+- Kept mobile behavior unchanged:
+  - mobile still uses overlay + slide-in sidebar
+  - desktop uses collapse/open controls without overlay flow
+
+### Validation / QA
+
+- Inline script parse check passed:
+  - `All inline scripts parsed successfully. Blocks: 2`
+- Metrics verification (desktop):
+  - `headerHeight: 65`
+  - `sidebarTopHeight: 65`
+  - `deltaBottom: 0`
+  - collapse icon text: `keyboard_double_arrow_left`
+- Collapse/reopen state checks:
+  - collapsed -> `data-sidebar-collapsed=true`, burger visible
+  - reopened -> `data-sidebar-collapsed` cleared, burger hidden
+- Visual verification screenshots:
+  - `temporary screenshots/screenshot-79-align-icon-before-collapse.png`
+  - `temporary screenshots/screenshot-80-collapsed-burger-visible.png`
+  - `temporary screenshots/screenshot-81-reopened-via-burger.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Desktop Sidebar Collapse/Expand Transition Sync Polish (2026-04-07)
+
+### What changed
+
+- Smoothed desktop sidebar hide/show interaction so sidebar and main content move in sync.
+- Updated desktop transition rules in `index.html` (`@media (min-width: 1024px)`):
+  - `.lg\\:ml-64` now animates `margin-left` with:
+    - duration: `0.38s`
+    - easing: `cubic-bezier(0.22, 1, 0.36, 1)`
+  - `#sidebar` now animates `transform` with the exact same duration/easing.
+- Removed `!important` from collapsed-state transform/margin rules to keep transition interpolation clean.
+
+### Design decisions
+
+- Used the same easing/timing token for both moving surfaces to prevent “sidebar snaps first, content catches up” feel.
+- Kept behavior desktop-scoped so mobile drawer UX remains unchanged.
+
+### Validation / QA
+
+- Motion sampling captured during collapse and reopen confirms synchronized transitions:
+  - sidebar transition: `0.38s cubic-bezier(0.22, 1, 0.36, 1)`
+  - main transition: `0.38s cubic-bezier(0.22, 1, 0.36, 1)`
+  - midpoint sample (`120ms` into collapse): sidebar and main both partially transitioned.
+- Visual verification screenshots:
+  - `temporary screenshots/screenshot-82-transition-sync-collapsed.png`
+  - `temporary screenshots/screenshot-83-transition-sync-reopened.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Sidebar Records Group Typography Match (2026-04-07)
+
+### What changed
+
+- Matched `Records` section link typography to the same rules used by the upper sidebar nav groups.
+- Added `data-nav-static` to the three Records links:
+  - `Purchases`
+  - `Commissions`
+  - `Library`
+- Extended sidebar nav typography/interaction selectors to include `[data-nav-static]` so Records links receive:
+  - same font size
+  - same line-height
+  - same icon sizing
+  - same hover/active border behavior
+
+### Design decisions
+
+- Kept Records links out of `[data-nav-link]` to avoid route-handling side effects in existing nav click logic.
+- Used a dedicated static-nav attribute for visual parity without changing page-routing behavior.
+
+### Validation / QA
+
+- Inline script parse check passed:
+  - `All inline scripts parsed successfully. Blocks: 2`
+- Runtime style comparison confirms match:
+  - top nav font size: `14.08px`
+  - records font size: `14.08px`
+  - top nav line-height: `18.4px`
+  - records line-height: `18.4px`
+- Visual verification screenshot:
+  - `temporary screenshots/screenshot-84-records-font-match.png`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+## Dashboard KPI Refresh: Uniform Card Heights + Date-Based Personal Volume Bars (2026-04-07)
+
+### What changed
+
+- Reworked KPI row to keep consistent card sizing and cleaner vertical rhythm:
+  - KPI grid switched to `items-stretch`.
+  - All four KPI cards now use `h-full` + `min-h-[220px]` + internal flex layout for consistent heights.
+  - E-Wallet and Sales CTA rows are anchored to the bottom for visual alignment.
+- Updated E-Wallet KPI card to match requested structure:
+  - removed top icon from card heading area.
+  - kept value + support copy.
+  - added in-card CTA pair: `Send` + `Transfer`.
+- Wired E-Wallet KPI CTA behavior:
+  - `Send` opens E-Wallet transfer modal.
+  - `Transfer` opens E-Wallet payout modal.
+- Preserved KPI ordering and prior request updates:
+  - E-Wallet
+  - Sales Team Commissions
+  - Personal Volume
+  - Account Status
+- Kept Account Status priority text treatment:
+  - timer/active window remains the headline text.
+  - rank now renders as `Rank: <label>`.
+
+### Personal Volume graph redesign (new)
+
+- Replaced sparkline/gradient line with an Apple Screen Time-inspired micro bar chart:
+  - rectangular vertical bars
+  - per-day date labels (format: `M/D`)
+  - 7-day rolling window
+  - today’s bar highlighted
+- Added dynamic KPI chart containers:
+  - `#dashboard-personal-volume-bars`
+  - `#dashboard-personal-volume-dates`
+  - `#dashboard-personal-volume-graph-caption`
+- Implemented persistent daily PV trend state:
+  - storage key: `charge-dashboard-pv-trend-v1`
+  - supports structured `entries` with `{ value, timestampMs }`
+  - legacy migration support for old numeric `points` arrays
+  - max retained entries: `30`
+- Chart rendering logic now:
+  - normalizes/loads saved entries for current user
+  - updates today’s entry when PV changes
+  - builds 7-day daily series
+  - renders bars + date labels + trend caption
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation / QA
+
+- KPI visual verification (uniform sizing + CTA structure):
+  - `temporary screenshots/screenshot-99-kpi-bars-dates-pass1.png`
+- Personal Volume date-bar chart verification (rectangular bars + dates + dynamic values):
+  - `temporary screenshots/screenshot-100-kpi-bars-dates-pass2.png`
+
+### Known limitations
+
+- Daily bars reflect local runtime/session trend history; on a fresh account with limited PV history, earlier dates can render low/zero values until more daily snapshots accumulate.
+
+## Personal Volume Graph Interaction Pass: Tighter Layout + Hover Details (2026-04-07)
+
+### What changed
+
+- Refined Personal Volume KPI graph layout to feel tighter and more compact:
+  - chart rail reduced to `h-14`
+  - spacing tightened (`gap-1`, reduced chart padding)
+  - slimmer bar width (`w-2.5`) for denser visual rhythm
+- Added interactive graph tooltip with hover/focus details:
+  - tooltip container: `#dashboard-personal-volume-tooltip`
+  - dynamic fields:
+    - `#dashboard-personal-volume-tooltip-date`
+    - `#dashboard-personal-volume-tooltip-value`
+  - displays bar-specific date + PV amount
+  - supports mouse hover and keyboard focus events
+- Added motion polish to chart bars:
+  - subtle staged load animation (`scaleY` + `opacity`, origin bottom)
+  - micro hover lift on active bar (`-translate-y-0.5`)
+  - transitions limited to transform/opacity behavior
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation / QA
+
+- static tightened chart pass:
+  - `temporary screenshots/screenshot-101-kpi-bars-hover-pass1.png`
+- hover detail pass (date + PV tooltip visible):
+  - `temporary screenshots/screenshot-102-kpi-bars-hover-pass2-tooltip.png`
+
+### Known limitations
+
+- Tooltip visibility is currently optimized for desktop pointer/focus interactions; touch-device tap lock behavior can be expanded if needed in a follow-up pass.
+
+## Personal Volume Tightness Tweak: Frame Removed + Cleaner Bar Strip (2026-04-07)
+
+### What changed
+
+- Updated Personal Volume graph styling to match the tighter Apple-like treatment from user reference:
+  - removed graph rail frame/border/background block.
+  - reduced graph strip height and spacing for a cleaner baseline presentation.
+  - tightened date/caption spacing below bars.
+- Kept interactive behavior from previous pass:
+  - hover/focus tooltip still shows date + PV.
+  - subtle bar motion and hover lift remain.
+- Refined bar visual tone for cleaner readability:
+  - neutral monochrome bar palette (non-neon look).
+  - today bar remains visually emphasized.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation / QA
+
+- no-frame chart pass:
+  - `temporary screenshots/screenshot-104-kpi-bars-clean-noframe-pass1.png`
+- no-frame + hover tooltip pass:
+  - `temporary screenshots/screenshot-105-kpi-bars-clean-noframe-pass2-hover.png`
+
+### Known limitations
+
+- Date labels remain visible to preserve the previously requested “has date” behavior; can be reduced to only first/last/today labels in a follow-up if desired.
+
+## Personal Volume Graph Tightening Pass: Date Row Removed + 30-Day Window (2026-04-07)
+
+### What changed
+
+- Removed bottom date labels (`4/1`, `4/2`, etc.) from Personal Volume KPI graph area.
+- Tightened chart spacing further:
+  - reduced chart strip height from `h-12` to `h-10`
+  - reduced inter-bar spacing to `gap-0.5`
+  - reduced top spacing before chart block (`pt-3`)
+- Upgraded chart duration from 7 days to 30 days (one month):
+  - added `DASHBOARD_PERSONAL_VOLUME_CHART_DAYS = 30`
+  - daily series generator now renders 30 bars.
+- Updated summary caption copy to match monthly duration:
+  - `Last 30 days: ...`
+- Kept interactivity unchanged:
+  - hover/focus tooltip still displays exact `date + PV` for each bar.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation / QA
+
+- one-month no-date chart pass:
+  - `temporary screenshots/screenshot-106-kpi-bars-month-tight-pass1.png`
+- one-month no-date chart + hover tooltip pass:
+  - `temporary screenshots/screenshot-107-kpi-bars-month-tight-pass2-hover.png`
+
+### Known limitations
+
+- 30-bar density is intentionally compact; if needed, we can add slight weekly separators while keeping no date row.
+
+## Personal Volume Server Accuracy Fix: Remove Client-Dated Trend Inference (2026-04-07)
+
+### Root cause identified
+
+- The Personal Volume trend chart was inferring timestamps from client runtime (`Date.now()`) during KPI refreshes.
+- Result: PV could appear as if it was earned “today” (e.g., April 7) even when server-side purchase date was earlier.
+
+### What changed
+
+- Enforced server-timestamp-only trend writes for Personal Volume chart data:
+  - trend entries now require source type `server`.
+  - entries without explicit server source are ignored during sanitization.
+  - legacy local trend points are no longer used for chart history.
+- Added server timestamp resolver for PV events:
+  - `resolveServerPersonalVolumeObservedAtMs(...)`
+  - prefers server fields like `lastProductPurchaseAt`, `lastPurchaseAt`, `lastAccountUpgradeAt`, `updatedAt`, `createdAt`.
+- Updated trend append behavior:
+  - `appendDashboardPersonalVolumeTrendPoint(...)` now requires an observed timestamp.
+  - no valid server timestamp = no new trend point is written.
+- Updated all Personal Volume KPI update call-sites to pass observed server timestamps.
+- Preserved monthly chart duration and tooltip behavior while improving date correctness.
+
+### UX/result impact
+
+- PV bars no longer get falsely stamped to the current day by frontend refresh timing.
+- Tooltip date now tracks the server-observed PV activity date when available.
+- If no server history point exists within the last 30 days, caption now clearly indicates missing server history.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation / QA
+
+- server-date behavior pass (single server-observed date point):
+  - `temporary screenshots/screenshot-108-pv-server-date-pass1.png`
+- hover tooltip verification (shows server date `4/1` instead of client today):
+  - `temporary screenshots/screenshot-109-pv-server-date-pass2-hover.png`
+
+### Known limitations
+
+- Current backend payloads expose authoritative current PV and key activity timestamps, but not full day-by-day PV ledger history.
+- For fully granular daily monthly bars sourced 100% from server history, backend would need a dedicated per-day PV history endpoint.
+
+## Personal Volume Loading Wait Duration Increased (2026-04-07)
+
+### What changed
+
+- Increased Personal Volume server-wait loading window before fallback render:
+  - `DASHBOARD_PERSONAL_VOLUME_SERVER_WAIT_MS`
+  - from `1400ms` to `3000ms`
+
+### Why
+
+- User requested a longer loading period before the graph renders.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Notes
+
+- No screenshot validation was run in this pass per user request.
+
+## Personal Volume Loading Animation Refinement: Non-Repeating Motion (2026-04-07)
+
+### What changed
+
+- Reworked Personal Volume loading graph animation to remove repetitive pulse pattern.
+- Added custom loading animation keyframes for smoother, premium motion.
+- Loading bars now use non-repeating height + delay + duration variation based on mixed wave math (not modulo repetition).
+- Updated loading caption copy to:
+  - `Syncing monthly PV from server...`
+
+### Implementation details
+
+- Added runtime style injector:
+  - `ensureDashboardPersonalVolumeLoadingStyles()`
+  - injects `@keyframes dashboard-pv-loading-bar` once.
+- Loading bars now use:
+  - class `dashboard-pv-loading-bar`
+  - dynamic per-bar `height`, `animationDelay`, and `animationDuration`.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Notes
+
+- Screenshot validation intentionally skipped in this pass.
+
+## Personal Volume Data Animation + Right Feather Rolloff (2026-04-07)
+
+### What changed
+
+- Upgraded the Personal Volume real-data graph animation from basic staggered style updates to smooth keyframe-based reveal motion.
+- Added a right-edge feather overlay roll-off effect that appears during graph reveal and fades out automatically.
+- Ensured the feather effect is reset/hidden when loading-state graph renders.
+
+### Implementation details
+
+- Added/updated animation keyframes:
+  - `@keyframes dashboard-pv-data-reveal`
+  - `@keyframes dashboard-pv-feather-rolloff` (now includes fade-in then opacity roll-off)
+- Data bars now render with class:
+  - `dashboard-pv-data-bar`
+- Each bar now receives dynamic per-bar timing:
+  - `animationDelay` based on chart position + light wave offset
+  - `animationDuration` scaled by relative PV height
+- Removed previous JS-only animation approach in the data renderer:
+  - removed `requestAnimationFrame` + `setTimeout` transform/opacity mutation loop
+- Added feather roll-off lifecycle logic inside graph render:
+  - clear previous timer if present
+  - force animation restart with `animation = 'none'` + reflow
+  - run feather roll-off and auto-hide at completion
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design decision
+
+- Kept graph area borderless/tight while improving perceived polish via motion layering (bars first, subtle right feather second).
+
+### Known limitations
+
+- Feather roll-off is tied to graph re-render events (new render signature); if data signature does not change, the effect does not replay.
+
+### Validation
+
+- Visual verification pending in-browser check for this specific pass.
+
+## Personal Volume Animation Timing Slowdown (2026-04-07)
+
+### What changed
+
+- Slowed down Personal Volume real-data bar reveal timing for a calmer animation pace.
+- Slowed down right-edge feather roll-off timing to match the longer bar reveal.
+
+### Implementation details
+
+- Updated bar animation timing in `renderDashboardPersonalVolumeGraph(...)`:
+  - increased per-bar stagger window (`animationDelay`)
+  - increased per-bar duration (`animationDuration`)
+- Updated feather timing:
+  - animation duration: `1260ms` (from `760ms`)
+  - hide timeout: `1320ms` (from `810ms`)
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Quick iterative tuning pass; no screenshot run in this micro-adjustment.
+
+## Personal Volume Bar Reveal Straightening (Crooked Motion Fix) (2026-04-07)
+
+### What changed
+
+- Refined the Personal Volume real-data bar animation to remove the “crooked/slanted” feel during reveal.
+- Bars now animate with a cleaner vertical scale-up motion from the baseline.
+
+### Root cause
+
+- Previous reveal combined vertical translation + blur + overshoot + per-bar timing variation, which could visually read as slanted/crooked while animating.
+
+### Implementation details
+
+- Updated `@keyframes dashboard-pv-data-reveal`:
+  - removed `translateY(...)` movement
+  - removed `filter: blur(...)`
+  - retained subtle overshoot only on scale for smoother but straighter motion
+- Updated `.dashboard-pv-data-bar`:
+  - removed `filter` from `will-change`
+  - added `backface-visibility: hidden`
+  - added `transform: translateZ(0)` for cleaner rasterization during transform
+- Simplified per-bar timing in renderer:
+  - removed sinusoidal jitter from delay
+  - switched to linear left-to-right delay progression
+  - reduced duration variance so bars feel more uniform
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Behavior-tuning pass completed in code; screenshot validation not run in this micro-fix pass.
+
+## E-Wallet KPI Layout Alignment Fix (2026-04-07)
+
+### What changed
+
+- Updated the E-Wallet KPI card structure so it follows the same layout rhythm as other KPI cards.
+- Added a consistent header row structure and normalized action button sizing/spacing.
+
+### Implementation details
+
+- E-Wallet card now uses:
+  - top row (`title + compact badge`)
+  - primary value block
+  - supporting text
+  - bottom action zone with consistent padding
+- Normalized CTA button shape and typography to match KPI card system:
+  - `rounded-xl`
+  - `py-2.5`
+  - `text-body-sm`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Quick layout consistency pass in code; screenshot not run in this micro-fix.
+
+## KPI Uniform Layout + Dashboard Skeleton Loading System (2026-04-07)
+
+### What changed
+
+- Standardized KPI card composition and spacing for the Home top-row cards.
+- Implemented an initial dashboard skeleton loading system that covers the dashboard shell while core data hydrates.
+
+### KPI layout standardization
+
+- Updated KPI cards to follow a common vertical rhythm:
+  - header row
+  - primary value
+  - support copy
+  - footer/action zone (`mt-auto pt-3` pattern)
+- E-Wallet card:
+  - aligned to shared KPI rhythm and retained Send/Transfer actions
+- Sales Team Commissions card:
+  - moved cycle summary/progress into footer zone with transfer action
+  - added support copy line for consistency with other cards
+- Personal Volume card:
+  - replaced icon chip with compact status badge (`30 days`) to align with other card header treatment
+- Account Status card:
+  - normalized spacing to include support copy + footer rank slot for better structural consistency
+
+### Dashboard skeleton system
+
+- Added a dashboard-level skeleton shell:
+  - `#dashboard-initial-skeleton`
+  - shown while dashboard core data is loading
+- Wrapped existing dashboard content in:
+  - `#dashboard-live-content`
+  - hidden while skeleton is active
+- Added skeleton visual primitives:
+  - `.dashboard-skeleton-block`
+  - `.dashboard-skeleton-bar`
+  - shimmer keyframes (`dashboard-skeleton-shimmer`)
+- Added loading state attribute gate:
+  - `#page-dashboard[data-dashboard-loading='true']`
+
+### Skeleton lifecycle logic
+
+- Added lifecycle helpers:
+  - `beginDashboardSkeletonLoading()`
+  - `markDashboardSkeletonStepComplete(stepName)`
+  - `setDashboardSkeletonLoading(isLoading)`
+- Added tracked completion steps:
+  - `summary` (binary tree/dashboard summary)
+  - `cutoff` (server cutoff metrics sync)
+  - `ewallet` (E-Wallet snapshot preload)
+- Added force-stop fallback timeout:
+  - `DASHBOARD_SKELETON_MAX_WAIT_MS = 9000`
+- Hooked completion marks to real hydration paths:
+  - `applyBinaryTreeDashboardSummary(...)` -> `summary`
+  - server cutoff sync/apply flow -> `cutoff`
+  - `loadEWalletSnapshotForCurrentUser(...)` -> `ewallet`
+- Added startup preload call:
+  - `loadEWalletSnapshotForCurrentUser({ silent: true })`
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design decisions
+
+- Skeleton covers dashboard shell rather than per-widget ad hoc spinners to reduce visual flicker and create one coherent loading state.
+- Completion is data-step-driven (not purely timer-driven), with timeout fallback as safety.
+
+### Known limitations
+
+- Skeleton completion currently tracks core dashboard hydration steps only (`summary`, `cutoff`, `ewallet`), not every downstream module request.
+- Further per-module skeleton refinement can be layered later if needed.
+
+### Validation
+
+- Code-level validation pass completed across layout and hydration hooks.
+- Screenshot validation was not run in this pass.
+
+## Dashboard KPI Badge Hovercard Fix (2026-04-07)
+
+### What changed
+
+- Replaced the Account Status KPI badge inline tooltip behavior with a floating hovercard pattern (same interaction model used in the Profile badge strip).
+- Removed inline KPI badge tooltip node creation from `renderDashboardAccountKpiBadges(...)` and wired each KPI badge to show/hide a shared hovercard rendered outside the dashboard card container.
+- Added full hover/focus/touch handling for KPI badges:
+  - `mouseenter` / `focus` -> show hovercard
+  - `mouseleave` / `blur` -> delayed hide
+  - `pointerdown` for touch/pen -> show hovercard
+- Added dashboard KPI hovercard lifecycle helpers:
+  - clear hide timer
+  - schedule hide
+  - immediate/animated hide
+  - viewport-safe positioning with top/bottom placement fallback
+- Added one-time global listeners for the KPI hovercard:
+  - keep open while pointer is over hovercard
+  - close on outside pointer down
+  - reposition on `resize` and `scroll`
+- Added dedicated dashboard KPI hovercard state tracking to prevent stale active keys/anchors.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design decisions made
+
+- Used one shared floating hovercard node outside `<main>` so tooltip-like content is not clipped by card boundaries/overflow contexts.
+- Reused existing Profile hovercard visuals/placement behavior to keep interaction consistency and reduce duplicate styling systems.
+
+### Known limitations
+
+- KPI badges are rendered as focusable `span[role="img"]` elements (existing approach), not semantic `button` elements.
+- Hovercard content remains badge-driven and does not include additional metadata beyond title/subtitle/icon.
+
+### Validation
+
+- Verified by code-path inspection:
+  - no remaining `dashboard-account-kpi-badge-tooltip` inline tooltip creation paths.
+  - dashboard KPI badges now call floating hovercard show/hide/position utilities.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## KPI Badge Source Logic Alignment (2026-04-07)
+
+### What changed
+
+- Updated `resolveDashboardAccountKpiBadgeEntries(...)` to mirror the Profile badge selection list directly, instead of enforcing a fixed 3-slot rank/title/extra scaffold.
+- Removed KPI-side placeholder slot generation that previously produced extra placeholder icons when only one badge was enabled/unlocked.
+- Added empty-state handling in `renderDashboardAccountKpiBadges(...)`:
+  - hide KPI badge strip when no profile badges are selected/available
+  - hide KPI hovercard immediately when list is empty
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design decisions made
+
+- KPI badge strip now follows Profile as the single source of truth for which badges should be displayed.
+- KPI no longer invents or fills absent badge slots.
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## KPI Badge Refresh Sync Fix (2026-04-07)
+
+### Root cause
+
+- Several data refresh/theme update flows were only calling `renderProfileHandleBadges(...)`.
+- The Dashboard KPI badge strip (`renderDashboardAccountKpiBadges(...)`) was not being refreshed in those same flows.
+- Result: Profile badge strip could show updated title badges while KPI stayed stale (often rank-only).
+
+### What changed
+
+- Added `syncProfileBadgeDisplays(...)` helper to update both:
+  - `renderProfileHandleBadges(...)`
+  - `renderDashboardAccountKpiBadges(...)`
+- Updated `syncHeaderProfileIdentity(...)` to use the shared badge-sync helper.
+- Replaced standalone `renderProfileHandleBadges(resolveEffectiveMemberProfile())` calls in refresh paths with `syncProfileBadgeDisplays(resolveEffectiveMemberProfile())`.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Badge Hover Window Visual Redesign (2026-04-07)
+
+### What changed
+
+- Redesigned the shared badge hover window styling (`.profile-handle-badge-hovercard*`) used by both Profile and Dashboard KPI badges.
+- Removed oversized circular visual treatment by restyling `.profile-handle-badge-hovercard-icon-shell` into a compact rounded-square icon tile.
+- Changed hover window layout from stacked/centered to compact two-column structure:
+  - left: icon tile
+  - right: title + subtitle
+- Reduced popup footprint and visual weight:
+  - smaller card width/padding
+  - lighter shadow depth
+  - cleaner pointer/arrow sizing
+  - removed heavy text italicization and large uppercase emphasis
+- Kept behavior/positioning logic unchanged (only visual redesign).
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design decisions made
+
+- Prioritized a cleaner, less generic tooltip appearance with better information density.
+- Reduced ornamental effects (large circular shell, oversized icon, heavy title styling) while preserving premium surface treatment.
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Hover Window Background Match (2026-04-07)
+
+### What changed
+
+- Updated `.profile-handle-badge-hovercard` background to exactly match the tooltip/pop-up background color:
+  - `rgb(20 22 28 / 0.96)`
+- Updated hovercard border to match tooltip/pop-up edge treatment:
+  - `1px solid rgb(255 255 255 / 0.14)`
+- Updated hovercard pointer arrow (`::after`) to the same background and border values so the pointer visually matches the window body.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Hover Window Pointer Removed (2026-04-07)
+
+### What changed
+
+- Removed the diamond pointer/arrow from the shared badge hover window style.
+- Updated `.profile-handle-badge-hovercard::after` to `content: none;` so no pointer is rendered.
+- Kept hover window behavior/positioning logic intact; this is a visual-only cleanup.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Hover Window Background + Click Shift Stabilization (2026-04-07)
+
+### What changed
+
+- Restored the badge hover window to the original styled gradient look and removed translucent background fill.
+- Updated `.profile-handle-badge-hovercard` background to fully opaque gradient colors (no alpha in background colors).
+- Reduced click/focus anchor motion to prevent hover window jump:
+  - removed transform-lift from badge `:focus-visible`/`data-hovered` states
+  - removed profile badge `:active` scale transform
+- Added same-anchor guard in both hovercard show functions so re-triggering on click/focus does not reset card coordinates to `-9999px` before reposition.
+- Simplified focus handlers to show hovercards without forcing hovered transform state.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Hover Jump Hard Fix (2026-04-07)
+
+### What changed
+
+- Added guard in both hovercard show functions to ignore redundant re-open calls when the same badge anchor/key is already active and visible.
+- Removed badge transform motion from hover states on both Profile and KPI badge anchors so anchor geometry stays stable while popup is open.
+- Kept highlight treatment (border/shadow changes) without positional movement.
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Hover Window Text-Selection Keep-Open Fix (2026-04-07)
+
+### What changed
+
+- Fixed popup auto-hide when clicking/selecting text inside badge hover windows.
+- Added `shouldKeepProfileHandleBadgeHovercardOpen()` and `shouldKeepDashboardAccountKpiBadgeHovercardOpen()` guards.
+- Updated badge `blur` handlers to skip hide scheduling when popup is still hovered/focused.
+- Added popup listeners to keep hovercards open during direct interaction:
+  - `pointerdown` -> clear hide timer
+  - `focusin` -> clear hide timer
+  - `focusout` -> schedule hide only when focus leaves popup
+
+### Files affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script syntax parse passed.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login CTA White Button Update (2026-04-07)
+
+### What changed
+
+- Updated the member login submit button to a solid white style for cleaner contrast against the dark ColorBends background.
+- Kept dark text for readability and retained subtle hover/active/focus states without glow.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Button styling verified in markup/class configuration.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Field Label White Text Update (2026-04-07)
+
+### What changed
+
+- Updated the static form labels for `Username or Email` and `Password` from themed secondary text to pure white.
+- This keeps label contrast consistent with the black background and glass panel direction.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Label class names verified in markup (`text-white`).
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Placeholder Grayish White Update (2026-04-07)
+
+### What changed
+
+- Updated login input placeholders from themed tertiary text to a grayish-white tone (`placeholder:text-white/60`).
+- Applied to both identifier and password fields for visual consistency.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Placeholder class names verified in markup.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Footer Legal Copy Update (2026-04-07)
+
+### What changed
+
+- Added a bottom-centered footer on the login screen with the exact copy:
+  - `By logging in, you agree to our Terms of Service and Privacy Policy.`
+  - `© 2026 LD Premiere`
+- Added underlined hyperlinks for `Terms of Service` and `Privacy Policy`.
+- Increased bottom spacing on the main layout to reduce overlap risk with the fixed footer on short screens.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Footer markup and link styles verified in `login.html`.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Subtitle White Text Update (2026-04-07)
+
+### What changed
+
+- Updated subtitle text `Sign in to access your dashboard` to pure white.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Subtitle class verified in markup (`text-white`).
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login First-Load Entrance Animation Update (2026-04-07)
+
+### What changed
+
+- Added Apple-style first-load entrance motion to the login page.
+- Implemented page-level blur/fade intro (`pageBlurFadeIn` keyframe) on the main shell.
+- Added staggered bottom-up blur/fade reveal animation (`revealUpBlurFade`) for:
+  - login card container
+  - logo/heading block
+  - login form
+  - footer legal text
+- Added `prefers-reduced-motion: reduce` fallback to disable these animations for accessibility.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script parse check passed for `login.html`.
+- Animation classes and delays verified in markup.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Intro Animation Reliability Fix (2026-04-07)
+
+### What changed
+
+- Updated the entrance animation trigger from passive CSS-on-load to a JS-driven class toggle (`body.intro-run`).
+- Added `playLoginIntroAnimation()` to explicitly restart intro animation on initial load.
+- Added `pageshow` handling for BFCache restores so intro plays reliably when returning to the login page.
+- Kept reduced-motion behavior intact.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script parse check passed for `login.html`.
+- Intro animation trigger/class wiring verified in markup and script.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Background Reveal + Shader Parameter Animation (2026-04-07)
+
+### What changed
+
+- Added a black-first background reveal effect by animating `#color-bends-bg` opacity from `0` to `1`, delayed to align with panel intro timing.
+- Added intro interpolation for ColorBends shader controls so background behavior transitions into its final look instead of jumping:
+  - `speed`
+  - `scale`
+  - `frequency`
+  - `warpStrength`
+  - `mouseInfluence`
+  - `parallax`
+  - `noise`
+  - `autoRotate`
+- Added easing + timing controls (`introParamConfig`) and a reduced-motion-aware target mapping.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script parse checks passed for both module and non-module scripts in `login.html`.
+- Background reveal timing and parameter-ramp logic verified in script.
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Intro Scale Start Update (2026-04-07)
+
+### What changed
+
+- Updated ColorBends intro parameter ramp to start at `scale: 5` before easing back to the configured final scale.
+- This creates a stronger zoomed-in opening look before settling to the original background state.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Intro parameter config verified in `login.html` (`introParamConfig.from.scale = 5`).
+- Screenshot validation was not run in this pass (per user instruction).
+
+## Member Login Shader Intro Trigger Sync Fix (2026-04-07)
+
+### What changed
+
+- Added `window.startColorBendsIntro()` in the ColorBends module script and switched intro timing to begin when this function is called.
+- Updated login intro runner (`runLoginIntroAnimation`) to call `window.startColorBendsIntro()` at sequence start.
+- This removed timing drift between page load and intro start, making `scale: 5 -> configured scale` visibly tied to panel entrance.
+
+### Files affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Script parse checks passed for both module and non-module blocks.
+- Verified trigger wiring: `runLoginIntroAnimation()` -> `window.startColorBendsIntro()`.
+- Screenshot validation was not run in this pass (per user instruction).

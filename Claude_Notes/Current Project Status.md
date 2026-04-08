@@ -1,11 +1,1054 @@
 # Current Project Status
 
-Last Updated: 2026-04-06
+Last Updated: 2026-04-08
 
 ## Purpose
 
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
+
+## Recent Update (2026-04-08) - Business Center Data Revert + Flush Settings Hardening
+
+- Reverted test activation data for `zeroone` in production-like member records:
+  - restored original primary member row
+  - removed generated replacement primary row
+  - restored rewired downline sponsor reference(s) from `zeroone-bc-1` to `zeroone`.
+- Confirmed admin flush behavior still clears Business Center DB fields via full `registered_members` table truncate.
+- Updated admin flush UX/cleanup in `admin.html`:
+  - expanded member-side browser cache clearing list for newly used localStorage keys
+  - updated flush confirmation text to include binary-tree/sales-team snapshots
+  - extended success feedback with `binaryTreeSnapshots` and `salesTeamCommissions` cleared counts.
+- Files updated:
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - DB post-check confirms `zeroone` is primary again and downline sponsor linkage is restored
+  - admin flush script now reports binary + sales-team snapshot clear totals.
+
+## Recent Update (2026-04-08) - Business Center Feature Integrated Into Binary Tree
+
+- Completed Business Center backend API surface for authenticated members:
+  - `GET /api/member-auth/business-centers`
+  - `POST /api/member-auth/business-centers/progress`
+  - `POST /api/member-auth/business-centers/activate`
+- Wired new Business Center route module into backend app startup.
+- Extended member storage/service implementation for Business Center ownership, node metadata, and progress counters.
+- Added dashboard activation UI in `index.html`:
+  - status/cap/pending/overflow summary
+  - side selector (left/right pin)
+  - manual activate CTA + feedback state.
+- Synced Legacy Leadership completed-tier totals into Business Center progress endpoint.
+- Updated tree summary KPI behavior to exclude Business Center placeholders from:
+  - member count
+  - new members
+  - direct sponsors.
+- Kept placeholder nodes visible in tree structure but non-qualifying for tier/direct-member counting and personal BV rollups.
+- Files updated:
+  - `backend/app.js`
+  - `backend/routes/member-business-center.routes.js`
+  - `backend/controllers/member-business-center.controller.js`
+  - `backend/services/member-business-center.service.js`
+  - `backend/services/member.service.js`
+  - `backend/stores/member.store.js`
+  - `binary-tree.mjs`
+  - `index.html`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check` passed for updated backend JS files
+  - extracted inline script from `index.html` passed `node --check`
+  - unauthenticated endpoint smoke test returns expected `401 AUTH_REQUIRED`.
+
+## Recent Update (2026-04-07) - Login Button Loading Animation
+
+- Added inline loading animation on `login.html` submit CTA.
+- Login button now displays:
+  - animated spinner icon
+  - `Logging In...` label while auth request is pending.
+- Busy-state handling now also sets `aria-busy` and wait cursor on the button.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - non-module inline script parse checks passed for edited HTML files.
+
+## Recent Update (2026-04-07) - Unified Login for Member + Free Account
+
+- Merged login audiences into one entry page:
+  - both paid members and preferred/free customers now sign in at `login.html`.
+- Updated role-based post-login routing:
+  - paid/member accounts -> `/index.html`
+  - free/preferred accounts -> `/store-dashboard.html` (store code preserved when available).
+- Replaced split-login storefront references by moving shared free-login URL generation to `/login.html`.
+- Kept `/store-login.html` as a compatibility redirect so old bookmarks and legacy links still work.
+- Updated password-setup login return links to use unified `/login.html`.
+- Files updated:
+  - `login.html`
+  - `storefront-shared.js`
+  - `store-login.html`
+  - `store-dashboard.html`
+  - `store.html`
+  - `store-product.html`
+  - `store-support.html`
+  - `store-checkout.html`
+  - `store-register.html`
+  - `store-password-setup.html`
+  - `password-setup.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - `node --check storefront-shared.js` passed
+  - non-module inline script parse checks passed for edited HTML files.
+
+## Recent Update (2026-04-07) - Login Input Field Colors Corrected
+
+- Refined login input field palette in `login.html` to match the current glassmorphism panel style.
+- Input updates applied to both fields:
+  - translucent glass background
+  - softer frosted border color
+  - theme-consistent placeholder tone
+  - cohesive hover/focus tint changes.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - inline script syntax check passed
+  - no screenshots taken in this pass (per instruction).
+
+## Recent Update (2026-04-07) - Login Panel Recolored (Glass + No Purple, No Button Glow)
+
+- Recolored login panel in `login.html` from purple accents to cyan/ice tones.
+- Kept and refined glassmorphism style:
+  - translucent dark glass surface
+  - frosted highlight gradient
+  - softer neutral depth shadowing.
+- Removed login button glow effect by dropping custom glow shadows and keeping clean border/background hover states.
+- Updated input borders/placeholders/focus accent colors to match new non-purple palette.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - inline script syntax check passed
+  - no screenshots taken in this pass (per instruction).
+
+## Recent Update (2026-04-07) - Background Resize Behavior Locked
+
+- Updated `login.html` background renderer to avoid stretch/squeeze when resizing viewport.
+- Strategy:
+  - lock shader render space to fixed `1920x1080`
+  - present canvas with `object-fit: cover` so viewport changes crop/scale framing instead of re-distorting shader space.
+- Removed viewport-resize shader remap behavior from previous passes.
+- Kept pointer interaction responsive by using current viewport dimensions only for cursor normalization.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - inline script syntax check passed
+  - no screenshots taken in this pass (per instruction).
+
+## Recent Update (2026-04-07) - Mobile Background Squeeze Fix v2 (Viewport-Fixed)
+
+- Applied follow-up correction for mobile squeeze in `login.html`:
+  - moved ColorBends background host to viewport-fixed positioning (`fixed inset-0`)
+  - detached background sizing from page content height growth.
+- Upgraded resize logic to viewport-aware handling:
+  - `visualViewport` dimensions now drive shader canvas sizing
+  - resize/orientation/viewport-scroll listeners keep canvas synchronized on mobile browser UI changes.
+- Pointer coordinate normalization now uses the same viewport dimensions for interaction alignment.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - inline script syntax check passed
+  - no screenshots taken in this pass (per instruction).
+
+## Recent Update (2026-04-07) - Mobile Background Aspect Correction
+
+- Fixed mobile portrait background squeeze in `login.html` ColorBends shader.
+- Updated shader UV/aspect transform to use conditional cover-style scaling:
+  - desktop/wide: x-axis scale
+  - mobile/tall: y-axis inverse scale
+- Result:
+  - avoids compressed background look in mobile-sized viewports.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - inline script syntax check passed
+  - no screenshots taken in this pass (per instruction).
+
+## Recent Update (2026-04-07) - Rotating Heading No-Shift Refinement
+
+- Shortened long rotating phrase in login heading to avoid wide-line stress:
+  - now uses `Next Level Starts Now.`
+- Locked heading row height in `login.html` (`#login-inspiration-heading`) so phrase swaps no longer alter panel height.
+- Added no-wrap behavior for heading text in the panel context.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - inline script syntax check passed
+  - no screenshots taken in this pass (per instruction).
+
+## Recent Update (2026-04-07) - Login Panel Height Jump Removed For Error States
+
+- Stabilized login panel height in `login.html` so showing error messages no longer expands/snaps the container.
+- Implemented reserved error slot strategy:
+  - fixed space wrapper (`min-h-[4.25rem]`)
+  - opacity-based reveal/hide instead of display toggling.
+- Updated error helpers (`showLoginError`, password setup error, free account redirect error) to use shared reveal classes.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - inline script syntax check passed
+  - no screenshots taken in this pass (per instruction).
+
+## Recent Update (2026-04-07) - Login Panel Content Updated Per UX Request
+
+- Updated `login.html` login panel with requested copy/branding changes:
+  - logo switched to `/brand_assets/Logos/L&D White Icon.png`
+  - heading switched from static title to rotating inspirational phrases (4200ms interval)
+  - heading font changes per phrase using Inter/Space Grotesk/Display classes
+  - label text updated to `Username or Email`
+  - CTA text updated to `Login` (busy state now `Logging In...`)
+  - removed legacy auth-source info block.
+- Auth functionality and form IDs remain intact; this is a UI/copy-only panel refresh.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - inline script syntax check passed
+  - no screenshots taken for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Login ColorBends Exact Settings Applied
+
+- Set `login.html` ColorBends config to the exact values requested by user:
+  - `rotation 0`, `speed 0.15`, `colors ["#ff0000","#00ff00","#0000ff"]`, `transparent true`, `autoRotate 0.3`, `scale 1.8`, `frequency 1`, `warpStrength 1`, `mouseInfluence 0.1`, `parallax 0.1`, `noise 0.05`.
+- No auth-logic changes; this update is visual/background-parameter only.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - screenshots: `screenshot-125-login-exact-settings-pass1.png`, `screenshot-126-login-exact-settings-pass2.png`.
+
+## Recent Update (2026-04-07) - Login Background Stack Simplified
+
+- Cleaned up extra background layers in `login.html` that were causing a visible “second background behind” effect.
+- Removed additional fallback gradient stack and extra radial overlay behind the Color Bends canvas.
+- Retained only the single base black fallback plus live shader background render.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - screenshot: `temporary screenshots/screenshot-124-login-background-cleanup-pass1.png`.
+
+## Recent Update (2026-04-07) - Login Color Match Pass + Global Hover Pointer Tracking
+
+- Refined `login.html` Color Bends palette and fallback blend to better align with the black reference look (cyan/pink/green bend tones).
+- Aligned config values to Usage-style tuning in-page (`colors`, `noise`, `mouseInfluence`) for easier direct edits.
+- Fixed hover interaction reliability by binding pointer updates at window scope instead of the background element only.
+- Kept background implementation JS/CSS-only and removed all video usage.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - screenshot comparison passes: `screenshot-120` through `screenshot-123`.
+
+## Recent Update (2026-04-07) - Login Color Bends Switched to Pure JS/CSS (No Video)
+
+- Removed video-backed Color Bends layer from `login.html` after review feedback.
+- Background is now generated without media playback:
+  - Three.js shader-driven Color Bends (custom JS)
+  - CSS fallback bend gradients for non-WebGL/headless rendering consistency.
+- Installed `three` package and moved runtime import to local module path to ensure shader actually boots in-page.
+- Added `colorBendsConfig` in `login.html` so the page can be customized using the same fields as the provided Usage snippet.
+- Kept black background visual direction and dark glass login card treatment.
+- Preserved auth form behavior and IDs (UI-only/theme/background adjustments).
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - inline script syntax check passed
+  - screenshot passes completed (`screenshot-115`, `screenshot-116`).
+
+## Recent Update (2026-04-07) - Member Login Screen Shifted to Light Glassmorph + Color Bends
+
+- Updated `login.html` to a light-mode-first default (removed dark-mode default metadata and dark token usage).
+- Implemented ReactBits-style `Color Bends` background treatment behind the login UI:
+  - live shader layer (Three.js) inspired by Color Bends behavior
+  - fallback video layer using official Color Bends media assets.
+- Refined login panel to a glassmorphism surface:
+  - translucent card shell, layered purple-tinted shadows, and backdrop blur
+  - retained original form IDs and auth behavior to avoid regression in login flow.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-login-page.md`
+- Validation:
+  - inline script syntax check passed
+  - multi-pass screenshot checks completed (`pass1`, `pass2`, `pass3`).
+
+## Recent Update (2026-04-07) - Home Skeleton Layout Synced to Current Dashboard
+
+- Updated `#dashboard-initial-skeleton` in `index.html` to match the current Home dashboard structure and spacing.
+- Replaced older condensed skeleton pattern with a full-layout loading shell:
+  - KPI row placeholders (4 cards)
+  - Weekly Total + Server Cut-Off top row placeholders
+  - Infinity/Legacy left stack + Fast Track/Recent Activity right stack placeholders.
+- Result:
+  - reload skeleton now aligns with the actual Home page composition instead of appearing like a centered/older layout.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Recent Activity Header Cleanup + Working View All Toggle
+
+- Removed the extra helper subtitle line under `Recent Activity` in `index.html` for a cleaner header.
+- Fixed `View All` behavior:
+  - replaced dead anchor with an actual button (`#recent-activity-view-all-button`)
+  - button now toggles feed display between capped (`12`) and full list
+  - button auto-hides when the entry count does not exceed the capped limit.
+- Added one-time control binding with `initializeRecentActivityPanelControls()` and connected it to existing Recent Activity render updates.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Recent Activity Restyled + Synced to Legacy Panel Height
+
+- Cleaned up `Recent Activity` presentation in `index.html` while preserving the same activity data list content.
+- Redesign scope:
+  - updated panel shell styling to current dashboard component language
+  - compact header/title treatment
+  - kept `#recent-activity-feed` list behavior and item output unchanged.
+- Added height matching on desktop:
+  - `#recent-activity-panel` now syncs to `#legacy-leadership-bonus-panel`
+  - uses `ResizeObserver`, resize listeners, breakpoint listeners, and render-time sync requests.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Fast Track Extra Wrapper Removed
+
+- Removed the outer Fast Track panel wrapper in `index.html` to simplify nested containers.
+- `#fast-track-bonus-card` is now the single visible Fast Track container.
+- Kept layout behavior stable by repointing height-sync logic to `#fast-track-bonus-card`.
+- Result:
+  - no right-column layout conflict
+  - cleaner Fast Track component structure.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Fast Track Audit Now Bonus-Only
+
+- Fixed Fast Track audit feed in `index.html` so regular enrollments without Fast Track bonus are no longer listed.
+- Enrollment records are now shown only when actual Fast Track commission amount is greater than 0.
+- Result:
+  - audit list now represents true Fast Track bonus commission records only.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Fast Track Audit Records Added + Height Synced to Infinity Builder
+
+- Expanded `Fast Track Bonus` component in `index.html` with an embedded commission audit list.
+- Audit feed now displays Fast Track commission records as an internal ledger:
+  - enrollment credit records
+  - Fast Track transfer/payout records.
+- Added audit-specific UI bindings:
+  - `#fast-track-commission-audit-count`
+  - `#fast-track-commission-audit-empty`
+  - `#fast-track-commission-audit-list`.
+- Added deterministic desktop height matching:
+  - Fast Track panel (`#fast-track-bonus-panel`) now syncs its height to Infinity Builder panel (`#infinity-builder-bonus-panel`)
+  - uses `ResizeObserver`, breakpoint listeners, and resize listeners.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Component Placement Reordered (Fast Track Right Column)
+
+- Reordered Dashboard Row 2 layout in `index.html` to match latest composition request.
+- Left lane (`lg:col-span-2`):
+  - `Weekly Total Organization BV` at top
+  - `Infinity Builders Bonus` + `Legacy Leadership Bonus` directly below.
+- Right lane (`lg:col-span-1`):
+  - `Server Cut-Off` (top)
+  - `Fast Track Bonus` (above Recent Activity)
+  - `Recent Activity` (below Fast Track).
+- Fast Track block was moved intact (same IDs, same actions) from under Account Overview to the right column stack.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Server Cut-Off Style Matched to Weekly Total Panel
+
+- Updated `Server Cut-Off` styling in `index.html` to align directly with the cleaner `Weekly Total Organization BV` component language.
+- Visual refactor details:
+  - removed nested boxed timer/stat containers
+  - moved to a single panel surface with divider-based sections
+  - aligned typography scale and caption treatment with Weekly Total panel
+  - kept compact status badge and primary countdown emphasis.
+- Data bindings preserved (`countdown`, `left/right leg BV`, `estimated cycles`, `cycle split rule`).
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Server Cut-Off Hidden-Height Issue Resolved
+
+- Fixed the Server Cut-Off panel mismatch caused by stretch behavior in Dashboard row layout.
+- Implemented two-part correction in `index.html`:
+  - layout fix:
+    - changed Server Cut-Off grid item to `lg:self-start`
+    - removed forced full-height behavior from the card
+    - removed auto-push spacing that amplified hidden/empty vertical area
+  - deterministic height match:
+    - added desktop height sync from `#account-overview-card` (Weekly Total Organization BV component) to `#server-cutoff-card`
+    - sync runs on init, metrics refresh, resize, breakpoint change, and `ResizeObserver` updates.
+- Result:
+  - Server Cut-Off now matches the actual Weekly Total component area height instead of inheriting oversized row stretch.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Server Cut-Off Panel Matched + Timer Tightened
+
+- Updated the Dashboard `Server Cut-Off` panel in `index.html` to better match the height/layout rhythm of the `Weekly Total Organization BV` primary board.
+- Applied visual tightening:
+  - elevated rounded shell with internal compact spacing
+  - denser two-column BV stat cards
+  - cleaner cycles row.
+- Timer area cleanup:
+  - removed `#cutoff-next-target` line
+  - label now reads `Cut-Off Timer`
+  - countdown output now shows time-only shorthand (`Xd Xh Xm` style), no “remaining” copy.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Quick Actions Panel Removed; Server Cut-Off Promoted
+
+- Removed the Dashboard `Quick Actions` panel component from `index.html`.
+- Promoted `Server Cut-Off` card to occupy that top-right layout position directly.
+- Layout effect:
+  - right column now shows only `Server Cut-Off` in that slot
+  - no stacked `Quick Actions + Server Cut-Off` block.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Weekly Separator Lines Added to Account Overview BV Graph
+
+- Updated the 30-day dual-series comparison graph in the main `Weekly Total Organization BV` panel.
+- Added vertical weekly separation lines so each week boundary is easier to identify at a glance.
+- Week boundary alignment:
+  - separators render on Sunday start-of-week points
+  - chosen to match existing dashboard logic where weekly cutoff is Saturday night.
+- Implementation detail:
+  - chart renderer now marks week-boundary columns and injects a subtle vertical divider line.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Account Overview Main Panel Graph (Total vs Personal BV)
+
+- Enhanced the left/main Account Overview panel (`Weekly Total Organization BV`) with a comparison graph.
+- Added a 30-day dual-series mini chart using Personal Volume graph behavior patterns:
+  - two bars per day:
+    - darker tone = `Total BV`
+    - lighter tone = `Personal BV`
+  - hover/focus tooltip with:
+    - date
+    - total value
+    - personal value
+  - caption summary for 30-day change across both series.
+- Added local trend persistence for Account Overview BV comparison:
+  - storage key: `charge-account-overview-bv-trend-v1`
+  - per-user trend partitioning
+  - one entry per day bucket (latest timestamp wins).
+- Data wiring:
+  - graph updates from existing dashboard summary pipeline using:
+    - `totalAccumulatedPv` (weekly total organization BV)
+    - `organizationRollups.personalOrganizationBv` (weekly personal organization BV).
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Account Overview Header Cleanup (Aligned with Quick Actions)
+
+- Removed the top header row inside Dashboard `Account Overview` in `index.html` for a cleaner visual start.
+- Removed these elements from the component:
+  - `Account Overview` title text
+  - `Your Organization Summary` subtitle
+  - `Live Stats` badge
+- Result:
+  - Account Overview metric layout now starts immediately at the top
+  - cleaner alignment/visual rhythm with neighboring `Quick Actions` panel.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Account Overview Style Pivot (Asymmetric Command Board)
+
+- Reworked `Account Overview` again in `index.html` after additional feedback.
+- New style direction:
+  - asymmetric command-board layout
+  - large primary panel for `Weekly Total Organization BV`
+  - compact secondary stats cluster for:
+    - `New Members`
+    - `Direct Sponsors`
+    - `Cycles`
+- This removes the prior “uniform rail” feel and creates a stronger visual hierarchy.
+- Preserved all existing IDs and trend/value bindings.
+- `Fast Track Bonus` stays as a separate container below.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Account Overview Style Pivot (Unified Metric Rail)
+
+- Reworked Dashboard `Account Overview` style again in `index.html` based on latest feedback.
+- Replaced the prior ledger-row layout with a single unified metric rail:
+  - one shared overview strip
+  - 4 equal metric segments with divider lines
+  - no nested mini-card look.
+- Preserved existing metric bindings/IDs and content:
+  - `Weekly Total Organization BV`
+  - `New Members Joined`
+  - `Total Direct Sponsors`
+  - `Cycles`
+- `Fast Track Bonus` remains a separate container below Account Overview.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed.
+
+## Recent Update (2026-04-07) - Account Overview Style Redesign (Non-Card Ledger)
+
+- Follow-up redesign applied to Dashboard `Account Overview` in `index.html`:
+  - replaced the 4-card stat grid style with a non-card ledger/list style.
+  - stats now render as four structured rows inside one shared overview surface with divider lines.
+- Preserved requested metric content and bindings:
+  - `Weekly Total Organization BV`
+  - `New Members Joined Your Network`
+  - `Total Direct Sponsors`
+  - `Cycles`
+  - all existing metric IDs remain intact for runtime updates.
+- Fast Track Bonus remains separated in its own container below the overview component.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed after layout changes.
+
+## Recent Update (2026-04-07) - Account Overview Restructure (Rank Removed + Cycles Added)
+
+- Updated Dashboard `Account Overview` in `index.html` to match latest component scope:
+  - removed the `Account Rank` card from the Account Overview surface
+  - kept:
+    - `Weekly Total Organization BV`
+    - `New Members Joined Your Network`
+    - `Total Direct Sponsors`
+  - added one more stat card: `Cycles` (`#dashboard-total-cycles-value`).
+- Separated `Fast Track Bonus` into its own container:
+  - moved out of the Account Overview card
+  - now rendered as a separate sibling container directly below Account Overview in the same left column.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script syntax check passed after layout changes.
+
+## Recent Update (2026-04-07) - E-Wallet KPI: Single CTA + 30-Day Balance Graph
+
+- Updated the Home `E-Wallet Balance` KPI card in `index.html` per current dashboard request:
+  - removed dual actions (`Send`, `Transfer`)
+  - added one action only: `Go to E-Wallet`
+  - action now routes directly to the `e-wallet` dashboard page.
+- Added a 30-day E-Wallet balance mini-graph inside the KPI card:
+  - bar strip mirrors Personal Volume interaction style
+  - hover/focus tooltip shows `date + balance`
+  - caption summarizes 30-day change/current balance state.
+- Added local trend persistence for daily E-Wallet balance snapshots:
+  - storage key: `charge-dashboard-ewallet-trend-v1`
+  - trend is stored per member key and deduplicated by day bucket.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Known limitation:
+  - Historical days populate as new server-confirmed wallet snapshots are observed; prior-day backfill is not reconstructed from transfer history in this pass.
+
+## Recent Update (2026-04-07) - KPI Badge Shell Shadows Removed (Rank/Title Icons)
+
+- Clarified and completed shadow removal for the `Account Active Until` KPI icon row in `index.html`.
+- Removed badge shell shadows from:
+  - `.dashboard-account-kpi-badge` (`box-shadow` removed)
+- Combined with previous change, KPI icon row now has:
+  - no shell `box-shadow`
+  - no icon `drop-shadow` filter
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Account Active Until KPI Icon Shadow Removed
+
+- Removed drop shadow from the new KPI icon row in `index.html`.
+- Updated class:
+  - `.dashboard-account-kpi-badge-icon` no longer uses `filter: drop-shadow(...)`.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Account Active Until KPI Filled with Profile Badge Icons
+
+- Added a badge icon row to the bottom of the `Account Active Until` KPI card in `index.html`.
+- New KPI icon strip now shows 3 slots:
+  - Rank icon
+  - Title 1 icon
+  - Title 2 icon
+- Implementation reuses existing profile badge resolution logic to keep icon sources synchronized with Profile page state.
+- Added fallback placeholders for unavailable title badges so the card remains visually complete.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - headless check confirms KPI strip renders 3 icons and sources map correctly.
+
+## Recent Update (2026-04-07) - Account Status Tooltip Copy Paraphrased
+
+- Updated `Account Active Until` tooltip text in `index.html` to the new paraphrased sentence.
+- Synced the same copy across:
+  - visible tooltip content
+  - badge `aria-label` in markup
+  - badge `aria-label` set in render logic
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Duplicate WebKit Tooltip Removed (Account Status Badge)
+
+- Fixed double-tooltip issue on the `Account Active Until` badge in `index.html`.
+- Cause:
+  - native browser tooltip from `title` + custom tooltip were both rendering on hover.
+- Fix:
+  - removed `title` usage from badge
+  - switched to `aria-label` (markup + render logic) for accessibility text
+- Result:
+  - only the custom tooltip now appears on hover/focus.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Account Status Tooltip Size Reduced (Compact)
+
+- Adjusted the `Account Active Until` tooltip to a smaller tooltip-appropriate size in `index.html`.
+- Updated typography classes:
+  - from `text-sm font-medium leading-5`
+  - to `text-xs leading-4`
+- Kept white text color.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Account Status Tooltip Text Set to White + Medium
+
+- Updated the `Account Active Until` tooltip typography in `index.html`:
+  - changed text color to white
+  - increased text size to medium (`text-sm`)
+  - applied medium text weight (`font-medium`)
+  - increased line-height for readability (`leading-5`)
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Account Status Tooltip Background Matched to Logo Popup
+
+- Updated the `Account Active Until` KPI badge tooltip background to match the logo popup background exactly.
+- Implemented class in `index.html`:
+  - `.dashboard-account-status-tooltip { background: rgb(20 22 28 / 0.96); }`
+- This now aligns with the `#sidebar-brand-menu` popup surface color for consistent dark overlay styling.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - confirmed both tooltip and logo popup reference the same background value.
+
+## Recent Update (2026-04-07) - Account Status KPI Copy + Tooltip Request Applied
+
+- Updated Home `Account Status` KPI card in `index.html` per latest UX request:
+  - caption changed to `Account Active Until`
+  - heading timer now displays duration-only text (no explanatory words)
+  - support note now reads: `Account must be active to enjoy earning commissions.`
+- Added hover/focus tooltip on `Active/Inactive` badge with exact message:
+  - `To remain active, you must purchase a product every month`
+- Rendering behavior adjusted for timer presentation:
+  - no activity window -> `--`
+  - active window -> duration string only
+  - expired window -> `0m`
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - headless DOM checks confirmed updated caption/note/tooltip text and timer-only heading output.
+
+## Recent Update (2026-04-07) - Sidebar Overlap Fix for User Pages + Reload Persistence
+
+- Resolved sidebar overlap regression affecting user-side pages:
+  - `My Store`
+  - `Enroll Member`
+  - `Preferred Customers`
+- Root cause identified in `index.html`:
+  - extra closing `</div>` after the `E-Wallet` modal block pushed several page sections outside the shared `main` wrapper (`lg:ml-64` offset no longer applied).
+- Fix implemented:
+  - removed stray closing container
+  - restored all affected page views under the same main layout wrapper
+- Sidebar reload persistence added:
+  - extended `charge-dashboard-view-state` to include `sidebarCollapsed`
+  - desktop sidebar open/closed (collapsed) state now restores after refresh
+  - state updates when using collapse/open controls
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - DOM checks confirm all page views are again inside `main` wrapper
+  - reload checks confirm collapsed/open desktop sidebar state persists correctly
+- Known limitation:
+  - mobile sidebar overlay open state is unchanged and not persisted in this pass.
+
+## Recent Update (2026-04-07) - KPI Follow-Up Tuning (Spacing + Position + Label)
+
+- Applied follow-up KPI refinements in `index.html`:
+  - KPI grid now uses `items-start` to remove stretched extra bottom space
+  - `Sales Team Commissions` moved to 2nd KPI position
+  - `Personal Volume` moved to 3rd KPI position
+  - Sales Team transfer button restyled to match active sidebar/nav color treatment
+  - KPI title changed from `Account Overview` to `Account Status`
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - authenticated full screenshot + KPI crop screenshot captured
+- Known limitation:
+  - no dedicated light-mode visual check in this specific follow-up pass.
+
+## Recent Update (2026-04-07) - KPI Prioritization Pass (E-Wallet + Account Overview)
+
+- Executed requested KPI-first redesign refinements in `index.html`.
+- KPI strip changes delivered:
+  - `Total Balance` reframed to `E-Wallet Balance`
+  - `Personal Volume` kept
+  - `Cycles` KPI removed
+  - `Sales Team Commissions` moved into former cycles slot
+  - visible `Per cycle` + `Weekly cap` text row removed from Sales Team card
+  - new `Account Overview` KPI added with:
+    - activity status (Active/Inactive)
+    - activity time window (remaining/expired)
+    - current rank
+- Logic/render updates:
+  - added account-overview KPI DOM bindings and render helper
+  - linked KPI refresh to existing account activity/rank render flow so it stays in sync as session/rank data changes
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - authenticated screenshot pass + follow-up crop pass completed
+- Known limitation:
+  - dark-mode verified in this pass; light-mode KPI verification remains optional follow-up.
+
+## Recent Update (2026-04-07) - Home KPI + Account Overview Redesign (Declutter Pass)
+
+- Implemented a focused Home-page redesign in `index.html` for user-side dashboard readability, prioritizing KPI cards first, then Account Overview.
+- KPI card area changes:
+  - rebuilt top KPI surfaces for cleaner hierarchy and reduced visual noise
+  - preserved all existing KPI value/action IDs for JS compatibility
+  - adjusted responsive behavior so desktop defaults to 2 columns and only switches to 4 columns on very wide screens (`2xl`)
+- Account Overview changes:
+  - converted from multiple nested mini-cards into a calmer two-pane structure
+  - retained rank/status/upgrade controls and all metric/trend IDs (`total BV`, `new members`, `direct sponsors`)
+- Logic-sensitive sections intentionally left intact:
+  - Fast Track Bonus
+  - Infinity Builder Bonus
+  - Legacy Leadership Bonus
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - authenticated screenshot pass 1 + pass 2 captured
+  - crop verification captured for KPI/overview readability check
+- Known limitation:
+  - this pass does not yet include full right-column module redesign or dedicated light-mode visual QA sweep.
+
+## Recent Update (2026-04-06) - Sidebar Light Mode Fix + Logo Clipping Fix
+
+- Resolved reported issue where left sidebar stayed dark in light mode after previous shell pass.
+- Implemented theme-aware sidebar background selectors in `index.html`:
+  - dark/default/shopify keep dark sidebar styling
+  - light/apple now use light surface-based sidebar styling
+- Resolved clipped logo at top of sidebar:
+  - increased logo shell dimensions
+  - removed clipping (`overflow: visible`)
+  - constrained logo with `max-height` + contain fit for stable rendering
+  - switched light-mode logo source to cropped brand asset for cleaner small-size display
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - light-mode screenshot captured and reviewed
+  - sidebar now renders light, logo no longer clipped
+- Known limitation:
+  - additional micro-polish (spacing/typography parity) may still be needed for final visual perfection.
+
+## Recent Update (2026-04-06) - 21st.dev Home-Inspired Dashboard Shell Pass
+
+- Restyled dashboard shell in `index.html` to match the visual feel of `https://21st.dev/home`.
+- Core updates delivered:
+  - dark token system switched to near-black neutrals + subtle borders + muted cool-blue accents
+  - sidebar navigation restructured with search row (`⌘ K`), section labels, tighter spacing, and neutral active-state treatment
+  - dashboard nav label changed from `Dashboard` to `Home` (also reflected in page meta title)
+  - top header density simplified and centered-title behavior tuned
+  - top search hidden for cleaner 21st-style top-bar composition
+  - dashboard cards/containers tuned to flatter, less-glow-heavy visual depth
+  - mono-white logo variant used in dark mode for a cleaner left-rail look
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - live reference screenshot captured from `https://21st.dev/home`
+  - confirmed token/layout/sidebar changes in `index.html`
+- Known limitation:
+  - this pass matches style feel and hierarchy, not a strict one-to-one copy of every homepage content module.
+
+## Recent Update (2026-04-06) - Light Mode Converted To Apple-Inspired Visual System
+
+- Fully replaced light-mode color tokens in `index.html` to deliver an Apple-like look and feel.
+- Light-mode direction now emphasizes:
+  - cool neutral page/surface layers (`#F5F5F7` family)
+  - white elevated cards
+  - graphite text hierarchy
+  - clean action blue accent ramp centered on `#0071E3`
+- Token groups updated in the `html[data-theme='light']` block:
+  - `--brand-50..950`
+  - `--surface-*`
+  - `--text-*`
+  - `--semantic-*`
+  - `--shadow-*`
+  - overlay/minimap/selection/scrollbar/page-gradient light tokens
+- Readability correction included:
+  - `--text-inverse` reverted to white in light mode so blue CTA buttons keep high legibility.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - confirmed full replacement of light token block
+  - quick contrast checks run for primary text and button text combinations
+- Known limitation:
+  - this pass is token-driven; module-level visual fine-tuning can follow after focused light-mode walkthrough.
+
+## Recent Update (2026-04-06) - Light Mode Palette Realignment (Brand-Consistent)
+
+- Light-mode color system in `index.html` was reworked to match brand direction more closely.
+- Primary shift completed:
+  - replaced lavender-forward light palette with an emerald-led brand ramp
+  - anchored palette to logo green (`#67B392`)
+  - preserved logo purple (`#7853A2`) as an accent semantic/info tone
+- Updated light-theme tokens include:
+  - `--brand-50..950`
+  - `--surface-*`
+  - `--text-*`
+  - `--semantic-*`
+  - minimap/overlay/selection/scrollbar light tokens
+- Readability adjustment:
+  - set light-mode `--text-inverse` to dark ink for better contrast on lighter brand buttons.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - confirmed full replacement of the `html[data-theme='light']` token block.
+- Known limitation:
+  - this pass updates global tokens only; component-level visual polish in light mode can be tuned in a follow-up review.
+
+## Recent Update (2026-04-06) - Notification Center Mobile Sheet + Header Spacing Fix
+
+- Addressed mobile usability issues in notification center and top-bar controls.
+- Mobile-specific improvements:
+  - notification center now opens as a fixed, viewport-safe sheet
+  - panel/list max-height adapted for phone viewport
+  - body scroll locks while sheet is open on mobile
+  - reduced top-bar crowding with tighter spacing and smaller profile-button padding
+  - top-right logout button hidden on mobile (`sm+` only) to reduce header compression
+- Desktop notification behavior/layout preserved via `sm:` overrides.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline scripts parse passed (`inline_scripts_checked=2`)
+
+## Recent Update (2026-04-06) - Notification Center Opacity Removed For Clearer Visuals
+
+- Updated notification center to use solid backgrounds (removed translucent panel/list accents in this module).
+- Opaque refinements completed:
+  - panel background made solid
+  - segmented tab container made solid
+  - list divider opacity removed
+  - notification row/indicator read opacity fades removed
+  - CTA button background made solid
+  - row hover state changed to solid elevated background
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline scripts parse passed (`inline_scripts_checked=2`)
+
+## Recent Update (2026-04-06) - Notification Center UI Simplified (Apple-Inspired)
+
+- Simplified the member header notification center visual structure in `index.html`.
+- Replaced card-heavy list blocks with lighter divider-based rows and reduced surface nesting.
+- Updated panel styling toward a cleaner frosted/segmented look with softer hierarchy and less visual clutter.
+- Kept all behaviors unchanged:
+  - notifications + announcements tabs
+  - unread badges
+  - mark read / mark all read
+  - CTA routing
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - inline scripts parse passed (`inline_scripts_checked=2`)
+
+## Recent Update (2026-04-06) - Member Notification Center + Announcements (Member Auth)
+
+- Implemented an authenticated member notification center with announcement support.
+- Backend additions:
+  - `GET /api/member-auth/notifications`
+  - `POST /api/member-auth/notifications/:notificationId/read`
+  - `POST /api/member-auth/notifications/mark-all-read`
+  - server-side notification/announcement seed + member read-state persistence
+- Frontend additions:
+  - header notification center panel in `index.html`
+  - Notifications/Announcements tab switching
+  - unread count badges
+  - mark-read and mark-all-read actions
+  - CTA routing from notification items
+- Files updated:
+  - `index.html`
+  - `backend/app.js`
+  - `backend/routes/member-notification.routes.js`
+  - `backend/controllers/member-notification.controller.js`
+  - `backend/services/member-notification.service.js`
+  - `backend/stores/member-notification.store.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation status:
+  - backend syntax checks passed for all new notification modules + `backend/app.js`
+  - local smoke checks passed:
+    - `/api/health` returned `200`
+    - new notification endpoints returned `401 AUTH_REQUIRED` without bearer token (expected auth gate behavior)
+  - served `index.html` includes notification center IDs and announcement tab controls
+- Current limitation:
+  - no admin announcement management UI in this pass (seed-based feed only)
 
 ## Recent Update (2026-04-06) - Stripe Card Is Now Theme-Aware (Dark/Light)
 
@@ -5649,3 +6692,928 @@ Last Updated: 2026-04-06
 - Validation:
   - inline script parse check passed:
     - `All inline scripts parsed successfully. Blocks: 2`
+
+## Recent Update (2026-04-07) - Light Mode Sidebar Polish, Nav Reorder, Material Icons, Premiere Logo Enforcement
+
+- Completed:
+  - removed sidebar/header search UI from dashboard shell.
+  - applied exact requested sidebar nav structure:
+    - `Explore > General`: Home, My Store, E-Wallet
+    - `Build`: Binary Tree, Enroll Member, Preferred Customers
+    - `Records`: Purchases, Commissions, Library
+  - migrated sidebar navigation icons to official Google Material Symbols and fixed icon text-fallback issue by broadening font import.
+  - tuned light-mode sidebar surface and interaction states for cleaner Apple/21st-style feel.
+  - enforced Premiere Life-only logo usage in sidebar (removed non-Premiere light variant in active markup).
+  - increased logo shell/image sizing to avoid clipped/undersized logo in light mode.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - light-mode screenshot verification completed across multiple passes:
+    - `temporary screenshots/screenshot-48-light-sidebar-check-pass1.png`
+    - `temporary screenshots/screenshot-49-light-sidebar-check-pass2.png`
+    - `temporary screenshots/screenshot-50-light-sidebar-check-pass3.png`
+    - `temporary screenshots/screenshot-51-light-sidebar-premiere-only.png`
+
+## Recent Update (2026-04-07) - Sidebar Header Updated To New L&D Icon
+
+- Completed:
+  - replaced sidebar top logo image with new icon asset:
+    - `/brand_assets/Logos/L&D Icon.svg`
+  - removed theme-dependent sidebar logo swapping and switched to one icon-only header treatment.
+  - tuned icon shell/image sizing so the icon sits cleanly and consistently in the sidebar header.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot verification completed in both themes:
+    - `temporary screenshots/screenshot-52-sidebar-icon-light.png`
+    - `temporary screenshots/screenshot-53-sidebar-icon-dark.png`
+
+## Recent Update (2026-04-07) - Sidebar Header Switched To L&D Logo_Cropped
+
+- Completed:
+  - replaced sidebar top logo asset with:
+    - `/brand_assets/Logos/L&D Logo_Cropped.svg`
+  - adjusted logo shell/image sizing for horizontal wordmark display instead of icon-only display.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot verification completed in both themes:
+    - `temporary screenshots/screenshot-54-sidebar-cropped-logo-light.png`
+    - `temporary screenshots/screenshot-55-sidebar-cropped-logo-dark.png`
+
+## Recent Update (2026-04-07) - Sidebar Logo Made Smaller + Clickable Dropdown (21st-Style)
+
+- Completed:
+  - converted sidebar top brand area into a clickable dropdown trigger.
+  - reduced logo wordmark size for a smaller top-left presence.
+  - added brand dropdown menu with quick actions:
+    - Home
+    - My Store
+    - Settings
+  - implemented interaction behavior:
+    - toggle on button click
+    - close on outside click
+    - close on `Esc`
+    - close after selecting destination
+    - route updates through existing SPA page switch logic
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot comparison rounds completed:
+    - `temporary screenshots/screenshot-56-brand-dropdown-light-pass1.png`
+    - `temporary screenshots/screenshot-57-brand-dropdown-dark-pass1.png`
+    - `temporary screenshots/screenshot-58-brand-dropdown-open-dark-pass1.png`
+    - `temporary screenshots/screenshot-59-brand-dropdown-light-pass2.png`
+    - `temporary screenshots/screenshot-60-brand-dropdown-open-dark-pass2.png`
+  - interaction check:
+    - dropdown `Settings` action routes to `/Settings`, updates header title, and closes menu.
+
+## Recent Update (2026-04-07) - General Label + Sidebar/Header Alignment + Smaller Logo
+
+- Completed:
+  - changed sidebar section label from `Explore > General` to `General`.
+  - corrected sidebar/header vertical alignment by matching sidebar brand row height to header height.
+  - reduced top-left logo size again while keeping brand dropdown behavior intact.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - measured alignment confirms exact match:
+    - `headerHeight: 65`
+    - `sidebarTopHeight: 65`
+    - `deltaBottom: 0`
+  - screenshot comparison rounds:
+    - `temporary screenshots/screenshot-61-nav-align-light-pass1.png`
+    - `temporary screenshots/screenshot-62-nav-align-dark-open-pass1.png`
+    - `temporary screenshots/screenshot-63-nav-align-light-pass2.png`
+    - `temporary screenshots/screenshot-64-nav-align-dark-open-pass2.png`
+
+## Recent Update (2026-04-07) - Logo Bumped To Medium Size
+
+- Completed:
+  - increased top-left sidebar logo from small to medium.
+  - switched logo source from cropped SVG to cropped PNG for consistent visible size rendering.
+  - kept dropdown trigger behavior and top-row alignment unchanged.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot comparison rounds:
+    - `temporary screenshots/screenshot-65-logo-medium-light-pass1.png`
+    - `temporary screenshots/screenshot-66-logo-medium-dark-open-pass1.png`
+    - `temporary screenshots/screenshot-67-logo-medium-light-pass2.png`
+    - `temporary screenshots/screenshot-68-logo-medium-dark-open-pass2.png`
+  - alignment metrics remain exact:
+    - `headerHeight: 65`
+    - `sidebarTopHeight: 65`
+    - `deltaBottom: 0`
+
+## Recent Update (2026-04-07) - Sidebar Logo Switched Back To SVG (White Background Removal)
+
+- Completed:
+  - replaced sidebar brand logo source with SVG asset to remove white-background artifact on light mode:
+    - `/brand_assets/Logos/L&D Logo_Cropped.svg`
+  - increased SVG logo shell/image constraints to keep medium readable size:
+    - `.sidebar-brand-logo-shell` max-width `9.5rem`
+    - `.sidebar-brand-logo` max-height `2.05rem`
+  - kept brand dropdown behavior and sidebar/header top-row alignment unchanged.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot comparison rounds:
+    - `temporary screenshots/screenshot-69-logo-svg-light-pass1.png`
+    - `temporary screenshots/screenshot-70-logo-svg-dark-open-pass1.png`
+    - `temporary screenshots/screenshot-71-logo-svg-medium-light-pass2.png`
+    - `temporary screenshots/screenshot-72-logo-svg-medium-dark-open-pass2.png`
+  - measured alignment still exact:
+    - `headerHeight: 65`
+    - `sidebarTopHeight: 65`
+    - `deltaBottom: 0`
+
+## Recent Update (2026-04-07) - Sidebar Logo Reverted To Earlier Medium Size
+
+- Completed:
+  - reverted sidebar top logo back to earlier medium setup requested by user.
+  - switched logo source from SVG back to PNG:
+    - `/brand_assets/Logos/L&D Logo_Cropped.png`
+  - restored earlier medium sizing values:
+    - `.sidebar-brand-logo-shell` max-width `7.6rem`
+    - `.sidebar-brand-logo` max-height `1.92rem`
+  - retained brand dropdown behavior and existing sidebar/header alignment.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - White Sidebar Logo Added For Dark Mode
+
+- Completed:
+  - mapped sidebar logo by theme so dark-mode surfaces use the new white logo asset.
+  - preserved earlier medium-size logo setup for light mode.
+  - implemented CSS theme selectors:
+    - `light`/`apple` -> `L&D Logo_Cropped.png`
+    - `default`/`dark`/`shopify` -> `L&D Logo_Cropped_White.png`
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Sidebar Footer Theme Toggle Beside Settings
+
+- Completed:
+  - added a dedicated light/dark toggle button beside the sidebar `Settings` button.
+  - wired toggle click to existing app theme flow (`applyAppTheme`) so it persists and updates all theme-bound UI.
+  - added `syncSidebarThemeToggle()` so icon/action text updates automatically when theme is changed from any control.
+  - preserved current navigation order and medium logo treatment.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+
+## Recent Update (2026-04-07) - Sidebar Logo Container Background Removed
+
+- Completed:
+  - removed the gray container background from the top-left sidebar logo trigger so it matches the sidebar surface.
+  - set default/hover/open states of `#sidebar-brand-button` background to transparent.
+  - kept logo sizing, dropdown interaction, and focus ring behavior unchanged.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Sidebar Logo Hover State Restored
+
+- Completed:
+  - kept the sidebar logo trigger base background transparent.
+  - restored hover and expanded/open background state for visible interaction feedback.
+  - preserved dropdown behavior and focus ring.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-07) - Sidebar Brand Dropdown Dark Popup Theme
+
+- Completed:
+  - changed sidebar brand dropdown popup to a black/gray background.
+  - switched popup text and icon colors to white for stronger contrast.
+  - tuned menu hover styling for white-on-dark readability and clear interaction.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+
+## Recent Update (2026-04-07) - Sidebar Brand Popup Account Menu + Smaller Typography
+
+- Completed:
+  - removed `Quick Switch` label from sidebar brand popup.
+  - moved `Profile` action into popup and removed top-header profile button.
+  - moved logout into popup as last action and removed top-header logout button.
+  - added top profile header inside popup:
+    - avatar/icon
+    - display name
+    - email line under name
+  - reduced popup typography sizes to better match requested visual density:
+    - profile name/email and menu item text/icon slightly smaller.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+  - dropdown visual verification screenshots:
+    - `temporary screenshots/screenshot-73-brand-popup-profile-layout.png`
+    - `temporary screenshots/screenshot-74-brand-popup-fonts-smaller.png`
+
+## Recent Update (2026-04-07) - Sidebar Brand Popup Typography Rebalanced (Less Small, More Tight)
+
+- Completed:
+  - increased popup text slightly from the previous pass to restore readability.
+  - tightened spacing/padding and icon-text gaps so the menu feels compact.
+  - preserved the new account-menu structure (profile header, actions, logout at bottom).
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+  - screenshot:
+    - `temporary screenshots/screenshot-75-brand-popup-fonts-medium-tight.png`
+
+## Recent Update (2026-04-07) - Sidebar/Header Re-Alignment + Desktop Collapse Toggle
+
+- Completed:
+  - re-aligned top separator line by matching header height to sidebar top row (`65px` each).
+  - added desktop sidebar hide control in sidebar header with Material icon:
+    - `keyboard_double_arrow_left`
+  - added desktop reopen behavior:
+    - when sidebar is hidden, burger icon appears on left side of top bar
+    - clicking burger reopens sidebar
+  - preserved mobile sidebar behavior and overlay interaction.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+  - measured alignment:
+    - `headerHeight: 65`
+    - `sidebarTopHeight: 65`
+    - `deltaBottom: 0`
+  - screenshot verification:
+    - `temporary screenshots/screenshot-79-align-icon-before-collapse.png`
+    - `temporary screenshots/screenshot-80-collapsed-burger-visible.png`
+    - `temporary screenshots/screenshot-81-reopened-via-burger.png`
+
+## Recent Update (2026-04-07) - Sidebar Collapse Transition Sync Polish
+
+- Completed:
+  - synchronized desktop hide/show animation timing between:
+    - sidebar transform
+    - main content left offset
+  - changed both to:
+    - `0.38s`
+    - `cubic-bezier(0.22, 1, 0.36, 1)`
+  - removed `!important` overrides on collapsed-state transform/margin to keep animation interpolation smooth.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - transition sampling logs show both moving layers use the same duration/easing.
+  - screenshot verification:
+    - `temporary screenshots/screenshot-82-transition-sync-collapsed.png`
+    - `temporary screenshots/screenshot-83-transition-sync-reopened.png`
+
+## Recent Update (2026-04-07) - Records Group Font Size Matched To Upper Nav
+
+- Completed:
+  - applied the same sidebar nav typography rules to the `Records` links (`Purchases`, `Commissions`, `Library`).
+  - introduced `data-nav-static` on those links and mapped it into shared sidebar nav selectors.
+  - ensured icon size + text size + line-height match upper nav groups.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - inline script parse check passed:
+    - `All inline scripts parsed successfully. Blocks: 2`
+  - measured style match:
+    - top font `14.08px`, records font `14.08px`
+    - top line-height `18.4px`, records line-height `18.4px`
+  - screenshot:
+    - `temporary screenshots/screenshot-84-records-font-match.png`
+
+## Recent Update (2026-04-07) - KPI Uniform Height + Personal Volume Date-Bar Graph
+
+- Completed:
+  - enforced uniform KPI card sizing across the first dashboard row (`h-full` + `min-h` + stretch grid behavior).
+  - updated E-Wallet KPI structure to keep primary balance data first and place `Send`/`Transfer` CTAs in-card.
+  - connected E-Wallet KPI CTA buttons to functional wallet modals.
+  - preserved Account Status emphasis on timer headline and normalized rank display format (`Rank: ...`).
+  - replaced Personal Volume line sparkline with Apple Screen Time-style rectangular bars with date labels.
+
+- Graph behavior now:
+  - 7-day daily PV bars with date labels (`M/D`).
+  - today bar highlight.
+  - persistent trend entries saved in local storage (`charge-dashboard-pv-trend-v1`).
+  - backward compatibility with prior legacy point-array trend data.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot pass 1:
+    - `temporary screenshots/screenshot-99-kpi-bars-dates-pass1.png`
+  - screenshot pass 2:
+    - `temporary screenshots/screenshot-100-kpi-bars-dates-pass2.png`
+
+## Recent Update (2026-04-07) - Personal Volume Graph Interaction Upgrade
+
+- Completed:
+  - tightened PV graph footprint for denser KPI presentation.
+  - added interactive per-bar hover/focus tooltip showing:
+    - date
+    - PV value
+  - added subtle bar motion:
+    - staged load reveal
+    - hover lift feedback
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - static chart screenshot:
+    - `temporary screenshots/screenshot-101-kpi-bars-hover-pass1.png`
+  - hover tooltip screenshot:
+    - `temporary screenshots/screenshot-102-kpi-bars-hover-pass2-tooltip.png`
+
+## Recent Update (2026-04-07) - Personal Volume Graph Tightness (No Frame)
+
+- Completed:
+  - removed graph outline/frame treatment for Personal Volume KPI chart area.
+  - tightened graph strip spacing and baseline rhythm.
+  - kept hover/focus tooltip detail (date + PV) and motion behavior.
+  - shifted bars to cleaner monochrome styling, with today still emphasized.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - clean no-frame chart screenshot:
+    - `temporary screenshots/screenshot-104-kpi-bars-clean-noframe-pass1.png`
+  - no-frame chart + hover tooltip screenshot:
+    - `temporary screenshots/screenshot-105-kpi-bars-clean-noframe-pass2-hover.png`
+
+## Recent Update (2026-04-07) - Personal Volume Graph: No Dates + 1-Month Duration
+
+- Completed:
+  - removed bottom date label row from Personal Volume KPI graph.
+  - tightened graph vertical spacing and bar density.
+  - switched chart duration from 7 days to 30 days (one month).
+  - retained hover/focus tooltip showing date + PV details.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no-date month chart screenshot:
+    - `temporary screenshots/screenshot-106-kpi-bars-month-tight-pass1.png`
+  - no-date month chart + hover screenshot:
+    - `temporary screenshots/screenshot-107-kpi-bars-month-tight-pass2-hover.png`
+
+## Recent Update (2026-04-07) - Personal Volume Date Accuracy (Server-Timestamp Only)
+
+- Completed:
+  - fixed PV graph date attribution so entries are no longer inferred from client clock.
+  - chart trend entries now require server-derived observed timestamps.
+  - legacy/local inferred trend points are ignored for accuracy.
+  - updated PV KPI call paths to pass server-observed timestamps.
+
+- Outcome:
+  - resolves issue where PV appeared under the current date (April 7) even if server purchase date differed.
+  - tooltip date now reflects server-observed activity date where available.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - server-date baseline screenshot:
+    - `temporary screenshots/screenshot-108-pv-server-date-pass1.png`
+  - server-date tooltip screenshot:
+    - `temporary screenshots/screenshot-109-pv-server-date-pass2-hover.png`
+
+## Recent Update (2026-04-07) - PV Loading Wait Extended
+
+- Completed:
+  - extended Personal Volume graph loading wait duration from `1.4s` to `3.0s` before fallback render.
+
+- File updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - screenshot step skipped per user request.
+
+## Recent Update (2026-04-07) - PV Loading Animation (Less Repetitive)
+
+- Completed:
+  - replaced repetitive loading pulse pattern with non-repeating animated loading bars.
+  - added custom keyframes and varied per-bar timing/height for organic motion.
+  - updated loading caption to `Syncing monthly PV from server...`.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-07) - PV Data Animation + Right Feather Rolloff
+
+- Completed:
+  - upgraded real-data PV bars to smooth keyframe reveal animation.
+  - replaced basic JS transform/opacity stagger loop with per-bar CSS animation timing.
+  - added right-side feather fade/roll-off effect during data reveal.
+  - ensured feather overlay is reset/hidden in loading-state renders.
+
+- Outcome:
+  - Personal Volume chart reveal feels smoother and more premium.
+  - right-edge opacity roll-off adds the requested feathered finish during animation.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-07) - PV Animation Pace Slowed
+
+- Completed:
+  - slowed down Personal Volume data-bar reveal timing.
+  - slowed down right-side feather roll-off to match.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this micro-tuning pass.
+
+## Recent Update (2026-04-07) - PV Bar Reveal Straightened
+
+- Completed:
+  - removed translation/blur from real-data PV bar reveal animation.
+  - switched to cleaner vertical-only scale reveal.
+  - simplified stagger timing to linear progression for more uniform motion.
+
+- Outcome:
+  - bars no longer appear visually crooked/slanted while animating.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this micro-fix pass.
+
+## Recent Update (2026-04-07) - E-Wallet KPI Layout Aligned
+
+- Completed:
+  - aligned E-Wallet card internal layout to match other KPI cards.
+  - normalized E-Wallet CTA sizing and spacing.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this micro-fix pass.
+
+## Recent Update (2026-04-07) - KPI Uniform Layout + Dashboard Skeleton Loading
+
+- Completed:
+  - normalized KPI card layout/spacing rhythm across E-Wallet, Sales Team Commissions, Personal Volume, and Account Status.
+  - added dashboard-level skeleton shell for initial loading.
+  - wrapped live dashboard content behind loading gate.
+  - wired skeleton completion to core hydration steps:
+    - binary summary
+    - server cutoff metrics
+    - E-Wallet snapshot
+  - added fail-safe auto-stop timeout for skeleton loading state.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run in this pass.
+
+## Recent Update (2026-04-07) - Dashboard KPI Badge Hovercard Unclipped
+
+- Completed:
+  - removed inline Account Status KPI badge tooltip rendering.
+  - wired KPI rank/title badge hovers to a shared floating hovercard rendered outside the dashboard card.
+  - added hover/focus/touch open behavior and delayed hide behavior matching profile badge interactions.
+  - added outside-click close and resize/scroll reposition handling for KPI hovercard.
+
+- Outcome:
+  - KPI badge hover content no longer renders inside/clips within the Account Status card bounds.
+  - interaction now matches the profile page “hover window” behavior.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - KPI Badge Logic Mirrors Profile
+
+- Completed:
+  - switched KPI badge data source to mirror Profile badge selections directly.
+  - removed fixed 3-slot placeholder behavior that showed extra placeholder badges.
+  - added empty-state handling to hide KPI badge strip if no profile badges are active.
+
+- Outcome:
+  - KPI now shows only the badges the user actually enabled/unlocked on Profile.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - KPI Badge Refresh Synced With Profile
+
+- Completed:
+  - added shared badge refresh helper to keep Profile and KPI badge strips in sync.
+  - updated profile/achievement/theme/rank refresh paths to call shared badge sync instead of profile-only badge render.
+
+- Outcome:
+  - KPI badges now refresh together with Profile badges, preventing stale rank-only KPI state when title badges are available.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Badge Hover Window Redesign
+
+- Completed:
+  - redesigned badge hover window visuals for Profile and KPI badges.
+  - removed large circular icon shell look and replaced with compact rounded-square icon tile.
+  - updated popup layout to compact icon + text columns.
+  - reduced popup visual bulk (size, shadow, title styling, arrow scale).
+
+- Outcome:
+  - hover popup appears less generic and cleaner while keeping existing behavior.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Hover Window Background Matched Tooltip
+
+- Completed:
+  - matched badge hover window background to tooltip color.
+  - matched hover pointer arrow background and border to the same tooltip style.
+
+- Outcome:
+  - badge hover popup now uses the same background treatment as existing tooltips/popups.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Hover Window Pointer Removed
+
+- Completed:
+  - removed the diamond pointer/arrow from badge hover windows.
+
+- Outcome:
+  - hover popup now renders as a clean floating panel with no pointer shape.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Hover Window Background Reverted + Click Shift Fixed
+
+- Completed:
+  - reverted hover popup to original gradient background style with no translucent fill.
+  - removed click/focus transform movement on badge anchors that caused popup position shift.
+  - added same-anchor hovercard show guard to avoid re-open position reset flicker/jump.
+
+- Outcome:
+  - popup uses original look without semi-transparent background.
+  - clicking badges no longer nudges the popup upward.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Hover Jump Hard Fix
+
+- Completed:
+  - prevented redundant same-anchor hovercard re-open on click/focus.
+  - removed badge hover transform motion to keep anchor position stable.
+
+- Outcome:
+  - clicking an icon after hover no longer repositions/jumps the popup.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Hover Popup Stays Open For Text Selection
+
+- Completed:
+  - prevented popup from closing when clicking/selecting text inside hover window.
+  - added inside-popup interaction guards for blur/hide timing.
+
+- Outcome:
+  - users can click, drag, and highlight text inside the hover popup without immediate dismissal.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Member Login White CTA
+
+- Completed:
+  - changed the member login submit button to a solid white visual style.
+  - preserved readable dark label color and clean interaction states.
+
+- Outcome:
+  - the `Login` CTA now matches the requested white-button treatment on the glass panel.
+
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Member Login Labels To White
+
+- Completed:
+  - changed static form labels `Username or Email` and `Password` to pure white.
+
+- Outcome:
+  - label text now matches requested white styling and improves contrast on the glass panel.
+
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Member Login Placeholder Tone
+
+- Completed:
+  - changed placeholder text color for identifier and password inputs to grayish-white (`text-white/60`).
+
+- Outcome:
+  - placeholder text now appears soft white/gray and aligns with the glassmorphism palette.
+
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Member Login Footer Legal Copy
+
+- Completed:
+  - added bottom-center footer legal text on the login page.
+  - added underlined hyperlinks for `Terms of Service` and `Privacy Policy`.
+  - kept copyright line as `© 2026 LD Premiere`.
+
+- Outcome:
+  - login page now includes required legal footer copy in the requested location.
+
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Member Login Subtitle To White
+
+- Completed:
+  - changed subtitle `Sign in to access your dashboard` to pure white.
+
+- Outcome:
+  - subtitle now matches the requested white text treatment.
+
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Member Login First-Load Motion
+
+- Completed:
+  - added first-load page blur/fade intro animation.
+  - added staggered upward blur/fade reveal animation for login card, header block, form, and footer.
+  - added reduced-motion fallback to disable entrance effects when requested by OS settings.
+
+- Outcome:
+  - login page now has the requested Apple-style entrance sequence with smoother perceived loading.
+
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Member Login Intro Reliability
+
+- Completed:
+  - changed intro motion trigger to JS-controlled `intro-run` class.
+  - added BFCache (`pageshow`) replay handling for reliable first-screen animation visibility.
+
+- Outcome:
+  - entrance effect now consistently appears on true page loads and cached page restores.
+
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Background Reveal + ColorBends Parameter Ramp
+
+- Completed:
+  - added black-first background reveal that fades into ColorBends as the panel intro starts.
+  - added shader intro interpolation so ColorBends parameters transition smoothly into final config values.
+
+- Outcome:
+  - the login screen intro now feels more cinematic and cohesive, with the background evolving during panel entrance instead of appearing abruptly.
+
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Intro Scale Starts At 5
+
+- Completed:
+  - updated ColorBends intro ramp to start with `scale: 5` and animate back to the normal configured scale.
+
+- Outcome:
+  - background now opens with a stronger zoomed look before settling into its original state.
+
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-07) - Shader Intro Trigger Sync
+
+- Completed:
+  - synced ColorBends parameter ramp start to the same runtime intro trigger as the panel.
+  - hooked `runLoginIntroAnimation()` to call `window.startColorBendsIntro()`.
+
+- Outcome:
+  - background scale transition is now aligned with visible intro timing and easier to perceive.
+
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - no screenshot run for this pass (per user instruction).
