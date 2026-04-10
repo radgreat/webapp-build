@@ -18339,3 +18339,95 @@ Updated `binary-tree-next-app.mjs`:
 - `node --check binary-tree-next-engine-adapter.mjs` passed.
 - `node --check binary-tree-next-app.mjs` passed.
 - `GET /binary-tree-next` -> `200`.
+
+## Refinement (2026-04-10) - Back Button Uses Previous POV History (Not Parent Node)
+
+### User Requirement
+
+- After entering a deep node universe from root POV, pressing Back should return to the previous POV (root perspective), not the selected node's parent.
+
+### Root Cause
+
+- `exitNodeUniverse(...)` previously derived Back target from ancestor chain (`parent of current universe root`), which is structurally correct but UX-confusing for POV navigation.
+
+### Changes Applied
+
+- Added explicit POV history stack in app state:
+  - `state.universe.history = []`
+- On `enterNodeUniverse(...)`, push current POV snapshot before switching universe root:
+  - `rootId`
+  - `selectedId`
+  - `query`
+  - `depthFilter`
+- Reworked `exitNodeUniverse(...)`:
+  - pop last POV snapshot from history
+  - restore previous `rootId`, `selectedId`, `query`, and `depthFilter`
+  - restore cached camera for previous root if available
+  - fallback focus logic preserved when no cached camera exists.
+- Bootstrap now resets history stack on session start.
+
+### Outcome
+
+- Back now behaves as expected POV undo:
+  - Root POV -> Enter deep node -> Back returns to Root POV
+  - Multi-hop universe entries now unwind in reverse visit order.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Refinement (2026-04-10) - Clickable Universe Breadcrumb Links
+
+### User Request
+
+- Add breadcrumb link buttons like `Root > Node 5 > Node 6 > Node 7`.
+- Clicking any breadcrumb should return to that universe POV.
+
+### What Was Changed
+
+- Added clickable breadcrumb chips in right panel under selected node context:
+  - rendered as link-style pills with separators (`>`)
+  - active/current universe root chip highlighted
+  - ancestor chips clickable.
+- Added new action route:
+  - `universe:goto:<nodeId>`
+- Implemented breadcrumb navigation handler:
+  - `gotoUniverseFromBreadcrumb(targetRootId, animated)`
+  - navigates to selected ancestor universe
+  - restores previous POV state (selection/filter) for that universe when available
+  - restores cached camera for that universe when available
+  - trims POV history stack to match selected breadcrumb depth (keeps Back behavior coherent).
+- Added utility helpers:
+  - `createPovSnapshot(...)`
+  - `resolveUniverseCrumbLabel(...)`
+  - `drawUniverseBreadcrumbLinks(...)`.
+
+### UX Outcome
+
+- Breadcrumb path now behaves as direct universe jump links.
+- Users can jump from deep universe back to any previous ancestor POV in one click.
+- Back button semantics remain consistent with POV history after breadcrumb jumps.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` -> `200`.

@@ -9059,3 +9059,27 @@ Last Updated: 2026-04-10
   - `node --check binary-tree-next-engine-adapter.mjs` passed.
   - `node --check binary-tree-next-app.mjs` passed.
   - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Back Button POV-History Behavior
+
+- Completed:
+  - changed Back from parent-node traversal to previous POV restoration using history stack.
+  - Back now restores prior universe root + selection/filter state + camera context.
+- Outcome:
+  - Enter-from-root then Back returns to root perspective as expected.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Breadcrumb Link Buttons for Universe Jump
+
+- Completed:
+  - replaced breadcrumb text with clickable breadcrumb link chips
+  - added `universe:goto:<id>` navigation and history-aware universe restore logic.
+- Outcome:
+  - users can click any breadcrumb ancestor to jump directly to that universe POV.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.

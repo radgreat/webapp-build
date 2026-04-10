@@ -612,3 +612,21 @@ Last Updated: 2026-04-10
   - `node --check binary-tree-next-engine-adapter.mjs`
   - `node --check binary-tree-next-app.mjs`
   - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Back Button POV Restore)
+
+- Changed Back behavior to previous POV stack restoration (instead of parent-node traversal).
+- Back now restores prior root context/camera/filters for predictable navigation.
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Universe Breadcrumb Links)
+
+- Added clickable breadcrumb link buttons and ancestor-universe jump behavior.
+- Breadcrumb jumps restore prior universe POV context and keep Back stack consistent.
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke status 200.

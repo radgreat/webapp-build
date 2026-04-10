@@ -595,3 +595,26 @@ Delivered:
 Result:
 
 - Practical depth exploration can continue indefinitely via re-rooted 20-depth windows while preserving layout readability and interaction quality.
+
+## 44) Refinement (2026-04-10, Back = Previous POV)
+
+Delivered:
+
+- Replaced parent-chain back behavior with explicit previous-POV history stack restoration.
+- Back now restores prior universe root, selection/filter context, and camera viewpoint.
+
+Result:
+
+- POV navigation now matches user mental model and no longer jumps to merely the upper node.
+
+## 45) Refinement (2026-04-10, Breadcrumb Universe Link Navigation)
+
+Delivered:
+
+- Added clickable breadcrumb chips (`Root > Node ...`) in right panel.
+- Implemented direct breadcrumb ancestor jump action (`universe:goto:<id>`).
+- Added history-consistent POV restoration/truncation on breadcrumb jumps.
+
+Result:
+
+- Users can jump directly to prior universe POVs from breadcrumb trail, with Back behavior remaining intuitive.

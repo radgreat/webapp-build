@@ -52,6 +52,7 @@ const state = {
     depthCap: UNIVERSE_DEPTH_CAP,
     breadcrumb: ['root'],
     cameraByRoot: Object.create(null),
+    history: [],
   },
   layout: null,
   viewport: null,
@@ -176,6 +177,16 @@ function focusUniverseRoot(animated = true) {
   return focusNode(getUniverseRootId(), DEFAULT_ROOT_FOCUS_RADIUS, animated);
 }
 
+function createPovSnapshot(rootId = getUniverseRootId()) {
+  const safeRootId = safeText(rootId) || 'root';
+  return {
+    rootId: safeRootId,
+    selectedId: safeText(state.selectedId) || safeRootId,
+    query: safeText(state.query),
+    depthFilter: safeText(state.depthFilter || 'all') || 'all',
+  };
+}
+
 function enterNodeUniverse(nodeId = state.selectedId, animated = true) {
   const targetNodeId = safeText(nodeId);
   if (!targetNodeId) {
@@ -191,7 +202,13 @@ function enterNodeUniverse(nodeId = state.selectedId, animated = true) {
     return focusUniverseRoot(animated);
   }
 
+  if (!Array.isArray(state.universe.history)) {
+    state.universe.history = [];
+  }
+
   rememberUniverseCamera(currentRootId);
+  state.universe.history.push(createPovSnapshot(currentRootId));
+
   state.universe.rootId = targetNodeId;
   refreshUniverseBreadcrumb(targetNodeId);
   state.query = '';
@@ -206,31 +223,77 @@ function enterNodeUniverse(nodeId = state.selectedId, animated = true) {
   return focusUniverseRoot(animated);
 }
 
+function gotoUniverseFromBreadcrumb(targetRootId, animated = true) {
+  const safeTargetRootId = safeText(targetRootId);
+  if (!safeTargetRootId) {
+    return false;
+  }
+
+  const currentRootId = getUniverseRootId();
+  if (safeTargetRootId === currentRootId) {
+    return focusUniverseRoot(animated);
+  }
+
+  const breadcrumb = Array.isArray(state.universe.breadcrumb)
+    ? state.universe.breadcrumb
+    : [];
+  const targetIndex = breadcrumb.indexOf(safeTargetRootId);
+  if (targetIndex < 0) {
+    return false;
+  }
+
+  const safeHistory = Array.isArray(state.universe.history)
+    ? state.universe.history
+    : [];
+  const targetSnapshot = safeHistory[targetIndex] || null;
+
+  rememberUniverseCamera(currentRootId);
+  state.universe.history = safeHistory.slice(0, targetIndex);
+  state.universe.rootId = safeTargetRootId;
+  refreshUniverseBreadcrumb(safeTargetRootId);
+  state.query = safeText(targetSnapshot?.query || '');
+  state.depthFilter = safeText(targetSnapshot?.depthFilter || 'all') || 'all';
+  state.selectedId = safeText(targetSnapshot?.selectedId || safeTargetRootId);
+
+  if (restoreUniverseCamera(safeTargetRootId, animated)) {
+    return true;
+  }
+
+  if (focusNode(state.selectedId || safeTargetRootId, 30, animated)) {
+    return true;
+  }
+  return focusUniverseRoot(animated);
+}
+
 function exitNodeUniverse(animated = true) {
   const currentRootId = getUniverseRootId();
-  if (!currentRootId || currentRootId === 'root') {
+  if (!currentRootId) {
+    return false;
+  }
+
+  if (!Array.isArray(state.universe.history)) {
+    state.universe.history = [];
+  }
+
+  if (!state.universe.history.length && currentRootId === 'root') {
     return false;
   }
 
   rememberUniverseCamera(currentRootId);
-  const ancestorChain = state.adapter.resolveAncestorChain(currentRootId);
-  const parentRootId = safeText(
-    ancestorChain.length >= 2
-      ? ancestorChain[ancestorChain.length - 2]
-      : 'root',
-  ) || 'root';
+  const previousPov = state.universe.history.pop() || null;
+  const parentRootId = safeText(previousPov?.rootId) || 'root';
 
   state.universe.rootId = parentRootId;
   refreshUniverseBreadcrumb(parentRootId);
-  state.query = '';
-  state.depthFilter = 'all';
-  state.selectedId = currentRootId;
+  state.query = safeText(previousPov?.query || '');
+  state.depthFilter = safeText(previousPov?.depthFilter || 'all');
+  state.selectedId = safeText(previousPov?.selectedId || parentRootId);
 
   if (restoreUniverseCamera(parentRootId, animated)) {
     return true;
   }
 
-  if (focusNode(currentRootId, 30, animated)) {
+  if (focusNode(state.selectedId || parentRootId, 30, animated)) {
     return true;
   }
   return focusUniverseRoot(animated);
@@ -826,6 +889,91 @@ function drawSmallButton({
   });
 }
 
+function resolveUniverseCrumbLabel(nodeId) {
+  const safeNodeId = safeText(nodeId);
+  if (!safeNodeId || safeNodeId === 'root') {
+    return 'Root';
+  }
+  const nodeMatch = /^n-(\d+)$/i.exec(safeNodeId);
+  if (nodeMatch) {
+    return `Node ${nodeMatch[1]}`;
+  }
+  const globalMeta = state.adapter.resolveNodeMetrics(safeNodeId, getGlobalUniverseOptions());
+  const resolvedName = safeText(globalMeta?.node?.name);
+  if (resolvedName) {
+    return truncateText(resolvedName, 12);
+  }
+  return truncateText(safeNodeId, 12);
+}
+
+function drawUniverseBreadcrumbLinks(startX, startY, maxWidth) {
+  const breadcrumb = Array.isArray(state.universe.breadcrumb)
+    ? state.universe.breadcrumb
+    : [];
+  if (!breadcrumb.length || maxWidth <= 0) {
+    return;
+  }
+
+  const endX = startX + maxWidth;
+  const currentRootId = getUniverseRootId();
+  let cursorX = startX;
+  const height = 18;
+
+  for (let index = 0; index < breadcrumb.length; index += 1) {
+    const crumbId = safeText(breadcrumb[index]);
+    const label = resolveUniverseCrumbLabel(crumbId);
+    const active = crumbId === currentRootId;
+    const crumbWidth = clamp(26 + (label.length * 5.2), 48, 116);
+
+    if (cursorX + crumbWidth > endX) {
+      drawText('...', Math.max(startX + 8, endX - 8), startY + (height / 2) + 0.5, {
+        size: 10,
+        weight: 600,
+        color: '#8f9ab1',
+        align: 'right',
+      });
+      break;
+    }
+
+    const fill = active ? '#1f5fce' : '#2f3138';
+    const stroke = active ? 'rgba(132, 182, 255, 0.86)' : 'rgba(255,255,255,0.12)';
+    const textColor = active ? '#f7fbff' : '#d2d7e4';
+    fillRoundedRect(context, cursorX, startY, crumbWidth, height, 6, fill);
+    strokeRoundedRect(context, cursorX + 0.5, startY + 0.5, crumbWidth - 1, height - 1, 6, stroke);
+    drawText(label, cursorX + (crumbWidth / 2), startY + (height / 2) + 0.5, {
+      size: 10,
+      weight: active ? 600 : 500,
+      color: textColor,
+      align: 'center',
+    });
+
+    if (!active) {
+      registerButton({
+        id: `crumb-${crumbId}`,
+        x: cursorX,
+        y: startY,
+        width: crumbWidth,
+        height,
+        action: `universe:goto:${crumbId}`,
+      });
+    }
+
+    cursorX += crumbWidth;
+    if (index < breadcrumb.length - 1) {
+      if (cursorX + 14 > endX) {
+        break;
+      }
+      drawText('>', cursorX + 7, startY + (height / 2) + 0.5, {
+        size: 10,
+        weight: 700,
+        color: '#8f9ab1',
+        align: 'center',
+      });
+      cursorX += 14;
+    }
+  }
+}
+
 function drawLeftPanel(layout) {
   const panel = layout.leftPanel;
   drawPanelChrome(panel, 'left');
@@ -963,12 +1111,8 @@ function drawRightPanel(layout) {
     : null;
   const selectedNode = selectedLocalMeta?.node || selectedGlobalMeta?.node || null;
   const universeGlobalMeta = state.adapter.resolveNodeMetrics(universeRootId, getGlobalUniverseOptions());
-  const breadcrumbText = Array.isArray(state.universe.breadcrumb) && state.universe.breadcrumb.length
-    ? state.universe.breadcrumb.join(' > ')
-    : universeRootId;
-
-  fillRoundedRect(context, panel.x + 12, panel.y + 40, panel.width - 24, 198, 8, '#202127');
-  strokeRoundedRect(context, panel.x + 12.5, panel.y + 40.5, panel.width - 25, 197, 8, 'rgba(255,255,255,0.07)');
+  fillRoundedRect(context, panel.x + 12, panel.y + 40, panel.width - 24, 222, 8, '#202127');
+  strokeRoundedRect(context, panel.x + 12.5, panel.y + 40.5, panel.width - 25, 221, 8, 'rgba(255,255,255,0.07)');
 
   drawText('Selected Node', panel.x + 24, panel.y + 58, {
     size: 11,
@@ -1034,63 +1178,58 @@ function drawRightPanel(layout) {
       color: '#d5dcef',
     },
   );
-  drawText(
-    `Breadcrumb: ${truncateText(breadcrumbText, 42)}`,
-    panel.x + 24,
-    panel.y + 232,
-    {
-      size: 10,
-      weight: 500,
-      color: '#9aa5be',
-      maxWidth: panel.width - 58,
-    },
-  );
+  drawText('Universe Trail', panel.x + 24, panel.y + 232, {
+    size: 10,
+    weight: 600,
+    color: '#9aa5be',
+  });
+  drawUniverseBreadcrumbLinks(panel.x + 24, panel.y + 238, panel.width - 52);
 
   const stats = state.frameResult?.stats || {};
-  fillRoundedRect(context, panel.x + 12, panel.y + 250, panel.width - 24, 196, 8, '#202127');
-  strokeRoundedRect(context, panel.x + 12.5, panel.y + 250.5, panel.width - 25, 195, 8, 'rgba(255,255,255,0.07)');
+  fillRoundedRect(context, panel.x + 12, panel.y + 264, panel.width - 24, 182, 8, '#202127');
+  strokeRoundedRect(context, panel.x + 12.5, panel.y + 264.5, panel.width - 25, 181, 8, 'rgba(255,255,255,0.07)');
 
-  drawText('Render Stats', panel.x + 24, panel.y + 268, {
+  drawText('Render Stats', panel.x + 24, panel.y + 282, {
     size: 11,
     weight: 600,
     color: '#adb7cc',
   });
-  drawText(`Visible: ${safeNumber(stats.visible, 0)}`, panel.x + 24, panel.y + 290, {
+  drawText(`Visible: ${safeNumber(stats.visible, 0)}`, panel.x + 24, panel.y + 304, {
     size: 11,
     weight: 500,
     color: '#d8deef',
   });
-  drawText(`Full detail: ${safeNumber(stats.full, 0)}`, panel.x + 24, panel.y + 308, {
+  drawText(`Full detail: ${safeNumber(stats.full, 0)}`, panel.x + 24, panel.y + 322, {
     size: 11,
     weight: 500,
     color: '#d8deef',
   });
-  drawText(`Medium detail: ${safeNumber(stats.medium, 0)}`, panel.x + 24, panel.y + 326, {
+  drawText(`Medium detail: ${safeNumber(stats.medium, 0)}`, panel.x + 24, panel.y + 340, {
     size: 11,
     weight: 500,
     color: '#d8deef',
   });
-  drawText(`Dot detail: ${safeNumber(stats.dot, 0)}`, panel.x + 24, panel.y + 344, {
+  drawText(`Dot detail: ${safeNumber(stats.dot, 0)}`, panel.x + 24, panel.y + 358, {
     size: 11,
     weight: 500,
     color: '#d8deef',
   });
-  drawText(`Hidden: ${safeNumber(stats.hidden, 0)}`, panel.x + 24, panel.y + 362, {
+  drawText(`Hidden: ${safeNumber(stats.hidden, 0)}`, panel.x + 24, panel.y + 376, {
     size: 11,
     weight: 500,
     color: '#d8deef',
   });
-  drawText(`Culled: ${safeNumber(stats.culled, 0)}`, panel.x + 24, panel.y + 380, {
+  drawText(`Culled: ${safeNumber(stats.culled, 0)}`, panel.x + 24, panel.y + 394, {
     size: 11,
     weight: 500,
     color: '#d8deef',
   });
-  drawText(`Connectors: ${safeNumber(stats.connectors, 0)}`, panel.x + 24, panel.y + 398, {
+  drawText(`Connectors: ${safeNumber(stats.connectors, 0)}`, panel.x + 24, panel.y + 412, {
     size: 11,
     weight: 500,
     color: '#d8deef',
   });
-  drawText(`Total filtered: ${safeNumber(stats.total, 0)}`, panel.x + 24, panel.y + 416, {
+  drawText(`Total filtered: ${safeNumber(stats.total, 0)}`, panel.x + 24, panel.y + 430, {
     size: 11,
     weight: 500,
     color: '#d8deef',
@@ -1098,7 +1237,7 @@ function drawRightPanel(layout) {
   drawText(
     `Universe: ${universeRootId} (cap ${getUniverseDepthCap()})`,
     panel.x + 24,
-    panel.y + 434,
+    panel.y + 448,
     {
       size: 10,
       weight: 500,
@@ -1620,6 +1759,11 @@ function triggerAction(action) {
     focusRoot(true);
     return;
   }
+  if (safeAction.startsWith('universe:goto:')) {
+    const targetRootId = safeAction.slice('universe:goto:'.length);
+    gotoUniverseFromBreadcrumb(targetRootId, true);
+    return;
+  }
   if (safeAction === 'universe:enter') {
     enterNodeUniverse(state.selectedId, true);
     return;
@@ -1874,6 +2018,7 @@ async function bootstrap() {
   state.universe.rootId = 'root';
   state.universe.depthCap = UNIVERSE_DEPTH_CAP;
   state.universe.cameraByRoot = Object.create(null);
+  state.universe.history = [];
   refreshUniverseBreadcrumb('root');
 
   state.selectedId = 'root';
