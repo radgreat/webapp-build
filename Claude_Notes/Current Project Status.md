@@ -1,11 +1,35 @@
 # Current Project Status
 
-Last Updated: 2026-04-08
+Last Updated: 2026-04-09
 
 ## Purpose
 
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
+
+## Recent Update (2026-04-09) - Next-Gen Binary Tree (WASM) Planning Document Added
+
+- Completed:
+  - created a dedicated implementation plan for the next Binary Tree architecture:
+    - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+  - documented dual-run strategy:
+    - keep existing Binary Tree active for live usage/testing
+    - build new Binary Tree in a separate app/page opened in a new window.
+  - documented engine direction and stack plan:
+    - C++ core compiled to WebAssembly for layout/geometry work
+    - optional React/TypeScript shell for controls and surrounding UI.
+  - documented phased rollout and migration gates:
+    - no immediate cutover
+    - performance/parity validation before traffic shift.
+- Outcome:
+  - project now has a reusable, model-friendly context file with architecture, phases, risks, and acceptance criteria for next implementation.
+- Files updated:
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - documentation-only update completed; no runtime code paths changed.
 
 ## Recent Update (2026-04-08) - Next Popup-Cover Implementation Note Prepared
 

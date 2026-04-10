@@ -1,6 +1,6 @@
 # Binary Tree Business Center Notes
 
-Last Updated: 2026-04-08
+Last Updated: 2026-04-09
 
 ## Scope
 
@@ -9,6 +9,16 @@ Last Updated: 2026-04-08
 
 ## What Changed
 
+- 2026-04-09 follow-up (next-gen architecture planning pass):
+  - added dedicated next implementation planning file:
+    - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+  - captured approved strategy to keep existing Binary Tree live while building a separate new-window Binary Tree app in parallel
+  - documented target next-gen stack direction:
+    - C++ -> WebAssembly for tree engine core
+    - TypeScript/optional React shell for UI and controls
+  - documented migration flow:
+    - no immediate cutover
+    - shift only after parity + performance gates.
 - 2026-04-08 follow-up (next implementation note for popup cover rollout):
   - added dedicated planning note: `Claude_Notes/binary-tree-popup-cover-next-implementation.md`
   - documented exact routes and code touchpoints for next phase:

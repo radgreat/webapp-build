@@ -15,6 +15,51 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+## Update (2026-04-09) - Next-Gen Binary Tree (WASM) Plan Documented
+
+### What Was Changed
+
+- Added a new dedicated planning file for the next Binary Tree implementation track:
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Captured the requested dual-run implementation strategy:
+  - keep current Binary Tree active for live usage/testing
+  - build a new Binary Tree in a separate external window/page.
+- Documented proposed architecture for the new track:
+  - C++ computational core compiled to WebAssembly
+  - TypeScript/optional React shell for surrounding controls/UI
+  - phased rollout, parity validation, and migration gates.
+- Defined staged roadmap:
+  - foundation shell
+  - renderer/interaction skeleton
+  - Wasm layout core
+  - parity + performance gates
+  - controlled migration.
+
+### Design Decisions
+
+- Planned this as a parallel track (not in-place rewrite) to reduce operational risk.
+- Kept old-tree fallback as a first-class rollout requirement.
+- Scoped initial Wasm responsibilities to layout/visibility/path generation first, leaving UI shell logic in JS/TS.
+
+### Known Limitations
+
+- This update is planning-only and does not modify the current runtime engine.
+- Specific compiler toolchain choices (Emscripten vs alternatives) remain open until execution phase.
+
+### Files Affected
+
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+
+### Validation
+
+- Plan reviewed for:
+  - architecture completeness
+  - rollout safety (dual-run + fallback)
+  - context reusability for future model sessions.
+
 ## Update (2026-04-08) - Next Implementation Note Added (All-Node Cover Sync + Placeholder Plan)
 
 ### What Was Changed
