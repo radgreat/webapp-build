@@ -630,3 +630,14 @@ Last Updated: 2026-04-10
   - `node --check binary-tree-next-app.mjs`
   - `node --check binary-tree-next-engine-adapter.mjs`
   - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Fullscreen Glass UI + Node Icon Pass)
+
+- Implemented fullscreen canvas shell with hideable in-canvas side panels.
+- Updated visual theme to dark gray glassmorphism.
+- Node circles now show initials-only (contacts-style).
+- Relaxed culling margin to keep lines visible during active panning.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.

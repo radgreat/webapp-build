@@ -4,6 +4,30 @@ Last Updated: 2026-04-10
 Status: In Progress (Phase A Complete, Phase B Shell/Adapter Active)
 Owner: Binary Tree Next Implementation Track
 
+## 0) Latest Implementation Update (2026-04-10)
+
+- Completed a shell customization pass ahead of live tree-logic migration:
+  - restored fullscreen viewport rendering in `binary-tree-next-app.mjs`
+  - replaced dual fixed panel framing with an in-canvas toggleable side nav
+  - applied dark glassmorphism shell styling
+  - converted node visuals to circular initials-only contact avatars
+  - widened culling behavior through adapter-level dynamic `cullMargin` support.
+- Why this matters for wasm track:
+  - UI presentation and interaction shell are now stabilized before wiring current live binary logic.
+  - culling behavior is less aggressive near viewport edges, reducing perceived render pop and improving camera feel.
+- Current known limitation:
+  - legacy right-panel draw function remains in source but is inactive and not rendered.
+
+## 0.1) Refinement Update (2026-04-10)
+
+- Completed visual refinement pass on active shell:
+  - shifted overall shell to light-mode glass direction
+  - replaced circular panel toggle with rectangular in-panel control
+  - applied stronger backdrop blur treatment for frosted panel look
+  - gated deep-level initials until sufficient zoom/radius to avoid text overflow.
+- Relevance to wasm plan:
+  - visual shell is now more stable for upcoming live-tree logic migration and wasm adapter integration.
+
 ## 1) Executive Summary
 
 This plan defines a **new Binary Tree implementation track** that runs in parallel with the current production tree.
@@ -618,3 +642,16 @@ Delivered:
 Result:
 
 - Users can jump directly to prior universe POVs from breadcrumb trail, with Back behavior remaining intuitive.
+
+## 46) UI Refinement (2026-04-10, Fullscreen Glass Shell)
+
+Delivered:
+
+- Refactored shell layout to fullscreen canvas with in-canvas hideable overlay panels.
+- Applied dark gray glassmorphism theme for panels, bars, and controls.
+- Switched node rendering to initials-only circular badges.
+- Increased viewport culling margin to reduce premature connector disappearance while panning.
+
+Result:
+
+- Shell now aligns with requested visual direction and interaction model before integrating live binary-tree runtime logic.

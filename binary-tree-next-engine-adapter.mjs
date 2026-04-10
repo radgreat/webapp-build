@@ -8,7 +8,7 @@ const HORIZONTAL_STEP_MIN = 0.0001;
 const NODE_WORLD_RADIUS_BASE = 34;
 const NODE_RADIUS_DEPTH_DECAY = 0.56;
 const NODE_WORLD_RADIUS_MIN = 0.0002;
-const VIEWPORT_MARGIN = 120;
+const VIEWPORT_MARGIN = 220;
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -469,6 +469,12 @@ export function createBinaryTreeNextEngineAdapter() {
     const viewportHeight = Number.isFinite(viewport.height) ? viewport.height : Number.MAX_SAFE_INTEGER;
     const viewportCenterX = Number.isFinite(viewport.centerX) ? viewport.centerX : (viewportX + (viewportWidth / 2));
     const baseY = Number.isFinite(viewport.baseY) ? viewport.baseY : (80 * dpr);
+    const cullMargin = Number.isFinite(options.cullMargin) && options.cullMargin >= 0
+      ? options.cullMargin
+      : Math.max(
+        VIEWPORT_MARGIN,
+        Math.round(Math.min(viewportWidth, viewportHeight) * 0.34),
+      );
     const nodeRadiusBase = Number.isFinite(options.nodeRadiusBase) && options.nodeRadiusBase > 0
       ? options.nodeRadiusBase
       : 20;
@@ -551,10 +557,10 @@ export function createBinaryTreeNextEngineAdapter() {
       }
 
       const outOfViewport = (
-        screenX + screenR < viewportX - VIEWPORT_MARGIN
-        || screenX - screenR > viewportX + viewportWidth + VIEWPORT_MARGIN
-        || screenY + screenR < viewportY - VIEWPORT_MARGIN
-        || screenY - screenR > viewportY + viewportHeight + VIEWPORT_MARGIN
+        screenX + screenR < viewportX - cullMargin
+        || screenX - screenR > viewportX + viewportWidth + cullMargin
+        || screenY + screenR < viewportY - cullMargin
+        || screenY - screenR > viewportY + viewportHeight + cullMargin
       );
       if (outOfViewport) {
         lodCounts.culled += 1;

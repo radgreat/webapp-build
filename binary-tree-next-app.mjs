@@ -19,6 +19,9 @@ const DEFAULT_ROOT_FOCUS_RADIUS = 38;
 const MOCK_TREE_MAX_DEPTH = 20;
 const MOCK_LEVEL_NODE_CAP = 128;
 const UNIVERSE_DEPTH_CAP = 20;
+const SELECTION_POP_MS = 320;
+const SELECTION_RELEASE_MS = 220;
+const SELECTION_MAX_EMPHASIS = 1.22;
 
 const canvas = document.getElementById('figma-tree-canvas');
 const bootErrorElement = document.getElementById('boot-error');
@@ -54,6 +57,9 @@ const state = {
     cameraByRoot: Object.create(null),
     history: [],
   },
+  ui: {
+    sideNavOpen: true,
+  },
   layout: null,
   viewport: null,
   frameResult: null,
@@ -82,6 +88,8 @@ const state = {
     fps: 0,
     frameMs: 0,
   },
+  timeMs: performance.now(),
+  selectionFxTracks: Object.create(null),
   renderSize: {
     width: 1,
     height: 1,
@@ -91,6 +99,124 @@ const state = {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+function easeOutCubic(value) {
+  const t = clamp(value, 0, 1);
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function easeOutBack(value) {
+  const t = clamp(value, 0, 1);
+  const c1 = 1.4;
+  const c3 = c1 + 1;
+  return 1 + (c3 * Math.pow(t - 1, 3)) + (c1 * Math.pow(t - 1, 2));
+}
+
+function getNowMs() {
+  return Number.isFinite(state.timeMs) ? state.timeMs : performance.now();
+}
+
+function resolveSelectionEmphasis(nodeId, nowMs = getNowMs(), mutate = true) {
+  const safeNodeId = safeText(nodeId);
+  if (!safeNodeId) {
+    return 0;
+  }
+
+  const track = state.selectionFxTracks[safeNodeId];
+  if (!track) {
+    return safeNodeId === safeText(state.selectedId) ? 1 : 0;
+  }
+
+  const duration = Math.max(1, safeNumber(track.duration, SELECTION_POP_MS));
+  const t = clamp((nowMs - safeNumber(track.start, nowMs)) / duration, 0, 1);
+  const easingValue = track.mode === 'select' ? easeOutBack(t) : easeOutCubic(t);
+  const from = safeNumber(track.from, 0);
+  const to = safeNumber(track.to, 0);
+  let value = from + ((to - from) * easingValue);
+  if (track.mode === 'select') {
+    value = clamp(value, 0, SELECTION_MAX_EMPHASIS);
+  } else {
+    value = clamp(value, 0, 1);
+  }
+
+  if (t >= 1) {
+    value = clamp(to, 0, SELECTION_MAX_EMPHASIS);
+    if (mutate) {
+      delete state.selectionFxTracks[safeNodeId];
+    }
+  }
+
+  return value;
+}
+
+function startSelectionAnimation(
+  nodeId,
+  toValue,
+  mode = 'select',
+  nowMs = getNowMs(),
+  fromOverride = null,
+) {
+  const safeNodeId = safeText(nodeId);
+  if (!safeNodeId) {
+    return;
+  }
+  const from = Number.isFinite(fromOverride)
+    ? clamp(safeNumber(fromOverride, 0), 0, SELECTION_MAX_EMPHASIS)
+    : resolveSelectionEmphasis(safeNodeId, nowMs, false);
+  state.selectionFxTracks[safeNodeId] = {
+    from,
+    to: clamp(safeNumber(toValue, 0), 0, SELECTION_MAX_EMPHASIS),
+    start: nowMs,
+    duration: mode === 'select' ? SELECTION_POP_MS : SELECTION_RELEASE_MS,
+    mode,
+  };
+}
+
+function updateSelectionAnimations(nowMs = getNowMs()) {
+  const ids = Object.keys(state.selectionFxTracks);
+  for (const id of ids) {
+    resolveSelectionEmphasis(id, nowMs, true);
+  }
+}
+
+function setSelectedNode(nextId, options = {}) {
+  const {
+    animate = false,
+    toggleIfSame = false,
+  } = options;
+  const currentId = safeText(state.selectedId);
+  const targetId = safeText(nextId);
+  const nowMs = getNowMs();
+
+  if (toggleIfSame && targetId && targetId === currentId) {
+    if (!animate) {
+      state.selectionFxTracks = Object.create(null);
+      state.selectedId = '';
+      return;
+    }
+    startSelectionAnimation(currentId, 0, 'deselect', nowMs);
+    state.selectedId = '';
+    return;
+  }
+
+  if (targetId === currentId) {
+    return;
+  }
+
+  if (!animate) {
+    state.selectionFxTracks = Object.create(null);
+    state.selectedId = targetId;
+    return;
+  }
+
+  if (currentId) {
+    startSelectionAnimation(currentId, 0, 'deselect', nowMs);
+  }
+  if (targetId) {
+    startSelectionAnimation(targetId, 1, 'select', nowMs, 0);
+  }
+  state.selectedId = targetId;
 }
 
 function safeText(value) {
@@ -213,7 +339,7 @@ function enterNodeUniverse(nodeId = state.selectedId, animated = true) {
   refreshUniverseBreadcrumb(targetNodeId);
   state.query = '';
   state.depthFilter = 'all';
-  state.selectedId = targetNodeId;
+  setSelectedNode(targetNodeId, { animate: false });
 
   if (restoreUniverseCamera(targetNodeId, animated)) {
     return true;
@@ -253,7 +379,7 @@ function gotoUniverseFromBreadcrumb(targetRootId, animated = true) {
   refreshUniverseBreadcrumb(safeTargetRootId);
   state.query = safeText(targetSnapshot?.query || '');
   state.depthFilter = safeText(targetSnapshot?.depthFilter || 'all') || 'all';
-  state.selectedId = safeText(targetSnapshot?.selectedId || safeTargetRootId);
+  setSelectedNode(safeText(targetSnapshot?.selectedId || safeTargetRootId), { animate: false });
 
   if (restoreUniverseCamera(safeTargetRootId, animated)) {
     return true;
@@ -287,7 +413,7 @@ function exitNodeUniverse(animated = true) {
   refreshUniverseBreadcrumb(parentRootId);
   state.query = safeText(previousPov?.query || '');
   state.depthFilter = safeText(previousPov?.depthFilter || 'all');
-  state.selectedId = safeText(previousPov?.selectedId || parentRootId);
+  setSelectedNode(safeText(previousPov?.selectedId || parentRootId), { animate: false });
 
   if (restoreUniverseCamera(parentRootId, animated)) {
     return true;
@@ -600,64 +726,54 @@ function updateCanvasSize() {
 }
 
 function resolveLayout(width, height) {
-  const edgePad = 12;
-  const leftWidth = clamp(Math.round(width * 0.19), 228, 302);
-  const rightWidth = clamp(Math.round(width * 0.19), 248, 314);
-  const centerGap = 12;
+  const edgePad = clamp(Math.round(Math.min(width, height) * 0.016), 12, 24);
+  const sideNavWidth = clamp(Math.round(width * 0.24), 284, 372);
 
-  const workspaceX = edgePad + leftWidth + centerGap;
-  const workspaceY = edgePad;
-  const workspaceWidth = Math.max(
-    360,
-    width - (edgePad * 2) - leftWidth - rightWidth - (centerGap * 2),
-  );
-  const workspaceHeight = Math.max(280, height - (edgePad * 2));
-
-  const leftPanel = {
+  const workspace = {
+    x: 0,
+    y: 0,
+    width,
+    height,
+  };
+  const sideNav = {
+    x: edgePad,
+    y: edgePad + 42,
+    width: sideNavWidth,
+    height: height - ((edgePad * 2) + 42),
+  };
+  const sideNavToggle = {
     x: edgePad,
     y: edgePad,
-    width: leftWidth,
-    height: height - (edgePad * 2),
-  };
-  const rightPanel = {
-    x: width - edgePad - rightWidth,
-    y: edgePad,
-    width: rightWidth,
-    height: height - (edgePad * 2),
-  };
-  const workspace = {
-    x: workspaceX,
-    y: workspaceY,
-    width: workspaceWidth,
-    height: workspaceHeight,
+    width: 124,
+    height: 30,
   };
   const topBar = {
-    width: clamp(Math.round(workspaceWidth * 0.66), 420, 720),
-    height: 44,
+    width: clamp(Math.round(width * 0.48), 360, 720),
+    height: 48,
   };
-  topBar.x = workspace.x + Math.round((workspace.width - topBar.width) / 2);
-  topBar.y = workspace.y + 18;
+  topBar.x = Math.round((width - topBar.width) / 2);
+  topBar.y = edgePad;
 
   const bottomBar = {
-    width: clamp(Math.round(workspaceWidth * 0.3), 260, 360),
+    width: clamp(Math.round(width * 0.28), 256, 420),
     height: 40,
   };
-  bottomBar.x = workspace.x + Math.round((workspace.width - bottomBar.width) / 2);
-  bottomBar.y = workspace.y + workspace.height - bottomBar.height - 16;
+  bottomBar.x = Math.round((width - bottomBar.width) / 2);
+  bottomBar.y = height - edgePad - bottomBar.height;
 
   const viewport = {
-    x: workspace.x + 8,
-    y: workspace.y + 8,
-    width: workspace.width - 16,
-    height: workspace.height - 16,
-    centerX: workspace.x + (workspace.width / 2),
-    baseY: workspace.y + 88,
+    x: 0,
+    y: 0,
+    width,
+    height,
+    centerX: width / 2,
+    baseY: Math.max(78, Math.round(height * 0.12)),
   };
 
   return {
-    leftPanel,
-    rightPanel,
     workspace,
+    sideNav,
+    sideNavToggle,
     topBar,
     bottomBar,
     viewport,
@@ -762,6 +878,13 @@ function pointInsideRect(pointX, pointY, rect) {
   );
 }
 
+function pointInsideActiveSideNav(pointX, pointY) {
+  if (!state.ui.sideNavOpen) {
+    return false;
+  }
+  return pointInsideRect(pointX, pointY, state.layout?.sideNav);
+}
+
 function findProjectedNodeAt(pointX, pointY) {
   const projectedNodes = Array.isArray(state.frameResult?.projectedNodes)
     ? state.frameResult.projectedNodes
@@ -799,51 +922,135 @@ function showBootError(message) {
 }
 
 function drawBackground(width, height) {
-  const gradient = context.createLinearGradient(0, 0, 0, height);
-  gradient.addColorStop(0, '#1f2024');
-  gradient.addColorStop(0.55, '#1b1c20');
-  gradient.addColorStop(1, '#17181b');
-  context.fillStyle = gradient;
+  const base = context.createLinearGradient(0, 0, 0, height);
+  base.addColorStop(0, '#f8fbff');
+  base.addColorStop(0.5, '#eff5fd');
+  base.addColorStop(1, '#e6eef8');
+  context.fillStyle = base;
+  context.fillRect(0, 0, width, height);
+
+  const topGlow = context.createRadialGradient(
+    width * 0.5,
+    height * 0.02,
+    0,
+    width * 0.5,
+    height * 0.02,
+    Math.max(width, height) * 0.72,
+  );
+  topGlow.addColorStop(0, 'rgba(135, 176, 244, 0.26)');
+  topGlow.addColorStop(0.45, 'rgba(145, 187, 248, 0.12)');
+  topGlow.addColorStop(1, 'rgba(182, 210, 253, 0)');
+  context.fillStyle = topGlow;
+  context.fillRect(0, 0, width, height);
+
+  const cornerGlow = context.createRadialGradient(
+    width * 0.06,
+    height * 0.78,
+    0,
+    width * 0.06,
+    height * 0.78,
+    Math.max(width, height) * 0.66,
+  );
+  cornerGlow.addColorStop(0, 'rgba(128, 170, 242, 0.18)');
+  cornerGlow.addColorStop(1, 'rgba(128, 170, 242, 0)');
+  context.fillStyle = cornerGlow;
   context.fillRect(0, 0, width, height);
 }
 
 function drawWorkspaceBackdrop(workspace) {
-  fillRoundedRect(context, workspace.x, workspace.y, workspace.width, workspace.height, 12, '#1c1d22');
-  strokeRoundedRect(context, workspace.x + 0.5, workspace.y + 0.5, workspace.width - 1, workspace.height - 1, 12, 'rgba(255,255,255,0.06)');
-
   context.save();
-  roundedRectPath(context, workspace.x, workspace.y, workspace.width, workspace.height, 12);
+  context.beginPath();
+  context.rect(workspace.x, workspace.y, workspace.width, workspace.height);
   context.clip();
 
   const innerGradient = context.createRadialGradient(
-    workspace.x + workspace.width * 0.52,
-    workspace.y + workspace.height * 0.42,
-    20,
-    workspace.x + workspace.width * 0.52,
-    workspace.y + workspace.height * 0.42,
-    Math.max(workspace.width, workspace.height) * 0.65,
+    workspace.x + workspace.width * 0.54,
+    workspace.y + workspace.height * 0.44,
+    30,
+    workspace.x + workspace.width * 0.54,
+    workspace.y + workspace.height * 0.44,
+    Math.max(workspace.width, workspace.height) * 0.72,
   );
-  innerGradient.addColorStop(0, 'rgba(43, 47, 57, 0.25)');
-  innerGradient.addColorStop(1, 'rgba(20, 21, 24, 0.1)');
+  innerGradient.addColorStop(0, 'rgba(124, 166, 235, 0.2)');
+  innerGradient.addColorStop(1, 'rgba(236, 245, 255, 0)');
   context.fillStyle = innerGradient;
   context.fillRect(workspace.x, workspace.y, workspace.width, workspace.height);
 
   const gridStep = 32;
-  context.strokeStyle = 'rgba(210,216,232,0.05)';
   context.lineWidth = 1;
   for (let x = workspace.x + (state.camera.view.x % gridStep); x <= workspace.x + workspace.width; x += gridStep) {
-    line(context, x, workspace.y, x, workspace.y + workspace.height, 'rgba(210,216,232,0.03)');
+    line(context, x, workspace.y, x, workspace.y + workspace.height, 'rgba(107,136,182,0.12)');
   }
   for (let y = workspace.y + (state.camera.view.y % gridStep); y <= workspace.y + workspace.height; y += gridStep) {
-    line(context, workspace.x, y, workspace.x + workspace.width, y, 'rgba(210,216,232,0.03)');
+    line(context, workspace.x, y, workspace.x + workspace.width, y, 'rgba(107,136,182,0.12)');
   }
 
   context.restore();
 }
+
+function drawBackdropBlurRegion(rect, radius = 20, blurPx = 16) {
+  const safeBlur = Math.max(0, Math.floor(blurPx));
+  if (!safeBlur) {
+    return;
+  }
+  const width = state.renderSize.width;
+  const height = state.renderSize.height;
+  const padding = Math.max(8, safeBlur * 2);
+  const sourceX = Math.max(0, rect.x - padding);
+  const sourceY = Math.max(0, rect.y - padding);
+  const sourceWidth = Math.max(1, Math.min(width - sourceX, rect.width + (padding * 2)));
+  const sourceHeight = Math.max(1, Math.min(height - sourceY, rect.height + (padding * 2)));
+
+  context.save();
+  roundedRectPath(context, rect.x, rect.y, rect.width, rect.height, radius);
+  context.clip();
+  context.filter = `blur(${safeBlur}px) saturate(1.2)`;
+  context.globalAlpha = 0.92;
+  context.drawImage(
+    canvas,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+  );
+  context.restore();
+}
 function drawPanelChrome(panel, tone = 'left') {
-  const baseColor = tone === 'left' ? '#25262b' : '#26272c';
-  fillRoundedRect(context, panel.x, panel.y, panel.width, panel.height, 10, baseColor);
-  strokeRoundedRect(context, panel.x + 0.5, panel.y + 0.5, panel.width - 1, panel.height - 1, 10, 'rgba(255,255,255,0.07)');
+  drawBackdropBlurRegion(panel, 24, 18);
+
+  const gradient = context.createLinearGradient(panel.x, panel.y, panel.x, panel.y + panel.height);
+  if (tone === 'left') {
+    gradient.addColorStop(0, 'rgba(250, 253, 255, 0.72)');
+    gradient.addColorStop(1, 'rgba(238, 245, 255, 0.64)');
+  } else {
+    gradient.addColorStop(0, 'rgba(250, 253, 255, 0.68)');
+    gradient.addColorStop(1, 'rgba(236, 244, 255, 0.62)');
+  }
+  fillRoundedRect(context, panel.x, panel.y, panel.width, panel.height, 24, gradient);
+
+  context.save();
+  context.shadowColor = 'rgba(111, 141, 188, 0.3)';
+  context.shadowBlur = 30;
+  context.shadowOffsetY = 14;
+  strokeRoundedRect(
+    context,
+    panel.x + 0.5,
+    panel.y + 0.5,
+    panel.width - 1,
+    panel.height - 1,
+    24,
+    'rgba(255,255,255,0.86)',
+  );
+  context.restore();
+
+  const sheen = context.createLinearGradient(panel.x, panel.y, panel.x + panel.width, panel.y);
+  sheen.addColorStop(0, 'rgba(255,255,255,0.92)');
+  sheen.addColorStop(1, 'rgba(255,255,255,0.25)');
+  strokeRoundedRect(context, panel.x + 1.5, panel.y + 1.5, panel.width - 3, panel.height - 3, 22, sheen);
 }
 
 function drawSmallButton({
@@ -857,21 +1064,21 @@ function drawSmallButton({
   active = false,
 }) {
   const hovered = state.hoveredButtonId === id;
-  let fill = '#2f3138';
-  let stroke = 'rgba(255,255,255,0.08)';
-  let textColor = '#d2d7e4';
+  let fill = 'rgba(255, 255, 255, 0.52)';
+  let stroke = 'rgba(196,210,232,0.84)';
+  let textColor = '#30466c';
 
   if (active) {
-    fill = '#1f5fce';
-    stroke = 'rgba(132, 182, 255, 0.86)';
+    fill = 'rgba(109, 161, 241, 0.88)';
+    stroke = 'rgba(86, 138, 218, 0.98)';
     textColor = '#f7fbff';
   } else if (hovered) {
-    fill = '#3a3d46';
-    stroke = 'rgba(255,255,255,0.22)';
+    fill = 'rgba(252, 254, 255, 0.74)';
+    stroke = 'rgba(168, 191, 223, 0.96)';
   }
 
-  fillRoundedRect(context, x, y, width, height, 6, fill);
-  strokeRoundedRect(context, x + 0.5, y + 0.5, width - 1, height - 1, 6, stroke);
+  fillRoundedRect(context, x, y, width, height, 13, fill);
+  strokeRoundedRect(context, x + 0.5, y + 0.5, width - 1, height - 1, 13, stroke);
   drawText(label, x + (width / 2), y + (height / 2) + 0.5, {
     size: 11,
     weight: active ? 600 : 500,
@@ -929,17 +1136,17 @@ function drawUniverseBreadcrumbLinks(startX, startY, maxWidth) {
       drawText('...', Math.max(startX + 8, endX - 8), startY + (height / 2) + 0.5, {
         size: 10,
         weight: 600,
-        color: '#8f9ab1',
+        color: '#6d82a6',
         align: 'right',
       });
       break;
     }
 
-    const fill = active ? '#1f5fce' : '#2f3138';
-    const stroke = active ? 'rgba(132, 182, 255, 0.86)' : 'rgba(255,255,255,0.12)';
-    const textColor = active ? '#f7fbff' : '#d2d7e4';
-    fillRoundedRect(context, cursorX, startY, crumbWidth, height, 6, fill);
-    strokeRoundedRect(context, cursorX + 0.5, startY + 0.5, crumbWidth - 1, height - 1, 6, stroke);
+    const fill = active ? 'rgba(95, 153, 241, 0.9)' : 'rgba(255,255,255,0.6)';
+    const stroke = active ? 'rgba(86, 140, 222, 0.95)' : 'rgba(175,197,226,0.84)';
+    const textColor = active ? '#f7fbff' : '#38527c';
+    fillRoundedRect(context, cursorX, startY, crumbWidth, height, 12, fill);
+    strokeRoundedRect(context, cursorX + 0.5, startY + 0.5, crumbWidth - 1, height - 1, 12, stroke);
     drawText(label, cursorX + (crumbWidth / 2), startY + (height / 2) + 0.5, {
       size: 10,
       weight: active ? 600 : 500,
@@ -966,7 +1173,7 @@ function drawUniverseBreadcrumbLinks(startX, startY, maxWidth) {
       drawText('>', cursorX + 7, startY + (height / 2) + 0.5, {
         size: 10,
         weight: 700,
-        color: '#8f9ab1',
+        color: '#6d82a6',
         align: 'center',
       });
       cursorX += 14;
@@ -974,25 +1181,112 @@ function drawUniverseBreadcrumbLinks(startX, startY, maxWidth) {
   }
 }
 
-function drawLeftPanel(layout) {
-  const panel = layout.leftPanel;
+function drawSideNavToggle(layout) {
+  const toggle = layout.sideNavToggle;
+  const buttonId = 'toggle-side-nav';
+  const hovered = state.hoveredButtonId === buttonId;
+  const active = Boolean(state.ui.sideNavOpen);
+  const panel = layout.sideNav;
+  const width = active ? 112 : toggle.width;
+  const height = active ? 28 : toggle.height;
+  const x = active
+    ? Math.round(panel.x + panel.width - width - 14)
+    : toggle.x;
+  const y = active
+    ? Math.round(panel.y + 12)
+    : toggle.y + 3;
+  const radius = 11;
+
+  drawBackdropBlurRegion({ x, y, width, height }, radius, 12);
+  const fill = active
+    ? 'rgba(111, 162, 241, 0.88)'
+    : (hovered ? 'rgba(252, 254, 255, 0.88)' : 'rgba(255, 255, 255, 0.68)');
+  const stroke = active
+    ? 'rgba(85, 139, 220, 0.98)'
+    : (hovered ? 'rgba(150, 178, 215, 0.96)' : 'rgba(171, 194, 224, 0.86)');
+  fillRoundedRect(context, x, y, width, height, radius, fill);
+  strokeRoundedRect(context, x + 0.5, y + 0.5, width - 1, height - 1, radius, stroke);
+
+  const iconColor = active ? 'rgba(244,249,255,0.98)' : '#496693';
+  const iconX = x + 13;
+  const iconTop = y + 8;
+  const iconBottom = y + height - 8;
+  line(context, iconX, iconTop, iconX, iconBottom, iconColor, 1.5);
+  line(context, iconX + 5, iconTop, iconX + 5, iconBottom, iconColor, 1.5);
+  drawText(active ? '<' : '>', x + 24, y + (height / 2) + 0.5, {
+    size: 11,
+    weight: 700,
+    color: iconColor,
+    align: 'center',
+  });
+  drawText(active ? 'Hide' : 'Panel', x + width - 12, y + (height / 2) + 0.5, {
+    size: 10,
+    weight: 700,
+    color: active ? '#f4f9ff' : '#3d5a86',
+    align: 'right',
+  });
+
+  registerButton({
+    id: buttonId,
+    x,
+    y,
+    width,
+    height,
+    action: 'toggle:side-nav',
+  });
+}
+
+function drawSideNav(layout) {
+  if (!state.ui.sideNavOpen) {
+    drawSideNavToggle(layout);
+    return;
+  }
+
+  const panel = layout.sideNav;
   drawPanelChrome(panel, 'left');
 
-  drawText('Untitled', panel.x + 16, panel.y + 22, {
-    size: 13,
-    weight: 600,
-    color: '#eff3ff',
+  const selectedLocalMeta = state.selectedId
+    ? state.adapter.resolveNodeMetrics(state.selectedId, getUniverseOptions())
+    : null;
+  const selectedGlobalMeta = state.selectedId
+    ? state.adapter.resolveNodeMetrics(state.selectedId, getGlobalUniverseOptions())
+    : null;
+  const selectedNode = selectedLocalMeta?.node || selectedGlobalMeta?.node || null;
+  const stats = state.frameResult?.stats || {};
+
+  const headingX = panel.x + 18;
+  let cursorY = panel.y + 22;
+  drawText('Next Gen Binary Tree', headingX, cursorY, {
+    size: 18,
+    weight: 700,
+    family: 'Georgia, Times New Roman, serif',
+    color: '#203a67',
   });
-  drawText('Tree Project', panel.x + 16, panel.y + 40, {
+  cursorY += 20;
+  drawText('Glass Shell', headingX, cursorY, {
     size: 11,
-    weight: 500,
-    color: '#9ea8bd',
+    weight: 600,
+    color: '#6683ad',
   });
+  cursorY += 18;
+
+  const identity = safeText(state.session?.name || state.session?.username || 'Unknown User');
+  drawText(
+    ((state.source === 'admin' ? 'ADMIN' : 'MEMBER') + ' | ' + truncateText(identity, 18)),
+    headingX,
+    cursorY,
+    {
+      size: 10,
+      weight: 500,
+      color: '#6d84aa',
+    },
+  );
+  cursorY += 22;
 
   drawSmallButton({
     id: 'query-all',
     x: panel.x + 14,
-    y: panel.y + 58,
+    y: cursorY,
     width: 58,
     height: 24,
     label: 'All',
@@ -1002,7 +1296,7 @@ function drawLeftPanel(layout) {
   drawSmallButton({
     id: 'query-deep',
     x: panel.x + 78,
-    y: panel.y + 58,
+    y: cursorY,
     width: 62,
     height: 24,
     label: 'Deep',
@@ -1012,28 +1306,36 @@ function drawLeftPanel(layout) {
   drawSmallButton({
     id: 'query-load',
     x: panel.x + 146,
-    y: panel.y + 58,
+    y: cursorY,
     width: 78,
     height: 24,
     label: 'High Vol',
     action: 'query:high',
     active: state.query === 'high',
   });
+  cursorY += 40;
 
-  drawText('Local Depth Filter', panel.x + 16, panel.y + 106, {
+  drawText('Local Depth Filter', headingX, cursorY, {
     size: 11,
     weight: 600,
-    color: '#aeb7cb',
+    color: '#5879a6',
   });
+  cursorY += 12;
 
   const depthButtons = ['all', '0', '1', '2', '3', '4', '5', '8', '12', '16', '20'];
-  const depthButtonWidth = 40;
+  const depthColumns = panel.width >= 346 ? 5 : 4;
+  const depthButtonWidth = clamp(
+    Math.floor((panel.width - 30 - ((depthColumns - 1) * 6)) / depthColumns),
+    34,
+    44,
+  );
   const depthButtonHeight = 22;
-  let depthRow = 0;
-  let depthColumn = 0;
-  for (const depthLabel of depthButtons) {
-    const buttonX = panel.x + 14 + (depthColumn * (depthButtonWidth + 6));
-    const buttonY = panel.y + 118 + (depthRow * (depthButtonHeight + 6));
+  for (let index = 0; index < depthButtons.length; index += 1) {
+    const depthLabel = depthButtons[index];
+    const row = Math.floor(index / depthColumns);
+    const column = index % depthColumns;
+    const buttonX = panel.x + 14 + (column * (depthButtonWidth + 6));
+    const buttonY = cursorY + (row * (depthButtonHeight + 6));
     drawSmallButton({
       id: `depth-${depthLabel}`,
       x: buttonX,
@@ -1044,47 +1346,86 @@ function drawLeftPanel(layout) {
       action: `depth:${depthLabel}`,
       active: state.depthFilter === depthLabel,
     });
-    depthColumn += 1;
-    if (depthColumn >= 5) {
-      depthColumn = 0;
-      depthRow += 1;
-    }
   }
 
-  const panelInfoY = panel.y + 230;
-  drawText('Source', panel.x + 16, panelInfoY, {
-    size: 10,
-    weight: 600,
-    color: '#8f99ae',
-  });
-  drawText(state.source === 'admin' ? 'ADMIN SESSION' : 'MEMBER SESSION', panel.x + 16, panelInfoY + 18, {
-    size: 12,
-    weight: 600,
-    color: '#d7deef',
-  });
+  const depthRows = Math.ceil(depthButtons.length / depthColumns);
+  cursorY += (depthRows * (depthButtonHeight + 6)) + 12;
 
-  const identity = safeText(state.session?.name || state.session?.username || 'Unknown User');
-  drawText(truncateText(identity, 24), panel.x + 16, panelInfoY + 40, {
-    size: 11,
-    weight: 500,
-    color: '#9ba5bb',
-  });
+  const detailsHeight = 156;
+  drawBackdropBlurRegion({ x: panel.x + 12, y: cursorY, width: panel.width - 24, height: detailsHeight }, 18, 12);
+  fillRoundedRect(context, panel.x + 12, cursorY, panel.width - 24, detailsHeight, 18, 'rgba(255,255,255,0.58)');
+  strokeRoundedRect(
+    context,
+    panel.x + 12.5,
+    cursorY + 0.5,
+    panel.width - 25,
+    detailsHeight - 1,
+    18,
+    'rgba(175,197,227,0.82)',
+  );
 
-  drawText('Semantic Zoom', panel.x + 16, panel.y + panel.height - 88, {
+  drawText('Selected Node', headingX, cursorY + 18, {
     size: 11,
     weight: 600,
-    color: '#b9c2d6',
+    color: '#53749f',
   });
-  drawText('Zoom in for full node details.', panel.x + 16, panel.y + panel.height - 68, {
+  drawText(
+    truncateText(safeText(selectedNode?.name || '(none)'), 28),
+    headingX,
+    cursorY + 40,
+    {
+      size: 14,
+      weight: 700,
+      color: '#223f6a',
+    },
+  );
+  drawText(
+    `Depth: ${selectedLocalMeta ? selectedLocalMeta.localDepth : '-'}  |  Vol: ${selectedNode ? safeNumber(selectedNode.volume, 0).toLocaleString() : '-'}`,
+    headingX,
+    cursorY + 58,
+    {
+      size: 10,
+      weight: 500,
+      color: '#6a82a9',
+      maxWidth: panel.width - 44,
+    },
+  );
+  drawText('Universe Trail', headingX, cursorY + 79, {
+    size: 10,
+    weight: 600,
+    color: '#5f79a2',
+  });
+  drawUniverseBreadcrumbLinks(headingX, cursorY + 87, panel.width - 44);
+  drawText(
+    `Global Path: ${selectedGlobalMeta ? selectedGlobalMeta.globalPath || '(root)' : '-'}`,
+    headingX,
+    cursorY + 112,
+    {
+      size: 10,
+      weight: 500,
+      color: '#6c83aa',
+      maxWidth: panel.width - 44,
+    },
+  );
+  drawText(
+    `Culled: ${safeNumber(stats.culled, 0)}   Visible: ${safeNumber(stats.visible, 0)}`,
+    headingX,
+    cursorY + 132,
+    {
+      size: 10,
+      weight: 600,
+      color: '#486a97',
+    },
+  );
+  cursorY += detailsHeight + 16;
+  drawText('Press C to toggle links | F to fit | U/B for universe nav', headingX, cursorY, {
     size: 10,
     weight: 500,
-    color: '#8f9bb2',
+    color: '#6a81a8',
+    maxWidth: panel.width - 40,
   });
-  drawText('Zoom out to cull tiny nodes.', panel.x + 16, panel.y + panel.height - 52, {
-    size: 10,
-    weight: 500,
-    color: '#8f9bb2',
-  });
+
+  drawSideNavToggle(layout);
 }
 
 function drawRightPanel(layout) {
@@ -1111,8 +1452,8 @@ function drawRightPanel(layout) {
     : null;
   const selectedNode = selectedLocalMeta?.node || selectedGlobalMeta?.node || null;
   const universeGlobalMeta = state.adapter.resolveNodeMetrics(universeRootId, getGlobalUniverseOptions());
-  fillRoundedRect(context, panel.x + 12, panel.y + 40, panel.width - 24, 222, 8, '#202127');
-  strokeRoundedRect(context, panel.x + 12.5, panel.y + 40.5, panel.width - 25, 221, 8, 'rgba(255,255,255,0.07)');
+  fillRoundedRect(context, panel.x + 12, panel.y + 40, panel.width - 24, 222, 22, '#202127');
+  strokeRoundedRect(context, panel.x + 12.5, panel.y + 40.5, panel.width - 25, 221, 22, 'rgba(255,255,255,0.07)');
 
   drawText('Selected Node', panel.x + 24, panel.y + 58, {
     size: 11,
@@ -1186,8 +1527,8 @@ function drawRightPanel(layout) {
   drawUniverseBreadcrumbLinks(panel.x + 24, panel.y + 238, panel.width - 52);
 
   const stats = state.frameResult?.stats || {};
-  fillRoundedRect(context, panel.x + 12, panel.y + 264, panel.width - 24, 182, 8, '#202127');
-  strokeRoundedRect(context, panel.x + 12.5, panel.y + 264.5, panel.width - 25, 181, 8, 'rgba(255,255,255,0.07)');
+  fillRoundedRect(context, panel.x + 12, panel.y + 264, panel.width - 24, 182, 22, '#202127');
+  strokeRoundedRect(context, panel.x + 12.5, panel.y + 264.5, panel.width - 25, 181, 22, 'rgba(255,255,255,0.07)');
 
   drawText('Render Stats', panel.x + 24, panel.y + 282, {
     size: 11,
@@ -1246,8 +1587,8 @@ function drawRightPanel(layout) {
     },
   );
 
-  fillRoundedRect(context, panel.x + 12, panel.y + panel.height - 126, panel.width - 24, 114, 8, '#202127');
-  strokeRoundedRect(context, panel.x + 12.5, panel.y + panel.height - 125.5, panel.width - 25, 113, 8, 'rgba(255,255,255,0.07)');
+  fillRoundedRect(context, panel.x + 12, panel.y + panel.height - 126, panel.width - 24, 114, 22, '#202127');
+  strokeRoundedRect(context, panel.x + 12.5, panel.y + panel.height - 125.5, panel.width - 25, 113, 22, 'rgba(255,255,255,0.07)');
   drawText(`Engine: ${state.engineMode.mode}`, panel.x + 24, panel.y + panel.height - 104, {
     size: 11,
     weight: 600,
@@ -1277,8 +1618,9 @@ function drawRightPanel(layout) {
 
 function drawTopCenterBar(layout) {
   const bar = layout.topBar;
-  fillRoundedRect(context, bar.x, bar.y, bar.width, bar.height, 9, '#2a2b31');
-  strokeRoundedRect(context, bar.x + 0.5, bar.y + 0.5, bar.width - 1, bar.height - 1, 9, 'rgba(255,255,255,0.1)');
+  drawBackdropBlurRegion(bar, 24, 16);
+  fillRoundedRect(context, bar.x, bar.y, bar.width, bar.height, 24, 'rgba(255, 255, 255, 0.64)');
+  strokeRoundedRect(context, bar.x + 0.5, bar.y + 0.5, bar.width - 1, bar.height - 1, 24, 'rgba(172, 197, 230, 0.86)');
 
   const controls = [
     { id: 'cam-home', label: 'Home', action: 'camera:home' },
@@ -1291,10 +1633,10 @@ function drawTopCenterBar(layout) {
   ];
 
   const buttonHeight = 28;
-  const buttonY = bar.y + 8;
+  const buttonY = bar.y + 10;
   let cursorX = bar.x + 10;
   for (const control of controls) {
-    const width = clamp(40 + (control.label.length * 5), 56, 88);
+    const width = clamp(42 + (control.label.length * 5), 58, 92);
     drawSmallButton({
       id: control.id,
       x: cursorX,
@@ -1311,8 +1653,9 @@ function drawTopCenterBar(layout) {
 
 function drawBottomToolBar(layout) {
   const bar = layout.bottomBar;
-  fillRoundedRect(context, bar.x, bar.y, bar.width, bar.height, 10, '#2a2b31');
-  strokeRoundedRect(context, bar.x + 0.5, bar.y + 0.5, bar.width - 1, bar.height - 1, 10, 'rgba(255,255,255,0.09)');
+  drawBackdropBlurRegion(bar, 22, 14);
+  fillRoundedRect(context, bar.x, bar.y, bar.width, bar.height, 22, 'rgba(255, 255, 255, 0.62)');
+  strokeRoundedRect(context, bar.x + 0.5, bar.y + 0.5, bar.width - 1, bar.height - 1, 22, 'rgba(172, 197, 230, 0.82)');
 
   const tools = [
     { id: 'tool-select', label: 'Select' },
@@ -1326,12 +1669,23 @@ function drawBottomToolBar(layout) {
   for (const tool of tools) {
     const hovered = state.hoveredButtonId === tool.id;
     const active = tool.id === 'tool-select';
-    const fill = active ? '#2163d5' : (hovered ? '#393c46' : '#31343d');
-    fillRoundedRect(context, x, bar.y + 6, segmentWidth - 6, 28, 7, fill);
+    const fill = active
+      ? 'rgba(110, 163, 243, 0.9)'
+      : (hovered ? 'rgba(252, 254, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)');
+    fillRoundedRect(context, x, bar.y + 6, segmentWidth - 6, 28, 14, fill);
+    strokeRoundedRect(
+      context,
+      x + 0.5,
+      bar.y + 6.5,
+      segmentWidth - 7,
+      27,
+      14,
+      active ? 'rgba(86, 140, 222, 0.96)' : 'rgba(168,191,223,0.84)',
+    );
     drawText(tool.label, x + ((segmentWidth - 6) / 2), bar.y + 20, {
       size: 11,
       weight: active ? 600 : 500,
-      color: '#eff3ff',
+      color: active ? '#f7fbff' : '#2e4871',
       align: 'center',
     });
     registerButton({
@@ -1347,6 +1701,9 @@ function drawBottomToolBar(layout) {
 }
 
 function drawConnectors(projectedNodes) {
+  if (!state.showConnectors) {
+    return;
+  }
   const visibleNodes = Array.isArray(projectedNodes) ? projectedNodes : [];
   if (!visibleNodes.length) {
     return;
@@ -1395,7 +1752,7 @@ function drawConnectors(projectedNodes) {
     }
 
     const strong = parent.lodTier === 'full' || children.some((child) => child.lodTier === 'full');
-    const stroke = strong ? 'rgba(214,221,236,0.62)' : 'rgba(179,187,204,0.34)';
+    const stroke = strong ? 'rgba(95,132,181,0.42)' : 'rgba(121,149,190,0.24)';
     const branchRadius = Math.max(0.08, Math.min(parent.r, ...children.map((child) => child.r)));
     const lineWidth = strong
       ? clamp(branchRadius * 0.09, 0.08, 1.4)
@@ -1423,80 +1780,120 @@ function drawConnectors(projectedNodes) {
 function drawNode(node) {
   const isSelected = node.id === state.selectedId;
   const isFocusPathNode = Boolean(node.isFocusPathNode);
+  const hasAncestorRing = isFocusPathNode && !isSelected;
+  const selectionEmphasis = clamp(resolveSelectionEmphasis(node.id), 0, SELECTION_MAX_EMPHASIS);
+  const activeRingStrength = clamp(selectionEmphasis, 0, 1);
+  const activeRingPulse = Math.max(0, selectionEmphasis - 1);
+  const hasActiveRing = activeRingStrength > 0.001;
+  const activeRingAlpha = (0.34 + (activeRingStrength * 0.64)).toFixed(3);
+
+  let hueSeed = 0;
+  const id = safeText(node.id);
+  for (let index = 0; index < id.length; index += 1) {
+    hueSeed = (hueSeed * 31 + id.charCodeAt(index)) % 360;
+  }
+  const hue = (hueSeed + 205) % 360;
 
   if (node.lodTier === 'dot') {
     const r = Math.max(node.r, 0.3);
+    if (hasActiveRing || hasAncestorRing) {
+      const pulseScale = 1 + (activeRingPulse * 0.08);
+      const scaledRadius = r * pulseScale;
+      const outerExtra = hasActiveRing ? (0.92 * activeRingStrength) : 0.9;
+      const outerR = Math.max(1.2, scaledRadius + outerExtra);
+      const innerR = Math.max(0.2, scaledRadius - (0.2 * (hasActiveRing ? activeRingStrength : 1)));
+      context.beginPath();
+      context.arc(node.x, node.y, outerR, 0, Math.PI * 2);
+      context.fillStyle = hasActiveRing
+        ? `rgba(255,255,255,${activeRingAlpha})`
+        : 'rgba(174,184,198,0.9)';
+      context.fill();
+
+      const dotGradient = context.createRadialGradient(
+        node.x - (innerR * 0.24),
+        node.y - (innerR * 0.3),
+        Math.max(1, innerR * 0.12),
+        node.x,
+        node.y,
+        Math.max(1, innerR),
+      );
+      const dotBoost = hasActiveRing ? Math.round(3 + (activeRingStrength * 4)) : 0;
+      dotGradient.addColorStop(0, `hsla(${hue}, 62%, ${66 + dotBoost}%, 0.96)`);
+      dotGradient.addColorStop(1, `hsla(${(hue + 16) % 360}, 56%, ${48 + dotBoost}%, 0.96)`);
+
+      context.beginPath();
+      context.arc(node.x, node.y, innerR, 0, Math.PI * 2);
+      context.fillStyle = dotGradient;
+      context.fill();
+      return;
+    }
+
     context.beginPath();
     context.arc(node.x, node.y, r, 0, Math.PI * 2);
-    context.fillStyle = isSelected ? '#7fb4ff' : '#d2d8e4';
+    context.fillStyle = `hsla(${hue}, 30%, 70%, 0.9)`;
     context.fill();
     return;
   }
 
-  if (isFocusPathNode && !isSelected) {
+  const ringWidth = clamp(node.r * 0.2, 2.4, 7.2);
+  const pulseScale = 1 + (activeRingPulse * 0.06);
+  const outerR = node.r * pulseScale;
+  const innerR = hasActiveRing
+    ? Math.max(1.2, outerR - (ringWidth * activeRingStrength))
+    : (hasAncestorRing
+      ? Math.max(1.2, outerR - ringWidth)
+      : outerR);
+
+  if (hasActiveRing || hasAncestorRing) {
     context.beginPath();
-    context.arc(node.x, node.y, node.r + 3.5, 0, Math.PI * 2);
-    context.strokeStyle = 'rgba(94, 157, 255, 0.75)';
-    context.lineWidth = 1.5;
+    context.arc(node.x, node.y, outerR, 0, Math.PI * 2);
+    context.fillStyle = hasActiveRing
+      ? `rgba(255,255,255,${activeRingAlpha})`
+      : 'rgba(176,186,200,0.9)';
+    context.fill();
+    context.lineWidth = 1;
+    context.strokeStyle = hasActiveRing
+      ? `rgba(241,248,255,${(0.46 + (activeRingStrength * 0.44)).toFixed(3)})`
+      : 'rgba(148,162,180,0.82)';
     context.stroke();
   }
 
+  const emphasisBoost = hasActiveRing ? Math.round(3 + (activeRingStrength * 4)) : 0;
   const gradient = context.createRadialGradient(
-    node.x - (node.r * 0.36),
-    node.y - (node.r * 0.4),
-    Math.max(1, node.r * 0.15),
+    node.x - (innerR * 0.26),
+    node.y - (innerR * 0.34),
+    Math.max(1, innerR * 0.12),
     node.x,
     node.y,
-    Math.max(1, node.r),
+    Math.max(1, innerR),
   );
-  gradient.addColorStop(0, isSelected ? '#f6f8ff' : '#eceef5');
-  gradient.addColorStop(1, isSelected ? '#9bbfff' : '#c7ccd6');
+  gradient.addColorStop(0, `hsla(${hue}, 68%, ${71 + emphasisBoost}%, 0.98)`);
+  gradient.addColorStop(1, `hsla(${(hue + 16) % 360}, 63%, ${51 + emphasisBoost}%, 0.98)`);
 
   context.beginPath();
-  context.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+  context.arc(node.x, node.y, innerR, 0, Math.PI * 2);
   context.fillStyle = gradient;
   context.fill();
-  context.lineWidth = isSelected ? 2.2 : 1.2;
-  context.strokeStyle = isSelected ? '#2f74ea' : 'rgba(255,255,255,0.22)';
+  context.lineWidth = (hasActiveRing || hasAncestorRing) ? 1.25 : 1;
+  context.strokeStyle = hasActiveRing
+    ? `rgba(255,255,255,${(0.28 + (activeRingStrength * 0.52)).toFixed(3)})`
+    : (hasAncestorRing ? 'rgba(178,191,210,0.72)' : 'rgba(232,244,255,0.5)');
   context.stroke();
 
-  if (isSelected) {
-    context.beginPath();
-    context.arc(node.x, node.y, node.r + 5.2, 0, Math.PI * 2);
-    context.strokeStyle = 'rgba(103, 164, 255, 0.66)';
-    context.lineWidth = 2;
-    context.stroke();
-  }
-
-  if (node.lodTier === 'medium') {
-    drawText(resolveInitials(node.node.name), node.x, node.y + 0.5, {
-      size: Math.max(9, Math.floor(node.r * 0.72)),
-      weight: 700,
-      color: '#20242f',
-      align: 'center',
-    });
+  const localDepth = safeNumber(node.localDepth, safeNumber(node.node?.depth, 0));
+  const hideDeepLevelLabel = (
+    localDepth >= 4
+    && node.r < 16
+    && !isSelected
+  );
+  if (hideDeepLevelLabel || node.r < 9) {
     return;
   }
 
-  const nameFontSize = clamp(Math.floor(node.r * 0.54), 10, 14);
-  const subFontSize = clamp(Math.floor(node.r * 0.35), 8, 11);
-  drawText(truncateText(node.node.name, 18), node.x, node.y - (node.r * 0.14), {
-    size: nameFontSize,
+  drawText(resolveInitials(node.node.name), node.x, node.y + 0.5, {
+    size: Math.max(7, Math.floor(innerR * 0.56)),
     weight: 700,
-    color: '#1f2430',
-    align: 'center',
-  });
-
-  const localDepth = safeNumber(node.localDepth, safeNumber(node.node.depth, 0));
-  const globalDepth = safeNumber(node.globalDepth, safeNumber(node.node.depth, 0));
-  const depthLabel = localDepth === globalDepth
-    ? `d${globalDepth}`
-    : `u${localDepth} g${globalDepth}`;
-  const detail = `${depthLabel}  v${safeNumber(node.node.volume, 0)}`;
-  drawText(detail, node.x, node.y + (node.r * 0.34), {
-    size: subFontSize,
-    weight: 600,
-    color: 'rgba(35,42,52,0.84)',
+    color: '#f8fbff',
     align: 'center',
   });
 }
@@ -1532,6 +1929,7 @@ function drawTreeViewport(layout) {
       fullDepthPerOctave: 1,
       visibleDepthPerOctave: 3,
     },
+    cullMargin: Math.max(220, Math.round(Math.min(viewport.width, viewport.height) * 0.34)),
     devicePixelRatio: 1,
   });
   state.frameResult = frame;
@@ -1539,7 +1937,8 @@ function drawTreeViewport(layout) {
   const projectedNodes = Array.isArray(frame.projectedNodes) ? frame.projectedNodes : [];
 
   context.save();
-  roundedRectPath(context, layout.workspace.x + 1, layout.workspace.y + 1, layout.workspace.width - 2, layout.workspace.height - 2, 12);
+  context.beginPath();
+  context.rect(layout.workspace.x, layout.workspace.y, layout.workspace.width, layout.workspace.height);
   context.clip();
 
   drawConnectors(projectedNodes);
@@ -1569,8 +1968,7 @@ function renderFrame() {
   drawBackground(width, height);
   drawWorkspaceBackdrop(state.layout.workspace);
   drawTreeViewport(state.layout);
-  drawLeftPanel(state.layout);
-  drawRightPanel(state.layout);
+  drawSideNav(state.layout);
   drawTopCenterBar(state.layout);
   drawBottomToolBar(state.layout);
 }
@@ -1658,7 +2056,7 @@ function focusNode(nodeId, desiredRadius = 24, animated = true) {
     y: desiredY - viewport.baseY - (metrics.worldY * projectionScale),
   };
 
-  state.selectedId = targetNodeId;
+  setSelectedNode(targetNodeId, { animate: animated });
   setCameraTarget(targetView, animated);
   return true;
 }
@@ -1776,6 +2174,10 @@ function triggerAction(action) {
     state.showConnectors = !state.showConnectors;
     return;
   }
+  if (safeAction === 'toggle:side-nav') {
+    state.ui.sideNavOpen = !state.ui.sideNavOpen;
+    return;
+  }
   if (safeAction.startsWith('depth:')) {
     state.depthFilter = safeAction.slice('depth:'.length) || 'all';
     fitCameraToFilteredNodes(true);
@@ -1815,10 +2217,13 @@ function onPointerDown(event) {
   if (!pointInsideRect(event.clientX, event.clientY, state.layout?.workspace)) {
     return;
   }
+  if (pointInsideActiveSideNav(event.clientX, event.clientY)) {
+    return;
+  }
 
   const hitNode = findProjectedNodeAt(event.clientX, event.clientY);
   if (hitNode) {
-    state.selectedId = hitNode.id;
+    setSelectedNode(hitNode.id, { animate: true, toggleIfSame: true });
     return;
   }
 
@@ -1883,6 +2288,9 @@ function onPointerLeave() {
 function onWheel(event) {
   const layout = state.layout;
   if (!layout || !pointInsideRect(event.clientX, event.clientY, layout.workspace)) {
+    return;
+  }
+  if (pointInsideActiveSideNav(event.clientX, event.clientY)) {
     return;
   }
   event.preventDefault();
@@ -1988,6 +2396,9 @@ function bindEvents() {
 
 let lastTimestamp = performance.now();
 function tickFrame(timestamp) {
+  state.timeMs = timestamp;
+  updateSelectionAnimations(timestamp);
+
   const deltaSeconds = Math.max(0.0001, Math.min(0.08, (timestamp - lastTimestamp) / 1000));
   lastTimestamp = timestamp;
 
@@ -2021,7 +2432,7 @@ async function bootstrap() {
   state.universe.history = [];
   refreshUniverseBreadcrumb('root');
 
-  state.selectedId = 'root';
+  setSelectedNode('root', { animate: false });
   updateCanvasSize();
   bindEvents();
 
@@ -2034,3 +2445,7 @@ async function bootstrap() {
 bootstrap().catch((error) => {
   showBootError(error instanceof Error ? error.message : String(error));
 });
+
+
+
+

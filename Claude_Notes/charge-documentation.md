@@ -1,19 +1,362 @@
-﻿# Vault Finance Dashboard â€” Build Notes
+# Vault Finance Dashboard ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Build Notes
 
 **Created:** 2026-02-20
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 272
+**Times Updated:** 286
 
 ## Overview
 
-~~Built a dark, sleek finance/budgeting dashboard called **"Vault"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.~~
+~~Built a dark, sleek finance/budgeting dashboard called **"Vault"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â high-craft approach following all CLAUDE.md guardrails.~~
 
 ## Major Update (Lead Devloper Notes)
-Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.
+Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Update (2026-04-10) - Binary Tree Next Select Animation Bugfix (Both Directions)
+
+### What Was Changed
+
+- Fixed node selection animation so select and deselect both animate.
+- Root cause:
+  - select animation track was starting from `1 -> 1` because selected state was set before capture.
+- Fix applied:
+  - `startSelectionAnimation()` now supports `fromOverride`
+  - select path explicitly starts from `0 -> 1`
+  - deselect path remains `current -> 0`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Apple-Style Select/Deselect Animation
+
+### What Was Changed
+
+- Added animated tap behavior for node selection and deselection:
+  - tap node: active white ring pops in with Apple-like ease/settle
+  - tap active node again: ring smoothly shrinks/fades out (deselect)
+- Implemented selection animation state tracking:
+  - per-node selection emphasis tracks
+  - select and deselect durations
+  - easing curves (`easeOutBack` for select, `easeOutCubic` for deselect).
+- Integrated animation into render loop:
+  - frame timestamp updates animation state every tick
+  - node draw now reads animated selection emphasis values.
+- Preserved ring color roles:
+  - selected node ring remains white
+  - ancestor path ring remains gray.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Restore Selected White Ring + Keep Gray Ancestor Ring
+
+### What Was Changed
+
+- Restored white active ring/border for selected nodes.
+- Kept gray ring/border for ancestor path nodes.
+- Applies to both dot and non-dot node rendering so selected/ancestor styling is consistent.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Keep Gray Ancestor Outline, Remove Selected Outline
+
+### What Was Changed
+
+- Adjusted node ring behavior to match latest direction:
+  - removed selected-node outer outline/ring
+  - retained gray outline/ring only for ancestor path nodes.
+- Applied same behavior to dot-level nodes:
+  - gray ring appears only for ancestor path dot nodes
+  - selected dot no longer gets outline ring.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Ancestor Outline Removed
+
+### What Was Changed
+
+- Removed ancestor/focus-path outline ring rendering from nodes.
+- Selected-node ring styling remains unchanged.
+- Dot and non-dot node paths now only show outline when node is actually selected.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Ancestor Ring Matches Selected Style
+
+### What Was Changed
+
+- Updated focus-path ancestor outline behavior to match request:
+  - ancestor nodes now use the same ring construction as selected nodes
+  - only color differs: selected ring stays white, ancestor ring is gray.
+- Removed prior thin-offset ancestor outline implementation.
+- Applied the same rule for dot LOD:
+  - selected dot ring is white
+  - ancestor path dot ring is gray.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Focus-Path Thin Outline Customization
+
+### What Was Changed
+
+- Customized only the thin circular outline used on ancestor/focus-path nodes before the selected node.
+- Kept selected-node behavior unchanged (selected node still uses its own ring logic).
+- Added configurable constants so this specific outline can be tuned quickly:
+  - radius offset ratio/min/max
+  - stroke width ratio/min/max
+  - outer stroke extra width
+  - outer stroke color
+  - inner stroke color.
+- Updated render to a cleaner two-stroke thin ring:
+  - subtle white support stroke
+  - soft slate-blue inner stroke.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Trail Revert to Thin Circle Outlines
+
+### What Was Changed
+
+- Removed custom selected-node trail-line renderer added in previous pass.
+- Reverted to intended trail expression:
+  - only thin circular outlines on ancestor/path nodes before the selected node.
+- Refined the ancestor outline style to be cleaner and less noisy:
+  - subtle neutral stroke color
+  - thinner adaptive line width
+  - tighter ring offset around node radius.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Trail Cleanup (Minimal Style)
+
+### What Was Changed
+
+- Refined selected-node trail to a cleaner, minimal visual:
+  - removed multi-layer heavy strokes
+  - removed ancestor marker dots
+  - replaced with a single subtle path line style with light progression toward selected node.
+- Goal of this pass:
+  - keep ancestry context visible without visual clutter or “second selection” feel.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Ancestor Trail Design
+
+### What Was Changed
+
+- Added explicit selected-node ancestry trail styling so path context is visually distinct from selection:
+  - new `drawSelectionTrail(projectedNodes)` render pass
+  - draws selected-to-ancestor chain lines for currently visible hierarchy
+  - uses dual-stroke trail (white support stroke + soft slate overlay) for readability in light mode
+  - adds subtle marker dots on ancestor waypoints.
+- Integrated trail draw pass into viewport render order:
+  - connectors render first
+  - selected ancestry trail renders next
+  - node icons render on top.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Selection Ring Behavior Fix
+
+### What Was Changed
+
+- Updated node selection styling behavior to match requested interaction:
+  - white thick border/ring now appears only on the selected node
+  - non-selected nodes no longer render the white outer ring
+  - removed blue selected-node halo/active selector treatment.
+- Adjusted dot-tier logic to mirror same rule:
+  - selected dot gets ring
+  - non-selected dot remains plain fill.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Apple-Style Node Rings
+
+### What Was Changed
+
+- Refined node visuals to match Apple-contact style icon treatment in light mode:
+  - added a thick white outer ring around non-dot nodes
+  - inset colored gradient circle inside the white ring
+  - kept centered initials inside the inner circle
+  - preserved selection halo and focus-path highlighting behavior.
+- Updated dot-tier nodes to use mini white-ring treatment for visual consistency.
+- Kept previous deep-node label gating behavior (`depth >= 4` hidden until zoom/radius is sufficient).
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Light-Mode Glass Refinement
+
+### What Was Changed
+
+- Prioritized light mode in the next-gen shell:
+  - updated canvas background and workspace atmosphere to bright frosted tones.
+- Reworked panel visibility button behavior/style:
+  - removed circular toggle style.
+  - added rectangular glass toggle control.
+  - when side nav is open, toggle now renders inside the panel header area.
+- Added glassmorphism blur treatment for UI surfaces:
+  - introduced backdrop blur sampling helper in canvas render flow.
+  - applied blur+tint to side nav, top bar, bottom bar, and panel sub-card surfaces.
+- Updated deep-level node labeling behavior:
+  - for deeper levels (`localDepth >= 4`), initials are now hidden at small projected radius.
+  - initials appear again as soon as zoom creates enough node radius, preventing text overflow outside circles.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Fullscreen Glass Shell + Contact Nodes
+
+### What Was Changed
+
+- Reworked the next-gen shell to remove fixed left/right outer gutters and restore a fullscreen canvas viewport.
+- Added an in-canvas side navigation panel that can be shown or hidden via a floating toggle button.
+- Applied a dark-gray glassmorphism treatment across shell surfaces (background, side nav, top bar, bottom bar, buttons).
+- Updated node visuals to circular contact-style avatars with centered initials only (full + medium LOD).
+- Expanded culling tolerance using dynamic cullMargin in the engine adapter to reduce premature line/node pop-out while panning.
+- Blocked canvas pan/zoom/select interactions while pointer is inside the open side nav overlay.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- binary-tree-next-engine-adapter.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+- Claude_Notes/binary-tree-next-gen-wasm-plan.md
+
+### Design Decisions
+
+- Fullscreen viewport is now the projection source of truth, keeping render/culling aligned with visible canvas area.
+- Shell remains canvas-native so future wasm integration does not need a DOM-shell rewrite.
+- Initials-only node avatars are implemented now to lock down target visual language before live tree-logic migration.
+
+### Known Limitations
+
+- Legacy drawRightPanel() remains in source as inactive code and is not rendered.
+- No screenshot comparison pass was executed in this change; validation is based on syntax checks and code-path review.
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+- node --check binary-tree-next-engine-adapter.mjs passed.
 
 ## Update (2026-04-10) - Binary Tree Next Figma-Style Canvas Chrome Redesign
 
@@ -47,7 +390,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 ### Design Decisions
 
 - Prioritized visual parity with the provided Figma reference structure over prior dashboard-card styling.
-- Moved panel chrome into the render surface itself to match the requested “front panels rendered in canvas” behavior.
+- Moved panel chrome into the render surface itself to match the requested Ã¢â‚¬Å“front panels rendered in canvasâ¬ behavior.
 - Kept interactive behavior modular (`binary-tree-next-engine-adapter.mjs`) so this visual pass does not block future wasm engine wiring.
 
 ### Known Limitations
@@ -1853,7 +2196,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - button text `Sign In` -> `Login`
   - busy state text `Signing In...` -> `Logging In...`.
 - Removed deprecated auth-source panel from login card:
-  - deleted “Auth source …” info block now that auth is DB-backed.
+  - deleted Ã¢â‚¬Å“Auth source â¬¦â¬ info block now that auth is DB-backed.
 - Added `Space Grotesk` font import and Tailwind font family alias `alt` for heading variation.
 
 ### Files Affected
@@ -2270,7 +2613,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ### Design Decisions
 
-- Kept Fast Track card’s existing payout CTA and balance area untouched, and appended audit feed below to preserve current behavior.
+- Kept Fast Track cardÃ¢â‚¬â„¢s existing payout CTA and balance area untouched, and appended audit feed below to preserve current behavior.
 - Used a compact audit row pattern similar to dashboard activity styling for readability and quick historical scan.
 - Implemented height match in JS for deterministic alignment, rather than static min-height guessing.
 
@@ -2318,7 +2661,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 ### What Was Changed
 
 - Restyled `Server Cut-Off` in `index.html` to match the cleaner visual style of the `Weekly Total Organization BV` area.
-- Removed the previous nested “mini-card” blocks and converted the panel to a single-surface composition:
+- Removed the previous nested Ã¢â‚¬Å“mini-cardÃ¢â‚¬Â blocks and converted the panel to a single-surface composition:
   - top caption row with compact status pill
   - primary countdown value line
   - simple divider-based metric sections.
@@ -2358,7 +2701,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Removed stretch-driven sizing behavior from the Server Cut-Off wrapper/card:
   - wrapper now uses `lg:self-start`
   - removed forced `h-full` sizing from `#server-cutoff-card`
-  - removed `mt-auto` push behavior in the cycles row to avoid “hidden/empty container” look.
+  - removed `mt-auto` push behavior in the cycles row to avoid Ã¢â‚¬Å“hidden/empty containerâ¬ look.
 - Added runtime desktop height synchronization so `#server-cutoff-card` matches the rendered height of `#account-overview-card` (Weekly Total Organization BV component area):
   - sync on init
   - sync after data/metric updates
@@ -2395,7 +2738,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Cleaned the timer area:
   - removed extra `Next cut-off ...` line (`#cutoff-next-target`)
   - changed heading copy to `Cut-Off Timer`
-  - timer now displays compact time-only output format (`Xd Xh Xm`, `Xh Xm`, `Xm`) with no “remaining” wording.
+  - timer now displays compact time-only output format (`Xd Xh Xm`, `Xh Xm`, `Xm`) with no Ã¢â‚¬Å“remainingÃ¢â‚¬Â wording.
 - Tightened metric blocks:
   - compacted Left/Right leg BV card spacing
   - shortened cycles footnote copy for a cleaner final row.
@@ -2528,7 +2871,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ### What Was Changed
 
-- Applied another Account Overview redesign pass in `index.html` after “not hitting the mark” feedback.
+- Applied another Account Overview redesign pass in `index.html` after Ã¢â‚¬Å“not hitting the markâ¬ feedback.
 - Replaced the prior uniform segment rail with an asymmetric command-board composition:
   - left side: dominant primary metric panel for `Weekly Total Organization BV`
   - right side: compact stacked/segmented secondary metrics for:
@@ -2615,7 +2958,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 ### Design Decisions
 
 - Maintained existing ID hooks so no dashboard metric render logic needed to change.
-- Reduced “card-in-card” visual density by switching to a single structured stats panel for clearer scan flow.
+- Reduced Ã¢â‚¬Å“card-in-cardÃ¢â‚¬Â visual density by switching to a single structured stats panel for clearer scan flow.
 
 ### Validation
 
@@ -3063,7 +3406,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - new DOM refs for account overview KPI status/rank/time
   - new renderer `renderDashboardAccountOverviewKpi(...)`
   - activity/rank rendering now syncs both the existing account section and the new KPI card.
-- Removed decorative bottom filler styling from KPI cards to eliminate the “graph-like empty space” feel.
+- Removed decorative bottom filler styling from KPI cards to eliminate the Ã¢â‚¬Å“graph-like empty spaceâ¬ feel.
 
 ### Files Affected
 
@@ -3192,7 +3535,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - reduced glow-heavy styling
 - Sidebar structure and rhythm were updated:
   - tighter spacing
-  - added sidebar search field with `⌘ K` hint
+  - added sidebar search field with `Ã¢Å’Ëœ K` hint
   - added section labels (`Explore`, `Build`)
   - adjusted active nav styling to neutral 21st-like state (less saturated highlight)
   - renamed dashboard nav label to `Home`
@@ -3400,7 +3743,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Reworked list rendering from boxed cards to lightweight row items with divider flow.
 - Simplified row metadata and actions:
   - subtle tone dot instead of multi-chip tone badges
-  - minimal `timestamp · pinned/read` metadata line
+  - minimal `timestamp Â· pinned/read` metadata line
   - understated action controls
 
 ### Files Affected
@@ -4645,7 +4988,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ### Known Limitations
 
-- Hover card uses current brand icon assets and not Discord’s exact badge artwork.
+- Hover card uses current brand icon assets and not DiscordÃ¢â‚¬â„¢s exact badge artwork.
 
 ---
 
@@ -4673,7 +5016,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ### Known Limitations
 
-- Badge chip visuals rely on existing app SVG icon assets and may differ from Discord’s exact icon artwork.
+- Badge chip visuals rely on existing app SVG icon assets and may differ from DiscordÃ¢â‚¬â„¢s exact icon artwork.
 
 ---
 
@@ -4815,7 +5158,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ### What Was Changed
 
-- Implemented Rank Advancement milestones in profile achievements using `MLM Business Logic.md` section `# 5️⃣ Rank Advancement Bonus` (line 114).
+- Implemented Rank Advancement milestones in profile achievements using `MLM Business Logic.md` section `# 5ï¸â’£ Rank Advancement Bonus` (line 114).
 - Added rank achievement entries for:
   - Ruby (5 cycles, `$62.50`)
   - Emerald (10 cycles, `$125`)
@@ -5675,7 +6018,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
     - `Product editor view` (dedicated single-product management page)
 - List view behavior:
   - `Add Product` opens editor in create mode.
-  - each row includes `Manage` action to open that product’s editor page.
+  - each row includes `Manage` action to open that productÃ¢â‚¬â„¢s editor page.
   - `Archive/Unarchive` remains available as a quick list action.
   - list now surfaces status, price, inventory/BV, and updated date in a denser admin-table style.
 - Editor view behavior:
@@ -6015,7 +6358,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 ### Design decisions
 
 - Kept existing E-Wallet element IDs unchanged so transfer loading/submission logic remains fully compatible.
-- Shifted from dashboard-like “card grid metrics” toward an operational “command center + timeline” visual hierarchy.
+- Shifted from dashboard-like Ã¢â‚¬Å“card grid metricsâ¬ toward an operational Ã¢â‚¬Å“command center + timelineâ¬ visual hierarchy.
 - Preserved established theme tokens (`brand`, `surface`, `semantic`) to stay consistent with the existing design system while changing composition.
 
 ### Known limitations
@@ -6738,13 +7081,13 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
-## Design System â€” "Mint Vault"
+## Design System ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â "Mint Vault"
 
 ### Color Palette
 
 | Token | Hex | Usage |
 |-------|-----|-------|
-| `brand-500` | `#0FD4A4` | Primary teal-green â€” CTAs, active states, sparklines |
+| `brand-500` | `#0FD4A4` | Primary teal-green ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â CTAs, active states, sparklines |
 | `brand-400` | `#1AFFB6` | Active nav text, icon accents |
 | `surface-base` | `#0A0F14` | Page background (deepest dark) |
 | `surface-raised` | `#111920` | Cards, sidebar, top bar |
@@ -6764,7 +7107,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 ### Typography
 
 - **Headings:** Inter Medium (Google Fonts) via `font-body font-medium`
-- **Body:** Inter (Google Fonts) â€” sans-serif, line-height `1.7`
+- **Body:** Inter (Google Fonts) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â sans-serif, line-height `1.7`
 - Custom font sizes defined in Tailwind config: `display-xl` through `caption`, plus `mono-data` for financial values
 
 ### Depth System (Brand-Tinted Shadows)
@@ -6785,7 +7128,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 
 ### Animations
 
-- Only `transform` and `opacity` â€” never `transition-all`
+- Only `transform` and `opacity` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â never `transition-all`
 - Spring easing: `cubic-bezier(0.34, 1.56, 0.64, 1)`
 - Expo ease-out: `cubic-bezier(0.16, 1, 0.3, 1)` (sidebar slide)
 - Duration: 150ms (fast interactions)
@@ -6800,7 +7143,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 +--------+-----------------------------------------+
 | Side   |  Main Content (scrollable)              |
 | bar    |                                         |
-| (w-64  |  [4 Overview Cards â€” grid]              |
+| (w-64  |  [4 Overview Cards ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â grid]              |
 |  fixed |  [Binary Tree 2/3 | Transactions 1/3]  |
 |  left) |  [Budget Bars 2/3 | Actions+Compare 1/3]|
 +--------+-----------------------------------------+
@@ -6855,15 +7198,15 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 - Data: Starbucks (-$5.40), Salary (+$4,200), Netflix (-$15.99), Uber (-$24.50), Amazon (-$67.30), Freelance (+$850 pending), Electric Bill (-$142)
 
 ### 6. Budget Progress Bars (5 categories)
-- **Food & Dining:** $420/$600 (70%) â€” brand green bar
-- **Transport:** $255/$300 (85%) â€” warning yellow bar, "almost at limit"
-- **Entertainment:** $220/$200 (110%) â€” danger red bar, "$20 over budget"
-- **Bills & Utilities:** $360/$600 (60%) â€” warning yellow bar
-- **Shopping:** $135/$300 (45%) â€” info blue bar
+- **Food & Dining:** $420/$600 (70%) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â brand green bar
+- **Transport:** $255/$300 (85%) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â warning yellow bar, "almost at limit"
+- **Entertainment:** $220/$200 (110%) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â danger red bar, "$20 over budget"
+- **Bills & Utilities:** $360/$600 (60%) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â warning yellow bar
+- **Shopping:** $135/$300 (45%) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â info blue bar
 
 ### 7. Quick Actions Panel
-- Primary: "Transfer Money" â€” `bg-brand-500`, `shadow-glow`
-- Secondary: "Pay Bills", "Add Expense" â€” `bg-surface-elevated`, border
+- Primary: "Transfer Money" ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â `bg-brand-500`, `shadow-glow`
+- Secondary: "Pay Bills", "Add Expense" ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â `bg-surface-elevated`, border
 
 ### 8. Monthly Comparison Widget
 - Feb vs Jan 2026
@@ -6897,7 +7240,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 
 | Round | Screenshot | Notes |
 |-------|-----------|-------|
-| 1 | `screenshot-1-round1.png` | Initial build â€” all components rendering, layout correct |
+| 1 | `screenshot-1-round1.png` | Initial build ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â all components rendering, layout correct |
 | 2 | `screenshot-2-round2.png` | Added custom scrollbar styling, confirmed visual consistency |
 | 3 | `screenshot-3-Codex screenshot.png` (`Codex screenshot.png`) | Codex screenshot pass captured from `http://localhost:3000`; visual output matches prior dashboard state |
 | 4 | `screenshot-4-binary-tree-round1.png` | Initial Binary Tree module integration pass (Pixi canvas, controls, selected-node panel) |
@@ -6966,7 +7309,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 - **Tech details:** Added `name` and `addedAt` node metadata handling in normalization/mock data paths to support text search and chronological sorting.
 - **Known limitations:** `addedAt` values are mock/fallback timestamps in phase 1 and should be replaced by real backend timestamps once API integration is available.
 
-### 2026-02-20 — Layout restructure: bento Budget Progress + Row 3 grid (Claude)
+### 2026-02-20 Ã¢â‚¬â€ Layout restructure: bento Budget Progress + Row 3 grid (Claude)
 
 - **What changed:** Restructured the dashboard grid into a proper 3-row bento layout. Fixed an HTML nesting bug where Quick Actions and Month vs Month were accidentally orphaned as direct grid children instead of being contained in their intended column. Budget Progress was converted from a single full-width card with stacked bars into individual bento-style cards in a 2-column sub-grid.
 - **Files affected:** `index.html`, `Claude_Notes/vault-dashboard.md`
@@ -7182,7 +7525,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 - **What changed:** Corrected Binary Tree leg-volume semantics so displayed left/right values are Business Volume (BV) propagated from child subtrees instead of directly using per-node mock leg values.
 - **Files affected:** `binary-tree.mjs`, `index.html`, `Claude_Notes/vault-dashboard.md`
 - **Design decision:** Keep existing config key names (`leftPvThreshold`, `rightPvThreshold`) for backward compatibility, but treat all rendered leg metrics as BV in UI copy.
-- **Tech details:** Added personal-volume normalization fields (`leftPersonalPv`, `rightPersonalPv`) and a `deriveBusinessVolumes(...)` pass during data normalization. This pass recomputes each node’s displayed leg values as:
+- **Tech details:** Added personal-volume normalization fields (`leftPersonalPv`, `rightPersonalPv`) and a `deriveBusinessVolumes(...)` pass during data normalization. This pass recomputes each nodeÃ¢â‚¬â„¢s displayed leg values as:
   - left BV = total personal volume of the left child subtree
   - right BV = total personal volume of the right child subtree
   - cycles = floor(min(left BV / left threshold, right BV / right threshold))
@@ -7207,7 +7550,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 - **Tech details:** Added DOM targets `tree-org-total-people` and `tree-org-total-bv`, extended tree config bindings, and introduced `updateOrganizationSummary()` in `binary-tree.mjs`.
 - **Metric definitions:**  
   - `Total People` = total node count in the current tree dataset  
-  - `Total BV Produced` = sum of every node’s personal BV contribution (`leftPersonalPv + rightPersonalPv`) across the whole organization
+  - `Total BV Produced` = sum of every nodeÃ¢â‚¬â„¢s personal BV contribution (`leftPersonalPv + rightPersonalPv`) across the whole organization
 - **Runtime validation:** Module import passed and new IDs/functions are wired (`binary-tree.mjs import ok`).
 
 ### 2026-02-21 - Detail cards split: Selected Node vs Organization Summary (Codex)
@@ -7352,7 +7695,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
   - Added `Spillover Line` control with checkbox `tree-selected-spillover-line-toggle` in the selected-node detail card.  
   - Control is enabled only when the selected node has a spillover sponsor link; otherwise it is disabled.
 - **Logic details:**  
-  - Added per-node visibility state (`hiddenSpilloverNodeIds`) so toggling affects only that specific node’s spillover line.  
+  - Added per-node visibility state (`hiddenSpilloverNodeIds`) so toggling affects only that specific nodeÃ¢â‚¬â„¢s spillover line.  
   - Visibility preference persists while navigating across nodes in the current dataset/session.  
   - State resets when a new dataset is loaded (`setData`).
 - **Rendering details:**  
@@ -8583,7 +8926,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
   - Tree sync now runs:
     - after `loadRegisteredMembers()` success and fallback paths
     - immediately after successful enroll submit (`forceFit: true`)
-  - Root is now the signed-in member context and placements are rebuilt from that sponsor’s enrolled member records.
+  - Root is now the signed-in member context and placements are rebuilt from that sponsorÃ¢â‚¬â„¢s enrolled member records.
 - **Validation performed:**
   - Inline script parse for `index.html` via `vm.Script(...)`
   - `node --check serve.mjs`
@@ -9007,8 +9350,8 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 - My Store binding attribution states (store code capture, invoice linking, revenue/BP credits) are currently static mock values
 - My Store checkout/cart and invoice creation are UI-state only (no server-side order, payment, inventory, or persistence)
 - Admin login is mock-auth only (`mock-admin-users.json`) with no backend RBAC/token issuance yet
-- Puppeteer path in CLAUDE.md references `C:/Users/nateh/` â€” may need updating for this machine
-- `brand_assets/` folder does not exist yet â€” no brand materials provided
+- Puppeteer path in CLAUDE.md references `C:/Users/nateh/` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â may need updating for this machine
+- `brand_assets/` folder does not exist yet ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no brand materials provided
 - Ongoing roadmap and owner scope-gate tracking moved to `Claude_Notes/Current Project Status.md` (2026-02-22).
 
 
@@ -9745,7 +10088,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
     - Tier 1 completed (`40/40`)
     - Tier 2 in progress (`24/40`)
     - Tier 3 seeded/in progress (`3/40`)
-    - Tier 4–10 locked anticipation cards.
+    - Tier 4Ã¢â‚¬â€œ10 locked anticipation cards.
 
 - **Intent:**
   - Keep this mockup active for owner review.
@@ -10135,7 +10478,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 
 ### 2026-02-22 - Infinity Builder header simplified; top summary card now acts as component header (Codex)
 
-- **What changed:** Removed the old Infinity Builder text header block and promoted the Fast Track-style Infinity Builders card as the component’s top/header section.
+- **What changed:** Removed the old Infinity Builder text header block and promoted the Fast Track-style Infinity Builders card as the componentÃ¢â‚¬â„¢s top/header section.
 - **Files affected:** `index.html`, `Claude_Notes/charge-documentation.md`, `Claude_Notes/Current Project Status.md`
 
 - **Implementation (`index.html`):**
@@ -10320,7 +10663,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
     - Infinity Builder tier snapshots now seed from Infinity+ package enrollees only.
   - Added weekly override commission computation:
     - source: direct enrolled users who are Infinity Builder eligible
-    - base: each qualified direct user’s organization BV events (`packageBv`) in closed cutoff cycles
+    - base: each qualified direct userÃ¢â‚¬â„¢s organization BV events (`packageBv`) in closed cutoff cycles
     - rate: `1%`
     - cutoff cadence: weekly server cutoff config (`Saturday 11:59 PM PT` by default, read from cutoff card config)
     - retroactive behavior: includes historical closed-cycle volume (using enrollment timestamps)
@@ -10339,165 +10682,6 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
   - Result: `Parsed 2 inline script block(s) successfully.`
 
 ---
-
-### 2026-02-22 - Infinity Builder tier completion reduced from 40 nodes to 4
-
-- **What changed:** Reduced `INFINITY_BUILDER_TOTAL_NODES_PER_TIER` from `40` to `4` per owner request.
-- **Files affected:** `index.html`
-- **Impact:**
-  - Tier completion now requires 4 lit nodes (1 sponsor + 3 downline) instead of 40.
-  - The requirement is 3 nodes **excluding** the user/sponsor node.
-  - `INFINITY_BUILDER_DOWNLINE_NODE_CAP` automatically adjusts to `3` (derived constant).
-  - All progress bars, completion checks, claim records, and display denominators reference the constant, so the change propagates everywhere.
-- **Reason:** Owner decision to simplify tier completion requirements.
-
----
-
-### 2026-02-22 - Infinity Builder / Legacy Leadership system separation + view label updates
-
-- **What changed:**
-  - Separated node-count constants: Infinity Builder uses `4` nodes per tier, Legacy Leadership retains `40` nodes per tier.
-  - Added `LEGACY_LEADERSHIP_TOTAL_NODES_PER_TIER = 40` and `LEGACY_LEADERSHIP_DOWNLINE_NODE_CAP = 39` as separate constants.
-  - Made `buildInfinityBuilderTierSnapshots()` accept `totalNodesPerTier` option so Legacy Leadership passes `40`.
-  - Replaced all `INFINITY_BUILDER_TOTAL_NODES_PER_TIER` references in Legacy Leadership render code with `LEGACY_LEADERSHIP_TOTAL_NODES_PER_TIER`.
-  - Renamed Infinity Builder "Completed" view button to "Active" (claimed tiers are now actively earning 1% commission).
-  - Updated Infinity Builder empty-state and pagination copy from "claimed tiers" to "active tiers".
-  - Legacy Leadership "Completed" button label kept unchanged (different system).
-  - Updated Legacy Leadership locked-state messaging:
-    - Now reads: "To Participate in Legacy Leadership Bonus, Enroll 3 Direct users to Legacy Package. 0/3"
-    - Subtitle: "Legacy rank and 3 direct Legacy enrollments required"
-    - No longer references "Infinity+" in Legacy Leadership context.
-- **Files affected:** `index.html`
-- **Validation:** Inline script parse passed.
-
----
-
-### 2026-02-22 - Legacy Leadership eligibility fully separated from Infinity Builder
-
-- **What changed:**
-  - Legacy Leadership was incorrectly using the shared `resolveInfinityBuilderEligibility()` function, which considers both Infinity and Legacy ranks as eligible and counts Infinity+ package enrollments. This caused Infinity Pack users to be treated as "eligible" for Legacy Leadership, bypassing the locked card.
-  - Created a fully independent eligibility system for Legacy Leadership.
-
-- **New constants added (`index.html`):**
-  - `LEGACY_LEADERSHIP_ELIGIBLE_RANKS = new Set(['legacy'])` — only Legacy rank qualifies
-  - `LEGACY_LEADERSHIP_DIRECT_ENROLLMENT_REQUIREMENT = 3` — separate from Infinity Builder
-
-- **New functions added (`index.html`):**
-  - `getLegacyLeadershipQualifiedDirectEnrollmentsForSponsor()` — counts only Legacy Package enrollments (not Infinity+)
-  - `resolveLegacyLeadershipEligibilityFromRankAndSponsor()` — checks Legacy-only rank set and Legacy enrollments
-  - `resolveLegacyLeadershipEligibility()` — main entry point for Legacy Leadership eligibility
-  - `buildLegacyLeadershipEligibilityRequirementMessage()` — generates requirement text referencing "Legacy rank" and "Legacy Package"
-
-- **Functions updated (`index.html`):**
-  - `renderLegacyLeadershipDashboardCard()` — now calls `resolveLegacyLeadershipEligibility()` instead of `resolveInfinityBuilderEligibility()`
-  - `renderLegacyLeadershipTopBonusCard()` — fixed `safeEligibility` undefined variable bug; now properly declares it from the `eligibility` parameter; uses `LEGACY_LEADERSHIP_DIRECT_ENROLLMENT_REQUIREMENT` for fallbacks
-
-- **Bug fixed:** `safeEligibility` was referenced in `renderLegacyLeadershipTopBonusCard()` footnote but never declared in that scope — variable was undefined, causing fallback values to always display.
-
-- **Result for Infinity Pack user:**
-  - Legacy Leadership now correctly shows as **Locked**
-  - "Current rank: Infinity" (shows actual rank, not hardcoded "Legacy")
-  - "Direct Legacy enrollments: 0 / 3" (counts Legacy package enrollments only)
-  - "To Participate in Legacy Leadership Bonus, Enroll 3 Direct users to Legacy Package. 0/3"
-  - Top card subtitle: "Legacy rank and 3 direct Legacy enrollments required"
-
-- **Files affected:** `index.html`
-- **Validation:** Parsed 4 inline script block(s) successfully.
-
----
-
-### 2026-02-22 - Infinity Builder Active tier cards: per-node eligibility indicators
-
-- **What changed:**
-  - Active (claimed) tier cards in Infinity Builder now show per-sponsor eligibility indicators.
-  - Each sponsor node displays green/lit if the sponsor has met their own 3-enrollment requirement (Active — earning 1%), or gray/dim if they haven't (Inactive — not earning 1%).
-  - Hover tooltip on each chip shows eligibility status text.
-  - Small legend row below the sponsor chips: "Active (earning 1%)" and "Inactive".
-  - Legacy Leadership Bonus left unchanged per owner instruction.
-
-- **New constants added (`index.html`):**
-  - `SPONSOR_NODE_ELIGIBLE_PALETTE` — green palette (`#10E4A0`, semantic-success)
-  - `SPONSOR_NODE_INELIGIBLE_PALETTE` — gray palette (`#6B8299`, text-tertiary)
-
-- **New function added (`index.html`):**
-  - `findRegisteredMemberByHandle(handleOrUsername)` — looks up a member from `registeredMembers` by handle string, strips `@` prefix, matches against `memberUsername`, `username`, `id`, `email`. Returns member or `null`.
-
-- **Rendering changes (`index.html`):**
-  - Infinity Builder archive card `sponsorChipMarkup` now calls `findRegisteredMemberByHandle()` + `resolveInfinityBuilderEligibilityForMember()` per sponsor.
-  - Chip styling uses eligibility palette: green dot + tinted border/bg for eligible, gray dot (50% opacity) + gray tint for ineligible.
-  - Added `sponsorLegendMarkup` with small dots and labels below the chips.
-  - CSS-only hover tooltip via Tailwind `group-hover:opacity-100`.
-
-- **Files affected:** `index.html`
-- **Validation:** Parsed 4 inline script block(s) successfully.
-
----
-
-### 2026-02-23 - Binary Tree sync + spillover privacy/cycle logic rework (Codex)
-
-- **What changed:** Reworked Binary Tree data shaping so user/admin trees stay aligned with placement behavior, and spillover-received branches now participate in cycle calculations.
-- **Files affected:** `binary-tree.mjs`, `index.html`, `admin.html`, `Claude_Notes/charge-documentation.md`, `Claude_Notes/Current Project Status.md`
-
-- **Implementation (`binary-tree.mjs`):**
-  - Updated `deriveBusinessVolumes()` placement propagation to include every placed child subtree, not only sponsor-matched children.
-  - Updated cycle base values:
-    - `leftPv = placementCredits.left`
-    - `rightPv = placementCredits.right`
-  - Retained `spilloverLeftPv`/`spilloverRightPv` as sponsor-side reference metrics, but removed them from cycle leg totals to prevent duplicate counting in cycle math.
-
-- **Implementation (`index.html`):**
-  - Rebuilt `createBinaryTreeDataFromRegisteredMembers()` around a two-stage model:
-    - build global placement graph from all `registeredMembers`
-    - scope to the signed-in member’s placement subtree (receiving-parent visibility)
-  - This fixes missing spillover children under receiving parents when those nodes are sponsored by uplines.
-  - Added user-side privacy masking for non-root binary nodes:
-    - replaces personal names/usernames with anonymized labels (`Spillover Direct N`, `Direct Sponsor N`, `Network Member N`)
-    - masks member handles to generated identifiers
-    - hides per-node country marker (`DEFAULT_COUNTRY_FLAG`)
-  - Rank and leg BV values remain visible so cycle-building decisions still work.
-
-- **Implementation (`admin.html`):**
-  - Rebuilt `createBinaryTreeDataFromRegisteredMembers()` to construct from the full global member placement graph and scope admin root to company/global root.
-  - Admin tree now reads the same placement-built data basis as user tree and no longer depends on admin-only sponsor-chain filtering for binary rendering.
-
-- **Behavior result:**
-  - Receiving parents can now see spillover/direct nodes in their binary subtree without personal identity leakage.
-  - Spillover-placed volume now contributes through placement legs, enabling intended cycle pairing behavior when the opposite leg is built.
-  - Admin binary view stays synchronized to full network placement state.
-
-- **Validation performed:**
-  - Inline script parse:
-    - `index.html`: `Parsed 2 inline script block(s) successfully.`
-    - `admin.html`: `Parsed 2 inline script block(s) successfully.`
-
----
-
-### 2026-02-23 - User binary privacy refinement: anonymize spillover branch only (Codex)
-
-- **What changed:** Refined user-side Binary Tree privacy behavior so anonymization applies only to spillover branches received from upline, while personally enrolled branches remain visible.
-- **Files affected:** `index.html`, `Claude_Notes/charge-documentation.md`, `Claude_Notes/Current Project Status.md`
-
-- **Implementation (`index.html`):**
-  - Updated subtree scoping metadata to preserve source spillover identity:
-    - `scopedNode.isSpillover` now keeps source spillover signal even when sponsor is outside scoped subtree.
-  - Replaced global anonymization logic with targeted branch masking:
-    - detect root-level spillover direct children (`placementParentId === root` + `isSpillover`)
-    - breadth-first traverse each spillover direct child subtree
-    - anonymize only nodes in those spillover subtrees.
-  - New label behavior in masked branches:
-    - root spillover direct nodes -> `Spillover Direct N`
-    - descendants in spillover branch -> `Spillover Network N`
-  - Personally enrolled direct branches and their descendants now keep real display identity.
-
-- **Behavior result:**
-  - Example match:
-    - Left leg received via upline spillover -> branch anonymized.
-    - Right leg personally enrolled -> branch remains visible.
-  - BV/cycle matching still uses placement-leg accumulation and remains active for both branches.
-
-- **Validation performed:**
-  - Inline script parse:
-    - `index.html`: `Parsed 2 inline script block(s) successfully.`
 
 ## Binary Tree Fullscreen Selected Node Privacy + Spillover Parent Fix (2026-02-23)
 
@@ -11221,7 +11405,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
     - PV sync failure shows explicit message instead of silent console-only failure.
 - Result:
   - users immediately see when purchase PV credit did not apply server-side.
-  - no silent “invoice created but PV unchanged” state.
+  - no silent Ã¢â‚¬Å“invoice created but PV unchangedâ¬ state.
 - Validation:
   - `index.html` inline script parse passed (`Parsed 4 inline script block(s) successfully.`).
 
@@ -12146,7 +12330,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 - Updated `POST /api/admin/force-server-cutoff` to stamp baseline fields for every member/user record:
   - `serverCutoffBaselineStarterPersonalPv`
   - `serverCutoffBaselineSetAt`
-- Baseline value is captured from each record’s resolved `starterPersonalPv` at force-cutoff execution time.
+- Baseline value is captured from each recordÃ¢â‚¬â„¢s resolved `starterPersonalPv` at force-cutoff execution time.
 
 ### Frontend changes (`index.html`, `admin.html`)
 
@@ -12756,7 +12940,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 - Added claim/transfer action guards:
   - block claim/transfer actions until server commission containers are hydrated in live mode
 - Follow-up hardening:
-  - claim actions now force an immediate server persistence call (not only debounced sync), reducing “claim then instant refresh” race windows.
+  - claim actions now force an immediate server persistence call (not only debounced sync), reducing Ã¢â‚¬Å“claim then instant refreshâ¬ race windows.
   - transfer action now attempts an immediate post-transfer commission-container persistence refresh.
 
 ### Required DB table
@@ -12864,7 +13048,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
   - `storeCode`
   - `publicStoreCode`
   - `attributionStoreCode`
-- Result: new registrations already satisfy “store link/code generated upon registration”; backfill was needed only for older data.
+- Result: new registrations already satisfy Ã¢â‚¬Å“store link/code generated upon registrationâ¬; backfill was needed only for older data.
 
 ## Store Checkout: No-Link Dev Attribution Flow (2026-03-25)
 
@@ -13685,12 +13869,12 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 
 - File: `backend/services/member-achievement.service.js`
 - Added `iconPath` to each Good Life achievement definition:
-  - Diamond → `/brand_assets/Icons/Achievements/diamond.svg`
-  - Blue Diamond → `/brand_assets/Icons/Achievements/blue-diamond.svg`
-  - Black Diamond → `/brand_assets/Icons/Achievements/black-diamond.svg`
-  - Crown → `/brand_assets/Icons/Achievements/crown.svg`
-  - Double Crown → `/brand_assets/Icons/Achievements/double-crown.svg`
-  - Royal Crown → `/brand_assets/Icons/Achievements/royal-crown.svg`
+  - Diamond Ã¢â€ â€™ `/brand_assets/Icons/Achievements/diamond.svg`
+  - Blue Diamond Ã¢â€ â€™ `/brand_assets/Icons/Achievements/blue-diamond.svg`
+  - Black Diamond Ã¢â€ â€™ `/brand_assets/Icons/Achievements/black-diamond.svg`
+  - Crown Ã¢â€ â€™ `/brand_assets/Icons/Achievements/crown.svg`
+  - Double Crown Ã¢â€ â€™ `/brand_assets/Icons/Achievements/double-crown.svg`
+  - Royal Crown Ã¢â€ â€™ `/brand_assets/Icons/Achievements/royal-crown.svg`
 - Included `iconPath` in `buildAchievementCatalogForMember()` return objects.
 
 ### Frontend updates
@@ -13934,7 +14118,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 - `Claude_Notes/charge-documentation.md`
 - `Claude_Notes/Current Project Status.md`
 
-## Legacy Director Text Removal - Hidden "… 0/3" Line (2026-04-03)
+## Legacy Director Text Removal - Hidden "â¬¦ 0/3" Line (2026-04-03)
 
 ### What changed
 
@@ -14134,7 +14318,7 @@ File: `index.html`
 
 ### Design decisions
 
-- Kept Binary Tree’s internal settings modal intact for tree interaction controls (reverse trackpad, zoom strength).
+- Kept Binary TreeÃ¢â‚¬â„¢s internal settings modal intact for tree interaction controls (reverse trackpad, zoom strength).
 - Routed sidebar Settings to a separate page to match expected IA while preserving existing Binary Tree control surface.
 - Reused existing `applyAppTheme()` flow so theme persistence behavior remains unchanged.
 
@@ -15052,7 +15236,7 @@ File: `index.html`
 
 - Kept the established dashboard visual language (surface, border, brand accent system) to stay consistent with the existing product.
 - Implemented category navigation as anchors (`#settings-cat-*`) for fast scanning and predictable section jumps.
-- Kept controls in list rows (instead of tiled blocks) to match your requested “category then list” workflow.
+- Kept controls in list rows (instead of tiled blocks) to match your requested Ã¢â‚¬Å“category then listâ¬ workflow.
 
 ### Known limitations
 
@@ -15181,7 +15365,7 @@ File: `index.html`
 
 ### What changed
 
-- Updated the Account category’s `Account Details` area to match the same list-row interaction pattern used by Security.
+- Updated the Account categoryÃ¢â‚¬â„¢s `Account Details` area to match the same list-row interaction pattern used by Security.
 - Replaced the old visible account detail input grid with row-based items:
   - Display Name (value + action button)
   - Username (value + non-editable badge)
@@ -15254,7 +15438,7 @@ File: `index.html`
 
 ### Design decisions
 
-- Implemented server truth as the source of verification state to avoid client-only “verified” labels.
+- Implemented server truth as the source of verification state to avoid client-only Ã¢â‚¬Å“verifiedÃ¢â‚¬Â labels.
 - Added schema-introspection fallback rather than hard-coding new DB columns, so current environments continue to function without migration failures.
 - Kept the status inline and compact in Account Details for quick trust visibility next to the email itself.
 
@@ -15690,7 +15874,7 @@ File: `index.html`
 
 ### Design decisions
 
-- Kept icon implementation on Google’s official Material Symbols web font to avoid custom SVG maintenance and maintain consistent visual language.
+- Kept icon implementation on GoogleÃ¢â‚¬â„¢s official Material Symbols web font to avoid custom SVG maintenance and maintain consistent visual language.
 - Preserved Premiere Life logo variants by theme while ensuring light mode remains brand-correct and legible.
 
 ### Validation / QA
@@ -16054,7 +16238,7 @@ File: `index.html`
 
 ### Design decisions
 
-- Used the same easing/timing token for both moving surfaces to prevent “sidebar snaps first, content catches up” feel.
+- Used the same easing/timing token for both moving surfaces to prevent Ã¢â‚¬Å“sidebar snaps first, content catches upâ¬ feel.
 - Kept behavior desktop-scoped so mobile drawer UX remains unchanged.
 
 ### Validation / QA
@@ -16141,7 +16325,7 @@ File: `index.html`
   - rectangular vertical bars
   - per-day date labels (format: `M/D`)
   - 7-day rolling window
-  - today’s bar highlighted
+  - todayÃ¢â‚¬â„¢s bar highlighted
 - Added dynamic KPI chart containers:
   - `#dashboard-personal-volume-bars`
   - `#dashboard-personal-volume-dates`
@@ -16153,7 +16337,7 @@ File: `index.html`
   - max retained entries: `30`
 - Chart rendering logic now:
   - normalizes/loads saved entries for current user
-  - updates today’s entry when PV changes
+  - updates todayÃ¢â‚¬â„¢s entry when PV changes
   - builds 7-day daily series
   - renders bars + date labels + trend caption
 
@@ -16241,7 +16425,7 @@ File: `index.html`
 
 ### Known limitations
 
-- Date labels remain visible to preserve the previously requested “has date” behavior; can be reduced to only first/last/today labels in a follow-up if desired.
+- Date labels remain visible to preserve the previously requested Ã¢â‚¬Å“has dateâ¬ behavior; can be reduced to only first/last/today labels in a follow-up if desired.
 
 ## Personal Volume Graph Tightening Pass: Date Row Removed + 30-Day Window (2026-04-07)
 
@@ -16282,7 +16466,7 @@ File: `index.html`
 ### Root cause identified
 
 - The Personal Volume trend chart was inferring timestamps from client runtime (`Date.now()`) during KPI refreshes.
-- Result: PV could appear as if it was earned “today” (e.g., April 7) even when server-side purchase date was earlier.
+- Result: PV could appear as if it was earned Ã¢â‚¬Å“todayÃ¢â‚¬Â (e.g., April 7) even when server-side purchase date was earlier.
 
 ### What changed
 
@@ -16447,7 +16631,7 @@ File: `index.html`
 
 ### What changed
 
-- Refined the Personal Volume real-data bar animation to remove the “crooked/slanted” feel during reveal.
+- Refined the Personal Volume real-data bar animation to remove the Ã¢â‚¬Å“crooked/slantedÃ¢â‚¬Â feel during reveal.
 - Bars now animate with a cleaner vertical scale-up motion from the baseline.
 
 ### Root cause
@@ -16882,7 +17066,7 @@ File: `index.html`
 
 - Added a bottom-centered footer on the login screen with the exact copy:
   - `By logging in, you agree to our Terms of Service and Privacy Policy.`
-  - `© 2026 LD Premiere`
+  - `Â© 2026 LD Premiere`
 - Added underlined hyperlinks for `Terms of Service` and `Privacy Policy`.
 - Increased bottom spacing on the main layout to reduce overlap risk with the fixed footer on short screens.
 
@@ -17253,7 +17437,7 @@ File: `index.html`
   - title/subtitle text styles for hover cards
   - hovercard background panel rendering
   - per-icon hover show/hide wiring with rank/title slot labels
-- Removed icon scale-up hover behavior that could appear “stuck bigger.”
+- Removed icon scale-up hover behavior that could appear Ã¢â‚¬Å“stuck bigger.â¬
 - Added explicit icon-state reset and hovercard hide on:
   - `pointerout`
   - `pointerup`
@@ -17782,7 +17966,7 @@ File: `index.html`
 ### Outcome
 
 - While zooming in/out, the region under cursor remains visually locked much better, even though the whole tree is dynamically expanding/contracting in X.
-- This removes the “chasing nodes by panning” effect from dynamic spacing shifts.
+- This removes the Ã¢â‚¬Å“chasing nodes by panningâ¬ effect from dynamic spacing shifts.
 
 ### Files Affected
 
@@ -18431,3 +18615,119 @@ Updated `binary-tree-next-app.mjs`:
 - `node --check binary-tree-next-app.mjs` passed.
 - `node --check binary-tree-next-engine-adapter.mjs` passed.
 - `GET /binary-tree-next` -> `200`.
+
+## UI/Theme Pass (2026-04-10) - Fullscreen Glass Shell + Initials Nodes + Gentler Line Culling
+
+### User Goals
+
+- Nodes should be circular with only initials in center (Apple Contacts-style feel).
+- Connector lines should not disappear aggressively while panning around; cull only when truly out of view.
+- Return to fullscreen canvas shell (not center-only canvas box).
+- Left/right panels should be overlay panels inside canvas and hideable.
+- Dark gray theme with glassmorphism look.
+
+### Changes Applied
+
+#### 1) Fullscreen Canvas Shell + In-Canvas Overlay Panels
+
+- Reworked layout to use fullscreen workspace viewport:
+  - workspace now spans full canvas
+  - left/right panels positioned as floating overlays inside canvas
+  - removed centered boxed workspace framing behavior.
+- Added UI panel visibility state:
+  - `state.ui.showLeftPanel`
+  - `state.ui.showRightPanel`
+- Render path now conditionally draws side panels:
+  - hidden/shown without affecting tree viewport.
+
+#### 2) Hide/Show Panel Controls
+
+- Added top-bar controls:
+  - `Hide Nav / Show Nav`
+  - `Hide Info / Show Info`
+- Added action handlers:
+  - `panel:left`
+  - `panel:right`
+- Added keyboard shortcuts:
+  - `N` toggle left nav panel
+  - `I` toggle right info panel.
+
+#### 3) Dark Gray + Glassmorphism Theme
+
+- Updated background to layered dark gray gradient + subtle radial wash.
+- Updated panel chrome to translucent glass surfaces with highlight sheen and soft shadow.
+- Updated top/bottom bars and button fills/strokes to glass-style translucent palette.
+
+#### 4) Node Visuals (Initials-Only)
+
+- Replaced detailed node text stack with initials-only rendering for non-dot nodes.
+- Added subtle per-node tint palette from ID hash for contacts-like variation.
+- Kept circular shape and selection/focus rings.
+
+#### 5) Connector Culling Relaxed
+
+- Increased adapter viewport culling margin:
+  - `VIEWPORT_MARGIN: 120 -> 520`
+- Outcome: lines/nodes stay visible longer while panning, instead of disappearing too early near screen edges.
+
+### Design Notes
+
+- Panels are now overlays so canvas stays fullscreen while still supporting shell controls.
+- Existing universe/breadcrumb interaction model remains intact.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next-engine-adapter.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+## UI Polish (2026-04-10) - Increased Panel Corner Radius (Apple-Like)
+
+### User Request
+
+- Increase panel border radius for a softer Apple-style shell look.
+- Keep current layout/behavior and only polish visual curvature.
+
+### What Was Changed
+
+- Increased shell and panel curvature in `binary-tree-next-app.mjs`:
+  - panel chrome radius: `10 -> 26`
+  - small button radius: `6 -> 13`
+  - breadcrumb chip radius: `6 -> 12`
+  - right-panel card radii: `8 -> 22`
+  - top center bar radius: `9 -> 22`
+  - bottom toolbar radius: `10 -> 22`
+  - bottom tool segment radius: `7 -> 14`
+- Fixed module file encoding to ensure parser compatibility:
+  - converted `binary-tree-next-app.mjs` from UTF-16 LE to UTF-8.
+
+### Design Decisions
+
+- Applied a radius-only pass (no node spacing, camera, connector, or hierarchy behavior changes).
+- Chose larger rounded corners on container surfaces and medium rounding on controls to keep contrast between shell layers.
+
+### Known Limitations
+
+- This pass does not change glass opacity, blur intensity, or panel shadow depth.
+- Any further Apple-style tuning would be in color/contrast/specular highlights rather than geometry.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` returned HTTP `200`.
+

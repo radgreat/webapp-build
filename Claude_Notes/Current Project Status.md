@@ -7,6 +7,242 @@ Last Updated: 2026-04-10
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
 
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Select Animation Fix
+
+- Completed:
+  - fixed select animation initialization so it starts from zero emphasis
+  - preserved deselect animation behavior
+  - both select and deselect now animate consistently
+- Outcome:
+  - tap interactions now feel correct in both directions.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Tap Animation (Select/Deselect)
+
+- Completed:
+  - added Apple-style tap animation for node select and deselect
+  - implemented animated ring pop-in on select and smooth ring release on deselect
+  - wired per-frame animation updates into render tick
+  - preserved white selected ring and gray ancestor ring behavior
+- Outcome:
+  - node taps now feel more polished and responsive while preserving current visual hierarchy.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Ring Logic Fix (Selected + Ancestor)
+
+- Completed:
+  - restored white outline ring on selected node
+  - preserved gray outline ring on ancestor path nodes
+  - aligned dot and full node rendering with same ring behavior
+- Outcome:
+  - selection and ancestry cues now both visible with correct color roles.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Ring Behavior Correction
+
+- Completed:
+  - removed selected-node outline ring
+  - preserved gray outline ring on ancestor/focus-path nodes only
+  - aligned dot-node ring behavior with the same rule set
+- Outcome:
+  - visual state now keeps ancestry indicator while eliminating selected-node outline.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Ancestor Outline Removed
+
+- Completed:
+  - removed ancestor/focus-path outline ring on non-selected nodes
+  - kept selected-node outline behavior intact
+- Outcome:
+  - only selected nodes now show outline treatment.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Ancestor Ring Alignment
+
+- Completed:
+  - changed ancestor/focus-path ring to use same geometry as selected ring
+  - kept selected node ring white
+  - changed ancestor ring color to gray
+  - removed old thin-offset ancestor ring logic
+- Outcome:
+  - ancestor ring now clearly indicates path lineage while matching selected-node ring style language.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Thin Path-Ring Tuning
+
+- Completed:
+  - customized only the ancestor thin circular outline (focus-path ring)
+  - exposed ring radius/width/color controls as top-level constants
+  - refined ring rendering to subtle dual-stroke style for clean readability
+- Outcome:
+  - the “selected comes from this node” thin outline is now isolated and easy to iterate without affecting selected-node styling.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Trail Revert (Outline-Only)
+
+- Completed:
+  - removed custom ancestry trail line rendering
+  - kept only thin circular outline indicators on focus-path ancestors
+  - refined outline thickness/offset/color for cleaner presentation
+- Outcome:
+  - trail now matches intended behavior: subtle circular path indicators before selected node, without extra path graphics.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Trail Visual Cleanup
+
+- Completed:
+  - simplified ancestry trail rendering to a single subtle line style
+  - removed extra marker dots and heavy layered strokes
+  - preserved path context while reducing visual noise
+- Outcome:
+  - trail now reads cleaner and less intrusive in light mode.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Ancestor Trail Styling
+
+- Completed:
+  - introduced explicit selected-node ancestry trail rendering pass
+  - styled trail separately from selection ring to avoid second-select ambiguity
+  - added subtle ancestor waypoint markers for path readability
+  - integrated trail layering between base connectors and node icon pass
+- Outcome:
+  - selected node now has clear “where it came from” context without blue active selector behavior.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Selection Ring Correction
+
+- Completed:
+  - changed node ring behavior so thick white ring applies only to selected node
+  - removed blue selected-node active halo/selector
+  - aligned dot-tier selection behavior with same rule
+- Outcome:
+  - selection styling now matches requested Apple-like interaction intent in light mode.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Apple-Style Node Icon Pass
+
+- Completed:
+  - switched main node icons to Apple-contact style ring composition
+  - added thick white outer ring + inset gradient inner circle for full/medium nodes
+  - kept initials centered inside inner icon circle
+  - aligned dot-tier nodes with mini white-ring treatment
+- Outcome:
+  - node icon styling now better matches requested Apple-like light-mode appearance.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Light-Mode + Blur Pass
+
+- Completed:
+  - prioritized light mode across next-gen shell colors and controls
+  - moved hide/show panel control into the side panel header while open
+  - replaced old circular toggle with rectangular glass button treatment
+  - applied backdrop-blur style glass rendering to panel surfaces (side panel, top bar, bottom bar, detail card)
+  - added deep-node label gating so depth 4+ initials stay hidden until zoomed in enough
+- Outcome:
+  - UI now aligns with requested light glassmorphism direction and avoids overflowed initials at default depth.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Fullscreen Glass Shell Pass
+
+- Completed:
+  - switched next-gen tree layout from center workspace framing to fullscreen canvas viewport
+  - replaced static left/right shell framing with a single in-canvas side nav overlay and runtime hide/show toggle
+  - restyled shell surfaces to dark gray glassmorphism visuals for side nav, top bar, and bottom bar
+  - changed node rendering to circular initials-only contact avatars (no name/detail text on node bodies)
+  - added side-nav input shielding so pointer/wheel interactions inside the panel do not pan/select the tree
+  - expanded adapter culling tolerance using configurable `cullMargin` and viewport-scaled margin input
+- Outcome:
+  - shell now matches requested fullscreen + glass feel, while reducing edge-pop culling artifacts during camera movement.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next-engine-adapter.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
 ## Recent Update (2026-04-10) - Next-Gen Binary Tree Figma-Style Canvas Shell Applied
 
 - Completed:
@@ -145,7 +381,7 @@ Last Updated: 2026-04-10
 ## Recent Update (2026-04-08) - Popup Cover Clipping Fix (Locally Reproduced)
 
 - Completed:
-  - reproduced the “cover removed” behavior on local branch with scripted Binary Tree popup interactions.
+  - reproduced the Ã¢â‚¬Å“cover removedÃ¢â‚¬Â behavior on local branch with scripted Binary Tree popup interactions.
   - traced root cause to popup placement: top cover section was being clipped when popup tried to stay above near-top nodes.
   - updated popup placement logic in `binary-tree.mjs` to support below-node fallback when above placement cannot fit.
   - added bidirectional pointer rendering for selected-node popup so anchoring remains visually correct in both placements.
@@ -1065,7 +1301,7 @@ Last Updated: 2026-04-10
 
 ## Recent Update (2026-04-07) - Login Background Stack Simplified
 
-- Cleaned up extra background layers in `login.html` that were causing a visible “second background behind” effect.
+- Cleaned up extra background layers in `login.html` that were causing a visible Ã¢â‚¬Å“second background behindÃ¢â‚¬Â effect.
 - Removed additional fallback gradient stack and extra radial overlay behind the Color Bends canvas.
 - Retained only the single base black fallback plus live shader background render.
 - Files updated:
@@ -1287,7 +1523,7 @@ Last Updated: 2026-04-10
 - Timer area cleanup:
   - removed `#cutoff-next-target` line
   - label now reads `Cut-Off Timer`
-  - countdown output now shows time-only shorthand (`Xd Xh Xm` style), no “remaining” copy.
+  - countdown output now shows time-only shorthand (`Xd Xh Xm` style), no Ã¢â‚¬Å“remainingÃ¢â‚¬Â copy.
 - Files updated:
   - `index.html`
   - `Claude_Notes/charge-documentation.md`
@@ -1379,7 +1615,7 @@ Last Updated: 2026-04-10
     - `New Members`
     - `Direct Sponsors`
     - `Cycles`
-- This removes the prior “uniform rail” feel and creates a stronger visual hierarchy.
+- This removes the prior Ã¢â‚¬Å“uniform railÃ¢â‚¬Â feel and creates a stronger visual hierarchy.
 - Preserved all existing IDs and trend/value bindings.
 - `Fast Track Bonus` stays as a separate container below.
 - Files updated:
@@ -1706,7 +1942,7 @@ Last Updated: 2026-04-10
 - Restyled dashboard shell in `index.html` to match the visual feel of `https://21st.dev/home`.
 - Core updates delivered:
   - dark token system switched to near-black neutrals + subtle borders + muted cool-blue accents
-  - sidebar navigation restructured with search row (`⌘ K`), section labels, tighter spacing, and neutral active-state treatment
+  - sidebar navigation restructured with search row (`Ã¢Å’Ëœ K`), section labels, tighter spacing, and neutral active-state treatment
   - dashboard nav label changed from `Dashboard` to `Home` (also reflected in page meta title)
   - top header density simplified and centered-title behavior tuned
   - top search hidden for cleaner 21st-style top-bar composition
@@ -2616,7 +2852,7 @@ Last Updated: 2026-04-10
 
 ## Recent Update (2026-04-03) - Rank Advancement Rules Wired into Profile Achievement Component
 
-- Implemented rank advancement milestones from `brand_assets/MLM Business Logic.md` section `# 5️⃣ Rank Advancement Bonus`.
+- Implemented rank advancement milestones from `brand_assets/MLM Business Logic.md` section `# 5Ã¯Â¸ÂÃ¢Æ’Â£ Rank Advancement Bonus`.
 - Added profile achievement entries for Ruby through Royal Crown with cycle thresholds and payout values.
 - Added server-side prerequisite checks for rank advancement claims:
   - cycle requirement
@@ -3028,7 +3264,7 @@ Last Updated: 2026-04-10
   - branded workspace header
   - status chips (`Live Catalog`, `Attribution Locked`)
   - elevated tab cards for `Product Management`, `Analytics`, `Store Setup`
-  - live “Current Workspace” context panel that updates as tabs change
+  - live Ã¢â‚¬Å“Current WorkspaceÃ¢â‚¬Â context panel that updates as tabs change
 - Enhanced tab interaction behavior:
   - clearer active state (ring + border + shadow treatment)
   - inline active badge on selected tab card
@@ -3424,10 +3660,10 @@ Last Updated: 2026-04-10
   - sponsor tier `Infinity` enrolling `Legacy Builder Pack` must credit `120.00` (`12.5% of 960`).
 - Backend updates:
   - `backend/services/member.service.js` now computes Fast Track bonus as:
-    - sponsor-tier rate (`7.5% | 10% | 12.5% | 20%`) × enrolled package price
+    - sponsor-tier rate (`7.5% | 10% | 12.5% | 20%`) Ãƒâ€” enrolled package price
   - sponsor tier is now derived from sponsor account package/rank when available (fallback to payload tier).
 - Frontend parity updates:
-  - `index.html` and `admin.html` `getFastTrackBonusAmount(...)` now use the same sponsor-tier-rate × package-price calculation for preview/fallback messaging.
+  - `index.html` and `admin.html` `getFastTrackBonusAmount(...)` now use the same sponsor-tier-rate Ãƒâ€” package-price calculation for preview/fallback messaging.
 - Data repair executed:
   - recalculated historical non-admin rows to the corrected orientation.
   - corrected rows included:
@@ -3446,7 +3682,7 @@ Last Updated: 2026-04-10
   - `sethfozz` computed left/right leg BV aligns with saved snapshot (`1920 / 2880`)
 - Added cutoff stale-state protection in `serve.mjs`:
   - `/api/member/server-cutoff-metrics` now invalidates per-account cutoff baselines when account `createdAt` is newer than `lastAppliedCutoffUtcMs`.
-  - prevents “instant reset to 0” behavior caused by stale inherited state.
+  - prevents Ã¢â‚¬Å“instant reset to 0Ã¢â‚¬Â behavior caused by stale inherited state.
 - Added stale-baseline protection for session bootstrap:
   - `serve.mjs` auth response sanitizer
   - `index.html` starter dashboard metric resolver
@@ -3935,7 +4171,7 @@ Last Updated: 2026-04-10
 
 - User-side binary tree now rebuilds from `registered-members` records instead of remaining on root-only mock seed.
 - Added user-shell tree sync path in `index.html`:
-  - build binary node graph from current sponsor’s enrolled members
+  - build binary node graph from current sponsorÃ¢â‚¬â„¢s enrolled members
   - apply controller `setData(...)` when tree is initialized
   - refresh summary/fallback when tree module is not yet mounted
 - Sync triggers now run:
@@ -4140,7 +4376,7 @@ Last Updated: 2026-04-10
 ## Selected Node Country Code Field (2026-02-22)
 
 - Added `Country Code` field in the Selected Node panel on both user and admin tree views.
-- Field is dynamically populated from the selected node’s country value and displayed as uppercase ISO code (example: `US`, `PH`).
+- Field is dynamically populated from the selected nodeÃ¢â‚¬â„¢s country value and displayed as uppercase ISO code (example: `US`, `PH`).
 
 ## Node L/R Label Format + Gap Tuning (2026-02-22)
 
@@ -4904,9 +5140,9 @@ Last Updated: 2026-04-10
   - cycle timing = weekly cutoff (server cutoff config)
   - payout mode = auto-added (no manual claim)
   - retroactive historical closed-cycle volumes included.
-- Legacy Leadership card **no longer shares** Infinity Builder eligibility — has its own independent eligibility system:
-  - `LEGACY_LEADERSHIP_ELIGIBLE_RANKS = new Set(['legacy'])` — only Legacy rank qualifies (not Infinity)
-  - `LEGACY_LEADERSHIP_DIRECT_ENROLLMENT_REQUIREMENT = 3` — counts Legacy Package enrollments only
+- Legacy Leadership card **no longer shares** Infinity Builder eligibility Ã¢â‚¬â€ has its own independent eligibility system:
+  - `LEGACY_LEADERSHIP_ELIGIBLE_RANKS = new Set(['legacy'])` Ã¢â‚¬â€ only Legacy rank qualifies (not Infinity)
+  - `LEGACY_LEADERSHIP_DIRECT_ENROLLMENT_REQUIREMENT = 3` Ã¢â‚¬â€ counts Legacy Package enrollments only
   - Separate functions: `resolveLegacyLeadershipEligibility()`, `getLegacyLeadershipQualifiedDirectEnrollmentsForSponsor()`, `buildLegacyLeadershipEligibilityRequirementMessage()`
   - Infinity Pack users now correctly see Legacy Leadership as **Locked**
 - Screenshot validation:
@@ -4916,14 +5152,14 @@ Last Updated: 2026-04-10
 - Validation:
   - Inline script parse for `index.html` passed (`Parsed 2 inline script block(s) successfully.`).
 
-## User Dashboard: Infinity Builder Active Tier Card — Per-Node Eligibility Indicators (2026-02-22)
+## User Dashboard: Infinity Builder Active Tier Card Ã¢â‚¬â€ Per-Node Eligibility Indicators (2026-02-22)
 
 - Active (claimed) tier cards now show per-sponsor eligibility indicators:
   - **Green/lit** sponsor chip = sponsor has met their 3-enrollment requirement = user is earning 1% weekly override from them
   - **Gray/dim** sponsor chip = sponsor hasn't met requirement = not earning 1%
 - New utility: `findRegisteredMemberByHandle()` looks up member objects from handle strings
 - New constants: `SPONSOR_NODE_ELIGIBLE_PALETTE` (green), `SPONSOR_NODE_INELIGIBLE_PALETTE` (gray)
-- Hover tooltip on each chip shows status: "Active — earning 1%" or "Inactive — not earning 1%"
+- Hover tooltip on each chip shows status: "Active Ã¢â‚¬â€ earning 1%" or "Inactive Ã¢â‚¬â€ not earning 1%"
 - Small legend row below sponsor chips for at-a-glance reference
 - **Legacy Leadership Bonus:** excluded from this change per owner instruction
 - Applied file: `index.html`
@@ -5378,7 +5614,7 @@ Last Updated: 2026-04-10
 - User dashboard behavior now under one mockup switch:
   - KPI cards (`Total Balance`, `Personal Volume`, `Cycles`) switch between seeded mock preview and live JSON-backed values.
   - Infinity/Legacy tier preview mode follows dashboard mockup state.
-  - Recent Activity no longer shows seeded “before-state” store activity when mockup mode is OFF.
+  - Recent Activity no longer shows seeded Ã¢â‚¬Å“before-stateÃ¢â‚¬Â store activity when mockup mode is OFF.
   - Mock-seeded store invoices are added in mock mode and removed in live mode.
 - Security alignment retained:
   - Personal Volume purchase sync remains server-authoritative only.
@@ -5635,7 +5871,7 @@ Last Updated: 2026-04-10
   - search + filters + refresh toolbar
   - order table as primary browsing surface
   - dedicated right/secondary detail panel pattern (rendered below table in current layout)
-- Fulfillment action now happens from the selected order’s detail panel form.
+- Fulfillment action now happens from the selected orderÃ¢â‚¬â„¢s detail panel form.
 
 ### Current impact
 
@@ -7197,7 +7433,7 @@ Last Updated: 2026-04-10
 ## Recent Update (2026-04-03) - User Dashboard Account Rank Card Uses Rank Icon
 
 - Completed:
-  - replaced the Account Overview -> Account Rank card’s static star icon with a rank badge image element.
+  - replaced the Account Overview -> Account Rank cardÃ¢â‚¬â„¢s static star icon with a rank badge image element.
   - added `renderAccountRankIcon()` so the icon tracks the current account rank dynamically.
   - hooked icon refresh into:
     - initial load
@@ -8096,7 +8332,7 @@ Last Updated: 2026-04-10
 
 - Outcome:
   - KPI badge hover content no longer renders inside/clips within the Account Status card bounds.
-  - interaction now matches the profile page “hover window” behavior.
+  - interaction now matches the profile page Ã¢â‚¬Å“hover windowÃ¢â‚¬Â behavior.
 
 - Files updated:
   - `index.html`
@@ -8303,7 +8539,7 @@ Last Updated: 2026-04-10
 - Completed:
   - added bottom-center footer legal text on the login page.
   - added underlined hyperlinks for `Terms of Service` and `Privacy Policy`.
-  - kept copyright line as `© 2026 LD Premiere`.
+  - kept copyright line as `Ã‚Â© 2026 LD Premiere`.
 
 - Outcome:
   - login page now includes required legal footer copy in the requested location.
@@ -9083,3 +9319,28 @@ Last Updated: 2026-04-10
   - `node --check binary-tree-next-app.mjs` passed.
   - `node --check binary-tree-next-engine-adapter.mjs` passed.
   - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Fullscreen Glass Canvas UI Pass
+
+- Completed:
+  - switched shell to fullscreen canvas workspace with in-canvas hideable left/right overlay panels
+  - applied dark gray glassmorphism styling across panels/bars/buttons
+  - changed nodes to initials-only circular badges (contacts-style)
+  - relaxed camera culling margin so connectors do not disappear too aggressively while panning.
+- Outcome:
+  - UI matches desired direction for shell polishing before live tree logic integration.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+## Recent Update (2026-04-10) - Apple-Style Panel Radius Polish
+
+- Completed:
+  - increased corner radii for panel chrome, panel cards, top/bottom bars, toolbar segments, and chip/buttons.
+  - converted `binary-tree-next-app.mjs` encoding from UTF-16 LE to UTF-8 for parser compatibility.
+- Outcome:
+  - shell reads softer and more Apple-like while preserving current layout and interaction model.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP `200`.
