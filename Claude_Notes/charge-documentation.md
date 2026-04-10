@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 269
+**Times Updated:** 272
 
 ## Overview
 
@@ -14,6 +14,175 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image â€” high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Update (2026-04-10) - Binary Tree Next Figma-Style Canvas Chrome Redesign
+
+### What Was Changed
+
+- Replaced the prior mixed DOM-panel shell with a full-canvas UI composition for `binary-tree-next`:
+  - left and right workspace panels are now rendered directly in canvas
+  - center workspace remains the interactive tree canvas region
+  - added a floating center status bar and a bottom-center tool panel (Figma-style).
+- Updated `binary-tree-next.html` to a minimal full-viewport canvas host:
+  - `#figma-tree-canvas`
+  - optional `#boot-error` overlay for bootstrap failures only
+  - no persistent DOM side panels/toolbars.
+- Rebuilt `binary-tree-next-app.mjs` rendering model around canvas-drawn chrome:
+  - Figma-like left panel (file/assets/pages/layers sections)
+  - Figma-like right properties panel (design/prototype tabs + section blocks)
+  - center floating status/actions bar (`Legacy`, `Fit`)
+  - bottom-center tool panel with active tool highlighting
+  - workspace clipping so tree drawing stays in center viewport only.
+- Preserved/updated runtime interactions:
+  - pan/zoom/select node interactions in center workspace
+  - fit-to-view support (`Fit` action + keyboard `F`)
+  - keyboard pan/zoom/reset shortcuts maintained
+  - auth/session boot checks retained for member/admin source modes.
+- Updated engine adapter projection options to support custom viewport anchors:
+  - `viewport.centerX`
+  - `viewport.baseY`
+  - `nodeRadiusBase`
+  This allows tree layout to be centered in the middle workspace instead of full-window center.
+
+### Design Decisions
+
+- Prioritized visual parity with the provided Figma reference structure over prior dashboard-card styling.
+- Moved panel chrome into the render surface itself to match the requested “front panels rendered in canvas” behavior.
+- Kept interactive behavior modular (`binary-tree-next-engine-adapter.mjs`) so this visual pass does not block future wasm engine wiring.
+
+### Known Limitations
+
+- This pass focuses on Figma-style shell composition and interaction model; it is not yet pixel-perfect replica detail-for-detail of every micro-icon/label in the reference.
+- Tree data is still mock-data backed pending next data-contract integration pass.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `binary-tree-next-engine-adapter.mjs`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` returned `200` and served full-canvas host + module entry.
+
+## Update (2026-04-10) - Binary Tree Next Phase B Shell Controls + Adapter Module Split
+
+### What Was Changed
+
+- Continued Binary Tree Next implementation beyond Phase A shell:
+  - split inline runtime logic out of `binary-tree-next.html` into ES modules:
+    - `binary-tree-next-app.mjs`
+    - `binary-tree-next-engine-adapter.mjs`
+  - migrated page bootstrap to module entry:
+    - `binary-tree-next.html` now uses `<script type="module" src="/binary-tree-next-app.mjs">`
+- Added renderer-shell controls in new window app:
+  - camera buttons: `Zoom +`, `Zoom -`, `Fit`
+  - viewport toggles:
+    - show connectors
+    - show guide grid
+    - highlight high-volume nodes
+  - keyboard interaction support:
+    - `+` / `-` zoom
+    - `0` reset
+    - `F` fit
+    - arrow-key panning
+- Added adapter boundary for upcoming Wasm integration:
+  - `createBinaryTreeNextEngineAdapter()` now owns:
+    - node filtering
+    - layout projection
+    - connector frame generation
+    - visible-world bounds for fit-to-view
+  - `detectBinaryTreeNextEngineMode()` probes runtime support and wasm artifact presence:
+    - reports `mock-js` or `wasm-bridge-pending`
+  - diagnostics now include explicit engine mode in UI.
+
+### Design Decisions
+
+- Kept same-origin, no-build ES module approach to avoid introducing bundler/toolchain risk before Wasm engine milestones.
+- Introduced an adapter contract now so C++/Wasm layout core can later replace mock JS compute path with minimal UI-shell churn.
+
+### Known Limitations
+
+- Adapter currently computes in JS mock mode; no live C++/Wasm runtime execution yet.
+- Wasm detection is artifact/runtime capability probing only; it does not initialize a compiled module yet.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `binary-tree-next-engine-adapter.mjs`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- Route smoke verification:
+  - `GET /binary-tree-next` -> HTTP `200`
+  - served page includes `binary-tree-next-app.mjs` module entry and engine diagnostics element.
+
+## Update (2026-04-10) - Binary Tree Next Phase A Scaffold Implemented
+
+### What Was Changed
+
+- Implemented Phase A foundation work for the new isolated Binary Tree app:
+  - added new standalone page: `binary-tree-next.html`
+  - added explicit backend route mapping:
+    - `/binary-tree-next`
+    - `/binary-tree-next/`
+    - `/binary-tree-next.html`
+- Added launcher buttons from existing Binary Tree surfaces:
+  - member app (`index.html`) now includes `Next-Gen` action in tree header controls
+  - admin app (`admin.html`) now includes matching `Next-Gen` action
+  - launcher behavior opens new window with source context:
+    - member: `/binary-tree-next?source=member`
+    - admin: `/binary-tree-next?source=admin`
+- Added boot-time protected-route/session checks in `binary-tree-next.html`:
+  - member path validates bearer token against `GET /api/member-auth/email-verification-status`
+  - invalid/missing member session redirects to `/login.html`
+  - admin source path checks admin session snapshot and redirects to `/admin-login.html` if missing
+- Added mock isolated render harness in new page:
+  - header rail with session identity + quick actions
+  - left tool dock (`search`, depth filter)
+  - center viewport with interactive canvas mock tree (select/pan/zoom)
+  - right detail panel with selected-node metric snapshot
+  - bottom diagnostics strip (mode, auth status, fps, visible nodes, selected node).
+
+### Design Decisions
+
+- Kept legacy Binary Tree unchanged and available while next-gen app runs in parallel.
+- Kept launch flow same-origin and route-based to preserve browser session continuity.
+- Used lightweight mock canvas harness in Phase A to validate isolated window shell + session guard before Wasm integration.
+
+### Known Limitations
+
+- Admin source validation is local-session based only (no dedicated admin session-validation API endpoint yet).
+- Current `/binary-tree-next` viewport uses mock node data; backend data wiring is deferred to later phases.
+- Wasm engine integration is not part of this phase.
+
+### Files Affected
+
+- `backend/app.js`
+- `binary-tree-next.html`
+- `index.html`
+- `admin.html`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check backend/app.js` passed.
 
 ## Update (2026-04-09) - Next-Gen Binary Tree (WASM) Plan Documented
 
@@ -17152,3 +17321,1021 @@ File: `index.html`
 - Visual checkpoints:
   - `temporary screenshots/screenshot-148-debug-binary-popup-after-fix.png`
   - `temporary screenshots/screenshot-154-hovercard-viewport-only.png`
+
+## Update (2026-04-10) - Binary Tree Next Semantic-Zoom LOD + Deep Focus Canvas Runtime
+
+### What Was Changed
+
+- Recreated `binary-tree-next-app.mjs` from scratch after module-loss state and re-wired the next-gen route to a working runtime.
+- Kept the full canvas-rendered Figma-style shell composition:
+  - left tools panel rendered in canvas
+  - right properties/stats panel rendered in canvas
+  - center top action strip rendered in canvas
+  - bottom center tool strip rendered in canvas.
+- Implemented semantic zoom behavior against `binary-tree-next-engine-adapter.mjs` LOD tiers:
+  - depth-based node sizing (top levels larger, deeper levels progressively smaller)
+  - culling and hidden tiers when nodes are too small/out-of-viewport
+  - full/medium/dot rendering tiers with per-tier node detail density.
+- Added deep-node navigation and camera control flow:
+  - cursor-anchored wheel zoom
+  - drag pan inside workspace
+  - fit/home/root/deep focus actions from center bar
+  - deep-node focus resolves deepest available node and zooms to readable detail size.
+- Preserved source-aware auth/session bootstrap behavior:
+  - member source validates bearer token via `/api/member-auth/email-verification-status`
+  - admin source requires existing admin session snapshot.
+- Preserved runtime engine diagnostics:
+  - mode probe (`mock-js` / `wasm-bridge-pending`) shown in canvas-side diagnostics.
+
+### Design Decisions
+
+- Prioritized the requested performance concept directly in render behavior: LOD + culling + deep-node focus were treated as core camera/compute features rather than visual-only polish.
+- Kept compute/raster separation intact by leaving layout/visibility math in adapter contract and concentrating interaction/chrome orchestration in app runtime.
+- Added a deep stress branch in mock data to validate zoom-to-tiny-node workflows without waiting for backend data contract migration.
+
+### Known Limitations
+
+- This pass still uses mock graph data; backend live-tree data normalization contract remains pending.
+- Wasm core runtime is still bridge-pending; this pass consumes JS adapter mode and wasm-artifact detection only.
+- Canvas shell is intentionally Figma-style inspired and functional, but not a 1:1 icon-level clone.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- route smoke:
+  - `GET /binary-tree-next` -> `200`
+  - page content includes `/binary-tree-next-app.mjs` module reference.
+
+## Update (2026-04-10) - Binary Tree Next Layout Correction (Reference-Match Pass: T-Lines + Level Spacing)
+
+### What Was Changed
+
+- Corrected the next-gen tree render to follow the provided reference direction:
+  - removed the artificial deep zigzag chain generator from `buildMockNodes()`
+  - switched the mock graph to balanced level-by-level binary generation only.
+- Replaced direct diagonal connector rendering with orthogonal tree routing:
+  - parent trunk down
+  - horizontal branch bar
+  - vertical drops to children
+  - single-child case uses trunk + horizontal elbow + child drop.
+- Retuned adapter layout spacing constants for cleaner per-level distribution:
+  - increased row spacing
+  - switched horizontal step divisor to binary-halving style so each depth level spaces predictably.
+
+### Design Decisions
+
+- Prioritized strict tree readability and reference parity over experimental deep-chain stress visuals in default view.
+- Kept semantic zoom behavior intact while making the base graph structure visibly level-consistent.
+
+### Known Limitations
+
+- This pass keeps mock data mode; live backend tree payload integration is still pending.
+- Reference matching here targets structural behavior (T-lines + spacing), not literal pixel-perfect iconography.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next-engine-adapter.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` returned `200`.
+
+## Update (2026-04-10) - Binary Tree Next Core Scaling/Spacing Refinement (Dynamic Size + Shorter Verticals)
+
+### What Was Changed
+
+- Refined next-gen tree core math to match requested reference behavior:
+  - stronger depth-based node radius decay from root to deeper levels
+  - retained zoom-based screen scaling and LOD tier switching so details increase as camera zooms in.
+- Updated adapter world spacing profile:
+  - replaced fixed per-level Y-step with decaying depth-step model (large upper gaps, progressively smaller lower gaps)
+  - this shortens lower-level vertical connectors and improves hierarchy readability.
+- Retuned horizontal spacing baseline in adapter while preserving binary left/right depth-halving behavior.
+- Updated app-side rendering and view tuning:
+  - updated `WORLD_RADIUS_BASE` to match adapter radius baseline
+  - reduced default mock depth by one level for cleaner default framing
+  - reduced T-connector line thickness slightly and moved branch split point closer to parent, shortening perceived vertical trunks
+  - lowered dot/min LOD thresholds so tiny deep nodes remain visible as small dots rather than disappearing too early.
+
+### Design Decisions
+
+- Prioritized structural parity with reference hierarchy first (node-size cascade + connector rhythm) before additional visual polish.
+- Kept semantic zoom architecture unchanged; only the underlying geometry and threshold parameters were refined.
+
+### Known Limitations
+
+- This pass still runs on mock graph data; real backend-tree contract integration remains pending.
+- Fine-grain pixel parity may still need one more tuning pass once viewed side-by-side with live expected dataset.
+
+### Files Affected
+
+- `binary-tree-next-engine-adapter.mjs`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- route smoke: `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Vertical Compression Pass (Shorter Y Links)
+
+### What Was Changed
+
+- Compressed adapter vertical depth spacing further so parent-to-child Y distances render shorter.
+- Updated depth-step constants in `binary-tree-next-engine-adapter.mjs`:
+  - `ROW_WORLD_Y_BASE_STEP`: `178 -> 132`
+  - `ROW_WORLD_Y_DECAY`: `0.78 -> 0.76`
+  - `ROW_WORLD_Y_MIN_STEP`: `24 -> 14`
+
+### Outcome
+
+- Vertical connector spans are now tighter across levels, especially in upper/mid depths, while preserving hierarchical separation.
+
+### Files Affected
+
+- `binary-tree-next-engine-adapter.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Deep-Level Y Compression (Deepest Links Shortened)
+
+### What Was Changed
+
+- Applied a depth-selective vertical spacing compression in `binary-tree-next-engine-adapter.mjs` so the deepest tree levels have shorter parent-child Y spans without flattening top levels.
+- Added deep-level step controls:
+  - `ROW_WORLD_Y_DEEP_START = 6`
+  - `ROW_WORLD_Y_DEEP_DECAY = 0.84`
+- Lowered global minimum row step:
+  - `ROW_WORLD_Y_MIN_STEP: 14 -> 8`
+- Updated `resolveWorldYFromDepth(...)` to apply extra decay only beyond the deep-start level.
+
+### Outcome
+
+- Upper/mid levels stay readable, while deepest levels compact further and render noticeably shorter vertical lines.
+
+### Files Affected
+
+- `binary-tree-next-engine-adapter.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Default Scale Baseline Increased
+
+### What Was Changed
+
+- Increased default next-gen tree starting scale so the tree opens slightly larger and keeps more zoom-out headroom for future node growth.
+- Added explicit scale constants in `binary-tree-next-app.mjs`:
+  - `DEFAULT_HOME_SCALE = 0.92`
+  - `DEFAULT_ROOT_FOCUS_RADIUS = 38`
+- Unified initial/home/focus defaults so behavior is consistent:
+  - initial camera scale now uses `DEFAULT_HOME_SCALE`
+  - `computeHomeView()` now returns `DEFAULT_HOME_SCALE`
+  - `focusRoot()` now uses `DEFAULT_ROOT_FOCUS_RADIUS`.
+
+### Outcome
+
+- Tree opens with a slightly larger default view while preserving lower zoom range for denser future graphs.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Scale Semantics Alignment (Default 0.025 + Depth-5 Full Detail)
+
+### What Was Changed
+
+- Aligned next-gen camera defaults to the requested zoom semantics:
+  - `DEFAULT_HOME_SCALE = 0.025`
+  - this now serves as startup/home max-zoom-out baseline.
+- Added projection normalization in app runtime so `0.025` can remain the canonical camera scale while preserving usable visual framing:
+  - `resolveProjectionScale(rawScale)`
+  - `resolveRawScaleFromProjection(projectionScale)`
+  - adapter render now receives normalized projection scale while camera state remains in raw-scale space.
+- Updated camera math paths to use projection normalization consistently:
+  - zoom-anchor math
+  - fit-to-view
+  - focus-node/root/deep calculations.
+- Added semantic depth-gating in engine adapter for requested reveal behavior:
+  - at base/home scale: root through depth 5 forced to `full` detail
+  - deeper levels hidden at home scale
+  - deeper levels reveal progressively as zoom increases (`visibleDepthPerOctave`).
+- Bootstrap behavior updated to preserve true home scale at startup:
+  - removed immediate root-focus override after home set.
+
+### Design Decisions
+
+- Kept raw camera scale contract user-facing (`0.025`) while introducing projection normalization internally to avoid collapsing the scene visually.
+- Implemented explicit semantic depth policy instead of relying only on pixel-radius LOD, so the requested depth-5/full baseline is deterministic.
+
+### Known Limitations
+
+- Depth reveal rates are currently tuned constants (`fullDepthPerOctave`, `visibleDepthPerOctave`) and may need one tuning pass once real backend graph density is wired.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next-engine-adapter.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Mock Simulation Increased to 1000 Nodes
+
+### What Was Changed
+
+- Updated next-gen mock tree generator to simulate a large graph of exactly `1000` nodes.
+- Added explicit target constant in app runtime:
+  - `MOCK_NODE_TARGET = 1000`
+- Replaced fixed-depth mock generation with level-order (queue/BFS) expansion so the tree fills in balanced binary order until the target count is reached.
+- Kept existing node metadata patterns (role/rank/status/volume) with depth-aware variation while scaling to larger graph size.
+
+### Design Decisions
+
+- Used level-order fill to preserve predictable spacing and structure quality under high node counts.
+- Avoided random deep-branch growth so connector rhythm and level distribution remain stable for layout/LOD evaluation.
+
+### Known Limitations
+
+- This remains mock-data simulation and not backend live-member data.
+- Real production density distribution may still require additional spacing/LOD tuning once live payload wiring is in place.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- route smoke: `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Mock Simulation Increased to 2000 Nodes
+
+### What Was Changed
+
+- Increased next-gen mock graph target from `1000` to `2000` nodes.
+- Updated `MOCK_NODE_TARGET` in `binary-tree-next-app.mjs`.
+
+### Outcome
+
+- Next-gen route now stress-tests semantic zoom/culling/spacing with a 2000-node balanced mock tree.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Mock Mode Switched to 20-Level Depth Simulation
+
+### What Was Changed
+
+- Replaced fixed node-target simulation mode with depth-first goal mode for next-gen mock tree.
+- Added depth-mode constants in `binary-tree-next-app.mjs`:
+  - `MOCK_TREE_MAX_DEPTH = 20`
+  - `MOCK_LEVEL_NODE_CAP = 128`
+- Reworked `buildMockNodes()` generation loop:
+  - generates by depth from level 1..20
+  - level-order parent expansion remains deterministic
+  - per-level node cap prevents browser lockups from full depth-20 (multi-million node) expansion.
+
+### Design Decisions
+
+- Prioritized user-requested depth behavior (20 levels) over raw total node count.
+- Kept balanced expansion and deterministic ordering so spacing/LOD validation remains stable across refreshes.
+- Added per-level cap as a safety guard to keep runtime responsive while still reaching depth 20.
+
+### Known Limitations
+
+- This is not a mathematically complete full binary tree to level 20 due intentional per-level cap.
+- Live backend payload depth behavior may still differ and require tuning after integration.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Dynamic X-Axis Spacing By Zoom (Deep-Level Spacing Fix)
+
+### What Was Changed
+
+- Implemented zoom-reactive X-axis spacing in `binary-tree-next-engine-adapter.mjs` frame projection.
+- Added new `dynamicXSpacing` option contract in adapter compute path:
+  - depth-aware multiplier (starts at configurable depth)
+  - zoom-octave influence (expands on zoom-in, contracts on zoom-out)
+  - min/max clamp for stability.
+- Screen-space projection now uses an `effectiveWorldX` with depth/zoom multiplier:
+  - `effectiveWorldX = meta.worldX * xSpreadMultiplier`
+- Added `xSpreadMultiplier` to projected-node payload for diagnostics/inspection.
+- Wired runtime configuration in `binary-tree-next-app.mjs`:
+  - enabled dynamic X spacing
+  - starts expansion from deeper levels
+  - tuned depth and zoom gains to address spacing collapse around depth ~12.
+
+### Design Decisions
+
+- Applied spacing transform in projection stage so we can expand/contract horizontally without mutating core topology data.
+- Kept connector routing unchanged (T-lines) since connectors consume projected node positions and therefore naturally follow expanded/contracted spacing.
+
+### Known Limitations
+
+- `fit` bounds are still based on static world bounds and may need follow-up compensation at high zoom with strong X expansion.
+
+### Files Affected
+
+- `binary-tree-next-engine-adapter.mjs`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Dynamic X Spacing Correction (Whole-Tree Shift)
+
+### What Was Changed
+
+- Corrected dynamic X spacing behavior so horizontal expansion/contraction applies to the entire tree, not only deep levels.
+- Adapter change (`binary-tree-next-engine-adapter.mjs`):
+  - added global zoom multiplier (`dynamicXGlobalMultiplier`) applied to all nodes
+  - depth multiplier remains available but now composes on top of global shift.
+- Runtime config change (`binary-tree-next-app.mjs`):
+  - set `depthStart: 0`
+  - set `depthGain: 0`
+  This enforces pure whole-tree zoom-driven X shifting.
+
+### Outcome
+
+- All levels now shift/expand/contract together on zoom, matching the requested behavior.
+
+### Files Affected
+
+- `binary-tree-next-engine-adapter.mjs`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Zoom Anchor Stabilization (No More Node Chasing)
+
+### What Was Changed
+
+- Implemented cursor-region zoom stabilization for whole-tree X-shift behavior.
+- Added shared runtime config object in `binary-tree-next-app.mjs`:
+  - `DYNAMIC_X_SPACING_CONFIG`
+- Added app-side helper:
+  - `resolveGlobalXSpacingMultiplier(projectionScale)`
+  This mirrors adapter's global X-spacing multiplier.
+- Updated camera math paths to include dynamic X multiplier:
+  - `applyZoomAtPoint(...)` now computes world X using old multiplier and reconstructs view X with new multiplier
+  - `focusNode(...)` now positions target X with multiplier-aware projection
+  - `fitCameraToFilteredNodes(...)` now iteratively solves width fit against global X expansion.
+- Kept Y-axis anchor behavior unchanged (projection-scale only).
+
+### Outcome
+
+- While zooming in/out, the region under cursor remains visually locked much better, even though the whole tree is dynamically expanding/contracting in X.
+- This removes the “chasing nodes by panning” effect from dynamic spacing shifts.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Dynamic X Shift Visibility Boost + Runtime Diagnostic
+
+### What Was Changed
+
+- Increased global X-shift responsiveness so whole-tree spacing change is visibly stronger during zoom:
+  - `DYNAMIC_X_SPACING_CONFIG.zoomGain: 0.68 -> 1.45`
+- Added right-panel runtime diagnostic line:
+  - `X spread: <multiplier>x`
+  This verifies live horizontal expansion/contraction state while zooming.
+- Slightly adjusted right panel stats/footer spacing to fit new diagnostic line cleanly.
+
+### Outcome
+
+- Whole-tree X shift effect is now significantly more apparent during zoom.
+- Users can verify behavior directly through the live `X spread` metric.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Core X-Spacing Ratio Rebalanced For Uniform Perspective
+
+### What Was Changed
+
+- Adjusted core horizontal layout decay in engine adapter to improve lower-level spacing and maintain more uniform subtree perspective:
+  - `HORIZONTAL_STEP_BASE: 640 -> 512`
+  - `HORIZONTAL_STEP_DIVISOR: 2 -> 1.6`
+- This shifts spacing control from only runtime multiplier effects into base geometry, so deep levels are less prone to compaction relative to node-size decay.
+
+### Why
+
+- Prior setup (`divisor = 2`) collapsed horizontal offsets too aggressively versus node size behavior, causing lower-level crowding.
+- New ratio keeps deeper subtree spacing more consistent with what users expect when navigating/focusing different regions.
+
+### Files Affected
+
+- `binary-tree-next-engine-adapter.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Overlap Bug Fix (Row Collision Resolution)
+
+### Problem Analysis
+
+- Whole-tree X scaling and high-depth compaction could produce per-row center gaps smaller than rendered node diameters.
+- Result: side-by-side nodes entered each other's area at some zoom/depth states.
+
+### What Was Changed
+
+- Added an overlap-prevention pass in `binary-tree-next-engine-adapter.mjs` after projection and before connector generation:
+  - groups visible projected nodes by depth row
+  - sorts by X (stable order)
+  - enforces minimum center distance: `prev.r + curr.r + edgeGap`
+  - optional row recentering to preserve overall row anchor after spacing push.
+- Added runtime config from app shell (`binary-tree-next-app.mjs`) to enable this behavior:
+  - `overlapPrevention.enabled = true`
+  - `overlapPrevention.edgeGap = 3`
+  - `overlapPrevention.keepRowCenter = true`.
+
+### Outcome
+
+- Side-by-side node overlap is now blocked at render projection level while preserving tree ordering and connector coherence.
+
+### Files Affected
+
+- `binary-tree-next-engine-adapter.mjs`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Root L/R Leg Separation Rule + Stronger Anti-Overlap
+
+### Problem Analysis
+
+- Even after global X spread, inner middle-region nodes could still crowd because root left/right subtree separation was not explicitly enforced.
+- Row collision pass prevented direct overlap, but did not guarantee a wide enough center corridor between major subtrees.
+
+### What Was Changed
+
+- Added explicit root-leg spacing rule in engine projection (`binary-tree-next-engine-adapter.mjs`):
+  - classify visible nodes by first path step (`L` vs `R`)
+  - compute current center corridor (`minRightX - maxLeftX`, edge-aware)
+  - if below desired gap, shift entire left subtree left and entire right subtree right by equal side shift
+  - expose `rootLegSideShift` in stats for diagnostics.
+- Added runtime config in app compute frame call (`binary-tree-next-app.mjs`):
+  - `rootLegSpacing.enabled = true`
+  - `minGap = 140`
+  - `gapPerOctave = 240`
+  - `maxSideShift = 2400`
+- Strengthened overlap prevention spacing:
+  - `overlapPrevention.edgeGap: 3 -> 6`
+- Added right-panel diagnostic line:
+  - `Root split: <px>`.
+
+### Outcome
+
+- Root 1st-level L/R legs now force enough separation for inner/middle-region subtree nodes, especially while zooming in.
+- Neighbor-overlap protection remains active and stronger.
+
+### Files Affected
+
+- `binary-tree-next-engine-adapter.mjs`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Binary Tree Next Generalized L/R Subtree Spacing (All Levels)
+
+### Problem Analysis
+
+- Root-only L/R split reduced top-level crowding but did not fully prevent overlap deeper in the tree.
+- Requirement clarified: apply L/R separation rule generally, not only at first-level branches.
+
+### What Was Changed
+
+- Replaced root-only split logic with generalized per-parent subtree spacing in `binary-tree-next-engine-adapter.mjs`:
+  - for each visible parent path, collect descendant sets under `path + 'L'` and `path + 'R'`
+  - enforce zoom-scaled desired corridor between those two subtree envelopes
+  - shift left-subtree nodes left and right-subtree nodes right as needed
+  - accumulate and expose `branchSideShift` stat.
+- Upgraded runtime spacing configuration in `binary-tree-next-app.mjs`:
+  - switched option key from `rootLegSpacing` -> `branchSpacing`
+  - increased spacing strength:
+    - `minGap = 180`
+    - `gapPerOctave = 320`
+    - `maxSideShift = 3200`
+    - `minDepth = 0`
+  - strengthened overlap edge gap: `edgeGap = 8`.
+- Updated diagnostics label:
+  - `Root split` -> `Branch spread`.
+
+### Outcome
+
+- L/R separation now applies across branch levels, creating more general inner-corridor protection and reducing deep overlap.
+
+### Files Affected
+
+- `binary-tree-next-engine-adapter.mjs`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+## Update (2026-04-10) - Reverted Dynamic Spread; Restored Reference-Style Proportional Tree Geometry
+
+### Problem Analysis
+
+- User requested removal of forced spacing behavior and a return to reference-style hierarchy.
+- Desired behavior: as node size gets smaller by depth, connector T-line segments also get shorter in proportion.
+- Zoom behavior should feel stable without needing dynamic whole-tree X shifts.
+
+### What Was Changed
+
+- Removed app-side dynamic spread systems in `binary-tree-next-app.mjs`:
+  - deleted global X spread configuration and resolver
+  - removed `dynamicXSpacing`, `branchSpacing`, and `overlapPrevention` runtime options passed to adapter
+  - removed spread diagnostics (`X spread`, `Branch spread`) from the right panel
+  - simplified zoom/focus/fit camera math to standard world projection (no multiplier compensation).
+- Re-tuned connector drawing in `binary-tree-next-app.mjs`:
+  - shortened deep-level T-lines by replacing fixed minimum trunk behavior with radius-proportional trunk and child-clearance rules.
+- Simplified and rebalanced core layout geometry in `binary-tree-next-engine-adapter.mjs`:
+  - removed dynamic X expansion logic and branch corridor post-shift logic
+  - removed row overlap post-solver pass
+  - updated base constants for self-similar decay:
+    - vertical depth step: faster decay + smaller min step
+    - horizontal branch step: stronger depth attenuation (higher divisor)
+    - node radius decay: progressive depth shrinking with lower min radius.
+
+### Design Decisions
+
+- Chosen geometry now favors reference-style visual consistency over forced anti-overlap side-shifting.
+- Local node neighborhoods now scale naturally with depth, which keeps the zoomed-in perspective closer to the root-level perspective.
+
+### Known Limitations
+
+- Extreme synthetic depths can still visually crowd at some zooms because hard post-projection branch shifting was intentionally removed.
+- Further tuning may still be needed after visual review against the exact reference screenshot.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next-engine-adapter.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+### Addendum (2026-04-10)
+
+- Added horizontal minimum depth step floor and reduced vertical minimum depth step floor to avoid deep-level collapse/overlap while keeping deep T-lines short when zoomed in.
+
+## Update (2026-04-10) - Deep Reveal Smoothing + Continuous Deep-Level Shrink
+
+### User-Reported Issues
+
+- After level 7, depth visibility appeared to jump and quickly expose very deep levels.
+- From around level 8 onward, nodes/connectors looked too uniform (insufficient continued shrink).
+
+### Root Cause
+
+- Semantic reveal slope (`visibleDepthPerOctave`) was too steep for smooth incremental disclosure.
+- Deep geometry had floors that caused visual flattening:
+  - node world radius minimum reached too early
+  - connector minima (dot radius / trunk / child-top floor / line width) reduced apparent depth scaling.
+
+### Changes Applied
+
+- In `binary-tree-next-app.mjs`:
+  - slowed semantic reveal progression:
+    - `fullDepthPerOctave: 1 -> 0.8`
+    - `visibleDepthPerOctave: 3 -> 1.2`
+  - retuned LOD thresholds for smoother deep-node appearance:
+    - `dot: 1.4 -> 1.0`
+    - `min: 0.3 -> 0.14`
+  - removed dot-size plateau by lowering dot render clamp:
+    - `Math.max(node.r, 1.8) -> Math.max(node.r, 0.55)`
+  - made deep connector T-lines continue shrinking:
+    - reduced child-top, trunk, and branch minimum floors
+    - lowered tiny-node trunk share
+    - made connector line width radius-responsive instead of fixed constants.
+
+- In `binary-tree-next-engine-adapter.mjs`:
+  - strengthened continuous deep shrink:
+    - `NODE_RADIUS_DEPTH_DECAY: 0.56 -> 0.54`
+    - `NODE_WORLD_RADIUS_MIN: 0.12 -> 0.006`
+  - shortened deep vertical spacing floor:
+    - `ROW_WORLD_Y_MIN_STEP: 0.45 -> 0.22`.
+
+### Expected Outcome
+
+- Depth reveal now progresses more gradually instead of appearing to jump to the deepest levels.
+- Levels deeper than 7 continue to visually shrink (nodes and T-lines), improving spatial legibility.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next-engine-adapter.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Revert (2026-04-10) - Restored Previous Preferred Tree Version
+
+### Context
+
+- User requested rollback of the latest deep-reveal/deep-shrink tuning and a return to the immediately previous visual behavior.
+
+### Reverted Changes
+
+- In `binary-tree-next-engine-adapter.mjs` restored:
+  - `ROW_WORLD_Y_MIN_STEP: 0.22 -> 0.45`
+  - `NODE_RADIUS_DEPTH_DECAY: 0.54 -> 0.56`
+  - `NODE_WORLD_RADIUS_MIN: 0.006 -> 0.12`
+- In `binary-tree-next-app.mjs` restored previous connector and reveal settings:
+  - connector minima/trunk share/line width returned to prior constants
+  - dot node render floor `0.55 -> 1.8`
+  - LOD thresholds `dot: 1.0 -> 1.4`, `min: 0.14 -> 0.3`
+  - semantic reveal rate `fullDepthPerOctave: 0.8 -> 1`, `visibleDepthPerOctave: 1.2 -> 3`.
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Fix (2026-04-10) - Deep Nodes Flattening To Same Size
+
+### User-Observed Problem
+
+- At deep levels (example depth 11), many nodes appeared the same size.
+- Deep connector T-lines also looked too uniform.
+
+### Root Cause
+
+- A deep node radius floor (`NODE_WORLD_RADIUS_MIN = 0.12`) was reached early, causing depth 10+ to flatten visually.
+- Connector minimums (child top, trunk, fallback) were too high, producing similar T-line lengths for small nodes.
+- Dot render floor (`Math.max(node.r, 1.8)`) made tiny nodes look same-sized.
+
+### Changes Applied (Targeted, preserving preferred overall version)
+
+- In `binary-tree-next-engine-adapter.mjs`:
+  - reduced deep radius floor: `NODE_WORLD_RADIUS_MIN 0.12 -> 0.02`
+  - reduced deep Y-step floor: `ROW_WORLD_Y_MIN_STEP 0.45 -> 0.28`.
+- In `binary-tree-next-app.mjs`:
+  - reduced connector deep minimum floors:
+    - child-top min `1.1 -> 0.7`
+    - trunk min `0.6 -> 0.35`
+    - child-clearance min `0.7 -> 0.4`
+    - fallback trunk `0.6 -> 0.35`
+  - made connector thickness depth-responsive (thin at deep levels).
+  - reduced dot render floor: `1.8 -> 1.0`.
+
+### Expected Result
+
+- Deeper nodes continue shrinking rather than flattening to one size tier.
+- T-lines at deeper levels become proportionally shorter/thinner.
+
+### Files Affected
+
+- `binary-tree-next-engine-adapter.mjs`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Fix (2026-04-10) - Depth 11 Self-Similarity Falloff (Plateau Floors Removed)
+
+### User-Observed Issue
+
+- Around depth 11, layout no longer matched upper-level feel/vibe.
+- Deep nodes and T-lines started looking too similar instead of continuing proportional decay.
+
+### Root Cause
+
+Hard minimum floors were being reached in deep levels, causing geometric plateau:
+
+- Horizontal branch step floor was reached at depth 12 (`HORIZONTAL_STEP_MIN = 0.24`), so X spacing stopped shrinking.
+- Vertical row-step floor and node-radius floor were also high enough to flatten deeper levels.
+- Connector and dot render minima introduced additional visual plateaus at tiny scales.
+
+### Changes Applied
+
+- In `binary-tree-next-engine-adapter.mjs`:
+  - `ROW_WORLD_Y_MIN_STEP: 0.28 -> 0.0004`
+  - `HORIZONTAL_STEP_MIN: 0.24 -> 0.0001`
+  - `NODE_WORLD_RADIUS_MIN: 0.02 -> 0.0002`
+- In `binary-tree-next-app.mjs`:
+  - reduced deep connector minima (child-top, trunk, clearance, fallback) to tiny values
+  - reduced minimum branch radius used for stroke scaling
+  - reduced dot node render floor: `1.0 -> 0.3`.
+
+### Outcome
+
+- Depth 11+ now continues decaying proportionally (nodes and T-lines) rather than flattening into same-size tiers.
+- Upper-level look is preserved while deep levels follow the same scaling pattern.
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Increased Max Zoom For Depth-20 Inspection
+
+### User Request
+
+- Ability to zoom further into depth-20 nodes.
+
+### Change Applied
+
+- In `binary-tree-next-app.mjs`, increased camera max scale:
+  - `MAX_SCALE: 220 -> 1200`
+
+### Outcome
+
+- Users can now magnify much deeper nodes (including depth 20) to inspect details without altering the current spacing/layout behavior.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Update (2026-04-10) - Zoom-In Set To Effectively Unlimited
+
+### User Request
+
+- Allow unlimited zoom-in so deep nodes can be inspected properly.
+
+### Change Applied
+
+- In `binary-tree-next-app.mjs`:
+  - `MAX_SCALE: 1200 -> Number.MAX_VALUE`
+
+### Outcome
+
+- Camera zoom-in no longer has a practical upper cap in normal usage.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `GET /binary-tree-next` -> `200`.
+
+## Feature (2026-04-10) - Enter Node Universe (Local 20-Depth Re-Root Navigation)
+
+### Goal
+
+- Allow users to continue exploring below practical depth limits without degrading spacing/usability.
+- Keep each visual context bounded and readable by re-rooting perspective to a selected node.
+
+### What Was Implemented
+
+#### 1) Universe-aware engine adapter
+
+Updated `binary-tree-next-engine-adapter.mjs` to support per-call universe context:
+
+- Added universe root + depth cap options:
+  - `universeRootId`
+  - `universeDepthCap`
+- Added universe-local entry resolution:
+  - `resolveUniverseRootMeta(...)`
+  - `resolveUniverseEntries(...)`
+  - `resolveFilteredUniverseEntries(...)`
+- All core engine outputs now work in universe-local coordinates/depth:
+  - `resolveVisibleNodes(...)`
+  - `resolveWorldBounds(...)`
+  - `resolveNodeMetrics(...)`
+  - `resolveDeepestNodeId(...)`
+  - `computeFrame(...)`
+- `computeFrame(...)` now returns projected nodes with both local/global metadata:
+  - `localDepth`, `localPath`
+  - `globalDepth`, `globalPath`
+- Added `resolveAncestorChain(nodeId)` for breadcrumb/back navigation.
+
+#### 2) App state + universe navigation model
+
+Updated `binary-tree-next-app.mjs`:
+
+- Added universe state:
+  - `rootId`
+  - `depthCap` (set to `20`)
+  - `breadcrumb`
+  - `cameraByRoot` (per-universe camera memory)
+- Added universe helpers:
+  - `getUniverseOptions(...)`
+  - `getGlobalUniverseOptions(...)`
+  - `rememberUniverseCamera(...)`
+  - `restoreUniverseCamera(...)`
+  - `refreshUniverseBreadcrumb(...)`
+  - `enterNodeUniverse(...)`
+  - `exitNodeUniverse(...)`
+  - `focusUniverseRoot(...)`
+
+#### 3) Universe actions and controls
+
+- Top center bar now includes:
+  - `Enter` (enter selected node universe)
+  - `Back` (go to parent universe)
+  - `U Root` (focus current universe root)
+- Keyboard shortcuts added:
+  - `U` => enter selected node universe
+  - `B` => back to parent universe
+
+#### 4) Universe-aware rendering/camera
+
+- `computeFrame`, `focusNode`, `fitCameraToFilteredNodes`, and `focusDeepestNode` now run against the active universe context.
+- Depth filter in left panel now explicitly indicates local scope:
+  - `Local Depth Filter`
+- Depth presets adjusted for 20-depth universe workflow:
+  - `all, 0, 1, 2, 3, 4, 5, 8, 12, 16, 20`
+
+#### 5) Right panel context clarity
+
+- Selected-node panel now shows:
+  - Local depth/path
+  - Global depth/path
+  - Universe root id
+  - Breadcrumb path
+- Render stats now include universe line (`root + cap`) and root global depth indicator.
+
+### Design Decisions
+
+- Kept data global while rendering universe-local coordinates to preserve continuity and avoid data duplication.
+- Capped local view depth to 20 by default to preserve readability and interaction quality.
+- Stored camera per universe root to avoid disorientation when entering/exiting node universes.
+
+### Files Affected
+
+- `binary-tree-next-engine-adapter.mjs`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- `GET /binary-tree-next` -> `200`.

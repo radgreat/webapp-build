@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Binary Tree Next</title>
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #1f1f22;
+      font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    #figma-tree-canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    #figma-tree-canvas.dragging {
+      cursor: grabbing;
+    }
+
+    #boot-error {
+      position: fixed;
+      left: 12px;
+      bottom: 12px;
+      max-width: 420px;
+      border: 1px solid rgba(255, 99, 132, 0.42);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: rgba(50, 20, 28, 0.9);
+      color: #ffc2cf;
+      font-size: 12px;
+      letter-spacing: 0.01em;
+      display: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="figma-tree-canvas"></canvas>
+  <div id="boot-error"></div>
+  <script type="module" src="/binary-tree-next-app.mjs"></script>
+</body>
+</html>

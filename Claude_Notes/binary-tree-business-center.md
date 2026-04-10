@@ -1,6 +1,6 @@
 # Binary Tree Business Center Notes
 
-Last Updated: 2026-04-09
+Last Updated: 2026-04-10
 
 ## Scope
 
@@ -9,6 +9,39 @@ Last Updated: 2026-04-09
 
 ## What Changed
 
+- 2026-04-10 follow-up (next-gen figma-style canvas redesign pass):
+  - replaced prior mixed DOM chrome in `binary-tree-next` with full-canvas UI composition
+  - left panel, right panel, center strip, and bottom tool panel now render directly in canvas layer
+  - updated center workspace clipping + pan/zoom/select interactions to operate within canvas-rendered shell bounds
+  - preserved source-aware session bootstrap checks (`member`/`admin`)
+  - extended adapter projection options for workspace-anchored render placement.
+- 2026-04-10 follow-up (next-gen phase B shell controls + module split):
+  - moved `binary-tree-next` runtime from inline script to module entry architecture:
+    - `binary-tree-next-app.mjs`
+    - `binary-tree-next-engine-adapter.mjs`
+  - added camera and viewport shell controls in next app:
+    - zoom in/out, fit-to-view, reset
+    - connector/grid/highlight toggles
+    - keyboard pan/zoom/reset/fit shortcuts
+  - added explicit compute adapter contract and runtime mode diagnostics:
+    - adapter now handles filtering/layout projection/connector-frame output
+    - mode probe reports mock-js vs wasm-bridge-pending to diagnostics
+  - outcome: next app now has clear shell/compute separation prior to C++/Wasm engine swap-in.
+- 2026-04-10 follow-up (next-gen phase A foundation implementation):
+  - implemented the first runtime delivery for the next Binary Tree track:
+    - new isolated app page: `binary-tree-next.html`
+    - backend route mounts for `/binary-tree-next` and `/binary-tree-next.html`
+  - added launch controls from live tree surfaces:
+    - member `index.html` tree header `Next-Gen` button
+    - admin `admin.html` tree header `Next-Gen` button
+  - launch flow now opens isolated next app with source context:
+    - member -> `/binary-tree-next?source=member`
+    - admin -> `/binary-tree-next?source=admin`
+  - added new-window boot-time session checks:
+    - member token validation via `GET /api/member-auth/email-verification-status`
+    - invalid member sessions redirect to `/login.html`
+    - missing admin session redirects to `/admin-login.html`
+  - added mock render harness in new app window (header rail, tool dock, viewport canvas, details panel, diagnostics strip) for safe parallel iteration prior to Wasm integration.
 - 2026-04-09 follow-up (next-gen architecture planning pass):
   - added dedicated next implementation planning file:
     - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
@@ -286,10 +319,14 @@ Last Updated: 2026-04-09
 - `backend/services/member.service.js`
 - `backend/stores/member.store.js`
 - `backend/scripts/simulate-zeroone-live-test.mjs`
+- `binary-tree-next-app.mjs`
+- `binary-tree-next-engine-adapter.mjs`
+- `binary-tree-next.html`
 - `binary-tree.mjs`
 - `index.html`
 - `Claude_Notes/charge-documentation.md`
 - `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
 - `Claude_Notes/binary-tree-business-center.md`
 
 ## Design Decisions
@@ -322,3 +359,256 @@ Last Updated: 2026-04-09
 - Visual verification (admin binary tree popup):
   - `temporary screenshots/screenshot-157-popup-layout-pass3.png`
   - `temporary screenshots/screenshot-161-popup-hovercard-pass7.png`
+
+## 2026-04-10 Follow-Up (Next-Gen Semantic Zoom + Deep Focus Pass)
+
+- Rebuilt `binary-tree-next-app.mjs` runtime and restored a full working next-gen canvas app.
+- Kept side chrome fully canvas-rendered (left/right panels + center/bottom bars).
+- Implemented adapter-driven semantic zoom tiers:
+  - depth-based node size reduction
+  - `full` / `medium` / `dot` detail tiers
+  - hidden/culled node behavior when too small or outside viewport.
+- Added deep navigation controls to validate extreme depth workflows:
+  - cursor-anchored wheel zoom
+  - pan drag
+  - focus actions: `Home`, `Fit`, `Deep`, `Root`
+  - keyboard shortcuts for pan/zoom/focus.
+- Preserved source-aware auth bootstrap (member token verification + admin session snapshot gate).
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke returned 200 with module reference present.
+
+## 2026-04-10 Follow-Up (Reference Correction: T-Branch Lines + No Zigzag)
+
+- Corrected next-gen render structure after reference feedback:
+  - removed forced zigzag deep-branch generator from app mock data
+  - retained balanced level generation only in default graph
+  - replaced diagonal link drawing with orthogonal T/elbow branch connectors.
+- Updated adapter spacing constants so row and per-depth horizontal offsets read as level-consistent tree spacing.
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke returned 200.
+
+## 2026-04-10 Follow-Up (Core Spacing/Scaling Adjustment)
+
+- Applied core geometry refinements in next-gen runtime:
+  - stronger depth-driven node-size decay
+  - decaying vertical depth-step model (shorter lower vertical connector lengths)
+  - tighter T-branch connector split ratio and lighter line widths.
+- Updated app constants and LOD thresholds to keep deep nodes visible as tiny dots at far zoom while restoring details when zooming in.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Extra Y-Line Shortening)
+
+- Reduced vertical depth-step constants in next-gen adapter to shorten parent-child Y connector spans while preserving hierarchy.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke returned 200.
+
+## 2026-04-10 Follow-Up (Deepest Y-Line Shortening)
+
+- Added deep-only vertical step compression in next-gen adapter (`deep start + extra decay`) and lowered minimum row step floor.
+- Result: deepest-level parent-child vertical connectors are shorter while upper hierarchy spacing remains readable.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Default Scale Baseline Adjustment)
+
+- Increased next-gen default starting/home zoom baseline and aligned root-focus radius constant to keep camera reset behavior consistent.
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Scale Semantics + Depth Reveal Policy)
+
+- Set next-gen home/start scale to raw `0.025`.
+- Added projection normalization helpers in app runtime so visual framing remains practical while preserving raw camera-scale semantics.
+- Added semantic depth reveal gate in adapter:
+  - base scale shows full detail to depth 5
+  - deeper nodes reveal as zoom increases.
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (1000-Node Simulation Pass)
+
+- Updated next-gen mock builder to generate exactly 1000 nodes.
+- Switched mock generation approach to balanced level-order queue expansion (instead of fixed-depth layer loop).
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (2000-Node Simulation)
+
+- Increased next-gen mock tree target to 2000 nodes for heavier stress testing.
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (20-Level Mock Tree Mode)
+
+- Replaced fixed count mock generation with depth-target mode (`20` levels) plus per-level cap safety guard.
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Dynamic X Spacing Strategy)
+
+- Implemented zoom-reactive deep-level X spacing in next-gen adapter projection path.
+- Deeper branches now receive progressive horizontal expansion during zoom-in and contract when zooming out.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Dynamic X Spacing Whole-Tree Correction)
+
+- Corrected next-gen dynamic X spacing so whole tree shifts by zoom (global multiplier), not deep-level-only bias.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Zoom Anchor Stabilization For Dynamic X Shift)
+
+- Added app-side global X multiplier resolver and integrated it into zoom/focus/fit camera math.
+- Region-under-cursor is now preserved during zoom despite whole-tree dynamic X spacing.
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (X Shift Visibility + Diagnostic)
+
+- Increased global X shift zoom gain in next-gen app runtime.
+- Added live right-panel `X spread` multiplier display for debugging/validation.
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Core X-Decay Ratio Adjustment)
+
+- Updated next-gen adapter horizontal spacing constants to preserve deeper-level spacing better:
+  - base step 512
+  - divisor 1.6.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Overlap Prevention)
+
+- Added row-wise projected node collision resolver in next-gen adapter and enabled it from app runtime config.
+- Enforced min center gap (`r1 + r2 + edgeGap`) to prevent neighbor overlap while preserving row centering.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Root Leg Non-Overlap Corridor)
+
+- Implemented explicit root L/R subtree spacing enforcement with zoom-scaled desired center gap.
+- Increased row collision edge gap and added root-split telemetry in right panel.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (General L/R Subtree Spread)
+
+- Generalized branch spacing rule from root-only to all visible parent branches in adapter projection path.
+- Updated runtime config to stronger branch corridor settings and tighter overlap guard.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Reference-Style Proportional Geometry Reset)
+
+- Removed forced spacing systems that were introducing non-reference behavior:
+  - dynamic whole-tree X spread
+  - per-branch corridor side-shift pass
+  - row overlap post-shift solver.
+- Rebalanced core adapter geometry constants for natural hierarchical decay:
+  - faster horizontal attenuation by depth
+  - faster vertical attenuation by depth
+  - deeper progressive node radius reduction.
+- Updated connector branch placement rules in app renderer so deep-node T-lines shorten with node scale.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+- Follow-up tuning: added horizontal step floor and reduced vertical step floor for deep-level spacing stability.
+
+## 2026-04-10 Follow-Up (Post-Level-7 Scaling Correction)
+
+- Tuned semantic reveal pace and deep geometry floors to correct sudden deep-level reveal + uniform tiny-node appearance after level 7.
+- Added radius-responsive connector line width and shorter deep T-line minima.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Revert to Preferred Baseline)
+
+- Reverted latest deep-level reveal/size experiment and restored prior preferred tree behavior.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Deep Node Uniformity Bug)
+
+- Fixed deep-level visual flattening by lowering radius floors and connector minima.
+- Added depth-responsive connector stroke width for small-node levels.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Depth 11 Vibe Mismatch)
+
+- Fixed deep-level plateau behavior by lowering geometric floors and tiny-node rendering minima.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Depth-20 Zoom Range)
+
+- Increased max camera zoom cap to improve depth-20 inspection.
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Unlimited Zoom-In)
+
+- Updated camera max scale to `Number.MAX_VALUE` to remove practical zoom-in cap.
+- Validation:
+  - `node --check binary-tree-next-app.mjs`
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-10 Follow-Up (Enter Node Universe)
+
+- Implemented node-universe re-rooting with local 20-depth rendering window.
+- Added Enter/Back universe controls, local/global depth-path diagnostics, and per-universe camera memory.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs`
+  - `node --check binary-tree-next-app.mjs`
+  - `/binary-tree-next` route smoke status 200.

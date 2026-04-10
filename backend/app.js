@@ -88,6 +88,10 @@ app.get(['/store/password-setup', '/store/password-setup/', '/store-password-set
   return res.sendFile(path.join(projectRoot, 'store-password-setup.html'));
 });
 
+app.get(['/binary-tree-next', '/binary-tree-next/', '/binary-tree-next.html'], (req, res) => {
+  return res.sendFile(path.join(projectRoot, 'binary-tree-next.html'));
+});
+
 // serve existing frontend files from project root for now
 app.use(express.static(projectRoot));
 
