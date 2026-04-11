@@ -11,6 +11,7 @@ const ADMIN_AUTH_COOKIE_KEY = 'vault-admin-auth-user-cookie';
 const MIN_SCALE = 0.025;
 const MAX_SCALE = Number.MAX_VALUE;
 const CAMERA_DAMPING = 12;
+const WHEEL_ZOOM_CAMERA_DAMPING = 9.5;
 const NODE_RADIUS_BASE = 40;
 const WORLD_RADIUS_BASE = 34;
 const DEFAULT_HOME_SCALE = 0.025;
@@ -23,7 +24,7 @@ const SELECTION_POP_MS = 320;
 const SELECTION_RELEASE_MS = 220;
 const SELECTION_MAX_EMPHASIS = 1.22;
 const MAIN_BACKGROUND_COLOR = '#E9EAEE';
-const SHELL_PANEL_COLOR = '#FFFFFF';
+const SHELL_PANEL_COLOR = '#F2F2F6';
 const SHELL_PANEL_BORDER_COLOR = '#E7E7EA';
 const SKELETON_SLOT_COLOR = '#EDEDED';
 const STARTUP_REVEAL_MS = 860;
@@ -33,17 +34,75 @@ const STARTUP_REVEAL_STAGGER_MS = 52;
 const STARTUP_PANEL_REVEAL_MS = 620;
 const STARTUP_PANEL_OFFSET_Y = 40;
 const STARTUP_PANEL_BLUR_PX = 10;
-const STARTUP_SIDE_PANEL_DELAY_MS = 64;
-const STARTUP_DOCK_DELAY_MS = 138;
+const STARTUP_SIDE_PANEL_DELAY_MS = 540;
+const STARTUP_DOCK_DELAY_MS = 700;
+const STARTUP_REVEAL_MIN_FILTER_PX = 0.35;
+const STARTUP_REVEAL_MIN_TRANSLATE_PX = 0.08;
+const STARTUP_REVEAL_MIN_ALPHA = 0.995;
+const STARTUP_REVEAL_END_FILTER_PROGRESS = 0.82;
+const STARTUP_REVEAL_DEPTH_JITTER_BASE_MS = 18;
+const STARTUP_REVEAL_DEPTH_JITTER_CAP_MS = 220;
+const STARTUP_PERF_SAMPLE_MIN_FRAMES = 12;
+const STARTUP_PERF_FRAME_BUDGET_MS = 20;
+const STARTUP_PERF_HEAVY_PIXEL_BUDGET = 5600000;
+const WHEEL_STEP_ZOOM_IN_FACTOR = 1.12;
+const WHEEL_STEP_ZOOM_OUT_FACTOR = 0.9;
+const DEFAULT_TRACKPAD_ZOOM_SENSITIVITY = 2;
+const MIN_TRACKPAD_ZOOM_SENSITIVITY = 0.05;
+const MAX_TRACKPAD_ZOOM_SENSITIVITY = 6;
+const TRACKPAD_PINCH_DELTA_BASE = 60;
 const LOADING_MIN_MS = 460;
 const LOADING_FADE_MS = 260;
-const SIDE_NAV_BRAND_LOGO_SRC = '/brand_assets/Logos/L%26D%20Logo_Cropped.png';
-const SIDE_NAV_BRAND_TOGGLE_BUTTON_ID = 'side-nav-brand-toggle';
-const SIDE_NAV_COLLAPSE_BUTTON_ID = 'side-nav-collapse-button';
-const SIDE_NAV_COLLAPSE_ICON_LEFT_GLYPH = String.fromCodePoint(0xEAC3);
-const SIDE_NAV_COLLAPSE_ICON_RIGHT_GLYPH = String.fromCodePoint(0xEAC9);
-const SIDE_NAV_COLLAPSE_HOVER_MS = 150;
+const FIRST_OPEN_SPLASH_FADE_MS = 260;
 const SIDE_NAV_BRAND_ITEM_BUTTON_PREFIX = 'side-nav-brand-item-';
+const SIDE_NAV_SEARCH_INPUT_ID = 'binary-tree-next-side-nav-search';
+const SIDE_NAV_SEARCH_DROPDOWN_ID = 'binary-tree-next-side-nav-search-dropdown';
+const SIDE_NAV_PROFILE_MENU_ID = 'binary-tree-next-side-nav-profile-menu';
+const SIDE_NAV_SEARCH_RESULT_MAX = 18;
+const PINNED_NODE_IDS_STORAGE_KEY = 'binary-tree-next-pinned-node-ids-v1';
+const MOCK_FIRST_TIME_OVERRIDE_STORAGE_KEY = 'binary-tree-next-mock-first-time-override-v1';
+const SERVER_CUTOFF_TIMEZONE = 'America/Los_Angeles';
+const SERVER_CUTOFF_WEEKDAY = 6;
+const SERVER_CUTOFF_HOUR = 23;
+const SERVER_CUTOFF_MINUTE = 59;
+const APPLE_MAPS_NODE_PALETTES = Object.freeze({
+  root: Object.freeze({
+    light: [196, 146, 115],
+    mid: [168, 112, 79],
+    dark: [129, 85, 58],
+  }),
+  accent: Object.freeze({
+    light: [36, 204, 230],
+    mid: [18, 181, 212],
+    dark: [9, 155, 196],
+  }),
+  neutral: Object.freeze({
+    light: [173, 181, 198],
+    mid: [145, 154, 173],
+    dark: [122, 131, 150],
+  }),
+  ocean: Object.freeze({
+    light: [122, 181, 226],
+    mid: [94, 151, 205],
+    dark: [70, 120, 178],
+  }),
+  mint: Object.freeze({
+    light: [150, 205, 160],
+    mid: [119, 180, 132],
+    dark: [90, 149, 105],
+  }),
+  amber: Object.freeze({
+    light: [224, 180, 120],
+    mid: [197, 150, 92],
+    dark: [167, 118, 64],
+  }),
+  rose: Object.freeze({
+    light: [214, 157, 151],
+    mid: [188, 128, 124],
+    dark: [158, 99, 97],
+  }),
+});
+const APPLE_MAPS_NODE_COLOR_ROTATION = Object.freeze(['neutral', 'ocean', 'mint', 'amber', 'rose']);
 const SIDE_NAV_BRAND_MENU_ITEMS = [
   { id: 'profile', label: 'Profile', action: 'brand-menu:page:profile' },
   { id: 'dashboard', label: 'Home', action: 'brand-menu:page:dashboard' },
@@ -51,10 +110,22 @@ const SIDE_NAV_BRAND_MENU_ITEMS = [
   { id: 'settings', label: 'Settings', action: 'brand-menu:page:settings' },
 ];
 const SIDE_NAV_BRAND_LOGOUT_ITEM = { id: 'logout', label: 'Log out', action: 'brand-menu:action:logout' };
+const isMacPlatform = (() => {
+  const userAgentPlatform = safeText(window.navigator?.userAgentData?.platform || '');
+  if (userAgentPlatform) {
+    return /mac/i.test(userAgentPlatform);
+  }
+  const legacyPlatform = safeText(window.navigator?.platform || '');
+  if (legacyPlatform) {
+    return /mac/i.test(legacyPlatform);
+  }
+  return /mac/i.test(safeText(window.navigator?.userAgent || ''));
+})();
 
 const canvas = document.getElementById('figma-tree-canvas');
 const bootErrorElement = document.getElementById('boot-error');
 const loadingScreenElement = document.getElementById('binary-tree-loading');
+const firstOpenSplashElement = document.getElementById('binary-tree-first-open-splash');
 
 if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error('Missing #figma-tree-canvas');
@@ -69,9 +140,8 @@ const glassBackdropContext = glassBackdropCanvas.getContext('2d', { alpha: false
 if (!glassBackdropContext) {
   throw new Error('Unable to initialize offscreen glass backdrop context.');
 }
-const sideNavBrandLogoImage = new Image();
-sideNavBrandLogoImage.decoding = 'async';
-sideNavBrandLogoImage.src = SIDE_NAV_BRAND_LOGO_SRC;
+let launchStateResetInFlight = false;
+const avatarImageAssetCache = new Map();
 
 const state = {
   source: 'member',
@@ -88,6 +158,7 @@ const state = {
   query: '',
   depthFilter: 'all',
   showConnectors: true,
+  pinnedNodeIds: [],
   universe: {
     rootId: 'root',
     depthCap: UNIVERSE_DEPTH_CAP,
@@ -98,11 +169,24 @@ const state = {
   ui: {
     sideNavOpen: true,
     sideNavBrandMenuOpen: false,
-    sideNavCollapseHoverFx: {
-      value: 0,
-      from: 0,
-      to: 0,
-      startedAtMs: performance.now(),
+    sideNavBrandMenuAnchorRect: null,
+    sideNavSearchInputRect: null,
+    sideNavSearchInputOpacity: 0,
+    sideNavSearchDropdownRect: null,
+    sideNavSearchResults: [],
+    sideNavSearchDropdownOpen: false,
+    sideNavSearchActiveIndex: -1,
+    sideNavFavorites: {
+      viewportRect: null,
+      contentWidth: 0,
+      scrollX: 0,
+      dragActive: false,
+      dragPointerId: null,
+      dragStartX: 0,
+      dragStartScrollX: 0,
+      dragStartY: 0,
+      dragMoved: false,
+      tapAction: '',
     },
   },
   layout: null,
@@ -121,6 +205,8 @@ const state = {
     lastX: 0,
     lastY: 0,
   },
+  reverseTrackpadMovement: false,
+  trackpadZoomSensitivity: DEFAULT_TRACKPAD_ZOOM_SENSITIVITY,
   camera: {
     view: {
       x: 0,
@@ -128,6 +214,7 @@ const state = {
       scale: DEFAULT_HOME_SCALE,
     },
     target: null,
+    targetReason: '',
   },
   perf: {
     fps: 0,
@@ -139,11 +226,26 @@ const state = {
     offsetYPx: STARTUP_REVEAL_OFFSET_Y,
     blurPx: STARTUP_REVEAL_BLUR_PX,
     staggerMs: STARTUP_REVEAL_STAGGER_MS,
+    panelBlurPx: STARTUP_PANEL_BLUR_PX,
+    mode: 'full',
+    connectorRevealMode: 'full',
+    skipDotReveal: false,
+    skipConnectorReveal: false,
+    degradedForPerf: false,
+    sampleCount: 0,
+    sampleFrameMsTotal: 0,
   },
   loading: {
     startedAtMs: performance.now(),
     minMs: LOADING_MIN_MS,
     fadeMs: LOADING_FADE_MS,
+  },
+  launchState: {
+    firstTime: false,
+    firstOpenedAt: '',
+    lastOpenedAt: '',
+    checkedAt: '',
+    source: 'uninitialized',
   },
   timeMs: performance.now(),
   selectionFxTracks: Object.create(null),
@@ -174,12 +276,103 @@ function getNowMs() {
   return Number.isFinite(state.timeMs) ? state.timeMs : performance.now();
 }
 
+function prefersReducedMotion() {
+  if (typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function detectStartupRevealMode() {
+  if (prefersReducedMotion()) {
+    return 'lite';
+  }
+  const width = Math.max(1, Math.floor(safeNumber(state.renderSize.width, 1)));
+  const height = Math.max(1, Math.floor(safeNumber(state.renderSize.height, 1)));
+  const dpr = Math.max(1, safeNumber(state.renderSize.dpr, 1));
+  const pixelLoad = width * height * dpr * dpr;
+  const cpuCores = Math.max(0, Math.floor(safeNumber(window.navigator?.hardwareConcurrency, 0)));
+  const memoryGb = Math.max(0, safeNumber(window.navigator?.deviceMemory, 0));
+  const heavyPixels = pixelLoad >= STARTUP_PERF_HEAVY_PIXEL_BUDGET;
+  const constrainedCpu = cpuCores > 0 && cpuCores <= 8;
+  const constrainedMemory = memoryGb > 0 && memoryGb <= 8;
+  return (heavyPixels || constrainedCpu || constrainedMemory) ? 'lite' : 'full';
+}
+
+function configureStartupRevealProfile() {
+  const intro = state.intro;
+  const mode = detectStartupRevealMode();
+  intro.mode = mode;
+  intro.degradedForPerf = false;
+  intro.sampleCount = 0;
+  intro.sampleFrameMsTotal = 0;
+  intro.skipDotReveal = true;
+  intro.skipConnectorReveal = false;
+  intro.connectorRevealMode = mode === 'lite' ? 'lite' : 'full';
+
+  if (mode === 'lite') {
+    intro.durationMs = 620;
+    intro.offsetYPx = 52;
+    intro.blurPx = 0;
+    intro.staggerMs = 26;
+    intro.panelBlurPx = 0;
+    return;
+  }
+
+  intro.durationMs = STARTUP_REVEAL_MS;
+  intro.offsetYPx = STARTUP_REVEAL_OFFSET_Y;
+  intro.blurPx = STARTUP_REVEAL_BLUR_PX;
+  intro.staggerMs = STARTUP_REVEAL_STAGGER_MS;
+  intro.panelBlurPx = STARTUP_PANEL_BLUR_PX;
+}
+
+function adaptStartupRevealForFrameBudget(frameMs) {
+  const intro = state.intro;
+  if (!intro || intro.degradedForPerf || !Number.isFinite(intro.startedAtMs)) {
+    return;
+  }
+  if ((state.timeMs - intro.startedAtMs) > 2200) {
+    return;
+  }
+
+  intro.sampleCount = Math.max(0, Math.floor(safeNumber(intro.sampleCount, 0))) + 1;
+  intro.sampleFrameMsTotal = Math.max(0, safeNumber(intro.sampleFrameMsTotal, 0)) + Math.max(0, safeNumber(frameMs, 0));
+  if (intro.sampleCount < STARTUP_PERF_SAMPLE_MIN_FRAMES) {
+    return;
+  }
+
+  const averageFrameMs = intro.sampleFrameMsTotal / intro.sampleCount;
+  if (averageFrameMs <= STARTUP_PERF_FRAME_BUDGET_MS) {
+    return;
+  }
+
+  intro.degradedForPerf = true;
+  intro.mode = 'adaptive-lite';
+  intro.durationMs = Math.min(safeNumber(intro.durationMs, STARTUP_REVEAL_MS), 620);
+  intro.offsetYPx = Math.min(safeNumber(intro.offsetYPx, STARTUP_REVEAL_OFFSET_Y), 52);
+  intro.blurPx = 0;
+  intro.staggerMs = Math.min(safeNumber(intro.staggerMs, STARTUP_REVEAL_STAGGER_MS), 26);
+  intro.panelBlurPx = 0;
+  intro.connectorRevealMode = 'lite';
+  intro.skipDotReveal = true;
+  intro.skipConnectorReveal = false;
+}
+
 function hideLoadingScreenImmediately() {
   if (!(loadingScreenElement instanceof HTMLElement)) {
     return;
   }
   loadingScreenElement.style.display = 'none';
   loadingScreenElement.classList.remove('is-leaving');
+}
+
+function hideFirstOpenSplashImmediately() {
+  if (!(firstOpenSplashElement instanceof HTMLElement)) {
+    return;
+  }
+  firstOpenSplashElement.style.display = 'none';
+  firstOpenSplashElement.classList.remove('is-visible');
+  firstOpenSplashElement.classList.remove('is-leaving');
 }
 
 async function completeLoadingScreen() {
@@ -318,6 +511,673 @@ function safeNumber(value, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function formatInteger(value, fallback = 0) {
+  const safeValue = Math.max(0, Math.floor(safeNumber(value, fallback)));
+  return safeValue.toLocaleString();
+}
+
+function formatVolumeValue(value, suffix = ' BV') {
+  return `${formatInteger(value, 0)}${suffix}`;
+}
+
+function formatCompactVolumeValue(value) {
+  const safeValue = Math.max(0, safeNumber(value, 0));
+  if (safeValue >= 1000000) {
+    const millions = safeValue / 1000000;
+    const precision = millions >= 10 ? 0 : 1;
+    return `${millions.toFixed(precision)}M BV`;
+  }
+  if (safeValue >= 1000) {
+    const thousands = safeValue / 1000;
+    const precision = thousands >= 100 ? 0 : 1;
+    return `${thousands.toFixed(precision)}k BV`;
+  }
+  return `${Math.round(safeValue)} BV`;
+}
+
+function formatExactVolumeValue(value) {
+  return `${Math.max(0, Math.round(safeNumber(value, 0))).toLocaleString()} BV`;
+}
+
+function measureTextWidth(text, options = {}) {
+  const {
+    size = 12,
+    weight = 500,
+    family = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+  } = options;
+  context.save();
+  context.font = `${weight} ${size}px ${family}`;
+  const width = context.measureText(safeText(text)).width;
+  context.restore();
+  return width;
+}
+
+function resolveAchievementIconKeyFromLabel(label) {
+  const normalized = safeText(label).toLowerCase();
+  if (!normalized || normalized === 'private') {
+    return 'placeholder';
+  }
+  if (normalized.includes('black diamond')) {
+    return 'black-diamond';
+  }
+  if (normalized.includes('blue diamond')) {
+    return 'blue-diamond';
+  }
+  if (normalized.includes('diamond')) {
+    return 'diamond';
+  }
+  if (normalized.includes('double crown')) {
+    return 'double-crown';
+  }
+  if (normalized.includes('royal crown')) {
+    return 'royal-crown';
+  }
+  if (normalized.includes('crown')) {
+    return 'crown';
+  }
+  if (normalized.includes('emerald')) {
+    return 'emerald';
+  }
+  if (normalized.includes('sapphire')) {
+    return 'sapphire';
+  }
+  if (normalized.includes('ruby')) {
+    return 'ruby';
+  }
+  if (normalized.includes('legacy')) {
+    return 'legacy';
+  }
+  if (normalized.includes('infinity') || normalized.includes('achiever')) {
+    return 'infinity';
+  }
+  if (normalized.includes('business')) {
+    return 'business';
+  }
+  if (
+    normalized.includes('personal')
+    || normalized.includes('starter')
+    || normalized.includes('builder')
+  ) {
+    return 'personal';
+  }
+  return 'placeholder';
+}
+
+function resolveNodeDetailsIconPath(rawValue, fallbackLabel = '') {
+  const safeValue = safeText(rawValue);
+  if (!safeValue) {
+    const fallbackKey = resolveAchievementIconKeyFromLabel(fallbackLabel);
+    return `/brand_assets/Icons/Achievements/${fallbackKey}-light.svg`;
+  }
+  if (/^(https?:)?\/\//i.test(safeValue) || safeValue.startsWith('/')) {
+    return safeValue;
+  }
+  if (safeValue.toLowerCase().endsWith('.svg')) {
+    return `/brand_assets/Icons/Achievements/${safeValue}`;
+  }
+  return `/brand_assets/Icons/Achievements/${safeValue}-light.svg`;
+}
+
+function resolveNodeDetailRankAndTitleIcons(node) {
+  const rankLabel = safeText(node?.rank || node?.accountRank || node?.account_rank || '');
+  const rankIconPath = resolveNodeDetailsIconPath(
+    node?.rankIconPath
+      || node?.rank_icon_path
+      || node?.accountRankIconPath
+      || node?.account_rank_icon_path
+      || '',
+    rankLabel,
+  );
+  const rankIconKey = resolveAchievementIconKeyFromLabel(rankLabel);
+  const badges = Array.isArray(node?.badges) ? node.badges : [];
+  const titleCandidates = [
+    safeText(node?.accountTitle || node?.account_title || ''),
+    safeText(node?.title || ''),
+    ...badges.map((badge) => safeText(badge)),
+    rankLabel,
+  ].filter(Boolean);
+  let fallbackTitleKey = 'placeholder';
+  for (const candidate of titleCandidates) {
+    const key = resolveAchievementIconKeyFromLabel(candidate);
+    if (key && key !== rankIconKey) {
+      fallbackTitleKey = key;
+      break;
+    }
+  }
+  if (fallbackTitleKey === 'placeholder' && rankIconKey) {
+    fallbackTitleKey = rankIconKey;
+  }
+  const titleIconPath = resolveNodeDetailsIconPath(
+    node?.titleIconPath
+      || node?.title_icon_path
+      || node?.accountTitleIconPath
+      || node?.account_title_icon_path
+      || node?.accountTitleSecondaryIconPath
+      || node?.account_title_secondary_icon_path
+      || '',
+    fallbackTitleKey,
+  );
+  return [rankIconPath, titleIconPath].filter(Boolean);
+}
+
+function drawImageAssetRect(x, y, width, height, imageUrl) {
+  const asset = resolveAvatarImageAsset(imageUrl);
+  if (!asset || !asset.loaded || asset.error) {
+    return false;
+  }
+  const sourceWidth = Math.max(1, Math.floor(safeNumber(asset.image.naturalWidth, asset.image.width)));
+  const sourceHeight = Math.max(1, Math.floor(safeNumber(asset.image.naturalHeight, asset.image.height)));
+  const drawX = Math.round(safeNumber(x, 0));
+  const drawY = Math.round(safeNumber(y, 0));
+  const drawWidth = Math.max(1, Math.round(safeNumber(width, 1)));
+  const drawHeight = Math.max(1, Math.round(safeNumber(height, 1)));
+  context.save();
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+  context.drawImage(
+    asset.image,
+    0,
+    0,
+    sourceWidth,
+    sourceHeight,
+    drawX,
+    drawY,
+    drawWidth,
+    drawHeight,
+  );
+  context.restore();
+  return true;
+}
+
+function resolveNodeActivityState(node) {
+  const rawStatus = safeText(node?.accountStatus || node?.status || '').toLowerCase();
+  if (!rawStatus) {
+    return false;
+  }
+  if (
+    rawStatus.includes('inactive')
+    || rawStatus.includes('dormant')
+    || rawStatus.includes('pending')
+    || rawStatus.includes('review')
+    || rawStatus.includes('suspend')
+    || rawStatus.includes('disable')
+    || rawStatus.includes('expired')
+  ) {
+    return false;
+  }
+  return (
+    rawStatus.includes('active')
+    || rawStatus.includes('enable')
+    || rawStatus.includes('verified')
+    || rawStatus.includes('good standing')
+  );
+}
+
+function resolveNodeAvatarPhotoUrl(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return '';
+  }
+  const candidates = [
+    node.avatarUrl,
+    node.avatar_url,
+    node.profilePhotoUrl,
+    node.profile_photo_url,
+    node.profileImageUrl,
+    node.profile_image_url,
+    node.profilePicture,
+    node.profile_picture,
+    node.profilePhoto,
+    node.profile_photo,
+    node.photoUrl,
+    node.photo_url,
+    node.imageUrl,
+    node.image_url,
+    node.picture,
+  ];
+  for (const candidate of candidates) {
+    const value = safeText(candidate);
+    if (value) {
+      return value;
+    }
+  }
+  return '';
+}
+
+function resolveNodeCycleCount(nodeInput = null, volumeMetricsInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const directCandidates = [
+    node?.cycles,
+    node?.cycleCount,
+    node?.cycle_count,
+    node?.computedCycles,
+    node?.computed_cycles,
+  ];
+  for (const candidate of directCandidates) {
+    const parsed = Number(candidate);
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return Math.floor(parsed);
+    }
+  }
+  const metrics = volumeMetricsInput && typeof volumeMetricsInput === 'object'
+    ? volumeMetricsInput
+    : {};
+  const leftLeg = Math.max(0, Math.floor(safeNumber(metrics.leftVolume, 0)));
+  const rightLeg = Math.max(0, Math.floor(safeNumber(metrics.rightVolume, 0)));
+  const weakerLeg = Math.min(leftLeg, rightLeg);
+  const strongerLeg = Math.max(leftLeg, rightLeg);
+  const cyclesFromWeakerLeg = Math.floor(weakerLeg / 500);
+  const cyclesFromStrongerLeg = Math.floor(strongerLeg / 1000);
+  return Math.max(0, Math.min(cyclesFromWeakerLeg, cyclesFromStrongerLeg));
+}
+
+function resolveDetailsRelationIconPath(buttonId, mode = 'light') {
+  const safeButtonId = safeText(buttonId).toLowerCase();
+  const safeMode = safeText(mode).toLowerCase();
+  const isLightMode = safeMode !== 'dark';
+  if (safeButtonId === 'parent') {
+    return isLightMode
+      ? '/brand_assets/Icons/UI/Parent-Button-Icon-FIlled-Blue.png'
+      : '/brand_assets/Icons/UI/Parent-Button-Icon-FIlled-White.png';
+  }
+  if (safeButtonId === 'sponsor') {
+    return isLightMode
+      ? '/brand_assets/Icons/UI/Sponsor-Button-Icon-Filled-Blue.png'
+      : '/brand_assets/Icons/UI/Sponsor-Button-Icon-Filled-White.png';
+  }
+  if (safeButtonId === 'perspective') {
+    return isLightMode
+      ? '/brand_assets/Icons/UI/Enter-User-Perspective-Outline-Blue.png'
+      : '/brand_assets/Icons/UI/Enter-User-Perspective-Outline-White.png';
+  }
+  return '';
+}
+
+function isEditableTarget(target = document.activeElement) {
+  if (!target) {
+    return false;
+  }
+  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+    return true;
+  }
+  return Boolean(target instanceof HTMLElement && target.isContentEditable);
+}
+
+function readPinnedNodeIdsFromStorage() {
+  try {
+    const raw = window.localStorage?.getItem(PINNED_NODE_IDS_STORAGE_KEY);
+    const parsed = JSON.parse(raw || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistPinnedNodeIdsToStorage() {
+  try {
+    window.localStorage?.setItem(PINNED_NODE_IDS_STORAGE_KEY, JSON.stringify(state.pinnedNodeIds || []));
+  } catch {
+    // Ignore storage write failures.
+  }
+}
+
+function normalizePinnedNodeIds(idsInput = state.pinnedNodeIds) {
+  const incoming = Array.isArray(idsInput) ? idsInput : [];
+  const deduped = [];
+  const seen = new Set();
+  for (const rawId of incoming) {
+    const safeId = safeText(rawId);
+    if (!safeId || seen.has(safeId)) {
+      continue;
+    }
+    const exists = state.adapter.resolveNodeMetrics(safeId, getGlobalUniverseOptions());
+    if (!exists) {
+      continue;
+    }
+    seen.add(safeId);
+    deduped.push(safeId);
+  }
+  return deduped;
+}
+
+function setPinnedNodeIds(nextIds) {
+  state.pinnedNodeIds = normalizePinnedNodeIds(nextIds);
+  persistPinnedNodeIdsToStorage();
+}
+
+function isNodePinned(nodeId) {
+  const safeNodeId = safeText(nodeId);
+  return Boolean(safeNodeId && Array.isArray(state.pinnedNodeIds) && state.pinnedNodeIds.includes(safeNodeId));
+}
+
+function togglePinnedNode(nodeId = state.selectedId) {
+  const safeNodeId = safeText(nodeId);
+  if (!safeNodeId) {
+    return false;
+  }
+  const current = normalizePinnedNodeIds(state.pinnedNodeIds);
+  const existingIndex = current.indexOf(safeNodeId);
+  if (existingIndex >= 0) {
+    current.splice(existingIndex, 1);
+    setPinnedNodeIds(current);
+    return false;
+  }
+  current.unshift(safeNodeId);
+  setPinnedNodeIds(current.slice(0, 10));
+  return true;
+}
+
+function removePinnedNode(nodeId) {
+  const safeNodeId = safeText(nodeId);
+  if (!safeNodeId) {
+    return;
+  }
+  const current = normalizePinnedNodeIds(state.pinnedNodeIds).filter((id) => id !== safeNodeId);
+  setPinnedNodeIds(current);
+}
+
+function resolveGlobalNodeMetrics(nodeId) {
+  const safeNodeId = safeText(nodeId);
+  if (!safeNodeId) {
+    return null;
+  }
+  return state.adapter.resolveNodeMetrics(safeNodeId, getGlobalUniverseOptions());
+}
+
+function resolveNodeById(nodeId) {
+  return resolveGlobalNodeMetrics(nodeId)?.node || null;
+}
+
+function resolveNodeReferenceLabel(nodeId, fallback = '-') {
+  const node = resolveNodeById(nodeId);
+  if (!node) {
+    return fallback;
+  }
+  const name = safeText(node.name || node.id) || fallback;
+  const username = safeText(node.username || '');
+  if (username) {
+    return `${name} (@${username})`;
+  }
+  return name;
+}
+
+function resolveNodeLegVolumes(nodeId) {
+  const globalMeta = resolveGlobalNodeMetrics(nodeId);
+  const selectedNode = globalMeta?.node || null;
+  const personalVolume = Math.max(0, Math.floor(safeNumber(selectedNode?.volume, 0)));
+  if (!globalMeta) {
+    return {
+      personalVolume,
+      leftVolume: 0,
+      rightVolume: 0,
+      totalVolume: personalVolume,
+    };
+  }
+
+  const selectedPath = safeText(globalMeta.globalPath).toUpperCase();
+  const leftPrefix = `${selectedPath}L`;
+  const rightPrefix = `${selectedPath}R`;
+  const globalNodes = state.adapter.resolveVisibleNodes(getGlobalUniverseOptions());
+  let leftVolume = 0;
+  let rightVolume = 0;
+
+  for (const candidateNode of globalNodes) {
+    const candidatePath = safeText(candidateNode?.path).toUpperCase();
+    const candidateVolume = Math.max(0, Math.floor(safeNumber(candidateNode?.volume, 0)));
+    if (leftPrefix && candidatePath.startsWith(leftPrefix)) {
+      leftVolume += candidateVolume;
+      continue;
+    }
+    if (rightPrefix && candidatePath.startsWith(rightPrefix)) {
+      rightVolume += candidateVolume;
+    }
+  }
+
+  return {
+    personalVolume,
+    leftVolume,
+    rightVolume,
+    totalVolume: personalVolume + leftVolume + rightVolume,
+  };
+}
+
+function resolvePinnedPlaces(limit = 8) {
+  const pinnedIds = normalizePinnedNodeIds(state.pinnedNodeIds).slice(0, Math.max(1, limit));
+  return pinnedIds.map((nodeId) => {
+    const node = resolveNodeById(nodeId);
+    const volumes = resolveNodeLegVolumes(nodeId);
+    return {
+      key: nodeId,
+      nodeId,
+      label: truncateText(safeText(node?.name || nodeId), 18),
+      initials: resolveInitials(safeText(node?.name || nodeId)),
+      subtitle: formatCompactVolumeValue(volumes.totalVolume),
+    };
+  });
+}
+
+function formatCutoffHourMinute(hour24, minute) {
+  const normalizedHour24 = clamp(Number.isFinite(hour24) ? hour24 : 0, 0, 23);
+  const normalizedMinute = clamp(Number.isFinite(minute) ? minute : 0, 0, 59);
+  const period = normalizedHour24 >= 12 ? 'PM' : 'AM';
+  const hour12 = normalizedHour24 % 12 || 12;
+  return `${hour12}:${String(normalizedMinute).padStart(2, '0')} ${period}`;
+}
+
+function getTimeZoneShortLabel(timeZone) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      timeZoneName: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(new Date());
+    return parts.find((part) => part.type === 'timeZoneName')?.value || 'PT';
+  } catch {
+    return 'PT';
+  }
+}
+
+function resolveNextServerCutoffDate(nowDate = new Date()) {
+  const now = nowDate instanceof Date ? nowDate : new Date();
+  const targetWeekday = SERVER_CUTOFF_WEEKDAY;
+  for (let dayOffset = 0; dayOffset <= 8; dayOffset += 1) {
+    const candidate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + dayOffset,
+      SERVER_CUTOFF_HOUR,
+      SERVER_CUTOFF_MINUTE,
+      0,
+      0,
+    );
+    if (candidate.getDay() !== targetWeekday) {
+      continue;
+    }
+    if (candidate.getTime() <= now.getTime()) {
+      continue;
+    }
+    return candidate;
+  }
+  return new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
+}
+
+function formatCountdown(remainingMs) {
+  const totalSeconds = Math.max(0, Math.floor(safeNumber(remainingMs, 0) / 1000));
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (days > 0) {
+    return `${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m`;
+  }
+  return `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+}
+
+function resolveServerCutoffSnapshot(nowDate = new Date()) {
+  const now = nowDate instanceof Date ? nowDate : new Date();
+  const nextCutoff = resolveNextServerCutoffDate(now);
+  const timeZoneShort = getTimeZoneShortLabel(SERVER_CUTOFF_TIMEZONE);
+  const cutoffWeekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const cutoffWeekday = cutoffWeekdays[SERVER_CUTOFF_WEEKDAY] || 'Sat';
+  const cutoffTimeLabel = formatCutoffHourMinute(SERVER_CUTOFF_HOUR, SERVER_CUTOFF_MINUTE);
+  let serverTimeLabel = now.toLocaleString();
+  try {
+    serverTimeLabel = new Intl.DateTimeFormat('en-US', {
+      timeZone: SERVER_CUTOFF_TIMEZONE,
+      weekday: 'short',
+      month: 'short',
+      day: '2-digit',
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+      timeZoneName: 'short',
+    }).format(now);
+  } catch {
+    // Keep local fallback label.
+  }
+
+  return {
+    serverTimeLabel,
+    cutoffLabel: `Cut-off ${cutoffWeekday} ${cutoffTimeLabel} ${timeZoneShort}`,
+    countdownLabel: formatCountdown(nextCutoff.getTime() - now.getTime()),
+  };
+}
+
+function hashUnit(value) {
+  const text = safeText(value);
+  if (!text) {
+    return 0;
+  }
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0) / 4294967295;
+}
+
+function resolveDepthRevealExtraDelay(depth = 0, key = '') {
+  const safeDepth = Math.max(0, Math.floor(safeNumber(depth, 0)));
+  if (safeDepth <= 2) {
+    return 0;
+  }
+  const spread = Math.min(
+    STARTUP_REVEAL_DEPTH_JITTER_CAP_MS,
+    Math.max(0, safeDepth - 2) * STARTUP_REVEAL_DEPTH_JITTER_BASE_MS,
+  );
+  if (!spread) {
+    return 0;
+  }
+  return hashUnit(key) * spread;
+}
+
+function sanitizeTrackpadZoomSensitivity(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return DEFAULT_TRACKPAD_ZOOM_SENSITIVITY;
+  }
+  return clamp(parsed, MIN_TRACKPAD_ZOOM_SENSITIVITY, MAX_TRACKPAD_ZOOM_SENSITIVITY);
+}
+
+function resolveSessionUserId(sessionInput = state.session) {
+  const session = sessionInput && typeof sessionInput === 'object' ? sessionInput : null;
+  const candidate = safeText(
+    session?.id
+    || session?.userId
+    || session?.memberId
+    || session?.member_id
+    || session?.username
+    || session?.email
+    || 'member'
+  );
+  return candidate || 'member';
+}
+
+function consumeMockFirstTimeLaunchOverride() {
+  if (state.source !== 'member') {
+    return false;
+  }
+  if (safeText(state.engineMode?.mode) !== 'mock-js') {
+    return false;
+  }
+  if (state.launchState?.firstTime === true) {
+    return false;
+  }
+
+  const sessionUserId = resolveSessionUserId();
+  const consumedKey = `${MOCK_FIRST_TIME_OVERRIDE_STORAGE_KEY}:${sessionUserId}`;
+  try {
+    const consumed = safeText(window.localStorage?.getItem(consumedKey));
+    if (consumed === '1') {
+      return false;
+    }
+    window.localStorage?.setItem(consumedKey, '1');
+  } catch {
+    // Ignore local-storage failures in test override flow.
+  }
+
+  state.launchState = createDefaultLaunchState({
+    firstTime: true,
+    source: 'mock-first-time-override',
+    checkedAt: new Date().toISOString(),
+  });
+  return true;
+}
+
+function clearMockFirstTimeLaunchOverrideMarker() {
+  const sessionUserId = resolveSessionUserId();
+  if (!sessionUserId) {
+    return;
+  }
+  const consumedKey = `${MOCK_FIRST_TIME_OVERRIDE_STORAGE_KEY}:${sessionUserId}`;
+  try {
+    window.localStorage?.removeItem(consumedKey);
+  } catch {
+    // Ignore local-storage failures in test override flow.
+  }
+}
+
+function isLikelyTrackpadWheelEvent(event) {
+  if (!event) {
+    return false;
+  }
+  const wheelDeltaPixelMode = typeof WheelEvent === 'function'
+    ? WheelEvent.DOM_DELTA_PIXEL
+    : 0;
+  if (event.deltaMode !== wheelDeltaPixelMode) {
+    return false;
+  }
+
+  const absDeltaX = Math.abs(safeNumber(event.deltaX, 0));
+  const absDeltaY = Math.abs(safeNumber(event.deltaY, 0));
+  if (absDeltaX > 0) {
+    return true;
+  }
+  if (absDeltaY === 0) {
+    return false;
+  }
+  if (!Number.isInteger(absDeltaY)) {
+    return true;
+  }
+  if (absDeltaY < 16) {
+    return true;
+  }
+  return absDeltaY % 120 !== 0 && absDeltaY % 100 !== 0;
+}
+
+function isManualWheelZoomModifierPressed(event) {
+  if (!event) {
+    return false;
+  }
+  if (isMacPlatform) {
+    return Boolean(event.metaKey) && !event.ctrlKey;
+  }
+  return Boolean(event.ctrlKey);
+}
+
 function resolveSessionDisplayName() {
   const session = state.session && typeof state.session === 'object' ? state.session : null;
   const firstName = safeText(session?.firstName || session?.first_name || session?.givenName || session?.given_name);
@@ -340,6 +1200,394 @@ function resolveSessionDisplayEmail() {
     return email;
   }
   return state.source === 'admin' ? 'admin@example.com' : 'member@example.com';
+}
+
+function normalizeRgbTriplet(red, green, blue) {
+  return [
+    clamp(Math.round(safeNumber(red, 0)), 0, 255),
+    clamp(Math.round(safeNumber(green, 0)), 0, 255),
+    clamp(Math.round(safeNumber(blue, 0)), 0, 255),
+  ];
+}
+
+function parseHexColorTriplet(rawValue) {
+  const value = safeText(rawValue).replace(/^#/, '');
+  if (!value) {
+    return null;
+  }
+  if (/^[0-9a-f]{3}$/i.test(value)) {
+    const expanded = value.split('').map((part) => `${part}${part}`).join('');
+    return normalizeRgbTriplet(
+      Number.parseInt(expanded.slice(0, 2), 16),
+      Number.parseInt(expanded.slice(2, 4), 16),
+      Number.parseInt(expanded.slice(4, 6), 16),
+    );
+  }
+  if (/^[0-9a-f]{6}$/i.test(value)) {
+    return normalizeRgbTriplet(
+      Number.parseInt(value.slice(0, 2), 16),
+      Number.parseInt(value.slice(2, 4), 16),
+      Number.parseInt(value.slice(4, 6), 16),
+    );
+  }
+  return null;
+}
+
+function parseRgbColorTriplet(rawValue) {
+  const match = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*[\d.]+\s*)?\)$/i.exec(safeText(rawValue));
+  if (!match) {
+    return null;
+  }
+  return normalizeRgbTriplet(match[1], match[2], match[3]);
+}
+
+function buildAvatarPaletteFromColorTriplet(rgbTriplet) {
+  const [baseRed, baseGreen, baseBlue] = normalizeRgbTriplet(
+    rgbTriplet?.[0],
+    rgbTriplet?.[1],
+    rgbTriplet?.[2],
+  );
+  const brighten = (value, amount) => Math.round(value + ((255 - value) * amount));
+  const darken = (value, amount) => Math.round(value * (1 - amount));
+  return {
+    light: normalizeRgbTriplet(
+      brighten(baseRed, 0.34),
+      brighten(baseGreen, 0.34),
+      brighten(baseBlue, 0.34),
+    ),
+    mid: normalizeRgbTriplet(baseRed, baseGreen, baseBlue),
+    dark: normalizeRgbTriplet(
+      darken(baseRed, 0.3),
+      darken(baseGreen, 0.3),
+      darken(baseBlue, 0.3),
+    ),
+  };
+}
+
+function isAvatarPaletteRecord(palette) {
+  if (!palette || typeof palette !== 'object') {
+    return false;
+  }
+  const groups = [palette.light, palette.mid, palette.dark];
+  return groups.every((group) => (
+    Array.isArray(group)
+    && group.length >= 3
+    && group.slice(0, 3).every((value) => Number.isFinite(Number(value)))
+  ));
+}
+
+function resolveSessionAvatarColorTriplet(sessionInput = state.session) {
+  const session = sessionInput && typeof sessionInput === 'object' ? sessionInput : null;
+  if (!session) {
+    return null;
+  }
+
+  const rgbArrayCandidates = [
+    session.avatarColorRgb,
+    session.avatar_color_rgb,
+    session.profileColorRgb,
+    session.profile_color_rgb,
+  ];
+  for (const candidate of rgbArrayCandidates) {
+    if (Array.isArray(candidate) && candidate.length >= 3) {
+      return normalizeRgbTriplet(candidate[0], candidate[1], candidate[2]);
+    }
+  }
+
+  const rgbObjectCandidates = [
+    session.avatarColor,
+    session.avatar_color,
+    session.profileColor,
+    session.profile_color,
+    session.themeColor,
+    session.theme_color,
+    session.brandColor,
+    session.brand_color,
+  ];
+  for (const candidate of rgbObjectCandidates) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+      continue;
+    }
+    const red = candidate.r ?? candidate.red;
+    const green = candidate.g ?? candidate.green;
+    const blue = candidate.b ?? candidate.blue;
+    if ([red, green, blue].every((value) => Number.isFinite(Number(value)))) {
+      return normalizeRgbTriplet(red, green, blue);
+    }
+  }
+
+  const colorStringCandidates = [
+    session.avatarColor,
+    session.avatar_color,
+    session.profileColor,
+    session.profile_color,
+    session.themeColor,
+    session.theme_color,
+    session.brandColor,
+    session.brand_color,
+  ];
+  for (const candidate of colorStringCandidates) {
+    const rawColor = safeText(candidate);
+    if (!rawColor) {
+      continue;
+    }
+    const parsedHex = parseHexColorTriplet(rawColor);
+    if (parsedHex) {
+      return parsedHex;
+    }
+    const parsedRgb = parseRgbColorTriplet(rawColor);
+    if (parsedRgb) {
+      return parsedRgb;
+    }
+  }
+
+  return null;
+}
+
+function resolveSessionAvatarSeed(sessionInput = state.session) {
+  const session = sessionInput && typeof sessionInput === 'object' ? sessionInput : null;
+  const explicitSeed = safeText(session?.avatarSeed || session?.avatar_seed || session?.profileSeed || session?.profile_seed);
+  if (explicitSeed) {
+    return explicitSeed;
+  }
+  return resolveSessionUserId(sessionInput);
+}
+
+function resolveSessionAvatarPalette(sessionInput = state.session) {
+  const session = sessionInput && typeof sessionInput === 'object' ? sessionInput : null;
+  const explicitPalette = (
+    session?.avatarPalette
+    || session?.avatar_palette
+    || session?.profilePalette
+    || session?.profile_palette
+  );
+  if (isAvatarPaletteRecord(explicitPalette)) {
+    return {
+      light: normalizeRgbTriplet(explicitPalette.light[0], explicitPalette.light[1], explicitPalette.light[2]),
+      mid: normalizeRgbTriplet(explicitPalette.mid[0], explicitPalette.mid[1], explicitPalette.mid[2]),
+      dark: normalizeRgbTriplet(explicitPalette.dark[0], explicitPalette.dark[1], explicitPalette.dark[2]),
+    };
+  }
+
+  const colorTriplet = resolveSessionAvatarColorTriplet(sessionInput);
+  if (colorTriplet) {
+    return buildAvatarPaletteFromColorTriplet(colorTriplet);
+  }
+
+  return resolveNodeAvatarPalette(resolveSessionAvatarSeed(sessionInput), { variant: 'ocean' });
+}
+
+function isLikelyAvatarImageUrl(rawUrl) {
+  const url = safeText(rawUrl);
+  if (!url) {
+    return false;
+  }
+  return (
+    /^https?:\/\//i.test(url)
+    || url.startsWith('/')
+    || url.startsWith('data:image/')
+    || url.startsWith('blob:')
+  );
+}
+
+function resolveSessionAvatarPhotoUrl(sessionInput = state.session) {
+  const session = sessionInput && typeof sessionInput === 'object' ? sessionInput : null;
+  if (!session) {
+    return '';
+  }
+  const candidates = [
+    session.avatarUrl,
+    session.avatar_url,
+    session.profilePhotoUrl,
+    session.profile_photo_url,
+    session.profileImageUrl,
+    session.profile_image_url,
+    session.profilePicture,
+    session.profile_picture,
+    session.profilePhoto,
+    session.profile_photo,
+    session.photoUrl,
+    session.photo_url,
+    session.imageUrl,
+    session.image_url,
+    session.picture,
+  ];
+  for (const candidate of candidates) {
+    const safeCandidate = safeText(candidate);
+    if (isLikelyAvatarImageUrl(safeCandidate)) {
+      return safeCandidate;
+    }
+  }
+  return '';
+}
+
+function resolveSessionAvatarNodeIdSet(sessionInput = state.session) {
+  const session = sessionInput && typeof sessionInput === 'object' ? sessionInput : null;
+  const idSet = new Set(['root']);
+  if (!session) {
+    return idSet;
+  }
+  const candidates = [
+    session.id,
+    session.userId,
+    session.user_id,
+    session.memberId,
+    session.member_id,
+    session.nodeId,
+    session.node_id,
+    session.treeNodeId,
+    session.tree_node_id,
+    session.binaryTreeNodeId,
+    session.binary_tree_node_id,
+    session.rootNodeId,
+    session.root_node_id,
+    session.username,
+    session.email,
+  ];
+  for (const candidate of candidates) {
+    const safeCandidate = safeText(candidate).toLowerCase();
+    if (safeCandidate) {
+      idSet.add(safeCandidate);
+    }
+  }
+  return idSet;
+}
+
+function isSessionAvatarNodeId(nodeId, sessionInput = state.session) {
+  const safeNodeId = safeText(nodeId).toLowerCase();
+  if (!safeNodeId) {
+    return false;
+  }
+  return resolveSessionAvatarNodeIdSet(sessionInput).has(safeNodeId);
+}
+
+function toCssUrlValue(rawUrl) {
+  const safeUrl = safeText(rawUrl);
+  if (!safeUrl) {
+    return '';
+  }
+  const escaped = safeUrl.replace(/["\\\n\r]/g, '\\$&');
+  return `url("${escaped}")`;
+}
+
+function resolveSessionAvatarCssBackground(sessionInput = state.session) {
+  const photoUrl = resolveSessionAvatarPhotoUrl(sessionInput);
+  if (photoUrl) {
+    return {
+      image: toCssUrlValue(photoUrl),
+      isPhoto: true,
+    };
+  }
+  const palette = resolveSessionAvatarPalette(sessionInput);
+  return {
+    image: `linear-gradient(140deg, ${colorWithAlpha(palette.light, 1)} 0%, ${colorWithAlpha(palette.mid, 1)} 58%, ${colorWithAlpha(palette.dark, 1)} 100%)`,
+    isPhoto: false,
+  };
+}
+
+function resolveSessionAvatarSignature(sessionInput = state.session) {
+  const photoUrl = resolveSessionAvatarPhotoUrl(sessionInput);
+  if (photoUrl) {
+    return `photo:${photoUrl}`;
+  }
+  const colorTriplet = resolveSessionAvatarColorTriplet(sessionInput);
+  if (colorTriplet) {
+    return `rgb:${colorTriplet.join(',')}`;
+  }
+  return `seed:${resolveSessionAvatarSeed(sessionInput)}`;
+}
+
+function resolveAvatarImageAsset(imageUrl) {
+  const safeUrl = safeText(imageUrl);
+  if (!safeUrl) {
+    return null;
+  }
+  const cached = avatarImageAssetCache.get(safeUrl);
+  if (cached) {
+    return cached;
+  }
+
+  const image = new Image();
+  image.decoding = 'async';
+  const asset = {
+    url: safeUrl,
+    image,
+    loaded: false,
+    error: false,
+  };
+  image.addEventListener('load', () => {
+    asset.loaded = true;
+    asset.error = false;
+  });
+  image.addEventListener('error', () => {
+    asset.error = true;
+  });
+  image.src = safeUrl;
+
+  avatarImageAssetCache.set(safeUrl, asset);
+  if (avatarImageAssetCache.size > 32) {
+    const oldestKey = avatarImageAssetCache.keys().next().value;
+    if (oldestKey && oldestKey !== safeUrl) {
+      avatarImageAssetCache.delete(oldestKey);
+    }
+  }
+  return asset;
+}
+
+function drawImageAvatarCircle(cx, cy, radius, imageUrl) {
+  const asset = resolveAvatarImageAsset(imageUrl);
+  if (!asset || !asset.loaded || asset.error) {
+    return false;
+  }
+  const safeRadius = Math.max(0.2, safeNumber(radius, 0.2));
+  const sourceWidth = Math.max(1, Math.floor(safeNumber(asset.image.naturalWidth, asset.image.width)));
+  const sourceHeight = Math.max(1, Math.floor(safeNumber(asset.image.naturalHeight, asset.image.height)));
+  const sourceSize = Math.max(1, Math.min(sourceWidth, sourceHeight));
+  const sourceX = Math.max(0, Math.floor((sourceWidth - sourceSize) / 2));
+  const sourceY = Math.max(0, Math.floor((sourceHeight - sourceSize) / 2));
+
+  context.save();
+  context.beginPath();
+  context.arc(cx, cy, safeRadius, 0, Math.PI * 2);
+  context.closePath();
+  context.clip();
+  context.drawImage(
+    asset.image,
+    sourceX,
+    sourceY,
+    sourceSize,
+    sourceSize,
+    cx - safeRadius,
+    cy - safeRadius,
+    safeRadius * 2,
+    safeRadius * 2,
+  );
+  context.restore();
+  return true;
+}
+
+function drawResolvedAvatarCircle(cx, cy, radius, nodeId, options = {}) {
+  const safeNodeId = safeText(nodeId);
+  if (isSessionAvatarNodeId(safeNodeId)) {
+    const photoUrl = resolveSessionAvatarPhotoUrl();
+    if (photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
+      const sheen = createNodeAvatarSheen(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), options);
+      context.beginPath();
+      context.arc(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), 0, Math.PI * 2);
+      context.fillStyle = sheen;
+      context.fill();
+      return { usedPhoto: true };
+    }
+    fillNodeAvatarCircle(cx, cy, radius, safeNodeId || resolveSessionAvatarSeed(), {
+      ...options,
+      palette: resolveSessionAvatarPalette(),
+      variant: 'auto',
+    });
+    return { usedPhoto: false };
+  }
+
+  fillNodeAvatarCircle(cx, cy, radius, safeNodeId, options);
+  return { usedPhoto: false };
 }
 
 function resolveProjectionScale(rawScale) {
@@ -591,6 +1839,162 @@ function readSessionSnapshot(storageKey, cookieKey) {
   return parseSessionPayload(readCookieValue(cookieKey));
 }
 
+function createDefaultLaunchState(overrides = {}) {
+  return {
+    firstTime: false,
+    firstOpenedAt: '',
+    lastOpenedAt: '',
+    checkedAt: new Date().toISOString(),
+    source: 'fallback',
+    ...overrides,
+  };
+}
+
+function normalizeMemberBinaryTreeLaunchStatePayload(payload = {}, source = 'server') {
+  return createDefaultLaunchState({
+    firstTime: payload?.firstTime === true,
+    firstOpenedAt: safeText(payload?.firstOpenedAt),
+    lastOpenedAt: safeText(payload?.lastOpenedAt),
+    checkedAt: safeText(payload?.checkedAt) || new Date().toISOString(),
+    source,
+  });
+}
+
+async function fetchMemberBinaryTreeLaunchState(memberSession) {
+  const authToken = safeText(memberSession?.authToken);
+  if (!authToken) {
+    return createDefaultLaunchState({ source: 'missing-auth-token' });
+  }
+
+  try {
+    const response = await fetch('/api/member-auth/binary-tree-next/launch-state', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      return createDefaultLaunchState({
+        source: `http-${response.status}`,
+      });
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    return normalizeMemberBinaryTreeLaunchStatePayload(payload, 'server');
+  } catch {
+    return createDefaultLaunchState({ source: 'network-fallback' });
+  }
+}
+
+async function resetMemberBinaryTreeLaunchStateFromDock() {
+  if (state.source !== 'member') {
+    return;
+  }
+  if (launchStateResetInFlight) {
+    return;
+  }
+
+  const authToken = safeText(state.session?.authToken);
+  if (!authToken) {
+    showBootError('Missing member auth token. Unable to reset Binary Tree intro state.');
+    return;
+  }
+
+  launchStateResetInFlight = true;
+  try {
+    let response = await fetch('/api/member-auth/binary-tree-next/launch-state', {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      cache: 'no-store',
+    });
+
+    // Fallback for environments/proxies that do not forward DELETE.
+    if (response.status === 404 || response.status === 405) {
+      response = await fetch('/api/member-auth/binary-tree-next/launch-state/reset', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        cache: 'no-store',
+      });
+    }
+
+    if (!response.ok) {
+      showBootError(`Unable to reset Binary Tree intro state (HTTP ${response.status}).`);
+      return;
+    }
+
+    clearMockFirstTimeLaunchOverrideMarker();
+    window.location.reload();
+  } catch {
+    showBootError('Unable to reset Binary Tree intro state right now.');
+  } finally {
+    launchStateResetInFlight = false;
+  }
+}
+
+async function waitForFirstOpenSplashContinue() {
+  if (state.source !== 'member' || state.launchState?.firstTime !== true) {
+    hideFirstOpenSplashImmediately();
+    return;
+  }
+  if (!(firstOpenSplashElement instanceof HTMLElement)) {
+    return;
+  }
+
+  firstOpenSplashElement.style.display = 'flex';
+  firstOpenSplashElement.classList.remove('is-leaving');
+  firstOpenSplashElement.classList.remove('is-visible');
+  window.requestAnimationFrame(() => {
+    if (firstOpenSplashElement.style.display !== 'none') {
+      firstOpenSplashElement.classList.add('is-visible');
+    }
+  });
+
+  await new Promise((resolve) => {
+    let settled = false;
+
+    const cleanup = () => {
+      firstOpenSplashElement.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown, true);
+    };
+
+    const finalize = () => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      firstOpenSplashElement.classList.remove('is-visible');
+      firstOpenSplashElement.classList.add('is-leaving');
+      window.setTimeout(() => {
+        firstOpenSplashElement.style.display = 'none';
+        firstOpenSplashElement.classList.remove('is-leaving');
+        cleanup();
+        resolve();
+      }, FIRST_OPEN_SPLASH_FADE_MS);
+    };
+
+    const onPointerDown = (event) => {
+      event.preventDefault();
+      finalize();
+    };
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Enter' || event.key === ' ' || event.code === 'Space') {
+        event.preventDefault();
+        finalize();
+      }
+    };
+
+    firstOpenSplashElement.addEventListener('pointerdown', onPointerDown, { passive: false });
+    window.addEventListener('keydown', onKeyDown, true);
+  });
+}
+
 function resolveAppSource() {
   const params = new URLSearchParams(window.location.search || '');
   const source = safeText(params.get('source')).toLowerCase();
@@ -662,6 +2066,9 @@ async function validateMemberSession(memberSession) {
 async function bootstrapSession() {
   const source = resolveAppSource();
   state.source = source;
+  state.launchState = createDefaultLaunchState({
+    source: source === 'admin' ? 'admin-skip' : 'not-checked',
+  });
 
   if (source === 'admin') {
     const adminSession = readSessionSnapshot(ADMIN_AUTH_STORAGE_KEY, ADMIN_AUTH_COOKIE_KEY);
@@ -680,6 +2087,7 @@ async function bootstrapSession() {
     return false;
   }
   state.session = validation.session;
+  state.launchState = await fetchMemberBinaryTreeLaunchState(validation.session);
   return true;
 }
 
@@ -750,25 +2158,67 @@ function buildMockNodes() {
     'Hunt',
   ];
 
+  const titleByDepth = [
+    'Network Founder',
+    'Regional Director',
+    'Lead Ambassador',
+    'Growth Mentor',
+    'Team Builder',
+    'Field Coach',
+    'Community Guide',
+  ];
+  const badgeCatalog = [
+    'Legacy',
+    'Fast Start',
+    'Builder',
+    'Consistency',
+    'Mentor',
+    'Top Recruiter',
+    'Cycle Closer',
+  ];
+  const accountStatuses = ['Active', 'Pending', 'Review', 'Dormant'];
+
   function nameFromIndex(index) {
     const first = firstNames[index % firstNames.length];
     const last = lastNames[Math.floor(index / firstNames.length) % lastNames.length];
     return `${first} ${last}`;
   }
 
+  function usernameFromName(name, id) {
+    const normalized = safeText(name)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '.')
+      .replace(/^\.+|\.+$/g, '');
+    return `${normalized || 'member'}.${safeText(id).replace(/[^a-z0-9]/gi, '').toLowerCase()}`;
+  }
+
+  function pickBadges(seed, depth) {
+    const first = badgeCatalog[seed % badgeCatalog.length];
+    const second = badgeCatalog[(seed + depth + 2) % badgeCatalog.length];
+    return first === second ? [first] : [first, second];
+  }
+
   const nodes = [];
   let nextId = 1;
 
   const rootId = 'root';
+  const rootName = 'Root Sponsor';
   nodes.push({
     id: rootId,
     parent: '',
     side: '',
-    name: 'Root Sponsor',
+    name: rootName,
+    username: usernameFromName(rootName, rootId),
     role: 'Network Head',
     status: 'active',
+    accountStatus: 'Active',
     rank: 'Legacy',
+    title: titleByDepth[0],
+    badges: ['Legacy', 'Mentor', 'Cycle Closer'],
     volume: 48220,
+    sponsorId: '',
+    sponsorLeg: '',
+    isSpillover: false,
   });
 
   let currentLayer = [{ id: rootId, depth: 0 }];
@@ -799,16 +2249,34 @@ function buildMockNodes() {
         const id = `n-${nextId}`;
         nextId += 1;
         const seed = nextId + (depth * (side === 'left' ? 2 : 3));
+        const name = nameFromIndex(seed);
+        const parentNode = nodes.find((candidate) => candidate.id === parentMeta.id) || null;
+        const fallbackSponsorId = safeText(parentNode?.parent || '');
+        const isSpillover = depth >= 3 && seed % 7 === 0 && Boolean(fallbackSponsorId);
+        const sponsorId = isSpillover ? fallbackSponsorId : parentMeta.id;
+        const title = titleByDepth[Math.min(titleByDepth.length - 1, depth)];
+        const accountStatus = accountStatuses[(seed + depth) % accountStatuses.length];
+        const role = depth <= 2 ? 'Leader' : (depth <= 6 ? 'Distributor' : 'Branch');
+        const status = accountStatus === 'Dormant' ? 'stabilizing' : 'active';
+        const rank = depth <= 1 ? 'Diamond' : (depth <= 3 ? 'Platinum' : (depth <= 5 ? 'Gold' : 'Builder'));
+        const volume = baseVolume + (depth * (side === 'left' ? 18 : 13)) + Math.floor(seed % 11);
 
         nodes.push({
           id,
           parent: parentMeta.id,
           side,
-          name: nameFromIndex(seed),
-          role: depth <= 2 ? 'Leader' : (depth <= 6 ? 'Distributor' : 'Branch'),
-          status: depth % 5 === 0 ? 'stabilizing' : 'active',
-          rank: depth <= 1 ? 'Diamond' : (depth <= 3 ? 'Platinum' : (depth <= 5 ? 'Gold' : 'Builder')),
-          volume: baseVolume + (depth * (side === 'left' ? 18 : 13)),
+          name,
+          username: usernameFromName(name, id),
+          role,
+          status,
+          accountStatus,
+          rank,
+          title,
+          badges: pickBadges(seed, depth),
+          volume,
+          sponsorId,
+          sponsorLeg: side,
+          isSpillover,
         });
 
         nextLayer.push({ id, depth });
@@ -845,7 +2313,8 @@ function updateCanvasSize() {
 
 function resolveLayout(width, height) {
   const edgePad = clamp(Math.round(Math.min(width, height) * 0.022), 20, 28);
-  const sideNavWidth = clamp(Math.round(width * 0.235), 300, 360);
+  const sideNavMaxWidth = Math.max(320, width - (edgePad * 2) - 24);
+  const sideNavWidth = clamp(390, 320, sideNavMaxWidth);
 
   const workspace = {
     x: 0,
@@ -930,7 +2399,7 @@ function drawText(text, x, y, options = {}) {
   const {
     size = 12,
     weight = 500,
-    family = 'Inter, Segoe UI, sans-serif',
+    family = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
     color = '#d5d8e1',
     align = 'left',
     baseline = 'middle',
@@ -983,127 +2452,242 @@ function drawChevronGlyph(centerX, centerY, options = {}) {
   context.restore();
 }
 
-function resolveSideNavCollapseHoverProgress(isHovered, nowMs = getNowMs()) {
-  if (!state.ui || typeof state.ui !== 'object') {
-    state.ui = {};
-  }
-  const existing = state.ui.sideNavCollapseHoverFx && typeof state.ui.sideNavCollapseHoverFx === 'object'
-    ? state.ui.sideNavCollapseHoverFx
-    : {
-      value: 0,
-      from: 0,
-      to: 0,
-      startedAtMs: nowMs,
-    };
-  const nextTarget = isHovered ? 1 : 0;
-  if (existing.to !== nextTarget) {
-    existing.from = safeNumber(existing.value, 0);
-    existing.to = nextTarget;
-    existing.startedAtMs = nowMs;
-  }
-
-  const durationMs = Math.max(1, SIDE_NAV_COLLAPSE_HOVER_MS);
-  const t = clamp((nowMs - safeNumber(existing.startedAtMs, nowMs)) / durationMs, 0, 1);
-  const entering = safeNumber(existing.to, 0) > safeNumber(existing.from, 0);
-  const eased = entering ? easeOutBack(t) : easeOutCubic(t);
-  existing.value = safeNumber(existing.from, 0) + ((safeNumber(existing.to, 0) - safeNumber(existing.from, 0)) * eased);
-  if (t >= 1) {
-    existing.value = safeNumber(existing.to, 0);
-  }
-  state.ui.sideNavCollapseHoverFx = existing;
-  return clamp(existing.value, 0, 1.08);
-}
-
-function drawSideNavCollapseButton({
-  x,
-  y,
-  width,
-  height,
-  hovered = false,
-  direction = 'left',
-}) {
-  const hoverProgress = resolveSideNavCollapseHoverProgress(hovered);
-  const scale = 1 + (hoverProgress * 0.045);
-  const centerX = x + (width / 2);
-  const centerY = y + (height / 2);
-
-  context.save();
-  context.translate(centerX, centerY);
-  context.scale(scale, scale);
-  context.translate(-centerX, -centerY);
-
-  context.save();
-  if (hoverProgress > 0.001) {
-    context.shadowColor = `rgba(92, 101, 119, ${(0.08 + (hoverProgress * 0.13)).toFixed(3)})`;
-    context.shadowBlur = 8 + (hoverProgress * 8);
-    context.shadowOffsetY = 2 + (hoverProgress * 2);
-  }
-  fillRoundedRect(context, x, y, width, height, 14, '#FFFFFF');
-  context.restore();
-  if (hoverProgress > 0.001) {
-    context.save();
-    context.globalAlpha = Math.min(1, hoverProgress * 0.9);
-    fillRoundedRect(context, x, y, width, height, 14, '#F3F4F6');
-    context.restore();
-  }
-
-  const strokeColor = hoverProgress > 0.28 ? '#DCDDE2' : '#E2E4E8';
-  strokeRoundedRect(context, x + 0.5, y + 0.5, width - 1, height - 1, 14, strokeColor, 1);
-
-  const iconGlyph = direction === 'right' ? SIDE_NAV_COLLAPSE_ICON_RIGHT_GLYPH : SIDE_NAV_COLLAPSE_ICON_LEFT_GLYPH;
-  const iconColor = hoverProgress > 0.24 ? '#3E4554' : '#596172';
-  drawText(iconGlyph, centerX, centerY + 0.5, {
-    size: Math.floor(17 + (hoverProgress * 1.6)),
-    weight: 500,
+function drawSearchGlyph(centerX, centerY, options = {}) {
+  const {
+    color = '#404652',
+    size = 20,
+    weight = 400,
+  } = options;
+  drawText(String.fromCodePoint(0xE8B6), centerX, centerY, {
+    size,
+    weight,
     family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
-    color: iconColor,
+    color,
     align: 'center',
   });
+}
 
+function drawFallbackFamilyHistoryGlyph(centerX, centerY, size = 18, color = '#077AFF') {
+  const safeSize = Math.max(12, safeNumber(size, 18));
+  const nodeRadius = Math.max(1.8, safeSize * 0.12);
+  const leftX = centerX - (safeSize * 0.22);
+  const rightX = centerX + (safeSize * 0.22);
+  const topY = centerY - (safeSize * 0.2);
+  const trunkY = centerY + (safeSize * 0.05);
+  const bottomY = centerY + (safeSize * 0.24);
+  context.save();
+  context.strokeStyle = color;
+  context.fillStyle = color;
+  context.lineWidth = Math.max(1.3, safeSize * 0.07);
+  context.lineCap = 'round';
+  context.beginPath();
+  context.moveTo(leftX, topY + nodeRadius);
+  context.lineTo(leftX, trunkY);
+  context.lineTo(rightX, trunkY);
+  context.lineTo(rightX, topY + nodeRadius);
+  context.moveTo(centerX, trunkY);
+  context.lineTo(centerX, bottomY - nodeRadius);
+  context.stroke();
+  context.beginPath();
+  context.arc(leftX, topY, nodeRadius, 0, Math.PI * 2);
+  context.arc(rightX, topY, nodeRadius, 0, Math.PI * 2);
+  context.arc(centerX, bottomY, nodeRadius, 0, Math.PI * 2);
+  context.fill();
   context.restore();
 }
 
-function drawSideNavBrandLogo(x, y, width, height) {
-  const imageReady = (
-    sideNavBrandLogoImage instanceof HTMLImageElement
-    && sideNavBrandLogoImage.complete
-    && sideNavBrandLogoImage.naturalWidth > 0
-    && sideNavBrandLogoImage.naturalHeight > 0
-  );
-  if (!imageReady) {
-    drawText('Premiere Life', x, y + (height / 2) + 0.5, {
-      size: 14,
-      weight: 600,
-      color: '#2f3441',
-    });
+function drawFallbackPersonAddGlyph(centerX, centerY, size = 18, color = '#077AFF') {
+  const safeSize = Math.max(12, safeNumber(size, 18));
+  const headRadius = Math.max(1.8, safeSize * 0.12);
+  const headX = centerX - (safeSize * 0.14);
+  const headY = centerY - (safeSize * 0.2);
+  const shouldersY = centerY + (safeSize * 0.06);
+  const plusX = centerX + (safeSize * 0.2);
+  const plusY = centerY - (safeSize * 0.03);
+  const plusHalf = safeSize * 0.12;
+  context.save();
+  context.fillStyle = color;
+  context.strokeStyle = color;
+  context.lineWidth = Math.max(1.3, safeSize * 0.075);
+  context.lineCap = 'round';
+  context.beginPath();
+  context.arc(headX, headY, headRadius, 0, Math.PI * 2);
+  context.fill();
+  context.beginPath();
+  context.moveTo(headX - (safeSize * 0.2), shouldersY + (safeSize * 0.18));
+  context.quadraticCurveTo(headX, shouldersY - (safeSize * 0.08), headX + (safeSize * 0.2), shouldersY + (safeSize * 0.18));
+  context.lineTo(headX + (safeSize * 0.2), shouldersY + (safeSize * 0.28));
+  context.lineTo(headX - (safeSize * 0.2), shouldersY + (safeSize * 0.28));
+  context.closePath();
+  context.fill();
+  context.beginPath();
+  context.moveTo(plusX - plusHalf, plusY);
+  context.lineTo(plusX + plusHalf, plusY);
+  context.moveTo(plusX, plusY - plusHalf);
+  context.lineTo(plusX, plusY + plusHalf);
+  context.stroke();
+  context.restore();
+}
+
+function drawMaterialButtonIcon(iconName, centerX, centerY, options = {}) {
+  const {
+    size = 18,
+    weight = 500,
+    color = '#077AFF',
+    fallbackGlyph = null,
+    fill = 1,
+  } = options;
+  const safeName = safeText(iconName);
+  context.save();
+  context.font = `${weight} ${size}px "Material Symbols Outlined", "Segoe UI Symbol", sans-serif`;
+  const measuredWidth = context.measureText(safeName).width;
+  const looksLikeLigature = measuredWidth > 0 && measuredWidth <= (size * 1.8);
+  context.restore();
+  if (looksLikeLigature) {
+    context.save();
+    context.font = `${weight} ${size}px "Material Symbols Outlined", "Segoe UI Symbol", sans-serif`;
+    try {
+      // Use filled Material Symbols when canvas supports variation settings.
+      context.fontVariationSettings = `"FILL" ${Math.max(0, Math.min(1, safeNumber(fill, 1)))}, "wght" ${Math.max(100, Math.min(700, Math.round(safeNumber(weight, 500))))}, "GRAD" 0, "opsz" ${Math.max(20, Math.round(safeNumber(size, 18)))}`;
+    } catch {
+      // Ignore unsupported canvas font variation settings.
+    }
+    context.fillStyle = color;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(safeName, centerX, centerY);
+    context.restore();
     return;
   }
-
-  const sourceRatio = sideNavBrandLogoImage.naturalWidth / sideNavBrandLogoImage.naturalHeight;
-  const targetRatio = width / Math.max(1, height);
-  let drawWidth = width;
-  let drawHeight = height;
-  if (targetRatio > sourceRatio) {
-    drawHeight = height;
-    drawWidth = drawHeight * sourceRatio;
-  } else {
-    drawWidth = width;
-    drawHeight = drawWidth / sourceRatio;
+  if (typeof fallbackGlyph === 'function') {
+    fallbackGlyph(centerX, centerY, size, color);
   }
+}
 
-  const drawX = x;
-  const drawY = y + ((height - drawHeight) * 0.5);
-  const dpr = Math.max(1, safeNumber(state.renderSize?.dpr, 1));
-  const alignedX = Math.round(drawX * dpr) / dpr;
-  const alignedY = Math.round(drawY * dpr) / dpr;
-  const alignedWidth = Math.max(1 / dpr, Math.round(drawWidth * dpr) / dpr);
-  const alignedHeight = Math.max(1 / dpr, Math.round(drawHeight * dpr) / dpr);
+function colorWithAlpha(rgbTriplet = [0, 0, 0], alpha = 1) {
+  const [r, g, b] = Array.isArray(rgbTriplet) ? rgbTriplet : [0, 0, 0];
+  return `rgba(${Math.round(clamp(safeNumber(r, 0), 0, 255))}, ${Math.round(clamp(safeNumber(g, 0), 0, 255))}, ${Math.round(clamp(safeNumber(b, 0), 0, 255))}, ${clamp(safeNumber(alpha, 1), 0, 1).toFixed(3)})`;
+}
+
+function resolveNodeAvatarPalette(nodeId = '', options = {}) {
+  if (isAvatarPaletteRecord(options?.palette)) {
+    const palette = options.palette;
+    return {
+      light: normalizeRgbTriplet(palette.light[0], palette.light[1], palette.light[2]),
+      mid: normalizeRgbTriplet(palette.mid[0], palette.mid[1], palette.mid[2]),
+      dark: normalizeRgbTriplet(palette.dark[0], palette.dark[1], palette.dark[2]),
+    };
+  }
+  const variant = safeText(options.variant).toLowerCase();
+  if (variant === 'root') {
+    return APPLE_MAPS_NODE_PALETTES.root;
+  }
+  if (variant === 'accent') {
+    return APPLE_MAPS_NODE_PALETTES.accent;
+  }
+  if (variant === 'neutral') {
+    return APPLE_MAPS_NODE_PALETTES.neutral;
+  }
+  if (variant && APPLE_MAPS_NODE_PALETTES[variant]) {
+    return APPLE_MAPS_NODE_PALETTES[variant];
+  }
+  const safeId = safeText(nodeId).toLowerCase();
+  if (safeId === 'root') {
+    return APPLE_MAPS_NODE_PALETTES.root;
+  }
+  if (!safeId) {
+    return APPLE_MAPS_NODE_PALETTES.neutral;
+  }
+  const paletteKeys = APPLE_MAPS_NODE_COLOR_ROTATION;
+  const paletteIndex = Math.max(0, Math.min(
+    paletteKeys.length - 1,
+    Math.floor(hashUnit(safeId) * paletteKeys.length),
+  ));
+  const paletteKey = paletteKeys[paletteIndex];
+  return APPLE_MAPS_NODE_PALETTES[paletteKey] || APPLE_MAPS_NODE_PALETTES.neutral;
+}
+
+function createNodeAvatarGradient(cx, cy, radius, nodeId, options = {}) {
+  const safeRadius = Math.max(1, safeNumber(radius, 1));
+  const alpha = clamp(safeNumber(options.alpha, 0.98), 0, 1);
+  const palette = resolveNodeAvatarPalette(nodeId, options);
+  const gradient = context.createLinearGradient(
+    cx - (safeRadius * 0.58),
+    cy - (safeRadius * 0.62),
+    cx + (safeRadius * 0.74),
+    cy + (safeRadius * 0.76),
+  );
+  gradient.addColorStop(0, colorWithAlpha(palette.light, alpha));
+  gradient.addColorStop(0.56, colorWithAlpha(palette.mid, alpha));
+  gradient.addColorStop(1, colorWithAlpha(palette.dark, alpha));
+  return gradient;
+}
+
+function createNodeAvatarSheen(cx, cy, radius, options = {}) {
+  const safeRadius = Math.max(1, safeNumber(radius, 1));
+  const alpha = clamp(safeNumber(options.alpha, 0.98), 0, 1);
+  const sheenStrength = clamp(safeNumber(options.sheenAlpha, 0.18), 0, 1) * alpha;
+  const gradient = context.createRadialGradient(
+    cx - (safeRadius * 0.34),
+    cy - (safeRadius * 0.42),
+    Math.max(1, safeRadius * 0.08),
+    cx - (safeRadius * 0.24),
+    cy - (safeRadius * 0.32),
+    safeRadius,
+  );
+  gradient.addColorStop(0, `rgba(255, 255, 255, ${sheenStrength.toFixed(3)})`);
+  gradient.addColorStop(0.58, `rgba(255, 255, 255, ${(sheenStrength * 0.36).toFixed(3)})`);
+  gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  return gradient;
+}
+
+function fillNodeAvatarCircle(cx, cy, radius, nodeId, options = {}) {
+  const safeRadius = Math.max(0.2, safeNumber(radius, 0.2));
+  const gradient = createNodeAvatarGradient(cx, cy, safeRadius, nodeId, options);
+  context.beginPath();
+  context.arc(cx, cy, safeRadius, 0, Math.PI * 2);
+  context.fillStyle = gradient;
+  context.fill();
+
+  const sheen = createNodeAvatarSheen(cx, cy, safeRadius, options);
+  context.beginPath();
+  context.arc(cx, cy, safeRadius, 0, Math.PI * 2);
+  context.fillStyle = sheen;
+  context.fill();
+}
+
+function drawFavoriteNodeAvatar(cx, cy, radius, nodeId, initials, hovered = false) {
+  const safeRadius = Math.max(14, safeNumber(radius, 0));
+  const iconRadius = hovered ? (safeRadius * 1.03) : safeRadius;
+  const safeNodeId = safeText(nodeId);
+  const isActive = safeNodeId === safeText(state.selectedId);
 
   context.save();
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
-  context.drawImage(sideNavBrandLogoImage, alignedX, alignedY, alignedWidth, alignedHeight);
+  context.shadowColor = hovered ? 'rgba(57, 66, 84, 0.24)' : 'rgba(57, 66, 84, 0.16)';
+  context.shadowBlur = hovered ? 16 : 12;
+  context.shadowOffsetY = hovered ? 6 : 4;
+  const avatarRender = drawResolvedAvatarCircle(cx, cy, iconRadius, safeNodeId, {
+    variant: 'auto',
+    alpha: 0.98,
+    sheenAlpha: hovered ? 0.22 : 0.18,
+  });
+  if (isActive) {
+    context.beginPath();
+    context.arc(cx, cy, Math.max(1, iconRadius - 1), 0, Math.PI * 2);
+    context.lineWidth = 2;
+    context.strokeStyle = '#FFFFFF';
+    context.stroke();
+  }
   context.restore();
+
+  if (!avatarRender.usedPhoto) {
+    drawText(initials, cx, cy + 0.5, {
+      size: Math.max(11, Math.floor(iconRadius * 0.54)),
+      weight: 700,
+      color: '#F7FAFF',
+      align: 'center',
+    });
+  }
 }
 
 function registerButton({ id, x, y, width, height, action, rounded = true }) {
@@ -1151,6 +2735,104 @@ function pointInsideActiveSideNav(pointX, pointY) {
     return false;
   }
   return pointInsideRect(pointX, pointY, state.layout?.sideNav);
+}
+
+function getSideNavFavoritesState() {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  if (!state.ui.sideNavFavorites || typeof state.ui.sideNavFavorites !== 'object') {
+    state.ui.sideNavFavorites = {
+      viewportRect: null,
+      contentWidth: 0,
+      scrollX: 0,
+      dragActive: false,
+      dragPointerId: null,
+      dragStartX: 0,
+      dragStartScrollX: 0,
+      dragStartY: 0,
+      dragMoved: false,
+      tapAction: '',
+    };
+  }
+  return state.ui.sideNavFavorites;
+}
+
+function pointInsideFavoritesCarousel(pointX, pointY) {
+  if (!state.ui.sideNavOpen) {
+    return false;
+  }
+  const favorites = getSideNavFavoritesState();
+  return pointInsideRect(pointX, pointY, favorites.viewportRect);
+}
+
+function clampFavoritesScroll(value) {
+  const favorites = getSideNavFavoritesState();
+  const maxScroll = Math.max(0, safeNumber(favorites.contentWidth, 0) - safeNumber(favorites.viewportRect?.width, 0));
+  return clamp(safeNumber(value, 0), 0, maxScroll);
+}
+
+function setFavoritesScroll(nextScroll) {
+  const favorites = getSideNavFavoritesState();
+  favorites.scrollX = clampFavoritesScroll(nextScroll);
+}
+
+function scrollFavoritesBy(delta) {
+  const favorites = getSideNavFavoritesState();
+  setFavoritesScroll(safeNumber(favorites.scrollX, 0) + safeNumber(delta, 0));
+}
+
+function beginFavoritesCarouselDrag(pointerId, pointerX, pointerY = 0, tapAction = '') {
+  const favorites = getSideNavFavoritesState();
+  favorites.dragActive = true;
+  favorites.dragPointerId = pointerId;
+  favorites.dragStartX = safeNumber(pointerX, 0);
+  favorites.dragStartY = safeNumber(pointerY, 0);
+  favorites.dragStartScrollX = safeNumber(favorites.scrollX, 0);
+  favorites.dragMoved = false;
+  favorites.tapAction = safeText(tapAction);
+}
+
+function updateFavoritesCarouselDrag(pointerId, pointerX, pointerY = 0) {
+  const favorites = getSideNavFavoritesState();
+  if (!favorites.dragActive || pointerId !== favorites.dragPointerId) {
+    return false;
+  }
+  const deltaX = safeNumber(pointerX, 0) - safeNumber(favorites.dragStartX, 0);
+  const deltaY = safeNumber(pointerY, 0) - safeNumber(favorites.dragStartY, 0);
+  setFavoritesScroll(safeNumber(favorites.dragStartScrollX, 0) - deltaX);
+  if (!favorites.dragMoved && (Math.abs(deltaX) >= 6 || Math.abs(deltaY) >= 6)) {
+    favorites.dragMoved = true;
+  }
+  return true;
+}
+
+function stopFavoritesCarouselDrag(pointerId = null) {
+  const favorites = getSideNavFavoritesState();
+  if (!favorites.dragActive) {
+    return;
+  }
+  if (pointerId !== null && pointerId !== favorites.dragPointerId) {
+    return;
+  }
+  favorites.dragActive = false;
+  favorites.dragPointerId = null;
+  favorites.dragStartY = 0;
+  favorites.dragMoved = false;
+  favorites.tapAction = '';
+  if (!state.drag.active) {
+    canvas.classList.remove('dragging');
+  }
+}
+
+function resolveFavoritesCarouselReleaseAction(pointerId) {
+  const favorites = getSideNavFavoritesState();
+  if (!favorites.dragActive || pointerId !== favorites.dragPointerId) {
+    return '';
+  }
+  const action = favorites.dragMoved ? '' : safeText(favorites.tapAction);
+  stopFavoritesCarouselDrag(pointerId);
+  return action;
 }
 
 function findProjectedNodeAt(pointX, pointY) {
@@ -1361,6 +3043,934 @@ function drawSmallButton({
   });
 }
 
+function resolveSearchResultScore(node, queryLower) {
+  const safeQuery = safeText(queryLower).toLowerCase();
+  if (!safeQuery) {
+    return 0;
+  }
+
+  const nodeId = safeText(node?.id).toLowerCase();
+  const name = safeText(node?.name).toLowerCase();
+  const username = safeText(node?.username).toLowerCase();
+  const rank = safeText(node?.rank).toLowerCase();
+  const title = safeText(node?.title).toLowerCase();
+
+  let score = 0;
+  if (nodeId === safeQuery) {
+    score += 180;
+  } else if (nodeId.startsWith(safeQuery)) {
+    score += 86;
+  } else if (nodeId.includes(safeQuery)) {
+    score += 38;
+  }
+
+  if (username === safeQuery) {
+    score += 170;
+  } else if (username.startsWith(safeQuery)) {
+    score += 120;
+  } else if (username.includes(safeQuery)) {
+    score += 54;
+  }
+
+  if (name === safeQuery) {
+    score += 160;
+  } else if (name.startsWith(safeQuery)) {
+    score += 112;
+  } else if (name.includes(safeQuery)) {
+    score += 52;
+  }
+
+  if (rank.startsWith(safeQuery)) {
+    score += 22;
+  } else if (rank.includes(safeQuery)) {
+    score += 12;
+  }
+
+  if (title.startsWith(safeQuery)) {
+    score += 18;
+  } else if (title.includes(safeQuery)) {
+    score += 10;
+  }
+
+  return score;
+}
+
+function resolveNodeAvatarCssGradient(nodeId) {
+  const safeNodeId = safeText(nodeId);
+  const palette = isSessionAvatarNodeId(safeNodeId)
+    ? resolveSessionAvatarPalette()
+    : resolveNodeAvatarPalette(safeNodeId, {
+      variant: safeNodeId.toLowerCase() === 'root' ? 'root' : 'auto',
+    });
+  return resolveCssGradientFromPalette(palette);
+}
+
+function resolveAvatarCssBackgroundForNode(nodeId) {
+  const safeNodeId = safeText(nodeId);
+  if (isSessionAvatarNodeId(safeNodeId)) {
+    return resolveSessionAvatarCssBackground();
+  }
+  return {
+    image: resolveNodeAvatarCssGradient(safeNodeId),
+    isPhoto: false,
+  };
+}
+
+function resolveCssGradientFromPalette(palette) {
+  const safePalette = isAvatarPaletteRecord(palette)
+    ? {
+      light: normalizeRgbTriplet(palette.light[0], palette.light[1], palette.light[2]),
+      mid: normalizeRgbTriplet(palette.mid[0], palette.mid[1], palette.mid[2]),
+      dark: normalizeRgbTriplet(palette.dark[0], palette.dark[1], palette.dark[2]),
+    }
+    : resolveNodeAvatarPalette('neutral', { variant: 'neutral' });
+  return `linear-gradient(140deg, ${colorWithAlpha(safePalette.light, 1)} 0%, ${colorWithAlpha(safePalette.mid, 1)} 58%, ${colorWithAlpha(safePalette.dark, 1)} 100%)`;
+}
+
+function resolveSearchResultsForQuery(query, limit = SIDE_NAV_SEARCH_RESULT_MAX) {
+  const safeQuery = safeText(query).trim();
+  const queryLower = safeQuery.toLowerCase();
+  if (!queryLower) {
+    return [];
+  }
+
+  const matches = state.adapter.resolveVisibleNodes({
+    ...getUniverseOptions(),
+    query: queryLower,
+    depth: 'all',
+  });
+  if (!Array.isArray(matches) || !matches.length) {
+    return [];
+  }
+
+  const ranked = [];
+  for (const candidate of matches) {
+    const nodeId = safeText(candidate?.id);
+    if (!nodeId) {
+      continue;
+    }
+    const name = safeText(candidate?.name || nodeId) || nodeId;
+    const username = safeText(candidate?.username);
+    const rank = safeText(candidate?.rank);
+    const title = safeText(candidate?.title);
+    const subtitleParts = [];
+    if (username) {
+      subtitleParts.push(`@${username}`);
+    }
+    if (rank) {
+      subtitleParts.push(rank);
+    }
+    if (!subtitleParts.length && title) {
+      subtitleParts.push(title);
+    }
+    if (!subtitleParts.length) {
+      subtitleParts.push(`ID: ${nodeId}`);
+    }
+    ranked.push({
+      id: nodeId,
+      name,
+      initials: resolveInitials(name),
+      username,
+      rank,
+      title,
+      subtitle: subtitleParts.join(' · '),
+      depth: Math.max(0, Math.floor(safeNumber(candidate?.depth, 0))),
+      score: resolveSearchResultScore(candidate, queryLower),
+    });
+  }
+
+  ranked.sort((left, right) => {
+    if (right.score !== left.score) {
+      return right.score - left.score;
+    }
+    if (left.depth !== right.depth) {
+      return left.depth - right.depth;
+    }
+    return safeText(left.name).localeCompare(safeText(right.name));
+  });
+
+  return ranked.slice(0, Math.max(1, limit));
+}
+
+function closeSearchDropdown() {
+  state.ui.sideNavSearchDropdownOpen = false;
+  state.ui.sideNavSearchActiveIndex = -1;
+}
+
+function refreshSearchResults(options = {}) {
+  const {
+    openDropdown = false,
+    preserveActive = false,
+  } = options;
+  const safeQuery = safeText(state.query).trim();
+  const previousActive = preserveActive
+    ? safeText(state.ui.sideNavSearchResults?.[state.ui.sideNavSearchActiveIndex]?.id)
+    : '';
+  const nextResults = resolveSearchResultsForQuery(safeQuery);
+  state.ui.sideNavSearchResults = nextResults;
+
+  if (!safeQuery || !nextResults.length) {
+    closeSearchDropdown();
+    return;
+  }
+
+  if (previousActive) {
+    const previousIndex = nextResults.findIndex((entry) => safeText(entry.id) === previousActive);
+    state.ui.sideNavSearchActiveIndex = previousIndex >= 0 ? previousIndex : 0;
+  } else {
+    const currentIndex = Math.floor(safeNumber(state.ui.sideNavSearchActiveIndex, -1));
+    state.ui.sideNavSearchActiveIndex = (
+      currentIndex >= 0 && currentIndex < nextResults.length
+    )
+      ? currentIndex
+      : 0;
+  }
+
+  if (openDropdown) {
+    state.ui.sideNavSearchDropdownOpen = true;
+  }
+}
+
+function moveSearchActiveIndex(step) {
+  const results = Array.isArray(state.ui.sideNavSearchResults) ? state.ui.sideNavSearchResults : [];
+  if (!results.length) {
+    return false;
+  }
+  const safeStep = Math.sign(safeNumber(step, 0)) || 1;
+  const current = Math.floor(safeNumber(state.ui.sideNavSearchActiveIndex, -1));
+  const seed = current < 0 ? (safeStep > 0 ? -1 : 0) : current;
+  const nextIndex = (seed + safeStep + results.length) % results.length;
+  state.ui.sideNavSearchActiveIndex = nextIndex;
+  state.ui.sideNavSearchDropdownOpen = true;
+  return true;
+}
+
+function focusSearchResultById(nodeId, animated = true) {
+  const targetNodeId = safeText(nodeId);
+  if (!targetNodeId) {
+    return false;
+  }
+  const focused = focusNode(targetNodeId, 30, animated);
+  if (!focused) {
+    return false;
+  }
+
+  const result = (Array.isArray(state.ui.sideNavSearchResults) ? state.ui.sideNavSearchResults : [])
+    .find((entry) => safeText(entry.id) === targetNodeId);
+  if (result) {
+    state.query = safeText(result.username || result.name || targetNodeId);
+  }
+  closeSearchDropdown();
+  return true;
+}
+
+function focusFirstSearchResult(animated = true) {
+  if (!Array.isArray(state.ui.sideNavSearchResults) || !state.ui.sideNavSearchResults.length) {
+    refreshSearchResults({ openDropdown: false, preserveActive: false });
+  }
+  const results = Array.isArray(state.ui.sideNavSearchResults) ? state.ui.sideNavSearchResults : [];
+  if (!results.length) {
+    return false;
+  }
+  const activeIndex = clamp(
+    Math.floor(safeNumber(state.ui.sideNavSearchActiveIndex, 0)),
+    0,
+    Math.max(0, results.length - 1),
+  );
+  const target = results[activeIndex] || results[0];
+  return focusSearchResultById(target.id, animated);
+}
+
+function ensureSideNavSearchDropdown() {
+  let dropdown = document.getElementById(SIDE_NAV_SEARCH_DROPDOWN_ID);
+  if (dropdown instanceof HTMLDivElement) {
+    return dropdown;
+  }
+
+  dropdown = document.createElement('div');
+  dropdown.id = SIDE_NAV_SEARCH_DROPDOWN_ID;
+  dropdown.style.position = 'fixed';
+  dropdown.style.left = '0px';
+  dropdown.style.top = '0px';
+  dropdown.style.width = '0px';
+  dropdown.style.maxHeight = '264px';
+  dropdown.style.overflowY = 'auto';
+  dropdown.style.overflowX = 'hidden';
+  dropdown.style.padding = '6px';
+  dropdown.style.boxSizing = 'border-box';
+  dropdown.style.borderRadius = '16px';
+  dropdown.style.border = '1px solid #DEE3EC';
+  dropdown.style.background = '#FFFFFF';
+  dropdown.style.boxShadow = '0 14px 28px rgba(46, 57, 77, 0.18), 0 4px 10px rgba(46, 57, 77, 0.12)';
+  dropdown.style.backdropFilter = 'blur(6px)';
+  dropdown.style.webkitBackdropFilter = 'blur(6px)';
+  dropdown.style.zIndex = '24';
+  dropdown.style.display = 'none';
+  dropdown.style.opacity = '0';
+
+  dropdown.addEventListener('mousedown', (event) => {
+    event.preventDefault();
+  });
+  dropdown.addEventListener('mousemove', (event) => {
+    const target = event.target instanceof Element
+      ? event.target.closest('button[data-search-node-id]')
+      : null;
+    if (!(target instanceof HTMLButtonElement)) {
+      return;
+    }
+    const index = Math.floor(safeNumber(target.dataset.searchIndex, -1));
+    if (index >= 0) {
+      state.ui.sideNavSearchActiveIndex = index;
+    }
+  });
+  dropdown.addEventListener('click', (event) => {
+    const target = event.target instanceof Element
+      ? event.target.closest('button[data-search-node-id]')
+      : null;
+    if (!(target instanceof HTMLButtonElement)) {
+      return;
+    }
+    const nodeId = safeText(target.dataset.searchNodeId);
+    if (!nodeId) {
+      return;
+    }
+    if (focusSearchResultById(nodeId, true)) {
+      const input = ensureSideNavSearchInput();
+      input.value = state.query;
+      input.blur();
+    }
+  });
+
+  document.body.appendChild(dropdown);
+  return dropdown;
+}
+
+function resolveSideNavProfileMenuIconSpec(itemId) {
+  const safeItemId = safeText(itemId);
+  if (safeItemId === 'profile') {
+    return {
+      iconName: 'account_circle',
+      iconSizePx: 15,
+      iconGlyph: String.fromCodePoint(0xE853),
+      palette: buildAvatarPaletteFromColorTriplet([74, 126, 236]), // Blue
+    };
+  }
+  if (safeItemId === 'dashboard') {
+    return {
+      iconName: 'home',
+      iconSizePx: 14,
+      iconGlyph: String.fromCodePoint(0xE88A),
+      palette: buildAvatarPaletteFromColorTriplet([78, 176, 111]), // Green
+    };
+  }
+  if (safeItemId === 'my-store') {
+    return {
+      iconName: 'local_mall',
+      iconSizePx: 14,
+      iconGlyph: String.fromCodePoint(0xE54C),
+      palette: buildAvatarPaletteFromColorTriplet([137, 96, 206]), // Purple
+    };
+  }
+  if (safeItemId === 'settings') {
+    return {
+      iconName: 'settings',
+      iconSizePx: 14,
+      iconGlyph: String.fromCodePoint(0xE8B8),
+      palette: buildAvatarPaletteFromColorTriplet([143, 152, 167]), // Gray
+    };
+  }
+  if (safeItemId === 'logout') {
+    return {
+      iconName: 'logout',
+      iconSizePx: 14,
+      iconGlyph: String.fromCodePoint(0xE9BA),
+      palette: buildAvatarPaletteFromColorTriplet([212, 92, 108]), // Red
+    };
+  }
+  return {
+    iconName: 'account_circle',
+    iconSizePx: 14,
+    iconGlyph: String.fromCodePoint(0xE853),
+    palette: buildAvatarPaletteFromColorTriplet([122, 140, 170]),
+  };
+}
+
+function ensureSideNavProfileMenu() {
+  let menu = document.getElementById(SIDE_NAV_PROFILE_MENU_ID);
+  if (menu instanceof HTMLDivElement) {
+    return menu;
+  }
+
+  menu = document.createElement('div');
+  menu.id = SIDE_NAV_PROFILE_MENU_ID;
+  menu.style.position = 'fixed';
+  menu.style.left = '0px';
+  menu.style.top = '0px';
+  menu.style.width = '0px';
+  menu.style.maxHeight = '0px';
+  menu.style.overflowY = 'auto';
+  menu.style.overflowX = 'hidden';
+  menu.style.padding = '8px';
+  menu.style.boxSizing = 'border-box';
+  menu.style.borderRadius = '16px';
+  menu.style.border = '1px solid #DEE3EC';
+  menu.style.background = '#FFFFFF';
+  menu.style.boxShadow = '0 14px 28px rgba(46, 57, 77, 0.18), 0 4px 10px rgba(46, 57, 77, 0.12)';
+  menu.style.backdropFilter = 'blur(6px)';
+  menu.style.webkitBackdropFilter = 'blur(6px)';
+  menu.style.zIndex = '25';
+  menu.style.display = 'none';
+  menu.style.opacity = '0';
+
+  menu.addEventListener('mousedown', (event) => {
+    event.preventDefault();
+  });
+  menu.addEventListener('click', (event) => {
+    const targetElement = event.target instanceof Element ? event.target : null;
+    if (!targetElement) {
+      return;
+    }
+    const closeButton = targetElement.closest('button[data-profile-close]');
+    if (closeButton instanceof HTMLButtonElement) {
+      state.ui.sideNavBrandMenuOpen = false;
+      return;
+    }
+    const actionButton = targetElement.closest('button[data-profile-action]');
+    if (!(actionButton instanceof HTMLButtonElement)) {
+      return;
+    }
+    const action = safeText(actionButton.dataset.profileAction);
+    if (!action) {
+      return;
+    }
+    triggerAction(action);
+  });
+
+  document.body.appendChild(menu);
+  return menu;
+}
+
+function renderSideNavProfileMenu(menu) {
+  const profileName = truncateText(resolveSessionDisplayName(), 32);
+  const profileEmail = truncateText(resolveSessionDisplayEmail(), 44);
+  const profileInitials = truncateText(resolveInitials(profileName) || '?', 2).toUpperCase();
+  const sessionAvatarBackground = resolveSessionAvatarCssBackground();
+  const sessionAvatarSignature = resolveSessionAvatarSignature();
+  const menuItems = [...SIDE_NAV_BRAND_MENU_ITEMS, SIDE_NAV_BRAND_LOGOUT_ITEM];
+  const renderKey = `${profileName}::${profileEmail}::${sessionAvatarSignature}::${menuItems.map((item) => safeText(item.id)).join('|')}`;
+  if (menu.dataset.renderKey === renderKey) {
+    return;
+  }
+  menu.dataset.renderKey = renderKey;
+  menu.innerHTML = '';
+
+  const header = document.createElement('div');
+  header.style.position = 'relative';
+  header.style.padding = '24px 4px 10px';
+  header.style.textAlign = 'center';
+
+  const closeButton = document.createElement('button');
+  closeButton.type = 'button';
+  closeButton.dataset.profileClose = '1';
+  closeButton.style.position = 'absolute';
+  closeButton.style.top = '0';
+  closeButton.style.right = '0';
+  closeButton.style.width = '24px';
+  closeButton.style.height = '24px';
+  closeButton.style.border = 'none';
+  closeButton.style.borderRadius = '999px';
+  closeButton.style.background = '#EFF2F8';
+  closeButton.style.color = '#323C4F';
+  closeButton.style.display = 'inline-flex';
+  closeButton.style.alignItems = 'center';
+  closeButton.style.justifyContent = 'center';
+  closeButton.style.fontFamily = '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif';
+  closeButton.style.fontSize = '18px';
+  closeButton.style.fontWeight = '400';
+  closeButton.style.lineHeight = '1';
+  closeButton.style.fontVariationSettings = '"opsz" 20, "wght" 400, "FILL" 0, "GRAD" 0';
+  closeButton.style.fontFeatureSettings = '"liga" 1';
+  closeButton.style.cursor = 'pointer';
+  closeButton.textContent = 'close_small';
+  header.appendChild(closeButton);
+
+  const avatar = document.createElement('div');
+  avatar.style.margin = '6px auto 8px';
+  avatar.style.width = '64px';
+  avatar.style.height = '64px';
+  avatar.style.borderRadius = '999px';
+  avatar.style.display = 'flex';
+  avatar.style.alignItems = 'center';
+  avatar.style.justifyContent = 'center';
+  avatar.style.backgroundImage = sessionAvatarBackground.image;
+  avatar.style.backgroundSize = 'cover';
+  avatar.style.backgroundPosition = 'center';
+  avatar.style.backgroundRepeat = 'no-repeat';
+  avatar.style.color = '#F7FAFF';
+  avatar.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+  avatar.style.fontSize = '19px';
+  avatar.style.fontWeight = '700';
+  avatar.style.letterSpacing = '0.02em';
+  avatar.style.lineHeight = '1';
+  avatar.textContent = sessionAvatarBackground.isPhoto ? '' : profileInitials;
+  header.appendChild(avatar);
+
+  const title = document.createElement('div');
+  title.textContent = profileName;
+  title.style.fontFamily = '"SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+  title.style.fontSize = '24px';
+  title.style.fontWeight = '700';
+  title.style.lineHeight = '1.12';
+  title.style.letterSpacing = '-0.02em';
+  title.style.color = '#0E1117';
+  title.style.padding = '0 8px';
+  title.style.whiteSpace = 'nowrap';
+  title.style.overflow = 'hidden';
+  title.style.textOverflow = 'ellipsis';
+  header.appendChild(title);
+
+  const subtitle = document.createElement('div');
+  subtitle.textContent = profileEmail;
+  subtitle.style.marginTop = '2px';
+  subtitle.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+  subtitle.style.fontSize = '14px';
+  subtitle.style.fontWeight = '600';
+  subtitle.style.color = '#666D7B';
+  subtitle.style.lineHeight = '1.3';
+  subtitle.style.whiteSpace = 'nowrap';
+  subtitle.style.overflow = 'hidden';
+  subtitle.style.textOverflow = 'ellipsis';
+  subtitle.style.padding = '0 8px';
+  header.appendChild(subtitle);
+
+  const list = document.createElement('div');
+  list.style.marginTop = '4px';
+  list.style.borderRadius = '14px';
+  list.style.border = '1px solid #E3E8F0';
+  list.style.background = '#F3F5F9';
+  list.style.overflow = 'hidden';
+
+  menuItems.forEach((item, index) => {
+    const iconSpec = resolveSideNavProfileMenuIconSpec(item.id);
+    const rowButton = document.createElement('button');
+    rowButton.type = 'button';
+    rowButton.dataset.profileAction = safeText(item.action);
+    rowButton.style.display = 'flex';
+    rowButton.style.alignItems = 'center';
+    rowButton.style.justifyContent = 'space-between';
+    rowButton.style.width = '100%';
+    rowButton.style.minHeight = '44px';
+    rowButton.style.padding = '0 12px';
+    rowButton.style.border = 'none';
+    rowButton.style.background = 'transparent';
+    rowButton.style.cursor = 'pointer';
+    rowButton.style.textAlign = 'left';
+    rowButton.style.outline = 'none';
+    rowButton.style.boxSizing = 'border-box';
+    rowButton.style.transition = 'background-color 140ms ease';
+    rowButton.addEventListener('mouseenter', () => {
+      rowButton.style.background = '#EAEFF7';
+    });
+    rowButton.addEventListener('mouseleave', () => {
+      rowButton.style.background = 'transparent';
+    });
+
+    const left = document.createElement('div');
+    left.style.display = 'flex';
+    left.style.alignItems = 'center';
+    left.style.gap = '12px';
+    left.style.minWidth = '0';
+
+    const icon = document.createElement('span');
+    icon.style.width = '24px';
+    icon.style.height = '24px';
+    icon.style.borderRadius = '999px';
+    icon.style.display = 'inline-flex';
+    icon.style.alignItems = 'center';
+    icon.style.justifyContent = 'center';
+    icon.style.flex = '0 0 auto';
+    icon.style.backgroundImage = resolveCssGradientFromPalette(iconSpec.palette);
+    icon.style.backgroundSize = 'cover';
+    icon.style.backgroundPosition = 'center';
+    icon.style.backgroundRepeat = 'no-repeat';
+    icon.style.color = '#FFFFFF';
+    icon.style.fontFamily = '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif';
+    icon.style.fontSize = `${Math.max(12, Math.floor(safeNumber(iconSpec.iconSizePx, 14)))}px`;
+    icon.style.fontWeight = '700';
+    icon.style.lineHeight = '1';
+    icon.style.fontVariationSettings = '"opsz" 20, "wght" 700, "FILL" 1, "GRAD" 0';
+    icon.style.fontFeatureSettings = '"liga" 0';
+    icon.textContent = safeText(iconSpec.iconGlyph || iconSpec.iconName || String.fromCodePoint(0xE853));
+
+    const label = document.createElement('span');
+    label.textContent = safeText(item.label);
+    label.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+    label.style.fontSize = '13px';
+    label.style.fontWeight = item.id === 'logout' ? '600' : '700';
+    label.style.color = item.id === 'logout' ? '#703C46' : '#161B25';
+    label.style.lineHeight = '1.25';
+    label.style.whiteSpace = 'nowrap';
+    label.style.overflow = 'hidden';
+    label.style.textOverflow = 'ellipsis';
+
+    const chevron = document.createElement('span');
+    chevron.textContent = '>';
+    chevron.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+    chevron.style.fontSize = '15px';
+    chevron.style.fontWeight = '500';
+    chevron.style.color = item.id === 'logout' ? '#8D6A71' : '#8A93A6';
+    chevron.style.lineHeight = '1';
+    chevron.style.marginLeft = '12px';
+    chevron.style.flex = '0 0 auto';
+
+    left.appendChild(icon);
+    left.appendChild(label);
+    rowButton.appendChild(left);
+    rowButton.appendChild(chevron);
+    list.appendChild(rowButton);
+
+    if (index < menuItems.length - 1) {
+      const divider = document.createElement('div');
+      divider.style.height = '1px';
+      divider.style.margin = '0 10px';
+      divider.style.background = '#DEE5EF';
+      divider.style.pointerEvents = 'none';
+      list.appendChild(divider);
+    }
+  });
+
+  menu.appendChild(header);
+  menu.appendChild(list);
+}
+
+function syncSideNavProfileMenu() {
+  const menu = ensureSideNavProfileMenu();
+  const anchorRect = state.ui.sideNavBrandMenuAnchorRect;
+  const dropdownRect = state.ui.sideNavSearchDropdownRect;
+  const opacity = clamp(safeNumber(state.ui.sideNavSearchInputOpacity, 1), 0, 1);
+  if (!state.ui.sideNavOpen || !anchorRect || !state.ui.sideNavBrandMenuOpen || opacity <= 0.001) {
+    menu.style.display = 'none';
+    menu.style.opacity = '0';
+    menu.dataset.renderKey = '';
+    return;
+  }
+
+  const viewportPadding = 10;
+  const viewportWidth = Math.max(0, window.innerWidth);
+  const viewportHeight = Math.max(0, window.innerHeight);
+  const maxMenuWidth = Math.max(220, viewportWidth - (viewportPadding * 2));
+  const searchLeft = dropdownRect ? Math.round(dropdownRect.x) : Math.round(anchorRect.x);
+  const profileRight = Math.round(anchorRect.x + anchorRect.width);
+  const computedWidth = Math.max(240, profileRight - searchLeft);
+  const menuWidth = clamp(computedWidth, 220, maxMenuWidth);
+  let menuX = searchLeft;
+  if (menuX + menuWidth > viewportWidth - viewportPadding) {
+    menuX = Math.max(viewportPadding, (viewportWidth - viewportPadding) - menuWidth);
+  }
+  menuX = clamp(menuX, viewportPadding, Math.max(viewportPadding, viewportWidth - menuWidth - viewportPadding));
+  const menuY = Math.round(anchorRect.y + anchorRect.height + 2);
+  const availableHeight = Math.max(220, viewportHeight - menuY - viewportPadding);
+  const menuMaxHeight = Math.min(540, availableHeight);
+
+  menu.style.display = 'block';
+  menu.style.opacity = opacity.toFixed(3);
+  menu.style.left = `${menuX}px`;
+  menu.style.top = `${menuY}px`;
+  menu.style.width = `${menuWidth}px`;
+  menu.style.maxHeight = `${Math.round(menuMaxHeight)}px`;
+  renderSideNavProfileMenu(menu);
+}
+
+function renderSearchDropdown(dropdown) {
+  const results = Array.isArray(state.ui.sideNavSearchResults) ? state.ui.sideNavSearchResults : [];
+  const activeIndex = clamp(
+    Math.floor(safeNumber(state.ui.sideNavSearchActiveIndex, 0)),
+    0,
+    Math.max(0, results.length - 1),
+  );
+  const renderKey = `${results.map((entry) => safeText(entry.id)).join('|')}::${activeIndex}::${resolveSessionAvatarSignature()}`;
+  if (dropdown.dataset.renderKey === renderKey) {
+    return;
+  }
+  dropdown.dataset.renderKey = renderKey;
+  dropdown.innerHTML = '';
+
+  results.forEach((entry, index) => {
+    const isActiveNode = safeText(entry.id) === safeText(state.selectedId);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.searchNodeId = safeText(entry.id);
+    button.dataset.searchIndex = String(index);
+    button.style.display = 'block';
+    button.style.width = '100%';
+    button.style.border = 'none';
+    button.style.background = index === activeIndex ? '#EEF2F8' : 'transparent';
+    button.style.borderRadius = '12px';
+    button.style.boxSizing = 'border-box';
+    button.style.minHeight = '54px';
+    button.style.padding = '8px 10px';
+    button.style.textAlign = 'left';
+    button.style.cursor = 'pointer';
+    button.style.outline = 'none';
+
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.alignItems = 'center';
+    row.style.gap = '10px';
+    row.style.width = '100%';
+
+    const avatarCore = document.createElement('span');
+    avatarCore.style.position = 'relative';
+    avatarCore.style.display = 'inline-flex';
+    avatarCore.style.alignItems = 'center';
+    avatarCore.style.justifyContent = 'center';
+    avatarCore.style.flex = '0 0 auto';
+    avatarCore.style.width = '28px';
+    avatarCore.style.height = '28px';
+    avatarCore.style.borderRadius = '999px';
+    avatarCore.style.boxSizing = 'border-box';
+    const avatarBackground = resolveAvatarCssBackgroundForNode(entry.id);
+    avatarCore.style.backgroundImage = avatarBackground.image;
+    avatarCore.style.backgroundSize = 'cover';
+    avatarCore.style.backgroundPosition = 'center';
+    avatarCore.style.backgroundRepeat = 'no-repeat';
+    avatarCore.style.boxShadow = isActiveNode
+      ? '0 4px 10px rgba(53, 64, 84, 0.2)'
+      : '0 4px 10px rgba(53, 64, 84, 0.16)';
+    avatarCore.style.border = isActiveNode ? '2px solid #FFFFFF' : '2px solid transparent';
+    avatarCore.style.color = '#F7FAFF';
+    avatarCore.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+    avatarCore.style.fontSize = '10px';
+    avatarCore.style.fontWeight = '700';
+    avatarCore.style.lineHeight = '1';
+    avatarCore.style.letterSpacing = '0.01em';
+    avatarCore.textContent = avatarBackground.isPhoto
+      ? ''
+      : truncateText(safeText(entry.initials || '?'), 2).toUpperCase();
+
+    const avatarSheen = document.createElement('span');
+    avatarSheen.style.position = 'absolute';
+    avatarSheen.style.inset = '0';
+    avatarSheen.style.borderRadius = '999px';
+    avatarSheen.style.pointerEvents = 'none';
+    avatarSheen.style.background = 'radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.04) 54%, rgba(255, 255, 255, 0) 100%)';
+
+    avatarCore.appendChild(avatarSheen);
+
+    const content = document.createElement('div');
+    content.style.minWidth = '0';
+    content.style.flex = '1 1 auto';
+
+    const title = document.createElement('div');
+    const titleText = entry.username
+      ? `${truncateText(entry.name, 22)} (@${truncateText(entry.username, 18)})`
+      : truncateText(entry.name, 28);
+    title.textContent = titleText;
+    title.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+    title.style.fontSize = '12px';
+    title.style.fontWeight = '700';
+    title.style.color = '#232938';
+    title.style.lineHeight = '1.3';
+    title.style.whiteSpace = 'nowrap';
+    title.style.overflow = 'hidden';
+    title.style.textOverflow = 'ellipsis';
+
+    const subtitle = document.createElement('div');
+    subtitle.textContent = truncateText(safeText(entry.subtitle), 48);
+    subtitle.style.marginTop = '2px';
+    subtitle.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+    subtitle.style.fontSize = '11px';
+    subtitle.style.fontWeight = '500';
+    subtitle.style.color = '#687287';
+    subtitle.style.lineHeight = '1.35';
+    subtitle.style.whiteSpace = 'nowrap';
+    subtitle.style.overflow = 'hidden';
+    subtitle.style.textOverflow = 'ellipsis';
+
+    content.appendChild(title);
+    content.appendChild(subtitle);
+    row.appendChild(avatarCore);
+    row.appendChild(content);
+    button.appendChild(row);
+    dropdown.appendChild(button);
+
+    if (index < results.length - 1) {
+      const divider = document.createElement('div');
+      divider.style.height = '1px';
+      divider.style.margin = '0 10px';
+      divider.style.background = '#E8EDF5';
+      divider.style.pointerEvents = 'none';
+      dropdown.appendChild(divider);
+    }
+  });
+}
+
+function applySearchQuery(nextQuery, options = {}) {
+  const {
+    openDropdown = true,
+    preserveActive = false,
+  } = options;
+  state.query = safeText(nextQuery);
+  refreshSearchResults({
+    openDropdown,
+    preserveActive,
+  });
+}
+
+function ensureSideNavSearchInput() {
+  let input = document.getElementById(SIDE_NAV_SEARCH_INPUT_ID);
+  if (input instanceof HTMLInputElement) {
+    return input;
+  }
+
+  input = document.createElement('input');
+  input.id = SIDE_NAV_SEARCH_INPUT_ID;
+  input.type = 'search';
+  input.placeholder = 'Search username or name';
+  input.autocomplete = 'off';
+  input.spellcheck = false;
+  input.style.position = 'fixed';
+  input.style.left = '0px';
+  input.style.top = '0px';
+  input.style.width = '0px';
+  input.style.height = '0px';
+  input.style.padding = '0 4px';
+  input.style.border = 'none';
+  input.style.borderRadius = '0';
+  input.style.background = 'transparent';
+  input.style.appearance = 'none';
+  input.style.webkitAppearance = 'none';
+  input.style.boxSizing = 'border-box';
+  input.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+  input.style.fontSize = '13px';
+  input.style.fontWeight = '600';
+  input.style.color = '#4A505C';
+  input.style.caretColor = '#4A505C';
+  input.style.zIndex = '22';
+  input.style.outline = 'none';
+  input.style.display = 'none';
+  input.style.boxShadow = 'none';
+  input.style.transition = 'opacity 140ms ease';
+
+  input.addEventListener('focus', () => {
+    state.ui.sideNavBrandMenuOpen = false;
+    input.style.opacity = '1';
+    refreshSearchResults({
+      openDropdown: true,
+      preserveActive: true,
+    });
+  });
+  input.addEventListener('blur', () => {
+    input.style.opacity = '1';
+    window.setTimeout(() => {
+      if (document.activeElement === input) {
+        return;
+      }
+      closeSearchDropdown();
+    }, 120);
+  });
+  input.addEventListener('input', (event) => {
+    const target = event.currentTarget;
+    if (!(target instanceof HTMLInputElement)) {
+      return;
+    }
+    applySearchQuery(target.value, {
+      openDropdown: true,
+      preserveActive: false,
+    });
+  });
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowDown') {
+      refreshSearchResults({
+        openDropdown: true,
+        preserveActive: true,
+      });
+      if (moveSearchActiveIndex(1)) {
+        event.preventDefault();
+      }
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      refreshSearchResults({
+        openDropdown: true,
+        preserveActive: true,
+      });
+      if (moveSearchActiveIndex(-1)) {
+        event.preventDefault();
+      }
+      return;
+    }
+    if (event.key === 'Enter') {
+      if (focusFirstSearchResult(true)) {
+        input.value = state.query;
+        input.blur();
+        event.preventDefault();
+      }
+      return;
+    }
+    if (event.key === 'Escape') {
+      applySearchQuery('', {
+        openDropdown: false,
+        preserveActive: false,
+      });
+      input.value = '';
+      closeSearchDropdown();
+      input.blur();
+      event.preventDefault();
+    }
+  });
+
+  document.body.appendChild(input);
+  return input;
+}
+
+function syncSideNavSearchInput() {
+  const input = ensureSideNavSearchInput();
+  const dropdown = ensureSideNavSearchDropdown();
+  const rect = state.ui.sideNavSearchInputRect;
+  const dropdownRect = state.ui.sideNavSearchDropdownRect;
+  const opacity = clamp(safeNumber(state.ui.sideNavSearchInputOpacity, 1), 0, 1);
+  if (!state.ui.sideNavOpen || !rect || !dropdownRect || opacity <= 0.001) {
+    input.style.display = 'none';
+    dropdown.style.display = 'none';
+    dropdown.style.opacity = '0';
+    dropdown.dataset.renderKey = '';
+    return;
+  }
+
+  input.style.display = 'block';
+  input.style.opacity = opacity.toFixed(3);
+  input.style.left = `${Math.round(rect.x)}px`;
+  input.style.top = `${Math.round(rect.y)}px`;
+  input.style.width = `${Math.max(32, Math.round(rect.width))}px`;
+  input.style.height = `${Math.max(24, Math.round(rect.height))}px`;
+  if (document.activeElement !== input && input.value !== state.query) {
+    input.value = state.query;
+  }
+
+  const hasResults = Array.isArray(state.ui.sideNavSearchResults) && state.ui.sideNavSearchResults.length > 0;
+  const showDropdown = (
+    hasResults
+    && state.ui.sideNavSearchDropdownOpen
+    && !state.ui.sideNavBrandMenuOpen
+    && safeText(state.query).trim().length > 0
+  );
+  if (!showDropdown) {
+    dropdown.style.display = 'none';
+    dropdown.style.opacity = '0';
+    dropdown.dataset.renderKey = '';
+    return;
+  }
+
+  const dropdownWidth = Math.max(220, Math.round(dropdownRect.width));
+  dropdown.style.display = 'block';
+  dropdown.style.opacity = opacity.toFixed(3);
+  dropdown.style.left = `${Math.round(dropdownRect.x)}px`;
+  dropdown.style.top = `${Math.round(dropdownRect.y + dropdownRect.height + 6)}px`;
+  dropdown.style.width = `${dropdownWidth}px`;
+  renderSearchDropdown(dropdown);
+}
+
 function resolveUniverseCrumbLabel(nodeId) {
   const safeNodeId = safeText(nodeId);
   if (!safeNodeId || safeNodeId === 'root') {
@@ -1446,270 +4056,558 @@ function drawUniverseBreadcrumbLinks(startX, startY, maxWidth) {
   }
 }
 
-function drawSideNavToggle(layout) {
-  if (state.ui.sideNavOpen) {
-    return;
-  }
-  const toggle = layout.sideNavToggle;
-  const buttonId = SIDE_NAV_COLLAPSE_BUTTON_ID;
-  const hovered = state.hoveredButtonId === buttonId;
-  const width = 44;
-  const height = 34;
-  const x = toggle.x;
-  const y = toggle.y + 4;
-
-  drawSideNavCollapseButton({
-    x,
-    y,
-    width,
-    height,
-    hovered,
-    direction: 'right',
-  });
-
-  registerButton({
-    id: buttonId,
-    x,
-    y,
-    width,
-    height,
-    action: 'toggle:side-nav',
-  });
-}
-
 function drawSideNav(layout) {
   if (!state.ui.sideNavOpen) {
-    drawSideNavToggle(layout);
-    return;
+    state.ui.sideNavOpen = true;
   }
 
   const panelReveal = resolveStartupRevealForPanel(STARTUP_SIDE_PANEL_DELAY_MS);
   if (panelReveal.progress <= 0) {
+    state.ui.sideNavSearchInputRect = null;
+    state.ui.sideNavSearchInputOpacity = 0;
+    state.ui.sideNavSearchDropdownRect = null;
+    state.ui.sideNavBrandMenuAnchorRect = null;
+    state.ui.sideNavBrandMenuOpen = false;
+    closeSearchDropdown();
+    const favorites = getSideNavFavoritesState();
+    favorites.viewportRect = null;
+    stopFavoritesCarouselDrag(null);
     return;
   }
-  const applyPanelReveal = panelReveal.active;
-  if (applyPanelReveal) {
-    context.save();
-    context.translate(0, panelReveal.translateY);
-    context.globalAlpha *= panelReveal.alpha;
-    context.filter = `blur(${panelReveal.blurPx.toFixed(2)}px)`;
-  }
+  const applyPanelReveal = beginStartupReveal(panelReveal);
 
   try {
     const panel = layout.sideNav;
     const buttonYOffset = applyPanelReveal ? panelReveal.translateY : 0;
+    state.ui.sideNavSearchInputOpacity = applyPanelReveal
+      ? clamp(safeNumber(panelReveal.alpha, 1), 0, 1)
+      : 1;
     drawPanelChrome(panel, 'left');
 
-    const insetX = 22;
+    const insetX = 18;
     const slotX = panel.x + insetX;
     const slotWidth = panel.width - (insetX * 2);
-    const topRowGap = 8;
-    const collapseButtonWidth = 38;
-    const topPadding = 24;
-    const gap = 20;
-    const brandButtonHeight = 50;
-    const brandButtonWidth = Math.max(160, slotWidth - collapseButtonWidth - topRowGap);
-    const collapseButtonX = slotX + brandButtonWidth + topRowGap;
-    const smallCardHeight = 150;
-    const bottomCardHeight = 150;
-    const minMiddleHeight = 220;
-    const fixedHeight = (
-      topPadding
-      + brandButtonHeight
-      + gap
-      + smallCardHeight
-      + gap
-      + smallCardHeight
-      + gap
-      + bottomCardHeight
-      + gap
-      + topPadding
-    );
-    const middleCardHeight = Math.max(minMiddleHeight, panel.height - fixedHeight);
+    const topPadding = 18;
+    const gap = 16;
+    const searchRowHeight = 42;
+    const favoritesCardHeight = 168;
+    const timerCardHeight = 124;
 
     let y = panel.y + topPadding;
-    const brandButtonY = y;
-    const brandMenuOpen = Boolean(state.ui.sideNavBrandMenuOpen);
-    const brandButtonHovered = state.hoveredButtonId === SIDE_NAV_BRAND_TOGGLE_BUTTON_ID;
-    const brandButtonFill = brandMenuOpen
-      ? '#EFF0F3'
-      : (brandButtonHovered ? '#F3F4F6' : '#F6F7F9');
-    const brandButtonStroke = brandMenuOpen
-      ? '#D8DAE0'
-      : (brandButtonHovered ? '#DCDDE2' : '#E2E4E8');
-    fillRoundedRect(context, slotX, brandButtonY, brandButtonWidth, brandButtonHeight, 14, brandButtonFill);
-    strokeRoundedRect(
-      context,
-      slotX + 0.5,
-      brandButtonY + 0.5,
-      brandButtonWidth - 1,
-      brandButtonHeight - 1,
-      14,
-      brandButtonStroke,
-      1,
-    );
-
-    const logoInsetX = 13;
-    const logoInsetY = 9;
-    const logoAreaX = slotX + logoInsetX;
-    const logoAreaY = brandButtonY + logoInsetY;
-    const logoAreaWidth = brandButtonWidth - 44;
-    const logoAreaHeight = brandButtonHeight - (logoInsetY * 2);
-    drawSideNavBrandLogo(logoAreaX, logoAreaY, logoAreaWidth, logoAreaHeight);
-    drawChevronGlyph(slotX + brandButtonWidth - 17, brandButtonY + (brandButtonHeight / 2), {
-      color: brandMenuOpen ? '#505665' : '#6a7080',
-      expanded: brandMenuOpen,
-      size: 7,
-      lineWidth: 1.8,
+    const searchAvatarSize = 36;
+    const searchAvatarGap = 8;
+    const searchPillHeight = 36;
+    const searchPillWidth = slotWidth - searchAvatarSize - searchAvatarGap;
+    const searchPillX = slotX;
+    const searchPillY = y + ((searchRowHeight - searchPillHeight) / 2);
+    context.save();
+    context.shadowColor = 'rgba(73, 82, 101, 0.10)';
+    context.shadowBlur = 8;
+    context.shadowOffsetY = 2;
+    fillRoundedRect(context, searchPillX, searchPillY, searchPillWidth, searchPillHeight, 18, '#FFFFFF');
+    context.restore();
+    drawSearchGlyph(searchPillX + 18, searchPillY + (searchPillHeight / 2) + 0.5, {
+      color: '#353B47',
+      size: 21,
+      weight: 450,
     });
 
+    const searchInputRect = {
+      x: searchPillX + 36,
+      y: searchPillY + 2 + buttonYOffset,
+      width: searchPillWidth - 42,
+      height: searchPillHeight - 4,
+    };
+    state.ui.sideNavSearchInputRect = searchInputRect;
+    state.ui.sideNavSearchDropdownRect = {
+      x: searchPillX,
+      y: searchPillY + buttonYOffset,
+      width: searchPillWidth,
+      height: searchPillHeight,
+    };
+
+    const profileButtonId = 'side-nav-search-profile';
+    const profileX = searchPillX + searchPillWidth + searchAvatarGap;
+    const profileY = searchPillY;
+    const profileCenterX = profileX + (searchAvatarSize / 2);
+    const profileCenterY = profileY + (searchAvatarSize / 2);
+    const profileName = resolveSessionDisplayName();
+    const profileInitials = resolveInitials(profileName);
+    const profileRingRadius = (searchAvatarSize / 2);
+    const profileInnerRadius = Math.max(6, profileRingRadius - 2.5);
+    context.beginPath();
+    context.arc(profileCenterX, profileCenterY, profileRingRadius, 0, Math.PI * 2);
+    context.fillStyle = '#FFFFFF';
+    context.fill();
+    const sessionAvatarRender = drawResolvedAvatarCircle(
+      profileCenterX,
+      profileCenterY,
+      profileInnerRadius,
+      resolveSessionUserId(),
+      {
+      alpha: 0.98,
+      sheenAlpha: 0.2,
+      },
+    );
+    if (!sessionAvatarRender.usedPhoto) {
+      drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
+        size: 11,
+        weight: 700,
+        color: '#F5F9FF',
+        align: 'center',
+      });
+    }
     registerButton({
-      id: SIDE_NAV_BRAND_TOGGLE_BUTTON_ID,
-      x: slotX,
-      y: brandButtonY + buttonYOffset,
-      width: brandButtonWidth,
-      height: brandButtonHeight,
+      id: profileButtonId,
+      x: profileX,
+      y: profileY + buttonYOffset,
+      width: searchAvatarSize,
+      height: searchAvatarSize,
       action: 'brand-menu:toggle',
     });
+    state.ui.sideNavBrandMenuAnchorRect = {
+      x: profileX,
+      y: profileY + buttonYOffset,
+      width: searchAvatarSize,
+      height: searchAvatarSize,
+    };
 
-    const collapseButtonHovered = state.hoveredButtonId === SIDE_NAV_COLLAPSE_BUTTON_ID;
-    drawSideNavCollapseButton({
-      x: collapseButtonX,
-      y: brandButtonY,
-      width: collapseButtonWidth,
-      height: brandButtonHeight,
-      hovered: collapseButtonHovered,
-      direction: 'left',
-    });
-    registerButton({
-      id: SIDE_NAV_COLLAPSE_BUTTON_ID,
-      x: collapseButtonX,
-      y: brandButtonY + buttonYOffset,
-      width: collapseButtonWidth,
-      height: brandButtonHeight,
-      action: 'toggle:side-nav',
+    y += searchRowHeight + gap;
+    drawText('Favorites', slotX + 4, y + 15, {
+      size: 15,
+      weight: 700,
+      color: '#15181E',
     });
 
-    y += brandButtonHeight + gap;
-    drawSkeletonSlot(slotX, y, slotWidth, smallCardHeight, 20);
-    y += smallCardHeight + gap;
-    drawSkeletonSlot(slotX, y, slotWidth, smallCardHeight, 20);
-    y += smallCardHeight + gap;
-    drawSkeletonSlot(slotX, y, slotWidth, middleCardHeight, 20);
-    y += middleCardHeight + gap;
-    drawSkeletonSlot(slotX, y, slotWidth, bottomCardHeight, 20);
+    const pinToggleLabel = isNodePinned(state.selectedId) ? 'Unpin' : 'Pin';
+    const pinToggleId = 'side-nav-pin-selected';
+    const pinToggleWidth = 72;
+    const pinToggleHeight = 22;
+    const pinToggleX = slotX + slotWidth - pinToggleWidth - 4;
+    const pinToggleY = y + 4;
+    const canPinSelected = Boolean(safeText(state.selectedId));
+    fillRoundedRect(
+      context,
+      pinToggleX,
+      pinToggleY,
+      pinToggleWidth,
+      pinToggleHeight,
+      11,
+      canPinSelected ? '#ECEFF5' : '#F1F2F6',
+    );
+    strokeRoundedRect(
+      context,
+      pinToggleX + 0.5,
+      pinToggleY + 0.5,
+      pinToggleWidth - 1,
+      pinToggleHeight - 1,
+      11,
+      canPinSelected ? '#DCE1EB' : '#E6E8EF',
+    );
+    drawText(pinToggleLabel, pinToggleX + (pinToggleWidth / 2), pinToggleY + (pinToggleHeight / 2) + 0.5, {
+      size: 10,
+      weight: 700,
+      color: canPinSelected ? '#495163' : '#8C93A3',
+      align: 'center',
+    });
+    if (canPinSelected) {
+      registerButton({
+        id: pinToggleId,
+        x: pinToggleX,
+        y: pinToggleY + buttonYOffset,
+        width: pinToggleWidth,
+        height: pinToggleHeight,
+        action: 'pin:toggle-selected',
+      });
+    }
 
-    if (brandMenuOpen) {
-      const profileName = truncateText(resolveSessionDisplayName(), 22);
-      const profileEmail = truncateText(resolveSessionDisplayEmail(), 28);
-      const profileInitials = resolveInitials(profileName);
-      const menuPadding = 8;
-      const profileHeight = 50;
-      const profileBottomGap = 8;
-      const itemHeight = 34;
-      const itemGap = 5;
-      const dividerGap = 8;
-      const dividerHeight = 1;
-      const listHeight = (
-        SIDE_NAV_BRAND_MENU_ITEMS.length * itemHeight
-        + Math.max(0, SIDE_NAV_BRAND_MENU_ITEMS.length - 1) * itemGap
-      );
-      const menuHeight = (
-        menuPadding
-        + profileHeight
-        + profileBottomGap
-        + listHeight
-        + dividerGap
-        + dividerHeight
-        + dividerGap
-        + itemHeight
-        + menuPadding
-      );
-      const menuX = slotX;
-      const menuY = brandButtonY + brandButtonHeight + 10;
-      const menuWidth = brandButtonWidth;
+    const favorites = resolvePinnedPlaces(12);
+    const favoritesViewport = {
+      x: slotX + 2,
+      y: y + 26,
+      width: slotWidth - 4,
+      height: favoritesCardHeight - 24,
+    };
+    const favoritesState = getSideNavFavoritesState();
+    favoritesState.viewportRect = { ...favoritesViewport };
+    const itemRadius = 30;
+    const itemSlotWidth = 84;
+    const itemGap = 8;
+    const contentWidth = favorites.length
+      ? ((favorites.length * itemSlotWidth) + (Math.max(0, favorites.length - 1) * itemGap) + 12)
+      : favoritesViewport.width;
+    favoritesState.contentWidth = contentWidth;
+    favoritesState.scrollX = clampFavoritesScroll(favoritesState.scrollX);
 
-      fillRoundedRect(context, menuX, menuY, menuWidth, menuHeight, 16, '#FFFFFF');
-      strokeRoundedRect(context, menuX + 0.5, menuY + 0.5, menuWidth - 1, menuHeight - 1, 16, '#DFE1E6');
+    context.save();
+    roundedRectPath(context, favoritesViewport.x, favoritesViewport.y, favoritesViewport.width, favoritesViewport.height, 12);
+    context.clip();
 
-      const profileX = menuX + menuPadding;
-      const profileY = menuY + menuPadding;
-      const profileWidth = menuWidth - (menuPadding * 2);
-      fillRoundedRect(context, profileX, profileY, profileWidth, profileHeight, 12, '#F6F7F9');
-      strokeRoundedRect(context, profileX + 0.5, profileY + 0.5, profileWidth - 1, profileHeight - 1, 12, '#EBEDF1');
+    if (!favorites.length) {
+      drawText('No favorites yet. Pin a node from the tree.', favoritesViewport.x + 8, favoritesViewport.y + 16, {
+        size: 11,
+        weight: 500,
+        color: '#7A8292',
+      });
+    }
 
-      const avatarSize = 32;
-      const avatarX = profileX + 8;
-      const avatarY = profileY + ((profileHeight - avatarSize) / 2);
-      fillRoundedRect(context, avatarX, avatarY, avatarSize, avatarSize, 9, '#D8DBE2');
-      drawText(profileInitials, avatarX + (avatarSize / 2), avatarY + (avatarSize / 2) + 0.5, {
+    for (let index = 0; index < favorites.length; index += 1) {
+      const favorite = favorites[index];
+      const itemX = favoritesViewport.x + 6 + (index * (itemSlotWidth + itemGap)) - safeNumber(favoritesState.scrollX, 0);
+      const centerX = itemX + (itemSlotWidth / 2);
+      const centerY = favoritesViewport.y + itemRadius + 6;
+      const buttonId = `side-nav-favorite-${favorite.key}`;
+      const hovered = state.hoveredButtonId === buttonId;
+
+      drawFavoriteNodeAvatar(centerX, centerY, itemRadius, favorite.nodeId, favorite.initials, hovered);
+      drawText(truncateText(favorite.label, 16), centerX, centerY + itemRadius + 17, {
         size: 12,
-        weight: 700,
-        color: '#3b4251',
+        weight: 600,
+        color: '#1B1F27',
+        align: 'center',
+      });
+      drawText(truncateText(favorite.subtitle, 14), centerX, centerY + itemRadius + 33, {
+        size: 10,
+        weight: 500,
+        color: '#7A8292',
         align: 'center',
       });
 
-      drawText(profileName, avatarX + avatarSize + 9, profileY + 18, {
-        size: 12,
-        weight: 600,
-        color: '#303645',
-      });
-      drawText(profileEmail, avatarX + avatarSize + 9, profileY + 34, {
-        size: 10,
-        weight: 500,
-        color: '#6f7584',
-      });
-
-      let itemY = profileY + profileHeight + profileBottomGap;
-      const itemX = menuX + menuPadding;
-      const itemWidth = menuWidth - (menuPadding * 2);
-      for (const item of SIDE_NAV_BRAND_MENU_ITEMS) {
-        const buttonId = `${SIDE_NAV_BRAND_ITEM_BUTTON_PREFIX}${item.id}`;
-        const hovered = state.hoveredButtonId === buttonId;
-        if (hovered) {
-          fillRoundedRect(context, itemX, itemY, itemWidth, itemHeight, 10, '#F2F3F6');
-          strokeRoundedRect(context, itemX + 0.5, itemY + 0.5, itemWidth - 1, itemHeight - 1, 10, '#E6E8EE');
-        }
-        drawText(item.label, itemX + 12, itemY + (itemHeight / 2) + 0.5, {
-          size: 12,
-          weight: 500,
-          color: '#3b4353',
-        });
-        registerButton({
-          id: buttonId,
-          x: itemX,
-          y: itemY + buttonYOffset,
-          width: itemWidth,
-          height: itemHeight,
-          action: item.action,
-        });
-        itemY += itemHeight + itemGap;
-      }
-
-      const dividerY = itemY + dividerGap;
-      line(context, itemX, dividerY + 0.5, itemX + itemWidth, dividerY + 0.5, '#E5E7EC', 1);
-      itemY = dividerY + dividerGap;
-
-      const logoutButtonId = `${SIDE_NAV_BRAND_ITEM_BUTTON_PREFIX}${SIDE_NAV_BRAND_LOGOUT_ITEM.id}`;
-      const logoutHovered = state.hoveredButtonId === logoutButtonId;
-      if (logoutHovered) {
-        fillRoundedRect(context, itemX, itemY, itemWidth, itemHeight, 10, '#F8F1F2');
-        strokeRoundedRect(context, itemX + 0.5, itemY + 0.5, itemWidth - 1, itemHeight - 1, 10, '#F1E2E5');
-      }
-      drawText(SIDE_NAV_BRAND_LOGOUT_ITEM.label, itemX + 12, itemY + (itemHeight / 2) + 0.5, {
-        size: 12,
-        weight: 600,
-        color: '#6b3840',
-      });
       registerButton({
-        id: logoutButtonId,
+        id: buttonId,
         x: itemX,
-        y: itemY + buttonYOffset,
-        width: itemWidth,
-        height: itemHeight,
-        action: SIDE_NAV_BRAND_LOGOUT_ITEM.action,
+        y: (centerY - itemRadius) + buttonYOffset,
+        width: itemSlotWidth,
+        height: (itemRadius * 2) + 40,
+        action: `pin:focus:${favorite.nodeId}`,
       });
     }
+
+    context.restore();
+
+    y += favoritesCardHeight + gap;
+    const timerCardY = panel.y + panel.height - topPadding - timerCardHeight;
+    const detailsCardHeight = Math.max(120, timerCardY - y - gap);
+    const detailsBottomY = y + detailsCardHeight;
+    const detailInsetX = slotX + 16;
+    const detailContentWidth = slotWidth - 32;
+    const detailCenterX = slotX + (slotWidth / 2);
+    const detailRightX = slotX + slotWidth - 16;
+
+    fillRoundedRect(context, slotX, y, slotWidth, detailsCardHeight, 28, '#FFFFFF');
+    strokeRoundedRect(context, slotX + 0.5, y + 0.5, slotWidth - 1, detailsCardHeight - 1, 28, '#E2E2E2');
+
+    const selectedNodeId = safeText(state.selectedId);
+    const selectedNode = resolveNodeById(selectedNodeId);
+    drawText('Details', detailCenterX, y + 36, {
+      size: 24,
+      weight: 600,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#111111',
+      align: 'center',
+    });
+
+    if (!selectedNode) {
+      drawText('Select a node to view details.', detailCenterX, y + 74, {
+        size: 13,
+        weight: 500,
+        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        color: '#888888',
+        align: 'center',
+        maxWidth: detailContentWidth,
+      });
+    } else {
+      const volumeMetrics = resolveNodeLegVolumes(selectedNodeId);
+      const displayName = truncateText(safeText(selectedNode.name || selectedNode.id), 24);
+      const username = truncateText(safeText(selectedNode.username || selectedNode.id), 24);
+      const nodeInitials = resolveInitials(safeText(selectedNode.name || selectedNode.id));
+      const selectedAvatarNodeId = safeText(selectedNode.id || selectedNodeId);
+      const selectedAvatarVariant = isSessionAvatarNodeId(selectedAvatarNodeId)
+        ? 'auto'
+        : (selectedAvatarNodeId.toLowerCase() === 'root' ? 'root' : 'auto');
+      const rankValue = truncateText(safeText(selectedNode.rank || '-'), 16) || '-';
+      const isActiveAccount = resolveNodeActivityState(selectedNode);
+      const activityDotColor = isActiveAccount ? '#30C655' : '#B5B5B5';
+      const rankAndTitleIconPaths = resolveNodeDetailRankAndTitleIcons(selectedNode).slice(0, 2);
+
+      const avatarRadius = 54;
+      const avatarCenterY = y + 170;
+      const nodePhotoUrl = resolveNodeAvatarPhotoUrl(selectedNode);
+      let usedPhotoAvatar = false;
+      context.beginPath();
+      context.arc(detailCenterX, avatarCenterY, avatarRadius + 1.5, 0, Math.PI * 2);
+      context.fillStyle = '#FFFFFF';
+      context.fill();
+      if (nodePhotoUrl) {
+        usedPhotoAvatar = drawImageAvatarCircle(detailCenterX, avatarCenterY, avatarRadius, nodePhotoUrl);
+      }
+      if (!usedPhotoAvatar) {
+        drawResolvedAvatarCircle(detailCenterX, avatarCenterY, avatarRadius, selectedAvatarNodeId, {
+          variant: selectedAvatarVariant,
+          alpha: 0.98,
+          sheenAlpha: 0.16,
+        });
+        drawText(nodeInitials, detailCenterX, avatarCenterY + 0.5, {
+          size: 34,
+          weight: 700,
+          family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+          color: '#FFFFFF',
+          align: 'center',
+        });
+      }
+
+      const statusDotCenterX = detailCenterX + (avatarRadius * 0.62);
+      const statusDotCenterY = avatarCenterY + (avatarRadius * 0.68);
+      context.beginPath();
+      context.arc(statusDotCenterX, statusDotCenterY, 10, 0, Math.PI * 2);
+      context.fillStyle = '#FFFFFF';
+      context.fill();
+      context.beginPath();
+      context.arc(statusDotCenterX, statusDotCenterY, 8, 0, Math.PI * 2);
+      context.fillStyle = activityDotColor;
+      context.fill();
+
+      const displayNameY = avatarCenterY + 80;
+      const usernameY = displayNameY + 26;
+      const rankY = usernameY + 24;
+      drawText(displayName, detailCenterX, displayNameY, {
+        size: 24,
+        weight: 600,
+        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        color: '#111111',
+        align: 'center',
+        maxWidth: detailContentWidth,
+      });
+      drawText(`@${username}`, detailCenterX, usernameY, {
+        size: 12,
+        weight: 500,
+        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        color: '#888888',
+        align: 'center',
+        maxWidth: detailContentWidth,
+      });
+
+      const rankIconSize = 15;
+      const rankIconGap = 4;
+      const rankTextWidth = measureTextWidth(rankValue, {
+        size: 12,
+        weight: 500,
+        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      });
+      const iconBlockWidth = rankAndTitleIconPaths.length
+        ? (10 + (rankAndTitleIconPaths.length * rankIconSize) + ((rankAndTitleIconPaths.length - 1) * rankIconGap))
+        : 0;
+      const rankRowWidth = rankTextWidth + iconBlockWidth;
+      let rankCursorX = detailCenterX - (rankRowWidth / 2);
+      drawText(rankValue, rankCursorX, rankY, {
+        size: 12,
+        weight: 500,
+        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        color: '#888888',
+      });
+      rankCursorX += rankTextWidth + 10;
+      for (let index = 0; index < rankAndTitleIconPaths.length; index += 1) {
+        const iconPath = rankAndTitleIconPaths[index];
+        const iconX = rankCursorX + (index * (rankIconSize + rankIconGap));
+        const iconY = rankY - (rankIconSize / 2);
+        const drawn = drawImageAssetRect(iconX, iconY, rankIconSize, rankIconSize, iconPath);
+        if (!drawn) {
+          fillRoundedRect(context, iconX, iconY, rankIconSize, rankIconSize, 4, '#DADADA');
+        }
+      }
+
+      const cyclesCount = resolveNodeCycleCount(selectedNode, volumeMetrics);
+      const relationButtonHeight = 46;
+      const relationButtonGap = 12;
+      const metricsToButtonsGap = 16;
+      const detailsBottomPad = 18;
+      const minMetricRowHeight = 28;
+      const maxMetricRowHeight = 58;
+      const parentId = safeText(selectedNode.parent);
+      const sponsorId = safeText(selectedNode.sponsorId || parentId);
+      const detailsPanelMode = 'light';
+      const relationButtons = [
+        {
+          id: 'parent',
+          style: 'filled',
+          iconName: 'family_history',
+          iconPath: resolveDetailsRelationIconPath('parent', detailsPanelMode),
+          nodeId: parentId,
+          fallbackGlyph: drawFallbackFamilyHistoryGlyph,
+        },
+        {
+          id: 'sponsor',
+          style: 'filled',
+          iconName: 'person_add',
+          iconPath: resolveDetailsRelationIconPath('sponsor', detailsPanelMode),
+          nodeId: sponsorId,
+          fallbackGlyph: drawFallbackPersonAddGlyph,
+        },
+        {
+          id: 'perspective',
+          style: 'outline',
+          iconName: 'arrow_forward',
+          iconPath: resolveDetailsRelationIconPath('perspective', detailsPanelMode),
+          nodeId: selectedNodeId,
+          label: 'Enter User Perspective',
+          action: 'universe:enter',
+        },
+      ];
+      const relationBlockHeight = (
+        relationButtons.length * relationButtonHeight
+      ) + (Math.max(0, relationButtons.length - 1) * relationButtonGap);
+      const metricRows = [
+        { label: 'Total Organization BV', value: formatExactVolumeValue(volumeMetrics.totalVolume) },
+        { label: 'Left Leg', value: formatExactVolumeValue(volumeMetrics.leftVolume) },
+        { label: 'Right Leg', value: formatExactVolumeValue(volumeMetrics.rightVolume) },
+        { label: 'Cycles', value: String(cyclesCount) },
+      ];
+      const maxRelationStartY = detailsBottomY - relationBlockHeight - detailsBottomPad;
+      const desiredMetricsStartY = rankY + 36;
+      const maxMetricsStartY = maxRelationStartY - metricsToButtonsGap - (metricRows.length * minMetricRowHeight);
+      const metricsStartY = Math.min(desiredMetricsStartY, maxMetricsStartY);
+      const availableMetricHeight = Math.max(
+        0,
+        detailsBottomY
+          - metricsStartY
+          - relationBlockHeight
+          - metricsToButtonsGap
+          - detailsBottomPad,
+      );
+      const metricRowHeight = clamp(
+        Math.floor(availableMetricHeight / Math.max(1, metricRows.length)),
+        minMetricRowHeight,
+        maxMetricRowHeight,
+      );
+      metricRows.forEach((row, rowIndex) => {
+        const rowTopY = metricsStartY + (rowIndex * metricRowHeight);
+        drawText(row.label, detailInsetX + 2, rowTopY + 20, {
+          size: 12,
+          weight: 500,
+          family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+          color: '#888888',
+          maxWidth: detailContentWidth * 0.6,
+        });
+        drawText(row.value, detailRightX, rowTopY + 20, {
+          size: 12,
+          weight: 400,
+          family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+          color: '#171717',
+          align: 'right',
+        });
+        line(context, detailInsetX, rowTopY + metricRowHeight - 6, detailInsetX + detailContentWidth, rowTopY + metricRowHeight - 6, '#E2E2E2', 1);
+      });
+
+      const preferredRelationStartY = metricsStartY + (metricRows.length * metricRowHeight) + metricsToButtonsGap;
+      const relationStartY = Math.min(preferredRelationStartY, maxRelationStartY);
+      const relationButtonLabelFamily = '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+      const relationButtonLabelWeight = 600;
+
+      relationButtons.forEach((entry, index) => {
+        const buttonY = relationStartY + (index * (relationButtonHeight + relationButtonGap));
+        if (buttonY + relationButtonHeight > detailsBottomY - 8) {
+          return;
+        }
+        const isOutlineButton = safeText(entry.style).toLowerCase() === 'outline';
+        const isPerspectiveButton = safeText(entry.id).toLowerCase() === 'perspective';
+        const nodeId = safeText(entry.nodeId);
+        const relationNode = resolveNodeById(nodeId);
+        const buttonEnabled = isPerspectiveButton ? Boolean(selectedNodeId) : Boolean(nodeId);
+        const customLabel = safeText(entry.label);
+        const buttonLabel = customLabel || (buttonEnabled
+          ? truncateText(safeText(relationNode?.name || relationNode?.id || nodeId), 24)
+          : '-');
+        const buttonFill = isOutlineButton
+          ? '#FFFFFF'
+          : (buttonEnabled ? '#D0E6FF' : '#E1EBF8');
+        const buttonTextColor = isOutlineButton
+          ? '#077AFF'
+          : (buttonEnabled ? '#077AFF' : '#7D9BC2');
+        const iconSize = isOutlineButton ? 28 : 26;
+        const iconCenterX = detailInsetX + 36;
+        const iconCenterY = buttonY + (relationButtonHeight / 2) + 0.5;
+        fillRoundedRect(context, detailInsetX, buttonY, detailContentWidth, relationButtonHeight, 23, buttonFill);
+        if (isOutlineButton) {
+          strokeRoundedRect(
+            context,
+            detailInsetX + 0.5,
+            buttonY + 0.5,
+            detailContentWidth - 1,
+            relationButtonHeight - 1,
+            23,
+            '#077AFF',
+            1,
+          );
+        }
+        const renderedSvg = drawImageAssetRect(
+          iconCenterX - (iconSize / 2),
+          iconCenterY - (iconSize / 2),
+          iconSize,
+          iconSize,
+          safeText(entry.iconPath),
+        );
+        if (!renderedSvg) {
+          drawMaterialButtonIcon(entry.iconName, iconCenterX, iconCenterY, {
+            size: iconSize,
+            weight: isOutlineButton ? 500 : 600,
+            color: buttonTextColor,
+            fallbackGlyph: entry.fallbackGlyph,
+            fill: isOutlineButton ? 0 : 1,
+          });
+        }
+        drawText(buttonLabel, detailCenterX, buttonY + (relationButtonHeight / 2) + 0.5, {
+          size: 14,
+          weight: relationButtonLabelWeight,
+          family: relationButtonLabelFamily,
+          color: buttonTextColor,
+          align: 'center',
+          maxWidth: detailContentWidth - 84,
+        });
+        const buttonAction = safeText(entry.action) || (nodeId ? `node:focus:${nodeId}` : '');
+        if (buttonEnabled && buttonAction) {
+          registerButton({
+            id: `side-nav-relation-${entry.id}`,
+            x: detailInsetX,
+            y: buttonY + buttonYOffset,
+            width: detailContentWidth,
+            height: relationButtonHeight,
+            action: buttonAction,
+          });
+        }
+      });
+    }
+
+    fillRoundedRect(context, slotX, timerCardY, slotWidth, timerCardHeight, 18, '#F6F7FA');
+    strokeRoundedRect(context, slotX + 0.5, timerCardY + 0.5, slotWidth - 1, timerCardHeight - 1, 18, '#E4E7ED');
+    const cutoffSnapshot = resolveServerCutoffSnapshot();
+    drawText('Server Timer', slotX + 14, timerCardY + 16, {
+      size: 10,
+      weight: 700,
+      color: '#656C7D',
+    });
+    drawText(cutoffSnapshot.serverTimeLabel, slotX + 14, timerCardY + 34, {
+      size: 11,
+      weight: 500,
+      color: '#3E4658',
+      maxWidth: slotWidth - 28,
+    });
+    drawText(cutoffSnapshot.cutoffLabel, slotX + 14, timerCardY + 50, {
+      size: 10,
+      weight: 600,
+      color: '#70798B',
+      maxWidth: slotWidth - 28,
+    });
+    drawText('Next cut-off in', slotX + 14, timerCardY + 74, {
+      size: 10,
+      weight: 600,
+      color: '#70798B',
+    });
+    drawText(cutoffSnapshot.countdownLabel, slotX + 14, timerCardY + 94, {
+      size: 16,
+      weight: 700,
+      color: '#2F3645',
+    });
+
   } finally {
     if (applyPanelReveal) {
       context.restore();
@@ -1914,24 +4812,23 @@ function drawBottomToolBar(layout) {
   if (panelReveal.progress <= 0) {
     return;
   }
-  const applyPanelReveal = panelReveal.active;
+  const applyPanelReveal = beginStartupReveal(panelReveal);
   const buttonYOffset = applyPanelReveal ? panelReveal.translateY : 0;
-  if (applyPanelReveal) {
-    context.save();
-    context.translate(0, panelReveal.translateY);
-    context.globalAlpha *= panelReveal.alpha;
-    context.filter = `blur(${panelReveal.blurPx.toFixed(2)}px)`;
-  }
 
   try {
   const bar = layout.bottomBar;
-  fillRoundedRect(context, bar.x, bar.y, bar.width, bar.height, 30, '#FFFFFF');
-  strokeRoundedRect(context, bar.x + 0.5, bar.y + 0.5, bar.width - 1, bar.height - 1, 30, '#FFFFFF', 1);
+  fillRoundedRect(context, bar.x, bar.y, bar.width, bar.height, 30, '#F2F2F6');
+  strokeRoundedRect(context, bar.x + 0.5, bar.y + 0.5, bar.width - 1, bar.height - 1, 30, '#E7E7EA', 1);
 
   const dockButtons = [
     { id: 'dock-back', iconGlyph: String.fromCodePoint(0xEF7D), action: 'universe:back' },
     { id: 'dock-home', iconGlyph: String.fromCodePoint(0xE9B2), action: 'camera:home' },
-    { id: 'dock-enter', iconGlyph: String.fromCodePoint(0xEA77), action: 'universe:enter' },
+    {
+      id: 'dock-enter',
+      iconGlyph: String.fromCodePoint(0xEA77),
+      iconLigature: 'send_money',
+      action: 'universe:enter',
+    },
     { id: 'dock-deep', iconGlyph: String.fromCodePoint(0xE16D), action: 'camera:deep' },
     { id: 'dock-placeholder', iconGlyph: String.fromCodePoint(0xF525), action: 'dock:placeholder' },
   ];
@@ -1947,8 +4844,8 @@ function drawBottomToolBar(layout) {
   const y = bar.y + padY;
   for (const button of dockButtons) {
     const hovered = state.hoveredButtonId === button.id;
-    const fill = hovered ? '#E3E3E3' : '#EDEDED';
-    const stroke = hovered ? '#DDDDDD' : '#EDEDED';
+    const fill = '#FFFFFF';
+    const stroke = hovered ? '#E2E2E8' : '#ECECF1';
     const iconColor = hovered ? '#171717' : '#303030';
 
     context.save();
@@ -1961,13 +4858,34 @@ function drawBottomToolBar(layout) {
     context.restore();
     strokeRoundedRect(context, x + 0.5, y + 0.5, slotWidth - 1, slotHeight - 1, 18, stroke, 2);
 
-    drawText(button.iconGlyph, x + (slotWidth / 2), y + (slotHeight / 2) + 1, {
-      size: 24,
-      weight: 400,
-      family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
-      color: iconColor,
-      align: 'center',
-    });
+    const iconCenterX = x + (slotWidth / 2);
+    const iconCenterY = y + (slotHeight / 2) + 1;
+    const iconLigature = safeText(button.iconLigature);
+    if (iconLigature) {
+      drawMaterialButtonIcon(iconLigature, iconCenterX, iconCenterY, {
+        size: 24,
+        weight: 400,
+        color: iconColor,
+        fill: 0,
+        fallbackGlyph: () => {
+          drawText(button.iconGlyph, iconCenterX, iconCenterY, {
+            size: 24,
+            weight: 400,
+            family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+            color: iconColor,
+            align: 'center',
+          });
+        },
+      });
+    } else {
+      drawText(button.iconGlyph, iconCenterX, iconCenterY, {
+        size: 24,
+        weight: 400,
+        family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+        color: iconColor,
+        align: 'center',
+      });
+    }
     registerButton({
       id: button.id,
       x,
@@ -1985,7 +4903,7 @@ function drawBottomToolBar(layout) {
   }
 }
 
-function resolveStartupRevealForDepth(depth = 0, nowMs = getNowMs()) {
+function resolveStartupRevealForDepth(depth = 0, nowMs = getNowMs(), extraDelayMs = 0) {
   const intro = state.intro;
   if (!intro || !Number.isFinite(intro.startedAtMs)) {
     const safeDepth = Math.max(0, Math.floor(safeNumber(depth, 0)));
@@ -2001,17 +4919,24 @@ function resolveStartupRevealForDepth(depth = 0, nowMs = getNowMs()) {
   const durationMs = Math.max(1, safeNumber(intro.durationMs, STARTUP_REVEAL_MS));
   const safeDepth = Math.max(0, Math.floor(safeNumber(depth, 0)));
   const staggerMs = Math.max(0, safeNumber(intro.staggerMs, STARTUP_REVEAL_STAGGER_MS));
-  const delayMs = safeDepth * staggerMs;
+  const delayMs = (safeDepth * staggerMs) + Math.max(0, safeNumber(extraDelayMs, 0));
   const elapsedMs = Math.max(0, nowMs - safeNumber(intro.startedAtMs, nowMs) - delayMs);
   const t = clamp(elapsedMs / durationMs, 0, 1);
   const eased = easeOutCubic(t);
   const inverse = 1 - eased;
+  const blurTailWeight = t >= STARTUP_REVEAL_END_FILTER_PROGRESS
+    ? clamp(
+      (1 - t) / Math.max(0.0001, 1 - STARTUP_REVEAL_END_FILTER_PROGRESS),
+      0,
+      1,
+    )
+    : 1;
   const depthDrift = 1 + Math.min(8, safeDepth) * 0.08;
   return {
     active: t < 1,
     progress: t,
     translateY: safeNumber(intro.offsetYPx, STARTUP_REVEAL_OFFSET_Y) * depthDrift * inverse,
-    blurPx: safeNumber(intro.blurPx, STARTUP_REVEAL_BLUR_PX) * inverse,
+    blurPx: safeNumber(intro.blurPx, STARTUP_REVEAL_BLUR_PX) * inverse * blurTailWeight,
     alpha: clamp(0.12 + (eased * 0.88), 0, 1),
   };
 }
@@ -2019,12 +4944,13 @@ function resolveStartupRevealForDepth(depth = 0, nowMs = getNowMs()) {
 function resolveStartupRevealForPanel(delayMs = 0, nowMs = getNowMs()) {
   const intro = state.intro;
   const safeDelayMs = Math.max(0, safeNumber(delayMs, 0));
+  const panelBlurPx = Math.max(0, safeNumber(intro?.panelBlurPx, STARTUP_PANEL_BLUR_PX));
   if (!intro || !Number.isFinite(intro.startedAtMs)) {
     return {
       active: true,
       progress: 0,
       translateY: STARTUP_PANEL_OFFSET_Y,
-      blurPx: STARTUP_PANEL_BLUR_PX,
+      blurPx: panelBlurPx,
       alpha: 0,
     };
   }
@@ -2038,9 +4964,44 @@ function resolveStartupRevealForPanel(delayMs = 0, nowMs = getNowMs()) {
     active: t < 1,
     progress: t,
     translateY: STARTUP_PANEL_OFFSET_Y * inverse,
-    blurPx: STARTUP_PANEL_BLUR_PX * inverse,
+    blurPx: panelBlurPx * inverse,
     alpha: clamp(0.12 + (eased * 0.88), 0, 1),
   };
+}
+
+function shouldApplyStartupReveal(reveal) {
+  if (!reveal || !reveal.active) {
+    return false;
+  }
+  const translateY = safeNumber(reveal.translateY, 0);
+  const blurPx = Math.max(0, safeNumber(reveal.blurPx, 0));
+  const alpha = clamp(safeNumber(reveal.alpha, 1), 0, 1);
+  return (
+    Math.abs(translateY) >= STARTUP_REVEAL_MIN_TRANSLATE_PX
+    || blurPx >= STARTUP_REVEAL_MIN_FILTER_PX
+    || alpha < STARTUP_REVEAL_MIN_ALPHA
+  );
+}
+
+function beginStartupReveal(reveal) {
+  if (!shouldApplyStartupReveal(reveal)) {
+    return false;
+  }
+  const translateY = safeNumber(reveal.translateY, 0);
+  const blurPx = Math.max(0, safeNumber(reveal.blurPx, 0));
+  const alpha = clamp(safeNumber(reveal.alpha, 1), 0, 1);
+
+  context.save();
+  if (Math.abs(translateY) >= STARTUP_REVEAL_MIN_TRANSLATE_PX) {
+    context.translate(0, translateY);
+  }
+  if (alpha < 1) {
+    context.globalAlpha *= alpha;
+  }
+  if (blurPx >= STARTUP_REVEAL_MIN_FILTER_PX) {
+    context.filter = `blur(${blurPx.toFixed(2)}px)`;
+  }
+  return true;
 }
 
 function drawConnectors(projectedNodes) {
@@ -2073,6 +5034,7 @@ function drawConnectors(projectedNodes) {
     return node.y - (Math.max(0.08, node.r * 0.72));
   }
 
+  const nowMs = getNowMs();
   for (const [parentId, children] of childrenByParent.entries()) {
     const parent = nodeById.get(parentId);
     if (!parent || !children.length) {
@@ -2081,22 +5043,30 @@ function drawConnectors(projectedNodes) {
 
     const parentDepth = safeNumber(parent.localDepth, safeNumber(parent.node?.depth, 0));
     const childDepth = Math.min(...children.map((child) => safeNumber(child.localDepth, parentDepth + 1)));
-    const reveal = resolveStartupRevealForDepth(Math.max(parentDepth, childDepth));
-    if (reveal.progress <= 0) {
-      continue;
-    }
-    const applyReveal = reveal.active;
-    if (applyReveal) {
-      context.save();
-      context.translate(0, reveal.translateY);
-      context.globalAlpha *= reveal.alpha;
-      context.filter = `blur(${reveal.blurPx.toFixed(2)}px)`;
+    const revealDepth = Math.max(parentDepth, childDepth);
+    const revealExtraDelayMs = resolveDepthRevealExtraDelay(revealDepth, parentId);
+    const skipReveal = Boolean(state.intro?.skipConnectorReveal);
+    const connectorRevealMode = safeText(state.intro?.connectorRevealMode || 'full') || 'full';
+    let applyReveal = false;
+    let connectorAlpha = 1;
+    let yOffset = 0;
+    if (!skipReveal) {
+      const reveal = resolveStartupRevealForDepth(revealDepth, nowMs, revealExtraDelayMs);
+      if (reveal.progress <= 0) {
+        continue;
+      }
+      if (connectorRevealMode === 'full') {
+        applyReveal = beginStartupReveal(reveal);
+      } else {
+        connectorAlpha = clamp(reveal.alpha, 0, 1);
+        yOffset = safeNumber(reveal.translateY, 0);
+      }
     }
 
     children.sort((left, right) => left.x - right.x);
 
-    const parentBottom = parent.y + (parent.r * 0.72);
-    const minChildTop = Math.min(...children.map(resolveChildTop));
+    const parentBottom = parent.y + (parent.r * 0.72) + yOffset;
+    const minChildTop = Math.min(...children.map((child) => resolveChildTop(child) + yOffset));
     const gap = Math.max(2, minChildTop - parentBottom);
     const smallestChildRadius = Math.max(0.08, Math.min(...children.map((child) => child.r)));
     const trunkShare = parent.r >= 22 ? 0.34 : (parent.r >= 10 ? 0.28 : 0.22);
@@ -2109,7 +5079,9 @@ function drawConnectors(projectedNodes) {
     }
 
     const strong = parent.lodTier === 'full' || children.some((child) => child.lodTier === 'full');
-    const stroke = strong ? 'rgba(95,132,181,0.42)' : 'rgba(121,149,190,0.24)';
+    const stroke = strong
+      ? `rgba(95,132,181,${(0.42 * connectorAlpha).toFixed(3)})`
+      : `rgba(121,149,190,${(0.24 * connectorAlpha).toFixed(3)})`;
     const branchRadius = Math.max(0.08, Math.min(parent.r, ...children.map((child) => child.r)));
     const lineWidth = strong
       ? clamp(branchRadius * 0.09, 0.08, 1.4)
@@ -2120,7 +5092,7 @@ function drawConnectors(projectedNodes) {
     if (children.length === 1) {
       const child = children[0];
       line(context, parent.x, branchY, child.x, branchY, stroke, lineWidth);
-      line(context, child.x, branchY, child.x, resolveChildTop(child), stroke, lineWidth);
+      line(context, child.x, branchY, child.x, resolveChildTop(child) + yOffset, stroke, lineWidth);
       if (applyReveal) {
         context.restore();
       }
@@ -2132,7 +5104,7 @@ function drawConnectors(projectedNodes) {
     line(context, minX, branchY, maxX, branchY, stroke, lineWidth);
 
     for (const child of children) {
-      line(context, child.x, branchY, child.x, resolveChildTop(child), stroke, lineWidth);
+      line(context, child.x, branchY, child.x, resolveChildTop(child) + yOffset, stroke, lineWidth);
     }
     if (applyReveal) {
       context.restore();
@@ -2142,16 +5114,15 @@ function drawConnectors(projectedNodes) {
 
 function drawNode(node) {
   const localDepth = safeNumber(node.localDepth, safeNumber(node.node?.depth, 0));
-  const reveal = resolveStartupRevealForDepth(localDepth);
-  if (reveal.progress <= 0) {
-    return;
-  }
-  const applyReveal = reveal.active;
-  if (applyReveal) {
-    context.save();
-    context.translate(0, reveal.translateY);
-    context.globalAlpha *= reveal.alpha;
-    context.filter = `blur(${reveal.blurPx.toFixed(2)}px)`;
+  const skipReveal = Boolean(state.intro?.skipDotReveal) && node.lodTier === 'dot';
+  let applyReveal = false;
+  if (!skipReveal) {
+    const revealExtraDelayMs = resolveDepthRevealExtraDelay(localDepth, node.id);
+    const reveal = resolveStartupRevealForDepth(localDepth, getNowMs(), revealExtraDelayMs);
+    if (reveal.progress <= 0) {
+      return;
+    }
+    applyReveal = beginStartupReveal(reveal);
   }
 
   try {
@@ -2164,12 +5135,11 @@ function drawNode(node) {
   const hasActiveRing = activeRingStrength > 0.001;
   const activeRingAlpha = (0.34 + (activeRingStrength * 0.64)).toFixed(3);
 
-  let hueSeed = 0;
-  const id = safeText(node.id);
-  for (let index = 0; index < id.length; index += 1) {
-    hueSeed = (hueSeed * 31 + id.charCodeAt(index)) % 360;
-  }
-  const hue = (hueSeed + 205) % 360;
+  const nodeId = safeText(node.id);
+  const nodeVariant = isSessionAvatarNodeId(nodeId)
+    ? 'auto'
+    : (nodeId.toLowerCase() === 'root' ? 'root' : 'auto');
+  let usedPhotoAvatar = false;
 
   if (node.lodTier === 'dot') {
     const r = Math.max(node.r, 0.3);
@@ -2186,29 +5156,19 @@ function drawNode(node) {
         : 'rgba(174,184,198,0.9)';
       context.fill();
 
-      const dotGradient = context.createRadialGradient(
-        node.x - (innerR * 0.24),
-        node.y - (innerR * 0.3),
-        Math.max(1, innerR * 0.12),
-        node.x,
-        node.y,
-        Math.max(1, innerR),
-      );
-      const dotBoost = hasActiveRing ? Math.round(3 + (activeRingStrength * 4)) : 0;
-      dotGradient.addColorStop(0, `hsla(${hue}, 62%, ${66 + dotBoost}%, 0.96)`);
-      dotGradient.addColorStop(1, `hsla(${(hue + 16) % 360}, 56%, ${48 + dotBoost}%, 0.96)`);
-
-      context.beginPath();
-      context.arc(node.x, node.y, innerR, 0, Math.PI * 2);
-      context.fillStyle = dotGradient;
-      context.fill();
+      drawResolvedAvatarCircle(node.x, node.y, innerR, nodeId, {
+        variant: nodeVariant,
+        alpha: 0.98,
+        sheenAlpha: 0.15,
+      });
       return;
     }
 
-    context.beginPath();
-    context.arc(node.x, node.y, r, 0, Math.PI * 2);
-    context.fillStyle = `hsla(${hue}, 30%, 70%, 0.9)`;
-    context.fill();
+    drawResolvedAvatarCircle(node.x, node.y, r, nodeId, {
+      variant: nodeVariant,
+      alpha: 0.96,
+      sheenAlpha: 0.12,
+    });
     return;
   }
 
@@ -2235,22 +5195,14 @@ function drawNode(node) {
     context.stroke();
   }
 
-  const emphasisBoost = hasActiveRing ? Math.round(3 + (activeRingStrength * 4)) : 0;
-  const gradient = context.createRadialGradient(
-    node.x - (innerR * 0.26),
-    node.y - (innerR * 0.34),
-    Math.max(1, innerR * 0.12),
-    node.x,
-    node.y,
-    Math.max(1, innerR),
-  );
-  gradient.addColorStop(0, `hsla(${hue}, 68%, ${71 + emphasisBoost}%, 0.98)`);
-  gradient.addColorStop(1, `hsla(${(hue + 16) % 360}, 63%, ${51 + emphasisBoost}%, 0.98)`);
-
+  const baseAvatarRender = drawResolvedAvatarCircle(node.x, node.y, innerR, nodeId, {
+    variant: nodeVariant,
+    alpha: 0.98,
+    sheenAlpha: 0.16,
+  });
+  usedPhotoAvatar = Boolean(baseAvatarRender?.usedPhoto);
   context.beginPath();
   context.arc(node.x, node.y, innerR, 0, Math.PI * 2);
-  context.fillStyle = gradient;
-  context.fill();
   context.lineWidth = (hasActiveRing || hasAncestorRing) ? 1.25 : 1;
   context.strokeStyle = hasActiveRing
     ? `rgba(255,255,255,${(0.28 + (activeRingStrength * 0.52)).toFixed(3)})`
@@ -2262,7 +5214,7 @@ function drawNode(node) {
     && node.r < 16
     && !isSelected
   );
-  if (hideDeepLevelLabel || node.r < 9) {
+  if (hideDeepLevelLabel || node.r < 9 || usedPhotoAvatar) {
     return;
   }
 
@@ -2285,7 +5237,6 @@ function drawTreeViewport(layout) {
 
   const frame = state.adapter.computeFrame({
     ...getUniverseOptions(),
-    query: state.query,
     depth: state.depthFilter,
     selectedId: state.selectedId,
     showConnectors: state.showConnectors,
@@ -2351,6 +5302,8 @@ function renderFrame() {
   drawTreeViewport(state.layout);
   drawSideNav(state.layout);
   drawBottomToolBar(state.layout);
+  syncSideNavSearchInput();
+  syncSideNavProfileMenu();
 }
 function setCameraTarget(nextView, animated = true) {
   const targetView = {
@@ -2360,10 +5313,12 @@ function setCameraTarget(nextView, animated = true) {
   };
   if (!animated) {
     state.camera.target = null;
+    state.camera.targetReason = '';
     state.camera.view = targetView;
     return;
   }
   state.camera.target = targetView;
+  state.camera.targetReason = 'generic';
 }
 
 function animateCamera(deltaSeconds) {
@@ -2371,7 +5326,10 @@ function animateCamera(deltaSeconds) {
   if (!target) {
     return;
   }
-  const damping = 1 - Math.exp(-CAMERA_DAMPING * deltaSeconds);
+  const dampingRate = state.camera.targetReason === 'wheel'
+    ? WHEEL_ZOOM_CAMERA_DAMPING
+    : CAMERA_DAMPING;
+  const damping = 1 - Math.exp(-dampingRate * deltaSeconds);
   state.camera.view.x += (target.x - state.camera.view.x) * damping;
   state.camera.view.y += (target.y - state.camera.view.y) * damping;
   state.camera.view.scale += (target.scale - state.camera.view.scale) * damping;
@@ -2388,6 +5346,7 @@ function animateCamera(deltaSeconds) {
       scale: target.scale,
     };
     state.camera.target = null;
+    state.camera.targetReason = '';
   }
 }
 
@@ -2470,7 +5429,6 @@ function fitCameraToFilteredNodes(animated = true) {
   }
   const bounds = state.adapter.resolveWorldBounds({
     ...getUniverseOptions(),
-    query: state.query,
     depth: state.depthFilter,
   });
   if (!bounds) {
@@ -2520,9 +5478,70 @@ function applyZoomAtPoint(pointX, pointY, nextScale) {
   const worldY = (pointY - viewport.baseY - state.camera.view.y) / oldProjectionScale;
 
   state.camera.target = null;
+  state.camera.targetReason = '';
   state.camera.view.scale = rawScale;
   state.camera.view.x = pointX - viewport.centerX - (worldX * projectionScale);
   state.camera.view.y = pointY - viewport.baseY - (worldY * projectionScale);
+}
+
+function resolveZoomTargetViewAtPoint(pointX, pointY, nextScale, referenceView = state.camera.view) {
+  const viewport = state.viewport || state.layout?.viewport;
+  if (!viewport) {
+    return null;
+  }
+  const sourceView = cloneCameraView(referenceView);
+  const sourceScale = clamp(sourceView.scale, MIN_SCALE, MAX_SCALE);
+  const targetScale = clamp(nextScale, MIN_SCALE, MAX_SCALE);
+  if (Math.abs(targetScale - sourceScale) < 0.000001) {
+    return null;
+  }
+
+  const sourceProjectionScale = resolveProjectionScale(sourceScale);
+  const targetProjectionScale = resolveProjectionScale(targetScale);
+  const worldX = (pointX - viewport.centerX - sourceView.x) / sourceProjectionScale;
+  const worldY = (pointY - viewport.baseY - sourceView.y) / sourceProjectionScale;
+
+  return {
+    scale: targetScale,
+    x: pointX - viewport.centerX - (worldX * targetProjectionScale),
+    y: pointY - viewport.baseY - (worldY * targetProjectionScale),
+  };
+}
+
+function applySmoothWheelZoomAtPoint(pointX, pointY, nextScale) {
+  const referenceView = (
+    state.camera.target
+    && state.camera.targetReason === 'wheel'
+  )
+    ? state.camera.target
+    : state.camera.view;
+  const targetView = resolveZoomTargetViewAtPoint(pointX, pointY, nextScale, referenceView);
+  if (!targetView) {
+    return;
+  }
+  setCameraTarget(targetView, true);
+  state.camera.targetReason = 'wheel';
+}
+
+function getWheelZoomReferenceScale() {
+  const referenceView = (
+    state.camera.target
+    && state.camera.targetReason === 'wheel'
+  )
+    ? state.camera.target
+    : state.camera.view;
+  return clamp(safeNumber(referenceView?.scale, state.camera.view.scale), MIN_SCALE, MAX_SCALE);
+}
+
+function panCameraBy(deltaX, deltaY) {
+  const safeDeltaX = safeNumber(deltaX, 0);
+  const safeDeltaY = safeNumber(deltaY, 0);
+  if (safeDeltaX === 0 && safeDeltaY === 0) {
+    return;
+  }
+  state.camera.target = null;
+  state.camera.view.x += safeDeltaX;
+  state.camera.view.y += safeDeltaY;
 }
 
 function triggerAction(action) {
@@ -2533,6 +5552,13 @@ function triggerAction(action) {
 
   if (safeAction === 'brand-menu:toggle') {
     state.ui.sideNavBrandMenuOpen = !state.ui.sideNavBrandMenuOpen;
+    if (state.ui.sideNavBrandMenuOpen) {
+      closeSearchDropdown();
+      const searchInput = ensureSideNavSearchInput();
+      if (document.activeElement === searchInput) {
+        searchInput.blur();
+      }
+    }
     return;
   }
   if (safeAction.startsWith('brand-menu:page:')) {
@@ -2580,14 +5606,40 @@ function triggerAction(action) {
     state.showConnectors = !state.showConnectors;
     return;
   }
-  if (safeAction === 'toggle:side-nav') {
-    state.ui.sideNavOpen = !state.ui.sideNavOpen;
-    if (!state.ui.sideNavOpen) {
-      state.ui.sideNavBrandMenuOpen = false;
+  if (safeAction === 'pin:toggle-selected') {
+    const selectedId = safeText(state.selectedId);
+    if (!selectedId) {
+      return;
+    }
+    const pinnedNow = togglePinnedNode(selectedId);
+    if (pinnedNow) {
+      focusNode(selectedId, 30, true);
     }
     return;
   }
+  if (safeAction.startsWith('pin:focus:')) {
+    const nodeId = safeAction.slice('pin:focus:'.length);
+    if (!nodeId) {
+      return;
+    }
+    focusNode(nodeId, 30, true);
+    return;
+  }
+  if (safeAction.startsWith('pin:remove:')) {
+    const nodeId = safeAction.slice('pin:remove:'.length);
+    removePinnedNode(nodeId);
+    return;
+  }
+  if (safeAction.startsWith('node:focus:')) {
+    const nodeId = safeAction.slice('node:focus:'.length);
+    if (!nodeId) {
+      return;
+    }
+    focusNode(nodeId, 30, true);
+    return;
+  }
   if (safeAction === 'dock:placeholder') {
+    void resetMemberBinaryTreeLaunchStateFromDock();
     return;
   }
   if (safeAction.startsWith('depth:')) {
@@ -2598,15 +5650,14 @@ function triggerAction(action) {
   if (safeAction.startsWith('query:')) {
     const mode = safeAction.slice('query:'.length);
     if (mode === 'all') {
-      state.query = '';
+      applySearchQuery('', { animated: true });
     } else if (mode === 'deep') {
-      state.query = 'deep';
+      applySearchQuery('deep', { animated: true });
     } else if (mode === 'high') {
-      state.query = 'leader';
+      applySearchQuery('leader', { animated: true });
     } else {
-      state.query = mode;
+      applySearchQuery(mode, { animated: true });
     }
-    fitCameraToFilteredNodes(true);
   }
 }
 
@@ -2616,39 +5667,68 @@ function updateHoverState(pointX, pointY) {
 }
 
 function onPointerDown(event) {
-  state.pointer.x = event.clientX;
-  state.pointer.y = event.clientY;
+  const pointerX = event.clientX;
+  const pointerY = event.clientY;
+  state.pointer.x = pointerX;
+  state.pointer.y = pointerY;
 
-  updateHoverState(event.clientX, event.clientY);
+  closeSearchDropdown();
+  updateHoverState(pointerX, pointerY);
+  const pointerInsideFavorites = pointInsideFavoritesCarousel(pointerX, pointerY);
   const brandMenuOpen = Boolean(state.ui.sideNavBrandMenuOpen);
-  const button = buttonUnderPointer(event.clientX, event.clientY);
+  const button = buttonUnderPointer(pointerX, pointerY);
   if (button) {
     const isBrandButton = (
-      button.id === SIDE_NAV_BRAND_TOGGLE_BUTTON_ID
+      safeText(button.action) === 'brand-menu:toggle'
       || button.id.startsWith(SIDE_NAV_BRAND_ITEM_BUTTON_PREFIX)
     );
+    const isFavoriteButton = button.id.startsWith('side-nav-favorite-');
     if (brandMenuOpen && !isBrandButton) {
       state.ui.sideNavBrandMenuOpen = false;
+    }
+    if (pointerInsideFavorites && isFavoriteButton) {
+      beginFavoritesCarouselDrag(event.pointerId, pointerX, pointerY, button.action);
+      canvas.classList.add('dragging');
+      try {
+        canvas.setPointerCapture(event.pointerId);
+      } catch {
+        // Ignore pointer capture failures.
+      }
+      return;
     }
     triggerAction(button.action);
     return;
   }
 
+  if (pointerInsideFavorites) {
+    if (brandMenuOpen) {
+      state.ui.sideNavBrandMenuOpen = false;
+    }
+    beginFavoritesCarouselDrag(event.pointerId, pointerX, pointerY);
+    canvas.classList.add('dragging');
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore pointer capture failures.
+    }
+    return;
+  }
+
   if (brandMenuOpen) {
     state.ui.sideNavBrandMenuOpen = false;
-    if (pointInsideActiveSideNav(event.clientX, event.clientY)) {
+    if (pointInsideActiveSideNav(pointerX, pointerY)) {
       return;
     }
   }
 
-  if (!pointInsideRect(event.clientX, event.clientY, state.layout?.workspace)) {
+  if (!pointInsideRect(pointerX, pointerY, state.layout?.workspace)) {
     return;
   }
-  if (pointInsideActiveSideNav(event.clientX, event.clientY)) {
+  if (pointInsideActiveSideNav(pointerX, pointerY)) {
     return;
   }
 
-  const hitNode = findProjectedNodeAt(event.clientX, event.clientY);
+  const hitNode = findProjectedNodeAt(pointerX, pointerY);
   if (hitNode) {
     setSelectedNode(hitNode.id, { animate: true, toggleIfSame: true });
     return;
@@ -2656,8 +5736,8 @@ function onPointerDown(event) {
 
   state.drag.active = true;
   state.drag.pointerId = event.pointerId;
-  state.drag.lastX = event.clientX;
-  state.drag.lastY = event.clientY;
+  state.drag.lastX = pointerX;
+  state.drag.lastY = pointerY;
   state.camera.target = null;
   canvas.classList.add('dragging');
   try {
@@ -2671,6 +5751,10 @@ function onPointerMove(event) {
   state.pointer.x = event.clientX;
   state.pointer.y = event.clientY;
   state.pointer.inside = true;
+
+  if (updateFavoritesCarouselDrag(event.pointerId, event.clientX, event.clientY)) {
+    return;
+  }
 
   if (state.drag.active && event.pointerId === state.drag.pointerId) {
     const deltaX = event.clientX - state.drag.lastX;
@@ -2694,10 +5778,16 @@ function stopDragging(pointerId) {
   }
   state.drag.active = false;
   state.drag.pointerId = null;
-  canvas.classList.remove('dragging');
+  if (!getSideNavFavoritesState().dragActive) {
+    canvas.classList.remove('dragging');
+  }
 }
 
 function onPointerUp(event) {
+  const releaseAction = resolveFavoritesCarouselReleaseAction(event.pointerId);
+  if (releaseAction) {
+    triggerAction(releaseAction);
+  }
   stopDragging(event.pointerId);
   try {
     canvas.releasePointerCapture(event.pointerId);
@@ -2709,6 +5799,7 @@ function onPointerUp(event) {
 function onPointerLeave() {
   state.pointer.inside = false;
   state.hoveredButtonId = '';
+  stopFavoritesCarouselDrag(null);
   stopDragging(null);
 }
 
@@ -2717,13 +5808,55 @@ function onWheel(event) {
   if (!layout || !pointInsideRect(event.clientX, event.clientY, layout.workspace)) {
     return;
   }
+  if (pointInsideFavoritesCarousel(event.clientX, event.clientY)) {
+    event.preventDefault();
+    const deltaX = safeNumber(event.deltaX, 0);
+    const deltaY = safeNumber(event.deltaY, 0);
+    const horizontalDelta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
+    scrollFavoritesBy(horizontalDelta);
+    return;
+  }
   if (pointInsideActiveSideNav(event.clientX, event.clientY)) {
     return;
   }
+
+  const isTrackpadEvent = isLikelyTrackpadWheelEvent(event);
+  const isTrackpadPinchZoom = isTrackpadEvent && event.ctrlKey && !event.metaKey;
+  const isManualZoom = isManualWheelZoomModifierPressed(event);
+
+  if (isTrackpadPinchZoom) {
+    event.preventDefault();
+    const zoomSensitivity = sanitizeTrackpadZoomSensitivity(state.trackpadZoomSensitivity);
+    const zoomMultiplier = Math.exp((-safeNumber(event.deltaY, 0) / TRACKPAD_PINCH_DELTA_BASE) * zoomSensitivity);
+    const nextScale = state.camera.view.scale * zoomMultiplier;
+    applyZoomAtPoint(event.clientX, event.clientY, nextScale);
+    return;
+  }
+
+  if (isTrackpadEvent && !isManualZoom) {
+    event.preventDefault();
+    const panDirection = state.reverseTrackpadMovement ? 1 : -1;
+    const deltaX = safeNumber(event.deltaX, 0) * panDirection;
+    const deltaY = safeNumber(event.deltaY, 0) * panDirection;
+    panCameraBy(deltaX, deltaY);
+    return;
+  }
+
+  if (isManualZoom) {
+    event.preventDefault();
+    const baseScale = getWheelZoomReferenceScale();
+    const zoomFactor = safeNumber(event.deltaY, 0) < 0
+      ? WHEEL_STEP_ZOOM_IN_FACTOR
+      : WHEEL_STEP_ZOOM_OUT_FACTOR;
+    applySmoothWheelZoomAtPoint(event.clientX, event.clientY, baseScale * zoomFactor);
+    return;
+  }
+
   event.preventDefault();
-  const zoomMultiplier = Math.exp(-event.deltaY * 0.0016);
-  const nextScale = state.camera.view.scale * zoomMultiplier;
-  applyZoomAtPoint(event.clientX, event.clientY, nextScale);
+  const baseScale = getWheelZoomReferenceScale();
+  const zoomMultiplier = Math.exp(-safeNumber(event.deltaY, 0) * 0.0016);
+  const nextScale = baseScale * zoomMultiplier;
+  applySmoothWheelZoomAtPoint(event.clientX, event.clientY, nextScale);
 }
 
 function onKeyDown(event) {
@@ -2733,6 +5866,14 @@ function onKeyDown(event) {
   if (key === 'escape' && state.ui.sideNavBrandMenuOpen) {
     state.ui.sideNavBrandMenuOpen = false;
     event.preventDefault();
+    return;
+  }
+
+  if (isEditableTarget()) {
+    if (key === 'escape' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+      event.preventDefault();
+    }
     return;
   }
 
@@ -2813,12 +5954,36 @@ function onKeyDown(event) {
   if (key === 'c') {
     state.showConnectors = !state.showConnectors;
     event.preventDefault();
+    return;
   }
+  if (key === 'p') {
+    togglePinnedNode(state.selectedId);
+    event.preventDefault();
+  }
+}
+
+function onSessionStorageChange(event) {
+  const expectedStorageKey = state.source === 'admin'
+    ? ADMIN_AUTH_STORAGE_KEY
+    : MEMBER_AUTH_STORAGE_KEY;
+  const expectedCookieKey = state.source === 'admin'
+    ? ADMIN_AUTH_COOKIE_KEY
+    : MEMBER_AUTH_COOKIE_KEY;
+  const changedKey = safeText(event?.key);
+  if (changedKey && changedKey !== expectedStorageKey) {
+    return;
+  }
+  const nextSession = readSessionSnapshot(expectedStorageKey, expectedCookieKey);
+  if (!nextSession) {
+    return;
+  }
+  state.session = nextSession;
 }
 
 function bindEvents() {
   window.addEventListener('resize', updateCanvasSize);
   window.addEventListener('keydown', onKeyDown, { passive: false });
+  window.addEventListener('storage', onSessionStorageChange);
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerup', onPointerUp);
@@ -2835,6 +6000,7 @@ function tickFrame(timestamp) {
   const deltaSeconds = Math.max(0.0001, Math.min(0.08, (timestamp - lastTimestamp) / 1000));
   lastTimestamp = timestamp;
 
+  adaptStartupRevealForFrameBudget(deltaSeconds * 1000);
   animateCamera(deltaSeconds);
   renderFrame();
 
@@ -2850,6 +6016,7 @@ function tickFrame(timestamp) {
 async function bootstrap() {
   clearBootError();
   state.loading.startedAtMs = performance.now();
+  hideFirstOpenSplashImmediately();
   if (loadingScreenElement instanceof HTMLElement) {
     loadingScreenElement.style.display = 'flex';
     loadingScreenElement.classList.remove('is-leaving');
@@ -2861,6 +6028,7 @@ async function bootstrap() {
   }
 
   state.engineMode = await detectBinaryTreeNextEngineMode();
+  consumeMockFirstTimeLaunchOverride();
 
   state.nodes = buildMockNodes();
   state.adapter.setNodes(state.nodes);
@@ -2871,7 +6039,9 @@ async function bootstrap() {
   refreshUniverseBreadcrumb('root');
 
   setSelectedNode('root', { animate: false });
+  setPinnedNodeIds(readPinnedNodeIdsFromStorage());
   updateCanvasSize();
+  configureStartupRevealProfile();
   state.layout = resolveLayout(state.renderSize.width, state.renderSize.height);
   state.viewport = state.layout.viewport;
   bindEvents();
@@ -2882,6 +6052,7 @@ async function bootstrap() {
   state.timeMs = performance.now();
   renderFrame();
   await completeLoadingScreen();
+  await waitForFirstOpenSplashContinue();
   state.intro.startedAtMs = performance.now();
   lastTimestamp = state.intro.startedAtMs;
   window.requestAnimationFrame(tickFrame);
@@ -2889,9 +6060,6 @@ async function bootstrap() {
 
 bootstrap().catch((error) => {
   hideLoadingScreenImmediately();
+  hideFirstOpenSplashImmediately();
   showBootError(error instanceof Error ? error.message : String(error));
 });
-
-
-
-

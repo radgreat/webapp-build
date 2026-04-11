@@ -27,7 +27,17 @@ function normalizeDepthFilter(value) {
 }
 
 function toSearchableValue(node) {
-  return `${normalizeText(node?.name)} ${normalizeText(node?.role)} ${normalizeText(node?.id)}`.toLowerCase();
+  const badges = Array.isArray(node?.badges) ? node.badges.join(' ') : '';
+  return [
+    normalizeText(node?.name),
+    normalizeText(node?.username),
+    normalizeText(node?.role),
+    normalizeText(node?.rank),
+    normalizeText(node?.title),
+    normalizeText(node?.accountStatus),
+    normalizeText(node?.id),
+    normalizeText(badges),
+  ].join(' ').toLowerCase();
 }
 
 function buildPathFromParent(parentPath, side) {

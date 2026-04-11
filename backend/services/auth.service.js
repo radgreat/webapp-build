@@ -26,6 +26,10 @@ import {
   readMockEmailOutboxStore,
   writeMockEmailOutboxStore,
 } from '../stores/email.store.js';
+import {
+  touchMemberBinaryTreeIntroStateByUserId,
+  deleteMemberBinaryTreeIntroStateByUserId,
+} from '../stores/member-binary-tree-intro.store.js';
 
 import {
   normalizeText,
@@ -542,6 +546,58 @@ export async function verifyMemberEmailByToken(tokenInput) {
       email: tokenEmail,
       verifiedAt,
       message: 'Email verified successfully.',
+    },
+  };
+}
+
+export async function resolveMemberBinaryTreeLaunchState(memberUserInput = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const touchedState = await touchMemberBinaryTreeIntroStateByUserId(userId);
+  const launchState = touchedState?.state || null;
+
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      userId,
+      firstTime: touchedState?.firstTime === true,
+      firstOpenedAt: normalizeText(launchState?.firstOpenedAt),
+      lastOpenedAt: normalizeText(launchState?.lastOpenedAt),
+      checkedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export async function resetMemberBinaryTreeLaunchState(memberUserInput = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const deletion = await deleteMemberBinaryTreeIntroStateByUserId(userId);
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      userId,
+      reset: true,
+      deleted: deletion?.deleted === true,
+      deletedRows: Math.max(0, Number(deletion?.rowCount || 0)),
+      checkedAt: new Date().toISOString(),
     },
   };
 }

@@ -28,6 +28,20 @@ Owner: Binary Tree Next Implementation Track
 - Relevance to wasm plan:
   - visual shell is now more stable for upcoming live-tree logic migration and wasm adapter integration.
 
+## 0.2) Launch-State Intro Gate Update (2026-04-10)
+
+- Delivered first-open awareness for Binary Tree Next member sessions:
+  - introduced persisted first-open tracking store (member_binary_tree_intro_state)
+  - added member endpoint GET /api/member-auth/binary-tree-next/launch-state behind existing session middleware
+  - wired next-gen app bootstrap to request launch-state before intro sequence.
+- Delivered first-time UX gate:
+  - after loading finishes, first-time members now see a welcome splash (Welcome, Press the screen to continue.)
+  - intro animation starts only after user interaction (tap/click or Enter/Space)
+  - returning users skip this gate and continue with normal startup.
+- Relevance to wasm/next-gen track:
+  - formalizes a server-driven boot-state contract for next-gen startup sequencing
+  - provides a reusable pattern for future phase gates/tutorials without hardcoding client-only first-open logic.
+
 ## 1) Executive Summary
 
 This plan defines a **new Binary Tree implementation track** that runs in parallel with the current production tree.
@@ -1036,3 +1050,689 @@ Result:
 Validation:
 
 - `node --check binary-tree-next-app.mjs` passed.
+
+## 70) Performance Hardening (2026-04-10, Cross-Platform Startup Smoothness)
+
+Delivered:
+
+- Added adaptive startup reveal profile selection (`full`/`lite`) based on reduced-motion, pixel workload, CPU cores, and device memory.
+- Added early-startup frame-budget monitoring and automatic downgrade to `adaptive-lite` when startup frame pacing falls below target.
+- Refactored intro reveal application behind shared helpers with thresholds to skip negligible blur/translate/alpha work.
+- Disabled startup reveal effects for dot-tier nodes and skipped connector reveal animation in lite/adaptive modes.
+- Made panel intro blur adaptive via intro state (`panelBlurPx`) instead of static-only values.
+
+Result:
+
+- Startup behavior remains visually consistent while reducing first-seconds lag risk on high-DPI or constrained GPU/CPU paths.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 71) UX/Performance Balance (2026-04-10, Connector Intro Cohesion)
+
+Delivered:
+
+- Restored startup connector (line) animation to align with node intro motion.
+- Added `connectorRevealMode` startup state (`full` / `lite`).
+- Updated lite/adaptive behavior to keep connector animation enabled using lightweight reveal (alpha + Y offset) without blur/filter overhead.
+- Kept full reveal path for strong environments.
+
+Result:
+
+- Intro now feels cohesive (nodes + connectors animate together) while still protecting startup frame pacing on constrained/high-DPI devices.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 72) Input Parity (2026-04-10, Native macOS Trackpad Support in Next)
+
+Delivered:
+
+- Implemented trackpad wheel event detection parity from `binary-tree.mjs`.
+- Added platform-aware manual wheel-zoom modifier mapping (macOS Command, non-macOS Ctrl).
+- Added trackpad pinch-to-zoom path and two-finger pan path for Binary Tree Next canvas.
+- Added runtime state for reverse movement and zoom sensitivity with sane defaults/sanitization.
+- Preserved legacy smooth wheel zoom fallback for non-trackpad wheel input.
+
+Result:
+
+- Binary Tree Next now supports native-feeling macOS trackpad interactions while retaining compatibility for mouse wheel users.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 73) Input Tuning (2026-04-10, Stronger Trackpad Pinch Zoom)
+
+Delivered:
+
+- Increased `DEFAULT_TRACKPAD_ZOOM_SENSITIVITY` from `0.3` to `0.5` in Binary Tree Next.
+
+Result:
+
+- Trackpad pinch interactions now produce more pronounced zoom response.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 74) Input Bugfix/Tuning (2026-04-10, Strong Trackpad Pinch Behavior)
+
+Delivered:
+
+- Fixed sensitivity clamp ceiling that capped trackpad zoom to `1`.
+- Increased `MAX_TRACKPAD_ZOOM_SENSITIVITY` to `6`.
+- Added `TRACKPAD_PINCH_DELTA_BASE = 60` and updated pinch exponential formula for stronger response.
+
+Result:
+
+- Higher configured sensitivity values now function, and pinch zoom strength is materially increased.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 75) Perf Smoothing (2026-04-10, Windows Intro Tail Stability)
+
+Delivered:
+
+- Added deterministic per-entity reveal jitter for deeper startup layers.
+- Added tail-phase blur fade acceleration (`STARTUP_REVEAL_END_FILTER_PROGRESS = 0.82`).
+- Extended depth reveal resolver with optional extra delay to avoid synchronized deep-layer bursts.
+
+Result:
+
+- Startup tail now distributes work more evenly and reduces end-phase frame drop spikes.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 76) UX Input Polish (2026-04-10, Eased Mouse Wheel Zoom)
+
+Delivered:
+
+- Added wheel-zoom easing via animated camera targets instead of instant scale jumps.
+- Added wheel-specific damping profile and target reason tracking.
+- Added wheel-target scale accumulation so continuous wheel scrolling remains responsive while easing is active.
+- Kept trackpad pinch/pan behavior unchanged.
+
+Result:
+
+- Mouse wheel zoom transitions are now smoother and less abrupt.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 77) Implementation Update (2026-04-10, Left Panel Shell Data/Control Pass)
+
+Delivered:
+
+- Replaced next-gen left-shell placeholders with functional canvas modules:
+  - search section
+  - pinned/favorites section
+  - selected-node details section
+  - server timer/cutoff section.
+- Added synchronized DOM search input overlay (positioned to canvas side-nav slot) for natural text entry.
+- Added action routing for pin/focus/remove and relation navigation (`parent`/`sponsor`).
+- Added local persistence for pinned nodes (`binary-tree-next-pinned-node-ids-v1`).
+- Expanded mock node payload shape with profile/business fields:
+  - `username`, `title`, `badges`, `accountStatus`, `sponsorId`, `sponsorLeg`, `isSpillover`.
+- Expanded adapter-side search indexing to include profile fields and badges.
+
+Result:
+
+- Binary Tree Next now has a functional left shell that can drive search and node context workflows, enabling future backend/live-tree data contract hookup without reworking the shell UI.
+
+Known limitation:
+
+- This pass still uses mock next-gen data; live backend contract integration remains the next major step.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- Visual verification passes captured in `temporary screenshots/` (`pass2`/`pass3`/`pass4`).
+
+## 78) UI Refinement (2026-04-10, Pinned Places Carousel Style Pass)
+
+Delivered:
+
+- Reworked the left-shell pinned section into an Apple Maps-inspired "Places" carousel.
+- Added circular destination tiles with custom icon rendering (work/home/bank) in canvas.
+- Added two-line place labels and horizontal overflow clipping for carousel behavior.
+- Preserved interaction contract:
+  - real pinned nodes still focus on click
+  - selected-node pin toggle remains available (`Pin` / `Unpin`).
+- Added fallback sample places when no pinned nodes exist so the new visual structure remains stable.
+
+Result:
+
+- Pinned panel now matches requested Apple Maps visual language while remaining compatible with next-gen pinning/focus data flow.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 79) UX Refinement (2026-04-10, Favorites = Real Node Pins + Horizontal Scroll/Grab)
+
+Delivered:
+
+- Reworked favorites data source to use only real pinned node ids (removed sample place fallback cards and custom place-icon semantics).
+- Updated favorites heading text to `Favorites` and removed the gray section container treatment.
+- Kept favorite chip identity tied to node data (initials/name/volume summary).
+- Added carousel interaction behavior in side nav:
+  - wheel inside favorites viewport maps to horizontal row scroll
+  - pointer drag supports grab-style horizontal scrolling.
+- Added tap-vs-drag release logic so favorite chips still trigger node focus on click but not while actively dragging.
+
+Result:
+
+- Favorites now functions as a true binary-tree pin browser, with expected horizontal browse interaction and reliable click-to-focus behavior.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## 80) UI Refinement (2026-04-10, Tree Node Gradient Unified With Favorites)
+
+Delivered:
+
+- Added shared avatar gradient builder (`createNodeAvatarGradient`) in next-gen app shell.
+- Refactored Favorites avatar chips and tree node rendering to consume the same gradient profile.
+- Applied unified gradient across all node LOD tiers (including dot mode).
+
+Result:
+
+- Visual color language is now consistent between pinned favorites and the tree itself.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 81) UI Refinement (2026-04-10, Apple Maps Circle Gradient Container Match)
+
+Delivered:
+
+- Replaced node/favorites fill model from per-id random HSL gradients to fixed Apple Maps-style palettes (`root`, `accent`, `neutral`).
+- Added directional gradient blend and subtle sheen overlay to mirror the reference circle container treatment.
+- Applied shared fill path to all node LOD tiers and favorites circles for consistency.
+
+Result:
+
+- Circle containers now follow the requested Apple Maps gradient character (brown/cyan/slate families with smooth shaded depth).
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## 82) UI Refinement (2026-04-10, Multi-Color Node Mapping With Apple Gradient)
+
+Delivered:
+
+- Preserved Apple Maps-style circle container gradient + sheen treatment.
+- Added deterministic multi-color mapping for non-selected nodes using palette rotation (`neutral`, `ocean`, `mint`, `amber`, `rose`).
+- Kept root and selected color priorities (`root` brown, `accent` cyan).
+
+Result:
+
+- Tree nodes now have varied colors while retaining the approved gradient character.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 83) UI Refinement (2026-04-10, Containerless Apple Maps Search Row)
+
+Delivered:
+
+- Removed legacy search card container from left-side shell search section.
+- Added Apple Maps-style search row composition:
+  - rounded search pill
+  - magnifier icon inside pill
+  - adjacent circular profile icon button.
+- Restyled overlay input to transparent/no-border to align with the pill-only composition.
+
+Result:
+
+- Search area now visually matches requested reference scope (search bar + profile icon, without extra surrounding container).
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## 84) UI Refinement (2026-04-10, Search Profile Icon Shadow Removal)
+
+Delivered:
+
+- Removed drop-shadow rendering from the profile icon adjacent to the containerless search bar.
+- Kept icon fill/ring geometry and action wiring intact.
+
+Result:
+
+- Search row avatar now matches the requested flat treatment.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 85) UI Refinement (2026-04-10, White Search Pill + Soft Drop Shadow)
+
+Delivered:
+
+- Changed containerless search pill fill to `#FFFFFF`.
+- Added subtle shadow treatment for search pill depth.
+
+Result:
+
+- Search row now has brighter contrast while preserving Apple Maps-like composition.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 86) UI Refinement (2026-04-10, Search Pill Fill #DFDFDF)
+
+Delivered:
+
+- Updated containerless search pill fill color to `#DFDFDF`.
+- Preserved existing shadow and search-row structure.
+
+Result:
+
+- Search bar now uses the requested gray tone.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 87) UI Refinement (2026-04-10, Updated Shell Color Tokens)
+
+Delivered:
+
+- Updated color tokens to requested values:
+  - panel + dock container = `#F2F2F6`
+  - dock icon containers = `#FFFFFF`
+  - search bar = `#FFFFFF`
+  - node-details background = `#FFFFFF`.
+
+Result:
+
+- Next-gen shell now reflects the latest panel/dock/search/details palette direction.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 88) UI Refinement (2026-04-10, Softer Search Pill Shadow)
+
+Delivered:
+
+- Lowered search pill shadow intensity by reducing opacity, blur radius, and vertical offset.
+
+Result:
+
+- Search row keeps depth but with a less pronounced shadow.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 89) UI Refinement (2026-04-10, Material Search Icon + SF/Inter Typography)
+
+Delivered:
+
+- Replaced search icon draw logic with Material Symbols `search` glyph in canvas.
+- Added explicit `icon_names=search` stylesheet import in page head.
+- Updated typography stack to SF Sans-first with Inter fallback for page base, canvas text defaults, and search input.
+
+Result:
+
+- Search row aligns with requested icon source and typography preference.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 90) UI Refinement (2026-04-10, Search Icon Scale/Alignment)
+
+Delivered:
+
+- Increased search icon scale and tuned icon alignment inside the search pill.
+- Adjusted input insets to keep spacing consistent with the larger icon.
+
+Result:
+
+- Search icon now feels proportionate to the search bar.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 91) UX Bugfix (2026-04-10, Search Input Startup Reveal Cohesion)
+
+Delivered:
+
+- Added side-nav search input opacity state driven by panel reveal alpha.
+- Updated search input sync logic to hide at near-zero opacity and apply reveal opacity each frame.
+- Applied panel reveal translation offset to search input rect Y so the DOM input tracks animated panel movement.
+
+Result:
+
+- Search input now participates in startup reveal timing/position and no longer appears detached from panel animation.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 92) UX Refinement (2026-04-10, Tree-First Startup Reveal Order)
+
+Delivered:
+
+- Increased panel/dock reveal delays so main tree animation is presented first.
+- New delays:
+  - side panel: `1200ms`
+  - dock: `1450ms`.
+
+Result:
+
+- Startup sequence now prioritizes tree visibility before UI chrome enters.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## 0.3) Startup Overlap Timing Tune (2026-04-10)
+
+- Adjusted startup timing so shell chrome appears before tree intro fully completes.
+- Updated delays in binary-tree-next-app.mjs:
+  - side panel delay: 1200ms -> 540ms
+  - dock delay: 1450ms -> 700ms
+- Effect:
+  - startup sequence keeps tree-first emphasis but now overlaps panel/dock motion for a tighter perceived load experience.
+## 0.4) Mock First-Time Trigger Override (2026-04-10)
+
+- Added a client-side one-time override for mock runtime testing of launch intro gate.
+- Scope:
+  - active only in `mock-js` mode
+  - member source only
+  - only when server launch-state is not already first-time.
+- Uses per-user local marker key:
+  - `binary-tree-next-mock-first-time-override-v1:<userId>`
+- Effect:
+  - lets current mock user re-trigger Welcome splash without backend row resets while preserving normal behavior afterward.
+## 0.5) Welcome Splash Apple Motion Pass (2026-04-10)
+
+- Refined first-open welcome gate UI with Apple-like motion language and frosted card treatment.
+- Added layered animation system:
+  - animated ambient background orbs
+  - spring-like card entrance
+  - delayed title/subtitle reveal
+  - gentle prompt breathe cycle.
+- Added reduced-motion handling for accessibility.
+- Updated splash show timing to apply visible class on next animation frame for reliable transition playback.
+## 0.6) Dock Asterisk Intro-State Reset (2026-04-10)
+
+- Added member-side server reset API for first-open intro tracking.
+- Endpoint:
+  - DELETE /api/member-auth/binary-tree-next/launch-state
+- Dock integration:
+  - asterisk button now invokes reset endpoint for authenticated member
+  - on success, clears local mock-first-time consume marker and reloads app.
+- Effect:
+  - enables repeatable welcome-gate testing without manual database intervention.
+## 0.7) Intro Reset Route Compatibility Fix (2026-04-10)
+
+- Added reset endpoint alias for method compatibility:
+  - POST /api/member-auth/binary-tree-next/launch-state/reset
+- Dock reset flow now attempts DELETE first, then POST fallback on 404/405.
+- Backend runtime was restarted to load updated route mappings.
+- Result:
+  - reset workflow is now stable even when DELETE path is unavailable in current runtime routing.
+## 0.8) Welcome Splash Visual Refresh (2026-04-10)
+
+- Delivered:
+  - redesigned first-open splash visuals in `binary-tree-next.html` with brand-led layered gradients and texture
+  - introduced branded badge using `/brand_assets/Logos/L&D White Icon.png`
+  - updated copy hierarchy to "Welcome to Binary Tree" with a clearer continue cue
+  - added focus-visible, hover, and active interaction states for splash affordances
+  - synchronized dismiss timing by changing `FIRST_OPEN_SPLASH_FADE_MS` from `180` to `260`
+- Design choices:
+  - preserved launch-state gating behavior in `binary-tree-next-app.mjs` to avoid first-time flow regressions
+  - used existing logo palette colors (`#67B392`, `#7853A2`, `#8E68AD`) for consistency
+- Known limitations:
+  - no screenshot comparison loop was executed in this pass
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 0.9) Left Panel Header Cleanup (2026-04-10)
+
+- Delivered:
+  - removed top logo/header row from left panel in `binary-tree-next-app.mjs`
+  - removed side-nav collapse/expand button and related hover/render helpers
+  - removed `toggle:side-nav` action branch so side nav remains open
+  - shifted top layout so search row becomes the new first row
+  - preserved profile menu access through search-row avatar (`brand-menu:toggle`)
+- Design choices:
+  - retained all non-requested panel functionality (search, favorites, details, server timer)
+  - removed only the specific top-header/collapse UI requested
+- Known limitations:
+  - no screenshot pass for this change (per request)
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 1.0) Search UX Decoupled From Layout (2026-04-11)
+
+- Delivered:
+  - added dedicated search dropdown overlay anchored to the left-panel search pill
+  - implemented ranked node search results (name/username/rank/title/id)
+  - added keyboard interactions (`ArrowUp`, `ArrowDown`, `Enter`, `Escape`)
+  - clicking or confirming a result now triggers camera focus to that node only
+  - removed query dependency from tree frame rendering and filtered-bounds fitting
+- Design choices:
+  - retained existing left-panel search shell and integrated dropdown as an overlay to minimize UI churn
+  - kept `state.query` as input state while preventing it from driving tree visibility/layout
+- Known limitations:
+  - no screenshot pass for this change
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 1.1) Search Dropdown Node Icons (2026-04-11)
+
+- Delivered:
+  - added node icon/avatar visuals to each search dropdown result row
+  - reused node palette logic for gradient consistency with tree/favorites
+  - added initials display inside avatar core
+- Design choices:
+  - kept avatar DOM-based (overlay layer) for lightweight integration with existing dropdown
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 1.2) Search Dropdown Capacity + Dividers (2026-04-11)
+
+- Delivered:
+  - increased search dropdown max results to 18
+  - added thin line separators between result rows
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 1.3) Search List Uniformity + Icon Shell Cleanup (2026-04-11)
+
+- Delivered:
+  - made search dropdown rows uniform in height
+  - added overflow-ellipsis text behavior to keep row heights fixed
+  - removed white outer icon shell from search results and favorites avatars
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 1.4) Selected Icon Accent Removed (2026-04-11)
+
+- Delivered:
+  - removed selected-to-blue accent palette switching across icon contexts
+  - selected state now uses white border/ring emphasis only
+  - applied white border for active icons in Favorites and search dropdown
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 1.5) Profile Icon Menu Refactor to DOM Dropdown (2026-04-11)
+
+- Delivered:
+  - added `SIDE_NAV_PROFILE_MENU_ID` and new DOM profile-menu overlay lifecycle:
+    - `ensureSideNavProfileMenu()`
+    - `renderSideNavProfileMenu(...)`
+    - `syncSideNavProfileMenu()`
+  - anchored profile menu to the search-row profile icon via `state.ui.sideNavBrandMenuAnchorRect`
+  - replaced prior canvas menu rendering block with DOM-driven menu content
+  - preserved existing brand-menu actions (`profile`, `dashboard`, `my-store`, `settings`, `logout`)
+  - implemented uniform rows, thin separators, and per-row icon badges
+  - added menu/header close affordance and search/menu mutual exclusion behavior
+- Design choices:
+  - reused search-dropdown shell properties for visual coherence
+  - kept actions unchanged to reduce regression risk during UI architecture shift
+- Known limitations:
+  - icons are temporary letter badges pending final profile icon set
+  - no screenshot diff cycle performed this pass (per request)
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 1.6) Profile Dropdown Density Pass (2026-04-11)
+
+- Delivered:
+  - expanded DOM profile menu width logic to span through the profile icon area
+  - tightened panel spacing and top gap
+  - reduced profile header element scale (avatar/title/subtitle/close control)
+  - reduced list row and icon sizing for better density
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 1.7) Profile Avatar Shadow Removal (2026-04-11)
+
+- Delivered:
+  - removed header avatar drop shadow inside the DOM profile dropdown menu.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 1.8) Profile Header Top Headspace (2026-04-11)
+
+- Delivered:
+  - increased profile menu header top padding to create more space above the avatar.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 1.9) Profile Close Icon Font + Header Headspace Increase (2026-04-11)
+
+- Delivered:
+  - added Material Symbols `close` stylesheet import to `binary-tree-next.html`
+  - switched profile menu close button glyph to Material Symbols `close`
+  - increased profile header top padding for additional headspace
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 2.0) Icon Regression + `close_small` Update (2026-04-11)
+
+- Delivered:
+  - fixed search bar icon regression by rendering search via Material Symbols codepoint
+  - replaced profile close icon import/glyph with `close_small`
+  - scaled down close control dimensions and optical size
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 2.1) Session Avatar Sync + Profile Row Icon System (2026-04-11)
+
+- Delivered:
+  - introduced session-avatar resolution pipeline (photo/color/palette fallback)
+  - wired session avatar rendering into tree nodes, profile icon by search, profile panel header, and session-linked search rows
+  - added canvas circular image draw fallback logic for profile-photo mode
+  - replaced profile panel list icon badges with Material Symbols and white-filled glyph styling on gradient circles
+  - added Material Symbols imports for `account_circle`, `local_mall`, `settings`, and `logout`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 2.2) Material Symbols Consolidation for Profile Menu Icons (2026-04-11)
+
+- Delivered:
+  - added combined Material Symbols stylesheet link including all icons used by UI + profile menu list.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 2.3) Profile List Icon Rendering + Explicit Color Set (2026-04-11)
+
+- Delivered:
+  - replaced profile row icon ligature text with explicit Material Symbols codepoint glyphs
+  - added full Material Symbols font import for robustness
+  - mapped profile row icon-circle gradient colors to requested Blue/Green/Purple/Gray/Red set
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 2.4) Left Panel Node Details Container Redesign Draft (Weekly BV Card Style) (2026-04-11)
+
+- Delivered:
+  - replaced the previous `Node Details` flat white card block with a Weekly-BV-inspired canvas module
+  - added dashboard-style visual hierarchy:
+    - metric header label + status pill
+    - large tree-total BV value
+    - personal BV secondary line
+    - legend + compact bar-comparison strip
+  - refactored metadata into 2x2 tiles (Status, Rank, Left Leg, Right Leg)
+  - preserved relation focus actions (Parent/Sponsor) with refreshed row styling
+  - kept badge chip rendering and added boundary-aware clipping behavior
+- Design choices:
+  - retained all existing data sources and interaction hooks to avoid behavioral regressions
+  - mirrored dashboard composition while staying within current canvas-render architecture
+- Known limitations:
+  - screenshot pass intentionally skipped in this session per user request
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 2.5) Node Details Container Simplification Draft (2026-04-11)
+
+- Delivered:
+  - removed Node Details chart strip and chart-related rendering logic
+  - removed top-right `Live` status badge
+  - removed gradient and glow background styling from Node Details container
+  - reduced content to requested data only:
+    - Name + Username
+    - Rank + Account Status
+    - Total Organizational BV
+    - Left Leg + Right Leg
+- Design direction:
+  - kept dashboard-like Weekly BV card hierarchy while simplifying decoration and reducing visual noise
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 2.6) Details Panel 1:1 Mock Refactor + Parent/Sponsor Action Styling (2026-04-11)
+
+- Delivered:
+  - replaced simplified node panel composition with provided mock-aligned `Details` layout
+  - added centered avatar section with active/inactive status indicator
+  - implemented rank row with dynamic two-icon rendering (rank + title)
+  - replaced card-grid metrics with row-style metrics and fixed separator color `#E2E2E2`
+  - implemented bottom action pills for Parent/Sponsor using requested colors:
+    - fill `#D0E6FF`
+    - text/icon `#077AFF`
+  - connected requested Material Symbols icon names:
+    - `family_history` (Parent)
+    - `person_add` (Sponsor)
+- Technical notes:
+  - added ligature render fallback for button icons to prevent word-render regressions
+  - added icon-path fallback mapping for rank/title icon slots when explicit icon fields are absent
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 2.7) Details Panel Corrections - White Shell, Inter Weights, Cycles, Avatar Source Fallback (2026-04-11)
+
+- Delivered:
+  - set details container fill to `#FFFFFF`
+  - applied Inter family/weight mapping for heading/name/username/labels/values/buttons
+  - added `Cycles` row to metrics block
+  - added node-avatar photo URL resolver and integrated photo-first render path with placeholder fallback
+  - kept account-state indicator dot bound to active/inactive state
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
