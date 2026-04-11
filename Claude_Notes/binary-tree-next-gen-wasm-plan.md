@@ -655,3 +655,384 @@ Delivered:
 Result:
 
 - Shell now aligns with requested visual direction and interaction model before integrating live binary-tree runtime logic.
+
+## 47) UI Refinement (2026-04-10, Light-Mode Glass Cleanup + White Panels)
+
+Delivered:
+
+- Updated New Binary Tree Next Gen light-mode base background to `#E9EAEE` (HTML + canvas draw layer).
+- Cleaned frosted blur pipeline by introducing an offscreen backdrop snapshot and blurring that clean layer instead of repeatedly blurring the active UI render.
+- Removed extra blur color processing (`saturate/contrast`) to reduce muddy glass artifacts.
+- Retuned glass panel cards/bars to neutral white (`#FFFFFF` family) with stronger rim/edge contrast for readability on light gray.
+
+Result:
+
+- Frosted glass now reads cleaner and more controlled (closer to login-page layer-blur feel) while preserving depth.
+- Light mode is now clearly anchored to requested palette: background `#E9EAEE`, white panel surfaces.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+- Completed screenshot pass 1 via localhost workflow.
+- Completed screenshot pass 2 via localhost workflow.
+
+## 48) UI Refinement (2026-04-10, Reference Skeleton Shell Match)
+
+Delivered:
+
+- Rebuilt shell layout to match provided reference wireframe:
+  - tall left rail with top line + 4 placeholder cards
+  - centered bottom dock with 5 placeholder slots
+  - no visible top control strip in active shell.
+- Updated core palette to neutral reference tones:
+  - background `#CFD0D6`
+  - shell surfaces `#ECECEE`
+  - placeholder fills `#C2C2C6`.
+- Disabled main tree rendering in `renderFrame()` for strict skeleton-phase presentation.
+
+Result:
+
+- Interface now behaves as a clean structural scaffold where future components can be inserted directly.
+- Layout proportions and spacing are visually aligned to the supplied image.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+- Completed iterative screenshot comparison rounds against supplied design reference.
+
+## 49) UI Refinement (2026-04-10, Bottom Dock Controls)
+
+Delivered:
+
+- Converted bottom skeleton dock placeholders into clickable dock controls.
+- Added button mapping:
+  - `Back` -> universe back navigation
+  - `Home` -> recenter/focus root node
+  - `Enter` -> enter selected node universe
+  - `Deep` -> jump to deepest node
+  - `Soon` -> placeholder no-op button.
+- Added hover feedback while keeping skeleton visual tone.
+
+Result:
+
+- The bottom center dock is now componentized and behavior-wired, ready for iterative UX tuning.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 50) Hotfix (2026-04-10, Node Visibility Restored)
+
+Delivered:
+
+- Re-added `drawTreeViewport(state.layout)` to the render pipeline.
+
+Result:
+
+- Tree nodes/connectors are visible again while preserving current skeleton shell layout and dock controls.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 51) UI Refinement (2026-04-10, Dock Iconography)
+
+Delivered:
+
+- Added Material Symbols font links in HTML head for requested icon names.
+- Added icon ligatures to dock button definitions and rendered them in-canvas.
+- Dock now renders icon + label per slot while keeping action mapping unchanged.
+
+Result:
+
+- Bottom center dock has recognizable visual icon controls aligned with requested symbols.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 52) Hotfix (2026-04-10, Dock Icon Glyph Rendering)
+
+Delivered:
+
+- Replaced Material Symbol ligature text rendering with direct codepoint glyph rendering for all dock icons.
+
+Result:
+
+- Bottom dock icons render reliably as symbols in the canvas context.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 53) UI Refinement (2026-04-10, Dock Apple-Style Icon Buttons)
+
+Delivered:
+
+- Removed dock text captions and switched to icon-only rendering.
+- Applied exact border color `#EDEDED` to dock slots.
+- Set icon color to black (`#111111`) and increased icon prominence.
+- Preserved all existing dock actions.
+
+Result:
+
+- Bottom dock now follows an Apple-like icon-button visual language aligned with the supplied reference.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 54) UI Refinement (2026-04-10, Dock Color + Icon Scale Correction)
+
+Delivered:
+
+- Updated dock button fill to exact `#EDEDED`.
+- Reduced dock icon size from 34 to 28 for cleaner Apple-like proportion.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 55) UI Refinement (2026-04-10, Main Background Color)
+
+Delivered:
+
+- Set main canvas and first-paint page background to `#E9EAEE`.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 56) UI Refinement (2026-04-10, Dock White Shell Correction)
+
+Delivered:
+
+- Set bottom dock outer shell to `#FFFFFF`.
+- Preserved icon tile container fill as `#EDEDED`.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 57) UI Refinement (2026-04-10, Dock Icon Scale + Color)
+
+Delivered:
+
+- Reduced dock icon size from 28 to 24.
+- Updated dock icon color to `#303030`.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 58) UI Refinement (2026-04-10, Dock Hover Interaction)
+
+Delivered:
+
+- Added hover feedback to dock icon tiles:
+  - lighter/darker tile transition
+  - subtle shadow lift
+  - darker icon on hover.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 59) UX Refinement (2026-04-10, Startup Home + Bottom-Up Tree Reveal)
+
+Delivered:
+
+- Changed initial camera boot behavior to use root Home focus logic.
+- Added startup tree intro animation with:
+  - vertical rise from below
+  - blur easing from soft to sharp
+  - opacity ramp-in.
+
+Result:
+
+- Page open/reload now presents a Home-framed tree with a login-style reveal feel.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 60) Hotfix (2026-04-10, Startup Camera Center/Home Match)
+
+Delivered:
+
+- Unified startup and Home button camera logic via centered `computeHomeView()`.
+- Ensured viewport/layout are ready before startup camera set.
+- Mapped dock Home action to `camera:home`.
+
+Result:
+
+- Page load/reload now lands at the same centered frame as Home.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 61) UX Refinement (2026-04-10, Depth-Staggered Startup Tree Reveal)
+
+Delivered:
+
+- Replaced single-block intro animation with per-depth reveal logic.
+- Added depth stagger timing and applied reveal transforms per connector branch and per node.
+- Removed global intro transform from viewport render path.
+
+Result:
+
+- Tree intro now reveals progressively by depth with dynamic upward + blur-resolve motion.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 62) Feature (2026-04-10, Binary Tree Loading Screen + Deferred Intro)
+
+Delivered:
+
+- Implemented full-screen loading overlay with progress card.
+- Added minimum loading display timing and fade-out behavior.
+- Reordered bootstrap so intro animation starts only after loading overlay completes.
+- Added immediate loading overlay dismissal on bootstrap failure.
+
+Result:
+
+- Load experience is now staged: loading screen first, then startup tree reveal animation.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 63) Hotfix (2026-04-10, Loading-to-Intro Visibility Sequence)
+
+Delivered:
+
+- Fixed reveal fallback so tree remains hidden until intro timer starts.
+
+Result:
+
+- No more visible final tree state before startup intro animation.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 64) UX Refinement (2026-04-10, Panel Intro Animation)
+
+Delivered:
+
+- Added startup reveal animation for skeleton side panel and bottom dock.
+- Added panel-specific delay/offset/blur timing and stagger.
+- Kept dock button interaction hitboxes aligned during animated translation.
+
+Result:
+
+- Startup sequence now animates both tree and panels in a coordinated, dynamic intro.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 65) UI Refinement (2026-04-10, Left Shell Brand Dropdown First Field)
+
+Delivered:
+
+- Replaced the top-left shell placeholder with an interactive brand dropdown in canvas.
+- Added logo rendering using existing dashboard brand asset:
+  - `/brand_assets/Logos/L%26D%20Logo_Cropped.png`
+- Implemented dropdown behavior parity for shell-level interaction:
+  - toggle from brand row
+  - close on outside click
+  - close on `Escape`
+  - close when side nav is closed.
+- Added initial dropdown menu structure:
+  - profile summary block (initials avatar + session name/email)
+  - menu rows (`Profile`, `Home`, `My Store`, `Settings`, `Log out`).
+- Wired `Home` row to `camera:home`; kept remaining rows as close-only placeholders pending route/action mapping.
+
+Result:
+
+- The left shell now starts migration from skeleton blocks into real dashboard-like components, beginning with the brand/logo dropdown field requested as highest priority.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 66) UI Refinement (2026-04-10, Left Shell Color Token Correction)
+
+Delivered:
+
+- Updated left shell container token in canvas shell:
+  - `SHELL_PANEL_COLOR` -> `#FFFFFF`
+- Updated left shell placeholder slot token:
+  - `SKELETON_SLOT_COLOR` -> `#EDEDED`
+- Kept structure and interaction behavior unchanged (visual token pass only).
+
+Result:
+
+- Left shell now follows the requested palette split exactly:
+  - panel container is white
+  - placeholder cards use `#EDEDED`.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 67) UI Refinement (2026-04-10, Left Shell Logo Canvas Quality)
+
+Delivered:
+
+- Improved canvas logo rendering for left-shell brand field:
+  - enabled high-quality image smoothing during logo draw
+  - aligned draw rect to DPR pixel increments before raster scaling.
+
+Result:
+
+- Brand logo edges render cleaner and more consistent with dashboard DOM image quality.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 68) UI Refinement (2026-04-10, Left Shell Collapse Button Parity)
+
+Delivered:
+
+- Added dedicated collapse-arrow control beside brand logo in left-shell top row.
+- Split brand row into two controls:
+  - brand dropdown button
+  - separate sidebar collapse button (`toggle:side-nav`).
+- Added canvas double-chevron horizontal icon helper and used it for:
+  - collapse arrow in open sidebar state
+  - compact reopen toggle when sidebar is collapsed.
+
+Result:
+
+- Left-shell top interaction now matches dashboard pattern more closely (logo dropdown + adjacent collapse arrow), while preserving a clear reopen affordance.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## 69) UI Refinement (2026-04-10, Exact Collapse Icon + Hover Motion Parity)
+
+Delivered:
+
+- Replaced custom canvas chevron icon for side-nav collapse control with exact dashboard Material Symbols glyphs:
+  - `keyboard_double_arrow_left` (`0xEAC3`)
+  - `keyboard_double_arrow_right` (`0xEAC9`)
+- Added icon subset font links in `binary-tree-next.html` for these glyphs.
+- Added motion refinement for the control to mirror dashboard feel:
+  - 150ms hover timing
+  - eased spring-like scale
+  - subtle hover lift/shadow and icon tone/size transition.
+
+Result:
+
+- Side-nav collapse/reopen control now aligns with dashboard iconography and interaction language while staying canvas-native.
+
+Validation:
+
+- `node --check binary-tree-next-app.mjs` passed.

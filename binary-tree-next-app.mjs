@@ -22,9 +22,39 @@ const UNIVERSE_DEPTH_CAP = 20;
 const SELECTION_POP_MS = 320;
 const SELECTION_RELEASE_MS = 220;
 const SELECTION_MAX_EMPHASIS = 1.22;
+const MAIN_BACKGROUND_COLOR = '#E9EAEE';
+const SHELL_PANEL_COLOR = '#FFFFFF';
+const SHELL_PANEL_BORDER_COLOR = '#E7E7EA';
+const SKELETON_SLOT_COLOR = '#EDEDED';
+const STARTUP_REVEAL_MS = 860;
+const STARTUP_REVEAL_OFFSET_Y = 86;
+const STARTUP_REVEAL_BLUR_PX = 14;
+const STARTUP_REVEAL_STAGGER_MS = 52;
+const STARTUP_PANEL_REVEAL_MS = 620;
+const STARTUP_PANEL_OFFSET_Y = 40;
+const STARTUP_PANEL_BLUR_PX = 10;
+const STARTUP_SIDE_PANEL_DELAY_MS = 64;
+const STARTUP_DOCK_DELAY_MS = 138;
+const LOADING_MIN_MS = 460;
+const LOADING_FADE_MS = 260;
+const SIDE_NAV_BRAND_LOGO_SRC = '/brand_assets/Logos/L%26D%20Logo_Cropped.png';
+const SIDE_NAV_BRAND_TOGGLE_BUTTON_ID = 'side-nav-brand-toggle';
+const SIDE_NAV_COLLAPSE_BUTTON_ID = 'side-nav-collapse-button';
+const SIDE_NAV_COLLAPSE_ICON_LEFT_GLYPH = String.fromCodePoint(0xEAC3);
+const SIDE_NAV_COLLAPSE_ICON_RIGHT_GLYPH = String.fromCodePoint(0xEAC9);
+const SIDE_NAV_COLLAPSE_HOVER_MS = 150;
+const SIDE_NAV_BRAND_ITEM_BUTTON_PREFIX = 'side-nav-brand-item-';
+const SIDE_NAV_BRAND_MENU_ITEMS = [
+  { id: 'profile', label: 'Profile', action: 'brand-menu:page:profile' },
+  { id: 'dashboard', label: 'Home', action: 'brand-menu:page:dashboard' },
+  { id: 'my-store', label: 'My Store', action: 'brand-menu:page:my-store' },
+  { id: 'settings', label: 'Settings', action: 'brand-menu:page:settings' },
+];
+const SIDE_NAV_BRAND_LOGOUT_ITEM = { id: 'logout', label: 'Log out', action: 'brand-menu:action:logout' };
 
 const canvas = document.getElementById('figma-tree-canvas');
 const bootErrorElement = document.getElementById('boot-error');
+const loadingScreenElement = document.getElementById('binary-tree-loading');
 
 if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error('Missing #figma-tree-canvas');
@@ -34,6 +64,14 @@ const context = canvas.getContext('2d', { alpha: false });
 if (!context) {
   throw new Error('Unable to initialize 2D canvas context.');
 }
+const glassBackdropCanvas = document.createElement('canvas');
+const glassBackdropContext = glassBackdropCanvas.getContext('2d', { alpha: false });
+if (!glassBackdropContext) {
+  throw new Error('Unable to initialize offscreen glass backdrop context.');
+}
+const sideNavBrandLogoImage = new Image();
+sideNavBrandLogoImage.decoding = 'async';
+sideNavBrandLogoImage.src = SIDE_NAV_BRAND_LOGO_SRC;
 
 const state = {
   source: 'member',
@@ -59,6 +97,13 @@ const state = {
   },
   ui: {
     sideNavOpen: true,
+    sideNavBrandMenuOpen: false,
+    sideNavCollapseHoverFx: {
+      value: 0,
+      from: 0,
+      to: 0,
+      startedAtMs: performance.now(),
+    },
   },
   layout: null,
   viewport: null,
@@ -88,6 +133,18 @@ const state = {
     fps: 0,
     frameMs: 0,
   },
+  intro: {
+    startedAtMs: null,
+    durationMs: STARTUP_REVEAL_MS,
+    offsetYPx: STARTUP_REVEAL_OFFSET_Y,
+    blurPx: STARTUP_REVEAL_BLUR_PX,
+    staggerMs: STARTUP_REVEAL_STAGGER_MS,
+  },
+  loading: {
+    startedAtMs: performance.now(),
+    minMs: LOADING_MIN_MS,
+    fadeMs: LOADING_FADE_MS,
+  },
   timeMs: performance.now(),
   selectionFxTracks: Object.create(null),
   renderSize: {
@@ -115,6 +172,39 @@ function easeOutBack(value) {
 
 function getNowMs() {
   return Number.isFinite(state.timeMs) ? state.timeMs : performance.now();
+}
+
+function hideLoadingScreenImmediately() {
+  if (!(loadingScreenElement instanceof HTMLElement)) {
+    return;
+  }
+  loadingScreenElement.style.display = 'none';
+  loadingScreenElement.classList.remove('is-leaving');
+}
+
+async function completeLoadingScreen() {
+  const loading = state.loading || {};
+  const startedAtMs = safeNumber(loading.startedAtMs, performance.now());
+  const minMs = Math.max(0, safeNumber(loading.minMs, LOADING_MIN_MS));
+  const elapsedMs = Math.max(0, performance.now() - startedAtMs);
+  const waitMs = Math.max(0, minMs - elapsedMs);
+  if (waitMs > 0) {
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, waitMs);
+    });
+  }
+
+  if (!(loadingScreenElement instanceof HTMLElement)) {
+    return;
+  }
+  loadingScreenElement.classList.add('is-leaving');
+  const fadeMs = Math.max(0, safeNumber(loading.fadeMs, LOADING_FADE_MS));
+  if (fadeMs > 0) {
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, fadeMs);
+    });
+  }
+  loadingScreenElement.style.display = 'none';
 }
 
 function resolveSelectionEmphasis(nodeId, nowMs = getNowMs(), mutate = true) {
@@ -226,6 +316,30 @@ function safeText(value) {
 function safeNumber(value, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function resolveSessionDisplayName() {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const firstName = safeText(session?.firstName || session?.first_name || session?.givenName || session?.given_name);
+  const lastName = safeText(session?.lastName || session?.last_name || session?.familyName || session?.family_name);
+  const combinedName = safeText(`${firstName} ${lastName}`);
+  const explicitName = safeText(session?.name || session?.fullName || session?.displayName);
+  if (explicitName) {
+    return explicitName;
+  }
+  if (combinedName) {
+    return combinedName;
+  }
+  return state.source === 'admin' ? 'Admin' : 'Member';
+}
+
+function resolveSessionDisplayEmail() {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const email = safeText(session?.email || session?.userEmail || session?.username || session?.login || '');
+  if (email) {
+    return email;
+  }
+  return state.source === 'admin' ? 'admin@example.com' : 'member@example.com';
 }
 
 function resolveProjectionScale(rawScale) {
@@ -722,12 +836,16 @@ function updateCanvasSize() {
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
 
+  glassBackdropCanvas.width = Math.floor(width * dpr);
+  glassBackdropCanvas.height = Math.floor(height * dpr);
+
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
+  glassBackdropContext.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
 function resolveLayout(width, height) {
-  const edgePad = clamp(Math.round(Math.min(width, height) * 0.016), 12, 24);
-  const sideNavWidth = clamp(Math.round(width * 0.24), 284, 372);
+  const edgePad = clamp(Math.round(Math.min(width, height) * 0.022), 20, 28);
+  const sideNavWidth = clamp(Math.round(width * 0.235), 300, 360);
 
   const workspace = {
     x: 0,
@@ -737,9 +855,9 @@ function resolveLayout(width, height) {
   };
   const sideNav = {
     x: edgePad,
-    y: edgePad + 42,
+    y: edgePad,
     width: sideNavWidth,
-    height: height - ((edgePad * 2) + 42),
+    height: height - (edgePad * 2),
   };
   const sideNavToggle = {
     x: edgePad,
@@ -748,18 +866,18 @@ function resolveLayout(width, height) {
     height: 30,
   };
   const topBar = {
-    width: clamp(Math.round(width * 0.48), 360, 720),
-    height: 48,
+    width: 0,
+    height: 0,
   };
   topBar.x = Math.round((width - topBar.width) / 2);
   topBar.y = edgePad;
 
   const bottomBar = {
-    width: clamp(Math.round(width * 0.28), 256, 420),
-    height: 40,
+    width: clamp(Math.round(width * 0.29), 320, 430),
+    height: 92,
   };
   bottomBar.x = Math.round((width - bottomBar.width) / 2);
-  bottomBar.y = height - edgePad - bottomBar.height;
+  bottomBar.y = height - edgePad - bottomBar.height - 10;
 
   const viewport = {
     x: 0,
@@ -836,6 +954,156 @@ function line(ctx, fromX, fromY, toX, toY, strokeStyle, lineWidth = 1) {
   ctx.strokeStyle = strokeStyle;
   ctx.lineWidth = lineWidth;
   ctx.stroke();
+}
+
+function drawChevronGlyph(centerX, centerY, options = {}) {
+  const {
+    size = 8,
+    color = '#696f7c',
+    expanded = false,
+    lineWidth = 1.7,
+  } = options;
+  const half = Math.max(2, size * 0.5);
+  context.save();
+  context.beginPath();
+  if (expanded) {
+    context.moveTo(centerX - half, centerY + 1.4);
+    context.lineTo(centerX, centerY - 1.2);
+    context.lineTo(centerX + half, centerY + 1.4);
+  } else {
+    context.moveTo(centerX - half, centerY - 1.2);
+    context.lineTo(centerX, centerY + 1.4);
+    context.lineTo(centerX + half, centerY - 1.2);
+  }
+  context.strokeStyle = color;
+  context.lineWidth = lineWidth;
+  context.lineCap = 'round';
+  context.lineJoin = 'round';
+  context.stroke();
+  context.restore();
+}
+
+function resolveSideNavCollapseHoverProgress(isHovered, nowMs = getNowMs()) {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  const existing = state.ui.sideNavCollapseHoverFx && typeof state.ui.sideNavCollapseHoverFx === 'object'
+    ? state.ui.sideNavCollapseHoverFx
+    : {
+      value: 0,
+      from: 0,
+      to: 0,
+      startedAtMs: nowMs,
+    };
+  const nextTarget = isHovered ? 1 : 0;
+  if (existing.to !== nextTarget) {
+    existing.from = safeNumber(existing.value, 0);
+    existing.to = nextTarget;
+    existing.startedAtMs = nowMs;
+  }
+
+  const durationMs = Math.max(1, SIDE_NAV_COLLAPSE_HOVER_MS);
+  const t = clamp((nowMs - safeNumber(existing.startedAtMs, nowMs)) / durationMs, 0, 1);
+  const entering = safeNumber(existing.to, 0) > safeNumber(existing.from, 0);
+  const eased = entering ? easeOutBack(t) : easeOutCubic(t);
+  existing.value = safeNumber(existing.from, 0) + ((safeNumber(existing.to, 0) - safeNumber(existing.from, 0)) * eased);
+  if (t >= 1) {
+    existing.value = safeNumber(existing.to, 0);
+  }
+  state.ui.sideNavCollapseHoverFx = existing;
+  return clamp(existing.value, 0, 1.08);
+}
+
+function drawSideNavCollapseButton({
+  x,
+  y,
+  width,
+  height,
+  hovered = false,
+  direction = 'left',
+}) {
+  const hoverProgress = resolveSideNavCollapseHoverProgress(hovered);
+  const scale = 1 + (hoverProgress * 0.045);
+  const centerX = x + (width / 2);
+  const centerY = y + (height / 2);
+
+  context.save();
+  context.translate(centerX, centerY);
+  context.scale(scale, scale);
+  context.translate(-centerX, -centerY);
+
+  context.save();
+  if (hoverProgress > 0.001) {
+    context.shadowColor = `rgba(92, 101, 119, ${(0.08 + (hoverProgress * 0.13)).toFixed(3)})`;
+    context.shadowBlur = 8 + (hoverProgress * 8);
+    context.shadowOffsetY = 2 + (hoverProgress * 2);
+  }
+  fillRoundedRect(context, x, y, width, height, 14, '#FFFFFF');
+  context.restore();
+  if (hoverProgress > 0.001) {
+    context.save();
+    context.globalAlpha = Math.min(1, hoverProgress * 0.9);
+    fillRoundedRect(context, x, y, width, height, 14, '#F3F4F6');
+    context.restore();
+  }
+
+  const strokeColor = hoverProgress > 0.28 ? '#DCDDE2' : '#E2E4E8';
+  strokeRoundedRect(context, x + 0.5, y + 0.5, width - 1, height - 1, 14, strokeColor, 1);
+
+  const iconGlyph = direction === 'right' ? SIDE_NAV_COLLAPSE_ICON_RIGHT_GLYPH : SIDE_NAV_COLLAPSE_ICON_LEFT_GLYPH;
+  const iconColor = hoverProgress > 0.24 ? '#3E4554' : '#596172';
+  drawText(iconGlyph, centerX, centerY + 0.5, {
+    size: Math.floor(17 + (hoverProgress * 1.6)),
+    weight: 500,
+    family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+    color: iconColor,
+    align: 'center',
+  });
+
+  context.restore();
+}
+
+function drawSideNavBrandLogo(x, y, width, height) {
+  const imageReady = (
+    sideNavBrandLogoImage instanceof HTMLImageElement
+    && sideNavBrandLogoImage.complete
+    && sideNavBrandLogoImage.naturalWidth > 0
+    && sideNavBrandLogoImage.naturalHeight > 0
+  );
+  if (!imageReady) {
+    drawText('Premiere Life', x, y + (height / 2) + 0.5, {
+      size: 14,
+      weight: 600,
+      color: '#2f3441',
+    });
+    return;
+  }
+
+  const sourceRatio = sideNavBrandLogoImage.naturalWidth / sideNavBrandLogoImage.naturalHeight;
+  const targetRatio = width / Math.max(1, height);
+  let drawWidth = width;
+  let drawHeight = height;
+  if (targetRatio > sourceRatio) {
+    drawHeight = height;
+    drawWidth = drawHeight * sourceRatio;
+  } else {
+    drawWidth = width;
+    drawHeight = drawWidth / sourceRatio;
+  }
+
+  const drawX = x;
+  const drawY = y + ((height - drawHeight) * 0.5);
+  const dpr = Math.max(1, safeNumber(state.renderSize?.dpr, 1));
+  const alignedX = Math.round(drawX * dpr) / dpr;
+  const alignedY = Math.round(drawY * dpr) / dpr;
+  const alignedWidth = Math.max(1 / dpr, Math.round(drawWidth * dpr) / dpr);
+  const alignedHeight = Math.max(1 / dpr, Math.round(drawHeight * dpr) / dpr);
+
+  context.save();
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+  context.drawImage(sideNavBrandLogoImage, alignedX, alignedY, alignedWidth, alignedHeight);
+  context.restore();
 }
 
 function registerButton({ id, x, y, width, height, action, rounded = true }) {
@@ -922,74 +1190,16 @@ function showBootError(message) {
 }
 
 function drawBackground(width, height) {
-  const base = context.createLinearGradient(0, 0, 0, height);
-  base.addColorStop(0, '#f8fbff');
-  base.addColorStop(0.5, '#eff5fd');
-  base.addColorStop(1, '#e6eef8');
-  context.fillStyle = base;
-  context.fillRect(0, 0, width, height);
-
-  const topGlow = context.createRadialGradient(
-    width * 0.5,
-    height * 0.02,
-    0,
-    width * 0.5,
-    height * 0.02,
-    Math.max(width, height) * 0.72,
-  );
-  topGlow.addColorStop(0, 'rgba(135, 176, 244, 0.26)');
-  topGlow.addColorStop(0.45, 'rgba(145, 187, 248, 0.12)');
-  topGlow.addColorStop(1, 'rgba(182, 210, 253, 0)');
-  context.fillStyle = topGlow;
-  context.fillRect(0, 0, width, height);
-
-  const cornerGlow = context.createRadialGradient(
-    width * 0.06,
-    height * 0.78,
-    0,
-    width * 0.06,
-    height * 0.78,
-    Math.max(width, height) * 0.66,
-  );
-  cornerGlow.addColorStop(0, 'rgba(128, 170, 242, 0.18)');
-  cornerGlow.addColorStop(1, 'rgba(128, 170, 242, 0)');
-  context.fillStyle = cornerGlow;
+  context.fillStyle = MAIN_BACKGROUND_COLOR;
   context.fillRect(0, 0, width, height);
 }
 
 function drawWorkspaceBackdrop(workspace) {
-  context.save();
-  context.beginPath();
-  context.rect(workspace.x, workspace.y, workspace.width, workspace.height);
-  context.clip();
-
-  const innerGradient = context.createRadialGradient(
-    workspace.x + workspace.width * 0.54,
-    workspace.y + workspace.height * 0.44,
-    30,
-    workspace.x + workspace.width * 0.54,
-    workspace.y + workspace.height * 0.44,
-    Math.max(workspace.width, workspace.height) * 0.72,
-  );
-  innerGradient.addColorStop(0, 'rgba(124, 166, 235, 0.2)');
-  innerGradient.addColorStop(1, 'rgba(236, 245, 255, 0)');
-  context.fillStyle = innerGradient;
-  context.fillRect(workspace.x, workspace.y, workspace.width, workspace.height);
-
-  const gridStep = 32;
-  context.lineWidth = 1;
-  for (let x = workspace.x + (state.camera.view.x % gridStep); x <= workspace.x + workspace.width; x += gridStep) {
-    line(context, x, workspace.y, x, workspace.y + workspace.height, 'rgba(107,136,182,0.12)');
-  }
-  for (let y = workspace.y + (state.camera.view.y % gridStep); y <= workspace.y + workspace.height; y += gridStep) {
-    line(context, workspace.x, y, workspace.x + workspace.width, y, 'rgba(107,136,182,0.12)');
-  }
-
-  context.restore();
+  // Intentionally blank: plain Apple-gray background, no grid overlay.
 }
 
 function drawBackdropBlurRegion(rect, radius = 20, blurPx = 16) {
-  const safeBlur = Math.max(0, Math.floor(blurPx));
+  const safeBlur = clamp(Math.floor(blurPx), 0, 24);
   if (!safeBlur) {
     return;
   }
@@ -1004,10 +1214,10 @@ function drawBackdropBlurRegion(rect, radius = 20, blurPx = 16) {
   context.save();
   roundedRectPath(context, rect.x, rect.y, rect.width, rect.height, radius);
   context.clip();
-  context.filter = `blur(${safeBlur}px) saturate(1.2)`;
-  context.globalAlpha = 0.92;
+  context.filter = `blur(${safeBlur}px)`;
+  context.globalAlpha = 0.96;
   context.drawImage(
-    canvas,
+    glassBackdropCanvas,
     sourceX,
     sourceY,
     sourceWidth,
@@ -1019,38 +1229,86 @@ function drawBackdropBlurRegion(rect, radius = 20, blurPx = 16) {
   );
   context.restore();
 }
-function drawPanelChrome(panel, tone = 'left') {
-  drawBackdropBlurRegion(panel, 24, 18);
 
-  const gradient = context.createLinearGradient(panel.x, panel.y, panel.x, panel.y + panel.height);
-  if (tone === 'left') {
-    gradient.addColorStop(0, 'rgba(250, 253, 255, 0.72)');
-    gradient.addColorStop(1, 'rgba(238, 245, 255, 0.64)');
-  } else {
-    gradient.addColorStop(0, 'rgba(250, 253, 255, 0.68)');
-    gradient.addColorStop(1, 'rgba(236, 244, 255, 0.62)');
-  }
-  fillRoundedRect(context, panel.x, panel.y, panel.width, panel.height, 24, gradient);
+function drawGlassCard(rect, options = {}) {
+  const {
+    radius = 24,
+    blur = 16,
+    fillTop = 'rgba(255, 255, 255, 0.9)',
+    fillBottom = 'rgba(255, 255, 255, 0.84)',
+    edge = 'rgba(255, 255, 255, 0.98)',
+    rim = 'rgba(205, 211, 221, 0.78)',
+    shadow = 'rgba(102, 109, 123, 0.18)',
+    shadowBlur = 28,
+    shadowOffsetY = 10,
+    bloomStrength = 0.24,
+  } = options;
+
+  drawBackdropBlurRegion(rect, radius, blur);
+
+  const gradient = context.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.height);
+  gradient.addColorStop(0, fillTop);
+  gradient.addColorStop(1, fillBottom);
+  fillRoundedRect(context, rect.x, rect.y, rect.width, rect.height, radius, gradient);
 
   context.save();
-  context.shadowColor = 'rgba(111, 141, 188, 0.3)';
-  context.shadowBlur = 30;
-  context.shadowOffsetY = 14;
+  roundedRectPath(context, rect.x, rect.y, rect.width, rect.height, radius);
+  context.clip();
+  const bloom = context.createRadialGradient(
+    rect.x + (rect.width * 0.18),
+    rect.y + (rect.height * 0.08),
+    0,
+    rect.x + (rect.width * 0.18),
+    rect.y + (rect.height * 0.08),
+    Math.max(rect.width, rect.height) * 0.95,
+  );
+  bloom.addColorStop(0, `rgba(255, 255, 255, ${clamp(bloomStrength, 0, 1).toFixed(2)})`);
+  bloom.addColorStop(0.52, 'rgba(255, 255, 255, 0.14)');
+  bloom.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  context.fillStyle = bloom;
+  context.fillRect(rect.x, rect.y, rect.width, rect.height);
+  context.restore();
+
+  context.save();
+  context.shadowColor = shadow;
+  context.shadowBlur = shadowBlur;
+  context.shadowOffsetY = shadowOffsetY;
+  strokeRoundedRect(context, rect.x + 0.5, rect.y + 0.5, rect.width - 1, rect.height - 1, radius, edge);
+  context.restore();
+
+  strokeRoundedRect(context, rect.x + 0.5, rect.y + 0.5, rect.width - 1, rect.height - 1, radius, rim);
+
+  const innerSheen = context.createLinearGradient(rect.x, rect.y, rect.x + rect.width, rect.y);
+  innerSheen.addColorStop(0, 'rgba(255,255,255,0.64)');
+  innerSheen.addColorStop(1, 'rgba(255,255,255,0.12)');
+  strokeRoundedRect(
+    context,
+    rect.x + 1.5,
+    rect.y + 1.5,
+    rect.width - 3,
+    rect.height - 3,
+    Math.max(2, radius - 2),
+    innerSheen,
+  );
+}
+
+function drawPanelChrome(panel, tone = 'left') {
+  void tone;
+  fillRoundedRect(context, panel.x, panel.y, panel.width, panel.height, 36, SHELL_PANEL_COLOR);
   strokeRoundedRect(
     context,
     panel.x + 0.5,
     panel.y + 0.5,
     panel.width - 1,
     panel.height - 1,
-    24,
-    'rgba(255,255,255,0.86)',
+    36,
+    SHELL_PANEL_BORDER_COLOR,
+    1,
   );
-  context.restore();
+}
 
-  const sheen = context.createLinearGradient(panel.x, panel.y, panel.x + panel.width, panel.y);
-  sheen.addColorStop(0, 'rgba(255,255,255,0.92)');
-  sheen.addColorStop(1, 'rgba(255,255,255,0.25)');
-  strokeRoundedRect(context, panel.x + 1.5, panel.y + 1.5, panel.width - 3, panel.height - 3, 22, sheen);
+function drawSkeletonSlot(x, y, width, height, radius = 20) {
+  fillRoundedRect(context, x, y, width, height, radius, SKELETON_SLOT_COLOR);
 }
 
 function drawSmallButton({
@@ -1064,20 +1322,27 @@ function drawSmallButton({
   active = false,
 }) {
   const hovered = state.hoveredButtonId === id;
-  let fill = 'rgba(255, 255, 255, 0.52)';
-  let stroke = 'rgba(196,210,232,0.84)';
-  let textColor = '#30466c';
+  let fill = 'rgba(255, 255, 255, 0.5)';
+  let stroke = 'rgba(197,203,217,0.8)';
+  let textColor = '#3f4552';
 
   if (active) {
-    fill = 'rgba(109, 161, 241, 0.88)';
-    stroke = 'rgba(86, 138, 218, 0.98)';
-    textColor = '#f7fbff';
+    fill = 'rgba(138, 145, 162, 0.92)';
+    stroke = 'rgba(116, 123, 140, 0.98)';
+    textColor = '#f8f9fc';
   } else if (hovered) {
-    fill = 'rgba(252, 254, 255, 0.74)';
-    stroke = 'rgba(168, 191, 223, 0.96)';
+    fill = 'rgba(255, 255, 255, 0.68)';
+    stroke = 'rgba(177, 184, 199, 0.94)';
   }
 
+  context.save();
+  if (active || hovered) {
+    context.shadowColor = 'rgba(117, 124, 146, 0.18)';
+    context.shadowBlur = active ? 12 : 8;
+    context.shadowOffsetY = 4;
+  }
   fillRoundedRect(context, x, y, width, height, 13, fill);
+  context.restore();
   strokeRoundedRect(context, x + 0.5, y + 0.5, width - 1, height - 1, 13, stroke);
   drawText(label, x + (width / 2), y + (height / 2) + 0.5, {
     size: 11,
@@ -1136,15 +1401,15 @@ function drawUniverseBreadcrumbLinks(startX, startY, maxWidth) {
       drawText('...', Math.max(startX + 8, endX - 8), startY + (height / 2) + 0.5, {
         size: 10,
         weight: 600,
-        color: '#6d82a6',
+        color: '#7b8190',
         align: 'right',
       });
       break;
     }
 
-    const fill = active ? 'rgba(95, 153, 241, 0.9)' : 'rgba(255,255,255,0.6)';
-    const stroke = active ? 'rgba(86, 140, 222, 0.95)' : 'rgba(175,197,226,0.84)';
-    const textColor = active ? '#f7fbff' : '#38527c';
+    const fill = active ? 'rgba(149, 156, 172, 0.9)' : 'rgba(255,255,255,0.64)';
+    const stroke = active ? 'rgba(126, 133, 149, 0.95)' : 'rgba(181,186,197,0.84)';
+    const textColor = active ? '#f8f9fc' : '#495061';
     fillRoundedRect(context, cursorX, startY, crumbWidth, height, 12, fill);
     strokeRoundedRect(context, cursorX + 0.5, startY + 0.5, crumbWidth - 1, height - 1, 12, stroke);
     drawText(label, cursorX + (crumbWidth / 2), startY + (height / 2) + 0.5, {
@@ -1173,7 +1438,7 @@ function drawUniverseBreadcrumbLinks(startX, startY, maxWidth) {
       drawText('>', cursorX + 7, startY + (height / 2) + 0.5, {
         size: 10,
         weight: 700,
-        color: '#6d82a6',
+        color: '#7b8190',
         align: 'center',
       });
       cursorX += 14;
@@ -1182,48 +1447,24 @@ function drawUniverseBreadcrumbLinks(startX, startY, maxWidth) {
 }
 
 function drawSideNavToggle(layout) {
+  if (state.ui.sideNavOpen) {
+    return;
+  }
   const toggle = layout.sideNavToggle;
-  const buttonId = 'toggle-side-nav';
+  const buttonId = SIDE_NAV_COLLAPSE_BUTTON_ID;
   const hovered = state.hoveredButtonId === buttonId;
-  const active = Boolean(state.ui.sideNavOpen);
-  const panel = layout.sideNav;
-  const width = active ? 112 : toggle.width;
-  const height = active ? 28 : toggle.height;
-  const x = active
-    ? Math.round(panel.x + panel.width - width - 14)
-    : toggle.x;
-  const y = active
-    ? Math.round(panel.y + 12)
-    : toggle.y + 3;
-  const radius = 11;
+  const width = 44;
+  const height = 34;
+  const x = toggle.x;
+  const y = toggle.y + 4;
 
-  drawBackdropBlurRegion({ x, y, width, height }, radius, 12);
-  const fill = active
-    ? 'rgba(111, 162, 241, 0.88)'
-    : (hovered ? 'rgba(252, 254, 255, 0.88)' : 'rgba(255, 255, 255, 0.68)');
-  const stroke = active
-    ? 'rgba(85, 139, 220, 0.98)'
-    : (hovered ? 'rgba(150, 178, 215, 0.96)' : 'rgba(171, 194, 224, 0.86)');
-  fillRoundedRect(context, x, y, width, height, radius, fill);
-  strokeRoundedRect(context, x + 0.5, y + 0.5, width - 1, height - 1, radius, stroke);
-
-  const iconColor = active ? 'rgba(244,249,255,0.98)' : '#496693';
-  const iconX = x + 13;
-  const iconTop = y + 8;
-  const iconBottom = y + height - 8;
-  line(context, iconX, iconTop, iconX, iconBottom, iconColor, 1.5);
-  line(context, iconX + 5, iconTop, iconX + 5, iconBottom, iconColor, 1.5);
-  drawText(active ? '<' : '>', x + 24, y + (height / 2) + 0.5, {
-    size: 11,
-    weight: 700,
-    color: iconColor,
-    align: 'center',
-  });
-  drawText(active ? 'Hide' : 'Panel', x + width - 12, y + (height / 2) + 0.5, {
-    size: 10,
-    weight: 700,
-    color: active ? '#f4f9ff' : '#3d5a86',
-    align: 'right',
+  drawSideNavCollapseButton({
+    x,
+    y,
+    width,
+    height,
+    hovered,
+    direction: 'right',
   });
 
   registerButton({
@@ -1242,190 +1483,238 @@ function drawSideNav(layout) {
     return;
   }
 
-  const panel = layout.sideNav;
-  drawPanelChrome(panel, 'left');
-
-  const selectedLocalMeta = state.selectedId
-    ? state.adapter.resolveNodeMetrics(state.selectedId, getUniverseOptions())
-    : null;
-  const selectedGlobalMeta = state.selectedId
-    ? state.adapter.resolveNodeMetrics(state.selectedId, getGlobalUniverseOptions())
-    : null;
-  const selectedNode = selectedLocalMeta?.node || selectedGlobalMeta?.node || null;
-  const stats = state.frameResult?.stats || {};
-
-  const headingX = panel.x + 18;
-  let cursorY = panel.y + 22;
-  drawText('Next Gen Binary Tree', headingX, cursorY, {
-    size: 18,
-    weight: 700,
-    family: 'Georgia, Times New Roman, serif',
-    color: '#203a67',
-  });
-  cursorY += 20;
-  drawText('Glass Shell', headingX, cursorY, {
-    size: 11,
-    weight: 600,
-    color: '#6683ad',
-  });
-  cursorY += 18;
-
-  const identity = safeText(state.session?.name || state.session?.username || 'Unknown User');
-  drawText(
-    ((state.source === 'admin' ? 'ADMIN' : 'MEMBER') + ' | ' + truncateText(identity, 18)),
-    headingX,
-    cursorY,
-    {
-      size: 10,
-      weight: 500,
-      color: '#6d84aa',
-    },
-  );
-  cursorY += 22;
-
-  drawSmallButton({
-    id: 'query-all',
-    x: panel.x + 14,
-    y: cursorY,
-    width: 58,
-    height: 24,
-    label: 'All',
-    action: 'query:all',
-    active: state.query === '',
-  });
-  drawSmallButton({
-    id: 'query-deep',
-    x: panel.x + 78,
-    y: cursorY,
-    width: 62,
-    height: 24,
-    label: 'Deep',
-    action: 'query:deep',
-    active: state.query === 'deep',
-  });
-  drawSmallButton({
-    id: 'query-load',
-    x: panel.x + 146,
-    y: cursorY,
-    width: 78,
-    height: 24,
-    label: 'High Vol',
-    action: 'query:high',
-    active: state.query === 'high',
-  });
-  cursorY += 40;
-
-  drawText('Local Depth Filter', headingX, cursorY, {
-    size: 11,
-    weight: 600,
-    color: '#5879a6',
-  });
-  cursorY += 12;
-
-  const depthButtons = ['all', '0', '1', '2', '3', '4', '5', '8', '12', '16', '20'];
-  const depthColumns = panel.width >= 346 ? 5 : 4;
-  const depthButtonWidth = clamp(
-    Math.floor((panel.width - 30 - ((depthColumns - 1) * 6)) / depthColumns),
-    34,
-    44,
-  );
-  const depthButtonHeight = 22;
-  for (let index = 0; index < depthButtons.length; index += 1) {
-    const depthLabel = depthButtons[index];
-    const row = Math.floor(index / depthColumns);
-    const column = index % depthColumns;
-    const buttonX = panel.x + 14 + (column * (depthButtonWidth + 6));
-    const buttonY = cursorY + (row * (depthButtonHeight + 6));
-    drawSmallButton({
-      id: `depth-${depthLabel}`,
-      x: buttonX,
-      y: buttonY,
-      width: depthButtonWidth,
-      height: depthButtonHeight,
-      label: depthLabel.toUpperCase(),
-      action: `depth:${depthLabel}`,
-      active: state.depthFilter === depthLabel,
-    });
+  const panelReveal = resolveStartupRevealForPanel(STARTUP_SIDE_PANEL_DELAY_MS);
+  if (panelReveal.progress <= 0) {
+    return;
+  }
+  const applyPanelReveal = panelReveal.active;
+  if (applyPanelReveal) {
+    context.save();
+    context.translate(0, panelReveal.translateY);
+    context.globalAlpha *= panelReveal.alpha;
+    context.filter = `blur(${panelReveal.blurPx.toFixed(2)}px)`;
   }
 
-  const depthRows = Math.ceil(depthButtons.length / depthColumns);
-  cursorY += (depthRows * (depthButtonHeight + 6)) + 12;
+  try {
+    const panel = layout.sideNav;
+    const buttonYOffset = applyPanelReveal ? panelReveal.translateY : 0;
+    drawPanelChrome(panel, 'left');
 
-  const detailsHeight = 156;
-  drawBackdropBlurRegion({ x: panel.x + 12, y: cursorY, width: panel.width - 24, height: detailsHeight }, 18, 12);
-  fillRoundedRect(context, panel.x + 12, cursorY, panel.width - 24, detailsHeight, 18, 'rgba(255,255,255,0.58)');
-  strokeRoundedRect(
-    context,
-    panel.x + 12.5,
-    cursorY + 0.5,
-    panel.width - 25,
-    detailsHeight - 1,
-    18,
-    'rgba(175,197,227,0.82)',
-  );
+    const insetX = 22;
+    const slotX = panel.x + insetX;
+    const slotWidth = panel.width - (insetX * 2);
+    const topRowGap = 8;
+    const collapseButtonWidth = 38;
+    const topPadding = 24;
+    const gap = 20;
+    const brandButtonHeight = 50;
+    const brandButtonWidth = Math.max(160, slotWidth - collapseButtonWidth - topRowGap);
+    const collapseButtonX = slotX + brandButtonWidth + topRowGap;
+    const smallCardHeight = 150;
+    const bottomCardHeight = 150;
+    const minMiddleHeight = 220;
+    const fixedHeight = (
+      topPadding
+      + brandButtonHeight
+      + gap
+      + smallCardHeight
+      + gap
+      + smallCardHeight
+      + gap
+      + bottomCardHeight
+      + gap
+      + topPadding
+    );
+    const middleCardHeight = Math.max(minMiddleHeight, panel.height - fixedHeight);
 
-  drawText('Selected Node', headingX, cursorY + 18, {
-    size: 11,
-    weight: 600,
-    color: '#53749f',
-  });
-  drawText(
-    truncateText(safeText(selectedNode?.name || '(none)'), 28),
-    headingX,
-    cursorY + 40,
-    {
-      size: 14,
-      weight: 700,
-      color: '#223f6a',
-    },
-  );
-  drawText(
-    `Depth: ${selectedLocalMeta ? selectedLocalMeta.localDepth : '-'}  |  Vol: ${selectedNode ? safeNumber(selectedNode.volume, 0).toLocaleString() : '-'}`,
-    headingX,
-    cursorY + 58,
-    {
-      size: 10,
-      weight: 500,
-      color: '#6a82a9',
-      maxWidth: panel.width - 44,
-    },
-  );
-  drawText('Universe Trail', headingX, cursorY + 79, {
-    size: 10,
-    weight: 600,
-    color: '#5f79a2',
-  });
-  drawUniverseBreadcrumbLinks(headingX, cursorY + 87, panel.width - 44);
-  drawText(
-    `Global Path: ${selectedGlobalMeta ? selectedGlobalMeta.globalPath || '(root)' : '-'}`,
-    headingX,
-    cursorY + 112,
-    {
-      size: 10,
-      weight: 500,
-      color: '#6c83aa',
-      maxWidth: panel.width - 44,
-    },
-  );
-  drawText(
-    `Culled: ${safeNumber(stats.culled, 0)}   Visible: ${safeNumber(stats.visible, 0)}`,
-    headingX,
-    cursorY + 132,
-    {
-      size: 10,
-      weight: 600,
-      color: '#486a97',
-    },
-  );
-  cursorY += detailsHeight + 16;
-  drawText('Press C to toggle links | F to fit | U/B for universe nav', headingX, cursorY, {
-    size: 10,
-    weight: 500,
-    color: '#6a81a8',
-    maxWidth: panel.width - 40,
-  });
+    let y = panel.y + topPadding;
+    const brandButtonY = y;
+    const brandMenuOpen = Boolean(state.ui.sideNavBrandMenuOpen);
+    const brandButtonHovered = state.hoveredButtonId === SIDE_NAV_BRAND_TOGGLE_BUTTON_ID;
+    const brandButtonFill = brandMenuOpen
+      ? '#EFF0F3'
+      : (brandButtonHovered ? '#F3F4F6' : '#F6F7F9');
+    const brandButtonStroke = brandMenuOpen
+      ? '#D8DAE0'
+      : (brandButtonHovered ? '#DCDDE2' : '#E2E4E8');
+    fillRoundedRect(context, slotX, brandButtonY, brandButtonWidth, brandButtonHeight, 14, brandButtonFill);
+    strokeRoundedRect(
+      context,
+      slotX + 0.5,
+      brandButtonY + 0.5,
+      brandButtonWidth - 1,
+      brandButtonHeight - 1,
+      14,
+      brandButtonStroke,
+      1,
+    );
 
-  drawSideNavToggle(layout);
+    const logoInsetX = 13;
+    const logoInsetY = 9;
+    const logoAreaX = slotX + logoInsetX;
+    const logoAreaY = brandButtonY + logoInsetY;
+    const logoAreaWidth = brandButtonWidth - 44;
+    const logoAreaHeight = brandButtonHeight - (logoInsetY * 2);
+    drawSideNavBrandLogo(logoAreaX, logoAreaY, logoAreaWidth, logoAreaHeight);
+    drawChevronGlyph(slotX + brandButtonWidth - 17, brandButtonY + (brandButtonHeight / 2), {
+      color: brandMenuOpen ? '#505665' : '#6a7080',
+      expanded: brandMenuOpen,
+      size: 7,
+      lineWidth: 1.8,
+    });
+
+    registerButton({
+      id: SIDE_NAV_BRAND_TOGGLE_BUTTON_ID,
+      x: slotX,
+      y: brandButtonY + buttonYOffset,
+      width: brandButtonWidth,
+      height: brandButtonHeight,
+      action: 'brand-menu:toggle',
+    });
+
+    const collapseButtonHovered = state.hoveredButtonId === SIDE_NAV_COLLAPSE_BUTTON_ID;
+    drawSideNavCollapseButton({
+      x: collapseButtonX,
+      y: brandButtonY,
+      width: collapseButtonWidth,
+      height: brandButtonHeight,
+      hovered: collapseButtonHovered,
+      direction: 'left',
+    });
+    registerButton({
+      id: SIDE_NAV_COLLAPSE_BUTTON_ID,
+      x: collapseButtonX,
+      y: brandButtonY + buttonYOffset,
+      width: collapseButtonWidth,
+      height: brandButtonHeight,
+      action: 'toggle:side-nav',
+    });
+
+    y += brandButtonHeight + gap;
+    drawSkeletonSlot(slotX, y, slotWidth, smallCardHeight, 20);
+    y += smallCardHeight + gap;
+    drawSkeletonSlot(slotX, y, slotWidth, smallCardHeight, 20);
+    y += smallCardHeight + gap;
+    drawSkeletonSlot(slotX, y, slotWidth, middleCardHeight, 20);
+    y += middleCardHeight + gap;
+    drawSkeletonSlot(slotX, y, slotWidth, bottomCardHeight, 20);
+
+    if (brandMenuOpen) {
+      const profileName = truncateText(resolveSessionDisplayName(), 22);
+      const profileEmail = truncateText(resolveSessionDisplayEmail(), 28);
+      const profileInitials = resolveInitials(profileName);
+      const menuPadding = 8;
+      const profileHeight = 50;
+      const profileBottomGap = 8;
+      const itemHeight = 34;
+      const itemGap = 5;
+      const dividerGap = 8;
+      const dividerHeight = 1;
+      const listHeight = (
+        SIDE_NAV_BRAND_MENU_ITEMS.length * itemHeight
+        + Math.max(0, SIDE_NAV_BRAND_MENU_ITEMS.length - 1) * itemGap
+      );
+      const menuHeight = (
+        menuPadding
+        + profileHeight
+        + profileBottomGap
+        + listHeight
+        + dividerGap
+        + dividerHeight
+        + dividerGap
+        + itemHeight
+        + menuPadding
+      );
+      const menuX = slotX;
+      const menuY = brandButtonY + brandButtonHeight + 10;
+      const menuWidth = brandButtonWidth;
+
+      fillRoundedRect(context, menuX, menuY, menuWidth, menuHeight, 16, '#FFFFFF');
+      strokeRoundedRect(context, menuX + 0.5, menuY + 0.5, menuWidth - 1, menuHeight - 1, 16, '#DFE1E6');
+
+      const profileX = menuX + menuPadding;
+      const profileY = menuY + menuPadding;
+      const profileWidth = menuWidth - (menuPadding * 2);
+      fillRoundedRect(context, profileX, profileY, profileWidth, profileHeight, 12, '#F6F7F9');
+      strokeRoundedRect(context, profileX + 0.5, profileY + 0.5, profileWidth - 1, profileHeight - 1, 12, '#EBEDF1');
+
+      const avatarSize = 32;
+      const avatarX = profileX + 8;
+      const avatarY = profileY + ((profileHeight - avatarSize) / 2);
+      fillRoundedRect(context, avatarX, avatarY, avatarSize, avatarSize, 9, '#D8DBE2');
+      drawText(profileInitials, avatarX + (avatarSize / 2), avatarY + (avatarSize / 2) + 0.5, {
+        size: 12,
+        weight: 700,
+        color: '#3b4251',
+        align: 'center',
+      });
+
+      drawText(profileName, avatarX + avatarSize + 9, profileY + 18, {
+        size: 12,
+        weight: 600,
+        color: '#303645',
+      });
+      drawText(profileEmail, avatarX + avatarSize + 9, profileY + 34, {
+        size: 10,
+        weight: 500,
+        color: '#6f7584',
+      });
+
+      let itemY = profileY + profileHeight + profileBottomGap;
+      const itemX = menuX + menuPadding;
+      const itemWidth = menuWidth - (menuPadding * 2);
+      for (const item of SIDE_NAV_BRAND_MENU_ITEMS) {
+        const buttonId = `${SIDE_NAV_BRAND_ITEM_BUTTON_PREFIX}${item.id}`;
+        const hovered = state.hoveredButtonId === buttonId;
+        if (hovered) {
+          fillRoundedRect(context, itemX, itemY, itemWidth, itemHeight, 10, '#F2F3F6');
+          strokeRoundedRect(context, itemX + 0.5, itemY + 0.5, itemWidth - 1, itemHeight - 1, 10, '#E6E8EE');
+        }
+        drawText(item.label, itemX + 12, itemY + (itemHeight / 2) + 0.5, {
+          size: 12,
+          weight: 500,
+          color: '#3b4353',
+        });
+        registerButton({
+          id: buttonId,
+          x: itemX,
+          y: itemY + buttonYOffset,
+          width: itemWidth,
+          height: itemHeight,
+          action: item.action,
+        });
+        itemY += itemHeight + itemGap;
+      }
+
+      const dividerY = itemY + dividerGap;
+      line(context, itemX, dividerY + 0.5, itemX + itemWidth, dividerY + 0.5, '#E5E7EC', 1);
+      itemY = dividerY + dividerGap;
+
+      const logoutButtonId = `${SIDE_NAV_BRAND_ITEM_BUTTON_PREFIX}${SIDE_NAV_BRAND_LOGOUT_ITEM.id}`;
+      const logoutHovered = state.hoveredButtonId === logoutButtonId;
+      if (logoutHovered) {
+        fillRoundedRect(context, itemX, itemY, itemWidth, itemHeight, 10, '#F8F1F2');
+        strokeRoundedRect(context, itemX + 0.5, itemY + 0.5, itemWidth - 1, itemHeight - 1, 10, '#F1E2E5');
+      }
+      drawText(SIDE_NAV_BRAND_LOGOUT_ITEM.label, itemX + 12, itemY + (itemHeight / 2) + 0.5, {
+        size: 12,
+        weight: 600,
+        color: '#6b3840',
+      });
+      registerButton({
+        id: logoutButtonId,
+        x: itemX,
+        y: itemY + buttonYOffset,
+        width: itemWidth,
+        height: itemHeight,
+        action: SIDE_NAV_BRAND_LOGOUT_ITEM.action,
+      });
+    }
+  } finally {
+    if (applyPanelReveal) {
+      context.restore();
+    }
+  }
 }
 
 function drawRightPanel(layout) {
@@ -1617,87 +1906,141 @@ function drawRightPanel(layout) {
 }
 
 function drawTopCenterBar(layout) {
-  const bar = layout.topBar;
-  drawBackdropBlurRegion(bar, 24, 16);
-  fillRoundedRect(context, bar.x, bar.y, bar.width, bar.height, 24, 'rgba(255, 255, 255, 0.64)');
-  strokeRoundedRect(context, bar.x + 0.5, bar.y + 0.5, bar.width - 1, bar.height - 1, 24, 'rgba(172, 197, 230, 0.86)');
-
-  const controls = [
-    { id: 'cam-home', label: 'Home', action: 'camera:home' },
-    { id: 'cam-fit', label: 'Fit', action: 'camera:fit' },
-    { id: 'cam-deep', label: 'Deep', action: 'camera:deep' },
-    { id: 'cam-root', label: 'U Root', action: 'camera:root' },
-    { id: 'universe-enter', label: 'Enter', action: 'universe:enter' },
-    { id: 'universe-back', label: 'Back', action: 'universe:back' },
-    { id: 'toggle-links', label: state.showConnectors ? 'Links On' : 'Links Off', action: 'toggle:connectors' },
-  ];
-
-  const buttonHeight = 28;
-  const buttonY = bar.y + 10;
-  let cursorX = bar.x + 10;
-  for (const control of controls) {
-    const width = clamp(42 + (control.label.length * 5), 58, 92);
-    drawSmallButton({
-      id: control.id,
-      x: cursorX,
-      y: buttonY,
-      width,
-      height: buttonHeight,
-      label: control.label,
-      action: control.action,
-      active: control.action === 'toggle:connectors' ? state.showConnectors : false,
-    });
-    cursorX += width + 8;
-  }
+  void layout;
 }
 
 function drawBottomToolBar(layout) {
-  const bar = layout.bottomBar;
-  drawBackdropBlurRegion(bar, 22, 14);
-  fillRoundedRect(context, bar.x, bar.y, bar.width, bar.height, 22, 'rgba(255, 255, 255, 0.62)');
-  strokeRoundedRect(context, bar.x + 0.5, bar.y + 0.5, bar.width - 1, bar.height - 1, 22, 'rgba(172, 197, 230, 0.82)');
+  const panelReveal = resolveStartupRevealForPanel(STARTUP_DOCK_DELAY_MS);
+  if (panelReveal.progress <= 0) {
+    return;
+  }
+  const applyPanelReveal = panelReveal.active;
+  const buttonYOffset = applyPanelReveal ? panelReveal.translateY : 0;
+  if (applyPanelReveal) {
+    context.save();
+    context.translate(0, panelReveal.translateY);
+    context.globalAlpha *= panelReveal.alpha;
+    context.filter = `blur(${panelReveal.blurPx.toFixed(2)}px)`;
+  }
 
-  const tools = [
-    { id: 'tool-select', label: 'Select' },
-    { id: 'tool-pan', label: 'Pan' },
-    { id: 'tool-zoom', label: 'Zoom' },
-    { id: 'tool-focus', label: 'Focus' },
+  try {
+  const bar = layout.bottomBar;
+  fillRoundedRect(context, bar.x, bar.y, bar.width, bar.height, 30, '#FFFFFF');
+  strokeRoundedRect(context, bar.x + 0.5, bar.y + 0.5, bar.width - 1, bar.height - 1, 30, '#FFFFFF', 1);
+
+  const dockButtons = [
+    { id: 'dock-back', iconGlyph: String.fromCodePoint(0xEF7D), action: 'universe:back' },
+    { id: 'dock-home', iconGlyph: String.fromCodePoint(0xE9B2), action: 'camera:home' },
+    { id: 'dock-enter', iconGlyph: String.fromCodePoint(0xEA77), action: 'universe:enter' },
+    { id: 'dock-deep', iconGlyph: String.fromCodePoint(0xE16D), action: 'camera:deep' },
+    { id: 'dock-placeholder', iconGlyph: String.fromCodePoint(0xF525), action: 'dock:placeholder' },
   ];
 
-  const segmentWidth = Math.floor((bar.width - 18) / tools.length);
-  let x = bar.x + 9;
-  for (const tool of tools) {
-    const hovered = state.hoveredButtonId === tool.id;
-    const active = tool.id === 'tool-select';
-    const fill = active
-      ? 'rgba(110, 163, 243, 0.9)'
-      : (hovered ? 'rgba(252, 254, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)');
-    fillRoundedRect(context, x, bar.y + 6, segmentWidth - 6, 28, 14, fill);
-    strokeRoundedRect(
-      context,
-      x + 0.5,
-      bar.y + 6.5,
-      segmentWidth - 7,
-      27,
-      14,
-      active ? 'rgba(86, 140, 222, 0.96)' : 'rgba(168,191,223,0.84)',
-    );
-    drawText(tool.label, x + ((segmentWidth - 6) / 2), bar.y + 20, {
-      size: 11,
-      weight: active ? 600 : 500,
-      color: active ? '#f7fbff' : '#2e4871',
+  const slots = dockButtons.length;
+  const gap = 16;
+  const padX = 20;
+  const padY = 16;
+  const slotHeight = bar.height - (padY * 2);
+  const slotWidth = Math.floor((bar.width - (padX * 2) - ((slots - 1) * gap)) / slots);
+
+  let x = bar.x + padX;
+  const y = bar.y + padY;
+  for (const button of dockButtons) {
+    const hovered = state.hoveredButtonId === button.id;
+    const fill = hovered ? '#E3E3E3' : '#EDEDED';
+    const stroke = hovered ? '#DDDDDD' : '#EDEDED';
+    const iconColor = hovered ? '#171717' : '#303030';
+
+    context.save();
+    if (hovered) {
+      context.shadowColor = 'rgba(48, 48, 48, 0.16)';
+      context.shadowBlur = 12;
+      context.shadowOffsetY = 4;
+    }
+    fillRoundedRect(context, x, y, slotWidth, slotHeight, 18, fill);
+    context.restore();
+    strokeRoundedRect(context, x + 0.5, y + 0.5, slotWidth - 1, slotHeight - 1, 18, stroke, 2);
+
+    drawText(button.iconGlyph, x + (slotWidth / 2), y + (slotHeight / 2) + 1, {
+      size: 24,
+      weight: 400,
+      family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+      color: iconColor,
       align: 'center',
     });
     registerButton({
-      id: tool.id,
+      id: button.id,
       x,
-      y: bar.y + 6,
-      width: segmentWidth - 6,
-      height: 28,
-      action: 'noop',
+      y: y + buttonYOffset,
+      width: slotWidth,
+      height: slotHeight,
+      action: button.action,
     });
-    x += segmentWidth;
+    x += slotWidth + gap;
   }
+  } finally {
+    if (applyPanelReveal) {
+      context.restore();
+    }
+  }
+}
+
+function resolveStartupRevealForDepth(depth = 0, nowMs = getNowMs()) {
+  const intro = state.intro;
+  if (!intro || !Number.isFinite(intro.startedAtMs)) {
+    const safeDepth = Math.max(0, Math.floor(safeNumber(depth, 0)));
+    const depthDrift = 1 + Math.min(8, safeDepth) * 0.08;
+    return {
+      active: true,
+      progress: 0,
+      translateY: safeNumber(intro?.offsetYPx, STARTUP_REVEAL_OFFSET_Y) * depthDrift,
+      blurPx: safeNumber(intro?.blurPx, STARTUP_REVEAL_BLUR_PX),
+      alpha: 0,
+    };
+  }
+  const durationMs = Math.max(1, safeNumber(intro.durationMs, STARTUP_REVEAL_MS));
+  const safeDepth = Math.max(0, Math.floor(safeNumber(depth, 0)));
+  const staggerMs = Math.max(0, safeNumber(intro.staggerMs, STARTUP_REVEAL_STAGGER_MS));
+  const delayMs = safeDepth * staggerMs;
+  const elapsedMs = Math.max(0, nowMs - safeNumber(intro.startedAtMs, nowMs) - delayMs);
+  const t = clamp(elapsedMs / durationMs, 0, 1);
+  const eased = easeOutCubic(t);
+  const inverse = 1 - eased;
+  const depthDrift = 1 + Math.min(8, safeDepth) * 0.08;
+  return {
+    active: t < 1,
+    progress: t,
+    translateY: safeNumber(intro.offsetYPx, STARTUP_REVEAL_OFFSET_Y) * depthDrift * inverse,
+    blurPx: safeNumber(intro.blurPx, STARTUP_REVEAL_BLUR_PX) * inverse,
+    alpha: clamp(0.12 + (eased * 0.88), 0, 1),
+  };
+}
+
+function resolveStartupRevealForPanel(delayMs = 0, nowMs = getNowMs()) {
+  const intro = state.intro;
+  const safeDelayMs = Math.max(0, safeNumber(delayMs, 0));
+  if (!intro || !Number.isFinite(intro.startedAtMs)) {
+    return {
+      active: true,
+      progress: 0,
+      translateY: STARTUP_PANEL_OFFSET_Y,
+      blurPx: STARTUP_PANEL_BLUR_PX,
+      alpha: 0,
+    };
+  }
+
+  const durationMs = STARTUP_PANEL_REVEAL_MS;
+  const elapsedMs = Math.max(0, nowMs - safeNumber(intro.startedAtMs, nowMs) - safeDelayMs);
+  const t = clamp(elapsedMs / durationMs, 0, 1);
+  const eased = easeOutCubic(t);
+  const inverse = 1 - eased;
+  return {
+    active: t < 1,
+    progress: t,
+    translateY: STARTUP_PANEL_OFFSET_Y * inverse,
+    blurPx: STARTUP_PANEL_BLUR_PX * inverse,
+    alpha: clamp(0.12 + (eased * 0.88), 0, 1),
+  };
 }
 
 function drawConnectors(projectedNodes) {
@@ -1736,6 +2079,20 @@ function drawConnectors(projectedNodes) {
       continue;
     }
 
+    const parentDepth = safeNumber(parent.localDepth, safeNumber(parent.node?.depth, 0));
+    const childDepth = Math.min(...children.map((child) => safeNumber(child.localDepth, parentDepth + 1)));
+    const reveal = resolveStartupRevealForDepth(Math.max(parentDepth, childDepth));
+    if (reveal.progress <= 0) {
+      continue;
+    }
+    const applyReveal = reveal.active;
+    if (applyReveal) {
+      context.save();
+      context.translate(0, reveal.translateY);
+      context.globalAlpha *= reveal.alpha;
+      context.filter = `blur(${reveal.blurPx.toFixed(2)}px)`;
+    }
+
     children.sort((left, right) => left.x - right.x);
 
     const parentBottom = parent.y + (parent.r * 0.72);
@@ -1764,6 +2121,9 @@ function drawConnectors(projectedNodes) {
       const child = children[0];
       line(context, parent.x, branchY, child.x, branchY, stroke, lineWidth);
       line(context, child.x, branchY, child.x, resolveChildTop(child), stroke, lineWidth);
+      if (applyReveal) {
+        context.restore();
+      }
       continue;
     }
 
@@ -1774,10 +2134,27 @@ function drawConnectors(projectedNodes) {
     for (const child of children) {
       line(context, child.x, branchY, child.x, resolveChildTop(child), stroke, lineWidth);
     }
+    if (applyReveal) {
+      context.restore();
+    }
   }
 }
 
 function drawNode(node) {
+  const localDepth = safeNumber(node.localDepth, safeNumber(node.node?.depth, 0));
+  const reveal = resolveStartupRevealForDepth(localDepth);
+  if (reveal.progress <= 0) {
+    return;
+  }
+  const applyReveal = reveal.active;
+  if (applyReveal) {
+    context.save();
+    context.translate(0, reveal.translateY);
+    context.globalAlpha *= reveal.alpha;
+    context.filter = `blur(${reveal.blurPx.toFixed(2)}px)`;
+  }
+
+  try {
   const isSelected = node.id === state.selectedId;
   const isFocusPathNode = Boolean(node.isFocusPathNode);
   const hasAncestorRing = isFocusPathNode && !isSelected;
@@ -1880,7 +2257,6 @@ function drawNode(node) {
     : (hasAncestorRing ? 'rgba(178,191,210,0.72)' : 'rgba(232,244,255,0.5)');
   context.stroke();
 
-  const localDepth = safeNumber(node.localDepth, safeNumber(node.node?.depth, 0));
   const hideDeepLevelLabel = (
     localDepth >= 4
     && node.r < 16
@@ -1896,6 +2272,11 @@ function drawNode(node) {
     color: '#f8fbff',
     align: 'center',
   });
+  } finally {
+    if (applyReveal) {
+      context.restore();
+    }
+  }
 }
 
 function drawTreeViewport(layout) {
@@ -1969,7 +2350,6 @@ function renderFrame() {
   drawWorkspaceBackdrop(state.layout.workspace);
   drawTreeViewport(state.layout);
   drawSideNav(state.layout);
-  drawTopCenterBar(state.layout);
   drawBottomToolBar(state.layout);
 }
 function setCameraTarget(nextView, animated = true) {
@@ -2013,17 +2393,27 @@ function animateCamera(deltaSeconds) {
 
 function computeHomeView() {
   const viewport = state.viewport || state.layout?.viewport;
-  if (!viewport) {
-    return {
-      x: 0,
-      y: 0,
-      scale: DEFAULT_HOME_SCALE,
-    };
-  }
-  return {
+  const baseHomeView = {
     x: 0,
     y: 0,
     scale: DEFAULT_HOME_SCALE,
+  };
+  if (!viewport) {
+    return baseHomeView;
+  }
+
+  const rootMetrics = state.adapter.resolveNodeMetrics(getUniverseRootId(), getUniverseOptions());
+  if (!rootMetrics) {
+    return baseHomeView;
+  }
+
+  const projectionScale = resolveProjectionScale(baseHomeView.scale);
+  const desiredX = viewport.x + (viewport.width * 0.5);
+  const desiredY = viewport.y + (viewport.height * 0.5);
+  return {
+    scale: baseHomeView.scale,
+    x: desiredX - viewport.centerX - (rootMetrics.worldX * projectionScale),
+    y: desiredY - viewport.baseY - (rootMetrics.worldY * projectionScale),
   };
 }
 
@@ -2141,6 +2531,22 @@ function triggerAction(action) {
     return;
   }
 
+  if (safeAction === 'brand-menu:toggle') {
+    state.ui.sideNavBrandMenuOpen = !state.ui.sideNavBrandMenuOpen;
+    return;
+  }
+  if (safeAction.startsWith('brand-menu:page:')) {
+    const targetPage = safeAction.slice('brand-menu:page:'.length);
+    state.ui.sideNavBrandMenuOpen = false;
+    if (targetPage === 'dashboard') {
+      setCameraTarget(computeHomeView(), true);
+    }
+    return;
+  }
+  if (safeAction === 'brand-menu:action:logout') {
+    state.ui.sideNavBrandMenuOpen = false;
+    return;
+  }
   if (safeAction === 'camera:home') {
     setCameraTarget(computeHomeView(), true);
     return;
@@ -2176,6 +2582,12 @@ function triggerAction(action) {
   }
   if (safeAction === 'toggle:side-nav') {
     state.ui.sideNavOpen = !state.ui.sideNavOpen;
+    if (!state.ui.sideNavOpen) {
+      state.ui.sideNavBrandMenuOpen = false;
+    }
+    return;
+  }
+  if (safeAction === 'dock:placeholder') {
     return;
   }
   if (safeAction.startsWith('depth:')) {
@@ -2208,10 +2620,25 @@ function onPointerDown(event) {
   state.pointer.y = event.clientY;
 
   updateHoverState(event.clientX, event.clientY);
+  const brandMenuOpen = Boolean(state.ui.sideNavBrandMenuOpen);
   const button = buttonUnderPointer(event.clientX, event.clientY);
   if (button) {
+    const isBrandButton = (
+      button.id === SIDE_NAV_BRAND_TOGGLE_BUTTON_ID
+      || button.id.startsWith(SIDE_NAV_BRAND_ITEM_BUTTON_PREFIX)
+    );
+    if (brandMenuOpen && !isBrandButton) {
+      state.ui.sideNavBrandMenuOpen = false;
+    }
     triggerAction(button.action);
     return;
+  }
+
+  if (brandMenuOpen) {
+    state.ui.sideNavBrandMenuOpen = false;
+    if (pointInsideActiveSideNav(event.clientX, event.clientY)) {
+      return;
+    }
   }
 
   if (!pointInsideRect(event.clientX, event.clientY, state.layout?.workspace)) {
@@ -2302,6 +2729,12 @@ function onWheel(event) {
 function onKeyDown(event) {
   const key = safeText(event.key).toLowerCase();
   const panStep = 34;
+
+  if (key === 'escape' && state.ui.sideNavBrandMenuOpen) {
+    state.ui.sideNavBrandMenuOpen = false;
+    event.preventDefault();
+    return;
+  }
 
   if (key === 'arrowup') {
     state.camera.target = null;
@@ -2416,6 +2849,11 @@ function tickFrame(timestamp) {
 
 async function bootstrap() {
   clearBootError();
+  state.loading.startedAtMs = performance.now();
+  if (loadingScreenElement instanceof HTMLElement) {
+    loadingScreenElement.style.display = 'flex';
+    loadingScreenElement.classList.remove('is-leaving');
+  }
 
   const hasSession = await bootstrapSession();
   if (!hasSession) {
@@ -2434,15 +2872,23 @@ async function bootstrap() {
 
   setSelectedNode('root', { animate: false });
   updateCanvasSize();
+  state.layout = resolveLayout(state.renderSize.width, state.renderSize.height);
+  state.viewport = state.layout.viewport;
   bindEvents();
 
   setCameraTarget(computeHomeView(), false);
   rememberUniverseCamera('root');
 
+  state.timeMs = performance.now();
+  renderFrame();
+  await completeLoadingScreen();
+  state.intro.startedAtMs = performance.now();
+  lastTimestamp = state.intro.startedAtMs;
   window.requestAnimationFrame(tickFrame);
 }
 
 bootstrap().catch((error) => {
+  hideLoadingScreenImmediately();
   showBootError(error instanceof Error ? error.message : String(error));
 });
 

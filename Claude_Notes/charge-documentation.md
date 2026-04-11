@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 286
+**Times Updated:** 295
 
 ## Overview
 
@@ -14,6 +14,253 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Update (2026-04-10) - Sidebar Collapse Icon Parity + Dashboard-Style Hover Animation
+
+### What Was Changed
+
+- Updated left-shell collapse/reopen control to use the exact Material icon family used by dashboard sidebar:
+  - `keyboard_double_arrow_left` (`0xEAC3`) for collapse
+  - `keyboard_double_arrow_right` (`0xEAC9`) for reopen
+- Added Material Symbols subset links for these icon names in `binary-tree-next.html`.
+- Replaced custom drawn double-chevron lines with Material Symbols glyph rendering in canvas.
+- Added dashboard-like spring hover animation behavior for collapse/reopen control:
+  - hover easing duration aligned to `150ms`
+  - eased transform scale-in/out and subtle hover shadow/lift
+  - smooth icon size/tone transition while hovering.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Design Decisions
+
+- Used Material Symbols codepoints from the official `material-design-icons` codepoints index to ensure exact icon parity in canvas rendering.
+- Kept the same `toggle:side-nav` behavior and only refined iconography + motion language in this pass.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-10) - Left Shell Collapse Arrow Button Added Beside Logo
+
+### What Was Changed
+
+- Added the sidebar collapse arrow button beside the left-shell brand logo row (dashboard-style placement).
+- Updated top-row layout in `drawSideNav()` so the brand dropdown and collapse control render side-by-side.
+- Added reusable double-chevron horizontal glyph renderer for left/right collapse/expand icons.
+- Wired new collapse button to existing `toggle:side-nav` action.
+- Restored visible reopen behavior when sidebar is collapsed:
+  - `drawSideNav()` now draws a compact reopen button via `drawSideNavToggle()` when `sideNavOpen` is false.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Design Decisions
+
+- Matched dashboard intent by using a dedicated control next to logo (instead of embedding collapse into logo button).
+- Kept iconography in canvas-native vector strokes for consistency and no extra font dependency.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-10) - Left Shell Logo Edge Quality Fix (Canvas Rendering)
+
+### What Was Changed
+
+- Improved left-shell brand logo rendering quality in canvas (`drawSideNavBrandLogo()`):
+  - forced `imageSmoothingEnabled = true`
+  - forced `imageSmoothingQuality = 'high'`
+  - aligned draw coordinates/sizes to device-pixel increments based on DPR before `drawImage()`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Reasoning
+
+- Dashboard logo appears cleaner because it is browser DOM image rendering, while this shell uses per-frame canvas raster scaling.
+- High-quality smoothing + DPR pixel alignment reduces edge jaggies in canvas downscaling.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-10) - Left Shell Color Token Correction (White Panel + #EDEDED Placeholders)
+
+### What Was Changed
+
+- Updated left shell container color token in `binary-tree-next-app.mjs`:
+  - `SHELL_PANEL_COLOR` -> `#FFFFFF`
+- Updated placeholder card/slot color token in `binary-tree-next-app.mjs`:
+  - `SKELETON_SLOT_COLOR` -> `#EDEDED`
+- Kept existing structure and interactions unchanged; this is a visual color-token correction pass only.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Design Decisions
+
+- Interpreted requested panel hex `#FFFFFFF` as `#FFFFFF` (valid white hex) and applied it to the left shell container.
+- Applied exact requested inner placeholder color `#EDEDED` for skeleton cards.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-10) - Binary Tree Next Left Shell Brand Logo Dropdown
+
+### What Was Changed
+
+- Implemented the first top field of the left shell as a brand logo dropdown control in `binary-tree-next-app.mjs`.
+- Added a real logo surface in the top slot using the existing brand asset:
+  - `/brand_assets/Logos/L%26D%20Logo_Cropped.png`
+- Added interactive dropdown behavior:
+  - click brand row to toggle menu open/close
+  - click outside to close
+  - press `Escape` to close
+  - automatically close when side nav is closed.
+- Added dropdown menu content styled to match the dashboard pattern:
+  - profile summary block (name/email + initials avatar)
+  - menu items: `Profile`, `Home`, `My Store`, `Settings`
+  - final `Log out` action row.
+- Kept remaining left-shell placeholders intact so only the first field was componentized in this pass.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Design Decisions
+
+- Reused the existing dashboard logo asset and menu language so the new canvas shell feels consistent with the User dashboard side nav.
+- Kept non-dashboard menu actions as close-only placeholders for now (except `Home`, which recenters camera) to avoid introducing unexpected route changes during this UI phase.
+
+### Known Limitations
+
+- Dropdown page actions (`Profile`, `My Store`, `Settings`, `Log out`) currently close the menu but do not navigate yet; routing/action wiring is pending.
+- Visual validation for this pass used code/syntax verification only.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Glassmorphism Panel Refinement (Frosted Card Style)
+
+### What Was Changed
+
+- Refined panel rendering to better match the clean frosted-card glassmorphism direction from reference:
+  - added reusable `drawGlassCard()` renderer for layered glass surfaces
+  - stronger backdrop blur with soft saturation/contrast tuning
+  - milky gradient panel fill + radial bloom highlight
+  - dual border treatment (bright edge + muted rim) and softer layered shadow.
+- Applied new glass surface treatment to:
+  - side panel chrome
+  - top center control bar
+  - bottom toolbar
+  - side panel selected-node details card.
+- Tuned control pills to match new glass language:
+  - softer default/hover surfaces
+  - less heavy active fills
+  - subtle lifted shadow on interactive states.
+- Adjusted breadcrumb active pill and side-panel toggle active colors for better consistency with the frosted palette.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept main background at `#F5F5F7` while increasing panel translucency and edge-lighting so layout feels lighter/cleaner without introducing a dark mode bias.
+- Preserved existing UI structure and interactions; this pass is purely visual system refinement to align with the requested glass card style.
+
+### Known Limitations
+
+- Automated screenshot comparison round was not completed in this pass because the next-gen page is session-gated in headless runs; visual refinement was applied directly to render tokens and validated by syntax checks.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Main Background #F5F5F7 + Gray Panel Theme
+
+### What Was Changed
+
+- Set the main next-gen background back to `#F5F5F7`.
+- Rethemed panel UI chrome to neutral gray glassmorphism tones (removed blue tint emphasis from panel controls).
+- Updated side panel controls and details card to match gray glass palette.
+- Updated top center bar and bottom toolbar panel strokes/fills + active states to gray variants.
+- Updated HTML fallback/body background to `#F5F5F7`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Background Color Adjustment to #F8F8FF
+
+### What Was Changed
+
+- Updated canvas background color from `#F5F5F7` to `#F8F8FF`.
+- Updated HTML fallback/body background to match `#F8F8FF`.
+- Grid remains removed.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-10) - Binary Tree Next Apple Gray Background + Grid Removal
+
+### What Was Changed
+
+- Set next-gen canvas background to Apple gray `#F5F5F7`.
+- Removed grid line rendering from the workspace backdrop.
+- Removed extra background glows/gradient layers so background stays flat and clean.
+- Updated page fallback background color to `#F5F5F7` in host HTML.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
 
 ## Update (2026-04-10) - Binary Tree Next Select Animation Bugfix (Both Directions)
 
@@ -712,6 +959,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Popup Cover Cleanup (Removed Blocking Shapes + Proper Radius Clip)
 
 ### What Was Changed
@@ -736,6 +984,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - `temporary screenshots/screenshot-180-popup-cover-clean-check.png` (clean popup cover, no blocking accent overlays, proper clipping).
 
 ---
+
 
 ## Update (2026-04-08) - Node Popup Cover Rendering Investigation (Binary Tree)
 
@@ -765,6 +1014,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - `temporary screenshots/screenshot-179-popup-cover-debug-dataurl-localpng-afterfix.png`
 
 ---
+
 
 ## Update (2026-04-08) - Cover Sync Investigation + Popup Render Fix
 
@@ -809,6 +1059,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Cover Photo Sync For All Profiled Nodes
 
 ### What Was Changed
@@ -841,6 +1092,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Increased Gap Between `BINARY TREE DATA` And Metrics Container
 
 ### What Was Changed
@@ -862,6 +1114,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Screenshot pass skipped in this sub-update (targeted spacing tweak + compile validation).
 
 ---
+
 
 ## Update (2026-04-08) - Dynamic Popup Height For Metrics Capacity
 
@@ -893,6 +1146,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Metrics Panel Height Correction (Cycles/Direct Alignment)
 
 ### What Was Changed
@@ -916,6 +1170,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Screenshot verification intentionally skipped per latest user instruction.
 
 ---
+
 
 ## Update (2026-04-08) - Popup Username / Section Spacing Tweak
 
@@ -943,6 +1198,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - `http://127.0.0.1:5500` still returned `ERR_EMPTY_RESPONSE`; verification used `http://localhost:3000`.
 
 ---
+
 
 ## Update (2026-04-08) - Popup Header Realignment (Left Avatar + Inline Handle/Icons)
 
@@ -975,6 +1231,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - `http://127.0.0.1:5500` still returns `ERR_EMPTY_RESPONSE` in this workspace; screenshot verification used `http://localhost:3000`.
 
 ---
+
 
 ## Update (2026-04-08) - Node Popup Icon Sync + Centered Identity Stack
 
@@ -1017,6 +1274,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Popup Container Expansion (Spacious Data Pass)
 
 ### What Was Changed
@@ -1049,6 +1307,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - updated spacious pass screenshot: `temporary screenshots/screenshot-136-popup-spacious-pass.png`
 
 ---
+
 
 ## Update (2026-04-08) - Node Popup Refactor (Icon + Cover + Badges + Binary Data)
 
@@ -1089,6 +1348,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Popup Full Layout Cleanup + Tight Grid
 
 ### What Was Changed
@@ -1121,6 +1381,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Popup Expanded + Online Icon Removed
 
 ### What Was Changed
@@ -1146,6 +1407,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - `node --check binary-tree.mjs` passed.
 
 ---
+
 
 ## Update (2026-04-08) - Popup Simplified (Reduced Containers)
 
@@ -1179,6 +1441,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - `node --check binary-tree.mjs` passed.
 
 ---
+
 
 ## Update (2026-04-08) - Discord-Inspired Node Popup Visual Pass
 
@@ -1216,6 +1479,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - `node --check binary-tree.mjs` passed.
 
 ---
+
 
 ## Update (2026-04-08) - Node Profile Popup Anchored Above Selected Node
 
@@ -1261,6 +1525,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Consistent Deep Anticipation Placement Length
 
 ### What Was Changed
@@ -1289,6 +1554,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Selected Node Shows Any Available Slot
 
 ### What Was Changed
@@ -1313,6 +1579,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - `node --check binary-tree.mjs` passed.
 
 ---
+
 
 ## Update (2026-04-08) - Selected-Leaf Anticipation Trigger
 
@@ -1340,6 +1607,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - `node --check binary-tree.mjs` passed.
 
 ---
+
 
 ## Update (2026-04-08) - Cascading Chunk Reveal By Zoom
 
@@ -1377,6 +1645,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Full-Tree Placement Widening (Deep Overlap Reduction)
 
 ### What Was Changed
@@ -1404,6 +1673,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - `node --check binary-tree.mjs` passed.
 
 ---
+
 
 ## Update (2026-04-08) - Middle Corridor Spacing Expansion
 
@@ -1434,6 +1704,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Anticipation Always-On (Fullscreen)
 
 ### What Was Changed
@@ -1463,6 +1734,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Enroll Mode Global Shift + Aggressive Spacing
 
 ### What Was Changed
@@ -1487,6 +1759,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - `node --check binary-tree.mjs` passed.
 
 ---
+
 
 ## Update (2026-04-08) - Enroll Mode Connector + Overlap Stabilization
 
@@ -1515,6 +1788,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Enroll Mode Layout Shift Fix
 
 ### What Was Changed
@@ -1539,6 +1813,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Enroll Button Copy Reverted
 
 ### What Was Changed
@@ -1560,6 +1835,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - `node --check binary-tree.mjs` passed.
 
 ---
+
 
 ## Update (2026-04-08) - Enroll Toggle + Anticipated Node Visual Alignment
 
@@ -1598,6 +1874,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - `node --check binary-tree.mjs` passed.
 
 ---
+
 
 ## Update (2026-04-08) - Maps-Style Semantic Zoom For Binary Tree (LOD Pass 1)
 
@@ -1648,6 +1925,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - LOD-Driven Width Compression (Pass 2)
 
 ### What Was Changed
@@ -1672,6 +1950,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - `node --check binary-tree.mjs` passed.
 
 ---
+
 
 ## Update (2026-04-08) - Binary Tree Horizontal Compaction (Usability Fix)
 
@@ -1710,6 +1989,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - `node --check binary-tree.mjs` passed.
 
 ---
+
 
 ## Update (2026-04-08) - Randomized 50-Node Binary Tree Live Test (Zeroone)
 
@@ -1778,6 +2058,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-08) - Business Center Test Data Revert + Flush Coverage Update
 
 ### What Was Changed
@@ -1820,6 +2101,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - Business Center placeholder row `zeroone-bc-1` no longer present.
 
 ---
+
 
 ## Update (2026-04-08) - Business Center Binary Tree Feature (Backend + UI + KPI Scope)
 
@@ -1892,6 +2174,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Login Button Loading Animation
 
 ### What Was Changed
@@ -1917,6 +2200,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Non-module inline script parse checks passed for edited HTML files.
 
 ---
+
 
 ## Update (2026-04-07) - Unified Member + Free Account Login Flow
 
@@ -1969,6 +2253,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Login Input Colors Aligned To Glass Panel Theme
 
 ### What Was Changed
@@ -1993,6 +2278,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - No screenshots captured in this pass per instruction.
 
 ---
+
 
 ## Update (2026-04-07) - Login Panel Recolor (No Purple) + Button Glow Removed
 
@@ -2023,6 +2309,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Resize-Locked Background Rendering (No Stretch/Squeeze On Window Resize)
 
 ### What Was Changed
@@ -2051,6 +2338,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Mobile Squeeze Follow-Up v3 (Canvas Size Sync + Aspect Clamp)
 
 ### What Was Changed
@@ -2074,6 +2362,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - No screenshots captured in this pass per instruction.
 
 ---
+
 
 ## Update (2026-04-07) - Mobile Squeeze Follow-Up Fix (Viewport-Fixed Background)
 
@@ -2105,6 +2394,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Mobile ColorBends Squeeze Fix (Portrait Aspect)
 
 ### What Was Changed
@@ -2130,6 +2420,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Rotating Heading Length + Height Stabilization
 
 ### What Was Changed
@@ -2153,6 +2444,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - No screenshots captured in this pass per instruction.
 
 ---
+
 
 ## Update (2026-04-07) - Login Panel Height Stabilized (No Jump On Error)
 
@@ -2180,6 +2472,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - No screenshots taken in this pass per instruction.
 
 ---
+
 
 ## Update (2026-04-07) - Login Panel Content Refresh (Logo, Rotating Heading, Copy Cleanup)
 
@@ -2218,6 +2511,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Ultra-High Resolution Capture + Higher Shader Pixel Density
 
 ### What Was Changed
@@ -2248,6 +2542,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - measured size: `7680 x 4320` pixels.
 
 ---
+
 
 ## Update (2026-04-07) - Login ColorBends Config Set To Exact User Values
 
@@ -2281,6 +2576,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Login Background Layer Cleanup (Single Background Source)
 
 ### What Was Changed
@@ -2306,6 +2602,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - `temporary screenshots/screenshot-124-login-background-cleanup-pass1.png`
 
 ---
+
 
 ## Update (2026-04-07) - Login Color Bends Palette + Hover Interaction Tuning
 
@@ -2338,6 +2635,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - `temporary screenshots/screenshot-123-login-black-colorbends-tune-pass4.png`
 
 ---
+
 
 ## Update (2026-04-07) - Color Bends Converted to Custom JS/CSS Only (No Video Layer)
 
@@ -2374,6 +2672,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - `temporary screenshots/screenshot-116-login-black-colorbends-js-only-pass2.png`
 
 ---
+
 
 ## Update (2026-04-07) - Member Login Background Matched to Black Color Bends Reference
 
@@ -2417,6 +2716,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Member Login Light Theme + Color Bends Glassmorph
 
 ### What Was Changed
@@ -2453,6 +2753,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Dashboard Skeleton Layout Matched to Current Home Composition
 
 ### What Was Changed
@@ -2476,6 +2777,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Inline script syntax validation passed for `index.html`.
 
 ---
+
 
 ## Update (2026-04-07) - Recent Activity Subtitle Removed + View All Toggle Fixed
 
@@ -2503,6 +2805,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Inline script syntax validation passed for `index.html`.
 
 ---
+
 
 ## Update (2026-04-07) - Recent Activity UI Cleanup + Legacy Height Match
 
@@ -2535,6 +2838,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Fast Track Outer Container Removed
 
 ### What Was Changed
@@ -2563,6 +2867,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Fast Track Audit Filter Corrected (Bonus-Only Records)
 
 ### What Was Changed
@@ -2582,6 +2887,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Inline script syntax validation passed for `index.html`.
 
 ---
+
 
 ## Update (2026-04-07) - Fast Track Commission Audit Feed + Infinity Height Match
 
@@ -2623,6 +2929,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Dashboard Layout Reflow (Infinity/Legacy Left, Fast Track Right)
 
 ### What Was Changed
@@ -2655,6 +2962,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Inline script syntax validation passed for `index.html`.
 
 ---
+
 
 ## Update (2026-04-07) - Server Cut-Off Restyled to Match Weekly Total BV Panel
 
@@ -2693,6 +3001,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Server Cut-Off Height Sync Fix (Weekly Total Match)
 
 ### What Was Changed
@@ -2724,6 +3033,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Inline script syntax validation passed for `index.html`.
 
 ---
+
 
 ## Update (2026-04-07) - Server Cut-Off Panel Tightened + Timer Simplified
 
@@ -2761,6 +3071,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Dashboard Right Column Simplified (Quick Actions Removed)
 
 ### What Was Changed
@@ -2783,6 +3094,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Weekly Boundary Dividers for Account Overview Comparison Graph
 
 ### What Was Changed
@@ -2804,6 +3116,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Inline script syntax validation passed for `index.html`.
 
 ---
+
 
 ## Update (2026-04-07) - Account Overview Main Metric Graph Added (Total vs Personal BV)
 
@@ -2844,6 +3157,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Account Overview Header Strip Removed (Cleaner Alignment)
 
 ### What Was Changed
@@ -2866,6 +3180,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Inline script syntax validation passed for `index.html`.
 
 ---
+
 
 ## Update (2026-04-07) - Account Overview Visual Pivot (Asymmetric Command Board)
 
@@ -2901,6 +3216,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Account Overview Style Pivot (Unified Segment Rail)
 
 ### What Was Changed
@@ -2932,6 +3248,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Inline script syntax validation passed for `index.html` after this redesign.
 
 ---
+
 
 ## Update (2026-04-07) - Account Overview Visual Redesign (Card Grid -> Ledger Rows)
 
@@ -2965,6 +3282,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Inline script syntax validation passed for `index.html` after the style redesign.
 
 ---
+
 
 ## Update (2026-04-07) - Dashboard Account Overview Refactor (Rank Card Removed + Fast Track Separated)
 
@@ -3003,6 +3321,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Inline script syntax validation passed for `index.html` after markup changes.
 
 ---
+
 
 ## Update (2026-04-07) - E-Wallet KPI Card: Single Action + 30-Day Balance Trend
 
@@ -3044,6 +3363,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Account Active Until KPI Icons Now Have Hover Tooltips
 
 ### What Was Changed
@@ -3075,6 +3395,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Account Active Until KPI Badge Shell Shadows Removed
 
 ### What Was Changed
@@ -3098,6 +3419,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Account Active Until KPI Icon Shadow Removed
 
 ### What Was Changed
@@ -3116,6 +3438,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Confirmed KPI icon class no longer applies drop shadow filter.
 
 ---
+
 
 ## Update (2026-04-07) - Account Active Until KPI Badge Icons Added (Reuse Profile Badges)
 
@@ -3156,6 +3479,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Account Status Tooltip Copy Updated (Paraphrased)
 
 ### What Was Changed
@@ -3176,6 +3500,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Confirmed the old tooltip sentence no longer appears and the new sentence is used in all badge tooltip references.
 
 ---
+
 
 ## Update (2026-04-07) - Account Status Tooltip Duplicate (Native WebKit) Removed
 
@@ -3201,6 +3526,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Account Status Tooltip Typography Reduced (Compact)
 
 ### What Was Changed
@@ -3221,6 +3547,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Confirmed tooltip class now uses compact tooltip sizing with white text.
 
 ---
+
 
 ## Update (2026-04-07) - Account Status Tooltip Typography (White + Medium)
 
@@ -3243,6 +3570,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Confirmed tooltip class now renders with white medium-sized text in markup.
 
 ---
+
 
 ## Update (2026-04-07) - Account Status Badge Tooltip Background Matched to Logo Popup
 
@@ -3272,6 +3600,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Match is scoped to background color only; border and shadow remain as previously configured for the KPI tooltip.
 
 ---
+
 
 ## Update (2026-04-07) - Account Status KPI Copy Update + Active Badge Tooltip
 
@@ -3308,6 +3637,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Badge tooltip is hover/focus-driven on desktop; touch devices rely primarily on the `title` fallback behavior and badge context.
 
 ---
+
 
 ## Update (2026-04-07) - Sidebar Layout Regression Fix + Sidebar State Persistence
 
@@ -3351,6 +3681,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - KPI Follow-Up Polish (Spacing + Order + Button Style)
 
 ### What Was Changed
@@ -3387,6 +3718,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - KPI layout verified in dark mode only during this pass; light-mode verification can be run next if required.
 
 ---
+
 
 ## Update (2026-04-07) - KPI Card Rework (E-Wallet + Account Overview Swap)
 
@@ -3438,6 +3770,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-07) - Home Dashboard KPI + Account Overview Declutter Pass
 
 ### What Was Changed
@@ -3486,6 +3819,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-06) - Sidebar Light-Mode Theme Fix + Logo Unclip
 
 ### What Was Changed
@@ -3522,6 +3856,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - This pass targets sidebar shell/logo behavior only; broader light-mode visual refinements can continue in follow-up passes.
 
 ---
+
 
 ## Update (2026-04-06) - 21st.dev Home Style Pass (Sidebar + Dashboard Shell)
 
@@ -3571,6 +3906,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-06) - Light Mode Restyled To Apple-Inspired Palette
 
 ### What Was Changed
@@ -3616,6 +3952,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-06) - Light Mode Palette Realignment (Brand-Consistent)
 
 ### What Was Changed
@@ -3654,6 +3991,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - If needed, a follow-up pass can fine-tune specific module contrast (charts/badges/cards) after manual light-mode review.
 
 ---
+
 
 ## Update (2026-04-06) - Notification Center Mobile Layout Fix
 
@@ -3694,6 +4032,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-06) - Notification Center Opaque Visual Pass
 
 ### What Was Changed
@@ -3729,6 +4068,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - This pass only targets the notification center visual opacity; other application modules still use their existing opacity design language.
 
 ---
+
 
 ## Update (2026-04-06) - Notification Center Visual Simplification (Apple-Inspired)
 
@@ -3768,6 +4108,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - This pass is stylistic; backend notification/announcement behavior was unchanged.
 
 ---
+
 
 ## Update (2026-04-06) - Member Notification Center + Announcement System
 
@@ -3830,6 +4171,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-06) - Admin My Store Mobile Product Rows Simplified To Normal List
 
 ### What Was Changed
@@ -3867,6 +4209,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-06) - Admin My Store Product List Cleanup + Mobile Layout Optimization
 
 ### What Was Changed
@@ -3903,6 +4246,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Screenshot automation using the provided Puppeteer workflow still returned `ERR_CONNECTION_REFUSED` to `127.0.0.1:5500` in this runtime, so image artifacts were not captured here.
 
 ---
+
 
 ## Update (2026-04-06) - Product Media Interaction Lock (No Drag / No Highlight)
 
@@ -3945,6 +4289,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-06) - Product Media Ratio Standardized To 4:5
 
 ### What Was Changed
@@ -3986,6 +4331,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-06) - Preferred Customer Sponsor Action Alignment Fix
 
 ### What Was Changed
@@ -4017,6 +4363,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - No behavior changes; this is a layout/alignment fix only.
 
 ---
+
 
 ## Update (2026-04-06) - Preferred Customer Buttons Standardized (Uniform Size)
 
@@ -4051,6 +4398,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - This standardization targets the Admin Preferred Customer flow buttons only; other admin modules keep their current button scales.
 
 ---
+
 
 ## Update (2026-04-06) - Preferred Customer Admin List Converted To Table + Custom Sponsor Picker
 
@@ -4096,6 +4444,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-06) - Preferred Customer Transfer UI Simplified + Sponsor Dropdown
 
 ### What Was Changed
@@ -4131,6 +4480,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Native `datalist` dropdown UX depends on browser rendering and may vary slightly between environments.
 
 ---
+
 
 ## Update (2026-04-06) - Admin Preferred Customers Assignment Controls Added
 
@@ -4174,6 +4524,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-06) - User Store Shareable Link Exposed in Storefront
 
 ### What Was Changed
@@ -4204,6 +4555,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Shareable link output still depends on the current session-resolved `storePublicCode`; if session identity/store metadata is incorrect, link content will reflect that runtime state.
 
 ---
+
 
 ## Update (2026-04-06) - Store Product Source Unification + Dashboard Store UI Simplification
 
@@ -4255,6 +4607,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-06) - MetaCharge Catalog Restoration
 
 ### What Was Changed
@@ -4280,6 +4633,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Storefront appeared empty because legacy sample IDs are excluded by current API filter and no custom products were present until this restore action.
 
 ---
+
 
 ## Update (2026-04-06) - Removed Manual Store Attribution Override (My Store Checkout)
 
@@ -4318,6 +4672,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Direct visual confirmation of the protected `My Store` checkout section requires an authenticated session in the screenshot run.
 
 ---
+
 
 ## Update (2026-04-04) - Unverified Reset + Manual Verify Link/Button in Settings
 
@@ -4371,6 +4726,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Verification still uses mock outbox/manual link mode until real email sender integration is added.
 
 ---
+
 
 ## Update (2026-04-04) - Real Server-Side Email Verification Flow (Settings Account)
 
@@ -4435,6 +4791,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-04) - Title Hover Card Now Shows Acquisition Date
 
 ### What Was Changed
@@ -4473,6 +4830,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - If older title award records do not include award/claim timestamps, the subtitle will render `Acquired --` until data is available.
 
 ---
+
 
 ## Update (2026-04-04) - Profile Edit Supports Two Claimed Titles (Title 1 + Title 2)
 
@@ -4522,6 +4880,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-04) - Disabled WebKit Long-Hover Native Tooltip on Profile Badge Chips
 
 ### What Was Changed
@@ -4556,6 +4915,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - This removes native hover tooltips only for profile handle badge chips; other controls elsewhere may still use `title` by design.
 
 ---
+
 
 ## Update (2026-04-04) - Title Hover Card Subtitle Switched to Event Binding
 
@@ -4601,6 +4961,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-04) - Time-Limited Event Legacy Founder Backfill + Eligibility Context Fix
 
 ### What Was Changed
@@ -4641,6 +5002,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - This update backfilled the current Legacy account only; any broader historical multi-user backfill job would require a dedicated batch script if requested.
 
 ---
+
 
 ## Update (2026-04-03) - Title Dropdown Arrow Alignment + Badge Toggle Lock (No Claimed Titles)
 
@@ -4690,6 +5052,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-03) - Profile Edit Title Dropdown + Badge Label/Order Update
 
 ### What Was Changed
@@ -4738,6 +5101,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-03) - Limited-Time Title Star Icons + `Title-Icons` Folder
 
 ### What Was Changed
@@ -4785,6 +5149,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-03) - Limited-Time Event Icon Resolver Fixed (Diamond Fallback Removed)
 
 ### What Was Changed
@@ -4813,6 +5178,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Any future icon folders must be added to the same validator pattern unless this is generalized further.
 
 ---
+
 
 ## Update (2026-04-03) - Server-Wide Claimable Title Catalog Added
 
@@ -4856,6 +5222,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-03) - Time-Limited Event Row Copy Cleanup
 
 ### What Was Changed
@@ -4875,6 +5242,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - `Parsed 2 inline scripts successfully.`
 
 ---
+
 
 ## Update (2026-04-03) - Achievement Center Time-Limited Event + Account-Bound Title Awards
 
@@ -4924,6 +5292,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-03) - Hovered Badge Size Increased
 
 ### What Was Changed
@@ -4946,6 +5315,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-03) - Username Badge Icon Size Increased (Inside Circle Chips)
 
 ### What Was Changed
@@ -4966,6 +5336,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - `temporary screenshots/screenshot-5-profile-badge-icon-bigger.png`
 
 ---
+
 
 ## Update (2026-04-03) - Hover Card Reverted to First Version (Removed Orange/Green Dots)
 
@@ -4991,6 +5362,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Hover card uses current brand icon assets and not DiscordÃ¢â‚¬â„¢s exact badge artwork.
 
 ---
+
 
 ## Update (2026-04-03) - Username Badge Chips Restored to Circular Layout Style
 
@@ -5019,6 +5391,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Badge chip visuals rely on existing app SVG icon assets and may differ from DiscordÃ¢â‚¬â„¢s exact icon artwork.
 
 ---
+
 
 ## Update (2026-04-03) - Profile Username Badges + Discord-Style Hover Card + Editable Title/Icon Visibility
 
@@ -5077,6 +5450,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-03) - Good Life Source Switched to Rank Advancement Monthly Run
 
 ### What Was Changed
@@ -5116,6 +5490,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-03) - Requirement Semantics Clarified (Left/Right Pair + Personal Direct Sponsors)
 
 ### What Was Changed
@@ -5153,6 +5528,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Direct sponsor requirement mapping currently follows linear pair progression (`1:1` to `9:9`) aligned to the nine rank milestones; if business policy changes these ratios, the per-rank constants should be updated.
 
 ---
+
 
 ## Update (2026-04-03) - Rank Advancement System Added to Profile Achievements
 
@@ -5205,6 +5581,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-03) - Achievement Icon Drafts (SVG Pack)
 
 ### What Was Changed
@@ -5240,6 +5617,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - These are draft visual assets only; list-row integration/mapping in `index.html` is not yet wired in this step.
 
 ---
+
 
 ## Update (2026-04-03) - Profile Achievement System (Server-Side Auth + DB Claims)
 
@@ -5319,6 +5697,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-03) - Achievement Category Caption Removed
 
 ### What Was Changed
@@ -5335,6 +5714,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Kept the category panel visually cleaner and aligned with requested copy density by removing descriptive subtext from category items.
 
 ---
+
 
 ## Update (2026-04-03) - Good Life List Row Template Update
 
@@ -5359,6 +5739,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-04-03) - Good Life Row Subtext/Reward Format Cleanup
 
 ### What Was Changed
@@ -5373,6 +5754,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-27) - Legal Editor Headings + Link Theme Refinement
 
 - Added legal editor heading scale controls in toolbar:
@@ -5386,6 +5768,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse check passed for `admin.html`.
 
 ---
+
 
 ## Update (2026-03-27) - Legal Rich Text Engine Migration (Quill)
 
@@ -5404,6 +5787,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-27) - Rich Text Toolbar Reliability Fixes
 
 - Fixed legal rich-text toolbar behavior by preserving text selection while interacting with toolbar buttons.
@@ -5421,6 +5805,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse check passed for `admin.html`.
 
 ---
+
 
 ## Update (2026-03-27) - Settings Responsiveness + Rich Text Legal Editor
 
@@ -5445,6 +5830,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-27) - Settings Legal UX Restructure (Category -> Specific -> Edit)
 
 - Refactored Admin Settings legal workflow to follow nested navigation:
@@ -5465,6 +5851,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse check passed for `admin.html`.
 
 ---
+
 
 ## Update (2026-03-27) - Admin-Managed Legal Documents (Settings -> Legal)
 
@@ -5496,6 +5883,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-27) - Registration Modal Terms Checkbox
 
 - Added required terms consent to the checkout registration modal (`Free Account Setup` modal).
@@ -5508,6 +5896,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse check passed for `store-checkout.html`.
 
 ---
+
 
 ## Update (2026-03-27) - Register Page CTA + Terms Agreement Gate
 
@@ -5523,6 +5912,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse check passed for `store-register.html`.
 
 ---
+
 
 ## Update (2026-03-27) - Header Action Alignment with Nav Items
 
@@ -5541,6 +5931,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-27) - Header Checkout CTA Converted to Icon Button
 
 - Converted header checkout/cart CTA from text button to icon button (Google Material-style cart icon) on store-facing browse/support pages.
@@ -5555,6 +5946,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse checks passed for all updated pages.
 
 ---
+
 
 ## Update (2026-03-27) - Store Logo Format Change (SVG -> PNG)
 
@@ -5574,6 +5966,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse checks passed for all updated store pages.
 
 ---
+
 
 ## Update (2026-03-27) - Store Logo Asset Swap to L&D Logo_Cropped
 
@@ -5596,6 +5989,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse checks passed for updated store pages.
 
 ---
+
 
 ## Update (2026-03-27) - Logo-Only Store Branding (Member-Side Pattern Match)
 
@@ -5620,6 +6014,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-27) - Store Header Logo Integration (Provided Brand Asset)
 
 - Replaced storefront header text-badge mark (`PL` square) with provided logo asset:
@@ -5637,6 +6032,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse checks passed for updated store pages.
 
 ---
+
 
 ## Update (2026-03-27) - Branding Correction (Charge -> Premiere Life)
 
@@ -5666,6 +6062,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-27) - Registration UI Cleanup (Onboarding Note Removed)
 
 - Removed optional onboarding-note fields from user-facing free-account registration UI surfaces:
@@ -5678,6 +6075,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
     - `store-checkout.html`
 
 ---
+
 
 ## Update (2026-03-27) - Dedicated Store Registration Page (Replaces Register Modal Entry)
 
@@ -5723,6 +6121,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-27) - Registration CTA UX Follow-Up (Modal-First + Register Label)
 
 - Follow-up UX refinement:
@@ -5738,6 +6137,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - `store-checkout.html` inline script parse check passed.
 
 ---
+
 
 ## Update (2026-03-27) - Login Modal Registration CTA + Reused Free-Account Checkout Flow
 
@@ -5772,6 +6172,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-27) - Storefront Header Login Consolidation + Cart Relocation
 
 - Scope delivered:
@@ -5801,6 +6202,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
     - `store-checkout.html`
 
 ---
+
 
 ## Update (2026-03-27) - Storefront Checkout: No-Referral Guest Flow + Mode-Based Discounting
 
@@ -5851,6 +6253,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-27) - Preferred Customer Placement Controls (6-Mode Placement Model)
 
 - Scope delivered:
@@ -5897,6 +6300,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-26) - Legacy Store Code Compatibility + User Validation
 
 - Follow-up checkout issue addressed:
@@ -5917,6 +6321,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - per-user checkout-session route validation run for all user store/public codes + `CHG-7X42` returned Stripe-key errors (`502 Invalid API Key`) instead of store-code routing errors (`404`), confirming store-code resolution now passes.
 
 ---
+
 
 ## Update (2026-03-26) - Commerce Architecture Direction Note (Planning Session Only)
 
@@ -5939,6 +6344,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - operational checklist (retries, idempotency, audit trail, monitoring)
 
 ---
+
 
 ## Update (2026-03-26) - Stripe Checkout Transition (Implemented)
 
@@ -5991,6 +6397,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
     - `GET /store-checkout.html` returns `200` and renders Stripe transition copy/buttons
 
 ---
+
 
 ## Update (2026-03-25) - Admin My Store Container Revision (Sidebar Removed)
 
@@ -6445,6 +6852,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-16) - Sidebar Binary Tree Auto-Fullscreen
 
 - User request:
@@ -6468,6 +6876,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-15) - Legacy Tier Base Count Adjusted to 1/40
 
 - User clarification:
@@ -6489,6 +6898,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - temporary test data was reset after validation to preserve fresh-start DB state.
 
 ---
+
 
 ## Update (2026-03-15) - Legacy Leadership Tier 1 / Tier 2 Progression Correction
 
@@ -6531,6 +6941,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-15) - Fresh Start Cleanup Applied (Legacy Restore Removed)
 
 - User requested a fresh new dataset and explicitly rejected restored historical users.
@@ -6554,6 +6965,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - health check remains OK on `GET /api/health`.
 
 ---
+
 
 ## Update (2026-03-15) - PostgreSQL Data Recovery (Users Restored)
 
@@ -6588,6 +7000,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-15) - Legacy Leadership Bonus Locked-State Fix (ZeroOne Scenario)
 
 - Reported issue:
@@ -6614,6 +7027,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
     - locked gate still shown as expected.
 
 ---
+
 
 ## Update (2026-03-15) - DB Deadlock Elimination for Enrollment + Force Cutoff
 
@@ -6646,6 +7060,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-08) - Full Binary Tree Investigation + Cutoff/Tier Bugfixes
 
 - Ran full binary-tree integrity sweep across:
@@ -6673,6 +7088,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-08) - Binary Tree BV Rollup Baseline-Date Guard
 
 - Investigated report: enrolled `juan` did not add expected `960 BV` under `hues` in binary tree context.
@@ -6693,6 +7109,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-08) - Modal Media Live Preview
 
 - Enhanced `Edit Profile` modal so profile media section now shows live visual previews, not only action buttons.
@@ -6709,6 +7126,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse passed for `index.html`.
 
 ---
+
 
 ## Update (2026-03-08) - Profile Media Controls Moved To Edit Modal
 
@@ -6728,6 +7146,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse passed for `index.html`.
 
 ---
+
 
 ## Update (2026-03-08) - Profile Location Line (LinkedIn-Style)
 
@@ -6751,6 +7170,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-08) - Profile Edit Modal Conversion
 
 - Converted profile editing UX from always-visible inline card to modal flow in `/Users/seth/Documents/Web-Dev/index.html`.
@@ -6769,6 +7189,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - inline script parse passed for `index.html` after modal conversion.
 
 ---
+
 
 ## Update (2026-03-08) - Dashboard Weekly BV Labels + Profile Page Wiring
 
@@ -6793,6 +7214,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-08) - Tier Card Direct-Sponsor Progress Bar Alignment
 
 - Investigated report: tier cards showed `x/3 Direct Sponsorships Requirements` updating, but progress bar appeared static.
@@ -6808,6 +7230,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - `1/3`, `2/3`, `3/3` now maps to visible bar progression (`33.3%`, `66.7%`, `100%`) consistent with displayed requirement text.
 
 ---
+
 
 ## Update (2026-03-08) - KPI / Server Cut-Off / Fullscreen Enroll Investigation + Fixes
 
@@ -6838,6 +7261,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - Weekly cutoff rollover is no longer auto-applied in the member metrics read endpoint; cutoff baseline advancement should come from explicit cutoff execution flows.
 
 ---
+
 
 ## Update (2026-03-08) - Theme System Planning Prompt Draft
 
@@ -6877,6 +7301,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-04) - Server-Authoritative Member Server Cut-Off Panel
 
 - Refactored the member `Server Cut-Off` panel to be server-authoritative instead of front-end local baseline storage.
@@ -6915,6 +7340,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-04) - Member Server Cut-Off Force Event Hydration Fix
 
 - Investigated why member-side `Server Cut-Off` did not reset Left/Right BV after admin force cut-off.
@@ -6939,6 +7365,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-04) - Dedicated Binary + Sales Team JSON Stores
 
 - Added two dedicated mock stores for migration-ready data boundaries:
@@ -6958,6 +7385,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Data shape was structured as table-ready rows (stable identity fields + typed numeric columns + ISO timestamps) to reduce schema drift for upcoming PostgreSQL migration.
 
 ---
+
 
 ## Update (2026-03-04) - Full App PostgreSQL Migration Script
 
@@ -6986,6 +7414,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-04) - Access Control Migration Script (Roles + RLS)
 
 - Added second migration script for database access control:
@@ -7010,6 +7439,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-04) - Admin-Only Seed Migration Script
 
 - Added third migration script for fresh-start launch seeding:
@@ -7031,6 +7461,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Update (2026-03-04) - BackEnd Notes Documentation File
 
 - Populated backend-specific documentation note:
@@ -7048,6 +7479,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Purpose: central backend/db reference separate from UI-focused change logs.
 
 ---
+
 
 ## Update (2026-03-04) - Server Cut-Off Weekly BV Reset (Dashboard + Admin)
 
@@ -7069,6 +7501,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+
 ## Files Created
 
 | File | Purpose | Notes |
@@ -7080,6 +7513,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 | `package.json` + `node_modules/` | Dependencies | Created automatically by `npm install puppeteer` |
 
 ---
+
 
 ## Design System ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â "Mint Vault"
 
@@ -7135,6 +7569,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 
 ---
 
+
 ## Layout Structure
 
 ```
@@ -7159,6 +7594,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 | `xl` (1280px) | 4-col overview cards |
 
 ---
+
 
 ## Dashboard Components
 
@@ -7217,6 +7653,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 
 ---
 
+
 ## Interactive States (All Clickables)
 
 | State | Effect |
@@ -7228,6 +7665,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 
 ---
 
+
 ## Extra Polish
 
 - Custom dark scrollbar: 6px width, `#2A3A4A` thumb, transparent track
@@ -7235,6 +7673,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 - Cross-browser: `-webkit-scrollbar` + `scrollbar-width: thin`
 
 ---
+
 
 ## QA Rounds
 
@@ -7248,6 +7687,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 | 6 | `screenshot-12-layout-v3-round1.png` | Layout restructure: bento Budget Progress cards, proper Row 3 grid with Quick Actions + Month vs Month in 1/3 column |
 
 ---
+
 
 ## Post-v1 Updates
 
@@ -9339,6 +9779,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
 
 ---
 
+
 ## Known Limitations / Future Work
 
 - Sidebar toggle uses minimal vanilla JS (no framework)
@@ -10682,6 +11123,7 @@ All shadows include a subtle `rgba(15,212,164,...)` teal tint for brand coherenc
   - Result: `Parsed 2 inline script block(s) successfully.`
 
 ---
+
 
 ## Binary Tree Fullscreen Selected Node Privacy + Spillover Parent Fix (2026-02-23)
 
@@ -18731,3 +19173,629 @@ Updated `binary-tree-next-app.mjs`:
 - `node --check binary-tree-next-engine-adapter.mjs` passed.
 - `GET /binary-tree-next` returned HTTP `200`.
 
+
+## UI Light-Mode Refinement (2026-04-10) - Clean Frosted Blur + Apple Light Palette
+
+### User Goals
+
+- Prioritize light mode for New Binary Tree Next Gen.
+- Clean up frosted-glass blur so it matches the cleaner login-page layer feel.
+- Set main background to `#E9EAEE`.
+- Keep panel surfaces in a white (`#FFFFFF`) family.
+
+### Changes Applied
+
+#### 1) Main Surface Palette
+
+- Updated `binary-tree-next.html` page background from `#F5F5F7` to `#E9EAEE`.
+- Updated `drawBackground()` in `binary-tree-next-app.mjs` to fill with `#E9EAEE`.
+
+#### 2) Blur Pipeline Cleanup (Messy Frosted Effect Fix)
+
+- Added a dedicated offscreen backdrop layer:
+  - `glassBackdropCanvas`
+  - `glassBackdropContext`
+- Synced the offscreen buffer in `updateCanvasSize()` with main canvas DPR and dimensions.
+- Captured a clean backdrop snapshot immediately after tree rendering and before panel/UI chrome rendering.
+- Updated `drawBackdropBlurRegion()` to sample blur from the clean snapshot instead of re-blurring the active UI canvas.
+- Removed the heavy `saturate/contrast` stack from blur filtering; blur now uses a cleaner `blur(px)` treatment with tuned alpha.
+
+#### 3) White Panel Tone Pass
+
+- Rebalanced `drawGlassCard()` defaults and panel overrides to a neutral white palette (no blue cast):
+  - white top/bottom fills
+  - brighter white edge strokes
+  - soft neutral-gray rims/shadows for depth.
+- Retuned side panel, details card, top bar, and bottom toolbar glass fills to maintain clarity in light mode.
+
+### Design Decisions
+
+- Used offscreen blur sampling to prevent muddy recursive blur buildup.
+- Kept translucency so frosted depth remains visible while enforcing white panel color direction.
+- Strengthened rim/edge contrast on white panels to avoid washout on the `#E9EAEE` background.
+
+### Known Limitations
+
+- Direct screenshot of `/binary-tree-next.html` without session redirects to login; visual QA used a temporary local preview route that was removed after capture.
+- This pass intentionally focuses on light-mode glass/background polish; node geometry and universe behavior were unchanged.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- Completed two screenshot comparison rounds via `node screenshot.mjs` on localhost preview route.
+
+## UI Reference Match (2026-04-10) - Skeletal Shell Layout From Provided Image
+
+### User Goals
+
+- Match the provided skeletal UI image structure closely.
+- Keep a left vertical shell with stacked placeholder regions.
+- Keep a centered bottom pill dock with five placeholder slots.
+- Preserve a clean, minimal canvas background while preparing zones for future components.
+
+### Changes Applied
+
+#### 1) Layout Geometry Reworked To Reference
+
+- Updated `resolveLayout()` shell geometry to emphasize:
+  - tall left rail anchored with consistent outer padding
+  - larger-radius panel shell
+  - centered bottom dock with raised bottom margin.
+- Removed practical top control strip footprint from the active shell layout.
+
+#### 2) Skeleton-Only Surface Rendering
+
+- Replaced content-heavy side-nav rendering with structural placeholder blocks:
+  - top thin header slot
+  - two medium cards
+  - one large middle card
+  - one bottom medium card.
+- Replaced bottom toolbar text/buttons with 5 equal placeholder slots inside a rounded dock.
+
+#### 3) Palette/Shape Alignment To Image
+
+- Updated shell color constants for closer match:
+  - background: `#CFD0D6`
+  - shell panel: `#ECECEE`
+  - placeholder blocks: `#C2C2C6`.
+- Updated `binary-tree-next.html` body background to `#CFD0D6` for first paint consistency.
+
+#### 4) Main Canvas Content Suppression (Skeleton Phase)
+
+- Temporarily disabled tree-content drawing in `renderFrame()` so the scene reads as a pure skeleton wireframe layout, matching the reference intent.
+
+### Design Decisions
+
+- Prioritized structural fidelity (spacing, panel count, corner radii, dock proportion) over functional controls for this pass.
+- Kept the shell as reusable placeholders so future components can be dropped into each block without reworking global layout.
+
+### Known Limitations
+
+- This pass intentionally suppresses tree rendering to preserve reference-image fidelity.
+- Existing runtime interactions tied to removed visual controls are not exposed in this skeleton phase.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- Completed multiple screenshot comparison rounds against the provided reference image and iterated spacing/color alignment.
+
+## Dock Components (2026-04-10) - Bottom Center Controls Wired
+
+### User Goals
+
+- Replace bottom dock placeholders with real controls.
+- Buttons requested: `Back`, `Home`, `Enter`, `Deep`, plus one placeholder button.
+
+### Changes Applied
+
+- Updated `drawBottomToolBar()` in `binary-tree-next-app.mjs`:
+  - converted the 5 slot placeholders into labeled clickable buttons
+  - labels/actions now map as:
+    - `Back` -> `universe:back`
+    - `Home` -> `camera:root`
+    - `Enter` -> `universe:enter`
+    - `Deep` -> `camera:deep`
+    - `Soon` -> `dock:placeholder` (no-op placeholder)
+- Added hover styling for dock buttons while preserving skeleton color language.
+- Added explicit no-op action handling for `dock:placeholder` in `triggerAction()`.
+
+### Design Decisions
+
+- Kept control names short so they fit the dock slots cleanly at current width.
+- Kept placeholder button intentionally inert to reserve space for future function.
+
+### Known Limitations
+
+- Skeleton mode still suppresses tree rendering in `renderFrame()`; button actions are wired but visual camera/universe changes are not currently shown until tree rendering is re-enabled.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Hotfix (2026-04-10) - Re-enabled Node Rendering In Skeleton Shell
+
+### Issue
+
+- Nodes/connectors were no longer visible after the skeleton reference pass.
+
+### Root Cause
+
+- `drawTreeViewport(state.layout)` had been temporarily removed from `renderFrame()` during strict skeleton matching.
+
+### Fix Applied
+
+- Restored `drawTreeViewport(state.layout)` in `renderFrame()` so tree content renders again under the skeleton shell overlays.
+
+### Outcome
+
+- Nodes/connectors are visible again while keeping the new left-shell + bottom dock structure.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Dock Icons (2026-04-10) - Material Symbols Added
+
+### User Goals
+
+- Add icons to bottom center dock buttons using Material Symbols.
+- Icon mapping requested:
+  - Back -> `arrow_left_alt`
+  - Home -> `home`
+  - Enter -> `login`
+  - Deep -> `low_priority`
+  - Coming Soon -> `asterisk`
+
+### Changes Applied
+
+- Added Material Symbols stylesheet links in `binary-tree-next.html` head (one per requested icon set URL).
+- Updated dock button model in `drawBottomToolBar()` (`binary-tree-next-app.mjs`) to include `icon` ligature names.
+- Updated dock slot rendering to draw:
+  - icon (Material Symbols Outlined) on top
+  - label text below.
+- Existing actions were preserved:
+  - `universe:back`, `camera:root`, `universe:enter`, `camera:deep`, `dock:placeholder`.
+
+### Design Decisions
+
+- Kept labels visible under icons to preserve quick recognition while introducing iconography.
+- Used ligature rendering through canvas text with `"Material Symbols Outlined"` font family.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Dock Icons Fix (2026-04-10) - Text Fallback Resolved
+
+### Issue
+
+- Dock icons appeared as text labels instead of symbols.
+
+### Root Cause
+
+- Canvas text rendering did not resolve Material Symbol ligature names consistently in this flow.
+
+### Fix Applied
+
+- Switched dock icon rendering from ligature names to explicit Material Symbols glyph codepoints:
+  - Back (`arrow_left_alt`) -> `0xEF7D`
+  - Home (`home`) -> `0xE9B2`
+  - Enter (`login`) -> `0xEA77`
+  - Deep (`low_priority`) -> `0xE16D`
+  - Soon (`asterisk`) -> `0xF525`
+- Dock now draws `iconGlyph` values directly with `"Material Symbols Outlined"` font.
+
+### Outcome
+
+- Icons render as symbols instead of plain text in dock slots.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Dock Visual Refresh (2026-04-10) - Apple-Style Icon-Only Buttons
+
+### User Goals
+
+- Remove text labels under dock icons.
+- Use Apple-like button appearance.
+- Use border color `#EDEDED`.
+- Use black icon color.
+
+### Changes Applied
+
+- Updated `drawBottomToolBar()` in `binary-tree-next-app.mjs`:
+  - removed dock label text rendering
+  - switched to icon-only button content
+  - updated button corner radius for softer Apple-like geometry
+  - updated border to exact `#EDEDED` (2px stroke)
+  - updated icon color to `#111111`
+  - kept existing dock actions unchanged.
+- Retuned slot fill shades for neutral Apple-style surface contrast while preserving hover state.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Dock Micro-Tweak (2026-04-10) - Icon Size + Exact Tile Fill Color
+
+### User Request
+
+- Make dock icons slightly smaller.
+- Ensure icon button container/background is exact `#EDEDED` (instead of `#CECFD4`).
+
+### Changes Applied
+
+- In `drawBottomToolBar()` (`binary-tree-next-app.mjs`):
+  - dock tile fill set to exact `#EDEDED`
+  - icon size reduced from `34` to `28`.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Canvas Color Update (2026-04-10) - Main Background Reverted To #E9EAEE
+
+### User Request
+
+- Set the main canvas background to `#E9EAEE`.
+
+### Changes Applied
+
+- Updated `MAIN_BACKGROUND_COLOR` in `binary-tree-next-app.mjs` from `#CFD0D6` to `#E9EAEE`.
+- Updated `binary-tree-next.html` body first-paint background to `#E9EAEE` for visual consistency.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Dock Color Correction (2026-04-10) - White Dock Shell + #EDEDED Icon Tiles
+
+### User Request
+
+- Outer icon dock should be white (`#FFFFFF`).
+- Icon containers inside the dock should be `#EDEDED`.
+
+### Changes Applied
+
+- Updated `drawBottomToolBar()` in `binary-tree-next-app.mjs`:
+  - outer dock shell now draws with `#FFFFFF`
+  - inner icon tile fill remains exact `#EDEDED`.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Dock Icon Tweak (2026-04-10) - Smaller Size + #303030 Tone
+
+### User Request
+
+- Make dock icons a little smaller.
+- Set icon color to `#303030`.
+
+### Changes Applied
+
+- Updated dock icon rendering in `drawBottomToolBar()` (`binary-tree-next-app.mjs`):
+  - icon size changed from `28` to `24`
+  - icon color changed from `#111111` to `#303030`.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Dock Hover State (2026-04-10) - Apple-Style Icon Hover Feedback
+
+### User Request
+
+- Add hover effect for dock icons.
+
+### Changes Applied
+
+- Updated `drawBottomToolBar()` in `binary-tree-next-app.mjs`:
+  - added hover detection per dock button (`state.hoveredButtonId`)
+  - tile fill transitions on hover: `#EDEDED` -> `#E3E3E3`
+  - tile border transitions on hover: `#EDEDED` -> `#DDDDDD`
+  - icon color deepens on hover: `#303030` -> `#171717`
+  - added soft hover shadow (`rgba(48,48,48,0.16)`, blur `12`, offsetY `4`).
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Startup Behavior Update (2026-04-10) - Home Default + Tree Intro Reveal
+
+### User Goals
+
+- On page load/reload, default tree zoom/position should match Home behavior.
+- Add startup tree animation: rise from bottom with blur-to-sharp transition (login-screen style).
+
+### Changes Applied
+
+#### 1) Startup Camera = Home Action
+
+- In `bootstrap()` (`binary-tree-next-app.mjs`), replaced initial camera set with `focusRoot(false)`.
+- This ensures startup camera state uses the same root-focus logic as the Home control behavior.
+
+#### 2) Tree Startup Reveal Animation
+
+- Added startup reveal constants and state:
+  - `STARTUP_REVEAL_MS = 860`
+  - `STARTUP_REVEAL_OFFSET_Y = 86`
+  - `STARTUP_REVEAL_BLUR_PX = 14`
+  - `state.intro` with timing/config values.
+- Added `resolveStartupReveal()` helper to compute eased animation properties.
+- Updated `drawTreeViewport()` to apply intro effects during startup:
+  - upward motion (`translateY` from positive offset to 0)
+  - blur fade (`blur(px)` from 14 to 0)
+  - opacity ramp (`alpha` to full).
+- Restarted intro timer at bootstrap (`state.intro.startedAtMs = performance.now()`).
+
+### Design Decisions
+
+- Applied animation at tree-viewport rendering level so nodes and connectors animate together as one coherent entrance.
+- Used existing easing (`easeOutCubic`) for smooth, non-jarring motion.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Camera Home Alignment Fix (2026-04-10) - Startup Now Matches Centered Home
+
+### Issue
+
+- Startup still appeared top-biased instead of matching Home-centered framing.
+
+### Root Cause
+
+- Startup camera alignment attempted before layout/viewport were initialized.
+- Home and startup logic paths were not fully unified around one centered home calculation.
+
+### Fix Applied
+
+- Updated dock Home button action from `camera:root` to `camera:home`.
+- Reworked `computeHomeView()` to calculate a true centered-root home view using:
+  - current viewport center
+  - current universe root metrics
+  - default home scale.
+- In `bootstrap()`, initialized layout/viewport immediately after `updateCanvasSize()` before setting camera.
+- Startup now sets camera via `setCameraTarget(computeHomeView(), false)`.
+
+### Outcome
+
+- Reload/open now uses the same centered Home framing logic.
+- Home dock button and startup default now match.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Startup Animation Refinement (2026-04-10) - Per-Depth Dynamic Reveal
+
+### User Request
+
+- Current startup animation moves the whole tree as one block.
+- Desired behavior: per-depth dynamic reveal where deeper levels rise/resolve independently.
+
+### Changes Applied
+
+#### 1) Per-Depth Reveal Timing
+
+- Replaced global startup reveal application with depth-aware reveal logic:
+  - added `STARTUP_REVEAL_STAGGER_MS = 52`
+  - added `intro.staggerMs` to startup intro state.
+- Replaced `resolveStartupReveal()` with `resolveStartupRevealForDepth(depth, nowMs)`.
+  - Each depth now has a delayed start (`depth * staggerMs`)
+  - Preserves blur + upward translation + alpha ramp per depth.
+
+#### 2) Connectors Animated By Depth
+
+- Updated `drawConnectors()` to evaluate reveal per branch depth (parent/child depth context).
+- Each connector branch now enters with its depth�s own translate/blur/alpha timing instead of one global tree transform.
+
+#### 3) Nodes Animated By Depth
+
+- Updated `drawNode()` to apply reveal by node local depth.
+- Added per-node reveal wrapping with safe `try/finally` context restore.
+
+#### 4) Removed Global Single-Block Intro Transform
+
+- Removed the prior tree-wide intro transform/filter block from `drawTreeViewport()`.
+- Rendering now depends entirely on per-depth animation behavior.
+
+### Outcome
+
+- Startup reveal is now dynamic across depth levels rather than one monolithic motion.
+- Shallower levels settle first; deeper levels follow with staggered rise + blur resolve.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Loading Screen Feature (2026-04-10) - Load First, Then Animate
+
+### User Goals
+
+- Show a loading screen when entering/reloading the Binary Tree page.
+- Start tree intro animation only after loading screen completes.
+
+### Changes Applied
+
+#### 1) Loading Screen UI (HTML/CSS)
+
+- Added full-page loading overlay in `binary-tree-next.html`:
+  - `#binary-tree-loading`
+  - centered loading card with title/subtitle
+  - animated progress bar track.
+- Added fade-out class behavior:
+  - `.is-leaving` transitions opacity before overlay removal.
+
+#### 2) App Loading State + Timing
+
+- Added loading timing constants in `binary-tree-next-app.mjs`:
+  - `LOADING_MIN_MS = 460`
+  - `LOADING_FADE_MS = 260`.
+- Added `loadingScreenElement` handle and `state.loading` timing state.
+- Added helpers:
+  - `completeLoadingScreen()` (honors minimum visible time + fade-out)
+  - `hideLoadingScreenImmediately()` (error fallback).
+
+#### 3) Bootstrap Sequence Reordered
+
+- Bootstrap now:
+  1. resets/shows loading overlay
+  2. loads session/runtime/tree state
+  3. resolves layout + camera home state
+  4. renders one initial frame behind overlay
+  5. waits/fades loading overlay
+  6. starts intro animation timer
+  7. starts RAF tick loop.
+- Startup intro now explicitly begins after loading screen completion.
+
+#### 4) Error Handling
+
+- On bootstrap error, loading overlay is immediately hidden so `boot-error` can be seen.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Loading/Intro Bugfix (2026-04-10) - Prevent Pre-Animation Tree Flash
+
+### Issue
+
+- Tree became visible behind loading overlay before intro animation started, then appeared to animate again.
+
+### Root Cause
+
+- During loading, `intro.startedAtMs` was unset and reveal logic treated this as fully visible (`progress: 1`), so tree rendered in final state behind overlay.
+
+### Fix Applied
+
+- Updated `resolveStartupRevealForDepth()` in `binary-tree-next-app.mjs` so when intro has not started (`startedAtMs` missing), reveal state returns hidden values:
+  - `progress: 0`
+  - `alpha: 0`
+  - non-zero offset/blur (pre-intro pose)
+- Result: tree stays hidden during loading phase and only appears when intro animation is explicitly started after loading completes.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Startup Panel Animation (2026-04-10) - Panels Now Animate With Tree
+
+### User Request
+
+- Apply startup animation not only to tree nodes/connectors but also to UI panels.
+
+### Changes Applied
+
+- Added panel-specific startup reveal constants:
+  - `STARTUP_PANEL_REVEAL_MS = 620`
+  - `STARTUP_PANEL_OFFSET_Y = 40`
+  - `STARTUP_PANEL_BLUR_PX = 10`
+  - `STARTUP_SIDE_PANEL_DELAY_MS = 64`
+  - `STARTUP_DOCK_DELAY_MS = 138`.
+- Added `resolveStartupRevealForPanel(delayMs, nowMs)` helper.
+- Applied reveal animation to `drawSideNav()`:
+  - startup upward translation
+  - blur-to-sharp transition
+  - alpha ramp-in.
+- Applied reveal animation to `drawBottomToolBar()` with later delay.
+- Preserved pointer hitbox accuracy for dock buttons during translated startup frames by offsetting registered button Y positions during active reveal.
+
+### Outcome
+
+- Panels now participate in the same startup motion language as the tree.
+- Left panel enters first, dock follows with slight stagger, creating a dynamic coordinated intro.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
