@@ -3,6 +3,8 @@ import {
   validatePasswordSetupToken,
   updatePasswordFromSetupToken,
   resolveMemberEmailVerificationStatus,
+  resolveMemberBinaryTreeLaunchState,
+  resetMemberBinaryTreeLaunchState,
   requestMemberEmailVerification,
   verifyMemberEmailByToken,
 } from '../services/auth.service.js';
@@ -117,6 +119,46 @@ export async function getMemberEmailVerificationStatus(req, res) {
       error: 'Unable to load email verification status.',
     });
   }
+}
+
+export async function getMemberBinaryTreeLaunchState(req, res) {
+  try {
+    const result = await resolveMemberBinaryTreeLaunchState(req.authenticatedMember || {});
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to resolve Binary Tree launch state.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to load Binary Tree launch state.',
+    });
+  }
+}
+
+export async function deleteMemberBinaryTreeLaunchState(req, res) {
+  try {
+    const result = await resetMemberBinaryTreeLaunchState(req.authenticatedMember || {});
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to reset Binary Tree launch state.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to reset Binary Tree launch state.',
+    });
+  }
+}
+
+export async function postMemberBinaryTreeLaunchStateReset(req, res) {
+  return deleteMemberBinaryTreeLaunchState(req, res);
 }
 
 export async function postMemberEmailVerificationRequest(req, res) {

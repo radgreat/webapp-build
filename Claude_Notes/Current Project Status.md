@@ -1,11 +1,1217 @@
 # Current Project Status
 
-Last Updated: 2026-04-08
+Last Updated: 2026-04-10
 
 ## Purpose
 
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
+
+
+## Recent Update (2026-04-10) - First-Time Binary Tree Launch Gate
+
+- Completed:
+  - added member-auth launch-state endpoint `GET /api/member-auth/binary-tree-next/launch-state`
+  - added backend first-open persistence via `charge.member_binary_tree_intro_state`
+  - wired next-gen frontend bootstrap to fetch launch-state using existing member bearer token
+  - added first-time-only welcome splash gate (`Welcome` + `Press the screen to continue.`)
+  - first-time flow now waits for tap/click (or Enter/Space) before intro animation starts
+  - non-first-time flow remains unchanged (normal startup)
+- Outcome:
+  - new members get a one-time intro gate after load, while returning users keep fast regular boot.
+- Files updated:
+  - `backend/stores/member-binary-tree-intro.store.js`
+  - `backend/services/auth.service.js`
+  - `backend/controllers/auth.controller.js`
+  - `backend/routes/auth.routes.js`
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check backend/stores/member-binary-tree-intro.store.js` passed.
+  - `node --check backend/services/auth.service.js` passed.
+  - `node --check backend/controllers/auth.controller.js` passed.
+  - `node --check backend/routes/auth.routes.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Collapse Button Exact Icon + Motion Parity
+
+- Completed:
+  - switched left-shell collapse control from custom chevrons to exact dashboard Material Symbols icon glyphs
+  - used `keyboard_double_arrow_left` for open-state collapse and `keyboard_double_arrow_right` for collapsed-state reopen
+  - added icon subset links in `binary-tree-next.html` for guaranteed font availability
+  - added 150ms dashboard-style spring hover animation behavior (smooth scale + subtle lift + icon tone transition)
+- Outcome:
+  - collapse control now matches dashboard icon language and interaction feel more closely.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Left Shell Collapse Arrow Added Beside Logo
+
+- Completed:
+  - added dedicated collapse-arrow button beside the brand logo/dropdown in the left-shell top row
+  - updated top-row geometry so logo dropdown and collapse control are separate side-by-side controls
+  - wired collapse button to `toggle:side-nav`
+  - ensured compact reopen button remains visible when sidebar is collapsed
+- Outcome:
+  - left-shell top field now matches dashboard interaction pattern more closely (logo dropdown + neighboring collapse control).
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Left Shell Logo Jaggy-Edge Fix
+
+- Completed:
+  - upgraded canvas logo render path to high-quality smoothing
+  - added DPR-aligned destination positioning/sizing for brand logo draw
+- Outcome:
+  - left-shell brand logo now renders cleaner and closer to dashboard DOM quality.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Left Shell Color Tokens Updated
+
+- Completed:
+  - changed left shell container color token to white (`#FFFFFF`)
+  - changed inner skeleton placeholder card color token to `#EDEDED`
+- Outcome:
+  - left shell now matches the requested light-mode token split: white panel container + `#EDEDED` internal placeholder surfaces.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Left Shell Brand Logo Dropdown Added
+
+- Completed:
+  - converted the first top placeholder in the left shell into a real brand dropdown control
+  - integrated dashboard brand logo asset (`/brand_assets/Logos/L%26D%20Logo_Cropped.png`) into the new top field
+  - added dropdown menu structure with profile block + items (`Profile`, `Home`, `My Store`, `Settings`, `Log out`)
+  - wired interaction behavior for open/close, outside click close, Escape close, and auto-close when side nav closes
+  - mapped dropdown `Home` item to tree home recenter action (`camera:home`)
+- Outcome:
+  - the most important left-shell top field now behaves like a dashboard-style brand selector instead of a static skeleton block.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree #F5F5F7 Background + Gray Panel Pass
+
+- Completed:
+  - changed main background back to `#F5F5F7` (canvas + HTML fallback)
+  - rethemed panel chrome to neutral gray glass colors
+  - removed remaining blue tint from panel controls, breadcrumbs, and toolbar active states
+  - updated side-panel details card styling to gray glass tones
+- Outcome:
+  - UI now matches requested light-mode direction: Apple-like neutral background with gray glass panels.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Background Tint Update
+
+- Completed:
+  - changed background from `#F5F5F7` to `#F8F8FF` (canvas + HTML fallback)
+  - preserved no-grid clean background behavior
+- Outcome:
+  - background now uses the lighter cool gray/lavender Apple-like tint you requested.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Background Simplification
+
+- Completed:
+  - switched canvas background to Apple gray `#F5F5F7`
+  - removed workspace grid-line drawing
+  - removed extra background glow/gradient layers for a cleaner flat base
+  - aligned HTML fallback background to the same gray
+- Outcome:
+  - background now matches requested Apple-style neutral canvas with no grid visual noise.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Select Animation Fix
+
+- Completed:
+  - fixed select animation initialization so it starts from zero emphasis
+  - preserved deselect animation behavior
+  - both select and deselect now animate consistently
+- Outcome:
+  - tap interactions now feel correct in both directions.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Tap Animation (Select/Deselect)
+
+- Completed:
+  - added Apple-style tap animation for node select and deselect
+  - implemented animated ring pop-in on select and smooth ring release on deselect
+  - wired per-frame animation updates into render tick
+  - preserved white selected ring and gray ancestor ring behavior
+- Outcome:
+  - node taps now feel more polished and responsive while preserving current visual hierarchy.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Ring Logic Fix (Selected + Ancestor)
+
+- Completed:
+  - restored white outline ring on selected node
+  - preserved gray outline ring on ancestor path nodes
+  - aligned dot and full node rendering with same ring behavior
+- Outcome:
+  - selection and ancestry cues now both visible with correct color roles.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Ring Behavior Correction
+
+- Completed:
+  - removed selected-node outline ring
+  - preserved gray outline ring on ancestor/focus-path nodes only
+  - aligned dot-node ring behavior with the same rule set
+- Outcome:
+  - visual state now keeps ancestry indicator while eliminating selected-node outline.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Ancestor Outline Removed
+
+- Completed:
+  - removed ancestor/focus-path outline ring on non-selected nodes
+  - kept selected-node outline behavior intact
+- Outcome:
+  - only selected nodes now show outline treatment.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Ancestor Ring Alignment
+
+- Completed:
+  - changed ancestor/focus-path ring to use same geometry as selected ring
+  - kept selected node ring white
+  - changed ancestor ring color to gray
+  - removed old thin-offset ancestor ring logic
+- Outcome:
+  - ancestor ring now clearly indicates path lineage while matching selected-node ring style language.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Thin Path-Ring Tuning
+
+- Completed:
+  - customized only the ancestor thin circular outline (focus-path ring)
+  - exposed ring radius/width/color controls as top-level constants
+  - refined ring rendering to subtle dual-stroke style for clean readability
+- Outcome:
+  - the “selected comes from this node” thin outline is now isolated and easy to iterate without affecting selected-node styling.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Trail Revert (Outline-Only)
+
+- Completed:
+  - removed custom ancestry trail line rendering
+  - kept only thin circular outline indicators on focus-path ancestors
+  - refined outline thickness/offset/color for cleaner presentation
+- Outcome:
+  - trail now matches intended behavior: subtle circular path indicators before selected node, without extra path graphics.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Trail Visual Cleanup
+
+- Completed:
+  - simplified ancestry trail rendering to a single subtle line style
+  - removed extra marker dots and heavy layered strokes
+  - preserved path context while reducing visual noise
+- Outcome:
+  - trail now reads cleaner and less intrusive in light mode.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Ancestor Trail Styling
+
+- Completed:
+  - introduced explicit selected-node ancestry trail rendering pass
+  - styled trail separately from selection ring to avoid second-select ambiguity
+  - added subtle ancestor waypoint markers for path readability
+  - integrated trail layering between base connectors and node icon pass
+- Outcome:
+  - selected node now has clear “where it came from” context without blue active selector behavior.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Selection Ring Correction
+
+- Completed:
+  - changed node ring behavior so thick white ring applies only to selected node
+  - removed blue selected-node active halo/selector
+  - aligned dot-tier selection behavior with same rule
+- Outcome:
+  - selection styling now matches requested Apple-like interaction intent in light mode.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Apple-Style Node Icon Pass
+
+- Completed:
+  - switched main node icons to Apple-contact style ring composition
+  - added thick white outer ring + inset gradient inner circle for full/medium nodes
+  - kept initials centered inside inner icon circle
+  - aligned dot-tier nodes with mini white-ring treatment
+- Outcome:
+  - node icon styling now better matches requested Apple-like light-mode appearance.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Light-Mode + Blur Pass
+
+- Completed:
+  - prioritized light mode across next-gen shell colors and controls
+  - moved hide/show panel control into the side panel header while open
+  - replaced old circular toggle with rectangular glass button treatment
+  - applied backdrop-blur style glass rendering to panel surfaces (side panel, top bar, bottom bar, detail card)
+  - added deep-node label gating so depth 4+ initials stay hidden until zoomed in enough
+- Outcome:
+  - UI now aligns with requested light glassmorphism direction and avoids overflowed initials at default depth.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Fullscreen Glass Shell Pass
+
+- Completed:
+  - switched next-gen tree layout from center workspace framing to fullscreen canvas viewport
+  - replaced static left/right shell framing with a single in-canvas side nav overlay and runtime hide/show toggle
+  - restyled shell surfaces to dark gray glassmorphism visuals for side nav, top bar, and bottom bar
+  - changed node rendering to circular initials-only contact avatars (no name/detail text on node bodies)
+  - added side-nav input shielding so pointer/wheel interactions inside the panel do not pan/select the tree
+  - expanded adapter culling tolerance using configurable `cullMargin` and viewport-scaled margin input
+- Outcome:
+  - shell now matches requested fullscreen + glass feel, while reducing edge-pop culling artifacts during camera movement.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next-engine-adapter.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Figma-Style Canvas Shell Applied
+
+- Completed:
+  - replaced previous DOM-heavy next-gen shell with a full-canvas UI composition
+  - rendered left panel, right panel, center status strip, and bottom tool panel directly in canvas
+  - kept center workspace as interactive tree viewport (pan/zoom/select)
+  - preserved session bootstrap checks for member/admin source routing
+  - preserved modular compute boundary via `binary-tree-next-engine-adapter.mjs`
+  - extended adapter projection options for workspace-anchored rendering (`viewport.centerX`, `viewport.baseY`, `nodeRadiusBase`)
+- Outcome:
+  - next-gen route now visually aligns with requested Figma-style workspace framing, including canvas-rendered side chrome and center tool panel behavior.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next-engine-adapter.mjs`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - route smoke: `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Phase B Shell Controls + Adapter Layer Started
+
+- Completed:
+  - migrated `binary-tree-next` runtime from inline page script to ES module entry:
+    - `binary-tree-next-app.mjs`
+    - `binary-tree-next-engine-adapter.mjs`
+  - added camera + viewport controls in the new app shell:
+    - zoom in/out
+    - fit-to-view
+    - connector/grid/highlight toggles
+    - keyboard pan/zoom/reset/fit shortcuts
+  - added initial engine adapter boundary + diagnostics:
+    - mock JS compute path isolated behind adapter API
+    - runtime capability/artifact probe for future wasm bridge
+    - engine mode surfaced in diagnostics strip
+  - preserved protected-route/session bootstrap behavior from Phase A.
+- Outcome:
+  - project has a cleaner architecture seam between UI shell and compute layer, enabling next-step wasm-core integration without reworking core UI interactions.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next-engine-adapter.mjs`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - route smoke: `/binary-tree-next` returned HTTP 200 with module entry present.
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Phase A Foundation Shipped
+
+- Completed:
+  - created a new isolated next-gen Binary Tree page scaffold:
+    - `binary-tree-next.html`
+  - mounted dedicated route targets in backend app:
+    - `/binary-tree-next`
+    - `/binary-tree-next/`
+    - `/binary-tree-next.html`
+  - added launcher buttons in both active Binary Tree surfaces:
+    - member `index.html` tree header `Next-Gen` action
+    - admin `admin.html` tree header `Next-Gen` action
+  - implemented boot-time session checks in new window app shell:
+    - member source validates bearer session (`/api/member-auth/email-verification-status`)
+    - invalid sessions redirect to `/login.html`
+    - admin source requires admin session snapshot and redirects to `/admin-login.html` when absent
+  - added mock render harness in new app viewport:
+    - canvas node render + select + pan + zoom
+    - left control dock + right detail panel + bottom diagnostics strip.
+- Outcome:
+  - dual-run strategy is now active at the route/shell level: legacy Binary Tree remains default while `binary-tree-next` runs in parallel in a separate window.
+- Files updated:
+  - `backend/app.js`
+  - `binary-tree-next.html`
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/app.js` passed.
+
+## Recent Update (2026-04-09) - Next-Gen Binary Tree (WASM) Planning Document Added
+
+- Completed:
+  - created a dedicated implementation plan for the next Binary Tree architecture:
+    - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+  - documented dual-run strategy:
+    - keep existing Binary Tree active for live usage/testing
+    - build new Binary Tree in a separate app/page opened in a new window.
+  - documented engine direction and stack plan:
+    - C++ core compiled to WebAssembly for layout/geometry work
+    - optional React/TypeScript shell for controls and surrounding UI.
+  - documented phased rollout and migration gates:
+    - no immediate cutover
+    - performance/parity validation before traffic shift.
+- Outcome:
+  - project now has a reusable, model-friendly context file with architecture, phases, risks, and acceptance criteria for next implementation.
+- Files updated:
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - documentation-only update completed; no runtime code paths changed.
+
+## Recent Update (2026-04-08) - Next Popup-Cover Implementation Note Prepared
+
+- Completed:
+  - created `Claude_Notes/binary-tree-popup-cover-next-implementation.md` for the next execution phase.
+  - documented all required routes to inspect:
+    - frontend pages: `/Profile`, `/BinaryTree`
+    - APIs: `/api/registered-members`, `/api/admin/registered-members`, placement patch routes.
+  - documented exact code touchpoints for follow-up implementation:
+    - cover data flow in `index.html` and `admin.html`
+    - popup render + placement logic in `binary-tree.mjs`
+    - backend member route/store references for persistence gap tracking.
+  - recorded recent bug recap for context:
+    - cover looked missing because popup top strip was clipped when near-top nodes forced above placement.
+- Outcome:
+  - next implementation has a single actionable note with route map, file map, scope, acceptance criteria, and QA checklist.
+- Files updated:
+  - `Claude_Notes/binary-tree-popup-cover-next-implementation.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - reviewed note content for route coverage + bug summary + implementation checklist completeness.
+
+## Recent Update (2026-04-08) - Popup Cover Clipping Fix (Locally Reproduced)
+
+- Completed:
+  - reproduced the Ã¢â‚¬Å“cover removedÃ¢â‚¬Â behavior on local branch with scripted Binary Tree popup interactions.
+  - traced root cause to popup placement: top cover section was being clipped when popup tried to stay above near-top nodes.
+  - updated popup placement logic in `binary-tree.mjs` to support below-node fallback when above placement cannot fit.
+  - added bidirectional pointer rendering for selected-node popup so anchoring remains visually correct in both placements.
+  - retained top-strip cover mask and loader readiness flow after placement fix.
+- Outcome:
+  - cover strip now remains visible in popup window during top-node selections, and cover images render in the visible card area instead of appearing removed.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - local branch screenshots confirm repro + fix:
+    - `temporary screenshots/screenshot-188-cover-check-local-image.png`
+    - `temporary screenshots/screenshot-192-cover-check-yellow-canvas.png`.
+
+## Recent Update (2026-04-08) - Popup Cover Display Reliability (Node Panel)
+
+- Completed:
+  - hardened popup cover loader in `binary-tree.mjs` to wait for real texture readiness before switching to "image loaded" overlay styling.
+  - added popup source fallback keys (`profileCoverUrl`, `coverDataUrl`, `coverUrl`) so mixed node payload formats still render cover images.
+  - preserved procedural fallback visuals when texture load fails or times out, preventing blank/washed cover strip states.
+- Outcome:
+  - node popup cover no longer drops into a false loaded state where overlays change but the image is not actually rendered.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Cover-Only Revision (Container Style Preserved)
+
+- Adjusted popup cleanup implementation to preserve previous container/body styling and touch only the cover strip behavior.
+- Updated cover clip strategy in `binary-tree.mjs`:
+  - replaced full-card cover clipping with dedicated cover-strip mask (rounded top corners only)
+  - prevents cover bleed while keeping original popup container presentation.
+- Kept decorative blocking overlay suppression for real cover images.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Cover Cleaned To Match UI Feedback
+
+- Cleaned selected-node popup cover presentation in `binary-tree.mjs` based on screenshot feedback:
+  - removed blocking decorative cover overlays when a real cover image is present
+  - clipped cover image layer to popup rounded frame to prevent cover bleed across card radius/border.
+- Maintains subtle readability tint while allowing cover image to remain visible.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - visual verification screenshot: `temporary screenshots/screenshot-180-popup-cover-clean-check.png`.
+
+## Recent Update (2026-04-08) - Binary Tree Popup Cover Renderer Fixed
+
+- Investigated popup cover mismatch directly in binary-tree context and reproduced the renderer issue with known node cover URLs.
+- Applied renderer-level fixes in `binary-tree.mjs`:
+  - removed popup cover mask dependency that was blocking cover image visibility in current runtime
+  - added robust image decode fallback path for `data:image/...` cover URLs before/after PIXI loader attempts.
+- Result: node popup cover region now renders when valid cover source is present.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - verified with local popup cover harness screenshots (`screenshot-174`, `screenshot-178`, `screenshot-179`).
+
+## Recent Update (2026-04-08) - Popup Cover Visibility Investigation + Fallback Hydration
+
+- Investigated "changes not visible" report for node popup cover updates.
+- Root cause findings:
+  - popup cover image was layered under an almost-opaque procedural cover tint in `binary-tree.mjs`
+  - non-root member nodes often do not receive cover fields from backend registered-member payloads.
+  - profile cover updates from Profile page did not immediately rebuild binary-tree node payloads (stale in-session tree data).
+- Implemented fix in `binary-tree.mjs`:
+  - lowered cover tint opacity when custom image exists
+  - increased custom cover sprite opacity for clear visibility.
+- Implemented live-sync fix in `index.html`:
+  - profile image upload/save flows now call `syncBinaryTreeFromRegisteredMembers()` so popup cover updates without reload.
+- Added node-cover fallback hydration:
+  - `index.html` and `admin.html` now resolve cover from local profile customization store (`charge-member-profile-customizations-v1`) when member payload is missing cover data.
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - screenshot script could not load `http://127.0.0.1:5500` in this environment (`ERR_EMPTY_RESPONSE`); active local server validation was done on `http://127.0.0.1:3000`.
+
+## Recent Update (2026-04-08) - Node Cover Photos Now Sync From Profile Data
+
+- Updated binary-tree popup cover behavior so node cards can display saved profile cover images.
+- Applied to all eligible nodes with configured cover photos, not just the viewer/root profile node.
+- Data flow updates were added in both user and admin tree builders:
+  - member nodes now include `profileCoverUrl`
+  - root node payload includes effective profile cover.
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - More Space Above Metrics Container
+
+- Increased the vertical gap between `BINARY TREE DATA` and the metrics panel border in `binary-tree.mjs`.
+- Kept dynamic popup height enabled so this extra spacing does not squeeze lower metric rows.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - screenshot pass skipped in this quick spacing-only update.
+
+## Recent Update (2026-04-08) - Popup Height Made Dynamic For Metrics Space
+
+- Addressed concern about fixed panel constraints by moving selected-node popup height to a computed runtime value in `binary-tree.mjs`.
+- Popup now expands to guarantee minimum metrics-panel capacity when header/section spacing pushes content downward.
+- Updated pointer + viewport anchoring logic to respect dynamic popup height.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - screenshot pass deferred in this iteration.
+
+## Recent Update (2026-04-08) - Popup Metrics Container Restored
+
+- Fixed regression where `Cycles` and `Direct` appeared out of place after the large spacing pass.
+- Updated metrics panel top/bottom geometry in `binary-tree.mjs` to restore container height and row alignment.
+- Preserved requested hierarchy/spacing:
+  - `BINARY TREE DATA` remains below the separator line
+  - extra spacing from username/header area remains.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+  - screenshot pass skipped per user request.
+
+## Recent Update (2026-04-08) - Popup Cramped Spacing Reduced (Username vs Data Section)
+
+- Applied a small spacing refinement in `binary-tree.mjs` to reduce crowding between:
+  - username row
+  - `BINARY TREE DATA` heading.
+- Implementation details:
+  - username baseline shifted slightly upward
+  - section label shifted slightly downward
+  - no metrics panel resize changes (to avoid layout regressions).
+- Visual verification completed:
+  - `temporary screenshots/screenshot-164-popup-spacing-pass1.png`
+  - `temporary screenshots/screenshot-165-popup-spacing-pass2.png`
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Header Layout Reverted To Left-Anchor Pattern
+
+- Applied requested popup-header adjustment in `binary-tree.mjs`:
+  - profile avatar is no longer centered
+  - member name now renders under the profile icon
+  - name remains left-anchored
+  - username and badge icons remain inline/adjacent on the same row.
+- Maintained compact badge row spacing and prior subtitle/date sync behavior.
+- Visual verification completed:
+  - `temporary screenshots/screenshot-162-popup-layout-revert-pass1.png`
+  - `temporary screenshots/screenshot-163-popup-layout-revert-pass2.png`
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Identity Stack + Badge Subtitle Sync
+
+- Implemented the requested node-popup panel refinements in `binary-tree.mjs`:
+  - name + username now render directly under the profile photo
+  - badge icons moved into a compact row under the username
+  - icon spacing tightened (smaller icon size + reduced gap).
+- Synced node-popup badge hover descriptions with date-aware profile metadata:
+  - popup resolver now uses `profileBadgeRankSubtitle`, `profileBadgeTitleSubtitle`, `profileBadgeExtraSubtitle`
+  - rank fallback now reads `Subscriber since <addedAt>` when explicit subtitle data is unavailable.
+- Wired subtitle metadata through node payload creation:
+  - member/root builders in `index.html` and `admin.html`
+  - normalized fields in `binary-tree.mjs` node adapter.
+- Visual verification completed with iterative screenshot passes:
+  - `temporary screenshots/screenshot-157-popup-layout-pass3.png`
+  - `temporary screenshots/screenshot-161-popup-hovercard-pass7.png`
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Expanded For Spacious Readability
+
+- Applied explicit spacing-first expansion in `binary-tree.mjs` for node popup readability.
+- Increased popup frame and section dimensions:
+  - width/height increased
+  - cover and avatar enlarged
+  - identity, badges, and metric text scaled up.
+- Increased internal spacing for data comfort:
+  - larger badge pills and row offsets
+  - larger binary metrics panel padding
+  - larger metric row/column rhythm.
+- Visual check completed with updated screenshot:
+  - `temporary screenshots/screenshot-136-popup-spacious-pass.png`
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Refactor For Node Detail Clarity
+
+- Completed requested popup redesign pass in `binary-tree.mjs` focused on node-click details.
+- Popup now presents requested hierarchy:
+  - icon slot + cover
+  - username/handle/rank
+  - badge row (status, sponsor type, cycle eligibility, country when visible)
+  - binary tree metric data grid.
+- Added rank-to-brand-icon mapping for achievement icon assets in `brand_assets/Icons/Achievements`.
+- Increased popup dimensions and rebalanced spacing to avoid overlap between identity and badge rows.
+- Final visual verification included two iterative comparison rounds:
+  - `screenshot-132-popup-before-scripted.png`
+  - `screenshot-133-popup-after-pass1.png`
+  - `screenshot-134-popup-after-pass2.png`
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Layout Tightened End-to-End
+
+- Completed full popup layout cleanup in `binary-tree.mjs` to address "clean it up / tighten it up" feedback.
+- Implemented a structured layout grid instead of ad-hoc spacing:
+  - cleaner identity row alignment
+  - cleaner 2-column metric section
+  - reduced visual noise while increasing readability.
+- Increased popup canvas and spacing without reintroducing container-heavy styling.
+- Online/status icon remains removed.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Layout Expanded (No Online Icon)
+
+- Applied requested popup sizing adjustment in `binary-tree.mjs`:
+  - increased popup width/height
+  - increased cover and avatar sizing
+  - increased spacing between identity, divider, and metric rows.
+- Removed the online/status icon dot from the popup avatar block.
+- Kept simplified/minimal popup structure from the previous cleanup pass.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Popup Simplified (Less Containers)
+
+- Applied requested cleanup pass for node popup visuals in `binary-tree.mjs`.
+- Removed high-density layout pieces introduced in prior pass:
+  - removed bubble row
+  - removed badge-strip container set
+  - removed elevated stats panel shell and decorative effects.
+- Current popup is intentionally minimal:
+  - cover + avatar/status
+  - name/handle/rank
+  - compact 2x2 binary metrics
+  - cycle eligibility line.
+- Adjusted popup size constants to reduce visual bulk and improve readability.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Discord-Inspired Popup Styling Pass
+
+- Redesigned selected-node popup visuals in `binary-tree.mjs` to follow the requested Discord-inspired direction while keeping project branding:
+  - wider/taller profile-card shell
+  - stylized cover/header composition
+  - header bio bubble
+  - larger avatar + status dot
+  - badge strip for rank/country/source context
+  - upgraded binary metrics panel (`BINARY SNAPSHOT`).
+- Adjusted spacing and panel metrics to avoid popup overflow/clipping after the redesign.
+- Existing behavior preserved:
+  - popup remains anchored above selected node
+  - camera pan/zoom/focus/minimap/resize syncing still active.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Node Popup Above Selected Binary Node
+
+- Implemented selected-node popup UI in `binary-tree.mjs` to show:
+  - profile cover + initials avatar
+  - rank and status chips
+  - binary data summary (`Left Team`, `Right Team`, `Cycles`, `Direct`) + cycle eligibility.
+- Popup now remains anchored above the selected node during:
+  - pan/zoom
+  - animated node focus transitions
+  - minimap viewport moves
+  - renderer resize/fullscreen layout changes.
+- Added popup lifecycle safeguards:
+  - rebuild on selection/visual refresh
+  - auto-destroy on clear/empty/destroy paths
+  - theme-aware text restyling + popup refresh support.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Deep Anticipation Line-Length Normalization
+
+- Addressed depth-6/7 anticipation inconsistency where some slot connectors appeared very long while others were short.
+- Implemented selected-parent local anticipation placement:
+  - left/right placeholders now anchor around selected parent with fixed offsets
+  - avoids misleading far-horizontal displacement that looked like wrong branch position.
+- Added local collision resolution strategy:
+  - resolve by vertical stepping first
+  - minimal horizontal side nudge only as fallback.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Selected Node Now Shows Any Open Slot
+
+- Adjusted selected-node anticipation logic:
+  - anticipated node(s) now render when selected node has any available child slot.
+- Behavior:
+  - one open side -> only that side shows
+  - two open sides -> both show.
+- This replaces previous leaf-only restriction while keeping click-selection trigger model.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Anticipation Slots Now On Selected Leaf Only
+
+- Implemented requested interaction model:
+  - clicking/selecting a node now controls anticipation visibility
+  - anticipated slots only render when selected node has no children.
+- Fullscreen selection flow now re-renders tree on select/clear:
+  - slot visibility updates immediately with each node click
+  - avoids stale anticipation layout from prior selection state.
+- `collectEnrollAnticipationSlots(...)` now enforces selected-leaf-only criteria.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Zoom Cascade Chunk Rendering Enabled
+
+- Implemented requested cascading behavior in fullscreen binary tree:
+  - global baseline shows depth `<= 4`
+  - deeper descendants appear when zooming into a viewport chunk.
+- New cascade resolver now:
+  - identifies focused depth-4 chunk roots in viewport area
+  - expands only those subtrees to current zoom depth limit (`mid`/`near`).
+- Added render safety and continuity:
+  - selected node ancestry is retained in visible set
+  - selecting a hidden node triggers re-render before focus.
+- Render pipeline now uses visible-node subset for links, nodes, spillover, and anticipation parents.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Additional Whole-Tree Spacing For Placement Clarity
+
+- Applied stronger spacing pass after continued overlap feedback (`LEFT LEFT` / `RIGHT RIGHT` crowding).
+- Updated `binary-tree.mjs` fullscreen anticipation geometry:
+  - larger global width boost for whole tree
+  - larger depth-cap boost for effective horizontal distribution
+  - middle corridor split now scales by depth.
+- Updated anticipation collision thresholds:
+  - higher base min-gap
+  - steeper depth amplification
+  - stronger side-offset enforcement from parent node anchor.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Increased Middle Spacing For Fullscreen Binary
+
+- Added a dedicated center-lane spacing expansion in `binary-tree.mjs` for fullscreen anticipation rendering.
+- New behavior widens the middle corridor:
+  - left-side nodes shift further left
+  - right-side nodes shift further right
+  - root remains centered.
+- Applied center-gap mapping to both base node geometry and anticipated-slot seed coordinates to keep alignment consistent.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Anticipation Nodes Always Active In Fullscreen
+
+- Implemented requested approach: anticipation nodes are now always active/visible in fullscreen mode.
+- Tree no longer depends on Enroll toggle state for anticipation visibility and spacing behavior.
+- Binary tree render path now uses fullscreen-based anticipation guards:
+  - anticipation slot collection runs whenever fullscreen is active
+  - LOD-disable path follows fullscreen anticipation state directly.
+- Enroll toggle control in fullscreen top row is now hidden via JS state sync, since anticipation is always on.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Enroll Mode Whole-Tree Shift Enabled
+
+- Applied requested behavior so Enroll Member mode shifts the full binary layout wider, not only anticipation nodes.
+- `binary-tree.mjs` render path now increases layout width while enroll mode is active:
+  - slot-width boost
+  - one-step width-depth-cap boost.
+- Added stronger anticipated-node anti-overlap spacing:
+  - larger base gap
+  - depth-progressive gap growth
+  - stronger side offset from parent to maintain left/right readability.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Enroll Mode T-Line Consistency + Anticipation Spacing Fix
+
+- Investigated reported Enroll Member mode regressions:
+  - anticipation connectors were still using curved legacy-style routing
+  - anticipated nodes could overlap with nearby nodes in compact layout.
+- Applied render fixes in `binary-tree.mjs`:
+  - switched anticipation connector path generation to orthogonal elbow routing (T-line language)
+  - added `resolveEnrollAnticipationPositions(...)` overlap pass for anticipated nodes by depth bucket
+  - enforced side-aware spacing offsets and min-gap collision resolution against existing + anticipated nodes.
+- Expected behavior now:
+  - Enroll mode connector visuals stay consistent with T/inverted-T tree style
+  - anticipated nodes no longer stack/collide in dense rows.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Enroll Mode No Longer Reverts To Legacy Layout
+
+- Investigated and fixed Enroll Member mode layout shift in `binary-tree.mjs`.
+- Issue source:
+  - enroll render used legacy full-slot layout options, making the tree jump to old spacing when toggled on.
+- Current behavior:
+  - Enroll mode keeps the same compact tree geometry as normal mode.
+  - Anticipated nodes render on top of that stable layout (no layout mode swap).
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Enroll Button Label Correction
+
+- Reverted fullscreen tree enroll toggle label from `Show Anticipated` back to `Enroll Member`.
+- Restored control semantics for assistive labels/title to enroll-mode wording (`Enable/Disable enroll mode`).
+- Anticipated node rendering behavior remains unchanged and still appears in enroll mode.
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Enroll Toggle Now Controls Anticipated Nodes + Visual Match
+
+- Updated fullscreen tree top-row toggle semantics:
+  - button copy now reads `Show Anticipated` / `Hide Anticipated`
+  - aria/title copy now explicitly references anticipated-node visibility.
+- Replaced anticipated slot cards with circle-based placeholders in `binary-tree.mjs`:
+  - circular node shell
+  - center `+` glyph
+  - side badge text (`LEFT` / `RIGHT`) under node.
+- Synced anticipation geometry to the new visuals:
+  - bounds now account for circular node radius + side label clearance
+  - dashed preview connector now lands at anticipated circle edge.
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Binary Tree Map-Style Semantic Zoom (LOD)
+
+- Implemented a map-style tree browsing pass in `binary-tree.mjs`:
+  - stable node coordinates retained
+  - semantic zoom visibility levels:
+    - far: depth `<= 3`
+    - mid: depth `<= 5`
+    - near: full depth.
+- Added hysteresis thresholds to reduce LOD mode flicker:
+  - far enter/exit: `0.48 / 0.58`
+  - near enter/exit: `0.72 / 0.64`.
+- Added `+N more` chips on visible frontier nodes to indicate collapsed descendants.
+- Camera hooks now trigger LOD refresh on zoom/fit/reset/focus/restore.
+- Visibility-aware rendering updates:
+  - links/spillover lines only for visible nodes
+  - fit bounds computed from visible set for better initial readability.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Binary Tree Width Compression Aligned To LOD
+
+- Follow-up compression tuning applied in `binary-tree.mjs`:
+  - layout width now respects active semantic-zoom depth cap (`widthDepthCap`)
+  - render pipeline now resolves LOD first, then computes layout with bounded width depth
+  - preserves binary direction while reducing wide spacing in far/mid views.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Binary Tree Layout Compaction (Usability)
+
+- Addressed reported usability issue where a 50-node tree appeared excessively spread out horizontally.
+- Updated `binary-tree.mjs` layout pipeline:
+  - rolled back structural compaction variants due visual quality issues
+  - default render now keeps original geometry and applies adaptive horizontal compression only
+  - enroll anticipation mode keeps prior full-slot spacing to protect placeholder-slot accuracy.
+- Expected outcome:
+  - denser default tree view
+  - less horizontal dead space
+  - improved usability for moderate-size trees.
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check binary-tree.mjs` passed.
+
+## Recent Update (2026-04-08) - Zeroone Binary Tree Simulation Retuned (50 Total Nodes, Random Sponsors)
+
+- Reintroduced simulation runner script at:
+  - `backend/scripts/simulate-zeroone-live-test.mjs`
+- Updated simulation logic to align with requested QA mode:
+  - fixed interpretation from "50 direct sponsors" to "50 total generated nodes"
+  - randomized sponsor routing so direct counts vary naturally
+  - randomized direct left/right spread
+  - excluded preferred customers from generated nodes.
+- Added integrated reset path before each run:
+  - clears prior `zeroone-sim-*` test users/members
+  - clears target binary/sales snapshot rows for clean metrics.
+- Added end-to-end report output (`backend/scripts/reports/...json`) including:
+  - BV volumes and cycles
+  - sales team commissions
+  - rewards/rank progression
+  - Infinity + Legacy tier-card snapshots.
+- Latest run result:
+  - Run ID: `zeroone:20260408012540525-tstltn`
+  - Created nodes: `50`
+  - Direct sponsors under `zeroone`: `3` (requested split left `1`, right `2`)
+  - Binary: left BV `20,426`, right BV `45,334`, cycles `40`
+  - Sales team net commission: `$2,500`
+  - Report path:
+    - `backend/scripts/reports/zeroone-live-test-zeroone-20260408012540525-tstltn.json`
+- Files updated:
+  - `backend/scripts/simulate-zeroone-live-test.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
 
 ## Recent Update (2026-04-08) - Business Center Data Revert + Flush Settings Hardening
 
@@ -259,7 +1465,7 @@ Last Updated: 2026-04-08
 
 ## Recent Update (2026-04-07) - Login Background Stack Simplified
 
-- Cleaned up extra background layers in `login.html` that were causing a visible “second background behind” effect.
+- Cleaned up extra background layers in `login.html` that were causing a visible Ã¢â‚¬Å“second background behindÃ¢â‚¬Â effect.
 - Removed additional fallback gradient stack and extra radial overlay behind the Color Bends canvas.
 - Retained only the single base black fallback plus live shader background render.
 - Files updated:
@@ -481,7 +1687,7 @@ Last Updated: 2026-04-08
 - Timer area cleanup:
   - removed `#cutoff-next-target` line
   - label now reads `Cut-Off Timer`
-  - countdown output now shows time-only shorthand (`Xd Xh Xm` style), no “remaining” copy.
+  - countdown output now shows time-only shorthand (`Xd Xh Xm` style), no Ã¢â‚¬Å“remainingÃ¢â‚¬Â copy.
 - Files updated:
   - `index.html`
   - `Claude_Notes/charge-documentation.md`
@@ -573,7 +1779,7 @@ Last Updated: 2026-04-08
     - `New Members`
     - `Direct Sponsors`
     - `Cycles`
-- This removes the prior “uniform rail” feel and creates a stronger visual hierarchy.
+- This removes the prior Ã¢â‚¬Å“uniform railÃ¢â‚¬Â feel and creates a stronger visual hierarchy.
 - Preserved all existing IDs and trend/value bindings.
 - `Fast Track Bonus` stays as a separate container below.
 - Files updated:
@@ -900,7 +2106,7 @@ Last Updated: 2026-04-08
 - Restyled dashboard shell in `index.html` to match the visual feel of `https://21st.dev/home`.
 - Core updates delivered:
   - dark token system switched to near-black neutrals + subtle borders + muted cool-blue accents
-  - sidebar navigation restructured with search row (`⌘ K`), section labels, tighter spacing, and neutral active-state treatment
+  - sidebar navigation restructured with search row (`Ã¢Å’Ëœ K`), section labels, tighter spacing, and neutral active-state treatment
   - dashboard nav label changed from `Dashboard` to `Home` (also reflected in page meta title)
   - top header density simplified and centered-title behavior tuned
   - top search hidden for cleaner 21st-style top-bar composition
@@ -1810,7 +3016,7 @@ Last Updated: 2026-04-08
 
 ## Recent Update (2026-04-03) - Rank Advancement Rules Wired into Profile Achievement Component
 
-- Implemented rank advancement milestones from `brand_assets/MLM Business Logic.md` section `# 5️⃣ Rank Advancement Bonus`.
+- Implemented rank advancement milestones from `brand_assets/MLM Business Logic.md` section `# 5Ã¯Â¸ÂÃ¢Æ’Â£ Rank Advancement Bonus`.
 - Added profile achievement entries for Ruby through Royal Crown with cycle thresholds and payout values.
 - Added server-side prerequisite checks for rank advancement claims:
   - cycle requirement
@@ -2222,7 +3428,7 @@ Last Updated: 2026-04-08
   - branded workspace header
   - status chips (`Live Catalog`, `Attribution Locked`)
   - elevated tab cards for `Product Management`, `Analytics`, `Store Setup`
-  - live “Current Workspace” context panel that updates as tabs change
+  - live Ã¢â‚¬Å“Current WorkspaceÃ¢â‚¬Â context panel that updates as tabs change
 - Enhanced tab interaction behavior:
   - clearer active state (ring + border + shadow treatment)
   - inline active badge on selected tab card
@@ -2618,10 +3824,10 @@ Last Updated: 2026-04-08
   - sponsor tier `Infinity` enrolling `Legacy Builder Pack` must credit `120.00` (`12.5% of 960`).
 - Backend updates:
   - `backend/services/member.service.js` now computes Fast Track bonus as:
-    - sponsor-tier rate (`7.5% | 10% | 12.5% | 20%`) × enrolled package price
+    - sponsor-tier rate (`7.5% | 10% | 12.5% | 20%`) Ãƒâ€” enrolled package price
   - sponsor tier is now derived from sponsor account package/rank when available (fallback to payload tier).
 - Frontend parity updates:
-  - `index.html` and `admin.html` `getFastTrackBonusAmount(...)` now use the same sponsor-tier-rate × package-price calculation for preview/fallback messaging.
+  - `index.html` and `admin.html` `getFastTrackBonusAmount(...)` now use the same sponsor-tier-rate Ãƒâ€” package-price calculation for preview/fallback messaging.
 - Data repair executed:
   - recalculated historical non-admin rows to the corrected orientation.
   - corrected rows included:
@@ -2640,7 +3846,7 @@ Last Updated: 2026-04-08
   - `sethfozz` computed left/right leg BV aligns with saved snapshot (`1920 / 2880`)
 - Added cutoff stale-state protection in `serve.mjs`:
   - `/api/member/server-cutoff-metrics` now invalidates per-account cutoff baselines when account `createdAt` is newer than `lastAppliedCutoffUtcMs`.
-  - prevents “instant reset to 0” behavior caused by stale inherited state.
+  - prevents Ã¢â‚¬Å“instant reset to 0Ã¢â‚¬Â behavior caused by stale inherited state.
 - Added stale-baseline protection for session bootstrap:
   - `serve.mjs` auth response sanitizer
   - `index.html` starter dashboard metric resolver
@@ -3129,7 +4335,7 @@ Last Updated: 2026-04-08
 
 - User-side binary tree now rebuilds from `registered-members` records instead of remaining on root-only mock seed.
 - Added user-shell tree sync path in `index.html`:
-  - build binary node graph from current sponsor’s enrolled members
+  - build binary node graph from current sponsorÃ¢â‚¬â„¢s enrolled members
   - apply controller `setData(...)` when tree is initialized
   - refresh summary/fallback when tree module is not yet mounted
 - Sync triggers now run:
@@ -3334,7 +4540,7 @@ Last Updated: 2026-04-08
 ## Selected Node Country Code Field (2026-02-22)
 
 - Added `Country Code` field in the Selected Node panel on both user and admin tree views.
-- Field is dynamically populated from the selected node’s country value and displayed as uppercase ISO code (example: `US`, `PH`).
+- Field is dynamically populated from the selected nodeÃ¢â‚¬â„¢s country value and displayed as uppercase ISO code (example: `US`, `PH`).
 
 ## Node L/R Label Format + Gap Tuning (2026-02-22)
 
@@ -4098,9 +5304,9 @@ Last Updated: 2026-04-08
   - cycle timing = weekly cutoff (server cutoff config)
   - payout mode = auto-added (no manual claim)
   - retroactive historical closed-cycle volumes included.
-- Legacy Leadership card **no longer shares** Infinity Builder eligibility — has its own independent eligibility system:
-  - `LEGACY_LEADERSHIP_ELIGIBLE_RANKS = new Set(['legacy'])` — only Legacy rank qualifies (not Infinity)
-  - `LEGACY_LEADERSHIP_DIRECT_ENROLLMENT_REQUIREMENT = 3` — counts Legacy Package enrollments only
+- Legacy Leadership card **no longer shares** Infinity Builder eligibility Ã¢â‚¬â€ has its own independent eligibility system:
+  - `LEGACY_LEADERSHIP_ELIGIBLE_RANKS = new Set(['legacy'])` Ã¢â‚¬â€ only Legacy rank qualifies (not Infinity)
+  - `LEGACY_LEADERSHIP_DIRECT_ENROLLMENT_REQUIREMENT = 3` Ã¢â‚¬â€ counts Legacy Package enrollments only
   - Separate functions: `resolveLegacyLeadershipEligibility()`, `getLegacyLeadershipQualifiedDirectEnrollmentsForSponsor()`, `buildLegacyLeadershipEligibilityRequirementMessage()`
   - Infinity Pack users now correctly see Legacy Leadership as **Locked**
 - Screenshot validation:
@@ -4110,14 +5316,14 @@ Last Updated: 2026-04-08
 - Validation:
   - Inline script parse for `index.html` passed (`Parsed 2 inline script block(s) successfully.`).
 
-## User Dashboard: Infinity Builder Active Tier Card — Per-Node Eligibility Indicators (2026-02-22)
+## User Dashboard: Infinity Builder Active Tier Card Ã¢â‚¬â€ Per-Node Eligibility Indicators (2026-02-22)
 
 - Active (claimed) tier cards now show per-sponsor eligibility indicators:
   - **Green/lit** sponsor chip = sponsor has met their 3-enrollment requirement = user is earning 1% weekly override from them
   - **Gray/dim** sponsor chip = sponsor hasn't met requirement = not earning 1%
 - New utility: `findRegisteredMemberByHandle()` looks up member objects from handle strings
 - New constants: `SPONSOR_NODE_ELIGIBLE_PALETTE` (green), `SPONSOR_NODE_INELIGIBLE_PALETTE` (gray)
-- Hover tooltip on each chip shows status: "Active — earning 1%" or "Inactive — not earning 1%"
+- Hover tooltip on each chip shows status: "Active Ã¢â‚¬â€ earning 1%" or "Inactive Ã¢â‚¬â€ not earning 1%"
 - Small legend row below sponsor chips for at-a-glance reference
 - **Legacy Leadership Bonus:** excluded from this change per owner instruction
 - Applied file: `index.html`
@@ -4572,7 +5778,7 @@ Last Updated: 2026-04-08
 - User dashboard behavior now under one mockup switch:
   - KPI cards (`Total Balance`, `Personal Volume`, `Cycles`) switch between seeded mock preview and live JSON-backed values.
   - Infinity/Legacy tier preview mode follows dashboard mockup state.
-  - Recent Activity no longer shows seeded “before-state” store activity when mockup mode is OFF.
+  - Recent Activity no longer shows seeded Ã¢â‚¬Å“before-stateÃ¢â‚¬Â store activity when mockup mode is OFF.
   - Mock-seeded store invoices are added in mock mode and removed in live mode.
 - Security alignment retained:
   - Personal Volume purchase sync remains server-authoritative only.
@@ -4829,7 +6035,7 @@ Last Updated: 2026-04-08
   - search + filters + refresh toolbar
   - order table as primary browsing surface
   - dedicated right/secondary detail panel pattern (rendered below table in current layout)
-- Fulfillment action now happens from the selected order’s detail panel form.
+- Fulfillment action now happens from the selected orderÃ¢â‚¬â„¢s detail panel form.
 
 ### Current impact
 
@@ -6391,7 +7597,7 @@ Last Updated: 2026-04-08
 ## Recent Update (2026-04-03) - User Dashboard Account Rank Card Uses Rank Icon
 
 - Completed:
-  - replaced the Account Overview -> Account Rank card’s static star icon with a rank badge image element.
+  - replaced the Account Overview -> Account Rank cardÃ¢â‚¬â„¢s static star icon with a rank badge image element.
   - added `renderAccountRankIcon()` so the icon tracks the current account rank dynamically.
   - hooked icon refresh into:
     - initial load
@@ -7290,7 +8496,7 @@ Last Updated: 2026-04-08
 
 - Outcome:
   - KPI badge hover content no longer renders inside/clips within the Account Status card bounds.
-  - interaction now matches the profile page “hover window” behavior.
+  - interaction now matches the profile page Ã¢â‚¬Å“hover windowÃ¢â‚¬Â behavior.
 
 - Files updated:
   - `index.html`
@@ -7497,7 +8703,7 @@ Last Updated: 2026-04-08
 - Completed:
   - added bottom-center footer legal text on the login page.
   - added underlined hyperlinks for `Terms of Service` and `Privacy Policy`.
-  - kept copyright line as `© 2026 LD Premiere`.
+  - kept copyright line as `Ã‚Â© 2026 LD Premiere`.
 
 - Outcome:
   - login page now includes required legal footer copy in the requested location.
@@ -7617,3 +8823,1935 @@ Last Updated: 2026-04-08
 
 - Validation:
   - no screenshot run for this pass (per user instruction).
+
+## Recent Update (2026-04-08) - Binary Tree Map-World Navigation
+
+- Completed:
+  - changed binary tree to keep full graph rendered in one global world during normal navigation.
+  - shifted semantic zoom from node pruning to detail-density control (far/mid/near).
+  - added map-home camera defaults centered on root.
+  - tightened baseline horizontal spread with capped world width depth and compact slot width.
+
+- Outcome:
+  - panning/zooming now behaves closer to map navigation, with node details progressively appearing by zoom level.
+  - default view is less horizontally stretched for medium-sized trees.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Binary Tree Circle Baseline
+
+- Completed:
+  - simplified node visuals to circles with initials only.
+  - switched branch connectors to straight line links.
+  - updated interaction hit testing and viewport bounds to circle-based geometry.
+  - reduced baseline horizontal spread with tighter layout width defaults.
+
+- Outcome:
+  - tree is now intentionally minimal to evaluate readability/spacing before re-introducing details.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Circle Node Overlap Fix
+
+- Completed:
+  - added collision-avoidance spacing per depth row in tree layout.
+  - enforced minimum horizontal gap between nodes in the same depth.
+  - recentered each adjusted row and refreshed layout bounds after spreading.
+
+- Outcome:
+  - overlapping circle nodes are separated for clearer readability in compressed layouts.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Non-Centered Child Connectors
+
+- Completed:
+  - replaced center-based node connectors with edge-anchored line segments.
+  - adjusted spillover links to start/end on circle boundaries as well.
+
+- Outcome:
+  - child connectors no longer run through node centers, reducing visual confusion.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Single-Child Side Branch Clarification
+
+- Completed:
+  - made child connectors explicitly branch-side anchored.
+  - left and right child lines now originate from distinct parent-side anchors.
+
+- Outcome:
+  - nodes with only one child no longer appear center-connected, improving left/right placement readability.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - T / Inverted-T Connector Layout
+
+- Completed:
+  - converted tree connectors to orthogonal branch routing.
+  - implemented inverted-T branch bars for two-child parents.
+  - implemented elbow routing for one-child parents while preserving left/right direction.
+
+- Outcome:
+  - branch direction is easier to parse visually, especially for parents with a single child.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - More Space For Deep Nodes
+
+- Completed:
+  - added progressive depth-based vertical spacing to layout Y positioning.
+  - kept upper levels compact while increasing row gaps on deeper levels.
+  - synced placeholder slot Y positioning to the same spacing model.
+
+- Outcome:
+  - bottom/deep node regions now have more breathing room where crowding was most visible.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Deep Nodes X-Axis Spacing Fix
+
+- Completed:
+  - removed depth-driven Y-axis expansion from layout.
+  - added depth-driven X-axis spacing expansion in overlap prevention per row.
+  - tuned deep-row horizontal spacing growth while keeping top rows compact.
+
+- Outcome:
+  - deep nodes now have more side-to-side spacing where crowding occurs, without stretching vertical gaps further.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - no screenshot run for this pass.
+
+## Recent Update (2026-04-08) - Popup Icon Sync + Hover/Spacing Pass
+
+- Completed:
+  - synced popup handle-row icons to profile-selected rank/title1/title2 sources.
+  - forwarded profile badge/title metadata into tree node data from `index.html` and `admin.html`.
+  - expanded popup icon resolver support in `binary-tree.mjs` for explicit profile icon paths and title-based fallback mappings.
+  - reduced icon gap spacing for tighter alignment.
+  - added hover/press interaction feedback to popup icons (lift/scale/press state), matching KPI-card interaction feel.
+
+- Outcome:
+  - popup icons now follow user profile badge/title selections more closely and feel less static/cluttered.
+  - icon row appears denser and more intentional beside `@username`.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - screenshot capture ran, but popup-state visual verification was blocked because available captured routes resolved to unauthenticated/login views in this pass.
+
+## Recent Update (2026-04-08) - Popup Icon Hovercard + Stuck-Hover Fix
+
+- Completed:
+  - changed popup icon resolver output to structured entries with hover metadata.
+  - implemented a per-icon hover popup window (title/subtitle) for rank/title1/title2 icons.
+  - removed scale-up hover behavior that could remain visually stuck.
+  - added explicit reset/hide handlers on `pointerout`, `pointerup`, and `pointerupoutside`.
+
+- Outcome:
+  - icon hover now surfaces a real info popup window, closer to KPI/profile badge interaction expectations.
+  - icons no longer remain enlarged after hover interactions.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+
+## Recent Update (2026-04-08) - KPI Hovercard Style Match + Icon Placement Stabilization
+
+- Completed:
+  - removed in-canvas popup hover panel for icon row.
+  - implemented DOM hovercard flow aligned with Account Status KPI hovercard behavior.
+  - added viewport-aware hovercard positioning and delayed hide semantics.
+  - updated icon-row hover events to use the shared hovercard flow.
+  - corrected icon vertical anchoring to keep icons aligned to the `@username` row.
+  - added cleanup for hovercard timers/elements during popup/controller teardown.
+
+- Outcome:
+  - icon hover behavior now uses a true popup window pattern rather than sprite-only effects.
+  - icon placement is more stable and consistent with the handle row.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+
+## Recent Update (2026-04-08) - Popup Icon Hit-Box + Hovercard Visibility Repair
+
+- Completed:
+  - fixed popup icon sprite sizing instability by loading icon textures before render and enforcing fixed icon bounds.
+  - switched popup container to stable pointer event mode so hover targets resolve reliably.
+  - updated icon anchor-to-DOM mapping for hovercard placement against live canvas metrics.
+  - aligned hovercard style tokens to KPI card behavior and raised hovercard stacking layer to ensure it appears above tree canvas surfaces.
+
+- Outcome:
+  - popup icons no longer render as oversized/offset artifacts.
+  - hover popup now appears reliably when hovering rank/title icons in the selected-node card.
+
+- Files updated:
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree.mjs`
+  - authenticated `/BinaryTree` hover repro via Puppeteer (popup click + icon hover).
+
+## Recent Update (2026-04-10) - Next-Gen Binary Tree Semantic Zoom + Deep Focus Runtime Implemented
+
+- Completed:
+  - rebuilt `binary-tree-next-app.mjs` to restore a complete working next-gen runtime
+  - retained full canvas-rendered Figma-style shell (left panel, right panel, center strip, bottom strip)
+  - wired semantic zoom LOD rendering from adapter output (`full`, `medium`, `dot`, hidden/culled)
+  - applied depth-based node scaling so deeper levels are smaller at baseline
+  - added cursor-anchored zoom + pan and deep focus controls (`Home`, `Fit`, `Deep`, `Root`)
+  - preserved member/admin source session bootstrap checks.
+- Outcome:
+  - the next-gen shell now demonstrates the requested dynamic-tree performance pattern: deeper nodes remain navigable while detail visibility scales with zoom, and tiny/offscreen nodes are hidden or culled for render efficiency.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - route smoke: `/binary-tree-next` returned HTTP 200 and module entry was detected.
+
+## Recent Update (2026-04-10) - Next-Gen Tree Reference Correction (Removed Zigzag, Added T-Lines)
+
+- Completed:
+  - removed forced deep zigzag chain in next-gen mock graph builder
+  - switched to balanced per-level tree generation for default view
+  - replaced diagonal connectors with orthogonal T/elbow branch routing
+  - retuned adapter spacing constants for stable level-based horizontal/vertical spacing.
+- Outcome:
+  - tree now follows the requested structure direction from reference: clear level spacing and T-branch connectors.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next-engine-adapter.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - route smoke: `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Next-Gen Core Geometry Tuning (Node Size Cascade + Shorter Vertical Lines)
+
+- Completed:
+  - strengthened depth-based radius decay so root-to-deep node size differences are visibly hierarchical
+  - switched adapter vertical depth spacing from fixed step to decaying step model
+  - retuned T-connector split geometry so vertical trunks are shorter and branch bars read closer to reference
+  - adjusted LOD thresholds to keep tiny deep nodes visible as dots while still culling when extremely small/offscreen
+  - aligned app world-radius baseline constant to adapter.
+- Outcome:
+  - tree now reads as a true size cascade per level and connector verticals are noticeably shorter, improving match to provided reference direction.
+- Files updated:
+  - `binary-tree-next-engine-adapter.mjs`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Next-Gen Vertical Gap Reduced Again
+
+- Completed:
+  - compressed adapter per-depth Y spacing constants for shorter parent-child vertical links.
+- Outcome:
+  - tree vertical lines render tighter and closer to the target reference rhythm.
+- Files updated:
+  - `binary-tree-next-engine-adapter.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Deepest-Level Vertical Lines Compressed
+
+- Completed:
+  - added extra deep-only Y-step decay starting at depth level 6
+  - lowered minimum Y step floor to allow deeper rows to pack tighter.
+- Outcome:
+  - deepest tree levels now have shorter vertical links while upper levels keep clearer separation.
+- Files updated:
+  - `binary-tree-next-engine-adapter.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Next-Gen Default Scale Increased
+
+- Completed:
+  - increased default home/initial scale baseline for next-gen tree
+  - aligned root-focus default radius with new baseline to avoid home/start mismatch.
+- Outcome:
+  - tree now starts slightly larger while retaining more zoom-out room as node count grows.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Next-Gen Default Scale Locked To 0.025 With Depth-5 Full Detail
+
+- Completed:
+  - set default/home camera scale to `0.025`
+  - added internal projection normalization so this low raw scale remains visually usable
+  - added semantic depth gate in adapter:
+    - depth `0..5` full detail at home scale
+    - deeper levels hidden until zoom-in
+    - deeper levels progressively reveal as zoom increases.
+- Outcome:
+  - startup/home now follows requested scale semantics and reveal behavior directly.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next-engine-adapter.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Next-Gen Mock Tree Now Simulates 1000 Nodes
+
+- Completed:
+  - increased next-gen mock graph size target to exactly `1000` nodes
+  - replaced fixed-depth generation with level-order queue expansion to keep structure balanced while scaling.
+- Outcome:
+  - route now boots a larger, stress-oriented binary tree simulation suitable for validating LOD/culling/spacing behavior at higher volume.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Next-Gen Mock Tree Target Raised to 2000 Nodes
+
+- Completed:
+  - updated next-gen mock target constant from 1000 to 2000 nodes.
+- Outcome:
+  - larger stress graph now boots for high-volume layout/LOD checks.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Next-Gen Mock Generator Now Targets 20 Levels
+
+- Completed:
+  - switched mock generation from fixed total-node target to explicit depth target (`20` levels)
+  - added per-level node cap (`128`) for stability.
+- Outcome:
+  - next-gen graph now guarantees deep-level behavior testing at depth 20 while keeping runtime responsive.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Zoom-Driven X-Axis Expansion/Contraction Added
+
+- Completed:
+  - added dynamic X spacing model in adapter projection
+  - deep levels now expand horizontally as zoom increases and contract as zoom decreases
+  - runtime config tuned to start deep-level expansion near depth 7+.
+- Outcome:
+  - spacing loss around deeper levels is reduced because lower branches gain horizontal room during zoom-in.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Whole-Tree X Shift Applied (Not Deep-Only)
+
+- Completed:
+  - changed dynamic X spacing from deep-focused behavior to global whole-tree zoom transform.
+  - disabled depth bias in runtime config (`depthGain = 0`).
+- Outcome:
+  - every tree level now expands/contracts horizontally together when zooming.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Zoom-In Region Lock Improved With Whole-Tree X Shift
+
+- Completed:
+  - added multiplier-aware zoom anchor math so cursor target remains stable during dynamic X expansion/contraction.
+  - propagated multiplier-aware math to focus and fit camera operations.
+- Outcome:
+  - user no longer needs to chase nodes while zooming into a target region.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Dynamic X Shift Made More Visible
+
+- Completed:
+  - increased whole-tree X-shift zoom gain
+  - added right-panel `X spread` diagnostic to confirm live multiplier changes.
+- Outcome:
+  - spacing shift is easier to observe, and behavior can be verified numerically while zooming.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Core Horizontal Decay Tuned For Lower-Level Breathing Room
+
+- Completed:
+  - reduced horizontal decay aggressiveness in adapter (`divisor 2 -> 1.6`)
+  - retuned base horizontal step (`640 -> 512`) to keep upper-level framing controlled while widening deeper levels.
+- Outcome:
+  - lower levels preserve more spacing and subtree perspective is more uniform while navigating different areas.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Node Overlap Bug Fixed With Per-Row Collision Pass
+
+- Completed:
+  - added adapter projection collision resolution per depth row
+  - enforced minimum center spacing based on node radii + edge gap
+  - kept row center stable after spacing adjustments.
+- Outcome:
+  - side-by-side node overlaps are prevented during zoom/spacing transforms.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Root L/R Leg Split Rule Added
+
+- Completed:
+  - added root-level subtree corridor enforcement in adapter projection
+  - left and right 1st-level branches now push apart when center gap is insufficient
+  - increased overlap edge gap and added `Root split` diagnostics line.
+- Outcome:
+  - middle-region crowding is reduced because inner subtrees receive guaranteed space from root legs.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - General Branch L/R Spread Enabled (Not Root-Only)
+
+- Completed:
+  - replaced root-only split with generalized per-parent L/R subtree spacing enforcement
+  - increased branch spacing strength and overlap edge gap.
+- Outcome:
+  - deep/internal nodes get broader subtree corridors and reduced overlap risk across the tree.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Reference-Style Proportional Tree Geometry Restored
+
+- Completed:
+  - removed dynamic X spread / branch corridor spacing / overlap post-shift systems
+  - simplified camera zoom/focus math back to direct world projection
+  - rebalanced node + X/Y depth decay constants so deeper nodes and T-lines shrink proportionally.
+- Outcome:
+  - tree behavior now tracks the reference direction more closely: smaller lower-level nodes naturally get shorter connector segments.
+- Residual Risk:
+  - extreme depths may still need a final pass of constant tuning after visual QA.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+- Added horizontal min-step floor + lower vertical min-step floor for deep zoom stability and proportional connector shortening.
+
+## Recent Update (2026-04-10) - Fixed Post-Level-7 Reveal Jump and Deep-Level Uniformity
+
+- Completed:
+  - slowed semantic depth reveal rate for smoother level-by-level disclosure
+  - reduced deep-node and deep-connector floor effects so lower levels keep shrinking
+  - switched connector widths to radius-based scaling.
+- Outcome:
+  - deeper levels no longer flatten visually as early, and T-lines keep shrinking with depth.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Reverted to Prior Preferred Visual Version
+
+- Completed:
+  - rolled back the latest deep-level reveal/sizing experiment
+  - restored previous connector, node floor, and semantic reveal settings.
+- Outcome:
+  - tree behavior now matches the version user preferred immediately before the latest tuning.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Fixed Deep-Level Size Flattening (Depth 10+)
+
+- Completed:
+  - lowered deep node/world radius floor and deep connector minimums
+  - reduced dot render floor
+  - made connector width depth-responsive.
+- Outcome:
+  - deep nodes and deep T-lines now keep shrinking instead of collapsing into one visual size.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Depth 11 Falloff Fixed (Plateau Removal)
+
+- Completed:
+  - removed deep-level geometry plateaus by lowering X/Y/radius floors
+  - lowered connector and dot minima so tiny-depth visuals keep scaling.
+- Outcome:
+  - depth 11+ now follows the same proportional visual language as upper levels.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Deeper Zoom Ceiling Enabled
+
+- Completed:
+  - increased camera max zoom cap from 220 to 1200.
+- Outcome:
+  - depth-20 nodes can be zoomed in significantly further.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Unlimited Zoom-In Enabled
+
+- Completed:
+  - removed practical max-zoom ceiling by setting `MAX_SCALE` to `Number.MAX_VALUE`.
+- Outcome:
+  - users can continue zooming in for deep-node inspection without hitting a cap.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Enter Node Universe Navigation Added
+
+- Completed:
+  - implemented universe re-rooting at selected node with local 20-depth cap
+  - added universe Enter/Back controls and `U`/`B` shortcuts
+  - added local/global depth/path display in right panel
+  - made fit/focus/deep/render pipeline universe-aware
+  - added per-universe camera memory to preserve orientation.
+- Outcome:
+  - users can continue traversing deeper hierarchies in stable 20-depth windows without sacrificing spacing/UX.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Back Button POV-History Behavior
+
+- Completed:
+  - changed Back from parent-node traversal to previous POV restoration using history stack.
+  - Back now restores prior universe root + selection/filter state + camera context.
+- Outcome:
+  - Enter-from-root then Back returns to root perspective as expected.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Breadcrumb Link Buttons for Universe Jump
+
+- Completed:
+  - replaced breadcrumb text with clickable breadcrumb link chips
+  - added `universe:goto:<id>` navigation and history-aware universe restore logic.
+- Outcome:
+  - users can click any breadcrumb ancestor to jump directly to that universe POV.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+
+## Recent Update (2026-04-10) - Fullscreen Glass Canvas UI Pass
+
+- Completed:
+  - switched shell to fullscreen canvas workspace with in-canvas hideable left/right overlay panels
+  - applied dark gray glassmorphism styling across panels/bars/buttons
+  - changed nodes to initials-only circular badges (contacts-style)
+  - relaxed camera culling margin so connectors do not disappear too aggressively while panning.
+- Outcome:
+  - UI matches desired direction for shell polishing before live tree logic integration.
+- Validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `/binary-tree-next` returned HTTP 200.
+## Recent Update (2026-04-10) - Apple-Style Panel Radius Polish
+
+- Completed:
+  - increased corner radii for panel chrome, panel cards, top/bottom bars, toolbar segments, and chip/buttons.
+  - converted `binary-tree-next-app.mjs` encoding from UTF-16 LE to UTF-8 for parser compatibility.
+- Outcome:
+  - shell reads softer and more Apple-like while preserving current layout and interaction model.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - `/binary-tree-next` returned HTTP `200`.
+
+## Recent Update (2026-04-10) - Light Mode Palette + Clean Glass Blur Pass
+
+- Completed:
+  - changed Binary Tree Next base surface to `#E9EAEE`
+  - shifted glass panel surfaces to white-family styling (`#FFFFFF`-based)
+  - replaced recursive live-canvas blur sampling with clean offscreen backdrop sampling
+  - reduced blur filter complexity for cleaner Apple-style frosted panels.
+- Outcome:
+  - frosted glass appears cleaner and less muddy, with light mode now aligned to requested palette direction.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - completed visual round 1 via localhost screenshot workflow.
+  - completed visual round 2 via localhost screenshot workflow.
+
+## Recent Update (2026-04-10) - Reference Skeleton UI Matched
+
+- Completed:
+  - reworked shell to match provided skeletal design reference
+  - replaced left-panel internals with 5 structural placeholder regions
+  - replaced bottom toolbar controls with centered 5-slot placeholder dock
+  - shifted shell palette to reference-matching neutral tones (`#CFD0D6`, `#ECECEE`, `#C2C2C6`)
+  - temporarily disabled tree draw pass for skeleton-only presentation.
+- Outcome:
+  - canvas now mirrors the intended skeletal layout for component placement.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - completed iterative screenshot comparison rounds and refined spacing/color alignment.
+
+## Recent Update (2026-04-10) - Dock Buttons Added
+
+- Completed:
+  - replaced bottom 5-slot placeholder dock with labeled controls
+  - wired actions: `Back`, `Home`, `Enter`, `Deep`
+  - added 5th placeholder control (`Soon`) as no-op.
+- Outcome:
+  - dock now functions as the primary universe/camera control strip layout.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Nodes Restored
+
+- Completed:
+  - re-enabled tree viewport rendering after the skeleton-shell phase.
+- Outcome:
+  - nodes/connectors are visible again while dock and shell placeholders remain active.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Dock Icons Added
+
+- Completed:
+  - added Material Symbols icons to all 5 bottom dock buttons
+  - mapped icons to Back/Home/Enter/Deep/Coming Soon as requested
+  - kept text labels under each icon.
+- Outcome:
+  - dock buttons now read as icon-first controls while preserving the skeleton styling direction.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Dock Icons Text Fallback Fixed
+
+- Completed:
+  - replaced dock icon ligature strings with Material Symbols codepoint glyphs.
+- Outcome:
+  - dock icons now render as actual symbols instead of text.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Dock Converted To Icon-Only Apple Style
+
+- Completed:
+  - removed text labels under dock icons
+  - set dock button borders to `#EDEDED`
+  - set icon color to black (`#111111`)
+  - kept Back/Home/Enter/Deep/Placeholder action mapping intact.
+- Outcome:
+  - dock now visually matches the requested Apple-style icon-button direction.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Dock Tile Color/Size Corrected
+
+- Completed:
+  - reduced dock icon size from 34 to 28
+  - corrected dock tile fill from `#CECFD4` to exact `#EDEDED`.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Main Background Set To #E9EAEE
+
+- Completed:
+  - changed runtime canvas background to `#E9EAEE`
+  - changed HTML first-paint background to `#E9EAEE`.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Dock Shell Color Corrected
+
+- Completed:
+  - set outer dock shell to `#FFFFFF`
+  - kept inner icon container fill at `#EDEDED`.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Dock Icon Scale/Tone Adjusted
+
+- Completed:
+  - reduced dock icon size from 28 to 24
+  - changed icon color from `#111111` to `#303030`.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Dock Hover Effect Added
+
+- Completed:
+  - added dock button hover state with shade shift, subtle shadow, and icon darkening.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Startup Home State + Tree Intro Animation
+
+- Completed:
+  - startup camera now initializes via Home-equivalent root focus
+  - added startup tree reveal animation (bottom-up motion + blur-to-sharp).
+- Outcome:
+  - reload/open now lands in Home-style tree framing with polished intro transition.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Startup/Home Camera Unified
+
+- Completed:
+  - changed dock Home to use `camera:home`
+  - centered `computeHomeView()` around root metrics + viewport center
+  - initialized layout/viewport before startup camera assignment.
+- Outcome:
+  - startup reload position now matches centered Home framing.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Per-Depth Startup Animation Enabled
+
+- Completed:
+  - converted startup reveal from global tree animation to depth-staggered reveal
+  - animated nodes and connector branches using depth-aware timing.
+- Outcome:
+  - startup now feels dynamic by level instead of moving as a single block.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Loading Screen Before Tree Intro
+
+- Completed:
+  - added full-page loading overlay/card for Binary Tree entry/reload
+  - delayed intro animation start until loading overlay minimum display + fade-out complete
+  - added bootstrap error fallback to hide loading overlay immediately.
+- Outcome:
+  - user now sees a dedicated loading phase before the tree starts animating.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Pre-Animation Tree Flash Fixed
+
+- Completed:
+  - changed pre-intro reveal state to hidden when intro timer is not started.
+- Outcome:
+  - tree no longer appears before intro animation after loading screen.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Startup Panel Reveal Added
+
+- Completed:
+  - added startup animation to left panel and bottom dock
+  - staggered panel timings so dock enters slightly after side panel
+  - maintained dock click-hit alignment while panels are translating.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Startup Animation Cross-Platform Performance Pass
+
+- Completed:
+  - added adaptive startup reveal profiles (`full` vs `lite`) using reduced-motion, pixel-load, CPU-core, and memory hints
+  - added startup frame-budget sampling with automatic downgrade to `adaptive-lite` when intro frame time is over budget
+  - disabled expensive startup blur in lite/adaptive modes and skipped dot-node/connector reveal effects in heavy paths
+  - centralized reveal application with visual thresholds to avoid near-zero filter/transform overhead.
+- Outcome:
+  - startup animation keeps the same motion style but avoids initial lag spikes on high-DPI/constrained devices, including the reported MacBook Pro scenarios.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Startup Connector Animation Restored (Cohesive Intro)
+
+- Completed:
+  - restored startup connector animation path (lines no longer remain static while nodes animate)
+  - added connector reveal modes (`full` / `lite`) so constrained devices still animate lines with cheaper alpha+offset motion
+  - removed prior lite-mode connector disable behavior and switched frame-budget downgrade to lightweight connector animation.
+- Outcome:
+  - startup visuals are cohesive again while preserving cross-platform startup performance safeguards.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Binary Tree Next macOS Trackpad Input Added
+
+- Completed:
+  - ported trackpad wheel classification from main Binary Tree logic
+  - added native trackpad pan (two-finger scroll) and pinch zoom handling
+  - added macOS Command+wheel manual zoom modifier handling parity
+  - preserved fallback mouse-wheel smooth zoom.
+- Outcome:
+  - Binary Tree Next interaction now feels consistent with macOS trackpad behavior expected from the main tree implementation.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Trackpad Pinch Zoom Sensitivity Increased
+
+- Completed:
+  - increased Binary Tree Next default trackpad pinch sensitivity from `0.3` to `0.5`.
+- Outcome:
+  - pinch in/out now feels stronger and faster for trackpad users.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Trackpad Pinch Zoom Cap Bug Fixed + Gain Increased
+
+- Completed:
+  - raised trackpad sensitivity max clamp from `1` to `6`
+  - increased pinch zoom gain by changing delta base from `100` to `60`.
+- Outcome:
+  - sensitivity values above `1` now apply correctly, and pinch in/out feels much stronger.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Windows End-of-Startup Hitch Smoothing
+
+- Completed:
+  - added deterministic deep-layer reveal jitter for nodes/connectors
+  - phased out startup blur earlier in the tail end of reveal progress
+  - extended reveal timing API to support per-entity extra delay.
+- Outcome:
+  - reduced end-of-intro frame spike risk on Windows while preserving cohesive startup motion.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Mouse Wheel Zoom Easing Added
+
+- Completed:
+  - added smooth camera-target interpolation for mouse wheel zoom
+  - added wheel-specific camera damping and target-reason routing
+  - updated wheel zoom to accumulate from active wheel target scale for continuous scrolling.
+- Outcome:
+  - mouse wheel zoom now feels smooth instead of snapping.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Binary Tree Next Left Panel Shell Functionalized
+
+- Completed:
+  - replaced left-shell skeleton cards with functional modules (search, pinned/favorites, node details, server timer)
+  - added live search input for username/name/rank/title filtering
+  - added node pinning with local persistence and quick focus/remove actions
+  - added selected node detail rendering for volume metrics and lineage (`parent`, `sponsor`)
+  - added profile metadata render (`rank`, `title`, `badges`, `account status`)
+  - extended next-gen mock node shape and adapter search indexing to support new panel data.
+- Outcome:
+  - left panel is now a usable control/data shell for Binary Tree Next instead of placeholder-only UI.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next-engine-adapter.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+  - screenshot rounds captured at:
+    - `temporary screenshots/screenshot-194-binary-next-left-panel-pass2.png`
+    - `temporary screenshots/screenshot-195-binary-next-left-panel-pass3.png`
+    - `temporary screenshots/screenshot-196-binary-next-left-panel-pass4.png`
+
+## Recent Update (2026-04-10) - Pinned Nodes Apple Maps Carousel Restyle
+
+- Completed:
+  - converted pinned list rows into an Apple Maps-style horizontal places carousel
+  - added circular gradient chips with custom white work/home/bank glyphs
+  - updated heading treatment to `Places >`
+  - kept `Pin/Unpin` action and node-focus behavior wired to real pinned node data
+  - added sample place cards for empty-pinned-state visual continuity.
+- Outcome:
+  - pinned section now has the intended Apple Maps look while preserving Binary Tree interaction wiring.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Favorites Logic Cleanup (Real Node Pins + Horizontal Scroll/Grab)
+
+- Completed:
+  - switched favorites row to real pinned-node data only (no sample places/icons)
+  - favorites title now `Favorites` (removed `Places >`)
+  - removed gray favorites container so chips sit directly in the shell surface
+  - added wheel-to-horizontal-scroll inside favorites viewport
+  - added grab/drag horizontal scrolling
+  - preserved tap behavior on favorite chips to focus the pinned node when gesture is a click.
+- Outcome:
+  - favorites now behaves like a true pinned-node carousel and supports both browsing (scroll/drag) and quick node focus.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Node Color System Unified To Favorites Gradient
+
+- Completed:
+  - added shared `createNodeAvatarGradient(...)` helper
+  - switched Favorites and all tree nodes to the same gradient recipe
+  - applied to full, medium, and dot LOD node fills.
+- Outcome:
+  - node colors now match the pinned Favorites circle style, removing the previous gradient mismatch in the tree.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Apple Maps Gradient Container Applied To Nodes
+
+- Completed:
+  - replaced random hue-based node gradients with Apple Maps-style fixed circle palette system
+  - added brown/cyan/slate palette tokens and directional gradient blending
+  - added subtle top-left sheen layer on circle fills
+  - applied this shared circle style to both Favorites chips and all tree nodes (full/medium/dot).
+- Outcome:
+  - node containers now visually match the requested Apple Maps gradient style more closely.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Node Colors Varied (Gradient Style Preserved)
+
+- Completed:
+  - kept existing Apple Maps-style circle gradient/shading unchanged
+  - restored multi-color variety for non-selected nodes using deterministic palette rotation
+  - added additional palette families: `ocean`, `mint`, `amber`, `rose`
+  - kept root brown and selected node cyan behavior.
+- Outcome:
+  - the tree now has color variety again while preserving the exact gradient container style you approved.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Apple Maps-Style Search Row + Profile Icon
+
+- Completed:
+  - removed old search card container block from left shell
+  - added standalone rounded search pill with magnifier icon
+  - added right-side circular user profile icon beside the search pill
+  - restyled DOM search input to transparent/no-border so it sits inside the pill cleanly.
+- Outcome:
+  - search section now follows requested Apple Maps row pattern (search bar + profile icon only).
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Search Profile Icon Shadow Removed
+
+- Completed:
+  - removed drop shadow from the profile icon next to the left-shell search bar
+  - preserved icon visuals and interaction behavior otherwise
+  - removed now-unused hover variable in that draw block.
+- Outcome:
+  - profile icon appears flatter/cleaner beside the search pill as requested.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Search Pill Set to White + Drop Shadow
+
+- Completed:
+  - changed search pill fill to white
+  - added soft drop shadow under search pill
+  - preserved search/profile row structure and behavior.
+- Outcome:
+  - search bar now appears brighter with separation depth, matching requested styling.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Search Pill Color Changed to #DFDFDF
+
+- Completed:
+  - changed search bar pill fill to `#DFDFDF`
+  - left all other search row styling/behavior untouched.
+- Outcome:
+  - search bar now matches requested neutral gray fill.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Shell Color Tokens Updated (#F2F2F6 / #FFFFFF)
+
+- Completed:
+  - set panel and dock container color to `#F2F2F6`
+  - set dock icon-slot containers to `#FFFFFF`
+  - set search bar fill to `#FFFFFF`
+  - set node-details card background to `#FFFFFF`.
+- Outcome:
+  - shell now follows the updated light token set exactly.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Search Bar Shadow Reduced
+
+- Completed:
+  - reduced search pill shadow opacity, blur, and Y offset for a softer depth effect.
+- Outcome:
+  - search bar shadow is more subtle while preserving the same overall style.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Search Icon/Font Refinement (Material + SF/Inter)
+
+- Completed:
+  - switched search icon to Material Symbols `search` glyph
+  - added `icon_names=search` font link in next-gen HTML head
+  - updated app text/search-input/page font stacks to prefer SF Sans with Inter fallback.
+- Outcome:
+  - search row now uses the requested icon source and Apple-like typography direction.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Search Icon Enlarged + Re-Spaced
+
+- Completed:
+  - increased search icon size and improved icon centering inside pill
+  - shifted search input start position to align with the larger icon.
+- Outcome:
+  - search icon now better matches the scale of the search bar and overall row composition.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Search Input Now Follows Startup Animation
+
+- Completed:
+  - bound search input opacity to panel reveal alpha
+  - bound search input Y position to panel reveal translate offset
+  - hid search input when reveal progress/opacity is effectively zero.
+- Outcome:
+  - search placeholder/input now appears cohesively with panel startup animation on reload instead of popping in early.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Startup Timing Changed (Tree First)
+
+- Completed:
+  - delayed side panel reveal to `1200ms`
+  - delayed dock reveal to `1450ms`.
+- Outcome:
+  - tree animation now leads startup, with shell UI entering later for clearer tree-first focus.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Recent Update (2026-04-10) - Startup Overlap Timing Tune
+
+- Completed:
+  - reduced side-panel startup delay from 1200ms to 540ms
+  - reduced dock startup delay from 1450ms to 700ms
+- Outcome:
+  - panel and dock startup now overlap with tree reveal instead of waiting until after it ends.
+- Files updated:
+  - binary-tree-next-app.mjs
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/binary-tree-next-gen-wasm-plan.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+## Recent Update (2026-04-10) - Mock First-Time Trigger Enabled
+
+- Completed:
+  - added one-time first-time override for current member user when Binary Tree Next runs in `mock-js` engine mode
+  - scoped override to member source and non-first-time launch-state only
+  - persisted consume marker in localStorage per user id to avoid repeated forced prompts
+- Outcome:
+  - current mock-session user can trigger welcome splash without manual DB reset.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+## Recent Update (2026-04-10) - Welcome Splash Apple Motion Style
+
+- Completed:
+  - redesigned first-time Welcome overlay to Apple-like frosted style
+  - added ambient orb drift animation behind splash content
+  - added staged entrance for title/subtitle and subtle subtitle pulse
+  - added prefers-reduced-motion coverage for splash animation layers
+  - updated splash visibility timing to trigger transitions consistently on show
+- Outcome:
+  - welcome prompt now feels more premium and cohesive with startup sequence.
+- Files updated:
+  - binary-tree-next.html
+  - binary-tree-next-app.mjs
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/binary-tree-next-gen-wasm-plan.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+## Recent Update (2026-04-10) - Dock Asterisk Reset Action Wired To Server
+
+- Completed:
+  - added member-auth DELETE endpoint for Binary Tree launch-state reset
+  - added intro-state delete query in member-binary-tree-intro store
+  - wired dock asterisk action to call reset endpoint using current member auth token
+  - on successful reset, app clears local mock override marker for current user and reloads
+- Outcome:
+  - you can press the dock asterisk to wipe first-time intro state and re-trigger welcome animation on next boot.
+- Files updated:
+  - backend/stores/member-binary-tree-intro.store.js
+  - backend/services/auth.service.js
+  - backend/controllers/auth.controller.js
+  - backend/routes/auth.routes.js
+  - binary-tree-next-app.mjs
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/binary-tree-next-gen-wasm-plan.md
+- Validation:
+  - node --check backend/stores/member-binary-tree-intro.store.js passed.
+  - node --check backend/services/auth.service.js passed.
+  - node --check backend/controllers/auth.controller.js passed.
+  - node --check backend/routes/auth.routes.js passed.
+  - node --check binary-tree-next-app.mjs passed.
+## Recent Update (2026-04-10) - Binary Tree Reset 404 Resolved
+
+- Completed:
+  - added POST fallback reset endpoint for intro-state reset
+  - updated dock reset flow to fall back from DELETE to POST on 404/405
+  - restarted backend runtime so new routes are loaded
+- Outcome:
+  - asterisk reset no longer depends on DELETE-only path and is now resilient across route/method constraints.
+- Validation:
+  - GET /api/member-auth/binary-tree-next/launch-state returns 401 without auth
+  - DELETE /api/member-auth/binary-tree-next/launch-state returns 401 without auth
+  - POST /api/member-auth/binary-tree-next/launch-state/reset returns 401 without auth
+## Recent Update (2026-04-10) - Binary Tree Welcome Splash Redesign Pass
+
+- Completed:
+  - rebuilt the first-open splash with a brand-based gradient atmosphere and clearer depth layering
+  - added a branded badge using the L&D white icon asset
+  - updated message hierarchy and continue instruction for better first-touch clarity
+  - added focus-visible, hover, and active interaction states for the splash entry affordance
+  - aligned splash close timeout from `180ms` to `260ms`
+- Outcome:
+  - welcome gate now has stronger visual identity and cleaner interaction cues.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Known limitations:
+  - no screenshot/reference comparison loop was run in this pass.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-10) - Removed Left Panel Top Logo + Side-Nav Hide/Show Button
+
+- Completed:
+  - removed top logo/header block from left panel
+  - removed collapse/expand side-nav button UI and related action flow
+  - kept side-nav locked open so panel cannot be hidden by the removed controls
+  - moved search row to occupy the top area
+  - retained account menu via the search-row profile avatar
+- Outcome:
+  - left panel opens directly into search/favorites/details with no top logo strip and no hide/show control.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Known limitations:
+  - screenshot comparison pass intentionally skipped.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Search Dropdown + No Search-Driven Tree Reflow
+
+- Completed:
+  - converted search to dropdown-results interaction instead of query-filtering tree layout
+  - added ranked search results overlay under search bar
+  - added keyboard navigation (up/down/enter/escape)
+  - selecting a search result now focuses camera to that node only
+  - removed `query` from frame draw + bounds fit pipelines so typing no longer shifts tree layout
+- Outcome:
+  - search is now selection-focused and stable; typing does not move/restructure the tree.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Known limitations:
+  - screenshot comparison not run this pass.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Search Result Rows Now Show Node Icons
+
+- Completed:
+  - added node avatar/icon to each search dropdown result
+  - styled avatar with node-gradient palette + initials
+  - kept camera-focus-on-select behavior unchanged
+- Outcome:
+  - search results are easier to scan visually and now map directly to node identity style.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Search Dropdown Shows More Items + List Separators
+
+- Completed:
+  - increased search result count limit from 10 to 18
+  - added thin divider lines between result rows
+- Outcome:
+  - dropdown now shows more candidates and is easier to visually scan.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Search Rows Made Uniform + Icon White Borders Removed
+
+- Completed:
+  - normalized search dropdown row heights for consistent list rhythm
+  - forced title/subtitle to single-line ellipsis to prevent uneven row heights
+  - removed white outer ring on search-result icons
+  - removed white outer border on Favorites icons
+- Outcome:
+  - list now stays visually uniform regardless of name length, and icons match gradient style without white shells.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Selected Icon Color Lock (No Blue Accent)
+
+- Completed:
+  - removed selected-state blue/accent color swap
+  - selected icons now keep their original gradient palette
+  - applied white-border-only active indication for selected icons in Favorites and search dropdown
+- Outcome:
+  - selected visuals now match requested behavior: no blue swap, white border for active.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Profile Icon Dropdown Converted to Search-Style Panel
+
+- Completed:
+  - replaced the old canvas brand/profile popup with a DOM overlay panel anchored to the profile icon
+  - reused search-dropdown visual shell (radius/border/shadow/blur) for consistency
+  - added Apple Maps-style profile header (avatar, name, email, close affordance)
+  - rendered uniform action rows with icons, chevrons, and thin separators
+  - wired rows to existing profile/home/store/settings/logout actions
+  - prevented search-result dropdown from competing while profile menu is open
+- Outcome:
+  - profile menu now opens as a stable dropdown container without canvas layout coupling.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Known limitations:
+  - row icons are placeholder letter badges for now
+  - screenshot pass skipped (per request)
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Profile Dropdown Uses Icon-Side Width + Compact Sizing
+
+- Completed:
+  - expanded profile dropdown width to use the extra right-side space through the profile-icon area
+  - reduced heading and subheading sizes in profile header
+  - reduced action row, icon, and chevron sizing for a more compact list
+- Outcome:
+  - profile panel now uses available horizontal space better and reads less oversized.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Profile Avatar Shadow Removed
+
+- Completed:
+  - removed drop shadow on the profile avatar shown in the profile dropdown container header.
+- Outcome:
+  - profile icon now renders flat (no halo/shadow) inside the profile panel.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Profile Container Headspace Increased
+
+- Completed:
+  - added more top headspace above the profile avatar in the profile dropdown header.
+- Outcome:
+  - profile icon now sits lower with clearer breathing room at the top of the profile container.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Profile Close Icon Switched to Material Symbol + More Headspace
+
+- Completed:
+  - added Material Symbols `close` font link in the HTML head
+  - changed profile menu close control from text `x` to Material Symbols `close`
+  - increased profile container top headspace again above the avatar
+- Outcome:
+  - close icon now matches icon system styling, and header has more breathing room.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Search Icon Restored + Smaller Profile Close Icon (`close_small`)
+
+- Completed:
+  - fixed search icon from showing as a word by switching search glyph render to Material Symbols codepoint
+  - changed profile close icon import and glyph to `close_small`
+  - reduced close button/icon sizing for better scale
+- Outcome:
+  - search icon now renders correctly again
+  - profile close control is visually smaller and cleaner.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - User Avatar Consistency + Profile List Material Icons
+
+- Completed:
+  - unified session avatar rendering (photo/gradient) across profile icon, profile panel header, tree session node rendering, and relevant search row avatars
+  - added canvas image-avatar rendering with safe fallback to gradient + initials
+  - linked session/root avatar palette resolution so profile-dependent visuals stay consistent
+  - switched profile panel list icons to Material Symbols (`account_circle`, `home`, `local_mall`, `settings`, `logout`)
+  - updated list icon style to white filled symbols over gradient circular containers
+  - added requested Material Symbols imports in `binary-tree-next.html`
+- Outcome:
+  - user identity icon now stays visually aligned across profile surfaces, and profile menu rows now use the requested icon set/style.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Profile List Icons No Longer Render as Words
+
+- Completed:
+  - added a combined Material Symbols import covering all in-use icon names.
+- Outcome:
+  - profile menu list icons now resolve as proper symbols instead of literal words.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Profile List Icons Forced to Symbols + Requested Color Mapping
+
+- Completed:
+  - hard-fixed profile menu list icons from word rendering by using symbol glyph codepoints
+  - added full Material Symbols stylesheet import as fallback safety
+  - mapped icon-circle gradients exactly per request:
+    - Profile = Blue
+    - Home = Green
+    - My Store = Purple
+    - Settings = Gray
+    - Logout = Red
+- Outcome:
+  - profile container list icons now render as icons reliably and match the requested color scheme.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Binary Tree Next Node Details Weekly-BV Style Draft
+
+- Completed:
+  - redesigned left-panel `Node Details` container to mirror the "Weekly Total Organization BV" visual pattern
+  - introduced KPI-first hierarchy (header pill, total BV headline, personal BV subline, legend + mini bars)
+  - grouped metadata into compact tiles and retained relationship jump actions
+  - kept badges rendering with wrap + overflow guards
+- Outcome:
+  - Node Details now reads like a dashboard metric module instead of a plain text list, while preserving existing interactions.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+- Note:
+  - screenshot verification was skipped this pass per user request.
+
+## Recent Update (2026-04-11) - Note Context Routing Added (Category-Based Intake)
+
+- Completed:
+  - created `Claude_Notes/Context-Router.md` as a first-stop note index for AI/Codex sessions
+  - grouped note usage into practical categories (`BT-UI`, `BT-BIZ`, `AUTH`, `STORE`, `DB-BE`, `GLOBAL`, `RULES`)
+  - documented read-first vs deep-dive paths per category
+  - added task shortcuts so sessions can load only relevant context
+- Outcome:
+  - future tasks can avoid full-note scans and target only needed files, reducing context-window usage and prompt overhead.
+- Files updated:
+  - `Claude_Notes/Context-Router.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Note:
+  - this is a logical split (routing/index); physical folder migration can be done later if desired.
+
+## Recent Update (2026-04-11) - Node Panel Simplified (No Chart / No Live Badge / No Gradient)
+
+- Completed:
+  - simplified `Weekly Node Organization BV` panel in Binary Tree Next left side
+  - removed chart section, removed `Live` badge, removed gradient/glow background treatment
+  - retained only requested fields: Name, Username, Rank, Account Status, Total Organizational BV, Left Leg, Right Leg
+- Outcome:
+  - panel now matches the preferred cleaner style direction and is easier to scan.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Node Details Panel Rebuilt to Match Provided Mock
+
+- Completed:
+  - renamed panel heading to `Details`
+  - rebuilt node card to mock-style centered layout
+  - added avatar account-state dot (active/inactive indicator)
+  - added rank row with two icon slots (rank + title icon)
+  - replaced metric area with simple rows + separators (`#E2E2E2`)
+  - restyled bottom Parent/Sponsor pills to requested palette (`#D0E6FF` + `#077AFF`)
+  - wired button icons to `family_history` and `person_add` with fallback rendering
+- Outcome:
+  - panel now follows the intended visual language and data hierarchy from the provided reference.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Details Panel Typographic + Data Corrections
+
+- Completed:
+  - changed node details card background to white (`#FFFFFF`)
+  - aligned panel typography to Inter weight mapping requested
+  - added missing `Cycles` row
+  - upgraded profile avatar rendering to prefer actual node/user photo fields with placeholder fallback
+  - preserved active/inactive status dot behavior
+- Outcome:
+  - panel now better matches requested baseline style/spec while keeping dynamic node data rendering.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Node Avatar Visibility Fix (Details Panel)
+
+- Completed:
+  - corrected Details avatar draw order
+  - ensured fallback initials render when no node photo exists
+- Outcome:
+  - node icon now appears consistently as actual photo or initials placeholder.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Details Card Spacing/Rhythm Tuning
+
+- Completed:
+  - increased details-card inner horizontal inset
+  - tuned avatar-to-metrics visual rhythm
+  - made metric row heights adaptive to preserve `Cycles` + both action buttons
+  - clamped relation-button block placement for stable bottom padding
+- Outcome:
+  - closer vertical rhythm to the mock and more resilient layout fit.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Details Panel Readability/Icon Corrections
+
+- Completed:
+  - enlarged avatar initials
+  - resized rank row text to username scale
+  - switched Parent/Sponsor icon draw path to filled style and increased button label size
+- Outcome:
+  - closer to requested visual treatment and better readability.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Button Icons Fixed (Filled + Larger)
+
+- Completed:
+  - fixed Parent/Sponsor button icons to use filled style
+  - increased action icon size for readability
+  - added filled icon font import for `family_history` and `person_add`
+- Outcome:
+  - bottom action icons now align closer to requested icon style and size.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Details Action Icons Switched to Fixed SVGs
+
+- Completed:
+  - created local filled SVG assets for Parent/Sponsor actions
+  - wired button icon draw to local SVG-first rendering path
+  - increased icon size for clearer visibility
+- Outcome:
+  - button icons are now stable and consistent (not dependent on font-ligature rendering).
+- Files updated:
+  - `brand_assets/Icons/UI/family_history-filled.svg`
+  - `brand_assets/Icons/UI/person_add-filled.svg`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Details Parent/Sponsor Icons Switched to New Blue Assets
+
+- Completed:
+  - switched light-mode Parent/Sponsor button icons to new `UI` folder blue PNG files
+  - added mode-aware icon-path resolver (light=blue, dark=white)
+- Outcome:
+  - action icons now use the exact provided asset set for light mode consistency.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Parent/Sponsor Label Font Locked to Inter Medium
+
+- Completed:
+  - enforced explicit label typography constants for Details relation buttons
+  - set button label to `Inter` with `500` medium weight for both Parent and Sponsor
+- Outcome:
+  - consistent medium-weight Inter text treatment on both bottom action buttons.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Button Label Weight Increased
+
+- Completed:
+  - bumped Details Parent/Sponsor button label weight to `600`
+- Outcome:
+  - relation button labels now read visually bolder and closer to requested emphasis.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Node Details Avatar Now Syncs With Tree Colors
+
+- Completed:
+  - replaced hard-coded Details avatar `ocean` variant with tree-aligned variant selection (`auto` / `root`)
+  - increased Details avatar initials font size to `32`
+- Outcome:
+  - selected-node avatar color treatment in Details now matches the tree node palette behavior.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Left Panel Width + Padding Refinement
+
+- Completed:
+  - increased overall left panel width slightly
+  - reduced inner shell-to-content spacing (horizontal + top)
+  - tightened Details card internal side padding
+- Outcome:
+  - panel feels wider while inner content sits closer to the container edges, matching requested tighter gap.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Side Panel Uses Mobile-Style Column Width
+
+- Completed:
+  - changed left panel width model from percentage scaling to a fixed mobile-like target width
+  - set target to `390px` with responsive clamp (`320px` min and viewport-safe max)
+- Outcome:
+  - left panel now presents as a stable phone-width column while remaining safe on smaller screens.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Details Typography Bumped For New Panel Width
+
+- Completed:
+  - increased all core Details-card typography sizes (heading, name, username, rank, metric rows, relation button labels)
+  - slightly increased rank icon size for visual balance with new text scale
+- Outcome:
+  - Details panel text now reads larger and more proportional within the widened mobile-style panel.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Details Header-to-Avatar Gap Increased
+
+- Completed:
+  - moved Details avatar block lower to create additional empty space under the `Details` header
+- Outcome:
+  - cleaner separation between heading and avatar.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Details Avatar Gap Increased (Offset 170)
+
+- Completed:
+  - set Details avatar center Y offset to `170` as requested
+- Outcome:
+  - significantly larger blank space between Details header and avatar block.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Avatar/Text Block Sync Fix in Details Card
+
+- Completed:
+  - linked name/username/rank Y positions to avatar Y anchor so they move together
+  - adjusted metrics/block placement math to stay stable after larger avatar offset
+- Outcome:
+  - moving the avatar now correctly carries the text block beneath it instead of leaving text behind.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - New Outlined Perspective Button Added
+
+- Completed:
+  - inserted a third Details action button under Parent/Sponsor
+  - applied outline style (`#077AFF` border + text)
+  - used provided blue light-mode icon from `brand_assets/Icons/UI`
+  - connected button action to existing dock Enter behavior (`universe:enter`)
+- Outcome:
+  - Details action section now includes direct "Enter User Perspective" control in the requested outlined visual treatment.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Details Button Icons Smoothed
+
+- Completed:
+  - improved canvas icon rendering to reduce jagged appearance
+  - added integer pixel snapping + high-quality image smoothing in shared image draw helper
+- Outcome:
+  - Parent/Sponsor/Enter User Perspective icons should render cleaner and less jagged.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-11) - Dock Enter Uses `send_money` Icon
+
+- Completed:
+  - swapped dock Enter icon to Material Symbols `send_money`
+  - added explicit icon font import for `send_money`
+  - kept fallback to old Enter glyph for resilience
+- Outcome:
+  - bottom dock Enter control now matches requested icon reference.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
