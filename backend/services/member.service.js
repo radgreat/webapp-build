@@ -1,13 +1,26 @@
 import { randomInt, randomUUID } from 'crypto';
-import { readRegisteredMembersStore, writeRegisteredMembersStore } from '../stores/member.store.js';
-import { readMockUsersStore, writeMockUsersStore } from '../stores/user.store.js';
-import { readPasswordSetupTokensStore, writePasswordSetupTokensStore } from '../stores/token.store.js';
-import { readMockEmailOutboxStore, writeMockEmailOutboxStore } from '../stores/email.store.js';
+import pool from '../db/db.js';
+import {
+  readRegisteredMembersStore,
+  writeRegisteredMembersStore,
+  upsertRegisteredMemberRecord,
+} from '../stores/member.store.js';
+import {
+  readMockUsersStore,
+  writeMockUsersStore,
+  upsertMockUserRecord,
+  findUserByUsername,
+  findUserByEmail,
+  isUsernameTaken,
+  isStoreCodeTaken,
+} from '../stores/user.store.js';
+import { upsertPasswordSetupTokenRecord } from '../stores/token.store.js';
+import { insertMockEmailOutboxRecord } from '../stores/email.store.js';
 import {
   normalizeText,
   normalizeCredential,
   normalizeCountryFlag,
-  createUniqueUsername,
+  normalizeUsernameCandidate,
   generateRandomPassword,
   issuePasswordSetupToken,
   buildPasswordSetupLink,
@@ -148,50 +161,100 @@ function createStoreCodeSuffix(seedValue, fallbackSuffix = '1000') {
   return `${normalizedSeed}${fallback}`.slice(0, 4);
 }
 
-function collectExistingStoreCodes(users) {
-  const existingCodes = new Set();
-  (Array.isArray(users) ? users : []).forEach((user) => {
-    [
-      user?.storeCode,
-      user?.publicStoreCode,
-      user?.attributionStoreCode,
-    ].forEach((candidateCode) => {
-      const normalizedCode = normalizeStoreCode(candidateCode);
-      if (normalizedCode) {
-        existingCodes.add(normalizedCode);
-      }
-    });
-  });
-  return existingCodes;
+function composeUsernameCandidate(base, suffix) {
+  const safeBase = String(base || '').trim().toLowerCase();
+  const numericSuffix = Number(suffix);
+  if (!safeBase) {
+    return '';
+  }
+  if (!Number.isFinite(numericSuffix) || numericSuffix <= 1) {
+    return safeBase.slice(0, 24);
+  }
+
+  const suffixText = String(Math.floor(numericSuffix));
+  const maxBaseLength = Math.max(1, 24 - suffixText.length);
+  return `${safeBase.slice(0, maxBaseLength)}${suffixText}`;
 }
 
-function createUniqueStoreCode(existingCodes, prefix, preferredSuffix) {
+async function createUniqueUsernameWithLookup(requestedUsername, email, options = {}) {
+  const baseCandidate = normalizeUsernameCandidate(requestedUsername)
+    || normalizeUsernameCandidate(String(email || '').split('@')[0])
+    || `member${randomInt(1000, 10000)}`;
+  const safeBase = baseCandidate.slice(0, 24) || `member${randomInt(1000, 10000)}`;
+  const client = options?.client;
+
+  for (let suffix = 1; suffix < 500; suffix += 1) {
+    const candidate = composeUsernameCandidate(safeBase, suffix);
+    if (!candidate) {
+      continue;
+    }
+    const taken = await isUsernameTaken(candidate, { client });
+    if (!taken) {
+      return candidate;
+    }
+  }
+
+  const fallback = composeUsernameCandidate(`${safeBase}${String(Date.now()).slice(-6)}`, 1)
+    || `member${randomInt(1000, 10000)}`;
+  const fallbackTaken = await isUsernameTaken(fallback, { client });
+  return fallbackTaken ? `member${Date.now()}` : fallback;
+}
+
+async function createUniqueStoreCode(prefix, preferredSuffix, options = {}) {
   const normalizedPrefix = String(prefix || 'CHG')
     .trim()
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, '') || 'CHG';
   const normalizedPreferredSuffix = createStoreCodeSuffix(preferredSuffix);
-  const safeExistingCodes = existingCodes instanceof Set ? existingCodes : new Set();
+  const safeReservedCodes = options?.reservedStoreCodes instanceof Set
+    ? options.reservedStoreCodes
+    : new Set();
+  const client = options?.client;
+
+  const tryReserve = async (candidateInput) => {
+    const candidate = normalizeStoreCode(candidateInput);
+    if (!candidate || safeReservedCodes.has(candidate)) {
+      return '';
+    }
+    const taken = await isStoreCodeTaken(candidate, { client });
+    if (taken) {
+      return '';
+    }
+    safeReservedCodes.add(candidate);
+    return candidate;
+  };
 
   const preferredCode = `${normalizedPrefix}-${normalizedPreferredSuffix}`;
-  if (!safeExistingCodes.has(preferredCode)) {
-    safeExistingCodes.add(preferredCode);
-    return preferredCode;
+  const reservedPreferred = await tryReserve(preferredCode);
+  if (reservedPreferred) {
+    return reservedPreferred;
   }
 
   for (let index = 0; index < 250; index += 1) {
     const randomSuffix = String(randomInt(1000, 10000));
     const candidate = `${normalizedPrefix}-${randomSuffix}`;
-    if (!safeExistingCodes.has(candidate)) {
-      safeExistingCodes.add(candidate);
-      return candidate;
+    const reservedCandidate = await tryReserve(candidate);
+    if (reservedCandidate) {
+      return reservedCandidate;
     }
   }
 
   const timestampSuffix = String(Date.now()).slice(-4);
   const fallbackCode = `${normalizedPrefix}-${timestampSuffix}`;
-  safeExistingCodes.add(fallbackCode);
-  return fallbackCode;
+  const reservedFallbackCode = await tryReserve(fallbackCode);
+  if (reservedFallbackCode) {
+    return reservedFallbackCode;
+  }
+
+  for (let attempt = 0; attempt < 120; attempt += 1) {
+    const candidate = `${normalizedPrefix}-${String(randomInt(1000, 10000))}`;
+    const reservedCandidate = await tryReserve(candidate);
+    if (reservedCandidate) {
+      return reservedCandidate;
+    }
+  }
+
+  return `${normalizedPrefix}-${Date.now()}`;
 }
 
 function resolveSponsorAttributionStoreCode(sponsorUser) {
@@ -421,188 +484,206 @@ export async function createRegisteredMember(payload) {
     };
   }
 
-  const users = await readMockUsersStore();
-  const matchedSponsorUserIndex = users.findIndex(
-    (user) => normalizeCredential(user?.username) === sponsorUsername
-  );
-  let matchedSponsorUser = matchedSponsorUserIndex >= 0
-    ? users[matchedSponsorUserIndex]
-    : null;
-  const resolvedSponsorFastTrackTier = matchedSponsorUser
-    ? resolveFastTrackTierFromSponsorUser(matchedSponsorUser)
-    : requestedFastTrackTier;
+  const client = await pool.connect();
+  let transactionStarted = false;
+  try {
+    let matchedSponsorUser = await findUserByUsername(sponsorUsername, { client });
+    const resolvedSponsorFastTrackTier = matchedSponsorUser
+      ? resolveFastTrackTierFromSponsorUser(matchedSponsorUser)
+      : requestedFastTrackTier;
 
-  if (!FAST_TRACK_TIER_META[resolvedSponsorFastTrackTier]) {
-    return {
-      success: false,
-      status: 400,
-      error: 'Invalid Fast Track tier.',
-    };
-  }
-
-  const normalizedEmail = normalizeCredential(email);
-  const emailExists = users.some((user) => normalizeCredential(user?.email) === normalizedEmail);
-
-  if (emailExists) {
-    return {
-      success: false,
-      status: 409,
-      error: 'A member with this email already exists.',
-    };
-  }
-
-  const members = await readRegisteredMembersStore();
-  const tokens = await readPasswordSetupTokensStore();
-  const outbox = await readMockEmailOutboxStore();
-
-  const memberUsername = createUniqueUsername(users, memberUsernameInput, email);
-  const existingStoreCodes = collectExistingStoreCodes(users);
-  if (matchedSponsorUser) {
-    const sponsorStoreCode = normalizeStoreCode(matchedSponsorUser?.storeCode);
-    const sponsorPublicStoreCode = normalizeStoreCode(matchedSponsorUser?.publicStoreCode);
-    if (!sponsorStoreCode || !sponsorPublicStoreCode) {
-      const sponsorStoreSeed = matchedSponsorUser?.username || sponsorUsername || `sponsor-${Date.now()}`;
-      const nextSponsorStoreCode = sponsorStoreCode || createUniqueStoreCode(existingStoreCodes, 'M', sponsorStoreSeed);
-      const nextSponsorPublicStoreCode = sponsorPublicStoreCode || createUniqueStoreCode(existingStoreCodes, 'CHG', sponsorStoreSeed);
-      matchedSponsorUser = {
-        ...matchedSponsorUser,
-        storeCode: nextSponsorStoreCode,
-        publicStoreCode: nextSponsorPublicStoreCode,
+    if (!FAST_TRACK_TIER_META[resolvedSponsorFastTrackTier]) {
+      return {
+        success: false,
+        status: 400,
+        error: 'Invalid Fast Track tier.',
       };
-      if (matchedSponsorUserIndex >= 0) {
-        users[matchedSponsorUserIndex] = matchedSponsorUser;
+    }
+
+    const existingUserByEmail = await findUserByEmail(email, { client });
+    if (existingUserByEmail) {
+      return {
+        success: false,
+        status: 409,
+        error: 'A member with this email already exists.',
+      };
+    }
+
+    const memberUsername = await createUniqueUsernameWithLookup(memberUsernameInput, email, { client });
+    const reservedStoreCodes = new Set();
+    let shouldPersistSponsorUser = false;
+    if (matchedSponsorUser) {
+      const sponsorStoreCode = normalizeStoreCode(matchedSponsorUser?.storeCode);
+      const sponsorPublicStoreCode = normalizeStoreCode(matchedSponsorUser?.publicStoreCode);
+      if (sponsorStoreCode) {
+        reservedStoreCodes.add(sponsorStoreCode);
+      }
+      if (sponsorPublicStoreCode) {
+        reservedStoreCodes.add(sponsorPublicStoreCode);
+      }
+      if (!sponsorStoreCode || !sponsorPublicStoreCode) {
+        const sponsorStoreSeed = matchedSponsorUser?.username || sponsorUsername || `sponsor-${Date.now()}`;
+        const nextSponsorStoreCode = sponsorStoreCode || await createUniqueStoreCode('M', sponsorStoreSeed, {
+          reservedStoreCodes,
+          client,
+        });
+        const nextSponsorPublicStoreCode = sponsorPublicStoreCode || await createUniqueStoreCode('CHG', sponsorStoreSeed, {
+          reservedStoreCodes,
+          client,
+        });
+        matchedSponsorUser = {
+          ...matchedSponsorUser,
+          storeCode: nextSponsorStoreCode,
+          publicStoreCode: nextSponsorPublicStoreCode,
+        };
+        shouldPersistSponsorUser = true;
       }
     }
+
+    const sponsorAttributionStoreCode = resolveSponsorAttributionStoreCode(matchedSponsorUser);
+    const publicStoreCode = await createUniqueStoreCode('CHG', memberUsername, {
+      reservedStoreCodes,
+      client,
+    });
+    const storeCode = await createUniqueStoreCode('M', memberUsername, {
+      reservedStoreCodes,
+      client,
+    });
+    const temporaryPassword = generateRandomPassword();
+    const packageMeta = FAST_TRACK_PACKAGE_META[enrollmentPackage];
+    const packagePrice = Number(packageMeta.price);
+    const packageBv = Number(packageMeta.bv);
+    const startingRank = STARTING_RANK_BY_PACKAGE[enrollmentPackage] || 'Personal';
+    const fastTrackBonusAmount = resolveFastTrackBonusAmount({
+      enrollmentPackage,
+      sponsorFastTrackTier: resolvedSponsorFastTrackTier,
+      isAdminPlacement,
+    });
+
+    const createdAtDate = new Date();
+    const createdAt = createdAtDate.toISOString();
+    const activityActiveUntilAt = new Date(createdAtDate.getTime() + ACCOUNT_ACTIVITY_WINDOW_MS).toISOString();
+    const userId = `usr_${Date.now()}_${randomUUID().slice(0, 8)}`;
+
+    const newUser = {
+      id: userId,
+      name: fullName,
+      username: memberUsername,
+      email,
+      countryFlag,
+      password: temporaryPassword,
+      passwordSetupRequired: true,
+      accountStatus: 'pending-password-setup',
+      attributionStoreCode: sponsorAttributionStoreCode,
+      publicStoreCode,
+      storeCode,
+      enrollmentPackage,
+      enrollmentPackageLabel: packageMeta.label,
+      enrollmentPackagePrice: packagePrice,
+      enrollmentPackageBv: packageBv,
+      starterPersonalPv: packageBv,
+      starterTotalCycles: 0,
+      rank: startingRank,
+      accountRank: startingRank,
+      activityActiveUntilAt,
+      lastProductPurchaseAt: '',
+      lastPurchaseAt: '',
+      createdAt,
+    };
+
+    const tokenRecord = issuePasswordSetupToken(userId, email);
+    const setupLink = buildPasswordSetupLink(tokenRecord.token, email, {
+      audience: resolveAuthAccountAudience(newUser),
+    });
+
+    const emailLogRecord = {
+      id: `mail_${Date.now()}_${randomUUID().slice(0, 8)}`,
+      to: email,
+      subject: 'Charge account password setup',
+      body: `Welcome to Charge. Click the link to set your password: ${setupLink}`,
+      setupLink,
+      createdAt,
+      status: 'queued',
+    };
+
+    const createdMember = {
+      id: `reg_${Date.now()}_${randomUUID().slice(0, 8)}`,
+      userId,
+      fullName,
+      email,
+      countryFlag,
+      memberUsername,
+      phone,
+      notes,
+      sponsorUsername,
+      sponsorName,
+      enrollmentContext,
+      isAdminPlacement,
+      placementLeg,
+      isSpillover: placementLeg === PLACEMENT_LEG_SPILLOVER,
+      spilloverPlacementSide: placementLeg === PLACEMENT_LEG_SPILLOVER ? spilloverPlacementSide : '',
+      spilloverParentMode: placementLeg === PLACEMENT_LEG_SPILLOVER ? spilloverParentMode : '',
+      spilloverParentReference: placementLeg === PLACEMENT_LEG_SPILLOVER ? effectiveSpilloverParentReference : '',
+      enrollmentPackage,
+      enrollmentPackageLabel: packageMeta.label,
+      fastTrackTier: resolvedSponsorFastTrackTier,
+      fastTrackTierLabel: FAST_TRACK_TIER_META[resolvedSponsorFastTrackTier].label,
+      packagePrice,
+      packageBv,
+      starterPersonalPv: packageBv,
+      rank: startingRank,
+      accountRank: startingRank,
+      activityActiveUntilAt,
+      lastProductPurchaseAt: '',
+      lastPurchaseAt: '',
+      fastTrackBonusAmount,
+      passwordSetupRequired: true,
+      passwordSetupEmailQueued: true,
+      passwordSetupTokenExpiresAt: tokenRecord.expiresAt,
+      passwordSetupLink: setupLink,
+      businessCenterOwnerUserId: userId,
+      businessCenterOwnerUsername: memberUsername,
+      businessCenterOwnerEmail: email,
+      businessCenterNodeType: BUSINESS_CENTER_NODE_TYPE_PRIMARY,
+      businessCenterIndex: 0,
+      businessCenterLabel: '',
+      businessCenterActivatedAt: '',
+      businessCenterPinnedSide: '',
+      legacyLeadershipCompletedTierCount: 0,
+      businessCentersEarnedLifetime: 0,
+      businessCentersActivated: 0,
+      businessCentersPending: 0,
+      businessCentersOverflowPending: 0,
+      businessCentersCount: 0,
+      isStaffTreeAccount,
+      createdAt,
+    };
+
+    await client.query('BEGIN');
+    transactionStarted = true;
+    if (shouldPersistSponsorUser && matchedSponsorUser) {
+      await upsertMockUserRecord(matchedSponsorUser, { client });
+    }
+    await upsertMockUserRecord(newUser, { client, preferInsert: true });
+    await upsertRegisteredMemberRecord(createdMember, { client, preferInsert: true });
+    await upsertPasswordSetupTokenRecord(tokenRecord, { client, preferInsert: true });
+    await insertMockEmailOutboxRecord(emailLogRecord, { client, preferInsert: true });
+    await client.query('COMMIT');
+    transactionStarted = false;
+
+    return {
+      success: true,
+      status: 201,
+      member: createdMember,
+    };
+  } catch (error) {
+    if (transactionStarted) {
+      await client.query('ROLLBACK');
+    }
+    throw error;
+  } finally {
+    client.release();
   }
-
-  const sponsorAttributionStoreCode = resolveSponsorAttributionStoreCode(matchedSponsorUser);
-  const publicStoreCode = createUniqueStoreCode(existingStoreCodes, 'CHG', memberUsername);
-  const storeCode = createUniqueStoreCode(existingStoreCodes, 'M', memberUsername);
-  const temporaryPassword = generateRandomPassword();
-  const packageMeta = FAST_TRACK_PACKAGE_META[enrollmentPackage];
-  const packagePrice = Number(packageMeta.price);
-  const packageBv = Number(packageMeta.bv);
-  const startingRank = STARTING_RANK_BY_PACKAGE[enrollmentPackage] || 'Personal';
-  const fastTrackBonusAmount = resolveFastTrackBonusAmount({
-    enrollmentPackage,
-    sponsorFastTrackTier: resolvedSponsorFastTrackTier,
-    isAdminPlacement,
-  });
-
-  const createdAtDate = new Date();
-  const createdAt = createdAtDate.toISOString();
-  const activityActiveUntilAt = new Date(createdAtDate.getTime() + ACCOUNT_ACTIVITY_WINDOW_MS).toISOString();
-  const userId = `usr_${Date.now()}_${randomUUID().slice(0, 8)}`;
-
-  const newUser = {
-    id: userId,
-    name: fullName,
-    username: memberUsername,
-    email,
-    countryFlag,
-    password: temporaryPassword,
-    passwordSetupRequired: true,
-    accountStatus: 'pending-password-setup',
-    attributionStoreCode: sponsorAttributionStoreCode,
-    publicStoreCode,
-    storeCode,
-    enrollmentPackage,
-    enrollmentPackageLabel: packageMeta.label,
-    enrollmentPackagePrice: packagePrice,
-    enrollmentPackageBv: packageBv,
-    starterPersonalPv: packageBv,
-    starterTotalCycles: 0,
-    rank: startingRank,
-    accountRank: startingRank,
-    activityActiveUntilAt,
-    lastProductPurchaseAt: '',
-    lastPurchaseAt: '',
-    createdAt,
-  };
-
-  const tokenRecord = issuePasswordSetupToken(userId, email);
-  const setupLink = buildPasswordSetupLink(tokenRecord.token, email, {
-    audience: resolveAuthAccountAudience(newUser),
-  });
-
-  const emailLogRecord = {
-    id: `mail_${Date.now()}_${randomUUID().slice(0, 8)}`,
-    to: email,
-    subject: 'Charge account password setup',
-    body: `Welcome to Charge. Click the link to set your password: ${setupLink}`,
-    setupLink,
-    createdAt,
-    status: 'queued',
-  };
-
-  const createdMember = {
-    id: `reg_${Date.now()}_${randomUUID().slice(0, 8)}`,
-    userId,
-    fullName,
-    email,
-    countryFlag,
-    memberUsername,
-    phone,
-    notes,
-    sponsorUsername,
-    sponsorName,
-    enrollmentContext,
-    isAdminPlacement,
-    placementLeg,
-    isSpillover: placementLeg === PLACEMENT_LEG_SPILLOVER,
-    spilloverPlacementSide: placementLeg === PLACEMENT_LEG_SPILLOVER ? spilloverPlacementSide : '',
-    spilloverParentMode: placementLeg === PLACEMENT_LEG_SPILLOVER ? spilloverParentMode : '',
-    spilloverParentReference: placementLeg === PLACEMENT_LEG_SPILLOVER ? effectiveSpilloverParentReference : '',
-    enrollmentPackage,
-    enrollmentPackageLabel: packageMeta.label,
-    fastTrackTier: resolvedSponsorFastTrackTier,
-    fastTrackTierLabel: FAST_TRACK_TIER_META[resolvedSponsorFastTrackTier].label,
-    packagePrice,
-    packageBv,
-    starterPersonalPv: packageBv,
-    rank: startingRank,
-    accountRank: startingRank,
-    activityActiveUntilAt,
-    lastProductPurchaseAt: '',
-    lastPurchaseAt: '',
-    fastTrackBonusAmount,
-    passwordSetupRequired: true,
-    passwordSetupEmailQueued: true,
-    passwordSetupTokenExpiresAt: tokenRecord.expiresAt,
-    passwordSetupLink: setupLink,
-    businessCenterOwnerUserId: userId,
-    businessCenterOwnerUsername: memberUsername,
-    businessCenterOwnerEmail: email,
-    businessCenterNodeType: BUSINESS_CENTER_NODE_TYPE_PRIMARY,
-    businessCenterIndex: 0,
-    businessCenterLabel: '',
-    businessCenterActivatedAt: '',
-    businessCenterPinnedSide: '',
-    legacyLeadershipCompletedTierCount: 0,
-    businessCentersEarnedLifetime: 0,
-    businessCentersActivated: 0,
-    businessCentersPending: 0,
-    businessCentersOverflowPending: 0,
-    businessCentersCount: 0,
-    isStaffTreeAccount,
-    createdAt,
-  };
-
-  users.unshift(newUser);
-  members.unshift(createdMember);
-  tokens.unshift(tokenRecord);
-  outbox.unshift(emailLogRecord);
-
-  await writeMockUsersStore(users);
-  await writeRegisteredMembersStore(members);
-  await writePasswordSetupTokensStore(tokens);
-  await writeMockEmailOutboxStore(outbox);
-
-  return {
-    success: true,
-    status: 201,
-    member: createdMember,
-  };
 }
 
 export async function updateRegisteredMemberPlacement(payload = {}) {

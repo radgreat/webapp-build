@@ -20,6 +20,16 @@
  * @property {number} spilloverRightPv
  * @property {string=} rank
  * @property {string=} countryFlag
+ * @property {string=} profileCoverUrl
+ * @property {string=} profileAccountTitle
+ * @property {string=} profileAccountTitleSecondary
+ * @property {{rank: boolean, title: boolean, extra: boolean}=} profileBadgeVisibility
+ * @property {string=} profileBadgeRankIconPath
+ * @property {string=} profileBadgeTitleIconPath
+ * @property {string=} profileBadgeExtraIconPath
+ * @property {string=} profileBadgeRankSubtitle
+ * @property {string=} profileBadgeTitleSubtitle
+ * @property {string=} profileBadgeExtraSubtitle
  * @property {string=} leftChildId
  * @property {string=} rightChildId
  * @property {string=} sponsorId
@@ -62,12 +72,44 @@ const COUNTRY_FLAG_CODE_BY_EMOJI = Object.freeze({
   '🏳️': 'un',
   '🏳': 'un',
 });
+const PROFILE_EVENT_TITLE_ICON_BASE_PATH_BY_KEY = Object.freeze({
+  'legacy founder': '/brand_assets/Icons/Title-Icons/legacy-founder-star',
+  'legacy director': '/brand_assets/Icons/Title-Icons/legacy-director-star',
+  'legacy ambassador': '/brand_assets/Icons/Title-Icons/legacy-ambassador-star',
+  'presidential circle': '/brand_assets/Icons/Title-Icons/presidential-circle-star',
+});
+const PROFILE_ICON_PATH_PATTERN = /^\/brand_assets\/Icons\/(?:Achievements|Title-Icons)\/[a-z0-9-]+(?:-light)?\.svg$/i;
 
 const NODE_WIDTH = 228;
 const NODE_HEIGHT = 138;
-const ENROLL_PLACEHOLDER_WIDTH = 172;
-const ENROLL_PLACEHOLDER_HEIGHT = 92;
-const ENROLL_PLACEHOLDER_CORNER_RADIUS = 12;
+const TREE_SIMPLE_NODE_RADIUS = 28;
+const TREE_SIMPLE_NODE_LINK_WIDTH = 1.55;
+const TREE_DEEP_X_SPACING_START_DEPTH = 3;
+const TREE_DEEP_X_SPACING_PER_DEPTH = 18;
+const TREE_DEEP_X_SPACING_GROWTH = 4;
+const ENROLL_ANTICIPATED_NODE_RADIUS = TREE_SIMPLE_NODE_RADIUS;
+const ENROLL_ANTICIPATED_NODE_LABEL_OFFSET = 10;
+const ENROLL_ANTICIPATED_NODE_LABEL_HEIGHT = 14;
+const ENROLL_LAYOUT_SLOT_WIDTH_BOOST = 72;
+const ENROLL_LAYOUT_DEPTH_CAP_BOOST = 2;
+const ENROLL_ANTICIPATED_BASE_GAP = (ENROLL_ANTICIPATED_NODE_RADIUS * 2) + 34;
+const ENROLL_MIDDLE_GAP = 178;
+const ENROLL_MIDDLE_GAP_PER_DEPTH = 24;
+const ENROLL_MIDDLE_GAP_MAX_EXTRA = 220;
+const ENROLL_SELECTED_SLOT_HORIZONTAL_OFFSET = 138;
+const ENROLL_SELECTED_SLOT_VERTICAL_RATIO = 0.72;
+const ENROLL_SELECTED_SLOT_VERTICAL_STEP = 44;
+const ENROLL_SELECTED_SLOT_MAX_VERTICAL_STEPS = 8;
+const ENROLL_SELECTED_SLOT_COLLISION_PADDING = 14;
+const NODE_POPUP_WIDTH = 404;
+const NODE_POPUP_HEIGHT = 368;
+const NODE_POPUP_POINTER_HEIGHT = 10;
+const NODE_POPUP_TOP_MARGIN = 10;
+const NODE_POPUP_SCREEN_MARGIN = 14;
+const NODE_POPUP_ANCHOR_OFFSET_Y = 8;
+const NODE_POPUP_COVER_HEIGHT = 104;
+const NODE_POPUP_AVATAR_RADIUS = 28;
+const NODE_POPUP_BADGE_HOVER_HIDE_DELAY_MS = 90;
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 2.5;
 const WHEEL_STEP_ZOOM_IN_FACTOR = 1.12;
@@ -87,6 +129,22 @@ const TREE_UI_STATE_STORAGE_KEY = 'charge-binary-tree-ui-state-v1';
 const DESKTOP_MINIMAP_SIZES = Object.freeze(['small', 'medium', 'large']);
 const SPILLOVER_HIGHLIGHT_MODES = Object.freeze(['all', 'received-only', 'none']);
 const WEEKDAY_LABELS = Object.freeze(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']);
+const TREE_LOD_MODE_FAR = 'far';
+const TREE_LOD_MODE_MID = 'mid';
+const TREE_LOD_MODE_NEAR = 'near';
+const TREE_LOD_FAR_ENTER_ZOOM = 0.48;
+const TREE_LOD_FAR_EXIT_ZOOM = 0.58;
+const TREE_LOD_NEAR_ENTER_ZOOM = 0.72;
+const TREE_LOD_NEAR_EXIT_ZOOM = 0.64;
+const TREE_LOD_DEPTH_LIMIT_BY_MODE = Object.freeze({
+  [TREE_LOD_MODE_FAR]: 4,
+  [TREE_LOD_MODE_MID]: 6,
+  [TREE_LOD_MODE_NEAR]: Number.POSITIVE_INFINITY,
+});
+const TREE_WORLD_LAYOUT_WIDTH_DEPTH_CAP = 4;
+const TREE_WORLD_SLOT_WIDTH = 184;
+const TREE_MAP_HOME_ZOOM = 0.6;
+const TREE_MAP_HOME_VIEWPORT_Y_RATIO = 0.42;
 
 const TREE_THEME_PALETTES = Object.freeze({
   dark: {
@@ -191,6 +249,51 @@ function easeInOutSine(progress) {
   return -(Math.cos(Math.PI * t) - 1) / 2;
 }
 
+function resolveTreeLodModeForScale(scale, currentModeKey, options = {}) {
+  if (options.disable) {
+    return {
+      key: TREE_LOD_MODE_NEAR,
+      maxDepth: TREE_LOD_DEPTH_LIMIT_BY_MODE[TREE_LOD_MODE_NEAR],
+    };
+  }
+
+  const safeScale = clamp(Number(scale) || 1, MIN_ZOOM, MAX_ZOOM);
+  const currentKey = (
+    currentModeKey === TREE_LOD_MODE_FAR
+    || currentModeKey === TREE_LOD_MODE_MID
+    || currentModeKey === TREE_LOD_MODE_NEAR
+  )
+    ? currentModeKey
+    : TREE_LOD_MODE_NEAR;
+
+  let nextKey = currentKey;
+
+  if (currentKey === TREE_LOD_MODE_FAR) {
+    if (safeScale >= TREE_LOD_NEAR_ENTER_ZOOM) {
+      nextKey = TREE_LOD_MODE_NEAR;
+    } else if (safeScale >= TREE_LOD_FAR_EXIT_ZOOM) {
+      nextKey = TREE_LOD_MODE_MID;
+    }
+  } else if (currentKey === TREE_LOD_MODE_MID) {
+    if (safeScale < TREE_LOD_FAR_ENTER_ZOOM) {
+      nextKey = TREE_LOD_MODE_FAR;
+    } else if (safeScale >= TREE_LOD_NEAR_ENTER_ZOOM) {
+      nextKey = TREE_LOD_MODE_NEAR;
+    }
+  } else {
+    if (safeScale < TREE_LOD_FAR_ENTER_ZOOM) {
+      nextKey = TREE_LOD_MODE_FAR;
+    } else if (safeScale < TREE_LOD_NEAR_EXIT_ZOOM) {
+      nextKey = TREE_LOD_MODE_MID;
+    }
+  }
+
+  return {
+    key: nextKey,
+    maxDepth: TREE_LOD_DEPTH_LIMIT_BY_MODE[nextKey] ?? TREE_LOD_DEPTH_LIMIT_BY_MODE[TREE_LOD_MODE_NEAR],
+  };
+}
+
 function hashString(value) {
   const input = String(value ?? '');
   let hash = 2166136261;
@@ -250,6 +353,23 @@ function buildSpilloverBezierPolyline(startX, startY, control1X, control1Y, cont
     points.push(cubicBezierPoint(startX, startY, control1X, control1Y, control2X, control2Y, endX, endY, t));
   }
   return points;
+}
+
+function resolveEdgeAnchoredLineSegment(startX, startY, endX, endY, startRadius = TREE_SIMPLE_NODE_RADIUS, endRadius = TREE_SIMPLE_NODE_RADIUS) {
+  const deltaX = endX - startX;
+  const deltaY = endY - startY;
+  const distance = Math.hypot(deltaX, deltaY);
+  if (distance <= 0.0001) {
+    return null;
+  }
+  const unitX = deltaX / distance;
+  const unitY = deltaY / distance;
+  return {
+    startX: startX + unitX * Math.max(0, startRadius),
+    startY: startY + unitY * Math.max(0, startRadius),
+    endX: endX - unitX * Math.max(0, endRadius),
+    endY: endY - unitY * Math.max(0, endRadius),
+  };
 }
 
 function drawDashedPolyline(graphics, points, dashLength, gapLength) {
@@ -501,6 +621,186 @@ function formatMemberHandle(memberCode) {
   return normalizedCode ? `@${normalizedCode}` : '@unknown';
 }
 
+function normalizeNodePopupKey(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ');
+}
+
+function sanitizeNodePopupBadgeVisibility(value) {
+  const safeValue = value && typeof value === 'object' ? value : {};
+  const normalizeFlag = (rawValue, fallbackValue) => {
+    if (typeof rawValue === 'boolean') {
+      return rawValue;
+    }
+    if (typeof rawValue === 'string') {
+      const normalized = normalizeNodePopupKey(rawValue);
+      if (normalized === 'false' || normalized === '0' || normalized === 'no') {
+        return false;
+      }
+      if (normalized === 'true' || normalized === '1' || normalized === 'yes') {
+        return true;
+      }
+    }
+    if (typeof rawValue === 'number') {
+      if (rawValue === 0) {
+        return false;
+      }
+      if (rawValue === 1) {
+        return true;
+      }
+    }
+    return fallbackValue;
+  };
+
+  return {
+    rank: normalizeFlag(safeValue.rank, true),
+    title: normalizeFlag(safeValue.title, true),
+    extra: normalizeFlag(safeValue.extra, true),
+  };
+}
+
+function sanitizeNodePopupIconPath(value) {
+  const candidatePath = String(value || '').trim();
+  return PROFILE_ICON_PATH_PATTERN.test(candidatePath) ? candidatePath : '';
+}
+
+function sanitizeNodePopupHoverSubtitle(value) {
+  const candidateSubtitle = String(value ?? '').replace(/\r/g, '').trim();
+  return candidateSubtitle;
+}
+
+function resolveNodePopupTitleIconPath(titleLabel, rankLabel, isLightTheme) {
+  const normalizedTitleKey = normalizeNodePopupKey(titleLabel);
+  if (!normalizedTitleKey) {
+    return '';
+  }
+
+  if (Object.prototype.hasOwnProperty.call(PROFILE_EVENT_TITLE_ICON_BASE_PATH_BY_KEY, normalizedTitleKey)) {
+    const basePath = PROFILE_EVENT_TITLE_ICON_BASE_PATH_BY_KEY[normalizedTitleKey];
+    return `${basePath}${isLightTheme ? '-light' : ''}.svg`;
+  }
+
+  const fallbackIconKey = resolveAchievementIconKeyFromRankLabel(titleLabel || rankLabel);
+  if (!fallbackIconKey || fallbackIconKey === 'placeholder') {
+    return '';
+  }
+  return getNodeRankAchievementIconPath(titleLabel || rankLabel, isLightTheme);
+}
+
+function resolveNodePopupHeaderIconEntries(node, isLightTheme) {
+  if (!node || shouldHideNodeRankAndCountry(node)) {
+    return [];
+  }
+
+  const entries = [];
+  const badgeVisibility = sanitizeNodePopupBadgeVisibility(node?.profileBadgeVisibility);
+  const rankLabel = getNodeRankLabel(node);
+  const rankHoverSubtitle = sanitizeNodePopupHoverSubtitle(
+    node?.profileBadgeRankSubtitle || node?.profileRankSubtitle || '',
+  ) || (
+    isValidNumber(node?.addedAt)
+      ? `Subscriber since ${formatAddedAt(node.addedAt)}`
+      : 'Subscriber since --'
+  );
+
+  if (badgeVisibility.rank) {
+    const explicitRankIconPath = sanitizeNodePopupIconPath(
+      node?.profileBadgeRankIconPath || node?.profileRankIconPath || '',
+    );
+    if (explicitRankIconPath) {
+      entries.push({
+        key: 'rank',
+        iconPath: explicitRankIconPath,
+        hoverTitle: rankLabel || 'Unranked',
+        hoverSubtitle: rankHoverSubtitle,
+      });
+    } else {
+      const rankIconKey = resolveAchievementIconKeyFromRankLabel(rankLabel);
+      if (rankIconKey && rankIconKey !== 'placeholder') {
+        entries.push({
+          key: 'rank',
+          iconPath: getNodeRankAchievementIconPath(rankLabel, isLightTheme),
+          hoverTitle: rankLabel || 'Unranked',
+          hoverSubtitle: rankHoverSubtitle,
+        });
+      }
+    }
+  }
+
+  const primaryTitleLabel = String(
+    node?.profileAccountTitle || node?.accountTitle || node?.title || node?.profileTitle1 || '',
+  ).trim();
+  const primaryTitleHoverSubtitle = sanitizeNodePopupHoverSubtitle(
+    node?.profileBadgeTitleSubtitle || node?.profileTitleSubtitle || node?.profileTitle1Subtitle || '',
+  ) || 'Title 1';
+  if (badgeVisibility.title && primaryTitleLabel) {
+    const explicitTitleIconPath = sanitizeNodePopupIconPath(
+      node?.profileBadgeTitleIconPath || node?.profileTitleIconPath || node?.profileTitle1IconPath || '',
+    );
+    if (explicitTitleIconPath) {
+      entries.push({
+        key: 'title',
+        iconPath: explicitTitleIconPath,
+        hoverTitle: primaryTitleLabel,
+        hoverSubtitle: primaryTitleHoverSubtitle,
+      });
+    } else {
+      const resolvedPrimaryTitleIconPath = resolveNodePopupTitleIconPath(
+        primaryTitleLabel,
+        rankLabel,
+        isLightTheme,
+      );
+      if (resolvedPrimaryTitleIconPath) {
+        entries.push({
+          key: 'title',
+          iconPath: resolvedPrimaryTitleIconPath,
+          hoverTitle: primaryTitleLabel,
+          hoverSubtitle: primaryTitleHoverSubtitle,
+        });
+      }
+    }
+  }
+
+  const secondaryTitleLabel = String(
+    node?.profileAccountTitleSecondary || node?.accountTitleSecondary || node?.profileTitle2 || '',
+  ).trim();
+  const secondaryTitleHoverSubtitle = sanitizeNodePopupHoverSubtitle(
+    node?.profileBadgeExtraSubtitle || node?.profileExtraSubtitle || node?.profileTitle2Subtitle || '',
+  ) || 'Title 2';
+  if (badgeVisibility.extra && secondaryTitleLabel) {
+    const explicitSecondaryTitleIconPath = sanitizeNodePopupIconPath(
+      node?.profileBadgeExtraIconPath || node?.profileExtraIconPath || node?.profileTitle2IconPath || '',
+    );
+    if (explicitSecondaryTitleIconPath) {
+      entries.push({
+        key: 'extra',
+        iconPath: explicitSecondaryTitleIconPath,
+        hoverTitle: secondaryTitleLabel,
+        hoverSubtitle: secondaryTitleHoverSubtitle,
+      });
+    } else {
+      const resolvedSecondaryTitleIconPath = resolveNodePopupTitleIconPath(
+        secondaryTitleLabel,
+        rankLabel,
+        isLightTheme,
+      );
+      if (resolvedSecondaryTitleIconPath) {
+        entries.push({
+          key: 'extra',
+          iconPath: resolvedSecondaryTitleIconPath,
+          hoverTitle: secondaryTitleLabel,
+          hoverSubtitle: secondaryTitleHoverSubtitle,
+        });
+      }
+    }
+  }
+
+  return entries;
+}
+
 function isNodeAnonymized(node) {
   const normalizedName = String(node?.name || '').trim().toLowerCase();
   const normalizedMemberCode = String(node?.memberCode || '').trim().toLowerCase();
@@ -557,6 +857,48 @@ function truncateNodeLabel(value, maxLength = 22) {
   return `${text.slice(0, Math.max(1, maxLength - 3))}...`;
 }
 
+function resolveNodePopupDisplayName(node, maxLength = 28) {
+  const rawName = String(node?.name || '').trim();
+  let candidate = rawName;
+
+  if (!candidate || candidate.toLowerCase() === 'you') {
+    candidate = String(node?.memberCode || node?.id || 'Member').trim().replace(/^@+/, '');
+  }
+
+  if (!candidate) {
+    return 'Member';
+  }
+
+  if (candidate.length > maxLength) {
+    const [firstName] = candidate.split(/\s+/).filter(Boolean);
+    if (firstName && firstName.length <= maxLength) {
+      candidate = firstName;
+    }
+  }
+
+  return truncateNodeLabel(candidate, maxLength);
+}
+
+function getNodeInitials(value) {
+  const text = String(value || '').trim();
+  if (!text) {
+    return '?';
+  }
+
+  const parts = text
+    .replace(/[^a-zA-Z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return text.slice(0, 2).toUpperCase();
+}
+
 function normalizeCountryFlag(value) {
   const rawValue = String(value || '').trim();
   if (!rawValue) {
@@ -600,6 +942,59 @@ function getNodeRankLabel(node) {
     return 'Personal Pack';
   }
   return rank;
+}
+
+function resolveAchievementIconKeyFromRankLabel(rankLabel) {
+  const normalizedRank = String(rankLabel || '').trim().toLowerCase();
+  if (!normalizedRank || normalizedRank === 'private') {
+    return 'placeholder';
+  }
+  if (normalizedRank.includes('black diamond')) {
+    return 'black-diamond';
+  }
+  if (normalizedRank.includes('blue diamond')) {
+    return 'blue-diamond';
+  }
+  if (normalizedRank.includes('diamond')) {
+    return 'diamond';
+  }
+  if (normalizedRank.includes('double crown')) {
+    return 'double-crown';
+  }
+  if (normalizedRank.includes('royal crown')) {
+    return 'royal-crown';
+  }
+  if (normalizedRank.includes('crown')) {
+    return 'crown';
+  }
+  if (normalizedRank.includes('emerald')) {
+    return 'emerald';
+  }
+  if (normalizedRank.includes('sapphire')) {
+    return 'sapphire';
+  }
+  if (normalizedRank.includes('ruby')) {
+    return 'ruby';
+  }
+  if (normalizedRank.includes('legacy')) {
+    return 'legacy';
+  }
+  if (normalizedRank.includes('infinity') || normalizedRank.includes('achiever')) {
+    return 'infinity';
+  }
+  if (normalizedRank.includes('business')) {
+    return 'business';
+  }
+  if (normalizedRank.includes('personal') || normalizedRank.includes('starter')) {
+    return 'personal';
+  }
+  return 'placeholder';
+}
+
+function getNodeRankAchievementIconPath(rankLabel, isLightTheme) {
+  const iconKey = resolveAchievementIconKeyFromRankLabel(rankLabel);
+  const iconSuffix = isLightTheme ? '-light' : '';
+  return `/brand_assets/Icons/Achievements/${iconKey}${iconSuffix}.svg`;
 }
 
 function resolveBaseBvFromRankLabel(rankLabel) {
@@ -756,6 +1151,30 @@ function normalizeNode(id, node) {
     : 'primary';
   const isBusinessCenterPlaceholder = Boolean(node?.isBusinessCenterPlaceholder)
     || businessCenterNodeType === 'placeholder';
+  const profileBadgeVisibility = node?.profileBadgeVisibility && typeof node.profileBadgeVisibility === 'object'
+    ? sanitizeNodePopupBadgeVisibility(node.profileBadgeVisibility)
+    : undefined;
+  const profileBadgeRankIconPath = sanitizeNodePopupIconPath(
+    node?.profileBadgeRankIconPath || node?.profileRankIconPath || '',
+  );
+  const profileBadgeTitleIconPath = sanitizeNodePopupIconPath(
+    node?.profileBadgeTitleIconPath || node?.profileTitleIconPath || node?.profileTitle1IconPath || '',
+  );
+  const profileBadgeExtraIconPath = sanitizeNodePopupIconPath(
+    node?.profileBadgeExtraIconPath || node?.profileExtraIconPath || node?.profileTitle2IconPath || '',
+  );
+  const profileCoverUrl = String(
+    node?.profileCoverUrl || node?.coverUrl || node?.coverDataUrl || '',
+  ).trim();
+  const profileBadgeRankSubtitle = sanitizeNodePopupHoverSubtitle(
+    node?.profileBadgeRankSubtitle || node?.profileRankSubtitle || '',
+  );
+  const profileBadgeTitleSubtitle = sanitizeNodePopupHoverSubtitle(
+    node?.profileBadgeTitleSubtitle || node?.profileTitleSubtitle || node?.profileTitle1Subtitle || '',
+  );
+  const profileBadgeExtraSubtitle = sanitizeNodePopupHoverSubtitle(
+    node?.profileBadgeExtraSubtitle || node?.profileExtraSubtitle || node?.profileTitle2Subtitle || '',
+  );
 
   return {
     id: String(node?.id || id),
@@ -772,6 +1191,20 @@ function normalizeNode(id, node) {
     spilloverRightPv: 0,
     rank: typeof node?.rank === 'string' ? node.rank : undefined,
     countryFlag: normalizeCountryFlag(node?.countryFlag),
+    profileCoverUrl,
+    profileAccountTitle: typeof node?.profileAccountTitle === 'string'
+      ? node.profileAccountTitle
+      : (typeof node?.accountTitle === 'string' ? node.accountTitle : undefined),
+    profileAccountTitleSecondary: typeof node?.profileAccountTitleSecondary === 'string'
+      ? node.profileAccountTitleSecondary
+      : (typeof node?.accountTitleSecondary === 'string' ? node.accountTitleSecondary : undefined),
+    profileBadgeVisibility,
+    profileBadgeRankIconPath,
+    profileBadgeTitleIconPath,
+    profileBadgeExtraIconPath,
+    profileBadgeRankSubtitle,
+    profileBadgeTitleSubtitle,
+    profileBadgeExtraSubtitle,
     leftChildId: typeof node?.leftChildId === 'string' ? node.leftChildId : undefined,
     rightChildId: typeof node?.rightChildId === 'string' ? node.rightChildId : undefined,
     sponsorId: typeof node?.sponsorId === 'string' ? node.sponsorId : undefined,
@@ -1087,13 +1520,18 @@ function computeLayout(data, options = {}) {
   const seen = new Set();
   const meta = new Map();
   const reserveMissingChildDepth = options.reserveMissingChildDepth === true;
+  const requestedWidthDepthCap = Number(options.widthDepthCap);
+  const widthDepthCap = Number.isFinite(requestedWidthDepthCap)
+    ? Math.max(0, Math.floor(requestedWidthDepthCap))
+    : null;
   const requestedSlotWidth = Number(options.slotWidth);
   const slotWidth = Number.isFinite(requestedSlotWidth)
-    ? clamp(Math.round(requestedSlotWidth), 228, 360)
-    : 248;
+    ? clamp(Math.round(requestedSlotWidth), 136, 360)
+    : 192;
   const originY = 60;
   const levelGap = 188;
   const depthCap = MAX_LAYOUT_DEPTH_FOR_WIDTH;
+  const shouldPreventOverlap = options.preventOverlap !== false && !reserveMissingChildDepth;
   let maxDepth = 0;
 
   while (queue.length) {
@@ -1148,7 +1586,13 @@ function computeLayout(data, options = {}) {
   }
 
   const effectiveMaxDepth = Math.min(maxDepth, depthCap);
-  const layoutWidth = Math.max(1600, (2 ** Math.max(effectiveMaxDepth, 1)) * slotWidth);
+  const effectiveMaxDepthForWidth = (
+    !reserveMissingChildDepth
+    && Number.isFinite(widthDepthCap)
+  )
+    ? Math.min(effectiveMaxDepth, widthDepthCap)
+    : effectiveMaxDepth;
+  const layoutWidth = Math.max(980, (2 ** Math.max(effectiveMaxDepthForWidth, 1)) * slotWidth);
   const positions = new Map();
   let minX = Number.POSITIVE_INFINITY;
   let minY = Number.POSITIVE_INFINITY;
@@ -1170,6 +1614,74 @@ function computeLayout(data, options = {}) {
     minY = Math.min(minY, y - NODE_HEIGHT / 2);
     maxX = Math.max(maxX, x + NODE_WIDTH / 2);
     maxY = Math.max(maxY, y + NODE_HEIGHT / 2);
+  }
+
+  if (shouldPreventOverlap && positions.size > 1) {
+    const baseMinHorizontalGap = (TREE_SIMPLE_NODE_RADIUS * 2) + 8;
+    /** @type {Map<number, Array<{id: string, originalX: number, adjustedX: number}>>} */
+    const depthBuckets = new Map();
+
+    for (const [id, point] of meta.entries()) {
+      const position = positions.get(id);
+      if (!position) {
+        continue;
+      }
+      const depth = Number.isFinite(point?.depth) ? point.depth : 0;
+      const bucket = depthBuckets.get(depth) || [];
+      bucket.push({ id, originalX: position.x, adjustedX: position.x });
+      depthBuckets.set(depth, bucket);
+    }
+
+    for (const [bucketDepth, bucket] of depthBuckets.entries()) {
+      if (bucket.length < 2) {
+        continue;
+      }
+      const deepDepthDelta = Math.max(0, bucketDepth - TREE_DEEP_X_SPACING_START_DEPTH);
+      const growthSteps = (deepDepthDelta * (deepDepthDelta + 1)) / 2;
+      const depthExtraSpacing = (deepDepthDelta * TREE_DEEP_X_SPACING_PER_DEPTH)
+        + (growthSteps * TREE_DEEP_X_SPACING_GROWTH);
+      const minHorizontalGap = clamp(
+        baseMinHorizontalGap + depthExtraSpacing,
+        baseMinHorizontalGap,
+        baseMinHorizontalGap + 220,
+      );
+      bucket.sort((left, right) => {
+        if (left.originalX !== right.originalX) {
+          return left.originalX - right.originalX;
+        }
+        return left.id.localeCompare(right.id);
+      });
+
+      let previousX = Number.NEGATIVE_INFINITY;
+      for (const entry of bucket) {
+        const nextX = Math.max(entry.originalX, previousX + minHorizontalGap);
+        entry.adjustedX = nextX;
+        previousX = nextX;
+      }
+
+      const originalCenter = (bucket[0].originalX + bucket[bucket.length - 1].originalX) / 2;
+      const adjustedCenter = (bucket[0].adjustedX + bucket[bucket.length - 1].adjustedX) / 2;
+      const centerOffset = originalCenter - adjustedCenter;
+
+      for (const entry of bucket) {
+        const position = positions.get(entry.id);
+        if (!position) {
+          continue;
+        }
+        position.x = entry.adjustedX + centerOffset;
+      }
+    }
+
+    minX = Number.POSITIVE_INFINITY;
+    minY = Number.POSITIVE_INFINITY;
+    maxX = Number.NEGATIVE_INFINITY;
+    maxY = Number.NEGATIVE_INFINITY;
+    for (const position of positions.values()) {
+      minX = Math.min(minX, position.x - NODE_WIDTH / 2);
+      minY = Math.min(minY, position.y - NODE_HEIGHT / 2);
+      maxX = Math.max(maxX, position.x + NODE_WIDTH / 2);
+      maxY = Math.max(maxY, position.y + NODE_HEIGHT / 2);
+    }
   }
 
   return {
@@ -1548,50 +2060,85 @@ export function initBinaryTree(options = {}) {
   const spilloverLinksLayer = new PIXI.Graphics();
   const linksLayer = new PIXI.Graphics();
   const nodesLayer = new PIXI.Container();
+  const selectedNodePopupLayer = new PIXI.Container();
   world.addChild(spilloverLinksLayer);
   world.addChild(linksLayer);
   world.addChild(nodesLayer);
   app.stage.addChild(world);
+  app.stage.addChild(selectedNodePopupLayer);
 
-  const titleStyle = new PIXI.TextStyle({
+  const simpleNodeInitialStyle = new PIXI.TextStyle({
     fontFamily: 'Inter',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     fill: COLORS.textPrimary,
+    align: 'center',
   });
 
-  const detailStyle = new PIXI.TextStyle({
+  const enrollAnticipatedGlyphStyle = new PIXI.TextStyle({
     fontFamily: 'Inter',
-    fontSize: 12,
-    fontWeight: '500',
-    fill: COLORS.textSecondary,
-  });
-
-  const chipStyle = new PIXI.TextStyle({
-    fontFamily: 'Inter',
-    fontSize: 11,
-    fontWeight: '600',
-  });
-
-  const enrollPlaceholderTitleStyle = new PIXI.TextStyle({
-    fontFamily: 'Inter',
-    fontSize: 16,
-    fontWeight: '600',
-    fill: COLORS.textPrimary,
-  });
-
-  const enrollPlaceholderSubtitleStyle = new PIXI.TextStyle({
-    fontFamily: 'Inter',
-    fontSize: 11,
-    fontWeight: '500',
-    fill: COLORS.textSecondary,
-  });
-
-  const enrollPlaceholderPlusStyle = new PIXI.TextStyle({
-    fontFamily: 'Inter',
-    fontSize: 28,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '700',
     fill: COLORS.statusActive,
+    align: 'center',
+  });
+
+  const enrollAnticipatedSideStyle = new PIXI.TextStyle({
+    fontFamily: 'Inter',
+    fontSize: 10,
+    fontWeight: '600',
+    fill: COLORS.textSecondary,
+    letterSpacing: 0.65,
+    align: 'center',
+  });
+
+  const nodePopupNameStyle = new PIXI.TextStyle({
+    fontFamily: 'Inter',
+    fontSize: 20,
+    fontWeight: '700',
+    fill: COLORS.textPrimary,
+    align: 'left',
+  });
+
+  const nodePopupHandleStyle = new PIXI.TextStyle({
+    fontFamily: 'Inter',
+    fontSize: 13,
+    fontWeight: '500',
+    fill: COLORS.textSecondary,
+    align: 'left',
+  });
+
+  const nodePopupMetricLabelStyle = new PIXI.TextStyle({
+    fontFamily: 'Inter',
+    fontSize: 11,
+    fontWeight: '500',
+    fill: COLORS.textSecondary,
+    align: 'left',
+  });
+
+  const nodePopupMetricValueStyle = new PIXI.TextStyle({
+    fontFamily: 'Inter',
+    fontSize: 14,
+    fontWeight: '700',
+    fill: COLORS.textPrimary,
+    align: 'left',
+  });
+
+  const nodePopupAvatarInitialStyle = new PIXI.TextStyle({
+    fontFamily: 'Inter',
+    fontSize: 15,
+    fontWeight: '700',
+    fill: COLORS.textPrimary,
+    align: 'center',
+  });
+
+  const nodePopupSectionLabelStyle = new PIXI.TextStyle({
+    fontFamily: 'Inter',
+    fontSize: 10,
+    fontWeight: '700',
+    fill: COLORS.textSecondary,
+    letterSpacing: 0.8,
+    align: 'left',
   });
 
   const persistedUiState = readPersistedTreeUiState(config.uiStateStorageKey);
@@ -1627,6 +2174,8 @@ export function initBinaryTree(options = {}) {
     suppressTapUntil: 0,
     destroyed: false,
     emptyText: null,
+    selectedNodePopup: null,
+    activeLodModeKey: TREE_LOD_MODE_NEAR,
     pendingRestoreUiState: persistedUiState,
   };
 
@@ -1649,15 +2198,22 @@ export function initBinaryTree(options = {}) {
   let escFullscreenExitTimerId = null;
   let activeThemeKey = resolveRuntimeThemeKey();
   let themeMutationObserver = null;
+  let nodePopupBadgeHoverHideTimerId = null;
+  let activeNodePopupBadgeAnchorRect = null;
+  let nodePopupBadgeHovercardRefs = null;
 
   const listeners = [];
 
   function syncThemeTextStyles() {
-    titleStyle.fill = COLORS.textPrimary;
-    detailStyle.fill = COLORS.textSecondary;
-    enrollPlaceholderTitleStyle.fill = COLORS.textPrimary;
-    enrollPlaceholderSubtitleStyle.fill = COLORS.textSecondary;
-    enrollPlaceholderPlusStyle.fill = COLORS.statusActive;
+    simpleNodeInitialStyle.fill = COLORS.textPrimary;
+    enrollAnticipatedGlyphStyle.fill = COLORS.statusActive;
+    enrollAnticipatedSideStyle.fill = COLORS.textSecondary;
+    nodePopupNameStyle.fill = COLORS.textPrimary;
+    nodePopupHandleStyle.fill = COLORS.textSecondary;
+    nodePopupMetricLabelStyle.fill = COLORS.textSecondary;
+    nodePopupMetricValueStyle.fill = COLORS.textPrimary;
+    nodePopupAvatarInitialStyle.fill = COLORS.textPrimary;
+    nodePopupSectionLabelStyle.fill = COLORS.textSecondary;
     if (state.emptyText) {
       state.emptyText.style.fill = COLORS.textMuted;
     }
@@ -1669,12 +2225,14 @@ export function initBinaryTree(options = {}) {
     activeThemeKey = nextThemeKey;
     syncThemeTextStyles();
     if (!force && !didThemeChange) {
+      updateSelectedNodePopup();
       return;
     }
     if (state.nodeVisuals.size) {
       renderTree();
       return;
     }
+    updateSelectedNodePopup();
     scheduleMinimapRender();
   }
 
@@ -1696,6 +2254,319 @@ export function initBinaryTree(options = {}) {
     }
     target.addEventListener(eventName, handler, optionsForListener);
     listeners.push(() => target.removeEventListener(eventName, handler, optionsForListener));
+  }
+
+  function clearNodePopupBadgeHoverHideTimer() {
+    if (!nodePopupBadgeHoverHideTimerId) {
+      return;
+    }
+    window.clearTimeout(nodePopupBadgeHoverHideTimerId);
+    nodePopupBadgeHoverHideTimerId = null;
+  }
+
+  function ensureNodePopupBadgeHovercardDom() {
+    if (typeof document === 'undefined' || !document.body) {
+      return null;
+    }
+
+    const styleId = 'tree-node-popup-kpi-badge-hovercard-style';
+    if (!document.getElementById(styleId)) {
+      const styleElement = document.createElement('style');
+      styleElement.id = styleId;
+      styleElement.textContent = `
+        .tree-node-kpi-badge-hovercard {
+          position: fixed;
+          left: -9999px;
+          top: -9999px;
+          width: min(18.5rem, calc(100vw - 1rem));
+          padding: 0.85rem 0.9rem;
+          border-radius: 1rem;
+          border: 1px solid rgb(87 129 176 / 58%);
+          background:
+            radial-gradient(130% 150% at 0% 0%, rgb(74 165 232) 0%, rgb(29 42 65) 54%),
+            linear-gradient(145deg, rgb(42 57 82) 0%, rgb(29 42 65) 55%, rgb(21 33 53) 100%);
+          box-shadow:
+            0 18px 32px rgb(4 10 17 / 56%),
+            inset 0 1px 0 rgb(189 220 255 / 20%);
+          display: grid;
+          grid-template-columns: auto 1fr;
+          grid-template-areas:
+            "icon title"
+            "icon subtitle";
+          align-items: center;
+          column-gap: 0.8rem;
+          row-gap: 0.2rem;
+          opacity: 0;
+          transform: translateY(12px) scale(0.96);
+          transform-origin: center top;
+          pointer-events: none;
+          transition:
+            opacity 180ms ease,
+            transform 210ms cubic-bezier(0.22, 1, 0.36, 1);
+          z-index: 1400;
+        }
+        .tree-node-kpi-badge-hovercard.is-visible {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+          pointer-events: auto;
+        }
+        .tree-node-kpi-badge-hovercard[data-placement="bottom"] {
+          transform-origin: center bottom;
+        }
+        .tree-node-kpi-badge-hovercard-icon-shell {
+          width: 2.72rem;
+          height: 2.72rem;
+          margin: 0;
+          border-radius: 0.82rem;
+          border: 1px solid rgb(114 170 223 / 60%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          grid-area: icon;
+          background:
+            radial-gradient(circle at 26% 20%, rgb(88 197 255 / 24%) 0%, rgb(24 48 78 / 0) 60%),
+            linear-gradient(160deg, rgb(41 73 113 / 72%) 0%, rgb(24 43 69 / 88%) 100%);
+          box-shadow:
+            0 8px 18px rgb(3 8 15 / 35%),
+            inset 0 1px 0 rgb(197 231 255 / 24%);
+        }
+        .tree-node-kpi-badge-hovercard-icon {
+          width: 2.08rem;
+          height: 2.08rem;
+          object-fit: contain;
+          filter: none;
+        }
+        .tree-node-kpi-badge-hovercard-title {
+          margin: 0;
+          grid-area: title;
+          font-family: Inter, system-ui, sans-serif;
+          font-size: 0.98rem;
+          font-weight: 700;
+          line-height: 1.15;
+          letter-spacing: 0.03em;
+          text-align: left;
+          color: rgb(245 249 255 / 98%);
+          text-transform: none;
+          text-shadow: none;
+        }
+        .tree-node-kpi-badge-hovercard-subtitle {
+          margin: 0;
+          grid-area: subtitle;
+          font-family: Inter, system-ui, sans-serif;
+          font-size: 0.82rem;
+          line-height: 1.35;
+          text-align: left;
+          color: rgb(210 224 242 / 88%);
+          text-transform: none;
+          white-space: pre-line;
+        }
+        @media (max-width: 640px) {
+          .tree-node-kpi-badge-hovercard {
+            width: min(17rem, calc(100vw - 0.9rem));
+            padding: 0.78rem 0.82rem;
+            column-gap: 0.72rem;
+          }
+          .tree-node-kpi-badge-hovercard-icon-shell {
+            width: 2.56rem;
+            height: 2.56rem;
+          }
+          .tree-node-kpi-badge-hovercard-icon {
+            width: 1.92rem;
+            height: 1.92rem;
+          }
+          .tree-node-kpi-badge-hovercard-title {
+            font-size: 0.92rem;
+          }
+          .tree-node-kpi-badge-hovercard-subtitle {
+            font-size: 0.78rem;
+          }
+        }
+      `;
+      document.head.appendChild(styleElement);
+    }
+
+    let cardElement = document.getElementById('tree-node-popup-kpi-badge-hovercard');
+    if (!cardElement) {
+      cardElement = document.createElement('div');
+      cardElement.id = 'tree-node-popup-kpi-badge-hovercard';
+      cardElement.className = 'tree-node-kpi-badge-hovercard';
+      cardElement.setAttribute('role', 'tooltip');
+      cardElement.setAttribute('aria-hidden', 'true');
+      cardElement.setAttribute('data-placement', 'top');
+      cardElement.innerHTML = `
+        <div class="tree-node-kpi-badge-hovercard-icon-shell">
+          <img
+            data-tree-node-kpi-hover-icon
+            src="/brand_assets/Icons/Achievements/placeholder.svg"
+            alt=""
+            class="tree-node-kpi-badge-hovercard-icon"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <p data-tree-node-kpi-hover-title class="tree-node-kpi-badge-hovercard-title">Badge</p>
+        <p data-tree-node-kpi-hover-subtitle class="tree-node-kpi-badge-hovercard-subtitle">--</p>
+      `;
+      document.body.appendChild(cardElement);
+    }
+
+    const iconElement = cardElement.querySelector('[data-tree-node-kpi-hover-icon]');
+    const titleElement = cardElement.querySelector('[data-tree-node-kpi-hover-title]');
+    const subtitleElement = cardElement.querySelector('[data-tree-node-kpi-hover-subtitle]');
+
+    if (cardElement.dataset.bound !== 'true') {
+      cardElement.dataset.bound = 'true';
+      addListener(cardElement, 'mouseenter', () => {
+        clearNodePopupBadgeHoverHideTimer();
+      });
+      addListener(cardElement, 'pointerdown', () => {
+        clearNodePopupBadgeHoverHideTimer();
+      });
+      addListener(cardElement, 'mouseleave', () => {
+        scheduleNodePopupBadgeHovercardHide();
+      });
+      addListener(cardElement, 'focusin', () => {
+        clearNodePopupBadgeHoverHideTimer();
+      });
+      addListener(cardElement, 'focusout', (event) => {
+        const relatedTarget = event.relatedTarget instanceof Element ? event.relatedTarget : null;
+        if (relatedTarget && cardElement.contains(relatedTarget)) {
+          return;
+        }
+        scheduleNodePopupBadgeHovercardHide();
+      });
+      addListener(document, 'pointerdown', (event) => {
+        const target = event.target instanceof Element ? event.target : null;
+        if (target && cardElement.contains(target)) {
+          return;
+        }
+        hideNodePopupBadgeHovercard({ immediate: true });
+      });
+      addListener(window, 'resize', () => {
+        hideNodePopupBadgeHovercard({ immediate: true });
+      });
+      addListener(window, 'scroll', () => {
+        hideNodePopupBadgeHovercard({ immediate: true });
+      }, true);
+    }
+
+    nodePopupBadgeHovercardRefs = {
+      card: cardElement,
+      icon: iconElement,
+      title: titleElement,
+      subtitle: subtitleElement,
+    };
+    return nodePopupBadgeHovercardRefs;
+  }
+
+  function hideNodePopupBadgeHovercard(options = {}) {
+    const immediate = options.immediate === true;
+    clearNodePopupBadgeHoverHideTimer();
+    const refs = nodePopupBadgeHovercardRefs || ensureNodePopupBadgeHovercardDom();
+    if (!refs?.card) {
+      return;
+    }
+
+    refs.card.classList.remove('is-visible');
+    refs.card.setAttribute('aria-hidden', 'true');
+    activeNodePopupBadgeAnchorRect = null;
+
+    const resetCardPosition = () => {
+      if (!refs.card.classList.contains('is-visible')) {
+        refs.card.style.left = '-9999px';
+        refs.card.style.top = '-9999px';
+      }
+    };
+
+    if (immediate) {
+      resetCardPosition();
+      return;
+    }
+    window.setTimeout(resetCardPosition, 220);
+  }
+
+  function scheduleNodePopupBadgeHovercardHide() {
+    clearNodePopupBadgeHoverHideTimer();
+    nodePopupBadgeHoverHideTimerId = window.setTimeout(() => {
+      hideNodePopupBadgeHovercard();
+    }, NODE_POPUP_BADGE_HOVER_HIDE_DELAY_MS);
+  }
+
+  function shouldKeepNodePopupBadgeHovercardOpen() {
+    const refs = nodePopupBadgeHovercardRefs || ensureNodePopupBadgeHovercardDom();
+    if (!refs?.card || !refs.card.classList.contains('is-visible')) {
+      return false;
+    }
+    const activeElement = document.activeElement;
+    if (activeElement instanceof Element && refs.card.contains(activeElement)) {
+      return true;
+    }
+    return refs.card.matches(':hover');
+  }
+
+  function positionNodePopupBadgeHovercard(anchorRect) {
+    const refs = nodePopupBadgeHovercardRefs || ensureNodePopupBadgeHovercardDom();
+    if (!refs?.card || !anchorRect) {
+      return;
+    }
+
+    const cardRect = refs.card.getBoundingClientRect();
+    if (!cardRect.width || !cardRect.height) {
+      return;
+    }
+
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const viewportPadding = 12;
+    const anchorGap = 14;
+    let left = anchorRect.left + (anchorRect.width / 2) - (cardRect.width / 2);
+    left = Math.max(viewportPadding, Math.min(left, Math.max(viewportPadding, viewportWidth - cardRect.width - viewportPadding)));
+
+    let top = anchorRect.top - cardRect.height - anchorGap;
+    let placement = 'top';
+    if (top < viewportPadding) {
+      top = Math.min(
+        Math.max(viewportPadding, viewportHeight - cardRect.height - viewportPadding),
+        anchorRect.bottom + anchorGap,
+      );
+      placement = 'bottom';
+    }
+
+    refs.card.dataset.placement = placement;
+    refs.card.style.left = `${Math.round(left)}px`;
+    refs.card.style.top = `${Math.round(top)}px`;
+  }
+
+  function showNodePopupBadgeHovercard(iconEntry, anchorRect) {
+    const refs = nodePopupBadgeHovercardRefs || ensureNodePopupBadgeHovercardDom();
+    if (!refs?.card || !iconEntry || !anchorRect) {
+      return;
+    }
+
+    clearNodePopupBadgeHoverHideTimer();
+    activeNodePopupBadgeAnchorRect = { ...anchorRect };
+
+    if (refs.icon) {
+      refs.icon.src = String(iconEntry.iconPath || '/brand_assets/Icons/Achievements/placeholder.svg');
+      refs.icon.alt = `${String(iconEntry.hoverTitle || iconEntry.hoverSubtitle || 'Badge')} icon`;
+    }
+    if (refs.title) {
+      refs.title.textContent = String(iconEntry.hoverTitle || iconEntry.hoverSubtitle || 'Badge');
+    }
+    if (refs.subtitle) {
+      refs.subtitle.textContent = String(iconEntry.hoverSubtitle || '');
+    }
+
+    refs.card.classList.add('is-visible');
+    refs.card.setAttribute('aria-hidden', 'false');
+    refs.card.style.left = '-9999px';
+    refs.card.style.top = '-9999px';
+    window.requestAnimationFrame(() => {
+      if (!activeNodePopupBadgeAnchorRect) {
+        return;
+      }
+      positionNodePopupBadgeHovercard(activeNodePopupBadgeAnchorRect);
+    });
   }
 
   function getPersistedUiStateSnapshot() {
@@ -2225,22 +3096,29 @@ export function initBinaryTree(options = {}) {
   }
 
   function syncEnrollModeToggleUi() {
-    const isActive = state.isEnrollMode && state.isFullscreen;
+    const isActive = state.isFullscreen;
+    state.isEnrollMode = isActive;
     panelEl.classList.toggle('tree-enroll-mode-active', isActive);
 
     if (!mobileEnrollToggleEl) {
       return;
     }
 
+    mobileEnrollToggleEl.hidden = true;
+    mobileEnrollToggleEl.style.display = 'none';
+    mobileEnrollToggleEl.setAttribute('aria-hidden', 'true');
     mobileEnrollToggleEl.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     mobileEnrollToggleEl.classList.toggle('is-active', isActive);
-    const actionLabel = isActive ? 'Disable enroll mode' : 'Enable enroll mode';
+    const actionLabel = 'Enroll slots always visible in fullscreen';
+    const buttonLabel = 'Enroll Member';
     mobileEnrollToggleEl.setAttribute('aria-label', actionLabel);
     mobileEnrollToggleEl.title = actionLabel;
+    mobileEnrollToggleEl.textContent = buttonLabel;
   }
 
   function setEnrollMode(isEnabled, options = {}) {
-    const nextValue = Boolean(isEnabled) && state.isFullscreen;
+    void isEnabled;
+    const nextValue = state.isFullscreen;
     const changed = nextValue !== state.isEnrollMode;
     state.isEnrollMode = nextValue;
     syncEnrollModeToggleUi();
@@ -2497,6 +3375,7 @@ export function initBinaryTree(options = {}) {
     if (state.emptyText) {
       state.emptyText.position.set(width / 2, height / 2);
     }
+    updateSelectedNodePopup();
     updateFullscreenOverlayOffsets();
     scheduleMinimapRender();
   }
@@ -2755,6 +3634,8 @@ export function initBinaryTree(options = {}) {
         stopCameraAnimation();
         world.scale.set(targetScale);
         world.position.set(targetX, targetY);
+        refreshLodAfterCameraChange();
+        updateSelectedNodePopup();
         scheduleMinimapRender();
         schedulePersistUiState();
         return;
@@ -2776,12 +3657,16 @@ export function initBinaryTree(options = {}) {
           startX + (targetX - startX) * eased,
           startY + (targetY - startY) * eased,
         );
+        refreshLodAfterCameraChange();
+        updateSelectedNodePopup();
         scheduleMinimapRender();
 
         if (progress >= 1) {
           cameraAnimationFrameId = null;
           world.scale.set(targetScale);
           world.position.set(targetX, targetY);
+          refreshLodAfterCameraChange();
+          updateSelectedNodePopup();
           scheduleMinimapRender();
           schedulePersistUiState();
           return;
@@ -2795,6 +3680,8 @@ export function initBinaryTree(options = {}) {
     stopCameraAnimation();
     world.scale.set(targetScale);
     world.position.set(targetX, targetY);
+    refreshLodAfterCameraChange();
+    updateSelectedNodePopup();
     scheduleMinimapRender();
     schedulePersistUiState();
   }
@@ -2943,6 +3830,9 @@ export function initBinaryTree(options = {}) {
     stopCameraAnimation();
     const shouldRevealMobileSelected = focusOptions.revealMobileSelected !== false;
     state.selectedNodeId = nodeId;
+    if (!state.nodePositions.has(nodeId)) {
+      renderTree();
+    }
     if (shouldFocus) {
       focusNode(nodeId, focusOptions);
     }
@@ -2953,14 +3843,22 @@ export function initBinaryTree(options = {}) {
       setMobileSelectedOpen(true, { persist: false });
     }
     resetSelectedPanelScrollPosition();
-    refreshNodeVisuals();
+    if (state.isFullscreen) {
+      renderTree();
+    } else {
+      refreshNodeVisuals();
+    }
     schedulePersistUiState();
   }
 
   function clearSelectedNode() {
     state.selectedNodeId = null;
     setMobileSelectedOpen(false, { persist: false });
-    refreshNodeVisuals();
+    if (state.isFullscreen) {
+      renderTree();
+    } else {
+      refreshNodeVisuals();
+    }
     schedulePersistUiState();
   }
 
@@ -3050,6 +3948,828 @@ export function initBinaryTree(options = {}) {
     return Object.values(state.data.nodes).reduce((count, node) => (
       node.sponsorId === nodeId ? count + 1 : count
     ), 0);
+  }
+
+  function destroySelectedNodePopup() {
+    hideNodePopupBadgeHovercard({ immediate: true });
+    if (!state.selectedNodePopup) {
+      return;
+    }
+
+    const popupContainer = state.selectedNodePopup.container;
+    if (popupContainer?.parent) {
+      popupContainer.parent.removeChild(popupContainer);
+    }
+    popupContainer?.destroy({ children: true });
+    state.selectedNodePopup = null;
+  }
+
+  function buildSelectedNodePopup(node) {
+    if (!node || !state.data) {
+      destroySelectedNodePopup();
+      return;
+    }
+
+    destroySelectedNodePopup();
+
+    const popupContainer = new PIXI.Container();
+    popupContainer.visible = false;
+    popupContainer.interactive = true;
+    popupContainer.interactiveChildren = true;
+    try {
+      popupContainer.eventMode = 'static';
+    } catch {
+      // Keep backwards compatibility for PIXI runtimes without eventMode.
+    }
+
+    const isLightTheme = activeThemeKey === 'light';
+    const cardLeft = -NODE_POPUP_WIDTH / 2;
+    const cardRight = NODE_POPUP_WIDTH / 2;
+    const popupSurfaceColor = isLightTheme ? 0xffffff : 0x0f1a2a;
+    const popupBorderColor = isLightTheme ? 0xb7cae1 : 0x35506a;
+    const coverColor = node.status === 'active'
+      ? (isLightTheme ? 0xe5f1ff : 0x1d3d5a)
+      : (isLightTheme ? 0xf7efe3 : 0x3b3022);
+    const coverAccentColor = node.status === 'active'
+      ? (isLightTheme ? 0xb7d6ff : 0x2d5f8f)
+      : (isLightTheme ? 0xe7d2af : 0x6f5230);
+    const popupCoverImageUrl = String(
+      node?.profileCoverUrl || node?.coverDataUrl || node?.coverUrl || '',
+    ).trim();
+    const hasPopupCoverImage = Boolean(popupCoverImageUrl);
+    const coverBounds = {
+      x: cardLeft + 1,
+      y: 1,
+      width: NODE_POPUP_WIDTH - 2,
+      height: NODE_POPUP_COVER_HEIGHT,
+    };
+
+    const popupShadow = new PIXI.Graphics();
+    popupShadow.beginFill(0x000000, isLightTheme ? 0.12 : 0.24);
+    popupShadow.drawRoundedRect(
+      cardLeft + 3,
+      5,
+      NODE_POPUP_WIDTH,
+      NODE_POPUP_HEIGHT,
+      18,
+    );
+    popupShadow.endFill();
+    popupContainer.addChild(popupShadow);
+
+    const pointerShadowGraphic = new PIXI.Graphics();
+    popupContainer.addChild(pointerShadowGraphic);
+
+    const pointerGraphic = new PIXI.Graphics();
+    popupContainer.addChild(pointerGraphic);
+
+    const popupSurface = new PIXI.Graphics();
+    popupSurface.lineStyle(1.2, popupBorderColor, 0.95);
+    popupSurface.beginFill(popupSurfaceColor, 0.99);
+    popupSurface.drawRoundedRect(cardLeft, 0, NODE_POPUP_WIDTH, NODE_POPUP_HEIGHT, 16);
+    popupSurface.endFill();
+    popupContainer.addChild(popupSurface);
+
+    const coverImageLayer = new PIXI.Container();
+    popupContainer.addChild(coverImageLayer);
+    const coverImageMask = new PIXI.Graphics();
+    const coverMaskRadius = 16;
+    coverImageMask.beginFill(0xffffff, 1);
+    coverImageMask.moveTo(coverBounds.x, coverBounds.y + coverBounds.height);
+    coverImageMask.lineTo(coverBounds.x, coverBounds.y + coverMaskRadius);
+    coverImageMask.quadraticCurveTo(
+      coverBounds.x,
+      coverBounds.y,
+      coverBounds.x + coverMaskRadius,
+      coverBounds.y,
+    );
+    coverImageMask.lineTo(
+      coverBounds.x + coverBounds.width - coverMaskRadius,
+      coverBounds.y,
+    );
+    coverImageMask.quadraticCurveTo(
+      coverBounds.x + coverBounds.width,
+      coverBounds.y,
+      coverBounds.x + coverBounds.width,
+      coverBounds.y + coverMaskRadius,
+    );
+    coverImageMask.lineTo(
+      coverBounds.x + coverBounds.width,
+      coverBounds.y + coverBounds.height,
+    );
+    coverImageMask.lineTo(coverBounds.x, coverBounds.y + coverBounds.height);
+    coverImageMask.closePath();
+    coverImageMask.endFill();
+    // PIXI masks should remain visible in scene graph transforms; disable render output instead.
+    coverImageMask.renderable = false;
+    popupContainer.addChild(coverImageMask);
+    // Clip cover artwork to only the top cover strip so the body/container style stays unchanged.
+    coverImageLayer.mask = coverImageMask;
+
+    const normalizePopupCoverTexture = (candidateTexture) => {
+      if (!candidateTexture || typeof candidateTexture !== 'object') {
+        return null;
+      }
+      if (candidateTexture.baseTexture) {
+        return candidateTexture;
+      }
+      if (candidateTexture.texture && candidateTexture.texture.baseTexture) {
+        return candidateTexture.texture;
+      }
+      return null;
+    };
+
+    const isPopupCoverTextureReady = (candidateTexture) => {
+      const texture = normalizePopupCoverTexture(candidateTexture);
+      if (!texture) {
+        return false;
+      }
+      const baseTexture = texture.baseTexture;
+      if (!baseTexture || typeof baseTexture !== 'object') {
+        return true;
+      }
+      const resourceSource = baseTexture.resource && baseTexture.resource.source
+        ? baseTexture.resource.source
+        : null;
+      const sourceLooksReady = Boolean(
+        resourceSource
+        && typeof resourceSource.naturalWidth === 'number'
+        && resourceSource.naturalWidth > 0
+        && resourceSource.complete,
+      );
+      return Boolean(baseTexture.valid || sourceLooksReady);
+    };
+
+    const waitForPopupCoverTextureReady = async (candidateTexture) => {
+      const texture = normalizePopupCoverTexture(candidateTexture);
+      if (!texture) {
+        return null;
+      }
+
+      const baseTexture = texture.baseTexture;
+      if (!baseTexture || typeof baseTexture !== 'object') {
+        return texture;
+      }
+
+      if (isPopupCoverTextureReady(texture)) {
+        return texture;
+      }
+
+      return new Promise((resolve) => {
+        let settled = false;
+        let timeoutId = null;
+        const settle = (nextTexture) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          if (timeoutId !== null) {
+            clearTimeout(timeoutId);
+          }
+          if (typeof baseTexture.off === 'function') {
+            baseTexture.off('loaded', handleLoaded);
+            baseTexture.off('update', handleLoaded);
+            baseTexture.off('error', handleError);
+          }
+          resolve(nextTexture);
+        };
+
+        const handleLoaded = () => {
+          settle(texture);
+        };
+        const handleError = () => {
+          settle(null);
+        };
+
+        if (typeof baseTexture.on === 'function') {
+          baseTexture.on('loaded', handleLoaded);
+          baseTexture.on('update', handleLoaded);
+          baseTexture.on('error', handleError);
+        }
+
+        timeoutId = setTimeout(() => {
+          // Return the texture even if not fully ready yet; sprite resources
+          // can continue resolving in-place and we keep fallback overlay until ready.
+          settle(texture);
+        }, 2200);
+      });
+    };
+
+    const loadPopupCoverTexture = async (coverImagePath) => {
+      if (!coverImagePath) {
+        return null;
+      }
+
+      const loadTextureFromImageElement = async () => {
+        if (typeof Image !== 'function') {
+          return null;
+        }
+
+        return new Promise((resolve) => {
+          const image = new Image();
+          image.decoding = 'async';
+          image.crossOrigin = 'anonymous';
+          image.onload = () => {
+            try {
+              resolve(PIXI.Texture.from(image));
+            } catch {
+              resolve(null);
+            }
+          };
+          image.onerror = () => {
+            resolve(null);
+          };
+          image.src = coverImagePath;
+        });
+      };
+
+      // Data URLs commonly used by profile uploads are more reliable through
+      // an Image element decode path than direct PIXI texture string loaders.
+      if (/^data:image\//i.test(coverImagePath)) {
+        const imageTexture = await loadTextureFromImageElement();
+        const readyImageTexture = await waitForPopupCoverTextureReady(imageTexture);
+        if (readyImageTexture) {
+          return readyImageTexture;
+        }
+      }
+
+      if (PIXI?.Assets && typeof PIXI.Assets.load === 'function') {
+        try {
+          const loadedTexture = await PIXI.Assets.load(coverImagePath);
+          const readyAssetTexture = await waitForPopupCoverTextureReady(loadedTexture);
+          if (readyAssetTexture) {
+            return readyAssetTexture;
+          }
+        } catch {
+          // Fall through to legacy texture loader.
+        }
+      }
+
+      try {
+        const directTexture = PIXI.Texture.from(coverImagePath);
+        const readyDirectTexture = await waitForPopupCoverTextureReady(directTexture);
+        if (readyDirectTexture) {
+          return readyDirectTexture;
+        }
+      } catch {
+        // Fall through to image decode fallback.
+      }
+
+      try {
+        const imageTexture = await loadTextureFromImageElement();
+        return await waitForPopupCoverTextureReady(imageTexture);
+      } catch {
+        return null;
+      }
+    };
+
+    const cover = new PIXI.Graphics();
+    const drawCoverOverlay = (imageLoaded = false) => {
+      const coverBaseAlpha = imageLoaded
+        ? (isLightTheme ? 0.08 : 0.12)
+        : 0.98;
+      const coverAccentAlpha = imageLoaded
+        ? 0
+        : (isLightTheme ? 0.24 : 0.26);
+      const coverGlowAlpha = imageLoaded
+        ? 0
+        : (isLightTheme ? 0.2 : 0.12);
+
+      // Keep popup readable while avoiding decorative blockers over a real loaded cover.
+      cover.clear();
+      cover.beginFill(coverColor, coverBaseAlpha);
+      cover.drawRoundedRect(
+        coverBounds.x,
+        coverBounds.y,
+        coverBounds.width,
+        coverBounds.height,
+        16,
+      );
+      cover.endFill();
+      if (coverAccentAlpha > 0) {
+        cover.beginFill(coverAccentColor, coverAccentAlpha);
+        cover.drawRoundedRect(
+          cardLeft + 1,
+          1,
+          (NODE_POPUP_WIDTH - 2) * 0.68,
+          NODE_POPUP_COVER_HEIGHT,
+          16,
+        );
+        cover.endFill();
+      }
+      if (coverGlowAlpha > 0) {
+        cover.beginFill(isLightTheme ? 0xffffff : 0x78a9d8, coverGlowAlpha);
+        cover.drawCircle(cardRight - 34, NODE_POPUP_COVER_HEIGHT - 20, 34);
+        cover.endFill();
+      }
+      cover.lineStyle(1, popupBorderColor, 0.42);
+      cover.moveTo(cardLeft + 1, NODE_POPUP_COVER_HEIGHT + 1);
+      cover.lineTo(cardRight - 1, NODE_POPUP_COVER_HEIGHT + 1);
+    };
+
+    drawCoverOverlay(false);
+    popupContainer.addChild(cover);
+
+    if (hasPopupCoverImage) {
+      Promise.resolve(loadPopupCoverTexture(popupCoverImageUrl))
+        .then((resolvedTexture) => {
+          if (!resolvedTexture || !coverImageLayer || coverImageLayer.destroyed || popupContainer.destroyed) {
+            return;
+          }
+
+          let coverSprite = null;
+          try {
+            coverSprite = new PIXI.Sprite(resolvedTexture);
+          } catch {
+            return;
+          }
+          coverSprite.position.set(coverBounds.x, coverBounds.y);
+          coverSprite.width = coverBounds.width;
+          coverSprite.height = coverBounds.height;
+          coverSprite.alpha = 0.96;
+          coverImageLayer.addChild(coverSprite);
+
+          if (isPopupCoverTextureReady(resolvedTexture)) {
+            drawCoverOverlay(true);
+            return;
+          }
+
+          const baseTexture = resolvedTexture.baseTexture;
+          if (!baseTexture || typeof baseTexture.on !== 'function') {
+            return;
+          }
+
+          const applyLoadedOverlay = () => {
+            if (
+              !popupContainer
+              || popupContainer.destroyed
+              || !coverImageLayer
+              || coverImageLayer.destroyed
+            ) {
+              return;
+            }
+            if (typeof baseTexture.off === 'function') {
+              baseTexture.off('loaded', applyLoadedOverlay);
+              baseTexture.off('update', applyLoadedOverlay);
+              baseTexture.off('error', removeTextureListeners);
+            }
+            drawCoverOverlay(true);
+          };
+
+          const removeTextureListeners = () => {
+            if (typeof baseTexture.off === 'function') {
+              baseTexture.off('loaded', applyLoadedOverlay);
+              baseTexture.off('update', applyLoadedOverlay);
+              baseTexture.off('error', removeTextureListeners);
+            }
+          };
+
+          baseTexture.on('loaded', applyLoadedOverlay);
+          baseTexture.on('update', applyLoadedOverlay);
+          baseTexture.on('error', removeTextureListeners);
+        })
+        .catch(() => {
+          // Keep procedural fallback overlay when image texture fails.
+        });
+    }
+
+    const profileName = resolveNodePopupDisplayName(node, 30);
+    const popupHeaderIconEntries = resolveNodePopupHeaderIconEntries(node, isLightTheme);
+    const profileHandleMaxLength = popupHeaderIconEntries.length >= 3
+      ? 14
+      : (popupHeaderIconEntries.length === 2 ? 18 : (popupHeaderIconEntries.length === 1 ? 24 : 34));
+    const profileHandle = truncateNodeLabel(formatMemberHandle(node.memberCode), profileHandleMaxLength);
+
+    const avatarCenterX = cardLeft + NODE_POPUP_AVATAR_RADIUS + 24;
+    const avatarCenterY = NODE_POPUP_COVER_HEIGHT + 2;
+    const avatarRing = new PIXI.Graphics();
+    avatarRing.lineStyle(2.4, popupSurfaceColor, 1);
+    avatarRing.beginFill(isLightTheme ? 0xf2f7ff : 0x1a2d45, 1);
+    avatarRing.drawCircle(avatarCenterX, avatarCenterY, NODE_POPUP_AVATAR_RADIUS);
+    avatarRing.endFill();
+    popupContainer.addChild(avatarRing);
+
+    const avatarInitials = new PIXI.Text(
+      getNodeInitials(profileName),
+      nodePopupAvatarInitialStyle,
+    );
+    avatarInitials.anchor.set(0.5);
+    avatarInitials.position.set(avatarCenterX, avatarCenterY);
+    popupContainer.addChild(avatarInitials);
+
+    const nameX = cardLeft + 16;
+    const nameY = avatarCenterY + NODE_POPUP_AVATAR_RADIUS + 8;
+
+    const profileNameText = new PIXI.Text(profileName, nodePopupNameStyle);
+    profileNameText.position.set(nameX, nameY);
+    popupContainer.addChild(profileNameText);
+
+    const handleText = new PIXI.Text(profileHandle, nodePopupHandleStyle);
+    handleText.position.set(nameX, nameY + profileNameText.height + 1);
+    popupContainer.addChild(handleText);
+
+    const popupHeaderIconSize = 18;
+    const popupHeaderIconGap = 2;
+    const popupHeaderIconTotalWidth = (
+      popupHeaderIconEntries.length * popupHeaderIconSize
+    ) + ((Math.max(0, popupHeaderIconEntries.length - 1)) * popupHeaderIconGap);
+    const popupHeaderIconsStartX = clamp(
+      handleText.position.x + handleText.width + 8,
+      handleText.position.x + 8,
+      cardRight - popupHeaderIconTotalWidth - 14,
+    );
+    const popupHeaderIconY = handleText.position.y - 1;
+    if (popupHeaderIconEntries.length > 0) {
+      const resolveCanvasScaleMetrics = () => {
+        const canvasRect = app.view.getBoundingClientRect();
+        const rendererWidth = Math.max(1, Number(app.renderer?.width) || 1);
+        const rendererHeight = Math.max(1, Number(app.renderer?.height) || 1);
+        return {
+          canvasRect,
+          canvasScaleX: canvasRect.width / rendererWidth,
+          canvasScaleY: canvasRect.height / rendererHeight,
+        };
+      };
+
+      const loadPopupHeaderIconTexture = async (iconPath) => {
+        if (!iconPath) {
+          return null;
+        }
+
+        if (PIXI?.Assets && typeof PIXI.Assets.load === 'function') {
+          try {
+            const loadedTexture = await PIXI.Assets.load(iconPath);
+            if (loadedTexture) {
+              return loadedTexture;
+            }
+          } catch {
+            // Fall through to legacy texture loader.
+          }
+        }
+
+        try {
+          return PIXI.Texture.from(iconPath);
+        } catch {
+          return null;
+        }
+      };
+
+      popupHeaderIconEntries.forEach((iconEntry, index) => {
+        const iconBaseX = popupHeaderIconsStartX + index * (popupHeaderIconSize + popupHeaderIconGap);
+        const iconBaseY = popupHeaderIconY;
+
+        Promise.resolve(loadPopupHeaderIconTexture(iconEntry.iconPath))
+          .then((resolvedTexture) => {
+            if (
+              !resolvedTexture
+              || !popupContainer
+              || popupContainer.destroyed
+              || !state.selectedNodePopup
+              || state.selectedNodePopup.container !== popupContainer
+            ) {
+              return;
+            }
+
+            let headerIcon = null;
+            try {
+              headerIcon = new PIXI.Sprite(resolvedTexture);
+            } catch {
+              return;
+            }
+
+            headerIcon.width = popupHeaderIconSize;
+            headerIcon.height = popupHeaderIconSize;
+            headerIcon.position.set(iconBaseX, iconBaseY);
+            headerIcon.alpha = 0.98;
+            headerIcon.tint = 0xFFFFFF;
+
+            const toAnchorRect = () => {
+              const { canvasRect, canvasScaleX, canvasScaleY } = resolveCanvasScaleMetrics();
+              const topLeft = popupContainer.toGlobal(new PIXI.Point(iconBaseX, iconBaseY));
+              const bottomRight = popupContainer.toGlobal(new PIXI.Point(
+                iconBaseX + popupHeaderIconSize,
+                iconBaseY + popupHeaderIconSize,
+              ));
+
+              const left = canvasRect.left + (Math.min(topLeft.x, bottomRight.x) * canvasScaleX);
+              const top = canvasRect.top + (Math.min(topLeft.y, bottomRight.y) * canvasScaleY);
+              const right = canvasRect.left + (Math.max(topLeft.x, bottomRight.x) * canvasScaleX);
+              const bottom = canvasRect.top + (Math.max(topLeft.y, bottomRight.y) * canvasScaleY);
+              return {
+                left,
+                top,
+                right,
+                bottom,
+                width: Math.max(1, right - left),
+                height: Math.max(1, bottom - top),
+              };
+            };
+
+            try {
+              headerIcon.interactive = true;
+              headerIcon.buttonMode = true;
+              headerIcon.cursor = 'pointer';
+              headerIcon.eventMode = 'static';
+              const resetIconPose = () => {
+                if (!headerIcon || headerIcon.destroyed) {
+                  return;
+                }
+                headerIcon.scale.set(1);
+                headerIcon.width = popupHeaderIconSize;
+                headerIcon.height = popupHeaderIconSize;
+                headerIcon.position.set(iconBaseX, iconBaseY);
+                headerIcon.alpha = 0.98;
+                headerIcon.tint = 0xFFFFFF;
+              };
+              const hoverIconPose = () => {
+                if (!headerIcon || headerIcon.destroyed) {
+                  return;
+                }
+                headerIcon.scale.set(1);
+                headerIcon.width = popupHeaderIconSize;
+                headerIcon.height = popupHeaderIconSize;
+                headerIcon.position.set(iconBaseX, iconBaseY);
+                headerIcon.alpha = 1;
+                headerIcon.tint = isLightTheme ? 0xF3FAFF : 0xFFFFFF;
+              };
+              headerIcon
+                .on('pointerover', () => {
+                  hoverIconPose();
+                  showNodePopupBadgeHovercard(iconEntry, toAnchorRect());
+                })
+                .on('pointerout', () => {
+                  resetIconPose();
+                  scheduleNodePopupBadgeHovercardHide();
+                })
+                .on('pointerupoutside', () => {
+                  resetIconPose();
+                  scheduleNodePopupBadgeHovercardHide();
+                })
+                .on('pointerdown', () => {
+                  clearNodePopupBadgeHoverHideTimer();
+                  headerIcon.scale.set(1);
+                  headerIcon.width = popupHeaderIconSize;
+                  headerIcon.height = popupHeaderIconSize;
+                  headerIcon.position.set(iconBaseX, iconBaseY);
+                  headerIcon.alpha = 0.94;
+                  headerIcon.tint = 0xFFFFFF;
+                })
+                .on('pointerup', () => {
+                  resetIconPose();
+                  if (shouldKeepNodePopupBadgeHovercardOpen()) {
+                    clearNodePopupBadgeHoverHideTimer();
+                    return;
+                  }
+                  scheduleNodePopupBadgeHovercardHide();
+                });
+            } catch {
+              // Keep icons non-interactive when runtime event APIs differ across PIXI versions.
+            }
+
+            popupContainer.addChild(headerIcon);
+          })
+          .catch(() => {
+            // Keep the handle row stable even when icon textures fail to load.
+          });
+      });
+    }
+
+    const popupHeaderContentBottomY = popupHeaderIconEntries.length > 0
+      ? Math.max(handleText.position.y + handleText.height, popupHeaderIconY + popupHeaderIconSize)
+      : (handleText.position.y + handleText.height);
+    const dividerY = clamp(
+      popupHeaderContentBottomY + 18,
+      NODE_POPUP_COVER_HEIGHT + 74,
+      NODE_POPUP_HEIGHT - 150,
+    );
+    const metricsPanelTop = dividerY + 36;
+    const popupBottomPadding = 28;
+    const popupMinMetricsPanelHeight = 132;
+    const popupHeight = Math.max(
+      NODE_POPUP_HEIGHT,
+      metricsPanelTop + popupMinMetricsPanelHeight + popupBottomPadding,
+    );
+
+    if (popupHeight !== NODE_POPUP_HEIGHT) {
+      popupShadow.clear();
+      popupShadow.beginFill(0x000000, isLightTheme ? 0.12 : 0.24);
+      popupShadow.drawRoundedRect(
+        cardLeft + 3,
+        5,
+        NODE_POPUP_WIDTH,
+        popupHeight,
+        18,
+      );
+      popupShadow.endFill();
+
+      popupSurface.clear();
+      popupSurface.lineStyle(1.2, popupBorderColor, 0.95);
+      popupSurface.beginFill(popupSurfaceColor, 0.99);
+      popupSurface.drawRoundedRect(cardLeft, 0, NODE_POPUP_WIDTH, popupHeight, 16);
+      popupSurface.endFill();
+    }
+
+    const binaryDataLabel = new PIXI.Text('BINARY TREE DATA', nodePopupSectionLabelStyle);
+    binaryDataLabel.position.set(cardLeft + 14, dividerY + 8);
+    popupContainer.addChild(binaryDataLabel);
+
+    const divider = new PIXI.Graphics();
+    divider.lineStyle(1, popupBorderColor, 0.34);
+    divider.moveTo(cardLeft + 14, dividerY);
+    divider.lineTo(cardRight - 14, dividerY);
+    popupContainer.addChild(divider);
+
+    const metricsPanelHeight = popupHeight - metricsPanelTop - popupBottomPadding;
+    const metricsPanel = new PIXI.Graphics();
+    metricsPanel.lineStyle(1, popupBorderColor, 0.22);
+    metricsPanel.beginFill(isLightTheme ? 0xf5f9ff : 0x0b1422, 0.86);
+    metricsPanel.drawRoundedRect(
+      cardLeft + 12,
+      metricsPanelTop,
+      NODE_POPUP_WIDTH - 24,
+      metricsPanelHeight,
+      11,
+    );
+    metricsPanel.endFill();
+    popupContainer.addChild(metricsPanel);
+
+    const displayLegVolumes = getNodeDisplayLegVolumes(node);
+    const metrics = [
+      { label: 'Left Team', value: `${displayLegVolumes.leftBv.toLocaleString()} BV`, column: 0, row: 0 },
+      { label: 'Right Team', value: `${displayLegVolumes.rightBv.toLocaleString()} BV`, column: 1, row: 0 },
+      { label: 'Cycles', value: `${sanitizeVolume(node.cycles).toLocaleString()}`, column: 0, row: 1 },
+      { label: 'Direct', value: `${getDirectSponsorCount(node.id).toLocaleString()}`, column: 1, row: 1 },
+    ];
+
+    const metricsStartX = cardLeft + 30;
+    const metricsStartY = metricsPanelTop + 16;
+    const metricsInnerWidth = NODE_POPUP_WIDTH - 60;
+    const metricColumnGap = 20;
+    const metricColumnWidth = (metricsInnerWidth - metricColumnGap) / 2;
+    const metricRowGap = 52;
+
+    const metricVerticalDivider = new PIXI.Graphics();
+    metricVerticalDivider.lineStyle(1, popupBorderColor, 0.24);
+    metricVerticalDivider.moveTo(
+      metricsStartX + metricColumnWidth + (metricColumnGap / 2),
+      metricsStartY,
+    );
+    metricVerticalDivider.lineTo(
+      metricsStartX + metricColumnWidth + (metricColumnGap / 2),
+      metricsStartY + (metricRowGap * 2) - 16,
+    );
+    popupContainer.addChild(metricVerticalDivider);
+
+    const metricHorizontalDivider = new PIXI.Graphics();
+    metricHorizontalDivider.lineStyle(1, popupBorderColor, 0.18);
+    metricHorizontalDivider.moveTo(metricsStartX, metricsStartY + metricRowGap - 8);
+    metricHorizontalDivider.lineTo(metricsStartX + metricsInnerWidth, metricsStartY + metricRowGap - 8);
+    popupContainer.addChild(metricHorizontalDivider);
+
+    for (const metric of metrics) {
+      const metricX = metricsStartX + (metric.column * (metricColumnWidth + metricColumnGap));
+      const metricY = metricsStartY + (metric.row * metricRowGap);
+
+      const metricLabelText = new PIXI.Text(metric.label, nodePopupMetricLabelStyle);
+      metricLabelText.position.set(metricX, metricY);
+      popupContainer.addChild(metricLabelText);
+
+      const metricValueText = new PIXI.Text(metric.value, nodePopupMetricValueStyle);
+      metricValueText.position.set(metricX, metricY + 16);
+      popupContainer.addChild(metricValueText);
+    }
+
+    const isEligibleForCycle = isCycleEligible(node, state.cycleRule);
+    const eligibilityText = new PIXI.Text(
+      isEligibleForCycle ? 'Cycle Status: Eligible' : 'Cycle Status: Not Eligible',
+      {
+        fontFamily: 'Inter',
+        fontSize: 11,
+        fontWeight: '600',
+        fill: isEligibleForCycle
+          ? (isLightTheme ? 0x295bb6 : 0x89b2ea)
+          : COLORS.textSecondary,
+        align: 'center',
+      },
+    );
+    eligibilityText.anchor.set(0.5, 0);
+    eligibilityText.position.set(0, popupHeight - 24);
+    popupContainer.addChild(eligibilityText);
+
+    selectedNodePopupLayer.addChild(popupContainer);
+    state.selectedNodePopup = {
+      nodeId: node.id,
+      container: popupContainer,
+      pointerGraphic,
+      pointerShadowGraphic,
+      popupSurfaceColor,
+      popupBorderColor,
+      popupHeight,
+    };
+  }
+
+  function positionSelectedNodePopup(nodePosition) {
+    if (!state.selectedNodePopup || !nodePosition) {
+      hideNodePopupBadgeHovercard({ immediate: true });
+      return;
+    }
+
+    const anchorPoint = world.toGlobal(new PIXI.Point(
+      nodePosition.x,
+      nodePosition.y - TREE_SIMPLE_NODE_RADIUS - NODE_POPUP_ANCHOR_OFFSET_Y,
+    ));
+
+    if (!isValidNumber(anchorPoint?.x) || !isValidNumber(anchorPoint?.y)) {
+      hideNodePopupBadgeHovercard({ immediate: true });
+      state.selectedNodePopup.container.visible = false;
+      return;
+    }
+
+    const viewport = getViewportSize();
+    const popupHalfWidth = NODE_POPUP_WIDTH / 2;
+    const minCenterX = NODE_POPUP_SCREEN_MARGIN + popupHalfWidth;
+    const maxCenterX = Math.max(minCenterX, viewport.width - NODE_POPUP_SCREEN_MARGIN - popupHalfWidth);
+    const popupCenterX = clamp(anchorPoint.x, minCenterX, maxCenterX);
+
+    const popupHeight = Math.max(
+      1,
+      Number(state.selectedNodePopup.popupHeight) || NODE_POPUP_HEIGHT,
+    );
+    const viewportMaxTop = Math.max(
+      NODE_POPUP_TOP_MARGIN,
+      viewport.height - popupHeight - NODE_POPUP_SCREEN_MARGIN,
+    );
+    const naturalTopAbove = anchorPoint.y - NODE_POPUP_POINTER_HEIGHT - popupHeight;
+    const canPlaceAbove = naturalTopAbove >= NODE_POPUP_TOP_MARGIN;
+    const isPlacedBelow = !canPlaceAbove;
+    const popupTop = canPlaceAbove
+      ? clamp(naturalTopAbove, NODE_POPUP_TOP_MARGIN, viewportMaxTop)
+      : clamp(
+        anchorPoint.y + NODE_POPUP_POINTER_HEIGHT + 2,
+        NODE_POPUP_TOP_MARGIN,
+        viewportMaxTop,
+      );
+    const popupBottom = popupTop + popupHeight;
+
+    const pointerLength = isPlacedBelow
+      ? clamp(popupTop - anchorPoint.y, 2, NODE_POPUP_POINTER_HEIGHT)
+      : clamp(anchorPoint.y - popupBottom, 2, NODE_POPUP_POINTER_HEIGHT);
+    const pointerHalfWidth = 11;
+    const pointerX = clamp(
+      anchorPoint.x - popupCenterX,
+      -popupHalfWidth + pointerHalfWidth + 6,
+      popupHalfWidth - pointerHalfWidth - 6,
+    );
+    const pointerBaseY = isPlacedBelow ? 0.5 : (popupHeight - 0.5);
+
+    const pointerGraphic = state.selectedNodePopup.pointerGraphic;
+    pointerGraphic.clear();
+    pointerGraphic.lineStyle(1.2, state.selectedNodePopup.popupBorderColor, 0.9);
+    pointerGraphic.beginFill(state.selectedNodePopup.popupSurfaceColor, 0.985);
+    pointerGraphic.moveTo(pointerX - pointerHalfWidth, pointerBaseY);
+    pointerGraphic.lineTo(pointerX + pointerHalfWidth, pointerBaseY);
+    pointerGraphic.lineTo(pointerX, pointerBaseY + (isPlacedBelow ? -pointerLength : pointerLength));
+    pointerGraphic.closePath();
+    pointerGraphic.endFill();
+
+    const pointerShadowGraphic = state.selectedNodePopup.pointerShadowGraphic;
+    pointerShadowGraphic.clear();
+    pointerShadowGraphic.beginFill(0x000000, activeThemeKey === 'light' ? 0.1 : 0.2);
+    pointerShadowGraphic.moveTo(pointerX - pointerHalfWidth + 1.5, pointerBaseY + 1.5);
+    pointerShadowGraphic.lineTo(pointerX + pointerHalfWidth + 1.5, pointerBaseY + 1.5);
+    pointerShadowGraphic.lineTo(
+      pointerX + 1.5,
+      pointerBaseY + (isPlacedBelow ? -pointerLength : pointerLength) + 1.5,
+    );
+    pointerShadowGraphic.closePath();
+    pointerShadowGraphic.endFill();
+
+    state.selectedNodePopup.container.position.set(popupCenterX, popupTop);
+    state.selectedNodePopup.container.visible = true;
+  }
+
+  function updateSelectedNodePopup(options = {}) {
+    const shouldRebuild = options.rebuild === true;
+    if (!state.data || !state.selectedNodeId || !state.data.nodes[state.selectedNodeId]) {
+      destroySelectedNodePopup();
+      return;
+    }
+
+    const selectedNode = state.data.nodes[state.selectedNodeId];
+    const selectedNodePosition = state.nodePositions.get(state.selectedNodeId);
+    if (!selectedNodePosition) {
+      destroySelectedNodePopup();
+      return;
+    }
+
+    if (
+      shouldRebuild
+      || !state.selectedNodePopup
+      || state.selectedNodePopup.nodeId !== selectedNode.id
+    ) {
+      buildSelectedNodePopup(selectedNode);
+    }
+
+    positionSelectedNodePopup(selectedNodePosition);
   }
 
   function resolvePlacementParentNode(node) {
@@ -3334,65 +5054,39 @@ export function initBinaryTree(options = {}) {
     return node.sponsorId !== rootNodeId;
   }
 
-  function drawNodeCard(graphics, node, selected) {
+  function drawNodeCard(graphics, node, selected, lodModeKey = state.activeLodModeKey) {
     const eligible = isCycleEligible(node, state.cycleRule);
     const isSpilloverNode = shouldUseSpilloverNodeHighlight(node);
-    const isDirectSponsorNode = Boolean(state.data?.rootId && node?.sponsorId === state.data.rootId);
     const borderColor = selected
       ? (isSpilloverNode ? COLORS.borderSpilloverSelected : COLORS.borderSelected)
       : (isSpilloverNode ? COLORS.borderSpillover : (eligible ? COLORS.borderEligible : COLORS.borderDefault));
     const fillColor = isSpilloverNode
       ? (node.status === 'active' ? COLORS.backgroundSpilloverActive : COLORS.backgroundSpilloverInactive)
       : (node.status === 'active' ? COLORS.backgroundActive : COLORS.backgroundInactive);
-    const contentLeftX = -NODE_WIDTH / 2 + 12;
-    const contentRightX = NODE_WIDTH / 2 - 12;
-    const dividerY = isDirectSponsorNode
-      ? (-NODE_HEIGHT / 2 + 74)
-      : (-NODE_HEIGHT / 2 + 66);
 
     graphics.clear();
-    graphics.lineStyle(selected ? 2.5 : 1.5, borderColor, 1);
-    graphics.beginFill(fillColor, 1);
-    graphics.drawRoundedRect(-NODE_WIDTH / 2, -NODE_HEIGHT / 2, NODE_WIDTH, NODE_HEIGHT, 14);
+    graphics.lineStyle(selected ? 3 : 1.8, borderColor, 1);
+    graphics.beginFill(fillColor, lodModeKey === TREE_LOD_MODE_FAR ? 0.9 : 1);
+    graphics.drawCircle(0, 0, TREE_SIMPLE_NODE_RADIUS);
     graphics.endFill();
-    graphics.lineStyle(1, COLORS.borderDefault, 0.38);
-    graphics.moveTo(contentLeftX, dividerY);
-    graphics.lineTo(contentRightX, dividerY);
   }
 
-  function createDirectSponsorNodeIcon() {
-    const iconContainer = new PIXI.Container();
-
-    const iconBackground = new PIXI.Graphics();
-    iconBackground.lineStyle(1, COLORS.directSponsorIconBorder, 0.95);
-    iconBackground.beginFill(COLORS.directSponsorIconFill, 0.94);
-    iconBackground.drawRoundedRect(-11, -9, 22, 18, 5);
-    iconBackground.endFill();
-    iconContainer.addChild(iconBackground);
-
-    const iconGlyph = new PIXI.Graphics();
-    iconGlyph.lineStyle(1.4, COLORS.directSponsorIconGlyph, 1);
-    iconGlyph.drawCircle(-2.8, -1.6, 2.2);
-    iconGlyph.moveTo(-6.6, 4.5);
-    iconGlyph.quadraticCurveTo(-2.8, 1.2, 1.0, 4.5);
-    iconGlyph.moveTo(4.2, -0.9);
-    iconGlyph.lineTo(8.2, -0.9);
-    iconGlyph.moveTo(6.2, -2.9);
-    iconGlyph.lineTo(6.2, 1.1);
-    iconContainer.addChild(iconGlyph);
-
-    return iconContainer;
-  }
-
-  function rebuildSpilloverLinkCache(layout) {
+  function rebuildSpilloverLinkCache(layout, options = {}) {
     state.spilloverLinkCache = [];
     if (!state.data || !layout?.nodeIds?.length) {
       return;
     }
 
+    const visibleNodeIds = options?.visibleNodeIds instanceof Set
+      ? options.visibleNodeIds
+      : null;
+
     for (const nodeId of layout.nodeIds) {
       const node = state.data.nodes[nodeId];
       if (!node?.isSpillover || !node.sponsorId) {
+        continue;
+      }
+      if (visibleNodeIds && (!visibleNodeIds.has(nodeId) || !visibleNodeIds.has(node.sponsorId))) {
         continue;
       }
 
@@ -3402,10 +5096,19 @@ export function initBinaryTree(options = {}) {
         continue;
       }
 
-      const startX = sponsorPos.x;
-      const startY = sponsorPos.y + NODE_HEIGHT / 2;
-      const endX = nodePos.x;
-      const endY = nodePos.y - NODE_HEIGHT / 2;
+      const anchoredSegment = resolveEdgeAnchoredLineSegment(
+        sponsorPos.x,
+        sponsorPos.y,
+        nodePos.x,
+        nodePos.y,
+      );
+      if (!anchoredSegment) {
+        continue;
+      }
+      const startX = anchoredSegment.startX;
+      const startY = anchoredSegment.startY;
+      const endX = anchoredSegment.endX;
+      const endY = anchoredSegment.endY;
       const bendY = startY + (endY - startY) * 0.33;
 
       const polyline = buildSpilloverBezierPolyline(startX, startY, startX, bendY, endX, bendY, endX, endY);
@@ -3447,6 +5150,7 @@ export function initBinaryTree(options = {}) {
   }
 
   function clearNodes() {
+    destroySelectedNodePopup();
     state.nodeVisuals.clear();
     state.nodePositions.clear();
     state.spilloverLinkCache = [];
@@ -3482,7 +5186,10 @@ export function initBinaryTree(options = {}) {
     const matchSet = new Set(state.searchMatches);
 
     for (const [nodeId, visual] of state.nodeVisuals.entries()) {
-      drawNodeCard(visual.background, visual.node, state.selectedNodeId === nodeId);
+      drawNodeCard(visual.background, visual.node, state.selectedNodeId === nodeId, state.activeLodModeKey);
+      if (visual.initialsText) {
+        visual.initialsText.style.fill = COLORS.textPrimary;
+      }
       if (state.selectedNodeId === nodeId) {
         visual.container.alpha = 1;
       } else if (activeFilter) {
@@ -3494,6 +5201,7 @@ export function initBinaryTree(options = {}) {
     updateSelectedNodePanel();
     updateCycleSummary();
     updateOrganizationSummary();
+    updateSelectedNodePopup({ rebuild: true });
     scheduleMinimapRender();
   }
 
@@ -3514,43 +5222,460 @@ export function initBinaryTree(options = {}) {
     return { x, y };
   }
 
-  function collectEnrollAnticipationSlots(layout) {
-    if (!state.data || !state.isFullscreen || !state.isEnrollMode || !layout?.nodeIds?.length) {
+  function applyEnrollMiddleGapX(x, depth, layout) {
+    if (!isValidNumber(x)) {
+      return x;
+    }
+    if (!layout || !isValidNumber(layout.layoutWidth) || layout.layoutWidth <= 0) {
+      return x;
+    }
+    if (!Number.isFinite(depth) || depth <= 0) {
+      return x;
+    }
+
+    const centerX = layout.layoutWidth / 2;
+    const depthDelta = Math.max(0, depth - 1);
+    const dynamicGap = ENROLL_MIDDLE_GAP + Math.min(ENROLL_MIDDLE_GAP_MAX_EXTRA, depthDelta * ENROLL_MIDDLE_GAP_PER_DEPTH);
+    const halfGap = dynamicGap / 2;
+    if (x < centerX - 0.5) {
+      return x - halfGap;
+    }
+    if (x > centerX + 0.5) {
+      return x + halfGap;
+    }
+    return x;
+  }
+
+  function applyEnrollMiddleGapToLayout(layout) {
+    if (!layout || !(layout.positions instanceof Map) || !layout.positions.size) {
+      return;
+    }
+
+    const layoutMeta = layout.meta instanceof Map ? layout.meta : new Map();
+    for (const [nodeId, position] of layout.positions.entries()) {
+      if (!position || !isValidNumber(position.x)) {
+        continue;
+      }
+      const point = layoutMeta.get(nodeId);
+      const depth = Number.isFinite(point?.depth) ? point.depth : 0;
+      position.x = applyEnrollMiddleGapX(position.x, depth, layout);
+    }
+  }
+
+  function isPointInsideWorldBounds(point, bounds) {
+    if (!point || !bounds) {
+      return false;
+    }
+    return point.x >= bounds.minX
+      && point.x <= bounds.maxX
+      && point.y >= bounds.minY
+      && point.y <= bounds.maxY;
+  }
+
+  function expandWorldBounds(bounds, paddingX, paddingY) {
+    return {
+      minX: bounds.minX - Math.max(0, paddingX),
+      minY: bounds.minY - Math.max(0, paddingY),
+      maxX: bounds.maxX + Math.max(0, paddingX),
+      maxY: bounds.maxY + Math.max(0, paddingY),
+    };
+  }
+
+  function buildParentByChildMap(layout) {
+    const parentByChild = new Map();
+    if (!state.data || !Array.isArray(layout?.nodeIds)) {
+      return parentByChild;
+    }
+
+    for (const nodeId of layout.nodeIds) {
+      const node = state.data.nodes[nodeId];
+      if (!node) {
+        continue;
+      }
+      for (const childId of [node.leftChildId, node.rightChildId]) {
+        if (!childId || !state.data.nodes[childId] || parentByChild.has(childId)) {
+          continue;
+        }
+        parentByChild.set(childId, nodeId);
+      }
+    }
+    return parentByChild;
+  }
+
+  function addNodeAndAncestors(nodeId, parentByChild, visibleNodeIdSet) {
+    let currentId = nodeId;
+    const visited = new Set();
+    while (currentId && !visited.has(currentId)) {
+      visited.add(currentId);
+      visibleNodeIdSet.add(currentId);
+      currentId = parentByChild.get(currentId);
+    }
+  }
+
+  function addSubtreeWithinDepth(rootId, maxDepth, layout, visibleNodeIdSet) {
+    if (!rootId || !state.data?.nodes[rootId]) {
+      return;
+    }
+
+    const queue = [rootId];
+    const visited = new Set();
+    while (queue.length) {
+      const nodeId = queue.shift();
+      if (!nodeId || visited.has(nodeId)) {
+        continue;
+      }
+      visited.add(nodeId);
+      const point = layout?.meta?.get(nodeId);
+      if (!point || point.depth > maxDepth) {
+        continue;
+      }
+
+      visibleNodeIdSet.add(nodeId);
+      const node = state.data.nodes[nodeId];
+      if (!node) {
+        continue;
+      }
+      if (node.leftChildId && state.data.nodes[node.leftChildId]) {
+        queue.push(node.leftChildId);
+      }
+      if (node.rightChildId && state.data.nodes[node.rightChildId]) {
+        queue.push(node.rightChildId);
+      }
+    }
+  }
+
+  function resolveCascadeVisibleNodeIds(layout, lodMode) {
+    if (!state.data || !Array.isArray(layout?.nodeIds) || !layout.nodeIds.length) {
+      return [];
+    }
+
+    if (!state.isFullscreen || hasActiveSearchFilters()) {
+      return layout.nodeIds.slice();
+    }
+
+    const meta = layout.meta instanceof Map ? layout.meta : new Map();
+    const positions = layout.positions instanceof Map ? layout.positions : new Map();
+    const visibleNodeIdSet = new Set();
+    const baseDepthLimit = TREE_LOD_DEPTH_LIMIT_BY_MODE[TREE_LOD_MODE_FAR] ?? 4;
+    const focusDepthLimit = Number.isFinite(lodMode?.maxDepth)
+      ? lodMode.maxDepth
+      : Number.POSITIVE_INFINITY;
+
+    for (const nodeId of layout.nodeIds) {
+      const point = meta.get(nodeId);
+      if (point && point.depth <= baseDepthLimit) {
+        visibleNodeIdSet.add(nodeId);
+      }
+    }
+
+    if (focusDepthLimit > baseDepthLimit) {
+      const viewportBounds = getViewportWorldBounds();
+      const viewportWidth = Math.max(1, viewportBounds.maxX - viewportBounds.minX);
+      const viewportHeight = Math.max(1, viewportBounds.maxY - viewportBounds.minY);
+      const expandedViewportBounds = expandWorldBounds(
+        viewportBounds,
+        Math.max(TREE_SIMPLE_NODE_RADIUS * 2.2, viewportWidth * 0.14),
+        Math.max(TREE_SIMPLE_NODE_RADIUS * 2.2, viewportHeight * 0.14),
+      );
+
+      const focusedCascadeRootIds = [];
+      for (const nodeId of layout.nodeIds) {
+        const point = meta.get(nodeId);
+        if (!point || point.depth !== baseDepthLimit) {
+          continue;
+        }
+        const position = positions.get(nodeId);
+        if (!position || !isPointInsideWorldBounds(position, expandedViewportBounds)) {
+          continue;
+        }
+        focusedCascadeRootIds.push(nodeId);
+      }
+
+      if (!focusedCascadeRootIds.length) {
+        const viewportCenterX = (viewportBounds.minX + viewportBounds.maxX) / 2;
+        const viewportCenterY = (viewportBounds.minY + viewportBounds.maxY) / 2;
+        let fallbackId = null;
+        let fallbackDistance = Number.POSITIVE_INFINITY;
+        for (const nodeId of layout.nodeIds) {
+          const point = meta.get(nodeId);
+          if (!point || point.depth !== baseDepthLimit) {
+            continue;
+          }
+          const position = positions.get(nodeId);
+          if (!position) {
+            continue;
+          }
+          const distance = Math.hypot(position.x - viewportCenterX, position.y - viewportCenterY);
+          if (distance < fallbackDistance) {
+            fallbackDistance = distance;
+            fallbackId = nodeId;
+          }
+        }
+        if (fallbackId) {
+          focusedCascadeRootIds.push(fallbackId);
+        }
+      }
+
+      for (const rootId of focusedCascadeRootIds) {
+        addSubtreeWithinDepth(rootId, focusDepthLimit, layout, visibleNodeIdSet);
+      }
+    }
+
+    const parentByChild = buildParentByChildMap(layout);
+    if (state.selectedNodeId && state.data.nodes[state.selectedNodeId]) {
+      addNodeAndAncestors(state.selectedNodeId, parentByChild, visibleNodeIdSet);
+      if (focusDepthLimit > baseDepthLimit) {
+        addSubtreeWithinDepth(state.selectedNodeId, focusDepthLimit, layout, visibleNodeIdSet);
+      }
+    }
+
+    const orderedVisibleNodeIds = layout.nodeIds.filter((nodeId) => visibleNodeIdSet.has(nodeId));
+    if (orderedVisibleNodeIds.length) {
+      return orderedVisibleNodeIds;
+    }
+    return layout.nodeIds.slice(0, 1);
+  }
+
+  function resolveEnrollAnticipationPositions(anticipationSlots, layout) {
+    const positionByKey = new Map();
+    if (!Array.isArray(anticipationSlots) || !anticipationSlots.length) {
+      return positionByKey;
+    }
+
+    const slotParentIds = new Set(
+      anticipationSlots
+        .map((slotEntry) => slotEntry.parentNodeId)
+        .filter(Boolean),
+    );
+
+    // Selected-node anticipation mode (1 parent): keep both sides close and visually symmetric
+    // so users do not misread far-shifted placeholders as different branch positions.
+    if (slotParentIds.size === 1) {
+      const parentNodeId = Array.from(slotParentIds)[0];
+      const parentPosition = layout?.positions?.get(parentNodeId);
+      if (parentPosition) {
+        const levelGap = Number.isFinite(layout?.levelGap) ? layout.levelGap : 188;
+        const horizontalOffset = Math.max(
+          ENROLL_SELECTED_SLOT_HORIZONTAL_OFFSET,
+          (ENROLL_ANTICIPATED_NODE_RADIUS * 2) + 18,
+        );
+        const baseY = parentPosition.y + (levelGap * ENROLL_SELECTED_SLOT_VERTICAL_RATIO);
+        const collisionDistance = (ENROLL_ANTICIPATED_NODE_RADIUS * 2) + ENROLL_SELECTED_SLOT_COLLISION_PADDING;
+
+        const occupiedPoints = [];
+        if (layout?.positions instanceof Map) {
+          for (const position of layout.positions.values()) {
+            if (!position || !isValidNumber(position.x) || !isValidNumber(position.y)) {
+              continue;
+            }
+            occupiedPoints.push({ x: position.x, y: position.y });
+          }
+        }
+
+        const hasCollision = (x, y, localPlacements) => {
+          for (const point of occupiedPoints) {
+            if (Math.hypot(point.x - x, point.y - y) < collisionDistance) {
+              return true;
+            }
+          }
+          for (const point of localPlacements) {
+            if (Math.hypot(point.x - x, point.y - y) < collisionDistance) {
+              return true;
+            }
+          }
+          return false;
+        };
+
+        const orderedSlots = anticipationSlots.slice().sort((left, right) => {
+          const leftOrder = left.side === 'left' ? 0 : 1;
+          const rightOrder = right.side === 'left' ? 0 : 1;
+          return leftOrder - rightOrder;
+        });
+        const localPlacements = [];
+
+        for (const slotEntry of orderedSlots) {
+          const key = `${slotEntry.parentNodeId}:${slotEntry.side}`;
+          const sideDirection = slotEntry.side === 'left' ? -1 : 1;
+          let candidateX = parentPosition.x + (sideDirection * horizontalOffset);
+          let candidateY = baseY;
+
+          let attempt = 0;
+          while (attempt < ENROLL_SELECTED_SLOT_MAX_VERTICAL_STEPS && hasCollision(candidateX, candidateY, localPlacements)) {
+            candidateY += ENROLL_SELECTED_SLOT_VERTICAL_STEP;
+            attempt += 1;
+          }
+
+          if (hasCollision(candidateX, candidateY, localPlacements)) {
+            candidateX += sideDirection * (ENROLL_ANTICIPATED_NODE_RADIUS * 1.6);
+          }
+
+          const resolvedPoint = { x: candidateX, y: candidateY };
+          localPlacements.push(resolvedPoint);
+          positionByKey.set(key, resolvedPoint);
+        }
+
+        if (positionByKey.size === anticipationSlots.length) {
+          return positionByKey;
+        }
+      }
+    }
+
+    const depthBuckets = new Map();
+    const layoutMeta = layout?.meta instanceof Map ? layout.meta : new Map();
+
+    for (const slotEntry of anticipationSlots) {
+      const key = `${slotEntry.parentNodeId}:${slotEntry.side}`;
+      const point = getLayoutPositionForDepthSlot(slotEntry.depth, slotEntry.slot, layout);
+      const shiftedX = applyEnrollMiddleGapX(point.x, slotEntry.depth, layout);
+      const item = {
+        key,
+        parentNodeId: slotEntry.parentNodeId,
+        side: slotEntry.side,
+        depth: slotEntry.depth,
+        x: shiftedX,
+        y: point.y,
+      };
+      const bucket = depthBuckets.get(item.depth) || [];
+      bucket.push(item);
+      depthBuckets.set(item.depth, bucket);
+      positionByKey.set(key, { x: shiftedX, y: point.y });
+    }
+
+    const resolveNonOverlappingX = (baseX, direction, occupiedX, minHorizontalGap) => {
+      let candidateX = baseX;
+      let step = Math.max(8, minHorizontalGap * 0.32);
+      const resolveDirection = direction === -1 ? -1 : 1;
+      for (let attempt = 0; attempt < 220; attempt += 1) {
+        const hasCollision = occupiedX.some((occupiedValue) => Math.abs(candidateX - occupiedValue) < minHorizontalGap);
+        if (!hasCollision) {
+          return candidateX;
+        }
+        candidateX += resolveDirection * step;
+        step = Math.min(step * 1.06, minHorizontalGap * 2.5);
+      }
+      return candidateX;
+    };
+
+    const applyDepthEntries = (entries, direction, occupiedX, minHorizontalGap, minimumSideOffset) => {
+      for (const entry of entries) {
+        const parentPosition = layout?.positions?.get(entry.parentNodeId);
+        let candidateX = entry.x;
+
+        if (parentPosition) {
+          if (direction < 0) {
+            candidateX = Math.min(candidateX, parentPosition.x - minimumSideOffset);
+          } else {
+            candidateX = Math.max(candidateX, parentPosition.x + minimumSideOffset);
+          }
+        }
+
+        candidateX = resolveNonOverlappingX(candidateX, direction, occupiedX, minHorizontalGap);
+        occupiedX.push(candidateX);
+        const resolvedPoint = { x: candidateX, y: entry.y };
+        positionByKey.set(entry.key, resolvedPoint);
+      }
+    };
+
+    for (const [depth, bucket] of depthBuckets.entries()) {
+      const occupiedX = [];
+      for (const [nodeId, point] of layoutMeta.entries()) {
+        if (!point || point.depth !== depth) {
+          continue;
+        }
+        const nodePosition = layout?.positions?.get(nodeId);
+        if (nodePosition) {
+          occupiedX.push(nodePosition.x);
+        }
+      }
+
+      const deepDepthDelta = Math.max(0, depth - TREE_DEEP_X_SPACING_START_DEPTH);
+      const growthSteps = (deepDepthDelta * (deepDepthDelta + 1)) / 2;
+      const depthExtraSpacing = (deepDepthDelta * TREE_DEEP_X_SPACING_PER_DEPTH)
+        + (growthSteps * TREE_DEEP_X_SPACING_GROWTH);
+      const minHorizontalGap = clamp(
+        ENROLL_ANTICIPATED_BASE_GAP + (depthExtraSpacing * 0.92),
+        ENROLL_ANTICIPATED_BASE_GAP,
+        ENROLL_ANTICIPATED_BASE_GAP + 320,
+      );
+      const minimumSideOffset = Math.max(minHorizontalGap * 1.14, ENROLL_ANTICIPATED_NODE_RADIUS * 2.8);
+
+      const leftEntries = bucket
+        .filter((entry) => entry.side === 'left')
+        .sort((left, right) => {
+          if (left.x !== right.x) {
+            return right.x - left.x;
+          }
+          return left.key.localeCompare(right.key);
+        });
+      const rightEntries = bucket
+        .filter((entry) => entry.side === 'right')
+        .sort((left, right) => {
+          if (left.x !== right.x) {
+            return left.x - right.x;
+          }
+          return left.key.localeCompare(right.key);
+        });
+      const otherEntries = bucket
+        .filter((entry) => entry.side !== 'left' && entry.side !== 'right')
+        .sort((left, right) => {
+          if (left.x !== right.x) {
+            return left.x - right.x;
+          }
+          return left.key.localeCompare(right.key);
+        });
+
+      applyDepthEntries(leftEntries, -1, occupiedX, minHorizontalGap, minimumSideOffset);
+      applyDepthEntries(rightEntries, 1, occupiedX, minHorizontalGap, minimumSideOffset);
+      applyDepthEntries(otherEntries, 1, occupiedX, minHorizontalGap, minimumSideOffset);
+    }
+
+    return positionByKey;
+  }
+
+  function collectEnrollAnticipationSlots(layout, options = {}) {
+    if (!state.data || !state.isFullscreen || !layout?.nodeIds?.length) {
       return [];
     }
 
     const slots = [];
     const layoutMeta = layout.meta instanceof Map ? layout.meta : new Map();
+    const visibleNodeIds = options?.visibleNodeIds instanceof Set
+      ? options.visibleNodeIds
+      : null;
 
-    for (const nodeId of layout.nodeIds) {
-      const node = state.data.nodes[nodeId];
-      const parentPoint = layoutMeta.get(nodeId);
-      if (!node || !parentPoint) {
-        continue;
-      }
+    const selectedNodeId = state.selectedNodeId;
+    if (!selectedNodeId || !state.data.nodes[selectedNodeId]) {
+      return slots;
+    }
+    if (visibleNodeIds && !visibleNodeIds.has(selectedNodeId)) {
+      return slots;
+    }
 
-      const hasLeftChild = Boolean(node.leftChildId && state.data.nodes[node.leftChildId]);
-      const hasRightChild = Boolean(node.rightChildId && state.data.nodes[node.rightChildId]);
-      if (hasLeftChild && hasRightChild) {
-        continue;
-      }
+    const selectedNode = state.data.nodes[selectedNodeId];
+    const selectedPoint = layoutMeta.get(selectedNodeId);
+    if (!selectedNode || !selectedPoint) {
+      return slots;
+    }
 
-      if (!hasLeftChild) {
-        slots.push({
-          parentNodeId: nodeId,
-          side: 'left',
-          depth: parentPoint.depth + 1,
-          slot: parentPoint.slot * 2,
-        });
-      }
-      if (!hasRightChild) {
-        slots.push({
-          parentNodeId: nodeId,
-          side: 'right',
-          depth: parentPoint.depth + 1,
-          slot: parentPoint.slot * 2 + 1,
-        });
-      }
+    const hasLeftChild = Boolean(selectedNode.leftChildId && state.data.nodes[selectedNode.leftChildId]);
+    const hasRightChild = Boolean(selectedNode.rightChildId && state.data.nodes[selectedNode.rightChildId]);
+
+    // Requested UX: show anticipated nodes whenever the selected node has available slots.
+    if (!hasLeftChild) {
+      slots.push({
+        parentNodeId: selectedNodeId,
+        side: 'left',
+        depth: selectedPoint.depth + 1,
+        slot: selectedPoint.slot * 2,
+      });
+    }
+    if (!hasRightChild) {
+      slots.push({
+        parentNodeId: selectedNodeId,
+        side: 'right',
+        depth: selectedPoint.depth + 1,
+        slot: selectedPoint.slot * 2 + 1,
+      });
     }
 
     return slots;
@@ -3564,67 +5689,179 @@ export function initBinaryTree(options = {}) {
 
     clearNodes();
 
-    const shouldRenderEnrollAnticipation = state.isFullscreen && state.isEnrollMode;
+    const shouldRenderEnrollAnticipation = state.isFullscreen;
+    const lodMode = resolveTreeLodModeForScale(world.scale.x, state.activeLodModeKey);
+    state.activeLodModeKey = lodMode.key;
+
+    const layoutSlotWidth = shouldRenderEnrollAnticipation
+      ? TREE_WORLD_SLOT_WIDTH + ENROLL_LAYOUT_SLOT_WIDTH_BOOST
+      : TREE_WORLD_SLOT_WIDTH;
+    const layoutDepthCap = shouldRenderEnrollAnticipation
+      ? Math.min(MAX_LAYOUT_DEPTH_FOR_WIDTH, TREE_WORLD_LAYOUT_WIDTH_DEPTH_CAP + ENROLL_LAYOUT_DEPTH_CAP_BOOST)
+      : TREE_WORLD_LAYOUT_WIDTH_DEPTH_CAP;
+
     const layout = computeLayout(state.data, {
-      reserveMissingChildDepth: shouldRenderEnrollAnticipation,
-      slotWidth: shouldRenderEnrollAnticipation ? 296 : 248,
+      // Keep tree geometry stable when toggling enroll mode; anticipation nodes should overlay
+      // the current compact layout instead of switching to legacy full-slot spacing.
+      // Enroll mode uses a controlled width boost so the whole binary shifts wider for slot clarity.
+      reserveMissingChildDepth: false,
+      slotWidth: layoutSlotWidth,
+      widthDepthCap: layoutDepthCap,
     });
     if (!layout.nodeIds.length) {
       renderEmptyState('No binary data available.');
       return;
     }
 
-    state.nodePositions = layout.positions;
-    const anticipationSlots = collectEnrollAnticipationSlots(layout);
-    const anticipationPositionByKey = new Map();
+    if (shouldRenderEnrollAnticipation) {
+      applyEnrollMiddleGapToLayout(layout);
+    }
 
-    const nextBounds = {
-      minX: layout.bounds.minX,
-      minY: layout.bounds.minY,
-      maxX: layout.bounds.maxX,
-      maxY: layout.bounds.maxY,
-    };
+    const renderNodeIds = resolveCascadeVisibleNodeIds(layout, lodMode);
+    const renderNodeIdSet = new Set(renderNodeIds);
+    const visiblePositions = new Map();
+    for (const nodeId of renderNodeIds) {
+      const position = layout.positions.get(nodeId);
+      if (position) {
+        visiblePositions.set(nodeId, position);
+      }
+    }
+    state.nodePositions = visiblePositions;
+    const anticipationSlots = collectEnrollAnticipationSlots(layout, {
+      visibleNodeIds: renderNodeIdSet,
+    });
+    const anticipationPositionByKey = resolveEnrollAnticipationPositions(anticipationSlots, layout);
+    let boundsMinX = Number.POSITIVE_INFINITY;
+    let boundsMinY = Number.POSITIVE_INFINITY;
+    let boundsMaxX = Number.NEGATIVE_INFINITY;
+    let boundsMaxY = Number.NEGATIVE_INFINITY;
+
+    for (const point of state.nodePositions.values()) {
+      boundsMinX = Math.min(boundsMinX, point.x - TREE_SIMPLE_NODE_RADIUS);
+      boundsMinY = Math.min(boundsMinY, point.y - TREE_SIMPLE_NODE_RADIUS);
+      boundsMaxX = Math.max(boundsMaxX, point.x + TREE_SIMPLE_NODE_RADIUS);
+      boundsMaxY = Math.max(boundsMaxY, point.y + TREE_SIMPLE_NODE_RADIUS);
+    }
+
+    const nextBounds = Number.isFinite(boundsMinX)
+      ? {
+        minX: boundsMinX,
+        minY: boundsMinY,
+        maxX: boundsMaxX,
+        maxY: boundsMaxY,
+      }
+      : {
+        minX: layout.bounds.minX,
+        minY: layout.bounds.minY,
+        maxX: layout.bounds.maxX,
+        maxY: layout.bounds.maxY,
+      };
 
     for (const slotEntry of anticipationSlots) {
-      const position = getLayoutPositionForDepthSlot(slotEntry.depth, slotEntry.slot, layout);
-      anticipationPositionByKey.set(`${slotEntry.parentNodeId}:${slotEntry.side}`, position);
-      nextBounds.minX = Math.min(nextBounds.minX, position.x - ENROLL_PLACEHOLDER_WIDTH / 2);
-      nextBounds.minY = Math.min(nextBounds.minY, position.y - ENROLL_PLACEHOLDER_HEIGHT / 2);
-      nextBounds.maxX = Math.max(nextBounds.maxX, position.x + ENROLL_PLACEHOLDER_WIDTH / 2);
-      nextBounds.maxY = Math.max(nextBounds.maxY, position.y + ENROLL_PLACEHOLDER_HEIGHT / 2);
+      const position = anticipationPositionByKey.get(`${slotEntry.parentNodeId}:${slotEntry.side}`);
+      if (!position) {
+        continue;
+      }
+      nextBounds.minX = Math.min(nextBounds.minX, position.x - ENROLL_ANTICIPATED_NODE_RADIUS);
+      nextBounds.minY = Math.min(nextBounds.minY, position.y - ENROLL_ANTICIPATED_NODE_RADIUS);
+      nextBounds.maxX = Math.max(nextBounds.maxX, position.x + ENROLL_ANTICIPATED_NODE_RADIUS);
+      nextBounds.maxY = Math.max(
+        nextBounds.maxY,
+        position.y + ENROLL_ANTICIPATED_NODE_RADIUS + ENROLL_ANTICIPATED_NODE_LABEL_OFFSET + ENROLL_ANTICIPATED_NODE_LABEL_HEIGHT,
+      );
     }
 
     state.bounds = nextBounds;
 
     spilloverLinksLayer.clear();
     linksLayer.clear();
+    linksLayer.lineStyle({
+      width: TREE_SIMPLE_NODE_LINK_WIDTH,
+      color: COLORS.link,
+      alpha: 0.88,
+      cap: 'round',
+      join: 'round',
+    });
 
-    for (const nodeId of layout.nodeIds) {
+    for (const nodeId of renderNodeIds) {
       const node = state.data.nodes[nodeId];
       const nodePosition = layout.positions.get(nodeId);
       if (!node || !nodePosition) {
         continue;
       }
 
-      const children = [node.leftChildId, node.rightChildId];
-      for (const childId of children) {
-        if (!childId) {
-          continue;
+      const childBranches = [];
+      if (node.leftChildId) {
+        const leftChildPos = layout.positions.get(node.leftChildId);
+        if (leftChildPos && renderNodeIdSet.has(node.leftChildId)) {
+          childBranches.push({ side: 'left', position: leftChildPos });
         }
-        const childPos = layout.positions.get(childId);
-        if (!childPos) {
-          continue;
+      }
+      if (node.rightChildId) {
+        const rightChildPos = layout.positions.get(node.rightChildId);
+        if (rightChildPos && renderNodeIdSet.has(node.rightChildId)) {
+          childBranches.push({ side: 'right', position: rightChildPos });
+        }
+      }
+      if (!childBranches.length) {
+        continue;
+      }
+
+      const parentBottomX = nodePosition.x;
+      const parentBottomY = nodePosition.y + TREE_SIMPLE_NODE_RADIUS;
+      const childAnchors = childBranches.map((branch) => ({
+        side: branch.side,
+        x: branch.position.x,
+        y: branch.position.y - TREE_SIMPLE_NODE_RADIUS,
+      }));
+      const minChildAnchorY = Math.min(...childAnchors.map((anchor) => anchor.y));
+      const availableVerticalGap = minChildAnchorY - parentBottomY;
+      const branchDrop = clamp(
+        availableVerticalGap * 0.34,
+        TREE_SIMPLE_NODE_RADIUS * 0.45,
+        TREE_SIMPLE_NODE_RADIUS * 1.55,
+      );
+      const branchY = availableVerticalGap > 0
+        ? parentBottomY + branchDrop
+        : parentBottomY;
+
+      if (branchY > parentBottomY + 0.5) {
+        linksLayer.moveTo(parentBottomX, parentBottomY);
+        linksLayer.lineTo(parentBottomX, branchY);
+      }
+
+      if (childAnchors.length === 1) {
+        const onlyChild = childAnchors[0];
+        let targetX = onlyChild.x;
+        if (Math.abs(targetX - parentBottomX) < TREE_SIMPLE_NODE_RADIUS * 0.4) {
+          const sideDirection = onlyChild.side === 'right' ? 1 : -1;
+          targetX = parentBottomX + (TREE_SIMPLE_NODE_RADIUS * 0.92 * sideDirection);
         }
 
-        const startX = nodePosition.x;
-        const startY = nodePosition.y + NODE_HEIGHT / 2;
-        const endX = childPos.x;
-        const endY = childPos.y - NODE_HEIGHT / 2;
-        const bendY = startY + (endY - startY) * 0.4;
+        if (Math.abs(targetX - parentBottomX) > 0.5) {
+          linksLayer.moveTo(parentBottomX, branchY);
+          linksLayer.lineTo(targetX, branchY);
+        }
 
-        linksLayer.lineStyle(2, COLORS.link, 0.9);
-        linksLayer.moveTo(startX, startY);
-        linksLayer.bezierCurveTo(startX, bendY, endX, bendY, endX, endY);
+        linksLayer.moveTo(targetX, branchY);
+        linksLayer.lineTo(targetX, onlyChild.y);
+
+        if (Math.abs(onlyChild.x - targetX) > 0.5) {
+          linksLayer.moveTo(targetX, onlyChild.y);
+          linksLayer.lineTo(onlyChild.x, onlyChild.y);
+        }
+        continue;
+      }
+
+      const sortedChildAnchors = childAnchors.slice().sort((left, right) => left.x - right.x);
+      const horizontalLeftX = Math.min(parentBottomX, sortedChildAnchors[0].x);
+      const horizontalRightX = Math.max(parentBottomX, sortedChildAnchors[sortedChildAnchors.length - 1].x);
+      linksLayer.moveTo(horizontalLeftX, branchY);
+      linksLayer.lineTo(horizontalRightX, branchY);
+
+      for (const anchor of sortedChildAnchors) {
+        linksLayer.moveTo(anchor.x, branchY);
+        linksLayer.lineTo(anchor.x, anchor.y);
       }
     }
 
@@ -3645,19 +5882,45 @@ export function initBinaryTree(options = {}) {
         }
 
         const startX = parentPosition.x;
-        const startY = parentPosition.y + NODE_HEIGHT / 2;
+        const startY = parentPosition.y + TREE_SIMPLE_NODE_RADIUS;
         const endX = placeholderPosition.x;
-        const endY = placeholderPosition.y - ENROLL_PLACEHOLDER_HEIGHT / 2;
-        const bendY = startY + (endY - startY) * 0.44;
-        const anticipationPath = buildBezierPolyline(startX, startY, startX, bendY, endX, bendY, endX, endY);
+        const endY = placeholderPosition.y - ENROLL_ANTICIPATED_NODE_RADIUS;
+        const availableVerticalGap = endY - startY;
+        const branchDrop = clamp(
+          availableVerticalGap * 0.34,
+          TREE_SIMPLE_NODE_RADIUS * 0.45,
+          TREE_SIMPLE_NODE_RADIUS * 1.55,
+        );
+        const branchY = availableVerticalGap > 0
+          ? startY + branchDrop
+          : startY;
+
+        let targetX = endX;
+        if (Math.abs(targetX - startX) < TREE_SIMPLE_NODE_RADIUS * 0.4) {
+          const sideDirection = slotEntry.side === 'right' ? 1 : -1;
+          targetX = startX + (TREE_SIMPLE_NODE_RADIUS * 0.92 * sideDirection);
+        }
+
+        const anticipationPath = [{ x: startX, y: startY }];
+        if (branchY > startY + 0.5) {
+          anticipationPath.push({ x: startX, y: branchY });
+        }
+        if (Math.abs(targetX - startX) > 0.5) {
+          anticipationPath.push({ x: targetX, y: branchY });
+        }
+        anticipationPath.push({ x: targetX, y: endY });
+        if (Math.abs(endX - targetX) > 0.5) {
+          anticipationPath.push({ x: endX, y: endY });
+        }
+
         drawDashedPolyline(linksLayer, anticipationPath, 8, 5);
       }
     }
 
-    rebuildSpilloverLinkCache(layout);
+    rebuildSpilloverLinkCache(layout, { visibleNodeIds: renderNodeIdSet });
     renderSpilloverLinks();
 
-    for (const nodeId of layout.nodeIds) {
+    for (const nodeId of renderNodeIds) {
       const node = state.data.nodes[nodeId];
       const nodePosition = layout.positions.get(nodeId);
       if (!node || !nodePosition) {
@@ -3672,78 +5935,13 @@ export function initBinaryTree(options = {}) {
       const background = new PIXI.Graphics();
       nodeContainer.addChild(background);
 
-      const memberText = new PIXI.Text(truncateNodeLabel(node.name, 30), titleStyle);
-      memberText.position.set(-NODE_WIDTH / 2 + 12, -NODE_HEIGHT / 2 + 10);
-      nodeContainer.addChild(memberText);
-
-      const usernameText = new PIXI.Text(truncateNodeLabel(formatMemberHandle(node.memberCode), 30), detailStyle);
-      usernameText.position.set(-NODE_WIDTH / 2 + 12, -NODE_HEIGHT / 2 + 31);
-      nodeContainer.addChild(usernameText);
-
-      const isDirectSponsorNode = node.sponsorId === state.data.rootId;
-      if (isDirectSponsorNode) {
-        const directSponsorIcon = createDirectSponsorNodeIcon();
-        directSponsorIcon.position.set(NODE_WIDTH / 2 - 20, -NODE_HEIGHT / 2 + 18);
-        nodeContainer.addChild(directSponsorIcon);
-      }
-
-      const statusLabel = formatStatus(node.status);
-      const statusText = new PIXI.Text(statusLabel, chipStyle);
-      statusText.style.fill = node.status === 'active' ? COLORS.statusActive : COLORS.statusInactive;
-      statusText.anchor.set(0.5);
-      const statusChipTextBounds = statusText.getLocalBounds();
-      const statusChipPaddingX = 10;
-      const statusChipHeight = 19;
-      const statusChipWidth = Math.max(68, Math.ceil(statusChipTextBounds.width) + (statusChipPaddingX * 2));
-      const statusChipContainer = new PIXI.Container();
-      const statusChipX = NODE_WIDTH / 2 - 12 - statusChipWidth;
-      const statusChipY = isDirectSponsorNode
-        ? (-NODE_HEIGHT / 2 + 34)
-        : (-NODE_HEIGHT / 2 + 10);
-      statusChipContainer.position.set(statusChipX, statusChipY);
-      const statusChipBackground = new PIXI.Graphics();
-      const statusChipBorderColor = node.status === 'active' ? COLORS.statusActive : COLORS.statusInactive;
-      const statusChipFillColor = node.status === 'active' ? COLORS.statusChipFillActive : COLORS.statusChipFillInactive;
-      statusChipBackground.lineStyle(1, statusChipBorderColor, 0.6);
-      statusChipBackground.beginFill(statusChipFillColor, 0.5);
-      statusChipBackground.drawRoundedRect(0, 0, statusChipWidth, statusChipHeight, 9);
-      statusChipBackground.endFill();
-      statusText.position.set(statusChipWidth / 2, statusChipHeight / 2);
-      statusChipContainer.addChild(statusChipBackground);
-      statusChipContainer.addChild(statusText);
-      nodeContainer.addChild(statusChipContainer);
-
-      const displayLegVolumes = getNodeDisplayLegVolumes(node);
-      const legLeftText = new PIXI.Text(`L Team: ${displayLegVolumes.leftBv.toLocaleString()} BV`, detailStyle);
-      legLeftText.position.set(
-        -NODE_WIDTH / 2 + 12,
-        isDirectSponsorNode ? (-NODE_HEIGHT / 2 + 80) : (-NODE_HEIGHT / 2 + 72),
+      const initialsText = new PIXI.Text(
+        getNodeInitials(node.name || node.memberCode || node.id),
+        simpleNodeInitialStyle,
       );
-      nodeContainer.addChild(legLeftText);
-
-      const legRightText = new PIXI.Text(`R Team: ${displayLegVolumes.rightBv.toLocaleString()} BV`, detailStyle);
-      legRightText.anchor.set(1, 0);
-      legRightText.position.set(
-        NODE_WIDTH / 2 - 12,
-        isDirectSponsorNode ? (-NODE_HEIGHT / 2 + 80) : (-NODE_HEIGHT / 2 + 72),
-      );
-      nodeContainer.addChild(legRightText);
-
-      const secondaryMetricText = new PIXI.Text(formatSecondaryMetricText(node, secondaryMetricMode), detailStyle);
-      secondaryMetricText.position.set(
-        -NODE_WIDTH / 2 + 12,
-        isDirectSponsorNode ? (-NODE_HEIGHT / 2 + 102) : (-NODE_HEIGHT / 2 + 94),
-      );
-      nodeContainer.addChild(secondaryMetricText);
-
-      if (!shouldHideNodeRankAndCountry(node)) {
-        const flagSprite = new PIXI.Sprite(PIXI.Texture.from(getCountryFlagSvgAssetPath(node.countryFlag)));
-        flagSprite.width = 20;
-        flagSprite.height = 15;
-        flagSprite.anchor.set(1, 0);
-        flagSprite.position.set(NODE_WIDTH / 2 - 12, NODE_HEIGHT / 2 - 30);
-        nodeContainer.addChild(flagSprite);
-      }
+      initialsText.anchor.set(0.5);
+      initialsText.position.set(0, 0);
+      nodeContainer.addChild(initialsText);
 
       nodeContainer.on('pointertap', () => {
         if (performance.now() < state.suppressTapUntil) {
@@ -3757,7 +5955,12 @@ export function initBinaryTree(options = {}) {
       });
 
       nodesLayer.addChild(nodeContainer);
-      state.nodeVisuals.set(nodeId, { node, background, container: nodeContainer });
+      state.nodeVisuals.set(nodeId, {
+        node,
+        background,
+        container: nodeContainer,
+        initialsText,
+      });
     }
 
     for (const slotEntry of anticipationSlots) {
@@ -3772,42 +5975,27 @@ export function initBinaryTree(options = {}) {
       placeholderContainer.interactive = true;
       placeholderContainer.interactiveChildren = false;
       placeholderContainer.cursor = 'pointer';
-      placeholderContainer.hitArea = new PIXI.RoundedRectangle(
-        -ENROLL_PLACEHOLDER_WIDTH / 2,
-        -ENROLL_PLACEHOLDER_HEIGHT / 2,
-        ENROLL_PLACEHOLDER_WIDTH,
-        ENROLL_PLACEHOLDER_HEIGHT,
-        ENROLL_PLACEHOLDER_CORNER_RADIUS,
-      );
+      placeholderContainer.hitArea = new PIXI.Circle(0, 0, ENROLL_ANTICIPATED_NODE_RADIUS + 7);
 
       const placeholderBackground = new PIXI.Graphics();
-      placeholderBackground.lineStyle(1.6, COLORS.statusActive, 0.92);
-      placeholderBackground.beginFill(COLORS.statusActive, 0.07);
-      placeholderBackground.drawRoundedRect(
-        -ENROLL_PLACEHOLDER_WIDTH / 2,
-        -ENROLL_PLACEHOLDER_HEIGHT / 2,
-        ENROLL_PLACEHOLDER_WIDTH,
-        ENROLL_PLACEHOLDER_HEIGHT,
-        ENROLL_PLACEHOLDER_CORNER_RADIUS,
-      );
+      placeholderBackground.lineStyle(2, COLORS.statusActive, 0.9);
+      placeholderBackground.beginFill(COLORS.statusActive, 0.12);
+      placeholderBackground.drawCircle(0, 0, ENROLL_ANTICIPATED_NODE_RADIUS);
       placeholderBackground.endFill();
+      placeholderBackground.lineStyle(1, COLORS.statusActive, 0.28);
+      placeholderBackground.drawCircle(0, 0, ENROLL_ANTICIPATED_NODE_RADIUS + 4);
       placeholderContainer.addChild(placeholderBackground);
 
-      const plusText = new PIXI.Text('+', enrollPlaceholderPlusStyle);
-      plusText.anchor.set(0.5, 0);
-      plusText.position.set(0, -ENROLL_PLACEHOLDER_HEIGHT / 2 + 8);
+      const plusText = new PIXI.Text('+', enrollAnticipatedGlyphStyle);
+      plusText.anchor.set(0.5);
+      plusText.position.set(0, 0);
       placeholderContainer.addChild(plusText);
 
-      const titleText = new PIXI.Text('Enroll Member', enrollPlaceholderTitleStyle);
-      titleText.anchor.set(0.5, 0.5);
-      titleText.position.set(0, -2);
-      placeholderContainer.addChild(titleText);
-
-      const sideLabel = slotEntry.side === 'right' ? 'Right Slot' : 'Left Slot';
-      const subtitleText = new PIXI.Text(sideLabel, enrollPlaceholderSubtitleStyle);
-      subtitleText.anchor.set(0.5, 1);
-      subtitleText.position.set(0, ENROLL_PLACEHOLDER_HEIGHT / 2 - 8);
-      placeholderContainer.addChild(subtitleText);
+      const sideLabel = slotEntry.side === 'right' ? 'RIGHT' : 'LEFT';
+      const sideText = new PIXI.Text(sideLabel, enrollAnticipatedSideStyle);
+      sideText.anchor.set(0.5, 0);
+      sideText.position.set(0, ENROLL_ANTICIPATED_NODE_RADIUS + ENROLL_ANTICIPATED_NODE_LABEL_OFFSET);
+      placeholderContainer.addChild(sideText);
 
       placeholderContainer.on('pointertap', () => {
         if (performance.now() < state.suppressTapUntil) {
@@ -3825,6 +6013,27 @@ export function initBinaryTree(options = {}) {
     applySearchState();
   }
 
+  function refreshLodAfterCameraChange(options = {}) {
+    if (!state.data || state.destroyed) {
+      return;
+    }
+
+    const nextLodMode = resolveTreeLodModeForScale(world.scale.x, state.activeLodModeKey);
+
+    const didModeChange = nextLodMode.key !== state.activeLodModeKey;
+    if (didModeChange) {
+      state.activeLodModeKey = nextLodMode.key;
+    }
+
+    if (options.force === true || didModeChange) {
+      if (state.nodeVisuals.size) {
+        refreshNodeVisuals();
+      } else {
+        renderTree();
+      }
+    }
+  }
+
   function zoomAtPoint(nextScale, screenX, screenY) {
     stopCameraAnimation();
     const currentScale = world.scale.x;
@@ -3840,6 +6049,8 @@ export function initBinaryTree(options = {}) {
       screenX - worldX * clampedScale,
       screenY - worldY * clampedScale,
     );
+    refreshLodAfterCameraChange();
+    updateSelectedNodePopup();
     scheduleMinimapRender();
     schedulePersistUiState();
   }
@@ -3848,6 +6059,7 @@ export function initBinaryTree(options = {}) {
     stopCameraAnimation();
     world.position.x += deltaX;
     world.position.y += deltaY;
+    updateSelectedNodePopup();
     scheduleMinimapRender();
     schedulePersistUiState();
   }
@@ -3872,8 +6084,45 @@ export function initBinaryTree(options = {}) {
       (viewportWidth - contentWidth * nextScale) / 2 - bounds.minX * nextScale,
       (viewportHeight - contentHeight * nextScale) / 2 - bounds.minY * nextScale,
     );
+    refreshLodAfterCameraChange();
+    updateSelectedNodePopup();
     scheduleMinimapRender();
     schedulePersistUiState();
+  }
+
+  function applyMapHomeView(options = {}) {
+    stopCameraAnimation();
+    const rootNodeId = state.data?.rootId;
+    const rootPoint = rootNodeId ? state.nodePositions.get(rootNodeId) : null;
+    if (!rootPoint) {
+      fitToView();
+      return;
+    }
+
+    const viewport = getViewportSize();
+    const viewportYRatio = clamp(
+      isValidNumber(options.viewportYRatio) ? options.viewportYRatio : TREE_MAP_HOME_VIEWPORT_Y_RATIO,
+      0,
+      1,
+    );
+    const homeScale = clamp(
+      isValidNumber(options.scale) ? options.scale : TREE_MAP_HOME_ZOOM,
+      MIN_ZOOM,
+      MAX_ZOOM,
+    );
+
+    world.scale.set(homeScale);
+    world.position.set(
+      viewport.width * 0.5 - rootPoint.x * homeScale,
+      viewport.height * viewportYRatio - rootPoint.y * homeScale,
+    );
+
+    refreshLodAfterCameraChange({ force: true });
+    updateSelectedNodePopup();
+    scheduleMinimapRender();
+    if (options.persist !== false) {
+      schedulePersistUiState();
+    }
   }
 
   function resetView() {
@@ -3881,6 +6130,8 @@ export function initBinaryTree(options = {}) {
     if (state.initialTransform) {
       world.scale.set(state.initialTransform.scale);
       world.position.set(state.initialTransform.x, state.initialTransform.y);
+      refreshLodAfterCameraChange();
+      updateSelectedNodePopup();
       scheduleMinimapRender();
       schedulePersistUiState();
       return;
@@ -4008,6 +6259,8 @@ export function initBinaryTree(options = {}) {
     stopCameraAnimation();
     world.scale.set(clamp(cameraSnapshot.scale, MIN_ZOOM, MAX_ZOOM));
     world.position.set(cameraSnapshot.x, cameraSnapshot.y);
+    refreshLodAfterCameraChange();
+    updateSelectedNodePopup();
     scheduleMinimapRender();
     return true;
   }
@@ -4043,7 +6296,7 @@ export function initBinaryTree(options = {}) {
     state.hiddenSpilloverNodeIds = nextHiddenSpilloverNodeIds;
 
     renderTree();
-    fitToView();
+    applyMapHomeView({ persist: false });
     state.initialTransform = {
       x: world.position.x,
       y: world.position.y,
@@ -4063,9 +6316,7 @@ export function initBinaryTree(options = {}) {
       setMobileSelectedOpen(Boolean(pendingRestore.isMobileSelectedOpen), { persist: false });
     }
 
-    if (!applyCameraSnapshot(pendingRestore?.camera)) {
-      scheduleMinimapRender();
-    }
+    applyCameraSnapshot(pendingRestore?.camera);
 
     applySearchState();
     state.pendingRestoreUiState = null;
@@ -4299,14 +6550,10 @@ export function initBinaryTree(options = {}) {
     const scale = Math.max(world.scale.x, 0.0001);
     const worldX = (localX - world.position.x) / scale;
     const worldY = (localY - world.position.y) / scale;
-    const halfWidth = NODE_WIDTH / 2;
-    const halfHeight = NODE_HEIGHT / 2;
 
     for (const nodePosition of state.nodePositions.values()) {
-      if (
-        Math.abs(worldX - nodePosition.x) <= halfWidth
-        && Math.abs(worldY - nodePosition.y) <= halfHeight
-      ) {
+      const distance = Math.hypot(worldX - nodePosition.x, worldY - nodePosition.y);
+      if (distance <= TREE_SIMPLE_NODE_RADIUS + 8) {
         return true;
       }
     }
@@ -4687,6 +6934,13 @@ export function initBinaryTree(options = {}) {
         clearTimeout(persistStateTimerId);
         persistStateTimerId = null;
       }
+      clearNodePopupBadgeHoverHideTimer();
+      hideNodePopupBadgeHovercard({ immediate: true });
+      if (nodePopupBadgeHovercardRefs?.card?.parentNode) {
+        nodePopupBadgeHovercardRefs.card.parentNode.removeChild(nodePopupBadgeHovercardRefs.card);
+      }
+      nodePopupBadgeHovercardRefs = null;
+      activeNodePopupBadgeAnchorRect = null;
       exitFullscreen();
       if (overlayEl && overlayOriginalParent && overlayEl.parentNode !== overlayOriginalParent) {
         if (overlayOriginalNextSibling && overlayOriginalNextSibling.parentNode === overlayOriginalParent) {

@@ -1,0 +1,466 @@
+{
+  "runId": "zeroone:20260408012540525-tstltn",
+  "startedAt": "2026-04-08T01:25:40.525Z",
+  "finishedAt": "2026-04-08T01:51:00.550Z",
+  "targetUsername": "zeroone",
+  "targetUserId": "usr_1775181494655_698b390a",
+  "config": {
+    "requestedNodes": 50,
+    "targetDirectGoal": 3,
+    "randomizedSponsorSelection": true,
+    "excludedPackages": [
+      "preferred-customer-pack"
+    ],
+    "cycleRule": {
+      "lower": 500,
+      "higher": 1000
+    },
+    "resetSummary": {
+      "targetUsername": "zeroone",
+      "deletedUsers": 0,
+      "deletedMembers": 0,
+      "deletedCutoffStates": 0,
+      "deletedTokens": 0,
+      "deletedTargetBinarySnapshots": 0,
+      "deletedTargetSalesCommissions": 0,
+      "deletedTargetCutoffStates": 0
+    }
+  },
+  "generatedNodes": {
+    "created": 50,
+    "directSponsors": 3,
+    "indirectSponsors": 47,
+    "requestedLeftDirect": 1,
+    "requestedRightDirect": 2,
+    "byPackage": {
+      "business-builder-pack": 11,
+      "legacy-builder-pack": 20,
+      "personal-builder-pack": 11,
+      "infinity-builder-pack": 8
+    }
+  },
+  "actions": {
+    "purchasesApplied": 50,
+    "upgradesApplied": 13
+  },
+  "zeroone": {
+    "accountRank": "Legacy",
+    "fastTrackCommissionFromDirectEnrollments": 342.4,
+    "binaryTree": {
+      "nodeCount": 51,
+      "newMembersJoined": 50,
+      "totalDirectSponsors": 3,
+      "leftLegBv": 20426,
+      "rightLegBv": 45334,
+      "accountTotalCycles": 40,
+      "totalAccumulatedPv": 65760,
+      "cycleRule": {
+        "leftPvThreshold": 500,
+        "rightPvThreshold": 1000
+      }
+    },
+    "cutoffMetrics": {
+      "cutoff": {
+        "timezone": "America/Los_Angeles",
+        "weekday": 6,
+        "hour": 23,
+        "minute": 59,
+        "nextCutoffAt": "2026-04-12T06:59:00.000Z",
+        "lastClosedCutoffAt": "2026-04-05T06:59:00.000Z",
+        "latestForcedCutoffAt": "2026-04-08T01:50:14.510Z",
+        "lastAppliedCutoffAt": "2026-04-08T01:50:14.510Z"
+      },
+      "metrics": {
+        "totalLeftLegBv": 20426,
+        "totalRightLegBv": 45334,
+        "totalPersonalPv": 1487,
+        "baselineLeftLegBv": 20426,
+        "baselineRightLegBv": 45334,
+        "baselinePersonalPv": 0,
+        "currentWeekLeftLegBv": 0,
+        "currentWeekRightLegBv": 0,
+        "currentWeekPersonalPv": 1487,
+        "cycleLowerBv": 500,
+        "cycleHigherBv": 1000,
+        "estimatedCycles": 0
+      }
+    },
+    "salesTeamCommission": {
+      "id": "sales_team_commission_1775613014511_1",
+      "userId": "usr_1775181494655_698b390a",
+      "username": "zeroone",
+      "email": "sethfozzaguilar@gmail.com",
+      "accountPackageKey": "legacy-builder-pack",
+      "cycleMultiplier": 0.125,
+      "perCycleAmount": 62.5,
+      "weeklyCapCycles": 1000,
+      "totalCycles": 40,
+      "cappedCycles": 40,
+      "overflowCycles": 0,
+      "grossCommissionAmount": 2500,
+      "payoutOffsetAmount": 0,
+      "netCommissionAmount": 2500,
+      "currencyCode": "USD",
+      "createdAt": "2026-04-08T01:50:14.510Z",
+      "updatedAt": "2026-04-08T01:50:14.510Z"
+    },
+    "forceServerCutoff": {
+      "success": true,
+      "forcedAt": "2026-04-08T01:50:14.510Z",
+      "forcedBy": "simulation-zeroone:20260408012540525-tstltn",
+      "applied": {
+        "snapshotsUpdated": 5,
+        "commissionsUpdated": 5,
+        "commissionsUnchanged": 0,
+        "memberServerCutoffStatesTargeted": 53,
+        "memberServerCutoffStatesUpdated": 53,
+        "totalCyclesApplied": 40,
+        "totalCappedCycles": 40,
+        "totalOverflowCycles": 0,
+        "totalGrossCommissionAmount": 2500,
+        "totalPayoutOffsetAmount": 0,
+        "totalNetCommissionAmount": 2500
+      },
+      "historyEntry": {
+        "id": "force_cutoff_1775613014512",
+        "forcedAt": "2026-04-08T01:50:14.510Z",
+        "forcedBy": "simulation-zeroone:20260408012540525-tstltn",
+        "applied": {
+          "snapshotsUpdated": 5,
+          "commissionsUpdated": 5,
+          "commissionsUnchanged": 0,
+          "memberServerCutoffStatesTargeted": 53,
+          "memberServerCutoffStatesUpdated": 53,
+          "totalCyclesApplied": 40,
+          "totalCappedCycles": 40,
+          "totalOverflowCycles": 0,
+          "totalGrossCommissionAmount": 2500,
+          "totalPayoutOffsetAmount": 0,
+          "totalNetCommissionAmount": 2500
+        }
+      },
+      "history": [
+        {
+          "id": "force_cutoff_1775613014512",
+          "forcedAt": "2026-04-08T01:50:14.510Z",
+          "forcedBy": "simulation-zeroone:20260408012540525-tstltn",
+          "applied": {
+            "snapshotsUpdated": 5,
+            "commissionsUpdated": 5,
+            "commissionsUnchanged": 0,
+            "memberServerCutoffStatesTargeted": 53,
+            "memberServerCutoffStatesUpdated": 53,
+            "totalCyclesApplied": 40,
+            "totalCappedCycles": 40,
+            "totalOverflowCycles": 0,
+            "totalGrossCommissionAmount": 2500,
+            "totalPayoutOffsetAmount": 0,
+            "totalNetCommissionAmount": 2500
+          }
+        }
+      ]
+    },
+    "achievements": {
+      "currentRank": "Legacy",
+      "currentCycles": 40,
+      "leftDirectSponsors": 1,
+      "rightDirectSponsors": 3,
+      "totalDirectSponsors": 4,
+      "eligibleCount": 2,
+      "claimedCount": 1,
+      "highestEligibleRankReward": {
+        "id": "rank-sapphire",
+        "title": "Sapphire",
+        "requiredCycles": 20
+      }
+    },
+    "tierCards": {
+      "infinityBuilder": {
+        "directSponsorCount": 3,
+        "activeTierCount": 2,
+        "completedTierCount": 1,
+        "tier1": {
+          "tierNumber": 1,
+          "seedCount": 3,
+          "directRequirementMet": true,
+          "remainingSeedSlots": 0,
+          "litNodeCount": 4,
+          "isCompleted": true,
+          "isUnlocked": true
+        }
+      },
+      "legacyLeadership": {
+        "directSponsorCount": 2,
+        "activeTierCount": 1,
+        "completedTierCount": 0,
+        "tier1": {
+          "tierNumber": 1,
+          "seedCount": 2,
+          "directRequirementMet": false,
+          "remainingSeedSlots": 1,
+          "litNodeCount": 3,
+          "isCompleted": false,
+          "isUnlocked": true
+        }
+      }
+    }
+  },
+  "sampleGeneratedMembers": [
+    {
+      "key": "n1",
+      "memberUsername": "zeroone-sim-202604080125",
+      "userId": "usr_1775611544606_765e4aa3",
+      "sponsorUsername": "zeroone",
+      "sponsorIsTarget": true,
+      "enrollmentPackage": "infinity-builder-pack",
+      "requestedPlacementLeg": "spillover",
+      "requestedDirection": "right"
+    },
+    {
+      "key": "n2",
+      "memberUsername": "zeroone-sim-2026040801252",
+      "userId": "usr_1775611555011_a0f3c385",
+      "sponsorUsername": "zeroone-sim-202604080125",
+      "sponsorIsTarget": false,
+      "enrollmentPackage": "infinity-builder-pack",
+      "requestedPlacementLeg": "left",
+      "requestedDirection": "left"
+    },
+    {
+      "key": "n3",
+      "memberUsername": "zeroone-sim-2026040801253",
+      "userId": "usr_1775611566151_e4ee083b",
+      "sponsorUsername": "zeroone",
+      "sponsorIsTarget": true,
+      "enrollmentPackage": "personal-builder-pack",
+      "requestedPlacementLeg": "left",
+      "requestedDirection": "left"
+    },
+    {
+      "key": "n4",
+      "memberUsername": "zeroone-sim-2026040801254",
+      "userId": "usr_1775611577837_4781573a",
+      "sponsorUsername": "zeroone",
+      "sponsorIsTarget": true,
+      "enrollmentPackage": "legacy-builder-pack",
+      "requestedPlacementLeg": "right",
+      "requestedDirection": "right"
+    },
+    {
+      "key": "n5",
+      "memberUsername": "zeroone-sim-2026040801255",
+      "userId": "usr_1775611590429_35d36914",
+      "sponsorUsername": "zeroone-sim-2026040801252",
+      "sponsorIsTarget": false,
+      "enrollmentPackage": "personal-builder-pack",
+      "requestedPlacementLeg": "left",
+      "requestedDirection": "left"
+    },
+    {
+      "key": "n6",
+      "memberUsername": "zeroone-sim-2026040801256",
+      "userId": "usr_1775611603784_b38615b8",
+      "sponsorUsername": "zeroone-sim-2026040801254",
+      "sponsorIsTarget": false,
+      "enrollmentPackage": "legacy-builder-pack",
+      "requestedPlacementLeg": "right",
+      "requestedDirection": "right"
+    },
+    {
+      "key": "n7",
+      "memberUsername": "zeroone-sim-2026040801257",
+      "userId": "usr_1775611617806_4551933b",
+      "sponsorUsername": "zeroone-sim-2026040801253",
+      "sponsorIsTarget": false,
+      "enrollmentPackage": "infinity-builder-pack",
+      "requestedPlacementLeg": "spillover",
+      "requestedDirection": "right"
+    },
+    {
+      "key": "n8",
+      "memberUsername": "zeroone-sim-2026040801258",
+      "userId": "usr_1775611632484_d62cc907",
+      "sponsorUsername": "zeroone-sim-2026040801257",
+      "sponsorIsTarget": false,
+      "enrollmentPackage": "business-builder-pack",
+      "requestedPlacementLeg": "left",
+      "requestedDirection": "left"
+    },
+    {
+      "key": "n9",
+      "memberUsername": "zeroone-sim-2026040801259",
+      "userId": "usr_1775611648190_ac2d3df7",
+      "sponsorUsername": "zeroone-sim-2026040801254",
+      "sponsorIsTarget": false,
+      "enrollmentPackage": "business-builder-pack",
+      "requestedPlacementLeg": "right",
+      "requestedDirection": "right"
+    },
+    {
+      "key": "n10",
+      "memberUsername": "zeroone-sim-20260408012510",
+      "userId": "usr_1775611664469_ec6eaabd",
+      "sponsorUsername": "zeroone-sim-2026040801256",
+      "sponsorIsTarget": false,
+      "enrollmentPackage": "legacy-builder-pack",
+      "requestedPlacementLeg": "right",
+      "requestedDirection": "right"
+    },
+    {
+      "key": "n11",
+      "memberUsername": "zeroone-sim-20260408012511",
+      "userId": "usr_1775611681437_7ae48d54",
+      "sponsorUsername": "zeroone-sim-2026040801259",
+      "sponsorIsTarget": false,
+      "enrollmentPackage": "personal-builder-pack",
+      "requestedPlacementLeg": "right",
+      "requestedDirection": "right"
+    },
+    {
+      "key": "n12",
+      "memberUsername": "zeroone-sim-20260408012512",
+      "userId": "usr_1775611699212_dbd20afa",
+      "sponsorUsername": "zeroone-sim-202604080125",
+      "sponsorIsTarget": false,
+      "enrollmentPackage": "business-builder-pack",
+      "requestedPlacementLeg": "left",
+      "requestedDirection": "left"
+    }
+  ],
+  "upgradeSamples": [
+    {
+      "memberUsername": "zeroone-sim-2026040801253",
+      "fromPackage": "personal-builder-pack",
+      "toPackage": "legacy-builder-pack",
+      "pvGain": 768
+    },
+    {
+      "memberUsername": "zeroone-sim-2026040801255",
+      "fromPackage": "personal-builder-pack",
+      "toPackage": "legacy-builder-pack",
+      "pvGain": 768
+    },
+    {
+      "memberUsername": "zeroone-sim-2026040801257",
+      "fromPackage": "infinity-builder-pack",
+      "toPackage": "legacy-builder-pack",
+      "pvGain": 400
+    },
+    {
+      "memberUsername": "zeroone-sim-2026040801258",
+      "fromPackage": "business-builder-pack",
+      "toPackage": "infinity-builder-pack",
+      "pvGain": 200
+    },
+    {
+      "memberUsername": "zeroone-sim-20260408012512",
+      "fromPackage": "business-builder-pack",
+      "toPackage": "legacy-builder-pack",
+      "pvGain": 600
+    },
+    {
+      "memberUsername": "zeroone-sim-20260408012521",
+      "fromPackage": "infinity-builder-pack",
+      "toPackage": "legacy-builder-pack",
+      "pvGain": 400
+    },
+    {
+      "memberUsername": "zeroone-sim-20260408012522",
+      "fromPackage": "personal-builder-pack",
+      "toPackage": "infinity-builder-pack",
+      "pvGain": 368
+    },
+    {
+      "memberUsername": "zeroone-sim-20260408012523",
+      "fromPackage": "infinity-builder-pack",
+      "toPackage": "legacy-builder-pack",
+      "pvGain": 400
+    },
+    {
+      "memberUsername": "zeroone-sim-20260408012528",
+      "fromPackage": "personal-builder-pack",
+      "toPackage": "legacy-builder-pack",
+      "pvGain": 768
+    },
+    {
+      "memberUsername": "zeroone-sim-20260408012537",
+      "fromPackage": "personal-builder-pack",
+      "toPackage": "legacy-builder-pack",
+      "pvGain": 768
+    },
+    {
+      "memberUsername": "zeroone-sim-20260408012544",
+      "fromPackage": "infinity-builder-pack",
+      "toPackage": "legacy-builder-pack",
+      "pvGain": 400
+    },
+    {
+      "memberUsername": "zeroone-sim-20260408012546",
+      "fromPackage": "business-builder-pack",
+      "toPackage": "legacy-builder-pack",
+      "pvGain": 600
+    }
+  ],
+  "purchaseSamples": [
+    {
+      "memberUsername": "zeroone-sim-202604080125",
+      "packageKey": "infinity-builder-pack",
+      "pvGain": 652
+    },
+    {
+      "memberUsername": "zeroone-sim-2026040801252",
+      "packageKey": "infinity-builder-pack",
+      "pvGain": 903
+    },
+    {
+      "memberUsername": "zeroone-sim-2026040801253",
+      "packageKey": "legacy-builder-pack",
+      "pvGain": 1279
+    },
+    {
+      "memberUsername": "zeroone-sim-2026040801254",
+      "packageKey": "legacy-builder-pack",
+      "pvGain": 1108
+    },
+    {
+      "memberUsername": "zeroone-sim-2026040801255",
+      "packageKey": "legacy-builder-pack",
+      "pvGain": 980
+    },
+    {
+      "memberUsername": "zeroone-sim-2026040801256",
+      "packageKey": "legacy-builder-pack",
+      "pvGain": 970
+    },
+    {
+      "memberUsername": "zeroone-sim-2026040801257",
+      "packageKey": "legacy-builder-pack",
+      "pvGain": 1090
+    },
+    {
+      "memberUsername": "zeroone-sim-2026040801258",
+      "packageKey": "infinity-builder-pack",
+      "pvGain": 788
+    },
+    {
+      "memberUsername": "zeroone-sim-2026040801259",
+      "packageKey": "business-builder-pack",
+      "pvGain": 383
+    },
+    {
+      "memberUsername": "zeroone-sim-20260408012510",
+      "packageKey": "legacy-builder-pack",
+      "pvGain": 1306
+    },
+    {
+      "memberUsername": "zeroone-sim-20260408012511",
+      "packageKey": "personal-builder-pack",
+      "pvGain": 248
+    },
+    {
+      "memberUsername": "zeroone-sim-20260408012512",
+      "packageKey": "legacy-builder-pack",
+      "pvGain": 1042
+    }
+  ]
+}

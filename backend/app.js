@@ -20,6 +20,8 @@ import memberAchievementRoutes from './routes/member-achievement.routes.js';
 import memberGoodLifeRoutes from './routes/member-good-life.routes.js';
 import memberNotificationRoutes from './routes/member-notification.routes.js';
 import memberBusinessCenterRoutes from './routes/member-business-center.routes.js';
+import { warmRegisteredMembersStoreSchema } from './stores/member.store.js';
+import { ensureMemberUserLookupIndexes } from './stores/user.store.js';
 
 const app = express();
 const PORT = Number.parseInt(process.env.PORT || '3000', 10);
@@ -88,6 +90,10 @@ app.get(['/store/password-setup', '/store/password-setup/', '/store-password-set
   return res.sendFile(path.join(projectRoot, 'store-password-setup.html'));
 });
 
+app.get(['/binary-tree-next', '/binary-tree-next/', '/binary-tree-next.html'], (req, res) => {
+  return res.sendFile(path.join(projectRoot, 'binary-tree-next.html'));
+});
+
 // serve existing frontend files from project root for now
 app.use(express.static(projectRoot));
 
@@ -113,6 +119,34 @@ app.use((req, res, next) => {
   return res.sendFile(path.join(projectRoot, 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Express server running at http://localhost:${PORT}`);
-});
+async function warmStartupStores() {
+  const warmups = [
+    {
+      label: 'registered_members schema',
+      run: warmRegisteredMembersStoreSchema,
+    },
+    {
+      label: 'member_users lookup indexes',
+      run: ensureMemberUserLookupIndexes,
+    },
+  ];
+
+  const results = await Promise.allSettled(warmups.map((entry) => entry.run()));
+  results.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      const message = result.reason instanceof Error
+        ? result.reason.message
+        : String(result.reason || 'Unknown startup warm-up failure.');
+      console.warn(`[startup warmup] ${warmups[index].label}: ${message}`);
+    }
+  });
+}
+
+async function startServer() {
+  await warmStartupStores();
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Express server running at http://localhost:${PORT}`);
+  });
+}
+
+void startServer();

@@ -42,6 +42,12 @@ function mapAppEmailToDbEmail(email) {
   };
 }
 
+function resolveQueryClient(candidateClient) {
+  return candidateClient && typeof candidateClient.query === 'function'
+    ? candidateClient
+    : pool;
+}
+
 export async function readMockEmailOutboxStore() {
   const result = await pool.query(`
     SELECT
@@ -99,4 +105,72 @@ export async function writeMockEmailOutboxStore(emails) {
   } finally {
     client.release();
   }
+}
+
+export async function insertMockEmailOutboxRecord(email, options = {}) {
+  const row = mapAppEmailToDbEmail(email);
+  if (!row.id) {
+    throw new Error('Cannot insert email outbox record without an id.');
+  }
+
+  const client = resolveQueryClient(options?.client);
+  const insertValues = [
+    row.id,
+    row.recipient_email,
+    row.subject,
+    row.body,
+    row.setup_link,
+    row.status,
+    row.created_at,
+  ];
+  const insertSql = `
+    INSERT INTO charge.email_outbox (
+      id,
+      recipient_email,
+      subject,
+      body,
+      setup_link,
+      status,
+      created_at
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+  `;
+
+  if (options?.preferInsert === true) {
+    try {
+      const fastInsertResult = await client.query(`${insertSql} ON CONFLICT (id) DO NOTHING`, insertValues);
+      if (fastInsertResult.rowCount > 0) {
+        return;
+      }
+    } catch (error) {
+      if (error?.code !== '42P10') {
+        throw error;
+      }
+    }
+  }
+
+  const updateResult = await client.query(`
+    UPDATE charge.email_outbox
+    SET
+      recipient_email = $2,
+      subject = $3,
+      body = $4,
+      setup_link = $5,
+      status = $6,
+      updated_at = NOW()
+    WHERE id = $1
+  `, [
+    row.id,
+    row.recipient_email,
+    row.subject,
+    row.body,
+    row.setup_link,
+    row.status,
+  ]);
+
+  if (updateResult.rowCount > 0) {
+    return;
+  }
+
+  await client.query(insertSql, insertValues);
 }
