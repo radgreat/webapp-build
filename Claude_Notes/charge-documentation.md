@@ -23076,3 +23076,905 @@ Updated `binary-tree-next-app.mjs`:
 ### Validation
 
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Spillover Sponsor Mapping + Enrollment Persistence Performance
+
+### What Was Changed
+
+- Fixed sponsor resolution for newly enrolled nodes in `binary-tree-next-app.mjs`:
+  - added username-to-node-id lookup (`resolveNodeIdByUsername`)
+  - added enrollment sponsor resolver (`resolveTreeNextEnrollmentSponsorNodeId`)
+  - spillover enrollments now prioritize sponsor node resolution by `createdMember.sponsorUsername`
+  - if sponsor username cannot be resolved, spillover fallback now uses the preferred home/root node (`resolvePreferredGlobalHomeNodeId`) instead of defaulting to placement parent.
+- Hardened left-panel sponsor relation rendering:
+  - sponsor button now falls back to parent only when `selectedNode.sponsorId` does not resolve to an existing node in the current tree.
+- Refactored enrollment persistence path in backend to remove full-table rewrites:
+  - `createRegisteredMember` now performs row-level transactional persistence with shared DB client
+  - replaced per-enrollment `DELETE + reinsert all rows` flow with targeted upsert/insert operations for:
+    - `member_users`
+    - `registered_members`
+    - `password_setup_tokens`
+    - `email_outbox`.
+- Added new store helpers for row-level writes:
+  - `upsertMockUserRecord`
+  - `upsertRegisteredMemberRecord`
+  - `upsertPasswordSetupTokenRecord`
+  - `insertMockEmailOutboxRecord`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `backend/services/member.service.js`
+- `backend/stores/user.store.js`
+- `backend/stores/member.store.js`
+- `backend/stores/token.store.js`
+- `backend/stores/email.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept new backend writes inside one explicit DB transaction in `createRegisteredMember` to preserve consistency across user/member/token/outbox creation while improving latency.
+- Implemented update-then-insert row writes (instead of conflict-only SQL) so persistence does not depend on pre-existing unique constraints beyond current production assumptions.
+- Preserved existing global rewrite helpers for other admin/service paths to avoid behavior changes outside enrollment flow.
+
+### Known Limitations
+
+- `createRegisteredMember` still reads the current users list to enforce unique email/username generation, so very large datasets can still add read-side latency; however, write-side cost is now constant-time per enrollment record.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/stores/user.store.js` passed.
+- `node --check backend/stores/member.store.js` passed.
+- `node --check backend/stores/token.store.js` passed.
+- `node --check backend/stores/email.store.js` passed.
+
+## Update (2026-04-12) - Anticipation Depth Guard Corrected For Local-View Enrollment
+
+### What Was Changed
+
+- Updated anticipation-slot depth logic in `binary-tree-next-app.mjs` to remove the hard global-depth guard that blocked slot rendering when absolute depth exceeded 20.
+- Kept anticipation rendering capped to the current view depth budget (`universeDepthCap`), still bounded at 20 levels.
+- Added explicit comment to document behavior:
+  - the 20-level cap is a view/render cap
+  - enrollment can continue past absolute/global level 20 by entering local universe view.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved the no-slot behavior at the deepest visible level (local depth cap reached), while enabling anticipation in local view roots that happen to be globally deeper than 20.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Binary Tree Next Live DB Hydration (Mock Tree Removed)
+
+### What Was Changed
+
+- Replaced mock-generated tree bootstrapping in `binary-tree-next-app.mjs` with live hydration from registered-members APIs:
+  - member source: `GET /api/registered-members`
+  - admin source: `GET /api/admin/registered-members`
+- Added live tree-construction pipeline:
+  - member eligibility filtering (excludes free/preferred-customer accounts from binary tree placement)
+  - deterministic node-id generation from member identity fields
+  - placement reconstruction using old-model behavior:
+    - open placement breadth-first
+    - extreme-leg placement chain traversal
+    - spillover parent reference support
+  - sponsor mapping + spillover flag assignment.
+- Added scoped-view rebuild so the runtime still uses synthetic `root` for the active viewer while rendering real DB descendants.
+- Added child reference normalization (`leftChildId` / `rightChildId`) from parent/side mapping after scope projection.
+- Added boot-time live-load fallback:
+  - if live fetch fails, app shows boot error text and falls back to a root-only scoped tree rather than crashing.
+- Updated bootstrap path:
+  - removed `buildMockNodes()` usage
+  - now awaits `loadTreeNextLiveNodes()` before adapter hydration.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved current runtime root contract (`id: 'root'`) to avoid breaking anticipation, local-view navigation, and enrollment panel wiring.
+- Kept placement reconstruction in frontend (from persisted member registration metadata) so the visual tree reflects live DB state consistently without introducing new backend tree endpoints.
+- Retained resilient startup behavior: live-data errors do not hard-fail rendering.
+
+### Known Limitations
+
+- Current live-tree filter keeps old-model behavior by excluding preferred-customer/free-account members from binary placement rendering.
+- Viewer scoping still falls back to global-root projection when session identity cannot be matched to a registered-member node.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Panel Package List Limited To Paid Packages
+
+### What Was Changed
+
+- Removed `Free Account` option (`preferred-customer-pack`) from the enrollment package selector in `binary-tree-next.html`.
+- Added paid-package guardrails in `binary-tree-next-app.mjs`:
+  - introduced `ENROLL_PAID_PACKAGE_KEY_SET`
+  - added `isTreeNextEnrollPaidPackage(...)` and `resolveTreeNextEnrollPackageKey(...)`
+  - package/tier preview sync now coerces non-paid selections back to default paid package
+  - step-two validation now blocks non-paid package values with user feedback
+  - submit handler adds a final non-paid package rejection guard.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept package metadata for free account in code for other non-panel flows, but disallowed it specifically in this enrollment panel UI and submission path.
+- Implemented both UI-level removal and validation-level enforcement to prevent DOM tampering bypass.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Panel Custom Dropdown (Non-Webkit Native UI)
+
+### What Was Changed
+
+- Replaced enrollment Step 2 native-select presentation with custom dropdown UI shell in `binary-tree-next.html`:
+  - `Account Package` now uses a custom trigger/menu
+  - `Spill Over` now uses a custom trigger/menu
+  - underlying native `<select>` elements remain present as hidden data sources for form compatibility.
+- Added new custom dropdown styles to match enrollment panel field language:
+  - trigger uses same field radius, spacing, typography, and color system
+  - custom chevron rotation on open
+  - rounded popover menu with selected-row highlighting
+  - focus-visible states aligned with panel input focus styling.
+- Implemented custom-select controller in `binary-tree-next-app.mjs`:
+  - menu option generation from native select options
+  - open/close handling (including outside click + `Esc`)
+  - synchronization layer between native select values and custom trigger labels
+  - wired into modal init/reset/open flows so labels stay in sync after programmatic value updates.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved existing enrollment business logic by keeping native selects as hidden canonical value sources and layering custom UI on top.
+- Avoided browser-native dropdown rendering entirely for Step 2 controls while retaining form/state interoperability.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Registration Throughput Improvement (Lookup Queries + Startup Warmup)
+
+### What Was Changed
+
+- Refactored `createRegisteredMember` in `backend/services/member.service.js` to remove full-table member-user reads from the enrollment critical path.
+- Added targeted lookup helpers in `backend/stores/user.store.js`:
+  - `findUserByUsername(...)`
+  - `findUserByEmail(...)`
+  - `isUsernameTaken(...)`
+  - `isEmailTaken(...)`
+  - `isStoreCodeTaken(...)`
+- Added async uniqueness generators in `member.service.js` for enrollment:
+  - username generation now checks availability incrementally instead of loading all users.
+  - store/public code generation now checks DB existence + in-request reservations.
+- Added startup lookup-index warmup helper in `backend/stores/user.store.js`:
+  - `ensureMemberUserLookupIndexes()` creates functional indexes for lowercased username/email and uppercased store-code lookups.
+- Added startup schema warmup export in `backend/stores/member.store.js`:
+  - `warmRegisteredMembersStoreSchema()`.
+- Updated `backend/app.js` startup flow to run warmups once before serving requests:
+  - warms registered-member schema preparation
+  - warms member-user lookup indexes
+  - failures are logged as warnings (non-fatal startup behavior).
+- Updated DB pool configuration in `backend/db/db.js` and `backend/db/admin-db.js` with explicit limits/timeouts:
+  - `max`
+  - `idleTimeoutMillis`
+  - `connectionTimeoutMillis`
+
+### Files Affected
+
+- `backend/services/member.service.js`
+- `backend/stores/user.store.js`
+- `backend/stores/member.store.js`
+- `backend/app.js`
+- `backend/db/db.js`
+- `backend/db/admin-db.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized removing O(N) user-store reads from enrollment because that path directly blocks the UI transition to Thank You.
+- Kept enrollment response contract unchanged so frontend behavior remains stable while backend internals improve.
+- Warmed schema/index tasks at startup to shift first-request latency away from the enroll submit path.
+- Used best-effort warmups (warn-only on failure) to avoid introducing startup hard-fail regressions in constrained environments.
+
+### Known Limitations
+
+- Enrollment is still synchronous end-to-end until transaction commit; thank-you still waits for API completion.
+- No payment-intent confirmation path is added in this patch; this change focuses on registration throughput and DB wait reduction.
+- Store code and username uniqueness remain optimistic at service level unless strict DB uniqueness constraints are enforced at schema level.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/stores/user.store.js` passed.
+- `node --check backend/stores/member.store.js` passed.
+- `node --check backend/app.js` passed.
+- `node --check backend/db/db.js` passed.
+- `node --check backend/db/admin-db.js` passed.
+- `node -e "import('./backend/stores/user.store.js')"` succeeded.
+- `node -e "import('./backend/services/member.service.js')"` succeeded.
+- `node -e "import('./backend/app.js')"` succeeded.
+
+## Update (2026-04-12) - Enrollment Delay Mitigation Pass 2 (Shared DB Client + Insert-First Writes + Immediate Thank-You Paint)
+
+### What Was Changed
+
+- Refactored `createRegisteredMember` in `backend/services/member.service.js` to use a single shared DB client for lookup + write phases:
+  - sponsor lookup, email-conflict check, username generation, store-code generation now run through one connection.
+  - transaction now starts only when persistence begins, with explicit rollback guard.
+- Added `preferInsert` fast path support for write helpers to reduce round trips for newly created records:
+  - `upsertMockUserRecord(..., { preferInsert: true })`
+  - `upsertRegisteredMemberRecord(..., { preferInsert: true })`
+  - `upsertPasswordSetupTokenRecord(..., { preferInsert: true })`
+  - `insertMockEmailOutboxRecord(..., { preferInsert: true })`
+  - fast path uses `INSERT ... ON CONFLICT (id) DO NOTHING` when constraints are available, then falls back safely.
+- Updated store-code collision lookup query to become index-friendly:
+  - replaced `UPPER(COALESCE(...))` predicates with `UPPER(column)` predicates so functional indexes can be used.
+- Updated frontend enroll submit flow in `binary-tree-next-app.mjs`:
+  - thank-you step is now rendered immediately after successful API response.
+  - tree node apply/re-layout is deferred with `setTimeout(..., 0)` so paint happens first.
+
+### Files Affected
+
+- `backend/services/member.service.js`
+- `backend/stores/user.store.js`
+- `backend/stores/member.store.js`
+- `backend/stores/token.store.js`
+- `backend/stores/email.store.js`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized perceived responsiveness by decoupling thank-you paint from heavy tree apply work.
+- Reduced registration write-query count for fresh enrollments using insert-first behavior.
+- Kept compatibility with environments that may not expose `id` unique constraints by graceful fallback.
+
+### Known Limitations
+
+- API still remains synchronous before thank-you is shown; this pass optimizes path cost and UI paint ordering but does not convert enrollment to an async/background job.
+- If DB itself is heavily latent or lock-constrained, backend response time can still be materially affected.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/stores/user.store.js` passed.
+- `node --check backend/stores/member.store.js` passed.
+- `node --check backend/stores/token.store.js` passed.
+- `node --check backend/stores/email.store.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- Local timing probe after restart: `POST /api/registered-members` completed in ~4.5s in this environment.
+
+## Update (2026-04-12) - Enrollment Placement Deferred to Done + New Node Shrink Animation
+
+### What Was Changed
+
+- Updated enrollment flow in `binary-tree-next-app.mjs` so tree placement is no longer applied immediately after registration submit.
+- Added pending-placement staging in `state.enroll.pendingPlacement` after successful submit + thank-you screen transition.
+- Added finalize helper:
+  - `finalizePendingTreeNextEnrollmentPlacement(...)`
+  - called from Thank You `Done` button handler.
+- Updated Done behavior:
+  - pressing `Done` now applies the pending node into the selected placement leg and then closes the panel.
+  - if placement fails, modal remains open and feedback is shown.
+- Added new placement animation system for enrolled node entry:
+  - `state.placementFxTracks`
+  - `resolvePlacementScale(...)`
+  - `startPlacementShrinkAnimation(...)`
+  - `updatePlacementAnimations(...)`
+- Integrated placement animation into render loop and node draw path:
+  - node radius is temporarily scaled from `1.34 -> 1.0` (`ENROLL_PLACEMENT_SHRINK_MS = 320`) using easing.
+  - animation runs on the newly inserted node id when placement finalizes on Done.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Followed requested sequencing exactly: placement animation starts only after user confirms by pressing `Done` on the enrollment panel.
+- Kept submit success and thank-you UX intact while deferring the expensive tree mutation until confirmation.
+
+### Known Limitations
+
+- If the user closes the enrollment panel via dismiss/escape instead of Done after submit success, pending placement is cleared and the new node is not inserted client-side in that session view (it remains persisted server-side).
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Placement Grow Animation Direction + Slower Timing
+
+### What Was Changed
+
+- Updated Binary Tree Next placement animation tuning in `binary-tree-next-app.mjs` so newly placed nodes animate from smaller to full size.
+- Changed placement animation constants:
+  - duration from `320ms` to `620ms`
+  - start scale from `1.34` to `0.68`
+  - end scale remains `1.0`
+- Renamed the placement animation hook from `startPlacementShrinkAnimation(...)` to `startPlacementGrowAnimation(...)` to match the behavior.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept the same trigger point (Thank You `Done`) and only adjusted animation feel, so registration flow timing/logic is unchanged.
+- Used a moderate slowdown (`620ms`) to make the placement feel intentional without making the UI feel stalled.
+
+### Known Limitations
+
+- This update changes only the visual timing/scale; it does not alter backend registration latency or placement business rules.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Done Flow: Close Panel Then Zoom/Center To New Node
+
+### What Was Changed
+
+- Updated Binary Tree Next enrollment `Done` flow in `binary-tree-next-app.mjs`:
+  - node placement is now finalized without immediate visual animation (`animate: false`)
+  - enrollment panel closes first
+  - reveal starts on next animation frame via `playEnrollmentPlacementReveal(nodeId)`.
+- Added enrollment placement reveal helper pipeline:
+  - `playEnrollmentPlacementReveal(...)` now starts both:
+    - `startPlacementGrowAnimation(...)` (new node grow-in)
+    - camera focus/zoom to the new node.
+- Added dedicated enrollment camera focus helper:
+  - `focusNodeForEnrollmentPlacement(...)`
+  - centers focus using viewport midpoint (`Y ratio 0.5`) instead of default node-focus bias.
+- Added minimum zoom-in enforcement during enrollment focus:
+  - camera target scale is clamped to at least `+7%` from current camera scale so the transition always reads as a zoom-in.
+- Added dedicated camera damping profile for this transition:
+  - `ENROLL_PLACEMENT_CAMERA_DAMPING = 5.9`
+  - wired in `animateCamera(...)` under `targetReason === 'enroll-placement'`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept failure handling deterministic: placement still validates before closing the panel.
+- Sequenced reveal after close using `requestAnimationFrame` so users see panel dismissal first, then node/camera motion.
+- Used a separate target reason and damping to tune enroll-specific camera movement without changing wheel/universe/home behaviors.
+
+### Known Limitations
+
+- Camera focus now intentionally selects the newly placed node during the reveal.
+- Timing remains frame-based; extremely low FPS devices can make transition duration feel longer.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Camera-First Placement Reveal + Exaggerated Overshoot Settle
+
+### What Was Changed
+
+- Updated node placement reveal sequencing in `binary-tree-next-app.mjs`:
+  - after enrollment `Done`, camera now focuses/centers first (`targetReason: enroll-placement`)
+  - node scale reveal waits for camera settle before starting.
+- Added queued reveal mechanism:
+  - `state.pendingPlacementReveal`
+  - `queuePlacementRevealAfterCamera(...)`
+  - `consumePendingPlacementReveal(...)` (executed in frame loop after `animateCamera(...)`).
+- Updated placement scale animation to an exaggerated staged curve:
+  - start small -> slightly overshoot above final size -> settle to default size.
+  - implemented via `from`, `peak`, `to`, and `peakRatio` in placement FX tracks.
+- Tuned constants for slower/fuller motion:
+  - duration: `980ms`
+  - start scale: `0.66`
+  - overshoot scale: `1.10`
+  - overshoot ratio: `0.74`
+  - post-camera settle delay before reveal: `110ms`
+  - camera wait max fallback: `1800ms`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Sequenced reveal after camera center to satisfy visual intent: “focus first, then node animation.”
+- Used slight overshoot (`1.10`) as an exaggerated principle while preserving readability and avoiding cartoon-like bounce.
+- Added max-wait fallback so placement reveal still starts if camera motion is interrupted or replaced.
+
+### Known Limitations
+
+- If camera is manually interrupted during the enroll-focus transition, reveal may start via max-wait fallback timing instead of exact settle timing.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Placement Visibility Fix (Hide Node Until Reveal Starts)
+
+### What Was Changed
+
+- Fixed Binary Tree Next placement reveal bug where the newly enrolled node appeared at final position before animation.
+- Added pending-reveal visibility helpers in `binary-tree-next-app.mjs`:
+  - `resolvePendingPlacementRevealNodeId(...)`
+  - `isNodeHiddenForPendingPlacement(...)`
+- Applied pending-hide behavior to render/input paths:
+  - hidden node is skipped in `drawNode(...)`
+  - hidden node is excluded from `drawConnectors(...)` source list
+  - hidden node cannot be selected by pointer hit-test (`findProjectedNodeAt(...)`).
+- Updated Done flow timing:
+  - removed extra `requestAnimationFrame` wrapper around `playEnrollmentPlacementReveal(...)`
+  - reveal sequence is triggered immediately after panel close, preventing one-frame flash.
+- Updated reveal kickoff:
+  - `playEnrollmentPlacementReveal(...)` now queues hide state first, then focuses camera.
+  - if camera-focus animation cannot run, hide state is cleared and node reveal starts immediately.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved “camera first, node reveal second” behavior while guaranteeing the node is not visible before reveal start.
+- Kept a safe fallback path so node is never left permanently hidden if camera targeting fails.
+
+### Known Limitations
+
+- During the hidden pre-reveal interval, parent leg occupancy is already committed in tree data (intentional), but the new node visual waits for reveal start.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Anticipation Suppression During Reveal + Parent-To-Node Connector Animation
+
+### What Was Changed
+
+- Fixed anticipation-node flash during enrollment reveal sequence:
+  - `resolveAnticipationSlots(...)` now returns no anticipation slots while:
+    - a pending placement reveal is queued, or
+    - a placement animation is actively running.
+- Added pending reservation metadata for reveal queue:
+  - `queuePlacementRevealAfterCamera(...)` now stores `parentId` and `placementLeg`.
+  - `resolvePendingPlacementRevealReservation(...)` added for reservation-aware filtering.
+- Added connector animation for newly created node connection:
+  - introduced connector-progress helpers:
+    - `resolvePlacementConnectorProgress(...)`
+    - `drawConnectorPathProgress(...)`
+  - `drawConnectors(...)` now detects children with active placement track and draws their connector as a progressive path from parent toward child.
+  - non-animating siblings remain rendered with normal connector behavior.
+- Updated Done reveal payload:
+  - `playEnrollmentPlacementReveal(...)` now accepts object input with `nodeId`, `parentId`, and `placementLeg` so pending reveal context is complete.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Suppressed anticipation visuals during reveal to prevent conflicting cues while node placement animation is in progress.
+- Kept connector animation tied to the same placement track timing so node scale and connector growth feel like one motion.
+- Preserved existing connector style/weight while animating only the placement-affected path.
+
+### Known Limitations
+
+- If a parent already has one static child, its existing connector remains visible while the new leg connector animates in (intentional, to avoid hiding existing structure).
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Selection Behavior Cleanup (No Auto-Select on Create / Startup)
+
+### What Was Changed
+
+- Removed automatic selection of placement parent during enrollment node apply.
+- Removed automatic selection of newly created node during enrollment camera-focus reveal.
+- Removed default root auto-selection during Binary Tree bootstrap.
+- Updated global-home fallback to keep deselected state when fallback view computation is used.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept camera movement behavior intact while decoupling it from selection state so focus can move without forcing an active node.
+
+### Known Limitations
+
+- Actions that explicitly call `focusNode(...)` still select by design (unchanged).
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Active Badge Sync With Real Account Status
+
+### What Was Changed
+
+- Updated registered-member backend read path to enrich each member with live `member_users` account fields:
+  - `user_account_status`
+  - `user_password_setup_required`
+  - `user_activity_active_until_at`
+- Implemented this via `LEFT JOIN LATERAL` in `readRegisteredMembersStore()` with identity match priority:
+  1. `user_id`
+  2. `member_username` (when `user_id` missing)
+  3. `email` (when `user_id` missing)
+- Updated member row mapping (`mapDbMemberToAppMember`) to use effective live account fields:
+  - `accountStatus` / `status` now sourced from linked user status when available.
+  - `passwordSetupRequired` now prefers linked user value.
+  - `activityActiveUntilAt` now prefers linked user value.
+- Updated Binary Tree Next status resolver to accept additional status keys/flags:
+  - `userAccountStatus`, `user_account_status`, `memberAccountStatus`, `member_account_status`
+  - boolean fallbacks: `isActive`, `active`.
+
+### Files Affected
+
+- `backend/stores/member.store.js`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept status source-of-truth tied to account records (`member_users`) so node activity state tracks actual account status instead of defaulting to Active from registration-only data.
+- Used LATERAL match priority to maintain compatibility with older rows that may not have `user_id`.
+
+### Known Limitations
+
+- If no linked user can be matched for a registered member, UI still falls back to existing logic (`Pending` when password setup required, otherwise `Active`).
+
+### Validation
+
+- `node --check backend/stores/member.store.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Thank You Password Setup Link (No-Email Fallback)
+
+### What Was Changed
+
+- Added a new Password Setup Link block under the enrollment Thank You card in `binary-tree-next.html`:
+  - readonly setup-link field
+  - `Open Link` action button
+  - `Copy Link` action button
+  - inline status/feedback text
+- Styled the block to match the existing enrollment panel theme (Inter, rounded surfaces, gray input shell, black/blue action accents).
+- Added enrollment panel JS wiring in `binary-tree-next-app.mjs`:
+  - setup-link element refs
+  - safe URL normalization (`http/https` only)
+  - open-link handler with popup-blocked feedback
+  - copy-link handler with Clipboard API + fallback copy behavior
+  - setup-link feedback helper (neutral/success/error)
+- Integrated setup link from enrollment response:
+  - `showTreeNextEnrollThankYouStep(...)` now accepts `passwordSetupLink`
+  - submit success flow now passes `createdMember.passwordSetupLink` into Thank You step.
+- Added reset behavior:
+  - setup link is cleared when modal form is reset/opened for a fresh enrollment.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Provided direct in-panel password-setup access because email sending is currently unavailable.
+- Kept the setup link inside Thank You so the operator can complete onboarding immediately after successful enrollment.
+
+### Known Limitations
+
+- If backend does not return a setup link for a record, the panel shows “unavailable” state and disables open/copy actions.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Binary Tree Next Live Sync Polling (No Manual Reload Needed)
+
+### What Was Changed
+
+- Added live-sync polling state and scheduler in `binary-tree-next-app.mjs` for Binary Tree Next:
+  - initial sync delay (`900ms`)
+  - visible-tab polling interval (`2800ms`)
+  - hidden-tab polling interval (`12000ms`).
+- Added live snapshot hashing so unchanged payloads do not trigger tree re-apply work.
+- Added guarded refresh flow to avoid race conditions with enrollment reveal:
+  - polling skips while enrollment submit/pending placement is active
+  - polling skips while placement reveal animation is pending/playing.
+- Added visibility/focus refresh hooks:
+  - force sync when tab becomes visible
+  - force sync when window regains focus.
+- Integrated bootstrap/startup wiring:
+  - compute initial snapshot hash after first live load
+  - start scheduler after app initialization.
+- Integrated local placement hash sync:
+  - when local node placement is applied after enrollment, snapshot hash updates immediately to prevent stale-poll overwrite.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used short-interval polling (instead of adding a websocket layer in this pass) to deliver near-real-time updates with minimal backend contract change.
+- Chose hash-based no-op detection to keep render/update work low when payload content is unchanged.
+- Prioritized placement-animation safety so live sync does not interrupt camera/reveal choreography.
+
+### Known Limitations
+
+- This pass is near-real-time polling, not push-based realtime streaming; updates arrive on the next poll tick or focus/visibility refresh.
+- If the browser tab is hidden for extended periods, update cadence intentionally slows to reduce background load.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Live-Synced New Node Entry Animation
+
+### What Was Changed
+
+- Extended live-sync apply flow in `binary-tree-next-app.mjs` so newly added node IDs are detected when polling updates are applied.
+- Added `resolveTreeNextLiveAddedNodeIds(...)` helper to diff previous vs next node sets by node id and isolate newly created children (non-root, with valid parent/side).
+- Added `startTreeNextLiveAddedNodeAnimations(...)` helper to start the same placement grow/overshoot track used by enrollment reveal (`startPlacementGrowAnimation(...)`).
+- Added animation safety cap:
+  - `TREE_NEXT_LIVE_SYNC_NEW_NODE_ANIMATION_LIMIT = 24`.
+- Updated `applyTreeNextLiveNodes(...)` to:
+  - optionally animate newly added live nodes
+  - return animated node ids in apply result metadata.
+- Updated `syncTreeNextLiveNodes(...)` to enable live new-node animation by passing `animateNewNodes: true` on apply.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Reused the existing placement animation track so remote live inserts match the same visual language as locally enrolled node placement.
+- Kept behavior animation-only (no auto-select/camera hijack) to avoid disrupting current operator context during passive realtime updates.
+- Added a cap on simultaneously animated live inserts to protect frame stability during burst sync events.
+
+### Known Limitations
+
+- Live inserts animate when the poll payload is applied; this remains near-real-time (poll-driven), not websocket push.
+- Very large bursts beyond the animation cap animate only the first capped set in a single sync application.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Spillover Availability Gated By Root Leg Readiness + Step 2 Field Order Swap
+
+### What Was Changed
+
+- Updated enrollment logic in `binary-tree-next-app.mjs` so Spill Over availability is gated by root-user readiness:
+  - added `canTreeNextEnrollUseSpilloverForRootUser()` to check root node leg occupancy (`left` and `right`)
+  - added `syncTreeNextEnrollSpilloverAvailability()` to disable the `Spillover: Yes` option when root does not yet have both children
+  - when spillover is not allowed, selection is forced to `Spillover: No` (direct mode).
+- Wired spillover availability sync into enrollment flow:
+  - on modal open, before sponsor/leg computed fields are refreshed
+  - on step-2 validation
+  - during live tree refresh while enrollment panel is open (keeps state accurate if tree updates in realtime).
+- Updated Step 2 layout order in `binary-tree-next.html`:
+  - swapped field order to:
+    - `Spill Over`
+    - `Leg Position`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Applied gating against root user leg state (not selected parent) to match business rule clarification.
+- Implemented as an option-disable + forced direct fallback to keep UI clear and avoid invalid payload states.
+- Kept existing sponsor/leg sync logic unchanged and reused it after gating so derived fields remain correct.
+
+### Known Limitations
+
+- Spillover rule currently uses scoped root (`root`) leg occupancy as the eligibility source; if future requirements add rank/package or backend policy checks, this gate will need extension.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Panel Small-Screen Cleanup (Step 2 Scrollbar + Header/Content Seam)
+
+### What Was Changed
+
+- Refined enrollment panel container layout in `binary-tree-next.html` to remove the visible seam between header and content:
+  - made modal a single flex column surface
+  - unified paint layering by using transparent header/body over one modal background.
+- Reworked panel body sizing to be viewport-adaptive:
+  - removed fixed body height
+  - switched to `flex: 1 1 auto` + `min-height: 0` so body area uses available panel height cleanly.
+- Reduced step-2 vertical footprint to avoid unnecessary scrollbars on smaller laptop screens:
+  - tightened package overview block spacing/size
+  - reduced step-2 field gaps
+  - reduced step-2 control heights
+  - reduced step-2 action top spacing.
+- Added height-based responsive compaction (`@media (max-height: 860px)`) for short-view ports:
+  - tighter header padding and typography
+  - smaller control/button heights
+  - tighter bottom indicator spacing.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept the existing step structure and behavior unchanged; this pass is strictly layout/spacing cleanup for short-height screens.
+- Used height-based media query (not width-only) because the issue reproduces on laptop resolutions where width is sufficient but vertical space is constrained.
+
+### Known Limitations
+
+- Extremely short viewport heights may still require controlled vertical scrolling on dense steps; this pass targets normal small-laptop ranges (including typical MacBook heights) to remove the reported step-2 scrollbar/seam issue.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Step 2 Package Card (Fast Track Bonus Row)
+
+### What Was Changed
+
+- Updated Step 2 package overview card in `binary-tree-next.html` to match the requested layout style:
+  - retained top `BV` and selectable-products lines
+  - added a divider line
+  - added a bottom row:
+    - `Fast Track Bonus`
+    - dynamic amount value.
+- Added new Step 2 bonus amount element:
+  - `#tree-next-enroll-package-fast-track-bonus`.
+- Added supporting CSS for the new divider/bonus row typography and spacing, including compact-height adjustments.
+- Updated package-preview sync in `binary-tree-next-app.mjs`:
+  - computes effective tier for selected package
+  - computes Fast Track bonus via existing bonus resolver
+  - writes formatted value into Step 2 bonus amount element.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Reused existing package/tier bonus calculation source (`resolveEnrollFastTrackBonusAmount`) to keep Step 2 bonus card consistent with the rest of the enrollment flow.
+- Kept the Step 2 bonus row lightweight and responsive so it fits cleanly in the tightened small-screen layout.
+
+### Known Limitations
+
+- Bonus display depends on frontend package-to-tier mapping; if package/tier business mapping changes server-side, this card should be updated to use matching source data.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Avatar Gradient Sync Across Profile + Tree Nodes
+
+### What Was Changed
+
+- Reworked avatar color resolution in `binary-tree-next-app.mjs` so profile/session and tree nodes share the same resolver path.
+- Removed the hardcoded session fallback palette (`ocean`) and switched fallback behavior to deterministic auto-seed palette resolution.
+- Added shared parsing helpers for avatar color and palette payloads:
+  - `resolveAvatarColorTripletFromRecord(...)`
+  - `resolveAvatarPaletteFromRecord(...)`.
+- Added node-level avatar seed resolver:
+  - `resolveNodeAvatarSeed(...)`.
+- Updated node palette resolver to prefer explicit node data when present (`avatarPalette`, `avatarColor*`), then fallback to deterministic seed hashing.
+- Updated avatar rendering and CSS background paths to use node-aware data:
+  - non-session avatars now check node photo URL and render image avatar when available
+  - gradient CSS resolver now passes node record context for palette selection.
+- Extended live-tree member-to-node mapping to carry avatar metadata when available (`avatarSeed`, `avatarColor`, `avatarColorRgb`, `avatarPalette`, `avatarUrl`).
+- Extended live sync snapshot signature to include avatar metadata so color/photo updates are treated as real-time changes.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used deterministic seed fallback instead of hardcoded color so root/profile avatar color is no longer forced blue when explicit color data is missing.
+- Kept compatibility with existing payload shapes by supporting multiple key formats (`camelCase` and `snake_case`) for avatar color/palette fields.
+- Avoided introducing backend schema changes in this pass; frontend now fully supports explicit avatar color data whenever provided and remains stable without it.
+
+### Known Limitations
+
+- If backend payloads do not supply explicit avatar color fields, gradient still depends on deterministic seed fallback rather than a persisted DB color record.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Favorites Name Overflow Guard (Left Panel)
+
+### What Was Changed
+
+- Fixed long-name overlap in the left panel `Favorites` carousel item rendering in `binary-tree-next-app.mjs`.
+- Added a new width-aware truncation helper:
+  - `truncateTextToWidth(text, maxWidth, options)`
+  - uses measured canvas text width and applies ellipsis only when needed.
+- Updated favorites item text rendering to use slot-width constraints instead of character-count-only truncation:
+  - label and subtitle are now truncated to pixel width based on `itemSlotWidth`
+  - both `drawText` calls now pass `maxWidth` so text stays constrained inside each favorite slot.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Chose pixel-width truncation over fixed-length truncation because wide glyph combinations can exceed slot width even with short character count.
+- Kept the existing card/slot geometry unchanged and fixed the issue at text-layout level to avoid introducing spacing regressions.
+
+### Known Limitations
+
+- Extremely narrow slot widths still prioritize non-overlap over full text visibility, so names may truncate earlier on compact layouts.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.

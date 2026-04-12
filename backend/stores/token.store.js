@@ -42,6 +42,12 @@ function mapAppTokenToDbToken(token) {
   };
 }
 
+function resolveQueryClient(candidateClient) {
+  return candidateClient && typeof candidateClient.query === 'function'
+    ? candidateClient
+    : pool;
+}
+
 export async function readPasswordSetupTokensStore() {
   const result = await pool.query(`
     SELECT
@@ -99,6 +105,74 @@ export async function writePasswordSetupTokensStore(tokens) {
   } finally {
     client.release();
   }
+}
+
+export async function upsertPasswordSetupTokenRecord(token, options = {}) {
+  const row = mapAppTokenToDbToken(token);
+  if (!row.id) {
+    throw new Error('Cannot upsert password setup token without an id.');
+  }
+
+  const client = resolveQueryClient(options?.client);
+  const insertValues = [
+    row.id,
+    row.token,
+    row.user_id,
+    row.email,
+    row.created_at,
+    row.expires_at,
+    row.used_at,
+  ];
+  const insertSql = `
+    INSERT INTO charge.password_setup_tokens (
+      id,
+      token,
+      user_id,
+      email,
+      created_at,
+      expires_at,
+      used_at
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+  `;
+
+  if (options?.preferInsert === true) {
+    try {
+      const fastInsertResult = await client.query(`${insertSql} ON CONFLICT (id) DO NOTHING`, insertValues);
+      if (fastInsertResult.rowCount > 0) {
+        return;
+      }
+    } catch (error) {
+      if (error?.code !== '42P10') {
+        throw error;
+      }
+    }
+  }
+
+  const updateResult = await client.query(`
+    UPDATE charge.password_setup_tokens
+    SET
+      token = $2,
+      user_id = $3,
+      email = $4,
+      expires_at = $5,
+      used_at = $6,
+      updated_at = NOW()
+    WHERE id = $1
+  `, [
+    row.id,
+    row.token,
+    row.user_id,
+    row.email,
+    row.expires_at,
+    row.used_at,
+  ]);
+
+  if (updateResult.rowCount > 0) {
+    return;
+  }
+
+  await client.query(insertSql, insertValues);
 }
 
 export async function findTokenRecord(tokenInput) {

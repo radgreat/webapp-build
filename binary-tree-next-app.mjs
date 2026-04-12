@@ -17,13 +17,60 @@ const WORLD_RADIUS_BASE = 34;
 const DEFAULT_HOME_SCALE = 0.025;
 const PROJECTION_BASE_SCALE = 0.92;
 const DEFAULT_ROOT_FOCUS_RADIUS = 38;
-const MOCK_TREE_MAX_DEPTH = 20;
-const MOCK_LEVEL_NODE_CAP = 128;
 const UNIVERSE_DEPTH_CAP = 20;
 const ANTICIPATION_MAX_GLOBAL_DEPTH = 20;
+const LIVE_TREE_GLOBAL_ROOT_ID = '__global-root__';
+const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
+const FREE_ACCOUNT_RANK_KEY_SET = new Set([
+  'preferred customer',
+  'preferred',
+  'free account',
+  'free',
+]);
+const RIGHT_PLACEMENT_KEY_SET = new Set([
+  'right',
+  'extreme-right',
+  'extreme_right',
+  'extreme right',
+  'spillover-right',
+  'spillover_right',
+  'spillover right',
+]);
+const SPILLOVER_PLACEMENT_KEY_SET = new Set([
+  'spillover',
+  'spillover-right',
+  'spillover_right',
+  'spillover right',
+  'spillover-left',
+  'spillover_left',
+  'spillover left',
+]);
+const EXTREME_PLACEMENT_KEY_SET = new Set([
+  'extreme-left',
+  'extreme_left',
+  'extreme left',
+  'extreme-right',
+  'extreme_right',
+  'extreme right',
+]);
 const SELECTION_POP_MS = 320;
 const SELECTION_RELEASE_MS = 220;
 const SELECTION_MAX_EMPHASIS = 1.22;
+const ENROLL_PLACEMENT_GROW_MS = 980;
+const ENROLL_PLACEMENT_START_SCALE = 0.66;
+const ENROLL_PLACEMENT_OVERSHOOT_SCALE = 1.1;
+const ENROLL_PLACEMENT_OVERSHOOT_RATIO = 0.74;
+const ENROLL_PLACEMENT_END_SCALE = 1;
+const ENROLL_PLACEMENT_CAMERA_DAMPING = 5.9;
+const ENROLL_PLACEMENT_FOCUS_RADIUS = 34;
+const ENROLL_PLACEMENT_FOCUS_Y_RATIO = 0.5;
+const ENROLL_PLACEMENT_CAMERA_SETTLE_DELAY_MS = 110;
+const ENROLL_PLACEMENT_CAMERA_WAIT_MAX_MS = 1800;
+const ENROLL_PLACEMENT_CONNECTOR_DRAW_RATIO = 0.88;
+const TREE_NEXT_LIVE_SYNC_INITIAL_DELAY_MS = 900;
+const TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS = 2800;
+const TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS = 12000;
+const TREE_NEXT_LIVE_SYNC_NEW_NODE_ANIMATION_LIMIT = 24;
 const ANTICIPATION_BUTTON_ID_PREFIX = 'anticipation-slot-';
 const MAIN_BACKGROUND_COLOR = '#E9EAEE';
 const SHELL_PANEL_COLOR = '#F2F2F6';
@@ -128,6 +175,12 @@ const ENROLL_PACKAGE_META = Object.freeze({
     selectableProducts: 20,
   }),
 });
+const ENROLL_PAID_PACKAGE_KEY_SET = new Set([
+  'personal-builder-pack',
+  'business-builder-pack',
+  'infinity-builder-pack',
+  'legacy-builder-pack',
+]);
 const ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY = Object.freeze({
   'personal-pack': 'Personal Pack',
   'business-pack': 'Business Pack',
@@ -257,6 +310,7 @@ const treeNextEnrollPackageInput = document.getElementById('tree-next-enroll-pac
 const treeNextEnrollFastTrackTierInput = document.getElementById('tree-next-enroll-fast-track-tier');
 const treeNextEnrollPackageBvElement = document.getElementById('tree-next-enroll-package-bv');
 const treeNextEnrollPackageProductsElement = document.getElementById('tree-next-enroll-package-products');
+const treeNextEnrollPackageFastTrackBonusElement = document.getElementById('tree-next-enroll-package-fast-track-bonus');
 const treeNextEnrollSummaryPackageLabelElement = document.getElementById('tree-next-enroll-summary-package-label');
 const treeNextEnrollSummarySubtotalElement = document.getElementById('tree-next-enroll-summary-subtotal');
 const treeNextEnrollSummaryDiscountElement = document.getElementById('tree-next-enroll-summary-discount');
@@ -269,6 +323,14 @@ const treeNextEnrollCardErrorElement = document.getElementById('tree-next-enroll
 const treeNextEnrollThankYouNameElement = document.getElementById('tree-next-enroll-thank-you-name');
 const treeNextEnrollThankYouPackageElement = document.getElementById('tree-next-enroll-thank-you-package');
 const treeNextEnrollThankYouCommissionElement = document.getElementById('tree-next-enroll-thank-you-commission');
+const treeNextEnrollPasswordSetupLinkInput = document.getElementById('tree-next-enroll-password-setup-link');
+const treeNextEnrollPasswordSetupOpenButton = document.getElementById('tree-next-enroll-password-setup-open');
+const treeNextEnrollPasswordSetupCopyButton = document.getElementById('tree-next-enroll-password-setup-copy');
+const treeNextEnrollPasswordSetupFeedbackElement = document.getElementById('tree-next-enroll-password-setup-feedback');
+const treeNextEnrollCustomSelectWrapElements = Array.from(
+  document.querySelectorAll('[data-enroll-custom-select]'),
+);
+const treeNextEnrollCustomSelectByNativeId = new Map();
 
 let treeNextEnrollStripeClient = null;
 let treeNextEnrollStripeElements = null;
@@ -357,6 +419,7 @@ const state = {
     step: 1,
     submitting: false,
     placementLock: null,
+    pendingPlacement: null,
     lastTriggerElement: null,
   },
   layout: null,
@@ -421,6 +484,16 @@ const state = {
   },
   timeMs: performance.now(),
   selectionFxTracks: Object.create(null),
+  placementFxTracks: Object.create(null),
+  pendingPlacementReveal: null,
+  liveSync: {
+    started: false,
+    timerId: 0,
+    inFlight: false,
+    lastAppliedHash: '',
+    lastSyncedAtMs: 0,
+    errorStreak: 0,
+  },
   renderSize: {
     width: 1,
     height: 1,
@@ -633,6 +706,213 @@ function updateSelectionAnimations(nowMs = getNowMs()) {
   for (const id of ids) {
     resolveSelectionEmphasis(id, nowMs, true);
   }
+}
+
+function resolvePlacementScale(nodeId, nowMs = getNowMs(), mutate = true) {
+  const safeNodeId = safeText(nodeId);
+  if (!safeNodeId) {
+    return ENROLL_PLACEMENT_END_SCALE;
+  }
+
+  const track = state.placementFxTracks[safeNodeId];
+  if (!track) {
+    return ENROLL_PLACEMENT_END_SCALE;
+  }
+
+  const duration = Math.max(1, safeNumber(track.duration, ENROLL_PLACEMENT_GROW_MS));
+  const t = clamp((nowMs - safeNumber(track.start, nowMs)) / duration, 0, 1);
+  const from = safeNumber(track.from, ENROLL_PLACEMENT_START_SCALE);
+  const peak = safeNumber(track.peak, ENROLL_PLACEMENT_OVERSHOOT_SCALE);
+  const to = safeNumber(track.to, ENROLL_PLACEMENT_END_SCALE);
+  const peakRatio = clamp(safeNumber(track.peakRatio, ENROLL_PLACEMENT_OVERSHOOT_RATIO), 0.05, 0.95);
+  let scale = to;
+  if (t <= peakRatio) {
+    const localT = peakRatio <= 0 ? 1 : clamp(t / peakRatio, 0, 1);
+    const easingValue = easeOutCubic(localT);
+    scale = from + ((peak - from) * easingValue);
+  } else {
+    const localT = peakRatio >= 1 ? 1 : clamp((t - peakRatio) / (1 - peakRatio), 0, 1);
+    const easingValue = easeOutCubic(localT);
+    scale = peak + ((to - peak) * easingValue);
+  }
+  scale = clamp(scale, 0.2, 3);
+  if (t >= 1) {
+    scale = clamp(to, 0.2, 3);
+    if (mutate) {
+      delete state.placementFxTracks[safeNodeId];
+    }
+  }
+
+  return scale;
+}
+
+function startPlacementGrowAnimation(nodeId, nowMs = getNowMs()) {
+  const safeNodeId = safeText(nodeId);
+  if (!safeNodeId) {
+    return;
+  }
+  state.placementFxTracks[safeNodeId] = {
+    from: ENROLL_PLACEMENT_START_SCALE,
+    peak: ENROLL_PLACEMENT_OVERSHOOT_SCALE,
+    peakRatio: ENROLL_PLACEMENT_OVERSHOOT_RATIO,
+    to: ENROLL_PLACEMENT_END_SCALE,
+    start: nowMs,
+    duration: ENROLL_PLACEMENT_GROW_MS,
+  };
+}
+
+function updatePlacementAnimations(nowMs = getNowMs()) {
+  const ids = Object.keys(state.placementFxTracks);
+  for (const id of ids) {
+    resolvePlacementScale(id, nowMs, true);
+  }
+}
+
+function queuePlacementRevealAfterCamera(nodeId, options = {}) {
+  const safeNodeId = safeText(nodeId);
+  if (!safeNodeId) {
+    state.pendingPlacementReveal = null;
+    return false;
+  }
+  const nowMs = safeNumber(options.nowMs, getNowMs());
+  const safeParentId = safeText(options.parentId);
+  const safePlacementLeg = normalizeBinarySide(options.placementLeg) === 'right' ? 'right' : 'left';
+  state.pendingPlacementReveal = {
+    nodeId: safeNodeId,
+    parentId: safeParentId,
+    placementLeg: safePlacementLeg,
+    queuedAtMs: nowMs,
+    startAtMs: nowMs + ENROLL_PLACEMENT_CAMERA_SETTLE_DELAY_MS,
+    maxWaitMs: ENROLL_PLACEMENT_CAMERA_WAIT_MAX_MS,
+  };
+  return true;
+}
+
+function resolvePendingPlacementRevealNodeId() {
+  const pending = state.pendingPlacementReveal;
+  if (!pending || typeof pending !== 'object') {
+    return '';
+  }
+  return safeText(pending.nodeId);
+}
+
+function resolvePendingPlacementRevealReservation() {
+  const pending = state.pendingPlacementReveal;
+  if (!pending || typeof pending !== 'object') {
+    return null;
+  }
+  const parentId = safeText(pending.parentId);
+  const placementLeg = normalizeBinarySide(pending.placementLeg) === 'right' ? 'right' : 'left';
+  if (!parentId) {
+    return null;
+  }
+  return {
+    parentId,
+    placementLeg,
+  };
+}
+
+function isNodeHiddenForPendingPlacement(nodeId) {
+  const safeNodeId = safeText(nodeId);
+  if (!safeNodeId) {
+    return false;
+  }
+  return safeNodeId === resolvePendingPlacementRevealNodeId();
+}
+
+function consumePendingPlacementReveal(options = {}) {
+  const pending = state.pendingPlacementReveal;
+  if (!pending || typeof pending !== 'object') {
+    return false;
+  }
+  const safeNodeId = safeText(pending.nodeId);
+  if (!safeNodeId) {
+    state.pendingPlacementReveal = null;
+    return false;
+  }
+  const nowMs = safeNumber(options.nowMs, getNowMs());
+  const cameraBusy = Boolean(state.camera.target) && safeText(state.camera.targetReason) === 'enroll-placement';
+  const queuedAtMs = safeNumber(pending.queuedAtMs, nowMs);
+  const startAtMs = safeNumber(pending.startAtMs, queuedAtMs);
+  const maxWaitMs = Math.max(120, safeNumber(pending.maxWaitMs, ENROLL_PLACEMENT_CAMERA_WAIT_MAX_MS));
+  const timedOut = (nowMs - queuedAtMs) >= maxWaitMs;
+  if (cameraBusy && !timedOut) {
+    return false;
+  }
+  if (nowMs < startAtMs && !timedOut) {
+    return false;
+  }
+  state.pendingPlacementReveal = null;
+  startPlacementGrowAnimation(safeNodeId, nowMs);
+  return true;
+}
+
+function resolvePlacementConnectorProgress(track, nowMs = getNowMs()) {
+  if (!track || typeof track !== 'object') {
+    return 1;
+  }
+  const duration = Math.max(1, safeNumber(track.duration, ENROLL_PLACEMENT_GROW_MS));
+  const startMs = safeNumber(track.start, nowMs);
+  const t = clamp((nowMs - startMs) / duration, 0, 1);
+  const drawPhase = clamp(
+    t / Math.max(0.12, ENROLL_PLACEMENT_CONNECTOR_DRAW_RATIO),
+    0,
+    1,
+  );
+  return easeOutCubic(drawPhase);
+}
+
+function drawConnectorPathProgress(startX, startY, branchY, endX, endY, stroke, lineWidth, progress = 1) {
+  const safeProgress = clamp(safeNumber(progress, 1), 0, 1);
+  if (safeProgress <= 0) {
+    return;
+  }
+  const segments = [
+    { x1: startX, y1: startY, x2: startX, y2: branchY },
+    { x1: startX, y1: branchY, x2: endX, y2: branchY },
+    { x1: endX, y1: branchY, x2: endX, y2: endY },
+  ];
+  const lengths = segments.map((segment) => {
+    const dx = segment.x2 - segment.x1;
+    const dy = segment.y2 - segment.y1;
+    return Math.sqrt((dx * dx) + (dy * dy));
+  });
+  const totalLength = lengths.reduce((sum, length) => sum + length, 0);
+  if (!Number.isFinite(totalLength) || totalLength <= 0) {
+    return;
+  }
+
+  let remaining = totalLength * safeProgress;
+  context.beginPath();
+  context.moveTo(startX, startY);
+  for (let index = 0; index < segments.length; index += 1) {
+    if (remaining <= 0) {
+      break;
+    }
+    const segment = segments[index];
+    const segmentLength = Math.max(0, safeNumber(lengths[index], 0));
+    if (segmentLength <= 0.0001) {
+      context.lineTo(segment.x2, segment.y2);
+      continue;
+    }
+    if (remaining >= segmentLength) {
+      context.lineTo(segment.x2, segment.y2);
+      remaining -= segmentLength;
+      continue;
+    }
+    const ratio = clamp(remaining / segmentLength, 0, 1);
+    context.lineTo(
+      segment.x1 + ((segment.x2 - segment.x1) * ratio),
+      segment.y1 + ((segment.y2 - segment.y1) * ratio),
+    );
+    remaining = 0;
+    break;
+  }
+  context.lineCap = 'round';
+  context.lineJoin = 'round';
+  context.strokeStyle = stroke;
+  context.lineWidth = lineWidth;
+  context.stroke();
 }
 
 function setSelectedNode(nextId, options = {}) {
@@ -1076,6 +1356,52 @@ function resolveNodeById(nodeId) {
   return resolveGlobalNodeMetrics(nodeId)?.node || null;
 }
 
+function resolveNodeIdByUsername(username) {
+  const normalizedUsername = normalizeCredentialValue(username);
+  if (!normalizedUsername) {
+    return '';
+  }
+
+  for (const rawNode of state.nodes) {
+    const node = rawNode && typeof rawNode === 'object' ? rawNode : null;
+    if (!node) {
+      continue;
+    }
+    const nodeUsername = normalizeCredentialValue(node.username);
+    if (nodeUsername && nodeUsername === normalizedUsername) {
+      const nodeId = safeText(node.id);
+      if (nodeId) {
+        return nodeId;
+      }
+    }
+  }
+
+  return '';
+}
+
+function resolveTreeNextEnrollmentSponsorNodeId(createdMember, parentId, isSpilloverPlacement) {
+  const sponsorUsername = normalizeCredentialValue(
+    createdMember?.sponsorUsername
+    || createdMember?.sponsor_username
+    || createdMember?.sponsor
+    || '',
+  );
+
+  const usernameSponsorId = resolveNodeIdByUsername(sponsorUsername);
+  if (usernameSponsorId && resolveNodeById(usernameSponsorId)) {
+    return usernameSponsorId;
+  }
+
+  if (isSpilloverPlacement) {
+    const homeSponsorId = safeText(resolvePreferredGlobalHomeNodeId());
+    if (homeSponsorId && resolveNodeById(homeSponsorId)) {
+      return homeSponsorId;
+    }
+  }
+
+  return parentId;
+}
+
 function rebuildNodeChildLegIndex() {
   const nextIndex = new Map();
   const nodeById = new Map();
@@ -1198,6 +1524,19 @@ function resolveEnrollFastTrackTierLabel(tierKey) {
   return ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY[normalizedTier] || ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY['personal-pack'];
 }
 
+function isTreeNextEnrollPaidPackage(packageKey) {
+  const normalizedPackage = normalizeCredentialValue(packageKey);
+  return ENROLL_PAID_PACKAGE_KEY_SET.has(normalizedPackage);
+}
+
+function resolveTreeNextEnrollPackageKey(packageKey) {
+  const normalizedPackage = normalizeCredentialValue(packageKey);
+  if (isTreeNextEnrollPaidPackage(normalizedPackage)) {
+    return normalizedPackage;
+  }
+  return ENROLL_DEFAULT_PACKAGE_KEY;
+}
+
 function resolveEnrollPackageMeta(packageKey) {
   const normalizedPackage = normalizeCredentialValue(packageKey);
   return ENROLL_PACKAGE_META[normalizedPackage] || ENROLL_PACKAGE_META[ENROLL_DEFAULT_PACKAGE_KEY];
@@ -1248,6 +1587,100 @@ function clearTreeNextEnrollFeedback() {
   setTreeNextEnrollFeedback('', false);
 }
 
+function normalizeTreeNextEnrollPasswordSetupLink(value) {
+  const rawValue = safeText(value);
+  if (!rawValue) {
+    return '';
+  }
+  try {
+    const parsedUrl = new URL(rawValue, window.location.origin);
+    const protocol = safeText(parsedUrl.protocol).toLowerCase();
+    if (protocol !== 'http:' && protocol !== 'https:') {
+      return '';
+    }
+    return parsedUrl.toString();
+  } catch {
+    return '';
+  }
+}
+
+function setTreeNextEnrollPasswordSetupFeedback(message = '', variant = '') {
+  if (!(treeNextEnrollPasswordSetupFeedbackElement instanceof HTMLElement)) {
+    return;
+  }
+  const safeMessage = safeText(message);
+  treeNextEnrollPasswordSetupFeedbackElement.textContent = safeMessage;
+  treeNextEnrollPasswordSetupFeedbackElement.classList.remove('is-error', 'is-success');
+  if (variant === 'error') {
+    treeNextEnrollPasswordSetupFeedbackElement.classList.add('is-error');
+  } else if (variant === 'success') {
+    treeNextEnrollPasswordSetupFeedbackElement.classList.add('is-success');
+  }
+}
+
+function resolveTreeNextEnrollPasswordSetupLinkFromInput() {
+  const inputValue = treeNextEnrollPasswordSetupLinkInput instanceof HTMLInputElement
+    ? treeNextEnrollPasswordSetupLinkInput.value
+    : '';
+  return normalizeTreeNextEnrollPasswordSetupLink(inputValue);
+}
+
+function setTreeNextEnrollPasswordSetupLink(value = '') {
+  const safeLink = normalizeTreeNextEnrollPasswordSetupLink(value);
+  if (treeNextEnrollPasswordSetupLinkInput instanceof HTMLInputElement) {
+    treeNextEnrollPasswordSetupLinkInput.value = safeLink;
+  }
+  if (treeNextEnrollPasswordSetupOpenButton instanceof HTMLButtonElement) {
+    treeNextEnrollPasswordSetupOpenButton.disabled = !safeLink;
+  }
+  if (treeNextEnrollPasswordSetupCopyButton instanceof HTMLButtonElement) {
+    treeNextEnrollPasswordSetupCopyButton.disabled = !safeLink;
+  }
+  if (safeLink) {
+    setTreeNextEnrollPasswordSetupFeedback('Use this link to create the member password.');
+  } else {
+    setTreeNextEnrollPasswordSetupFeedback('Password setup link is unavailable for this enrollment.');
+  }
+}
+
+function openTreeNextEnrollPasswordSetupLink() {
+  const safeLink = resolveTreeNextEnrollPasswordSetupLinkFromInput();
+  if (!safeLink) {
+    setTreeNextEnrollPasswordSetupFeedback('No password setup link available yet.', 'error');
+    return;
+  }
+  const openedWindow = window.open(safeLink, '_blank', 'noopener,noreferrer');
+  if (!openedWindow) {
+    setTreeNextEnrollPasswordSetupFeedback('Popup blocked. Use Copy Link instead.', 'error');
+    return;
+  }
+  setTreeNextEnrollPasswordSetupFeedback('Password setup link opened in a new tab.', 'success');
+}
+
+async function copyTreeNextEnrollPasswordSetupLink() {
+  const safeLink = resolveTreeNextEnrollPasswordSetupLinkFromInput();
+  if (!safeLink) {
+    setTreeNextEnrollPasswordSetupFeedback('No password setup link available yet.', 'error');
+    return;
+  }
+  let copied = false;
+  if (navigator.clipboard && window.isSecureContext) {
+    copied = await navigator.clipboard.writeText(safeLink)
+      .then(() => true)
+      .catch(() => false);
+  }
+  if (!copied && treeNextEnrollPasswordSetupLinkInput instanceof HTMLInputElement) {
+    treeNextEnrollPasswordSetupLinkInput.focus({ preventScroll: true });
+    treeNextEnrollPasswordSetupLinkInput.select();
+    treeNextEnrollPasswordSetupLinkInput.setSelectionRange(0, safeLink.length);
+    copied = document.execCommand('copy');
+  }
+  setTreeNextEnrollPasswordSetupFeedback(
+    copied ? 'Password setup link copied.' : 'Unable to copy link. Select the field and copy manually.',
+    copied ? 'success' : 'error',
+  );
+}
+
 function setTreeNextEnrollCardError(message = '') {
   if (!(treeNextEnrollCardErrorElement instanceof HTMLElement)) {
     return;
@@ -1275,6 +1708,227 @@ function clearTreeNextEnrollCardInput() {
   ) {
     treeNextEnrollStripeCardExpiry.clear();
   }
+}
+
+function closeTreeNextEnrollCustomSelect(entry, options = {}) {
+  const {
+    restoreFocus = false,
+  } = options;
+  const wrapper = entry?.wrapper;
+  const trigger = entry?.trigger;
+  if (!(wrapper instanceof HTMLElement)) {
+    return;
+  }
+  wrapper.classList.remove('is-open');
+  if (trigger instanceof HTMLButtonElement) {
+    trigger.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) {
+      trigger.focus({ preventScroll: true });
+    }
+  }
+}
+
+function closeAllTreeNextEnrollCustomSelects(exceptEntry = null) {
+  for (const entry of treeNextEnrollCustomSelectByNativeId.values()) {
+    if (!entry || entry === exceptEntry) {
+      continue;
+    }
+    closeTreeNextEnrollCustomSelect(entry);
+  }
+}
+
+function syncTreeNextEnrollCustomSelectDisplay(entry) {
+  const nativeSelect = entry?.nativeSelect;
+  const valueElement = entry?.valueElement;
+  const optionButtons = Array.isArray(entry?.optionButtons) ? entry.optionButtons : [];
+  if (!(nativeSelect instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  const selectedOption = nativeSelect.selectedOptions?.[0]
+    || nativeSelect.options?.[nativeSelect.selectedIndex]
+    || nativeSelect.options?.[0]
+    || null;
+  const selectedValue = safeText(nativeSelect.value);
+  const label = safeText(selectedOption?.textContent || selectedOption?.label || '');
+
+  if (valueElement instanceof HTMLElement) {
+    valueElement.textContent = label || safeText(valueElement.textContent);
+    valueElement.classList.toggle('is-placeholder', !selectedValue);
+  }
+
+  for (const optionButton of optionButtons) {
+    if (!(optionButton instanceof HTMLButtonElement)) {
+      continue;
+    }
+    const optionValue = safeText(optionButton.dataset.selectValue);
+    const isSelected = optionValue && optionValue === selectedValue;
+    optionButton.classList.toggle('is-selected', isSelected);
+    optionButton.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+  }
+}
+
+function syncTreeNextEnrollCustomSelectById(selectId) {
+  const safeSelectId = safeText(selectId);
+  if (!safeSelectId) {
+    return;
+  }
+  const entry = treeNextEnrollCustomSelectByNativeId.get(safeSelectId);
+  if (!entry) {
+    return;
+  }
+  syncTreeNextEnrollCustomSelectDisplay(entry);
+}
+
+function syncTreeNextEnrollCustomSelectsFromNative() {
+  for (const entry of treeNextEnrollCustomSelectByNativeId.values()) {
+    syncTreeNextEnrollCustomSelectDisplay(entry);
+  }
+}
+
+function buildTreeNextEnrollCustomSelectMenu(entry) {
+  const nativeSelect = entry?.nativeSelect;
+  const menu = entry?.menu;
+  if (!(nativeSelect instanceof HTMLSelectElement) || !(menu instanceof HTMLElement)) {
+    return;
+  }
+
+  menu.innerHTML = '';
+  entry.optionButtons = [];
+  for (const option of Array.from(nativeSelect.options || [])) {
+    const optionValue = safeText(option?.value);
+    const optionLabel = safeText(option?.label || option?.textContent || optionValue);
+    const optionButton = document.createElement('button');
+    optionButton.type = 'button';
+    optionButton.className = 'tree-next-enroll-custom-select-option';
+    optionButton.dataset.selectValue = optionValue;
+    optionButton.setAttribute('role', 'option');
+    optionButton.setAttribute('aria-selected', 'false');
+    optionButton.textContent = optionLabel || optionValue;
+    if (option.disabled) {
+      optionButton.disabled = true;
+      optionButton.setAttribute('aria-disabled', 'true');
+    }
+    optionButton.addEventListener('click', () => {
+      if (optionButton.disabled) {
+        return;
+      }
+      if (nativeSelect.value !== optionValue) {
+        nativeSelect.value = optionValue;
+        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      syncTreeNextEnrollCustomSelectDisplay(entry);
+      closeTreeNextEnrollCustomSelect(entry, { restoreFocus: true });
+    });
+    menu.appendChild(optionButton);
+    entry.optionButtons.push(optionButton);
+  }
+  syncTreeNextEnrollCustomSelectDisplay(entry);
+}
+
+function openTreeNextEnrollCustomSelect(entry) {
+  const wrapper = entry?.wrapper;
+  const trigger = entry?.trigger;
+  if (!(wrapper instanceof HTMLElement)) {
+    return;
+  }
+  closeAllTreeNextEnrollCustomSelects(entry);
+  wrapper.classList.add('is-open');
+  if (trigger instanceof HTMLButtonElement) {
+    trigger.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function registerTreeNextEnrollCustomSelect(wrapper) {
+  if (!(wrapper instanceof HTMLElement)) {
+    return null;
+  }
+
+  const nativeSelect = wrapper.querySelector('select.tree-next-enroll-native-select');
+  const trigger = wrapper.querySelector('[data-enroll-custom-select-trigger]');
+  const valueElement = wrapper.querySelector('[data-enroll-custom-select-value]');
+  const menu = wrapper.querySelector('[data-enroll-custom-select-menu]');
+  if (
+    !(nativeSelect instanceof HTMLSelectElement)
+    || !(trigger instanceof HTMLButtonElement)
+    || !(menu instanceof HTMLElement)
+  ) {
+    return null;
+  }
+
+  const entry = {
+    wrapper,
+    nativeSelect,
+    trigger,
+    valueElement,
+    menu,
+    optionButtons: [],
+  };
+  treeNextEnrollCustomSelectByNativeId.set(nativeSelect.id, entry);
+  buildTreeNextEnrollCustomSelectMenu(entry);
+  trigger.addEventListener('click', () => {
+    const isOpen = wrapper.classList.contains('is-open');
+    if (isOpen) {
+      closeTreeNextEnrollCustomSelect(entry, { restoreFocus: true });
+      return;
+    }
+    openTreeNextEnrollCustomSelect(entry);
+  });
+  trigger.addEventListener('keydown', (event) => {
+    const key = safeText(event?.key).toLowerCase();
+    if (key === ' ' || key === 'spacebar' || key === 'enter' || key === 'arrowdown') {
+      event.preventDefault();
+      openTreeNextEnrollCustomSelect(entry);
+      const firstEnabledOption = entry.optionButtons.find((button) => button instanceof HTMLButtonElement && !button.disabled);
+      if (firstEnabledOption) {
+        firstEnabledOption.focus({ preventScroll: true });
+      }
+      return;
+    }
+    if (key === 'escape') {
+      event.preventDefault();
+      closeTreeNextEnrollCustomSelect(entry, { restoreFocus: true });
+    }
+  });
+  nativeSelect.addEventListener('change', () => {
+    syncTreeNextEnrollCustomSelectDisplay(entry);
+  });
+  menu.addEventListener('keydown', (event) => {
+    const key = safeText(event?.key).toLowerCase();
+    if (key === 'escape') {
+      event.preventDefault();
+      closeTreeNextEnrollCustomSelect(entry, { restoreFocus: true });
+    }
+  });
+  return entry;
+}
+
+function initTreeNextEnrollCustomSelects() {
+  treeNextEnrollCustomSelectByNativeId.clear();
+  for (const wrapper of treeNextEnrollCustomSelectWrapElements) {
+    registerTreeNextEnrollCustomSelect(wrapper);
+  }
+
+  document.addEventListener('pointerdown', (event) => {
+    const eventTarget = event?.target;
+    if (!(eventTarget instanceof Node)) {
+      closeAllTreeNextEnrollCustomSelects();
+      return;
+    }
+    for (const entry of treeNextEnrollCustomSelectByNativeId.values()) {
+      if (entry?.wrapper instanceof HTMLElement && entry.wrapper.contains(eventTarget)) {
+        return;
+      }
+    }
+    closeAllTreeNextEnrollCustomSelects();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    const key = safeText(event?.key).toLowerCase();
+    if (key === 'escape') {
+      closeAllTreeNextEnrollCustomSelects();
+    }
+  });
 }
 
 async function fetchTreeNextEnrollStripeCheckoutConfig() {
@@ -1432,18 +2086,38 @@ async function initializeTreeNextEnrollStripeCard(options = {}) {
 }
 
 function syncTreeNextEnrollTierFromPackage() {
-  const selectedPackage = normalizeCredentialValue(treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY);
+  const selectedPackage = resolveTreeNextEnrollPackageKey(
+    treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY,
+  );
+  if (
+    treeNextEnrollPackageInput instanceof HTMLSelectElement
+    && normalizeCredentialValue(treeNextEnrollPackageInput.value) !== selectedPackage
+  ) {
+    treeNextEnrollPackageInput.value = selectedPackage;
+  }
   const tierKey = resolveEnrollFastTrackTierFromPackage(selectedPackage);
   if (treeNextEnrollFastTrackTierInput instanceof HTMLInputElement) {
     treeNextEnrollFastTrackTierInput.value = tierKey;
   }
+  syncTreeNextEnrollCustomSelectById('tree-next-enroll-package');
 }
 
 function syncTreeNextEnrollPackagePreview() {
-  const selectedPackage = normalizeCredentialValue(treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY);
+  const selectedPackage = resolveTreeNextEnrollPackageKey(
+    treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY,
+  );
+  if (
+    treeNextEnrollPackageInput instanceof HTMLSelectElement
+    && normalizeCredentialValue(treeNextEnrollPackageInput.value) !== selectedPackage
+  ) {
+    treeNextEnrollPackageInput.value = selectedPackage;
+  }
   const packageMeta = resolveEnrollPackageMeta(selectedPackage);
+  const tierFromForm = normalizeCredentialValue(treeNextEnrollFastTrackTierInput?.value || '');
+  const tierKey = tierFromForm || resolveEnrollFastTrackTierFromPackage(selectedPackage);
   const packageBv = Math.max(0, Math.floor(safeNumber(packageMeta?.bv, 0)));
   const selectableProducts = Math.max(0, Math.floor(safeNumber(packageMeta?.selectableProducts, 0)));
+  const fastTrackBonusAmount = Math.max(0, safeNumber(resolveEnrollFastTrackBonusAmount(selectedPackage, tierKey), 0));
   const packagePrice = resolveEnrollPackagePrice(selectedPackage);
   const subtotalAmount = Math.max(0, safeNumber(packagePrice, 0));
   const discountAmount = 0;
@@ -1456,6 +2130,9 @@ function syncTreeNextEnrollPackagePreview() {
   }
   if (treeNextEnrollPackageProductsElement instanceof HTMLElement) {
     treeNextEnrollPackageProductsElement.textContent = `${formatInteger(selectableProducts)} Selectable Product${selectableProducts === 1 ? '' : 's'}`;
+  }
+  if (treeNextEnrollPackageFastTrackBonusElement instanceof HTMLElement) {
+    treeNextEnrollPackageFastTrackBonusElement.textContent = formatEnrollCurrency(fastTrackBonusAmount);
   }
   if (treeNextEnrollSummaryPackageLabelElement instanceof HTMLElement) {
     treeNextEnrollSummaryPackageLabelElement.textContent = packageMeta?.label || 'Package';
@@ -1472,6 +2149,7 @@ function syncTreeNextEnrollPackagePreview() {
   if (treeNextEnrollSummaryTotalElement instanceof HTMLElement) {
     treeNextEnrollSummaryTotalElement.textContent = formatEnrollCurrency(totalAmount);
   }
+  syncTreeNextEnrollCustomSelectById('tree-next-enroll-package');
 }
 
 function resolveTreeNextEnrollPlacementSideFromLock(placementLock = state.enroll?.placementLock) {
@@ -1485,6 +2163,43 @@ function resolveTreeNextEnrollSpilloverModeValue() {
   return normalizedMode === ENROLL_SPILLOVER_MODE_DIRECT
     ? ENROLL_SPILLOVER_MODE_DIRECT
     : ENROLL_SPILLOVER_MODE_SPILLOVER;
+}
+
+function canTreeNextEnrollUseSpilloverForRootUser() {
+  const rootLegState = resolveNodeChildLegState('root');
+  return Boolean(rootLegState.left && rootLegState.right);
+}
+
+function syncTreeNextEnrollSpilloverAvailability() {
+  if (!(treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement)) {
+    return true;
+  }
+
+  const spilloverAllowed = canTreeNextEnrollUseSpilloverForRootUser();
+  let spilloverOption = null;
+  for (const option of Array.from(treeNextEnrollSpilloverModeInput.options || [])) {
+    if (normalizeCredentialValue(option?.value) === ENROLL_SPILLOVER_MODE_SPILLOVER) {
+      spilloverOption = option;
+      break;
+    }
+  }
+  if (spilloverOption) {
+    spilloverOption.disabled = !spilloverAllowed;
+  }
+
+  if (!spilloverAllowed && resolveTreeNextEnrollSpilloverModeValue() !== ENROLL_SPILLOVER_MODE_DIRECT) {
+    treeNextEnrollSpilloverModeInput.value = ENROLL_SPILLOVER_MODE_DIRECT;
+  }
+
+  const spilloverSelectEntry = treeNextEnrollCustomSelectByNativeId.get('tree-next-enroll-spillover-mode');
+  if (spilloverSelectEntry) {
+    buildTreeNextEnrollCustomSelectMenu(spilloverSelectEntry);
+    closeTreeNextEnrollCustomSelect(spilloverSelectEntry);
+  } else {
+    syncTreeNextEnrollCustomSelectById('tree-next-enroll-spillover-mode');
+  }
+
+  return spilloverAllowed;
 }
 
 function syncTreeNextEnrollLegPositionField() {
@@ -1617,6 +2332,7 @@ function showTreeNextEnrollThankYouStep(options = {}) {
   const enrolledName = safeText(options?.enrolledName) || 'New member';
   const packageLabel = safeText(options?.packageLabel) || 'Legacy Builder Package';
   const commissionAmount = Math.max(0, safeNumber(options?.commissionAmount, 0));
+  const passwordSetupLink = safeText(options?.passwordSetupLink);
 
   if (treeNextEnrollThankYouNameElement instanceof HTMLElement) {
     treeNextEnrollThankYouNameElement.textContent = enrolledName;
@@ -1627,6 +2343,7 @@ function showTreeNextEnrollThankYouStep(options = {}) {
   if (treeNextEnrollThankYouCommissionElement instanceof HTMLElement) {
     treeNextEnrollThankYouCommissionElement.textContent = formatEnrollCurrency(commissionAmount);
   }
+  setTreeNextEnrollPasswordSetupLink(passwordSetupLink);
   setTreeNextEnrollStep(4, { focusField: true });
 }
 
@@ -1697,6 +2414,7 @@ function closeTreeNextEnrollModal(options = {}) {
     clearFeedback = true,
     resetForm = false,
     clearPlacementLock = true,
+    clearPendingPlacement = true,
   } = options;
 
   setTreeNextEnrollModalOpen(false);
@@ -1706,6 +2424,7 @@ function closeTreeNextEnrollModal(options = {}) {
     clearTreeNextEnrollFeedback();
   }
   clearTreeNextEnrollCardInput();
+  closeAllTreeNextEnrollCustomSelects();
 
   if (resetForm && treeNextEnrollModalForm instanceof HTMLFormElement) {
     treeNextEnrollModalForm.reset();
@@ -1721,11 +2440,16 @@ function closeTreeNextEnrollModal(options = {}) {
     syncTreeNextEnrollTierFromPackage();
     syncTreeNextEnrollPackagePreview();
     syncTreeNextEnrollLegPositionField();
+    setTreeNextEnrollPasswordSetupLink('');
   }
+  syncTreeNextEnrollCustomSelectsFromNative();
   setTreeNextEnrollStep(1, { focusField: false });
 
   if (clearPlacementLock) {
     state.enroll.placementLock = null;
+  }
+  if (clearPendingPlacement) {
+    state.enroll.pendingPlacement = null;
   }
 
   if (
@@ -1764,6 +2488,7 @@ function openTreeNextEnrollModal(requestDetail = {}) {
   state.enroll.lastTriggerElement = document.activeElement instanceof HTMLElement
     ? document.activeElement
     : null;
+  state.enroll.pendingPlacement = null;
   state.enroll.placementLock = {
     parentId,
     parentName,
@@ -1783,6 +2508,7 @@ function openTreeNextEnrollModal(requestDetail = {}) {
   }
   syncTreeNextEnrollTierFromPackage();
   syncTreeNextEnrollPackagePreview();
+  syncTreeNextEnrollCustomSelectsFromNative();
   clearTreeNextEnrollFeedback();
   clearTreeNextEnrollCardInput();
 
@@ -1794,6 +2520,7 @@ function openTreeNextEnrollModal(requestDetail = {}) {
   if (treeNextEnrollParentInput instanceof HTMLInputElement) {
     treeNextEnrollParentInput.value = parentName;
   }
+  syncTreeNextEnrollSpilloverAvailability();
   syncTreeNextEnrollSponsorField();
   syncTreeNextEnrollLegPositionField();
   if (treeNextEnrollThankYouNameElement instanceof HTMLElement) {
@@ -1809,6 +2536,7 @@ function openTreeNextEnrollModal(requestDetail = {}) {
       resolveEnrollFastTrackBonusAmount(ENROLL_DEFAULT_PACKAGE_KEY, tierKey),
     );
   }
+  setTreeNextEnrollPasswordSetupLink('');
 
   setTreeNextEnrollStep(1, { focusField: false });
   setTreeNextEnrollModalOpen(true);
@@ -1942,6 +2670,7 @@ function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
   const accountStatus = createdMember?.passwordSetupRequired ? 'Pending' : 'Active';
   const isSpilloverPlacement = Boolean(createdMember?.isSpillover)
     || normalizeCredentialValue(createdMember?.placementLeg) === 'spillover';
+  const sponsorId = resolveTreeNextEnrollmentSponsorNodeId(createdMember, parentId, isSpilloverPlacement);
 
   state.nodes.push({
     id: nodeId,
@@ -1956,14 +2685,14 @@ function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
     title: `${accountRank} Builder`,
     badges: [accountRank],
     volume: packageBv,
-    sponsorId: parentId,
+    sponsorId,
     sponsorLeg: placementLeg,
     isSpillover: isSpilloverPlacement,
   });
 
   state.adapter.setNodes(state.nodes);
   rebuildNodeChildLegIndex();
-  setSelectedNode(parentId, { animate: false });
+  updateTreeNextLiveSnapshotHash(state.nodes);
 
   return {
     success: true,
@@ -1971,6 +2700,34 @@ function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
     parentId,
     placementLeg,
   };
+}
+
+function finalizePendingTreeNextEnrollmentPlacement(options = {}) {
+  const pendingPlacement = state.enroll?.pendingPlacement;
+  if (!pendingPlacement || typeof pendingPlacement !== 'object') {
+    return {
+      success: false,
+      skipped: true,
+      error: 'No pending enrollment placement to apply.',
+    };
+  }
+
+  const applyResult = applyTreeNextEnrollmentNode(
+    pendingPlacement.createdMember,
+    pendingPlacement.placementLock,
+    pendingPlacement.packageKey,
+  );
+  if (!applyResult.success) {
+    return applyResult;
+  }
+
+  state.enroll.pendingPlacement = null;
+
+  if (options.animate !== false) {
+    startPlacementGrowAnimation(applyResult.nodeId);
+  }
+
+  return applyResult;
 }
 
 function validateTreeNextEnrollStepOne() {
@@ -2005,12 +2762,26 @@ function validateTreeNextEnrollStepOne() {
 }
 
 function validateTreeNextEnrollStepTwo() {
-  const packageKey = normalizeCredentialValue(treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY);
+  syncTreeNextEnrollSpilloverAvailability();
+  const packageKey = resolveTreeNextEnrollPackageKey(
+    treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY,
+  );
   if (!ENROLL_PACKAGE_META[packageKey]) {
     setTreeNextEnrollFeedback('Select a valid enrollment package.', false);
     if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
       treeNextEnrollPackageInput.focus({ preventScroll: true });
     }
+    return false;
+  }
+  if (!isTreeNextEnrollPaidPackage(packageKey)) {
+    setTreeNextEnrollFeedback('Only paid enrollment packages are allowed in this panel.', false);
+    if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
+      treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
+      treeNextEnrollPackageInput.focus({ preventScroll: true });
+    }
+    syncTreeNextEnrollTierFromPackage();
+    syncTreeNextEnrollPackagePreview();
+    syncTreeNextEnrollCustomSelectById('tree-next-enroll-package');
     return false;
   }
   if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
@@ -2080,7 +2851,9 @@ async function handleTreeNextEnrollModalSubmit(event) {
   const lastName = safeText(treeNextEnrollLastNameInput?.value);
   const fullName = safeText(`${firstName} ${lastName}`);
   const countryFlag = normalizeCredentialValue(treeNextEnrollCountryFlagInput?.value || ENROLL_DEFAULT_COUNTRY_FLAG);
-  const packageKey = normalizeCredentialValue(treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY);
+  const packageKey = resolveTreeNextEnrollPackageKey(
+    treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY,
+  );
   const tierFromForm = normalizeCredentialValue(treeNextEnrollFastTrackTierInput?.value || '');
   const tierKey = tierFromForm || resolveEnrollFastTrackTierFromPackage(packageKey);
   const placementSide = resolveTreeNextEnrollPlacementSideFromLock(placementLock);
@@ -2095,6 +2868,10 @@ async function handleTreeNextEnrollModalSubmit(event) {
 
   if (!countryFlag) {
     setTreeNextEnrollFeedback('Country flag is required.', false);
+    return;
+  }
+  if (!isTreeNextEnrollPaidPackage(packageKey)) {
+    setTreeNextEnrollFeedback('Only paid enrollment packages are allowed in this panel.', false);
     return;
   }
   if (!ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY[tierKey]) {
@@ -2113,6 +2890,7 @@ async function handleTreeNextEnrollModalSubmit(event) {
   }
 
   try {
+    state.enroll.pendingPlacement = null;
     const createdMember = await submitTreeNextEnrollmentRequest({
       fullName,
       email,
@@ -2129,11 +2907,6 @@ async function handleTreeNextEnrollModalSubmit(event) {
       sponsorUsername,
       sponsorName,
     });
-
-    const applyResult = applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey);
-    if (!applyResult.success) {
-      throw new Error(`Member created, but tree update failed: ${applyResult.error}`);
-    }
 
     const enrolledName = safeText(createdMember?.fullName || fullName) || 'Member';
     const packageLabel = safeText(
@@ -2153,7 +2926,15 @@ async function handleTreeNextEnrollModalSubmit(event) {
       enrolledName,
       packageLabel,
       commissionAmount,
+      passwordSetupLink: createdMember?.passwordSetupLink,
     });
+    state.enroll.pendingPlacement = {
+      createdMember,
+      placementLock: {
+        ...placementLock,
+      },
+      packageKey,
+    };
   } catch (error) {
     const fallbackMessage = error instanceof Error
       ? error.message
@@ -2176,6 +2957,7 @@ function initTreeNextEnrollModal() {
   setTreeNextEnrollModalOpen(false);
   clearTreeNextEnrollFeedback();
   clearTreeNextEnrollCardError();
+  initTreeNextEnrollCustomSelects();
 
   if (treeNextEnrollCountryFlagInput instanceof HTMLInputElement) {
     treeNextEnrollCountryFlagInput.value = ENROLL_DEFAULT_COUNTRY_FLAG;
@@ -2200,7 +2982,9 @@ function initTreeNextEnrollModal() {
   syncTreeNextEnrollPackagePreview();
   syncTreeNextEnrollLegPositionField();
   syncTreeNextEnrollSponsorField();
+  syncTreeNextEnrollCustomSelectsFromNative();
   setTreeNextEnrollStep(1, { focusField: false });
+  setTreeNextEnrollPasswordSetupLink('');
 
   if (treeNextEnrollModalDismissButton instanceof HTMLButtonElement) {
     treeNextEnrollModalDismissButton.addEventListener('click', () => {
@@ -2214,12 +2998,44 @@ function initTreeNextEnrollModal() {
   }
   if (treeNextEnrollModalDoneButton instanceof HTMLButtonElement) {
     treeNextEnrollModalDoneButton.addEventListener('click', () => {
+      const applyResult = finalizePendingTreeNextEnrollmentPlacement({ animate: false });
+      if (!applyResult.success && !applyResult.skipped) {
+        setTreeNextEnrollFeedback(`Member created, but tree update failed: ${applyResult.error}`, false);
+        return;
+      }
       closeTreeNextEnrollModal({
         restoreFocus: false,
         clearFeedback: true,
         resetForm: true,
         clearPlacementLock: true,
+        clearPendingPlacement: true,
       });
+      if (applyResult.success) {
+        playEnrollmentPlacementReveal({
+          nodeId: applyResult.nodeId,
+          parentId: applyResult.parentId,
+          placementLeg: applyResult.placementLeg,
+        });
+      }
+    });
+  }
+  if (treeNextEnrollPasswordSetupOpenButton instanceof HTMLButtonElement) {
+    treeNextEnrollPasswordSetupOpenButton.addEventListener('click', () => {
+      openTreeNextEnrollPasswordSetupLink();
+    });
+  }
+  if (treeNextEnrollPasswordSetupCopyButton instanceof HTMLButtonElement) {
+    treeNextEnrollPasswordSetupCopyButton.addEventListener('click', () => {
+      void copyTreeNextEnrollPasswordSetupLink();
+    });
+  }
+  if (treeNextEnrollPasswordSetupLinkInput instanceof HTMLInputElement) {
+    treeNextEnrollPasswordSetupLinkInput.addEventListener('focus', () => {
+      const safeLink = resolveTreeNextEnrollPasswordSetupLinkFromInput();
+      if (!safeLink) {
+        return;
+      }
+      treeNextEnrollPasswordSetupLinkInput.select();
     });
   }
   if (treeNextEnrollStepOneNextButton instanceof HTMLButtonElement) {
@@ -2690,17 +3506,23 @@ function isAvatarPaletteRecord(palette) {
   ));
 }
 
-function resolveSessionAvatarColorTriplet(sessionInput = state.session) {
-  const session = sessionInput && typeof sessionInput === 'object' ? sessionInput : null;
-  if (!session) {
+function resolveAvatarColorTripletFromRecord(recordInput = null) {
+  const record = recordInput && typeof recordInput === 'object' ? recordInput : null;
+  if (!record) {
     return null;
   }
 
   const rgbArrayCandidates = [
-    session.avatarColorRgb,
-    session.avatar_color_rgb,
-    session.profileColorRgb,
-    session.profile_color_rgb,
+    record.avatarColorRgb,
+    record.avatar_color_rgb,
+    record.profileColorRgb,
+    record.profile_color_rgb,
+    record.themeColorRgb,
+    record.theme_color_rgb,
+    record.brandColorRgb,
+    record.brand_color_rgb,
+    record.colorRgb,
+    record.color_rgb,
   ];
   for (const candidate of rgbArrayCandidates) {
     if (Array.isArray(candidate) && candidate.length >= 3) {
@@ -2709,14 +3531,15 @@ function resolveSessionAvatarColorTriplet(sessionInput = state.session) {
   }
 
   const rgbObjectCandidates = [
-    session.avatarColor,
-    session.avatar_color,
-    session.profileColor,
-    session.profile_color,
-    session.themeColor,
-    session.theme_color,
-    session.brandColor,
-    session.brand_color,
+    record.avatarColor,
+    record.avatar_color,
+    record.profileColor,
+    record.profile_color,
+    record.themeColor,
+    record.theme_color,
+    record.brandColor,
+    record.brand_color,
+    record.color,
   ];
   for (const candidate of rgbObjectCandidates) {
     if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
@@ -2731,14 +3554,19 @@ function resolveSessionAvatarColorTriplet(sessionInput = state.session) {
   }
 
   const colorStringCandidates = [
-    session.avatarColor,
-    session.avatar_color,
-    session.profileColor,
-    session.profile_color,
-    session.themeColor,
-    session.theme_color,
-    session.brandColor,
-    session.brand_color,
+    record.avatarColor,
+    record.avatar_color,
+    record.avatarColorHex,
+    record.avatar_color_hex,
+    record.profileColor,
+    record.profile_color,
+    record.profileColorHex,
+    record.profile_color_hex,
+    record.themeColor,
+    record.theme_color,
+    record.brandColor,
+    record.brand_color,
+    record.color,
   ];
   for (const candidate of colorStringCandidates) {
     const rawColor = safeText(candidate);
@@ -2758,6 +3586,31 @@ function resolveSessionAvatarColorTriplet(sessionInput = state.session) {
   return null;
 }
 
+function resolveAvatarPaletteFromRecord(recordInput = null) {
+  const record = recordInput && typeof recordInput === 'object' ? recordInput : null;
+  if (!record) {
+    return null;
+  }
+  const explicitPalette = (
+    record.avatarPalette
+    || record.avatar_palette
+    || record.profilePalette
+    || record.profile_palette
+  );
+  if (!isAvatarPaletteRecord(explicitPalette)) {
+    return null;
+  }
+  return {
+    light: normalizeRgbTriplet(explicitPalette.light[0], explicitPalette.light[1], explicitPalette.light[2]),
+    mid: normalizeRgbTriplet(explicitPalette.mid[0], explicitPalette.mid[1], explicitPalette.mid[2]),
+    dark: normalizeRgbTriplet(explicitPalette.dark[0], explicitPalette.dark[1], explicitPalette.dark[2]),
+  };
+}
+
+function resolveSessionAvatarColorTriplet(sessionInput = state.session) {
+  return resolveAvatarColorTripletFromRecord(sessionInput);
+}
+
 function resolveSessionAvatarSeed(sessionInput = state.session) {
   const session = sessionInput && typeof sessionInput === 'object' ? sessionInput : null;
   const explicitSeed = safeText(session?.avatarSeed || session?.avatar_seed || session?.profileSeed || session?.profile_seed);
@@ -2768,19 +3621,9 @@ function resolveSessionAvatarSeed(sessionInput = state.session) {
 }
 
 function resolveSessionAvatarPalette(sessionInput = state.session) {
-  const session = sessionInput && typeof sessionInput === 'object' ? sessionInput : null;
-  const explicitPalette = (
-    session?.avatarPalette
-    || session?.avatar_palette
-    || session?.profilePalette
-    || session?.profile_palette
-  );
-  if (isAvatarPaletteRecord(explicitPalette)) {
-    return {
-      light: normalizeRgbTriplet(explicitPalette.light[0], explicitPalette.light[1], explicitPalette.light[2]),
-      mid: normalizeRgbTriplet(explicitPalette.mid[0], explicitPalette.mid[1], explicitPalette.mid[2]),
-      dark: normalizeRgbTriplet(explicitPalette.dark[0], explicitPalette.dark[1], explicitPalette.dark[2]),
-    };
+  const explicitPalette = resolveAvatarPaletteFromRecord(sessionInput);
+  if (explicitPalette) {
+    return explicitPalette;
   }
 
   const colorTriplet = resolveSessionAvatarColorTriplet(sessionInput);
@@ -2788,7 +3631,7 @@ function resolveSessionAvatarPalette(sessionInput = state.session) {
     return buildAvatarPaletteFromColorTriplet(colorTriplet);
   }
 
-  return resolveNodeAvatarPalette(resolveSessionAvatarSeed(sessionInput), { variant: 'ocean' });
+  return resolveNodeAvatarPalette(resolveSessionAvatarSeed(sessionInput), { variant: 'auto' });
 }
 
 function isLikelyAvatarImageUrl(rawUrl) {
@@ -3000,7 +3843,23 @@ function drawResolvedAvatarCircle(cx, cy, radius, nodeId, options = {}) {
     return { usedPhoto: false };
   }
 
-  fillNodeAvatarCircle(cx, cy, radius, safeNodeId, options);
+  const nodeRecord = options?.node && typeof options.node === 'object'
+    ? options.node
+    : resolveNodeById(safeNodeId);
+  const photoUrl = resolveNodeAvatarPhotoUrl(nodeRecord);
+  if (photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
+    const sheen = createNodeAvatarSheen(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), options);
+    context.beginPath();
+    context.arc(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), 0, Math.PI * 2);
+    context.fillStyle = sheen;
+    context.fill();
+    return { usedPhoto: true };
+  }
+
+  fillNodeAvatarCircle(cx, cy, radius, safeNodeId, {
+    ...options,
+    node: nodeRecord,
+  });
   return { usedPhoto: false };
 }
 
@@ -3808,6 +4667,33 @@ function truncateText(text, maxLength) {
   return `${safe.slice(0, maxLength - 1)}...`;
 }
 
+function truncateTextToWidth(text, maxWidth, options = {}) {
+  const safe = safeText(text);
+  const safeMaxWidth = Math.max(0, safeNumber(maxWidth, 0));
+  if (!safe || safeMaxWidth <= 0) {
+    return '';
+  }
+
+  if (measureTextWidth(safe, options) <= safeMaxWidth) {
+    return safe;
+  }
+
+  const ellipsis = '...';
+  const ellipsisWidth = measureTextWidth(ellipsis, options);
+  if (ellipsisWidth > safeMaxWidth) {
+    return '';
+  }
+
+  for (let end = safe.length - 1; end > 0; end -= 1) {
+    const candidate = `${safe.slice(0, end)}${ellipsis}`;
+    if (measureTextWidth(candidate, options) <= safeMaxWidth) {
+      return candidate;
+    }
+  }
+
+  return ellipsis;
+}
+
 function resolveInitials(name) {
   const safeName = safeText(name);
   if (!safeName) {
@@ -3820,183 +4706,933 @@ function resolveInitials(name) {
   return `${parts[0].slice(0, 1)}${parts[1].slice(0, 1)}`.toUpperCase();
 }
 
-function buildMockNodes() {
-  const firstNames = [
-    'Avery',
-    'Logan',
-    'Jordan',
-    'Skyler',
-    'Reese',
-    'Morgan',
-    'Harper',
-    'Hayden',
-    'Rowan',
-    'Dakota',
-    'Parker',
-    'Riley',
-    'Casey',
-    'Alex',
-    'Bailey',
-    'Sawyer',
-    'Phoenix',
-    'Cameron',
-    'Quinn',
-    'Taylor',
-  ];
+function normalizeTreeNextLiveLookupKey(value) {
+  return normalizeCredentialValue(safeText(value).replace(/^@+/, ''));
+}
 
-  const lastNames = [
-    'Stone',
-    'Rivera',
-    'Mason',
-    'Lane',
-    'Keller',
-    'Monroe',
-    'Pierce',
-    'Cross',
-    'Bennett',
-    'Hale',
-    'Frost',
-    'Walsh',
-    'Griffin',
-    'Nash',
-    'Reed',
-    'Hayes',
-    'Park',
-    'West',
-    'Blake',
-    'Hunt',
-  ];
+function resolveTreeNextLiveMemberCreatedAtMs(member = {}, index = 0, totalMembers = 0, nowMs = Date.now()) {
+  const createdAtMs = Date.parse(safeText(member?.createdAt || member?.updatedAt || ''));
+  if (Number.isFinite(createdAtMs)) {
+    return createdAtMs;
+  }
+  return nowMs - (Math.max(0, totalMembers - index) * 60000);
+}
 
-  const titleByDepth = [
-    'Network Founder',
-    'Regional Director',
-    'Lead Ambassador',
-    'Growth Mentor',
-    'Team Builder',
-    'Field Coach',
-    'Community Guide',
-  ];
-  const badgeCatalog = [
-    'Legacy',
-    'Fast Start',
-    'Builder',
-    'Consistency',
-    'Mentor',
-    'Top Recruiter',
-    'Cycle Closer',
-  ];
-  const accountStatuses = ['Active', 'Pending', 'Review', 'Dormant'];
+function resolveTreeNextLiveNodeStatusFromAccountStatus(accountStatus) {
+  const normalized = normalizeCredentialValue(accountStatus);
+  if (
+    normalized.includes('pending')
+    || normalized.includes('review')
+    || normalized.includes('dormant')
+    || normalized.includes('inactive')
+    || normalized.includes('suspend')
+    || normalized.includes('disable')
+  ) {
+    return 'stabilizing';
+  }
+  return 'active';
+}
 
-  function nameFromIndex(index) {
-    const first = firstNames[index % firstNames.length];
-    const last = lastNames[Math.floor(index / firstNames.length) % lastNames.length];
-    return `${first} ${last}`;
+function resolveTreeNextLiveMemberAccountStatus(member = {}) {
+  const explicitStatus = safeText(
+    member?.accountStatus
+    || member?.status
+    || member?.userAccountStatus
+    || member?.user_account_status
+    || member?.memberAccountStatus
+    || member?.member_account_status,
+  );
+  if (explicitStatus) {
+    return explicitStatus;
+  }
+  if (typeof member?.isActive === 'boolean') {
+    return member.isActive ? 'Active' : 'Inactive';
+  }
+  if (typeof member?.active === 'boolean') {
+    return member.active ? 'Active' : 'Inactive';
+  }
+  return member?.passwordSetupRequired ? 'Pending' : 'Active';
+}
+
+function isTreeNextLiveBinaryTreeEligibleMember(member = {}) {
+  const packageKey = normalizeCredentialValue(member?.enrollmentPackage);
+  const rankKey = normalizeCredentialValue(member?.accountRank || member?.rank);
+  if (packageKey === FREE_ACCOUNT_PACKAGE_KEY) {
+    return false;
+  }
+  if (FREE_ACCOUNT_RANK_KEY_SET.has(rankKey)) {
+    return false;
+  }
+  return true;
+}
+
+function resolveTreeNextLiveMemberPlacementPreference(member = {}) {
+  const placementLeg = normalizeCredentialValue(member?.placementLeg);
+  const spilloverSide = normalizeCredentialValue(member?.spilloverPlacementSide);
+  const isSpillover = Boolean(member?.isSpillover) || SPILLOVER_PLACEMENT_KEY_SET.has(placementLeg);
+  const isExtreme = EXTREME_PLACEMENT_KEY_SET.has(placementLeg);
+  const preferredSide = (
+    RIGHT_PLACEMENT_KEY_SET.has(placementLeg)
+    || (isSpillover && spilloverSide === 'right')
+  )
+    ? 'right'
+    : 'left';
+  return {
+    preferredSide,
+    isSpillover,
+    isExtreme,
+  };
+}
+
+function resolveTreeNextLiveMemberRank(member = {}) {
+  const explicitRank = safeText(member?.accountRank || member?.rank);
+  if (explicitRank) {
+    return explicitRank;
   }
 
-  function usernameFromName(name, id) {
-    const normalized = safeText(name)
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '.')
-      .replace(/^\.+|\.+$/g, '');
-    return `${normalized || 'member'}.${safeText(id).replace(/[^a-z0-9]/gi, '').toLowerCase()}`;
+  const packageKey = normalizeCredentialValue(member?.enrollmentPackage);
+  if (packageKey === 'legacy-builder-pack') {
+    return 'Legacy';
+  }
+  if (packageKey === 'infinity-builder-pack') {
+    return 'Infinity';
+  }
+  if (packageKey === 'business-builder-pack') {
+    return 'Business';
+  }
+  if (packageKey === 'personal-builder-pack') {
+    return 'Personal';
+  }
+  if (packageKey === FREE_ACCOUNT_PACKAGE_KEY) {
+    return 'Preferred Customer';
+  }
+  return 'Personal';
+}
+
+function resolveTreeNextLiveMemberVolume(member = {}) {
+  const packageKey = normalizeCredentialValue(member?.enrollmentPackage);
+  const packageMeta = ENROLL_PACKAGE_META[packageKey];
+  const packageBv = Math.max(0, Math.floor(safeNumber(member?.packageBv, safeNumber(packageMeta?.bv, 0))));
+  const starterPersonalPv = Math.max(0, Math.floor(safeNumber(member?.starterPersonalPv, packageBv)));
+  return starterPersonalPv > 0 ? starterPersonalPv : packageBv;
+}
+
+function createTreeNextLiveNodeIdForMember(member = {}, index = 0, usedNodeIds = new Set()) {
+  const candidates = [
+    member?.userId,
+    member?.id,
+    member?.memberUsername,
+    member?.username,
+    member?.email,
+    `member-${index + 1}`,
+  ];
+
+  let baseId = '';
+  for (const candidate of candidates) {
+    const sanitized = safeText(candidate)
+      .replace(/^@+/, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^a-zA-Z0-9._-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    if (!sanitized) {
+      continue;
+    }
+    baseId = sanitized;
+    break;
   }
 
-  function pickBadges(seed, depth) {
-    const first = badgeCatalog[seed % badgeCatalog.length];
-    const second = badgeCatalog[(seed + depth + 2) % badgeCatalog.length];
-    return first === second ? [first] : [first, second];
+  if (!baseId) {
+    baseId = `member-${index + 1}`;
+  }
+  if (baseId === 'root' || baseId === LIVE_TREE_GLOBAL_ROOT_ID) {
+    baseId = `member-${baseId}`;
   }
 
-  const nodes = [];
-  let nextId = 1;
+  if (!usedNodeIds.has(baseId)) {
+    usedNodeIds.add(baseId);
+    return baseId;
+  }
 
-  const rootId = 'root';
-  const rootName = 'Root Sponsor';
-  nodes.push({
-    id: rootId,
+  let attempt = 2;
+  while (attempt < 10000) {
+    const candidateId = `${baseId}-${attempt}`;
+    if (!usedNodeIds.has(candidateId)) {
+      usedNodeIds.add(candidateId);
+      return candidateId;
+    }
+    attempt += 1;
+  }
+
+  const fallbackId = `${baseId}-${Date.now()}`;
+  usedNodeIds.add(fallbackId);
+  return fallbackId;
+}
+
+function createTreeNextLiveScopedRootNode(sourceNode = null) {
+  const source = sourceNode && typeof sourceNode === 'object' ? sourceNode : null;
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const sessionDisplayName = safeText(resolveSessionDisplayName());
+  const sourceDisplayName = safeText(source?.name);
+  const sourceUsername = safeText(source?.username || source?.memberCode).replace(/^@+/, '');
+  const sessionUsername = safeText(
+    session?.username
+    || session?.memberUsername
+    || session?.email
+    || '',
+  ).replace(/^@+/, '');
+  const displayName = state.source === 'admin'
+    ? (sourceDisplayName || sessionDisplayName || 'Company Root')
+    : (sourceDisplayName || sessionDisplayName || 'Member');
+  const username = state.source === 'admin'
+    ? (sourceUsername || sessionUsername || 'company-root')
+    : (sourceUsername || sessionUsername || 'member');
+  const rank = safeText(source?.rank || session?.accountRank || session?.rank || 'Legacy') || 'Legacy';
+  const accountStatus = safeText(source?.accountStatus || source?.status || 'Active') || 'Active';
+  const fallbackTitle = `${rank} Builder`;
+  const title = safeText(source?.title || fallbackTitle) || fallbackTitle;
+  const sourceBadges = Array.isArray(source?.badges)
+    ? source.badges.map((badge) => safeText(badge)).filter(Boolean)
+    : [];
+  const badges = sourceBadges.length ? sourceBadges : [rank];
+  const volume = Math.max(0, Math.floor(safeNumber(source?.volume, 0)));
+  const sourceAvatarPalette = resolveAvatarPaletteFromRecord(source)
+    || resolveAvatarPaletteFromRecord(session);
+  const sourceAvatarColorTriplet = resolveAvatarColorTripletFromRecord(source)
+    || resolveAvatarColorTripletFromRecord(session);
+  const sourceAvatarColorValue = safeText(
+    source?.avatarColor
+    || source?.avatar_color
+    || source?.avatarColorHex
+    || source?.avatar_color_hex
+    || source?.profileColor
+    || source?.profile_color
+    || session?.avatarColor
+    || session?.avatar_color
+    || session?.profileColor
+    || session?.profile_color,
+  );
+  const sourceAvatarPhotoUrl = safeText(
+    source?.avatarUrl
+    || source?.avatar_url
+    || source?.profilePhotoUrl
+    || source?.profile_photo_url
+    || source?.profileImageUrl
+    || source?.profile_image_url
+    || session?.avatarUrl
+    || session?.avatar_url
+    || session?.profilePhotoUrl
+    || session?.profile_photo_url
+    || session?.profileImageUrl
+    || session?.profile_image_url,
+  );
+  const sourceAvatarSeed = resolveNodeAvatarSeed(source, resolveSessionAvatarSeed(session));
+
+  return {
+    id: 'root',
     parent: '',
     side: '',
-    name: rootName,
-    username: usernameFromName(rootName, rootId),
+    memberCode: username,
+    name: displayName,
+    username,
+    role: safeText(source?.role || 'Network Head') || 'Network Head',
+    status: resolveTreeNextLiveNodeStatusFromAccountStatus(accountStatus),
+    accountStatus,
+    rank,
+    title,
+    badges,
+    volume,
+    sponsorId: '',
+    sponsorLeg: '',
+    isSpillover: false,
+    countryFlag: safeText(source?.countryFlag || session?.countryFlag || ''),
+    enrollmentPackage: safeText(source?.enrollmentPackage || session?.enrollmentPackage || ''),
+    avatarSeed: sourceAvatarSeed,
+    avatarColor: sourceAvatarColorValue,
+    avatarColorRgb: sourceAvatarColorTriplet ? [...sourceAvatarColorTriplet] : null,
+    avatarPalette: sourceAvatarPalette,
+    avatarUrl: sourceAvatarPhotoUrl,
+  };
+}
+
+function rebuildTreeNextLiveChildReferences(nodesInput = []) {
+  const nodes = Array.isArray(nodesInput)
+    ? nodesInput
+      .filter((node) => node && typeof node === 'object')
+      .map((node) => ({ ...node }))
+    : [];
+  const nodeById = new Map();
+
+  for (const node of nodes) {
+    const nodeId = safeText(node?.id);
+    if (!nodeId) {
+      continue;
+    }
+    node.id = nodeId;
+    node.leftChildId = '';
+    node.rightChildId = '';
+    nodeById.set(nodeId, node);
+  }
+
+  for (const node of nodeById.values()) {
+    const parentId = safeText(node?.parent);
+    const side = normalizeBinarySide(node?.side);
+    if (!parentId || !side || !nodeById.has(parentId)) {
+      continue;
+    }
+    const parentNode = nodeById.get(parentId);
+    if (side === 'left') {
+      parentNode.leftChildId = node.id;
+    } else {
+      parentNode.rightChildId = node.id;
+    }
+  }
+
+  return Array.from(nodeById.values());
+}
+
+function resolveTreeNextLiveViewerGlobalNodeId(nodeById, lookupToNodeId) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    session?.rootNodeId,
+    session?.root_node_id,
+    session?.nodeId,
+    session?.node_id,
+    session?.treeNodeId,
+    session?.tree_node_id,
+    session?.binaryTreeNodeId,
+    session?.binary_tree_node_id,
+    session?.id,
+    session?.userId,
+    session?.user_id,
+    session?.memberId,
+    session?.member_id,
+    session?.username,
+    session?.memberUsername,
+    session?.email,
+  ];
+
+  for (const candidate of candidates) {
+    const safeCandidate = safeText(candidate).replace(/^@+/, '');
+    if (!safeCandidate) {
+      continue;
+    }
+    if (nodeById.has(safeCandidate)) {
+      return safeCandidate;
+    }
+    const normalizedLookup = normalizeTreeNextLiveLookupKey(safeCandidate);
+    if (normalizedLookup && lookupToNodeId.has(normalizedLookup)) {
+      return safeText(lookupToNodeId.get(normalizedLookup));
+    }
+  }
+
+  return LIVE_TREE_GLOBAL_ROOT_ID;
+}
+
+function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
+  const nowMs = Date.now();
+  const sourceMembers = Array.isArray(membersInput)
+    ? membersInput.filter((member) => member && typeof member === 'object')
+    : [];
+  const members = sourceMembers
+    .filter((member) => isTreeNextLiveBinaryTreeEligibleMember(member))
+    .slice();
+
+  members.sort((left, right) => {
+    const leftMs = resolveTreeNextLiveMemberCreatedAtMs(left, 0, members.length, nowMs);
+    const rightMs = resolveTreeNextLiveMemberCreatedAtMs(right, 0, members.length, nowMs);
+    if (leftMs !== rightMs) {
+      return leftMs - rightMs;
+    }
+    const leftKey = normalizeTreeNextLiveLookupKey(
+      left?.userId || left?.id || left?.memberUsername || left?.email,
+    );
+    const rightKey = normalizeTreeNextLiveLookupKey(
+      right?.userId || right?.id || right?.memberUsername || right?.email,
+    );
+    return leftKey.localeCompare(rightKey);
+  });
+
+  const usedNodeIds = new Set(['root', LIVE_TREE_GLOBAL_ROOT_ID]);
+  const nodeById = new Map();
+  const lookupToNodeId = new Map();
+  const memberNodeIdByIndex = new Map();
+
+  const registerLookup = (rawValue, nodeId) => {
+    const lookupKey = normalizeTreeNextLiveLookupKey(rawValue);
+    if (!lookupKey || !nodeId) {
+      return;
+    }
+    lookupToNodeId.set(lookupKey, nodeId);
+  };
+
+  const globalRootNode = {
+    id: LIVE_TREE_GLOBAL_ROOT_ID,
+    parent: '',
+    side: '',
+    memberCode: 'company-root',
+    name: 'Company Root',
+    username: 'company-root',
     role: 'Network Head',
     status: 'active',
     accountStatus: 'Active',
     rank: 'Legacy',
-    title: titleByDepth[0],
-    badges: ['Legacy', 'Mentor', 'Cycle Closer'],
-    volume: 48220,
+    title: 'Company Root',
+    badges: ['Legacy'],
+    volume: 0,
     sponsorId: '',
     sponsorLeg: '',
     isSpillover: false,
+  };
+  nodeById.set(LIVE_TREE_GLOBAL_ROOT_ID, globalRootNode);
+  registerLookup(LIVE_TREE_GLOBAL_ROOT_ID, LIVE_TREE_GLOBAL_ROOT_ID);
+  registerLookup('company-root', LIVE_TREE_GLOBAL_ROOT_ID);
+  registerLookup('admin', LIVE_TREE_GLOBAL_ROOT_ID);
+
+  members.forEach((member, index) => {
+    const nodeId = createTreeNextLiveNodeIdForMember(member, index, usedNodeIds);
+    memberNodeIdByIndex.set(index, nodeId);
+
+    const username = safeText(member?.memberUsername || member?.username).replace(/^@+/, '');
+    const displayName = safeText(
+      member?.fullName
+      || username
+      || member?.email
+      || `Member ${index + 1}`,
+    ) || `Member ${index + 1}`;
+    const accountStatus = resolveTreeNextLiveMemberAccountStatus(member);
+    const rank = resolveTreeNextLiveMemberRank(member);
+    const fallbackTitle = `${rank} Builder`;
+    const title = safeText(member?.accountTitle || member?.title || fallbackTitle) || fallbackTitle;
+    const createdAt = safeText(member?.createdAt || member?.updatedAt || '');
+    const avatarPalette = resolveAvatarPaletteFromRecord(member);
+    const avatarColorTriplet = resolveAvatarColorTripletFromRecord(member);
+    const avatarColorValue = safeText(
+      member?.avatarColor
+      || member?.avatar_color
+      || member?.avatarColorHex
+      || member?.avatar_color_hex
+      || member?.profileColor
+      || member?.profile_color,
+    );
+    const avatarPhotoUrl = safeText(
+      member?.avatarUrl
+      || member?.avatar_url
+      || member?.profilePhotoUrl
+      || member?.profile_photo_url
+      || member?.profileImageUrl
+      || member?.profile_image_url,
+    );
+    const avatarSeed = resolveNodeAvatarSeed(member, nodeId);
+    const node = {
+      id: nodeId,
+      parent: '',
+      side: '',
+      memberCode: username || nodeId,
+      name: displayName,
+      username: username || nodeId,
+      role: 'Distributor',
+      status: resolveTreeNextLiveNodeStatusFromAccountStatus(accountStatus),
+      accountStatus,
+      rank,
+      title,
+      badges: [rank],
+      volume: resolveTreeNextLiveMemberVolume(member),
+      sponsorId: '',
+      sponsorLeg: '',
+      isSpillover: false,
+      countryFlag: normalizeCredentialValue(member?.countryFlag),
+      enrollmentPackage: normalizeCredentialValue(member?.enrollmentPackage),
+      packageBv: Math.max(0, Math.floor(safeNumber(member?.packageBv, 0))),
+      fastTrackTier: normalizeCredentialValue(member?.fastTrackTier),
+      businessCenterNodeType: safeText(member?.businessCenterNodeType),
+      isStaffTreeAccount: Boolean(member?.isStaffTreeAccount),
+      createdAt,
+      avatarSeed,
+      avatarColor: avatarColorValue,
+      avatarColorRgb: avatarColorTriplet ? [...avatarColorTriplet] : null,
+      avatarPalette,
+      avatarUrl: avatarPhotoUrl,
+    };
+
+    nodeById.set(nodeId, node);
+    registerLookup(member?.id, nodeId);
+    registerLookup(member?.userId, nodeId);
+    registerLookup(member?.memberUsername, nodeId);
+    registerLookup(member?.username, nodeId);
+    registerLookup(member?.email, nodeId);
+    registerLookup(nodeId, nodeId);
   });
 
-  let currentLayer = [{ id: rootId, depth: 0 }];
-  for (let depth = 1; depth <= MOCK_TREE_MAX_DEPTH; depth += 1) {
-    if (!currentLayer.length) {
-      break;
+  const findOpenPlacement = (startingParentId, preferredSide) => {
+    const normalizedPreferred = normalizeBinarySide(preferredSide) === 'right' ? 'right' : 'left';
+    const primaryChildKey = normalizedPreferred === 'right' ? 'rightChildId' : 'leftChildId';
+    const secondaryChildKey = normalizedPreferred === 'right' ? 'leftChildId' : 'rightChildId';
+    const queue = [];
+    const visited = new Set();
+    const resolvedStartParentId = nodeById.has(startingParentId) ? startingParentId : LIVE_TREE_GLOBAL_ROOT_ID;
+    const startParentNode = nodeById.get(resolvedStartParentId);
+    if (!startParentNode) {
+      return null;
     }
 
-    const maxChildrenAtDepth = Math.min(
-      MOCK_LEVEL_NODE_CAP,
-      currentLayer.length * 2,
-    );
-    let remainingAtDepth = maxChildrenAtDepth;
-    const nextLayer = [];
+    if (!safeText(startParentNode[primaryChildKey])) {
+      return { parentId: resolvedStartParentId, side: normalizedPreferred };
+    }
 
-    for (const parentMeta of currentLayer) {
-      if (remainingAtDepth <= 0) {
-        break;
+    const firstQueueId = safeText(startParentNode[primaryChildKey]);
+    if (firstQueueId && nodeById.has(firstQueueId)) {
+      queue.push(firstQueueId);
+    }
+
+    while (queue.length > 0) {
+      const parentId = safeText(queue.shift());
+      if (!parentId || visited.has(parentId) || !nodeById.has(parentId)) {
+        continue;
+      }
+      visited.add(parentId);
+
+      const parentNode = nodeById.get(parentId);
+      if (!safeText(parentNode[primaryChildKey])) {
+        return { parentId, side: normalizedPreferred };
+      }
+      if (!safeText(parentNode[secondaryChildKey])) {
+        return {
+          parentId,
+          side: normalizedPreferred === 'right' ? 'left' : 'right',
+        };
       }
 
-      const baseVolume = Math.max(10, Math.round(2200 / (depth + 0.4)));
-      const childSides = ['left', 'right'];
-      for (const side of childSides) {
-        if (remainingAtDepth <= 0) {
-          break;
-        }
-
-        const id = `n-${nextId}`;
-        nextId += 1;
-        const seed = nextId + (depth * (side === 'left' ? 2 : 3));
-        const name = nameFromIndex(seed);
-        const parentNode = nodes.find((candidate) => candidate.id === parentMeta.id) || null;
-        const fallbackSponsorId = safeText(parentNode?.parent || '');
-        const isSpillover = depth >= 3 && seed % 7 === 0 && Boolean(fallbackSponsorId);
-        const sponsorId = isSpillover ? fallbackSponsorId : parentMeta.id;
-        const title = titleByDepth[Math.min(titleByDepth.length - 1, depth)];
-        const accountStatus = accountStatuses[(seed + depth) % accountStatuses.length];
-        const role = depth <= 2 ? 'Leader' : (depth <= 6 ? 'Distributor' : 'Branch');
-        const status = accountStatus === 'Dormant' ? 'stabilizing' : 'active';
-        const rank = depth <= 1 ? 'Diamond' : (depth <= 3 ? 'Platinum' : (depth <= 5 ? 'Gold' : 'Builder'));
-        const volume = baseVolume + (depth * (side === 'left' ? 18 : 13)) + Math.floor(seed % 11);
-
-        nodes.push({
-          id,
-          parent: parentMeta.id,
-          side,
-          name,
-          username: usernameFromName(name, id),
-          role,
-          status,
-          accountStatus,
-          rank,
-          title,
-          badges: pickBadges(seed, depth),
-          volume,
-          sponsorId,
-          sponsorLeg: side,
-          isSpillover,
-        });
-
-        nextLayer.push({ id, depth });
-        remainingAtDepth -= 1;
+      const primaryChildId = safeText(parentNode[primaryChildKey]);
+      const secondaryChildId = safeText(parentNode[secondaryChildKey]);
+      if (primaryChildId && nodeById.has(primaryChildId)) {
+        queue.push(primaryChildId);
+      }
+      if (secondaryChildId && nodeById.has(secondaryChildId)) {
+        queue.push(secondaryChildId);
       }
     }
 
-    currentLayer = nextLayer;
+    return null;
+  };
+
+  const findExtremePlacement = (startingParentId, preferredSide) => {
+    const normalizedPreferred = normalizeBinarySide(preferredSide) === 'right' ? 'right' : 'left';
+    const childKey = normalizedPreferred === 'right' ? 'rightChildId' : 'leftChildId';
+    const resolvedStartParentId = nodeById.has(startingParentId) ? startingParentId : LIVE_TREE_GLOBAL_ROOT_ID;
+    let currentParentId = resolvedStartParentId;
+    const visited = new Set();
+
+    while (currentParentId && nodeById.has(currentParentId) && !visited.has(currentParentId)) {
+      visited.add(currentParentId);
+      const currentNode = nodeById.get(currentParentId);
+      const nextChildId = safeText(currentNode?.[childKey]);
+      if (!nextChildId || !nodeById.has(nextChildId)) {
+        return { parentId: currentParentId, side: normalizedPreferred };
+      }
+      currentParentId = nextChildId;
+    }
+
+    return null;
+  };
+
+  members.forEach((member, index) => {
+    const nodeId = memberNodeIdByIndex.get(index);
+    const node = nodeById.get(nodeId);
+    if (!node) {
+      return;
+    }
+
+    const sponsorLookup = normalizeTreeNextLiveLookupKey(member?.sponsorUsername);
+    const sponsorNodeId = (sponsorLookup && lookupToNodeId.has(sponsorLookup))
+      ? lookupToNodeId.get(sponsorLookup)
+      : LIVE_TREE_GLOBAL_ROOT_ID;
+    const placementPreference = resolveTreeNextLiveMemberPlacementPreference(member);
+    const requestedParentLookup = placementPreference.isSpillover
+      ? normalizeTreeNextLiveLookupKey(member?.spilloverParentReference)
+      : '';
+    const requestedParentId = (requestedParentLookup && lookupToNodeId.has(requestedParentLookup))
+      ? lookupToNodeId.get(requestedParentLookup)
+      : sponsorNodeId;
+    const placement = placementPreference.isExtreme
+      ? findExtremePlacement(requestedParentId, placementPreference.preferredSide)
+      : findOpenPlacement(requestedParentId, placementPreference.preferredSide);
+
+    if (!placement || !nodeById.has(placement.parentId)) {
+      return;
+    }
+
+    const parentNode = nodeById.get(placement.parentId);
+    if (placement.side === 'right') {
+      parentNode.rightChildId = nodeId;
+    } else {
+      parentNode.leftChildId = nodeId;
+    }
+
+    node.parent = placement.parentId;
+    node.side = placement.side;
+    node.placementParentId = placement.parentId;
+    node.placementSide = placement.side;
+    node.sponsorId = sponsorNodeId === nodeId ? LIVE_TREE_GLOBAL_ROOT_ID : sponsorNodeId;
+    if (!nodeById.has(node.sponsorId)) {
+      node.sponsorId = LIVE_TREE_GLOBAL_ROOT_ID;
+    }
+    node.isSpillover = placementPreference.isSpillover
+      || Boolean(node.sponsorId && node.sponsorId !== node.parent);
+    node.sponsorLeg = node.sponsorId === node.parent ? node.side : '';
+  });
+
+  const viewerNodeId = resolveTreeNextLiveViewerGlobalNodeId(nodeById, lookupToNodeId);
+  const includedNodeIds = new Set();
+  const queue = [viewerNodeId];
+  while (queue.length > 0) {
+    const candidateId = safeText(queue.shift());
+    if (!candidateId || includedNodeIds.has(candidateId) || !nodeById.has(candidateId)) {
+      continue;
+    }
+    includedNodeIds.add(candidateId);
+    const candidateNode = nodeById.get(candidateId);
+    const leftChildId = safeText(candidateNode?.leftChildId);
+    const rightChildId = safeText(candidateNode?.rightChildId);
+    if (leftChildId && nodeById.has(leftChildId)) {
+      queue.push(leftChildId);
+    }
+    if (rightChildId && nodeById.has(rightChildId)) {
+      queue.push(rightChildId);
+    }
   }
 
-  return nodes;
+  const sourceRootNode = nodeById.get(viewerNodeId) || nodeById.get(LIVE_TREE_GLOBAL_ROOT_ID) || null;
+  const scopedNodes = [createTreeNextLiveScopedRootNode(sourceRootNode)];
+
+  for (const includedNodeId of includedNodeIds) {
+    if (includedNodeId === viewerNodeId || !nodeById.has(includedNodeId)) {
+      continue;
+    }
+    const sourceNode = nodeById.get(includedNodeId);
+    const sourceParentId = safeText(sourceNode?.parent);
+    const mappedParentId = sourceParentId === viewerNodeId
+      ? 'root'
+      : (includedNodeIds.has(sourceParentId) ? sourceParentId : 'root');
+    const sourceSponsorId = safeText(sourceNode?.sponsorId);
+    let mappedSponsorId = '';
+    if (sourceSponsorId === viewerNodeId) {
+      mappedSponsorId = 'root';
+    } else if (sourceSponsorId && includedNodeIds.has(sourceSponsorId)) {
+      mappedSponsorId = sourceSponsorId;
+    } else if (sourceNode?.isSpillover) {
+      mappedSponsorId = 'root';
+    } else {
+      mappedSponsorId = mappedParentId || 'root';
+    }
+
+    const scopedNode = {
+      ...sourceNode,
+      parent: mappedParentId,
+      sponsorId: mappedSponsorId,
+    };
+    scopedNode.sponsorLeg = scopedNode.sponsorId === scopedNode.parent
+      ? normalizeBinarySide(scopedNode.side)
+      : '';
+    scopedNode.isSpillover = Boolean(
+      scopedNode.sponsorId
+      && scopedNode.parent
+      && scopedNode.sponsorId !== scopedNode.parent,
+    );
+    scopedNodes.push(scopedNode);
+  }
+
+  const normalizedScopedNodes = rebuildTreeNextLiveChildReferences(scopedNodes);
+  if (normalizedScopedNodes.length > 0) {
+    return normalizedScopedNodes;
+  }
+  return rebuildTreeNextLiveChildReferences([createTreeNextLiveScopedRootNode(null)]);
+}
+
+async function fetchTreeNextLiveRegisteredMembers() {
+  const response = await fetch(resolveEnrollRegisteredMembersApi(), {
+    method: 'GET',
+    cache: 'no-store',
+    credentials: 'same-origin',
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = safeText(payload?.error) || `Unable to load registered members (${response.status}).`;
+    throw new Error(message);
+  }
+  return Array.isArray(payload?.members) ? payload.members : [];
+}
+
+async function loadTreeNextLiveNodes() {
+  try {
+    const members = await fetchTreeNextLiveRegisteredMembers();
+    return buildTreeNextNodesFromRegisteredMembers(members);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to load live binary tree data.';
+    showBootError(message);
+    return buildTreeNextNodesFromRegisteredMembers([]);
+  }
+}
+
+function resolveTreeNextLiveNodeSignature(node = {}) {
+  const safeNode = node && typeof node === 'object' ? node : {};
+  const paletteSignature = isAvatarPaletteRecord(safeNode.avatarPalette)
+    ? [
+      normalizeRgbTriplet(safeNode.avatarPalette.light?.[0], safeNode.avatarPalette.light?.[1], safeNode.avatarPalette.light?.[2]).join(','),
+      normalizeRgbTriplet(safeNode.avatarPalette.mid?.[0], safeNode.avatarPalette.mid?.[1], safeNode.avatarPalette.mid?.[2]).join(','),
+      normalizeRgbTriplet(safeNode.avatarPalette.dark?.[0], safeNode.avatarPalette.dark?.[1], safeNode.avatarPalette.dark?.[2]).join(','),
+    ].join('/')
+    : '';
+  const colorTripletSignature = Array.isArray(safeNode.avatarColorRgb) && safeNode.avatarColorRgb.length >= 3
+    ? normalizeRgbTriplet(safeNode.avatarColorRgb[0], safeNode.avatarColorRgb[1], safeNode.avatarColorRgb[2]).join(',')
+    : '';
+  return [
+    safeText(safeNode.id),
+    safeText(safeNode.parent),
+    normalizeBinarySide(safeNode.side),
+    safeText(safeNode.sponsorId),
+    safeText(safeNode.accountStatus || safeNode.status),
+    safeText(safeNode.rank || safeNode.accountRank),
+    safeText(safeNode.title),
+    Math.floor(safeNumber(safeNode.volume, 0)),
+    safeText(safeNode.businessCenterNodeType),
+    safeText(safeNode.memberCode),
+    safeNode.isSpillover ? '1' : '0',
+    safeText(safeNode.avatarSeed),
+    safeText(safeNode.avatarColor),
+    safeText(safeNode.avatarUrl),
+    colorTripletSignature,
+    paletteSignature,
+  ].join('|');
+}
+
+function computeTreeNextLiveNodesSignature(nodesInput = []) {
+  const safeNodes = Array.isArray(nodesInput) ? nodesInput : [];
+  return safeNodes
+    .map((node) => resolveTreeNextLiveNodeSignature(node))
+    .filter(Boolean)
+    .sort()
+    .join('~');
+}
+
+function updateTreeNextLiveSnapshotHash(nodesInput = state.nodes) {
+  if (!state.liveSync || typeof state.liveSync !== 'object') {
+    return '';
+  }
+  const nextHash = computeTreeNextLiveNodesSignature(nodesInput);
+  state.liveSync.lastAppliedHash = nextHash;
+  return nextHash;
+}
+
+function resolveTreeNextLiveSyncIntervalMs() {
+  return document.visibilityState === 'hidden'
+    ? TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS
+    : TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
+}
+
+function clearTreeNextLiveSyncTimer() {
+  const timerId = Math.floor(safeNumber(state.liveSync?.timerId, 0));
+  if (timerId > 0) {
+    window.clearTimeout(timerId);
+  }
+  if (state.liveSync && typeof state.liveSync === 'object') {
+    state.liveSync.timerId = 0;
+  }
+}
+
+function shouldPauseTreeNextLiveSync() {
+  if (state.enroll?.submitting || state.enroll?.pendingPlacement) {
+    return true;
+  }
+  if (state.pendingPlacementReveal) {
+    return true;
+  }
+  return Object.keys(state.placementFxTracks).length > 0;
+}
+
+function resolveTreeNextLiveAddedNodeIds(previousNodesInput = [], nextNodesInput = []) {
+  const previousNodes = Array.isArray(previousNodesInput) ? previousNodesInput : [];
+  const nextNodes = Array.isArray(nextNodesInput) ? nextNodesInput : [];
+  if (!previousNodes.length || !nextNodes.length) {
+    return [];
+  }
+
+  const previousNodeIds = new Set();
+  for (const node of previousNodes) {
+    const nodeId = safeText(node?.id);
+    if (!nodeId) {
+      continue;
+    }
+    previousNodeIds.add(nodeId);
+  }
+
+  const addedNodeIds = [];
+  for (const node of nextNodes) {
+    const nodeId = safeText(node?.id);
+    if (!nodeId || previousNodeIds.has(nodeId) || nodeId === 'root') {
+      continue;
+    }
+    const parentId = safeText(node?.parent);
+    const side = normalizeBinarySide(node?.side);
+    if (!parentId || !side) {
+      continue;
+    }
+    addedNodeIds.push(nodeId);
+  }
+  return addedNodeIds;
+}
+
+function startTreeNextLiveAddedNodeAnimations(nodeIdsInput = [], nowMs = getNowMs()) {
+  const nodeIds = Array.isArray(nodeIdsInput) ? nodeIdsInput : [];
+  if (!nodeIds.length) {
+    return [];
+  }
+  const limit = Math.max(0, Math.floor(safeNumber(
+    TREE_NEXT_LIVE_SYNC_NEW_NODE_ANIMATION_LIMIT,
+    24,
+  )));
+  const animatedNodeIds = limit > 0 ? nodeIds.slice(0, limit) : [];
+  for (const nodeId of animatedNodeIds) {
+    startPlacementGrowAnimation(nodeId, nowMs);
+  }
+  return animatedNodeIds;
+}
+
+function applyTreeNextLiveNodes(nextNodes, options = {}) {
+  const safeNextNodes = Array.isArray(nextNodes) ? nextNodes : [];
+  const previousNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  const animateNewNodes = options?.animateNewNodes === true;
+  const addedNodeIds = animateNewNodes
+    ? resolveTreeNextLiveAddedNodeIds(previousNodes, safeNextNodes)
+    : [];
+  const previousSelectedId = safeText(state.selectedId);
+  const previousHash = safeText(state.liveSync?.lastAppliedHash);
+  const nextHash = computeTreeNextLiveNodesSignature(safeNextNodes);
+  const force = options?.force === true;
+  if (!force && previousHash && nextHash === previousHash) {
+    return {
+      applied: false,
+      unchanged: true,
+    };
+  }
+
+  state.nodes = safeNextNodes;
+  state.adapter.setNodes(state.nodes);
+  rebuildNodeChildLegIndex();
+  updateTreeNextLiveSnapshotHash(state.nodes);
+
+  if (previousSelectedId) {
+    const selectedStillExists = state.nodes.some((node) => safeText(node?.id) === previousSelectedId);
+    if (!selectedStillExists) {
+      setSelectedNode('', { animate: false });
+    }
+  }
+
+  if (isTreeNextEnrollModalOpen()) {
+    syncTreeNextEnrollSpilloverAvailability();
+    syncTreeNextEnrollSponsorField();
+    syncTreeNextEnrollLegPositionField();
+  }
+
+  const animatedNodeIds = animateNewNodes
+    ? startTreeNextLiveAddedNodeAnimations(addedNodeIds, getNowMs())
+    : [];
+
+  return {
+    applied: true,
+    unchanged: false,
+    animatedNodeIds,
+  };
+}
+
+async function syncTreeNextLiveNodes(options = {}) {
+  const {
+    force = false,
+    silent = true,
+    reason = 'timer',
+  } = options;
+
+  if (!state.liveSync || typeof state.liveSync !== 'object') {
+    return { success: false, skipped: true, error: 'Live sync state unavailable.' };
+  }
+  if (state.liveSync.inFlight) {
+    return { success: false, skipped: true, reason: 'in-flight' };
+  }
+  if (!force && shouldPauseTreeNextLiveSync()) {
+    return { success: false, skipped: true, reason: 'paused' };
+  }
+
+  state.liveSync.inFlight = true;
+  try {
+    const members = await fetchTreeNextLiveRegisteredMembers();
+    const nextNodes = buildTreeNextNodesFromRegisteredMembers(members);
+    const applyResult = applyTreeNextLiveNodes(nextNodes, {
+      force,
+      animateNewNodes: true,
+    });
+    state.liveSync.lastSyncedAtMs = Date.now();
+    state.liveSync.errorStreak = 0;
+    return {
+      success: true,
+      ...applyResult,
+    };
+  } catch (error) {
+    state.liveSync.lastSyncedAtMs = Date.now();
+    state.liveSync.errorStreak = Math.max(0, Math.floor(safeNumber(state.liveSync.errorStreak, 0))) + 1;
+    const safeErrorMessage = error instanceof Error ? error.message : String(error);
+    console.warn(`[TreeNext] Live sync failed (${reason}): ${safeErrorMessage}`);
+    if (!silent && !isTreeNextEnrollModalOpen()) {
+      setTreeNextEnrollFeedback(`Live sync warning: ${safeErrorMessage}`, false);
+    }
+    return {
+      success: false,
+      skipped: false,
+      error: safeErrorMessage,
+    };
+  } finally {
+    state.liveSync.inFlight = false;
+  }
+}
+
+function scheduleTreeNextLiveSync(delayMs = resolveTreeNextLiveSyncIntervalMs()) {
+  if (!state.liveSync || typeof state.liveSync !== 'object') {
+    return;
+  }
+  clearTreeNextLiveSyncTimer();
+  const safeDelayMs = Math.max(600, Math.floor(safeNumber(delayMs, resolveTreeNextLiveSyncIntervalMs())));
+  state.liveSync.timerId = window.setTimeout(async () => {
+    state.liveSync.timerId = 0;
+    await syncTreeNextLiveNodes({ force: false, silent: true, reason: 'timer' });
+    scheduleTreeNextLiveSync(resolveTreeNextLiveSyncIntervalMs());
+  }, safeDelayMs);
+}
+
+function startTreeNextLiveSync() {
+  if (!state.liveSync || typeof state.liveSync !== 'object') {
+    return;
+  }
+  if (state.liveSync.started) {
+    return;
+  }
+  state.liveSync.started = true;
+  scheduleTreeNextLiveSync(TREE_NEXT_LIVE_SYNC_INITIAL_DELAY_MS);
+}
+
+function onTreeNextLiveSyncVisibilityChange() {
+  if (!state.liveSync?.started) {
+    return;
+  }
+  if (document.visibilityState === 'visible') {
+    void syncTreeNextLiveNodes({ force: true, silent: true, reason: 'visibility' });
+  }
+  scheduleTreeNextLiveSync(resolveTreeNextLiveSyncIntervalMs());
+}
+
+function onTreeNextLiveSyncWindowFocus() {
+  if (!state.liveSync?.started) {
+    return;
+  }
+  void syncTreeNextLiveNodes({ force: true, silent: true, reason: 'focus' });
+  scheduleTreeNextLiveSync(resolveTreeNextLiveSyncIntervalMs());
 }
 
 function updateCanvasSize() {
@@ -4279,6 +5915,40 @@ function colorWithAlpha(rgbTriplet = [0, 0, 0], alpha = 1) {
   return `rgba(${Math.round(clamp(safeNumber(r, 0), 0, 255))}, ${Math.round(clamp(safeNumber(g, 0), 0, 255))}, ${Math.round(clamp(safeNumber(b, 0), 0, 255))}, ${clamp(safeNumber(alpha, 1), 0, 1).toFixed(3)})`;
 }
 
+function resolveNodeAvatarSeed(nodeInput = null, fallback = '') {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const explicitSeed = safeText(
+    node?.avatarSeed
+    || node?.avatar_seed
+    || node?.profileSeed
+    || node?.profile_seed,
+  );
+  if (explicitSeed) {
+    return explicitSeed;
+  }
+  const candidates = [
+    node?.userId,
+    node?.user_id,
+    node?.memberId,
+    node?.member_id,
+    node?.memberUsername,
+    node?.member_username,
+    node?.username,
+    node?.memberCode,
+    node?.member_code,
+    node?.email,
+    node?.id,
+    fallback,
+  ];
+  for (const candidate of candidates) {
+    const safeCandidate = safeText(candidate);
+    if (safeCandidate) {
+      return safeCandidate;
+    }
+  }
+  return '';
+}
+
 function resolveNodeAvatarPalette(nodeId = '', options = {}) {
   if (isAvatarPaletteRecord(options?.palette)) {
     const palette = options.palette;
@@ -4287,6 +5957,17 @@ function resolveNodeAvatarPalette(nodeId = '', options = {}) {
       mid: normalizeRgbTriplet(palette.mid[0], palette.mid[1], palette.mid[2]),
       dark: normalizeRgbTriplet(palette.dark[0], palette.dark[1], palette.dark[2]),
     };
+  }
+  const sourceNode = options?.node && typeof options.node === 'object'
+    ? options.node
+    : null;
+  const sourcePalette = resolveAvatarPaletteFromRecord(sourceNode);
+  if (sourcePalette) {
+    return sourcePalette;
+  }
+  const sourceColorTriplet = resolveAvatarColorTripletFromRecord(sourceNode);
+  if (sourceColorTriplet) {
+    return buildAvatarPaletteFromColorTriplet(sourceColorTriplet);
   }
   const variant = safeText(options.variant).toLowerCase();
   if (variant === 'root') {
@@ -4301,7 +5982,7 @@ function resolveNodeAvatarPalette(nodeId = '', options = {}) {
   if (variant && APPLE_MAPS_NODE_PALETTES[variant]) {
     return APPLE_MAPS_NODE_PALETTES[variant];
   }
-  const safeId = safeText(nodeId).toLowerCase();
+  const safeId = safeText(resolveNodeAvatarSeed(sourceNode, nodeId)).toLowerCase();
   if (safeId === 'root') {
     return APPLE_MAPS_NODE_PALETTES.root;
   }
@@ -4370,8 +6051,10 @@ function drawFavoriteNodeAvatar(cx, cy, radius, nodeId, initials, hovered = fals
   const safeRadius = Math.max(14, safeNumber(radius, 0));
   const iconRadius = hovered ? (safeRadius * 1.03) : safeRadius;
   const safeNodeId = safeText(nodeId);
+  const nodeRecord = resolveNodeById(safeNodeId);
 
   const avatarRender = drawResolvedAvatarCircle(cx, cy, iconRadius, safeNodeId, {
+    node: nodeRecord,
     variant: 'auto',
     alpha: 0.98,
     sheenAlpha: hovered ? 0.22 : 0.18,
@@ -4542,6 +6225,9 @@ function findProjectedNodeAt(pointX, pointY) {
   let best = null;
   for (let index = projectedNodes.length - 1; index >= 0; index -= 1) {
     const node = projectedNodes[index];
+    if (isNodeHiddenForPendingPlacement(node.id)) {
+      continue;
+    }
     const deltaX = pointX - node.x;
     const deltaY = pointY - node.y;
     const baseRadius = node.lodTier === 'dot' ? Math.max(4, node.r + 3) : Math.max(node.r, 5);
@@ -4797,9 +6483,11 @@ function resolveSearchResultScore(node, queryLower) {
 
 function resolveNodeAvatarCssGradient(nodeId) {
   const safeNodeId = safeText(nodeId);
+  const nodeRecord = resolveNodeById(safeNodeId);
   const palette = isSessionAvatarNodeId(safeNodeId)
     ? resolveSessionAvatarPalette()
     : resolveNodeAvatarPalette(safeNodeId, {
+      node: nodeRecord,
       variant: safeNodeId.toLowerCase() === 'root' ? 'root' : 'auto',
     });
   return resolveCssGradientFromPalette(palette);
@@ -4809,6 +6497,14 @@ function resolveAvatarCssBackgroundForNode(nodeId) {
   const safeNodeId = safeText(nodeId);
   if (isSessionAvatarNodeId(safeNodeId)) {
     return resolveSessionAvatarCssBackground();
+  }
+  const nodeRecord = resolveNodeById(safeNodeId);
+  const photoUrl = resolveNodeAvatarPhotoUrl(nodeRecord);
+  if (photoUrl) {
+    return {
+      image: toCssUrlValue(photoUrl),
+      isPhoto: true,
+    };
   }
   return {
     image: resolveNodeAvatarCssGradient(safeNodeId),
@@ -6011,19 +7707,30 @@ function drawSideNav(layout) {
       const centerY = favoritesViewport.y + itemRadius + 6;
       const buttonId = `side-nav-favorite-${favorite.key}`;
       const hovered = state.hoveredButtonId === buttonId;
+      const favoriteTextMaxWidth = Math.max(40, itemSlotWidth - 10);
+      const favoriteLabel = truncateTextToWidth(favorite.label, favoriteTextMaxWidth, {
+        size: 12,
+        weight: 600,
+      });
+      const favoriteSubtitle = truncateTextToWidth(favorite.subtitle, favoriteTextMaxWidth, {
+        size: 10,
+        weight: 500,
+      });
 
       drawFavoriteNodeAvatar(centerX, centerY, itemRadius, favorite.nodeId, favorite.initials, hovered);
-      drawText(truncateText(favorite.label, 16), centerX, centerY + itemRadius + 17, {
+      drawText(favoriteLabel, centerX, centerY + itemRadius + 17, {
         size: 12,
         weight: 600,
         color: '#1B1F27',
         align: 'center',
+        maxWidth: favoriteTextMaxWidth,
       });
-      drawText(truncateText(favorite.subtitle, 14), centerX, centerY + itemRadius + 33, {
+      drawText(favoriteSubtitle, centerX, centerY + itemRadius + 33, {
         size: 10,
         weight: 500,
         color: '#7A8292',
         align: 'center',
+        maxWidth: favoriteTextMaxWidth,
       });
 
       registerButton({
@@ -6111,6 +7818,7 @@ function drawSideNav(layout) {
       }
       if (!usedPhotoAvatar) {
         drawResolvedAvatarCircle(detailCenterX, avatarCenterY, avatarRadius, selectedAvatarNodeId, {
+          node: selectedNode,
           variant: selectedAvatarVariant,
           alpha: 0.98,
           sheenAlpha: 0.16,
@@ -6199,7 +7907,8 @@ function drawSideNav(layout) {
       const maxMetricRowHeight = Math.round(50 + (8 * detailVerticalScale));
       const rankToMetricsGap = Math.round(10 + (26 * detailVerticalScale));
       const parentId = safeText(selectedNode.parent);
-      const sponsorId = safeText(selectedNode.sponsorId || parentId);
+      const preferredSponsorId = safeText(selectedNode.sponsorId);
+      const sponsorId = resolveNodeById(preferredSponsorId) ? preferredSponsorId : parentId;
       const detailsPanelMode = 'light';
       const relationButtons = [
         {
@@ -6805,6 +8514,12 @@ function beginStartupReveal(reveal) {
 }
 
 function resolveAnticipationSlots(frame, frameOptions) {
+  if (resolvePendingPlacementRevealNodeId()) {
+    return [];
+  }
+  if (Object.keys(state.placementFxTracks).length > 0) {
+    return [];
+  }
   const selectedProjected = frame?.selectedProjected;
   if (!selectedProjected) {
     return [];
@@ -6812,15 +8527,6 @@ function resolveAnticipationSlots(frame, frameOptions) {
 
   const selectedNodeId = safeText(selectedProjected.id);
   if (!selectedNodeId) {
-    return [];
-  }
-
-  const selectedGlobalDepth = Math.max(
-    0,
-    Math.floor(safeNumber(selectedProjected.globalDepth, safeNumber(selectedProjected.node?.depth, 0))),
-  );
-  const nextGlobalDepth = selectedGlobalDepth + 1;
-  if (nextGlobalDepth > ANTICIPATION_MAX_GLOBAL_DEPTH) {
     return [];
   }
 
@@ -6834,11 +8540,25 @@ function resolveAnticipationSlots(frame, frameOptions) {
     return [];
   }
 
-  const universeDepthCap = getUniverseDepthCap();
+  // Enrollment slots are view-capped by the active universe depth, not absolute global depth.
+  // This allows registration beyond global depth 20 by entering local view.
+  const universeDepthCap = Math.min(getUniverseDepthCap(), ANTICIPATION_MAX_GLOBAL_DEPTH);
+  const selectedGlobalDepth = Math.max(
+    0,
+    Math.floor(safeNumber(selectedProjected.globalDepth, safeNumber(selectedProjected.node?.depth, 0))),
+  );
+  const pendingReservation = resolvePendingPlacementRevealReservation();
   const sides = ['left', 'right'];
   const slots = [];
 
   for (const side of sides) {
+    if (
+      pendingReservation
+      && pendingReservation.parentId === selectedNodeId
+      && pendingReservation.placementLeg === side
+    ) {
+      continue;
+    }
     if (childLegs[side]) {
       continue;
     }
@@ -6847,6 +8567,7 @@ function resolveAnticipationSlots(frame, frameOptions) {
     if (slotLocalPath.length > universeDepthCap) {
       continue;
     }
+    const slotGlobalDepth = selectedGlobalDepth + 1;
 
     const projectedSlot = state.adapter.projectLocalPath(slotLocalPath, frameOptions);
     if (!projectedSlot) {
@@ -6870,7 +8591,7 @@ function resolveAnticipationSlots(frame, frameOptions) {
       y: safeNumber(projectedSlot.y, 0),
       r: radius,
       localDepth: Math.max(0, Math.floor(safeNumber(projectedSlot.localDepth, slotLocalPath.length))),
-      globalDepth: nextGlobalDepth,
+      globalDepth: slotGlobalDepth,
     });
   }
 
@@ -7028,7 +8749,8 @@ function drawConnectors(projectedNodes) {
   if (!state.showConnectors) {
     return;
   }
-  const visibleNodes = Array.isArray(projectedNodes) ? projectedNodes : [];
+  const visibleNodes = (Array.isArray(projectedNodes) ? projectedNodes : [])
+    .filter((node) => !isNodeHiddenForPendingPlacement(node.id));
   if (!visibleNodes.length) {
     return;
   }
@@ -7107,24 +8829,67 @@ function drawConnectors(projectedNodes) {
       ? clamp(branchRadius * 0.09, 0.08, 1.4)
       : clamp(branchRadius * 0.07, 0.06, 1.0);
 
-    line(context, parent.x, parentBottom, parent.x, branchY, stroke, lineWidth);
+    const animatedChildren = children.filter((child) => Boolean(state.placementFxTracks[safeText(child.id)]));
+    const staticChildren = animatedChildren.length
+      ? children.filter((child) => !state.placementFxTracks[safeText(child.id)])
+      : children;
 
-    if (children.length === 1) {
-      const child = children[0];
-      line(context, parent.x, branchY, child.x, branchY, stroke, lineWidth);
-      line(context, child.x, branchY, child.x, resolveChildTop(child) + yOffset, stroke, lineWidth);
+    if (!animatedChildren.length) {
+      line(context, parent.x, parentBottom, parent.x, branchY, stroke, lineWidth);
+
+      if (children.length === 1) {
+        const child = children[0];
+        line(context, parent.x, branchY, child.x, branchY, stroke, lineWidth);
+        line(context, child.x, branchY, child.x, resolveChildTop(child) + yOffset, stroke, lineWidth);
+        if (applyReveal) {
+          context.restore();
+        }
+        continue;
+      }
+
+      const minX = children[0].x;
+      const maxX = children[children.length - 1].x;
+      line(context, minX, branchY, maxX, branchY, stroke, lineWidth);
+
+      for (const child of children) {
+        line(context, child.x, branchY, child.x, resolveChildTop(child) + yOffset, stroke, lineWidth);
+      }
       if (applyReveal) {
         context.restore();
       }
       continue;
     }
 
-    const minX = children[0].x;
-    const maxX = children[children.length - 1].x;
-    line(context, minX, branchY, maxX, branchY, stroke, lineWidth);
+    if (staticChildren.length > 0) {
+      line(context, parent.x, parentBottom, parent.x, branchY, stroke, lineWidth);
+      if (staticChildren.length === 1) {
+        const child = staticChildren[0];
+        line(context, parent.x, branchY, child.x, branchY, stroke, lineWidth);
+        line(context, child.x, branchY, child.x, resolveChildTop(child) + yOffset, stroke, lineWidth);
+      } else {
+        const minStaticX = staticChildren[0].x;
+        const maxStaticX = staticChildren[staticChildren.length - 1].x;
+        line(context, minStaticX, branchY, maxStaticX, branchY, stroke, lineWidth);
+        for (const child of staticChildren) {
+          line(context, child.x, branchY, child.x, resolveChildTop(child) + yOffset, stroke, lineWidth);
+        }
+      }
+    }
 
-    for (const child of children) {
-      line(context, child.x, branchY, child.x, resolveChildTop(child) + yOffset, stroke, lineWidth);
+    for (const child of animatedChildren) {
+      const childTop = resolveChildTop(child) + yOffset;
+      const track = state.placementFxTracks[safeText(child.id)];
+      const progress = resolvePlacementConnectorProgress(track, nowMs);
+      drawConnectorPathProgress(
+        parent.x,
+        parentBottom,
+        branchY,
+        child.x,
+        childTop,
+        stroke,
+        lineWidth,
+        progress,
+      );
     }
     if (applyReveal) {
       context.restore();
@@ -7133,6 +8898,9 @@ function drawConnectors(projectedNodes) {
 }
 
 function drawNode(node) {
+  if (isNodeHiddenForPendingPlacement(node.id)) {
+    return;
+  }
   const localDepth = safeNumber(node.localDepth, safeNumber(node.node?.depth, 0));
   const skipReveal = Boolean(state.intro?.skipDotReveal) && node.lodTier === 'dot';
   let applyReveal = false;
@@ -7150,19 +8918,22 @@ function drawNode(node) {
   const isFocusPathNode = Boolean(node.isFocusPathNode);
   const hasAncestorRing = isFocusPathNode && !isSelected;
   const selectionEmphasis = clamp(resolveSelectionEmphasis(node.id), 0, SELECTION_MAX_EMPHASIS);
+  const placementScale = resolvePlacementScale(node.id);
+  const renderedRadius = Math.max(0.2, node.r * placementScale);
   const activeRingStrength = clamp(selectionEmphasis, 0, 1);
   const activeRingPulse = Math.max(0, selectionEmphasis - 1);
   const hasActiveRing = activeRingStrength > 0.001;
   const activeRingAlpha = (0.34 + (activeRingStrength * 0.64)).toFixed(3);
 
   const nodeId = safeText(node.id);
+  const sourceNode = node?.node && typeof node.node === 'object' ? node.node : null;
   const nodeVariant = isSessionAvatarNodeId(nodeId)
     ? 'auto'
     : (nodeId.toLowerCase() === 'root' ? 'root' : 'auto');
   let usedPhotoAvatar = false;
 
   if (node.lodTier === 'dot') {
-    const r = Math.max(node.r, 0.3);
+    const r = Math.max(renderedRadius, 0.3);
     if (hasActiveRing || hasAncestorRing) {
       const pulseScale = 1 + (activeRingPulse * 0.08);
       const scaledRadius = r * pulseScale;
@@ -7177,6 +8948,7 @@ function drawNode(node) {
       context.fill();
 
       drawResolvedAvatarCircle(node.x, node.y, innerR, nodeId, {
+        node: sourceNode,
         variant: nodeVariant,
         alpha: 0.98,
         sheenAlpha: 0.15,
@@ -7185,6 +8957,7 @@ function drawNode(node) {
     }
 
     drawResolvedAvatarCircle(node.x, node.y, r, nodeId, {
+      node: sourceNode,
       variant: nodeVariant,
       alpha: 0.96,
       sheenAlpha: 0.12,
@@ -7192,9 +8965,9 @@ function drawNode(node) {
     return;
   }
 
-  const ringWidth = clamp(node.r * 0.2, 2.4, 7.2);
+  const ringWidth = clamp(renderedRadius * 0.2, 2.4, 7.2);
   const pulseScale = 1 + (activeRingPulse * 0.06);
-  const outerR = node.r * pulseScale;
+  const outerR = renderedRadius * pulseScale;
   const innerR = hasActiveRing
     ? Math.max(1.2, outerR - (ringWidth * activeRingStrength))
     : (hasAncestorRing
@@ -7216,6 +8989,7 @@ function drawNode(node) {
   }
 
   const baseAvatarRender = drawResolvedAvatarCircle(node.x, node.y, innerR, nodeId, {
+    node: sourceNode,
     variant: nodeVariant,
     alpha: 0.98,
     sheenAlpha: 0.16,
@@ -7231,10 +9005,10 @@ function drawNode(node) {
 
   const hideDeepLevelLabel = (
     localDepth >= 4
-    && node.r < 16
+    && renderedRadius < 16
     && !isSelected
   );
-  if (hideDeepLevelLabel || node.r < 9 || usedPhotoAvatar) {
+  if (hideDeepLevelLabel || renderedRadius < 9 || usedPhotoAvatar) {
     return;
   }
 
@@ -7369,7 +9143,9 @@ function animateCamera(deltaSeconds) {
       ? UNIVERSE_ENTER_CAMERA_DAMPING
       : (state.camera.targetReason === 'universe-back'
         ? UNIVERSE_BACK_CAMERA_DAMPING
-        : CAMERA_DAMPING));
+        : (state.camera.targetReason === 'enroll-placement'
+          ? ENROLL_PLACEMENT_CAMERA_DAMPING
+          : CAMERA_DAMPING)));
   const damping = 1 - Math.exp(-dampingRate * deltaSeconds);
   state.camera.view.x += (target.x - state.camera.view.x) * damping;
   state.camera.view.y += (target.y - state.camera.view.y) * damping;
@@ -7415,6 +9191,80 @@ function computeHomeView() {
     x: desiredX - viewport.centerX - (rootMetrics.worldX * projectionScale),
     y: desiredY - viewport.baseY - (rootMetrics.worldY * projectionScale),
   };
+}
+
+function focusNodeForEnrollmentPlacement(nodeId, options = {}) {
+  const targetNodeId = safeText(nodeId);
+  if (!targetNodeId) {
+    return false;
+  }
+  const viewport = state.viewport || state.layout?.viewport;
+  if (!viewport) {
+    return false;
+  }
+
+  const metrics = state.adapter.resolveNodeMetrics(targetNodeId, getUniverseOptions());
+  if (!metrics) {
+    return false;
+  }
+
+  const desiredRadius = Math.max(12, safeNumber(options.desiredRadius, ENROLL_PLACEMENT_FOCUS_RADIUS));
+  const centerYRatio = clamp(
+    safeNumber(options.centerYRatio, ENROLL_PLACEMENT_FOCUS_Y_RATIO),
+    0.2,
+    0.8,
+  );
+  const baseRadius = NODE_RADIUS_BASE * (metrics.worldRadius / WORLD_RADIUS_BASE);
+  const desiredProjectionScale = desiredRadius / Math.max(0.001, baseRadius);
+  const resolvedScale = resolveRawScaleFromProjection(desiredProjectionScale);
+  const currentScaleReference = clamp(
+    safeNumber(state.camera.target?.scale, state.camera.view.scale),
+    MIN_SCALE,
+    MAX_SCALE,
+  );
+  const minimumZoomInScale = clamp(currentScaleReference * 1.07, MIN_SCALE, MAX_SCALE);
+  const scale = clamp(Math.max(resolvedScale, minimumZoomInScale), MIN_SCALE, MAX_SCALE);
+  const projectionScale = resolveProjectionScale(scale);
+  const desiredX = viewport.x + (viewport.width * 0.5);
+  const desiredY = viewport.y + (viewport.height * centerYRatio);
+
+  const targetView = {
+    scale,
+    x: desiredX - viewport.centerX - (metrics.worldX * projectionScale),
+    y: desiredY - viewport.baseY - (metrics.worldY * projectionScale),
+  };
+  const animated = options.animated !== false;
+
+  setCameraTarget(targetView, animated);
+  if (animated && state.camera.target) {
+    state.camera.targetReason = 'enroll-placement';
+  }
+  return true;
+}
+
+function playEnrollmentPlacementReveal(input) {
+  const payload = (input && typeof input === 'object') ? input : null;
+  const safeNodeId = safeText(payload?.nodeId ?? input);
+  if (!safeNodeId) {
+    return false;
+  }
+  const safeParentId = safeText(payload?.parentId);
+  const safePlacementLeg = normalizeBinarySide(payload?.placementLeg) === 'right' ? 'right' : 'left';
+  queuePlacementRevealAfterCamera(safeNodeId, {
+    parentId: safeParentId,
+    placementLeg: safePlacementLeg,
+  });
+  const focused = focusNodeForEnrollmentPlacement(safeNodeId, { animated: true });
+  if (
+    focused
+    && state.camera.target
+    && safeText(state.camera.targetReason) === 'enroll-placement'
+  ) {
+    return true;
+  }
+  state.pendingPlacementReveal = null;
+  startPlacementGrowAnimation(safeNodeId);
+  return true;
 }
 
 function focusNode(nodeId, desiredRadius = 24, animated = true) {
@@ -7527,7 +9377,7 @@ function goToGlobalHome(animated = true) {
     return true;
   }
 
-  setSelectedNode('root', { animate: false });
+  setSelectedNode('', { animate: false });
   setCameraTarget(computeHomeView(), animated);
   return false;
 }
@@ -8151,6 +10001,8 @@ function bindEvents() {
   window.addEventListener('resize', updateCanvasSize);
   window.addEventListener('keydown', onKeyDown, { passive: false });
   window.addEventListener('storage', onSessionStorageChange);
+  document.addEventListener('visibilitychange', onTreeNextLiveSyncVisibilityChange);
+  window.addEventListener('focus', onTreeNextLiveSyncWindowFocus);
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerup', onPointerUp);
@@ -8163,12 +10015,14 @@ let lastTimestamp = performance.now();
 function tickFrame(timestamp) {
   state.timeMs = timestamp;
   updateSelectionAnimations(timestamp);
+  updatePlacementAnimations(timestamp);
 
   const deltaSeconds = Math.max(0.0001, Math.min(0.08, (timestamp - lastTimestamp) / 1000));
   lastTimestamp = timestamp;
 
   adaptStartupRevealForFrameBudget(deltaSeconds * 1000);
   animateCamera(deltaSeconds);
+  consumePendingPlacementReveal({ nowMs: timestamp });
   renderFrame();
 
   const instantFps = 1 / deltaSeconds;
@@ -8197,9 +10051,10 @@ async function bootstrap() {
   state.engineMode = await detectBinaryTreeNextEngineMode();
   consumeMockFirstTimeLaunchOverride();
 
-  state.nodes = buildMockNodes();
+  state.nodes = await loadTreeNextLiveNodes();
   state.adapter.setNodes(state.nodes);
   rebuildNodeChildLegIndex();
+  updateTreeNextLiveSnapshotHash(state.nodes);
   state.universe.rootId = 'root';
   state.universe.depthCap = UNIVERSE_DEPTH_CAP;
   state.universe.cameraByRoot = Object.create(null);
@@ -8214,7 +10069,7 @@ async function bootstrap() {
   state.universe.enterViewFadeDurationMs = 0;
   refreshUniverseBreadcrumb('root');
 
-  setSelectedNode('root', { animate: false });
+  setSelectedNode('', { animate: false });
   setPinnedNodeIds(readPinnedNodeIdsFromStorage());
   updateCanvasSize();
   configureStartupRevealProfile();
@@ -8222,6 +10077,7 @@ async function bootstrap() {
   state.viewport = state.layout.viewport;
   bindEvents();
   initTreeNextEnrollModal();
+  startTreeNextLiveSync();
 
   setCameraTarget(computeHomeView(), false);
   rememberUniverseCamera('root');
