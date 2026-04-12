@@ -19705,7 +19705,7 @@ Updated `binary-tree-next-app.mjs`:
 #### 2) Connectors Animated By Depth
 
 - Updated `drawConnectors()` to evaluate reveal per branch depth (parent/child depth context).
-- Each connector branch now enters with its depth’s own translate/blur/alpha timing instead of one global tree transform.
+- Each connector branch now enters with its depthï¿½s own translate/blur/alpha timing instead of one global tree transform.
 
 #### 3) Nodes Animated By Depth
 
@@ -20609,7 +20609,7 @@ Updated `binary-tree-next-app.mjs`:
 ### Result
 
 - On page load/reload, users see the tree animation first.
-- Left panel and dock now enter after a noticeable delay (~1–2s), matching requested reveal sequencing.
+- Left panel and dock now enter after a noticeable delay (~1ï¿½2s), matching requested reveal sequencing.
 
 ### Files Affected
 
@@ -21762,6 +21762,1314 @@ Updated `binary-tree-next-app.mjs`:
 
 - `binary-tree-next-app.mjs`
 - `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Responsive Details Header-to-Avatar Spacing (Small-Screen Friendly)
+
+### What Was Changed
+
+- Replaced fixed avatar offset (`avatarCenterY = y + 170`) with responsive spacing logic tied to Details card height.
+- Added a responsive head-space model:
+  - compact header-to-avatar-top gap: `48px`
+  - preferred header-to-avatar-top gap: `80px`
+  - smooth scale based on `detailsCardHeight` (`clamp((detailsCardHeight - 500) / 180, 0, 1)`)
+- `Details` heading Y is now stored as `detailsHeadingY` and used as the anchor for avatar positioning.
+
+### Why
+
+- Preserves the intentional empty space under `Details` on larger screens.
+- Automatically tightens that space on smaller laptop screens (e.g., MacBook) to prevent vertical crowding and layout breakage.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Aggressive Small-Screen Tightening for Details Panel (Overlap Prevention)
+
+### What Was Changed
+
+- Implemented screen-size-aware vertical compression for the entire Details card layout using `detailVerticalScale` derived from `detailsCardHeight`.
+- Made the following elements responsive to available card height:
+  - Details heading size and Y anchor
+  - avatar radius and header-to-avatar gap
+  - avatar initials size
+  - status dot radius
+  - name/username/rank vertical spacing
+  - rank icon size
+  - relation button height/gap
+  - metrics-to-buttons gap
+  - bottom padding
+  - metric row min/max heights
+  - relation button label size
+- Updated metrics row text/divider positioning to be row-height aware (prevents text/divider collisions when rows get compact).
+- Updated relation button icon sizing/placement to scale with button height (prevents icon crowding in compact mode).
+
+### Key Design Intent
+
+- Keep a visible but controlled head space between `Details` and avatar.
+- On smaller laptop screens, compress vertical rhythm enough to avoid text block overlap and maintain section order.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Reduced Details Header-to-Avatar Gap
+
+### What Was Changed
+
+- Tightened responsive head-space between `Details` heading and avatar by lowering the gap range:
+  - `compactHeaderToAvatarTopGap`: `16 -> 12`
+  - `preferredHeaderToAvatarTopGap`: `80 -> 64`
+- Screen-aware scaling behavior is preserved; only the range was reduced.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Tightened Favorites-to-Details Vertical Gap
+
+### What Was Changed
+
+- Reduced spacing above the Details container (the gap right below Favorites) without changing other section gaps.
+- Added dedicated gap constant:
+  - `favoritesToDetailsGap = 12`
+- Updated vertical flow:
+  - from `y += favoritesCardHeight + gap`
+  - to `y += favoritesCardHeight + favoritesToDetailsGap`
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Favorites-to-Details Gap Fix (Now Actually Responsive)
+
+### What Was Changed
+
+- Addressed persistent visible spacing above Details by making the Favorites block itself screen-height aware (not just the tiny handoff gap).
+- Added `panelHeightScale` in side-nav layout:
+  - `panelHeightScale = clamp((panel.height - 620) / 240, 0, 1)`
+- Updated Favorites sizing:
+  - `favoritesCardHeight`: responsive (`136..168`)
+  - `favoritesToDetailsGap`: responsive (`4..12`)
+- Updated Favorites viewport insets and height:
+  - responsive top inset (`20..26`)
+  - responsive bottom inset (`8..18`)
+  - dynamic viewport height with floor (`Math.max(84, ...)`)
+
+### Why This Works Better
+
+- The previous gap tweak affected only a small offset, while the larger fixed Favorites area still preserved visible empty space.
+- This update reduces actual section footprint on smaller screens, so Details moves up meaningfully.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Sidebar Toggle + Profile Relocation (Corrected to Right Side)
+
+### What Was Changed
+
+- Replaced the top-right in-panel profile slot with a new sidebar hide/show toggle button using Material Symbols `side_navigation`.
+- Implemented real side panel visibility toggle behavior (`side-nav:toggle`) so panel can hide/show.
+- Moved the user profile avatar button out of the left panel and anchored it to the **right side of the screen** at the same vertical level as the left-panel top controls.
+- Kept profile button behavior (`brand-menu:toggle`) and menu anchor behavior tied to this moved profile button.
+- Updated profile-menu positioning logic to support far-right profile anchors cleanly:
+  - when profile is near search area, menu width still aligns with search span
+  - when profile is far from search area (right-side anchor), menu uses compact width and right-aligned anchor positioning
+- Added explicit icon font import for `side_navigation` in HTML.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Details Actions Simplified (Removed Enter, Bottom-Anchored Parent/Sponsor)
+
+### What Was Changed
+
+- Removed the `Enter User Perspective` button from the left-panel Details action section.
+- Kept only two action buttons:
+  - Parent
+  - Sponsor
+- Anchored the remaining action-button stack to the bottom of the Details card by forcing relation start Y to the bottom anchor point.
+  - updated relation positioning from dynamic top-flow `Math.min(...)` to fixed bottom anchor (`relationStartY = maxRelationStartY`).
+- Simplified per-button enable logic accordingly (no special perspective branch).
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Follow-up Cleanup
+
+- Removed unused `preferredRelationStartY` variable after switching to fixed bottom-anchored action-button placement.
+
+## Update (2026-04-12) - Removed Right-Side Profile Icon Drop Shadow
+
+### What Was Changed
+
+- Removed hover drop-shadow styling from the floating right-side user profile icon draw block.
+- Kept icon position, avatar rendering, and button behavior unchanged.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Removed Right-Side Profile White Border Ring
+
+### What Was Changed
+
+- Removed the outer white ring around the floating right-side profile icon.
+- Updated avatar radius usage so the profile image/gradient fills the full control circle:
+  - `profileInnerRadius` now equals `profileRingRadius`
+  - removed the pre-draw white circular fill block.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Added Subtle White Ring Back to Right Profile Icon
+
+### What Was Changed
+
+- Reintroduced a very thin white border/ring around the floating right-side profile icon.
+- Implemented as a small outer white circle with a reduced inner avatar radius:
+  - `profileRingWidth = 1.2`
+  - `profileInnerRadius = profileRingRadius - profileRingWidth`
+- This keeps the border subtle while avoiding the heavier previous ring look.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Right Profile Popup Now Opens on Left Side of Icon
+
+### What Was Changed
+
+- Updated profile-menu X anchoring logic for the right-side floating profile trigger.
+- For non-search-aligned profile anchor mode (right-edge profile icon):
+  - menu now positions to the **left of the icon** with a small gap.
+  - changed from right-edge align (`profileRight - menuWidth`) to left-side placement (`anchorRect.x - menuWidth - menuAnchorGap`).
+- Added `menuAnchorGap = 8` for spacing between icon and popup.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Right Profile Icon: Subtle Drop Shadow (No White Border)
+
+### What Was Changed
+
+- Replaced the recently reintroduced white ring with a subtle drop shadow as requested.
+- Updated floating right-side profile icon rendering:
+  - removed white border/ring draw path
+  - restored full-radius avatar fill (`profileInnerRadius = profileRingRadius`)
+  - applied soft shadow directly to avatar render (`shadowColor rgba(25, 36, 52, 0.16)`, `shadowBlur 8`, `shadowOffsetY 2`)
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Right Profile Popup Aligned Directly Left of Icon
+
+### What Was Changed
+
+- Refined right-side profile popup anchoring to avoid lower-left placement.
+- For right-edge profile mode (non-search-aligned):
+  - popup now opens at the same vertical level as the profile icon (`menuY = anchorRect.y`)
+  - horizontal gap tightened from `8` to `6` (`menuAnchorGap = 6`)
+- Search-aligned mode behavior remains unchanged (below anchor).
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Profile Popup Shadow Softened
+
+### What Was Changed
+
+- Reduced drop-shadow intensity for the right-side profile popup menu.
+- Updated popup box shadow from:
+  - `0 14px 28px rgba(46, 57, 77, 0.18), 0 4px 10px rgba(46, 57, 77, 0.12)`
+- To:
+  - `0 8px 18px rgba(46, 57, 77, 0.12), 0 2px 6px rgba(46, 57, 77, 0.08)`
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Removed Left Panel Search Bar Drop Shadow
+
+### What Was Changed
+
+- Removed drop shadow from the left panel search pill.
+- Search bar now renders with flat white fill and no shadow blur/offset.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Sidebar Toggle Icon: Removed Hover + Shadow Effects
+
+### What Was Changed
+
+- Removed visual hover styling from the sidebar toggle icon button next to the search bar.
+- Removed all drop-shadow rendering for that button.
+- Button now renders as a static flat control (fill + border + icon only), with no hover visual effect.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Sidebar Toggle Icon: No Background + Subtle Hover Darken
+
+### What Was Changed
+
+- Removed background/border rendering from the sidebar toggle icon control next to search.
+  - removed white circular fill
+  - removed border stroke
+- Added a subtle hover state by darkening icon color only:
+  - default: `#353B47`
+  - hover: `#202733`
+- Kept button hit area and action behavior unchanged.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Sidebar Toggle: Container + Icon Darken on Hover
+
+### What Was Changed
+
+- Reintroduced a subtle toggle container and made both container and icon darken on hover.
+- Sidebar toggle button visual states now use:
+  - container fill:
+    - default: `rgba(53, 59, 71, 0.06)`
+    - hover: `rgba(53, 59, 71, 0.12)`
+  - container stroke:
+    - default: `rgba(53, 59, 71, 0.12)`
+    - hover: `rgba(53, 59, 71, 0.24)`
+  - icon color:
+    - default: `#353B47`
+    - hover: `#202733`
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Sidebar Toggle Container Matched to Left Panel Background
+
+### What Was Changed
+
+- Updated sidebar toggle container colors for seamless blending with left UI shell.
+- Default state now matches panel background:
+  - fill: `SHELL_PANEL_COLOR` (`#F2F2F6`)
+  - stroke: `SHELL_PANEL_COLOR`
+- Hover state now darkens subtly:
+  - fill: `#E8EAF0`
+  - stroke: `#DFE2EA`
+  - icon color darkens from `#353B47` to `#202733`
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Sidebar Toggle Icon Color Adjusted
+
+### What Was Changed
+
+- Updated sidebar toggle icon color values to exact requested shades:
+  - default: `#888888`
+  - hover: `#444444`
+- Container behavior remains unchanged from the previous seamless/hover-dark state.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Favorites Scroll Performance Optimization (Caching)
+
+### What Was Changed
+
+- Optimized Favorites rendering path to remove expensive per-frame recomputation during horizontal drag/scroll.
+- Added Favorites data cache fields under `state.ui.sideNavFavorites`:
+  - `placesCacheKey`
+  - `placesCacheLimit`
+  - `placesCache`
+- Updated `resolvePinnedPlaces(limit)` to use cached results when pinned IDs + limit are unchanged.
+  - avoids repeated `resolveNodeLegVolumes(...)` calls every frame.
+  - avoids repeated node/label/volume mapping work during drag updates.
+- Added cache invalidation in `setPinnedNodeIds(nextIds)` so cache refreshes correctly when pins change.
+
+### Why It Helps
+
+- Previously, every frame during drag recalculated Favorites entries and for each pinned node scanned global nodes for leg totals.
+- With caching, that heavy work runs only when pinned data changes, reducing frame-time spikes while scrolling the Favorites carousel.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Removed White Selected Border from Favorites Avatars
+
+### What Was Changed
+
+- Removed the selected-state white stroke ring from Favorites avatars.
+- In `drawFavoriteNodeAvatar(...)`, deleted the active-node border draw block (`strokeStyle: '#FFFFFF'`).
+- Result: pinned/selected entries in Favorites no longer show a white border ring.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Removed Favorites Avatar Drop Shadow
+
+### What Was Changed
+
+- Removed drop shadow rendering from Favorites avatars in `drawFavoriteNodeAvatar(...)`.
+- Applies to both idle and hover states (no shadow blur/offset/color now).
+- Kept avatar scaling and sheen behavior unchanged.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Left Panel Subtle Glassmorphism Chrome
+
+### What Was Changed
+
+- Updated `drawPanelChrome(panel, tone)` to apply a glass-style treatment only when `tone === 'left'`.
+- Added a very faint backdrop blur layer (`drawBackdropBlurRegion(panel, radius, 5)`).
+- Replaced flat fill with a high-opacity translucent white gradient to keep the panel light.
+- Added subtle glass edging (soft outer rim + inner sheen) without heavy glow or shadow.
+- Preserved existing flat chrome behavior for non-left panels (`tone !== 'left'`).
+
+### Design Decisions
+
+- Kept blur radius intentionally low and fill opacity high to satisfy "barely visible background" while maintaining readability.
+- Scoped effect to the left panel to avoid visual regression in the right tools panel.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Known Limitations
+
+- Because the backdrop is intentionally subtle, the blur reads less on uniform/light backgrounds and becomes more noticeable on denser node regions.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-12) - Reverted Left Panel Glassmorphism (Restored Earlier Version)
+
+### What Was Changed
+
+- Reverted the recent left-panel glassmorphism styling in drawPanelChrome.
+- Restored the earlier flat panel chrome style using the original fill and border colors.
+- Left and right panel behavior now matches the prior version before the glass tweak.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Right Profile Top Alignment + Taller Left Panel
+
+### What Was Changed
+
+- Aligned the floating right user profile icon to the top height of the left panel container instead of the search row height.
+- Increased floating right profile icon size from 36 to 44.
+- Increased left panel vertical size by reducing side panel top and bottom insets in layout.
+- Kept search and sidebar toggle control sizes unchanged at 36 to avoid changing search-row rhythm.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Dock Moved to Right Side Vertical Circular Rail
+
+### What Was Changed
+
+- Replaced the bottom horizontal dock layout with a right-side vertical rail aligned to the floating profile icon side.
+- Updated dock button order to:
+  1. Asterisk
+  2. Deep
+  3. Enter
+  4. Home
+  5. Back
+- Switched dock button shapes to circular controls to match the floating profile icon style.
+- Kept existing button actions intact:
+  - Asterisk -> dock:placeholder
+  - Deep -> camera:deep
+  - Enter -> universe:enter
+  - Home -> camera:home
+  - Back -> universe:back
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Dock Buttons Switched to True Circular Geometry
+
+### What Was Changed
+
+- Replaced right-side dock button shape drawing from rounded-rectangle paths to true circle arcs.
+- Updated fill/stroke rendering in drawBottomToolBar to use context.arc for mathematically exact circles.
+- Kept button size, order, spacing, and actions unchanged.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Right Dock Icon Size Reduced Slightly
+
+### What Was Changed
+
+- Reduced right-side dock icon size from 23 to 20 for a subtler fit inside circular buttons.
+- Added a local dockIconSize constant in drawBottomToolBar for easier future tuning.
+- Kept button geometry, spacing, ordering, and actions unchanged.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Right Dock Hover Matched to Left Sidebar Toggle
+
+### What Was Changed
+
+- Updated right-side dock button hover visuals to match the left sidebar toggle behavior.
+- Dock circle colors now use the same palette as sidebar toggle:
+  - fill: default SHELL_PANEL_COLOR, hover #E8EAF0
+  - stroke: default SHELL_PANEL_COLOR, hover #DFE2EA
+  - icon: default #888888, hover #444444
+- Removed dock-specific hover drop shadow so interaction style is consistent.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Right Dock Icon Color Fixed to #444444
+
+### What Was Changed
+
+- Updated right-side dock icon color to fixed `#444444` for both default and hover states.
+- Hover behavior now changes only the circular container colors (fill/stroke), not the icon color.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Right Dock Hover Container Color Set to #DEDEDE
+
+### What Was Changed
+
+- Updated right-side dock circular button hover fill color from `#E8EAF0` to `#DEDEDE`.
+- Kept non-hover fill/stroke and icon color behavior unchanged.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Home Button Now Resets to Global Root/User Perspective
+
+### What Was Changed
+
+- Added `resolvePreferredGlobalHomeNodeId()` to resolve the best global home target node.
+  - Tries session-linked node identifiers first (root/node/tree/member/user ids).
+  - Falls back to `root` when no session-linked node exists in the global tree.
+- Added `goToGlobalHome(animated)` navigation routine.
+  - Forces universe perspective back to global (`root`).
+  - Clears nested universe history.
+  - Resets search/depth filter state to global defaults.
+  - Focuses/selects preferred global home node (or `root` fallback).
+- Updated Home trigger behavior:
+  - Dock/Home action (`camera:home`) now calls `goToGlobalHome(true)`.
+  - Keyboard Home shortcut (`h` / `0`) now also calls `goToGlobalHome(true)`.
+
+### Behavior Outcome
+
+- Pressing Home while inside any node perspective now returns to global view and selects/focuses the root or user-linked node.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Enter Button Zoom-In Transition Added
+
+### What Was Changed
+
+- Added pre-enter zoom constants:
+  - `UNIVERSE_ENTER_PRE_ZOOM_MS = 170`
+  - `UNIVERSE_ENTER_PRE_ZOOM_FACTOR = 1.22`
+- Added lightweight enter transition state under `state.universe`:
+  - `enterPrepToken`
+  - `enterPrepTimeoutId`
+- Added `clearPendingUniverseEnterPrep()` to cancel pending enter-prep timers safely.
+- Added `enterNodeUniverseWithZoomHint(nodeId)`:
+  - Step 1: quick camera zoom toward selected node in current perspective.
+  - Step 2: after short delay, execute existing `enterNodeUniverse(...)` flow.
+- Updated Enter action routes to use the new transition:
+  - Dock Enter action (`universe:enter`)
+  - Keyboard shortcut (`u`)
+- Added cancellation safeguards so delayed enter does not fire during unrelated interactions:
+  - cancels when non-enter actions run
+  - cancels on pointer down and wheel interaction
+  - cancels automatically when `enterNodeUniverse(...)` starts
+
+### Behavior Outcome
+
+- Pressing Enter now gives a clear zoom-in "entering node" cue before perspective switches.
+- Existing final Enter behavior remains intact (still enters selected node perspective).
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Enter Transition Reworked for Natural "Dive In" Feel
+
+### What Was Changed
+
+- Reworked Enter animation flow to avoid the previous recenter/snap feel.
+- New Enter sequence:
+  1. Global/current view performs a stronger zoom-in focus on selected node.
+  2. Perspective switch happens after a longer delay (`280ms`) for readability.
+  3. Local view starts slightly zoomed out, then animates into default local root focus.
+- Updated Enter timing and motion constants:
+  - `UNIVERSE_ENTER_GLOBAL_ZOOM_MS = 280`
+  - `UNIVERSE_ENTER_GLOBAL_FOCUS_RADIUS = 62`
+  - `UNIVERSE_ENTER_LOCAL_START_SCALE_FACTOR = 0.7`
+  - `UNIVERSE_ENTER_CAMERA_DAMPING = 6.4` (slower/easier camera settle for enter transitions)
+- Extended `enterNodeUniverse(...)` with options:
+  - `restoreCachedCamera` (default true)
+  - `animateLocalFromZoomedOut` (default false)
+- Enter transition (`enterNodeUniverseWithZoomHint`) now uses:
+  - stronger pre-focus zoom
+  - non-cached local entry path (`restoreCachedCamera: false`) to ensure cinematic local easing instead of jump-back behavior.
+
+### Behavior Outcome
+
+- Enter now reads as a continuous dive: zoom toward node, switch perspective, then settle naturally into local default view.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Enter Transition Timing/Scale Refinement (Slower and More Continuous)
+
+### What Was Changed
+
+- Refined Enter transition to feel more like a continuous zoom transition.
+- Updated motion constants:
+  - `UNIVERSE_ENTER_GLOBAL_ZOOM_MIN_MS = 420`
+  - `UNIVERSE_ENTER_GLOBAL_ZOOM_MAX_MS = 980`
+  - `UNIVERSE_ENTER_GLOBAL_FOCUS_RADIUS = 72`
+  - `UNIVERSE_ENTER_LOCAL_START_SCALE_FACTOR = 0.45`
+  - `UNIVERSE_ENTER_CAMERA_DAMPING = 4.8`
+- Replaced fixed pre-enter timeout handoff with frame-based handoff logic:
+  - Enter now waits for both conditions before local switch:
+    - minimum transition time reached
+    - pre-zoom camera is near target (or max time reached)
+- Added `enterPrepRafId` tracking and cancellation support in `clearPendingUniverseEnterPrep()`.
+
+### Why This Improves Feel
+
+- Avoids switching perspective too early while global zoom is still mid-flight.
+- Makes local-view reveal start visibly smaller and ease into default local view naturally.
+- Produces a slower, more readable entering transition instead of a snap-like recenter.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Local Enter Starts Zoomed-Out Then Eases to Default View
+
+### What Was Changed
+
+- Refined local-entry phase so local perspective visibly starts slightly zoomed out, then zooms into default local view.
+- Increased local-start visibility while keeping it subtle:
+  - `UNIVERSE_ENTER_LOCAL_START_SCALE_FACTOR`: `0.45 -> 0.6`
+- Added transition-only lower scale floor for enter flow:
+  - `UNIVERSE_ENTER_TRANSITION_MIN_SCALE = 0.01`
+- Updated projection-scale handling during enter transition so below-normal min scale can render only for this transition phase.
+- Updated local-start camera initialization to set start view directly before animating to final local default view.
+
+### Why This Helps
+
+- Ensures the local view does not appear to load at final scale instantly.
+- Makes the local perspective reveal feel like part of the same entering transition.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Enter Cut Timing + Crossfade Transition (Global Fade Out -> Local Fade In)
+
+### What Was Changed
+
+- Removed the end-of-global-zoom pause caused by near-target gating before local switch.
+- Enter handoff now triggers immediately at fixed transition time (`UNIVERSE_ENTER_GLOBAL_ZOOM_MS = 620`).
+- Added tree-view crossfade system for Enter transition:
+  - global phase fades out while zooming in (`enterViewFadeMode = 'out'`)
+  - local phase fades in while local camera settles to default (`enterViewFadeMode = 'in'`)
+- Added Enter fade state fields under `state.universe`:
+  - `enterViewFadeMode`
+  - `enterViewFadeStartedAtMs`
+  - `enterViewFadeDurationMs`
+- Added Enter fade helpers:
+  - `setUniverseEnterViewFade(...)`
+  - `resolveUniverseEnterViewOpacity(...)`
+- Applied opacity in `drawTreeViewport(...)` so tree content performs the requested fade transition.
+- Added `preserveFade` option to `clearPendingUniverseEnterPrep(...)` so Enter can keep fade-in active when local view starts.
+- Added local fade-in duration constant: `UNIVERSE_ENTER_LOCAL_FADE_IN_MS = 300`.
+
+### Behavior Outcome
+
+- While global zoom runs, global view fades out.
+- At cut point, local view starts immediately (no long pause), starts zoomed out, and fades in while zooming to default local view.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Back Button Added as Reverse Transition of Enter
+
+### What Was Changed
+
+- Implemented reverse transition flow for Back (`exitNodeUniverseWithZoomHint(...)`) to mirror Enter behavior.
+- Back sequence now runs as:
+  1. local/current view zooms out while fading out
+  2. immediate cut to parent/global perspective (no pause)
+  3. parent/global view starts slightly zoomed in and eases out to default while fading in
+- Added Back transition constants:
+  - `UNIVERSE_BACK_LOCAL_ZOOM_MS = 620`
+  - `UNIVERSE_BACK_LOCAL_ZOOM_OUT_FACTOR = 0.74`
+  - `UNIVERSE_BACK_PARENT_START_SCALE_FACTOR = 1.42`
+  - `UNIVERSE_BACK_CAMERA_DAMPING = 4.8`
+  - `UNIVERSE_BACK_PARENT_FADE_IN_MS = 300`
+- Extended `exitNodeUniverse(...)` with options:
+  - `restoreCachedCamera` (default true)
+  - `animateParentFromZoomedIn` (default false)
+- Added Back prep/cancel state and helper:
+  - `backPrepToken`
+  - `backPrepRafId`
+  - `clearPendingUniverseBackPrep(...)`
+- Unified action/keyboard/pointer/wheel cancellation handling between Enter and Back transitions.
+- Updated camera damping logic to include `targetReason === 'universe-back'`.
+- Reused shared transition fade system (`setUniverseEnterViewFade` / `resolveUniverseEnterViewOpacity`) for Back crossfade.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Back Fade-Out Delayed During Local Zoom-Out
+
+### What Was Changed
+
+- Fine-tuned Back transition so local fade-out does not start immediately at button press.
+- Added delayed fade-out timing constants:
+  - `UNIVERSE_BACK_LOCAL_FADE_OUT_DELAY_MS = 150`
+  - `UNIVERSE_BACK_LOCAL_FADE_OUT_MS = UNIVERSE_BACK_LOCAL_ZOOM_MS - delay`
+- Updated `exitNodeUniverseWithZoomHint(...)` to:
+  - start local zoom-out immediately
+  - start fade-out only after the delay threshold while zoom-out is already in progress
+
+### Behavior Outcome
+
+- Back now begins with a short visible zoom-out before opacity starts dropping, reducing the perceived lag/snap in the local fade-out phase.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+## Update (2026-04-12) - Binary Tree Next Anticipation Nodes for Registration Slots
+
+### What Was Changed
+
+- Added anticipation-node support to `binary-tree-next-app.mjs` for selected nodes:
+  - if selected node has zero children -> render both `LEFT` and `RIGHT` anticipation nodes
+  - if selected node has one child -> render anticipation only on the missing leg
+  - if selected node has both children -> render no anticipation nodes
+- Added depth-cap enforcement for anticipation rendering:
+  - anticipation does not render when the resulting child would exceed supported global depth `20`
+- Added deterministic slot projection flow:
+  - new adapter helper `projectLocalPath(...)` in `binary-tree-next-engine-adapter.mjs`
+  - anticipation nodes use the same path-to-world/screen projection math as regular nodes
+  - keeps anticipation nodes fixed in pre-defined binary positions with no tree shifting
+- Added anticipation visuals and interaction:
+  - dashed connector from selected node to each anticipation slot
+  - circular `+` anticipation nodes with side label (`LEFT` / `RIGHT`)
+  - click action dispatches `binary-tree-enroll-member-request` with `parentId`, `parentName`, `parentMemberCode`, and `placementLeg`
+- Added child-leg occupancy index:
+  - `rebuildNodeChildLegIndex()` + `resolveNodeChildLegState()`
+  - ensures existing children suppress anticipation even when those children are currently filtered/culled from viewport rendering
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next-engine-adapter.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Design Decisions
+
+- Chose overlay rendering (instead of injecting synthetic tree nodes) so existing binary layout remains untouched and stable.
+- Reused adapter projection math via `projectLocalPath(...)` to avoid drift between real-node and anticipation-node positioning.
+- Kept event contract aligned with existing enrollment modal entry (`binary-tree-enroll-member-request`) to unblock the upcoming enroll flow phase.
+
+### Known Limitations
+
+- This pass only restores anticipation-slot visualization and click event dispatch in Binary Tree Next.
+- Enrollment modal/form handling for Binary Tree Next is not implemented in this change and is expected in the next phase.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-12) - Binary Tree Next Apple-Style Enroll Member Modal Flow
+
+### What Was Changed
+
+- Added a dedicated enroll modal UI to `binary-tree-next.html`:
+  - Apple-style frosted overlay/card treatment
+  - rounded glass panel aligned with the Binary Tree Next left-panel tone
+  - complete form fields for enrollment submission
+  - placement summary strip showing locked parent + leg.
+- Added enroll-flow state and handlers to `binary-tree-next-app.mjs`:
+  - listens for `binary-tree-enroll-member-request` (from anticipation slot click)
+  - opens modal with locked placement context (`parentId`, `parentName`, `placementLeg`)
+  - supports dismiss/cancel, outside-click close, and Escape close
+  - blocks tree keyboard shortcuts while modal is open.
+- Added package and Fast Track tier metadata mapping in Binary Tree Next app:
+  - package select auto-syncs hidden tier key + human label.
+- Implemented registration submit flow:
+  - `POST /api/registered-members` for member source
+  - `POST /api/admin/registered-members` for admin source
+  - payload includes sponsor identity, placement leg, package, and tier.
+- Added immediate post-success tree update in Next canvas:
+  - creates a new child node under the locked parent side
+  - rebinds adapter data (`setNodes`) and rebuilds child-leg index
+  - anticipation slots refresh naturally (filled side disappears).
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used overlay insertion (not layout mutation) so existing tree viewport/camera math remains untouched.
+- Kept the API contract aligned with existing enrollment endpoints and payload conventions used in legacy flows.
+- Chose immediate local tree node insertion after success so enrollment feedback is visible without reload.
+
+### Known Limitations
+
+- This flow currently updates the live Next tree view from the successful response and locked placement context, but does not yet backfill full legacy enroll preview modules (bonus preview/records feed).
+- The modal keeps package defaults static and currently maps tiers by package only.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+
+## Update (2026-04-12) - Enroll UI Shifted from Modal Popup to Center-Side Panel
+
+### What Was Changed
+
+- Reworked Binary Tree Next enrollment container from modal popup behavior into a persistent floating panel style.
+- Updated `binary-tree-next.html` enroll shell styles:
+  - removed fullscreen dim/blur backdrop behavior
+  - converted enroll container to absolute-positioned panel surface
+  - preserved existing Apple/light panel visual treatment while aligning closer to left-panel shell direction.
+- Updated enroll container semantics:
+  - changed container role to `region` (non-modal panel behavior).
+- Added panel docking logic in `binary-tree-next-app.mjs`:
+  - new `syncTreeNextEnrollPanelPosition(...)` computes panel position based on current layout and side-nav state
+  - panel anchors to the right side of the left panel and remains vertically centered
+  - panel position is clamped to viewport edges for safe rendering.
+- Updated open/render flow:
+  - panel position is recomputed on open and during frame render while open.
+- Removed outside-overlay close dependency since panel is no longer using interactive modal backdrop.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept existing enrollment form logic/API wiring intact and only changed container model + placement behavior.
+- Used dynamic docking logic instead of hardcoded `left/top` so panel stays aligned with left-panel state transitions.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-12) - Binary Tree Next Multi-Step Enrollment Panel + Stripe Card Number Field
+
+### What Was Changed
+
+- Replaced the previous single-form enroll panel with a multi-step Apple-inspired flow in `binary-tree-next.html`:
+  - Step 1: Enroll Member (email, username, first name, last name + gradient person-add icon)
+  - Step 2: Choose the Right Package (BV card, package selector, sponsor/parent/leg fields)
+  - Step 3: Complete Registration & Payment (checkout summary + cardholder input + Stripe Card Number element)
+  - Step 4: Thank-you page with Fast Track commission summary.
+- Applied user-provided color tokens in the new panel:
+  - headings `#000000`
+  - captions/input text `#888888`
+  - input surfaces `#E2E2E2`
+  - primary actions `#077AFF`
+  - previous actions `#000000`
+  - BV/checkout cards `#EEEEEE`
+  - panel shell `#FFFFFF`.
+- Updated `binary-tree-next-app.mjs` enrollment flow to a step-driven state machine:
+  - new per-step copy mapping and step indicator updates
+  - step validation and controlled navigation (next/previous)
+  - package preview sync (BV, products, checkout totals)
+  - post-success transition to a thank-you page instead of auto-close.
+- Added Stripe Card Number integration for Step 3:
+  - loads Stripe.js if needed
+  - fetches publishable key from `/api/store-checkout/config`
+  - mounts Stripe `cardNumber` element into enroll panel
+  - requires complete card number before allowing registration submission.
+- Kept existing registration submit and in-tree insertion behavior:
+  - still posts to `/api/registered-members` or `/api/admin/registered-members`
+  - still inserts newly created member to selected parent/leg in Binary Tree Next
+  - still rebuilds child-leg occupancy and refreshes anticipation behavior.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next-gen-wasm-plan.md`
+
+### Design Decisions
+
+- Retained center-side floating panel docking logic so enrollment stays aligned beside the left panel UI.
+- Reused backend Fast Track commission payload (`fastTrackBonusAmount`) with package/tier fallback for thank-you summary accuracy.
+- Used a Stripe-hosted Card Number element (instead of plain text card input) to satisfy secure card-field requirement while preserving current enrollment API.
+
+### Known Limitations
+
+- Payment confirmation/intents are not finalized in this pass; Stripe card number completion is validated at the UI layer before enrollment submit.
+- Step 2 `selectableProducts` values are currently mapped in frontend metadata and may need alignment if package definitions change server-side.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot comparison workflow intentionally stopped per direct user instruction ("you dont have to screenshot").
+
+## Update (2026-04-12) - Enrollment Panel Tightening + White Divider Cleanup
+
+### What Was Changed
+
+- Refined `binary-tree-next.html` enroll panel spacing to better match provided mock proportions:
+  - reduced vertical gaps and card margins
+  - tightened header/body spacing
+  - reduced icon block spacing and action area spacing.
+- Removed unintended white horizontal seams in step layout by:
+  - resetting section margins/padding (`.tree-next-enroll-step`) to avoid default block margin bleed
+  - making modal shell clip correctly (`overflow: hidden`) and moving scroll responsibility into the body container.
+- Cleaned close button visual treatment:
+  - replaced previous Material icon glyph with centered `Ã—`
+  - refined close-button sizing for cleaner Apple-style appearance.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Panel Clipping + Bottom Scrollbar Fix
+
+### Root Cause
+
+- Enroll fields/buttons were using `width: 100%` with default content-box sizing, so horizontal padding increased effective width and pushed content beyond the panel body.
+- Panel body used generic `overflow: auto`, allowing horizontal scrollbar rendering when child widths overflowed.
+
+### Fix Applied
+
+- Added box sizing guard for the panel subtree:
+  - `#tree-next-enroll-modal, #tree-next-enroll-modal * { box-sizing: border-box; }`
+- Constrained body scrolling to vertical only:
+  - `overflow-y: auto; overflow-x: hidden;`
+- Ensured form/step/field-stack blocks stay width-safe inside container:
+  - added explicit `width: 100%` + `min-width: 0` to main wrappers.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Panel Refinement Pass (Header, Close Icon, Step 2 Text, Expiry Field)
+
+### What Was Changed
+
+- Centered header copy in the enrollment panel layout:
+  - updated header to centered text flow independent of the close control.
+- Updated close control to match profile popup behavior:
+  - switched to Material Symbols `close_small`
+  - set button as absolute-positioned top-right control
+  - applied profile-like sizing/colors (`24x24`, soft gray bg, dark glyph).
+- Updated Step 2 detail text color to black:
+  - package/select and readonly detail fields now render black text in step 2.
+- Added month/expiration input in payment section:
+  - added Stripe `cardExpiry` element field below card number
+  - wired mount/init and completion validation
+  - submit now requires both card number and expiry to be complete.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Downscale + Spillover Toggle + Card Icon Restore
+
+### What Was Changed
+
+- Applied a tighter overall enrollment panel scale in `binary-tree-next.html`:
+  - reduced action button sizing (`46px` desktop / `44px` mobile)
+  - kept compact spacing rhythm from the prior cleanup pass.
+- Ensured Inter typography usage across text-entry surfaces:
+  - retained Inter-first stack for input/select/button controls
+  - updated Stripe element base style to use Inter-first font family.
+- Restored visible card-field icon in payment step:
+  - added `credit_card` icon to the card number shell
+  - adjusted Stripe shell layout so field + icon align cleanly.
+- Added Step 2 spillover choice control:
+  - new `Spillover: Yes/No` select in enrollment details
+  - defaulted to `Spillover: Yes` to preserve old tree-flow expectation.
+- Wired spillover behavior into submit payload in `binary-tree-next-app.mjs`:
+  - `Yes` sends `placementLeg: "spillover"` with manual spillover metadata
+  - `No` sends direct `left/right` placement with auto spillover metadata cleared.
+- Added leg-position display sync:
+  - leg label now updates to reflect spillover mode selection.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Known Limitations
+
+- Spillover mode currently uses the locked anticipation parent reference for manual spillover placement and does not yet expose alternate receiving-parent selection in this panel.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Centering + Step 2 Label/Reorder + Spillover Sponsor Sync
+
+### What Was Changed
+
+- Tightened true header centering in `binary-tree-next.html`:
+  - made header text block explicitly centered with symmetric horizontal padding
+  - constrained subtitle width and center alignment.
+- Reworked Step 2 field presentation with visible static labels and requested order:
+  - added label titles:
+    - `Account Package`
+    - `Leg Position`
+    - `Spill Over`
+    - `Direct Upline (Parent)`
+    - `Direct Sponsor (Sponsor)`
+  - reordered controls to exactly:
+    - Account Package
+    - Leg Position
+    - Spill Over
+    - Parent
+    - Sponsor.
+- Improved layout consistency across steps:
+  - moved enroll form/steps to a shared column/flex structure so action rows and pagination sit more consistently between pages.
+- Reduced bottom pagination visual size:
+  - step dots reduced from `15px` to `10px`
+  - indicator spacing tightened.
+- Updated sponsor logic for spillover mode in `binary-tree-next-app.mjs`:
+  - when `Spillover: Yes`, sponsor display and payload prefer the current session user (you)
+  - when `Spillover: No`, sponsor falls back to direct-placement sponsor logic
+  - sponsor field now re-syncs live when spillover mode is changed.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Enrollment Field Text Contrast + Stripe Font Match + 9.75% Tax Math
+
+### What Was Changed
+
+- Updated enrollment field color behavior in `binary-tree-next.html`:
+  - placeholder text remains `#888888`
+  - entered/selected values now render `#000000`
+  - readonly resolved values (parent/sponsor/leg) now also render `#000000`.
+- Updated Stripe field typography in `binary-tree-next-app.mjs`:
+  - lowered Stripe element base font size from oversized value to `13px`
+  - set line-height to align with standard enrollment inputs
+  - kept Stripe placeholder color at `#888888` while actual input values render black.
+- Implemented checkout tax math in `binary-tree-next-app.mjs`:
+  - added fixed tax rate constant `9.75%` (`0.0975`)
+  - checkout now computes:
+    - subtotal = package price
+    - discount = 0
+    - tax = subtotal * 9.75% (rounded to cents)
+    - total = subtotal + tax (rounded to cents)
+  - summary values are rendered using existing currency formatting.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
 - `Claude_Notes/charge-documentation.md`
 - `Claude_Notes/Current Project Status.md`
 

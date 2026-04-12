@@ -20,9 +20,11 @@ const DEFAULT_ROOT_FOCUS_RADIUS = 38;
 const MOCK_TREE_MAX_DEPTH = 20;
 const MOCK_LEVEL_NODE_CAP = 128;
 const UNIVERSE_DEPTH_CAP = 20;
+const ANTICIPATION_MAX_GLOBAL_DEPTH = 20;
 const SELECTION_POP_MS = 320;
 const SELECTION_RELEASE_MS = 220;
 const SELECTION_MAX_EMPHASIS = 1.22;
+const ANTICIPATION_BUTTON_ID_PREFIX = 'anticipation-slot-';
 const MAIN_BACKGROUND_COLOR = '#E9EAEE';
 const SHELL_PANEL_COLOR = '#F2F2F6';
 const SHELL_PANEL_BORDER_COLOR = '#E7E7EA';
@@ -47,6 +49,22 @@ const STARTUP_PERF_FRAME_BUDGET_MS = 20;
 const STARTUP_PERF_HEAVY_PIXEL_BUDGET = 5600000;
 const WHEEL_STEP_ZOOM_IN_FACTOR = 1.12;
 const WHEEL_STEP_ZOOM_OUT_FACTOR = 0.9;
+const UNIVERSE_ENTER_GLOBAL_ZOOM_MS = 620;
+const UNIVERSE_ENTER_GLOBAL_FOCUS_RADIUS = 72;
+const UNIVERSE_ENTER_LOCAL_START_SCALE_FACTOR = 0.6;
+const UNIVERSE_ENTER_CAMERA_DAMPING = 4.8;
+const UNIVERSE_ENTER_TRANSITION_MIN_SCALE = 0.01;
+const UNIVERSE_ENTER_LOCAL_FADE_IN_MS = 300;
+const UNIVERSE_BACK_LOCAL_ZOOM_MS = 620;
+const UNIVERSE_BACK_LOCAL_ZOOM_OUT_FACTOR = 0.74;
+const UNIVERSE_BACK_PARENT_START_SCALE_FACTOR = 1.42;
+const UNIVERSE_BACK_CAMERA_DAMPING = 4.8;
+const UNIVERSE_BACK_PARENT_FADE_IN_MS = 300;
+const UNIVERSE_BACK_LOCAL_FADE_OUT_DELAY_MS = 0.80;
+const UNIVERSE_BACK_LOCAL_FADE_OUT_MS = Math.max(
+  1,
+  UNIVERSE_BACK_LOCAL_ZOOM_MS - UNIVERSE_BACK_LOCAL_FADE_OUT_DELAY_MS,
+);
 const DEFAULT_TRACKPAD_ZOOM_SENSITIVITY = 2;
 const MIN_TRACKPAD_ZOOM_SENSITIVITY = 0.05;
 const MAX_TRACKPAD_ZOOM_SENSITIVITY = 6;
@@ -65,6 +83,88 @@ const SERVER_CUTOFF_TIMEZONE = 'America/Los_Angeles';
 const SERVER_CUTOFF_WEEKDAY = 6;
 const SERVER_CUTOFF_HOUR = 23;
 const SERVER_CUTOFF_MINUTE = 59;
+const MEMBER_REGISTERED_MEMBERS_API = '/api/registered-members';
+const ADMIN_REGISTERED_MEMBERS_API = '/api/admin/registered-members';
+const ENROLL_STRIPE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
+const ENROLL_STRIPE_SCRIPT_URL = 'https://js.stripe.com/v3/';
+const ENROLL_DEFAULT_COUNTRY_FLAG = 'us';
+const ENROLL_DEFAULT_PACKAGE_KEY = 'legacy-builder-pack';
+const ENROLL_CHECKOUT_TAX_RATE = 0.0975;
+const ENROLL_SPILLOVER_MODE_DIRECT = 'direct';
+const ENROLL_SPILLOVER_MODE_SPILLOVER = 'spillover';
+const ENROLL_PANEL_MIN_WIDTH = 340;
+const ENROLL_PANEL_MAX_WIDTH = 560;
+const ENROLL_PANEL_HORIZONTAL_GAP = 22;
+const ENROLL_PANEL_EDGE_PADDING = 12;
+const ENROLL_PACKAGE_META = Object.freeze({
+  'preferred-customer-pack': Object.freeze({
+    label: 'Free Account',
+    bv: 0,
+    price: 0,
+    selectableProducts: 0,
+  }),
+  'personal-builder-pack': Object.freeze({
+    label: 'Personal Builder Pack',
+    bv: 192,
+    price: 192,
+    selectableProducts: 4,
+  }),
+  'business-builder-pack': Object.freeze({
+    label: 'Business Builder Pack',
+    bv: 360,
+    price: 360,
+    selectableProducts: 8,
+  }),
+  'infinity-builder-pack': Object.freeze({
+    label: 'Infinity Builder Pack',
+    bv: 560,
+    price: 560,
+    selectableProducts: 12,
+  }),
+  'legacy-builder-pack': Object.freeze({
+    label: 'Legacy Builder Pack',
+    bv: 960,
+    price: 960,
+    selectableProducts: 20,
+  }),
+});
+const ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY = Object.freeze({
+  'personal-pack': 'Personal Pack',
+  'business-pack': 'Business Pack',
+  'achievers-pack': 'Infinity Pack',
+  'legacy-pack': 'Legacy Pack',
+});
+const ENROLL_FAST_TRACK_RATE_BY_TIER = Object.freeze({
+  'personal-pack': 0.075,
+  'business-pack': 0.10,
+  'achievers-pack': 0.125,
+  'legacy-pack': 0.20,
+});
+const ENROLL_FAST_TRACK_TIER_BY_PACKAGE = Object.freeze({
+  'preferred-customer-pack': 'personal-pack',
+  'personal-builder-pack': 'personal-pack',
+  'business-builder-pack': 'business-pack',
+  'infinity-builder-pack': 'achievers-pack',
+  'legacy-builder-pack': 'legacy-pack',
+});
+const ENROLL_STEP_COPY = Object.freeze({
+  1: Object.freeze({
+    title: 'Enroll Member',
+    subtitle: "You're about to register a new member and help them take their first step toward building their business. This process will set up their account so they can start growing, earning, and accessing all available opportunities.",
+  }),
+  2: Object.freeze({
+    title: 'Choose the Right Package',
+    subtitle: 'Select the package that best fits their goals and how they plan to grow their business. Each option offers different discounts, product quantities, and earning potential.',
+  }),
+  3: Object.freeze({
+    title: 'Complete Registration & Payment',
+    subtitle: "You're almost done! Please review all the information entered and ensure the selected package is correct before proceeding.",
+  }),
+  4: Object.freeze({
+    title: 'Registration Complete',
+    subtitle: "You're all set. This enrollment has been recorded and the member can now start building.",
+  }),
+});
 const APPLE_MAPS_NODE_PALETTES = Object.freeze({
   root: Object.freeze({
     light: [196, 146, 115],
@@ -126,6 +226,58 @@ const canvas = document.getElementById('figma-tree-canvas');
 const bootErrorElement = document.getElementById('boot-error');
 const loadingScreenElement = document.getElementById('binary-tree-loading');
 const firstOpenSplashElement = document.getElementById('binary-tree-first-open-splash');
+const treeNextEnrollModalOverlayElement = document.getElementById('tree-next-enroll-modal-overlay');
+const treeNextEnrollModalElement = document.getElementById('tree-next-enroll-modal');
+const treeNextEnrollModalTitleElement = document.getElementById('tree-next-enroll-modal-title');
+const treeNextEnrollModalSubtitleElement = document.getElementById('tree-next-enroll-modal-subtitle');
+const treeNextEnrollModalDismissButton = document.getElementById('tree-next-enroll-modal-dismiss');
+const treeNextEnrollModalForm = document.getElementById('tree-next-enroll-modal-form');
+const treeNextEnrollModalSubmitButton = document.getElementById('tree-next-enroll-submit');
+const treeNextEnrollModalFeedback = document.getElementById('tree-next-enroll-modal-feedback');
+const treeNextEnrollModalDoneButton = document.getElementById('tree-next-enroll-done');
+const treeNextEnrollStepIndicatorsElement = document.getElementById('tree-next-enroll-step-indicators');
+const treeNextEnrollStepElements = Array.from(document.querySelectorAll('[data-enroll-step]'));
+const treeNextEnrollStepDotElements = Array.from(document.querySelectorAll('[data-enroll-step-dot]'));
+const treeNextEnrollStepOneNextButton = document.getElementById('tree-next-enroll-step-1-next');
+const treeNextEnrollStepTwoPreviousButton = document.getElementById('tree-next-enroll-step-2-previous');
+const treeNextEnrollStepTwoNextButton = document.getElementById('tree-next-enroll-step-2-next');
+const treeNextEnrollStepThreePreviousButton = document.getElementById('tree-next-enroll-step-3-previous');
+const treeNextEnrollPlacementLegInput = document.getElementById('tree-next-enroll-placement-leg');
+const treeNextEnrollPlacementParentIdInput = document.getElementById('tree-next-enroll-placement-parent-id');
+const treeNextEnrollEmailInput = document.getElementById('tree-next-enroll-email');
+const treeNextEnrollUsernameInput = document.getElementById('tree-next-enroll-username');
+const treeNextEnrollFirstNameInput = document.getElementById('tree-next-enroll-first-name');
+const treeNextEnrollLastNameInput = document.getElementById('tree-next-enroll-last-name');
+const treeNextEnrollSponsorInput = document.getElementById('tree-next-enroll-sponsor');
+const treeNextEnrollParentInput = document.getElementById('tree-next-enroll-parent');
+const treeNextEnrollLegPositionInput = document.getElementById('tree-next-enroll-leg-position');
+const treeNextEnrollSpilloverModeInput = document.getElementById('tree-next-enroll-spillover-mode');
+const treeNextEnrollCountryFlagInput = document.getElementById('tree-next-enroll-country-flag');
+const treeNextEnrollPackageInput = document.getElementById('tree-next-enroll-package');
+const treeNextEnrollFastTrackTierInput = document.getElementById('tree-next-enroll-fast-track-tier');
+const treeNextEnrollPackageBvElement = document.getElementById('tree-next-enroll-package-bv');
+const treeNextEnrollPackageProductsElement = document.getElementById('tree-next-enroll-package-products');
+const treeNextEnrollSummaryPackageLabelElement = document.getElementById('tree-next-enroll-summary-package-label');
+const treeNextEnrollSummarySubtotalElement = document.getElementById('tree-next-enroll-summary-subtotal');
+const treeNextEnrollSummaryDiscountElement = document.getElementById('tree-next-enroll-summary-discount');
+const treeNextEnrollSummaryTaxElement = document.getElementById('tree-next-enroll-summary-tax');
+const treeNextEnrollSummaryTotalElement = document.getElementById('tree-next-enroll-summary-total');
+const treeNextEnrollNameOnCardInput = document.getElementById('tree-next-enroll-name-on-card');
+const treeNextEnrollCardNumberElement = document.getElementById('tree-next-enroll-card-number-element');
+const treeNextEnrollCardExpiryElement = document.getElementById('tree-next-enroll-card-expiry-element');
+const treeNextEnrollCardErrorElement = document.getElementById('tree-next-enroll-card-error');
+const treeNextEnrollThankYouNameElement = document.getElementById('tree-next-enroll-thank-you-name');
+const treeNextEnrollThankYouPackageElement = document.getElementById('tree-next-enroll-thank-you-package');
+const treeNextEnrollThankYouCommissionElement = document.getElementById('tree-next-enroll-thank-you-commission');
+
+let treeNextEnrollStripeClient = null;
+let treeNextEnrollStripeElements = null;
+let treeNextEnrollStripeCardNumber = null;
+let treeNextEnrollStripeCardExpiry = null;
+let treeNextEnrollStripeInitPromise = null;
+let isTreeNextEnrollStripeReady = false;
+let isTreeNextEnrollStripeCardComplete = false;
+let isTreeNextEnrollStripeCardExpiryComplete = false;
 
 if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error('Missing #figma-tree-canvas');
@@ -165,6 +317,14 @@ const state = {
     breadcrumb: ['root'],
     cameraByRoot: Object.create(null),
     history: [],
+    enterPrepToken: '',
+    enterPrepTimeoutId: 0,
+    enterPrepRafId: 0,
+    backPrepToken: '',
+    backPrepRafId: 0,
+    enterViewFadeMode: 'none',
+    enterViewFadeStartedAtMs: 0,
+    enterViewFadeDurationMs: 0,
   },
   ui: {
     sideNavOpen: true,
@@ -187,11 +347,23 @@ const state = {
       dragStartY: 0,
       dragMoved: false,
       tapAction: '',
+      placesCacheKey: '',
+      placesCacheLimit: 0,
+      placesCache: [],
     },
+  },
+  enroll: {
+    open: false,
+    step: 1,
+    submitting: false,
+    placementLock: null,
+    lastTriggerElement: null,
   },
   layout: null,
   viewport: null,
   frameResult: null,
+  anticipationSlots: [],
+  nodeChildLegIndex: new Map(),
   buttons: [],
   hoveredButtonId: '',
   pointer: {
@@ -509,6 +681,18 @@ function safeText(value) {
 function safeNumber(value, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function normalizeBinarySide(value) {
+  const normalized = safeText(value).toLowerCase();
+  if (normalized === 'left' || normalized === 'right') {
+    return normalized;
+  }
+  return '';
+}
+
+function normalizeCredentialValue(value) {
+  return safeText(value).toLowerCase();
 }
 
 function formatInteger(value, fallback = 0) {
@@ -842,6 +1026,10 @@ function normalizePinnedNodeIds(idsInput = state.pinnedNodeIds) {
 
 function setPinnedNodeIds(nextIds) {
   state.pinnedNodeIds = normalizePinnedNodeIds(nextIds);
+  const favorites = getSideNavFavoritesState();
+  favorites.placesCacheKey = '';
+  favorites.placesCacheLimit = 0;
+  favorites.placesCache = [];
   persistPinnedNodeIdsToStorage();
 }
 
@@ -886,6 +1074,1214 @@ function resolveGlobalNodeMetrics(nodeId) {
 
 function resolveNodeById(nodeId) {
   return resolveGlobalNodeMetrics(nodeId)?.node || null;
+}
+
+function rebuildNodeChildLegIndex() {
+  const nextIndex = new Map();
+  const nodeById = new Map();
+
+  for (const rawNode of state.nodes) {
+    const node = rawNode && typeof rawNode === 'object' ? rawNode : null;
+    if (!node) {
+      continue;
+    }
+    const nodeId = safeText(node.id);
+    if (nodeId) {
+      nodeById.set(nodeId, node);
+    }
+    const parentId = safeText(node.parent || node.parentId);
+    const side = normalizeBinarySide(node.side || node.placementSide || node.sponsorLeg);
+    if (!parentId || !side) {
+      continue;
+    }
+    let legs = nextIndex.get(parentId);
+    if (!legs) {
+      legs = { left: false, right: false };
+      nextIndex.set(parentId, legs);
+    }
+    legs[side] = true;
+  }
+
+  for (const rawNode of state.nodes) {
+    const node = rawNode && typeof rawNode === 'object' ? rawNode : null;
+    if (!node) {
+      continue;
+    }
+    const nodeId = safeText(node.id);
+    if (!nodeId) {
+      continue;
+    }
+    const leftChildId = safeText(node.leftChildId);
+    const rightChildId = safeText(node.rightChildId);
+    if (!leftChildId && !rightChildId) {
+      continue;
+    }
+    let legs = nextIndex.get(nodeId);
+    if (!legs) {
+      legs = { left: false, right: false };
+      nextIndex.set(nodeId, legs);
+    }
+    if (leftChildId && nodeById.has(leftChildId)) {
+      legs.left = true;
+    }
+    if (rightChildId && nodeById.has(rightChildId)) {
+      legs.right = true;
+    }
+  }
+
+  state.nodeChildLegIndex = nextIndex;
+}
+
+function resolveNodeChildLegState(nodeId) {
+  const safeNodeId = safeText(nodeId);
+  if (!safeNodeId) {
+    return { left: false, right: false };
+  }
+  const legs = state.nodeChildLegIndex instanceof Map
+    ? state.nodeChildLegIndex.get(safeNodeId)
+    : null;
+  return {
+    left: Boolean(legs?.left),
+    right: Boolean(legs?.right),
+  };
+}
+
+function requestEnrollMemberFromTree(parentId, side) {
+  const safeParentId = safeText(parentId);
+  const placementLeg = normalizeBinarySide(side) === 'right' ? 'right' : 'left';
+  if (!safeParentId) {
+    return;
+  }
+
+  const parentNode = resolveNodeById(safeParentId);
+  if (!parentNode) {
+    return;
+  }
+
+  const parentName = safeText(
+    parentNode.name
+    || parentNode.memberCode
+    || parentNode.username
+    || parentNode.id
+    || safeParentId,
+  ) || safeParentId;
+  const parentMemberCode = safeText(
+    parentNode.memberCode
+    || parentNode.username
+    || parentNode.id
+    || safeParentId,
+  );
+
+  window.dispatchEvent(new CustomEvent('binary-tree-enroll-member-request', {
+    detail: {
+      parentId: safeParentId,
+      parentName,
+      parentMemberCode,
+      placementLeg,
+    },
+  }));
+}
+
+function resolveEnrollRegisteredMembersApi() {
+  return state.source === 'admin'
+    ? ADMIN_REGISTERED_MEMBERS_API
+    : MEMBER_REGISTERED_MEMBERS_API;
+}
+
+function resolveEnrollFastTrackTierFromPackage(packageKey) {
+  const normalizedPackage = normalizeCredentialValue(packageKey);
+  return ENROLL_FAST_TRACK_TIER_BY_PACKAGE[normalizedPackage] || 'personal-pack';
+}
+
+function resolveEnrollFastTrackTierLabel(tierKey) {
+  const normalizedTier = normalizeCredentialValue(tierKey);
+  return ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY[normalizedTier] || ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY['personal-pack'];
+}
+
+function resolveEnrollPackageMeta(packageKey) {
+  const normalizedPackage = normalizeCredentialValue(packageKey);
+  return ENROLL_PACKAGE_META[normalizedPackage] || ENROLL_PACKAGE_META[ENROLL_DEFAULT_PACKAGE_KEY];
+}
+
+function resolveEnrollPackagePrice(packageKey) {
+  const packageMeta = resolveEnrollPackageMeta(packageKey);
+  return Math.max(0, safeNumber(packageMeta?.price, packageMeta?.bv || 0));
+}
+
+function resolveEnrollFastTrackBonusAmount(packageKey, tierKey) {
+  const packagePrice = resolveEnrollPackagePrice(packageKey);
+  const sponsorRate = safeNumber(ENROLL_FAST_TRACK_RATE_BY_TIER[normalizeCredentialValue(tierKey)], 0);
+  if (packagePrice <= 0 || sponsorRate <= 0) {
+    return 0;
+  }
+  return Math.round((packagePrice * sponsorRate) * 100) / 100;
+}
+
+function formatEnrollCurrency(value) {
+  const normalizedAmount = Math.round(Math.max(0, safeNumber(value, 0)) * 100) / 100;
+  return `$${normalizedAmount.toFixed(2)}`;
+}
+
+function resolveTreeNextEnrollStepCopy(step) {
+  const normalizedStep = Math.max(1, Math.min(4, Math.floor(safeNumber(step, 1))));
+  return ENROLL_STEP_COPY[normalizedStep] || ENROLL_STEP_COPY[1];
+}
+
+function isTreeNextEnrollModalOpen() {
+  return Boolean(state.enroll?.open);
+}
+
+function setTreeNextEnrollFeedback(message, isSuccess = false) {
+  if (!(treeNextEnrollModalFeedback instanceof HTMLElement)) {
+    return;
+  }
+  const safeMessage = safeText(message);
+  treeNextEnrollModalFeedback.textContent = safeMessage;
+  treeNextEnrollModalFeedback.classList.remove('is-error', 'is-success');
+  if (!safeMessage) {
+    return;
+  }
+  treeNextEnrollModalFeedback.classList.add(isSuccess ? 'is-success' : 'is-error');
+}
+
+function clearTreeNextEnrollFeedback() {
+  setTreeNextEnrollFeedback('', false);
+}
+
+function setTreeNextEnrollCardError(message = '') {
+  if (!(treeNextEnrollCardErrorElement instanceof HTMLElement)) {
+    return;
+  }
+  treeNextEnrollCardErrorElement.textContent = safeText(message);
+}
+
+function clearTreeNextEnrollCardError() {
+  setTreeNextEnrollCardError('');
+}
+
+function clearTreeNextEnrollCardInput() {
+  isTreeNextEnrollStripeCardComplete = false;
+  isTreeNextEnrollStripeCardExpiryComplete = false;
+  clearTreeNextEnrollCardError();
+  if (
+    treeNextEnrollStripeCardNumber
+    && typeof treeNextEnrollStripeCardNumber.clear === 'function'
+  ) {
+    treeNextEnrollStripeCardNumber.clear();
+  }
+  if (
+    treeNextEnrollStripeCardExpiry
+    && typeof treeNextEnrollStripeCardExpiry.clear === 'function'
+  ) {
+    treeNextEnrollStripeCardExpiry.clear();
+  }
+}
+
+async function fetchTreeNextEnrollStripeCheckoutConfig() {
+  try {
+    const response = await fetch(ENROLL_STRIPE_CHECKOUT_CONFIG_API, {
+      method: 'GET',
+      cache: 'no-store',
+      credentials: 'same-origin',
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = typeof payload?.error === 'string' && payload.error.trim()
+        ? payload.error.trim()
+        : `Unable to load Stripe checkout config (${response.status}).`;
+      throw new Error(message);
+    }
+    const publishableKey = safeText(payload?.publishableKey);
+    if (!publishableKey) {
+      throw new Error('Stripe publishable key was not returned.');
+    }
+    return {
+      ok: true,
+      publishableKey,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : 'Unable to initialize Stripe checkout.',
+    };
+  }
+}
+
+async function ensureTreeNextEnrollStripeScriptLoaded() {
+  if (typeof window.Stripe === 'function') {
+    return true;
+  }
+
+  const existingScript = document.querySelector(`script[src="${ENROLL_STRIPE_SCRIPT_URL}"]`);
+  if (existingScript instanceof HTMLScriptElement) {
+    await new Promise((resolve) => {
+      if (typeof window.Stripe === 'function') {
+        resolve(true);
+        return;
+      }
+      const handleResolve = () => resolve(true);
+      const handleReject = () => resolve(false);
+      existingScript.addEventListener('load', handleResolve, { once: true });
+      existingScript.addEventListener('error', handleReject, { once: true });
+      window.setTimeout(() => resolve(typeof window.Stripe === 'function'), 1800);
+    });
+    return typeof window.Stripe === 'function';
+  }
+
+  const script = document.createElement('script');
+  script.src = ENROLL_STRIPE_SCRIPT_URL;
+  script.async = true;
+  const loaded = await new Promise((resolve) => {
+    script.addEventListener('load', () => resolve(true), { once: true });
+    script.addEventListener('error', () => resolve(false), { once: true });
+    window.setTimeout(() => resolve(false), 3000);
+    document.head.appendChild(script);
+  });
+  return loaded && typeof window.Stripe === 'function';
+}
+
+function resolveTreeNextEnrollStripeCardStyle() {
+  return {
+    base: {
+      color: '#000000',
+      iconColor: '#888888',
+      fontFamily: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      fontSize: '13px',
+      lineHeight: '1.3',
+      fontSmoothing: 'antialiased',
+      '::placeholder': {
+        color: '#888888',
+      },
+    },
+    invalid: {
+      color: '#C04157',
+      iconColor: '#C04157',
+    },
+  };
+}
+
+async function initializeTreeNextEnrollStripeCard(options = {}) {
+  if (isTreeNextEnrollStripeReady && treeNextEnrollStripeCardNumber && treeNextEnrollStripeCardExpiry) {
+    return true;
+  }
+  if (!(treeNextEnrollCardNumberElement instanceof HTMLElement) || !(treeNextEnrollCardExpiryElement instanceof HTMLElement)) {
+    setTreeNextEnrollCardError('Card payment fields are unavailable.');
+    return false;
+  }
+  if (treeNextEnrollStripeInitPromise) {
+    return treeNextEnrollStripeInitPromise;
+  }
+
+  treeNextEnrollStripeInitPromise = (async () => {
+    const stripeLoaded = await ensureTreeNextEnrollStripeScriptLoaded();
+    if (!stripeLoaded || typeof window.Stripe !== 'function') {
+      setTreeNextEnrollCardError('Stripe checkout could not be loaded. Please refresh and try again.');
+      return false;
+    }
+
+    const configResult = await fetchTreeNextEnrollStripeCheckoutConfig();
+    if (!configResult.ok) {
+      setTreeNextEnrollCardError(configResult.message || 'Unable to initialize Stripe checkout.');
+      return false;
+    }
+
+    try {
+      treeNextEnrollStripeClient = window.Stripe(configResult.publishableKey);
+      if (!treeNextEnrollStripeClient) {
+        throw new Error('Stripe client could not be initialized.');
+      }
+
+      treeNextEnrollStripeElements = treeNextEnrollStripeClient.elements();
+      treeNextEnrollStripeCardNumber = treeNextEnrollStripeElements.create('cardNumber', {
+        style: resolveTreeNextEnrollStripeCardStyle(),
+        placeholder: 'Enter Card Number',
+      });
+      treeNextEnrollStripeCardExpiry = treeNextEnrollStripeElements.create('cardExpiry', {
+        style: resolveTreeNextEnrollStripeCardStyle(),
+        placeholder: 'MM / YY',
+      });
+      treeNextEnrollStripeCardNumber.mount(treeNextEnrollCardNumberElement);
+      treeNextEnrollStripeCardExpiry.mount(treeNextEnrollCardExpiryElement);
+      treeNextEnrollStripeCardNumber.on('change', (event) => {
+        isTreeNextEnrollStripeCardComplete = event?.complete === true;
+        setTreeNextEnrollCardError(event?.error?.message || '');
+      });
+      treeNextEnrollStripeCardExpiry.on('change', (event) => {
+        isTreeNextEnrollStripeCardExpiryComplete = event?.complete === true;
+        setTreeNextEnrollCardError(event?.error?.message || '');
+      });
+
+      isTreeNextEnrollStripeReady = true;
+      isTreeNextEnrollStripeCardComplete = false;
+      isTreeNextEnrollStripeCardExpiryComplete = false;
+      if (options.silent !== true) {
+        clearTreeNextEnrollCardError();
+      }
+      return true;
+    } catch (error) {
+      setTreeNextEnrollCardError(error instanceof Error ? error.message : 'Unable to initialize Stripe card number field.');
+      return false;
+    }
+  })();
+
+  try {
+    return await treeNextEnrollStripeInitPromise;
+  } finally {
+    treeNextEnrollStripeInitPromise = null;
+  }
+}
+
+function syncTreeNextEnrollTierFromPackage() {
+  const selectedPackage = normalizeCredentialValue(treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY);
+  const tierKey = resolveEnrollFastTrackTierFromPackage(selectedPackage);
+  if (treeNextEnrollFastTrackTierInput instanceof HTMLInputElement) {
+    treeNextEnrollFastTrackTierInput.value = tierKey;
+  }
+}
+
+function syncTreeNextEnrollPackagePreview() {
+  const selectedPackage = normalizeCredentialValue(treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY);
+  const packageMeta = resolveEnrollPackageMeta(selectedPackage);
+  const packageBv = Math.max(0, Math.floor(safeNumber(packageMeta?.bv, 0)));
+  const selectableProducts = Math.max(0, Math.floor(safeNumber(packageMeta?.selectableProducts, 0)));
+  const packagePrice = resolveEnrollPackagePrice(selectedPackage);
+  const subtotalAmount = Math.max(0, safeNumber(packagePrice, 0));
+  const discountAmount = 0;
+  const taxableAmount = Math.max(0, subtotalAmount - discountAmount);
+  const taxAmount = Math.round((taxableAmount * ENROLL_CHECKOUT_TAX_RATE) * 100) / 100;
+  const totalAmount = Math.round((taxableAmount + taxAmount) * 100) / 100;
+
+  if (treeNextEnrollPackageBvElement instanceof HTMLElement) {
+    treeNextEnrollPackageBvElement.textContent = `${formatInteger(packageBv)} BV`;
+  }
+  if (treeNextEnrollPackageProductsElement instanceof HTMLElement) {
+    treeNextEnrollPackageProductsElement.textContent = `${formatInteger(selectableProducts)} Selectable Product${selectableProducts === 1 ? '' : 's'}`;
+  }
+  if (treeNextEnrollSummaryPackageLabelElement instanceof HTMLElement) {
+    treeNextEnrollSummaryPackageLabelElement.textContent = packageMeta?.label || 'Package';
+  }
+  if (treeNextEnrollSummarySubtotalElement instanceof HTMLElement) {
+    treeNextEnrollSummarySubtotalElement.textContent = formatEnrollCurrency(subtotalAmount);
+  }
+  if (treeNextEnrollSummaryDiscountElement instanceof HTMLElement) {
+    treeNextEnrollSummaryDiscountElement.textContent = formatEnrollCurrency(discountAmount);
+  }
+  if (treeNextEnrollSummaryTaxElement instanceof HTMLElement) {
+    treeNextEnrollSummaryTaxElement.textContent = formatEnrollCurrency(taxAmount);
+  }
+  if (treeNextEnrollSummaryTotalElement instanceof HTMLElement) {
+    treeNextEnrollSummaryTotalElement.textContent = formatEnrollCurrency(totalAmount);
+  }
+}
+
+function resolveTreeNextEnrollPlacementSideFromLock(placementLock = state.enroll?.placementLock) {
+  return normalizeBinarySide(placementLock?.placementLeg) === 'right' ? 'right' : 'left';
+}
+
+function resolveTreeNextEnrollSpilloverModeValue() {
+  const normalizedMode = normalizeCredentialValue(
+    treeNextEnrollSpilloverModeInput?.value || ENROLL_SPILLOVER_MODE_SPILLOVER,
+  );
+  return normalizedMode === ENROLL_SPILLOVER_MODE_DIRECT
+    ? ENROLL_SPILLOVER_MODE_DIRECT
+    : ENROLL_SPILLOVER_MODE_SPILLOVER;
+}
+
+function syncTreeNextEnrollLegPositionField() {
+  if (!(treeNextEnrollLegPositionInput instanceof HTMLInputElement)) {
+    return;
+  }
+  const placementSide = resolveTreeNextEnrollPlacementSideFromLock(state.enroll?.placementLock);
+  const sideLabel = placementSide === 'right' ? 'Right' : 'Left';
+  const spilloverMode = resolveTreeNextEnrollSpilloverModeValue();
+  treeNextEnrollLegPositionInput.value = spilloverMode === ENROLL_SPILLOVER_MODE_SPILLOVER
+    ? `Spillover ${sideLabel} Leg`
+    : `${sideLabel} Leg`;
+}
+
+function resolveTreeNextEnrollSessionSponsorIdentity() {
+  const sponsorUsername = normalizeCredentialValue(
+    state.session?.username
+    || state.session?.memberUsername
+    || '',
+  );
+  const sponsorName = safeText(
+    resolveSessionDisplayName()
+    || state.session?.name
+    || state.session?.username
+    || state.session?.memberUsername
+    || '',
+  );
+  return {
+    sponsorUsername,
+    sponsorName,
+  };
+}
+
+function resolveTreeNextEnrollSponsorIdentityForMode(placementLock = state.enroll?.placementLock) {
+  const directIdentity = resolvePlacementSponsorIdentity(placementLock);
+  const spilloverMode = resolveTreeNextEnrollSpilloverModeValue();
+  if (spilloverMode !== ENROLL_SPILLOVER_MODE_SPILLOVER) {
+    return directIdentity;
+  }
+
+  const sessionIdentity = resolveTreeNextEnrollSessionSponsorIdentity();
+  if (sessionIdentity.sponsorUsername) {
+    return {
+      sponsorUsername: sessionIdentity.sponsorUsername,
+      sponsorName: sessionIdentity.sponsorName || sessionIdentity.sponsorUsername,
+    };
+  }
+  if (sessionIdentity.sponsorName) {
+    return {
+      sponsorUsername: directIdentity.sponsorUsername,
+      sponsorName: sessionIdentity.sponsorName,
+    };
+  }
+  return directIdentity;
+}
+
+function syncTreeNextEnrollSponsorField() {
+  if (!(treeNextEnrollSponsorInput instanceof HTMLInputElement)) {
+    return;
+  }
+  if (!state.enroll?.placementLock) {
+    treeNextEnrollSponsorInput.value = '';
+    return;
+  }
+  const { sponsorUsername, sponsorName } = resolveTreeNextEnrollSponsorIdentityForMode(state.enroll.placementLock);
+  treeNextEnrollSponsorInput.value = sponsorName || sponsorUsername;
+}
+
+function setTreeNextEnrollStep(step, options = {}) {
+  const {
+    focusField = false,
+  } = options;
+  const normalizedStep = Math.max(1, Math.min(4, Math.floor(safeNumber(step, 1))));
+  state.enroll.step = normalizedStep;
+
+  for (const stepElement of treeNextEnrollStepElements) {
+    if (!(stepElement instanceof HTMLElement)) {
+      continue;
+    }
+    const elementStep = Math.floor(safeNumber(stepElement.dataset.enrollStep, 0));
+    stepElement.classList.toggle('is-active', elementStep === normalizedStep);
+  }
+
+  const stepCopy = resolveTreeNextEnrollStepCopy(normalizedStep);
+  if (treeNextEnrollModalTitleElement instanceof HTMLElement) {
+    treeNextEnrollModalTitleElement.textContent = stepCopy.title;
+  }
+  if (treeNextEnrollModalSubtitleElement instanceof HTMLElement) {
+    treeNextEnrollModalSubtitleElement.textContent = stepCopy.subtitle;
+  }
+
+  for (const dotElement of treeNextEnrollStepDotElements) {
+    if (!(dotElement instanceof HTMLElement)) {
+      continue;
+    }
+    const dotStep = Math.floor(safeNumber(dotElement.dataset.enrollStepDot, 0));
+    dotElement.classList.toggle('is-active', dotStep === Math.min(3, normalizedStep));
+  }
+  if (treeNextEnrollStepIndicatorsElement instanceof HTMLElement) {
+    treeNextEnrollStepIndicatorsElement.classList.toggle('is-hidden', normalizedStep > 3);
+  }
+
+  if (!focusField) {
+    return;
+  }
+  window.requestAnimationFrame(() => {
+    if (normalizedStep === 1 && treeNextEnrollEmailInput instanceof HTMLInputElement) {
+      treeNextEnrollEmailInput.focus({ preventScroll: true });
+      return;
+    }
+    if (normalizedStep === 2 && treeNextEnrollPackageInput instanceof HTMLSelectElement) {
+      treeNextEnrollPackageInput.focus({ preventScroll: true });
+      return;
+    }
+    if (normalizedStep === 3 && treeNextEnrollNameOnCardInput instanceof HTMLInputElement) {
+      treeNextEnrollNameOnCardInput.focus({ preventScroll: true });
+      return;
+    }
+    if (normalizedStep === 4 && treeNextEnrollModalDoneButton instanceof HTMLButtonElement) {
+      treeNextEnrollModalDoneButton.focus({ preventScroll: true });
+    }
+  });
+}
+
+function resolveTreeNextEnrollStep() {
+  return Math.max(1, Math.min(4, Math.floor(safeNumber(state.enroll?.step, 1))));
+}
+
+function showTreeNextEnrollThankYouStep(options = {}) {
+  const enrolledName = safeText(options?.enrolledName) || 'New member';
+  const packageLabel = safeText(options?.packageLabel) || 'Legacy Builder Package';
+  const commissionAmount = Math.max(0, safeNumber(options?.commissionAmount, 0));
+
+  if (treeNextEnrollThankYouNameElement instanceof HTMLElement) {
+    treeNextEnrollThankYouNameElement.textContent = enrolledName;
+  }
+  if (treeNextEnrollThankYouPackageElement instanceof HTMLElement) {
+    treeNextEnrollThankYouPackageElement.textContent = packageLabel;
+  }
+  if (treeNextEnrollThankYouCommissionElement instanceof HTMLElement) {
+    treeNextEnrollThankYouCommissionElement.textContent = formatEnrollCurrency(commissionAmount);
+  }
+  setTreeNextEnrollStep(4, { focusField: true });
+}
+
+function syncTreeNextEnrollPanelPosition(layoutInput = state.layout) {
+  if (!(treeNextEnrollModalElement instanceof HTMLElement)) {
+    return;
+  }
+
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
+  );
+  const edgePadding = ENROLL_PANEL_EDGE_PADDING;
+  const availableWidth = Math.max(ENROLL_PANEL_MIN_WIDTH, viewportWidth - (edgePadding * 2));
+  const panelWidth = Math.max(
+    Math.min(ENROLL_PANEL_MIN_WIDTH, availableWidth),
+    Math.min(ENROLL_PANEL_MAX_WIDTH, Math.floor(availableWidth)),
+  );
+
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const sideNav = layout?.sideNav || null;
+  const sideNavToggle = layout?.sideNavToggle || null;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+
+  let anchorLeft = Math.round((viewportWidth - panelWidth) / 2);
+  if (sideNavOpen && sideNav) {
+    anchorLeft = Math.round(sideNav.x + sideNav.width + ENROLL_PANEL_HORIZONTAL_GAP);
+  } else if (sideNavToggle) {
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + ENROLL_PANEL_HORIZONTAL_GAP);
+  }
+
+  const clampedLeft = clamp(
+    anchorLeft,
+    edgePadding,
+    Math.max(edgePadding, viewportWidth - panelWidth - edgePadding),
+  );
+  const centerTop = Math.round(viewportHeight / 2);
+  const maxHeight = Math.max(320, viewportHeight - (edgePadding * 2));
+
+  treeNextEnrollModalElement.style.width = `${panelWidth}px`;
+  treeNextEnrollModalElement.style.left = `${clampedLeft}px`;
+  treeNextEnrollModalElement.style.top = `${centerTop}px`;
+  treeNextEnrollModalElement.style.maxHeight = `${maxHeight}px`;
+}
+
+function setTreeNextEnrollModalOpen(isOpen) {
+  const nextOpen = Boolean(isOpen);
+  state.enroll.open = nextOpen;
+  if (!(treeNextEnrollModalOverlayElement instanceof HTMLElement)) {
+    return;
+  }
+  syncTreeNextEnrollPanelPosition();
+  treeNextEnrollModalOverlayElement.classList.toggle('is-open', nextOpen);
+  treeNextEnrollModalOverlayElement.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
+}
+
+function closeTreeNextEnrollModal(options = {}) {
+  if (!isTreeNextEnrollModalOpen()) {
+    return;
+  }
+
+  const {
+    restoreFocus = true,
+    clearFeedback = true,
+    resetForm = false,
+    clearPlacementLock = true,
+  } = options;
+
+  setTreeNextEnrollModalOpen(false);
+  state.enroll.submitting = false;
+  state.enroll.step = 1;
+  if (clearFeedback) {
+    clearTreeNextEnrollFeedback();
+  }
+  clearTreeNextEnrollCardInput();
+
+  if (resetForm && treeNextEnrollModalForm instanceof HTMLFormElement) {
+    treeNextEnrollModalForm.reset();
+    if (treeNextEnrollCountryFlagInput instanceof HTMLInputElement) {
+      treeNextEnrollCountryFlagInput.value = ENROLL_DEFAULT_COUNTRY_FLAG;
+    }
+    if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
+      treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
+    }
+    if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
+      treeNextEnrollSpilloverModeInput.value = ENROLL_SPILLOVER_MODE_SPILLOVER;
+    }
+    syncTreeNextEnrollTierFromPackage();
+    syncTreeNextEnrollPackagePreview();
+    syncTreeNextEnrollLegPositionField();
+  }
+  setTreeNextEnrollStep(1, { focusField: false });
+
+  if (clearPlacementLock) {
+    state.enroll.placementLock = null;
+  }
+
+  if (
+    restoreFocus
+    && state.enroll.lastTriggerElement instanceof HTMLElement
+    && typeof state.enroll.lastTriggerElement.focus === 'function'
+  ) {
+    state.enroll.lastTriggerElement.focus({ preventScroll: true });
+  }
+  state.enroll.lastTriggerElement = null;
+}
+
+function openTreeNextEnrollModal(requestDetail = {}) {
+  if (!(treeNextEnrollModalForm instanceof HTMLFormElement) || !(treeNextEnrollPlacementLegInput instanceof HTMLInputElement)) {
+    return;
+  }
+
+  const placementLeg = normalizeBinarySide(requestDetail?.placementLeg) === 'right' ? 'right' : 'left';
+  const parentId = safeText(requestDetail?.parentId);
+  if (!parentId) {
+    setTreeNextEnrollFeedback('Placement context is missing. Select an anticipation node again.', false);
+    return;
+  }
+
+  const parentName = safeText(
+    requestDetail?.parentName
+    || requestDetail?.parentMemberCode
+    || parentId,
+  ) || parentId;
+  const parentReference = safeText(
+    requestDetail?.parentMemberCode
+    || requestDetail?.parentUsername
+    || parentId,
+  ) || parentId;
+
+  state.enroll.lastTriggerElement = document.activeElement instanceof HTMLElement
+    ? document.activeElement
+    : null;
+  state.enroll.placementLock = {
+    parentId,
+    parentName,
+    parentReference,
+    placementLeg,
+  };
+
+  treeNextEnrollModalForm.reset();
+  if (treeNextEnrollCountryFlagInput instanceof HTMLInputElement) {
+    treeNextEnrollCountryFlagInput.value = ENROLL_DEFAULT_COUNTRY_FLAG;
+  }
+  if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
+    treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
+  }
+  if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
+    treeNextEnrollSpilloverModeInput.value = ENROLL_SPILLOVER_MODE_SPILLOVER;
+  }
+  syncTreeNextEnrollTierFromPackage();
+  syncTreeNextEnrollPackagePreview();
+  clearTreeNextEnrollFeedback();
+  clearTreeNextEnrollCardInput();
+
+  treeNextEnrollPlacementLegInput.value = placementLeg;
+  if (treeNextEnrollPlacementParentIdInput instanceof HTMLInputElement) {
+    treeNextEnrollPlacementParentIdInput.value = parentId;
+  }
+
+  if (treeNextEnrollParentInput instanceof HTMLInputElement) {
+    treeNextEnrollParentInput.value = parentName;
+  }
+  syncTreeNextEnrollSponsorField();
+  syncTreeNextEnrollLegPositionField();
+  if (treeNextEnrollThankYouNameElement instanceof HTMLElement) {
+    treeNextEnrollThankYouNameElement.textContent = 'New member';
+  }
+  if (treeNextEnrollThankYouPackageElement instanceof HTMLElement) {
+    const packageMeta = resolveEnrollPackageMeta(ENROLL_DEFAULT_PACKAGE_KEY);
+    treeNextEnrollThankYouPackageElement.textContent = packageMeta?.label || 'Legacy Builder Package';
+  }
+  if (treeNextEnrollThankYouCommissionElement instanceof HTMLElement) {
+    const tierKey = resolveEnrollFastTrackTierFromPackage(ENROLL_DEFAULT_PACKAGE_KEY);
+    treeNextEnrollThankYouCommissionElement.textContent = formatEnrollCurrency(
+      resolveEnrollFastTrackBonusAmount(ENROLL_DEFAULT_PACKAGE_KEY, tierKey),
+    );
+  }
+
+  setTreeNextEnrollStep(1, { focusField: false });
+  setTreeNextEnrollModalOpen(true);
+  window.requestAnimationFrame(() => {
+    if (treeNextEnrollEmailInput instanceof HTMLInputElement) {
+      treeNextEnrollEmailInput.focus({ preventScroll: true });
+    }
+  });
+  void initializeTreeNextEnrollStripeCard({ silent: true });
+}
+
+function resolvePlacementSponsorIdentity(placementLock) {
+  const parentNode = resolveNodeById(placementLock?.parentId);
+  const sessionUsername = normalizeCredentialValue(
+    state.session?.username
+    || state.session?.memberUsername
+    || '',
+  );
+  const sponsorUsername = normalizeCredentialValue(
+    parentNode?.username
+    || sessionUsername
+    || 'root.sponsor',
+  ) || 'root.sponsor';
+  const sponsorName = safeText(
+    parentNode?.name
+    || resolveSessionDisplayName()
+    || parentNode?.username
+    || sponsorUsername,
+  ) || sponsorUsername;
+
+  return {
+    sponsorUsername,
+    sponsorName,
+  };
+}
+
+async function submitTreeNextEnrollmentRequest(payload = {}) {
+  const response = await fetch(resolveEnrollRegisteredMembersApi(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(payload),
+  });
+
+  const responseContentType = safeText(response.headers.get('content-type')).toLowerCase();
+  const responsePayload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const failureMessage = typeof responsePayload?.error === 'string'
+      ? responsePayload.error
+      : 'Registration request failed.';
+    throw new Error(failureMessage);
+  }
+
+  const createdMember = responsePayload?.member;
+  if (!createdMember || typeof createdMember !== 'object') {
+    if (!responseContentType.includes('application/json')) {
+      throw new Error('Enrollment API returned a non-JSON response. Restart your local server and retry.');
+    }
+    throw new Error('Registration completed but response payload is invalid.');
+  }
+
+  return createdMember;
+}
+
+function resolveUniqueTreeNodeId(baseId) {
+  const normalizedBaseId = safeText(baseId).replace(/\s+/g, '-');
+  const fallbackBaseId = normalizedBaseId || `n-enroll-${Date.now()}`;
+  const existingIds = new Set(state.nodes.map((node) => safeText(node?.id)).filter(Boolean));
+  if (!existingIds.has(fallbackBaseId)) {
+    return fallbackBaseId;
+  }
+
+  let attempt = 2;
+  while (attempt < 10000) {
+    const candidateId = `${fallbackBaseId}-${attempt}`;
+    if (!existingIds.has(candidateId)) {
+      return candidateId;
+    }
+    attempt += 1;
+  }
+
+  return `${fallbackBaseId}-${Date.now()}`;
+}
+
+function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
+  const parentId = safeText(placementLock?.parentId);
+  const placementLeg = normalizeBinarySide(placementLock?.placementLeg) === 'right' ? 'right' : 'left';
+  if (!parentId) {
+    return {
+      success: false,
+      error: 'Placement parent is missing.',
+    };
+  }
+  if (!resolveNodeById(parentId)) {
+    return {
+      success: false,
+      error: 'Placement parent no longer exists in the current tree view.',
+    };
+  }
+
+  const legState = resolveNodeChildLegState(parentId);
+  if (placementLeg === 'left' && legState.left) {
+    return {
+      success: false,
+      error: 'Left slot is already filled for this parent.',
+    };
+  }
+  if (placementLeg === 'right' && legState.right) {
+    return {
+      success: false,
+      error: 'Right slot is already filled for this parent.',
+    };
+  }
+
+  const normalizedPackageKey = normalizeCredentialValue(packageKey || createdMember?.enrollmentPackage);
+  const packageMeta = ENROLL_PACKAGE_META[normalizedPackageKey] || ENROLL_PACKAGE_META[ENROLL_DEFAULT_PACKAGE_KEY];
+  const nodeId = resolveUniqueTreeNodeId(
+    createdMember?.userId
+    || createdMember?.id
+    || createdMember?.memberUsername
+    || createdMember?.email
+    || '',
+  );
+  const displayName = safeText(createdMember?.fullName || createdMember?.name || nodeId) || nodeId;
+  const displayUsername = safeText(createdMember?.memberUsername || createdMember?.username || nodeId).replace(/^@+/, '');
+  const accountRank = safeText(createdMember?.accountRank || createdMember?.rank || '').trim() || 'Personal';
+  const packageBv = Math.max(0, Math.floor(safeNumber(createdMember?.packageBv, packageMeta?.bv || 0)));
+  const accountStatus = createdMember?.passwordSetupRequired ? 'Pending' : 'Active';
+  const isSpilloverPlacement = Boolean(createdMember?.isSpillover)
+    || normalizeCredentialValue(createdMember?.placementLeg) === 'spillover';
+
+  state.nodes.push({
+    id: nodeId,
+    parent: parentId,
+    side: placementLeg,
+    name: displayName,
+    username: displayUsername,
+    role: 'Distributor',
+    status: accountStatus === 'Pending' ? 'stabilizing' : 'active',
+    accountStatus,
+    rank: accountRank,
+    title: `${accountRank} Builder`,
+    badges: [accountRank],
+    volume: packageBv,
+    sponsorId: parentId,
+    sponsorLeg: placementLeg,
+    isSpillover: isSpilloverPlacement,
+  });
+
+  state.adapter.setNodes(state.nodes);
+  rebuildNodeChildLegIndex();
+  setSelectedNode(parentId, { animate: false });
+
+  return {
+    success: true,
+    nodeId,
+    parentId,
+    placementLeg,
+  };
+}
+
+function validateTreeNextEnrollStepOne() {
+  const email = safeText(treeNextEnrollEmailInput?.value);
+  const memberUsername = safeText(treeNextEnrollUsernameInput?.value).replace(/^@+/, '');
+  const firstName = safeText(treeNextEnrollFirstNameInput?.value);
+  const lastName = safeText(treeNextEnrollLastNameInput?.value);
+
+  if (!email || !memberUsername || !firstName || !lastName) {
+    setTreeNextEnrollFeedback('Email, username, first name, and last name are required.', false);
+    if (!email && treeNextEnrollEmailInput instanceof HTMLInputElement) {
+      treeNextEnrollEmailInput.focus({ preventScroll: true });
+    } else if (!memberUsername && treeNextEnrollUsernameInput instanceof HTMLInputElement) {
+      treeNextEnrollUsernameInput.focus({ preventScroll: true });
+    } else if (!firstName && treeNextEnrollFirstNameInput instanceof HTMLInputElement) {
+      treeNextEnrollFirstNameInput.focus({ preventScroll: true });
+    } else if (!lastName && treeNextEnrollLastNameInput instanceof HTMLInputElement) {
+      treeNextEnrollLastNameInput.focus({ preventScroll: true });
+    }
+    return false;
+  }
+
+  const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!looksLikeEmail) {
+    setTreeNextEnrollFeedback('Enter a valid email address.', false);
+    if (treeNextEnrollEmailInput instanceof HTMLInputElement) {
+      treeNextEnrollEmailInput.focus({ preventScroll: true });
+    }
+    return false;
+  }
+  return true;
+}
+
+function validateTreeNextEnrollStepTwo() {
+  const packageKey = normalizeCredentialValue(treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY);
+  if (!ENROLL_PACKAGE_META[packageKey]) {
+    setTreeNextEnrollFeedback('Select a valid enrollment package.', false);
+    if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
+      treeNextEnrollPackageInput.focus({ preventScroll: true });
+    }
+    return false;
+  }
+  if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
+    const spilloverMode = normalizeCredentialValue(treeNextEnrollSpilloverModeInput.value || '');
+    if (spilloverMode !== ENROLL_SPILLOVER_MODE_DIRECT && spilloverMode !== ENROLL_SPILLOVER_MODE_SPILLOVER) {
+      setTreeNextEnrollFeedback('Select whether this registration should use spillover placement.', false);
+      treeNextEnrollSpilloverModeInput.focus({ preventScroll: true });
+      return false;
+    }
+  }
+  return true;
+}
+
+async function handleTreeNextEnrollModalSubmit(event) {
+  event.preventDefault();
+  clearTreeNextEnrollFeedback();
+
+  if (resolveTreeNextEnrollStep() !== 3) {
+    return;
+  }
+  if (!(treeNextEnrollModalForm instanceof HTMLFormElement)) {
+    return;
+  }
+
+  const placementLock = state.enroll?.placementLock;
+  if (!placementLock) {
+    setTreeNextEnrollFeedback('Placement context is missing. Select an anticipation node again.', false);
+    return;
+  }
+
+  const legState = resolveNodeChildLegState(placementLock.parentId);
+  if (
+    (placementLock.placementLeg === 'left' && legState.left)
+    || (placementLock.placementLeg === 'right' && legState.right)
+  ) {
+    setTreeNextEnrollFeedback('This slot is no longer available. Select another anticipation node.', false);
+    return;
+  }
+
+  if (!validateTreeNextEnrollStepOne() || !validateTreeNextEnrollStepTwo()) {
+    return;
+  }
+
+  const stripeReady = await initializeTreeNextEnrollStripeCard({ silent: true });
+  if (!stripeReady) {
+    setTreeNextEnrollFeedback('Stripe card number field is not ready yet.', false);
+    return;
+  }
+
+  const cardholderName = safeText(treeNextEnrollNameOnCardInput?.value);
+  if (!cardholderName) {
+    setTreeNextEnrollFeedback('Cardholder name is required before checkout.', false);
+    if (treeNextEnrollNameOnCardInput instanceof HTMLInputElement) {
+      treeNextEnrollNameOnCardInput.focus({ preventScroll: true });
+    }
+    return;
+  }
+  if (!isTreeNextEnrollStripeCardComplete || !isTreeNextEnrollStripeCardExpiryComplete) {
+    setTreeNextEnrollCardError('Please enter a complete card number and expiry date.');
+    setTreeNextEnrollFeedback('Please enter a complete card number and expiry date.', false);
+    return;
+  }
+
+  const email = safeText(treeNextEnrollEmailInput?.value);
+  const memberUsername = safeText(treeNextEnrollUsernameInput?.value).replace(/^@+/, '');
+  const firstName = safeText(treeNextEnrollFirstNameInput?.value);
+  const lastName = safeText(treeNextEnrollLastNameInput?.value);
+  const fullName = safeText(`${firstName} ${lastName}`);
+  const countryFlag = normalizeCredentialValue(treeNextEnrollCountryFlagInput?.value || ENROLL_DEFAULT_COUNTRY_FLAG);
+  const packageKey = normalizeCredentialValue(treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY);
+  const tierFromForm = normalizeCredentialValue(treeNextEnrollFastTrackTierInput?.value || '');
+  const tierKey = tierFromForm || resolveEnrollFastTrackTierFromPackage(packageKey);
+  const placementSide = resolveTreeNextEnrollPlacementSideFromLock(placementLock);
+  const spilloverMode = resolveTreeNextEnrollSpilloverModeValue();
+  const isSpilloverPlacement = spilloverMode === ENROLL_SPILLOVER_MODE_SPILLOVER;
+  const placementLeg = isSpilloverPlacement ? 'spillover' : placementSide;
+  const spilloverPlacementSide = placementSide;
+  const spilloverParentMode = isSpilloverPlacement ? 'manual' : 'auto';
+  const spilloverParentReference = isSpilloverPlacement
+    ? safeText(placementLock.parentReference || placementLock.parentId)
+    : '';
+
+  if (!countryFlag) {
+    setTreeNextEnrollFeedback('Country flag is required.', false);
+    return;
+  }
+  if (!ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY[tierKey]) {
+    setTreeNextEnrollFeedback('Fast Track tier is invalid for this package.', false);
+    return;
+  }
+
+  const { sponsorUsername, sponsorName } = resolveTreeNextEnrollSponsorIdentityForMode(placementLock);
+  const submitLabel = treeNextEnrollModalSubmitButton instanceof HTMLButtonElement
+    ? treeNextEnrollModalSubmitButton.textContent || 'Register and Pay'
+    : 'Register and Pay';
+  state.enroll.submitting = true;
+  if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
+    treeNextEnrollModalSubmitButton.disabled = true;
+    treeNextEnrollModalSubmitButton.textContent = 'Registering...';
+  }
+
+  try {
+    const createdMember = await submitTreeNextEnrollmentRequest({
+      fullName,
+      email,
+      memberUsername,
+      phone: '',
+      notes: '',
+      countryFlag,
+      placementLeg,
+      spilloverPlacementSide,
+      spilloverParentMode,
+      spilloverParentReference,
+      enrollmentPackage: packageKey,
+      fastTrackTier: tierKey,
+      sponsorUsername,
+      sponsorName,
+    });
+
+    const applyResult = applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey);
+    if (!applyResult.success) {
+      throw new Error(`Member created, but tree update failed: ${applyResult.error}`);
+    }
+
+    const enrolledName = safeText(createdMember?.fullName || fullName) || 'Member';
+    const packageLabel = safeText(
+      createdMember?.enrollmentPackageLabel
+      || resolveEnrollPackageMeta(packageKey)?.label
+      || 'Legacy Builder Package',
+    ) || 'Legacy Builder Package';
+    const effectiveTier = normalizeCredentialValue(createdMember?.fastTrackTier || tierKey);
+    const fallbackBonus = resolveEnrollFastTrackBonusAmount(packageKey, effectiveTier);
+    const commissionAmount = Math.max(0, safeNumber(createdMember?.fastTrackBonusAmount, fallbackBonus));
+    const placementSideLabel = spilloverPlacementSide.toUpperCase();
+    const placementSummary = isSpilloverPlacement
+      ? `SPILLOVER ${placementSideLabel}`
+      : `${placementSideLabel} leg`;
+    setTreeNextEnrollFeedback(`${enrolledName} enrolled on ${placementSummary} under ${placementLock.parentName}.`, true);
+    showTreeNextEnrollThankYouStep({
+      enrolledName,
+      packageLabel,
+      commissionAmount,
+    });
+  } catch (error) {
+    const fallbackMessage = error instanceof Error
+      ? error.message
+      : 'Unable to register member right now.';
+    setTreeNextEnrollFeedback(fallbackMessage, false);
+  } finally {
+    state.enroll.submitting = false;
+    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
+      treeNextEnrollModalSubmitButton.disabled = false;
+      treeNextEnrollModalSubmitButton.textContent = submitLabel;
+    }
+  }
+}
+
+function initTreeNextEnrollModal() {
+  if (!(treeNextEnrollModalForm instanceof HTMLFormElement)) {
+    return;
+  }
+
+  setTreeNextEnrollModalOpen(false);
+  clearTreeNextEnrollFeedback();
+  clearTreeNextEnrollCardError();
+
+  if (treeNextEnrollCountryFlagInput instanceof HTMLInputElement) {
+    treeNextEnrollCountryFlagInput.value = ENROLL_DEFAULT_COUNTRY_FLAG;
+  }
+  if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
+    treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
+    treeNextEnrollPackageInput.addEventListener('change', () => {
+      syncTreeNextEnrollTierFromPackage();
+      syncTreeNextEnrollPackagePreview();
+      clearTreeNextEnrollFeedback();
+    });
+  }
+  if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
+    treeNextEnrollSpilloverModeInput.value = ENROLL_SPILLOVER_MODE_SPILLOVER;
+    treeNextEnrollSpilloverModeInput.addEventListener('change', () => {
+      syncTreeNextEnrollLegPositionField();
+      syncTreeNextEnrollSponsorField();
+      clearTreeNextEnrollFeedback();
+    });
+  }
+  syncTreeNextEnrollTierFromPackage();
+  syncTreeNextEnrollPackagePreview();
+  syncTreeNextEnrollLegPositionField();
+  syncTreeNextEnrollSponsorField();
+  setTreeNextEnrollStep(1, { focusField: false });
+
+  if (treeNextEnrollModalDismissButton instanceof HTMLButtonElement) {
+    treeNextEnrollModalDismissButton.addEventListener('click', () => {
+      closeTreeNextEnrollModal({
+        restoreFocus: true,
+        clearFeedback: true,
+        resetForm: true,
+        clearPlacementLock: true,
+      });
+    });
+  }
+  if (treeNextEnrollModalDoneButton instanceof HTMLButtonElement) {
+    treeNextEnrollModalDoneButton.addEventListener('click', () => {
+      closeTreeNextEnrollModal({
+        restoreFocus: false,
+        clearFeedback: true,
+        resetForm: true,
+        clearPlacementLock: true,
+      });
+    });
+  }
+  if (treeNextEnrollStepOneNextButton instanceof HTMLButtonElement) {
+    treeNextEnrollStepOneNextButton.addEventListener('click', () => {
+      clearTreeNextEnrollFeedback();
+      if (!validateTreeNextEnrollStepOne()) {
+        return;
+      }
+      setTreeNextEnrollStep(2, { focusField: true });
+    });
+  }
+  if (treeNextEnrollStepTwoPreviousButton instanceof HTMLButtonElement) {
+    treeNextEnrollStepTwoPreviousButton.addEventListener('click', () => {
+      clearTreeNextEnrollFeedback();
+      setTreeNextEnrollStep(1, { focusField: true });
+    });
+  }
+  if (treeNextEnrollStepTwoNextButton instanceof HTMLButtonElement) {
+    treeNextEnrollStepTwoNextButton.addEventListener('click', async () => {
+      clearTreeNextEnrollFeedback();
+      if (!validateTreeNextEnrollStepTwo()) {
+        return;
+      }
+      setTreeNextEnrollStep(3, { focusField: true });
+      await initializeTreeNextEnrollStripeCard({ silent: true });
+    });
+  }
+  if (treeNextEnrollStepThreePreviousButton instanceof HTMLButtonElement) {
+    treeNextEnrollStepThreePreviousButton.addEventListener('click', () => {
+      clearTreeNextEnrollFeedback();
+      setTreeNextEnrollStep(2, { focusField: true });
+    });
+  }
+
+  treeNextEnrollModalForm.addEventListener('keydown', (event) => {
+    const key = safeText(event?.key).toLowerCase();
+    if (key !== 'enter' || event.shiftKey) {
+      return;
+    }
+    if (event.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+    const currentStep = resolveTreeNextEnrollStep();
+    if (currentStep === 1) {
+      event.preventDefault();
+      if (validateTreeNextEnrollStepOne()) {
+        setTreeNextEnrollStep(2, { focusField: true });
+      }
+      return;
+    }
+    if (currentStep === 2) {
+      event.preventDefault();
+      if (validateTreeNextEnrollStepTwo()) {
+        setTreeNextEnrollStep(3, { focusField: true });
+      }
+    }
+  });
+
+  treeNextEnrollModalForm.addEventListener('submit', handleTreeNextEnrollModalSubmit);
+  window.addEventListener('binary-tree-enroll-member-request', (event) => {
+    openTreeNextEnrollModal(event?.detail || {});
+  });
 }
 
 function resolveNodeReferenceLabel(nodeId, fallback = '-') {
@@ -942,8 +2338,21 @@ function resolveNodeLegVolumes(nodeId) {
 }
 
 function resolvePinnedPlaces(limit = 8) {
-  const pinnedIds = normalizePinnedNodeIds(state.pinnedNodeIds).slice(0, Math.max(1, limit));
-  return pinnedIds.map((nodeId) => {
+  const safeLimit = Math.max(1, Math.floor(safeNumber(limit, 8)));
+  const favoritesState = getSideNavFavoritesState();
+  const pinnedIds = Array.isArray(state.pinnedNodeIds)
+    ? state.pinnedNodeIds.slice(0, safeLimit)
+    : [];
+  const cacheKey = pinnedIds.join('|');
+  if (
+    favoritesState.placesCacheKey === cacheKey
+    && favoritesState.placesCacheLimit === safeLimit
+    && Array.isArray(favoritesState.placesCache)
+  ) {
+    return favoritesState.placesCache;
+  }
+
+  const places = pinnedIds.map((nodeId) => {
     const node = resolveNodeById(nodeId);
     const volumes = resolveNodeLegVolumes(nodeId);
     return {
@@ -954,6 +2363,11 @@ function resolvePinnedPlaces(limit = 8) {
       subtitle: formatCompactVolumeValue(volumes.totalVolume),
     };
   });
+
+  favoritesState.placesCacheKey = cacheKey;
+  favoritesState.placesCacheLimit = safeLimit;
+  favoritesState.placesCache = places;
+  return places;
 }
 
 function formatCutoffHourMinute(hour24, minute) {
@@ -1591,7 +3005,13 @@ function drawResolvedAvatarCircle(cx, cy, radius, nodeId, options = {}) {
 }
 
 function resolveProjectionScale(rawScale) {
-  const safeRawScale = clamp(safeNumber(rawScale, DEFAULT_HOME_SCALE), MIN_SCALE, MAX_SCALE);
+  const safeRawInput = safeNumber(rawScale, DEFAULT_HOME_SCALE);
+  const transitionReason = safeText(state.camera?.targetReason);
+  const universeTransitionActive = transitionReason === 'universe-enter' || transitionReason === 'universe-back';
+  const minScale = universeTransitionActive
+    ? Math.min(MIN_SCALE, UNIVERSE_ENTER_TRANSITION_MIN_SCALE)
+    : MIN_SCALE;
+  const safeRawScale = clamp(safeRawInput, minScale, MAX_SCALE);
   return (safeRawScale / DEFAULT_HOME_SCALE) * PROJECTION_BASE_SCALE;
 }
 
@@ -1665,6 +3085,73 @@ function focusUniverseRoot(animated = true) {
   return focusNode(getUniverseRootId(), DEFAULT_ROOT_FOCUS_RADIUS, animated);
 }
 
+function setUniverseEnterViewFade(mode = 'none', durationMs = 0) {
+  const safeMode = safeText(mode).toLowerCase();
+  if (safeMode !== 'out' && safeMode !== 'in') {
+    state.universe.enterViewFadeMode = 'none';
+    state.universe.enterViewFadeStartedAtMs = 0;
+    state.universe.enterViewFadeDurationMs = 0;
+    return;
+  }
+  state.universe.enterViewFadeMode = safeMode;
+  state.universe.enterViewFadeStartedAtMs = getNowMs();
+  state.universe.enterViewFadeDurationMs = Math.max(1, Math.floor(safeNumber(durationMs, 0)));
+}
+
+function resolveUniverseEnterViewOpacity(nowMs = getNowMs()) {
+  const mode = safeText(state.universe?.enterViewFadeMode).toLowerCase();
+  if (mode !== 'out' && mode !== 'in') {
+    return 1;
+  }
+  const startedAtMs = safeNumber(state.universe?.enterViewFadeStartedAtMs, nowMs);
+  const durationMs = Math.max(1, Math.floor(safeNumber(state.universe?.enterViewFadeDurationMs, 1)));
+  const t = clamp((nowMs - startedAtMs) / durationMs, 0, 1);
+  const eased = easeOutCubic(t);
+
+  if (mode === 'out') {
+    return Math.max(0, 1 - eased);
+  }
+
+  if (t >= 1) {
+    state.universe.enterViewFadeMode = 'none';
+    state.universe.enterViewFadeStartedAtMs = 0;
+    state.universe.enterViewFadeDurationMs = 0;
+    return 1;
+  }
+  return eased;
+}
+
+function clearPendingUniverseEnterPrep(options = {}) {
+  const { preserveFade = false } = options;
+  const timerId = Math.floor(safeNumber(state.universe?.enterPrepTimeoutId, 0));
+  if (timerId > 0) {
+    window.clearTimeout(timerId);
+  }
+  const rafId = Math.floor(safeNumber(state.universe?.enterPrepRafId, 0));
+  if (rafId > 0) {
+    window.cancelAnimationFrame(rafId);
+  }
+  state.universe.enterPrepTimeoutId = 0;
+  state.universe.enterPrepRafId = 0;
+  state.universe.enterPrepToken = '';
+  if (!preserveFade) {
+    setUniverseEnterViewFade('none');
+  }
+}
+
+function clearPendingUniverseBackPrep(options = {}) {
+  const { preserveFade = false } = options;
+  const rafId = Math.floor(safeNumber(state.universe?.backPrepRafId, 0));
+  if (rafId > 0) {
+    window.cancelAnimationFrame(rafId);
+  }
+  state.universe.backPrepRafId = 0;
+  state.universe.backPrepToken = '';
+  if (!preserveFade) {
+    setUniverseEnterViewFade('none');
+  }
+}
+
 function createPovSnapshot(rootId = getUniverseRootId()) {
   const safeRootId = safeText(rootId) || 'root';
   return {
@@ -1675,7 +3162,13 @@ function createPovSnapshot(rootId = getUniverseRootId()) {
   };
 }
 
-function enterNodeUniverse(nodeId = state.selectedId, animated = true) {
+function enterNodeUniverse(nodeId = state.selectedId, animated = true, options = {}) {
+  const {
+    restoreCachedCamera = true,
+    animateLocalFromZoomedOut = false,
+  } = options;
+  clearPendingUniverseEnterPrep({ preserveFade: true });
+  clearPendingUniverseBackPrep({ preserveFade: true });
   const targetNodeId = safeText(nodeId);
   if (!targetNodeId) {
     return false;
@@ -1703,12 +3196,108 @@ function enterNodeUniverse(nodeId = state.selectedId, animated = true) {
   state.depthFilter = 'all';
   setSelectedNode(targetNodeId, { animate: false });
 
-  if (restoreUniverseCamera(targetNodeId, animated)) {
+  if (restoreCachedCamera && restoreUniverseCamera(targetNodeId, animated)) {
     return true;
+  }
+
+  if (animateLocalFromZoomedOut) {
+    const viewport = state.viewport || state.layout?.viewport;
+    const localMetrics = state.adapter.resolveNodeMetrics(targetNodeId, getUniverseOptions());
+    if (viewport && localMetrics) {
+      const baseRadius = NODE_RADIUS_BASE * (localMetrics.worldRadius / WORLD_RADIUS_BASE);
+      const desiredProjectionScale = DEFAULT_ROOT_FOCUS_RADIUS / Math.max(0.001, baseRadius);
+      const finalScale = resolveRawScaleFromProjection(desiredProjectionScale);
+      const finalProjectionScale = resolveProjectionScale(finalScale);
+      const desiredX = viewport.x + (viewport.width * 0.5);
+      const desiredY = viewport.y + (viewport.height * 0.44);
+      const finalView = {
+        scale: finalScale,
+        x: desiredX - viewport.centerX - (localMetrics.worldX * finalProjectionScale),
+        y: desiredY - viewport.baseY - (localMetrics.worldY * finalProjectionScale),
+      };
+      const startScale = clamp(
+        finalScale * UNIVERSE_ENTER_LOCAL_START_SCALE_FACTOR,
+        Math.min(MIN_SCALE, UNIVERSE_ENTER_TRANSITION_MIN_SCALE),
+        MAX_SCALE,
+      );
+      const startProjectionScale = (startScale / DEFAULT_HOME_SCALE) * PROJECTION_BASE_SCALE;
+      const startView = {
+        scale: startScale,
+        x: desiredX - viewport.centerX - (localMetrics.worldX * startProjectionScale),
+        y: desiredY - viewport.baseY - (localMetrics.worldY * startProjectionScale),
+      };
+      state.camera.target = null;
+      state.camera.targetReason = 'universe-enter';
+      state.camera.view = {
+        x: safeNumber(startView.x, state.camera.view.x),
+        y: safeNumber(startView.y, state.camera.view.y),
+        scale: clamp(
+          safeNumber(startView.scale, state.camera.view.scale),
+          Math.min(MIN_SCALE, UNIVERSE_ENTER_TRANSITION_MIN_SCALE),
+          MAX_SCALE,
+        ),
+      };
+      setCameraTarget(finalView, animated);
+      state.camera.targetReason = 'universe-enter';
+      return true;
+    }
   }
 
   setCameraTarget(computeHomeView(), false);
   return focusUniverseRoot(animated);
+}
+
+function enterNodeUniverseWithZoomHint(nodeId = state.selectedId) {
+  const targetNodeId = safeText(nodeId);
+  if (!targetNodeId) {
+    return false;
+  }
+
+  const currentRootId = getUniverseRootId();
+  if (targetNodeId === currentRootId) {
+    return focusUniverseRoot(true);
+  }
+
+  clearPendingUniverseEnterPrep();
+  const globalMetrics = state.adapter.resolveNodeMetrics(targetNodeId, getGlobalUniverseOptions());
+  if (!globalMetrics) {
+    return false;
+  }
+  setUniverseEnterViewFade('out', UNIVERSE_ENTER_GLOBAL_ZOOM_MS);
+
+  if (!focusNode(targetNodeId, UNIVERSE_ENTER_GLOBAL_FOCUS_RADIUS, true)) {
+    setUniverseEnterViewFade('in', UNIVERSE_ENTER_LOCAL_FADE_IN_MS);
+    return enterNodeUniverse(targetNodeId, true, {
+      restoreCachedCamera: false,
+      animateLocalFromZoomedOut: true,
+    });
+  }
+  state.camera.targetReason = 'universe-enter';
+
+  const prepToken = `${targetNodeId}:${Math.floor(getNowMs())}`;
+  const startedAtMs = getNowMs();
+  state.universe.enterPrepToken = prepToken;
+  const continueEnter = () => {
+    if (state.universe.enterPrepToken !== prepToken) {
+      return;
+    }
+
+    const elapsedMs = Math.max(0, getNowMs() - startedAtMs);
+    if (elapsedMs < UNIVERSE_ENTER_GLOBAL_ZOOM_MS) {
+      state.universe.enterPrepRafId = window.requestAnimationFrame(continueEnter);
+      return;
+    }
+
+    state.universe.enterPrepRafId = 0;
+    state.universe.enterPrepToken = '';
+    setUniverseEnterViewFade('in', UNIVERSE_ENTER_LOCAL_FADE_IN_MS);
+    enterNodeUniverse(targetNodeId, true, {
+      restoreCachedCamera: false,
+      animateLocalFromZoomedOut: true,
+    });
+  };
+  state.universe.enterPrepRafId = window.requestAnimationFrame(continueEnter);
+  return true;
 }
 
 function gotoUniverseFromBreadcrumb(targetRootId, animated = true) {
@@ -1753,7 +3342,13 @@ function gotoUniverseFromBreadcrumb(targetRootId, animated = true) {
   return focusUniverseRoot(animated);
 }
 
-function exitNodeUniverse(animated = true) {
+function exitNodeUniverse(animated = true, options = {}) {
+  const {
+    restoreCachedCamera = true,
+    animateParentFromZoomedIn = false,
+  } = options;
+  clearPendingUniverseEnterPrep({ preserveFade: true });
+  clearPendingUniverseBackPrep({ preserveFade: true });
   const currentRootId = getUniverseRootId();
   if (!currentRootId) {
     return false;
@@ -1777,14 +3372,128 @@ function exitNodeUniverse(animated = true) {
   state.depthFilter = safeText(previousPov?.depthFilter || 'all');
   setSelectedNode(safeText(previousPov?.selectedId || parentRootId), { animate: false });
 
-  if (restoreUniverseCamera(parentRootId, animated)) {
+  if (restoreCachedCamera && restoreUniverseCamera(parentRootId, animated)) {
     return true;
+  }
+
+  if (animateParentFromZoomedIn) {
+    const viewport = state.viewport || state.layout?.viewport;
+    const parentTargetId = safeText(state.selectedId || parentRootId) || parentRootId;
+    const parentMetrics = state.adapter.resolveNodeMetrics(parentTargetId, getUniverseOptions());
+    if (viewport && parentMetrics) {
+      const baseRadius = NODE_RADIUS_BASE * (parentMetrics.worldRadius / WORLD_RADIUS_BASE);
+      const desiredProjectionScale = DEFAULT_ROOT_FOCUS_RADIUS / Math.max(0.001, baseRadius);
+      const finalScale = resolveRawScaleFromProjection(desiredProjectionScale);
+      const finalProjectionScale = resolveProjectionScale(finalScale);
+      const desiredX = viewport.x + (viewport.width * 0.5);
+      const desiredY = viewport.y + (viewport.height * 0.44);
+      const finalView = {
+        scale: finalScale,
+        x: desiredX - viewport.centerX - (parentMetrics.worldX * finalProjectionScale),
+        y: desiredY - viewport.baseY - (parentMetrics.worldY * finalProjectionScale),
+      };
+      const startScale = clamp(
+        finalScale * UNIVERSE_BACK_PARENT_START_SCALE_FACTOR,
+        Math.min(MIN_SCALE, UNIVERSE_ENTER_TRANSITION_MIN_SCALE),
+        MAX_SCALE,
+      );
+      const startProjectionScale = (startScale / DEFAULT_HOME_SCALE) * PROJECTION_BASE_SCALE;
+      const startView = {
+        scale: startScale,
+        x: desiredX - viewport.centerX - (parentMetrics.worldX * startProjectionScale),
+        y: desiredY - viewport.baseY - (parentMetrics.worldY * startProjectionScale),
+      };
+      state.camera.target = null;
+      state.camera.targetReason = 'universe-back';
+      state.camera.view = {
+        x: safeNumber(startView.x, state.camera.view.x),
+        y: safeNumber(startView.y, state.camera.view.y),
+        scale: clamp(
+          safeNumber(startView.scale, state.camera.view.scale),
+          Math.min(MIN_SCALE, UNIVERSE_ENTER_TRANSITION_MIN_SCALE),
+          MAX_SCALE,
+        ),
+      };
+      setCameraTarget(finalView, animated);
+      state.camera.targetReason = 'universe-back';
+      return true;
+    }
   }
 
   if (focusNode(state.selectedId || parentRootId, 30, animated)) {
     return true;
   }
   return focusUniverseRoot(animated);
+}
+
+function exitNodeUniverseWithZoomHint(animated = true) {
+  clearPendingUniverseEnterPrep();
+  clearPendingUniverseBackPrep();
+
+  const currentRootId = getUniverseRootId();
+  if (!currentRootId) {
+    return false;
+  }
+
+  const hasHistory = Array.isArray(state.universe.history) && state.universe.history.length > 0;
+  if (!hasHistory && currentRootId === 'root') {
+    return false;
+  }
+
+  const viewport = state.viewport || state.layout?.viewport;
+  const currentRootMetrics = state.adapter.resolveNodeMetrics(currentRootId, getUniverseOptions());
+  if (viewport && currentRootMetrics) {
+    const referenceScale = clamp(
+      safeNumber(state.camera.target?.scale, state.camera.view.scale),
+      Math.min(MIN_SCALE, UNIVERSE_ENTER_TRANSITION_MIN_SCALE),
+      MAX_SCALE,
+    );
+    const zoomOutScale = clamp(
+      referenceScale * UNIVERSE_BACK_LOCAL_ZOOM_OUT_FACTOR,
+      Math.min(MIN_SCALE, UNIVERSE_ENTER_TRANSITION_MIN_SCALE),
+      MAX_SCALE,
+    );
+    const zoomOutProjectionScale = (zoomOutScale / DEFAULT_HOME_SCALE) * PROJECTION_BASE_SCALE;
+    const desiredX = viewport.x + (viewport.width * 0.5);
+    const desiredY = viewport.y + (viewport.height * 0.44);
+    const localZoomOutView = {
+      scale: zoomOutScale,
+      x: desiredX - viewport.centerX - (currentRootMetrics.worldX * zoomOutProjectionScale),
+      y: desiredY - viewport.baseY - (currentRootMetrics.worldY * zoomOutProjectionScale),
+    };
+    setCameraTarget(localZoomOutView, true);
+    state.camera.targetReason = 'universe-back';
+  }
+
+  const prepToken = `${safeText(currentRootId)}:${Math.floor(getNowMs())}`;
+  const startedAtMs = getNowMs();
+  let backFadeOutStarted = false;
+  state.universe.backPrepToken = prepToken;
+  const continueBack = () => {
+    if (state.universe.backPrepToken !== prepToken) {
+      return;
+    }
+
+    const elapsedMs = Math.max(0, getNowMs() - startedAtMs);
+    if (!backFadeOutStarted && elapsedMs >= UNIVERSE_BACK_LOCAL_FADE_OUT_DELAY_MS) {
+      setUniverseEnterViewFade('out', UNIVERSE_BACK_LOCAL_FADE_OUT_MS);
+      backFadeOutStarted = true;
+    }
+    if (elapsedMs < UNIVERSE_BACK_LOCAL_ZOOM_MS) {
+      state.universe.backPrepRafId = window.requestAnimationFrame(continueBack);
+      return;
+    }
+
+    state.universe.backPrepRafId = 0;
+    state.universe.backPrepToken = '';
+    setUniverseEnterViewFade('in', UNIVERSE_BACK_PARENT_FADE_IN_MS);
+    exitNodeUniverse(animated, {
+      restoreCachedCamera: false,
+      animateParentFromZoomedIn: true,
+    });
+  };
+  state.universe.backPrepRafId = window.requestAnimationFrame(continueBack);
+  return true;
 }
 
 function parseSessionPayload(raw) {
@@ -2315,6 +4024,7 @@ function resolveLayout(width, height) {
   const edgePad = clamp(Math.round(Math.min(width, height) * 0.022), 20, 28);
   const sideNavMaxWidth = Math.max(320, width - (edgePad * 2) - 24);
   const sideNavWidth = clamp(390, 320, sideNavMaxWidth);
+  const sideNavVerticalInset = clamp(edgePad - 10, 10, edgePad);
 
   const workspace = {
     x: 0,
@@ -2324,13 +4034,13 @@ function resolveLayout(width, height) {
   };
   const sideNav = {
     x: edgePad,
-    y: edgePad,
+    y: sideNavVerticalInset,
     width: sideNavWidth,
-    height: height - (edgePad * 2),
+    height: height - (sideNavVerticalInset * 2),
   };
   const sideNavToggle = {
     x: edgePad,
-    y: edgePad,
+    y: sideNavVerticalInset,
     width: 124,
     height: 30,
   };
@@ -2660,25 +4370,12 @@ function drawFavoriteNodeAvatar(cx, cy, radius, nodeId, initials, hovered = fals
   const safeRadius = Math.max(14, safeNumber(radius, 0));
   const iconRadius = hovered ? (safeRadius * 1.03) : safeRadius;
   const safeNodeId = safeText(nodeId);
-  const isActive = safeNodeId === safeText(state.selectedId);
 
-  context.save();
-  context.shadowColor = hovered ? 'rgba(57, 66, 84, 0.24)' : 'rgba(57, 66, 84, 0.16)';
-  context.shadowBlur = hovered ? 16 : 12;
-  context.shadowOffsetY = hovered ? 6 : 4;
   const avatarRender = drawResolvedAvatarCircle(cx, cy, iconRadius, safeNodeId, {
     variant: 'auto',
     alpha: 0.98,
     sheenAlpha: hovered ? 0.22 : 0.18,
   });
-  if (isActive) {
-    context.beginPath();
-    context.arc(cx, cy, Math.max(1, iconRadius - 1), 0, Math.PI * 2);
-    context.lineWidth = 2;
-    context.strokeStyle = '#FFFFFF';
-    context.stroke();
-  }
-  context.restore();
 
   if (!avatarRender.usedPhoto) {
     drawText(initials, cx, cy + 0.5, {
@@ -2753,6 +4450,9 @@ function getSideNavFavoritesState() {
       dragStartY: 0,
       dragMoved: false,
       tapAction: '',
+      placesCacheKey: '',
+      placesCacheLimit: 0,
+      placesCache: [],
     };
   }
   return state.ui.sideNavFavorites;
@@ -3415,7 +5115,7 @@ function ensureSideNavProfileMenu() {
   menu.style.borderRadius = '16px';
   menu.style.border = '1px solid #DEE3EC';
   menu.style.background = '#FFFFFF';
-  menu.style.boxShadow = '0 14px 28px rgba(46, 57, 77, 0.18), 0 4px 10px rgba(46, 57, 77, 0.12)';
+  menu.style.boxShadow = '0 8px 18px rgba(46, 57, 77, 0.12), 0 2px 6px rgba(46, 57, 77, 0.08)';
   menu.style.backdropFilter = 'blur(6px)';
   menu.style.webkitBackdropFilter = 'blur(6px)';
   menu.style.zIndex = '25';
@@ -3648,7 +5348,7 @@ function syncSideNavProfileMenu() {
   const anchorRect = state.ui.sideNavBrandMenuAnchorRect;
   const dropdownRect = state.ui.sideNavSearchDropdownRect;
   const opacity = clamp(safeNumber(state.ui.sideNavSearchInputOpacity, 1), 0, 1);
-  if (!state.ui.sideNavOpen || !anchorRect || !state.ui.sideNavBrandMenuOpen || opacity <= 0.001) {
+  if (!anchorRect || !state.ui.sideNavBrandMenuOpen || opacity <= 0.001) {
     menu.style.display = 'none';
     menu.style.opacity = '0';
     menu.dataset.renderKey = '';
@@ -3661,14 +5361,23 @@ function syncSideNavProfileMenu() {
   const maxMenuWidth = Math.max(220, viewportWidth - (viewportPadding * 2));
   const searchLeft = dropdownRect ? Math.round(dropdownRect.x) : Math.round(anchorRect.x);
   const profileRight = Math.round(anchorRect.x + anchorRect.width);
-  const computedWidth = Math.max(240, profileRight - searchLeft);
+  const anchorDistance = Math.abs(profileRight - searchLeft);
+  const useSearchAlignedWidth = Boolean(dropdownRect) && anchorDistance <= 260;
+  const computedWidth = useSearchAlignedWidth
+    ? Math.max(240, profileRight - searchLeft)
+    : 248;
   const menuWidth = clamp(computedWidth, 220, maxMenuWidth);
-  let menuX = searchLeft;
+  const menuAnchorGap = 6;
+  let menuX = useSearchAlignedWidth
+    ? searchLeft
+    : Math.round(anchorRect.x - menuWidth - menuAnchorGap);
   if (menuX + menuWidth > viewportWidth - viewportPadding) {
     menuX = Math.max(viewportPadding, (viewportWidth - viewportPadding) - menuWidth);
   }
   menuX = clamp(menuX, viewportPadding, Math.max(viewportPadding, viewportWidth - menuWidth - viewportPadding));
-  const menuY = Math.round(anchorRect.y + anchorRect.height + 2);
+  const menuY = useSearchAlignedWidth
+    ? Math.round(anchorRect.y + anchorRect.height + 2)
+    : Math.round(anchorRect.y);
   const availableHeight = Math.max(220, viewportHeight - menuY - viewportPadding);
   const menuMaxHeight = Math.min(540, availableHeight);
 
@@ -4057,10 +5766,6 @@ function drawUniverseBreadcrumbLinks(startX, startY, maxWidth) {
 }
 
 function drawSideNav(layout) {
-  if (!state.ui.sideNavOpen) {
-    state.ui.sideNavOpen = true;
-  }
-
   const panelReveal = resolveStartupRevealForPanel(STARTUP_SIDE_PANEL_DELAY_MS);
   if (panelReveal.progress <= 0) {
     state.ui.sideNavSearchInputRect = null;
@@ -4082,7 +5787,6 @@ function drawSideNav(layout) {
     state.ui.sideNavSearchInputOpacity = applyPanelReveal
       ? clamp(safeNumber(panelReveal.alpha, 1), 0, 1)
       : 1;
-    drawPanelChrome(panel, 'left');
 
     const insetX = 18;
     const slotX = panel.x + insetX;
@@ -4090,22 +5794,113 @@ function drawSideNav(layout) {
     const topPadding = 18;
     const gap = 16;
     const searchRowHeight = 42;
-    const favoritesCardHeight = 168;
+    const panelHeightScale = clamp((panel.height - 620) / 240, 0, 1);
+    const favoritesCardHeight = Math.round(136 + (32 * panelHeightScale));
+    const favoritesToDetailsGap = Math.round(4 + (8 * panelHeightScale));
     const timerCardHeight = 124;
 
     let y = panel.y + topPadding;
-    const searchAvatarSize = 36;
+    const topControlButtonSize = 36;
+    const floatingProfileSize = 44;
     const searchAvatarGap = 8;
     const searchPillHeight = 36;
-    const searchPillWidth = slotWidth - searchAvatarSize - searchAvatarGap;
-    const searchPillX = slotX;
-    const searchPillY = y + ((searchRowHeight - searchPillHeight) / 2);
+    const topControlY = y + ((searchRowHeight - searchPillHeight) / 2);
+
+    const profileButtonId = 'side-nav-floating-profile';
+    const profileX = Math.max(
+      8,
+      Math.round((layout.workspace.x + layout.workspace.width) - floatingProfileSize - 8),
+    );
+    // Align to side-nav shell top instead of the search row height.
+    const profileY = panel.y;
+    const profileCenterX = profileX + (floatingProfileSize / 2);
+    const profileCenterY = profileY + (floatingProfileSize / 2);
+    const profileName = resolveSessionDisplayName();
+    const profileInitials = resolveInitials(profileName);
+    const profileRingRadius = (floatingProfileSize / 2);
+    const profileInnerRadius = profileRingRadius;
+
     context.save();
-    context.shadowColor = 'rgba(73, 82, 101, 0.10)';
+    context.shadowColor = 'rgba(25, 36, 52, 0.16)';
     context.shadowBlur = 8;
     context.shadowOffsetY = 2;
-    fillRoundedRect(context, searchPillX, searchPillY, searchPillWidth, searchPillHeight, 18, '#FFFFFF');
+    const sessionAvatarRender = drawResolvedAvatarCircle(
+      profileCenterX,
+      profileCenterY,
+      profileInnerRadius,
+      resolveSessionUserId(),
+      {
+        alpha: 0.98,
+        sheenAlpha: 0.2,
+      },
+    );
     context.restore();
+    if (!sessionAvatarRender.usedPhoto) {
+      drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
+        size: Math.round(clamp(floatingProfileSize * 0.32, 12, 16)),
+        weight: 700,
+        color: '#F5F9FF',
+        align: 'center',
+      });
+    }
+    registerButton({
+      id: profileButtonId,
+      x: profileX,
+      y: profileY + buttonYOffset,
+      width: floatingProfileSize,
+      height: floatingProfileSize,
+      action: 'brand-menu:toggle',
+    });
+    state.ui.sideNavBrandMenuAnchorRect = {
+      x: profileX,
+      y: profileY + buttonYOffset,
+      width: floatingProfileSize,
+      height: floatingProfileSize,
+    };
+
+    const sideNavToggleButtonId = 'side-nav-panel-toggle';
+    const drawSideNavToggleButton = (buttonX, buttonY, size, action = 'side-nav:toggle') => {
+      const hovered = state.hoveredButtonId === sideNavToggleButtonId;
+      const buttonFill = hovered ? '#E8EAF0' : SHELL_PANEL_COLOR;
+      const buttonStroke = hovered ? '#DFE2EA' : SHELL_PANEL_COLOR;
+      const iconColor = hovered ? '#444444' : '#888888';
+      fillRoundedRect(context, buttonX, buttonY, size, size, Math.round(size / 2), buttonFill);
+      strokeRoundedRect(context, buttonX + 0.5, buttonY + 0.5, size - 1, size - 1, Math.round(size / 2), buttonStroke, 1);
+      drawMaterialButtonIcon('side_navigation', buttonX + (size / 2), buttonY + (size / 2) + 0.5, {
+        size: Math.round(size * 0.58),
+        weight: 500,
+        color: iconColor,
+        fill: 0,
+      });
+      registerButton({
+        id: sideNavToggleButtonId,
+        x: buttonX,
+        y: buttonY + buttonYOffset,
+        width: size,
+        height: size,
+        action,
+      });
+    };
+
+    if (!state.ui.sideNavOpen) {
+      state.ui.sideNavSearchInputRect = null;
+      state.ui.sideNavSearchDropdownRect = null;
+      closeSearchDropdown();
+      const favorites = getSideNavFavoritesState();
+      favorites.viewportRect = null;
+      stopFavoritesCarouselDrag(null);
+
+      const collapsedToggleX = panel.x + insetX;
+      drawSideNavToggleButton(collapsedToggleX, topControlY, topControlButtonSize);
+      return;
+    }
+
+    drawPanelChrome(panel, 'left');
+
+    const searchPillWidth = slotWidth - topControlButtonSize - searchAvatarGap;
+    const searchPillX = slotX;
+    const searchPillY = topControlY;
+    fillRoundedRect(context, searchPillX, searchPillY, searchPillWidth, searchPillHeight, 18, '#FFFFFF');
     drawSearchGlyph(searchPillX + 18, searchPillY + (searchPillHeight / 2) + 0.5, {
       color: '#353B47',
       size: 21,
@@ -4125,52 +5920,8 @@ function drawSideNav(layout) {
       width: searchPillWidth,
       height: searchPillHeight,
     };
-
-    const profileButtonId = 'side-nav-search-profile';
-    const profileX = searchPillX + searchPillWidth + searchAvatarGap;
-    const profileY = searchPillY;
-    const profileCenterX = profileX + (searchAvatarSize / 2);
-    const profileCenterY = profileY + (searchAvatarSize / 2);
-    const profileName = resolveSessionDisplayName();
-    const profileInitials = resolveInitials(profileName);
-    const profileRingRadius = (searchAvatarSize / 2);
-    const profileInnerRadius = Math.max(6, profileRingRadius - 2.5);
-    context.beginPath();
-    context.arc(profileCenterX, profileCenterY, profileRingRadius, 0, Math.PI * 2);
-    context.fillStyle = '#FFFFFF';
-    context.fill();
-    const sessionAvatarRender = drawResolvedAvatarCircle(
-      profileCenterX,
-      profileCenterY,
-      profileInnerRadius,
-      resolveSessionUserId(),
-      {
-      alpha: 0.98,
-      sheenAlpha: 0.2,
-      },
-    );
-    if (!sessionAvatarRender.usedPhoto) {
-      drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
-        size: 11,
-        weight: 700,
-        color: '#F5F9FF',
-        align: 'center',
-      });
-    }
-    registerButton({
-      id: profileButtonId,
-      x: profileX,
-      y: profileY + buttonYOffset,
-      width: searchAvatarSize,
-      height: searchAvatarSize,
-      action: 'brand-menu:toggle',
-    });
-    state.ui.sideNavBrandMenuAnchorRect = {
-      x: profileX,
-      y: profileY + buttonYOffset,
-      width: searchAvatarSize,
-      height: searchAvatarSize,
-    };
+    const sideNavToggleX = searchPillX + searchPillWidth + searchAvatarGap;
+    drawSideNavToggleButton(sideNavToggleX, searchPillY, topControlButtonSize);
 
     y += searchRowHeight + gap;
     drawText('Favorites', slotX + 4, y + 15, {
@@ -4222,11 +5973,13 @@ function drawSideNav(layout) {
     }
 
     const favorites = resolvePinnedPlaces(12);
+    const favoritesViewportTopInset = Math.round(20 + (6 * panelHeightScale));
+    const favoritesViewportBottomInset = Math.round(8 + (10 * panelHeightScale));
     const favoritesViewport = {
       x: slotX + 2,
-      y: y + 26,
+      y: y + favoritesViewportTopInset,
       width: slotWidth - 4,
-      height: favoritesCardHeight - 24,
+      height: Math.max(84, favoritesCardHeight - favoritesViewportTopInset - favoritesViewportBottomInset),
     };
     const favoritesState = getSideNavFavoritesState();
     favoritesState.viewportRect = { ...favoritesViewport };
@@ -4285,7 +6038,7 @@ function drawSideNav(layout) {
 
     context.restore();
 
-    y += favoritesCardHeight + gap;
+    y += favoritesCardHeight + favoritesToDetailsGap;
     const timerCardY = panel.y + panel.height - topPadding - timerCardHeight;
     const detailsCardHeight = Math.max(120, timerCardY - y - gap);
     const detailsBottomY = y + detailsCardHeight;
@@ -4293,14 +6046,22 @@ function drawSideNav(layout) {
     const detailContentWidth = slotWidth - 32;
     const detailCenterX = slotX + (slotWidth / 2);
     const detailRightX = slotX + slotWidth - 16;
+    const detailVerticalScale = clamp((detailsCardHeight - 380) / 240, 0, 1);
+    const detailsHeadingSize = Math.round(22 + (2 * detailVerticalScale));
+    const detailPrimaryTextSize = Math.round(22 + (2 * detailVerticalScale));
+    const detailSecondaryTextSize = Math.round(11 + detailVerticalScale);
+    const detailRankTextSize = detailSecondaryTextSize;
+    const detailMetricTextSize = detailSecondaryTextSize;
+    const detailRelationLabelSize = Math.round(13 + detailVerticalScale);
 
     fillRoundedRect(context, slotX, y, slotWidth, detailsCardHeight, 28, '#FFFFFF');
     strokeRoundedRect(context, slotX + 0.5, y + 0.5, slotWidth - 1, detailsCardHeight - 1, 28, '#E2E2E2');
 
     const selectedNodeId = safeText(state.selectedId);
     const selectedNode = resolveNodeById(selectedNodeId);
-    drawText('Details', detailCenterX, y + 36, {
-      size: 24,
+    const detailsHeadingY = y + Math.round(34 + (2 * detailVerticalScale));
+    drawText('Details', detailCenterX, detailsHeadingY, {
+      size: detailsHeadingSize,
       weight: 600,
       family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
       color: '#111111',
@@ -4308,8 +6069,8 @@ function drawSideNav(layout) {
     });
 
     if (!selectedNode) {
-      drawText('Select a node to view details.', detailCenterX, y + 74, {
-        size: 13,
+      drawText('Select a node to view details.', detailCenterX, detailsHeadingY + 38, {
+        size: Math.max(12, detailSecondaryTextSize),
         weight: 500,
         family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
         color: '#888888',
@@ -4330,8 +6091,15 @@ function drawSideNav(layout) {
       const activityDotColor = isActiveAccount ? '#30C655' : '#B5B5B5';
       const rankAndTitleIconPaths = resolveNodeDetailRankAndTitleIcons(selectedNode).slice(0, 2);
 
-      const avatarRadius = 54;
-      const avatarCenterY = y + 170;
+      const avatarRadius = Math.round(34 + (20 * detailVerticalScale));
+      // Keep head space under "Details", but compress aggressively on shorter laptop heights.
+      const compactHeaderToAvatarTopGap = 12;
+      const preferredHeaderToAvatarTopGap = 64;
+      const headerToAvatarTopGap = Math.round(
+        compactHeaderToAvatarTopGap
+        + ((preferredHeaderToAvatarTopGap - compactHeaderToAvatarTopGap) * detailVerticalScale),
+      );
+      const avatarCenterY = detailsHeadingY + headerToAvatarTopGap + avatarRadius;
       const nodePhotoUrl = resolveNodeAvatarPhotoUrl(selectedNode);
       let usedPhotoAvatar = false;
       context.beginPath();
@@ -4347,8 +6115,9 @@ function drawSideNav(layout) {
           alpha: 0.98,
           sheenAlpha: 0.16,
         });
+        const avatarInitialsSize = Math.round(clamp(avatarRadius * 0.63, 24, 34));
         drawText(nodeInitials, detailCenterX, avatarCenterY + 0.5, {
-          size: 34,
+          size: avatarInitialsSize,
           weight: 700,
           family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
           color: '#FFFFFF',
@@ -4358,20 +6127,25 @@ function drawSideNav(layout) {
 
       const statusDotCenterX = detailCenterX + (avatarRadius * 0.62);
       const statusDotCenterY = avatarCenterY + (avatarRadius * 0.68);
+      const statusDotOuterRadius = clamp(Math.round(avatarRadius * 0.19), 7, 10);
+      const statusDotInnerRadius = Math.max(5, statusDotOuterRadius - 2);
       context.beginPath();
-      context.arc(statusDotCenterX, statusDotCenterY, 10, 0, Math.PI * 2);
+      context.arc(statusDotCenterX, statusDotCenterY, statusDotOuterRadius, 0, Math.PI * 2);
       context.fillStyle = '#FFFFFF';
       context.fill();
       context.beginPath();
-      context.arc(statusDotCenterX, statusDotCenterY, 8, 0, Math.PI * 2);
+      context.arc(statusDotCenterX, statusDotCenterY, statusDotInnerRadius, 0, Math.PI * 2);
       context.fillStyle = activityDotColor;
       context.fill();
 
-      const displayNameY = avatarCenterY + 80;
-      const usernameY = displayNameY + 26;
-      const rankY = usernameY + 24;
+      const avatarToNameGap = Math.round(44 + (36 * detailVerticalScale));
+      const nameToUsernameGap = Math.round(16 + (10 * detailVerticalScale));
+      const usernameToRankGap = Math.round(14 + (10 * detailVerticalScale));
+      const displayNameY = avatarCenterY + avatarToNameGap;
+      const usernameY = displayNameY + nameToUsernameGap;
+      const rankY = usernameY + usernameToRankGap;
       drawText(displayName, detailCenterX, displayNameY, {
-        size: 24,
+        size: detailPrimaryTextSize,
         weight: 600,
         family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
         color: '#111111',
@@ -4379,7 +6153,7 @@ function drawSideNav(layout) {
         maxWidth: detailContentWidth,
       });
       drawText(`@${username}`, detailCenterX, usernameY, {
-        size: 12,
+        size: detailSecondaryTextSize,
         weight: 500,
         family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
         color: '#888888',
@@ -4387,10 +6161,10 @@ function drawSideNav(layout) {
         maxWidth: detailContentWidth,
       });
 
-      const rankIconSize = 15;
+      const rankIconSize = Math.round(14 + (2 * detailVerticalScale));
       const rankIconGap = 4;
       const rankTextWidth = measureTextWidth(rankValue, {
-        size: 12,
+        size: detailRankTextSize,
         weight: 500,
         family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
       });
@@ -4400,7 +6174,7 @@ function drawSideNav(layout) {
       const rankRowWidth = rankTextWidth + iconBlockWidth;
       let rankCursorX = detailCenterX - (rankRowWidth / 2);
       drawText(rankValue, rankCursorX, rankY, {
-        size: 12,
+        size: detailRankTextSize,
         weight: 500,
         family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
         color: '#888888',
@@ -4417,12 +6191,13 @@ function drawSideNav(layout) {
       }
 
       const cyclesCount = resolveNodeCycleCount(selectedNode, volumeMetrics);
-      const relationButtonHeight = 46;
-      const relationButtonGap = 12;
-      const metricsToButtonsGap = 16;
-      const detailsBottomPad = 18;
-      const minMetricRowHeight = 28;
-      const maxMetricRowHeight = 58;
+      const relationButtonHeight = Math.round(32 + (14 * detailVerticalScale));
+      const relationButtonGap = Math.round(4 + (8 * detailVerticalScale));
+      const metricsToButtonsGap = Math.round(6 + (10 * detailVerticalScale));
+      const detailsBottomPad = Math.round(8 + (10 * detailVerticalScale));
+      const minMetricRowHeight = Math.round(12 + (10 * detailVerticalScale));
+      const maxMetricRowHeight = Math.round(50 + (8 * detailVerticalScale));
+      const rankToMetricsGap = Math.round(10 + (26 * detailVerticalScale));
       const parentId = safeText(selectedNode.parent);
       const sponsorId = safeText(selectedNode.sponsorId || parentId);
       const detailsPanelMode = 'light';
@@ -4443,15 +6218,6 @@ function drawSideNav(layout) {
           nodeId: sponsorId,
           fallbackGlyph: drawFallbackPersonAddGlyph,
         },
-        {
-          id: 'perspective',
-          style: 'outline',
-          iconName: 'arrow_forward',
-          iconPath: resolveDetailsRelationIconPath('perspective', detailsPanelMode),
-          nodeId: selectedNodeId,
-          label: 'Enter User Perspective',
-          action: 'universe:enter',
-        },
       ];
       const relationBlockHeight = (
         relationButtons.length * relationButtonHeight
@@ -4463,7 +6229,7 @@ function drawSideNav(layout) {
         { label: 'Cycles', value: String(cyclesCount) },
       ];
       const maxRelationStartY = detailsBottomY - relationBlockHeight - detailsBottomPad;
-      const desiredMetricsStartY = rankY + 36;
+      const desiredMetricsStartY = rankY + rankToMetricsGap;
       const maxMetricsStartY = maxRelationStartY - metricsToButtonsGap - (metricRows.length * minMetricRowHeight);
       const metricsStartY = Math.min(desiredMetricsStartY, maxMetricsStartY);
       const availableMetricHeight = Math.max(
@@ -4481,25 +6247,34 @@ function drawSideNav(layout) {
       );
       metricRows.forEach((row, rowIndex) => {
         const rowTopY = metricsStartY + (rowIndex * metricRowHeight);
-        drawText(row.label, detailInsetX + 2, rowTopY + 20, {
-          size: 12,
+        const metricRowTextY = rowTopY + clamp(metricRowHeight * 0.5, 11, 20);
+        const metricDividerInset = Math.max(2, Math.round(metricRowHeight * 0.12));
+        drawText(row.label, detailInsetX + 2, metricRowTextY, {
+          size: detailMetricTextSize,
           weight: 500,
           family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
           color: '#888888',
           maxWidth: detailContentWidth * 0.6,
         });
-        drawText(row.value, detailRightX, rowTopY + 20, {
-          size: 12,
+        drawText(row.value, detailRightX, metricRowTextY, {
+          size: detailMetricTextSize,
           weight: 400,
           family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
           color: '#171717',
           align: 'right',
         });
-        line(context, detailInsetX, rowTopY + metricRowHeight - 6, detailInsetX + detailContentWidth, rowTopY + metricRowHeight - 6, '#E2E2E2', 1);
+        line(
+          context,
+          detailInsetX,
+          rowTopY + metricRowHeight - metricDividerInset,
+          detailInsetX + detailContentWidth,
+          rowTopY + metricRowHeight - metricDividerInset,
+          '#E2E2E2',
+          1,
+        );
       });
 
-      const preferredRelationStartY = metricsStartY + (metricRows.length * metricRowHeight) + metricsToButtonsGap;
-      const relationStartY = Math.min(preferredRelationStartY, maxRelationStartY);
+      const relationStartY = maxRelationStartY;
       const relationButtonLabelFamily = '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
       const relationButtonLabelWeight = 600;
 
@@ -4509,10 +6284,9 @@ function drawSideNav(layout) {
           return;
         }
         const isOutlineButton = safeText(entry.style).toLowerCase() === 'outline';
-        const isPerspectiveButton = safeText(entry.id).toLowerCase() === 'perspective';
         const nodeId = safeText(entry.nodeId);
         const relationNode = resolveNodeById(nodeId);
-        const buttonEnabled = isPerspectiveButton ? Boolean(selectedNodeId) : Boolean(nodeId);
+        const buttonEnabled = Boolean(nodeId);
         const customLabel = safeText(entry.label);
         const buttonLabel = customLabel || (buttonEnabled
           ? truncateText(safeText(relationNode?.name || relationNode?.id || nodeId), 24)
@@ -4523,8 +6297,12 @@ function drawSideNav(layout) {
         const buttonTextColor = isOutlineButton
           ? '#077AFF'
           : (buttonEnabled ? '#077AFF' : '#7D9BC2');
-        const iconSize = isOutlineButton ? 28 : 26;
-        const iconCenterX = detailInsetX + 36;
+        const iconSize = Math.round(clamp(
+          relationButtonHeight * (isOutlineButton ? 0.62 : 0.58),
+          18,
+          isOutlineButton ? 28 : 26,
+        ));
+        const iconCenterX = detailInsetX + Math.round(22 + (relationButtonHeight * 0.3));
         const iconCenterY = buttonY + (relationButtonHeight / 2) + 0.5;
         fillRoundedRect(context, detailInsetX, buttonY, detailContentWidth, relationButtonHeight, 23, buttonFill);
         if (isOutlineButton) {
@@ -4556,7 +6334,7 @@ function drawSideNav(layout) {
           });
         }
         drawText(buttonLabel, detailCenterX, buttonY + (relationButtonHeight / 2) + 0.5, {
-          size: 14,
+          size: detailRelationLabelSize,
           weight: relationButtonLabelWeight,
           family: relationButtonLabelFamily,
           color: buttonTextColor,
@@ -4816,61 +6594,84 @@ function drawBottomToolBar(layout) {
   const buttonYOffset = applyPanelReveal ? panelReveal.translateY : 0;
 
   try {
-  const bar = layout.bottomBar;
-  fillRoundedRect(context, bar.x, bar.y, bar.width, bar.height, 30, '#F2F2F6');
-  strokeRoundedRect(context, bar.x + 0.5, bar.y + 0.5, bar.width - 1, bar.height - 1, 30, '#E7E7EA', 1);
+  const panel = layout.sideNav;
+  const workspace = layout.workspace;
+  const railButtonSize = 44;
+  const railGap = 12;
+  const railEdgeInset = 8;
+  const railTopGapFromProfile = 14;
+  const dockIconSize = 20;
+  const railX = Math.round((workspace.x + workspace.width) - railButtonSize - railEdgeInset);
+  const railStartY = panel.y + railButtonSize + railTopGapFromProfile;
 
   const dockButtons = [
-    { id: 'dock-back', iconGlyph: String.fromCodePoint(0xEF7D), action: 'universe:back' },
-    { id: 'dock-home', iconGlyph: String.fromCodePoint(0xE9B2), action: 'camera:home' },
+    {
+      id: 'dock-placeholder',
+      iconGlyph: String.fromCodePoint(0xF525),
+      iconLigature: 'asterisk',
+      action: 'dock:placeholder',
+    },
+    {
+      id: 'dock-deep',
+      iconGlyph: String.fromCodePoint(0xE16D),
+      iconLigature: 'low_priority',
+      action: 'camera:deep',
+    },
     {
       id: 'dock-enter',
       iconGlyph: String.fromCodePoint(0xEA77),
       iconLigature: 'send_money',
       action: 'universe:enter',
     },
-    { id: 'dock-deep', iconGlyph: String.fromCodePoint(0xE16D), action: 'camera:deep' },
-    { id: 'dock-placeholder', iconGlyph: String.fromCodePoint(0xF525), action: 'dock:placeholder' },
+    {
+      id: 'dock-home',
+      iconGlyph: String.fromCodePoint(0xE9B2),
+      iconLigature: 'home',
+      action: 'camera:home',
+    },
+    {
+      id: 'dock-back',
+      iconGlyph: String.fromCodePoint(0xEF7D),
+      iconLigature: 'arrow_left_alt',
+      action: 'universe:back',
+    },
   ];
 
-  const slots = dockButtons.length;
-  const gap = 16;
-  const padX = 20;
-  const padY = 16;
-  const slotHeight = bar.height - (padY * 2);
-  const slotWidth = Math.floor((bar.width - (padX * 2) - ((slots - 1) * gap)) / slots);
-
-  let x = bar.x + padX;
-  const y = bar.y + padY;
-  for (const button of dockButtons) {
+  for (let index = 0; index < dockButtons.length; index += 1) {
+    const button = dockButtons[index];
     const hovered = state.hoveredButtonId === button.id;
-    const fill = '#FFFFFF';
-    const stroke = hovered ? '#E2E2E8' : '#ECECF1';
-    const iconColor = hovered ? '#171717' : '#303030';
+    const x = railX;
+    const y = railStartY + (index * (railButtonSize + railGap));
+    const fill = hovered ? '#DEDEDE' : SHELL_PANEL_COLOR;
+    const stroke = hovered ? '#DFE2EA' : SHELL_PANEL_COLOR;
+    const iconColor = '#444444';
+    const radius = railButtonSize / 2;
+    const circleCenterX = x + radius;
+    const circleCenterY = y + radius;
 
-    context.save();
-    if (hovered) {
-      context.shadowColor = 'rgba(48, 48, 48, 0.16)';
-      context.shadowBlur = 12;
-      context.shadowOffsetY = 4;
-    }
-    fillRoundedRect(context, x, y, slotWidth, slotHeight, 18, fill);
-    context.restore();
-    strokeRoundedRect(context, x + 0.5, y + 0.5, slotWidth - 1, slotHeight - 1, 18, stroke, 2);
+    context.beginPath();
+    context.arc(circleCenterX, circleCenterY, radius, 0, Math.PI * 2);
+    context.fillStyle = fill;
+    context.fill();
+    context.beginPath();
+    context.arc(circleCenterX, circleCenterY, Math.max(1, radius - 0.5), 0, Math.PI * 2);
+    context.lineWidth = 1;
+    context.strokeStyle = stroke;
+    context.stroke();
 
-    const iconCenterX = x + (slotWidth / 2);
-    const iconCenterY = y + (slotHeight / 2) + 1;
+    const iconCenterX = circleCenterX;
+    const iconCenterY = circleCenterY + 0.5;
     const iconLigature = safeText(button.iconLigature);
     if (iconLigature) {
       drawMaterialButtonIcon(iconLigature, iconCenterX, iconCenterY, {
-        size: 24,
-        weight: 400,
+        size: dockIconSize,
+        weight: 500,
         color: iconColor,
         fill: 0,
         fallbackGlyph: () => {
           drawText(button.iconGlyph, iconCenterX, iconCenterY, {
-            size: 24,
-            weight: 400,
+            size: dockIconSize,
+            weight: 500,
             family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
             color: iconColor,
             align: 'center',
@@ -4879,8 +6680,8 @@ function drawBottomToolBar(layout) {
       });
     } else {
       drawText(button.iconGlyph, iconCenterX, iconCenterY, {
-        size: 24,
-        weight: 400,
+        size: dockIconSize,
+        weight: 500,
         family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
         color: iconColor,
         align: 'center',
@@ -4890,11 +6691,10 @@ function drawBottomToolBar(layout) {
       id: button.id,
       x,
       y: y + buttonYOffset,
-      width: slotWidth,
-      height: slotHeight,
+      width: railButtonSize,
+      height: railButtonSize,
       action: button.action,
     });
-    x += slotWidth + gap;
   }
   } finally {
     if (applyPanelReveal) {
@@ -5002,6 +6802,226 @@ function beginStartupReveal(reveal) {
     context.filter = `blur(${blurPx.toFixed(2)}px)`;
   }
   return true;
+}
+
+function resolveAnticipationSlots(frame, frameOptions) {
+  const selectedProjected = frame?.selectedProjected;
+  if (!selectedProjected) {
+    return [];
+  }
+
+  const selectedNodeId = safeText(selectedProjected.id);
+  if (!selectedNodeId) {
+    return [];
+  }
+
+  const selectedGlobalDepth = Math.max(
+    0,
+    Math.floor(safeNumber(selectedProjected.globalDepth, safeNumber(selectedProjected.node?.depth, 0))),
+  );
+  const nextGlobalDepth = selectedGlobalDepth + 1;
+  if (nextGlobalDepth > ANTICIPATION_MAX_GLOBAL_DEPTH) {
+    return [];
+  }
+
+  const childLegs = resolveNodeChildLegState(selectedNodeId);
+  if (childLegs.left && childLegs.right) {
+    return [];
+  }
+
+  const baseLocalPath = safeText(selectedProjected.localPath).toUpperCase();
+  if (baseLocalPath && /[^LR]/.test(baseLocalPath)) {
+    return [];
+  }
+
+  const universeDepthCap = getUniverseDepthCap();
+  const sides = ['left', 'right'];
+  const slots = [];
+
+  for (const side of sides) {
+    if (childLegs[side]) {
+      continue;
+    }
+    const direction = side === 'right' ? 'R' : 'L';
+    const slotLocalPath = `${baseLocalPath}${direction}`;
+    if (slotLocalPath.length > universeDepthCap) {
+      continue;
+    }
+
+    const projectedSlot = state.adapter.projectLocalPath(slotLocalPath, frameOptions);
+    if (!projectedSlot) {
+      continue;
+    }
+
+    const radius = clamp(safeNumber(projectedSlot.r, 0) * 0.88, 6.5, 32);
+    if (radius <= 0.2) {
+      continue;
+    }
+
+    const encodedParentId = encodeURIComponent(selectedNodeId);
+    const key = `${selectedNodeId}:${side}`;
+    slots.push({
+      key,
+      buttonId: `${ANTICIPATION_BUTTON_ID_PREFIX}${encodedParentId}-${side}`,
+      action: `anticipation:${encodedParentId}|${side}`,
+      parentNodeId: selectedNodeId,
+      side,
+      x: safeNumber(projectedSlot.x, 0),
+      y: safeNumber(projectedSlot.y, 0),
+      r: radius,
+      localDepth: Math.max(0, Math.floor(safeNumber(projectedSlot.localDepth, slotLocalPath.length))),
+      globalDepth: nextGlobalDepth,
+    });
+  }
+
+  return slots;
+}
+
+function drawAnticipationConnectors(anticipationSlots, projectedNodes) {
+  if (!state.showConnectors) {
+    return;
+  }
+  const slots = Array.isArray(anticipationSlots) ? anticipationSlots : [];
+  const visibleNodes = Array.isArray(projectedNodes) ? projectedNodes : [];
+  if (!slots.length || !visibleNodes.length) {
+    return;
+  }
+
+  const nodeById = new Map();
+  for (const node of visibleNodes) {
+    nodeById.set(node.id, node);
+  }
+
+  const nowMs = getNowMs();
+  for (const slot of slots) {
+    const parent = nodeById.get(slot.parentNodeId);
+    if (!parent) {
+      continue;
+    }
+
+    const revealDepth = Math.max(
+      0,
+      Math.floor(
+        Math.max(
+          safeNumber(parent.localDepth, 0),
+          safeNumber(slot.localDepth, safeNumber(parent.localDepth, 0) + 1),
+        ),
+      ),
+    );
+    const revealExtraDelayMs = resolveDepthRevealExtraDelay(revealDepth, slot.key);
+    const skipReveal = Boolean(state.intro?.skipConnectorReveal);
+    let connectorAlpha = 1;
+    let yOffset = 0;
+    if (!skipReveal) {
+      const reveal = resolveStartupRevealForDepth(revealDepth, nowMs, revealExtraDelayMs);
+      if (reveal.progress <= 0) {
+        continue;
+      }
+      connectorAlpha = clamp(reveal.alpha, 0, 1);
+      yOffset = safeNumber(reveal.translateY, 0);
+    }
+
+    const startX = safeNumber(parent.x, 0);
+    const startY = safeNumber(parent.y, 0) + (safeNumber(parent.r, 0) * 0.72) + yOffset;
+    const endX = safeNumber(slot.x, 0);
+    const endY = safeNumber(slot.y, 0) - (safeNumber(slot.r, 0) * 0.72) + yOffset;
+
+    const gap = Math.max(2, endY - startY);
+    const branchShare = parent.r >= 22 ? 0.34 : (parent.r >= 10 ? 0.28 : 0.22);
+    const branchY = startY + (gap * branchShare);
+    const branchRadius = Math.max(0.08, Math.min(safeNumber(parent.r, 0), safeNumber(slot.r, 0)));
+    const lineWidth = clamp(branchRadius * 0.07, 0.06, 1.0);
+    const stroke = `rgba(103,140,190,${(0.32 * connectorAlpha).toFixed(3)})`;
+
+    context.save();
+    context.setLineDash([7, 5]);
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+    context.strokeStyle = stroke;
+    context.lineWidth = lineWidth;
+    context.beginPath();
+    context.moveTo(startX, startY);
+    if (branchY > startY + 0.5) {
+      context.lineTo(startX, branchY);
+    }
+    if (Math.abs(endX - startX) > 0.5) {
+      context.lineTo(endX, branchY);
+    }
+    context.lineTo(endX, endY);
+    context.stroke();
+    context.restore();
+  }
+}
+
+function drawAnticipationSlots(anticipationSlots) {
+  const slots = Array.isArray(anticipationSlots) ? anticipationSlots : [];
+  if (!slots.length) {
+    return;
+  }
+
+  for (const slot of slots) {
+    const revealDepth = Math.max(0, Math.floor(safeNumber(slot.localDepth, 0)));
+    const revealExtraDelayMs = resolveDepthRevealExtraDelay(revealDepth, slot.key);
+    const reveal = resolveStartupRevealForDepth(revealDepth, getNowMs(), revealExtraDelayMs);
+    if (reveal.progress <= 0) {
+      continue;
+    }
+    const applyReveal = beginStartupReveal(reveal);
+
+    try {
+      const radius = Math.max(3.5, safeNumber(slot.r, 8));
+      const hover = state.hoveredButtonId === slot.buttonId;
+      const sideLabel = slot.side === 'right' ? 'RIGHT' : 'LEFT';
+
+      registerButton({
+        id: slot.buttonId,
+        x: slot.x - radius - 8,
+        y: slot.y - radius - 8,
+        width: (radius + 8) * 2,
+        height: (radius + 8) * 2,
+        action: slot.action,
+      });
+
+      const outerRadius = radius + (hover ? 6 : 4);
+      context.beginPath();
+      context.arc(slot.x, slot.y, outerRadius, 0, Math.PI * 2);
+      context.fillStyle = hover
+        ? 'rgba(106,154,218,0.20)'
+        : 'rgba(106,154,218,0.13)';
+      context.fill();
+
+      context.beginPath();
+      context.arc(slot.x, slot.y, radius, 0, Math.PI * 2);
+      context.fillStyle = hover
+        ? 'rgba(255,255,255,0.92)'
+        : 'rgba(255,255,255,0.86)';
+      context.fill();
+      context.lineWidth = hover ? 2.1 : 1.7;
+      context.strokeStyle = hover
+        ? 'rgba(88,132,194,0.90)'
+        : 'rgba(88,132,194,0.76)';
+      context.stroke();
+
+      drawText('+', slot.x, slot.y + 0.5, {
+        size: Math.max(11, Math.round(radius * 1.05)),
+        weight: 700,
+        color: hover ? '#4E7CAF' : '#5F86B7',
+        align: 'center',
+      });
+
+      drawText(sideLabel, slot.x, slot.y + radius + 10, {
+        size: 9,
+        weight: 600,
+        color: hover ? '#6A7E97' : '#7A8BA2',
+        align: 'center',
+        baseline: 'top',
+      });
+    } finally {
+      if (applyReveal) {
+        context.restore();
+      }
+    }
+  }
 }
 
 function drawConnectors(projectedNodes) {
@@ -5235,7 +7255,7 @@ function drawTreeViewport(layout) {
   const viewport = layout.viewport;
   const projectionScale = resolveProjectionScale(state.camera.view.scale);
 
-  const frame = state.adapter.computeFrame({
+  const frameOptions = {
     ...getUniverseOptions(),
     depth: state.depthFilter,
     selectedId: state.selectedId,
@@ -5263,8 +7283,12 @@ function drawTreeViewport(layout) {
     },
     cullMargin: Math.max(220, Math.round(Math.min(viewport.width, viewport.height) * 0.34)),
     devicePixelRatio: 1,
-  });
+  };
+  const frame = state.adapter.computeFrame(frameOptions);
+  const anticipationSlots = resolveAnticipationSlots(frame, frameOptions);
+
   state.frameResult = frame;
+  state.anticipationSlots = anticipationSlots;
   state.viewport = viewport;
   const projectedNodes = Array.isArray(frame.projectedNodes) ? frame.projectedNodes : [];
 
@@ -5272,8 +7296,17 @@ function drawTreeViewport(layout) {
   context.beginPath();
   context.rect(layout.workspace.x, layout.workspace.y, layout.workspace.width, layout.workspace.height);
   context.clip();
+  const universeViewOpacity = clamp(resolveUniverseEnterViewOpacity(), 0, 1);
+  if (universeViewOpacity <= 0.001) {
+    context.restore();
+    return;
+  }
+  if (universeViewOpacity < 1) {
+    context.globalAlpha *= universeViewOpacity;
+  }
 
   drawConnectors(projectedNodes);
+  drawAnticipationConnectors(anticipationSlots, projectedNodes);
   const selectedNode = projectedNodes.find((node) => node.id === state.selectedId) || null;
 
   for (const node of projectedNodes) {
@@ -5285,6 +7318,7 @@ function drawTreeViewport(layout) {
   if (selectedNode) {
     drawNode(selectedNode);
   }
+  drawAnticipationSlots(anticipationSlots);
 
   context.restore();
 }
@@ -5295,6 +7329,9 @@ function renderFrame() {
 
   state.layout = resolveLayout(width, height);
   state.buttons = [];
+  if (isTreeNextEnrollModalOpen()) {
+    syncTreeNextEnrollPanelPosition(state.layout);
+  }
 
   context.clearRect(0, 0, width, height);
   drawBackground(width, height);
@@ -5328,7 +7365,11 @@ function animateCamera(deltaSeconds) {
   }
   const dampingRate = state.camera.targetReason === 'wheel'
     ? WHEEL_ZOOM_CAMERA_DAMPING
-    : CAMERA_DAMPING;
+    : (state.camera.targetReason === 'universe-enter'
+      ? UNIVERSE_ENTER_CAMERA_DAMPING
+      : (state.camera.targetReason === 'universe-back'
+        ? UNIVERSE_BACK_CAMERA_DAMPING
+        : CAMERA_DAMPING));
   const damping = 1 - Math.exp(-dampingRate * deltaSeconds);
   state.camera.view.x += (target.x - state.camera.view.x) * damping;
   state.camera.view.y += (target.y - state.camera.view.y) * damping;
@@ -5420,6 +7461,75 @@ function focusDeepestNode(animated = true) {
 
 function focusRoot(animated = true) {
   return focusUniverseRoot(animated);
+}
+
+function resolvePreferredGlobalHomeNodeId() {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    session?.rootNodeId,
+    session?.root_node_id,
+    session?.nodeId,
+    session?.node_id,
+    session?.treeNodeId,
+    session?.tree_node_id,
+    session?.binaryTreeNodeId,
+    session?.binary_tree_node_id,
+    session?.id,
+    session?.userId,
+    session?.user_id,
+    session?.memberId,
+    session?.member_id,
+    'root',
+  ];
+  const attemptedIds = new Set();
+  for (const candidate of candidates) {
+    const safeCandidate = safeText(candidate);
+    if (!safeCandidate) {
+      continue;
+    }
+    const checks = [safeCandidate];
+    const lowerCandidate = safeCandidate.toLowerCase();
+    if (lowerCandidate && lowerCandidate !== safeCandidate) {
+      checks.push(lowerCandidate);
+    }
+    for (const checkId of checks) {
+      if (attemptedIds.has(checkId)) {
+        continue;
+      }
+      attemptedIds.add(checkId);
+      const globalMeta = state.adapter.resolveNodeMetrics(checkId, getGlobalUniverseOptions());
+      const resolvedId = safeText(globalMeta?.node?.id || checkId);
+      if (resolvedId) {
+        return resolvedId;
+      }
+    }
+  }
+  return 'root';
+}
+
+function goToGlobalHome(animated = true) {
+  const currentRootId = getUniverseRootId();
+  if (currentRootId !== 'root') {
+    rememberUniverseCamera(currentRootId);
+  }
+
+  state.universe.rootId = 'root';
+  state.universe.history = [];
+  refreshUniverseBreadcrumb('root');
+  state.query = '';
+  state.depthFilter = 'all';
+
+  const preferredHomeNodeId = resolvePreferredGlobalHomeNodeId();
+  if (focusNode(preferredHomeNodeId, DEFAULT_ROOT_FOCUS_RADIUS, animated)) {
+    return true;
+  }
+  if (focusNode('root', DEFAULT_ROOT_FOCUS_RADIUS, animated)) {
+    return true;
+  }
+
+  setSelectedNode('root', { animate: false });
+  setCameraTarget(computeHomeView(), animated);
+  return false;
 }
 
 function fitCameraToFilteredNodes(animated = true) {
@@ -5549,6 +7659,14 @@ function triggerAction(action) {
   if (!safeAction || safeAction === 'noop') {
     return;
   }
+  if (safeAction === 'universe:enter') {
+    clearPendingUniverseBackPrep();
+  } else if (safeAction === 'universe:back') {
+    clearPendingUniverseEnterPrep();
+  } else {
+    clearPendingUniverseEnterPrep();
+    clearPendingUniverseBackPrep();
+  }
 
   if (safeAction === 'brand-menu:toggle') {
     state.ui.sideNavBrandMenuOpen = !state.ui.sideNavBrandMenuOpen;
@@ -5558,6 +7676,16 @@ function triggerAction(action) {
       if (document.activeElement === searchInput) {
         searchInput.blur();
       }
+    }
+    return;
+  }
+  if (safeAction === 'side-nav:toggle') {
+    state.ui.sideNavOpen = !state.ui.sideNavOpen;
+    state.ui.sideNavBrandMenuOpen = false;
+    closeSearchDropdown();
+    const searchInput = ensureSideNavSearchInput();
+    if (document.activeElement === searchInput) {
+      searchInput.blur();
     }
     return;
   }
@@ -5574,7 +7702,7 @@ function triggerAction(action) {
     return;
   }
   if (safeAction === 'camera:home') {
-    setCameraTarget(computeHomeView(), true);
+    goToGlobalHome(true);
     return;
   }
   if (safeAction === 'camera:fit') {
@@ -5595,11 +7723,11 @@ function triggerAction(action) {
     return;
   }
   if (safeAction === 'universe:enter') {
-    enterNodeUniverse(state.selectedId, true);
+    enterNodeUniverseWithZoomHint(state.selectedId);
     return;
   }
   if (safeAction === 'universe:back') {
-    exitNodeUniverse(true);
+    exitNodeUniverseWithZoomHint(true);
     return;
   }
   if (safeAction === 'toggle:connectors') {
@@ -5638,6 +7766,24 @@ function triggerAction(action) {
     focusNode(nodeId, 30, true);
     return;
   }
+  if (safeAction.startsWith('anticipation:')) {
+    const payload = safeAction.slice('anticipation:'.length);
+    const separatorIndex = payload.indexOf('|');
+    const encodedParentId = separatorIndex >= 0
+      ? payload.slice(0, separatorIndex)
+      : payload;
+    const sideValue = separatorIndex >= 0
+      ? payload.slice(separatorIndex + 1)
+      : '';
+    let parentId = '';
+    try {
+      parentId = decodeURIComponent(encodedParentId || '');
+    } catch {
+      parentId = encodedParentId || '';
+    }
+    requestEnrollMemberFromTree(parentId, normalizeBinarySide(sideValue) || 'left');
+    return;
+  }
   if (safeAction === 'dock:placeholder') {
     void resetMemberBinaryTreeLaunchStateFromDock();
     return;
@@ -5667,6 +7813,8 @@ function updateHoverState(pointX, pointY) {
 }
 
 function onPointerDown(event) {
+  clearPendingUniverseEnterPrep();
+  clearPendingUniverseBackPrep();
   const pointerX = event.clientX;
   const pointerY = event.clientY;
   state.pointer.x = pointerX;
@@ -5804,6 +7952,8 @@ function onPointerLeave() {
 }
 
 function onWheel(event) {
+  clearPendingUniverseEnterPrep();
+  clearPendingUniverseBackPrep();
   const layout = state.layout;
   if (!layout || !pointInsideRect(event.clientX, event.clientY, layout.workspace)) {
     return;
@@ -5863,6 +8013,14 @@ function onKeyDown(event) {
   const key = safeText(event.key).toLowerCase();
   const panStep = 34;
 
+  if (isTreeNextEnrollModalOpen()) {
+    if (key === 'escape') {
+      closeTreeNextEnrollModal({ restoreFocus: true, clearFeedback: true, resetForm: false, clearPlacementLock: true });
+      event.preventDefault();
+    }
+    return;
+  }
+
   if (key === 'escape' && state.ui.sideNavBrandMenuOpen) {
     state.ui.sideNavBrandMenuOpen = false;
     event.preventDefault();
@@ -5875,6 +8033,15 @@ function onKeyDown(event) {
       event.preventDefault();
     }
     return;
+  }
+
+  if (key === 'u') {
+    clearPendingUniverseBackPrep();
+  } else if (key === 'b') {
+    clearPendingUniverseEnterPrep();
+  } else {
+    clearPendingUniverseEnterPrep();
+    clearPendingUniverseBackPrep();
   }
 
   if (key === 'arrowup') {
@@ -5927,7 +8094,7 @@ function onKeyDown(event) {
     return;
   }
   if (key === 'h' || key === '0') {
-    setCameraTarget(computeHomeView(), true);
+    goToGlobalHome(true);
     event.preventDefault();
     return;
   }
@@ -5942,12 +8109,12 @@ function onKeyDown(event) {
     return;
   }
   if (key === 'u') {
-    enterNodeUniverse(state.selectedId, true);
+    enterNodeUniverseWithZoomHint(state.selectedId);
     event.preventDefault();
     return;
   }
   if (key === 'b') {
-    exitNodeUniverse(true);
+    exitNodeUniverseWithZoomHint(true);
     event.preventDefault();
     return;
   }
@@ -6032,10 +8199,19 @@ async function bootstrap() {
 
   state.nodes = buildMockNodes();
   state.adapter.setNodes(state.nodes);
+  rebuildNodeChildLegIndex();
   state.universe.rootId = 'root';
   state.universe.depthCap = UNIVERSE_DEPTH_CAP;
   state.universe.cameraByRoot = Object.create(null);
   state.universe.history = [];
+  state.universe.enterPrepToken = '';
+  state.universe.enterPrepTimeoutId = 0;
+  state.universe.enterPrepRafId = 0;
+  state.universe.backPrepToken = '';
+  state.universe.backPrepRafId = 0;
+  state.universe.enterViewFadeMode = 'none';
+  state.universe.enterViewFadeStartedAtMs = 0;
+  state.universe.enterViewFadeDurationMs = 0;
   refreshUniverseBreadcrumb('root');
 
   setSelectedNode('root', { animate: false });
@@ -6045,6 +8221,7 @@ async function bootstrap() {
   state.layout = resolveLayout(state.renderSize.width, state.renderSize.height);
   state.viewport = state.layout.viewport;
   bindEvents();
+  initTreeNextEnrollModal();
 
   setCameraTarget(computeHomeView(), false);
   rememberUniverseCamera('root');

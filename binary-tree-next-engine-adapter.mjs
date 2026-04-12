@@ -454,6 +454,51 @@ export function createBinaryTreeNextEngineAdapter() {
     return normalizeText(deepestEntry?.id);
   }
 
+  function projectLocalPath(localPathInput = '', options = {}) {
+    const safeLocalPath = normalizeText(localPathInput).toUpperCase();
+    if (safeLocalPath && /[^LR]/.test(safeLocalPath)) {
+      return null;
+    }
+
+    const view = options.view && typeof options.view === 'object'
+      ? options.view
+      : { x: 0, y: 0, scale: 1 };
+    const viewScale = Number.isFinite(view.scale) && view.scale > 0 ? view.scale : 1;
+    const viewX = Number.isFinite(view.x) ? view.x : 0;
+    const viewY = Number.isFinite(view.y) ? view.y : 0;
+    const dpr = Number.isFinite(options.devicePixelRatio) && options.devicePixelRatio > 0
+      ? options.devicePixelRatio
+      : 1;
+    const viewport = options.viewport && typeof options.viewport === 'object'
+      ? options.viewport
+      : {};
+    const viewportX = Number.isFinite(viewport.x) ? viewport.x : 0;
+    const viewportY = Number.isFinite(viewport.y) ? viewport.y : 0;
+    const viewportWidth = Number.isFinite(viewport.width) ? viewport.width : Number.MAX_SAFE_INTEGER;
+    const viewportHeight = Number.isFinite(viewport.height) ? viewport.height : Number.MAX_SAFE_INTEGER;
+    const viewportCenterX = Number.isFinite(viewport.centerX) ? viewport.centerX : (viewportX + (viewportWidth / 2));
+    const baseY = Number.isFinite(viewport.baseY) ? viewport.baseY : (80 * dpr);
+    const nodeRadiusBase = Number.isFinite(options.nodeRadiusBase) && options.nodeRadiusBase > 0
+      ? options.nodeRadiusBase
+      : 20;
+
+    const localDepth = safeLocalPath.length;
+    const localWorld = resolveWorldPositionFromPath(safeLocalPath);
+    const localWorldRadius = resolveWorldRadius(localDepth);
+    const radiusScale = localWorldRadius / NODE_WORLD_RADIUS_BASE;
+
+    return {
+      localPath: safeLocalPath,
+      localDepth,
+      localWorldX: localWorld.worldX,
+      localWorldY: localWorld.worldY,
+      localWorldRadius,
+      x: (localWorld.worldX * viewScale) + viewportCenterX + viewX,
+      y: (localWorld.worldY * viewScale) + baseY + viewY,
+      r: nodeRadiusBase * radiusScale * viewScale,
+    };
+  }
+
   function computeFrame(options = {}) {
     const {
       universe,
@@ -673,6 +718,7 @@ export function createBinaryTreeNextEngineAdapter() {
     resolveNodeMetrics,
     resolveDeepestNodeId,
     resolveAncestorChain,
+    projectLocalPath,
     computeFrame,
   };
 }

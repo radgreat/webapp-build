@@ -1,6 +1,6 @@
 # Binary Tree Next-Gen (WASM) - Planning & Layout
 
-Last Updated: 2026-04-10
+Last Updated: 2026-04-12
 Status: In Progress (Phase A Complete, Phase B Shell/Adapter Active)
 Owner: Binary Tree Next Implementation Track
 
@@ -41,6 +41,30 @@ Owner: Binary Tree Next Implementation Track
 - Relevance to wasm/next-gen track:
   - formalizes a server-driven boot-state contract for next-gen startup sequencing
   - provides a reusable pattern for future phase gates/tutorials without hardcoding client-only first-open logic.
+
+## 0.3) Node Anticipation Slot Restoration (2026-04-12)
+
+- Delivered selected-node anticipation overlays in `binary-tree-next-app.mjs` for enrollment intent:
+  - selected node with no children -> show left + right anticipation
+  - selected node with one child -> show only the missing leg
+  - selected node with two children -> no anticipation
+- Added global depth guard:
+  - anticipation is blocked when resulting child depth would exceed level `20`
+- Added deterministic projection helper in adapter:
+  - `projectLocalPath(...)` added to `binary-tree-next-engine-adapter.mjs`
+  - anticipation slot positions now reuse same world/screen projection math as real nodes
+- Added interaction bridge:
+  - anticipation click emits `binary-tree-enroll-member-request` with parent and placement context for the upcoming enrollment flow
+- Relevance to wasm/next-gen track:
+  - restores a critical parity behavior from legacy tree (registration-target affordance) while keeping render geometry stable and adapter-driven.
+
+## 0.4) Enrollment Container Shift to Center-Side Panel (2026-04-12)
+
+- Converted Binary Tree Next enrollment UI from modal popup style to a center-side floating panel.
+- New panel docks beside the left shell and remains vertically centered with viewport-safe clamping.
+- Kept enrollment API and node-insertion flow unchanged; only container model and placement behavior changed.
+- Relevance to wasm/next-gen track:
+  - keeps canvas interaction visible while enrollment is active and better aligns shell composition with side-panel workflow patterns.
 
 ## 1) Executive Summary
 
@@ -1734,5 +1758,45 @@ Validation:
   - added `Cycles` row to metrics block
   - added node-avatar photo URL resolver and integrated photo-first render path with placeholder fallback
   - kept account-state indicator dot bound to active/inactive state
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+## 0.5) Enrollment Panel Multi-Step Rewrite (2026-04-12)
+
+- Delivered:
+  - replaced prior enroll form block with multi-page enrollment flow (steps 1-3 + thank-you)
+  - enforced requested copy, button hierarchy, and provided color tokens in the new panel shell
+  - wired package preview card + checkout totals + fast-track commission thank-you summary
+  - integrated Stripe Card Number element initialization through existing checkout config endpoint.
+- Behavioral notes:
+  - enrollment still writes through existing member/admin registration endpoints
+  - successful registration still injects the newly enrolled node into Binary Tree Next immediately.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 0.6) Enrollment Panel Tightening + Divider Artifact Fix (2026-04-12)
+
+- Delivered:
+  - tightened enrollment panel spacing blocks for closer mock alignment
+  - removed white horizontal seam artifacts by resetting step-section default margins and clipping shell overflow
+  - simplified/cleaned close icon rendering.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 0.7) Enrollment Overflow/Clipping Hardening (2026-04-12)
+
+- Delivered:
+  - added border-box sizing within enroll panel subtree to prevent width overshoot from padded controls
+  - switched panel-body overflow to vertical-only with horizontal suppression
+  - normalized form wrapper widths to maintain tight margin alignment.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## 0.8) Enrollment Header/Close/Checkout Field Refinement (2026-04-12)
+
+- Delivered:
+  - centered enrollment header title + caption
+  - aligned close button to profile popup style with absolute top-right placement
+  - updated step-2 detail text color to black
+  - added Stripe card expiry field and completion validation.
 - Validation:
   - `node --check binary-tree-next-app.mjs` passed.
