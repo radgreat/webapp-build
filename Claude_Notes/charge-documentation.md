@@ -23978,3 +23978,33 @@ Updated `binary-tree-next-app.mjs`:
 ### Validation
 
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-12) - Sidebar Build Menu: Old + Next Gen Binary Tree Labels
+
+### What Was Changed
+
+- Updated dashboard sidebar Build navigation labels to split binary tree options:
+  - `Binary Tree (Old)` (existing route)
+  - `Binary Tree (Next Gen)` (new link)
+- Member dashboard (`index.html`):
+  - renamed existing `/BinaryTree` item to `Binary Tree (Old)`
+  - added `Binary Tree (Next Gen)` entry linking to `/binary-tree-next.html` under Build.
+- Admin dashboard (`admin.html`):
+  - renamed existing `/admin/BinaryTree` item to `Binary Tree (Old)`
+  - added `Binary Tree (Next Gen)` entry linking to `/binary-tree-next.html`.
+
+### Files Affected
+
+- `index.html`
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept existing old-binary-tree routes untouched to avoid behavior regressions.
+- Added Next Gen entries as direct links (not `data-nav-link`) so they navigate directly to the dedicated Next Gen page without interfering with in-page route interception logic.
+
+### Known Limitations
+
+- Naming is temporary per request and can be updated in a later pass.

@@ -11937,3 +11937,17 @@ Last Updated: 2026-04-12
   - `Claude_Notes/Current Project Status.md`
 - Validation:
   - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-12) - Sidebar Build Split: Binary Tree Old + Next Gen
+
+- Completed:
+  - renamed existing sidebar binary tree entries to `Binary Tree (Old)`
+  - added `Binary Tree (Next Gen)` links in member/admin dashboard sidebars
+  - wired Next Gen entries to `/binary-tree-next.html` as direct navigation links.
+- Outcome:
+  - Build area now clearly shows both old and next-gen binary tree options.
+- Files updated:
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
