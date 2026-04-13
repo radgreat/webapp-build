@@ -1,6 +1,8 @@
 import {
   getRegisteredMembers,
   createRegisteredMember,
+  createRegisteredMemberPaymentIntent,
+  completeRegisteredMemberPaymentIntent,
   updateRegisteredMemberPlacement,
   getMemberRanks,
   recordMemberPurchase,
@@ -40,6 +42,51 @@ export async function registerMember(req, res) {
     console.error('registerMember failed:', error?.stack || error?.message || error);
     return res.status(500).json({
       error: 'Unable to register member.',
+    });
+  }
+}
+
+export async function postRegisteredMemberPaymentIntent(req, res) {
+  try {
+    const requestPath = String(req.path || '').toLowerCase();
+    const isAdminEnrollmentRequest = requestPath.startsWith('/admin/');
+    const result = await createRegisteredMemberPaymentIntent({
+      ...(req.body || {}),
+      isAdminPlacement: isAdminEnrollmentRequest,
+      enrollmentContext: isAdminEnrollmentRequest ? 'admin' : 'member',
+    });
+
+    if (!result.success) {
+      return res.status(result.status).json({ error: result.error });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error('postRegisteredMemberPaymentIntent failed:', error?.stack || error?.message || error);
+    return res.status(500).json({
+      error: 'Unable to create enrollment payment intent.',
+    });
+  }
+}
+
+export async function postCompleteRegisteredMemberPaymentIntent(req, res) {
+  try {
+    const requestPath = String(req.path || '').toLowerCase();
+    const isAdminEnrollmentRequest = requestPath.startsWith('/admin/');
+    const result = await completeRegisteredMemberPaymentIntent({
+      ...(req.body || {}),
+      isAdminPlacement: isAdminEnrollmentRequest,
+    });
+
+    if (!result.success) {
+      return res.status(result.status).json({ error: result.error });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error('postCompleteRegisteredMemberPaymentIntent failed:', error?.stack || error?.message || error);
+    return res.status(500).json({
+      error: 'Unable to finalize enrollment payment intent.',
     });
   }
 }
