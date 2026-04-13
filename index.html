@@ -4439,9 +4439,9 @@
                   <select id="enroll-member-package" name="enrollmentPackage" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
                     <option value="preferred-customer-pack">Free Account - $0</option>
                     <option value="personal-builder-pack">Personal Builder Pack - $192</option>
-                    <option value="business-builder-pack">Business Builder Pack - $360</option>
-                    <option value="infinity-builder-pack">Infinity Builder Pack - $560</option>
-                    <option value="legacy-builder-pack">Legacy Builder Pack - $960</option>
+                    <option value="business-builder-pack">Business Builder Pack - $384</option>
+                    <option value="infinity-builder-pack">Infinity Builder Pack - $640</option>
+                    <option value="legacy-builder-pack">Legacy Builder Pack - $1280</option>
                   </select>
                 </div>
                 <div class="md:col-span-1">
@@ -5137,9 +5137,9 @@
                       <select id="tree-enroll-package" name="enrollmentPackage" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
                           <option value="preferred-customer-pack">Free Account - $0</option>
                           <option value="personal-builder-pack">Personal Builder Pack - $192</option>
-                          <option value="business-builder-pack">Business Builder Pack - $360</option>
-                          <option value="infinity-builder-pack">Infinity Builder Pack - $560</option>
-                          <option value="legacy-builder-pack">Legacy Builder Pack - $960</option>
+                          <option value="business-builder-pack">Business Builder Pack - $384</option>
+                          <option value="infinity-builder-pack">Infinity Builder Pack - $640</option>
+                          <option value="legacy-builder-pack">Legacy Builder Pack - $1280</option>
                       </select>
                       </label>
                     </div>
@@ -6189,9 +6189,9 @@
       const FAST_TRACK_PACKAGE_META = {
         [FREE_ACCOUNT_PACKAGE_KEY]: { label: 'Free Account', price: 0, bv: 0 },
         'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
-        'business-builder-pack': { label: 'Business Builder Pack', price: 360, bv: 360 },
-        'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 560, bv: 560 },
-        'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 960, bv: 960 },
+        'business-builder-pack': { label: 'Business Builder Pack', price: 384, bv: 300 },
+        'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
+        'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 1280, bv: 1000 },
       };
       const FAST_TRACK_TIER_META = {
         'personal-pack': { label: 'Personal Pack' },
@@ -6226,6 +6226,15 @@
         'achievers-pack': 0.125,
         'legacy-pack': 0.20,
       };
+      const PACKAGE_PRODUCT_BV = 50;
+      const PACKAGE_PRODUCT_PRICE_USD = 64;
+      const PACKAGE_PRODUCT_COUNT_BY_KEY = Object.freeze({
+        [FREE_ACCOUNT_PACKAGE_KEY]: 0,
+        'personal-builder-pack': 3,
+        'business-builder-pack': 6,
+        'infinity-builder-pack': 10,
+        'legacy-builder-pack': 20,
+      });
 
       function resolveSponsorUsername(user) {
         return String(user?.username || user?.id || '').trim().toLowerCase();
@@ -14559,16 +14568,17 @@
         const normalizedSelectedPackageKey = normalizeMemberKey(selectedPackageKey);
         const currentPackageLabel = getFastTrackPackageLabel(normalizedCurrentPackageKey);
         const selectedPackageLabel = getFastTrackPackageLabel(normalizedSelectedPackageKey);
-        const selectedPackagePrice = getFastTrackPackagePrice(normalizedSelectedPackageKey);
-        const selectedPackageBv = getFastTrackPackageBv(normalizedSelectedPackageKey);
-        const currentPackageBv = getFastTrackPackageBv(normalizedCurrentPackageKey);
-        const bvGain = Math.max(0, selectedPackageBv - currentPackageBv);
+        const upgradeDelta = resolveAccountUpgradeDelta(normalizedCurrentPackageKey, normalizedSelectedPackageKey);
+        const selectedPackageProducts = upgradeDelta.targetPackageProducts;
+        const bvGain = upgradeDelta.bvGain;
+        const productGain = upgradeDelta.productCount;
+        const upgradePriceDue = upgradeDelta.priceDue;
 
         accountRankUpgradeButtonElement.dataset.targetPackage = normalizedSelectedPackageKey;
         if (accountRankUpgradeButtonLabelElement) {
           accountRankUpgradeButtonLabelElement.textContent = `Upgrade to ${selectedPackageLabel}`;
         }
-        accountRankUpgradeHintElement.textContent = `${selectedPackageLabel}: ${formatCurrency(selectedPackagePrice)} | ${selectedPackageBv.toLocaleString()} BV | +${bvGain.toLocaleString()} BV from ${currentPackageLabel}`;
+        accountRankUpgradeHintElement.textContent = `${selectedPackageLabel}: Pay ${formatCurrency(upgradePriceDue)} | +${bvGain.toLocaleString()} BV | +${productGain.toLocaleString()} products (new total ${selectedPackageProducts.toLocaleString()}) from ${currentPackageLabel}`;
       }
 
       function clearAccountRankUpgradeFeedback() {
@@ -14645,9 +14655,11 @@
           accountRankUpgradePackageSelectElement.innerHTML = availableUpgradePackageKeys
             .map((packageKey) => {
               const packageLabel = escapeHtml(getFastTrackPackageLabel(packageKey));
-              const packagePrice = formatCurrency(getFastTrackPackagePrice(packageKey));
-              const packageBv = getFastTrackPackageBv(packageKey).toLocaleString();
-              return `<option value="${escapeHtml(packageKey)}">${packageLabel} - ${packagePrice} - ${packageBv} BV</option>`;
+              const upgradeDelta = resolveAccountUpgradeDelta(currentPackageKey, packageKey);
+              const packagePriceDue = formatCurrency(upgradeDelta.priceDue);
+              const packageBvGain = upgradeDelta.bvGain.toLocaleString();
+              const packageProductGain = upgradeDelta.productCount.toLocaleString();
+              return `<option value="${escapeHtml(packageKey)}">${packageLabel} - Pay ${packagePriceDue} - +${packageBvGain} BV - +${packageProductGain} products</option>`;
             })
             .join('');
           accountRankUpgradePackageSelectElement.disabled = false;
@@ -15357,12 +15369,12 @@
       }
 
       function getFastTrackBonusAmount(packageKey, tierKey) {
-        const packagePrice = getFastTrackPackagePrice(packageKey);
+        const commissionableBv = getFastTrackPackageBv(packageKey);
         const sponsorRate = Number(FAST_TRACK_RATE_BY_TIER?.[tierKey]);
-        if (!Number.isFinite(packagePrice) || packagePrice <= 0 || !Number.isFinite(sponsorRate) || sponsorRate <= 0) {
+        if (!Number.isFinite(commissionableBv) || commissionableBv <= 0 || !Number.isFinite(sponsorRate) || sponsorRate <= 0) {
           return 0;
         }
-        return Math.round((packagePrice * sponsorRate) * 100) / 100;
+        return Math.round((commissionableBv * sponsorRate) * 100) / 100;
       }
 
       function getFastTrackPackagePrice(packageKey) {
@@ -15377,6 +15389,42 @@
         }
 
         return toWholeNumber(getFastTrackPackagePrice(packageKey), 0);
+      }
+
+      function getPackageProductCount(packageKey) {
+        const normalizedPackageKey = normalizeMemberKey(packageKey);
+        if (Object.prototype.hasOwnProperty.call(PACKAGE_PRODUCT_COUNT_BY_KEY, normalizedPackageKey)) {
+          return toWholeNumber(PACKAGE_PRODUCT_COUNT_BY_KEY[normalizedPackageKey], 0);
+        }
+
+        const packageBv = getFastTrackPackageBv(normalizedPackageKey);
+        return Math.max(0, Math.floor(packageBv / PACKAGE_PRODUCT_BV));
+      }
+
+      function resolveAccountUpgradeDelta(currentPackageKey, targetPackageKey) {
+        const normalizedCurrentPackageKey = normalizeMemberKey(currentPackageKey);
+        const normalizedTargetPackageKey = normalizeMemberKey(targetPackageKey);
+        const currentPackagePrice = getFastTrackPackagePrice(normalizedCurrentPackageKey);
+        const targetPackagePrice = getFastTrackPackagePrice(normalizedTargetPackageKey);
+        const currentPackageBv = getFastTrackPackageBv(normalizedCurrentPackageKey);
+        const targetPackageBv = getFastTrackPackageBv(normalizedTargetPackageKey);
+        const currentPackageProducts = getPackageProductCount(normalizedCurrentPackageKey);
+        const targetPackageProducts = getPackageProductCount(normalizedTargetPackageKey);
+        const productCount = Math.max(0, targetPackageProducts - currentPackageProducts);
+        const priceDue = roundCurrency(productCount * PACKAGE_PRODUCT_PRICE_USD);
+        const bvGain = Math.max(0, targetPackageBv - currentPackageBv);
+
+        return {
+          currentPackagePrice,
+          targetPackagePrice,
+          currentPackageBv,
+          targetPackageBv,
+          currentPackageProducts,
+          targetPackageProducts,
+          productCount,
+          priceDue,
+          bvGain,
+        };
       }
 
       function resolveMemberServerCutoffBaselineVolume(member, fallbackValue = 0) {
@@ -21935,10 +21983,12 @@
       const publicStoreHost = `${window.location.origin}/store`;
       const STORE_RANK_DISCOUNT_PERCENT_BY_RANK = Object.freeze({
         'preferred customer': 15,
+        'free account': 15,
+        free: 15,
         personal: 20,
-        business: 25,
-        infinity: 30,
-        legacy: 40,
+        business: 20,
+        infinity: 20,
+        legacy: 20,
       });
       const registrationAttributionByUser = {
         alexm: 'REGISTRATION_LOCKED',
@@ -21960,6 +22010,8 @@
       let storeRankDiscountRate = 0;
       let storeInvoiceSeed = 240930;
       let storeInvoices = [];
+      let hasReconciledExistingStorePurchasePv = false;
+      let pendingStorePurchasePvReconcilePromise = null;
       let selectedStoreProductId = '';
       let activeStoreFlowStep = 'grid';
       let storeStripeClient = null;
@@ -21976,6 +22028,11 @@
         }
         const parsed = Number.parseInt(match[1], 10);
         return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+      }
+
+      function isEnrollmentGeneratedInvoice(invoice) {
+        const normalizedInvoiceId = normalizeText(invoice?.id).toUpperCase();
+        return /^INV-\d+-\d+$/.test(normalizedInvoiceId);
       }
 
       function syncStoreInvoiceSeedFromInvoices() {
@@ -22074,7 +22131,6 @@
         appendIdentityKey(currentSessionUser?.id);
         appendIdentityKey(currentSessionUser?.username);
         appendIdentityKey(currentSessionUser?.email);
-        appendIdentityKey(currentSessionUser?.name);
 
         return identityKeys;
       }
@@ -22090,21 +22146,20 @@
           invoice?.buyerUsername,
           invoice?.buyerEmail,
         ];
+        const hasExplicitIdentityValues = explicitIdentityCandidates.some((candidate) => {
+          return Boolean(normalizeMemberKey(candidate));
+        });
         const hasExplicitIdentityMatch = explicitIdentityCandidates.some((candidate) => {
           const normalizedCandidate = normalizeMemberKey(candidate);
           return normalizedCandidate && identityKeys.has(normalizedCandidate);
         });
-        if (hasExplicitIdentityMatch) {
-          return true;
+        if (hasExplicitIdentityValues) {
+          return hasExplicitIdentityMatch;
         }
 
-        const hasLegacyTimestamp = typeof invoice?.createdAt === 'string' && invoice.createdAt.trim();
-        if (!hasLegacyTimestamp) {
-          return false;
-        }
-
-        const normalizedBuyer = normalizeMemberKey(invoice?.buyer);
-        return Boolean(normalizedBuyer && identityKeys.has(normalizedBuyer));
+        // Legacy invoices without explicit buyer identity are not auto-reconciled.
+        // Name-based matching can over-credit BV when members share similar names.
+        return false;
       }
 
       function resolveCurrentStoreOwnerAttributionCodes() {
@@ -22155,6 +22210,9 @@
         }
 
         return storeInvoices.reduce((sum, invoice) => {
+          if (isEnrollmentGeneratedInvoice(invoice)) {
+            return sum;
+          }
           if (!isInvoiceOwnedByCurrentUser(invoice)) {
             return sum;
           }
@@ -22169,18 +22227,36 @@
       }
 
       async function reconcileExistingStorePurchasePv() {
-        const invoiceBpTotal = resolveCurrentUserStoreInvoiceBpTotal();
-        if (invoiceBpTotal <= 0) {
+        if (hasReconciledExistingStorePurchasePv) {
           return;
         }
 
-        const creditedPurchasePv = resolveCurrentCreditedStorePurchasePv(currentSessionUser);
-        const missingPv = Math.max(0, invoiceBpTotal - creditedPurchasePv);
-        if (missingPv <= 0) {
+        if (pendingStorePurchasePvReconcilePromise) {
+          await pendingStorePurchasePvReconcilePromise;
           return;
         }
 
-        await syncMemberPurchaseActivityWindow(missingPv);
+        pendingStorePurchasePvReconcilePromise = (async () => {
+          const invoiceBpTotal = resolveCurrentUserStoreInvoiceBpTotal();
+          if (invoiceBpTotal <= 0) {
+            return;
+          }
+
+          const creditedPurchasePv = resolveCurrentCreditedStorePurchasePv(currentSessionUser);
+          const missingPv = Math.max(0, invoiceBpTotal - creditedPurchasePv);
+          if (missingPv <= 0) {
+            return;
+          }
+
+          await syncMemberPurchaseActivityWindow(missingPv);
+        })().catch((error) => {
+          console.warn('Unable to reconcile existing store purchase PV:', error);
+        }).finally(() => {
+          pendingStorePurchasePvReconcilePromise = null;
+          hasReconciledExistingStorePurchasePv = true;
+        });
+
+        await pendingStorePurchasePvReconcilePromise;
       }
 
       function resolveRegisteredAttributionCode() {
@@ -23338,8 +23414,10 @@
             normalizeMemberKey(payload?.upgrade?.toPackage || currentSessionUser?.enrollmentPackage),
           );
           const gainedPv = toWholeNumber(payload?.upgrade?.pvGain, 0);
+          const upgradePriceDue = Math.max(0, Number(payload?.upgrade?.priceDue) || 0);
+          const upgradeProductCount = toWholeNumber(payload?.upgrade?.productCount, 0);
           setAccountRankUpgradeFeedback(
-            `Account upgraded to ${upgradedPackageLabel}. +${gainedPv.toLocaleString()} PV applied to your organization line.`,
+            `Account upgraded to ${upgradedPackageLabel}. Paid ${formatCurrency(upgradePriceDue)} for ${upgradeProductCount.toLocaleString()} products. +${gainedPv.toLocaleString()} PV applied (Fast Track not applied on upgrades).`,
             true,
           );
         } catch (error) {

@@ -1462,6 +1462,140 @@
         padding-bottom: 2px;
       }
     }
+
+    @media (max-height: 1065px) {
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-step[data-enroll-step="3"].is-active {
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-modal-header {
+        padding: 10px 44px 4px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-modal-title {
+        font-size: 33px;
+        line-height: 1.08;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-modal-subtitle {
+        display: block;
+        margin-top: 4px;
+        max-width: 390px;
+        font-size: 10.5px;
+        line-height: 1.2;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-modal-body {
+        padding: 0 18px 10px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-field-stack {
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-checkout-summary {
+        margin: 2px 0 0;
+        padding: 14px 14px 12px;
+        border-radius: 20px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-checkout-heading {
+        margin-bottom: 8px;
+        font-size: 16px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-checkout-row {
+        margin-top: 4px;
+        font-size: 13px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-checkout-divider {
+        margin: 10px 0 8px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-checkout-total {
+        font-size: 28px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-form-input,
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-stripe-card-shell,
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-custom-select-trigger {
+        min-height: 44px;
+        border-radius: 16px;
+        padding: 0 16px;
+        font-size: 12.5px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-stripe-card-shell.is-card-number {
+        padding-right: 12px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-card-row,
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-billing-row,
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-billing-fields {
+        gap: 8px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-billing-heading,
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-field-label {
+        font-size: 11px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-card-error {
+        margin-top: -2px;
+        min-height: 15px;
+        font-size: 11px;
+        line-height: 1.25;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-actions.is-dual {
+        gap: 8px;
+        margin-top: auto;
+        padding-top: 10px;
+        padding-bottom: 2px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-action-btn {
+        min-height: 40px;
+        font-size: 13px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-step-indicators {
+        margin-top: 4px;
+        padding-bottom: 0;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-modal-feedback {
+        margin-top: 6px;
+        min-height: 14px;
+        font-size: 11px;
+        line-height: 1.25;
+      }
+    }
+
+    @media (max-height: 820px) {
+      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-modal-header {
+        padding: 8px 42px 2px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-form-input,
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-stripe-card-shell,
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-custom-select-trigger {
+        min-height: 40px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-action-btn {
+        min-height: 36px;
+      }
+
+      #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-actions.is-dual {
+        gap: 6px;
+        padding-top: 8px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1493,7 +1627,7 @@
     </div>
   </div>
   <div id="tree-next-enroll-modal-overlay" aria-hidden="true">
-    <section id="tree-next-enroll-modal" role="region" aria-labelledby="tree-next-enroll-modal-title">
+    <section id="tree-next-enroll-modal" role="region" aria-labelledby="tree-next-enroll-modal-title" data-enroll-current-step="1">
       <header id="tree-next-enroll-modal-header">
         <div>
           <h3 id="tree-next-enroll-modal-title">Enroll Member</h3>

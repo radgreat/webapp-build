@@ -15,6 +15,285 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+## Update (2026-04-13) - MLM Logic Refresh (Packages, BV, Fast Track, Upgrades, Rank BV Gates)
+
+### What Was Changed
+
+- Updated package pricing and BV baselines to the new plan:
+  - Personal: `$192 / 192 BV`
+  - Business: `$384 / 300 BV`
+  - Infinity: `$640 / 500 BV`
+  - Legacy: `$1280 / 1000 BV`
+- Reworked Fast Track bonus calculations to use **commissionable BV** (not package price), matching the updated bonus table behavior.
+- Updated account-upgrade logic:
+  - upgrades now compute and return **delta purchase requirements** (`priceDue`, `productCount`, `bvGain`)
+  - upgrade responses now explicitly mark that Fast Track is not applied on upgrades
+  - account records still move to target package price/BV tier metadata.
+- Updated account-upgrade UI copy and selector hints to show **Pay X / +Y BV / +Z products** instead of full package totals only.
+- Updated enrollment package options/labels in member and admin surfaces to reflect the new prices.
+- Updated rank-advancement eligibility with new personal-volume gates:
+  - Ruby/Emerald/Sapphire: self `50 BV`, left/right `1:1` at `50 BV` each
+  - Diamond/Blue Diamond/Black Diamond: self `100 BV`, left/right `2:2` at `50 BV` each
+  - Crown/Double Crown/Royal Crown: self `200 BV`, left/right `3:3` at `50 BV` each.
+- Updated enrollment package metadata in binary-tree-next enrollment flow (including product counts: `3/6/10/20`).
+- Updated store rank-discount map to align with the refreshed package discount rules:
+  - Preferred/Free: `15%`
+  - Personal/Business/Infinity/Legacy: `20%`.
+
+### Files Affected
+
+- `backend/services/member.service.js`
+- `backend/services/admin.service.js`
+- `backend/services/member-achievement.service.js`
+- `backend/scripts/simulate-zeroone-live-test.mjs`
+- `index.html`
+- `admin.html`
+- `login.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept package/rank key names unchanged (`personal-builder-pack`, etc.) to avoid routing/data-contract regressions.
+- Preserved existing `upgrade.price` / `upgrade.bv` response fields for compatibility, while adding delta fields (`priceDue`, `bvGain`, `productCount`) for the new upgrade chart behavior.
+- Added rank BV checks as additive gating without removing existing direct-sponsor/cycle/monthly-claim constraints.
+
+### Known Limitations
+
+- Historical users created under prior package-value rules may still hold older starter PV trajectories; this update does not run a retroactive normalization migration.
+- Frontend static HTML surfaces were updated for pricing/BV logic, but no visual screenshot-diff pass was run in this backend-first logic update cycle.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/services/admin.service.js` passed.
+- `node --check backend/services/member-achievement.service.js` passed.
+- `node --check backend/scripts/simulate-zeroone-live-test.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-13) - Small-Screen Condition Shifted to 1065 Height
+
+### What Was Changed
+
+- Updated compact Step-3 CSS media condition:
+  - from `@media (max-height: 980px)`
+  - to `@media (max-height: 1065px)`.
+- Updated Step-3 compact JS threshold logic to align with the same `1065` small-screen baseline:
+  - compact viewport detection now uses `viewportHeight <= 1065`
+  - compact width-tier and vertical edge-padding threshold checks now use `<= 1065` in place of previous smaller-height cutoff.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept layout and component structure unchanged; only the trigger condition for small-screen behavior was moved to the requested height.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-13) - Step-3 Gap Adjustment (Name-on-Card Spacing)
+
+### What Was Changed
+
+- Added extra top gap for Step-3 field stack in compact mode:
+  - increased spacing between checkout summary panel and the `Name on Card` field by adding `margin-top` on the Step-3 field stack selector.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept the change narrowly scoped to Step-3 compact mode to avoid side effects on other enroll steps.
+
+### Known Limitations
+
+- Additional small-screen spacing may require careful balancing with other compact constraints at very short heights.
+
+## Update (2026-04-13) - Restored Step-3 Captions and Pagination Dots (Layout Preservation)
+
+### What Was Changed
+
+- Re-enabled compact-mode Step-3 subtitle/caption display (previously hidden).
+- Re-enabled compact-mode pagination dot row display (previously hidden).
+- Re-enabled compact-mode feedback-row display (previously hidden).
+- Kept no-scroll requirement intact:
+  - Step-3 internal scroll behavior remains removed.
+  - Step-3 layout relies on balanced compact sizing, not scroll-region mechanics.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved original UI structure/content while limiting changes to small-screen compatibility sizing only.
+
+### Known Limitations
+
+- At very short viewport heights, preserving all original captions/dots/feedback while enforcing no-scroll can tighten available breathing room.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- Headless verification at `1440x949` confirmed:
+  - subtitle visible
+  - step dots visible
+  - feedback row visible
+  - submit button visible
+  - no internal Step-3 scroll mode (`overflow-y: visible`).
+
+## Update (2026-04-13) - Enroll Panel Shell Scaled Down for Small Screens
+
+### What Was Changed
+
+- Added compact viewport panel-shell sizing in JS panel-position logic:
+  - compact viewport mode now activates for short-height or narrow-width contexts.
+  - panel max width now scales by viewport-height tiers:
+    - `<= 1100px` -> up to `520px`
+    - `<= 949px` -> up to `500px`
+    - `<= 820px` -> up to `460px`
+  - side-shell horizontal anchor gap is reduced in compact mode.
+- Added global small-height (`max-height: 1100px`) enroll-shell CSS pass:
+  - reduced panel corner radius
+  - reduced header/title/subtitle scale
+  - reduced body padding
+  - reduced input/select/Stripe control heights
+  - reduced action button height.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Applied shell-level size reduction before step-specific compaction so all enroll pages (1-4) better fit smaller screens.
+- Kept Step-3 sticky-action + scroll-region behavior intact as the overflow safety mechanism.
+
+### Known Limitations
+
+- Very short viewport heights may still require Step-3 field-region scrolling to access all billing fields.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-13) - MacBook 1440x949 Threshold Alignment for Enroll Step-3 Compact Mode
+
+### What Was Changed
+
+- Updated compact Step-3 CSS breakpoint target:
+  - from `@media (max-width: 1440px) and (max-height: 900px)`
+  - to `@media (max-width: 1440px) and (max-height: 949px)`.
+- Updated Step-3 compact panel-size trigger in JS:
+  - vertical compact edge-padding logic now uses `viewportHeight <= 949` (was `<= 900`) for Step 3.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Aligned CSS and JS compact thresholds to the same MacBook-class baseline to avoid mismatch between compact styling and panel max-height behavior.
+
+### Known Limitations
+
+- Actual browser viewport height can still vary from display resolution depending on browser UI chrome and OS dock auto-hide settings.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-13) - Binary Tree Next Enroll Step-3 Small-Screen Rendering Fix (Buttons Not Clipped)
+
+### What Was Changed
+
+- Added a compact Step-3 structural layout mode for small laptop heights:
+  - Step 3 now renders as a compact 3-row grid (`summary`, `scrollable form region`, `action row`) in short viewport mode.
+- Implemented sticky action controls in compact Step 3:
+  - `.tree-next-enroll-actions.is-dual` is pinned to the bottom (sticky) so `Previous` and `Register and Pay` remain visible.
+  - added subtle bottom gradient backing to preserve button-legibility over scrollable content.
+- Made Step-3 field region scrollable in compact mode:
+  - `.tree-next-enroll-field-stack` now has `overflow-y: auto` in compact Step-3 context.
+  - this prevents content overflow from hiding the CTA row on small heights.
+- Reclaimed additional space by hiding compact Step-3 feedback row footprint.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept panel-body no-scroll behavior unchanged and localized overflow handling to Step-3 inner content only.
+- Prioritized guaranteed CTA visibility over preserving fixed, fully non-scrollable Step-3 content on short-height devices.
+
+### Known Limitations
+
+- On very short heights, users may need to scroll the Step-3 field region to reach all billing inputs; this is intentional to keep payment buttons visible.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-13) - Binary Tree Next Enroll Step-3 Compact Small-Screen Optimization
+
+### What Was Changed
+
+- Added step-aware modal state tracking for enroll flow:
+  - `setTreeNextEnrollStep(...)` now writes `data-enroll-current-step` to `#tree-next-enroll-modal`.
+  - step changes now force an immediate panel-position sync so Step-3 compact sizing and max-height updates apply without delay.
+- Added Step-3-only compact CSS rules for smaller laptop viewports:
+  - trigger window: `max-width: 1440px` and `max-height: 900px`
+  - tightened header/title spacing and hid Step-3 subtitle in compact mode
+  - reduced Step-3 checkout summary block vertical footprint
+  - reduced control heights/padding for text fields, Stripe shells, and custom-select trigger
+  - tightened billing/card row spacing and dual-action button area spacing
+  - hid Step-3 progress indicators in compact mode to free bottom space for CTA visibility
+- Added Step-3 short-height panel max-height tuning in panel positioning:
+  - when Step 3 is active on short-height screens, vertical edge padding is reduced so the panel can use more viewport height.
+- Added extra-tight fallback for shorter heights:
+  - trigger window: `max-width: 1440px` and `max-height: 820px`
+  - keeps aggressive compact spacing and further reduces control/button heights.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept changes Step-3 scoped using modal step-state attribute targeting so Step 1/2/4 visual rhythm remains intact.
+- Preserved the no-scroll panel requirement while reducing component density enough for smaller laptop heights.
+
+### Known Limitations
+
+- Extremely short viewport heights can still feel dense due the required billing/card fields and no-scroll constraint.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
 ## Update (2026-04-13) - Stripe Link Row Reverted to Inline Card-Number Style + Step-3 No-Scroll Enforcement
 
 ### What Was Changed
@@ -24333,3 +24612,73 @@ Updated `binary-tree-next-app.mjs`:
 ### Validation
 
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-13) - Hotfix: False "Slot No Longer Available" on Valid Anticipation Nodes
+
+### What Was Changed
+
+- Fixed enrollment placement lock initialization in `openTreeNextEnrollModal(...)`.
+- Reverted member-side parent lock override that forced `parentId = 'root'`.
+- Enrollment modal now always locks to the actual selected anticipation parent (`requestDetail.parentId`) and selected side.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept member-side spillover control removal and admin/manual split intact.
+- Only corrected the placement-lock parent source, so slot availability checks and final node placement validate against the real selected parent.
+
+### Known Limitations
+
+- If another process fills the same anticipation slot before final submit, conflict messaging remains expected and correct.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-13) - Hotfix: Duplicate BV Re-credit After Enrollment + Invoice Identity Reconciliation Guard
+
+### What Was Changed
+
+- Investigated duplicate BV/PV increments that appeared seconds after new member enrollment.
+- Patched My Store invoice reconciliation logic to stop automatic over-crediting:
+  - removed buyer-name identity matching from invoice ownership detection (identity now uses `buyerUserId` / `buyerUsername` / `buyerEmail` only)
+  - excluded enrollment-generated invoice ids (`INV-<seed>-<suffix>`) from store-purchase PV backfill reconciliation
+  - added one-time/in-flight reconciliation guards to prevent repeated reconciliation writes during one session boot.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Root Cause Findings
+
+- `initMyStore()` runs at dashboard boot and calls `reconcileExistingStorePurchasePv()`.
+- That reconciliation posted to `/api/member-auth/record-purchase` based on invoice BP deltas.
+- Invoice ownership fallback allowed buyer-name matching, which can collide across different members sharing similar names (example found: two invoices under `buyer = "Demo User"`).
+- Enrollment-generated invoices were also included in reconciliation even though enrollment already sets starter PV/BV on account creation.
+
+### April 7 / Backfill Investigation
+
+- Backfill/cutoff history is not April 7. Database shows a forced server cutoff entry on **2026-04-08T01:50:14.510Z** (`forced_by: simulation-zeroone:20260408012540525-tstltn`).
+- Baseline cutoff fields (`server_cutoff_baseline_set_at`) were also stamped on **2026-04-08**, not April 7.
+- April 7 records observed were invoice rows (for example `INV-240931` at **2026-04-07T02:18:43.165Z**), not cutoff backfill history.
+
+### Design Decisions
+
+- Prioritized safety against over-crediting: disabled legacy name-based reconciliation matching and limited reconciliation to explicit identities only.
+- Preserved existing purchase sync endpoint and flow, but constrained automatic reconciliation scope so enrollment invoices are not re-credited.
+
+### Known Limitations
+
+- Very old invoices without explicit buyer identity fields are no longer eligible for automatic My Store PV reconciliation and would require manual review/credit.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/services/invoice.service.js` passed.

@@ -165,24 +165,24 @@ const ENROLL_PACKAGE_META = Object.freeze({
     label: 'Personal Builder Pack',
     bv: 192,
     price: 192,
-    selectableProducts: 4,
+    selectableProducts: 3,
   }),
   'business-builder-pack': Object.freeze({
     label: 'Business Builder Pack',
-    bv: 360,
-    price: 360,
-    selectableProducts: 8,
+    bv: 300,
+    price: 384,
+    selectableProducts: 6,
   }),
   'infinity-builder-pack': Object.freeze({
     label: 'Infinity Builder Pack',
-    bv: 560,
-    price: 560,
-    selectableProducts: 12,
+    bv: 500,
+    price: 640,
+    selectableProducts: 10,
   }),
   'legacy-builder-pack': Object.freeze({
     label: 'Legacy Builder Pack',
-    bv: 960,
-    price: 960,
+    bv: 1000,
+    price: 1280,
     selectableProducts: 20,
   }),
 });
@@ -1582,13 +1582,18 @@ function resolveEnrollPackagePrice(packageKey) {
   return Math.max(0, safeNumber(packageMeta?.price, packageMeta?.bv || 0));
 }
 
+function resolveEnrollPackageBv(packageKey) {
+  const packageMeta = resolveEnrollPackageMeta(packageKey);
+  return Math.max(0, safeNumber(packageMeta?.bv, packageMeta?.price || 0));
+}
+
 function resolveEnrollFastTrackBonusAmount(packageKey, tierKey) {
-  const packagePrice = resolveEnrollPackagePrice(packageKey);
+  const commissionableBv = resolveEnrollPackageBv(packageKey);
   const sponsorRate = safeNumber(ENROLL_FAST_TRACK_RATE_BY_TIER[normalizeCredentialValue(tierKey)], 0);
-  if (packagePrice <= 0 || sponsorRate <= 0) {
+  if (commissionableBv <= 0 || sponsorRate <= 0) {
     return 0;
   }
-  return Math.round((packagePrice * sponsorRate) * 100) / 100;
+  return Math.round((commissionableBv * sponsorRate) * 100) / 100;
 }
 
 function formatEnrollCurrency(value) {
@@ -2642,6 +2647,9 @@ function setTreeNextEnrollStep(step, options = {}) {
   } = options;
   const normalizedStep = Math.max(1, Math.min(4, Math.floor(safeNumber(step, 1))));
   state.enroll.step = normalizedStep;
+  if (treeNextEnrollModalElement instanceof HTMLElement) {
+    treeNextEnrollModalElement.dataset.enrollCurrentStep = String(normalizedStep);
+  }
 
   for (const stepElement of treeNextEnrollStepElements) {
     if (!(stepElement instanceof HTMLElement)) {
@@ -2669,6 +2677,7 @@ function setTreeNextEnrollStep(step, options = {}) {
   if (treeNextEnrollStepIndicatorsElement instanceof HTMLElement) {
     treeNextEnrollStepIndicatorsElement.classList.toggle('is-hidden', normalizedStep > 3);
   }
+  syncTreeNextEnrollPanelPosition();
 
   if (!focusField) {
     return;
@@ -2728,11 +2737,25 @@ function syncTreeNextEnrollPanelPosition(layoutInput = state.layout) {
     1,
     Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
   );
-  const edgePadding = ENROLL_PANEL_EDGE_PADDING;
-  const availableWidth = Math.max(ENROLL_PANEL_MIN_WIDTH, viewportWidth - (edgePadding * 2));
+  const isCompactPanelViewport = viewportHeight <= 1065 || viewportWidth <= 1366;
+  const isStepThreeActive = resolveTreeNextEnrollStep() === 3;
+  const compactPanelMaxWidth = viewportHeight <= 820
+    ? 500
+    : (viewportHeight <= 1065 ? 540 : 550);
+  const panelMaxWidth = isCompactPanelViewport
+    ? compactPanelMaxWidth
+    : ENROLL_PANEL_MAX_WIDTH;
+  const panelHorizontalGap = isCompactPanelViewport
+    ? 18
+    : ENROLL_PANEL_HORIZONTAL_GAP;
+  const horizontalEdgePadding = ENROLL_PANEL_EDGE_PADDING;
+  const verticalEdgePadding = isStepThreeActive && viewportHeight <= 1065
+    ? 6
+    : ENROLL_PANEL_EDGE_PADDING;
+  const availableWidth = Math.max(ENROLL_PANEL_MIN_WIDTH, viewportWidth - (horizontalEdgePadding * 2));
   const panelWidth = Math.max(
     Math.min(ENROLL_PANEL_MIN_WIDTH, availableWidth),
-    Math.min(ENROLL_PANEL_MAX_WIDTH, Math.floor(availableWidth)),
+    Math.min(panelMaxWidth, Math.floor(availableWidth)),
   );
 
   const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
@@ -2742,18 +2765,18 @@ function syncTreeNextEnrollPanelPosition(layoutInput = state.layout) {
 
   let anchorLeft = Math.round((viewportWidth - panelWidth) / 2);
   if (sideNavOpen && sideNav) {
-    anchorLeft = Math.round(sideNav.x + sideNav.width + ENROLL_PANEL_HORIZONTAL_GAP);
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
   } else if (sideNavToggle) {
-    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + ENROLL_PANEL_HORIZONTAL_GAP);
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
   }
 
   const clampedLeft = clamp(
     anchorLeft,
-    edgePadding,
-    Math.max(edgePadding, viewportWidth - panelWidth - edgePadding),
+    horizontalEdgePadding,
+    Math.max(horizontalEdgePadding, viewportWidth - panelWidth - horizontalEdgePadding),
   );
   const centerTop = Math.round(viewportHeight / 2);
-  const maxHeight = Math.max(320, viewportHeight - (edgePadding * 2));
+  const maxHeight = Math.max(320, viewportHeight - (verticalEdgePadding * 2));
 
   treeNextEnrollModalElement.style.width = `${panelWidth}px`;
   treeNextEnrollModalElement.style.left = `${clampedLeft}px`;
@@ -2842,41 +2865,22 @@ function openTreeNextEnrollModal(requestDetail = {}) {
   }
 
   const placementLeg = normalizeBinarySide(requestDetail?.placementLeg) === 'right' ? 'right' : 'left';
-  const isAdminPlacementMode = isTreeNextEnrollAdminPlacementMode();
   const requestedParentId = safeText(requestDetail?.parentId);
-  if (isAdminPlacementMode && !requestedParentId) {
+  if (!requestedParentId) {
     setTreeNextEnrollFeedback('Placement context is missing. Select an anticipation node again.', false);
     return;
   }
-  const rootNode = resolveNodeById('root');
-  const parentId = isAdminPlacementMode ? requestedParentId : 'root';
+  const parentId = requestedParentId;
 
   const parentName = safeText(
-    isAdminPlacementMode
-      ? (
-        requestDetail?.parentName
-        || requestDetail?.parentMemberCode
-        || parentId
-      )
-      : (
-        rootNode?.name
-        || rootNode?.memberCode
-        || rootNode?.username
-        || 'Root'
-      ),
+    requestDetail?.parentName
+    || requestDetail?.parentMemberCode
+    || parentId,
   ) || parentId;
   const parentReference = safeText(
-    isAdminPlacementMode
-      ? (
-        requestDetail?.parentMemberCode
-        || requestDetail?.parentUsername
-        || parentId
-      )
-      : (
-        rootNode?.memberCode
-        || rootNode?.username
-        || 'root'
-      ),
+    requestDetail?.parentMemberCode
+    || requestDetail?.parentUsername
+    || parentId,
   ) || parentId;
 
   state.enroll.lastTriggerElement = document.activeElement instanceof HTMLElement

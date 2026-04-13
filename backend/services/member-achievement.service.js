@@ -228,6 +228,8 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     requiredRank: 'Ruby',
     requiresRank: false,
     requiredDirectSponsorsPerSide: 1,
+    requiredPersonalPvBv: 50,
+    requiredLegPersonalPvBv: 50,
     requiredCycles: 5,
     rewardUsd: 62.5,
     deductionPerBottleUsd: 0.40,
@@ -246,6 +248,8 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     requiredRank: 'Emerald',
     requiresRank: false,
     requiredDirectSponsorsPerSide: 1,
+    requiredPersonalPvBv: 50,
+    requiredLegPersonalPvBv: 50,
     requiredCycles: 10,
     rewardUsd: 125,
     deductionPerBottleUsd: 0.40,
@@ -264,6 +268,8 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     requiredRank: 'Sapphire',
     requiresRank: false,
     requiredDirectSponsorsPerSide: 1,
+    requiredPersonalPvBv: 50,
+    requiredLegPersonalPvBv: 50,
     requiredCycles: 20,
     rewardUsd: 250,
     deductionPerBottleUsd: 0.40,
@@ -282,6 +288,8 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     requiredRank: 'Diamond',
     requiresRank: false,
     requiredDirectSponsorsPerSide: 2,
+    requiredPersonalPvBv: 100,
+    requiredLegPersonalPvBv: 50,
     requiredCycles: 40,
     rewardUsd: 500,
     deductionPerBottleUsd: 0.40,
@@ -300,6 +308,8 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     requiredRank: 'Blue Diamond',
     requiresRank: false,
     requiredDirectSponsorsPerSide: 2,
+    requiredPersonalPvBv: 100,
+    requiredLegPersonalPvBv: 50,
     requiredCycles: 80,
     rewardUsd: 1000,
     deductionPerBottleUsd: 0.40,
@@ -318,6 +328,8 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     requiredRank: 'Black Diamond',
     requiresRank: false,
     requiredDirectSponsorsPerSide: 2,
+    requiredPersonalPvBv: 100,
+    requiredLegPersonalPvBv: 50,
     requiredCycles: 160,
     rewardUsd: 2000,
     deductionPerBottleUsd: 0.40,
@@ -336,6 +348,8 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     requiredRank: 'Crown',
     requiresRank: false,
     requiredDirectSponsorsPerSide: 3,
+    requiredPersonalPvBv: 200,
+    requiredLegPersonalPvBv: 50,
     requiredCycles: 320,
     rewardUsd: 4000,
     deductionPerBottleUsd: 0.40,
@@ -354,6 +368,8 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     requiredRank: 'Double Crown',
     requiresRank: false,
     requiredDirectSponsorsPerSide: 3,
+    requiredPersonalPvBv: 200,
+    requiredLegPersonalPvBv: 50,
     requiredCycles: 640,
     rewardUsd: 8000,
     deductionPerBottleUsd: 0.40,
@@ -372,6 +388,8 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     requiredRank: 'Royal Crown',
     requiresRank: false,
     requiredDirectSponsorsPerSide: 3,
+    requiredPersonalPvBv: 200,
+    requiredLegPersonalPvBv: 50,
     requiredCycles: 1000,
     rewardUsd: 12500,
     deductionPerBottleUsd: 0.40,
@@ -867,6 +885,19 @@ function normalizePlacementSideFromMember(member = {}) {
   return 'left';
 }
 
+function resolveMemberPersonalVolumeBv(member = {}) {
+  const starterPersonalPv = Math.max(0, toWholeNumber(member?.starterPersonalPv, 0));
+  if (starterPersonalPv > 0) {
+    return starterPersonalPv;
+  }
+
+  const packageBv = Math.max(0, toWholeNumber(
+    member?.packageBv,
+    member?.enrollmentPackageBv,
+  ));
+  return packageBv;
+}
+
 async function resolveCurrentMemberDirectSponsorSummary(member = {}) {
   const sponsorUsername = normalizeCredential(member?.username || member?.memberUsername);
   if (!sponsorUsername) {
@@ -874,6 +905,8 @@ async function resolveCurrentMemberDirectSponsorSummary(member = {}) {
       leftDirectSponsors: 0,
       rightDirectSponsors: 0,
       totalDirectSponsors: 0,
+      leftDirectSponsorPersonalPvBv: [],
+      rightDirectSponsorPersonalPvBv: [],
       packageEnrollmentsByKey: {},
       directLegacyBuilderEnrollments: 0,
       secondLevelLegacyBuilderEnrollments: 0,
@@ -885,6 +918,8 @@ async function resolveCurrentMemberDirectSponsorSummary(member = {}) {
     const registeredMembers = await readRegisteredMembersStore();
     let leftDirectSponsors = 0;
     let rightDirectSponsors = 0;
+    const leftDirectSponsorPersonalPvBv = [];
+    const rightDirectSponsorPersonalPvBv = [];
     const packageEnrollmentsByKey = {};
     const sponsoredMembersBySponsorKey = new Map();
 
@@ -900,10 +935,13 @@ async function resolveCurrentMemberDirectSponsorSummary(member = {}) {
       }
 
       const placementSide = normalizePlacementSideFromMember(entry);
+      const directSponsorPersonalPvBv = resolveMemberPersonalVolumeBv(entry);
       if (placementSide === 'right') {
         rightDirectSponsors += 1;
+        rightDirectSponsorPersonalPvBv.push(directSponsorPersonalPvBv);
       } else {
         leftDirectSponsors += 1;
+        leftDirectSponsorPersonalPvBv.push(directSponsorPersonalPvBv);
       }
 
       const normalizedPackageKey = normalizePackageKey(entry?.enrollmentPackage);
@@ -963,6 +1001,8 @@ async function resolveCurrentMemberDirectSponsorSummary(member = {}) {
       leftDirectSponsors,
       rightDirectSponsors,
       totalDirectSponsors: leftDirectSponsors + rightDirectSponsors,
+      leftDirectSponsorPersonalPvBv,
+      rightDirectSponsorPersonalPvBv,
       packageEnrollmentsByKey,
       directLegacyBuilderEnrollments,
       secondLevelLegacyBuilderEnrollments,
@@ -973,6 +1013,8 @@ async function resolveCurrentMemberDirectSponsorSummary(member = {}) {
       leftDirectSponsors: 0,
       rightDirectSponsors: 0,
       totalDirectSponsors: 0,
+      leftDirectSponsorPersonalPvBv: [],
+      rightDirectSponsorPersonalPvBv: [],
       packageEnrollmentsByKey: {},
       directLegacyBuilderEnrollments: 0,
       secondLevelLegacyBuilderEnrollments: 0,
@@ -1007,6 +1049,7 @@ async function resolveCurrentMemberProgressContext(member = {}) {
     resolveCurrentMemberDirectSponsorSummary(member),
   ]);
   const activityState = resolveMemberActivityState(member);
+  const currentPersonalPvBv = resolveMemberPersonalVolumeBv(member);
   const currentEnrollmentPackageKey = normalizePackageKey(
     member?.enrollmentPackage
     || member?.enrollmentPackageKey
@@ -1027,6 +1070,7 @@ async function resolveCurrentMemberProgressContext(member = {}) {
   return {
     currentRank,
     currentCycles,
+    currentPersonalPvBv,
     ...directSponsorSummary,
     currentEnrollmentPackageKey,
     hasLegacyPackageOwnership,
@@ -1223,6 +1267,8 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   const requiredDirectSponsorsTotal = toWholeNumber(achievement?.requiredDirectSponsorsTotal, 0);
   const requiredDirectSponsorsPerSide = toWholeNumber(achievement?.requiredDirectSponsorsPerSide, 0);
   const requiredCycles = toWholeNumber(achievement?.requiredCycles, 0);
+  const requiredPersonalPvBv = toWholeNumber(achievement?.requiredPersonalPvBv, 0);
+  const requiredLegPersonalPvBv = toWholeNumber(achievement?.requiredLegPersonalPvBv, 0);
   const requiresLegacyPackageOwnership = achievement?.requiresLegacyPackageOwnership === true;
   const requiredLegacyBuilderDirectEnrollments = toWholeNumber(
     achievement?.requiredLegacyBuilderDirectEnrollments,
@@ -1277,6 +1323,22 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     currentLeftDirectSponsors + currentRightDirectSponsors,
   );
   const currentCycles = toWholeNumber(progressContext?.currentCycles, 0);
+  const currentPersonalPvBv = Math.max(
+    0,
+    toWholeNumber(progressContext?.currentPersonalPvBv, 0),
+  );
+  const leftDirectSponsorPersonalPvBv = Array.isArray(progressContext?.leftDirectSponsorPersonalPvBv)
+    ? progressContext.leftDirectSponsorPersonalPvBv.map((value) => Math.max(0, toWholeNumber(value, 0)))
+    : [];
+  const rightDirectSponsorPersonalPvBv = Array.isArray(progressContext?.rightDirectSponsorPersonalPvBv)
+    ? progressContext.rightDirectSponsorPersonalPvBv.map((value) => Math.max(0, toWholeNumber(value, 0)))
+    : [];
+  const currentLeftQualifiedPersonalPvSponsors = requiredLegPersonalPvBv > 0
+    ? leftDirectSponsorPersonalPvBv.filter((value) => value >= requiredLegPersonalPvBv).length
+    : leftDirectSponsorPersonalPvBv.length;
+  const currentRightQualifiedPersonalPvSponsors = requiredLegPersonalPvBv > 0
+    ? rightDirectSponsorPersonalPvBv.filter((value) => value >= requiredLegPersonalPvBv).length
+    : rightDirectSponsorPersonalPvBv.length;
   const activityState = progressContext?.activityState && typeof progressContext.activityState === 'object'
     ? progressContext.activityState
     : { isActive: false, label: 'Inactive', activeUntilAt: '' };
@@ -1326,6 +1388,15 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   const meetsCycleRequirementNow = requiredCycles > 0
     ? currentCycles >= requiredCycles
     : true;
+  const meetsPersonalPvRequirementNow = requiredPersonalPvBv > 0
+    ? currentPersonalPvBv >= requiredPersonalPvBv
+    : true;
+  const meetsLegPersonalPvRequirementNow = requiredLegPersonalPvBv > 0
+    ? (
+      currentLeftQualifiedPersonalPvSponsors >= requiredDirectSponsorsPerSide
+      && currentRightQualifiedPersonalPvSponsors >= requiredDirectSponsorsPerSide
+    )
+    : true;
   const packageEnrollmentSnapshot = requiredPackageEnrollments.map((entry) => {
     const current = Math.max(0, toWholeNumber(packageEnrollmentsByKey[entry.packageKey], 0));
     return {
@@ -1368,6 +1439,12 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   const meetsCycleRequirement = meetsMonthlyRecordedRankRun
     ? true
     : meetsCycleRequirementNow;
+  const meetsPersonalPvRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsPersonalPvRequirementNow;
+  const meetsLegPersonalPvRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsLegPersonalPvRequirementNow;
   const meetsPackageEnrollmentRequirement = meetsMonthlyRecordedRankRun
     ? true
     : meetsPackageEnrollmentRequirementNow;
@@ -1392,6 +1469,8 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     && meetsDirectSponsorTotalRequirement
     && meetsDirectSponsorRequirement
     && meetsCycleRequirement
+    && meetsPersonalPvRequirement
+    && meetsLegPersonalPvRequirement
     && meetsPackageEnrollmentRequirement
     && meetsLegacyPackageOwnershipRequirement
     && meetsLegacyBuilderDirectRequirement
@@ -1451,6 +1530,30 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
       met: meetsCycleRequirement,
       current: currentCycles,
       required: requiredCycles,
+    });
+  }
+  if (requiredPersonalPvBv > 0) {
+    requirements.push({
+      id: 'personal-pv-bv',
+      label: `Maintain at least ${requiredPersonalPvBv.toLocaleString()} BV personal volume`,
+      met: meetsPersonalPvRequirement,
+      current: currentPersonalPvBv,
+      required: requiredPersonalPvBv,
+    });
+  }
+  if (requiredLegPersonalPvBv > 0) {
+    requirements.push({
+      id: 'leg-personal-pv-bv',
+      label: `Maintain ${requiredDirectSponsorsPerSide.toLocaleString()} qualified direct sponsor${requiredDirectSponsorsPerSide === 1 ? '' : 's'} per side at ${requiredLegPersonalPvBv.toLocaleString()} BV personal volume`,
+      met: meetsLegPersonalPvRequirement,
+      current: {
+        leftQualified: currentLeftQualifiedPersonalPvSponsors,
+        rightQualified: currentRightQualifiedPersonalPvSponsors,
+      },
+      required: {
+        perSide: requiredDirectSponsorsPerSide,
+        minPersonalPvBv: requiredLegPersonalPvBv,
+      },
     });
   }
   packageEnrollmentSnapshot.forEach((entry) => {
@@ -1544,6 +1647,10 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     lockReason = isRankTrack
       ? `Complete ${requiredCycles.toLocaleString()} cycles this month (${currentCycles.toLocaleString()} completed).`
       : `Complete ${requiredCycles.toLocaleString()} cycles (${currentCycles.toLocaleString()} completed).`;
+  } else if (!alreadyClaimed && requiredPersonalPvBv > 0 && !meetsPersonalPvRequirement) {
+    lockReason = `Maintain at least ${requiredPersonalPvBv.toLocaleString()} BV personal volume (${currentPersonalPvBv.toLocaleString()}/${requiredPersonalPvBv.toLocaleString()}).`;
+  } else if (!alreadyClaimed && requiredLegPersonalPvBv > 0 && !meetsLegPersonalPvRequirement) {
+    lockReason = `Maintain ${requiredDirectSponsorsPerSide.toLocaleString()} qualified direct sponsor${requiredDirectSponsorsPerSide === 1 ? '' : 's'} per side with at least ${requiredLegPersonalPvBv.toLocaleString()} BV personal volume (Left ${currentLeftQualifiedPersonalPvSponsors.toLocaleString()}/${requiredDirectSponsorsPerSide.toLocaleString()}, Right ${currentRightQualifiedPersonalPvSponsors.toLocaleString()}/${requiredDirectSponsorsPerSide.toLocaleString()}).`;
   } else if (!alreadyClaimed && requiresLegacyPackageOwnership && !meetsLegacyPackageOwnershipRequirement) {
     lockReason = 'Enroll or upgrade to Legacy Package to unlock this title.';
   } else if (!alreadyClaimed && requiredLegacyBuilderDirectEnrollments > 0 && !meetsLegacyBuilderDirectRequirement) {
@@ -1598,6 +1705,11 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     currentDirectSponsorsTotal,
     requiredCycles,
     currentCycles,
+    requiredPersonalPvBv,
+    currentPersonalPvBv,
+    requiredLegPersonalPvBv,
+    currentLeftQualifiedPersonalPvSponsors,
+    currentRightQualifiedPersonalPvSponsors,
     requiresLegacyPackageOwnership,
     hasLegacyPackageOwnership,
     requiredLegacyBuilderDirectEnrollments,
@@ -1651,6 +1763,16 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     currentLeftDirectSponsors + currentRightDirectSponsors,
   );
   const currentCycles = toWholeNumber(progressContext?.currentCycles, 0);
+  const currentPersonalPvBv = Math.max(
+    0,
+    toWholeNumber(progressContext?.currentPersonalPvBv, resolveMemberPersonalVolumeBv(member)),
+  );
+  const leftDirectSponsorPersonalPvBv = Array.isArray(progressContext?.leftDirectSponsorPersonalPvBv)
+    ? progressContext.leftDirectSponsorPersonalPvBv.map((value) => Math.max(0, toWholeNumber(value, 0)))
+    : [];
+  const rightDirectSponsorPersonalPvBv = Array.isArray(progressContext?.rightDirectSponsorPersonalPvBv)
+    ? progressContext.rightDirectSponsorPersonalPvBv.map((value) => Math.max(0, toWholeNumber(value, 0)))
+    : [];
   const packageEnrollmentsByKey = progressContext?.packageEnrollmentsByKey && typeof progressContext.packageEnrollmentsByKey === 'object'
     ? progressContext.packageEnrollmentsByKey
     : {};
@@ -1667,6 +1789,9 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     rightDirectSponsors: currentRightDirectSponsors,
     totalDirectSponsors: currentDirectSponsorsTotal,
     currentCycles,
+    currentPersonalPvBv,
+    leftDirectSponsorPersonalPvBv,
+    rightDirectSponsorPersonalPvBv,
     activityState,
   }, claims, rankClaimPeriod, { rankRunProgress });
   const claimMap = mapClaimsByAchievementId(claims, { rankClaimPeriod });
@@ -1677,6 +1802,9 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     rightDirectSponsors: currentRightDirectSponsors,
     totalDirectSponsors: currentDirectSponsorsTotal,
     currentCycles,
+    currentPersonalPvBv,
+    leftDirectSponsorPersonalPvBv,
+    rightDirectSponsorPersonalPvBv,
     packageEnrollmentsByKey,
     directLegacyBuilderEnrollments,
     activityState,
@@ -1710,6 +1838,11 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
       currentRightDirectSponsors: eligibility.currentRightDirectSponsors,
       currentDirectSponsorsTotal: eligibility.currentDirectSponsorsTotal,
       requiredCycles: eligibility.requiredCycles,
+      requiredPersonalPvBv: eligibility.requiredPersonalPvBv,
+      currentPersonalPvBv: eligibility.currentPersonalPvBv,
+      requiredLegPersonalPvBv: eligibility.requiredLegPersonalPvBv,
+      currentLeftQualifiedPersonalPvSponsors: eligibility.currentLeftQualifiedPersonalPvSponsors,
+      currentRightQualifiedPersonalPvSponsors: eligibility.currentRightQualifiedPersonalPvSponsors,
       requiresLegacyPackageOwnership: eligibility.requiresLegacyPackageOwnership,
       hasLegacyPackageOwnership: eligibility.hasLegacyPackageOwnership,
       requiredLegacyBuilderDirectEnrollments: eligibility.requiredLegacyBuilderDirectEnrollments,
@@ -1759,6 +1892,7 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     rightDirectSponsors: currentRightDirectSponsors,
     totalDirectSponsors: currentDirectSponsorsTotal,
     currentCycles,
+    currentPersonalPvBv,
     directLegacyBuilderEnrollments,
     packageEnrollmentsByKey,
     accountTitles: titleAwards,
@@ -1812,6 +1946,7 @@ export async function resolveRankAdvancementRunSnapshotForMember(member = {}) {
     rankClaimPeriodLabel: formatClaimPeriodLabel(rankClaimPeriod) || 'this month',
     currentRank: normalizeRankLabelForAchievement(progressContext?.currentRank) || 'Unranked',
     currentCycles: toWholeNumber(progressContext?.currentCycles, 0),
+    currentPersonalPvBv: toWholeNumber(progressContext?.currentPersonalPvBv, 0),
     leftDirectSponsors,
     rightDirectSponsors,
     totalDirectSponsors,
