@@ -50,9 +50,9 @@ const ACCOUNT_PACKAGE_ORDER = [
 
 const FAST_TRACK_PACKAGE_META = Object.freeze({
   [PERSONAL_PACKAGE_KEY]: { label: 'Personal Builder Pack', price: 192, bv: 192, rank: 'Personal' },
-  [BUSINESS_PACKAGE_KEY]: { label: 'Business Builder Pack', price: 360, bv: 360, rank: 'Business' },
-  [INFINITY_PACKAGE_KEY]: { label: 'Infinity Builder Pack', price: 560, bv: 560, rank: 'Infinity' },
-  [LEGACY_PACKAGE_KEY]: { label: 'Legacy Builder Pack', price: 960, bv: 960, rank: 'Legacy' },
+  [BUSINESS_PACKAGE_KEY]: { label: 'Business Builder Pack', price: 384, bv: 300, rank: 'Business' },
+  [INFINITY_PACKAGE_KEY]: { label: 'Infinity Builder Pack', price: 640, bv: 500, rank: 'Infinity' },
+  [LEGACY_PACKAGE_KEY]: { label: 'Legacy Builder Pack', price: 1280, bv: 1000, rank: 'Legacy' },
 });
 
 const INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER = 3;

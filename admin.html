@@ -2822,9 +2822,9 @@
                   <label for="enroll-member-package" class="block text-caption text-text-tertiary">Enrollment Package</label>
                   <select id="enroll-member-package" name="enrollmentPackage" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
                     <option value="personal-builder-pack">Personal Builder Pack - $192</option>
-                    <option value="business-builder-pack">Business Builder Pack - $360</option>
-                    <option value="infinity-builder-pack">Infinity Builder Pack - $560</option>
-                    <option value="legacy-builder-pack">Legacy Builder Pack - $960</option>
+                    <option value="business-builder-pack">Business Builder Pack - $384</option>
+                    <option value="infinity-builder-pack">Infinity Builder Pack - $640</option>
+                    <option value="legacy-builder-pack">Legacy Builder Pack - $1280</option>
                   </select>
                 </div>
                 <div class="md:col-span-1">
@@ -3555,9 +3555,9 @@
                       <select id="tree-enroll-package" name="enrollmentPackage" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
                           <option value="preferred-customer-pack">Free Account - $0</option>
                           <option value="personal-builder-pack">Personal Builder Pack - $192</option>
-                          <option value="business-builder-pack">Business Builder Pack - $360</option>
-                          <option value="infinity-builder-pack">Infinity Builder Pack - $560</option>
-                          <option value="legacy-builder-pack">Legacy Builder Pack - $960</option>
+                          <option value="business-builder-pack">Business Builder Pack - $384</option>
+                          <option value="infinity-builder-pack">Infinity Builder Pack - $640</option>
+                          <option value="legacy-builder-pack">Legacy Builder Pack - $1280</option>
                       </select>
                       </label>
                     </div>
@@ -4751,9 +4751,9 @@
       });
       const FAST_TRACK_PACKAGE_META = {
         'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
-        'business-builder-pack': { label: 'Business Builder Pack', price: 360, bv: 360 },
-        'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 560, bv: 560 },
-        'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 960, bv: 960 },
+        'business-builder-pack': { label: 'Business Builder Pack', price: 384, bv: 300 },
+        'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
+        'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 1280, bv: 1000 },
       };
       const FAST_TRACK_TIER_META = {
         'personal-pack': { label: 'Personal Pack' },
@@ -5741,12 +5741,12 @@
       }
 
       function getFastTrackBonusAmount(packageKey, tierKey) {
-        const packagePrice = getFastTrackPackagePrice(packageKey);
+        const commissionableBv = getFastTrackPackageBv(packageKey);
         const sponsorRate = Number(FAST_TRACK_RATE_BY_TIER?.[tierKey]);
-        if (!Number.isFinite(packagePrice) || packagePrice <= 0 || !Number.isFinite(sponsorRate) || sponsorRate <= 0) {
+        if (!Number.isFinite(commissionableBv) || commissionableBv <= 0 || !Number.isFinite(sponsorRate) || sponsorRate <= 0) {
           return 0;
         }
-        return Math.round((packagePrice * sponsorRate) * 100) / 100;
+        return Math.round((commissionableBv * sponsorRate) * 100) / 100;
       }
 
       function getFastTrackPackagePrice(packageKey) {

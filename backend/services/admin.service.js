@@ -49,9 +49,9 @@ const SALES_TEAM_CYCLE_COMMISSION_PLAN = Object.freeze({
 const FAST_TRACK_PACKAGE_META = {
   'preferred-customer-pack': { label: 'Free Account', price: 0, bv: 0 },
   'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
-  'business-builder-pack': { label: 'Business Builder Pack', price: 360, bv: 360 },
-  'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 560, bv: 560 },
-  'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 960, bv: 960 },
+  'business-builder-pack': { label: 'Business Builder Pack', price: 384, bv: 300 },
+  'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
+  'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 1280, bv: 1000 },
 };
 
 function buildUserIdentityLookup(users) {

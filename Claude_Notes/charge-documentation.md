@@ -15,6 +15,63 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 ---
 
+## Update (2026-04-13) - MLM Logic Refresh (Packages, BV, Fast Track, Upgrades, Rank BV Gates)
+
+### What Was Changed
+
+- Updated package pricing and BV baselines to the new plan:
+  - Personal: `$192 / 192 BV`
+  - Business: `$384 / 300 BV`
+  - Infinity: `$640 / 500 BV`
+  - Legacy: `$1280 / 1000 BV`
+- Reworked Fast Track bonus calculations to use **commissionable BV** (not package price), matching the updated bonus table behavior.
+- Updated account-upgrade logic:
+  - upgrades now compute and return **delta purchase requirements** (`priceDue`, `productCount`, `bvGain`)
+  - upgrade responses now explicitly mark that Fast Track is not applied on upgrades
+  - account records still move to target package price/BV tier metadata.
+- Updated account-upgrade UI copy and selector hints to show **Pay X / +Y BV / +Z products** instead of full package totals only.
+- Updated enrollment package options/labels in member and admin surfaces to reflect the new prices.
+- Updated rank-advancement eligibility with new personal-volume gates:
+  - Ruby/Emerald/Sapphire: self `50 BV`, left/right `1:1` at `50 BV` each
+  - Diamond/Blue Diamond/Black Diamond: self `100 BV`, left/right `2:2` at `50 BV` each
+  - Crown/Double Crown/Royal Crown: self `200 BV`, left/right `3:3` at `50 BV` each.
+- Updated enrollment package metadata in binary-tree-next enrollment flow (including product counts: `3/6/10/20`).
+- Updated store rank-discount map to align with the refreshed package discount rules:
+  - Preferred/Free: `15%`
+  - Personal/Business/Infinity/Legacy: `20%`.
+
+### Files Affected
+
+- `backend/services/member.service.js`
+- `backend/services/admin.service.js`
+- `backend/services/member-achievement.service.js`
+- `backend/scripts/simulate-zeroone-live-test.mjs`
+- `index.html`
+- `admin.html`
+- `login.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept package/rank key names unchanged (`personal-builder-pack`, etc.) to avoid routing/data-contract regressions.
+- Preserved existing `upgrade.price` / `upgrade.bv` response fields for compatibility, while adding delta fields (`priceDue`, `bvGain`, `productCount`) for the new upgrade chart behavior.
+- Added rank BV checks as additive gating without removing existing direct-sponsor/cycle/monthly-claim constraints.
+
+### Known Limitations
+
+- Historical users created under prior package-value rules may still hold older starter PV trajectories; this update does not run a retroactive normalization migration.
+- Frontend static HTML surfaces were updated for pricing/BV logic, but no visual screenshot-diff pass was run in this backend-first logic update cycle.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/services/admin.service.js` passed.
+- `node --check backend/services/member-achievement.service.js` passed.
+- `node --check backend/scripts/simulate-zeroone-live-test.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+
 ## Update (2026-04-13) - Small-Screen Condition Shifted to 1065 Height
 
 ### What Was Changed
@@ -24555,3 +24612,73 @@ Updated `binary-tree-next-app.mjs`:
 ### Validation
 
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-13) - Hotfix: False "Slot No Longer Available" on Valid Anticipation Nodes
+
+### What Was Changed
+
+- Fixed enrollment placement lock initialization in `openTreeNextEnrollModal(...)`.
+- Reverted member-side parent lock override that forced `parentId = 'root'`.
+- Enrollment modal now always locks to the actual selected anticipation parent (`requestDetail.parentId`) and selected side.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept member-side spillover control removal and admin/manual split intact.
+- Only corrected the placement-lock parent source, so slot availability checks and final node placement validate against the real selected parent.
+
+### Known Limitations
+
+- If another process fills the same anticipation slot before final submit, conflict messaging remains expected and correct.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-13) - Hotfix: Duplicate BV Re-credit After Enrollment + Invoice Identity Reconciliation Guard
+
+### What Was Changed
+
+- Investigated duplicate BV/PV increments that appeared seconds after new member enrollment.
+- Patched My Store invoice reconciliation logic to stop automatic over-crediting:
+  - removed buyer-name identity matching from invoice ownership detection (identity now uses `buyerUserId` / `buyerUsername` / `buyerEmail` only)
+  - excluded enrollment-generated invoice ids (`INV-<seed>-<suffix>`) from store-purchase PV backfill reconciliation
+  - added one-time/in-flight reconciliation guards to prevent repeated reconciliation writes during one session boot.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Root Cause Findings
+
+- `initMyStore()` runs at dashboard boot and calls `reconcileExistingStorePurchasePv()`.
+- That reconciliation posted to `/api/member-auth/record-purchase` based on invoice BP deltas.
+- Invoice ownership fallback allowed buyer-name matching, which can collide across different members sharing similar names (example found: two invoices under `buyer = "Demo User"`).
+- Enrollment-generated invoices were also included in reconciliation even though enrollment already sets starter PV/BV on account creation.
+
+### April 7 / Backfill Investigation
+
+- Backfill/cutoff history is not April 7. Database shows a forced server cutoff entry on **2026-04-08T01:50:14.510Z** (`forced_by: simulation-zeroone:20260408012540525-tstltn`).
+- Baseline cutoff fields (`server_cutoff_baseline_set_at`) were also stamped on **2026-04-08**, not April 7.
+- April 7 records observed were invoice rows (for example `INV-240931` at **2026-04-07T02:18:43.165Z**), not cutoff backfill history.
+
+### Design Decisions
+
+- Prioritized safety against over-crediting: disabled legacy name-based reconciliation matching and limited reconciliation to explicit identities only.
+- Preserved existing purchase sync endpoint and flow, but constrained automatic reconciliation scope so enrollment invoices are not re-credited.
+
+### Known Limitations
+
+- Very old invoices without explicit buyer identity fields are no longer eligible for automatic My Store PV reconciliation and would require manual review/credit.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/services/invoice.service.js` passed.

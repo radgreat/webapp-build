@@ -51,9 +51,18 @@ const BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER = 'placeholder';
 const FAST_TRACK_PACKAGE_META = {
   [FREE_ACCOUNT_PACKAGE_KEY]: { label: 'Free Account', price: 0, bv: 0 },
   'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
-  'business-builder-pack': { label: 'Business Builder Pack', price: 360, bv: 360 },
-  'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 560, bv: 560 },
-  'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 960, bv: 960 },
+  'business-builder-pack': { label: 'Business Builder Pack', price: 384, bv: 300 },
+  'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
+  'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 1280, bv: 1000 },
+};
+const PACKAGE_PRODUCT_BV = 50;
+const PACKAGE_PRODUCT_PRICE_USD = 64;
+const PACKAGE_PRODUCT_COUNT_BY_KEY = {
+  [FREE_ACCOUNT_PACKAGE_KEY]: 0,
+  'personal-builder-pack': 3,
+  'business-builder-pack': 6,
+  'infinity-builder-pack': 10,
+  'legacy-builder-pack': 20,
 };
 
 const FAST_TRACK_TIER_META = {
@@ -485,19 +494,33 @@ function resolveFastTrackTierFromSponsorUser(sponsorUser) {
   return resolveFastTrackTierFromRank(sponsorUser?.accountRank || sponsorUser?.rank);
 }
 
+function resolvePackageProductCount(packageKey) {
+  const normalizedPackageKey = normalizeCredential(packageKey);
+  if (Object.prototype.hasOwnProperty.call(PACKAGE_PRODUCT_COUNT_BY_KEY, normalizedPackageKey)) {
+    return Math.max(0, toWholeNumber(PACKAGE_PRODUCT_COUNT_BY_KEY[normalizedPackageKey], 0));
+  }
+
+  const packageBv = Math.max(0, toWholeNumber(FAST_TRACK_PACKAGE_META?.[normalizedPackageKey]?.bv, 0));
+  if (packageBv <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor(packageBv / PACKAGE_PRODUCT_BV));
+}
+
 function resolveFastTrackBonusAmount({ enrollmentPackage, sponsorFastTrackTier, isAdminPlacement }) {
   if (isAdminPlacement) {
     return 0;
   }
 
-  const packagePrice = Number(FAST_TRACK_PACKAGE_META?.[enrollmentPackage]?.price);
+  const commissionableBv = Number(FAST_TRACK_PACKAGE_META?.[enrollmentPackage]?.bv);
   const sponsorRate = Number(FAST_TRACK_RATE_BY_TIER?.[sponsorFastTrackTier]);
 
-  if (!Number.isFinite(packagePrice) || packagePrice <= 0 || !Number.isFinite(sponsorRate) || sponsorRate <= 0) {
+  if (!Number.isFinite(commissionableBv) || commissionableBv <= 0 || !Number.isFinite(sponsorRate) || sponsorRate <= 0) {
     return 0;
   }
 
-  return roundCurrencyAmount(packagePrice * sponsorRate);
+  return roundCurrencyAmount(commissionableBv * sponsorRate);
 }
 
 export async function createRegisteredMemberPaymentIntent(payload = {}) {
@@ -1724,22 +1747,20 @@ export async function upgradeMemberAccount(payload) {
 
   const currentPackageMeta = FAST_TRACK_PACKAGE_META[currentPackageKey];
   const nextPackageMeta = FAST_TRACK_PACKAGE_META[targetPackageKey];
-
-  const currentPackageBv = Math.max(
-    0,
-    Math.floor(Number(existingUser?.enrollmentPackageBv) || Number(currentPackageMeta?.bv) || 0)
-  );
-  const nextPackageBv = Math.max(
-    currentPackageBv,
-    Math.floor(Number(nextPackageMeta?.bv) || currentPackageBv)
-  );
-
-  const pvGain = Math.max(0, nextPackageBv - currentPackageBv);
+  const currentPackageBv = Math.max(0, toWholeNumber(currentPackageMeta?.bv, 0));
+  const nextPackageBv = Math.max(currentPackageBv, toWholeNumber(nextPackageMeta?.bv, currentPackageBv));
+  const currentPackagePrice = roundCurrencyAmount(Number(currentPackageMeta?.price) || 0);
+  const nextPackagePrice = Math.max(currentPackagePrice, roundCurrencyAmount(Number(nextPackageMeta?.price) || currentPackagePrice));
+  const currentPackageProducts = resolvePackageProductCount(currentPackageKey);
+  const nextPackageProducts = Math.max(currentPackageProducts, resolvePackageProductCount(targetPackageKey));
+  const upgradeProductCount = Math.max(0, nextPackageProducts - currentPackageProducts);
+  const upgradeBvGain = Math.max(0, nextPackageBv - currentPackageBv);
+  const upgradePriceDue = roundCurrencyAmount(upgradeProductCount * PACKAGE_PRODUCT_PRICE_USD);
   const currentStarterPersonalPv = Math.max(
     0,
     Math.floor(Number(existingUser?.starterPersonalPv) || currentPackageBv)
   );
-  const nextStarterPersonalPv = currentStarterPersonalPv + pvGain;
+  const nextStarterPersonalPv = currentStarterPersonalPv + upgradeBvGain;
 
   const nextRank = STARTING_RANK_BY_PACKAGE[targetPackageKey]
     || normalizeRankLabelForDisplay(existingUser?.accountRank || existingUser?.rank)
@@ -1764,7 +1785,7 @@ export async function upgradeMemberAccount(payload) {
     ...existingUser,
     enrollmentPackage: targetPackageKey,
     enrollmentPackageLabel: nextPackageMeta.label,
-    enrollmentPackagePrice: Number(nextPackageMeta.price),
+    enrollmentPackagePrice: nextPackagePrice,
     enrollmentPackageBv: nextPackageBv,
     starterPersonalPv: nextStarterPersonalPv,
     rank: nextRank,
@@ -1775,7 +1796,7 @@ export async function upgradeMemberAccount(payload) {
     lastAccountUpgradeAt: nowIso,
     lastAccountUpgradeFromPackage: currentPackageKey,
     lastAccountUpgradeToPackage: targetPackageKey,
-    lastAccountUpgradePvGain: pvGain,
+    lastAccountUpgradePvGain: upgradeBvGain,
   };
 
   const matchedUser = users[userIndex];
@@ -1797,7 +1818,7 @@ export async function upgradeMemberAccount(payload) {
       ...member,
       enrollmentPackage: targetPackageKey,
       enrollmentPackageLabel: nextPackageMeta.label,
-      packagePrice: Number(nextPackageMeta.price),
+      packagePrice: nextPackagePrice,
       packageBv: nextPackageBv,
       starterPersonalPv: nextStarterPersonalPv,
       rank: nextRank,
@@ -1808,7 +1829,7 @@ export async function upgradeMemberAccount(payload) {
       lastAccountUpgradeAt: nowIso,
       lastAccountUpgradeFromPackage: currentPackageKey,
       lastAccountUpgradeToPackage: targetPackageKey,
-      lastAccountUpgradePvGain: pvGain,
+      lastAccountUpgradePvGain: upgradeBvGain,
     };
 
     updatedMemberRecord = upgradedMember;
@@ -1827,7 +1848,7 @@ export async function upgradeMemberAccount(payload) {
       email: users[userIndex]?.email || '',
       enrollmentPackage: targetPackageKey,
       enrollmentPackageLabel: nextPackageMeta.label,
-      enrollmentPackagePrice: Number(nextPackageMeta.price),
+      enrollmentPackagePrice: nextPackagePrice,
       enrollmentPackageBv: nextPackageBv,
       starterPersonalPv: nextStarterPersonalPv,
       rank: nextRank,
@@ -1840,9 +1861,20 @@ export async function upgradeMemberAccount(payload) {
     upgrade: {
       fromPackage: currentPackageKey,
       toPackage: targetPackageKey,
-      price: Number(nextPackageMeta.price),
+      currentPackagePrice,
+      currentPackageBv,
+      currentPackageProducts,
+      targetPackagePrice: nextPackagePrice,
+      targetPackageBv: nextPackageBv,
+      targetPackageProducts: nextPackageProducts,
+      price: nextPackagePrice,
       bv: nextPackageBv,
-      pvGain,
+      priceDue: upgradePriceDue,
+      bvGain: upgradeBvGain,
+      pvGain: upgradeBvGain,
+      productCount: upgradeProductCount,
+      productBv: upgradeProductCount * PACKAGE_PRODUCT_BV,
+      fastTrackBonusApplied: false,
     },
   };
 }

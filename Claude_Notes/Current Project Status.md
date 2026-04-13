@@ -7,6 +7,42 @@ Last Updated: 2026-04-13
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
 
+## Recent Update (2026-04-13) - MLM Rule Refresh (Packages, Fast Track, Upgrades, Rank BV Gates)
+
+- Completed:
+  - updated package pricing/BV constants across backend and frontend:
+    - Personal `192/192`
+    - Business `384/300`
+    - Infinity `640/500`
+    - Legacy `1280/1000`
+  - switched Fast Track bonus computations to commissionable BV base (backend + dashboard/admin/tree-next logic)
+  - updated account-upgrade API + dashboard UI to use upgrade deltas (`priceDue`, `productCount`, `bvGain`) and explicitly enforce no Fast Track on upgrade
+  - updated rank-advancement logic with new personal-volume qualification gates:
+    - Ruby to Sapphire: self `50 BV`, side `1:1` with `50 BV` each
+    - Diamond to Black Diamond: self `100 BV`, side `2:2` with `50 BV` each
+    - Crown to Royal Crown: self `200 BV`, side `3:3` with `50 BV` each
+  - updated tree-next package metadata (price/BV/selectable-products) to match revised package chart
+  - aligned store rank discount map with refreshed discount structure (`15%` preferred/free, `20%` paid ranks).
+- Outcome:
+  - account package values, Fast Track payouts, upgrade math, and rank-advancement gating now follow the latest MLM business logic document.
+- Files updated:
+  - `backend/services/member.service.js`
+  - `backend/services/admin.service.js`
+  - `backend/services/member-achievement.service.js`
+  - `backend/scripts/simulate-zeroone-live-test.mjs`
+  - `index.html`
+  - `admin.html`
+  - `login.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/services/member.service.js` passed.
+  - `node --check backend/services/admin.service.js` passed.
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - `node --check backend/scripts/simulate-zeroone-live-test.mjs` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+
 ## Recent Update (2026-04-13) - Small-Screen Height Trigger Updated to 1065
 
 - Completed:
@@ -12292,3 +12328,35 @@ Last Updated: 2026-04-13
   - `Claude_Notes/Current Project Status.md`
 - Validation:
   - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - Hotfix: False Slot-Conflict During Enroll on Valid Anticipation Nodes
+
+- Completed:
+  - fixed `openTreeNextEnrollModal(...)` placement lock to use selected anticipation parent id instead of forcing member mode parent to `root`
+  - preserved member/admin spillover behavior split from previous update.
+- Outcome:
+  - enrollment no longer shows false `This slot is no longer available` errors for legitimately empty anticipation slots.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+## Recent Update (2026-04-13) - Enrollment BV Re-credit Investigation + Reconciliation Hotfix
+
+- Completed:
+  - traced duplicate post-enrollment BV/PV writes to My Store boot-time reconciliation in `index.html`
+  - removed buyer-name fallback from invoice ownership matching (explicit identity fields only)
+  - excluded enrollment-generated invoice ids from PV reconciliation
+  - added one-time/in-flight guards to prevent repeated reconciliation writes per session
+  - verified cutoff/backfill history timing: forced server cutoff baseline is dated 2026-04-08 (simulation entry), while April 7 entries are invoice records.
+- Outcome:
+  - new enrollments no longer receive unintended follow-up BV/PV reconciliation credits seconds after account creation.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/services/member.service.js` passed.
+  - `node --check backend/services/store-checkout.service.js` passed.
+  - `node --check backend/services/invoice.service.js` passed.
