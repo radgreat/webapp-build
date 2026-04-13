@@ -7,6 +7,167 @@ Last Updated: 2026-04-13
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
 
+## Recent Update (2026-04-13) - Small-Screen Height Trigger Updated to 1065
+
+- Completed:
+  - changed Step-3 compact CSS breakpoint from `max-height: 980px` to `max-height: 1065px`
+  - changed Step-3 compact JS logic thresholds from `949/980` usage to `1065` where small-screen sizing/edge-padding behavior is determined
+- Outcome:
+  - small-screen compatibility behavior now consistently activates at the requested `1065px` height condition.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - Step-3 Spacing Tweak (Summary to Name-on-Card Gap)
+
+- Completed:
+  - increased top spacing before Step-3 payment field stack in compact mode so `Name on Card` no longer hugs the checkout summary panel
+- Outcome:
+  - visual separation between summary panel and card-entry section is improved while keeping existing layout structure.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-13) - Step-3 Captions/Dots Restored Per Layout Preservation Request
+
+- Completed:
+  - restored Step-3 subtitle/caption visibility in compact mode
+  - restored Step-3 pagination dots visibility in compact mode
+  - restored Step-3 feedback row visibility in compact mode
+  - retained no-scroll enforcement (no internal Step-3 scroll region) and balanced compact sizing
+- Outcome:
+  - original layout elements are back while the panel remains compatible on small screens.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - headless check at `1440x949`: subtitle visible, dots visible, feedback visible, submit button visible, field stack overflow mode `visible`.
+
+## Recent Update (2026-04-13) - Enroll Step-3 No-Scroll Enforcement (Rebalanced Pass)
+
+- Completed:
+  - removed Step-3 internal scroll behavior from payment field region
+  - removed sticky-position action-row behavior tied to Step-3 compact mode
+  - kept balanced compact sizing (panel width tiers + tuned field/button sizes) so CTA remains visible without introducing panel scrolling
+- Outcome:
+  - Enroll Step-3 remains compact but no longer uses any panel/inner scrolling behavior.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - headless check at `1440x949`: submit button visible; Step-3 field stack overflow mode `visible` (not `auto/scroll`).
+
+## Recent Update (2026-04-13) - Enroll Panel Rebalanced (Less Cramped, Still Small-Screen Safe)
+
+- Completed:
+  - removed overly broad shell compaction that made all enroll steps feel too tight
+  - re-tuned Step-3 compact mode to a balanced profile:
+    - larger title/field/button sizing than prior cramped pass
+    - moderate spacing restored across summary, form rows, and actions
+    - kept scrollable Step-3 field region + sticky action row so buttons remain visible
+  - widened compact panel-width tiers in JS:
+    - short-height tiers now resolve to larger widths (`550/540/500`) instead of overly narrow values
+    - compact viewport trigger narrowed to more appropriate bounds
+- Outcome:
+  - Enroll panel remains responsive on smaller screens while no longer feeling overly compressed.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - headless check at `1440x949`: panel width `540px`, card-name input height `44px`, submit button visible.
+
+## Recent Update (2026-04-13) - Enroll Panel Shell Reduced for Small Screens
+
+- Completed:
+  - reduced enroll panel shell size on smaller viewports using dynamic sizing logic:
+    - compact viewport detection now includes short-height or narrow-width contexts
+    - panel max-width now scales down by height tier (`520`, `500`, `460`) instead of staying at full desktop width
+    - panel anchor gap from side shell is tightened in compact mode
+  - added global small-height enroll-shell styling (`max-height: 1100px`):
+    - reduced header/title/subtitle scale
+    - reduced body padding and control/button heights
+    - slightly smaller corner radius
+- Outcome:
+  - Enroll Member panel now renders as a smaller shell on small screens, improving fit before Step-3 specific compact behavior applies.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - MacBook 1440x949 Compact Threshold Alignment
+
+- Completed:
+  - updated Step-3 compact breakpoint trigger from `max-height: 900px` to `max-height: 949px` (with `max-width: 1440px`) to align with requested MacBook profile baseline
+  - updated Step-3 short-height panel-sizing logic in JS to use the same `<= 949` threshold when assigning compact vertical edge padding
+- Outcome:
+  - compact payment-panel behavior now activates on the specified `1440x949` class more reliably.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - Enroll Step-3 Small-Screen Render Fix (Sticky Actions + Scroll Region)
+
+- Completed:
+  - added compact Step-3 structural layout for small laptop heights:
+    - Step 3 now uses a constrained grid shell in compact mode (`summary` + `content region` + `actions`)
+    - payment field region is scrollable (`overflow-y: auto`) while panel chrome remains stable
+  - pinned Step-3 action row in compact mode:
+    - dual buttons now use sticky bottom anchoring so CTA controls stay visible
+    - added subtle footer gradient backing to keep contrast/readability over scrolling fields
+  - removed compact Step-3 feedback-row footprint to reclaim vertical space in short viewports
+  - kept previous Step-3 density reductions (smaller title/summary/field/button sizing)
+- Outcome:
+  - on smaller laptop screens, page-3 payment actions are no longer clipped and remain reachable while preserving non-scrolling panel body behavior.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - Enroll Step-3 Compact Small-Laptop Layout Pass
+
+- Completed:
+  - added step-aware modal state attribute wiring (`data-enroll-current-step`) in enrollment step controller
+  - now re-syncs panel dimensions immediately on step change so compact Step-3 sizing applies as soon as page 3 opens
+  - introduced Step-3-specific compact breakpoint rules for smaller laptop viewports (`max-width: 1440px` + `max-height: 900px`)
+  - tightened Step-3 vertical density:
+    - reduced header/title spacing and hid Step-3 subtitle for compact laptop-height viewports
+    - reduced checkout summary padding/margins and typography scale
+    - reduced input/select/Stripe field heights and internal spacing
+    - reduced card/billing grid gaps and action-area top padding/button height
+    - hid Step-3 progress dots in compact mode to preserve button visibility
+  - adjusted Step-3 short-height panel max-height budget in positioning logic (reduced vertical edge padding) so bottom actions stay in frame more reliably
+  - added extra-tight fallback (`max-height: 820px`) to hide Step-3 subtitle and recover additional vertical space
+- Outcome:
+  - Enroll Member page 3 is significantly tighter on short-height laptop screens, with improved bottom-button visibility while keeping panel scroll disabled.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
 ## Recent Update (2026-04-13) - Enrollment Stripe UI Adjusted to Inline Link-in-Card Pattern
 
 - Completed:

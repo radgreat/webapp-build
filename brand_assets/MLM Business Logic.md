@@ -13,43 +13,72 @@ PV stands for Personal Volume, The only to aquire PV is buying directly to MySto
 ---
 
 
-
-
-# 💰 9 WAYS TO MAKE MONEY
-
-**48 US$ of 40% = 19.20 US$**
-**Approximate Pay Out = 18.10 US$**
-
-* 1 Business Volume (BV) = 1 US$
-
+## New Business BV Rule
+ 1. Business Volume (BV) = 0.78 US$ or $0.78 Cents
+ 2. $64.00 USD = 50 BV
 ---
+
+## Account Activation Rules
+User Account must aqcumulate 50 BV per month to remain active in the System.
+
+
+## Preferred Accounts
+Preferred Accounts are free accounts that can purchase product on a discounted 15% price depending on the Store Owner's Account Packages and you will claim the products BV as the store owner's Personal BV.
+
+Store Owner Commission on Preferred Accounts (Retail Commission) Per Product
+1. Personal Builder Pack - Retail Commission: $4.00 USD - 50 BV
+2. Business Builder Pack - Retail Commission: $8.00 USD - 48 BV
+3. Infinity Builder Pack - Retail Commission: $12.00 USD - 44 BV
+4. Legacy Builder Pack   - Retail Commission: $20.00 USD - 38 BV
 
 # 1️⃣ Retail Profit
 
-### Switch On™ Suggested Retail Price: **79.99 USD per Bottle**
+### MetaCharge™ Suggested Retail Price: **79.99 USD per Bottle**
+### MetaRoast™ Suggested Retail Price: **79.99 USD per Pack**
 
-| Package               | Discount | Qty | Wholesale Price (US$/BV) | Retail Profit Per Unit (US$) | Package Price (US$) | Profit Per Package (US$) |
-| --------------------- | -------- | --- | ------------------------ | ---------------------------- | ------------------- | ------------------------ |
-| Preferred Customer    | 15%      | 1   | 68                       | 12                           | 68                  | 12                       |
-| Personal Builder Pack | 20%      | 3   | 64                       | 16                           | 192                 | 48                       |
-| Business Builder Pack | 25%      | 6   | 60                       | 20                           | 360                 | 120                      |
-| Infinity Builder Pack | 30%      | 10  | 56                       | 24                           | 560                 | 240                      |
-| Legacy Builder Pack   | 40%      | 20  | 48                       | 32                           | 960                 | 640                      |
+
+Account Packages Price
+1. Personal Builder Pack - 20% Discount - Price and Logic: 3 x 64 = $192.00 = 150 BV
+2. Business Builder Pack - 20% Discount - Price and Logic: 6 x 64 = $384.00 = 300 BV
+3. Infinity Builder Pack - 20% Discount - Price and Logic: 10 x 64 = $640.00 = 500 BV
+4. Legacy Builder Pack   - 20% Discount - Price and Logic: 20 x 64 = $1280.00 = 1000 BV
+
+
+## Account Plans and Upgrades
+If the user is a paid member and the account can be upgraded the Products and BV is will be diminished.
+
+Example:
+1. New User Personal Package: 3 Products, 150 BV decides to upgrade to Infinity Package the new user will purchase 7 Product to complete the Package's content or bundle (Infinity Package 10 Products, 500 BV)
+
+## Account Upgrade Chart
+
+Personal Builder Package = 3 Product, 150 BV
+-Upgrade to Business Builder Package = Purchase 3 more product and get 150 BV to reach Business Builder Package
+-Upgrade to Infinity Builder Package = Purchase 7 more product and get 350 BV to reach Infinity Builder Package
+-Upgrade to Legacy Builder Package = Purchase 17 more product and get 850 BV to reach Legacy Builder Package
+
+Business Builder Package = 6 Product, 300 BV
+-Upgrade to Infinity Builder Package = Purchase 4 more product and get 200 BV to reach Infinity Builder Package
+-Upgrade to Legacy Builder Package = Purchase 14 more product and get 700 BV to reach Legacy Builder Package
+
+Infinity Builder Package = 10 Product, 500 BV
+-Upgrade to Legacy Builder Package = Purchase 10 more product and get 500 BV to reach Legacy Builder Package
+
+Fast Track Commission Bonus is not applied when upgrading an account. There will be no commission.
+
 
 ---
 
 # 2️⃣ Fast Track Bonus
 
-*(Deduction: 9.6 USD per bottle)*
-
 ### Fast Track Bonus From Packages
 
-| Enrollment Package    | % Bonus | Price (US$) | Personal Pack | Business Pack | Infinity Pack  | Legacy Pack |
-| --------------------- | ------- | ----------- | ------------- | ------------- | -------------- | ----------- |
-| Personal Builder Pack | 7.5%    | 192         | 14.4          | 27            | 42             | 72          |
-| Business Builder Pack | 10%     | 360         | 19.2          | 36            | 56             | 96          |
-| Infinity Builder Pack | 12.5%   | 560         | 24            | 45            | 70             | 120         |
-| Legacy Builder Pack   | 20%     | 960         | 38.4          | 72            | 112            | 192         |
+| Enrollment Package    | % Bonus | Price (US$/BV) | Personal Pack | Business Pack | Infinity Pack  | Legacy Pack |
+| --------------------- | ------- | -------------- | ------------- | ------------- | -------------- | ----------- |
+| Personal Builder Pack | 7.5%    | 192 / 150 BV   | 11.25         | 22.5          | 37.5           | 75          |
+| Business Builder Pack | 10%     | 384 / 300 BV   | 15            | 30            | 50             | 100         |
+| Infinity Builder Pack | 12.5%   | 640 / 500 BV   | 18.75         | 37.50         | 62.5           | 125         |
+| Legacy Builder Pack   | 20%     | 1280 / 1000 BV | 30            | 60            | 100            | 200         |
 
 ---
 
@@ -113,7 +142,6 @@ Commission is calculated on the **weaker leg**.
 
 # 5️⃣ Rank Advancement Bonus
 
-*(Deduction: 0.40 USD per bottle)*
 
 | Cycles | Rank          | Income (US$) |
 | ------ | ------------- | ------------ |
@@ -127,6 +155,17 @@ Commission is calculated on the **weaker leg**.
 | 640    | Double Crown  | 8000         |
 | 1000   | Royal Crown   | 12500        |
 
+## Updated Rank Advancement Rules
+
+Ruby to Sapphire
+You and your left and right (1:1) should have a minimum 50 BV (Meaning Active Accounts) on your personal volume
+
+Diamond to Black Diamond
+You should have a minimum 100 BV and your left and right (2:2) should have a minimum 50 BV (Meaning Active Accounts) on personal volume
+
+Crown to Royal Crown
+You should have a minimum 200 BV and your left and right (3:3) should have a minimum 50 BV (Meaning Active accounts) on personal volume
+
 ### Notes
 
 * One-time bonus per rank
@@ -138,7 +177,6 @@ Commission is calculated on the **weaker leg**.
 
 # 6️⃣ Leadership Matching Bonus
 
-*(Deduction: 1.24 USD per bottle)*
 
 | Level | Ruby                | Emerald | Sapphire | Diamond | Blue Diamond | Black Diamond | Crown | Double Crown | Royal Crown |
 | ----- | ------------------- | ------- | -------- | ------- | ------------ | ------------- | ----- | ------------ | ----------- |
@@ -190,21 +228,5 @@ Matrix resets after completion.
 | Royal Crown   | 12500       |
 
 Lifestyle reward for any personal use.
-
----
-
-# 📌 Financial Notes
-
-* Minimum 7 enrollments × 20 USD = 140 USD
-* Total sales per cycle = 1500 USD
-* 31.25 bottles per cycle
-* 140 ÷ 31.25 = 4.48 USD
-* Bottle cost = 48 USD
-* 40% payout = 19.20
-* Remainder = 28.80
-* Product cost = 16.00
-* Remainder = 12.80
-* * Member fee = 4.48
-* ✅ Total Profit = **17.60 USD**
 
 ---

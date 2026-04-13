@@ -2642,6 +2642,9 @@ function setTreeNextEnrollStep(step, options = {}) {
   } = options;
   const normalizedStep = Math.max(1, Math.min(4, Math.floor(safeNumber(step, 1))));
   state.enroll.step = normalizedStep;
+  if (treeNextEnrollModalElement instanceof HTMLElement) {
+    treeNextEnrollModalElement.dataset.enrollCurrentStep = String(normalizedStep);
+  }
 
   for (const stepElement of treeNextEnrollStepElements) {
     if (!(stepElement instanceof HTMLElement)) {
@@ -2669,6 +2672,7 @@ function setTreeNextEnrollStep(step, options = {}) {
   if (treeNextEnrollStepIndicatorsElement instanceof HTMLElement) {
     treeNextEnrollStepIndicatorsElement.classList.toggle('is-hidden', normalizedStep > 3);
   }
+  syncTreeNextEnrollPanelPosition();
 
   if (!focusField) {
     return;
@@ -2728,11 +2732,25 @@ function syncTreeNextEnrollPanelPosition(layoutInput = state.layout) {
     1,
     Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
   );
-  const edgePadding = ENROLL_PANEL_EDGE_PADDING;
-  const availableWidth = Math.max(ENROLL_PANEL_MIN_WIDTH, viewportWidth - (edgePadding * 2));
+  const isCompactPanelViewport = viewportHeight <= 1065 || viewportWidth <= 1366;
+  const isStepThreeActive = resolveTreeNextEnrollStep() === 3;
+  const compactPanelMaxWidth = viewportHeight <= 820
+    ? 500
+    : (viewportHeight <= 1065 ? 540 : 550);
+  const panelMaxWidth = isCompactPanelViewport
+    ? compactPanelMaxWidth
+    : ENROLL_PANEL_MAX_WIDTH;
+  const panelHorizontalGap = isCompactPanelViewport
+    ? 18
+    : ENROLL_PANEL_HORIZONTAL_GAP;
+  const horizontalEdgePadding = ENROLL_PANEL_EDGE_PADDING;
+  const verticalEdgePadding = isStepThreeActive && viewportHeight <= 1065
+    ? 6
+    : ENROLL_PANEL_EDGE_PADDING;
+  const availableWidth = Math.max(ENROLL_PANEL_MIN_WIDTH, viewportWidth - (horizontalEdgePadding * 2));
   const panelWidth = Math.max(
     Math.min(ENROLL_PANEL_MIN_WIDTH, availableWidth),
-    Math.min(ENROLL_PANEL_MAX_WIDTH, Math.floor(availableWidth)),
+    Math.min(panelMaxWidth, Math.floor(availableWidth)),
   );
 
   const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
@@ -2742,18 +2760,18 @@ function syncTreeNextEnrollPanelPosition(layoutInput = state.layout) {
 
   let anchorLeft = Math.round((viewportWidth - panelWidth) / 2);
   if (sideNavOpen && sideNav) {
-    anchorLeft = Math.round(sideNav.x + sideNav.width + ENROLL_PANEL_HORIZONTAL_GAP);
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
   } else if (sideNavToggle) {
-    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + ENROLL_PANEL_HORIZONTAL_GAP);
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
   }
 
   const clampedLeft = clamp(
     anchorLeft,
-    edgePadding,
-    Math.max(edgePadding, viewportWidth - panelWidth - edgePadding),
+    horizontalEdgePadding,
+    Math.max(horizontalEdgePadding, viewportWidth - panelWidth - horizontalEdgePadding),
   );
   const centerTop = Math.round(viewportHeight / 2);
-  const maxHeight = Math.max(320, viewportHeight - (edgePadding * 2));
+  const maxHeight = Math.max(320, viewportHeight - (verticalEdgePadding * 2));
 
   treeNextEnrollModalElement.style.width = `${panelWidth}px`;
   treeNextEnrollModalElement.style.left = `${clampedLeft}px`;
