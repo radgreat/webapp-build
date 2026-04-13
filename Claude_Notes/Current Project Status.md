@@ -1,11 +1,91 @@
 # Current Project Status
 
-Last Updated: 2026-04-12
+Last Updated: 2026-04-13
 
 ## Purpose
 
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
+
+## Recent Update (2026-04-13) - Enrollment Stripe UI Adjusted to Inline Link-in-Card Pattern
+
+- Completed:
+  - removed standalone Stripe Link authentication row from Step 3
+  - shifted Step-3 secure card block back to inline card-number visual pattern with `Secure Card (Stripe)` label
+  - removed external custom card icon chrome so Stripe-native card/link presentation is not competing
+  - retained `disableLink: false` on card-number Stripe element to allow Stripe inline Link/autofill affordance when eligible
+  - preserved no-panel-scroll requirement (`#tree-next-enroll-modal-body` remains `overflow: hidden`)
+- Outcome:
+  - Step 3 now follows the requested inline Link-in-card style direction more closely while keeping no side-scroll behavior.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - Enrollment Panel Scroll Removed + Floating Dropdown + Stripe Link Visibility
+
+- Completed:
+  - removed enroll-panel side scroll behavior by setting modal body overflow to hidden
+  - added visible Stripe Link Authentication field in enrollment Step 3 for explicit Link/autofill entry
+  - upgraded enrollment custom-select runtime to floating menu mode (portal-like to body) so dropdowns no longer clip inside the panel
+  - updated select open/close + outside-click handling to support floating menu interaction safely
+- Outcome:
+  - Step 3 no longer shows panel-side scroll behavior, and the country dropdown is no longer clipped by panel bounds while retaining themed style.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - Enrollment Billing Country Full List + Stripe Link Autofill Enablement
+
+- Completed:
+  - converted enrollment Step-3 Billing Country field from text input to themed custom select (matching Enrollment panel dropdown style)
+  - wired billing-country option hydration from `/node_modules/flag-icons/country.json` to provide a full ISO country list for Stripe-compatible country selection
+  - added large-list dropdown usability support (`max-height` + internal scroll) so country options remain usable inside the panel
+  - updated Step-3 submit flow to consume selected billing-country ISO code for Stripe billing details
+  - enabled Stripe Link/autofill parity setting on enrollment card-number element config (`disableLink: false`)
+- Outcome:
+  - enrollment checkout now has a proper styled country picker with broad country coverage and improved parity with Stripe autofill behavior from customer checkout.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - Profile Popup Home Routing + Enrollment Card/Billing Field Parity
+
+- Completed:
+  - changed user-profile popup `Home` action in Binary Tree Next so it redirects to dashboard home page (member -> `/index.html`, admin -> `/admin.html`)
+  - kept camera-reset `Home` control behavior untouched to preserve in-canvas navigation workflow
+  - updated Enroll Member Step 3 card section to include full card entry scope:
+    - card number (Stripe)
+    - expiration (Stripe)
+    - CVC (Stripe)
+  - added billing-address capture fields:
+    - billing address line
+    - city
+    - state
+    - ZIP/postal code
+    - country
+  - added submit-time Stripe payment-method creation using entered card + billing details before member registration API request
+  - updated validation to block submit unless card details and billing address are fully completed
+- Outcome:
+  - profile popup `Home` now returns users to dashboard home page, and enrollment Step 3 now matches Store checkout field expectations more closely.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
 
 
 ## Recent Update (2026-04-12) - Enroll Container Changed from Modal to Center-Side Panel
@@ -11951,3 +12031,103 @@ Last Updated: 2026-04-12
   - `admin.html`
   - `Claude_Notes/charge-documentation.md`
   - `Claude_Notes/Current Project Status.md`
+
+## Recent Update (2026-04-12) - Dashboard Stripe Checkout Country Code Normalization
+
+- Completed:
+  - patched dashboard `My Store` Stripe confirmation flow to normalize billing country inputs into ISO 3166-1 alpha-2 codes before calling `stripe.confirmCardPayment(...)`
+  - added name-to-code resolution for known app country labels and common aliases (for example `United States` -> `US`, `USA` -> `US`, `UK` -> `GB`)
+  - added checkout validation guard that blocks submit with a clear message when billing country cannot be resolved to a valid 2-letter code.
+- Outcome:
+  - checkout no longer fails with Stripe error `Country 'United States' is unknown` when users enter full country names.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation:
+  - `All inline scripts parsed successfully. Blocks: 2`
+
+## Recent Update (2026-04-12) - Enrollment Payment Capture Fix (Do Fix First Before Invoice UI)
+
+- Completed:
+  - replaced direct registration-after-card-entry behavior with backend PaymentIntent enrollment flow
+  - added enrollment intent endpoints for member/admin paths:
+    - `POST /api/registered-members/intent`
+    - `POST /api/registered-members/intent/complete`
+  - finalized member creation only when Stripe payment intent is confirmed as `succeeded`
+  - added completion-time invoice creation from captured payment metadata
+  - updated Step 3 submit UX states (`Confirming card...`, `Finalizing enrollment...`) and completion retry loop to reduce long perceived waits.
+- Outcome:
+  - enrollment now ties node/member registration to actual Stripe payment confirmation rather than local payment-method creation only
+  - fix-first scope is complete; expanded invoice design/presentation is queued next.
+- Files updated:
+  - `backend/services/member.service.js`
+  - `backend/controllers/member.controller.js`
+  - `backend/routes/member.routes.js`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/services/member.service.js` passed.
+  - `node --check backend/controllers/member.controller.js` passed.
+  - `node --check backend/routes/member.routes.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-12) - Enrollment Processing Copy Is Neutral + Loader Animation
+
+- Completed:
+  - changed enrollment modal in-progress payment statuses from error-style red to neutral gray feedback
+  - added inline spinner animation for loading feedback states in the modal
+  - upgraded `setTreeNextEnrollFeedback(...)` to support variant/loading options while staying compatible with existing boolean callers
+  - applied loading feedback to key Step 3 async states:
+    - `Preparing secure payment...`
+    - `Confirming your payment with Stripe...`
+    - `Finalizing enrollment...`
+- Outcome:
+  - registration/payment progress now reads as in-progress (neutral) rather than failure (red), with visible loading motion.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-12) - Spill Over Field Removed For Member Flow (Admin Retained)
+
+- Completed:
+  - removed member-facing Spill Over selector from enrollment Step 2 (hidden by source mode)
+  - member enrollment now resolves spillover mode automatically:
+    - root first-level full => spillover
+    - otherwise => direct
+  - member submit path now always sends `spilloverParentMode = auto` (no manual parent reference)
+  - admin source keeps spillover selector and manual spillover parent behavior
+  - added backend enforcement so non-admin requests cannot force manual spillover parent mode.
+- Outcome:
+  - user/root side can no longer assign specific spillover receiving parent from enrollment panel
+  - admin side still has full spillover toggle control for operational placement.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `backend/services/member.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check backend/services/member.service.js` passed.
+
+## Recent Update (2026-04-12) - Hotfix: Member Spill Over Field Visibility Lock
+
+- Completed:
+  - added hard CSS visibility lock to hide Step-2 spillover field in member source mode
+  - added dedicated field-group id for spillover container targeting
+  - set `data-tree-next-source` on `html/body` during bootstrap for deterministic source-aware UI rendering.
+- Outcome:
+  - member side no longer intermittently shows Spill Over field even when JS visibility toggle timing/state drifts.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.

@@ -761,3 +761,17 @@
 - Validation:
   - inline script parse passed:
     - `All inline scripts parsed successfully. Blocks: 2`
+
+## Dashboard My Store Stripe Billing Country ISO Normalization (2026-04-12)
+
+- Updated dashboard checkout Stripe billing payload in `index.html` to always send a 2-letter ISO country code.
+- Added country normalization helper pipeline for billing country input:
+  - full country label support (`United States` -> `US`)
+  - common alias support (`USA`, `U.S.A.`, `UK`)
+  - pass-through for already valid 2-letter codes.
+- Added checkout validation guard:
+  - blocks submit with a clear message when country cannot be resolved to valid Stripe code format.
+- Outcome:
+  - fixes Stripe confirm-card errors caused by full country names in billing country field.
+- File updated:
+  - `index.html`

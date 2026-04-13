@@ -132,9 +132,20 @@ const SERVER_CUTOFF_HOUR = 23;
 const SERVER_CUTOFF_MINUTE = 59;
 const MEMBER_REGISTERED_MEMBERS_API = '/api/registered-members';
 const ADMIN_REGISTERED_MEMBERS_API = '/api/admin/registered-members';
+const MEMBER_REGISTERED_MEMBERS_INTENT_API = '/api/registered-members/intent';
+const ADMIN_REGISTERED_MEMBERS_INTENT_API = '/api/admin/registered-members/intent';
+const MEMBER_REGISTERED_MEMBERS_INTENT_COMPLETE_API = '/api/registered-members/intent/complete';
+const ADMIN_REGISTERED_MEMBERS_INTENT_COMPLETE_API = '/api/admin/registered-members/intent/complete';
+const MEMBER_DASHBOARD_HOME_PATH = '/index.html';
+const ADMIN_DASHBOARD_HOME_PATH = '/admin.html';
 const ENROLL_STRIPE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
 const ENROLL_STRIPE_SCRIPT_URL = 'https://js.stripe.com/v3/';
+const ENROLL_BILLING_COUNTRY_CATALOG_URL = '/node_modules/flag-icons/country.json';
 const ENROLL_DEFAULT_COUNTRY_FLAG = 'us';
+const ENROLL_DEFAULT_BILLING_COUNTRY_CODE = 'US';
+const ENROLL_BILLING_COUNTRY_FALLBACK_OPTIONS = Object.freeze([
+  Object.freeze({ code: 'US', label: 'United States' }),
+]);
 const ENROLL_DEFAULT_PACKAGE_KEY = 'legacy-builder-pack';
 const ENROLL_CHECKOUT_TAX_RATE = 0.0975;
 const ENROLL_SPILLOVER_MODE_DIRECT = 'direct';
@@ -305,6 +316,9 @@ const treeNextEnrollSponsorInput = document.getElementById('tree-next-enroll-spo
 const treeNextEnrollParentInput = document.getElementById('tree-next-enroll-parent');
 const treeNextEnrollLegPositionInput = document.getElementById('tree-next-enroll-leg-position');
 const treeNextEnrollSpilloverModeInput = document.getElementById('tree-next-enroll-spillover-mode');
+const treeNextEnrollSpilloverModeFieldGroup = treeNextEnrollSpilloverModeInput instanceof HTMLElement
+  ? treeNextEnrollSpilloverModeInput.closest('.tree-next-enroll-field-group')
+  : null;
 const treeNextEnrollCountryFlagInput = document.getElementById('tree-next-enroll-country-flag');
 const treeNextEnrollPackageInput = document.getElementById('tree-next-enroll-package');
 const treeNextEnrollFastTrackTierInput = document.getElementById('tree-next-enroll-fast-track-tier');
@@ -317,8 +331,14 @@ const treeNextEnrollSummaryDiscountElement = document.getElementById('tree-next-
 const treeNextEnrollSummaryTaxElement = document.getElementById('tree-next-enroll-summary-tax');
 const treeNextEnrollSummaryTotalElement = document.getElementById('tree-next-enroll-summary-total');
 const treeNextEnrollNameOnCardInput = document.getElementById('tree-next-enroll-name-on-card');
+const treeNextEnrollBillingAddressInput = document.getElementById('tree-next-enroll-billing-address');
+const treeNextEnrollBillingCityInput = document.getElementById('tree-next-enroll-billing-city');
+const treeNextEnrollBillingStateInput = document.getElementById('tree-next-enroll-billing-state');
+const treeNextEnrollBillingPostalCodeInput = document.getElementById('tree-next-enroll-billing-postal-code');
+const treeNextEnrollBillingCountrySelect = document.getElementById('tree-next-enroll-billing-country');
 const treeNextEnrollCardNumberElement = document.getElementById('tree-next-enroll-card-number-element');
 const treeNextEnrollCardExpiryElement = document.getElementById('tree-next-enroll-card-expiry-element');
+const treeNextEnrollCardCvcElement = document.getElementById('tree-next-enroll-card-cvc-element');
 const treeNextEnrollCardErrorElement = document.getElementById('tree-next-enroll-card-error');
 const treeNextEnrollThankYouNameElement = document.getElementById('tree-next-enroll-thank-you-name');
 const treeNextEnrollThankYouPackageElement = document.getElementById('tree-next-enroll-thank-you-package');
@@ -336,10 +356,13 @@ let treeNextEnrollStripeClient = null;
 let treeNextEnrollStripeElements = null;
 let treeNextEnrollStripeCardNumber = null;
 let treeNextEnrollStripeCardExpiry = null;
+let treeNextEnrollStripeCardCvc = null;
 let treeNextEnrollStripeInitPromise = null;
+let treeNextEnrollBillingCountryHydrationPromise = null;
 let isTreeNextEnrollStripeReady = false;
 let isTreeNextEnrollStripeCardComplete = false;
 let isTreeNextEnrollStripeCardExpiryComplete = false;
+let isTreeNextEnrollStripeCardCvcComplete = false;
 
 if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error('Missing #figma-tree-canvas');
@@ -1514,6 +1537,18 @@ function resolveEnrollRegisteredMembersApi() {
     : MEMBER_REGISTERED_MEMBERS_API;
 }
 
+function resolveEnrollRegisteredMembersIntentApi() {
+  return state.source === 'admin'
+    ? ADMIN_REGISTERED_MEMBERS_INTENT_API
+    : MEMBER_REGISTERED_MEMBERS_INTENT_API;
+}
+
+function resolveEnrollRegisteredMembersIntentCompleteApi() {
+  return state.source === 'admin'
+    ? ADMIN_REGISTERED_MEMBERS_INTENT_COMPLETE_API
+    : MEMBER_REGISTERED_MEMBERS_INTENT_COMPLETE_API;
+}
+
 function resolveEnrollFastTrackTierFromPackage(packageKey) {
   const normalizedPackage = normalizeCredentialValue(packageKey);
   return ENROLL_FAST_TRACK_TIER_BY_PACKAGE[normalizedPackage] || 'personal-pack';
@@ -1570,17 +1605,48 @@ function isTreeNextEnrollModalOpen() {
   return Boolean(state.enroll?.open);
 }
 
-function setTreeNextEnrollFeedback(message, isSuccess = false) {
+function setTreeNextEnrollFeedback(message, status = false, options = {}) {
   if (!(treeNextEnrollModalFeedback instanceof HTMLElement)) {
     return;
   }
   const safeMessage = safeText(message);
+  let resolvedVariant = 'neutral';
+  let showLoading = false;
+  if (typeof status === 'boolean') {
+    resolvedVariant = status ? 'success' : 'error';
+  } else if (typeof status === 'string') {
+    const variantKey = normalizeCredentialValue(status);
+    if (variantKey === 'success' || variantKey === 'error' || variantKey === 'neutral') {
+      resolvedVariant = variantKey;
+    }
+  } else if (status && typeof status === 'object') {
+    const statusVariantKey = normalizeCredentialValue(status.variant || 'neutral');
+    if (statusVariantKey === 'success' || statusVariantKey === 'error' || statusVariantKey === 'neutral') {
+      resolvedVariant = statusVariantKey;
+    }
+    showLoading = status.loading === true;
+  }
+  if (options && typeof options === 'object') {
+    const optionVariantKey = normalizeCredentialValue(options.variant || '');
+    if (optionVariantKey === 'success' || optionVariantKey === 'error' || optionVariantKey === 'neutral') {
+      resolvedVariant = optionVariantKey;
+    }
+    if (options.loading === true) {
+      showLoading = true;
+    } else if (options.loading === false) {
+      showLoading = false;
+    }
+  }
+
   treeNextEnrollModalFeedback.textContent = safeMessage;
-  treeNextEnrollModalFeedback.classList.remove('is-error', 'is-success');
+  treeNextEnrollModalFeedback.classList.remove('is-error', 'is-success', 'is-neutral', 'is-loading');
   if (!safeMessage) {
     return;
   }
-  treeNextEnrollModalFeedback.classList.add(isSuccess ? 'is-success' : 'is-error');
+  treeNextEnrollModalFeedback.classList.add(`is-${resolvedVariant}`);
+  if (showLoading) {
+    treeNextEnrollModalFeedback.classList.add('is-loading');
+  }
 }
 
 function clearTreeNextEnrollFeedback() {
@@ -1695,6 +1761,7 @@ function clearTreeNextEnrollCardError() {
 function clearTreeNextEnrollCardInput() {
   isTreeNextEnrollStripeCardComplete = false;
   isTreeNextEnrollStripeCardExpiryComplete = false;
+  isTreeNextEnrollStripeCardCvcComplete = false;
   clearTreeNextEnrollCardError();
   if (
     treeNextEnrollStripeCardNumber
@@ -1708,6 +1775,94 @@ function clearTreeNextEnrollCardInput() {
   ) {
     treeNextEnrollStripeCardExpiry.clear();
   }
+  if (
+    treeNextEnrollStripeCardCvc
+    && typeof treeNextEnrollStripeCardCvc.clear === 'function'
+  ) {
+    treeNextEnrollStripeCardCvc.clear();
+  }
+}
+
+function resolveTreeNextEnrollStripeBillingCountryCode(rawValue) {
+  const normalizedValue = safeText(rawValue).trim();
+  if (!normalizedValue) {
+    return '';
+  }
+  const lowercaseValue = normalizedValue.toLowerCase();
+  if (/^[a-z]{2}$/.test(lowercaseValue)) {
+    return lowercaseValue.toUpperCase();
+  }
+  if (
+    lowercaseValue === 'usa'
+    || lowercaseValue === 'u.s.a.'
+    || lowercaseValue === 'us'
+    || lowercaseValue === 'u.s.'
+    || lowercaseValue === 'united states'
+    || lowercaseValue === 'united states of america'
+  ) {
+    return 'US';
+  }
+  return '';
+}
+
+function placeTreeNextEnrollCustomSelectMenu(entry) {
+  const wrapper = entry?.wrapper;
+  const menu = entry?.menu;
+  if (!(wrapper instanceof HTMLElement) || !(menu instanceof HTMLElement)) {
+    return;
+  }
+  const wrapperRect = wrapper.getBoundingClientRect();
+  const viewportPadding = 12;
+  const preferredMaxHeight = 260;
+  const estimatedMenuHeight = Math.max(120, Math.min(preferredMaxHeight, safeNumber(menu.scrollHeight, preferredMaxHeight)));
+  const spaceBelow = Math.max(0, (window.innerHeight || 0) - wrapperRect.bottom - viewportPadding);
+  const spaceAbove = Math.max(0, wrapperRect.top - viewportPadding);
+  const openUpward = spaceBelow < Math.min(160, estimatedMenuHeight) && spaceAbove > spaceBelow;
+  const maxHeight = Math.max(
+    120,
+    Math.min(
+      preferredMaxHeight,
+      openUpward ? Math.max(120, spaceAbove - 8) : Math.max(120, spaceBelow - 8),
+    ),
+  );
+  const left = Math.round(clamp(wrapperRect.left, viewportPadding, Math.max(viewportPadding, (window.innerWidth || 0) - wrapperRect.width - viewportPadding)));
+  const width = Math.max(160, Math.round(wrapperRect.width));
+  const top = openUpward
+    ? Math.round(Math.max(viewportPadding, wrapperRect.top - maxHeight - 8))
+    : Math.round(Math.min((window.innerHeight || 0) - maxHeight - viewportPadding, wrapperRect.bottom + 8));
+
+  menu.style.left = `${left}px`;
+  menu.style.top = `${top}px`;
+  menu.style.width = `${width}px`;
+  menu.style.maxHeight = `${Math.round(maxHeight)}px`;
+}
+
+function attachTreeNextEnrollCustomSelectMenuToFloatingRoot(entry) {
+  const menu = entry?.menu;
+  if (!(menu instanceof HTMLElement)) {
+    return;
+  }
+  if (menu.parentElement !== document.body) {
+    document.body.appendChild(menu);
+  }
+  menu.classList.add('is-floating');
+  placeTreeNextEnrollCustomSelectMenu(entry);
+}
+
+function attachTreeNextEnrollCustomSelectMenuToWrapper(entry) {
+  const wrapper = entry?.wrapper;
+  const menu = entry?.menu;
+  if (!(wrapper instanceof HTMLElement) || !(menu instanceof HTMLElement)) {
+    return;
+  }
+  if (menu.parentElement !== wrapper) {
+    wrapper.appendChild(menu);
+  }
+  menu.classList.remove('is-floating');
+  menu.style.left = '';
+  menu.style.top = '';
+  menu.style.width = '';
+  menu.style.maxHeight = '';
 }
 
 function closeTreeNextEnrollCustomSelect(entry, options = {}) {
@@ -1716,10 +1871,19 @@ function closeTreeNextEnrollCustomSelect(entry, options = {}) {
   } = options;
   const wrapper = entry?.wrapper;
   const trigger = entry?.trigger;
+  const menu = entry?.menu;
   if (!(wrapper instanceof HTMLElement)) {
     return;
   }
+  if (typeof entry?.detachFloatingHandlers === 'function') {
+    entry.detachFloatingHandlers();
+    entry.detachFloatingHandlers = null;
+  }
   wrapper.classList.remove('is-open');
+  if (menu instanceof HTMLElement) {
+    menu.classList.remove('is-open');
+    attachTreeNextEnrollCustomSelectMenuToWrapper(entry);
+  }
   if (trigger instanceof HTMLButtonElement) {
     trigger.setAttribute('aria-expanded', 'false');
     if (restoreFocus) {
@@ -1829,11 +1993,26 @@ function buildTreeNextEnrollCustomSelectMenu(entry) {
 function openTreeNextEnrollCustomSelect(entry) {
   const wrapper = entry?.wrapper;
   const trigger = entry?.trigger;
+  const menu = entry?.menu;
   if (!(wrapper instanceof HTMLElement)) {
     return;
   }
   closeAllTreeNextEnrollCustomSelects(entry);
+  attachTreeNextEnrollCustomSelectMenuToFloatingRoot(entry);
+  const syncFloatingMenu = () => {
+    placeTreeNextEnrollCustomSelectMenu(entry);
+  };
+  const detachFloatingHandlers = () => {
+    window.removeEventListener('resize', syncFloatingMenu);
+    window.removeEventListener('scroll', syncFloatingMenu, true);
+  };
+  entry.detachFloatingHandlers = detachFloatingHandlers;
+  window.addEventListener('resize', syncFloatingMenu, { passive: true });
+  window.addEventListener('scroll', syncFloatingMenu, true);
   wrapper.classList.add('is-open');
+  if (menu instanceof HTMLElement) {
+    menu.classList.add('is-open');
+  }
   if (trigger instanceof HTMLButtonElement) {
     trigger.setAttribute('aria-expanded', 'true');
   }
@@ -1863,6 +2042,7 @@ function registerTreeNextEnrollCustomSelect(wrapper) {
     valueElement,
     menu,
     optionButtons: [],
+    detachFloatingHandlers: null,
   };
   treeNextEnrollCustomSelectByNativeId.set(nativeSelect.id, entry);
   buildTreeNextEnrollCustomSelectMenu(entry);
@@ -1916,7 +2096,10 @@ function initTreeNextEnrollCustomSelects() {
       return;
     }
     for (const entry of treeNextEnrollCustomSelectByNativeId.values()) {
-      if (entry?.wrapper instanceof HTMLElement && entry.wrapper.contains(eventTarget)) {
+      if (
+        (entry?.wrapper instanceof HTMLElement && entry.wrapper.contains(eventTarget))
+        || (entry?.menu instanceof HTMLElement && entry.menu.contains(eventTarget))
+      ) {
         return;
       }
     }
@@ -1929,6 +2112,125 @@ function initTreeNextEnrollCustomSelects() {
       closeAllTreeNextEnrollCustomSelects();
     }
   });
+}
+
+function applyTreeNextEnrollBillingCountryOptions(countryOptions = [], options = {}) {
+  if (!(treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement)) {
+    return;
+  }
+  const {
+    preserveSelection = true,
+  } = options;
+  const previousValue = safeText(treeNextEnrollBillingCountrySelect.value).trim().toUpperCase();
+  const desiredValue = preserveSelection && previousValue
+    ? previousValue
+    : ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+  const seenCodes = new Set();
+  const normalizedOptions = [];
+  for (const entry of Array.isArray(countryOptions) ? countryOptions : []) {
+    const code = safeText(entry?.code || '').trim().toUpperCase();
+    const label = safeText(entry?.label || '').trim();
+    if (!/^[A-Z]{2}$/.test(code) || !label || seenCodes.has(code)) {
+      continue;
+    }
+    seenCodes.add(code);
+    normalizedOptions.push({
+      code,
+      label,
+    });
+  }
+  if (!seenCodes.has(ENROLL_DEFAULT_BILLING_COUNTRY_CODE)) {
+    normalizedOptions.unshift({
+      code: ENROLL_DEFAULT_BILLING_COUNTRY_CODE,
+      label: 'United States',
+    });
+  }
+
+  treeNextEnrollBillingCountrySelect.innerHTML = '';
+  for (const optionData of normalizedOptions) {
+    const optionElement = document.createElement('option');
+    optionElement.value = optionData.code;
+    optionElement.textContent = optionData.label;
+    treeNextEnrollBillingCountrySelect.appendChild(optionElement);
+  }
+  if (!treeNextEnrollBillingCountrySelect.value) {
+    treeNextEnrollBillingCountrySelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+  }
+  const hasDesiredValue = Array.from(treeNextEnrollBillingCountrySelect.options).some(
+    (option) => safeText(option?.value).trim().toUpperCase() === desiredValue,
+  );
+  treeNextEnrollBillingCountrySelect.value = hasDesiredValue
+    ? desiredValue
+    : ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+  if (!treeNextEnrollBillingCountrySelect.value && treeNextEnrollBillingCountrySelect.options.length > 0) {
+    treeNextEnrollBillingCountrySelect.value = safeText(treeNextEnrollBillingCountrySelect.options[0]?.value);
+  }
+
+  const entry = treeNextEnrollCustomSelectByNativeId.get(treeNextEnrollBillingCountrySelect.id);
+  if (entry) {
+    buildTreeNextEnrollCustomSelectMenu(entry);
+  }
+  syncTreeNextEnrollCustomSelectById(treeNextEnrollBillingCountrySelect.id);
+}
+
+async function hydrateTreeNextEnrollBillingCountryOptions() {
+  if (!(treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement)) {
+    return;
+  }
+  if (treeNextEnrollBillingCountrySelect.dataset.countriesHydrated === 'true') {
+    syncTreeNextEnrollCustomSelectById(treeNextEnrollBillingCountrySelect.id);
+    return;
+  }
+  if (treeNextEnrollBillingCountryHydrationPromise) {
+    await treeNextEnrollBillingCountryHydrationPromise;
+    return;
+  }
+
+  treeNextEnrollBillingCountryHydrationPromise = (async () => {
+    try {
+      const response = await fetch(ENROLL_BILLING_COUNTRY_CATALOG_URL, {
+        method: 'GET',
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      const payload = await response.json().catch(() => []);
+      if (!response.ok || !Array.isArray(payload)) {
+        throw new Error(`Billing country catalog unavailable (${response.status}).`);
+      }
+      const options = payload
+        .map((entry) => {
+          const code = safeText(entry?.code || '').trim().toUpperCase();
+          const label = safeText(entry?.name || '').trim();
+          const isoSupported = entry?.iso !== false;
+          return {
+            code,
+            label,
+            isoSupported,
+          };
+        })
+        .filter((entry) => /^[A-Z]{2}$/.test(entry.code) && entry.label && entry.isoSupported)
+        .sort((left, right) => left.label.localeCompare(right.label, 'en', { sensitivity: 'base' }));
+      if (!options.length) {
+        throw new Error('Billing country catalog is empty.');
+      }
+      const preferredOptionIndex = options.findIndex((entry) => entry.code === ENROLL_DEFAULT_BILLING_COUNTRY_CODE);
+      if (preferredOptionIndex > 0) {
+        const [preferredOption] = options.splice(preferredOptionIndex, 1);
+        options.unshift(preferredOption);
+      }
+      applyTreeNextEnrollBillingCountryOptions(options, { preserveSelection: true });
+      treeNextEnrollBillingCountrySelect.dataset.countriesHydrated = 'true';
+    } catch (error) {
+      console.warn('Unable to hydrate enrollment billing countries:', error);
+      applyTreeNextEnrollBillingCountryOptions(ENROLL_BILLING_COUNTRY_FALLBACK_OPTIONS, { preserveSelection: true });
+    }
+  })();
+
+  try {
+    await treeNextEnrollBillingCountryHydrationPromise;
+  } finally {
+    treeNextEnrollBillingCountryHydrationPromise = null;
+  }
 }
 
 async function fetchTreeNextEnrollStripeCheckoutConfig() {
@@ -2015,10 +2317,19 @@ function resolveTreeNextEnrollStripeCardStyle() {
 }
 
 async function initializeTreeNextEnrollStripeCard(options = {}) {
-  if (isTreeNextEnrollStripeReady && treeNextEnrollStripeCardNumber && treeNextEnrollStripeCardExpiry) {
+  if (
+    isTreeNextEnrollStripeReady
+    && treeNextEnrollStripeCardNumber
+    && treeNextEnrollStripeCardExpiry
+    && treeNextEnrollStripeCardCvc
+  ) {
     return true;
   }
-  if (!(treeNextEnrollCardNumberElement instanceof HTMLElement) || !(treeNextEnrollCardExpiryElement instanceof HTMLElement)) {
+  if (
+    !(treeNextEnrollCardNumberElement instanceof HTMLElement)
+    || !(treeNextEnrollCardExpiryElement instanceof HTMLElement)
+    || !(treeNextEnrollCardCvcElement instanceof HTMLElement)
+  ) {
     setTreeNextEnrollCardError('Card payment fields are unavailable.');
     return false;
   }
@@ -2048,14 +2359,22 @@ async function initializeTreeNextEnrollStripeCard(options = {}) {
       treeNextEnrollStripeElements = treeNextEnrollStripeClient.elements();
       treeNextEnrollStripeCardNumber = treeNextEnrollStripeElements.create('cardNumber', {
         style: resolveTreeNextEnrollStripeCardStyle(),
-        placeholder: 'Enter Card Number',
+        placeholder: 'Card number',
+        showIcon: true,
+        iconStyle: 'solid',
+        disableLink: false,
       });
       treeNextEnrollStripeCardExpiry = treeNextEnrollStripeElements.create('cardExpiry', {
         style: resolveTreeNextEnrollStripeCardStyle(),
         placeholder: 'MM / YY',
       });
+      treeNextEnrollStripeCardCvc = treeNextEnrollStripeElements.create('cardCvc', {
+        style: resolveTreeNextEnrollStripeCardStyle(),
+        placeholder: 'CVC',
+      });
       treeNextEnrollStripeCardNumber.mount(treeNextEnrollCardNumberElement);
       treeNextEnrollStripeCardExpiry.mount(treeNextEnrollCardExpiryElement);
+      treeNextEnrollStripeCardCvc.mount(treeNextEnrollCardCvcElement);
       treeNextEnrollStripeCardNumber.on('change', (event) => {
         isTreeNextEnrollStripeCardComplete = event?.complete === true;
         setTreeNextEnrollCardError(event?.error?.message || '');
@@ -2064,16 +2383,21 @@ async function initializeTreeNextEnrollStripeCard(options = {}) {
         isTreeNextEnrollStripeCardExpiryComplete = event?.complete === true;
         setTreeNextEnrollCardError(event?.error?.message || '');
       });
+      treeNextEnrollStripeCardCvc.on('change', (event) => {
+        isTreeNextEnrollStripeCardCvcComplete = event?.complete === true;
+        setTreeNextEnrollCardError(event?.error?.message || '');
+      });
 
       isTreeNextEnrollStripeReady = true;
       isTreeNextEnrollStripeCardComplete = false;
       isTreeNextEnrollStripeCardExpiryComplete = false;
+      isTreeNextEnrollStripeCardCvcComplete = false;
       if (options.silent !== true) {
         clearTreeNextEnrollCardError();
       }
       return true;
     } catch (error) {
-      setTreeNextEnrollCardError(error instanceof Error ? error.message : 'Unable to initialize Stripe card number field.');
+      setTreeNextEnrollCardError(error instanceof Error ? error.message : 'Unable to initialize Stripe card fields.');
       return false;
     }
   })();
@@ -2156,7 +2480,20 @@ function resolveTreeNextEnrollPlacementSideFromLock(placementLock = state.enroll
   return normalizeBinarySide(placementLock?.placementLeg) === 'right' ? 'right' : 'left';
 }
 
+function isTreeNextEnrollAdminPlacementMode() {
+  return state.source === 'admin';
+}
+
+function resolveTreeNextEnrollMemberAutoSpilloverMode() {
+  return canTreeNextEnrollUseSpilloverForRootUser()
+    ? ENROLL_SPILLOVER_MODE_SPILLOVER
+    : ENROLL_SPILLOVER_MODE_DIRECT;
+}
+
 function resolveTreeNextEnrollSpilloverModeValue() {
+  if (!isTreeNextEnrollAdminPlacementMode()) {
+    return resolveTreeNextEnrollMemberAutoSpilloverMode();
+  }
   const normalizedMode = normalizeCredentialValue(
     treeNextEnrollSpilloverModeInput?.value || ENROLL_SPILLOVER_MODE_SPILLOVER,
   );
@@ -2171,24 +2508,55 @@ function canTreeNextEnrollUseSpilloverForRootUser() {
 }
 
 function syncTreeNextEnrollSpilloverAvailability() {
-  if (!(treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement)) {
-    return true;
+  const isAdminPlacementMode = isTreeNextEnrollAdminPlacementMode();
+  if (treeNextEnrollSpilloverModeFieldGroup instanceof HTMLElement) {
+    treeNextEnrollSpilloverModeFieldGroup.hidden = !isAdminPlacementMode;
+    treeNextEnrollSpilloverModeFieldGroup.setAttribute('aria-hidden', isAdminPlacementMode ? 'false' : 'true');
   }
 
-  const spilloverAllowed = canTreeNextEnrollUseSpilloverForRootUser();
-  let spilloverOption = null;
+  if (!(treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement)) {
+    return resolveTreeNextEnrollSpilloverModeValue() === ENROLL_SPILLOVER_MODE_SPILLOVER;
+  }
+
+  if (!isAdminPlacementMode) {
+    const memberAutoSpilloverMode = resolveTreeNextEnrollMemberAutoSpilloverMode();
+    if (treeNextEnrollSpilloverModeInput.value !== memberAutoSpilloverMode) {
+      treeNextEnrollSpilloverModeInput.value = memberAutoSpilloverMode;
+    }
+
+    const memberSpilloverSelectEntry = treeNextEnrollCustomSelectByNativeId.get('tree-next-enroll-spillover-mode');
+    if (memberSpilloverSelectEntry) {
+      buildTreeNextEnrollCustomSelectMenu(memberSpilloverSelectEntry);
+      closeTreeNextEnrollCustomSelect(memberSpilloverSelectEntry);
+    } else {
+      syncTreeNextEnrollCustomSelectById('tree-next-enroll-spillover-mode');
+    }
+    return memberAutoSpilloverMode === ENROLL_SPILLOVER_MODE_SPILLOVER;
+  }
+
+  let hasSpilloverOption = false;
+  let hasDirectOption = false;
   for (const option of Array.from(treeNextEnrollSpilloverModeInput.options || [])) {
-    if (normalizeCredentialValue(option?.value) === ENROLL_SPILLOVER_MODE_SPILLOVER) {
-      spilloverOption = option;
-      break;
+    const optionMode = normalizeCredentialValue(option?.value);
+    if (optionMode === ENROLL_SPILLOVER_MODE_SPILLOVER) {
+      option.disabled = false;
+      hasSpilloverOption = true;
+      continue;
+    }
+    if (optionMode === ENROLL_SPILLOVER_MODE_DIRECT) {
+      option.disabled = false;
+      hasDirectOption = true;
     }
   }
-  if (spilloverOption) {
-    spilloverOption.disabled = !spilloverAllowed;
-  }
 
-  if (!spilloverAllowed && resolveTreeNextEnrollSpilloverModeValue() !== ENROLL_SPILLOVER_MODE_DIRECT) {
-    treeNextEnrollSpilloverModeInput.value = ENROLL_SPILLOVER_MODE_DIRECT;
+  const selectedMode = normalizeCredentialValue(treeNextEnrollSpilloverModeInput.value || '');
+  if (
+    selectedMode !== ENROLL_SPILLOVER_MODE_SPILLOVER
+    && selectedMode !== ENROLL_SPILLOVER_MODE_DIRECT
+  ) {
+    treeNextEnrollSpilloverModeInput.value = hasSpilloverOption
+      ? ENROLL_SPILLOVER_MODE_SPILLOVER
+      : (hasDirectOption ? ENROLL_SPILLOVER_MODE_DIRECT : ENROLL_SPILLOVER_MODE_SPILLOVER);
   }
 
   const spilloverSelectEntry = treeNextEnrollCustomSelectByNativeId.get('tree-next-enroll-spillover-mode');
@@ -2199,7 +2567,7 @@ function syncTreeNextEnrollSpilloverAvailability() {
     syncTreeNextEnrollCustomSelectById('tree-next-enroll-spillover-mode');
   }
 
-  return spilloverAllowed;
+  return resolveTreeNextEnrollSpilloverModeValue() === ENROLL_SPILLOVER_MODE_SPILLOVER;
 }
 
 function syncTreeNextEnrollLegPositionField() {
@@ -2435,10 +2803,16 @@ function closeTreeNextEnrollModal(options = {}) {
       treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
     }
     if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
-      treeNextEnrollSpilloverModeInput.value = ENROLL_SPILLOVER_MODE_SPILLOVER;
+      treeNextEnrollSpilloverModeInput.value = isTreeNextEnrollAdminPlacementMode()
+        ? ENROLL_SPILLOVER_MODE_SPILLOVER
+        : resolveTreeNextEnrollMemberAutoSpilloverMode();
+    }
+    if (treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement) {
+      treeNextEnrollBillingCountrySelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
     }
     syncTreeNextEnrollTierFromPackage();
     syncTreeNextEnrollPackagePreview();
+    syncTreeNextEnrollSpilloverAvailability();
     syncTreeNextEnrollLegPositionField();
     setTreeNextEnrollPasswordSetupLink('');
   }
@@ -2468,21 +2842,41 @@ function openTreeNextEnrollModal(requestDetail = {}) {
   }
 
   const placementLeg = normalizeBinarySide(requestDetail?.placementLeg) === 'right' ? 'right' : 'left';
-  const parentId = safeText(requestDetail?.parentId);
-  if (!parentId) {
+  const isAdminPlacementMode = isTreeNextEnrollAdminPlacementMode();
+  const requestedParentId = safeText(requestDetail?.parentId);
+  if (isAdminPlacementMode && !requestedParentId) {
     setTreeNextEnrollFeedback('Placement context is missing. Select an anticipation node again.', false);
     return;
   }
+  const rootNode = resolveNodeById('root');
+  const parentId = isAdminPlacementMode ? requestedParentId : 'root';
 
   const parentName = safeText(
-    requestDetail?.parentName
-    || requestDetail?.parentMemberCode
-    || parentId,
+    isAdminPlacementMode
+      ? (
+        requestDetail?.parentName
+        || requestDetail?.parentMemberCode
+        || parentId
+      )
+      : (
+        rootNode?.name
+        || rootNode?.memberCode
+        || rootNode?.username
+        || 'Root'
+      ),
   ) || parentId;
   const parentReference = safeText(
-    requestDetail?.parentMemberCode
-    || requestDetail?.parentUsername
-    || parentId,
+    isAdminPlacementMode
+      ? (
+        requestDetail?.parentMemberCode
+        || requestDetail?.parentUsername
+        || parentId
+      )
+      : (
+        rootNode?.memberCode
+        || rootNode?.username
+        || 'root'
+      ),
   ) || parentId;
 
   state.enroll.lastTriggerElement = document.activeElement instanceof HTMLElement
@@ -2504,13 +2898,19 @@ function openTreeNextEnrollModal(requestDetail = {}) {
     treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
   }
   if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
-    treeNextEnrollSpilloverModeInput.value = ENROLL_SPILLOVER_MODE_SPILLOVER;
+    treeNextEnrollSpilloverModeInput.value = isTreeNextEnrollAdminPlacementMode()
+      ? ENROLL_SPILLOVER_MODE_SPILLOVER
+      : resolveTreeNextEnrollMemberAutoSpilloverMode();
+  }
+  if (treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement) {
+    treeNextEnrollBillingCountrySelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
   }
   syncTreeNextEnrollTierFromPackage();
   syncTreeNextEnrollPackagePreview();
   syncTreeNextEnrollCustomSelectsFromNative();
   clearTreeNextEnrollFeedback();
   clearTreeNextEnrollCardInput();
+  void hydrateTreeNextEnrollBillingCountryOptions();
 
   treeNextEnrollPlacementLegInput.value = placementLeg;
   if (treeNextEnrollPlacementParentIdInput instanceof HTMLInputElement) {
@@ -2602,6 +3002,82 @@ async function submitTreeNextEnrollmentRequest(payload = {}) {
   }
 
   return createdMember;
+}
+
+async function createTreeNextEnrollmentPaymentIntent(payload = {}) {
+  const response = await fetch(resolveEnrollRegisteredMembersIntentApi(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(payload),
+  });
+
+  const responsePayload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const failureMessage = typeof responsePayload?.error === 'string'
+      ? responsePayload.error
+      : 'Unable to create Stripe payment intent for enrollment.';
+    throw new Error(failureMessage);
+  }
+
+  const paymentIntentId = safeText(responsePayload?.paymentIntentId);
+  const clientSecret = safeText(responsePayload?.clientSecret);
+  if (!paymentIntentId || !clientSecret) {
+    throw new Error('Enrollment payment intent response is missing required Stripe fields.');
+  }
+
+  return {
+    paymentIntentId,
+    clientSecret,
+    checkout: responsePayload?.checkout && typeof responsePayload.checkout === 'object'
+      ? responsePayload.checkout
+      : {},
+  };
+}
+
+async function completeTreeNextEnrollmentPaymentIntent(paymentIntentId) {
+  const safePaymentIntentId = safeText(paymentIntentId);
+  if (!safePaymentIntentId) {
+    throw new Error('Payment intent ID is required to finalize enrollment.');
+  }
+
+  const response = await fetch(resolveEnrollRegisteredMembersIntentCompleteApi(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify({
+      paymentIntentId: safePaymentIntentId,
+    }),
+  });
+
+  const responsePayload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const failureMessage = typeof responsePayload?.error === 'string'
+      ? responsePayload.error
+      : 'Unable to finalize enrollment payment.';
+    throw new Error(failureMessage);
+  }
+
+  const completed = responsePayload?.completed === true;
+  const member = responsePayload?.member && typeof responsePayload.member === 'object'
+    ? responsePayload.member
+    : null;
+
+  return {
+    completed,
+    member,
+    invoice: responsePayload?.invoice && typeof responsePayload.invoice === 'object'
+      ? responsePayload.invoice
+      : null,
+    warning: safeText(responsePayload?.warning),
+    paymentIntent: responsePayload?.paymentIntent && typeof responsePayload.paymentIntent === 'object'
+      ? responsePayload.paymentIntent
+      : null,
+  };
 }
 
 function resolveUniqueTreeNodeId(baseId) {
@@ -2784,7 +3260,7 @@ function validateTreeNextEnrollStepTwo() {
     syncTreeNextEnrollCustomSelectById('tree-next-enroll-package');
     return false;
   }
-  if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
+  if (isTreeNextEnrollAdminPlacementMode() && treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
     const spilloverMode = normalizeCredentialValue(treeNextEnrollSpilloverModeInput.value || '');
     if (spilloverMode !== ENROLL_SPILLOVER_MODE_DIRECT && spilloverMode !== ENROLL_SPILLOVER_MODE_SPILLOVER) {
       setTreeNextEnrollFeedback('Select whether this registration should use spillover placement.', false);
@@ -2827,11 +3303,24 @@ async function handleTreeNextEnrollModalSubmit(event) {
 
   const stripeReady = await initializeTreeNextEnrollStripeCard({ silent: true });
   if (!stripeReady) {
-    setTreeNextEnrollFeedback('Stripe card number field is not ready yet.', false);
+    setTreeNextEnrollFeedback('Stripe card fields are not ready yet.', false);
     return;
   }
 
   const cardholderName = safeText(treeNextEnrollNameOnCardInput?.value);
+  const billingAddress = safeText(treeNextEnrollBillingAddressInput?.value);
+  const billingCity = safeText(treeNextEnrollBillingCityInput?.value);
+  const billingState = safeText(treeNextEnrollBillingStateInput?.value);
+  const billingPostalCode = safeText(treeNextEnrollBillingPostalCodeInput?.value);
+  const billingCountryValue = safeText(treeNextEnrollBillingCountrySelect?.value);
+  const billingCountryLabel = safeText(
+    treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement
+      ? treeNextEnrollBillingCountrySelect.selectedOptions?.[0]?.textContent
+      : '',
+  );
+  const billingCountryCode = resolveTreeNextEnrollStripeBillingCountryCode(
+    billingCountryValue || billingCountryLabel,
+  );
   if (!cardholderName) {
     setTreeNextEnrollFeedback('Cardholder name is required before checkout.', false);
     if (treeNextEnrollNameOnCardInput instanceof HTMLInputElement) {
@@ -2839,9 +3328,29 @@ async function handleTreeNextEnrollModalSubmit(event) {
     }
     return;
   }
-  if (!isTreeNextEnrollStripeCardComplete || !isTreeNextEnrollStripeCardExpiryComplete) {
-    setTreeNextEnrollCardError('Please enter a complete card number and expiry date.');
-    setTreeNextEnrollFeedback('Please enter a complete card number and expiry date.', false);
+  if (!billingAddress || !billingCity || !billingState || !billingPostalCode || !billingCountryCode) {
+    setTreeNextEnrollFeedback('Billing address, city, state, ZIP, and country are required.', false);
+    if (!billingAddress && treeNextEnrollBillingAddressInput instanceof HTMLInputElement) {
+      treeNextEnrollBillingAddressInput.focus({ preventScroll: true });
+    } else if (!billingCity && treeNextEnrollBillingCityInput instanceof HTMLInputElement) {
+      treeNextEnrollBillingCityInput.focus({ preventScroll: true });
+    } else if (!billingState && treeNextEnrollBillingStateInput instanceof HTMLInputElement) {
+      treeNextEnrollBillingStateInput.focus({ preventScroll: true });
+    } else if (!billingPostalCode && treeNextEnrollBillingPostalCodeInput instanceof HTMLInputElement) {
+      treeNextEnrollBillingPostalCodeInput.focus({ preventScroll: true });
+    } else if (!billingCountryCode) {
+      const billingCountryEntry = treeNextEnrollCustomSelectByNativeId.get('tree-next-enroll-billing-country');
+      if (billingCountryEntry?.trigger instanceof HTMLButtonElement) {
+        billingCountryEntry.trigger.focus({ preventScroll: true });
+      } else if (treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement) {
+        treeNextEnrollBillingCountrySelect.focus({ preventScroll: true });
+      }
+    }
+    return;
+  }
+  if (!isTreeNextEnrollStripeCardComplete || !isTreeNextEnrollStripeCardExpiryComplete || !isTreeNextEnrollStripeCardCvcComplete) {
+    setTreeNextEnrollCardError('Please enter a complete card number, expiry date, and CVC.');
+    setTreeNextEnrollFeedback('Please enter a complete card number, expiry date, and CVC.', false);
     return;
   }
 
@@ -2858,11 +3367,14 @@ async function handleTreeNextEnrollModalSubmit(event) {
   const tierKey = tierFromForm || resolveEnrollFastTrackTierFromPackage(packageKey);
   const placementSide = resolveTreeNextEnrollPlacementSideFromLock(placementLock);
   const spilloverMode = resolveTreeNextEnrollSpilloverModeValue();
+  const isAdminPlacementMode = isTreeNextEnrollAdminPlacementMode();
   const isSpilloverPlacement = spilloverMode === ENROLL_SPILLOVER_MODE_SPILLOVER;
   const placementLeg = isSpilloverPlacement ? 'spillover' : placementSide;
   const spilloverPlacementSide = placementSide;
-  const spilloverParentMode = isSpilloverPlacement ? 'manual' : 'auto';
-  const spilloverParentReference = isSpilloverPlacement
+  const spilloverParentMode = isSpilloverPlacement
+    ? (isAdminPlacementMode ? 'manual' : 'auto')
+    : 'auto';
+  const spilloverParentReference = (isSpilloverPlacement && isAdminPlacementMode)
     ? safeText(placementLock.parentReference || placementLock.parentId)
     : '';
 
@@ -2890,8 +3402,19 @@ async function handleTreeNextEnrollModalSubmit(event) {
   }
 
   try {
+    const stripeBillingAddress = {
+      line1: billingAddress,
+      city: billingCity,
+      state: billingState,
+      postal_code: billingPostalCode,
+    };
+    if (billingCountryCode) {
+      stripeBillingAddress.country = billingCountryCode;
+    }
+
     state.enroll.pendingPlacement = null;
-    const createdMember = await submitTreeNextEnrollmentRequest({
+    setTreeNextEnrollFeedback('Preparing secure payment...', 'neutral', { loading: true });
+    const paymentIntentResult = await createTreeNextEnrollmentPaymentIntent({
       fullName,
       email,
       memberUsername,
@@ -2906,8 +3429,64 @@ async function handleTreeNextEnrollModalSubmit(event) {
       fastTrackTier: tierKey,
       sponsorUsername,
       sponsorName,
+      billingAddress,
+      billingCity,
+      billingState,
+      billingPostalCode,
+      billingCountry: billingCountryLabel || billingCountryCode,
+      billingCountryCode,
     });
 
+    if (!(treeNextEnrollStripeClient && treeNextEnrollStripeCardNumber)) {
+      throw new Error('Stripe card fields are not ready yet.');
+    }
+    clearTreeNextEnrollCardError();
+    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
+      treeNextEnrollModalSubmitButton.textContent = 'Confirming card...';
+    }
+    setTreeNextEnrollFeedback('Confirming your payment with Stripe...', 'neutral', { loading: true });
+
+    const { error: stripeConfirmError, paymentIntent } = await treeNextEnrollStripeClient.confirmCardPayment(
+      paymentIntentResult.clientSecret,
+      {
+        payment_method: {
+          card: treeNextEnrollStripeCardNumber,
+          billing_details: {
+            name: cardholderName,
+            email,
+            address: stripeBillingAddress,
+          },
+        },
+      },
+    );
+    if (stripeConfirmError) {
+      const stripeErrorMessage = safeText(stripeConfirmError?.message) || 'Payment could not be confirmed.';
+      setTreeNextEnrollCardError(stripeErrorMessage);
+      throw new Error(stripeErrorMessage);
+    }
+
+    const finalizedPaymentIntentId = safeText(paymentIntent?.id || paymentIntentResult.paymentIntentId);
+    if (!finalizedPaymentIntentId) {
+      throw new Error('Payment was submitted, but no Stripe payment reference was returned.');
+    }
+
+    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
+      treeNextEnrollModalSubmitButton.textContent = 'Finalizing enrollment...';
+    }
+    setTreeNextEnrollFeedback('Finalizing enrollment...', 'neutral', { loading: true });
+
+    let completionResult = await completeTreeNextEnrollmentPaymentIntent(finalizedPaymentIntentId);
+    let completionAttempts = 0;
+    while (!completionResult.completed && completionAttempts < 5) {
+      await new Promise((resolve) => window.setTimeout(resolve, 700));
+      completionAttempts += 1;
+      completionResult = await completeTreeNextEnrollmentPaymentIntent(finalizedPaymentIntentId);
+    }
+    if (!completionResult.completed || !completionResult.member) {
+      throw new Error('Payment captured, but enrollment is still processing. Please retry in a moment.');
+    }
+
+    const createdMember = completionResult.member;
     const enrolledName = safeText(createdMember?.fullName || fullName) || 'Member';
     const packageLabel = safeText(
       createdMember?.enrollmentPackageLabel
@@ -2921,7 +3500,11 @@ async function handleTreeNextEnrollModalSubmit(event) {
     const placementSummary = isSpilloverPlacement
       ? `SPILLOVER ${placementSideLabel}`
       : `${placementSideLabel} leg`;
-    setTreeNextEnrollFeedback(`${enrolledName} enrolled on ${placementSummary} under ${placementLock.parentName}.`, true);
+    const successFeedback = `${enrolledName} enrolled on ${placementSummary} under ${placementLock.parentName}.`;
+    const finalFeedback = completionResult.warning
+      ? `${successFeedback} ${completionResult.warning}`
+      : successFeedback;
+    setTreeNextEnrollFeedback(finalFeedback, true);
     showTreeNextEnrollThankYouStep({
       enrolledName,
       packageLabel,
@@ -2958,6 +3541,10 @@ function initTreeNextEnrollModal() {
   clearTreeNextEnrollFeedback();
   clearTreeNextEnrollCardError();
   initTreeNextEnrollCustomSelects();
+  applyTreeNextEnrollBillingCountryOptions(ENROLL_BILLING_COUNTRY_FALLBACK_OPTIONS, {
+    preserveSelection: true,
+  });
+  void hydrateTreeNextEnrollBillingCountryOptions();
 
   if (treeNextEnrollCountryFlagInput instanceof HTMLInputElement) {
     treeNextEnrollCountryFlagInput.value = ENROLL_DEFAULT_COUNTRY_FLAG;
@@ -2971,15 +3558,27 @@ function initTreeNextEnrollModal() {
     });
   }
   if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
-    treeNextEnrollSpilloverModeInput.value = ENROLL_SPILLOVER_MODE_SPILLOVER;
+    treeNextEnrollSpilloverModeInput.value = isTreeNextEnrollAdminPlacementMode()
+      ? ENROLL_SPILLOVER_MODE_SPILLOVER
+      : resolveTreeNextEnrollMemberAutoSpilloverMode();
     treeNextEnrollSpilloverModeInput.addEventListener('change', () => {
+      if (!isTreeNextEnrollAdminPlacementMode()) {
+        treeNextEnrollSpilloverModeInput.value = resolveTreeNextEnrollMemberAutoSpilloverMode();
+      }
       syncTreeNextEnrollLegPositionField();
       syncTreeNextEnrollSponsorField();
       clearTreeNextEnrollFeedback();
     });
   }
+  if (treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement) {
+    treeNextEnrollBillingCountrySelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+    treeNextEnrollBillingCountrySelect.addEventListener('change', () => {
+      clearTreeNextEnrollFeedback();
+    });
+  }
   syncTreeNextEnrollTierFromPackage();
   syncTreeNextEnrollPackagePreview();
+  syncTreeNextEnrollSpilloverAvailability();
   syncTreeNextEnrollLegPositionField();
   syncTreeNextEnrollSponsorField();
   syncTreeNextEnrollCustomSelectsFromNative();
@@ -4634,6 +5233,12 @@ async function validateMemberSession(memberSession) {
 async function bootstrapSession() {
   const source = resolveAppSource();
   state.source = source;
+  if (document.documentElement instanceof HTMLElement) {
+    document.documentElement.setAttribute('data-tree-next-source', source);
+  }
+  if (document.body instanceof HTMLElement) {
+    document.body.setAttribute('data-tree-next-source', source);
+  }
   state.launchState = createDefaultLaunchState({
     source: source === 'admin' ? 'admin-skip' : 'not-checked',
   });
@@ -9543,7 +10148,10 @@ function triggerAction(action) {
     const targetPage = safeAction.slice('brand-menu:page:'.length);
     state.ui.sideNavBrandMenuOpen = false;
     if (targetPage === 'dashboard') {
-      setCameraTarget(computeHomeView(), true);
+      const dashboardPath = state.source === 'admin'
+        ? ADMIN_DASHBOARD_HOME_PATH
+        : MEMBER_DASHBOARD_HOME_PATH;
+      redirectTo(dashboardPath);
     }
     return;
   }

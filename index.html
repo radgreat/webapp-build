@@ -7710,6 +7710,24 @@
         kr: 'South Korea',
         ae: 'United Arab Emirates',
       });
+      const BILLING_COUNTRY_NAME_TO_CODE = Object.freeze(
+        Object.entries(COUNTRY_NAME_BY_CODE).reduce((lookup, [countryCode, countryName]) => {
+          const normalizedCountryName = String(countryName || '').trim().toLowerCase();
+          const normalizedCountryCode = String(countryCode || '').trim().toLowerCase();
+          if (normalizedCountryName && /^[a-z]{2}$/.test(normalizedCountryCode)) {
+            lookup[normalizedCountryName] = normalizedCountryCode.toUpperCase();
+          }
+          return lookup;
+        }, {}),
+      );
+      const BILLING_COUNTRY_ALIAS_TO_CODE = Object.freeze({
+        'united states of america': 'US',
+        usa: 'US',
+        'u.s.': 'US',
+        'u.s.a.': 'US',
+        uk: 'GB',
+        'u.k.': 'GB',
+      });
       const CYCLE_RULE_LOWER_BV = 500;
       const CYCLE_RULE_HIGHER_BV = 1000;
       const INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER = 3;
@@ -8258,6 +8276,33 @@
       function resolveCountryDisplayName(countryCode) {
         const normalizedCode = normalizeCountryFlag(countryCode);
         return COUNTRY_NAME_BY_CODE[normalizedCode] || '';
+      }
+
+      function resolveStripeBillingCountryCode(rawValue) {
+        const normalizedValue = String(rawValue || '').trim();
+        if (!normalizedValue) {
+          return '';
+        }
+
+        const lowercaseValue = normalizedValue.toLowerCase();
+        if (/^[a-z]{2}$/.test(lowercaseValue)) {
+          return lowercaseValue.toUpperCase();
+        }
+
+        if (BILLING_COUNTRY_ALIAS_TO_CODE[lowercaseValue]) {
+          return BILLING_COUNTRY_ALIAS_TO_CODE[lowercaseValue];
+        }
+
+        if (BILLING_COUNTRY_NAME_TO_CODE[lowercaseValue]) {
+          return BILLING_COUNTRY_NAME_TO_CODE[lowercaseValue];
+        }
+
+        const normalizedCountryFlag = normalizeCountryFlag(normalizedValue);
+        if (normalizedCountryFlag && normalizedCountryFlag !== DEFAULT_COUNTRY_FLAG) {
+          return normalizedCountryFlag.toUpperCase();
+        }
+
+        return '';
       }
 
       function renderAccountRankActivityBadge(user) {
@@ -23135,6 +23180,13 @@
         const billingState = String(formData.get('billingState') || '').trim();
         const billingPostalCode = String(formData.get('billingPostalCode') || '').trim();
         const billingCountry = String(formData.get('billingCountry') || '').trim();
+        const billingCountryIsoCode = resolveStripeBillingCountryCode(billingCountry);
+        if (!billingCountryIsoCode) {
+          return {
+            ok: false,
+            message: 'Billing country must be a 2-letter country code (for example, US) or a recognized country name.',
+          };
+        }
         const shippingAddress = `${billingAddress}, ${billingCity}, ${billingState} ${billingPostalCode}, ${billingCountry}`;
 
         return {
@@ -23149,6 +23201,7 @@
             billingState,
             billingPostalCode,
             billingCountry,
+            billingCountryIsoCode,
           },
         };
       }
@@ -23617,7 +23670,7 @@
         const billingCity = String(checkoutFields.billingCity || '').trim();
         const billingState = String(checkoutFields.billingState || '').trim();
         const billingPostalCode = String(checkoutFields.billingPostalCode || '').trim();
-        const billingCountry = String(checkoutFields.billingCountry || '').trim();
+        const billingCountryIsoCode = String(checkoutFields.billingCountryIsoCode || '').trim().toUpperCase();
 
         const checkoutLinesSnapshot = storeCart.map((line) => ({
           productId: String(line?.productId || '').trim(),
@@ -23666,7 +23719,7 @@
                   city: billingCity,
                   state: billingState,
                   postal_code: billingPostalCode,
-                  country: billingCountry,
+                  country: billingCountryIsoCode,
                 },
               },
             },
