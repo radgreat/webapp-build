@@ -63,6 +63,411 @@
       z-index: 10;
     }
 
+    #tree-next-account-overview-panel {
+      position: fixed;
+      left: var(--tree-next-account-overview-left, 430px);
+      top: var(--tree-next-account-overview-top, 18px);
+      width: var(--tree-next-account-overview-width, 640px);
+      height: var(--tree-next-account-overview-height, calc(100vh - 36px));
+      z-index: 16;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #E7E7EA;
+      border-radius: 36px;
+      background: #FFFFFF;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 12px 24px rgba(104, 112, 130, 0.08);
+      color: #101216;
+      font-family: "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      pointer-events: auto;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-account-overview-panel,
+    #tree-next-account-overview-panel * {
+      box-sizing: border-box;
+    }
+
+    #tree-next-account-overview-panel.is-positioning {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(10px);
+    }
+
+    #tree-next-account-overview-panel.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(12px);
+    }
+
+    .tree-next-account-overview-scroll {
+      min-height: 0;
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 30px 30px 36px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 151, 160, 0.7) transparent;
+    }
+
+    .tree-next-account-overview-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .tree-next-account-overview-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .tree-next-account-overview-scroll::-webkit-scrollbar-thumb {
+      border: 2px solid #FFFFFF;
+      border-radius: 8px;
+      background: rgba(148, 151, 160, 0.68);
+    }
+
+    .tree-next-account-overview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #E5E5E7;
+    }
+
+    .tree-next-account-overview-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #111318;
+    }
+
+    #tree-next-account-overview-refresh {
+      width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 10px;
+      background: #C9CCD4;
+      color: #FFFFFF;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-account-overview-refresh:hover {
+      background: #B9BEC8;
+      transform: translateY(-1px);
+    }
+
+    #tree-next-account-overview-refresh:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-account-overview-refresh:active {
+      transform: scale(0.94);
+      opacity: 0.82;
+    }
+
+    .tree-next-account-overview-hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(96px, 120px) minmax(220px, 280px) minmax(96px, 120px);
+      justify-content: center;
+      justify-items: center;
+      align-items: center;
+      gap: 34px;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 56px 16px 30px;
+      border-bottom: 1px solid #E5E5E7;
+      text-align: center;
+    }
+
+    .tree-next-account-overview-badge {
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .tree-next-account-overview-badge-icon {
+      width: 82px;
+      height: 82px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(140deg, #48809C 0%, #2C5673 58%, #18324A 100%);
+      box-shadow: none;
+    }
+
+    .tree-next-account-overview-badge.is-title .tree-next-account-overview-badge-icon {
+      background: linear-gradient(140deg, #D4A948 0%, #A47A22 58%, #765516 100%);
+    }
+
+    .tree-next-account-overview-badge-icon img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 7px rgba(11, 18, 30, 0.36)) !important;
+    }
+
+    .tree-next-account-overview-badge-label {
+      margin: 0;
+      max-width: 118px;
+      overflow: hidden;
+      color: #13161B;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tree-next-account-overview-user {
+      display: grid;
+      justify-items: center;
+      min-width: 0;
+    }
+
+    #tree-next-account-overview-avatar {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(140deg, #8FC1FF 0%, #68A9F6 56%, #4D89D0 100%);
+      background-position: center;
+      background-size: cover;
+      box-shadow: none;
+      color: #FFFFFF;
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    #tree-next-account-overview-avatar[data-avatar-photo="true"] .tree-next-account-overview-avatar-initials {
+      display: none;
+    }
+
+    #tree-next-account-overview-status-dot {
+      position: absolute;
+      right: 9px;
+      bottom: 10px;
+      width: 36px;
+      height: 36px;
+      border: 5px solid #FFFFFF;
+      border-radius: 50%;
+      background: #2FCF45;
+      box-shadow: none;
+    }
+
+    #tree-next-account-overview-status-dot.is-inactive {
+      background: #A5A7AD;
+      box-shadow: none;
+    }
+
+    #tree-next-account-overview-name {
+      margin: 24px 0 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #0E1116;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.22;
+    }
+
+    #tree-next-account-overview-handle,
+    #tree-next-account-overview-joined {
+      margin: 4px 0 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #777C86;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .tree-next-account-overview-section {
+      padding-top: 30px;
+    }
+
+    .tree-next-account-overview-section + .tree-next-account-overview-section {
+      margin-top: 32px;
+      border-top: 1px solid #E5E5E7;
+    }
+
+    .tree-next-account-overview-section-title {
+      margin: 0 0 28px;
+      color: #101216;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .tree-next-account-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .tree-next-account-overview-tile {
+      min-height: 152px;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 28px;
+      padding: 22px 16px;
+      border: 0;
+      border-radius: 18px;
+      background: #F2F2F6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      text-align: center;
+    }
+
+    .tree-next-account-overview-tile-value {
+      margin: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #101216;
+      font-size: 26px;
+      font-weight: 600;
+      line-height: 1.12;
+    }
+
+    .tree-next-account-overview-tile-label {
+      margin: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #555A64;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .tree-next-account-overview-commission {
+      width: 100%;
+      min-height: 152px;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 28px;
+      padding: 22px 16px;
+      border: 0;
+      border-radius: 18px;
+      background: #F2F2F6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      appearance: none;
+      -webkit-appearance: none;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      text-align: center;
+      transition: none;
+    }
+
+    .tree-next-account-overview-commission:hover {
+      background: #F2F2F6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      transform: none;
+    }
+
+    .tree-next-account-overview-commission:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    .tree-next-account-overview-commission:active {
+      transform: none;
+    }
+
+    .tree-next-account-overview-commission-value {
+      margin: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #101216;
+      font-size: 26px;
+      font-weight: 600;
+      line-height: 1.12;
+    }
+
+    .tree-next-account-overview-commission-label {
+      margin: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #555A64;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 980px) {
+      #tree-next-account-overview-panel {
+        left: var(--tree-next-account-overview-left-mobile, 18px);
+        top: var(--tree-next-account-overview-top-mobile, 78px);
+        width: calc(100vw - 36px);
+        height: calc(100vh - 96px);
+      }
+
+      #tree-next-account-overview-panel {
+        border-radius: 30px;
+      }
+
+      .tree-next-account-overview-scroll {
+        padding: 24px 20px 30px;
+      }
+
+      .tree-next-account-overview-hero {
+        grid-template-columns: 1fr;
+        justify-content: stretch;
+        justify-items: center;
+        max-width: none;
+        gap: 22px;
+        padding: 34px 10px 24px;
+      }
+
+      .tree-next-account-overview-user {
+        order: -1;
+      }
+
+      .tree-next-account-overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .tree-next-account-overview-tile {
+        min-height: 132px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .tree-next-account-overview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #tree-next-account-overview-avatar {
+        width: 124px;
+        height: 124px;
+      }
+
+      .tree-next-account-overview-tile-value {
+        font-size: 23px;
+      }
+    }
+
     #binary-tree-loading {
       position: fixed;
       inset: 0;
@@ -1600,6 +2005,96 @@
 </head>
 <body>
   <canvas id="figma-tree-canvas"></canvas>
+  <aside id="tree-next-account-overview-panel" class="is-positioning" aria-label="Account Overview">
+    <div class="tree-next-account-overview-scroll">
+      <header class="tree-next-account-overview-header">
+        <h2 class="tree-next-account-overview-title">Account Overview</h2>
+        <button id="tree-next-account-overview-refresh" type="button" aria-label="Hide account overview">×</button>
+      </header>
+
+      <section class="tree-next-account-overview-hero" aria-label="Member profile summary">
+        <div class="tree-next-account-overview-badge is-rank">
+          <div id="tree-next-account-overview-rank-badge" class="tree-next-account-overview-badge-icon" aria-hidden="true">
+            <img id="tree-next-account-overview-rank-icon" src="/brand_assets/Icons/Achievements/legacy-light.svg" alt="" />
+          </div>
+          <p id="tree-next-account-overview-rank-label" class="tree-next-account-overview-badge-label">Legacy</p>
+        </div>
+
+        <div class="tree-next-account-overview-user">
+          <div id="tree-next-account-overview-avatar" aria-hidden="true">
+            <span id="tree-next-account-overview-avatar-initials" class="tree-next-account-overview-avatar-initials">SF</span>
+            <span id="tree-next-account-overview-status-dot"></span>
+          </div>
+          <p id="tree-next-account-overview-name">Member</p>
+          <p id="tree-next-account-overview-handle">@member</p>
+          <p id="tree-next-account-overview-joined">Joined</p>
+        </div>
+
+        <div class="tree-next-account-overview-badge is-title">
+          <div id="tree-next-account-overview-title-badge" class="tree-next-account-overview-badge-icon" aria-hidden="true">
+            <img id="tree-next-account-overview-title-icon" src="/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg" alt="" />
+          </div>
+          <p id="tree-next-account-overview-title-label" class="tree-next-account-overview-badge-label">Legacy Founder</p>
+        </div>
+      </section>
+
+      <section class="tree-next-account-overview-section" aria-labelledby="tree-next-account-overview-volume-title">
+        <h3 id="tree-next-account-overview-volume-title" class="tree-next-account-overview-section-title">Sales and Business Volumes</h3>
+        <div class="tree-next-account-overview-grid">
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-active-window-value" class="tree-next-account-overview-tile-value">--</p>
+            <p class="tree-next-account-overview-tile-label">Account Active Until</p>
+          </article>
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-total-bv-value" class="tree-next-account-overview-tile-value">0 BV</p>
+            <p class="tree-next-account-overview-tile-label">Total Organization Personal BV</p>
+          </article>
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-personal-bv-value" class="tree-next-account-overview-tile-value">0 BV</p>
+            <p class="tree-next-account-overview-tile-label">Personal BV</p>
+          </article>
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-cycle-value" class="tree-next-account-overview-tile-value">1 / 1,000</p>
+            <p id="tree-next-account-overview-cycle-label" class="tree-next-account-overview-tile-label">Weekly Cycle Cap</p>
+          </article>
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-direct-sponsors-value" class="tree-next-account-overview-tile-value">0</p>
+            <p class="tree-next-account-overview-tile-label">Direct Sponsors</p>
+          </article>
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-ewallet-value" class="tree-next-account-overview-tile-value">$0.00</p>
+            <p class="tree-next-account-overview-tile-label">E-Wallet</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="tree-next-account-overview-section" aria-labelledby="tree-next-account-overview-commission-title">
+        <h3 id="tree-next-account-overview-commission-title" class="tree-next-account-overview-section-title">Track Commissions</h3>
+        <div class="tree-next-account-overview-grid">
+          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="retail-profit">
+            <p id="tree-next-account-overview-retail-profit-value" class="tree-next-account-overview-commission-value">$0.00</p>
+            <p class="tree-next-account-overview-commission-label">Retail Profit</p>
+          </button>
+          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="fast-track">
+            <p id="tree-next-account-overview-fast-track-value" class="tree-next-account-overview-commission-value">$0.00</p>
+            <p class="tree-next-account-overview-commission-label">Fast Track Commission</p>
+          </button>
+          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="sales-team">
+            <p id="tree-next-account-overview-track-sales-team-value" class="tree-next-account-overview-commission-value">$0.00</p>
+            <p class="tree-next-account-overview-commission-label">Sales Team Commission</p>
+          </button>
+          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="infinity-builder">
+            <p id="tree-next-account-overview-infinity-builder-value" class="tree-next-account-overview-commission-value">$0.00</p>
+            <p class="tree-next-account-overview-commission-label">Infinity Builder Bonus</p>
+          </button>
+          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="legacy-builder">
+            <p id="tree-next-account-overview-legacy-builder-value" class="tree-next-account-overview-commission-value">$0.00</p>
+            <p class="tree-next-account-overview-commission-label">Legacy Builder Bonus</p>
+          </button>
+        </div>
+      </section>
+    </div>
+  </aside>
   <div id="binary-tree-loading" role="status" aria-live="polite">
     <div class="binary-tree-loading-card">
       <p class="binary-tree-loading-title">Loading Binary Tree</p>

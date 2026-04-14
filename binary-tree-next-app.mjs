@@ -135,6 +135,13 @@ const SERVER_CUTOFF_MINUTE = 59;
 const MEMBER_REGISTERED_MEMBERS_API = '/api/registered-members';
 const MEMBER_BINARY_TREE_PINNED_NODES_API = '/api/member-auth/binary-tree-next/pinned-nodes';
 const ADMIN_REGISTERED_MEMBERS_API = '/api/admin/registered-members';
+const ACCOUNT_OVERVIEW_BINARY_TREE_METRICS_API = '/api/binary-tree-metrics';
+const ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API = '/api/sales-team-commissions';
+const ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API = '/api/commission-containers';
+const ACCOUNT_OVERVIEW_E_WALLET_API = '/api/e-wallet';
+const ACCOUNT_OVERVIEW_REMOTE_SYNC_VISIBLE_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
+const ACCOUNT_OVERVIEW_REMOTE_SYNC_HIDDEN_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS;
+const ACCOUNT_OVERVIEW_REMOTE_SYNC_RETRY_INTERVAL_MS = 2800;
 const MEMBER_REGISTERED_MEMBERS_INTENT_API = '/api/registered-members/intent';
 const ADMIN_REGISTERED_MEMBERS_INTENT_API = '/api/admin/registered-members/intent';
 const MEMBER_REGISTERED_MEMBERS_INTENT_COMPLETE_API = '/api/registered-members/intent/complete';
@@ -151,6 +158,13 @@ const ENROLL_BILLING_COUNTRY_FALLBACK_OPTIONS = Object.freeze([
 ]);
 const ENROLL_DEFAULT_PACKAGE_KEY = 'legacy-builder-pack';
 const ENROLL_CHECKOUT_TAX_RATE = 0.0975;
+const ACCOUNT_OVERVIEW_SALES_TEAM_CYCLE_COMMISSION_PLAN = Object.freeze({
+  [FREE_ACCOUNT_PACKAGE_KEY]: { perCycle: 0, weeklyCapCycles: 0 },
+  'personal-builder-pack': { perCycle: 25, weeklyCapCycles: 50 },
+  'business-builder-pack': { perCycle: 37.5, weeklyCapCycles: 250 },
+  'infinity-builder-pack': { perCycle: 50, weeklyCapCycles: 500 },
+  'legacy-builder-pack': { perCycle: 62.5, weeklyCapCycles: 1000 },
+});
 const ENROLL_SPILLOVER_MODE_DIRECT = 'direct';
 const ENROLL_SPILLOVER_MODE_SPILLOVER = 'spillover';
 const ENROLL_PANEL_MIN_WIDTH = 340;
@@ -280,6 +294,18 @@ const APPLE_MAPS_NODE_PALETTES = Object.freeze({
   }),
 });
 const APPLE_MAPS_NODE_COLOR_ROTATION = Object.freeze(['neutral', 'ocean', 'mint', 'amber', 'rose']);
+const ACCOUNT_OVERVIEW_BADGE_PALETTES = Object.freeze({
+  legacyRank: Object.freeze({
+    light: [72, 128, 156],
+    mid: [43, 86, 115],
+    dark: [24, 50, 74],
+  }),
+  legacyFounder: Object.freeze({
+    light: [212, 169, 72],
+    mid: [164, 122, 34],
+    dark: [118, 85, 22],
+  }),
+});
 const SIDE_NAV_BRAND_MENU_ITEMS = [
   { id: 'profile', label: 'Profile', action: 'brand-menu:page:profile' },
   { id: 'dashboard', label: 'Home', action: 'brand-menu:page:dashboard' },
@@ -303,6 +329,34 @@ const canvas = document.getElementById('figma-tree-canvas');
 const bootErrorElement = document.getElementById('boot-error');
 const loadingScreenElement = document.getElementById('binary-tree-loading');
 const firstOpenSplashElement = document.getElementById('binary-tree-first-open-splash');
+const accountOverviewPanelElement = document.getElementById('tree-next-account-overview-panel');
+const accountOverviewRefreshButtonElement = document.getElementById('tree-next-account-overview-refresh');
+const accountOverviewRankBadgeElement = document.getElementById('tree-next-account-overview-rank-badge');
+const accountOverviewRankIconElement = document.getElementById('tree-next-account-overview-rank-icon');
+const accountOverviewRankLabelElement = document.getElementById('tree-next-account-overview-rank-label');
+const accountOverviewTitleBadgeElement = document.getElementById('tree-next-account-overview-title-badge');
+const accountOverviewTitleIconElement = document.getElementById('tree-next-account-overview-title-icon');
+const accountOverviewTitleLabelElement = document.getElementById('tree-next-account-overview-title-label');
+const accountOverviewAvatarElement = document.getElementById('tree-next-account-overview-avatar');
+const accountOverviewAvatarInitialsElement = document.getElementById('tree-next-account-overview-avatar-initials');
+const accountOverviewStatusDotElement = document.getElementById('tree-next-account-overview-status-dot');
+const accountOverviewNameElement = document.getElementById('tree-next-account-overview-name');
+const accountOverviewHandleElement = document.getElementById('tree-next-account-overview-handle');
+const accountOverviewJoinedElement = document.getElementById('tree-next-account-overview-joined');
+const accountOverviewSalesTeamValueElement = document.getElementById('tree-next-account-overview-sales-team-value');
+const accountOverviewTotalBvValueElement = document.getElementById('tree-next-account-overview-total-bv-value');
+const accountOverviewPersonalBvValueElement = document.getElementById('tree-next-account-overview-personal-bv-value');
+const accountOverviewActiveWindowValueElement = document.getElementById('tree-next-account-overview-active-window-value');
+const accountOverviewCycleValueElement = document.getElementById('tree-next-account-overview-cycle-value');
+const accountOverviewCycleLabelElement = document.getElementById('tree-next-account-overview-cycle-label');
+const accountOverviewDirectSponsorsValueElement = document.getElementById('tree-next-account-overview-direct-sponsors-value');
+const accountOverviewEwalletValueElement = document.getElementById('tree-next-account-overview-ewallet-value');
+const accountOverviewRetailProfitValueElement = document.getElementById('tree-next-account-overview-retail-profit-value');
+const accountOverviewFastTrackValueElement = document.getElementById('tree-next-account-overview-fast-track-value');
+const accountOverviewTrackSalesTeamValueElement = document.getElementById('tree-next-account-overview-track-sales-team-value');
+const accountOverviewInfinityBuilderValueElement = document.getElementById('tree-next-account-overview-infinity-builder-value');
+const accountOverviewLegacyBuilderValueElement = document.getElementById('tree-next-account-overview-legacy-builder-value');
+const accountOverviewCommissionButtons = Array.from(document.querySelectorAll('[data-account-overview-commission]'));
 const treeNextEnrollModalOverlayElement = document.getElementById('tree-next-enroll-modal-overlay');
 const treeNextEnrollModalElement = document.getElementById('tree-next-enroll-modal');
 const treeNextEnrollModalTitleElement = document.getElementById('tree-next-enroll-modal-title');
@@ -372,6 +426,18 @@ let treeNextEnrollStripeCardExpiry = null;
 let treeNextEnrollStripeCardCvc = null;
 let treeNextEnrollStripeInitPromise = null;
 let treeNextEnrollBillingCountryHydrationPromise = null;
+let accountOverviewLastRenderSignature = '';
+let accountOverviewSelectedCommissionKey = '';
+let accountOverviewRemoteSnapshot = createEmptyAccountOverviewRemoteSnapshot();
+let accountOverviewRemoteDataVersion = 0;
+let accountOverviewRemoteSyncPromise = null;
+let accountOverviewRemoteSyncInFlight = false;
+let accountOverviewRemoteLastRequestAtMs = 0;
+let accountOverviewRemoteLastSyncedAtMs = 0;
+let accountOverviewRemoteIdentityKey = '';
+let accountOverviewRemoteRequestSequence = 0;
+let accountOverviewCachedLegVolumeSignature = '';
+let accountOverviewCachedLegVolumeMetrics = null;
 let isTreeNextEnrollStripeReady = false;
 let isTreeNextEnrollStripeCardComplete = false;
 let isTreeNextEnrollStripeCardExpiryComplete = false;
@@ -431,6 +497,7 @@ const state = {
   },
   ui: {
     sideNavOpen: true,
+    accountOverviewVisible: false,
     sideNavBrandMenuOpen: false,
     sideNavBrandMenuAnchorRect: null,
     sideNavSearchInputRect: null,
@@ -1064,6 +1131,18 @@ function resolveAchievementIconKeyFromLabel(label) {
   if (!normalized || normalized === 'private') {
     return 'placeholder';
   }
+  if (normalized.includes('legacy founder')) {
+    return 'legacy-founder-star';
+  }
+  if (normalized.includes('legacy director')) {
+    return 'legacy-director-star';
+  }
+  if (normalized.includes('legacy ambassador')) {
+    return 'legacy-ambassador-star';
+  }
+  if (normalized.includes('presidential circle')) {
+    return 'presidential-circle-star';
+  }
   if (normalized.includes('black diamond')) {
     return 'black-diamond';
   }
@@ -1110,39 +1189,208 @@ function resolveAchievementIconKeyFromLabel(label) {
   return 'placeholder';
 }
 
+const TITLE_ICON_BASE_NAME_BY_KEY = Object.freeze({
+  'legacy-founder-star': 'legacy-founder-star',
+  'legacy-director-star': 'legacy-director-star',
+  'legacy-ambassador-star': 'legacy-ambassador-star',
+  'presidential-circle-star': 'presidential-circle-star',
+  'time-limited-event-legacy-founder': 'legacy-founder-star',
+  'time-limited-event-legacy-director': 'legacy-director-star',
+  'time-limited-event-legacy-ambassador': 'legacy-ambassador-star',
+  'time-limited-event-presidential-circle': 'presidential-circle-star',
+});
+
+function resolveTitleIconBaseName(value) {
+  const normalized = safeText(value).toLowerCase();
+  if (!normalized) {
+    return '';
+  }
+  if (Object.prototype.hasOwnProperty.call(TITLE_ICON_BASE_NAME_BY_KEY, normalized)) {
+    return TITLE_ICON_BASE_NAME_BY_KEY[normalized];
+  }
+  if (
+    normalized === 'legacy-founder'
+    || normalized === 'legacy-director'
+    || normalized === 'legacy-ambassador'
+    || normalized === 'presidential-circle'
+  ) {
+    return `${normalized}-star`;
+  }
+  return '';
+}
+
+function resolveTitleIconPathFromValue(value, options = {}) {
+  const {
+    preserveExplicitSuffix = false,
+  } = options;
+  const safeValue = safeText(value);
+  const withoutSvgSuffix = safeValue.replace(/\.svg$/i, '');
+  const baseName = resolveTitleIconBaseName(withoutSvgSuffix);
+  if (!baseName) {
+    return '';
+  }
+  const fileName = preserveExplicitSuffix && /\.svg$/i.test(safeValue)
+    ? safeValue
+    : `${baseName}-light.svg`;
+  return `/brand_assets/Icons/Title-Icons/${fileName}`;
+}
+
 function resolveNodeDetailsIconPath(rawValue, fallbackLabel = '') {
   const safeValue = safeText(rawValue);
   if (!safeValue) {
     const fallbackKey = resolveAchievementIconKeyFromLabel(fallbackLabel);
+    const titleIconPath = resolveTitleIconPathFromValue(fallbackKey);
+    if (titleIconPath) {
+      return titleIconPath;
+    }
     return `/brand_assets/Icons/Achievements/${fallbackKey}-light.svg`;
   }
   if (/^(https?:)?\/\//i.test(safeValue) || safeValue.startsWith('/')) {
     return safeValue;
   }
   if (safeValue.toLowerCase().endsWith('.svg')) {
+    const titleIconPath = resolveTitleIconPathFromValue(safeValue, { preserveExplicitSuffix: true });
+    if (titleIconPath) {
+      return titleIconPath;
+    }
     return `/brand_assets/Icons/Achievements/${safeValue}`;
   }
+  const titleIconPath = resolveTitleIconPathFromValue(safeValue);
+  if (titleIconPath) {
+    return titleIconPath;
+  }
   return `/brand_assets/Icons/Achievements/${safeValue}-light.svg`;
+}
+
+function resolveNodePrimaryTitleLabel(nodeInput = null, fallbackLabel = '') {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const candidates = [
+    node?.profileAccountTitle,
+    node?.profile_account_title,
+    node?.accountTitle,
+    node?.account_title,
+    node?.title,
+    node?.profileTitle1,
+    node?.profile_title1,
+    node?.profile_title_1,
+  ];
+  for (const candidate of candidates) {
+    const label = safeText(candidate);
+    if (label) {
+      return label;
+    }
+  }
+  return safeText(fallbackLabel);
+}
+
+function resolveNodeSecondaryTitleLabel(nodeInput = null, fallbackLabel = '') {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const candidates = [
+    node?.profileAccountTitleSecondary,
+    node?.profile_account_title_secondary,
+    node?.accountTitleSecondary,
+    node?.account_title_secondary,
+    node?.profileTitle2,
+    node?.profile_title2,
+    node?.profile_title_2,
+  ];
+  for (const candidate of candidates) {
+    const label = safeText(candidate);
+    if (label) {
+      return label;
+    }
+  }
+  return safeText(fallbackLabel);
+}
+
+function resolveNodeRankIconPathValue(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  return safeText(
+    node?.profileBadgeRankIconPath
+    || node?.profile_badge_rank_icon_path
+    || node?.profileRankIconPath
+    || node?.profile_rank_icon_path
+    || node?.rankIconPath
+    || node?.rank_icon_path
+    || node?.accountRankIconPath
+    || node?.account_rank_icon_path
+    || '',
+  );
+}
+
+function resolveNodeTitleIconPathValue(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  return safeText(
+    node?.profileBadgeTitleIconPath
+    || node?.profile_badge_title_icon_path
+    || node?.profileTitleIconPath
+    || node?.profile_title_icon_path
+    || node?.profileTitle1IconPath
+    || node?.profile_title1_icon_path
+    || node?.profile_title_1_icon_path
+    || node?.titleIconPath
+    || node?.title_icon_path
+    || node?.accountTitleIconPath
+    || node?.account_title_icon_path
+    || node?.accountTitleSecondaryIconPath
+    || node?.account_title_secondary_icon_path
+    || '',
+  );
+}
+
+function isTreeNextRankBuilderFallbackTitle(titleLabel, rankLabel) {
+  const normalizedTitle = normalizeCredentialValue(titleLabel);
+  const normalizedRank = normalizeCredentialValue(rankLabel);
+  if (!normalizedTitle || !normalizedRank) {
+    return false;
+  }
+  return normalizedTitle === `${normalizedRank} builder`;
+}
+
+function resolveForcedTitleIconPathFromLabels(labelsInput = []) {
+  const labels = Array.isArray(labelsInput) ? labelsInput : [];
+  for (const rawLabel of labels) {
+    const label = safeText(rawLabel);
+    if (!label) {
+      continue;
+    }
+    const titleKey = resolveAchievementIconKeyFromLabel(label);
+    if (!titleKey) {
+      continue;
+    }
+    const titleIconPath = resolveTitleIconPathFromValue(titleKey);
+    if (titleIconPath) {
+      return titleIconPath;
+    }
+  }
+  return '';
 }
 
 function resolveNodeDetailRankAndTitleIcons(node) {
   const rankLabel = safeText(node?.rank || node?.accountRank || node?.account_rank || '');
   const rankIconPath = resolveNodeDetailsIconPath(
-    node?.rankIconPath
-      || node?.rank_icon_path
-      || node?.accountRankIconPath
-      || node?.account_rank_icon_path
-      || '',
+    resolveNodeRankIconPathValue(node),
     rankLabel,
   );
   const rankIconKey = resolveAchievementIconKeyFromLabel(rankLabel);
   const badges = Array.isArray(node?.badges) ? node.badges : [];
+  const primaryTitleLabel = resolveNodePrimaryTitleLabel(node);
+  const secondaryTitleLabel = resolveNodeSecondaryTitleLabel(node);
   const titleCandidates = [
-    safeText(node?.accountTitle || node?.account_title || ''),
+    primaryTitleLabel,
+    secondaryTitleLabel,
     safeText(node?.title || ''),
     ...badges.map((badge) => safeText(badge)),
     rankLabel,
   ].filter(Boolean);
+  const forcedTitleIconPath = resolveForcedTitleIconPathFromLabels([
+    primaryTitleLabel,
+    secondaryTitleLabel,
+    safeText(node?.title || ''),
+  ]);
+  if (forcedTitleIconPath) {
+    return [rankIconPath, forcedTitleIconPath].filter(Boolean);
+  }
   let fallbackTitleKey = 'placeholder';
   for (const candidate of titleCandidates) {
     const key = resolveAchievementIconKeyFromLabel(candidate);
@@ -1155,13 +1403,7 @@ function resolveNodeDetailRankAndTitleIcons(node) {
     fallbackTitleKey = rankIconKey;
   }
   const titleIconPath = resolveNodeDetailsIconPath(
-    node?.titleIconPath
-      || node?.title_icon_path
-      || node?.accountTitleIconPath
-      || node?.account_title_icon_path
-      || node?.accountTitleSecondaryIconPath
-      || node?.account_title_secondary_icon_path
-      || '',
+    resolveNodeTitleIconPathValue(node),
     fallbackTitleKey,
   );
   return [rankIconPath, titleIconPath].filter(Boolean);
@@ -2897,6 +3139,1023 @@ function syncTreeNextEnrollPanelPosition(layoutInput = state.layout) {
   treeNextEnrollModalElement.style.left = `${clampedLeft}px`;
   treeNextEnrollModalElement.style.top = `${centerTop}px`;
   treeNextEnrollModalElement.style.maxHeight = `${maxHeight}px`;
+}
+
+function isAccountOverviewPanelAvailable() {
+  return accountOverviewPanelElement instanceof HTMLElement;
+}
+
+function setAccountOverviewText(element, value) {
+  if (!(element instanceof HTMLElement)) {
+    return;
+  }
+  element.textContent = safeText(value);
+}
+
+function createEmptyAccountOverviewRemoteSnapshot() {
+  return {
+    binaryTreeMetrics: null,
+    salesTeamCommission: null,
+    commissionContainerSnapshot: null,
+    eWalletSnapshot: null,
+    walletCommissionOffsets: null,
+    retailProfitBalance: 0,
+    updatedAtMs: 0,
+  };
+}
+
+function resetAccountOverviewRemoteSnapshot() {
+  accountOverviewRemoteRequestSequence += 1;
+  accountOverviewRemoteSnapshot = createEmptyAccountOverviewRemoteSnapshot();
+  accountOverviewRemoteDataVersion = 0;
+  accountOverviewRemoteSyncPromise = null;
+  accountOverviewRemoteSyncInFlight = false;
+  accountOverviewRemoteLastRequestAtMs = 0;
+  accountOverviewRemoteLastSyncedAtMs = 0;
+  accountOverviewRemoteIdentityKey = '';
+  accountOverviewCachedLegVolumeSignature = '';
+  accountOverviewCachedLegVolumeMetrics = null;
+  accountOverviewLastRenderSignature = '';
+}
+
+function resolveAccountOverviewIdentityPayload(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const userId = safeText(
+    session?.id
+    || session?.userId
+    || session?.user_id
+    || session?.memberId
+    || session?.member_id
+    || homeNode?.id
+    || '',
+  );
+  const username = safeText(
+    session?.username
+    || session?.memberUsername
+    || session?.member_username
+    || session?.userName
+    || session?.user_name
+    || homeNode?.username
+    || homeNode?.memberCode
+    || '',
+  ).replace(/^@+/, '');
+  const email = safeText(
+    session?.email
+    || session?.userEmail
+    || session?.user_email
+    || session?.login
+    || '',
+  );
+  return {
+    userId,
+    username,
+    email,
+  };
+}
+
+function resolveAccountOverviewIdentityKey(identityPayload = {}) {
+  const userId = safeText(identityPayload?.userId);
+  const username = normalizeCredentialValue(safeText(identityPayload?.username).replace(/^@+/, ''));
+  const email = normalizeCredentialValue(identityPayload?.email);
+  return [userId, username, email].join('|');
+}
+
+function appendAccountOverviewIdentityQuery(query, identityPayload = {}) {
+  if (!(query instanceof URLSearchParams)) {
+    return;
+  }
+  const userId = safeText(identityPayload?.userId);
+  const username = safeText(identityPayload?.username).replace(/^@+/, '');
+  const email = safeText(identityPayload?.email);
+  if (userId) {
+    query.set('userId', userId);
+  }
+  if (username) {
+    query.set('username', username);
+  }
+  if (email) {
+    query.set('email', email);
+  }
+}
+
+async function fetchAccountOverviewEndpoint(endpoint, query = new URLSearchParams()) {
+  const queryString = query instanceof URLSearchParams
+    ? query.toString()
+    : '';
+  const requestUrl = queryString ? `${endpoint}?${queryString}` : endpoint;
+
+  try {
+    const response = await fetch(requestUrl, {
+      method: 'GET',
+      cache: 'no-store',
+      credentials: 'same-origin',
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return null;
+    }
+    return payload && typeof payload === 'object' ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveAccountOverviewRetailProfitFallback(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    homeNode?.retailProfit,
+    homeNode?.retail_profit,
+    homeNode?.retailCommission,
+    homeNode?.retail_commission,
+    session?.retailProfit,
+    session?.retail_profit,
+    session?.retailCommission,
+    session?.retail_commission,
+    session?.storeRetailProfit,
+    session?.store_retail_profit,
+  ];
+  for (const candidate of candidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, parsed);
+    }
+  }
+  return 0;
+}
+
+function resolveAccountOverviewSeedWalletBalance(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    accountOverviewRemoteSnapshot?.eWalletSnapshot?.balance,
+    session?.walletBalance,
+    session?.wallet_balance,
+    session?.eWalletBalance,
+    session?.ewalletBalance,
+    session?.e_wallet_balance,
+    homeNode?.walletBalance,
+    homeNode?.wallet_balance,
+    homeNode?.eWalletBalance,
+    homeNode?.ewalletBalance,
+    homeNode?.e_wallet_balance,
+  ];
+  for (const candidate of candidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, parsed);
+    }
+  }
+  return 0;
+}
+
+function resolveAccountOverviewSalesTeamCommissionRecord(payload = null) {
+  if (payload?.commission && typeof payload.commission === 'object') {
+    return payload.commission;
+  }
+  const list = Array.isArray(payload?.commissions) ? payload.commissions : [];
+  return list.find((entry) => entry && typeof entry === 'object') || null;
+}
+
+function resolveAccountOverviewRemoteSyncIntervalMs(options = {}) {
+  const {
+    forRetry = false,
+  } = options;
+  const panelVisible = Boolean(state.ui?.accountOverviewVisible);
+  const hiddenSyncMode = document.visibilityState === 'hidden' || !panelVisible;
+  const baseIntervalMs = hiddenSyncMode
+    ? ACCOUNT_OVERVIEW_REMOTE_SYNC_HIDDEN_INTERVAL_MS
+    : ACCOUNT_OVERVIEW_REMOTE_SYNC_VISIBLE_INTERVAL_MS;
+  if (!forRetry) {
+    return baseIntervalMs;
+  }
+  return Math.min(baseIntervalMs, ACCOUNT_OVERVIEW_REMOTE_SYNC_RETRY_INTERVAL_MS);
+}
+
+async function refreshAccountOverviewRemoteSnapshot(options = {}) {
+  const {
+    force = false,
+    homeNode = null,
+  } = options;
+
+  if (accountOverviewRemoteSyncInFlight && accountOverviewRemoteSyncPromise) {
+    return accountOverviewRemoteSyncPromise;
+  }
+
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode);
+  const identityKey = resolveAccountOverviewIdentityKey(identityPayload);
+  const hasIdentity = Boolean(
+    safeText(identityPayload.userId)
+    || safeText(identityPayload.username)
+    || safeText(identityPayload.email),
+  );
+  if (!hasIdentity) {
+    resetAccountOverviewRemoteSnapshot();
+    return accountOverviewRemoteSnapshot;
+  }
+
+  const nowMs = Date.now();
+  const hasSuccessfulSync = accountOverviewRemoteLastSyncedAtMs > 0;
+  const minimumIntervalMs = hasSuccessfulSync
+    ? resolveAccountOverviewRemoteSyncIntervalMs()
+    : resolveAccountOverviewRemoteSyncIntervalMs({ forRetry: true });
+  const identityChanged = identityKey !== accountOverviewRemoteIdentityKey;
+  if (
+    !force
+    && !identityChanged
+    && accountOverviewRemoteLastRequestAtMs > 0
+    && (nowMs - accountOverviewRemoteLastRequestAtMs) < minimumIntervalMs
+  ) {
+    return accountOverviewRemoteSnapshot;
+  }
+
+  accountOverviewRemoteIdentityKey = identityKey;
+  accountOverviewRemoteLastRequestAtMs = nowMs;
+  accountOverviewRemoteSyncInFlight = true;
+  accountOverviewRemoteRequestSequence += 1;
+  const requestSequence = accountOverviewRemoteRequestSequence;
+  accountOverviewRemoteSyncPromise = (async () => {
+    const identityQuery = new URLSearchParams();
+    appendAccountOverviewIdentityQuery(identityQuery, identityPayload);
+
+    const walletQuery = new URLSearchParams(identityQuery.toString());
+    walletQuery.set('limit', '25');
+    const seedBalance = resolveAccountOverviewSeedWalletBalance(homeNode);
+    if (seedBalance > 0) {
+      walletQuery.set('seedBalance', seedBalance.toFixed(2));
+    }
+
+    const [
+      binaryTreeMetricsPayload,
+      salesTeamCommissionsPayload,
+      commissionContainersPayload,
+      eWalletPayload,
+    ] = await Promise.all([
+      fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_BINARY_TREE_METRICS_API, identityQuery),
+      fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API, identityQuery),
+      fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API, identityQuery),
+      fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_E_WALLET_API, walletQuery),
+    ]);
+
+    const binaryTreeMetrics = (
+      binaryTreeMetricsPayload?.snapshot
+      && typeof binaryTreeMetricsPayload.snapshot === 'object'
+    )
+      ? binaryTreeMetricsPayload.snapshot
+      : null;
+    const salesTeamCommission = resolveAccountOverviewSalesTeamCommissionRecord(salesTeamCommissionsPayload);
+    const commissionContainerSnapshot = (
+      commissionContainersPayload?.snapshot
+      && typeof commissionContainersPayload.snapshot === 'object'
+    )
+      ? commissionContainersPayload.snapshot
+      : null;
+    const eWalletSnapshot = (
+      eWalletPayload?.wallet
+      && typeof eWalletPayload.wallet === 'object'
+    )
+      ? eWalletPayload.wallet
+      : null;
+    const walletCommissionOffsets = (
+      eWalletPayload?.commissionOffsets
+      && typeof eWalletPayload.commissionOffsets === 'object'
+    )
+      ? eWalletPayload.commissionOffsets
+      : null;
+
+    const retailProfitBalance = resolveAccountOverviewRetailProfitFallback(homeNode);
+    if (requestSequence !== accountOverviewRemoteRequestSequence) {
+      return accountOverviewRemoteSnapshot;
+    }
+    const nextSnapshot = {
+      binaryTreeMetrics,
+      salesTeamCommission,
+      commissionContainerSnapshot,
+      eWalletSnapshot,
+      walletCommissionOffsets,
+      retailProfitBalance,
+      updatedAtMs: Date.now(),
+    };
+
+    accountOverviewRemoteSnapshot = nextSnapshot;
+    accountOverviewRemoteDataVersion += 1;
+    if (binaryTreeMetrics || salesTeamCommission || commissionContainerSnapshot || eWalletSnapshot) {
+      accountOverviewRemoteLastSyncedAtMs = nextSnapshot.updatedAtMs;
+    }
+    accountOverviewLastRenderSignature = '';
+    return accountOverviewRemoteSnapshot;
+  })();
+
+  try {
+    return await accountOverviewRemoteSyncPromise;
+  } finally {
+    if (requestSequence === accountOverviewRemoteRequestSequence) {
+      accountOverviewRemoteSyncInFlight = false;
+      accountOverviewRemoteSyncPromise = null;
+    }
+  }
+}
+
+function maybeRefreshAccountOverviewRemoteSnapshot(homeNode = null) {
+  if (!isAccountOverviewPanelAvailable()) {
+    return;
+  }
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode);
+  const hasIdentity = Boolean(
+    safeText(identityPayload.userId)
+    || safeText(identityPayload.username)
+    || safeText(identityPayload.email),
+  );
+  if (!hasIdentity) {
+    return;
+  }
+  const identityKey = resolveAccountOverviewIdentityKey(identityPayload);
+  const identityChanged = identityKey !== accountOverviewRemoteIdentityKey;
+  const referenceMs = accountOverviewRemoteLastSyncedAtMs || accountOverviewRemoteLastRequestAtMs;
+  const refreshIntervalMs = accountOverviewRemoteLastSyncedAtMs > 0
+    ? resolveAccountOverviewRemoteSyncIntervalMs()
+    : resolveAccountOverviewRemoteSyncIntervalMs({ forRetry: true });
+  if (
+    identityChanged
+    || !referenceMs
+    || (Date.now() - referenceMs) >= refreshIntervalMs
+  ) {
+    void refreshAccountOverviewRemoteSnapshot({
+      force: identityChanged,
+      homeNode,
+    });
+  }
+}
+
+function resolveAccountOverviewJoinedAtMs(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    homeNode?.createdAt,
+    homeNode?.created_at,
+    homeNode?.joinedAt,
+    homeNode?.joined_at,
+    session?.createdAt,
+    session?.created_at,
+    session?.joinedAt,
+    session?.joined_at,
+    session?.registeredAt,
+    session?.registered_at,
+  ];
+
+  for (const candidate of candidates) {
+    const parsed = Date.parse(safeText(candidate));
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return Number.NaN;
+}
+
+function formatAccountOverviewJoinedDate(joinedAtMs) {
+  if (!Number.isFinite(joinedAtMs)) {
+    return 'Joined recently';
+  }
+  try {
+    const formatted = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date(joinedAtMs));
+    return `Joined ${formatted}`;
+  } catch (_) {
+    return 'Joined recently';
+  }
+}
+
+function resolveAccountOverviewDirectSponsorCount(homeNode = null) {
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  if (!safeNodes.length) {
+    return 0;
+  }
+
+  const homeNodeId = normalizeCredentialValue(
+    safeText(homeNode?.id || resolvePreferredGlobalHomeNodeId()),
+  );
+  let totalDirectSponsors = 0;
+
+  for (const node of safeNodes) {
+    const nodeId = normalizeCredentialValue(safeText(node?.id));
+    if (!nodeId || nodeId === 'root' || (homeNodeId && nodeId === homeNodeId)) {
+      continue;
+    }
+
+    if (isNodePersonallyEnrolledBySession(node)) {
+      totalDirectSponsors += 1;
+      continue;
+    }
+
+    const sponsorNodeId = normalizeCredentialValue(
+      safeText(node?.sponsorId || node?.globalSponsorId || node?.sourceSponsorId || ''),
+    );
+    if (homeNodeId && sponsorNodeId && sponsorNodeId === homeNodeId) {
+      totalDirectSponsors += 1;
+    }
+  }
+
+  return totalDirectSponsors;
+}
+
+function resolveAccountOverviewAnchoredMonthlyCutoffMs(homeNode = null, referenceDate = new Date()) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const anchorCandidates = [
+    homeNode?.createdAt,
+    homeNode?.created_at,
+    homeNode?.enrolledAt,
+    homeNode?.enrolled_at,
+    session?.createdAt,
+    session?.created_at,
+    session?.registeredAt,
+    session?.registered_at,
+  ];
+  let anchorDate = null;
+  for (const candidate of anchorCandidates) {
+    const parsed = Date.parse(safeText(candidate));
+    if (Number.isFinite(parsed)) {
+      anchorDate = new Date(parsed);
+      break;
+    }
+  }
+  if (!(anchorDate instanceof Date) || Number.isNaN(anchorDate.getTime())) {
+    return Number.NaN;
+  }
+
+  const safeReferenceDate = referenceDate instanceof Date && !Number.isNaN(referenceDate.getTime())
+    ? referenceDate
+    : new Date();
+
+  const buildCutoffUtcMs = (year, monthIndex) => {
+    const lastDayOfMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+    const anchoredDay = Math.min(anchorDate.getUTCDate(), lastDayOfMonth);
+    return Date.UTC(
+      year,
+      monthIndex,
+      anchoredDay,
+      anchorDate.getUTCHours(),
+      anchorDate.getUTCMinutes(),
+      anchorDate.getUTCSeconds(),
+      anchorDate.getUTCMilliseconds(),
+    );
+  };
+
+  let nextCutoffMs = buildCutoffUtcMs(
+    safeReferenceDate.getUTCFullYear(),
+    safeReferenceDate.getUTCMonth(),
+  );
+  if (nextCutoffMs <= safeReferenceDate.getTime()) {
+    const nextMonthIndex = safeReferenceDate.getUTCMonth() + 1;
+    const nextYear = safeReferenceDate.getUTCFullYear() + Math.floor(nextMonthIndex / 12);
+    const normalizedNextMonthIndex = ((nextMonthIndex % 12) + 12) % 12;
+    nextCutoffMs = buildCutoffUtcMs(nextYear, normalizedNextMonthIndex);
+  }
+
+  return nextCutoffMs;
+}
+
+function resolveAccountOverviewActivityUntilLabel(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const storedActiveUntilCandidates = [
+    homeNode?.activityActiveUntilAt,
+    homeNode?.activity_active_until_at,
+    session?.activityActiveUntilAt,
+    session?.activity_active_until_at,
+  ];
+  let storedActiveUntilMs = Number.NaN;
+  for (const candidate of storedActiveUntilCandidates) {
+    const parsed = Date.parse(safeText(candidate));
+    if (Number.isFinite(parsed)) {
+      storedActiveUntilMs = parsed;
+      break;
+    }
+  }
+
+  const now = new Date();
+  const anchoredCutoffMs = resolveAccountOverviewAnchoredMonthlyCutoffMs(homeNode, now);
+  const activeUntilMs = Number.isFinite(anchoredCutoffMs)
+    ? anchoredCutoffMs
+    : storedActiveUntilMs;
+  if (!Number.isFinite(activeUntilMs)) {
+    return '--';
+  }
+
+  const remainingMs = activeUntilMs - now.getTime();
+  if (remainingMs <= 0) {
+    return 'Expired';
+  }
+  return formatCountdown(remainingMs);
+}
+
+function resolveAccountOverviewLegVolumeMetrics(homeNodeIdInput = 'root') {
+  const homeNodeId = safeText(homeNodeIdInput || 'root') || 'root';
+  const snapshotHash = safeText(state.liveSync?.lastAppliedHash || '');
+  const cacheSignature = `${homeNodeId}::${snapshotHash}`;
+  if (
+    cacheSignature
+    && cacheSignature === accountOverviewCachedLegVolumeSignature
+    && accountOverviewCachedLegVolumeMetrics
+  ) {
+    return accountOverviewCachedLegVolumeMetrics;
+  }
+
+  const fallbackMetrics = {
+    personalVolume: 0,
+    leftVolume: 0,
+    rightVolume: 0,
+    totalVolume: 0,
+  };
+  let resolvedMetrics = fallbackMetrics;
+  try {
+    const metrics = resolveNodeLegVolumes(homeNodeId);
+    if (metrics && typeof metrics === 'object') {
+      resolvedMetrics = {
+        personalVolume: Math.max(0, Math.floor(safeNumber(metrics.personalVolume, 0))),
+        leftVolume: Math.max(0, Math.floor(safeNumber(metrics.leftVolume, 0))),
+        rightVolume: Math.max(0, Math.floor(safeNumber(metrics.rightVolume, 0))),
+        totalVolume: Math.max(0, Math.floor(safeNumber(metrics.totalVolume, 0))),
+      };
+    }
+  } catch {
+    resolvedMetrics = fallbackMetrics;
+  }
+
+  accountOverviewCachedLegVolumeSignature = cacheSignature;
+  accountOverviewCachedLegVolumeMetrics = resolvedMetrics;
+  return resolvedMetrics;
+}
+
+function resolveAccountOverviewTotalOrganizationBv(homeNode = null) {
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const remoteTotal = safeNumber(remoteMetrics?.totalAccumulatedBv, Number.NaN);
+  if (Number.isFinite(remoteTotal)) {
+    return Math.max(0, Math.floor(remoteTotal));
+  }
+
+  const explicitCandidates = [
+    homeNode?.totalAccumulatedBv,
+    homeNode?.total_accumulated_bv,
+    homeNode?.totalOrganizationBv,
+    homeNode?.total_organization_bv,
+  ];
+  for (const candidate of explicitCandidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, Math.floor(parsed));
+    }
+  }
+
+  const homeNodeId = safeText(homeNode?.id || resolvePreferredGlobalHomeNodeId()) || 'root';
+  const legVolumeMetrics = resolveAccountOverviewLegVolumeMetrics(homeNodeId);
+  return Math.max(
+    0,
+    Math.floor(safeNumber(legVolumeMetrics.leftVolume, 0) + safeNumber(legVolumeMetrics.rightVolume, 0)),
+  );
+}
+
+function resolveAccountOverviewPersonalBv(homeNode = null) {
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const remotePersonalBv = safeNumber(remoteMetrics?.accountPersonalPv, Number.NaN);
+  if (Number.isFinite(remotePersonalBv)) {
+    return Math.max(0, Math.floor(remotePersonalBv));
+  }
+
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    homeNode?.currentPersonalPvBv,
+    homeNode?.current_personal_pv_bv,
+    homeNode?.monthlyPersonalBv,
+    homeNode?.monthly_personal_bv,
+    session?.currentPersonalPvBv,
+    session?.current_personal_pv_bv,
+    session?.monthlyPersonalBv,
+    session?.monthly_personal_bv,
+  ];
+  for (const candidate of candidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, Math.floor(parsed));
+    }
+  }
+
+  return Math.max(0, Math.floor(resolveNodeCurrentPersonalBvForActivity(homeNode)));
+}
+
+function resolveAccountOverviewSalesTeamCycleProfile(packageKeyInput = ENROLL_DEFAULT_PACKAGE_KEY) {
+  const normalizedPackageKey = normalizeCredentialValue(packageKeyInput);
+  return ACCOUNT_OVERVIEW_SALES_TEAM_CYCLE_COMMISSION_PLAN[normalizedPackageKey]
+    || ACCOUNT_OVERVIEW_SALES_TEAM_CYCLE_COMMISSION_PLAN[ENROLL_DEFAULT_PACKAGE_KEY]
+    || { perCycle: 0, weeklyCapCycles: 0 };
+}
+
+function resolveAccountOverviewCycleCapMetrics(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const salesTeamCommission = accountOverviewRemoteSnapshot?.salesTeamCommission;
+  const profile = resolveAccountOverviewSalesTeamCycleProfile(
+    salesTeamCommission?.accountPackageKey
+    || homeNode?.enrollmentPackage
+    || session?.enrollmentPackage
+    || ENROLL_DEFAULT_PACKAGE_KEY,
+  );
+  const weeklyCapCycles = Math.max(0, Math.floor(safeNumber(
+    salesTeamCommission?.weeklyCapCycles,
+    profile.weeklyCapCycles,
+  )));
+  const totalCycles = Math.max(0, Math.floor(safeNumber(
+    salesTeamCommission?.cappedCycles,
+    salesTeamCommission?.totalCycles ?? remoteMetrics?.totalCycles ?? 0,
+  )));
+  const cappedCycles = weeklyCapCycles > 0
+    ? Math.min(totalCycles, weeklyCapCycles)
+    : totalCycles;
+  return {
+    cappedCycles,
+    weeklyCapCycles,
+  };
+}
+
+function resolveAccountOverviewEWalletBalance(homeNode = null) {
+  const remoteWallet = accountOverviewRemoteSnapshot?.eWalletSnapshot;
+  const remoteBalance = safeNumber(remoteWallet?.balance, Number.NaN);
+  if (Number.isFinite(remoteBalance)) {
+    return Math.max(0, remoteBalance);
+  }
+  return resolveAccountOverviewSeedWalletBalance(homeNode);
+}
+
+function resolveAccountOverviewCommissionValue(...candidates) {
+  for (const candidate of candidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, parsed);
+    }
+  }
+  return 0;
+}
+
+function resolveAccountOverviewCommissionBalances(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const commissionContainerBalances = (
+    accountOverviewRemoteSnapshot?.commissionContainerSnapshot?.balances
+    && typeof accountOverviewRemoteSnapshot.commissionContainerSnapshot.balances === 'object'
+  )
+    ? accountOverviewRemoteSnapshot.commissionContainerSnapshot.balances
+    : {};
+  const salesTeamCommission = accountOverviewRemoteSnapshot?.salesTeamCommission;
+  const salesTeamCycleMetrics = resolveAccountOverviewCycleCapMetrics(homeNode);
+  const salesTeamProfile = resolveAccountOverviewSalesTeamCycleProfile(
+    salesTeamCommission?.accountPackageKey
+    || homeNode?.enrollmentPackage
+    || session?.enrollmentPackage
+    || ENROLL_DEFAULT_PACKAGE_KEY,
+  );
+  const fallbackSalesTeamGross = salesTeamCycleMetrics.cappedCycles * Math.max(0, safeNumber(salesTeamProfile?.perCycle, 0));
+  const walletCommissionOffsets = (
+    accountOverviewRemoteSnapshot?.walletCommissionOffsets
+    && typeof accountOverviewRemoteSnapshot.walletCommissionOffsets === 'object'
+  )
+    ? accountOverviewRemoteSnapshot.walletCommissionOffsets
+    : {};
+  return {
+    retailProfit: resolveAccountOverviewCommissionValue(
+      walletCommissionOffsets.retailprofit,
+      walletCommissionOffsets.retail,
+      accountOverviewRemoteSnapshot?.retailProfitBalance,
+      homeNode?.retailProfit,
+      homeNode?.retail_profit,
+      session?.retailProfit,
+      session?.retail_profit,
+    ),
+    fastTrack: resolveAccountOverviewCommissionValue(
+      commissionContainerBalances.fasttrack,
+      commissionContainerBalances.fastTrack,
+      homeNode?.fastTrackBonusAmount,
+      homeNode?.fast_track_bonus_amount,
+      session?.fastTrackBonusAmount,
+      session?.fast_track_bonus_amount,
+    ),
+    salesTeam: resolveAccountOverviewCommissionValue(
+      commissionContainerBalances.salesteam,
+      commissionContainerBalances.salesTeam,
+      salesTeamCommission?.netCommissionAmount,
+      salesTeamCommission?.grossCommissionAmount,
+      fallbackSalesTeamGross,
+    ),
+    infinityBuilder: resolveAccountOverviewCommissionValue(
+      commissionContainerBalances.infinitybuilder,
+      commissionContainerBalances.infinityBuilder,
+      homeNode?.infinityBuilderBonusAmount,
+      homeNode?.infinity_builder_bonus_amount,
+      session?.infinityBuilderBonusAmount,
+      session?.infinity_builder_bonus_amount,
+    ),
+    legacyBuilder: resolveAccountOverviewCommissionValue(
+      commissionContainerBalances.legacyleadership,
+      commissionContainerBalances.legacyLeadership,
+      homeNode?.legacyLeadershipBonusAmount,
+      homeNode?.legacy_leadership_bonus_amount,
+      session?.legacyLeadershipBonusAmount,
+      session?.legacy_leadership_bonus_amount,
+    ),
+  };
+}
+
+function resolveAccountOverviewBadgePalette(label, fallbackVariant = 'neutral') {
+  const normalized = normalizeCredentialValue(label);
+  if (
+    normalized.includes('founder')
+    || normalized.includes('title 1')
+    || normalized.includes('title1')
+  ) {
+    return ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyFounder;
+  }
+  if (normalized.includes('legacy')) {
+    return ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyRank;
+  }
+  if (normalized.includes('infinity') || normalized.includes('achiever')) {
+    return APPLE_MAPS_NODE_PALETTES.accent;
+  }
+  if (normalized.includes('business')) {
+    return APPLE_MAPS_NODE_PALETTES.mint;
+  }
+  if (
+    normalized.includes('personal')
+    || normalized.includes('starter')
+    || normalized.includes('builder')
+  ) {
+    return APPLE_MAPS_NODE_PALETTES.neutral;
+  }
+  const safeVariant = APPLE_MAPS_NODE_PALETTES[fallbackVariant]
+    ? fallbackVariant
+    : 'neutral';
+  return resolveNodeAvatarPalette(`account-overview:${normalized || safeVariant}`, {
+    variant: safeVariant,
+  });
+}
+
+function resolveAccountOverviewGradientBackground(palette, options = {}) {
+  void options;
+  return resolveCssGradientFromPalette(palette);
+}
+
+function syncAccountOverviewPanelPosition(layoutInput = state.layout) {
+  if (!isAccountOverviewPanelAvailable()) {
+    return;
+  }
+
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const sideNav = layout?.sideNav || null;
+  const sideNavToggle = layout?.sideNavToggle || null;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
+  );
+
+  const panelHorizontalGap = 18;
+  const panelEdgePadding = 18;
+  const rightDockReservedWidth = 72;
+  const panelTop = sideNav
+    ? Math.round(sideNav.y)
+    : panelEdgePadding;
+  const panelHeight = sideNav
+    ? Math.round(sideNav.height)
+    : Math.max(320, viewportHeight - (panelEdgePadding * 2));
+
+  let anchorLeft = Math.round((viewportWidth - 640) / 2);
+  if (sideNavOpen && sideNav) {
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
+  } else if (sideNavToggle) {
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
+  }
+
+  const maxUsableWidth = Math.max(
+    360,
+    Math.floor(viewportWidth - anchorLeft - rightDockReservedWidth),
+  );
+  const panelWidth = clamp(Math.round(Math.min(760, maxUsableWidth)), 360, maxUsableWidth);
+
+  const clampedLeft = clamp(
+    anchorLeft,
+    panelEdgePadding,
+    Math.max(
+      panelEdgePadding,
+      viewportWidth - panelWidth - rightDockReservedWidth,
+    ),
+  );
+  const clampedTop = clamp(
+    panelTop,
+    panelEdgePadding,
+    Math.max(panelEdgePadding, viewportHeight - panelHeight - panelEdgePadding),
+  );
+  const clampedHeight = clamp(
+    panelHeight,
+    320,
+    Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+  );
+
+  accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-left', `${clampedLeft}px`);
+  accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-top', `${clampedTop}px`);
+  accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-width', `${panelWidth}px`);
+  accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-height', `${clampedHeight}px`);
+  accountOverviewPanelElement.classList.remove('is-positioning');
+}
+
+function syncAccountOverviewPanelVisuals() {
+  if (!isAccountOverviewPanelAvailable()) {
+    return;
+  }
+
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  maybeRefreshAccountOverviewRemoteSnapshot(homeNode);
+  const displayName = resolveSessionDisplayName();
+  const email = resolveSessionDisplayEmail();
+  const username = safeText(homeNode?.username || session?.username || session?.login || '');
+  const handleSeed = username.replace(/^@+/, '') || safeText(email.split('@')[0]);
+  const handleText = handleSeed ? `@${handleSeed}` : '@member';
+  const rankLabel = safeText(
+    homeNode?.rank
+    || homeNode?.accountRank
+    || homeNode?.account_rank
+    || session?.accountRank
+    || session?.account_rank
+    || session?.rank
+    || accountOverviewRankLabelElement?.textContent
+    || 'Legacy',
+  );
+  const fallbackTitleLabel = safeText(accountOverviewTitleLabelElement?.textContent) || rankLabel || 'Member Title';
+  const sessionTitleLabel = resolveNodePrimaryTitleLabel(session, fallbackTitleLabel);
+  const sessionTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sessionTitleLabel, rankLabel);
+  const homeTitleLabel = resolveNodePrimaryTitleLabel(homeNode);
+  const homeTitleIsFallback = isTreeNextRankBuilderFallbackTitle(homeTitleLabel, rankLabel);
+  let titleLabel = fallbackTitleLabel;
+  if (state.source === 'member') {
+    if (sessionTitleLabel && !sessionTitleIsFallback) {
+      titleLabel = sessionTitleLabel;
+    } else if (homeTitleLabel && !homeTitleIsFallback) {
+      titleLabel = homeTitleLabel;
+    } else {
+      titleLabel = sessionTitleLabel || homeTitleLabel || fallbackTitleLabel;
+    }
+  } else if (homeTitleLabel && !homeTitleIsFallback) {
+    titleLabel = homeTitleLabel;
+  } else {
+    titleLabel = sessionTitleLabel || homeTitleLabel || fallbackTitleLabel;
+  }
+  const joinedText = formatAccountOverviewJoinedDate(resolveAccountOverviewJoinedAtMs(homeNode));
+  const iconSourceNode = {
+    ...(homeNode && typeof homeNode === 'object' ? homeNode : {}),
+    ...(session && typeof session === 'object' ? session : {}),
+    rank: rankLabel,
+    accountRank: rankLabel,
+    title: titleLabel,
+    accountTitle: titleLabel,
+    profileAccountTitle: titleLabel,
+  };
+  const [rankIconPath, titleIconPath] = resolveNodeDetailRankAndTitleIcons(iconSourceNode);
+  const avatarSignature = resolveSessionAvatarSignature();
+  const activeState = homeNode ? resolveNodeActivityState(homeNode) : true;
+  const activeUntilLabel = resolveAccountOverviewActivityUntilLabel(homeNode);
+  const totalOrganizationBv = resolveAccountOverviewTotalOrganizationBv(homeNode);
+  const personalBv = resolveAccountOverviewPersonalBv(homeNode);
+  const cycleCapMetrics = resolveAccountOverviewCycleCapMetrics(homeNode);
+  const directSponsorCount = resolveAccountOverviewDirectSponsorCount(homeNode);
+  const eWalletBalance = resolveAccountOverviewEWalletBalance(homeNode);
+  const commissionBalances = resolveAccountOverviewCommissionBalances(homeNode);
+  const cycleCapText = `${formatInteger(cycleCapMetrics.cappedCycles, 0)} / ${formatInteger(cycleCapMetrics.weeklyCapCycles, 0)}`;
+  const renderSignature = [
+    displayName,
+    handleText,
+    rankLabel,
+    titleLabel,
+    joinedText,
+    avatarSignature,
+    safeText(rankIconPath),
+    safeText(titleIconPath),
+    activeState ? '1' : '0',
+    activeUntilLabel,
+    String(totalOrganizationBv),
+    String(personalBv),
+    cycleCapText,
+    String(directSponsorCount),
+    formatEnrollCurrency(eWalletBalance),
+    formatEnrollCurrency(commissionBalances.retailProfit),
+    formatEnrollCurrency(commissionBalances.fastTrack),
+    formatEnrollCurrency(commissionBalances.salesTeam),
+    formatEnrollCurrency(commissionBalances.infinityBuilder),
+    formatEnrollCurrency(commissionBalances.legacyBuilder),
+    String(accountOverviewRemoteDataVersion),
+  ].join('::');
+  if (renderSignature === accountOverviewLastRenderSignature) {
+    return;
+  }
+  accountOverviewLastRenderSignature = renderSignature;
+
+  setAccountOverviewText(accountOverviewNameElement, displayName);
+  setAccountOverviewText(accountOverviewHandleElement, handleText);
+  setAccountOverviewText(accountOverviewJoinedElement, joinedText);
+  setAccountOverviewText(accountOverviewRankLabelElement, rankLabel);
+  setAccountOverviewText(accountOverviewTitleLabelElement, titleLabel);
+  setAccountOverviewText(accountOverviewActiveWindowValueElement, activeUntilLabel);
+  setAccountOverviewText(accountOverviewTotalBvValueElement, formatVolumeValue(totalOrganizationBv));
+  setAccountOverviewText(accountOverviewPersonalBvValueElement, formatVolumeValue(personalBv));
+  setAccountOverviewText(accountOverviewCycleValueElement, cycleCapText);
+  setAccountOverviewText(accountOverviewCycleLabelElement, 'Weekly Cycle Cap');
+  setAccountOverviewText(accountOverviewDirectSponsorsValueElement, formatInteger(directSponsorCount, 0));
+  setAccountOverviewText(accountOverviewEwalletValueElement, formatEnrollCurrency(eWalletBalance));
+  setAccountOverviewText(accountOverviewSalesTeamValueElement, formatEnrollCurrency(commissionBalances.salesTeam));
+  setAccountOverviewText(accountOverviewRetailProfitValueElement, formatEnrollCurrency(commissionBalances.retailProfit));
+  setAccountOverviewText(accountOverviewFastTrackValueElement, formatEnrollCurrency(commissionBalances.fastTrack));
+  setAccountOverviewText(accountOverviewTrackSalesTeamValueElement, formatEnrollCurrency(commissionBalances.salesTeam));
+  setAccountOverviewText(accountOverviewInfinityBuilderValueElement, formatEnrollCurrency(commissionBalances.infinityBuilder));
+  setAccountOverviewText(accountOverviewLegacyBuilderValueElement, formatEnrollCurrency(commissionBalances.legacyBuilder));
+
+  if (accountOverviewRankIconElement instanceof HTMLImageElement && rankIconPath) {
+    accountOverviewRankIconElement.src = rankIconPath;
+  }
+  if (accountOverviewTitleIconElement instanceof HTMLImageElement && titleIconPath) {
+    accountOverviewTitleIconElement.src = titleIconPath;
+  }
+
+  const sessionAvatarBackground = resolveSessionAvatarCssBackground();
+  if (accountOverviewAvatarElement instanceof HTMLElement) {
+    if (sessionAvatarBackground.isPhoto) {
+      accountOverviewAvatarElement.style.backgroundImage = sessionAvatarBackground.image;
+      accountOverviewAvatarElement.dataset.avatarPhoto = 'true';
+    } else {
+      accountOverviewAvatarElement.style.backgroundImage = resolveAccountOverviewGradientBackground(
+        resolveSessionAvatarPalette(),
+        { sheenAlpha: 0.26 },
+      );
+      accountOverviewAvatarElement.dataset.avatarPhoto = 'false';
+    }
+  }
+  if (accountOverviewAvatarInitialsElement instanceof HTMLElement) {
+    accountOverviewAvatarInitialsElement.textContent = resolveInitials(displayName);
+  }
+  if (accountOverviewStatusDotElement instanceof HTMLElement) {
+    accountOverviewStatusDotElement.classList.toggle('is-inactive', !activeState);
+  }
+
+  const rankPalette = resolveAccountOverviewBadgePalette(rankLabel, 'ocean');
+  const titlePalette = resolveAccountOverviewBadgePalette(titleLabel, 'amber');
+  if (accountOverviewRankBadgeElement instanceof HTMLElement) {
+    accountOverviewRankBadgeElement.style.backgroundImage = resolveAccountOverviewGradientBackground(rankPalette, {
+      sheenAlpha: 0.22,
+    });
+    accountOverviewRankBadgeElement.style.boxShadow = 'none';
+  }
+  if (accountOverviewTitleBadgeElement instanceof HTMLElement) {
+    accountOverviewTitleBadgeElement.style.backgroundImage = resolveAccountOverviewGradientBackground(titlePalette, {
+      sheenAlpha: 0.22,
+    });
+    accountOverviewTitleBadgeElement.style.boxShadow = 'none';
+  }
+}
+
+function syncAccountOverviewPanelVisibility() {
+  if (!isAccountOverviewPanelAvailable()) {
+    return;
+  }
+
+  const isVisible = Boolean(state.ui?.accountOverviewVisible);
+  accountOverviewPanelElement.classList.toggle('is-hidden', !isVisible);
+  accountOverviewPanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+}
+
+function setAccountOverviewPanelVisible(isVisible) {
+  state.ui.accountOverviewVisible = Boolean(isVisible);
+  syncAccountOverviewPanelVisibility();
+  if (state.ui.accountOverviewVisible) {
+    const homeNodeId = resolvePreferredGlobalHomeNodeId();
+    const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+    void refreshAccountOverviewRemoteSnapshot({ force: true, homeNode });
+  }
+}
+
+function initAccountOverviewPanel() {
+  if (!isAccountOverviewPanelAvailable()) {
+    return;
+  }
+
+  syncAccountOverviewPanelPosition();
+  syncAccountOverviewPanelVisuals();
+  syncAccountOverviewPanelVisibility();
+  void refreshAccountOverviewRemoteSnapshot({ force: true });
+
+  if (accountOverviewRefreshButtonElement instanceof HTMLElement) {
+    accountOverviewRefreshButtonElement.addEventListener('click', () => {
+      setAccountOverviewPanelVisible(false);
+    });
+  }
 }
 
 function setTreeNextEnrollModalOpen(isOpen) {
@@ -5894,10 +7153,38 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
   const username = state.source === 'admin'
     ? (sourceUsername || sessionUsername || 'company-root')
     : (sourceUsername || sessionUsername || 'member');
-  const rank = safeText(source?.rank || session?.accountRank || session?.rank || 'Legacy') || 'Legacy';
+  const rank = safeText(
+    source?.rank
+    || source?.accountRank
+    || source?.account_rank
+    || session?.accountRank
+    || session?.account_rank
+    || session?.rank
+    || 'Legacy',
+  ) || 'Legacy';
   const accountStatus = safeText(source?.accountStatus || source?.status || 'Active') || 'Active';
   const fallbackTitle = `${rank} Builder`;
-  const title = safeText(source?.title || fallbackTitle) || fallbackTitle;
+  const sourceTitle = resolveNodePrimaryTitleLabel(source);
+  const sessionTitle = resolveNodePrimaryTitleLabel(session);
+  const sessionTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sessionTitle, rank);
+  const sourceTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sourceTitle, rank);
+  let title = fallbackTitle;
+  if (state.source === 'member') {
+    if (sessionTitle && !sessionTitleIsFallback) {
+      title = sessionTitle;
+    } else if (sourceTitle && !sourceTitleIsFallback) {
+      title = sourceTitle;
+    } else {
+      title = sessionTitle || sourceTitle || fallbackTitle;
+    }
+  } else if (sourceTitle && !sourceTitleIsFallback) {
+    title = sourceTitle;
+  } else {
+    title = sessionTitle || sourceTitle || fallbackTitle;
+  }
+  const secondaryTitle = resolveNodeSecondaryTitleLabel(source) || resolveNodeSecondaryTitleLabel(session);
+  const rankIconPath = resolveNodeRankIconPathValue(source) || resolveNodeRankIconPathValue(session);
+  const titleIconPath = resolveNodeTitleIconPathValue(source) || resolveNodeTitleIconPathValue(session);
   const sourceBadges = Array.isArray(source?.badges)
     ? source.badges.map((badge) => safeText(badge)).filter(Boolean)
     : [];
@@ -5953,7 +7240,16 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     status: resolveTreeNextLiveNodeStatusFromAccountStatus(accountStatus),
     accountStatus,
     rank,
+    accountRank: rank,
     title,
+    accountTitle: title,
+    profileAccountTitle: title,
+    accountTitleSecondary: secondaryTitle,
+    profileAccountTitleSecondary: secondaryTitle,
+    rankIconPath,
+    titleIconPath,
+    profileBadgeRankIconPath: rankIconPath,
+    profileBadgeTitleIconPath: titleIconPath,
     badges,
     volume,
     starterPersonalPv,
@@ -6131,7 +7427,11 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     const sponsorUsername = safeText(member?.sponsorUsername || member?.sponsor_username).replace(/^@+/, '');
     const rank = resolveTreeNextLiveMemberRank(member);
     const fallbackTitle = `${rank} Builder`;
-    const title = safeText(member?.accountTitle || member?.title || fallbackTitle) || fallbackTitle;
+    const primaryTitle = resolveNodePrimaryTitleLabel(member);
+    const title = primaryTitle || fallbackTitle;
+    const secondaryTitle = resolveNodeSecondaryTitleLabel(member);
+    const rankIconPath = resolveNodeRankIconPathValue(member);
+    const titleIconPath = resolveNodeTitleIconPathValue(member);
     const createdAt = safeText(member?.createdAt || member?.updatedAt || '');
     const avatarPalette = resolveAvatarPaletteFromRecord(member);
     const avatarColorTriplet = resolveAvatarColorTripletFromRecord(member);
@@ -6163,7 +7463,16 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
       status: resolveTreeNextLiveNodeStatusFromAccountStatus(accountStatus),
       accountStatus,
       rank,
+      accountRank: rank,
       title,
+      accountTitle: title,
+      profileAccountTitle: primaryTitle || title,
+      accountTitleSecondary: secondaryTitle,
+      profileAccountTitleSecondary: secondaryTitle,
+      rankIconPath,
+      titleIconPath,
+      profileBadgeRankIconPath: rankIconPath,
+      profileBadgeTitleIconPath: titleIconPath,
       badges: [rank],
       volume: personalVolumeSnapshot.starterPersonalPv > 0
         ? personalVolumeSnapshot.starterPersonalPv
@@ -6558,6 +7867,9 @@ function applyTreeNextLiveNodes(nextNodes, options = {}) {
   state.adapter.setNodes(state.nodes);
   rebuildNodeChildLegIndex();
   updateTreeNextLiveSnapshotHash(state.nodes);
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  maybeRefreshAccountOverviewRemoteSnapshot(homeNode);
 
   if (previousSelectedId) {
     const selectedStillExists = state.nodes.some((node) => safeText(node?.id) === previousSelectedId);
@@ -9353,8 +10665,98 @@ function drawBottomToolBar(layout) {
   const railEdgeInset = 8;
   const railTopGapFromProfile = 14;
   const dockIconSize = 20;
+  const floatingProfileSize = 44;
+  const profileX = Math.max(
+    8,
+    Math.round((workspace.x + workspace.width) - floatingProfileSize - 8),
+  );
+  const profileY = panel.y;
+  const profileLeftDockButtons = [
+    {
+      id: 'profile-left-dock-account-overview',
+      iconGlyph: String.fromCodePoint(0xE871),
+      iconLigature: 'dashboard',
+      action: 'panel:account-overview:toggle',
+    },
+    {
+      id: 'profile-left-dock-rank-advancement',
+      iconGlyph: String.fromCodePoint(0xEB6B),
+      iconLigature: 'workspace_premium',
+      action: 'panel:rank-advancement:placeholder',
+    },
+  ];
+  const profileLeftDockButtonSize = 40;
+  const profileLeftDockGap = 8;
+  let profileLeftDockCursorRight = profileX - profileLeftDockGap;
+  for (let index = 0; index < profileLeftDockButtons.length; index += 1) {
+    const button = profileLeftDockButtons[index];
+    const hovered = state.hoveredButtonId === button.id;
+    const isAccountOverviewToggle = button.action === 'panel:account-overview:toggle';
+    const active = isAccountOverviewToggle && Boolean(state.ui?.accountOverviewVisible);
+    const x = profileLeftDockCursorRight - profileLeftDockButtonSize;
+    const y = profileY + Math.round((floatingProfileSize - profileLeftDockButtonSize) / 2);
+    const fill = active
+      ? '#D7E7FF'
+      : (hovered ? '#E7E9EF' : SHELL_PANEL_COLOR);
+    const stroke = active
+      ? '#BDD5F8'
+      : (hovered ? '#D7DBE6' : SHELL_PANEL_COLOR);
+    const iconColor = active ? '#1F5EA3' : '#4A5262';
+    const radius = profileLeftDockButtonSize / 2;
+    const centerX = x + radius;
+    const centerY = y + radius;
+
+    context.beginPath();
+    context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    context.fillStyle = fill;
+    context.fill();
+    context.beginPath();
+    context.arc(centerX, centerY, Math.max(1, radius - 0.5), 0, Math.PI * 2);
+    context.lineWidth = 1;
+    context.strokeStyle = stroke;
+    context.stroke();
+
+    const iconLigature = safeText(button.iconLigature);
+    if (iconLigature) {
+      drawMaterialButtonIcon(iconLigature, centerX, centerY + 0.5, {
+        size: 18,
+        weight: 500,
+        color: iconColor,
+        fill: 0,
+        fallbackGlyph: () => {
+          drawText(button.iconGlyph, centerX, centerY + 0.5, {
+            size: 18,
+            weight: 500,
+            family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+            color: iconColor,
+            align: 'center',
+          });
+        },
+      });
+    } else {
+      drawText(button.iconGlyph, centerX, centerY + 0.5, {
+        size: 18,
+        weight: 500,
+        family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+        color: iconColor,
+        align: 'center',
+      });
+    }
+
+    registerButton({
+      id: button.id,
+      x,
+      y: y + buttonYOffset,
+      width: profileLeftDockButtonSize,
+      height: profileLeftDockButtonSize,
+      action: button.action,
+    });
+
+    profileLeftDockCursorRight = x - profileLeftDockGap;
+  }
+
   const railX = Math.round((workspace.x + workspace.width) - railButtonSize - railEdgeInset);
-  const railStartY = panel.y + railButtonSize + railTopGapFromProfile;
+  const railStartY = panel.y + floatingProfileSize + railTopGapFromProfile;
 
   const dockButtons = [
     {
@@ -9392,11 +10794,17 @@ function drawBottomToolBar(layout) {
   for (let index = 0; index < dockButtons.length; index += 1) {
     const button = dockButtons[index];
     const hovered = state.hoveredButtonId === button.id;
+    const isAccountOverviewToggle = button.action === 'panel:account-overview:toggle';
+    const active = isAccountOverviewToggle && Boolean(state.ui?.accountOverviewVisible);
     const x = railX;
     const y = railStartY + (index * (railButtonSize + railGap));
-    const fill = hovered ? '#DEDEDE' : SHELL_PANEL_COLOR;
-    const stroke = hovered ? '#DFE2EA' : SHELL_PANEL_COLOR;
-    const iconColor = '#444444';
+    const fill = active
+      ? '#D7E7FF'
+      : (hovered ? '#DEDEDE' : SHELL_PANEL_COLOR);
+    const stroke = active
+      ? '#BDD5F8'
+      : (hovered ? '#DFE2EA' : SHELL_PANEL_COLOR);
+    const iconColor = active ? '#1F5EA3' : '#444444';
     const radius = railButtonSize / 2;
     const circleCenterX = x + radius;
     const circleCenterY = y + radius;
@@ -10176,6 +11584,9 @@ function renderFrame() {
   drawTreeViewport(state.layout);
   drawSideNav(state.layout);
   drawBottomToolBar(state.layout);
+  syncAccountOverviewPanelPosition(state.layout);
+  syncAccountOverviewPanelVisuals();
+  syncAccountOverviewPanelVisibility();
   syncSideNavSearchInput();
   syncSideNavProfileMenu();
 }
@@ -10602,6 +12013,10 @@ function triggerAction(action) {
     }
     return;
   }
+  if (safeAction === 'panel:account-overview:toggle') {
+    setAccountOverviewPanelVisible(!Boolean(state.ui?.accountOverviewVisible));
+    return;
+  }
   if (safeAction.startsWith('brand-menu:page:')) {
     const targetPage = safeAction.slice('brand-menu:page:'.length);
     state.ui.sideNavBrandMenuOpen = false;
@@ -10702,6 +12117,10 @@ function triggerAction(action) {
   }
   if (safeAction === 'dock:placeholder') {
     void resetMemberBinaryTreeLaunchStateFromDock();
+    return;
+  }
+  if (safeAction === 'panel:rank-advancement:placeholder') {
+    // Placeholder action intentionally kept inert until Rank Advancement panel is implemented.
     return;
   }
   if (safeAction.startsWith('depth:')) {
@@ -11061,8 +12480,10 @@ function onSessionStorageChange(event) {
     return;
   }
   state.session = nextSession;
+  resetAccountOverviewRemoteSnapshot();
   pinnedNodeIdsLastSyncedKey = '';
   pinnedNodeIdsLocalDirty = false;
+  void refreshAccountOverviewRemoteSnapshot({ force: true });
   if (state.source === 'member') {
     schedulePinnedNodeIdsServerSync({ immediate: true });
   }
@@ -11184,6 +12605,7 @@ async function bootstrap() {
   state.viewport = state.layout.viewport;
   bindEvents();
   initTreeNextEnrollModal();
+  initAccountOverviewPanel();
   startTreeNextLiveSync();
 
   setCameraTarget(computeHomeView(), false);

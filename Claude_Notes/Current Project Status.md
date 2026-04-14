@@ -1,11 +1,191 @@
 # Current Project Status
 
-Last Updated: 2026-04-13
+Last Updated: 2026-04-14
 
 ## Purpose
 
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
+
+## Recent Update (2026-04-14) - Hero Badge Colors Tuned (Legacy Teal/Navy + Founder Amber/Gold)
+
+- Completed:
+  - set legacy rank circle to dark teal/navy gradient colors
+  - set title-1/legacy-founder circle to dark amber/gold gradient colors
+  - kept gradients on the existing shared formula path used by account overview visuals
+  - restored icon-only drop shadow for badge icons while keeping circle container shadows disabled.
+- Outcome:
+  - hero badge colors now match requested rank/title tone targets while preserving Binary Tree Next gradient logic consistency.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Hero Glow Effects Removed
+
+- Completed:
+  - removed remaining hero glow/shadow from badge circles, avatar, and status dot
+  - removed runtime sheen overlay logic and runtime badge shadow assignments
+  - enforced icon filter reset with `filter: none !important`.
+- Outcome:
+  - hero circles now render flatter/cleaner without glow effects.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Hero Top Section Center-Anchored, Icon Shadows Removed
+
+- Completed:
+  - centered Account Overview hero trio layout in the panel
+  - removed drop shadow from rank/title icons inside the badge circles.
+  - cleaned duplicate hero mobile CSS declaration (`justify-items`) from the media block.
+- Outcome:
+  - top hero row now sits anchored in the middle of the panel and icon shadows no longer compete with the gradient circles.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Direct Sponsors Card Added to Account Overview
+
+- Completed:
+  - added missing `Direct Sponsors` card to Sales and Business Volumes section
+  - updated arrangement to requested 6-card sequence
+  - wired Direct Sponsors value to live direct-enrollment count from tree/session data.
+- Outcome:
+  - Sales and Business Volumes now includes the direct enrollment KPI and matches requested order.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Sales and Business Volumes Arrangement Matched to Requested Order
+
+- Completed:
+  - reordered Sales and Business Volumes cards to exact requested sequence
+  - changed Weekly Cycle Cap card presentation to:
+    - value: `1 / 1,000`
+    - label: `Weekly Cycle Cap`.
+- Outcome:
+  - section card flow now mirrors the requested dashboard structure.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Account Overview Cards Set to Borderless
+
+- Completed:
+  - removed outline borders from both card groups in Account Overview panel
+  - removed commission hover border color override to keep cards visually identical and borderless.
+- Outcome:
+  - Sales/Business cards and Track Commissions cards now share the same borderless card surface style.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Account Overview Card Radius Tightened
+
+- Completed:
+  - reduced both dashboard card groups from `24px` to `18px` corner radius.
+- Outcome:
+  - cards now feel less rounded while preserving consistent styling across Sales/Business and Track Commissions sections.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Track Commissions Cards Unified with Volume Card Style
+
+- Completed:
+  - matched Track Commissions card geometry/spacing to Sales and Business Volumes cards
+  - removed extra-bold typography emphasis from KPI values
+  - aligned commission label typography with volume label styling.
+- Outcome:
+  - both dashboard card groups now render with one consistent visual token system and lighter text weight.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Account Overview Volume Cards Adjusted to 5-Item Set
+
+- Completed:
+  - set Account Overview card background token to `#F2F2F6`
+  - reduced card radius to `24px` so cards remain slightly less curved than outer panel (`36px`)
+  - removed Sales Team Commission tile from Sales and Business Volumes
+  - set Sales and Business Volumes to requested 5-card list
+  - updated default cycle label to `Weekly Cycle Cap | 1 / 1,000`.
+- Outcome:
+  - card geometry and tone now align with requested panel token refinements
+  - Sales and Business Volumes section now matches requested structure without extra KPI cards.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Binary Tree Next Account Overview Visual Language Alignment
+
+- Completed:
+  - tuned Account Overview shell geometry to match Binary Tree Next left panel style language:
+    - `36px` outer radius
+    - shell-border tones aligned to existing panel chrome
+    - white main background retained by design request
+  - updated internal tile/button radii to follow existing rounded-card geometry (`28px`)
+  - added hero badge wrapper hooks and wired node-formula gradient rendering for hero circles
+  - added visual sync routine so profile avatar, status dot, rank/title labels, and badge/icon skin stay tied to current session/home node data.
+- Outcome:
+  - Account Overview panel now reads as part of the same BT-Next UI family while preserving requested white dashboard surface.
+  - gradient circles now follow the same palette/math family used by tree node avatars instead of static one-off gradients.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - screenshot comparison skipped per user instruction.
+
+## Recent Update (2026-04-14) - Binary Tree Next Account Overview Panel Toggle Wiring
+
+- Completed:
+  - added right-rail canvas dock action to show/hide Account Overview panel (`panel:account-overview:toggle`)
+  - added `accountOverviewVisible` state flag to Binary Tree Next UI state
+  - wired panel position and visibility sync helpers to align panel with current side-nav layout behavior
+  - connected Account Overview header close button to hide panel behavior.
+- Outcome:
+  - Account Overview panel can now be hidden/shown from the right-side button rail while preserving Binary Tree Next’s hybrid rendering pattern (canvas shell + DOM panel).
+  - panel positioning now tracks current layout calculations instead of remaining static.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - screenshot validation skipped per user instruction.
 
 ## Recent Update (2026-04-14) - Preferred Customer Page Runtime Render Fix
 
@@ -12829,3 +13009,133 @@ Last Updated: 2026-04-13
   - `Claude_Notes/Current Project Status.md`
 - Validation:
   - inline script parse check for `index.html` passed (`Parsed inline scripts in index.html: 2`).
+
+## Recent Update (2026-04-14) - Binary Tree Next Account Overview Full Data Wiring
+
+- Completed:
+  - wired Account Overview panel field values to live/runtime data from top-to-bottom (rank/title/user/status through commissions).
+  - added API snapshot hydration for:
+    - binary tree metrics
+    - sales team commissions
+    - commission containers
+    - e-wallet
+  - added polling guardrails (interval + retry cadence) and session-change reset/refetch behavior for panel data.
+  - added fallback resolvers for active window, BV totals, cycle cap, wallet, and commission values.
+- Outcome:
+  - Account Overview panel now reflects live app data instead of static placeholders for the requested KPI/commission cards.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Account Overview Hero Alignment Centered
+
+- Completed:
+  - adjusted Account Overview hero row alignment from bottom-anchored to center-aligned.
+- Outcome:
+  - left rank badge, center avatar/user block, and right title badge now align on center as requested.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - CSS-only layout update.
+
+## Recent Update (2026-04-14) - Binary Tree Next Title Sync With Actual Profile Titles
+
+- Completed:
+  - patched Account Overview title resolution to prioritize profile-aware title fields over stale fallback labels.
+  - for member mode, set non-fallback session profile title as top priority so panel/root title follows the user’s actual selected title.
+  - added shared title/icon resolver helpers and applied them to panel visuals + tree node icon resolution.
+  - updated root/member live node builders so normalized title + icon metadata is preserved across tree refreshes.
+- Outcome:
+  - BT Next titles now stay aligned with actual selected profile titles instead of drifting to `"{rank} Builder"` fallbacks.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Legacy Founder Icon Corrected in Binary Tree Next
+
+- Completed:
+  - fixed title-icon fallback mapping so `Legacy Founder` resolves to Title-Icons assets, not the generic legacy rank icon.
+  - added title-event icon routing for legacy founder/director/ambassador/presidential-circle keys and achievement ids.
+- Outcome:
+  - Account Overview title badge now displays the proper Legacy Founder icon.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Legacy Founder Icon Forced to `legacy-founder-star-light`
+
+- Completed:
+  - added forced title-icon resolution from title labels before fallback icon-path fields.
+  - wired `Legacy Founder` to always resolve to `/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg`.
+- Outcome:
+  - Account Overview title icon now consistently shows the requested Legacy Founder icon even when older title-icon fields are stale.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Right-Side Profile-Left Buttons Added
+
+- Completed:
+  - moved `Account Overview` toggle to a new top-right button group positioned left of the profile avatar.
+  - added `Rank Advancement` button as placeholder in the same profile-left group.
+  - left existing vertical rail navigation controls in place.
+  - added explicit placeholder action handler (`panel:rank-advancement:placeholder`) with inert behavior until panel build.
+- Outcome:
+  - right-side controls now match the requested layout direction, with primary panel actions grouped beside the profile avatar.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Account Overview No Longer Opens on Boot
+
+- Completed:
+  - changed Binary Tree Next boot UI default so `Account Overview` starts hidden.
+- Outcome:
+  - panel stays closed on startup and only opens when the new profile-left `Account Overview` button is pressed.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Account Overview Live Data (No Reload Needed)
+
+- Completed:
+  - aligned Account Overview remote sync intervals with Binary Tree Next live sync cadence.
+  - added dynamic polling interval resolver based on panel visibility + page visibility.
+  - connected Account Overview refresh to tree live apply pipeline so panel updates with incoming live node synces.
+  - forced immediate remote refresh when opening Account Overview from the button.
+- Outcome:
+  - Account Overview now updates live in-session without page reload, following the same real-time behavior pattern as Binary Tree Next.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
