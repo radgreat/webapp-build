@@ -19,6 +19,21 @@
   const AUTH_COOKIE_KEY = 'vault-auth-user-cookie';
   const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
   const FREE_ACCOUNT_RANK_KEY_SET = new Set(['preferred customer', 'free account', 'free']);
+  const DEFAULT_BUILDER_PACKAGE_KEY = 'personal-builder-pack';
+  const STORE_PRODUCT_PACKAGE_KEYS = Object.freeze([
+    FREE_ACCOUNT_PACKAGE_KEY,
+    'personal-builder-pack',
+    'business-builder-pack',
+    'infinity-builder-pack',
+    'legacy-builder-pack',
+  ]);
+  const DEFAULT_STORE_PACKAGE_EARNINGS = Object.freeze({
+    [FREE_ACCOUNT_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
+    'personal-builder-pack': Object.freeze({ retailCommission: 4, bv: 50 }),
+    'business-builder-pack': Object.freeze({ retailCommission: 8, bv: 48 }),
+    'infinity-builder-pack': Object.freeze({ retailCommission: 12, bv: 44 }),
+    'legacy-builder-pack': Object.freeze({ retailCommission: 20, bv: 38 }),
+  });
 
   const STORAGE_KEYS = Object.freeze({
     cart: 'charge-public-store-cart-v2',
@@ -44,6 +59,70 @@
 
   function normalizeMemberKey(value) {
     return normalizeText(value).toLowerCase();
+  }
+
+  function normalizePackageKey(value) {
+    return normalizeMemberKey(value).replace(/[_\s]+/g, '-');
+  }
+
+  function normalizePackageEarningEntry(entry, fallback = {}) {
+    const source = entry && typeof entry === 'object' ? entry : {};
+    const fallbackEntry = fallback && typeof fallback === 'object' ? fallback : {};
+    return {
+      retailCommission: roundCurrency(
+        source.retailCommission
+        ?? source.retail
+        ?? source.commission
+        ?? source.usd
+        ?? source.amount
+        ?? fallbackEntry.retailCommission
+      ),
+      bv: toWholeNumber(
+        source.bv
+        ?? source.bp
+        ?? source.personalBv
+        ?? fallbackEntry.bv,
+        fallbackEntry.bv || 0,
+      ),
+    };
+  }
+
+  function normalizePackageEarnings(rawPackageEarnings, fallbackBp = 0) {
+    const source = rawPackageEarnings && typeof rawPackageEarnings === 'object'
+      ? rawPackageEarnings
+      : {};
+    const normalized = {};
+
+    STORE_PRODUCT_PACKAGE_KEYS.forEach((packageKey) => {
+      const normalizedPackageKey = normalizePackageKey(packageKey);
+      const aliases = [
+        packageKey,
+        normalizedPackageKey,
+        normalizedPackageKey.replace(/-/g, '_'),
+        normalizedPackageKey.replace(/-([a-z])/g, (_, character) => character.toUpperCase()),
+      ];
+      const sourceKey = aliases.find((alias) => Object.prototype.hasOwnProperty.call(source, alias));
+      const sourceEntry = sourceKey ? source[sourceKey] : null;
+      const defaultEntry = DEFAULT_STORE_PACKAGE_EARNINGS[packageKey]
+        || { retailCommission: 0, bv: 0 };
+      const fallbackEntry = packageKey === 'legacy-builder-pack'
+        ? { ...defaultEntry, bv: toWholeNumber(fallbackBp, defaultEntry.bv) }
+        : defaultEntry;
+      normalized[packageKey] = normalizePackageEarningEntry(sourceEntry, fallbackEntry);
+    });
+
+    return normalized;
+  }
+
+  function resolveProductPackageEarning(product = {}, packageKey = '') {
+    const normalizedPackageKey = normalizePackageKey(packageKey);
+    const packageEarnings = normalizePackageEarnings(product?.packageEarnings, product?.bp);
+    const resolvedPackageKey = STORE_PRODUCT_PACKAGE_KEYS.includes(normalizedPackageKey)
+      ? normalizedPackageKey
+      : DEFAULT_BUILDER_PACKAGE_KEY;
+    return packageEarnings[resolvedPackageKey]
+      || packageEarnings[DEFAULT_BUILDER_PACKAGE_KEY]
+      || { retailCommission: 0, bv: toWholeNumber(product?.bp, 0) };
   }
 
   function normalizeLegalDocuments(value = {}) {
@@ -77,8 +156,9 @@
     return Math.max(0, Math.min(MAX_CHECKOUT_DISCOUNT_PERCENT, Math.round(numericValue * 100) / 100));
   }
 
-  function resolveCheckoutDiscountPercent(checkoutMode, requestedDiscountPercent) {
-    if (checkoutMode !== CHECKOUT_MODE_FREE_ACCOUNT) {
+  function resolveCheckoutDiscountPercent(checkoutMode, requestedDiscountPercent, options = {}) {
+    const isPreferredBuyer = options?.isPreferredBuyer === true;
+    if (checkoutMode !== CHECKOUT_MODE_FREE_ACCOUNT && !isPreferredBuyer) {
       return 0;
     }
     return normalizeDiscountPercent(requestedDiscountPercent, PUBLIC_DISCOUNT_PERCENT);
@@ -292,6 +372,16 @@
     return FREE_ACCOUNT_RANK_KEY_SET.has(rankKey);
   }
 
+  function resolveSessionBuyerPackageKey() {
+    const sessionUser = readUserSession();
+    const packageKey = normalizePackageKey(sessionUser?.enrollmentPackage);
+    if (STORE_PRODUCT_PACKAGE_KEYS.includes(packageKey)) {
+      return packageKey;
+    }
+
+    return DEFAULT_BUILDER_PACKAGE_KEY;
+  }
+
   function normalizeProductImages(imagesValue = [], fallbackImage = '') {
     const collectedImages = [];
     if (Array.isArray(imagesValue)) {
@@ -339,6 +429,8 @@
     const images = normalizeProductImages(rawProduct?.images, image);
     const price = roundCurrency(rawProduct?.price);
     const bp = toWholeNumber(rawProduct?.bp, 0);
+    const packageEarnings = normalizePackageEarnings(rawProduct?.packageEarnings, bp);
+    const legacyBv = toWholeNumber(packageEarnings?.['legacy-builder-pack']?.bv, bp);
     const stock = toWholeNumber(rawProduct?.stock, 0);
 
     return {
@@ -349,7 +441,8 @@
       image: images[0] || DEFAULT_PRODUCT_IMAGE,
       images,
       price,
-      bp,
+      bp: legacyBv,
+      packageEarnings,
       stock,
     };
   }
@@ -634,6 +727,7 @@
       options?.discountPercent,
       PUBLIC_DISCOUNT_PERCENT,
     );
+    const packageKey = normalizePackageKey(options?.packageKey) || resolveSessionBuyerPackageKey();
     const discountRate = discountPercent / 100;
 
     const subtotal = roundCurrency(safeLines.reduce((sum, line) => {
@@ -649,7 +743,8 @@
       if (!product) {
         return sum;
       }
-      return sum + (product.bp * line.quantity);
+      const packageEarning = resolveProductPackageEarning(product, packageKey);
+      return sum + (toWholeNumber(packageEarning?.bv, product.bp) * line.quantity);
     }, 0);
 
     const discount = roundCurrency(subtotal * discountRate);
@@ -661,6 +756,7 @@
       discount,
       total,
       discountPercent,
+      packageKey,
       bp: toWholeNumber(bp, 0),
     };
   }
@@ -787,6 +883,8 @@
   function resolveCheckoutStartState(options = {}) {
     const products = Array.isArray(options.products) ? options.products : [];
     const requestedStoreCode = normalizeStoreCode(options.storeCode || getActiveStoreCode());
+    const sessionUser = readUserSession();
+    const isPreferredSessionBuyer = isFreeAccountUser(sessionUser);
 
     const cartLines = getCart(products);
     if (cartLines.length === 0) {
@@ -803,6 +901,9 @@
     const discountPercent = resolveCheckoutDiscountPercent(
       checkoutMode,
       options.discountPercent,
+      {
+        isPreferredBuyer: isPreferredSessionBuyer,
+      },
     );
 
     const validation = validateCheckoutFields(options.checkoutFields, checkoutMode);
@@ -830,10 +931,21 @@
       summary,
       checkoutMode,
       discountPercent,
+      buyerIdentity: {
+        buyerUserId: normalizeText(sessionUser?.id || sessionUser?.userId),
+        buyerUsername: normalizeText(sessionUser?.username),
+        buyerEmail: normalizeEmail(sessionUser?.email),
+        isPreferredBuyer: isPreferredSessionBuyer,
+      },
     };
   }
 
   function buildCheckoutRequestPayload(state) {
+    const includeSessionIdentity = (
+      state.checkoutMode !== CHECKOUT_MODE_GUEST
+      && state.checkoutMode !== CHECKOUT_MODE_FREE_ACCOUNT
+    );
+
     return {
       cartLines: state.cartLines,
       storeCode: state.requestedStoreCode,
@@ -846,6 +958,8 @@
       memberStoreLink: buildPublicStoreLink(state.requestedStoreCode),
       discountPercent: state.discountPercent,
       checkoutMode: state.checkoutMode,
+      buyerUserId: includeSessionIdentity ? normalizeText(state?.buyerIdentity?.buyerUserId) : '',
+      buyerUsername: includeSessionIdentity ? normalizeText(state?.buyerIdentity?.buyerUsername) : '',
       freeAccountMemberUsername: state.validation.fields.freeAccountMemberUsername,
       freeAccountPhone: state.validation.fields.freeAccountPhone,
       freeAccountCountryFlag: state.validation.fields.freeAccountCountryFlag,

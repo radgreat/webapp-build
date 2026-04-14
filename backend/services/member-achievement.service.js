@@ -20,8 +20,11 @@ import {
 } from '../stores/member-title-catalog.store.js';
 import { getBinaryTreeMetrics } from './metrics.service.js';
 import { readRegisteredMembersStore } from '../stores/member.store.js';
+import {
+  resolveMemberActivityStateByPersonalBv,
+  resolveMemberCurrentPersonalBv,
+} from '../utils/member-activity.helpers.js';
 
-const ACCOUNT_ACTIVITY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 const LEGACY_BUILDER_EVENT_ID = 'legacy-builder-leadership-program-q2-2026';
 const LEGACY_BUILDER_EVENT_START_AT = '2026-04-01T00:00:00.000Z';
 const LEGACY_BUILDER_EVENT_END_AT = '2026-06-30T23:59:59.999Z';
@@ -823,43 +826,12 @@ function resolveCurrentMemberRank(member = {}) {
   return normalizeRankLabelForAchievement(rawRank) || 'Unranked';
 }
 
-function resolveAccountActiveUntilMs(member = {}) {
-  const explicitActiveUntilRaw = normalizeText(member?.activityActiveUntilAt || member?.activeUntilAt);
-  const explicitActiveUntilMs = Date.parse(explicitActiveUntilRaw);
-  if (Number.isFinite(explicitActiveUntilMs)) {
-    return explicitActiveUntilMs;
-  }
-
-  const enrollmentDateRaw = normalizeText(member?.createdAt || member?.enrolledAt);
-  const enrollmentDateMs = Date.parse(enrollmentDateRaw);
-  if (Number.isFinite(enrollmentDateMs)) {
-    return enrollmentDateMs + ACCOUNT_ACTIVITY_WINDOW_MS;
-  }
-
-  const purchaseDateRaw = normalizeText(member?.lastProductPurchaseAt || member?.lastPurchaseAt);
-  const purchaseDateMs = Date.parse(purchaseDateRaw);
-  if (Number.isFinite(purchaseDateMs)) {
-    return purchaseDateMs + ACCOUNT_ACTIVITY_WINDOW_MS;
-  }
-
-  return NaN;
-}
-
 function resolveMemberActivityState(member = {}) {
-  const activeUntilMs = resolveAccountActiveUntilMs(member);
-  if (!Number.isFinite(activeUntilMs)) {
-    return {
-      isActive: false,
-      label: 'Inactive',
-      activeUntilAt: '',
-    };
-  }
-
-  const isActive = Date.now() <= activeUntilMs;
+  const activityState = resolveMemberActivityStateByPersonalBv(member);
   return {
-    isActive,
-    label: isActive ? 'Active' : 'Inactive',
-    activeUntilAt: new Date(activeUntilMs).toISOString(),
+    isActive: Boolean(activityState?.isActive),
+    label: normalizeText(activityState?.label) || 'Inactive',
+    activeUntilAt: normalizeText(activityState?.activeUntilAt),
   };
 }
 
@@ -886,16 +858,7 @@ function normalizePlacementSideFromMember(member = {}) {
 }
 
 function resolveMemberPersonalVolumeBv(member = {}) {
-  const starterPersonalPv = Math.max(0, toWholeNumber(member?.starterPersonalPv, 0));
-  if (starterPersonalPv > 0) {
-    return starterPersonalPv;
-  }
-
-  const packageBv = Math.max(0, toWholeNumber(
-    member?.packageBv,
-    member?.enrollmentPackageBv,
-  ));
-  return packageBv;
+  return Math.max(0, toWholeNumber(resolveMemberCurrentPersonalBv(member), 0));
 }
 
 async function resolveCurrentMemberDirectSponsorSummary(member = {}) {

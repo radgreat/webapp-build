@@ -1,5 +1,9 @@
 import pool from '../db/db.js';
 import adminPool from '../db/admin-db.js';
+import {
+  normalizeStoreProductPackageEarnings,
+  resolveStoreProductLegacyBp,
+} from '../utils/store-product-earnings.helpers.js';
 
 const DEFAULT_PRODUCT_IMAGE = 'https://placehold.co/1000x1250?text=Product';
 
@@ -92,6 +96,13 @@ function mapDbStoreProductToAppProduct(row) {
 
   const images = normalizeProductImages(row.image_urls, row.image_url);
   const primaryImage = images[0] || DEFAULT_PRODUCT_IMAGE;
+  const packageEarnings = normalizeStoreProductPackageEarnings(row.package_earnings, {
+    fallbackBp: toWholeNumber(row.bp_value, 0),
+  });
+  const legacyBp = resolveStoreProductLegacyBp({
+    packageEarnings,
+    bp: row.bp_value,
+  });
 
   return {
     id: normalizeText(row.product_id),
@@ -101,7 +112,8 @@ function mapDbStoreProductToAppProduct(row) {
     image: primaryImage,
     images,
     price: roundCurrencyAmount(row.price_amount),
-    bp: toWholeNumber(row.bp_value, 0),
+    bp: legacyBp,
+    packageEarnings,
     stock: toWholeNumber(row.stock_count, 0),
     status: normalizeStoreProductStatus(row.status),
     createdAt: toIsoStringOrEmpty(row.created_at),
@@ -112,6 +124,13 @@ function mapDbStoreProductToAppProduct(row) {
 function mapAppStoreProductToDbStoreProduct(product, sortOrder = 0) {
   const images = normalizeProductImages(product?.images, product?.image);
   const primaryImage = images[0] || DEFAULT_PRODUCT_IMAGE;
+  const packageEarnings = normalizeStoreProductPackageEarnings(product?.packageEarnings, {
+    fallbackBp: toWholeNumber(product?.bp, 0),
+  });
+  const legacyBp = resolveStoreProductLegacyBp({
+    packageEarnings,
+    bp: product?.bp,
+  });
 
   return {
     product_id: normalizeText(product?.id),
@@ -121,7 +140,8 @@ function mapAppStoreProductToDbStoreProduct(product, sortOrder = 0) {
     image_url: primaryImage,
     image_urls: images,
     price_amount: roundCurrencyAmount(product?.price),
-    bp_value: toWholeNumber(product?.bp, 0),
+    bp_value: legacyBp,
+    package_earnings: packageEarnings,
     stock_count: toWholeNumber(product?.stock, 0),
     status: normalizeStoreProductStatus(product?.status),
     sort_order: Math.max(0, toWholeNumber(sortOrder, 0)),
@@ -130,6 +150,43 @@ function mapAppStoreProductToDbStoreProduct(product, sortOrder = 0) {
 
 let storeProductSchemaReady = false;
 let storeProductSchemaPromise = null;
+let storeProductHasImageUrlsColumn = true;
+let storeProductHasPackageEarningsColumn = true;
+let storeProductAdminPoolAvailable = true;
+
+function isAuthenticationError(error) {
+  const errorCode = normalizeText(error?.code);
+  if (errorCode === '28P01') {
+    return true;
+  }
+  const message = normalizeText(error?.message).toLowerCase();
+  return message.includes('password authentication failed');
+}
+
+async function probeStoreProductColumns() {
+  const columnProbe = await pool.query(`
+    SELECT
+      EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'charge'
+          AND table_name = 'store_products'
+          AND column_name = 'image_urls'
+      ) AS has_image_urls,
+      EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'charge'
+          AND table_name = 'store_products'
+          AND column_name = 'package_earnings'
+      ) AS has_package_earnings
+  `);
+
+  return {
+    hasImageUrlsColumn: columnProbe.rows?.[0]?.has_image_urls === true,
+    hasPackageEarningsColumn: columnProbe.rows?.[0]?.has_package_earnings === true,
+  };
+}
 
 async function installStoreProductsTableViaAdmin() {
   const client = await adminPool.connect();
@@ -147,6 +204,7 @@ async function installStoreProductsTableViaAdmin() {
         image_urls jsonb NOT NULL DEFAULT '[]'::jsonb,
         price_amount numeric(12,2) NOT NULL DEFAULT 0,
         bp_value integer NOT NULL DEFAULT 0,
+        package_earnings jsonb NOT NULL DEFAULT '{}'::jsonb,
         stock_count integer NOT NULL DEFAULT 0,
         status text NOT NULL DEFAULT 'active',
         sort_order integer NOT NULL DEFAULT 0,
@@ -225,6 +283,60 @@ async function ensureStoreProductImageGalleryColumnsViaAdmin() {
   }
 }
 
+async function ensureStoreProductPackageEarningsColumnViaAdmin() {
+  const client = await adminPool.connect();
+  let transactionClosed = false;
+
+  try {
+    await client.query('BEGIN');
+    await client.query(`
+      ALTER TABLE charge.store_products
+      ADD COLUMN IF NOT EXISTS package_earnings jsonb NOT NULL DEFAULT '{}'::jsonb
+    `);
+    await client.query(`
+      UPDATE charge.store_products
+      SET package_earnings = '{}'::jsonb
+      WHERE package_earnings IS NULL
+    `);
+    await client.query('COMMIT');
+    transactionClosed = true;
+  } catch (error) {
+    if (!transactionClosed) {
+      await client.query('ROLLBACK').catch(() => {});
+    }
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function ensureStoreProductImageGalleryColumnsViaServicePool() {
+  await pool.query(`
+    ALTER TABLE charge.store_products
+    ADD COLUMN IF NOT EXISTS image_urls jsonb NOT NULL DEFAULT '[]'::jsonb
+  `);
+  await pool.query(`
+    UPDATE charge.store_products
+    SET image_urls = CASE
+      WHEN jsonb_typeof(image_urls) = 'array' AND jsonb_array_length(image_urls) > 0 THEN image_urls
+      WHEN NULLIF(TRIM(image_url), '') IS NULL THEN '[]'::jsonb
+      ELSE jsonb_build_array(TRIM(image_url))
+    END
+  `);
+}
+
+async function ensureStoreProductPackageEarningsColumnViaServicePool() {
+  await pool.query(`
+    ALTER TABLE charge.store_products
+    ADD COLUMN IF NOT EXISTS package_earnings jsonb NOT NULL DEFAULT '{}'::jsonb
+  `);
+  await pool.query(`
+    UPDATE charge.store_products
+    SET package_earnings = '{}'::jsonb
+    WHERE package_earnings IS NULL
+  `);
+}
+
 export async function ensureStoreProductTables() {
   if (storeProductSchemaReady) {
     return;
@@ -255,19 +367,69 @@ export async function ensureStoreProductTables() {
     }
 
     await pool.query('SELECT 1 FROM charge.store_products LIMIT 1');
-    const imageColumnProbe = await pool.query(`
-      SELECT EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_schema = 'charge'
-          AND table_name = 'store_products'
-          AND column_name = 'image_urls'
-      ) AS has_image_urls
-    `);
-    const hasImageUrlsColumn = imageColumnProbe.rows?.[0]?.has_image_urls === true;
-    if (!hasImageUrlsColumn) {
-      await ensureStoreProductImageGalleryColumnsViaAdmin();
+    const initialColumns = await probeStoreProductColumns();
+    if (!initialColumns.hasImageUrlsColumn) {
+      let migrated = false;
+      let adminMigrationError = null;
+      if (storeProductAdminPoolAvailable) {
+        try {
+          await ensureStoreProductImageGalleryColumnsViaAdmin();
+          migrated = true;
+        } catch (error) {
+          adminMigrationError = error;
+          if (isAuthenticationError(error)) {
+            storeProductAdminPoolAvailable = false;
+          } else {
+            console.warn('[store-products] Unable to migrate image_urls column via admin pool:', error instanceof Error ? error.message : error);
+          }
+        }
+      }
+      if (!migrated) {
+        try {
+          await ensureStoreProductImageGalleryColumnsViaServicePool();
+        } catch (error) {
+          if (adminMigrationError && isAuthenticationError(adminMigrationError)) {
+            console.warn(
+              '[store-products] Admin pool auth failed for image_urls migration; service-pool fallback also failed.',
+            );
+          }
+          console.warn('[store-products] Unable to migrate image_urls column via service pool:', error instanceof Error ? error.message : error);
+        }
+      }
     }
+    if (!initialColumns.hasPackageEarningsColumn) {
+      let migrated = false;
+      let adminMigrationError = null;
+      if (storeProductAdminPoolAvailable) {
+        try {
+          await ensureStoreProductPackageEarningsColumnViaAdmin();
+          migrated = true;
+        } catch (error) {
+          adminMigrationError = error;
+          if (isAuthenticationError(error)) {
+            storeProductAdminPoolAvailable = false;
+          } else {
+            console.warn('[store-products] Unable to migrate package_earnings column via admin pool:', error instanceof Error ? error.message : error);
+          }
+        }
+      }
+      if (!migrated) {
+        try {
+          await ensureStoreProductPackageEarningsColumnViaServicePool();
+        } catch (error) {
+          if (adminMigrationError && isAuthenticationError(adminMigrationError)) {
+            console.warn(
+              '[store-products] Admin pool auth failed for package_earnings migration; service-pool fallback also failed.',
+            );
+          }
+          console.warn('[store-products] Unable to migrate package_earnings column via service pool:', error instanceof Error ? error.message : error);
+        }
+      }
+    }
+
+    const finalColumns = await probeStoreProductColumns();
+    storeProductHasImageUrlsColumn = finalColumns.hasImageUrlsColumn;
+    storeProductHasPackageEarningsColumn = finalColumns.hasPackageEarningsColumn;
     storeProductSchemaReady = true;
   })().catch((error) => {
     storeProductSchemaReady = false;
@@ -288,6 +450,15 @@ export async function readStoreProductsStore(options = {}) {
   const whereClause = includeArchived
     ? ''
     : `WHERE status = 'active'`;
+  const imageUrlsProjection = storeProductHasImageUrlsColumn
+    ? 'image_urls'
+    : `CASE
+        WHEN NULLIF(TRIM(image_url), '') IS NULL THEN '[]'::jsonb
+        ELSE jsonb_build_array(TRIM(image_url))
+      END AS image_urls`;
+  const packageEarningsProjection = storeProductHasPackageEarningsColumn
+    ? 'package_earnings'
+    : `'{}'::jsonb AS package_earnings`;
 
   const result = await pool.query(`
     SELECT
@@ -296,9 +467,10 @@ export async function readStoreProductsStore(options = {}) {
       description,
       details,
       image_url,
-      image_urls,
+      ${imageUrlsProjection},
       price_amount,
       bp_value,
+      ${packageEarningsProjection},
       stock_count,
       status,
       sort_order,
@@ -329,36 +501,65 @@ export async function writeStoreProductsStore(products = []) {
         continue;
       }
 
-      await client.query(`
-        INSERT INTO charge.store_products (
-          product_id,
-          title,
-          description,
-          details,
-          image_url,
-          image_urls,
-          price_amount,
-          bp_value,
-          stock_count,
-          status,
-          sort_order
-        )
-        VALUES (
-          $1, $2, $3, $4::jsonb, $5, $6::jsonb, $7, $8, $9, $10, $11
-        )
-      `, [
+      const columns = [
+        'product_id',
+        'title',
+        'description',
+        'details',
+        'image_url',
+      ];
+      const values = [
         row.product_id,
         row.title,
         row.description,
         JSON.stringify(row.details),
         row.image_url,
-        JSON.stringify(row.image_urls),
-        row.price_amount,
-        row.bp_value,
-        row.stock_count,
-        row.status,
-        row.sort_order,
-      ]);
+      ];
+      const casts = ['text', 'text', 'text', 'jsonb', 'text'];
+
+      if (storeProductHasImageUrlsColumn) {
+        columns.push('image_urls');
+        values.push(JSON.stringify(row.image_urls));
+        casts.push('jsonb');
+      }
+
+      columns.push('price_amount');
+      values.push(row.price_amount);
+      casts.push('numeric');
+
+      columns.push('bp_value');
+      values.push(row.bp_value);
+      casts.push('integer');
+
+      if (storeProductHasPackageEarningsColumn) {
+        columns.push('package_earnings');
+        values.push(JSON.stringify(row.package_earnings || {}));
+        casts.push('jsonb');
+      }
+
+      columns.push('stock_count');
+      values.push(row.stock_count);
+      casts.push('integer');
+
+      columns.push('status');
+      values.push(row.status);
+      casts.push('text');
+
+      columns.push('sort_order');
+      values.push(row.sort_order);
+      casts.push('integer');
+
+      const valueSql = values
+        .map((_, valueIndex) => {
+          const cast = casts[valueIndex];
+          return cast ? `$${valueIndex + 1}::${cast}` : `$${valueIndex + 1}`;
+        })
+        .join(', ');
+
+      await client.query(`
+        INSERT INTO charge.store_products (${columns.join(', ')})
+        VALUES (${valueSql})
+      `, values);
     }
 
     await client.query('COMMIT');

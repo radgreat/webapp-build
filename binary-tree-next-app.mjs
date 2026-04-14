@@ -125,12 +125,15 @@ const SIDE_NAV_SEARCH_DROPDOWN_ID = 'binary-tree-next-side-nav-search-dropdown';
 const SIDE_NAV_PROFILE_MENU_ID = 'binary-tree-next-side-nav-profile-menu';
 const SIDE_NAV_SEARCH_RESULT_MAX = 18;
 const PINNED_NODE_IDS_STORAGE_KEY = 'binary-tree-next-pinned-node-ids-v1';
+const PINNED_NODE_IDS_SERVER_SYNC_DEBOUNCE_MS = 280;
 const MOCK_FIRST_TIME_OVERRIDE_STORAGE_KEY = 'binary-tree-next-mock-first-time-override-v1';
+const ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN = 50;
 const SERVER_CUTOFF_TIMEZONE = 'America/Los_Angeles';
 const SERVER_CUTOFF_WEEKDAY = 6;
 const SERVER_CUTOFF_HOUR = 23;
 const SERVER_CUTOFF_MINUTE = 59;
 const MEMBER_REGISTERED_MEMBERS_API = '/api/registered-members';
+const MEMBER_BINARY_TREE_PINNED_NODES_API = '/api/member-auth/binary-tree-next/pinned-nodes';
 const ADMIN_REGISTERED_MEMBERS_API = '/api/admin/registered-members';
 const MEMBER_REGISTERED_MEMBERS_INTENT_API = '/api/registered-members/intent';
 const ADMIN_REGISTERED_MEMBERS_INTENT_API = '/api/admin/registered-members/intent';
@@ -244,6 +247,16 @@ const APPLE_MAPS_NODE_PALETTES = Object.freeze({
     light: [173, 181, 198],
     mid: [145, 154, 173],
     dark: [122, 131, 150],
+  }),
+  direct: Object.freeze({
+    light: [191, 130, 255],
+    mid: [158, 95, 236],
+    dark: [123, 66, 209],
+  }),
+  directInactive: Object.freeze({
+    light: [138, 145, 158],
+    mid: [109, 117, 130],
+    dark: [82, 90, 103],
   }),
   ocean: Object.freeze({
     light: [122, 181, 226],
@@ -378,6 +391,11 @@ if (!glassBackdropContext) {
   throw new Error('Unable to initialize offscreen glass backdrop context.');
 }
 let launchStateResetInFlight = false;
+let pinnedNodeIdsServerSyncTimerId = 0;
+let pinnedNodeIdsServerSyncInFlight = false;
+let pinnedNodeIdsServerSyncQueued = false;
+let pinnedNodeIdsLastSyncedKey = '';
+let pinnedNodeIdsLocalDirty = false;
 const avatarImageAssetCache = new Map();
 
 const state = {
@@ -502,6 +520,8 @@ const state = {
     firstTime: false,
     firstOpenedAt: '',
     lastOpenedAt: '',
+    pinnedNodeIds: [],
+    pinnedNodeIdsUpdatedAt: '',
     checkedAt: '',
     source: 'uninitialized',
   },
@@ -1176,15 +1196,68 @@ function drawImageAssetRect(x, y, width, height, imageUrl) {
   return true;
 }
 
+function resolveNodeCurrentPersonalBvForActivity(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return 0;
+  }
+
+  const cutoffTimestampMs = Date.parse(safeText(
+    node?.activityActiveUntilAt
+    ?? node?.activity_active_until_at
+    ?? '',
+  ));
+  const hasExpiredCutoff = Number.isFinite(cutoffTimestampMs) && Date.now() >= cutoffTimestampMs;
+
+  const explicitCurrentPersonalBv = safeNumber(
+    node?.currentPersonalPvBv
+    ?? node?.current_personal_pv_bv
+    ?? node?.monthlyPersonalBv
+    ?? node?.monthly_personal_bv,
+    NaN,
+  );
+  if (Number.isFinite(explicitCurrentPersonalBv)) {
+    return hasExpiredCutoff ? 0 : Math.max(0, Math.floor(explicitCurrentPersonalBv));
+  }
+
+  const starterPersonalPv = Math.max(0, Math.floor(safeNumber(
+    node?.starterPersonalPv
+    ?? node?.starter_personal_pv
+    ?? node?.personalVolumeBv
+    ?? node?.personal_volume_bv
+    ?? node?.volume
+    ?? node?.packageBv
+    ?? node?.package_bv,
+    0,
+  )));
+  const baselinePersonalPv = safeNumber(
+    node?.serverCutoffBaselineStarterPersonalPv
+    ?? node?.server_cutoff_baseline_starter_personal_pv
+    ?? node?.personalVolumeBaselineBv
+    ?? node?.personal_volume_baseline_bv,
+    NaN,
+  );
+  if (Number.isFinite(baselinePersonalPv) && baselinePersonalPv > 0) {
+    return hasExpiredCutoff
+      ? 0
+      : Math.max(0, starterPersonalPv - Math.max(0, Math.floor(baselinePersonalPv)));
+  }
+  return hasExpiredCutoff ? 0 : starterPersonalPv;
+}
+
 function resolveNodeActivityState(node) {
-  const rawStatus = safeText(node?.accountStatus || node?.status || '').toLowerCase();
-  if (!rawStatus) {
-    return false;
+  const safeNode = node && typeof node === 'object' ? node : null;
+  const rawStatus = safeText(safeNode?.accountStatus || safeNode?.status || '').toLowerCase();
+  const nodeIdKey = normalizeCredentialValue(safeNode?.id);
+  if (
+    nodeIdKey === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+    || nodeIdKey === 'company-root'
+  ) {
+    return true;
   }
   if (
     rawStatus.includes('inactive')
     || rawStatus.includes('dormant')
-    || rawStatus.includes('pending')
     || rawStatus.includes('review')
     || rawStatus.includes('suspend')
     || rawStatus.includes('disable')
@@ -1192,12 +1265,42 @@ function resolveNodeActivityState(node) {
   ) {
     return false;
   }
-  return (
-    rawStatus.includes('active')
-    || rawStatus.includes('enable')
-    || rawStatus.includes('verified')
-    || rawStatus.includes('good standing')
+
+  const currentPersonalBv = resolveNodeCurrentPersonalBvForActivity(safeNode);
+  return currentPersonalBv >= ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN;
+}
+
+function resolveSessionSponsorUsernameKey(sessionInput = state.session) {
+  const session = sessionInput && typeof sessionInput === 'object' ? sessionInput : null;
+  return normalizeCredentialValue(
+    safeText(
+      session?.memberUsername
+      || session?.member_username
+      || session?.username
+      || session?.user_name
+      || '',
+    ).replace(/^@+/, ''),
   );
+}
+
+function isNodePersonallyEnrolledBySession(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return false;
+  }
+
+  const sessionSponsorUsernameKey = resolveSessionSponsorUsernameKey();
+  const sponsorUsernameKey = normalizeCredentialValue(
+    safeText(
+      node?.sponsorUsername
+      || node?.sponsor_username
+      || '',
+    ).replace(/^@+/, ''),
+  );
+  if (sessionSponsorUsernameKey && sponsorUsernameKey) {
+    return sponsorUsernameKey === sessionSponsorUsernameKey;
+  }
+  return false;
 }
 
 function resolveNodeAvatarPhotoUrl(nodeInput = null) {
@@ -1327,13 +1430,25 @@ function normalizePinnedNodeIds(idsInput = state.pinnedNodeIds) {
   return deduped;
 }
 
-function setPinnedNodeIds(nextIds) {
+function setPinnedNodeIds(nextIds, options = {}) {
+  const persistLocal = options?.persistLocal !== false;
+  const syncServer = options?.syncServer !== false;
   state.pinnedNodeIds = normalizePinnedNodeIds(nextIds);
   const favorites = getSideNavFavoritesState();
   favorites.placesCacheKey = '';
   favorites.placesCacheLimit = 0;
   favorites.placesCache = [];
-  persistPinnedNodeIdsToStorage();
+
+  if (persistLocal) {
+    persistPinnedNodeIdsToStorage();
+  }
+
+  if (syncServer) {
+    if (canSyncPinnedNodeIdsToServer()) {
+      pinnedNodeIdsLocalDirty = true;
+    }
+    schedulePinnedNodeIdsServerSync();
+  }
 }
 
 function isNodePinned(nodeId) {
@@ -3148,9 +3263,22 @@ function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
   const accountRank = safeText(createdMember?.accountRank || createdMember?.rank || '').trim() || 'Personal';
   const packageBv = Math.max(0, Math.floor(safeNumber(createdMember?.packageBv, packageMeta?.bv || 0)));
   const accountStatus = createdMember?.passwordSetupRequired ? 'Pending' : 'Active';
+  const starterPersonalPv = Math.max(0, Math.floor(safeNumber(createdMember?.starterPersonalPv, packageBv)));
+  const baselineStarterPersonalPv = Math.max(0, Math.floor(safeNumber(
+    createdMember?.serverCutoffBaselineStarterPersonalPv
+    ?? createdMember?.server_cutoff_baseline_starter_personal_pv,
+    0,
+  )));
+  const currentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
   const isSpilloverPlacement = Boolean(createdMember?.isSpillover)
     || normalizeCredentialValue(createdMember?.placementLeg) === 'spillover';
   const sponsorId = resolveTreeNextEnrollmentSponsorNodeId(createdMember, parentId, isSpilloverPlacement);
+  const sponsorUsername = safeText(
+    createdMember?.sponsorUsername
+    || createdMember?.sponsor_username
+    || createdMember?.sponsor
+    || '',
+  ).replace(/^@+/, '');
 
   state.nodes.push({
     id: nodeId,
@@ -3164,8 +3292,15 @@ function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
     rank: accountRank,
     title: `${accountRank} Builder`,
     badges: [accountRank],
-    volume: packageBv,
+    volume: starterPersonalPv > 0 ? starterPersonalPv : packageBv,
+    packageBv,
+    starterPersonalPv,
+    serverCutoffBaselineStarterPersonalPv: baselineStarterPersonalPv,
+    currentPersonalPvBv,
+    monthlyPersonalBv: currentPersonalPvBv,
     sponsorId,
+    globalSponsorId: sponsorId,
+    sponsorUsername,
     sponsorLeg: placementLeg,
     isSpillover: isSpilloverPlacement,
   });
@@ -4428,9 +4563,10 @@ function drawImageAvatarCircle(cx, cy, radius, imageUrl) {
 
 function drawResolvedAvatarCircle(cx, cy, radius, nodeId, options = {}) {
   const safeNodeId = safeText(nodeId);
+  const disablePhoto = options?.disablePhoto === true;
   if (isSessionAvatarNodeId(safeNodeId)) {
     const photoUrl = resolveSessionAvatarPhotoUrl();
-    if (photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
+    if (!disablePhoto && photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
       const sheen = createNodeAvatarSheen(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), options);
       context.beginPath();
       context.arc(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), 0, Math.PI * 2);
@@ -4438,11 +4574,14 @@ function drawResolvedAvatarCircle(cx, cy, radius, nodeId, options = {}) {
       context.fill();
       return { usedPhoto: true };
     }
-    fillNodeAvatarCircle(cx, cy, radius, safeNodeId || resolveSessionAvatarSeed(), {
-      ...options,
-      palette: resolveSessionAvatarPalette(),
-      variant: 'auto',
-    });
+    const useSessionPalette = options?.ignoreSourcePalette !== true;
+    fillNodeAvatarCircle(cx, cy, radius, safeNodeId || resolveSessionAvatarSeed(), useSessionPalette
+      ? {
+        ...options,
+        palette: resolveSessionAvatarPalette(),
+        variant: 'auto',
+      }
+      : options);
     return { usedPhoto: false };
   }
 
@@ -4450,7 +4589,7 @@ function drawResolvedAvatarCircle(cx, cy, radius, nodeId, options = {}) {
     ? options.node
     : resolveNodeById(safeNodeId);
   const photoUrl = resolveNodeAvatarPhotoUrl(nodeRecord);
-  if (photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
+  if (!disablePhoto && photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
     const sheen = createNodeAvatarSheen(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), options);
     context.beginPath();
     context.arc(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), 0, Math.PI * 2);
@@ -5010,11 +5149,36 @@ function readSessionSnapshot(storageKey, cookieKey) {
   return parseSessionPayload(readCookieValue(cookieKey));
 }
 
+function normalizePinnedNodeIdsFromLaunchStatePayload(value) {
+  const source = Array.isArray(value) ? value : [];
+  const deduped = [];
+  const seen = new Set();
+  for (const rawNodeId of source) {
+    const nodeId = safeText(rawNodeId);
+    if (!nodeId || seen.has(nodeId)) {
+      continue;
+    }
+    seen.add(nodeId);
+    deduped.push(nodeId);
+    if (deduped.length >= 10) {
+      break;
+    }
+  }
+  return deduped;
+}
+
+function resolveTimestampMs(value) {
+  const timestampMs = Date.parse(safeText(value));
+  return Number.isFinite(timestampMs) ? timestampMs : 0;
+}
+
 function createDefaultLaunchState(overrides = {}) {
   return {
     firstTime: false,
     firstOpenedAt: '',
     lastOpenedAt: '',
+    pinnedNodeIds: [],
+    pinnedNodeIdsUpdatedAt: '',
     checkedAt: new Date().toISOString(),
     source: 'fallback',
     ...overrides,
@@ -5026,6 +5190,8 @@ function normalizeMemberBinaryTreeLaunchStatePayload(payload = {}, source = 'ser
     firstTime: payload?.firstTime === true,
     firstOpenedAt: safeText(payload?.firstOpenedAt),
     lastOpenedAt: safeText(payload?.lastOpenedAt),
+    pinnedNodeIds: normalizePinnedNodeIdsFromLaunchStatePayload(payload?.pinnedNodeIds),
+    pinnedNodeIdsUpdatedAt: safeText(payload?.pinnedNodeIdsUpdatedAt),
     checkedAt: safeText(payload?.checkedAt) || new Date().toISOString(),
     source,
   });
@@ -5057,6 +5223,215 @@ async function fetchMemberBinaryTreeLaunchState(memberSession) {
   } catch {
     return createDefaultLaunchState({ source: 'network-fallback' });
   }
+}
+
+function clearPinnedNodeIdsServerSyncTimer() {
+  if (pinnedNodeIdsServerSyncTimerId) {
+    window.clearTimeout(pinnedNodeIdsServerSyncTimerId);
+    pinnedNodeIdsServerSyncTimerId = 0;
+  }
+}
+
+function canSyncPinnedNodeIdsToServer() {
+  return state.source === 'member' && Boolean(safeText(state.session?.authToken));
+}
+
+function resolvePinnedNodeIdsSyncKey(idsInput = state.pinnedNodeIds) {
+  return normalizePinnedNodeIds(idsInput).join('|');
+}
+
+async function fetchMemberBinaryTreePinnedNodes(memberSession = state.session) {
+  const authToken = safeText(memberSession?.authToken);
+  if (!authToken) {
+    return {
+      success: false,
+      status: 401,
+      reason: 'missing-auth-token',
+    };
+  }
+
+  try {
+    const response = await fetch(MEMBER_BINARY_TREE_PINNED_NODES_API, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        status: response.status,
+        reason: `http-${response.status}`,
+      };
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    return {
+      success: true,
+      status: 200,
+      pinnedNodeIds: normalizePinnedNodeIdsFromLaunchStatePayload(payload?.pinnedNodeIds),
+      pinnedNodeIdsUpdatedAt: safeText(payload?.pinnedNodeIdsUpdatedAt),
+      checkedAt: safeText(payload?.checkedAt),
+    };
+  } catch {
+    return {
+      success: false,
+      status: 0,
+      reason: 'network-fallback',
+    };
+  }
+}
+
+async function flushPinnedNodeIdsServerSync() {
+  if (!canSyncPinnedNodeIdsToServer()) {
+    return;
+  }
+
+  if (pinnedNodeIdsServerSyncInFlight) {
+    pinnedNodeIdsServerSyncQueued = true;
+    return;
+  }
+
+  const authToken = safeText(state.session?.authToken);
+  if (!authToken) {
+    return;
+  }
+
+  const currentPinnedNodeIds = normalizePinnedNodeIds(state.pinnedNodeIds);
+  const currentSyncKey = currentPinnedNodeIds.join('|');
+  if (currentSyncKey === pinnedNodeIdsLastSyncedKey) {
+    pinnedNodeIdsLocalDirty = false;
+    return;
+  }
+
+  pinnedNodeIdsServerSyncInFlight = true;
+  try {
+    const response = await fetch(MEMBER_BINARY_TREE_PINNED_NODES_API, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        pinnedNodeIds: currentPinnedNodeIds,
+      }),
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const shouldRetry = response.status !== 401 && response.status !== 403;
+      if (shouldRetry) {
+        schedulePinnedNodeIdsServerSync();
+      }
+      return;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    const serverPinnedNodeIds = normalizePinnedNodeIds(payload?.pinnedNodeIds);
+    const serverSyncKey = serverPinnedNodeIds.join('|');
+
+    pinnedNodeIdsLocalDirty = false;
+    pinnedNodeIdsLastSyncedKey = serverSyncKey;
+    if (serverSyncKey !== currentSyncKey) {
+      setPinnedNodeIds(serverPinnedNodeIds, {
+        persistLocal: true,
+        syncServer: false,
+      });
+    }
+
+    if (state.launchState && typeof state.launchState === 'object') {
+      state.launchState.pinnedNodeIds = serverPinnedNodeIds.slice();
+      state.launchState.pinnedNodeIdsUpdatedAt = safeText(payload?.pinnedNodeIdsUpdatedAt);
+    }
+  } catch {
+    schedulePinnedNodeIdsServerSync();
+  } finally {
+    pinnedNodeIdsServerSyncInFlight = false;
+    if (pinnedNodeIdsServerSyncQueued) {
+      pinnedNodeIdsServerSyncQueued = false;
+      void flushPinnedNodeIdsServerSync();
+    }
+  }
+}
+
+function schedulePinnedNodeIdsServerSync(options = {}) {
+  if (!canSyncPinnedNodeIdsToServer()) {
+    return;
+  }
+
+  const immediate = options?.immediate === true;
+  if (immediate) {
+    clearPinnedNodeIdsServerSyncTimer();
+    void flushPinnedNodeIdsServerSync();
+    return;
+  }
+
+  clearPinnedNodeIdsServerSyncTimer();
+  pinnedNodeIdsServerSyncTimerId = window.setTimeout(() => {
+    pinnedNodeIdsServerSyncTimerId = 0;
+    void flushPinnedNodeIdsServerSync();
+  }, PINNED_NODE_IDS_SERVER_SYNC_DEBOUNCE_MS);
+}
+
+async function syncPinnedNodeIdsFromServer(reason = 'timer') {
+  if (state.source !== 'member') {
+    return { success: false, skipped: true, reason: 'non-member-source' };
+  }
+
+  if (!canSyncPinnedNodeIdsToServer()) {
+    return { success: false, skipped: true, reason: 'missing-auth-token' };
+  }
+
+  if (pinnedNodeIdsLocalDirty || pinnedNodeIdsServerSyncInFlight || pinnedNodeIdsServerSyncTimerId > 0) {
+    return { success: false, skipped: true, reason: 'local-sync-pending' };
+  }
+
+  const remoteState = await fetchMemberBinaryTreePinnedNodes(state.session);
+  if (!remoteState.success) {
+    return {
+      success: false,
+      skipped: false,
+      reason: remoteState.reason || 'remote-fetch-failed',
+    };
+  }
+
+  const remotePinnedNodeIds = normalizePinnedNodeIds(remoteState.pinnedNodeIds);
+  const remoteSyncKey = remotePinnedNodeIds.join('|');
+  const remoteUpdatedAt = safeText(remoteState.pinnedNodeIdsUpdatedAt);
+  const remoteUpdatedAtMs = resolveTimestampMs(remoteUpdatedAt);
+  const localUpdatedAt = safeText(state.launchState?.pinnedNodeIdsUpdatedAt);
+  const localUpdatedAtMs = resolveTimestampMs(localUpdatedAt);
+
+  if (remoteSyncKey === pinnedNodeIdsLastSyncedKey && remoteUpdatedAtMs <= localUpdatedAtMs) {
+    return { success: true, skipped: true, reason: 'already-synced' };
+  }
+
+  if (remoteUpdatedAtMs > 0 && localUpdatedAtMs > 0 && remoteUpdatedAtMs < localUpdatedAtMs) {
+    return { success: true, skipped: true, reason: 'stale-remote-state' };
+  }
+
+  const localSyncKey = resolvePinnedNodeIdsSyncKey(state.pinnedNodeIds);
+  if (remoteSyncKey !== localSyncKey) {
+    setPinnedNodeIds(remotePinnedNodeIds, {
+      persistLocal: true,
+      syncServer: false,
+    });
+  }
+
+  pinnedNodeIdsLastSyncedKey = remoteSyncKey;
+  if (state.launchState && typeof state.launchState === 'object') {
+    state.launchState.pinnedNodeIds = remotePinnedNodeIds.slice();
+    state.launchState.pinnedNodeIdsUpdatedAt = remoteUpdatedAt;
+  }
+
+  return {
+    success: true,
+    skipped: false,
+    reason,
+    applied: remoteSyncKey !== localSyncKey,
+  };
 }
 
 async function resetMemberBinaryTreeLaunchStateFromDock() {
@@ -5330,8 +5705,7 @@ function resolveTreeNextLiveMemberCreatedAtMs(member = {}, index = 0, totalMembe
 function resolveTreeNextLiveNodeStatusFromAccountStatus(accountStatus) {
   const normalized = normalizeCredentialValue(accountStatus);
   if (
-    normalized.includes('pending')
-    || normalized.includes('review')
+    normalized.includes('review')
     || normalized.includes('dormant')
     || normalized.includes('inactive')
     || normalized.includes('suspend')
@@ -5351,16 +5725,30 @@ function resolveTreeNextLiveMemberAccountStatus(member = {}) {
     || member?.memberAccountStatus
     || member?.member_account_status,
   );
+  const normalizedExplicitStatus = normalizeCredentialValue(explicitStatus);
+  if (
+    normalizedExplicitStatus.includes('review')
+    || normalizedExplicitStatus.includes('dormant')
+    || normalizedExplicitStatus.includes('inactive')
+    || normalizedExplicitStatus.includes('suspend')
+    || normalizedExplicitStatus.includes('disable')
+    || normalizedExplicitStatus.includes('expired')
+  ) {
+    return explicitStatus || 'Inactive';
+  }
+
+  const personalVolumeSnapshot = resolveTreeNextLiveMemberPersonalVolumeSnapshot(member);
+  const isActiveByPersonalBv = personalVolumeSnapshot.currentPersonalPvBv >= ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN;
   if (explicitStatus) {
-    return explicitStatus;
+    return isActiveByPersonalBv ? 'Active' : 'Inactive';
   }
   if (typeof member?.isActive === 'boolean') {
-    return member.isActive ? 'Active' : 'Inactive';
+    return member.isActive && isActiveByPersonalBv ? 'Active' : 'Inactive';
   }
   if (typeof member?.active === 'boolean') {
-    return member.active ? 'Active' : 'Inactive';
+    return member.active && isActiveByPersonalBv ? 'Active' : 'Inactive';
   }
-  return member?.passwordSetupRequired ? 'Pending' : 'Active';
+  return isActiveByPersonalBv ? 'Active' : 'Inactive';
 }
 
 function isTreeNextLiveBinaryTreeEligibleMember(member = {}) {
@@ -5418,12 +5806,23 @@ function resolveTreeNextLiveMemberRank(member = {}) {
   return 'Personal';
 }
 
-function resolveTreeNextLiveMemberVolume(member = {}) {
+function resolveTreeNextLiveMemberPersonalVolumeSnapshot(member = {}) {
   const packageKey = normalizeCredentialValue(member?.enrollmentPackage);
   const packageMeta = ENROLL_PACKAGE_META[packageKey];
   const packageBv = Math.max(0, Math.floor(safeNumber(member?.packageBv, safeNumber(packageMeta?.bv, 0))));
   const starterPersonalPv = Math.max(0, Math.floor(safeNumber(member?.starterPersonalPv, packageBv)));
-  return starterPersonalPv > 0 ? starterPersonalPv : packageBv;
+  const baselineStarterPersonalPv = Math.max(0, Math.floor(safeNumber(
+    member?.serverCutoffBaselineStarterPersonalPv
+    ?? member?.server_cutoff_baseline_starter_personal_pv,
+    0,
+  )));
+  const currentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  return {
+    packageBv,
+    starterPersonalPv,
+    baselineStarterPersonalPv,
+    currentPersonalPvBv,
+  };
 }
 
 function createTreeNextLiveNodeIdForMember(member = {}, index = 0, usedNodeIds = new Set()) {
@@ -5504,6 +5903,13 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     : [];
   const badges = sourceBadges.length ? sourceBadges : [rank];
   const volume = Math.max(0, Math.floor(safeNumber(source?.volume, 0)));
+  const starterPersonalPv = Math.max(0, Math.floor(safeNumber(source?.starterPersonalPv, volume)));
+  const baselineStarterPersonalPv = Math.max(0, Math.floor(safeNumber(
+    source?.serverCutoffBaselineStarterPersonalPv
+    ?? source?.server_cutoff_baseline_starter_personal_pv,
+    0,
+  )));
+  const currentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
   const sourceAvatarPalette = resolveAvatarPaletteFromRecord(source)
     || resolveAvatarPaletteFromRecord(session);
   const sourceAvatarColorTriplet = resolveAvatarColorTripletFromRecord(source)
@@ -5550,7 +5956,13 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     title,
     badges,
     volume,
+    starterPersonalPv,
+    serverCutoffBaselineStarterPersonalPv: baselineStarterPersonalPv,
+    currentPersonalPvBv,
+    monthlyPersonalBv: currentPersonalPvBv,
     sponsorId: '',
+    globalSponsorId: '',
+    sponsorUsername: '',
     sponsorLeg: '',
     isSpillover: false,
     countryFlag: safeText(source?.countryFlag || session?.countryFlag || ''),
@@ -5688,7 +6100,13 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     title: 'Company Root',
     badges: ['Legacy'],
     volume: 0,
+    starterPersonalPv: 0,
+    serverCutoffBaselineStarterPersonalPv: 0,
+    currentPersonalPvBv: 0,
+    monthlyPersonalBv: 0,
     sponsorId: '',
+    globalSponsorId: '',
+    sponsorUsername: '',
     sponsorLeg: '',
     isSpillover: false,
   };
@@ -5709,6 +6127,8 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
       || `Member ${index + 1}`,
     ) || `Member ${index + 1}`;
     const accountStatus = resolveTreeNextLiveMemberAccountStatus(member);
+    const personalVolumeSnapshot = resolveTreeNextLiveMemberPersonalVolumeSnapshot(member);
+    const sponsorUsername = safeText(member?.sponsorUsername || member?.sponsor_username).replace(/^@+/, '');
     const rank = resolveTreeNextLiveMemberRank(member);
     const fallbackTitle = `${rank} Builder`;
     const title = safeText(member?.accountTitle || member?.title || fallbackTitle) || fallbackTitle;
@@ -5745,13 +6165,21 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
       rank,
       title,
       badges: [rank],
-      volume: resolveTreeNextLiveMemberVolume(member),
+      volume: personalVolumeSnapshot.starterPersonalPv > 0
+        ? personalVolumeSnapshot.starterPersonalPv
+        : personalVolumeSnapshot.packageBv,
+      starterPersonalPv: personalVolumeSnapshot.starterPersonalPv,
+      serverCutoffBaselineStarterPersonalPv: personalVolumeSnapshot.baselineStarterPersonalPv,
+      currentPersonalPvBv: personalVolumeSnapshot.currentPersonalPvBv,
+      monthlyPersonalBv: personalVolumeSnapshot.currentPersonalPvBv,
       sponsorId: '',
+      globalSponsorId: '',
+      sponsorUsername,
       sponsorLeg: '',
       isSpillover: false,
       countryFlag: normalizeCredentialValue(member?.countryFlag),
       enrollmentPackage: normalizeCredentialValue(member?.enrollmentPackage),
-      packageBv: Math.max(0, Math.floor(safeNumber(member?.packageBv, 0))),
+      packageBv: personalVolumeSnapshot.packageBv,
       fastTrackTier: normalizeCredentialValue(member?.fastTrackTier),
       businessCenterNodeType: safeText(member?.businessCenterNodeType),
       isStaffTreeAccount: Boolean(member?.isStaffTreeAccount),
@@ -5885,6 +6313,7 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     if (!nodeById.has(node.sponsorId)) {
       node.sponsorId = LIVE_TREE_GLOBAL_ROOT_ID;
     }
+    node.globalSponsorId = node.sponsorId;
     node.isSpillover = placementPreference.isSpillover
       || Boolean(node.sponsorId && node.sponsorId !== node.parent);
     node.sponsorLeg = node.sponsorId === node.parent ? node.side : '';
@@ -5938,6 +6367,7 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
       ...sourceNode,
       parent: mappedParentId,
       sponsorId: mappedSponsorId,
+      sourceSponsorId,
     };
     scopedNode.sponsorLeg = scopedNode.sponsorId === scopedNode.parent
       ? normalizeBinarySide(scopedNode.side)
@@ -6178,6 +6608,7 @@ async function syncTreeNextLiveNodes(options = {}) {
       force,
       animateNewNodes: true,
     });
+    await syncPinnedNodeIdsFromServer(reason);
     state.liveSync.lastSyncedAtMs = Date.now();
     state.liveSync.errorStreak = 0;
     return {
@@ -6570,13 +7001,16 @@ function resolveNodeAvatarPalette(nodeId = '', options = {}) {
   const sourceNode = options?.node && typeof options.node === 'object'
     ? options.node
     : null;
-  const sourcePalette = resolveAvatarPaletteFromRecord(sourceNode);
-  if (sourcePalette) {
-    return sourcePalette;
-  }
-  const sourceColorTriplet = resolveAvatarColorTripletFromRecord(sourceNode);
-  if (sourceColorTriplet) {
-    return buildAvatarPaletteFromColorTriplet(sourceColorTriplet);
+  const ignoreSourcePalette = options?.ignoreSourcePalette === true;
+  if (!ignoreSourcePalette) {
+    const sourcePalette = resolveAvatarPaletteFromRecord(sourceNode);
+    if (sourcePalette) {
+      return sourcePalette;
+    }
+    const sourceColorTriplet = resolveAvatarColorTripletFromRecord(sourceNode);
+    if (sourceColorTriplet) {
+      return buildAvatarPaletteFromColorTriplet(sourceColorTriplet);
+    }
   }
   const variant = safeText(options.variant).toLowerCase();
   if (variant === 'root') {
@@ -9536,9 +9970,26 @@ function drawNode(node) {
 
   const nodeId = safeText(node.id);
   const sourceNode = node?.node && typeof node.node === 'object' ? node.node : null;
-  const nodeVariant = isSessionAvatarNodeId(nodeId)
+  const nodeRecord = sourceNode || node;
+  const isActiveAccount = resolveNodeActivityState(nodeRecord);
+  const isPersonallyEnrolledNode = isNodePersonallyEnrolledBySession(nodeRecord);
+  const baseNodeVariant = isSessionAvatarNodeId(nodeId)
     ? 'auto'
     : (nodeId.toLowerCase() === 'root' ? 'root' : 'auto');
+  const nodeVariant = isPersonallyEnrolledNode ? 'direct' : baseNodeVariant;
+  const avatarRenderOptions = isActiveAccount
+    ? (isPersonallyEnrolledNode
+      ? {
+        variant: nodeVariant,
+        disablePhoto: true,
+        ignoreSourcePalette: true,
+      }
+      : {})
+    : {
+      variant: isPersonallyEnrolledNode ? 'directInactive' : 'neutral',
+      disablePhoto: true,
+      ignoreSourcePalette: true,
+    };
   let usedPhotoAvatar = false;
 
   if (node.lodTier === 'dot') {
@@ -9561,6 +10012,7 @@ function drawNode(node) {
         variant: nodeVariant,
         alpha: 0.98,
         sheenAlpha: 0.15,
+        ...avatarRenderOptions,
       });
       return;
     }
@@ -9570,6 +10022,7 @@ function drawNode(node) {
       variant: nodeVariant,
       alpha: 0.96,
       sheenAlpha: 0.12,
+      ...avatarRenderOptions,
     });
     return;
   }
@@ -9602,6 +10055,7 @@ function drawNode(node) {
     variant: nodeVariant,
     alpha: 0.98,
     sheenAlpha: 0.16,
+    ...avatarRenderOptions,
   });
   usedPhotoAvatar = Boolean(baseAvatarRender?.usedPhoto);
   context.beginPath();
@@ -10607,6 +11061,11 @@ function onSessionStorageChange(event) {
     return;
   }
   state.session = nextSession;
+  pinnedNodeIdsLastSyncedKey = '';
+  pinnedNodeIdsLocalDirty = false;
+  if (state.source === 'member') {
+    schedulePinnedNodeIdsServerSync({ immediate: true });
+  }
 }
 
 function bindEvents() {
@@ -10682,7 +11141,43 @@ async function bootstrap() {
   refreshUniverseBreadcrumb('root');
 
   setSelectedNode('', { animate: false });
-  setPinnedNodeIds(readPinnedNodeIdsFromStorage());
+  const localPinnedNodeIds = normalizePinnedNodeIds(readPinnedNodeIdsFromStorage());
+  const launchStatePinnedNodeIds = normalizePinnedNodeIds(state.launchState?.pinnedNodeIds);
+  const launchStatePinnedNodeIdsUpdatedAt = safeText(state.launchState?.pinnedNodeIdsUpdatedAt);
+
+  if (state.source === 'member') {
+    const shouldBackfillServerPinnedNodeIds = (
+      launchStatePinnedNodeIds.length === 0
+      && !launchStatePinnedNodeIdsUpdatedAt
+      && localPinnedNodeIds.length > 0
+    );
+
+    const initialPinnedNodeIds = shouldBackfillServerPinnedNodeIds
+      ? localPinnedNodeIds
+      : launchStatePinnedNodeIds;
+
+    setPinnedNodeIds(initialPinnedNodeIds, {
+      persistLocal: true,
+      syncServer: false,
+    });
+
+    pinnedNodeIdsLastSyncedKey = shouldBackfillServerPinnedNodeIds
+      ? resolvePinnedNodeIdsSyncKey(launchStatePinnedNodeIds)
+      : resolvePinnedNodeIdsSyncKey(initialPinnedNodeIds);
+
+    if (shouldBackfillServerPinnedNodeIds) {
+      schedulePinnedNodeIdsServerSync({ immediate: true });
+    }
+    pinnedNodeIdsLocalDirty = false;
+  } else {
+    setPinnedNodeIds(localPinnedNodeIds, {
+      persistLocal: true,
+      syncServer: false,
+    });
+    pinnedNodeIdsLastSyncedKey = '';
+    pinnedNodeIdsLocalDirty = false;
+  }
+
   updateCanvasSize();
   configureStartupRevealProfile();
   state.layout = resolveLayout(state.renderSize.width, state.renderSize.height);

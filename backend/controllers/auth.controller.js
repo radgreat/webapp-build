@@ -1,9 +1,12 @@
 import {
   authenticateUser,
+  resolveAuthenticatedMemberSession,
   validatePasswordSetupToken,
   updatePasswordFromSetupToken,
   resolveMemberEmailVerificationStatus,
   resolveMemberBinaryTreeLaunchState,
+  updateMemberBinaryTreePinnedNodes,
+  resolveMemberBinaryTreePinnedNodes,
   resetMemberBinaryTreeLaunchState,
   requestMemberEmailVerification,
   verifyMemberEmailByToken,
@@ -135,6 +138,63 @@ export async function getMemberBinaryTreeLaunchState(req, res) {
     console.error(error);
     return res.status(500).json({
       error: 'Unable to load Binary Tree launch state.',
+    });
+  }
+}
+
+export async function getMemberSession(req, res) {
+  try {
+    const result = await resolveAuthenticatedMemberSession(req.authenticatedMember || {});
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to resolve member auth session.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to load authenticated member session.',
+    });
+  }
+}
+
+export async function putMemberBinaryTreePinnedNodes(req, res) {
+  try {
+    const result = await updateMemberBinaryTreePinnedNodes(
+      req.authenticatedMember || {},
+      req.body || {},
+    );
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to update Binary Tree pinned nodes.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to update Binary Tree pinned nodes.',
+    });
+  }
+}
+
+export async function getMemberBinaryTreePinnedNodes(req, res) {
+  try {
+    const result = await resolveMemberBinaryTreePinnedNodes(req.authenticatedMember || {});
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to load Binary Tree pinned nodes.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to load Binary Tree pinned nodes.',
     });
   }
 }

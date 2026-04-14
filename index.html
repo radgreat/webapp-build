@@ -3227,9 +3227,9 @@
                   <div class="flex items-center justify-between gap-3">
                     <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Account Active Until</p>
                     <span class="relative inline-flex items-center">
-                      <span id="dashboard-account-overview-status-badge" aria-label="To stay active and keep earning commissions, you need to purchase at least one product each month." tabindex="0" class="peer inline-flex items-center gap-1 rounded-full bg-semantic-danger-bg px-2 py-0.5 text-caption font-medium text-semantic-danger">Inactive</span>
+                      <span id="dashboard-account-overview-status-badge" aria-label="To stay active and keep earning commissions, maintain at least 50 Personal BV this month." tabindex="0" class="peer inline-flex items-center gap-1 rounded-full bg-semantic-danger-bg px-2 py-0.5 text-caption font-medium text-semantic-danger">Inactive</span>
                       <span class="dashboard-account-status-tooltip pointer-events-none absolute right-0 top-full z-10 mt-2 hidden w-64 rounded-lg border border-surface-border-light px-2.5 py-1.5 text-xs leading-4 text-white shadow-depth-1 backdrop-blur-sm peer-hover:block peer-focus-visible:block">
-                        To stay active and keep earning commissions, you need to purchase at least one product each month.
+                        To stay active and keep earning commissions, maintain at least 50 Personal BV this month.
                       </span>
                     </span>
                   </div>
@@ -4565,6 +4565,20 @@
               </div>
               <div id="preferred-customer-list" class="mt-4 space-y-3"></div>
               <p id="preferred-customer-empty-state" class="mt-3 text-body-sm text-text-tertiary">No preferred customers assigned yet.</p>
+              <div class="mt-6 border-t border-surface-border pt-4">
+                <div class="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <p class="text-body-sm font-medium text-text-primary">Guest Attributed Purchases</p>
+                    <p class="text-caption text-text-tertiary mt-1">Guest and unlinked checkouts are tracked here for preferred-customer follow-up.</p>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span id="preferred-customer-guest-record-count" class="text-caption px-2 py-1 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">0 invoices</span>
+                    <span id="preferred-customer-guest-total-purchased" class="text-caption px-2 py-1 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">$0.00 purchased</span>
+                  </div>
+                </div>
+                <div id="preferred-customer-guest-sales-list" class="mt-3 space-y-2"></div>
+                <p id="preferred-customer-guest-sales-empty-state" class="mt-2 text-caption text-text-tertiary">No guest-attributed purchases yet.</p>
+              </div>
             </div>
 
             <div class="bg-surface-raised border border-surface-border rounded-xl p-5 shadow-depth-1 space-y-4">
@@ -5762,10 +5776,74 @@
         return false;
       }
     }
+
+    function hydrateCurrentSessionUserFromServerSync(user) {
+      if (!user || typeof user !== 'object') {
+        return false;
+      }
+
+      const authToken = String(user?.authToken || '').trim();
+      if (!authToken) {
+        clearUserSession();
+        window.location.replace('./login.html');
+        return false;
+      }
+
+      let responsePayload = null;
+      try {
+        const request = new XMLHttpRequest();
+        request.open('GET', '/api/member-auth/session', false);
+        request.setRequestHeader('Authorization', `Bearer ${authToken}`);
+        request.setRequestHeader('Accept', 'application/json');
+        request.send(null);
+
+        try {
+          responsePayload = JSON.parse(request.responseText || '{}');
+        } catch {
+          responsePayload = {};
+        }
+
+        if (request.status < 200 || request.status >= 300) {
+          clearUserSession();
+          window.location.replace('./login.html');
+          return false;
+        }
+      } catch {
+        clearUserSession();
+        window.location.replace('./login.html');
+        return false;
+      }
+
+      const serverUser = responsePayload?.user;
+      if (!serverUser || typeof serverUser !== 'object') {
+        clearUserSession();
+        window.location.replace('./login.html');
+        return false;
+      }
+
+      const preservedAuthToken = String(user?.authToken || '').trim();
+      const preservedAuthTokenExpiresAt = String(user?.authTokenExpiresAt || '').trim();
+      Object.assign(user, {
+        ...user,
+        ...serverUser,
+      });
+
+      if (preservedAuthToken) {
+        user.authToken = preservedAuthToken;
+      }
+      if (preservedAuthTokenExpiresAt) {
+        user.authTokenExpiresAt = preservedAuthTokenExpiresAt;
+      }
+
+      persistUserSessionSnapshot(user);
+      return true;
+    }
     const currentSessionUser = readUserSession();
     if (!currentSessionUser) {
       window.location.replace('./login.html');
     } else {
+      const sessionHydratedFromServer = hydrateCurrentSessionUserFromServerSync(currentSessionUser);
+      if (sessionHydratedFromServer) {
       window.__vaultAuthUser = currentSessionUser;
 
       const sidebar = document.getElementById('sidebar');
@@ -5980,6 +6058,10 @@
       const preferredCustomerTotalPurchasedElement = document.getElementById('preferred-customer-total-purchased');
       const preferredCustomerListElement = document.getElementById('preferred-customer-list');
       const preferredCustomerEmptyStateElement = document.getElementById('preferred-customer-empty-state');
+      const preferredCustomerGuestRecordCountElement = document.getElementById('preferred-customer-guest-record-count');
+      const preferredCustomerGuestTotalPurchasedElement = document.getElementById('preferred-customer-guest-total-purchased');
+      const preferredCustomerGuestSalesListElement = document.getElementById('preferred-customer-guest-sales-list');
+      const preferredCustomerGuestSalesEmptyStateElement = document.getElementById('preferred-customer-guest-sales-empty-state');
       const preferredCustomerSelectedNameElement = document.getElementById('preferred-customer-selected-name');
       const preferredCustomerSelectedContactElement = document.getElementById('preferred-customer-selected-contact');
       const preferredCustomerSelectedTotalElement = document.getElementById('preferred-customer-selected-total');
@@ -6167,6 +6249,7 @@
       const STORE_PRODUCTS_API = '/api/store-products';
       const STORE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
       const STORE_CHECKOUT_INTENT_API = '/api/store-checkout/intent';
+      const STORE_CHECKOUT_INTENT_COMPLETE_API = '/api/store-checkout/intent/complete';
       const E_WALLET_API = '/api/e-wallet';
       const E_WALLET_PEER_TRANSFER_API = '/api/e-wallet/peer-transfer';
       const E_WALLET_COMMISSION_TRANSFER_API = '/api/e-wallet/commission-transfer';
@@ -6193,6 +6276,21 @@
         'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
         'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 1280, bv: 1000 },
       };
+      const DEFAULT_STORE_BUILDER_PACKAGE_KEY = 'personal-builder-pack';
+      const STORE_PRODUCT_PACKAGE_KEYS = Object.freeze([
+        FREE_ACCOUNT_PACKAGE_KEY,
+        'personal-builder-pack',
+        'business-builder-pack',
+        'infinity-builder-pack',
+        'legacy-builder-pack',
+      ]);
+      const DEFAULT_STORE_PACKAGE_EARNINGS = Object.freeze({
+        [FREE_ACCOUNT_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
+        'personal-builder-pack': Object.freeze({ retailCommission: 4, bv: 50 }),
+        'business-builder-pack': Object.freeze({ retailCommission: 8, bv: 48 }),
+        'infinity-builder-pack': Object.freeze({ retailCommission: 12, bv: 44 }),
+        'legacy-builder-pack': Object.freeze({ retailCommission: 20, bv: 38 }),
+      });
       const FAST_TRACK_TIER_META = {
         'personal-pack': { label: 'Personal Pack' },
         'business-pack': { label: 'Business Pack' },
@@ -7681,7 +7779,7 @@
       let treeEnrollLastTriggerElement = null;
       let treeSettingsLastTriggerElement = null;
       const DEFAULT_TREE_TRACKPAD_ZOOM_SENSITIVITY = 0.3;
-      const ACCOUNT_ACTIVITY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+      const ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN = 50;
       const DEFAULT_COUNTRY_FLAG = 'un';
       const COUNTRY_FLAG_CODE_BY_EMOJI = Object.freeze({
         '🇺🇸': 'us',
@@ -8159,41 +8257,64 @@
         return currentRank || 'Legacy';
       }
 
-      function resolveAccountActiveUntilMs(user) {
-        const explicitActiveUntilRaw = String(user?.activityActiveUntilAt || user?.activeUntilAt || '').trim();
-        const explicitActiveUntilMs = Date.parse(explicitActiveUntilRaw);
-        if (Number.isFinite(explicitActiveUntilMs)) {
-          return explicitActiveUntilMs;
+      function resolveAccountCurrentPersonalBv(user) {
+        const cutoffTimestampMs = Date.parse(String(
+          user?.activityActiveUntilAt
+          ?? user?.activity_active_until_at
+          ?? '',
+        ).trim());
+        const hasExpiredCutoff = Number.isFinite(cutoffTimestampMs) && Date.now() >= cutoffTimestampMs;
+
+        const explicitCurrentPersonalBv = Number(
+          user?.currentPersonalPvBv
+          ?? user?.current_personal_pv_bv
+          ?? user?.monthlyPersonalBv
+          ?? user?.monthly_personal_bv
+          ?? user?.currentWeekPersonalPv
+          ?? user?.current_week_personal_pv,
+        );
+        if (Number.isFinite(explicitCurrentPersonalBv)) {
+          return hasExpiredCutoff ? 0 : Math.max(0, Math.floor(explicitCurrentPersonalBv));
         }
 
-        const enrollmentDateRaw = String(user?.createdAt || user?.enrolledAt || '').trim();
-        const enrollmentDateMs = Date.parse(enrollmentDateRaw);
-        if (Number.isFinite(enrollmentDateMs)) {
-          return enrollmentDateMs + ACCOUNT_ACTIVITY_WINDOW_MS;
-        }
-
-        const purchaseDateRaw = String(user?.lastProductPurchaseAt || user?.lastPurchaseAt || '').trim();
-        const purchaseDateMs = Date.parse(purchaseDateRaw);
-        if (Number.isFinite(purchaseDateMs)) {
-          return purchaseDateMs + ACCOUNT_ACTIVITY_WINDOW_MS;
-        }
-
-        return NaN;
+        const enrollmentPackageBv = toWholeNumber(
+          user?.enrollmentPackageBv ?? user?.packageBv,
+          0,
+        );
+        const starterPersonalPv = toWholeNumber(user?.starterPersonalPv, enrollmentPackageBv);
+        const baselineStarterPersonalPv = resolveMemberServerCutoffBaselineVolume(user, 0);
+        return hasExpiredCutoff
+          ? 0
+          : Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
       }
 
       function resolveAccountRankActivityState(user) {
-        const activeUntilMs = resolveAccountActiveUntilMs(user);
-        if (!Number.isFinite(activeUntilMs)) {
-          return { isActive: false, label: 'Inactive' };
+        const statusCandidate = String(user?.accountStatus || user?.status || '').trim().toLowerCase();
+        const currentPersonalBv = resolveAccountCurrentPersonalBv(user);
+        if (
+          statusCandidate.includes('review')
+          || statusCandidate.includes('suspend')
+          || statusCandidate.includes('disable')
+        ) {
+          return {
+            isActive: false,
+            label: 'Inactive',
+            currentPersonalBv,
+            requiredPersonalBv: ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN,
+          };
         }
 
-        const isActive = Date.now() <= activeUntilMs;
-        return { isActive, label: isActive ? 'Active' : 'Inactive' };
+        const isActive = currentPersonalBv >= ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN;
+        return {
+          isActive,
+          label: isActive ? 'Active' : 'Inactive',
+          currentPersonalBv,
+          requiredPersonalBv: ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN,
+        };
       }
 
-      function formatAccountActivityWindowDuration(durationMs) {
-        const safeDurationMs = Math.max(0, Number(durationMs) || 0);
-        const totalMinutes = Math.max(0, Math.floor(safeDurationMs / 60000));
+      function formatDashboardAccountRemaining(ms) {
+        const totalMinutes = Math.max(0, Math.floor(ms / 60000));
         const days = Math.floor(totalMinutes / 1440);
         const hours = Math.floor((totalMinutes % 1440) / 60);
         const minutes = totalMinutes % 60;
@@ -8207,6 +8328,89 @@
         return `${minutes}m`;
       }
 
+      function resolveAnchoredMonthlyCutoffMs(user, referenceDate = new Date()) {
+        const anchorDate = new Date(String(
+          user?.createdAt
+          ?? user?.created_at
+          ?? '',
+        ).trim());
+        if (Number.isNaN(anchorDate.getTime())) {
+          return NaN;
+        }
+
+        const safeReferenceDate = referenceDate instanceof Date && !Number.isNaN(referenceDate.getTime())
+          ? referenceDate
+          : new Date();
+
+        function buildCutoffUtcMs(year, monthIndex) {
+          const lastDayOfMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+          const anchoredDay = Math.min(anchorDate.getUTCDate(), lastDayOfMonth);
+          return Date.UTC(
+            year,
+            monthIndex,
+            anchoredDay,
+            anchorDate.getUTCHours(),
+            anchorDate.getUTCMinutes(),
+            anchorDate.getUTCSeconds(),
+            anchorDate.getUTCMilliseconds(),
+          );
+        }
+
+        let nextCutoffMs = buildCutoffUtcMs(
+          safeReferenceDate.getUTCFullYear(),
+          safeReferenceDate.getUTCMonth(),
+        );
+        if (nextCutoffMs <= safeReferenceDate.getTime()) {
+          const nextMonthIndex = safeReferenceDate.getUTCMonth() + 1;
+          const nextYear = safeReferenceDate.getUTCFullYear() + Math.floor(nextMonthIndex / 12);
+          const normalizedNextMonthIndex = ((nextMonthIndex % 12) + 12) % 12;
+          nextCutoffMs = buildCutoffUtcMs(nextYear, normalizedNextMonthIndex);
+        }
+
+        return nextCutoffMs;
+      }
+
+      function resolveAccountActivityUntilLabel(user) {
+        const storedActiveUntilMs = Date.parse(String(
+          user?.activityActiveUntilAt
+          ?? user?.activity_active_until_at
+          ?? '',
+        ).trim());
+        const now = new Date();
+        const anchoredCutoffMs = resolveAnchoredMonthlyCutoffMs(user, now);
+        const activeUntilMs = Number.isFinite(anchoredCutoffMs)
+          ? anchoredCutoffMs
+          : storedActiveUntilMs;
+
+        if (!Number.isFinite(activeUntilMs)) {
+          return {
+            text: '--',
+            ariaLabel: 'Account cutoff timer is unavailable.',
+          };
+        }
+
+        const remainingMs = activeUntilMs - now.getTime();
+        const activeUntilDateLabel = new Date(activeUntilMs).toLocaleString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+        });
+        if (remainingMs <= 0) {
+          return {
+            text: 'Expired',
+            ariaLabel: `Account monthly cutoff expired on ${activeUntilDateLabel}.`,
+          };
+        }
+
+        const remainingLabel = formatDashboardAccountRemaining(remainingMs);
+        return {
+          text: remainingLabel,
+          ariaLabel: `${remainingLabel} remaining until monthly cutoff (${activeUntilDateLabel}).`,
+        };
+      }
+
       function renderDashboardAccountOverviewKpi(user = currentSessionUser, rankLabel = currentAccountRank) {
         const resolvedRankLabel = normalizeRankLabel(
           rankLabel
@@ -8214,14 +8418,18 @@
           || currentAccountRank
           || 'Legacy',
         ) || 'Legacy';
-        const { isActive, label } = resolveAccountRankActivityState(user);
-        const activeUntilMs = resolveAccountActiveUntilMs(user);
+        const {
+          isActive,
+          label,
+          currentPersonalBv,
+          requiredPersonalBv,
+        } = resolveAccountRankActivityState(user);
 
         if (dashboardAccountOverviewStatusBadgeElement) {
           dashboardAccountOverviewStatusBadgeElement.textContent = label;
           dashboardAccountOverviewStatusBadgeElement.setAttribute(
             'aria-label',
-            'To stay active and keep earning commissions, you need to purchase at least one product each month.',
+            `To stay active and keep earning commissions, maintain at least ${requiredPersonalBv.toLocaleString()} Personal BV this month.`,
           );
           dashboardAccountOverviewStatusBadgeElement.classList.remove(
             ...accountRankActivityActiveClasses,
@@ -8237,20 +8445,12 @@
         }
 
         if (dashboardAccountOverviewActiveWindowElement) {
-          if (!Number.isFinite(activeUntilMs)) {
-            dashboardAccountOverviewActiveWindowElement.textContent = '--';
-            dashboardAccountOverviewActiveWindowElement.setAttribute('aria-label', 'No activity window on record');
-          } else {
-            const deltaMs = activeUntilMs - Date.now();
-            const durationLabel = formatAccountActivityWindowDuration(Math.abs(deltaMs));
-            dashboardAccountOverviewActiveWindowElement.textContent = deltaMs >= 0 ? durationLabel : '0m';
-            dashboardAccountOverviewActiveWindowElement.setAttribute(
-              'aria-label',
-              deltaMs >= 0
-                ? `Account active for ${durationLabel} remaining`
-                : `Account activity window expired ${durationLabel} ago`,
-            );
-          }
+          const activityUntilDisplay = resolveAccountActivityUntilLabel(user);
+          dashboardAccountOverviewActiveWindowElement.textContent = activityUntilDisplay.text;
+          dashboardAccountOverviewActiveWindowElement.setAttribute(
+            'aria-label',
+            activityUntilDisplay.ariaLabel,
+          );
         }
       }
 
@@ -8359,6 +8559,7 @@
         const starterPersonalPv = toWholeNumber(user?.starterPersonalPv, enrollmentPackageBv);
         const serverCutoffBaselineStarterPersonalPv = resolveMemberServerCutoffBaselineVolume(user, 0);
         const currentWeekPersonalPv = Math.max(0, starterPersonalPv - serverCutoffBaselineStarterPersonalPv);
+        const currentPersonalPvBv = resolveAccountCurrentPersonalBv(user);
         const starterTotalCycles = toWholeNumber(user?.starterTotalCycles, 0);
         const hasStarterProfile = enrollmentPackageBv > 0 || starterPersonalPv > 0 || starterTotalCycles > 0;
 
@@ -8367,13 +8568,14 @@
           starterPersonalPv: starterPersonalPv > 0 ? starterPersonalPv : enrollmentPackageBv,
           serverCutoffBaselineStarterPersonalPv,
           currentWeekPersonalPv,
+          currentPersonalPvBv,
           starterTotalCycles,
         };
       }
 
       const currentSessionStarterDashboard = resolveStarterDashboardMetrics(currentSessionUser);
       beginDashboardPersonalVolumeServerWait();
-      updateDashboardPersonalVolumeKpi(currentSessionStarterDashboard.currentWeekPersonalPv, {
+      updateDashboardPersonalVolumeKpi(currentSessionStarterDashboard.currentPersonalPvBv, {
         trackTrend: true,
         observedAtMs: resolveServerPersonalVolumeObservedAtMs(currentSessionUser),
       });
@@ -14099,7 +14301,7 @@
         if (binaryTreeSummarySnapshot) {
           applyBinaryTreeDashboardSummary(binaryTreeSummarySnapshot);
         } else {
-          const fallbackPersonalVolume = Math.max(0, toWholeNumber(currentSessionStarterDashboard?.currentWeekPersonalPv, 0));
+          const fallbackPersonalVolume = Math.max(0, toWholeNumber(currentSessionStarterDashboard?.currentPersonalPvBv, 0));
           const fallbackCycles = Math.max(0, toWholeNumber(currentSessionStarterDashboard?.starterTotalCycles, 0));
           const dashboardPersonalVolume = dashboardMockupModeEnabled
             ? toWholeNumber(DASHBOARD_KPI_MOCK_PREVIEW.personalVolume, fallbackPersonalVolume)
@@ -18273,6 +18475,9 @@
         }
 
         return storeInvoices.map((invoice, index) => {
+          if (isInvoiceAttributedGuestCheckout(invoice)) {
+            return null;
+          }
           if (!isInvoiceOwnedByCurrentUser(invoice)) {
             return null;
           }
@@ -19468,10 +19673,11 @@
       }
 
       function collectPreferredCustomerInvoiceIdentityKeys(invoice) {
+        // Guest checkout can include name/email only. We only treat invoices as member-linked
+        // when a stable member identity is present (user id or username).
         return [
           normalizeMemberKey(invoice?.buyerUserId),
           normalizeMemberKey(invoice?.buyerUsername),
-          normalizeMemberKey(invoice?.buyerEmail),
         ].filter(Boolean);
       }
 
@@ -19750,6 +19956,14 @@
 
         const planningMembers = resolvePreferredCustomerPlanningMembers();
         const ownerInvoices = resolveStoreInvoicesForCurrentOwnerView();
+        const allInvoices = Array.isArray(storeInvoices)
+          ? storeInvoices.filter((invoice) => {
+            return invoice
+              && typeof invoice === 'object'
+              && !isEnrollmentGeneratedInvoice(invoice);
+          })
+          : [];
+        const matchedOwnerInvoiceIds = new Set();
 
         preferredCustomerPlannerRows = planningMembers
           .map((member) => {
@@ -19764,7 +19978,19 @@
               return null;
             }
 
-            const matchedInvoices = ownerInvoices.filter((invoice) => doesInvoiceMatchPreferredCustomerMember(invoice, member));
+            const matchedInvoices = allInvoices.filter((invoice) => {
+              if (!doesInvoiceMatchPreferredCustomerMember(invoice, member)) {
+                return false;
+              }
+
+              return isInvoiceAttributedToCurrentStoreOwner(invoice) || isInvoiceStoreAttributionFallback(invoice);
+            });
+            matchedInvoices.forEach((invoice) => {
+              const invoiceIdentityKey = normalizeMemberKey(invoice?.id);
+              if (invoiceIdentityKey) {
+                matchedOwnerInvoiceIds.add(invoiceIdentityKey);
+              }
+            });
             const totals = matchedInvoices.reduce((acc, invoice) => {
               acc.totalPurchased += Number(invoice?.amount || 0);
               acc.totalBp += Math.max(0, toWholeNumber(invoice?.bp, 0));
@@ -19806,6 +20032,41 @@
             const rightCreatedMs = Date.parse(String(right?.createdAt || ''));
             return (Number.isFinite(rightCreatedMs) ? rightCreatedMs : 0) - (Number.isFinite(leftCreatedMs) ? leftCreatedMs : 0);
           });
+
+        const preferredCustomerGuestInvoices = ownerInvoices
+          .filter((invoice) => isInvoiceAttributedGuestCheckout(invoice))
+          .filter((invoice) => {
+            const invoiceIdentityKey = normalizeMemberKey(invoice?.id);
+            if (!invoiceIdentityKey) {
+              return true;
+            }
+            return !matchedOwnerInvoiceIds.has(invoiceIdentityKey);
+          });
+        const preferredCustomerGuestInvoicesFallback = (
+          preferredCustomerGuestInvoices.length > 0
+            ? preferredCustomerGuestInvoices
+            : (Array.isArray(storeInvoices) ? storeInvoices : []).filter((invoice) => {
+              if (!invoice || typeof invoice !== 'object') {
+                return false;
+              }
+              if (isEnrollmentGeneratedInvoice(invoice)) {
+                return false;
+              }
+              if (hasInvoiceLinkedBuyerIdentity(invoice)) {
+                return false;
+              }
+              const normalizedAttributionKey = normalizeStoreCode(invoice?.attributionKey || '');
+              const normalizedDefaultAttribution = normalizeStoreCode(defaultUplineStoreCode);
+              return Boolean(normalizedAttributionKey) && normalizedAttributionKey !== normalizedDefaultAttribution;
+            })
+        ).filter((invoice) => {
+          const invoiceIdentityKey = normalizeMemberKey(invoice?.id);
+          if (!invoiceIdentityKey) {
+            return true;
+          }
+          return !matchedOwnerInvoiceIds.has(invoiceIdentityKey);
+        });
+        renderPreferredCustomerGuestSales(preferredCustomerGuestInvoicesFallback);
 
         const totalPurchased = preferredCustomerPlannerRows.reduce((sum, row) => sum + row.totalPurchased, 0);
         preferredCustomerRecordCountElement.textContent = `${preferredCustomerPlannerRows.length} customer${preferredCustomerPlannerRows.length === 1 ? '' : 's'}`;
@@ -19852,6 +20113,68 @@
         }).join('');
 
         renderPreferredCustomerPlanSelection();
+      }
+
+      function renderPreferredCustomerGuestSales(invoices = []) {
+        if (
+          !preferredCustomerGuestRecordCountElement
+          || !preferredCustomerGuestTotalPurchasedElement
+          || !preferredCustomerGuestSalesListElement
+          || !preferredCustomerGuestSalesEmptyStateElement
+        ) {
+          return;
+        }
+
+        const safeInvoices = Array.isArray(invoices)
+          ? invoices.filter((invoice) => invoice && typeof invoice === 'object')
+          : [];
+        const sortedInvoices = safeInvoices.slice().sort((left, right) => {
+          const leftMs = Date.parse(String(left?.createdAt || ''));
+          const rightMs = Date.parse(String(right?.createdAt || ''));
+          return (Number.isFinite(rightMs) ? rightMs : 0) - (Number.isFinite(leftMs) ? leftMs : 0);
+        });
+        const totalPurchased = sortedInvoices.reduce((sum, invoice) => {
+          return sum + Math.max(0, Number(invoice?.amount || 0));
+        }, 0);
+
+        preferredCustomerGuestRecordCountElement.textContent = `${sortedInvoices.length} invoice${sortedInvoices.length === 1 ? '' : 's'}`;
+        preferredCustomerGuestTotalPurchasedElement.textContent = `${formatCurrency(totalPurchased)} purchased`;
+
+        if (sortedInvoices.length === 0) {
+          preferredCustomerGuestSalesListElement.innerHTML = '';
+          preferredCustomerGuestSalesEmptyStateElement.classList.remove('hidden');
+          return;
+        }
+
+        preferredCustomerGuestSalesEmptyStateElement.classList.add('hidden');
+        preferredCustomerGuestSalesListElement.innerHTML = sortedInvoices.slice(0, 12).map((invoice) => {
+          const invoiceId = escapeHtml(String(invoice?.id || '--').trim() || '--');
+          const buyerLabel = escapeHtml(String(invoice?.buyer || invoice?.buyerEmail || 'Guest buyer').trim() || 'Guest buyer');
+          const buyerEmail = escapeHtml(String(invoice?.buyerEmail || '--').trim() || '--');
+          const status = escapeHtml(String(invoice?.status || 'Pending').trim() || 'Pending');
+          const createdLabel = escapeHtml(formatMemberDateTime(invoice?.createdAt));
+          const statusClass = normalizeMemberKey(invoice?.status) === 'posted'
+            ? 'text-semantic-success'
+            : 'text-semantic-warning';
+          return `
+            <article class="rounded-lg border border-surface-border bg-surface-base/30 px-3 py-2.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <p class="text-caption text-text-tertiary">${invoiceId}</p>
+                <p class="text-caption ${statusClass}">${status}</p>
+              </div>
+              <p class="text-body-sm text-text-primary mt-1">${buyerLabel}</p>
+              <div class="mt-1 flex flex-wrap items-center gap-2 text-caption text-text-tertiary">
+                <span>${buyerEmail}</span>
+                <span>-</span>
+                <span>${formatCurrency(Number(invoice?.amount || 0))}</span>
+                <span>-</span>
+                <span>${formatInteger(invoice?.bp)} BV</span>
+                <span>-</span>
+                <span>${createdLabel}</span>
+              </div>
+            </article>
+          `;
+        }).join('');
       }
 
       async function submitPreferredCustomerPlan(event) {
@@ -21657,7 +21980,7 @@
         ));
 
         if (currentSessionStarterDashboard.hasStarterProfile) {
-          accountPersonalVolume = currentSessionStarterDashboard.currentWeekPersonalPv;
+          accountPersonalVolume = currentSessionStarterDashboard.currentPersonalPvBv;
         }
         const dashboardPersonalVolume = dashboardMockupModeEnabled
           ? toWholeNumber(DASHBOARD_KPI_MOCK_PREVIEW.personalVolume, 0)
@@ -21985,10 +22308,10 @@
         'preferred customer': 15,
         'free account': 15,
         free: 15,
-        personal: 20,
-        business: 20,
-        infinity: 20,
-        legacy: 20,
+        personal: 0,
+        business: 0,
+        infinity: 0,
+        legacy: 0,
       });
       const registrationAttributionByUser = {
         alexm: 'REGISTRATION_LOCKED',
@@ -21997,9 +22320,9 @@
         alexm: 'CHG-ZERO',
       };
       const STORE_INVOICE_MOCK_SEED = Object.freeze([
-        { id: 'INV-240921', buyer: 'A. Rivera', attributionKey: defaultUplineStoreCode, amount: 184, bp: 96, status: 'Posted', discount: 20.44, mockSeed: true },
-        { id: 'INV-240918', buyer: 'J. Thomas', attributionKey: defaultUplineStoreCode, amount: 72, bp: 40, status: 'Pending', discount: 8.0, mockSeed: true },
-        { id: 'INV-240915', buyer: 'M. Chen', attributionKey: defaultUplineStoreCode, amount: 265, bp: 132, status: 'Posted', discount: 29.44, mockSeed: true },
+        { id: 'INV-240921', buyer: 'A. Rivera', attributionKey: defaultUplineStoreCode, amount: 184, retailCommission: 20, bp: 38, status: 'Posted', discount: 20.44, mockSeed: true },
+        { id: 'INV-240918', buyer: 'J. Thomas', attributionKey: defaultUplineStoreCode, amount: 72, retailCommission: 8, bp: 48, status: 'Pending', discount: 8.0, mockSeed: true },
+        { id: 'INV-240915', buyer: 'M. Chen', attributionKey: defaultUplineStoreCode, amount: 265, retailCommission: 12, bp: 44, status: 'Posted', discount: 29.44, mockSeed: true },
       ]);
 
       let storeProducts = [];
@@ -22031,7 +22354,7 @@
       }
 
       function isEnrollmentGeneratedInvoice(invoice) {
-        const normalizedInvoiceId = normalizeText(invoice?.id).toUpperCase();
+        const normalizedInvoiceId = String(invoice?.id || '').trim().toUpperCase();
         return /^INV-\d+-\d+$/.test(normalizedInvoiceId);
       }
 
@@ -22078,12 +22401,49 @@
         return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value);
       }
 
+      function resolveInvoiceRetailCommission(invoice) {
+        return roundCurrency(invoice?.retailCommission ?? invoice?.amount);
+      }
+
       function normalizeStoreCode(value) {
         const normalizedValue = String(value || '')
           .trim()
           .toUpperCase()
           .replace(/[^A-Z0-9-]/g, '');
         return LEGACY_STORE_CODE_ALIASES[normalizedValue] || normalizedValue;
+      }
+
+      function derivePublicStoreCodeFromInternalCode(value) {
+        const normalizedCode = normalizeStoreCode(value);
+        const internalMatch = normalizedCode.match(/^M-?([A-Z0-9]+)$/);
+        if (!internalMatch || !internalMatch[1]) {
+          return '';
+        }
+        return `CHG-${internalMatch[1]}`;
+      }
+
+      function deriveStoreCodeVariants(value) {
+        const normalizedCode = normalizeStoreCode(value);
+        if (!normalizedCode) {
+          return [];
+        }
+
+        const variants = new Set([normalizedCode]);
+        const parsedMatch = normalizedCode.match(/^(M|CHG)-?([A-Z0-9]+)$/);
+        if (parsedMatch && parsedMatch[2]) {
+          const prefix = parsedMatch[1];
+          const suffix = parsedMatch[2];
+          variants.add(`${prefix}-${suffix}`);
+          variants.add(`${prefix}${suffix}`);
+          if (prefix === 'M') {
+            variants.add(`CHG-${suffix}`);
+            variants.add(`CHG${suffix}`);
+          } else if (prefix === 'CHG') {
+            variants.add(`M-${suffix}`);
+            variants.add(`M${suffix}`);
+          }
+        }
+        return [...variants];
       }
 
       function roundCurrency(value) {
@@ -22165,18 +22525,51 @@
       function resolveCurrentStoreOwnerAttributionCodes() {
         const ownerCodes = new Set();
         const appendCode = (value) => {
-          const normalizedCode = normalizeStoreCode(value);
-          if (normalizedCode) {
-            ownerCodes.add(normalizedCode);
+          const normalizedDefaultAttributionCode = normalizeStoreCode(defaultUplineStoreCode);
+          for (const candidateCode of deriveStoreCodeVariants(value)) {
+            if (!candidateCode || candidateCode === normalizedDefaultAttributionCode) {
+              continue;
+            }
+            ownerCodes.add(candidateCode);
           }
         };
 
         const explicitStoreCode = normalizeStoreCode(currentSessionUser?.storeCode || '');
         const explicitPublicStoreCode = normalizeStoreCode(currentSessionUser?.publicStoreCode || '');
+        const explicitAttributionStoreCode = normalizeStoreCode(currentSessionUser?.attributionStoreCode || '');
+        const derivedPublicStoreCodeFromStore = derivePublicStoreCodeFromInternalCode(explicitStoreCode);
+        const derivedPublicStoreCodeFromAttribution = derivePublicStoreCodeFromInternalCode(explicitAttributionStoreCode);
+        const normalizedDefaultPublicStoreCode = normalizeStoreCode(defaultPublicStoreCode);
+        const resolvedSessionPublicStoreCode = normalizeStoreCode(resolvePublicStoreCode());
+        const runtimePublicStoreCode = normalizeStoreCode(storePublicCode);
+
         appendCode(explicitStoreCode);
         appendCode(explicitPublicStoreCode);
-        if (explicitStoreCode || explicitPublicStoreCode) {
-          appendCode(storePublicCode);
+        appendCode(explicitAttributionStoreCode);
+        appendCode(derivedPublicStoreCodeFromStore);
+        appendCode(derivedPublicStoreCodeFromAttribution);
+
+        if (
+          resolvedSessionPublicStoreCode
+          && (
+            resolvedSessionPublicStoreCode !== normalizedDefaultPublicStoreCode
+            || explicitStoreCode
+            || explicitPublicStoreCode
+            || explicitAttributionStoreCode
+          )
+        ) {
+          appendCode(resolvedSessionPublicStoreCode);
+        }
+        if (
+          runtimePublicStoreCode
+          && (
+            runtimePublicStoreCode !== normalizedDefaultPublicStoreCode
+            || explicitStoreCode
+            || explicitPublicStoreCode
+            || explicitAttributionStoreCode
+          )
+        ) {
+          appendCode(runtimePublicStoreCode);
         }
 
         return ownerCodes;
@@ -22196,12 +22589,45 @@
         return Boolean(invoiceAttributionKey && ownerAttributionCodes.has(invoiceAttributionKey));
       }
 
+      function isInvoiceStoreAttributionFallback(invoice) {
+        if (!invoice || typeof invoice !== 'object') {
+          return false;
+        }
+
+        const invoiceAttributionKey = normalizeStoreCode(invoice?.attributionKey || '');
+        const normalizedDefaultAttributionCode = normalizeStoreCode(defaultUplineStoreCode);
+        return !invoiceAttributionKey || invoiceAttributionKey === normalizedDefaultAttributionCode;
+      }
+
+      function hasInvoiceLinkedBuyerIdentity(invoice) {
+        return Boolean(
+          normalizeMemberKey(invoice?.buyerUserId)
+          || normalizeMemberKey(invoice?.buyerUsername),
+        );
+      }
+
+      function isInvoiceAttributedGuestCheckout(invoice) {
+        if (!invoice || typeof invoice !== 'object') {
+          return false;
+        }
+
+        if (isEnrollmentGeneratedInvoice(invoice)) {
+          return false;
+        }
+
+        return isInvoiceAttributedToCurrentStoreOwner(invoice) && !hasInvoiceLinkedBuyerIdentity(invoice);
+      }
+
       function resolveStoreInvoicesForCurrentOwnerView() {
         if (!Array.isArray(storeInvoices) || storeInvoices.length === 0) {
           return [];
         }
 
         return storeInvoices.filter((invoice) => isInvoiceAttributedToCurrentStoreOwner(invoice));
+      }
+
+      function resolveStoreInvoicesForCurrentOwnerDashboardView() {
+        return resolveStoreInvoicesForCurrentOwnerView().filter((invoice) => !isInvoiceAttributedGuestCheckout(invoice));
       }
 
       function resolveCurrentUserStoreInvoiceBpTotal() {
@@ -22268,7 +22694,10 @@
 
       function resolvePublicStoreCode() {
         const username = normalizeStoreCode(currentSessionUser?.username || '').toLowerCase();
-        const sessionPublicCode = normalizeStoreCode(currentSessionUser?.publicStoreCode || currentSessionUser?.storeCode || '');
+        const explicitPublicStoreCode = normalizeStoreCode(currentSessionUser?.publicStoreCode || '');
+        const explicitStoreCode = normalizeStoreCode(currentSessionUser?.storeCode || '');
+        const derivedPublicStoreCode = derivePublicStoreCodeFromInternalCode(explicitStoreCode);
+        const sessionPublicCode = explicitPublicStoreCode || derivedPublicStoreCode || explicitStoreCode;
         const userPublicCode = normalizeStoreCode(publicStoreCodeByUser[username] || '');
         return sessionPublicCode || userPublicCode || defaultPublicStoreCode;
       }
@@ -22563,6 +22992,53 @@
         }
       }
 
+      async function finalizeStoreStripePaymentIntent(paymentIntentId) {
+        const normalizedPaymentIntentId = String(paymentIntentId || '').trim();
+        if (!normalizedPaymentIntentId) {
+          return {
+            ok: false,
+            message: 'Payment confirmation ID is missing.',
+          };
+        }
+
+        try {
+          const response = await fetch(STORE_CHECKOUT_INTENT_COMPLETE_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              paymentIntentId: normalizedPaymentIntentId,
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string' && payload.error.trim()
+              ? payload.error.trim()
+              : `Unable to finalize store checkout (${response.status}).`;
+            throw new Error(message);
+          }
+
+          const invoice = payload?.invoice && typeof payload.invoice === 'object'
+            ? payload.invoice
+            : null;
+          if (!invoice) {
+            throw new Error('Store checkout finalized without an invoice payload.');
+          }
+
+          return {
+            ok: true,
+            invoice,
+            payload,
+          };
+        } catch (error) {
+          return {
+            ok: false,
+            message: error instanceof Error ? error.message : 'Unable to finalize store checkout.',
+          };
+        }
+      }
+
       function normalizeStoreProductId(value, fallbackId = 'product') {
         const normalizedValue = String(value || '')
           .trim()
@@ -22578,6 +23054,84 @@
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/^-+|-+$/g, '');
         return normalizedFallback || 'product';
+      }
+
+      function normalizePackageKey(value) {
+        return String(value || '').trim().toLowerCase().replace(/[_\s]+/g, '-');
+      }
+
+      function normalizePackageEarningEntry(entry, fallback = {}) {
+        const source = entry && typeof entry === 'object' ? entry : {};
+        const fallbackEntry = fallback && typeof fallback === 'object' ? fallback : {};
+        return {
+          retailCommission: roundCurrency(
+            source.retailCommission
+            ?? source.retail
+            ?? source.commission
+            ?? source.usd
+            ?? source.amount
+            ?? fallbackEntry.retailCommission
+          ),
+          bv: toWholeNumber(
+            source.bv
+            ?? source.bp
+            ?? source.personalBv
+            ?? fallbackEntry.bv,
+            fallbackEntry.bv || 0,
+          ),
+        };
+      }
+
+      function normalizeStoreProductPackageEarnings(rawPackageEarnings, fallbackBp = 0) {
+        const source = rawPackageEarnings && typeof rawPackageEarnings === 'object'
+          ? rawPackageEarnings
+          : {};
+        const normalized = {};
+
+        STORE_PRODUCT_PACKAGE_KEYS.forEach((packageKey) => {
+          const normalizedPackageKey = normalizePackageKey(packageKey);
+          const aliases = [
+            packageKey,
+            normalizedPackageKey,
+            normalizedPackageKey.replace(/-/g, '_'),
+            normalizedPackageKey.replace(/-([a-z])/g, (_, character) => character.toUpperCase()),
+          ];
+          const sourceKey = aliases.find((alias) => Object.prototype.hasOwnProperty.call(source, alias));
+          const sourceEntry = sourceKey ? source[sourceKey] : null;
+          const defaultEntry = DEFAULT_STORE_PACKAGE_EARNINGS[packageKey]
+            || { retailCommission: 0, bv: 0 };
+          const fallbackEntry = packageKey === 'legacy-builder-pack'
+            ? { ...defaultEntry, bv: toWholeNumber(fallbackBp, defaultEntry.bv) }
+            : defaultEntry;
+          normalized[packageKey] = normalizePackageEarningEntry(sourceEntry, fallbackEntry);
+        });
+
+        return normalized;
+      }
+
+      function resolveStoreBuyerPackageKey(user = currentSessionUser) {
+        const normalizedPackageKey = normalizePackageKey(user?.enrollmentPackage);
+        if (STORE_PRODUCT_PACKAGE_KEYS.includes(normalizedPackageKey)) {
+          return normalizedPackageKey;
+        }
+        return DEFAULT_STORE_BUILDER_PACKAGE_KEY;
+      }
+
+      function resolveStoreProductPackageEarning(product = {}, packageKey = '') {
+        const normalizedPackageKey = normalizePackageKey(packageKey);
+        const packageEarnings = normalizeStoreProductPackageEarnings(product?.packageEarnings, product?.bp);
+        const resolvedPackageKey = STORE_PRODUCT_PACKAGE_KEYS.includes(normalizedPackageKey)
+          ? normalizedPackageKey
+          : DEFAULT_STORE_BUILDER_PACKAGE_KEY;
+        return packageEarnings[resolvedPackageKey]
+          || packageEarnings[DEFAULT_STORE_BUILDER_PACKAGE_KEY]
+          || { retailCommission: 0, bv: toWholeNumber(product?.bp, 0) };
+      }
+
+      function resolveStoreProductBvForCurrentBuyer(product = {}, user = currentSessionUser) {
+        const buyerPackageKey = resolveStoreBuyerPackageKey(user);
+        const packageEarning = resolveStoreProductPackageEarning(product, buyerPackageKey);
+        return toWholeNumber(packageEarning?.bv, product?.bp);
       }
 
       function parseStoreProductDetails(detailsValue, fallbackBp = 0) {
@@ -22616,12 +23170,23 @@
 
         const numericBp = Number(rawProduct?.bp ?? rawProduct?.bvPoints);
         const bp = Number.isFinite(numericBp) ? Math.max(0, Math.floor(numericBp)) : 0;
+        const packageEarnings = normalizeStoreProductPackageEarnings(
+          rawProduct?.packageEarnings,
+          bp,
+        );
+        const legacyBv = toWholeNumber(
+          packageEarnings?.['legacy-builder-pack']?.bv,
+          bp,
+        );
 
         const numericStock = Number(rawProduct?.stock);
         const stock = Number.isFinite(numericStock) ? Math.max(0, Math.floor(numericStock)) : 0;
 
         const description = String(rawProduct?.description || rawProduct?.summary || `${title} product description.`).trim();
-        const details = parseStoreProductDetails(rawProduct?.details, bp);
+        const details = parseStoreProductDetails(
+          rawProduct?.details,
+          toWholeNumber(packageEarnings?.['personal-builder-pack']?.bv, legacyBv),
+        );
 
         const image = String(rawProduct?.image || rawProduct?.imageUrl || 'https://placehold.co/1000x1250?text=Product').trim() || 'https://placehold.co/1000x1250?text=Product';
         const statusCandidate = String(rawProduct?.status || 'active').trim().toLowerCase();
@@ -22633,7 +23198,8 @@
           description,
           details,
           price,
-          bp,
+          bp: legacyBv,
+          packageEarnings,
           stock,
           image,
           status,
@@ -22710,6 +23276,10 @@
       }
 
       function resolveStoreRankDiscountPercent() {
+        const sessionPackageKey = normalizeMemberKey(currentSessionUser?.enrollmentPackage);
+        if (sessionPackageKey === normalizeMemberKey(FREE_ACCOUNT_PACKAGE_KEY)) {
+          return 15;
+        }
         const resolvedRankLabel = normalizeRankLabel(resolveSessionAccountRank(currentSessionUser) || currentAccountRank || '');
         const normalizedRankLabel = normalizeMemberKey(resolvedRankLabel);
         return STORE_RANK_DISCOUNT_PERCENT_BY_RANK[normalizedRankLabel] || 0;
@@ -22718,18 +23288,19 @@
       function syncStoreRankDiscountState() {
         storeRankDiscountPercent = resolveStoreRankDiscountPercent();
         storeRankDiscountRate = Math.max(0, Math.min(100, storeRankDiscountPercent)) / 100;
+        const isPreferredDiscountAudience = isPreferredCustomerUser(currentSessionUser);
+        const discountAudienceLabel = isPreferredDiscountAudience ? 'Preferred Customer' : 'Member';
 
         if (storeRankDiscountBadgeElement) {
-          const rankLabel = normalizeRankLabel(resolveSessionAccountRank(currentSessionUser) || currentAccountRank || '') || 'Current';
-          storeRankDiscountBadgeElement.textContent = `Rank Discount: ${rankLabel} ${formatInteger(storeRankDiscountPercent)}%`;
+          storeRankDiscountBadgeElement.textContent = `${discountAudienceLabel} Discount: ${formatInteger(storeRankDiscountPercent)}%`;
         }
 
         if (storeGridDiscountLabelElement) {
-          storeGridDiscountLabelElement.textContent = `Rank Discount (${formatInteger(storeRankDiscountPercent)}%)`;
+          storeGridDiscountLabelElement.textContent = `${discountAudienceLabel} Discount (${formatInteger(storeRankDiscountPercent)}%)`;
         }
 
         if (storeCartDiscountLabelElement) {
-          storeCartDiscountLabelElement.textContent = `Discount (Rank ${formatInteger(storeRankDiscountPercent)}%)`;
+          storeCartDiscountLabelElement.textContent = `Discount (${discountAudienceLabel} ${formatInteger(storeRankDiscountPercent)}%)`;
         }
 
         if (storeSelectedProductRankDiscountElement) {
@@ -22830,8 +23401,9 @@
 
           const quantity = Math.max(0, toWholeNumber(line.quantity, 0));
           const unitPrice = resolveProductUnitPrice(product);
+          const productBv = resolveStoreProductBvForCurrentBuyer(product);
           acc.subtotal += unitPrice * quantity;
-          acc.bp += product.bp * quantity;
+          acc.bp += productBv * quantity;
           acc.items += quantity;
           return acc;
         }, { subtotal: 0, bp: 0, items: 0 });
@@ -22886,6 +23458,7 @@
 
         storeProductGrid.innerHTML = storefrontProducts.map((product) => {
           const unitPrice = resolveProductUnitPrice(product);
+          const productBv = resolveStoreProductBvForCurrentBuyer(product);
           const stockLabel = product.stock > 0 ? `${formatInteger(product.stock)} in stock` : 'Out of stock';
           const canAddToCart = product.stock > 0;
           const stockChipClass = product.stock > 0
@@ -22901,7 +23474,7 @@
                 <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" draggable="false" class="w-full aspect-[4/5] select-none object-cover transition-transform duration-300 ease-out-expo group-hover:scale-[1.02]" style="-webkit-user-drag: none;"/>
                 <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-surface-base/90 via-surface-base/20 to-transparent"></div>
                 <div class="absolute left-3 top-3 inline-flex items-center rounded-full border border-surface-border bg-surface-base/80 px-2 py-0.5 text-caption text-text-primary">
-                  ${formatInteger(product.bp)} BV
+                  ${formatInteger(productBv)} BV
                 </div>
                 <div class="absolute right-3 top-3 inline-flex items-center rounded-full border px-2 py-0.5 text-caption ${stockChipClass}">
                   ${stockChipLabel}
@@ -23001,7 +23574,7 @@
           storeSelectedProductStockElement.textContent = `${formatInteger(selectedProduct.stock)} available`;
         }
         if (storeSelectedProductBvElement) {
-          storeSelectedProductBvElement.textContent = `${formatInteger(selectedProduct.bp)} BV`;
+          storeSelectedProductBvElement.textContent = `${formatInteger(resolveStoreProductBvForCurrentBuyer(selectedProduct))} BV`;
         }
         if (storeProductQuantityInputElement) {
           const safeMax = Math.max(1, toWholeNumber(selectedProduct.stock, 1));
@@ -23061,13 +23634,14 @@
           }
 
           const unitPrice = resolveProductUnitPrice(product);
+          const productBv = resolveStoreProductBvForCurrentBuyer(product);
           const lineTotal = roundCurrency(unitPrice * line.quantity);
           return `
             <div class="rounded-lg border border-surface-border bg-surface-base/40 p-3">
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <p class="text-body-sm text-text-primary">${escapeHtml(product.title)}</p>
-                  <p class="text-caption text-text-tertiary mt-1">${formatCurrency(unitPrice)} each - ${formatInteger(product.bp)} BV</p>
+                  <p class="text-caption text-text-tertiary mt-1">${formatCurrency(unitPrice)} each - ${formatInteger(productBv)} BV</p>
                 </div>
                 <button data-cart-action="remove" data-product-id="${escapeHtml(product.id)}" class="text-caption text-semantic-danger hover:text-semantic-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 rounded">
                   Remove
@@ -23091,28 +23665,40 @@
           return;
         }
 
-        const ownerInvoices = resolveStoreInvoicesForCurrentOwnerView();
+        const ownerInvoices = resolveStoreInvoicesForCurrentOwnerDashboardView();
+        if (ownerInvoices.length === 0) {
+          storeInvoiceFeed.innerHTML = `
+            <div class="rounded-lg border border-surface-border bg-surface-base/30 p-3 sm:col-span-3">
+              <p class="text-body-sm text-text-primary">No linked member invoices in this owner view.</p>
+              <p class="text-caption text-text-tertiary mt-1">Guest-attributed purchases now appear in the Preferred Customers page.</p>
+            </div>
+          `;
+          return;
+        }
+
         storeInvoiceFeed.innerHTML = ownerInvoices.slice(0, 6).map((invoice) => {
           const statusClass = invoice.status === 'Posted' ? 'text-semantic-success' : 'text-semantic-warning';
           const discountLine = invoice.discount ? ` - Disc ${formatCurrency(invoice.discount)}` : '';
+          const retailCommission = resolveInvoiceRetailCommission(invoice);
           return `
             <div class="rounded-lg border border-surface-border bg-surface-base/40 p-3">
               <p class="text-caption text-text-tertiary">${invoice.id}</p>
               <p class="text-body-sm text-text-primary mt-1">Buyer: ${invoice.buyer} - Sponsor Line Applied</p>
-              <p class="text-caption ${statusClass} mt-2">${invoice.status} - ${formatCurrency(invoice.amount)} - ${formatInteger(invoice.bp)} BP${discountLine}</p>
+              <p class="text-caption ${statusClass} mt-2">${invoice.status} - Retail ${formatCurrency(retailCommission)} - ${formatInteger(invoice.bp)} BV${discountLine}</p>
             </div>
           `;
         }).join('');
       }
 
       function syncStoreMetrics() {
-        const ownerInvoices = resolveStoreInvoicesForCurrentOwnerView();
+        const ownerInvoices = resolveStoreInvoicesForCurrentOwnerDashboardView();
         const totals = ownerInvoices.reduce((acc, invoice) => {
+          const retailCommission = resolveInvoiceRetailCommission(invoice);
           if (invoice.status === 'Posted') {
-            acc.postedRevenue += invoice.amount;
+            acc.postedRevenue += retailCommission;
             acc.postedBp += invoice.bp;
           } else {
-            acc.pendingRevenue += invoice.amount;
+            acc.pendingRevenue += retailCommission;
             acc.pendingBp += invoice.bp;
           }
           return acc;
@@ -23331,7 +23917,7 @@
         if (binaryTreeSummarySnapshot) {
           applyBinaryTreeDashboardSummary(binaryTreeSummarySnapshot);
         }
-        const fallbackPersonalVolume = Math.max(0, toWholeNumber(currentSessionStarterDashboard?.currentWeekPersonalPv, 0));
+        const fallbackPersonalVolume = Math.max(0, toWholeNumber(currentSessionStarterDashboard?.currentPersonalPvBv, 0));
         const personalVolumeValue = dashboardMockupModeEnabled
           ? toWholeNumber(DASHBOARD_KPI_MOCK_PREVIEW.personalVolume, fallbackPersonalVolume)
           : fallbackPersonalVolume;
@@ -23821,16 +24407,28 @@
         }
 
         updateCheckoutFeedback('Payment confirmed. Recording your order...', true);
-        const invoiceCreated = await createInvoiceFromLines(checkoutLinesSnapshot, `stripe checkout - ${shippingMode}`);
-        if (!invoiceCreated) {
+        const completionResult = await finalizeStoreStripePaymentIntent(confirmedPaymentIntentId);
+        if (!completionResult.ok) {
           isStoreStripeCheckoutPending = false;
           renderCart();
           updateCheckoutFeedback(
-            `Payment ${confirmedPaymentIntentId} succeeded, but order recording failed. Please contact support immediately.`,
+            `Payment ${confirmedPaymentIntentId} succeeded, but order recording failed: ${completionResult.message}`,
             false,
           );
           return;
         }
+
+        const persistedInvoice = completionResult.invoice;
+        storeInvoices.unshift(persistedInvoice);
+        syncStoreInvoiceSeedFromInvoices();
+        applyStorePurchaseToInventory(checkoutLinesSnapshot);
+        renderProductGrid();
+        renderSelectedProductPage();
+        renderInvoiceFeed();
+        syncStoreMetrics();
+        renderRecentActivityFeed();
+        const invoiceId = String(persistedInvoice?.id || '').trim() || `INV-${storeInvoiceSeed}`;
+        updateCheckoutFeedback(`${invoiceId} created from stripe checkout - ${shippingMode}.`, true);
 
         storeCart = [];
         if (storeCheckoutFormElement) {
@@ -24338,10 +24936,11 @@
           currentSessionUser.serverCutoffBaselineSetAt = String(cutoff.lastAppliedCutoffAt || currentSessionUser.serverCutoffBaselineSetAt || '').trim();
           Object.assign(currentSessionStarterDashboard, resolveStarterDashboardMetrics(currentSessionUser));
           currentSessionStarterDashboard.currentWeekPersonalPv = currentWeekPersonalPv;
+          currentSessionStarterDashboard.currentPersonalPvBv = resolveAccountCurrentPersonalBv(currentSessionUser);
           persistUserSessionSnapshot(currentSessionUser);
 
           if (!dashboardMockupModeEnabled) {
-            updateDashboardPersonalVolumeKpi(currentWeekPersonalPv, {
+            updateDashboardPersonalVolumeKpi(currentSessionStarterDashboard.currentPersonalPvBv, {
               trackTrend: true,
               observedAtMs: resolveServerPersonalVolumeObservedAtMs(
                 currentSessionUser,
@@ -25242,6 +25841,7 @@
       void loadBusinessCenterStatus({ silent: true });
       setDesktopSidebarCollapsed(initialDesktopSidebarCollapsed, { persist: false });
       setPage(activePage, { routeMode: 'replace' });
+      }
     }
   </script>
 

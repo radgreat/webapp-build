@@ -964,7 +964,12 @@
     }
 
     function resolveSelectedDiscountPercent() {
-      return resolveSelectedCheckoutMode() === shared.CHECKOUT_MODE_FREE_ACCOUNT
+      const sessionUser = shared.readUserSession();
+      const isPreferredSessionBuyer = shared.isFreeAccountUser(sessionUser);
+      return (
+        resolveSelectedCheckoutMode() === shared.CHECKOUT_MODE_FREE_ACCOUNT
+        || isPreferredSessionBuyer
+      )
         ? shared.PUBLIC_DISCOUNT_PERCENT
         : 0;
     }

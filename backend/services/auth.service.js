@@ -27,8 +27,10 @@ import {
   writeMockEmailOutboxStore,
 } from '../stores/email.store.js';
 import {
+  readMemberBinaryTreeIntroStateByUserId,
   touchMemberBinaryTreeIntroStateByUserId,
   deleteMemberBinaryTreeIntroStateByUserId,
+  updateMemberBinaryTreePinnedNodeIdsByUserId,
 } from '../stores/member-binary-tree-intro.store.js';
 
 import {
@@ -43,8 +45,10 @@ import {
   sanitizeUserForAuthResponse,
   PASSWORD_MIN_LENGTH,
 } from '../utils/auth.helpers.js';
+import { resolveMemberAccountStatusByPersonalBv } from '../utils/member-activity.helpers.js';
 
 const EMAIL_VERIFICATION_TOKEN_TTL_MS = 48 * 60 * 60 * 1000;
+const PINNED_NODE_IDS_LIMIT = 10;
 
 function isValidEmailAddress(emailInput) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(emailInput || '').trim());
@@ -71,6 +75,26 @@ function buildEmailVerificationLink(rawTokenInput) {
 
 function normalizeEmailAddress(value) {
   return normalizeCredential(value || '');
+}
+
+function normalizePinnedNodeIdsForBinaryTree(value) {
+  const source = Array.isArray(value) ? value : [];
+  const deduped = [];
+  const seen = new Set();
+
+  for (const rawNodeId of source) {
+    const nodeId = normalizeText(rawNodeId);
+    if (!nodeId || seen.has(nodeId)) {
+      continue;
+    }
+    seen.add(nodeId);
+    deduped.push(nodeId);
+    if (deduped.length >= PINNED_NODE_IDS_LIMIT) {
+      break;
+    }
+  }
+
+  return deduped;
 }
 
 function isEmailVerificationOutboxRecord(record = {}, targetEmailInput = '') {
@@ -193,6 +217,36 @@ export async function authenticateUser(identifierInput, passwordInput) {
   };
 }
 
+export async function resolveAuthenticatedMemberSession(memberUserInput = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const matchedUser = await findUserById(userId);
+  if (!matchedUser) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Member account was not found for this session.',
+    };
+  }
+
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      user: sanitizeUserForAuthResponse(matchedUser),
+      checkedAt: new Date().toISOString(),
+    },
+  };
+}
+
 export async function validatePasswordSetupToken(tokenInput, emailInput = '') {
   const token = normalizeText(tokenInput);
   const tokens = await readPasswordSetupTokensStore();
@@ -296,13 +350,18 @@ export async function updatePasswordFromSetupToken(tokenInput, newPasswordInput,
 
   const nowIso = new Date().toISOString();
 
-  await updateUserById(matchedUser.id, (existingUser) => ({
-    ...existingUser,
-    password: newPassword,
-    passwordSetupRequired: false,
-    accountStatus: 'active',
-    passwordUpdatedAt: nowIso,
-  }));
+  await updateUserById(matchedUser.id, (existingUser) => {
+    const nextUser = {
+      ...existingUser,
+      password: newPassword,
+      passwordSetupRequired: false,
+      passwordUpdatedAt: nowIso,
+    };
+    return {
+      ...nextUser,
+      accountStatus: resolveMemberAccountStatusByPersonalBv(nextUser),
+    };
+  });
 
   await markAllOpenTokensUsedByUserId(matchedUser.id, nowIso);
 
@@ -572,6 +631,66 @@ export async function resolveMemberBinaryTreeLaunchState(memberUserInput = {}) {
       firstTime: touchedState?.firstTime === true,
       firstOpenedAt: normalizeText(launchState?.firstOpenedAt),
       lastOpenedAt: normalizeText(launchState?.lastOpenedAt),
+      pinnedNodeIds: normalizePinnedNodeIdsForBinaryTree(launchState?.pinnedNodeIds),
+      pinnedNodeIdsUpdatedAt: normalizeText(launchState?.pinnedNodeIdsUpdatedAt),
+      checkedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export async function updateMemberBinaryTreePinnedNodes(memberUserInput = {}, payload = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  if (!Array.isArray(payload?.pinnedNodeIds)) {
+    return {
+      success: false,
+      status: 400,
+      error: 'pinnedNodeIds must be an array.',
+    };
+  }
+
+  const nextPinnedNodeIds = normalizePinnedNodeIdsForBinaryTree(payload.pinnedNodeIds);
+  const nextState = await updateMemberBinaryTreePinnedNodeIdsByUserId(userId, nextPinnedNodeIds);
+
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      userId,
+      pinnedNodeIds: normalizePinnedNodeIdsForBinaryTree(nextState?.pinnedNodeIds),
+      pinnedNodeIdsUpdatedAt: normalizeText(nextState?.pinnedNodeIdsUpdatedAt),
+      checkedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export async function resolveMemberBinaryTreePinnedNodes(memberUserInput = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const currentState = await readMemberBinaryTreeIntroStateByUserId(userId);
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      userId,
+      pinnedNodeIds: normalizePinnedNodeIdsForBinaryTree(currentState?.pinnedNodeIds),
+      pinnedNodeIdsUpdatedAt: normalizeText(currentState?.pinnedNodeIdsUpdatedAt),
       checkedAt: new Date().toISOString(),
     },
   };

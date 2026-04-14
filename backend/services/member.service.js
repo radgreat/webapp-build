@@ -32,8 +32,11 @@ import {
   buildPasswordSetupLink,
   resolveAuthAccountAudience,
 } from '../utils/auth.helpers.js';
+import {
+  resolveMemberAccountStatusByPersonalBv,
+  resolveMemberPersonalBvSnapshot,
+} from '../utils/member-activity.helpers.js';
 
-const ACCOUNT_ACTIVITY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 const DEFAULT_ATTRIBUTION_STORE_CODE = 'REGISTRATION_LOCKED';
 const ENROLL_CHECKOUT_TAX_RATE = 0.0975;
 const STRIPE_METADATA_VALUE_LIMIT = 500;
@@ -1175,7 +1178,19 @@ export async function createRegisteredMember(payload) {
 
     const createdAtDate = new Date();
     const createdAt = createdAtDate.toISOString();
-    const activityActiveUntilAt = new Date(createdAtDate.getTime() + ACCOUNT_ACTIVITY_WINDOW_MS).toISOString();
+    const enrollmentPersonalBvSnapshot = resolveMemberPersonalBvSnapshot({
+      createdAt,
+      currentPersonalPvBv: packageBv,
+    }, {
+      referenceDate: createdAtDate,
+    });
+    const activityActiveUntilAt = enrollmentPersonalBvSnapshot.nextCutoffAt;
+    const currentPersonalPvBv = enrollmentPersonalBvSnapshot.currentPersonalPvBv;
+    const accountStatus = resolveMemberAccountStatusByPersonalBv({
+      passwordSetupRequired: true,
+      createdAt,
+      currentPersonalPvBv,
+    });
     const userId = `usr_${Date.now()}_${randomUUID().slice(0, 8)}`;
 
     const newUser = {
@@ -1186,7 +1201,7 @@ export async function createRegisteredMember(payload) {
       countryFlag,
       password: temporaryPassword,
       passwordSetupRequired: true,
-      accountStatus: 'pending-password-setup',
+      accountStatus,
       attributionStoreCode: sponsorAttributionStoreCode,
       publicStoreCode,
       storeCode,
@@ -1195,6 +1210,7 @@ export async function createRegisteredMember(payload) {
       enrollmentPackagePrice: packagePrice,
       enrollmentPackageBv: packageBv,
       starterPersonalPv: packageBv,
+      currentPersonalPvBv,
       starterTotalCycles: 0,
       rank: startingRank,
       accountRank: startingRank,
@@ -1244,6 +1260,7 @@ export async function createRegisteredMember(payload) {
       packagePrice,
       packageBv,
       starterPersonalPv: packageBv,
+      currentPersonalPvBv,
       rank: startingRank,
       accountRank: startingRank,
       activityActiveUntilAt,
@@ -1544,20 +1561,8 @@ export async function recordMemberPurchase(payload) {
   );
   const isFreeAccountUser = userPackageKey === FREE_ACCOUNT_PACKAGE_KEY || userRankKey === normalizeCredential(FREE_ACCOUNT_RANK_LABEL);
   const effectivePvGain = isFreeAccountUser ? 0 : pvGain;
-  const existingActivityActiveUntil = (
-    typeof existingUser?.activityActiveUntilAt === 'string' && existingUser.activityActiveUntilAt.trim()
-  )
-    ? existingUser.activityActiveUntilAt
-    : nowIso;
-
-  const existingActivityMs = Date.parse(existingActivityActiveUntil);
-  const baseMs = Number.isFinite(existingActivityMs) && existingActivityMs > now.getTime()
-    ? existingActivityMs
-    : now.getTime();
-
-  const nextActivityActiveUntilAt = new Date(
-    baseMs + ACCOUNT_ACTIVITY_WINDOW_MS
-  ).toISOString();
+  const personalBvSnapshot = resolveMemberPersonalBvSnapshot(existingUser, { referenceDate: now });
+  const nextActivityActiveUntilAt = personalBvSnapshot.nextCutoffAt;
 
   const enrollmentPackageBv = Math.max(0, Math.floor(Number(existingUser?.enrollmentPackageBv) || 0));
   const currentStarterPersonalPv = Math.max(
@@ -1565,10 +1570,24 @@ export async function recordMemberPurchase(payload) {
     Math.floor(Number(existingUser?.starterPersonalPv) || enrollmentPackageBv)
   );
   const nextStarterPersonalPvSafe = currentStarterPersonalPv + effectivePvGain;
+  const nextCurrentPersonalPvBv = Math.max(
+    0,
+    personalBvSnapshot.currentPersonalPvBv + effectivePvGain,
+  );
+  const nextAccountStatus = resolveMemberAccountStatusByPersonalBv({
+    ...existingUser,
+    starterPersonalPv: nextStarterPersonalPvSafe,
+    currentPersonalPvBv: nextCurrentPersonalPvBv,
+    activityActiveUntilAt: nextActivityActiveUntilAt,
+    lastProductPurchaseAt: nowIso,
+    lastPurchaseAt: nowIso,
+  });
 
   users[userIndex] = {
     ...existingUser,
     starterPersonalPv: nextStarterPersonalPvSafe,
+    currentPersonalPvBv: nextCurrentPersonalPvBv,
+    accountStatus: nextAccountStatus,
     activityActiveUntilAt: nextActivityActiveUntilAt,
     lastProductPurchaseAt: nowIso,
     lastPurchaseAt: nowIso,
@@ -1592,6 +1611,9 @@ export async function recordMemberPurchase(payload) {
     return {
       ...member,
       starterPersonalPv: nextStarterPersonalPvSafe,
+      currentPersonalPvBv: nextCurrentPersonalPvBv,
+      accountStatus: nextAccountStatus,
+      status: nextAccountStatus,
       activityActiveUntilAt: nextActivityActiveUntilAt,
       lastProductPurchaseAt: nowIso,
       lastPurchaseAt: nowIso,
@@ -1608,6 +1630,7 @@ export async function recordMemberPurchase(payload) {
       username: users[userIndex]?.username || '',
       email: users[userIndex]?.email || '',
       starterPersonalPv: nextStarterPersonalPvSafe,
+      currentPersonalPvBv: nextCurrentPersonalPvBv,
       activityActiveUntilAt: nextActivityActiveUntilAt,
       lastProductPurchaseAt: nowIso,
       lastPurchaseAt: nowIso,
@@ -1615,6 +1638,7 @@ export async function recordMemberPurchase(payload) {
     purchase: {
       pvGain: effectivePvGain,
       starterPersonalPv: nextStarterPersonalPvSafe,
+      currentPersonalPvBv: nextCurrentPersonalPvBv,
     },
   };
 }
@@ -1766,20 +1790,25 @@ export async function upgradeMemberAccount(payload) {
     || normalizeRankLabelForDisplay(existingUser?.accountRank || existingUser?.rank)
     || 'Personal';
 
-  const existingActivityActiveUntil = (
-    typeof existingUser?.activityActiveUntilAt === 'string' && existingUser.activityActiveUntilAt.trim()
-  )
-    ? existingUser.activityActiveUntilAt
-    : nowIso;
-
-  const existingActivityMs = Date.parse(existingActivityActiveUntil);
-  const baseMs = Number.isFinite(existingActivityMs) && existingActivityMs > now.getTime()
-    ? existingActivityMs
-    : now.getTime();
-
-  const nextActivityActiveUntilAt = new Date(
-    baseMs + ACCOUNT_ACTIVITY_WINDOW_MS
-  ).toISOString();
+  const personalBvSnapshot = resolveMemberPersonalBvSnapshot(existingUser, { referenceDate: now });
+  const nextActivityActiveUntilAt = personalBvSnapshot.nextCutoffAt;
+  const nextCurrentPersonalPvBv = Math.max(
+    0,
+    personalBvSnapshot.currentPersonalPvBv + upgradeBvGain,
+  );
+  const nextAccountStatus = resolveMemberAccountStatusByPersonalBv({
+    ...existingUser,
+    enrollmentPackage: targetPackageKey,
+    enrollmentPackageBv: nextPackageBv,
+    starterPersonalPv: nextStarterPersonalPv,
+    currentPersonalPvBv: nextCurrentPersonalPvBv,
+    rank: nextRank,
+    accountRank: nextRank,
+    activityActiveUntilAt: nextActivityActiveUntilAt,
+    lastProductPurchaseAt: nowIso,
+    lastPurchaseAt: nowIso,
+    lastAccountUpgradeAt: nowIso,
+  });
 
   users[userIndex] = {
     ...existingUser,
@@ -1788,8 +1817,10 @@ export async function upgradeMemberAccount(payload) {
     enrollmentPackagePrice: nextPackagePrice,
     enrollmentPackageBv: nextPackageBv,
     starterPersonalPv: nextStarterPersonalPv,
+    currentPersonalPvBv: nextCurrentPersonalPvBv,
     rank: nextRank,
     accountRank: nextRank,
+    accountStatus: nextAccountStatus,
     activityActiveUntilAt: nextActivityActiveUntilAt,
     lastProductPurchaseAt: nowIso,
     lastPurchaseAt: nowIso,
@@ -1821,8 +1852,11 @@ export async function upgradeMemberAccount(payload) {
       packagePrice: nextPackagePrice,
       packageBv: nextPackageBv,
       starterPersonalPv: nextStarterPersonalPv,
+      currentPersonalPvBv: nextCurrentPersonalPvBv,
       rank: nextRank,
       accountRank: nextRank,
+      accountStatus: nextAccountStatus,
+      status: nextAccountStatus,
       activityActiveUntilAt: nextActivityActiveUntilAt,
       lastProductPurchaseAt: nowIso,
       lastPurchaseAt: nowIso,
@@ -1851,6 +1885,7 @@ export async function upgradeMemberAccount(payload) {
       enrollmentPackagePrice: nextPackagePrice,
       enrollmentPackageBv: nextPackageBv,
       starterPersonalPv: nextStarterPersonalPv,
+      currentPersonalPvBv: nextCurrentPersonalPvBv,
       rank: nextRank,
       accountRank: nextRank,
       activityActiveUntilAt: nextActivityActiveUntilAt,

@@ -4,6 +4,10 @@ function normalizeText(value) {
   return String(value || '').trim();
 }
 
+function roundCurrency(value) {
+  return Math.round((Math.max(0, Number(value) || 0) + Number.EPSILON) * 100) / 100;
+}
+
 function toIsoStringOrEmpty(value) {
   if (!value) {
     return '';
@@ -33,8 +37,10 @@ function mapDbInvoiceToAppInvoice(row) {
     buyerUserId: row.buyer_user_id || '',
     buyerUsername: row.buyer_username || '',
     buyerEmail: row.buyer_email || '',
+    buyerPackageKey: normalizeText(row.buyer_package_key),
     attributionKey: row.attribution_key || 'REGISTRATION_LOCKED',
     amount: Number(row.amount || 0),
+    retailCommission: roundCurrency(row.retail_commission),
     bp: Number(row.bp || 0),
     discount: Number(row.discount || 0),
     status: normalizeStoreInvoiceStatus(row.status),
@@ -50,13 +56,50 @@ function mapAppInvoiceToDbInvoice(invoice) {
     buyer_user_id: invoice?.buyerUserId || null,
     buyer_username: invoice?.buyerUsername || null,
     buyer_email: invoice?.buyerEmail || null,
+    buyer_package_key: normalizeText(invoice?.buyerPackageKey),
     attribution_key: invoice?.attributionKey || 'REGISTRATION_LOCKED',
     amount: Number(invoice?.amount || 0),
+    retail_commission: roundCurrency(
+      invoice?.retailCommission ?? invoice?.amount,
+    ),
     bp: Math.max(0, Math.floor(Number(invoice?.bp) || 0)),
     discount: Number(invoice?.discount || 0),
     status: normalizeStoreInvoiceStatus(invoice?.status),
     created_at: invoice?.createdAt || new Date().toISOString(),
   };
+}
+
+let storeInvoiceColumnsReady = false;
+let storeInvoiceColumnsPromise = null;
+
+async function ensureStoreInvoiceColumns() {
+  if (storeInvoiceColumnsReady) {
+    return;
+  }
+  if (storeInvoiceColumnsPromise) {
+    return storeInvoiceColumnsPromise;
+  }
+
+  storeInvoiceColumnsPromise = (async () => {
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS buyer_package_key text NOT NULL DEFAULT ''
+    `);
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS retail_commission numeric(12,2) NOT NULL DEFAULT 0
+    `);
+    storeInvoiceColumnsReady = true;
+  })().catch((error) => {
+    storeInvoiceColumnsReady = false;
+    throw error;
+  }).finally(() => {
+    if (!storeInvoiceColumnsReady) {
+      storeInvoiceColumnsPromise = null;
+    }
+  });
+
+  return storeInvoiceColumnsPromise;
 }
 
 function resolveStoreInvoiceSeedValue(invoiceId) {
@@ -95,8 +138,10 @@ export function sanitizeStoreInvoiceRecord(invoice, fallbackId = '') {
     buyerUserId: normalizeText(invoice.buyerUserId),
     buyerUsername: normalizeText(invoice.buyerUsername),
     buyerEmail: normalizeText(invoice.buyerEmail),
+    buyerPackageKey: normalizeText(invoice.buyerPackageKey),
     attributionKey: normalizeText(invoice.attributionKey) || 'REGISTRATION_LOCKED',
     amount: Number.isFinite(amountRaw) ? Math.max(0, amountRaw) : 0,
+    retailCommission: roundCurrency(invoice.retailCommission ?? amountRaw),
     bp: Math.max(0, Math.floor(Number(invoice.bp) || 0)),
     discount: Number.isFinite(discountRaw) ? Math.max(0, discountRaw) : 0,
     status: normalizeStoreInvoiceStatus(invoice.status),
@@ -105,6 +150,8 @@ export function sanitizeStoreInvoiceRecord(invoice, fallbackId = '') {
 }
 
 export async function readMockStoreInvoicesStore() {
+  await ensureStoreInvoiceColumns();
+
   const result = await pool.query(`
     SELECT
       id,
@@ -112,8 +159,10 @@ export async function readMockStoreInvoicesStore() {
       buyer_user_id,
       buyer_username,
       buyer_email,
+      buyer_package_key,
       attribution_key,
       amount,
+      retail_commission,
       bp,
       discount,
       status,
@@ -127,6 +176,8 @@ export async function readMockStoreInvoicesStore() {
 }
 
 export async function writeMockStoreInvoicesStore(invoices) {
+  await ensureStoreInvoiceColumns();
+
   const client = await pool.connect();
 
   try {
@@ -143,22 +194,26 @@ export async function writeMockStoreInvoicesStore(invoices) {
           buyer_user_id,
           buyer_username,
           buyer_email,
+          buyer_package_key,
           attribution_key,
           amount,
+          retail_commission,
           bp,
           discount,
           status,
           created_at
         )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
       `, [
         row.id,
         row.buyer,
         row.buyer_user_id,
         row.buyer_username,
         row.buyer_email,
+        row.buyer_package_key,
         row.attribution_key,
         row.amount,
+        row.retail_commission,
         row.bp,
         row.discount,
         row.status,

@@ -9,6 +9,31 @@
 - Removed upfront checkout UI from the storefront landing page.
 - Kept the existing green/slate color direction while adding a reusable top navbar and cleaner page hierarchy.
 
+## Update (2026-04-13) - Guest/Free Checkout Payload Identity Isolation
+
+### What Was Changed
+
+- Updated public checkout payload builder in `storefront-shared.js` so checkout requests in:
+  - `guest`
+  - `free-account`
+  modes no longer forward session-linked `buyerUserId` / `buyerUsername`.
+
+### Why
+
+- Public guest/free checkout should persist as guest/unlinked identity unless backend free-account registration explicitly links a created member.
+- Session-linked identity leakage could cause guest checkouts to be stored as linked-member invoices and disappear from guest-attribution follow-up views.
+
+### Files Affected
+
+- `storefront-shared.js`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check storefront-shared.js` passed.
+
 ## Update (2026-04-06) - User Dashboard My Store Redesign (No Checkout In Dashboard Store View)
 
 ### What Was Changed

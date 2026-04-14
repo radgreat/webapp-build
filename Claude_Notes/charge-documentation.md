@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 300
+**Times Updated:** 301
 
 ## Overview
 
@@ -14,6 +14,255 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Update (2026-04-14) - Preferred Customer Page Render Fix (`normalizeText` Runtime Error)
+
+### What Was Changed
+
+- Fixed a frontend runtime error in `index.html` Preferred Customer flow:
+  - `isEnrollmentGeneratedInvoice(...)` called `normalizeText(...)`, but that helper is not defined in `index.html`.
+  - replaced with safe inline normalization:
+    - `String(invoice?.id || '').trim().toUpperCase()`
+
+### Root Cause
+
+- The missing helper caused a `ReferenceError: normalizeText is not defined` during Preferred Customer page refresh paths.
+- That runtime exception interrupted planner/guest rendering updates, resulting in:
+  - `0 customers`
+  - `0 invoices`
+  even though DB/API data existed.
+
+### Outcome
+
+- Preferred Customer page now renders correctly for `zeroone`:
+  - planner: `2 customers`
+  - guest attributed purchases: `3 invoices`
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- Browser automation verification on `/PreferredCustomer` with `zeroone` session context:
+  - `countText = "2 customers"`
+  - `guestCountText = "3 invoices"`
+  - `plannerCardCount = 2`
+  - `guestCardCount = 3`
+
+## Update (2026-04-13) - Duplicate-Key Snapshot Write Fix + Guest Identity Server Guard
+
+### What Was Changed
+
+- Hardened DB snapshot writers to avoid `23505` duplicate-key crashes under concurrent writes:
+  - `backend/stores/metrics.store.js`
+    - added ID-level dedupe for incoming binary/sales snapshot rows before insert
+    - added transactional table locks for snapshot tables before full refresh writes
+    - added `ON CONFLICT (id) DO UPDATE` protection during insert loops.
+  - `backend/stores/member.store.js`
+    - added ID-level dedupe for registered-member snapshot rows
+    - added transactional table lock before full registered-member refresh write.
+- Added server-side buyer-identity persistence guard for checkout metadata in `backend/services/store-checkout.service.js`:
+  - public storefront `guest` / `free-account` checkout modes now ignore incoming `buyerUserId` / `buyerUsername` even if provided by stale/cached client payloads
+  - checkout finalization now honors source-aware identity rules so public guest checkouts stay unlinked unless explicitly linked by backend free-account registration flow.
+- Hardened store-product schema migration fallback path in `backend/stores/store-product.store.js`:
+  - if admin DB pool auth fails, migration attempts now fall back to service DB pool for `image_urls` / `package_earnings` column updates
+  - suppresses recurring noisy admin-auth warning when fallback migration succeeds.
+
+### Outcome
+
+- Eliminates repeated backend write crashes seen in logs:
+  - `binary_tree_metrics_snapshots_pkey`
+  - `sales_team_commission_snapshots_pkey`
+  - `registered_members_pkey`
+- Improves guest checkout attribution reliability by enforcing identity isolation server-side (not frontend-only).
+
+### Files Affected
+
+- `backend/stores/metrics.store.js`
+- `backend/stores/member.store.js`
+- `backend/services/store-checkout.service.js`
+- `backend/stores/store-product.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check backend/stores/metrics.store.js` passed.
+- `node --check backend/stores/member.store.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/stores/store-product.store.js` passed.
+- Concurrency smoke:
+  - parallel metrics writes completed with `failures=0`
+  - concurrent registered-member snapshot writes completed without duplicate-key errors.
+- Store product schema smoke:
+  - `readStoreProductsStore({ includeArchived: true })` completed without admin-pool auth warning noise.
+
+## Update (2026-04-13) - Preferred Customer Invoice Visibility + Guest Checkout Identity Capture Fix
+
+### What Was Changed
+
+- Updated member dashboard preferred-customer invoice aggregation in `index.html`:
+  - planner matching now evaluates all non-enrollment invoices for preferred-member identity matches (`buyerUserId` / `buyerUsername`)
+  - matched preferred-member invoices are now accepted when either:
+    - attribution belongs to the current owner code set, or
+    - invoice attribution is legacy/default fallback (`REGISTRATION_LOCKED`/blank path).
+- Updated owner attribution-code resolver in `index.html`:
+  - now includes `currentSessionUser.attributionStoreCode`
+  - includes derived public-code aliases from internal `M-*` values
+  - avoids letting default fallback `CHG-ZERO` silently drive owner filtering unless explicit owner code context exists.
+- Updated public-store checkout payload behavior in `storefront-shared.js`:
+  - `guest` and `free-account` checkout modes no longer attach session-linked `buyerUserId` / `buyerUsername`
+  - prevents guest/free-account checkouts from being unintentionally classified as linked-member invoices.
+
+### Outcome
+
+- Preferred-customer planner now surfaces valid preferred-member invoice history that was previously hidden by strict owner-attribution filtering on legacy/default-attributed records.
+- Guest checkout capture behavior is cleaner: guest/free-account flows now persist as guest/unlinked unless explicitly linked by backend free-account registration identity.
+
+### Files Affected
+
+- `index.html`
+- `storefront-shared.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+- `Claude_Notes/public-store-page.md`
+
+### Known Limitations
+
+- Existing historical invoices with incorrect/missing attribution keys remain unchanged at data level; this update improves dashboard visibility logic without rewriting stored invoice rows.
+
+### Validation
+
+- `node --check storefront-shared.js` passed.
+- Inline script parse check passed:
+  - `Parsed inline scripts in index.html: 1`
+  - `Parsed inline scripts in store-checkout.html: 1`.
+
+## Update (2026-04-13) - Active Status/PV Mismatch Investigation and Alignment
+
+### What Was Changed
+
+- Investigated mismatch where dashboard showed high Personal Volume while account rendered `Inactive`.
+- Updated backend activity-status override logic to stop treating legacy `inactive/dormant/expired` strings as hard-lock states.
+  - hard-lock overrides now remain only for explicit restrictive statuses (`under-review`, `suspended`, `disabled` patterns).
+- Updated dashboard Personal Volume KPI sourcing in `index.html` so it uses monthly `currentPersonalPvBv` (same source used by active/inactive gating), not legacy cycle-baseline-derived `currentWeekPersonalPv`.
+- Updated binary-summary/dashboard fallback paths to use `currentPersonalPvBv` consistently.
+- Updated server-cutoff payload application path to keep weekly cutoff metrics for cutoff views while preserving dashboard PV card as monthly Personal BV.
+
+### Files Affected
+
+- `backend/utils/member-activity.helpers.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved weekly/cycle metrics data structures for compensation/cutoff displays, but separated them from account-activity PV display to avoid mixed semantics.
+- Kept restrictive/admin-like statuses as explicit hard overrides while removing stale legacy inactive overrides that conflicted with BV-derived activity state.
+
+### Known Limitations
+
+- Existing stored `currentPersonalPvBv` values still determine monthly activity; this update aligns display/gating and override behavior, but does not run a retroactive bulk data migration for older records.
+
+### Validation
+
+- `node --check backend/utils/member-activity.helpers.js` passed.
+- Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 5`.
+
+## Update (2026-04-13) - Binary Tree Next Favorites Live Sync Across Open Sessions
+
+### What Was Changed
+
+- Added authenticated read API for favorites state without touching intro timing fields:
+  - `GET /api/member-auth/binary-tree-next/pinned-nodes`
+- Added backend service/controller/route plumbing for the read API:
+  - `resolveMemberBinaryTreePinnedNodes(...)`
+  - `getMemberBinaryTreePinnedNodes(...)`
+- Updated frontend (`binary-tree-next-app.mjs`) live-sync flow:
+  - integrated favorites pull-sync into `syncTreeNextLiveNodes(...)`
+  - on each live-sync tick/focus/visibility refresh, member sessions now fetch server pinned-node state and apply when newer/different
+  - prevents remote pull from overriding local changes when local write sync is queued/in-flight (`pinnedNodeIdsLocalDirty` + in-flight guards)
+  - retries failed write syncs for transient failures (non-auth errors).
+
+### Files Affected
+
+- `backend/services/auth.service.js`
+- `backend/controllers/auth.controller.js`
+- `backend/routes/auth.routes.js`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept launch-state endpoint focused on intro/boot semantics and exposed a dedicated read endpoint for pinned favorites to avoid continuously mutating launch timestamps during polling.
+- Reused existing live-sync cadence already in place for tree updates, so favorites sync piggybacks on established polling/focus behavior instead of introducing a second timer loop.
+
+### Known Limitations
+
+- Sync is near-real-time polling (interval/focus driven), not websocket push; propagation is fast but not instant sub-second.
+- If a member session loses auth (401/403), favorites write retries are not looped until session is valid again.
+
+### Validation
+
+- `node --check backend/services/auth.service.js` passed.
+- `node --check backend/controllers/auth.controller.js` passed.
+- `node --check backend/routes/auth.routes.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-13) - Binary Tree Next Favorites Server Sync (Cross-Device Persistence)
+
+### What Was Changed
+
+- Added authenticated API write path for Binary Tree Next pinned favorites:
+  - `PUT /api/member-auth/binary-tree-next/pinned-nodes`
+- Extended launch-state API payload (`GET /api/member-auth/binary-tree-next/launch-state`) to include:
+  - `pinnedNodeIds`
+  - `pinnedNodeIdsUpdatedAt`
+- Extended `charge.member_binary_tree_intro_state` backing table and mapping logic to store per-member favorites:
+  - `pinned_node_ids text[]` (deduped + capped)
+  - `pinned_node_ids_updated_at timestamptz`
+- Added service/controller flow to validate and persist pinned IDs server-side using authenticated member identity.
+- Updated Binary Tree Next frontend runtime (`binary-tree-next-app.mjs`) so:
+  - member bootstrap hydrates favorites from server launch-state
+  - pin/unpin updates local cache immediately and performs debounced server sync
+  - canonical server response is applied back to local state when needed
+  - legacy local-only favorites are backfilled once when server has never recorded pinned favorites.
+
+### Files Affected
+
+- `backend/stores/member-binary-tree-intro.store.js`
+- `backend/services/auth.service.js`
+- `backend/controllers/auth.controller.js`
+- `backend/routes/auth.routes.js`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Reused the existing Binary Tree intro-state storage path instead of creating a second preferences table, minimizing schema sprawl and keeping launch bootstrap data in one endpoint.
+- Kept localStorage as a resiliency cache while making authenticated server data the cross-device source for member sessions.
+- Added `pinnedNodeIdsUpdatedAt` to distinguish never-synced server rows from already-normalized server state, enabling safe legacy backfill behavior.
+
+### Known Limitations
+
+- This pass normalizes Binary Tree Next pinned favorites only; other locally persisted UI state still needs separate server-side migration work.
+- Admin-source mode continues to use local-only pinned favorites behavior (member-auth endpoint is not used for admin source).
+
+### Validation
+
+- `node --check backend/stores/member-binary-tree-intro.store.js` passed.
+- `node --check backend/services/auth.service.js` passed.
+- `node --check backend/controllers/auth.controller.js` passed.
+- `node --check backend/routes/auth.routes.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
 
 ## Update (2026-04-13) - MLM Logic Refresh (Packages, BV, Fast Track, Upgrades, Rank BV Gates)
 
@@ -24682,3 +24931,676 @@ Updated `binary-tree-next-app.mjs`:
 - `node --check backend/services/member.service.js` passed.
 - `node --check backend/services/store-checkout.service.js` passed.
 - `node --check backend/services/invoice.service.js` passed.
+
+## Update (2026-04-13) - Binary Tree Direct Sponsors: Purple Gradient Nodes (Badge Removed)
+
+### What Was Changed
+
+- Replaced the Binary Tree direct-sponsor identifier from a purple mini badge to a full node-level purple gradient treatment.
+- Added a dedicated `direct` avatar palette in Binary Tree rendering.
+- Updated node draw logic so direct nodes render with the purple gradient and no mini badge overlay.
+- Kept inactive behavior unchanged: inactive nodes still render as neutral gray and suppress photo/personal palette rendering.
+- Left panel behavior was intentionally not changed (active/inactive dot on member icon remains the same).
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used a full-node gradient (instead of a secondary badge) to reduce visual conflict with the existing green/gray activity dot semantics.
+- Forced direct nodes to the `direct` palette and disabled photo/source palette for those nodes so the identifier is always visible.
+- Preserved neutral-gray inactive override to keep account-status readability consistent.
+
+### Known Limitations
+
+- This direct-sponsor indicator currently keys off sponsor username matching the logged-in member username; if upstream data omits sponsor usernames, direct highlighting depends on available sponsor metadata quality.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-13) - Backend-Wide Active Rule Alignment + User Dashboard Activity Refresh
+
+### What Was Changed
+
+- Added shared backend activity helper:
+  - `backend/utils/member-activity.helpers.js`
+  - canonical rule: member is active only when current monthly Personal BV is `>= 50`.
+- Updated backend user/member mapping layers to derive `accountStatus` and `isActive` from the shared rule:
+  - `backend/stores/user.store.js`
+  - `backend/stores/member.store.js`
+- Updated auth response sanitization to emit rule-aligned activity fields (`accountStatus`, `isActive`, `currentPersonalPvBv`, `monthlyPersonalBv`):
+  - `backend/utils/auth.helpers.js`
+- Updated password-setup completion flow so persisted account status is derived from the same Personal BV rule:
+  - `backend/services/auth.service.js`
+- Replaced achievements module activity-window logic with Personal BV activity-state resolution:
+  - `backend/services/member-achievement.service.js`
+- Updated user dashboard activity presentation in `index.html`:
+  - removed activity-window timer gating (`activeUntil` logic)
+  - switched status badge/account overview to 50 Personal BV threshold logic
+  - changed account-status card messaging from “purchase one product monthly” to “maintain at least 50 Personal BV this month”
+  - displayed current monthly Personal BV progress (`current / 50 BV`) in the account status card.
+
+### Files Affected
+
+- `backend/utils/member-activity.helpers.js`
+- `backend/stores/user.store.js`
+- `backend/stores/member.store.js`
+- `backend/utils/auth.helpers.js`
+- `backend/services/auth.service.js`
+- `backend/services/member-achievement.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Centralized active-state resolution in one backend helper to avoid logic drift across auth, member, and achievement paths.
+- Preserved explicit negative/pending account states as hard inactive overrides.
+- Used current-period fallback derivation from `starterPersonalPv - serverCutoffBaselineStarterPersonalPv` when explicit monthly/current-period fields are unavailable.
+- Updated dashboard UI copy and metrics to match the new rule directly so status color and explanatory text stay consistent.
+
+### Known Limitations
+
+- Monthly/current-period precision still depends on cutoff baseline freshness; if baseline data is stale/missing, fallback uses derived starter/baseline snapshots.
+
+### Validation
+
+- `node --check backend/utils/member-activity.helpers.js` passed.
+- `node --check backend/stores/user.store.js` passed.
+- `node --check backend/stores/member.store.js` passed.
+- `node --check backend/utils/auth.helpers.js` passed.
+- `node --check backend/services/auth.service.js` passed.
+- `node --check backend/services/member-achievement.service.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 2`.
+
+## Update (2026-04-13) - Active Node Gating Switched To 50 Personal BV Threshold
+
+### What Was Changed
+
+- Reworked Binary Tree node activity detection to use Personal BV threshold gating instead of relying on `accountStatus` text labels alone.
+- Added a hard minimum activity threshold:
+  - `ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN = 50`
+- Added a node-level personal BV resolver for activity checks that supports:
+  - explicit current-period fields (`currentPersonalPvBv`, `monthlyPersonalBv`)
+  - fallback to starter PV/BV fields
+  - cutoff-baseline delta (`serverCutoffBaselineStarterPersonalPv`) when available.
+- Updated live member account-status derivation during Binary Tree hydration to align with the same threshold rule (unless explicit status is pending/disabled/inactive style).
+- Extended mapped tree node records (including newly enrolled node insertion path and scoped root projection) to carry personal-volume fields used by activity gating.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved explicit negative account states (`pending`, `inactive`, `suspended`, etc.) as hard inactive overrides.
+- Kept company/global root node active by id guard to avoid degrading global-root readability in admin/global views.
+- Used baseline delta when present so the activity gate can consume current-period volume snapshots instead of lifetime-only totals.
+
+### Known Limitations
+
+- Current-period interpretation depends on how/when `serverCutoffBaselineStarterPersonalPv` is maintained by backend cutoff flows; if baseline is stale/missing, fallback uses starter personal PV snapshot.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-13) - Inactive Direct Sponsors Use Darker Gray Node Palette
+
+### What Was Changed
+
+- Added a dedicated darker gray Binary Tree avatar palette for inactive direct-sponsor nodes (`directInactive`).
+- Updated Binary Tree node rendering so inactive direct nodes use this darker gray variant instead of the default inactive neutral gray.
+- Kept active direct nodes on the purple gradient variant and kept non-direct inactive nodes on the existing neutral gray.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Differentiated inactive directs from other inactive nodes using tone depth (darker gray) rather than extra iconography, to avoid conflicts with existing activity indicators.
+- Limited this change to Binary Tree node avatar rendering path only.
+
+### Known Limitations
+
+- Visual distinction depends on node size/zoom level; at very small dot LOD levels the darker shade is subtler but still present.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-13) - Personal BV Monthly Anchor Model (Join-Day Cutoff) + Activity Sync
+
+### What Was Changed
+
+- Reworked Personal BV activity logic to use a fixed monthly window anchored to each member's join timestamp (not rolling +30 days).
+- Added shared Personal BV snapshot/window utilities in:
+  - `backend/utils/member-activity.helpers.js`
+  - new window outputs include `currentWindowStartAt`, `nextCutoffAt`, and effective `currentPersonalPvBv`.
+- Activity status behavior now:
+  - active when effective current-window Personal BV is `>= 50`
+  - forced-inactive only for hard-negative states (review/suspended/disabled/inactive/dormant/expired)
+  - password setup pending no longer forces inactive by itself.
+- Updated enrollment, product purchase, and package upgrade write paths to keep `currentPersonalPvBv` as current-window balance and keep `activityActiveUntilAt` aligned to the anchored monthly cutoff:
+  - `backend/services/member.service.js`
+- Elevated `current_personal_pv_bv` to first-class persisted member-user data:
+  - schema guard/migration (`ADD COLUMN IF NOT EXISTS`) in user/member stores
+  - read/write/upsert/update SQL paths updated in `backend/stores/user.store.js`
+  - registered-member linked-user hydration now consumes linked `current_personal_pv_bv` and linked timestamp fields in `backend/stores/member.store.js`.
+- Auth response now returns activity cutoff from resolved activity-state snapshot (`activeUntilAt` from helper) in:
+  - `backend/utils/auth.helpers.js`
+- Achievement personal-volume resolver now consumes helper-based current Personal BV instead of lifetime starter PV in:
+  - `backend/services/member-achievement.service.js`
+- Frontend activity-state alignment updates:
+  - `binary-tree-next-app.mjs`
+    - activity Personal BV is zeroed when cutoff is expired
+    - `pending` status is no longer treated as an automatic inactive override
+  - `index.html`
+    - dashboard account Personal BV resolver now zeros after cutoff expiry
+    - `pending` no longer hard-forces inactive in account activity-state checks.
+
+### Files Affected
+
+- `backend/utils/member-activity.helpers.js`
+- `backend/services/member.service.js`
+- `backend/stores/user.store.js`
+- `backend/stores/member.store.js`
+- `backend/utils/auth.helpers.js`
+- `backend/services/member-achievement.service.js`
+- `binary-tree-next-app.mjs`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept Personal BV windowing independent from weekly baseline consumption by prioritizing persisted `currentPersonalPvBv` and applying anchored monthly-window validity checks.
+- Preserved hard-negative operational statuses as inactive overrides, while allowing password-setup-pending members to still be activity-active by BV.
+- Used join-day anchored cutoff computation with end-of-month clamping via UTC date math for months with fewer days.
+
+### Known Limitations
+
+- Historical accounts with legacy rolling-window state may require one purchase/upgrade cycle to fully normalize persisted `currentPersonalPvBv` under the new anchored model.
+- Registered-member fallback still depends on linked member-user data consistency when placeholder/non-linked rows are present.
+
+### Validation
+
+- `node --check backend/utils/member-activity.helpers.js` passed.
+- `node --check backend/stores/user.store.js` passed.
+- `node --check backend/stores/member.store.js` passed.
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/services/member-achievement.service.js` passed.
+- `node --check backend/utils/auth.helpers.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 5`.
+
+## Update (2026-04-13) - Dashboard Account Card Timer Restored
+
+### What Was Changed
+
+- Reverted the Account Status card header from `Monthly Personal BV` back to `Account Active Until`.
+- Replaced the card value display from BV progress (`current / 50 BV`) back to a timer-style countdown.
+- Added dashboard timer helpers in `index.html`:
+  - `formatDashboardAccountRemaining(ms)`
+  - `resolveAccountActivityUntilLabel(user)`
+- Account card now shows:
+  - remaining time until `activityActiveUntilAt` when available
+  - `Expired` when cutoff has passed
+  - `--` when cutoff timestamp is unavailable.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept Personal Volume as a separate dashboard concern (as requested), and restored timer semantics only for the Account Status card value area.
+- Did not change backend activity gating rules in this step.
+
+### Validation
+
+- Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 5`.
+
+## Update (2026-04-13) - Account Timer Drift Fix (Join-Date Anchored Countdown)
+
+### What Was Changed
+
+- Fixed Account Status timer drift where some accounts could display extended durations (e.g., `79 days`) due to stale legacy `activityActiveUntilAt` values.
+- Updated dashboard timer computation in `index.html` to derive cutoff directly from join-date anchor (`createdAt`) using monthly cutoff math.
+- Timer now uses anchored monthly cutoff as primary source and only falls back to stored `activityActiveUntilAt` when join-date is unavailable.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept Account Status timer UI intact while making computation deterministic from account join anchor.
+- This aligns timer output with monthly cutoff policy and prevents legacy rolling-window residue from inflating remaining days.
+
+### Validation
+
+- Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 5`.
+
+## Update (2026-04-13) - Strict Server-Tied Session Hydration For Dashboard User State
+
+### What Was Changed
+
+- Added authenticated member session endpoint:
+  - `GET /api/member-auth/session`
+  - protected by `requireMemberAuthSession`
+  - returns server-fresh sanitized user payload.
+- Backend additions:
+  - `backend/services/auth.service.js`
+    - new `resolveAuthenticatedMemberSession(...)`
+  - `backend/controllers/auth.controller.js`
+    - new `getMemberSession(...)`
+  - `backend/routes/auth.routes.js`
+    - wired `router.get('/session', requireMemberAuthSession, getMemberSession)`.
+- Frontend strict session hydration:
+  - `index.html`
+    - added `hydrateCurrentSessionUserFromServerSync(user)`
+    - on app boot, session now requires successful server hydration via bearer token before runtime initialization continues.
+    - if hydration fails or token missing, local session is cleared and user is redirected to `login.html`.
+- This removes reliance on stale browser-cached user fields for initial dashboard/session-critical rendering.
+
+### Files Affected
+
+- `backend/services/auth.service.js`
+- `backend/controllers/auth.controller.js`
+- `backend/routes/auth.routes.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept existing session token model (bearer auth token + hashed server session table), but enforced server round-trip hydration at dashboard bootstrap.
+- Preserved auth token fields from local snapshot while replacing account fields with server-fresh payload.
+- Fail-closed behavior on hydration failure to keep fields strictly server-authoritative.
+
+### Known Limitations
+
+- Uses synchronous XHR at bootstrap to guarantee hydration before any session-bound UI boot logic runs; this is intentional for strictness but can add startup blocking if server latency is high.
+
+### Validation
+
+- `node --check backend/services/auth.service.js` passed.
+- `node --check backend/controllers/auth.controller.js` passed.
+- `node --check backend/routes/auth.routes.js` passed.
+- Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 5`.
+- Runtime smoke check via service call:
+  - `resolveAuthenticatedMemberSession({ id: zeroone.id })` returned `status: 200` and expected server fields.
+
+
+## Update (2026-04-13) - Package-Specific Store BV + Retail Commission (Server-Enforced)
+
+### What Was Changed
+
+- Added package-earnings support for store products, with per-package values for:
+  - buyer BV credit
+  - retail commission amount.
+- Introduced shared backend package-earnings helper:
+  - default mapping now aligns to requested package matrix:
+    - Personal Builder: `$4.00` retail, `50 BV`
+    - Business Builder: `$8.00` retail, `48 BV`
+    - Infinity Builder: `$12.00` retail, `44 BV`
+    - Legacy Builder: `$20.00` retail, `38 BV`
+- Extended `charge.store_products` schema handling to persist `package_earnings` (JSON) and map it to app models.
+- Checkout now resolves buyer package server-side and computes buyer BV/retail commission from product package earnings during intent/session creation.
+- Stripe metadata now carries server-computed `buyer_bv`, `retail_commission`, and `buyer_package_key`.
+- Checkout finalization now:
+  - creates invoice with buyer BV + retail commission
+  - credits BV to buyer account (non-free packages)
+  - preserves Free Account behavior by crediting owner BV from Free Account purchase flow.
+- Extended invoice storage/mapping with:
+  - `buyer_package_key`
+  - `retail_commission`
+  - automatic column ensure/migration in store layer.
+- Member dashboard checkout now finalizes through `/api/store-checkout/intent/complete`, so invoice/BV/retail are server-authoritative.
+- Admin product management UI now supports package-specific earnings inputs (retail + BV for Personal/Business/Infinity/Legacy) instead of a single BV field.
+- Store analytics cards/feeds now use `retailCommission` (fallback to amount for legacy rows), so owner revenue reflects retail commission instead of gross order amount.
+
+### Files Affected
+
+- `backend/utils/store-product-earnings.helpers.js`
+- `backend/stores/store-product.store.js`
+- `backend/services/store-product.service.js`
+- `backend/services/store-checkout.service.js`
+- `backend/stores/invoice.store.js`
+- `backend/services/invoice.service.js`
+- `storefront-shared.js`
+- `admin.html`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept backward compatibility by preserving legacy `bp` field while making package-earnings the source of truth.
+- Chose server-side checkout finalization path for member dashboard to enforce authoritative BV/retail math.
+- Retained Free Account owner-BV credit behavior while shifting standard member purchases to buyer BV credit.
+
+### Known Limitations
+
+- Existing historical invoices without `retail_commission` continue to fall back to `amount` in UI totals.
+- Inline HTML scripts were updated directly; no dedicated frontend unit test harness exists in this repo.
+
+### Validation
+
+- `node --check backend/utils/store-product-earnings.helpers.js` passed.
+- `node --check backend/stores/store-product.store.js` passed.
+- `node --check backend/services/store-product.service.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/stores/invoice.store.js` passed.
+- `node --check backend/services/invoice.service.js` passed.
+- `node --check storefront-shared.js` passed.
+
+## Update (2026-04-13) - Preferred vs Member Store Purchase Settlement Logic Corrected
+
+### What Was Changed
+
+- Updated checkout settlement rules in `backend/services/store-checkout.service.js`:
+  - Preferred-customer purchases now use the **store owner package** earnings profile for BV + retail commission.
+  - Member (non-preferred) purchases now use the **buyer package** earnings profile for BV.
+  - Retail commission is now **0** for member purchases.
+- Added explicit settlement metadata through Stripe checkout/intent flows:
+  - `settlement_package_key`
+  - `invoice_bv`
+  - `buyer_bv`
+  - `owner_bv`
+  - `retail_commission`
+- Updated checkout finalization so credits are applied by role:
+  - buyer personal BV uses `buyer_bv`
+  - owner personal BV uses `owner_bv`
+  - invoice/team BV uses `invoice_bv`
+- Updated discount gating:
+  - only preferred-customer checkouts receive the 15% discount.
+  - member (builder) checkouts no longer receive rank-based discount in server settlement.
+- Aligned frontend checkout identity + discount behavior:
+  - `storefront-shared.js` now forwards signed-in buyer identity (`buyerUserId`, `buyerUsername`) to backend for package resolution.
+  - `store-checkout.html` discount display now activates for free-account mode **or** signed-in preferred customer.
+  - `index.html` dashboard store flow discount UI now reflects preferred-only discount (builder packages now 0%).
+
+### Files Affected
+
+- `backend/services/store-checkout.service.js`
+- `storefront-shared.js`
+- `store-checkout.html`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept server checkout as the source of truth for all payout/BV routing decisions.
+- Preserved invoice `bp` as compatibility alias, but made it explicitly represent invoice/team BV (`invoice_bv`).
+- Used metadata fallback in finalization for backward compatibility (`owner_bv` can fallback for preferred legacy metadata cases).
+
+### Known Limitations
+
+- A preferred customer checking out without authenticated buyer identity and without free-account mode will be treated as guest (no preferred discount), because package identity cannot be asserted server-side.
+- Full E2E payment flow validation was not run in this session; syntax and parse checks were run.
+
+### Validation
+
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check storefront-shared.js` passed.
+- Inline script parse check for `index.html`: `Parsed inline scripts in index.html: 2`.
+- Inline script parse check for `store-checkout.html`: `Parsed inline scripts in store-checkout.html: 1`.
+
+## Update (2026-04-13) - One-Time Manual Backfill for `INV-240934` (Zeroone Only)
+
+### What Was Changed
+
+- Executed a direct one-time DB update for invoice `INV-240934` only.
+- Mapped buyer identity fields to `zeroone` account:
+  - `buyer_user_id = usr_1775181494655_698b390a`
+  - `buyer_username = zeroone`
+  - `buyer_email = sethfozzaguilar@gmail.com`
+- No scripts were created and no recurring/backfill automation was introduced.
+
+### Files / Systems Affected
+
+- Database row only:
+  - `charge.store_invoices` (`id = 'INV-240934'`)
+
+### Design Decisions
+
+- Scoped patch to a single invoice ID and a single target user to avoid repeating prior accidental broad backfill behavior.
+- Kept invoice attribution untouched (`attribution_key = CHG-ZERO`), only corrected buyer identity mapping.
+
+### Known Limitations
+
+- This is a manual correction; future guest invoices depend on checkout identity capture behavior and not this manual patch.
+
+### Validation
+
+- Verified before/after payload in transaction output.
+- `affectedRows = 1`.
+- Re-read invoice through store layer confirmed updated identity fields for `INV-240934`.
+
+## Update (2026-04-13) - Admin Product Visibility Fix (`MetaCharge™` Not Showing)
+
+### What Was Changed
+
+- Investigated missing `MetaCharge™` in Admin Product Management.
+- Confirmed product still exists in DB:
+  - `product_id = metacharge`
+  - `title = MetaCharge™`
+  - `status = active`
+  - `price = 64.00`
+  - `stock = 100`
+- Root cause: `store_products` schema migration path attempted `adminPool` DDL checks each read, and failed due `charge_app_admin` auth, which broke product loading in admin.
+- Updated `backend/stores/store-product.store.js` to be resilient when admin migration auth is unavailable:
+  - added schema column probing helper
+  - made read query dynamically project fallback values when `image_urls` / `package_earnings` columns are missing
+  - made write query dynamically include only columns that exist
+  - migration attempts now warn and continue instead of hard-failing product reads.
+
+### Files Affected
+
+- `backend/stores/store-product.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized availability of product read/write flows over hard dependency on admin migration credentials.
+- Preserved package-earnings behavior with default/fallback mapping even when DB column is absent.
+
+### Known Limitations
+
+- Warning logs remain when admin migration account is misconfigured:
+  - `[store-products] Unable to migrate package_earnings column via admin pool: ...`
+- Proper long-term fix is correcting `admin-db` credentials and running the migration once.
+
+### Validation
+
+- `node --check backend/stores/store-product.store.js` passed.
+- `getStoreProducts({ includeArchived: true })` returns success with `MetaCharge™`.
+- `readStoreProductsStore({ includeArchived: true })` returns product row including normalized package earnings.
+
+## Update (2026-04-13) - Store Discount Label Clarification (Member vs Preferred)
+
+### What Was Changed
+
+- Updated dashboard store discount copy to use audience-correct wording:
+  - Preferred customers: `Preferred Customer Discount`
+  - Member accounts: `Member Discount`
+- Applied to:
+  - top discount badge
+  - product-grid discount label
+  - checkout cart discount label
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept pricing logic unchanged.
+- Changed only text labels so 0% on member accounts no longer appears under a “Preferred” label.
+
+### Validation
+
+- Inline script parse check for `index.html`: `Parsed inline scripts in index.html: 2`.
+
+## Update (2026-04-13) - Preferred Guest Sales Fallback Rendering Guard
+
+### What Was Changed
+
+- Added a fallback in Preferred Customer guest sales rendering:
+  - primary path: owner-attributed guest invoices
+  - fallback path (when primary is empty): all guest-identity invoices with non-default attribution key from loaded invoice feed
+- Excludes:
+  - enrollment-generated invoices
+  - invoices already matched to preferred-member planner rows
+  - identity-linked invoices (`buyerUserId`/`buyerUsername` present)
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized visibility of valid guest-attributed purchases when legacy/variant owner-code matching fails in runtime session context.
+- Kept fallback scoped to non-default attributed guest invoices to avoid showing registration-locked system rows.
+
+### Validation
+
+- Inline script parse check for `index.html`: `Parsed inline scripts in index.html: 2`.
+
+## Update (2026-04-13) - Store Code Variant Normalization Hardening (Dash/No-Dash)
+
+### What Was Changed
+
+- Hardened store-code variant derivation logic to support both dashed and compact legacy formats:
+  - `M-ZERO` and `MZERO`
+  - `CHG-ZERO` and `CHGZERO`
+- Updated:
+  - `derivePublicStoreCodeFromInternalCode(...)` to parse `M-?SUFFIX`
+  - `deriveStoreCodeVariants(...)` to generate cross-prefix + dashed/compact variants
+- This directly improves guest-attributed invoice ownership matching in Preferred Customer guest sales rendering.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script parse check for `index.html`: `Parsed inline scripts in index.html: 2`.
+
+## Update (2026-04-13) - Guest Checkout Identity Rule Alignment (Email-Only Guest Handling)
+
+### What Was Changed
+
+- Aligned preferred-customer invoice matching with guest checkout identity behavior:
+  - guest checkout uses name/email only (no username)
+  - email-only invoices are no longer treated as member-linked for preferred planner matching
+- Updated `collectPreferredCustomerInvoiceIdentityKeys(...)` in `index.html` to match only:
+  - `buyerUserId`
+  - `buyerUsername`
+- Removed `buyerEmail` from member-link matching keys so email-only guest invoices stay in **Guest Attributed Purchases**.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Treated email as contact metadata for guest checkouts, not as a stable member identity key.
+- Preserved owner-attributed guest visibility while avoiding accidental auto-linking to member planner rows.
+
+### Validation
+
+- Inline script parse check for `index.html`: `Parsed inline scripts in index.html: 2`.
+
+## Update (2026-04-13) - Preferred Guest Sales Visibility Fix (CHG/M Code Alias)
+
+### What Was Changed
+
+- Investigated missing Preferred Customer guest-attributed entries after successful guest checkout credit.
+- Confirmed invoice data existed in DB (`INV-240936`) with:
+  - `attribution_key = CHG-ZERO`
+  - guest identity fields unset (`buyer_user_id`, `buyer_username` null)
+- Identified filtering mismatch risk between internal store code (`M-*`) and public attributed code (`CHG-*`) in owner-attribution resolution.
+- Updated `index.html` store-code normalization helpers:
+  - added `derivePublicStoreCodeFromInternalCode(...)`
+  - added `deriveStoreCodeVariants(...)`
+- Updated owner-attribution code collection to include normalized code variants and skip default registration lock routing.
+- Updated `resolvePublicStoreCode()` to prefer derived public code (`CHG-*`) from internal code (`M-*`) when explicit `publicStoreCode` is absent in session payload.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept existing attribution-key gating behavior, but made owner-code matching tolerant to expected `M-` / `CHG-` dual-code representation.
+- Avoided broad fallback to all invoices; matching still requires owner-attributed code equivalence.
+
+### Validation
+
+- Inline script parse check for `index.html`: `Parsed inline scripts in index.html: 2`.
+
+## Update (2026-04-13) - Guest Attributed Sales Rerouted to Preferred Customer Page
+
+### What Was Changed
+
+- Added a dedicated **Guest Attributed Purchases** block inside the Preferred Customer page (`index.html`).
+- Added invoice-classification helpers to identify attributed guest/unlinked checkouts:
+  - `hasInvoiceLinkedBuyerIdentity(...)`
+  - `isInvoiceAttributedGuestCheckout(...)`
+  - `resolveStoreInvoicesForCurrentOwnerDashboardView(...)`
+- Updated owner-side feeds to exclude guest-attributed invoices:
+  - owner invoice feed renderer now uses dashboard-filtered invoices
+  - store owner KPI metrics now use dashboard-filtered invoices
+  - dashboard recent activity purchase entries now skip guest-attributed invoice records
+- Updated Preferred Customer planner rendering to:
+  - keep normal preferred-member purchase matching behavior
+  - surface unlinked guest-attributed invoices in the new preferred guest section
+  - avoid duplicate display when a guest invoice is already matched to a preferred member record.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept the existing Preferred Customer **placement planner** intact for actual member records.
+- Introduced a separate guest-sales bucket so owner-side invoice/recent activity views stay clean while still preserving visibility of attributed guest purchases.
+
+### Known Limitations
+
+- Guest sales shown in the preferred guest bucket are currently read-only (tracking/follow-up view), not directly actionable as placement targets until tied to a member record.
+
+### Validation
+
+- Inline script parse check for `index.html`: `Parsed inline scripts in index.html: 2`.

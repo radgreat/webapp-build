@@ -18,6 +18,10 @@ import {
   issuePasswordSetupToken,
   resolveAuthAccountAudience,
 } from '../utils/auth.helpers.js';
+import {
+  normalizeStorePackageKey,
+  resolveStorePackageEarning,
+} from '../utils/store-product-earnings.helpers.js';
 
 const LEGACY_STORE_CODE_ALIASES = Object.freeze({
   'CHG-7X42': 'CHG-ZERO',
@@ -32,6 +36,7 @@ const DEFAULT_CHECKOUT_RETURN_PATH = '/store-checkout.html';
 const STRIPE_METADATA_VALUE_LIMIT = 500;
 const CHECKOUT_MODE_GUEST = 'guest';
 const CHECKOUT_MODE_FREE_ACCOUNT = 'free-account';
+const DEFAULT_BUILDER_PACKAGE_KEY = 'personal-builder-pack';
 const FREE_ACCOUNT_USERNAME_PATTERN = /^[a-zA-Z0-9._-]{3,24}$/;
 const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
 const PLACEMENT_LEG_EXTREME_LEFT = 'extreme-left';
@@ -83,15 +88,10 @@ function normalizeDiscountPercent(value, fallbackPercent = DEFAULT_DISCOUNT_PERC
 }
 
 function resolveDiscountPercentForCheckoutMode(value, checkoutMode = CHECKOUT_MODE_GUEST, options = {}) {
-  const source = normalizeText(options?.source).toLowerCase();
-  const buyerIdentityPresent = Boolean(
-    normalizeText(options?.buyerUserId)
-    || normalizeText(options?.buyerUsername)
-    || normalizeEmail(options?.buyerEmail),
-  );
-  const allowMemberDashboardDiscount = source === 'member-dashboard' && buyerIdentityPresent;
+  const isPreferredBuyer = options?.isPreferredBuyer === true;
+  const allowPreferredCustomerDiscount = checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT || isPreferredBuyer;
 
-  if (checkoutMode !== CHECKOUT_MODE_FREE_ACCOUNT && !allowMemberDashboardDiscount) {
+  if (!allowPreferredCustomerDiscount) {
     return 0;
   }
   return normalizeDiscountPercent(value, DEFAULT_DISCOUNT_PERCENT);
@@ -133,6 +133,28 @@ function normalizeCheckoutMode(value) {
   return normalizedValue === CHECKOUT_MODE_FREE_ACCOUNT
     ? CHECKOUT_MODE_FREE_ACCOUNT
     : CHECKOUT_MODE_GUEST;
+}
+
+function shouldPersistBuyerIdentityForCheckout({
+  checkoutMode = CHECKOUT_MODE_GUEST,
+  source = '',
+} = {}) {
+  const normalizedSource = normalizeText(source).toLowerCase();
+  if (normalizedSource === 'member-dashboard') {
+    return true;
+  }
+
+  if (
+    normalizedSource === 'public-storefront'
+    && (
+      checkoutMode === CHECKOUT_MODE_GUEST
+      || checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT
+    )
+  ) {
+    return false;
+  }
+
+  return checkoutMode !== CHECKOUT_MODE_GUEST;
 }
 
 function normalizePlacementLeg(value) {
@@ -228,6 +250,81 @@ function resolveStoreOwnerByAttributionCode(users, storeCode) {
 
     return candidateCodes.includes(normalizedStoreCode);
   }) || null;
+}
+
+function resolveCheckoutBuyerIdentity(users = [], payload = {}) {
+  const safeUsers = Array.isArray(users) ? users : [];
+  const buyerUserId = normalizeText(payload?.buyerUserId || payload?.buyer_user_id);
+  const buyerUsername = normalizeText(payload?.buyerUsername || payload?.buyer_username).toLowerCase();
+  const buyerEmail = normalizeEmail(payload?.buyerEmail || payload?.buyer_email);
+
+  if (!buyerUserId && !buyerUsername && !buyerEmail) {
+    return null;
+  }
+
+  return safeUsers.find((user) => {
+    const userId = normalizeText(user?.id);
+    const username = normalizeText(user?.username).toLowerCase();
+    const email = normalizeEmail(user?.email);
+    return Boolean(
+      (buyerUserId && userId && userId === buyerUserId)
+      || (buyerUsername && username && username === buyerUsername)
+      || (buyerEmail && email && email === buyerEmail),
+    );
+  }) || null;
+}
+
+function resolveCheckoutBuyerPackageKey({
+  users = [],
+  payload = {},
+  checkoutMode = CHECKOUT_MODE_GUEST,
+  fallbackPackageKey = DEFAULT_BUILDER_PACKAGE_KEY,
+  matchedBuyer = null,
+} = {}) {
+  if (checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT) {
+    return FREE_ACCOUNT_PACKAGE_KEY;
+  }
+
+  const resolvedMatchedBuyer = matchedBuyer || resolveCheckoutBuyerIdentity(users, payload);
+  const matchedPackageKey = normalizeStorePackageKey(resolvedMatchedBuyer?.enrollmentPackage);
+  if (matchedPackageKey) {
+    return matchedPackageKey;
+  }
+
+  return normalizeStorePackageKey(fallbackPackageKey) || DEFAULT_BUILDER_PACKAGE_KEY;
+}
+
+function resolveCheckoutSettlementProfile({
+  checkoutMode = CHECKOUT_MODE_GUEST,
+  buyerPackageKey = DEFAULT_BUILDER_PACKAGE_KEY,
+  attributionOwner = null,
+  hasKnownBuyerIdentity = false,
+} = {}) {
+  const normalizedBuyerPackageKey = normalizeStorePackageKey(buyerPackageKey)
+    || DEFAULT_BUILDER_PACKAGE_KEY;
+  const isPreferredBuyer = (
+    checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT
+    || normalizedBuyerPackageKey === FREE_ACCOUNT_PACKAGE_KEY
+  );
+  const isRetailGuest = checkoutMode === CHECKOUT_MODE_GUEST && hasKnownBuyerIdentity !== true;
+  const usesOwnerSettlement = isPreferredBuyer || isRetailGuest;
+  const ownerPackageKey = normalizeStorePackageKey(attributionOwner?.enrollmentPackage)
+    || DEFAULT_BUILDER_PACKAGE_KEY;
+  const earningsPackageKey = usesOwnerSettlement && attributionOwner
+    ? ownerPackageKey
+    : normalizedBuyerPackageKey;
+
+  return {
+    isPreferredBuyer,
+    isRetailGuest,
+    usesOwnerSettlement,
+    buyerPackageKey: normalizedBuyerPackageKey,
+    ownerPackageKey,
+    earningsPackageKey,
+    applyBuyerBvCredit: !usesOwnerSettlement,
+    applyOwnerBvCredit: Boolean(usesOwnerSettlement && attributionOwner),
+    includeRetailCommission: Boolean(usesOwnerSettlement && attributionOwner),
+  };
 }
 
 function resolveConfiguredUnattributedFreeAccountSponsorUsername() {
@@ -414,13 +511,21 @@ function resolveStripePublishableKey() {
   return publishableKey;
 }
 
-function buildCheckoutLineItems(cartLines, products, discountRate = 0) {
+function buildCheckoutLineItems(cartLines, products, discountRate = 0, options = {}) {
   const productById = new Map((Array.isArray(products) ? products : []).map((product) => [product.id, product]));
+  const buyerPackageKey = normalizeStorePackageKey(options?.buyerPackageKey) || DEFAULT_BUILDER_PACKAGE_KEY;
+  const earningsPackageKey = normalizeStorePackageKey(options?.earningsPackageKey)
+    || buyerPackageKey
+    || DEFAULT_BUILDER_PACKAGE_KEY;
+  const applyBuyerBvCredit = options?.applyBuyerBvCredit !== false;
+  const applyOwnerBvCredit = options?.applyOwnerBvCredit === true;
+  const includeRetailCommission = options?.includeRetailCommission === true;
 
   const checkoutLines = [];
   let subtotal = 0;
   let total = 0;
-  let totalBp = 0;
+  let totalResolvedBv = 0;
+  let totalRetailCommission = 0;
 
   (Array.isArray(cartLines) ? cartLines : []).forEach((line) => {
     const product = productById.get(line.productId);
@@ -446,7 +551,18 @@ function buildCheckoutLineItems(cartLines, products, discountRate = 0) {
     }
 
     subtotal += (baseUnitPrice * quantity);
-    totalBp += toWholeNumber(product.bp, 0) * quantity;
+    const packageEarning = resolveStorePackageEarning(product, earningsPackageKey, {
+      fallbackPackageKey: DEFAULT_BUILDER_PACKAGE_KEY,
+    });
+    const resolvedBvPerUnit = toWholeNumber(
+      packageEarning?.bv,
+      toWholeNumber(product.bp, 0),
+    );
+    const retailCommissionPerUnit = includeRetailCommission
+      ? roundCurrency(packageEarning?.retailCommission)
+      : 0;
+    totalResolvedBv += resolvedBvPerUnit * quantity;
+    totalRetailCommission += retailCommissionPerUnit * quantity;
     total += (unitAmount * quantity) / 100;
 
     const imageCandidates = Array.isArray(product.images) && product.images.length > 0
@@ -482,6 +598,9 @@ function buildCheckoutLineItems(cartLines, products, discountRate = 0) {
   const roundedSubtotal = roundCurrency(subtotal);
   const roundedTotal = roundCurrency(total);
   const discount = roundCurrency(Math.max(0, roundedSubtotal - roundedTotal));
+  const invoiceBv = Math.max(0, toWholeNumber(totalResolvedBv, 0));
+  const buyerBv = applyBuyerBvCredit ? invoiceBv : 0;
+  const ownerBv = applyOwnerBvCredit ? invoiceBv : 0;
 
   return {
     checkoutLines,
@@ -489,7 +608,13 @@ function buildCheckoutLineItems(cartLines, products, discountRate = 0) {
     subtotal: roundedSubtotal,
     total: roundedTotal,
     discount,
-    bp: Math.max(0, toWholeNumber(totalBp, 0)),
+    buyerPackageKey,
+    earningsPackageKey,
+    invoiceBv,
+    buyerBv,
+    ownerBv,
+    retailCommission: roundCurrency(totalRetailCommission),
+    bp: invoiceBv,
   };
 }
 
@@ -803,7 +928,13 @@ async function finalizeSuccessfulStoreCheckout({
   }
 
   const normalizedAmount = roundCurrency(amount);
-  const bp = parseMetadataWholeNumber(metadata.bp, 0);
+  const invoiceBv = parseMetadataWholeNumber(
+    metadata.invoice_bv ?? metadata.bp ?? metadata.buyer_bv,
+    0,
+  );
+  const buyerBv = parseMetadataWholeNumber(metadata.buyer_bv, invoiceBv);
+  const retailCommission = parseMetadataCurrencyValue(metadata.retail_commission, 0);
+  const buyerPackageKey = normalizeStorePackageKey(metadata.buyer_package_key || '');
   const discount = parseMetadataCurrencyValue(metadata.discount_amount, 0);
   const invoiceStatus = normalizeText(metadata.invoice_status) || resolveInvoiceStatus(normalizedAmount);
   const attributionKey = normalizeStoreCode(metadata.attribution_key || metadata.member_store_code);
@@ -812,6 +943,17 @@ async function finalizeSuccessfulStoreCheckout({
   const resolvedBuyerName = normalizeText(buyerName || metadata.buyer_name || 'Store Buyer');
   const resolvedBuyerEmail = normalizeEmail(buyerEmail || metadata.buyer_email);
   const checkoutMode = normalizeCheckoutMode(metadata.checkout_mode || metadata.checkoutMode);
+  const persistBuyerIdentityFromMetadata = shouldPersistBuyerIdentityForCheckout({
+    checkoutMode,
+    source: metadata.source || metadata.source_label || '',
+  });
+  const resolvedBuyerPackageKey = buyerPackageKey
+    || (checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT ? FREE_ACCOUNT_PACKAGE_KEY : '');
+  const isPreferredBuyerCheckout = resolvedBuyerPackageKey === FREE_ACCOUNT_PACKAGE_KEY;
+  let ownerBv = parseMetadataWholeNumber(metadata.owner_bv, 0);
+  if (ownerBv <= 0 && isPreferredBuyerCheckout && buyerBv > 0) {
+    ownerBv = buyerBv;
+  }
   const freeAccountCheckoutFields = resolveFreeAccountCheckoutFieldsFromMetadata(metadata);
 
   let preferredCustomerIdentity = {
@@ -841,11 +983,11 @@ async function finalizeSuccessfulStoreCheckout({
   }
 
   const buyerUserId = normalizeText(
-    metadata.buyer_user_id
+    (persistBuyerIdentityFromMetadata ? metadata.buyer_user_id : '')
     || (checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT ? preferredCustomerIdentity.userId : ''),
   );
   const buyerUsername = normalizeText(
-    metadata.buyer_username
+    (persistBuyerIdentityFromMetadata ? metadata.buyer_username : '')
     || (checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT ? preferredCustomerIdentity.username : ''),
   );
   const buyerEmailForInvoice = normalizeEmail(
@@ -883,7 +1025,9 @@ async function finalizeSuccessfulStoreCheckout({
     memberStoreCode,
     memberStoreLink,
     amount: normalizedAmount,
-    bp,
+    bp: invoiceBv,
+    retailCommission,
+    buyerPackageKey,
     discount,
     status: invoiceStatus,
   });
@@ -920,23 +1064,53 @@ async function finalizeSuccessfulStoreCheckout({
   const createdInvoice = invoiceResult.data?.invoice || null;
   const attributionOwner = invoiceResult.data?.attributionOwner || null;
 
+  let buyerCredit = {
+    ok: true,
+    message: 'No buyer BV credit required.',
+  };
+
+  if (buyerBv > 0 && (buyerUserId || buyerUsername || buyerEmailForInvoice)) {
+    const buyerCreditResult = await recordMemberPurchase({
+      userId: buyerUserId,
+      username: buyerUsername,
+      email: buyerEmailForInvoice,
+      pvGain: buyerBv,
+    });
+
+    buyerCredit = buyerCreditResult.success
+      ? {
+          ok: true,
+          message: 'Buyer BV credit applied.',
+          user: buyerCreditResult.user,
+          purchase: buyerCreditResult.purchase,
+        }
+      : {
+          ok: false,
+          message: buyerCreditResult.error || 'Unable to credit buyer BV.',
+        };
+  }
+
   let ownerCredit = {
     ok: true,
     message: 'No owner BV credit required.',
   };
 
-  if (bp > 0 && attributionOwner && (attributionOwner.userId || attributionOwner.username || attributionOwner.email)) {
+  if (
+    ownerBv > 0
+    && attributionOwner
+    && (attributionOwner.userId || attributionOwner.username || attributionOwner.email)
+  ) {
     const ownerCreditResult = await recordMemberPurchase({
       userId: normalizeText(attributionOwner.userId),
       username: normalizeText(attributionOwner.username),
       email: normalizeText(attributionOwner.email),
-      pvGain: bp,
+      pvGain: ownerBv,
     });
 
     ownerCredit = ownerCreditResult.success
       ? {
           ok: true,
-          message: 'Owner BV credit applied.',
+          message: 'Owner BV credit applied from preferred-customer purchase.',
           user: ownerCreditResult.user,
           purchase: ownerCreditResult.purchase,
         }
@@ -945,6 +1119,21 @@ async function finalizeSuccessfulStoreCheckout({
           message: ownerCreditResult.error || 'Unable to credit owner BV.',
         };
   }
+
+  const ownerRetailCommission = {
+    amount: retailCommission,
+    attributed: Boolean(
+      attributionOwner && (attributionOwner.userId || attributionOwner.username || attributionOwner.email),
+    ),
+    owner: attributionOwner,
+    message: attributionOwner
+      ? (retailCommission > 0
+        ? 'Retail commission mapped to attribution owner.'
+        : 'No retail commission for this checkout.')
+      : (retailCommission > 0
+        ? 'Retail commission recorded without attribution owner.'
+        : 'No retail commission for this checkout.'),
+  };
 
   return {
     success: true,
@@ -956,7 +1145,9 @@ async function finalizeSuccessfulStoreCheckout({
       invoice: createdInvoice,
       attributionOwner,
       preferredCustomer: preferredCustomerIdentity,
+      buyerCredit,
       ownerCredit,
+      ownerRetailCommission,
       ...paymentReference,
     },
   };
@@ -1047,15 +1238,28 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
     : '';
 
   const products = await readStoreProductsStore({ includeArchived: false });
+  const buyerPackageKey = resolveCheckoutBuyerPackageKey({
+    users,
+    payload,
+    checkoutMode,
+  });
+  const settlementProfile = resolveCheckoutSettlementProfile({
+    checkoutMode,
+    buyerPackageKey,
+    attributionOwner: attributionResolution.attributionOwner,
+  });
   const discountPercent = resolveDiscountPercentForCheckoutMode(payload.discountPercent, checkoutMode, {
-    source: payload.source,
-    buyerUserId: payload.buyerUserId,
-    buyerUsername: payload.buyerUsername,
-    buyerEmail,
+    isPreferredBuyer: settlementProfile.isPreferredBuyer,
   });
   const discountRate = discountPercent / 100;
 
-  const checkoutSummary = buildCheckoutLineItems(cartLines, products, discountRate);
+  const checkoutSummary = buildCheckoutLineItems(cartLines, products, discountRate, {
+    buyerPackageKey: settlementProfile.buyerPackageKey,
+    earningsPackageKey: settlementProfile.earningsPackageKey,
+    applyBuyerBvCredit: settlementProfile.applyBuyerBvCredit,
+    applyOwnerBvCredit: settlementProfile.applyOwnerBvCredit,
+    includeRetailCommission: settlementProfile.includeRetailCommission,
+  });
   if (checkoutSummary.lineItems.length === 0 || checkoutSummary.total <= 0) {
     return {
       success: false,
@@ -1069,6 +1273,10 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
   const origin = resolveRequestOrigin(context);
   const memberStoreLink = normalizeText(payload.memberStoreLink) || buildPublicStoreLink(origin, requestedStoreCode);
   const invoiceStatus = resolveInvoiceStatus(checkoutSummary.total);
+  const persistBuyerIdentityForMetadata = shouldPersistBuyerIdentityForCheckout({
+    checkoutMode,
+    source: payload.source,
+  });
 
   const checkoutMetadata = {
     checkout_type: 'storefront',
@@ -1081,8 +1289,12 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
     buyer_email: sanitizeStripeMetadataValue(buyerEmail),
     shipping_address: sanitizeStripeMetadataValue(shippingAddress),
     shipping_mode: sanitizeStripeMetadataValue(shippingMode),
-    buyer_user_id: sanitizeStripeMetadataValue(payload.buyerUserId),
-    buyer_username: sanitizeStripeMetadataValue(payload.buyerUsername),
+    buyer_user_id: sanitizeStripeMetadataValue(
+      persistBuyerIdentityForMetadata ? payload.buyerUserId : '',
+    ),
+    buyer_username: sanitizeStripeMetadataValue(
+      persistBuyerIdentityForMetadata ? payload.buyerUsername : '',
+    ),
     checkout_mode: sanitizeStripeMetadataValue(checkoutMode, CHECKOUT_MODE_GUEST),
     free_account_member_username: sanitizeStripeMetadataValue(
       checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT ? freeAccountCheckoutFields.memberUsername : '',
@@ -1096,6 +1308,12 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
     free_account_notes: sanitizeStripeMetadataValue(
       checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT ? freeAccountCheckoutFields.notes : '',
     ),
+    buyer_package_key: sanitizeStripeMetadataValue(checkoutSummary.buyerPackageKey || settlementProfile.buyerPackageKey),
+    settlement_package_key: sanitizeStripeMetadataValue(checkoutSummary.earningsPackageKey || settlementProfile.earningsPackageKey),
+    invoice_bv: String(Math.max(0, toWholeNumber(checkoutSummary.invoiceBv, 0))),
+    buyer_bv: String(Math.max(0, toWholeNumber(checkoutSummary.buyerBv, 0))),
+    owner_bv: String(Math.max(0, toWholeNumber(checkoutSummary.ownerBv, 0))),
+    retail_commission: String(roundCurrency(checkoutSummary.retailCommission)),
     bp: String(Math.max(0, toWholeNumber(checkoutSummary.bp, 0))),
     subtotal: String(checkoutSummary.subtotal),
     discount_amount: String(checkoutSummary.discount),
@@ -1136,8 +1354,15 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
           subtotal: checkoutSummary.subtotal,
           discount: checkoutSummary.discount,
           total: checkoutSummary.total,
+          buyerPackageKey: checkoutSummary.buyerPackageKey || settlementProfile.buyerPackageKey,
+          settlementPackageKey: checkoutSummary.earningsPackageKey || settlementProfile.earningsPackageKey,
+          invoiceBv: checkoutSummary.invoiceBv,
+          buyerBv: checkoutSummary.buyerBv,
+          ownerBv: checkoutSummary.ownerBv,
+          retailCommission: checkoutSummary.retailCommission,
           bp: checkoutSummary.bp,
           discountPercent,
+          isPreferredBuyer: settlementProfile.isPreferredBuyer,
         },
       },
     };
@@ -1219,15 +1444,28 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     : '';
 
   const products = await readStoreProductsStore({ includeArchived: false });
+  const buyerPackageKey = resolveCheckoutBuyerPackageKey({
+    users,
+    payload,
+    checkoutMode,
+  });
+  const settlementProfile = resolveCheckoutSettlementProfile({
+    checkoutMode,
+    buyerPackageKey,
+    attributionOwner: attributionResolution.attributionOwner,
+  });
   const discountPercent = resolveDiscountPercentForCheckoutMode(payload.discountPercent, checkoutMode, {
-    source: payload.source,
-    buyerUserId: payload.buyerUserId,
-    buyerUsername: payload.buyerUsername,
-    buyerEmail,
+    isPreferredBuyer: settlementProfile.isPreferredBuyer,
   });
   const discountRate = discountPercent / 100;
 
-  const checkoutSummary = buildCheckoutLineItems(cartLines, products, discountRate);
+  const checkoutSummary = buildCheckoutLineItems(cartLines, products, discountRate, {
+    buyerPackageKey: settlementProfile.buyerPackageKey,
+    earningsPackageKey: settlementProfile.earningsPackageKey,
+    applyBuyerBvCredit: settlementProfile.applyBuyerBvCredit,
+    applyOwnerBvCredit: settlementProfile.applyOwnerBvCredit,
+    includeRetailCommission: settlementProfile.includeRetailCommission,
+  });
   if (checkoutSummary.lineItems.length === 0 || checkoutSummary.total <= 0) {
     return {
       success: false,
@@ -1243,6 +1481,10 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
 
   const memberStoreLink = normalizeText(payload.memberStoreLink) || buildPublicStoreLink(origin, requestedStoreCode);
   const invoiceStatus = resolveInvoiceStatus(checkoutSummary.total);
+  const persistBuyerIdentityForMetadata = shouldPersistBuyerIdentityForCheckout({
+    checkoutMode,
+    source: payload.source,
+  });
 
   const checkoutMetadata = {
     checkout_type: 'storefront',
@@ -1255,8 +1497,12 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     buyer_email: sanitizeStripeMetadataValue(buyerEmail),
     shipping_address: sanitizeStripeMetadataValue(shippingAddress),
     shipping_mode: sanitizeStripeMetadataValue(shippingMode),
-    buyer_user_id: sanitizeStripeMetadataValue(payload.buyerUserId),
-    buyer_username: sanitizeStripeMetadataValue(payload.buyerUsername),
+    buyer_user_id: sanitizeStripeMetadataValue(
+      persistBuyerIdentityForMetadata ? payload.buyerUserId : '',
+    ),
+    buyer_username: sanitizeStripeMetadataValue(
+      persistBuyerIdentityForMetadata ? payload.buyerUsername : '',
+    ),
     checkout_mode: sanitizeStripeMetadataValue(checkoutMode, CHECKOUT_MODE_GUEST),
     free_account_member_username: sanitizeStripeMetadataValue(
       checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT ? freeAccountCheckoutFields.memberUsername : '',
@@ -1270,6 +1516,12 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     free_account_notes: sanitizeStripeMetadataValue(
       checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT ? freeAccountCheckoutFields.notes : '',
     ),
+    buyer_package_key: sanitizeStripeMetadataValue(checkoutSummary.buyerPackageKey || settlementProfile.buyerPackageKey),
+    settlement_package_key: sanitizeStripeMetadataValue(checkoutSummary.earningsPackageKey || settlementProfile.earningsPackageKey),
+    invoice_bv: String(Math.max(0, toWholeNumber(checkoutSummary.invoiceBv, 0))),
+    buyer_bv: String(Math.max(0, toWholeNumber(checkoutSummary.buyerBv, 0))),
+    owner_bv: String(Math.max(0, toWholeNumber(checkoutSummary.ownerBv, 0))),
+    retail_commission: String(roundCurrency(checkoutSummary.retailCommission)),
     bp: String(Math.max(0, toWholeNumber(checkoutSummary.bp, 0))),
     subtotal: String(checkoutSummary.subtotal),
     discount_amount: String(checkoutSummary.discount),
@@ -1287,6 +1539,12 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     free_account_phone: checkoutMetadata.free_account_phone,
     free_account_country_flag: checkoutMetadata.free_account_country_flag,
     free_account_notes: checkoutMetadata.free_account_notes,
+    buyer_package_key: checkoutMetadata.buyer_package_key,
+    settlement_package_key: checkoutMetadata.settlement_package_key,
+    invoice_bv: checkoutMetadata.invoice_bv,
+    buyer_bv: checkoutMetadata.buyer_bv,
+    owner_bv: checkoutMetadata.owner_bv,
+    retail_commission: checkoutMetadata.retail_commission,
     bp: checkoutMetadata.bp,
     source: checkoutMetadata.source,
   };
@@ -1329,8 +1587,15 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
           subtotal: checkoutSummary.subtotal,
           discount: checkoutSummary.discount,
           total: checkoutSummary.total,
+          buyerPackageKey: checkoutSummary.buyerPackageKey || settlementProfile.buyerPackageKey,
+          settlementPackageKey: checkoutSummary.earningsPackageKey || settlementProfile.earningsPackageKey,
+          invoiceBv: checkoutSummary.invoiceBv,
+          buyerBv: checkoutSummary.buyerBv,
+          ownerBv: checkoutSummary.ownerBv,
+          retailCommission: checkoutSummary.retailCommission,
           bp: checkoutSummary.bp,
           discountPercent,
+          isPreferredBuyer: settlementProfile.isPreferredBuyer,
         },
       },
     };

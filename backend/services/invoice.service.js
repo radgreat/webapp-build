@@ -5,6 +5,7 @@ import {
   sanitizeStoreInvoiceRecord,
 } from '../stores/invoice.store.js';
 import { readMockUsersStore } from '../stores/user.store.js';
+import { normalizeStorePackageKey } from '../utils/store-product-earnings.helpers.js';
 
 const LEGACY_STORE_CODE_ALIASES = Object.freeze({
   'CHG-7X42': 'CHG-ZERO',
@@ -25,6 +26,10 @@ function normalizeStoreCode(value) {
     .toUpperCase()
     .replace(/[^A-Z0-9-]/g, '');
   return LEGACY_STORE_CODE_ALIASES[normalizedValue] || normalizedValue;
+}
+
+function roundCurrencyAmount(value) {
+  return Math.round((Math.max(0, Number(value) || 0) + Number.EPSILON) * 100) / 100;
 }
 
 function resolveStoreCodeFromLink(linkValue) {
@@ -93,6 +98,13 @@ export async function createStoreInvoice(payload = {}) {
 
   const attributionKey = rawAttributionKey || memberStoreCode || memberStoreCodeFromLink || 'REGISTRATION_LOCKED';
   const amount = Number(payload.amount);
+  const buyerPackageKey = normalizeStorePackageKey(payload.buyerPackageKey);
+  const retailCommission = roundCurrencyAmount(
+    payload.retailCommission
+      ?? payload.commission
+      ?? payload.ownerRetailCommission
+      ?? amount,
+  );
   const bp = Math.max(0, Math.floor(Number(payload.bp) || 0));
   const discount = Number(payload.discount);
   const status = normalizeStoreInvoiceStatus(payload.status);
@@ -110,14 +122,6 @@ export async function createStoreInvoice(payload = {}) {
       success: false,
       status: 400,
       error: 'Invoice amount must be greater than 0.',
-    };
-  }
-
-  if (bp <= 0) {
-    return {
-      success: false,
-      status: 400,
-      error: 'Invoice BP must be greater than 0.',
     };
   }
 
@@ -155,8 +159,10 @@ export async function createStoreInvoice(payload = {}) {
     buyerUserId,
     buyerUsername,
     buyerEmail,
+    buyerPackageKey,
     attributionKey,
     amount,
+    retailCommission,
     bp,
     discount: Number.isFinite(discount) ? discount : 0,
     status,

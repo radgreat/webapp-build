@@ -1,7 +1,32 @@
 # Preferred Customer Page Notes
 
-Last Updated: 2026-04-07
+Last Updated: 2026-04-14
 Status: In Progress (Phase 1 foundation complete)
+
+## Recent Update (2026-04-14) - Page Render Fix (`normalizeText` ReferenceError)
+
+- Fixed `index.html` Preferred Customer runtime error:
+  - `isEnrollmentGeneratedInvoice(...)` referenced `normalizeText(...)` (undefined in this file scope).
+  - replaced with `String(invoice?.id || '').trim().toUpperCase()`.
+- Impact:
+  - removed runtime exception that interrupted planner and guest sales rendering.
+  - Preferred Customer page now correctly shows sponsor-linked preferred rows and guest-attributed invoices for `zeroone`.
+- Validation:
+  - `/PreferredCustomer` snapshot values after fix:
+    - planner: `2 customers` / `2 cards`
+    - guest-attributed sales: `3 invoices` / `3 cards`
+
+## Recent Update (2026-04-13) - Preferred Planner Invoice Visibility Fix + Legacy Attribution Fallback
+
+- Updated member-side preferred planner invoice matching in `index.html`:
+  - planner now matches preferred-member invoices against all non-enrollment store invoices (identity-first via `buyerUserId` / `buyerUsername`)
+  - keeps owner-attribution guard, but now also accepts legacy/default-attributed invoice rows (`REGISTRATION_LOCKED` or blank attribution path) when member identity matches.
+- Updated owner attribution code resolver used by preferred view:
+  - includes session `attributionStoreCode`
+  - includes derived public aliases from internal `M-*` codes
+  - avoids default public fallback (`CHG-ZERO`) from becoming the only owner-filter key when explicit code context is missing.
+- Outcome:
+  - preferred-member invoices that previously showed `0 invoices` due attribution fallback mismatch now render correctly in the planner cards.
 
 ## Recent Update (2026-04-07) - Preferred/Free Login Merged Into Unified Login
 

@@ -1,4 +1,8 @@
 import pool from '../db/db.js';
+import {
+  resolveMemberAccountStatusByPersonalBv,
+  resolveMemberActivityStateByPersonalBv,
+} from '../utils/member-activity.helpers.js';
 
 function normalizeCredential(value) {
   return String(value || '').trim().toLowerCase();
@@ -16,6 +20,21 @@ function mapDbUserToAppUser(row) {
     return null;
   }
 
+  const activityState = resolveMemberActivityStateByPersonalBv({
+    accountStatus: row.account_status,
+    passwordSetupRequired: row.password_setup_required,
+    enrollmentPackageBv: row.enrollment_package_bv,
+    starterPersonalPv: row.starter_personal_pv,
+    activityActiveUntilAt: row.activity_active_until_at,
+    lastProductPurchaseAt: row.last_product_purchase_at,
+    lastPurchaseAt: row.last_purchase_at,
+    lastAccountUpgradeAt: row.last_account_upgrade_at,
+    createdAt: row.created_at,
+    serverCutoffBaselineStarterPersonalPv: row.server_cutoff_baseline_starter_personal_pv,
+    currentPersonalPvBv: row.current_personal_pv_bv,
+    currentWeekPersonalPv: row.current_week_personal_pv,
+  });
+
   return {
     id: row.id,
     name: row.name,
@@ -24,7 +43,7 @@ function mapDbUserToAppUser(row) {
     countryFlag: row.country_flag,
     password: row.password_value,
     passwordSetupRequired: row.password_setup_required,
-    accountStatus: row.account_status,
+    accountStatus: activityState.accountStatus,
     attributionStoreCode: row.attribution_store_code,
     publicStoreCode: row.public_store_code,
     storeCode: row.store_code,
@@ -40,7 +59,7 @@ function mapDbUserToAppUser(row) {
     //lastProductPurchaseAt: row.last_product_purchase_at,
     //lastPurchaseAt: row.last_purchase_at,
     //lastAccountUpgradeAt: row.last_account_upgrade_at,
-    activityActiveUntilAt: toIsoStringOrEmpty(row.activity_active_until_at),
+    activityActiveUntilAt: activityState.activeUntilAt || toIsoStringOrEmpty(row.activity_active_until_at),
     lastProductPurchaseAt: toIsoStringOrEmpty(row.last_product_purchase_at),
     lastPurchaseAt: toIsoStringOrEmpty(row.last_purchase_at),
     lastAccountUpgradeAt: toIsoStringOrEmpty(row.last_account_upgrade_at),
@@ -52,6 +71,9 @@ function mapDbUserToAppUser(row) {
     passwordUpdatedAt: toIsoStringOrEmpty(row.password_updated_at),
 
     serverCutoffBaselineStarterPersonalPv: Number(row.server_cutoff_baseline_starter_personal_pv || 0),
+    currentPersonalPvBv: activityState.currentPersonalPvBv,
+    monthlyPersonalBv: activityState.currentPersonalPvBv,
+    isActive: activityState.isActive,
     //serverCutoffBaselineSetAt: row.server_cutoff_baseline_set_at,
     //createdAt: row.created_at,
     //updatedAt: row.updated_at,
@@ -77,6 +99,7 @@ function toIsoStringOrEmpty(value) {
 //***********************/
 
 function mapAppUserToDbUser(user) {
+  const derivedAccountStatus = resolveMemberAccountStatusByPersonalBv(user);
   return {
     id: user?.id || '',
     name: user?.name || '',
@@ -85,7 +108,7 @@ function mapAppUserToDbUser(user) {
     country_flag: user?.countryFlag || 'un',
     password_value: user?.password || '',
     password_setup_required: Boolean(user?.passwordSetupRequired),
-    account_status: user?.accountStatus || 'active',
+    account_status: derivedAccountStatus || 'inactive',
     attribution_store_code: user?.attributionStoreCode || '',
     public_store_code: user?.publicStoreCode || '',
     store_code: user?.storeCode || '',
@@ -95,6 +118,7 @@ function mapAppUserToDbUser(user) {
     enrollment_package_bv: Number(user?.enrollmentPackageBv || 0),
     starter_personal_pv: Number(user?.starterPersonalPv || 0),
     starter_total_cycles: Number(user?.starterTotalCycles || 0),
+    current_personal_pv_bv: Number(user?.currentPersonalPvBv || user?.monthlyPersonalBv || 0),
     rank: user?.rank || 'Personal',
     account_rank: user?.accountRank || 'Personal',
     activity_active_until_at: user?.activityActiveUntilAt || null,
@@ -117,9 +141,37 @@ function resolveQueryClient(candidateClient) {
     : pool;
 }
 
+let memberUsersPersonalVolumeColumnsReady = false;
+let memberUsersPersonalVolumeColumnsPromise = null;
 let memberUsersEmailVerificationColumnsCache = null;
 let memberUserLookupIndexesReady = false;
 let memberUserLookupIndexesPromise = null;
+
+async function ensureMemberUsersPersonalVolumeColumns() {
+  if (memberUsersPersonalVolumeColumnsReady) {
+    return;
+  }
+  if (memberUsersPersonalVolumeColumnsPromise) {
+    return memberUsersPersonalVolumeColumnsPromise;
+  }
+
+  memberUsersPersonalVolumeColumnsPromise = (async () => {
+    await pool.query(`
+      ALTER TABLE charge.member_users
+        ADD COLUMN IF NOT EXISTS current_personal_pv_bv integer NOT NULL DEFAULT 0
+    `);
+    memberUsersPersonalVolumeColumnsReady = true;
+  })().catch((error) => {
+    memberUsersPersonalVolumeColumnsReady = false;
+    throw error;
+  }).finally(() => {
+    if (!memberUsersPersonalVolumeColumnsReady) {
+      memberUsersPersonalVolumeColumnsPromise = null;
+    }
+  });
+
+  return memberUsersPersonalVolumeColumnsPromise;
+}
 
 export function invalidateMemberUsersEmailVerificationColumnsCache() {
   memberUsersEmailVerificationColumnsCache = null;
@@ -191,6 +243,8 @@ async function resolveMemberUsersEmailVerificationColumns(options = {}) {
 }
 
 export async function readMockUsersStore() {
+  await ensureMemberUsersPersonalVolumeColumns();
+
   const result = await pool.query(`
     SELECT
       id,
@@ -210,6 +264,7 @@ export async function readMockUsersStore() {
       enrollment_package_bv,
       starter_personal_pv,
       starter_total_cycles,
+      current_personal_pv_bv,
       rank,
       account_rank,
       activity_active_until_at,
@@ -232,6 +287,8 @@ export async function readMockUsersStore() {
 }
 
 export async function writeMockUsersStore(users) {
+  await ensureMemberUsersPersonalVolumeColumns();
+
   const client = await pool.connect();
 
   try {
@@ -260,6 +317,7 @@ export async function writeMockUsersStore(users) {
           enrollment_package_bv,
           starter_personal_pv,
           starter_total_cycles,
+          current_personal_pv_bv,
           rank,
           account_rank,
           activity_active_until_at,
@@ -277,7 +335,8 @@ export async function writeMockUsersStore(users) {
         VALUES (
           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
           $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
-          $21,$22,$23,$24,$25,$26,$27,$28,$29,$30
+          $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,
+          $31
         )
       `, [
         row.id,
@@ -297,6 +356,7 @@ export async function writeMockUsersStore(users) {
         row.enrollment_package_bv,
         row.starter_personal_pv,
         row.starter_total_cycles,
+        row.current_personal_pv_bv,
         row.rank,
         row.account_rank,
         row.activity_active_until_at,
@@ -323,6 +383,8 @@ export async function writeMockUsersStore(users) {
 }
 
 export async function upsertMockUserRecord(user, options = {}) {
+  await ensureMemberUsersPersonalVolumeColumns();
+
   const row = mapAppUserToDbUser(user);
   if (!row.id) {
     throw new Error('Cannot upsert member user without an id.');
@@ -347,6 +409,7 @@ export async function upsertMockUserRecord(user, options = {}) {
     row.enrollment_package_bv,
     row.starter_personal_pv,
     row.starter_total_cycles,
+    row.current_personal_pv_bv,
     row.rank,
     row.account_rank,
     row.activity_active_until_at,
@@ -380,6 +443,7 @@ export async function upsertMockUserRecord(user, options = {}) {
       enrollment_package_bv,
       starter_personal_pv,
       starter_total_cycles,
+      current_personal_pv_bv,
       rank,
       account_rank,
       activity_active_until_at,
@@ -397,7 +461,8 @@ export async function upsertMockUserRecord(user, options = {}) {
     VALUES (
       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
       $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
-      $21,$22,$23,$24,$25,$26,$27,$28,$29,$30
+      $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,
+      $31
     )
   `;
 
@@ -446,6 +511,7 @@ export async function upsertMockUserRecord(user, options = {}) {
       password_updated_at = $27,
       server_cutoff_baseline_starter_personal_pv = $28,
       server_cutoff_baseline_set_at = $29,
+      current_personal_pv_bv = $30,
       updated_at = NOW()
     WHERE id = $1
   `, [
@@ -478,6 +544,7 @@ export async function upsertMockUserRecord(user, options = {}) {
     row.password_updated_at,
     row.server_cutoff_baseline_starter_personal_pv,
     row.server_cutoff_baseline_set_at,
+    row.current_personal_pv_bv,
   ]);
 
   if (updateResult.rowCount > 0) {
@@ -488,6 +555,8 @@ export async function upsertMockUserRecord(user, options = {}) {
 }
 
 export async function findUserByIdentifier(identifierInput) {
+  await ensureMemberUsersPersonalVolumeColumns();
+
   const identifier = normalizeCredential(identifierInput);
   if (!identifier) {
     return null;
@@ -512,6 +581,7 @@ export async function findUserByIdentifier(identifierInput) {
       enrollment_package_bv,
       starter_personal_pv,
       starter_total_cycles,
+      current_personal_pv_bv,
       rank,
       account_rank,
       activity_active_until_at,
@@ -535,6 +605,8 @@ export async function findUserByIdentifier(identifierInput) {
 }
 
 export async function findUserById(userIdInput) {
+  await ensureMemberUsersPersonalVolumeColumns();
+
   const userId = String(userIdInput || '').trim();
   if (!userId) {
     return null;
@@ -559,6 +631,7 @@ export async function findUserById(userIdInput) {
       enrollment_package_bv,
       starter_personal_pv,
       starter_total_cycles,
+      current_personal_pv_bv,
       rank,
       account_rank,
       activity_active_until_at,
@@ -582,6 +655,8 @@ export async function findUserById(userIdInput) {
 }
 
 export async function findUserByUsername(usernameInput, options = {}) {
+  await ensureMemberUsersPersonalVolumeColumns();
+
   const username = normalizeCredential(usernameInput);
   if (!username) {
     return null;
@@ -607,6 +682,7 @@ export async function findUserByUsername(usernameInput, options = {}) {
       enrollment_package_bv,
       starter_personal_pv,
       starter_total_cycles,
+      current_personal_pv_bv,
       rank,
       account_rank,
       activity_active_until_at,
@@ -630,6 +706,8 @@ export async function findUserByUsername(usernameInput, options = {}) {
 }
 
 export async function findUserByEmail(emailInput, options = {}) {
+  await ensureMemberUsersPersonalVolumeColumns();
+
   const email = normalizeCredential(emailInput);
   if (!email) {
     return null;
@@ -655,6 +733,7 @@ export async function findUserByEmail(emailInput, options = {}) {
       enrollment_package_bv,
       starter_personal_pv,
       starter_total_cycles,
+      current_personal_pv_bv,
       rank,
       account_rank,
       activity_active_until_at,
@@ -731,6 +810,8 @@ export async function isStoreCodeTaken(storeCodeInput, options = {}) {
 }
 
 export async function updateUserById(userIdInput, updater) {
+  await ensureMemberUsersPersonalVolumeColumns();
+
   const userId = String(userIdInput || '').trim();
   if (!userId) {
     return null;
@@ -777,7 +858,8 @@ export async function updateUserById(userIdInput, updater) {
       last_account_upgrade_pv_gain = $26,
       password_updated_at = $27,
       server_cutoff_baseline_starter_personal_pv = $28,
-      server_cutoff_baseline_set_at = $29
+      server_cutoff_baseline_set_at = $29,
+      current_personal_pv_bv = $30
     WHERE id = $1
     RETURNING
       id,
@@ -797,6 +879,7 @@ export async function updateUserById(userIdInput, updater) {
       enrollment_package_bv,
       starter_personal_pv,
       starter_total_cycles,
+      current_personal_pv_bv,
       rank,
       account_rank,
       activity_active_until_at,
@@ -841,6 +924,7 @@ export async function updateUserById(userIdInput, updater) {
     row.password_updated_at,
     row.server_cutoff_baseline_starter_personal_pv,
     row.server_cutoff_baseline_set_at,
+    row.current_personal_pv_bv,
   ]);
 
   return mapDbUserToAppUser(result.rows[0] || null);

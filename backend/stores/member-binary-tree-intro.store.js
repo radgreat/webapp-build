@@ -1,6 +1,8 @@
 import pool from '../db/db.js';
 import adminPool, { isAdminDbConfigured } from '../db/admin-db.js';
 
+const PINNED_NODE_IDS_LIMIT = 10;
+
 function normalizeText(value) {
   return String(value || '').trim();
 }
@@ -20,6 +22,26 @@ function quoteIdentifier(value) {
   return `"${String(value || '').replace(/"/g, '""')}"`;
 }
 
+function normalizePinnedNodeIds(value) {
+  const source = Array.isArray(value) ? value : [];
+  const deduped = [];
+  const seen = new Set();
+
+  for (const rawNodeId of source) {
+    const nodeId = normalizeText(rawNodeId);
+    if (!nodeId || seen.has(nodeId)) {
+      continue;
+    }
+    seen.add(nodeId);
+    deduped.push(nodeId);
+    if (deduped.length >= PINNED_NODE_IDS_LIMIT) {
+      break;
+    }
+  }
+
+  return deduped;
+}
+
 function mapDbIntroStateToApp(row) {
   if (!row) {
     return null;
@@ -28,6 +50,8 @@ function mapDbIntroStateToApp(row) {
     userId: normalizeText(row.user_id),
     firstOpenedAt: toIsoStringOrEmpty(row.first_opened_at),
     lastOpenedAt: toIsoStringOrEmpty(row.last_opened_at),
+    pinnedNodeIds: normalizePinnedNodeIds(row.pinned_node_ids),
+    pinnedNodeIdsUpdatedAt: toIsoStringOrEmpty(row.pinned_node_ids_updated_at),
     updatedAt: toIsoStringOrEmpty(row.updated_at),
   };
 }
@@ -46,8 +70,18 @@ async function installIntroTableViaAdmin() {
         user_id text PRIMARY KEY,
         first_opened_at timestamptz NOT NULL DEFAULT NOW(),
         last_opened_at timestamptz NOT NULL DEFAULT NOW(),
+        pinned_node_ids text[] NOT NULL DEFAULT ARRAY[]::text[],
+        pinned_node_ids_updated_at timestamptz,
         updated_at timestamptz NOT NULL DEFAULT NOW()
       )
+    `);
+    await client.query(`
+      ALTER TABLE charge.member_binary_tree_intro_state
+      ADD COLUMN IF NOT EXISTS pinned_node_ids text[] NOT NULL DEFAULT ARRAY[]::text[]
+    `);
+    await client.query(`
+      ALTER TABLE charge.member_binary_tree_intro_state
+      ADD COLUMN IF NOT EXISTS pinned_node_ids_updated_at timestamptz
     `);
     await client.query(`
       CREATE INDEX IF NOT EXISTS member_binary_tree_intro_state_last_opened_at_idx
@@ -89,8 +123,18 @@ async function installIntroTableViaServiceRole() {
         user_id text PRIMARY KEY,
         first_opened_at timestamptz NOT NULL DEFAULT NOW(),
         last_opened_at timestamptz NOT NULL DEFAULT NOW(),
+        pinned_node_ids text[] NOT NULL DEFAULT ARRAY[]::text[],
+        pinned_node_ids_updated_at timestamptz,
         updated_at timestamptz NOT NULL DEFAULT NOW()
       )
+    `);
+    await client.query(`
+      ALTER TABLE charge.member_binary_tree_intro_state
+      ADD COLUMN IF NOT EXISTS pinned_node_ids text[] NOT NULL DEFAULT ARRAY[]::text[]
+    `);
+    await client.query(`
+      ALTER TABLE charge.member_binary_tree_intro_state
+      ADD COLUMN IF NOT EXISTS pinned_node_ids_updated_at timestamptz
     `);
     await client.query(`
       CREATE INDEX IF NOT EXISTS member_binary_tree_intro_state_last_opened_at_idx
@@ -107,6 +151,17 @@ async function installIntroTableViaServiceRole() {
   } finally {
     client.release();
   }
+}
+
+async function ensureIntroTableColumns(executor) {
+  await executor.query(`
+    ALTER TABLE charge.member_binary_tree_intro_state
+    ADD COLUMN IF NOT EXISTS pinned_node_ids text[] NOT NULL DEFAULT ARRAY[]::text[]
+  `);
+  await executor.query(`
+    ALTER TABLE charge.member_binary_tree_intro_state
+    ADD COLUMN IF NOT EXISTS pinned_node_ids_updated_at timestamptz
+  `);
 }
 
 export async function ensureMemberBinaryTreeIntroTable() {
@@ -148,6 +203,19 @@ export async function ensureMemberBinaryTreeIntroTable() {
       }
     }
 
+    let columnsEnsured = false;
+    if (isAdminDbConfigured()) {
+      try {
+        await ensureIntroTableColumns(adminPool);
+        columnsEnsured = true;
+      } catch {
+        columnsEnsured = false;
+      }
+    }
+    if (!columnsEnsured) {
+      await ensureIntroTableColumns(pool);
+    }
+
     await pool.query('SELECT 1 FROM charge.member_binary_tree_intro_state LIMIT 1');
     introSchemaReady = true;
   })().catch((error) => {
@@ -175,6 +243,8 @@ export async function readMemberBinaryTreeIntroStateByUserId(userIdInput, execut
       user_id,
       first_opened_at,
       last_opened_at,
+      pinned_node_ids,
+      pinned_node_ids_updated_at,
       updated_at
     FROM charge.member_binary_tree_intro_state
     WHERE user_id = $1
@@ -204,6 +274,8 @@ export async function touchMemberBinaryTreeIntroStateByUserId(userIdInput, execu
         user_id,
         first_opened_at,
         last_opened_at,
+        pinned_node_ids,
+        pinned_node_ids_updated_at,
         updated_at
     `, [userId]);
     return {
@@ -218,13 +290,17 @@ export async function touchMemberBinaryTreeIntroStateByUserId(userIdInput, execu
         user_id,
         first_opened_at,
         last_opened_at,
+        pinned_node_ids,
+        pinned_node_ids_updated_at,
         updated_at
       )
-      VALUES ($1, NOW(), NOW(), NOW())
+      VALUES ($1, NOW(), NOW(), ARRAY[]::text[], NULL, NOW())
       RETURNING
         user_id,
         first_opened_at,
         last_opened_at,
+        pinned_node_ids,
+        pinned_node_ids_updated_at,
         updated_at
     `, [userId]);
 
@@ -246,6 +322,8 @@ export async function touchMemberBinaryTreeIntroStateByUserId(userIdInput, execu
         user_id,
         first_opened_at,
         last_opened_at,
+        pinned_node_ids,
+        pinned_node_ids_updated_at,
         updated_at
     `, [userId]);
     return {
@@ -276,4 +354,44 @@ export async function deleteMemberBinaryTreeIntroStateByUserId(userIdInput, exec
     deleted: rowCount > 0,
     rowCount,
   };
+}
+
+export async function updateMemberBinaryTreePinnedNodeIdsByUserId(
+  userIdInput,
+  pinnedNodeIdsInput = [],
+  executor = pool,
+) {
+  await ensureMemberBinaryTreeIntroTable();
+
+  const userId = normalizeText(userIdInput);
+  if (!userId) {
+    return null;
+  }
+
+  const pinnedNodeIds = normalizePinnedNodeIds(pinnedNodeIdsInput);
+  const result = await executor.query(`
+    INSERT INTO charge.member_binary_tree_intro_state (
+      user_id,
+      first_opened_at,
+      last_opened_at,
+      pinned_node_ids,
+      pinned_node_ids_updated_at,
+      updated_at
+    )
+    VALUES ($1, NOW(), NOW(), $2::text[], NOW(), NOW())
+    ON CONFLICT (user_id)
+    DO UPDATE SET
+      pinned_node_ids = EXCLUDED.pinned_node_ids,
+      pinned_node_ids_updated_at = NOW(),
+      updated_at = NOW()
+    RETURNING
+      user_id,
+      first_opened_at,
+      last_opened_at,
+      pinned_node_ids,
+      pinned_node_ids_updated_at,
+      updated_at
+  `, [userId, pinnedNodeIds]);
+
+  return mapDbIntroStateToApp(result.rows[0] || null);
 }

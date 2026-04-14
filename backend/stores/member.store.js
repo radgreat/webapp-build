@@ -1,4 +1,5 @@
 import pool from '../db/db.js';
+import { resolveMemberActivityStateByPersonalBv } from '../utils/member-activity.helpers.js';
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -53,6 +54,21 @@ function mapDbMemberToAppMember(row) {
     row.user_activity_active_until_at
     || row.activity_active_until_at
   );
+  const activityState = resolveMemberActivityStateByPersonalBv({
+    accountStatus: linkedAccountStatus,
+    passwordSetupRequired: effectivePasswordSetupRequired,
+    activityActiveUntilAt: effectiveActivityActiveUntilAt,
+    lastProductPurchaseAt: row.user_last_product_purchase_at || row.last_product_purchase_at,
+    lastPurchaseAt: row.user_last_purchase_at || row.last_purchase_at,
+    lastAccountUpgradeAt: row.user_last_account_upgrade_at || row.last_account_upgrade_at,
+    createdAt: row.user_created_at || row.created_at,
+    starterPersonalPv: row.starter_personal_pv,
+    packageBv: row.package_bv,
+    enrollmentPackageBv: row.enrollment_package_bv,
+    serverCutoffBaselineStarterPersonalPv: row.server_cutoff_baseline_starter_personal_pv,
+    currentPersonalPvBv: row.user_current_personal_pv_bv ?? row.current_personal_pv_bv,
+    currentWeekPersonalPv: row.current_week_personal_pv,
+  });
 
   return {
     id: row.id,
@@ -80,9 +96,12 @@ function mapDbMemberToAppMember(row) {
     rank: row.rank,
     accountRank: row.account_rank,
     starterPersonalPv: Number(row.starter_personal_pv || 0),
-    accountStatus: linkedAccountStatus,
-    status: linkedAccountStatus,
-    activityActiveUntilAt: toIsoStringOrEmpty(effectiveActivityActiveUntilAt),
+    accountStatus: activityState.accountStatus,
+    status: activityState.accountStatus,
+    isActive: activityState.isActive,
+    currentPersonalPvBv: activityState.currentPersonalPvBv,
+    monthlyPersonalBv: activityState.currentPersonalPvBv,
+    activityActiveUntilAt: activityState.activeUntilAt || toIsoStringOrEmpty(effectiveActivityActiveUntilAt),
     lastProductPurchaseAt: toIsoStringOrEmpty(row.last_product_purchase_at),
     lastPurchaseAt: toIsoStringOrEmpty(row.last_purchase_at),
     lastAccountUpgradeAt: toIsoStringOrEmpty(row.last_account_upgrade_at),
@@ -182,6 +201,18 @@ function resolveQueryClient(candidateClient) {
     : pool;
 }
 
+function dedupeRowsById(rows = [], resolveId) {
+  const rowsById = new Map();
+  for (const row of Array.isArray(rows) ? rows : []) {
+    const resolvedId = normalizeText(typeof resolveId === 'function' ? resolveId(row) : '');
+    if (!resolvedId) {
+      continue;
+    }
+    rowsById.set(resolvedId, row);
+  }
+  return Array.from(rowsById.values());
+}
+
 let registeredMembersBusinessCenterColumnsReady = false;
 let registeredMembersBusinessCenterColumnsPromise = null;
 
@@ -195,6 +226,11 @@ async function ensureRegisteredMembersBusinessCenterColumns() {
   }
 
   registeredMembersBusinessCenterColumnsPromise = (async () => {
+    await pool.query(`
+      ALTER TABLE charge.member_users
+        ADD COLUMN IF NOT EXISTS current_personal_pv_bv integer NOT NULL DEFAULT 0
+    `);
+
     await pool.query(`
       ALTER TABLE charge.registered_members
         ADD COLUMN IF NOT EXISTS business_center_owner_user_id text,
@@ -246,13 +282,22 @@ export async function readRegisteredMembersStore() {
       rm.*,
       linked_user.account_status AS user_account_status,
       linked_user.password_setup_required AS user_password_setup_required,
-      linked_user.activity_active_until_at AS user_activity_active_until_at
+      linked_user.activity_active_until_at AS user_activity_active_until_at,
+      linked_user.current_personal_pv_bv AS user_current_personal_pv_bv,
+      linked_user.last_product_purchase_at AS user_last_product_purchase_at,
+      linked_user.last_purchase_at AS user_last_purchase_at,
+      linked_user.last_account_upgrade_at AS user_last_account_upgrade_at,
+      linked_user.created_at AS user_created_at
     FROM charge.registered_members AS rm
     LEFT JOIN LATERAL (
       SELECT
         mu.account_status,
         mu.password_setup_required,
         mu.activity_active_until_at,
+        mu.current_personal_pv_bv,
+        mu.last_product_purchase_at,
+        mu.last_purchase_at,
+        mu.last_account_upgrade_at,
         mu.updated_at,
         mu.created_at
       FROM charge.member_users AS mu
@@ -289,15 +334,18 @@ export async function readRegisteredMembersStore() {
 export async function writeRegisteredMembersStore(members) {
   await ensureRegisteredMembersBusinessCenterColumns();
 
+  const memberRows = dedupeRowsById(
+    (Array.isArray(members) ? members : []).map(mapAppMemberToDbMember),
+    (row) => row?.id,
+  );
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
+    await client.query('LOCK TABLE charge.registered_members IN EXCLUSIVE MODE');
     await client.query('DELETE FROM charge.registered_members');
 
-    for (const member of Array.isArray(members) ? members : []) {
-      const row = mapAppMemberToDbMember(member);
-
+    for (const row of memberRows) {
       await client.query(`
         INSERT INTO charge.registered_members (
           id,
