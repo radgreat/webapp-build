@@ -230,3 +230,13 @@ Matrix resets after completion.
 Lifestyle reward for any personal use.
 
 ---
+
+
+## Binary Tree Spill Over Logic
+
+1. Placement Left
+2. Placement Right
+3. Spill Over Left = meaning auto placement on your 1st level left child, this is auto placement that is available.
+3. Spill Over Right = eaning auto placement on your 1st level right child, this is auto placement that is available.
+4. Extreme Spill Over Left = meaning your Furthest Left child, it will be placed on its left leg.
+5. Extreme Spill Over Right = meaning your Furthest Right child, it will be placed on its right leg.

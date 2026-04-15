@@ -345,11 +345,10 @@
     const successBackToProductsElement = document.getElementById('success-back-to-products');
     const successCloseButtons = Array.from(document.querySelectorAll('[data-success-close]'));
 
-    const DEFAULT_SUBMIT_LABEL_GUEST = 'Pay Now';
-    const DEFAULT_SUBMIT_LABEL_FREE = 'Register and Pay';
+    const DEFAULT_SUBMIT_LABEL_GUEST = 'Continue to Stripe';
+    const DEFAULT_SUBMIT_LABEL_FREE = 'Register and Continue';
     const FREE_ACCOUNT_MODAL_SUBMIT_LABEL_PAY = 'Pay Checkout';
     const FREE_ACCOUNT_MODAL_SUBMIT_LABEL_REGISTER = 'Register';
-    const STRIPE_LOADING_LABEL = 'Loading secure payment...';
     const FREE_ACCOUNT_USERNAME_PATTERN = /^[a-zA-Z0-9._-]{3,24}$/;
     const REGISTRATION_DRAFT_STORAGE_KEY = 'charge-free-account-registration-draft-v1';
     const LEGAL_DOCUMENT_META = [
@@ -362,9 +361,6 @@
     let storeProducts = [];
     let activeStoreCode = '';
     let isCheckoutPending = false;
-    let isStripeReady = false;
-    let stripeClient = null;
-    let stripeCardElement = null;
     let shouldPromptFreeAccountRegistration = false;
 
     function safeStorageGet(storage, key) {
@@ -718,10 +714,6 @@
     }
 
     function resolveSubmitButtonLabel() {
-      if (!isStripeReady) {
-        return STRIPE_LOADING_LABEL;
-      }
-
       return resolveSelectedCheckoutMode() === shared.CHECKOUT_MODE_FREE_ACCOUNT
         ? DEFAULT_SUBMIT_LABEL_FREE
         : DEFAULT_SUBMIT_LABEL_GUEST;
@@ -859,7 +851,7 @@
         cartTotalElement.textContent = shared.formatCurrency(summary.total);
       }
 
-      const isCheckoutDisabled = cartLines.length === 0 || isCheckoutPending || !isStripeReady;
+      const isCheckoutDisabled = cartLines.length === 0 || isCheckoutPending;
       const label = resolveSubmitButtonLabel();
       setCheckoutButtonState(isCheckoutDisabled, label);
 
@@ -1004,122 +996,42 @@
       renderCart();
     }
 
-    async function initializeStripeCheckout() {
-      if (typeof window.Stripe !== 'function') {
-        setCheckoutFeedback('Stripe.js failed to load. Refresh and try again.', true);
-        return;
-      }
-
-      const configResult = await shared.fetchCheckoutConfig();
-      if (!configResult.ok) {
-        setCheckoutFeedback(configResult.message || 'Unable to load Stripe checkout.', true);
-        return;
-      }
-
-      try {
-        stripeClient = window.Stripe(configResult.publishableKey);
-        if (!stripeClient) {
-          throw new Error('Stripe client could not be initialized.');
-        }
-
-        const elements = stripeClient.elements({
-          appearance: {
-            theme: 'stripe',
-          },
-        });
-        stripeCardElement = elements.create('card', {
-          hidePostalCode: true,
-        });
-
-        if (!cardElementMountNode) {
-          throw new Error('Payment card container is missing.');
-        }
-
-        stripeCardElement.mount(cardElementMountNode);
-        stripeCardElement.on('change', (event) => {
-          setCardError(event?.error?.message || '');
-        });
-
-        isStripeReady = true;
-        clearCheckoutFeedback();
-      } catch (error) {
-        console.warn('Unable to initialize Stripe Elements:', error);
-        setCheckoutFeedback('Unable to initialize secure card checkout.', true);
-      }
-
-      renderCart();
+    function resolveCheckoutReturnDetails() {
+      const params = new URLSearchParams(window.location.search || '');
+      return {
+        checkoutStatus: String(params.get('checkout') || '').trim().toLowerCase(),
+        sessionId: String(params.get('session_id') || '').trim(),
+      };
     }
 
-    async function processEmbeddedCheckout() {
-      if (!stripeClient || !stripeCardElement || !isStripeReady) {
-        setCheckoutFeedback('Secure payment form is still loading. Please wait a moment.', true);
+    function clearCheckoutReturnDetailsFromUrl() {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.delete('checkout');
+      currentUrl.searchParams.delete('session_id');
+      window.history.replaceState(window.history.state || {}, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+    }
+
+    async function completeHostedCheckoutFromReturn(sessionId) {
+      const normalizedSessionId = String(sessionId || '').trim();
+      if (!normalizedSessionId) {
         return;
       }
 
-      const checkoutFields = getCheckoutFormFields();
-      const checkoutMode = resolveSelectedCheckoutMode();
-      const discountPercent = resolveSelectedDiscountPercent();
       isCheckoutPending = true;
-      setCardError('');
-      setCheckoutButtonState(true, 'Preparing payment...');
-
-      const intentResult = await shared.createCheckoutPaymentIntent({
-        products: storeProducts,
-        storeCode: activeStoreCode,
-        checkoutMode,
-        discountPercent,
-        checkoutFields,
-      });
-
-      if (!intentResult.ok) {
-        isCheckoutPending = false;
-        setCheckoutFeedback(intentResult.message || 'Unable to start Stripe payment.', true);
-        renderCart();
-        return;
-      }
-
-      setCheckoutFeedback('Confirming your payment with Stripe...', false);
-      setCheckoutButtonState(true, 'Confirming card...');
-
-      const { error: stripeError, paymentIntent } = await stripeClient.confirmCardPayment(
-        intentResult.clientSecret,
-        {
-          payment_method: {
-            card: stripeCardElement,
-            billing_details: {
-              name: checkoutFields.buyerName,
-              email: checkoutFields.buyerEmail,
-              address: {
-                line1: checkoutFields.shippingAddress,
-              },
-            },
-          },
-        },
-      );
-
-      if (stripeError) {
-        isCheckoutPending = false;
-        setCardError(stripeError.message || 'Payment could not be confirmed.');
-        setCheckoutFeedback('Payment failed. Please verify your details and try again.', true);
-        renderCart();
-        return;
-      }
-
-      const finalizedIntentId = String(paymentIntent?.id || intentResult.paymentIntentId || '').trim();
-      if (!finalizedIntentId) {
-        isCheckoutPending = false;
-        setCheckoutFeedback('Payment was submitted but confirmation ID is missing.', true);
-        renderCart();
-        return;
-      }
-
       setCheckoutButtonState(true, 'Finalizing order...');
       setCheckoutFeedback('Finalizing your order...', false);
 
-      const completion = await shared.completeCheckoutPaymentIntent(finalizedIntentId);
+      let completion = await shared.completeCheckoutSession(normalizedSessionId);
+      let completionAttempts = 0;
+      while (completion.ok && !completion.completed && completionAttempts < 5) {
+        await new Promise((resolve) => window.setTimeout(resolve, 700));
+        completionAttempts += 1;
+        completion = await shared.completeCheckoutSession(normalizedSessionId);
+      }
+
       if (!completion.ok) {
         isCheckoutPending = false;
-        setCheckoutFeedback(completion.message || 'Unable to finalize payment.', true);
+        setCheckoutFeedback(completion.message || 'Unable to finalize checkout.', true);
         renderCart();
         return;
       }
@@ -1135,19 +1047,67 @@
         checkoutFormElement.reset();
       }
       syncStoreCodeUi();
-      if (stripeCardElement) {
-        stripeCardElement.clear();
-      }
-
       setCardError('');
       setCheckoutFeedback(completion.message || 'Payment confirmed successfully.', false);
       showCheckoutSuccessModal(completion);
-      if (checkoutMode === shared.CHECKOUT_MODE_FREE_ACCOUNT) {
-        clearRegistrationDraft();
-      }
+      clearRegistrationDraft();
       isCheckoutPending = false;
       syncCheckoutModeUi();
       renderCart();
+    }
+
+    async function handleHostedCheckoutReturn() {
+      const returnDetails = resolveCheckoutReturnDetails();
+      if (!returnDetails.checkoutStatus) {
+        return;
+      }
+
+      shouldPromptFreeAccountRegistration = false;
+
+      if (returnDetails.checkoutStatus === 'cancel') {
+        setCheckoutFeedback('Checkout was canceled. You can review your details and try again.', true);
+        clearCheckoutReturnDetailsFromUrl();
+        return;
+      }
+
+      if (returnDetails.checkoutStatus === 'success') {
+        await completeHostedCheckoutFromReturn(returnDetails.sessionId);
+        clearCheckoutReturnDetailsFromUrl();
+      }
+    }
+
+    async function processHostedCheckout() {
+      const checkoutFields = getCheckoutFormFields();
+      const checkoutMode = resolveSelectedCheckoutMode();
+      const discountPercent = resolveSelectedDiscountPercent();
+      isCheckoutPending = true;
+      setCardError('');
+      setCheckoutButtonState(true, 'Preparing checkout...');
+
+      const sessionResult = await shared.submitCheckout({
+        products: storeProducts,
+        storeCode: activeStoreCode,
+        checkoutMode,
+        discountPercent,
+        checkoutFields,
+      });
+
+      if (!sessionResult.ok) {
+        isCheckoutPending = false;
+        setCheckoutFeedback(sessionResult.message || 'Unable to start Stripe checkout.', true);
+        renderCart();
+        return;
+      }
+      const redirectUrl = String(sessionResult.redirectUrl || '').trim();
+      if (!redirectUrl) {
+        isCheckoutPending = false;
+        setCheckoutFeedback('Stripe checkout URL is missing from response.', true);
+        renderCart();
+        return;
+      }
+
+      setCheckoutFeedback(sessionResult.message || 'Redirecting to secure Stripe checkout...', false);
+      window.location.assign(redirectUrl);
     }
 
     function bindCheckoutForm() {
@@ -1163,14 +1123,14 @@
 
         if (resolveSelectedCheckoutMode() === shared.CHECKOUT_MODE_FREE_ACCOUNT) {
           if (hasFreeAccountRegistrationDetails()) {
-            await processEmbeddedCheckout();
+            await processHostedCheckout();
             return;
           }
           showFreeAccountRegistrationModal({ registerEntry: false });
           return;
         }
 
-        await processEmbeddedCheckout();
+        await processHostedCheckout();
       });
     }
 
@@ -1216,7 +1176,7 @@
         }
 
         try {
-          await processEmbeddedCheckout();
+          await processHostedCheckout();
         } finally {
           if (freeAccountModalPayButtonElement) {
             freeAccountModalPayButtonElement.disabled = false;
@@ -1319,7 +1279,7 @@
       bindCheckoutSuccessModal();
       bindHeaderLoginModal();
       await hydrateFreeAccountModalLegalDocuments();
-      await initializeStripeCheckout();
+      await handleHostedCheckoutReturn();
       maybePromptFreeAccountRegistration();
     }
 

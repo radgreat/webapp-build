@@ -6248,6 +6248,8 @@
       const STORE_INVOICES_API = '/api/store-invoices';
       const STORE_PRODUCTS_API = '/api/store-products';
       const STORE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
+      const STORE_CHECKOUT_SESSION_API = '/api/store-checkout/session';
+      const STORE_CHECKOUT_COMPLETE_API = '/api/store-checkout/complete';
       const STORE_CHECKOUT_INTENT_API = '/api/store-checkout/intent';
       const STORE_CHECKOUT_INTENT_COMPLETE_API = '/api/store-checkout/intent/complete';
       const E_WALLET_API = '/api/e-wallet';
@@ -20226,12 +20228,18 @@
         }
 
         try {
+          const authToken = resolveMemberAuthToken();
+          if (!authToken) {
+            throw new Error('Sign in again before saving placement plans.');
+          }
+
           const response = await fetch(
             buildRegisteredMemberPlacementApiPath(selectedRow.memberId),
             {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${authToken}`,
               },
               body: JSON.stringify({
                 sponsorUsername: currentSponsorUsername,
@@ -20473,10 +20481,16 @@
         packageKey,
         tierKey,
       }) {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          throw new Error('Sign in again before registering members.');
+        }
+
         const response = await fetch(REGISTERED_MEMBERS_API, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
           },
           body: JSON.stringify({
             fullName,
@@ -22952,6 +22966,201 @@
         }
       }
 
+      async function createStoreStripeCheckoutSession(checkoutData = {}) {
+        try {
+          const response = await fetch(STORE_CHECKOUT_SESSION_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(checkoutData),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string' && payload.error.trim()
+              ? payload.error.trim()
+              : `Unable to create Stripe checkout session (${response.status}).`;
+            throw new Error(message);
+          }
+
+          const sessionId = String(payload?.sessionId || '').trim();
+          const sessionUrl = String(payload?.sessionUrl || '').trim();
+          if (!sessionId || !sessionUrl) {
+            throw new Error('Stripe checkout session did not return the redirect URL.');
+          }
+
+          return {
+            ok: true,
+            sessionId,
+            sessionUrl,
+            payload,
+          };
+        } catch (error) {
+          const message = error instanceof Error && error.message
+            ? error.message
+            : 'Unable to create Stripe checkout session.';
+          return {
+            ok: false,
+            message,
+          };
+        }
+      }
+
+      async function finalizeStoreStripeCheckoutSession(sessionId) {
+        const normalizedSessionId = String(sessionId || '').trim();
+        if (!normalizedSessionId) {
+          return {
+            ok: false,
+            completed: false,
+            message: 'Checkout session ID is missing.',
+          };
+        }
+
+        try {
+          const response = await fetch(STORE_CHECKOUT_COMPLETE_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              sessionId: normalizedSessionId,
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string' && payload.error.trim()
+              ? payload.error.trim()
+              : `Unable to finalize store checkout (${response.status}).`;
+            throw new Error(message);
+          }
+
+          const completed = payload?.completed === true;
+          const alreadyProcessed = payload?.alreadyProcessed === true;
+          if (!completed) {
+            return {
+              ok: true,
+              completed: false,
+              alreadyProcessed: false,
+              payload,
+              message: 'Payment confirmation is still processing. Please refresh shortly.',
+            };
+          }
+
+          const invoice = payload?.invoice && typeof payload.invoice === 'object'
+            ? payload.invoice
+            : null;
+          const invoiceLabel = String(invoice?.id || '').trim() || 'Invoice';
+          return {
+            ok: true,
+            completed: true,
+            alreadyProcessed,
+            invoice,
+            payload,
+            message: alreadyProcessed
+              ? `${invoiceLabel} was already confirmed.`
+              : `${invoiceLabel} confirmed successfully.`,
+          };
+        } catch (error) {
+          return {
+            ok: false,
+            completed: false,
+            message: error instanceof Error ? error.message : 'Unable to finalize store checkout.',
+          };
+        }
+      }
+
+      function resolveStoreHostedCheckoutReturnDetails() {
+        const params = new URLSearchParams(window.location.search || '');
+        return {
+          checkoutStatus: String(params.get('checkout') || '').trim().toLowerCase(),
+          sessionId: String(params.get('session_id') || '').trim(),
+        };
+      }
+
+      function clearStoreHostedCheckoutReturnDetails() {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.delete('checkout');
+        currentUrl.searchParams.delete('session_id');
+        window.history.replaceState(window.history.state || {}, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+      }
+
+      async function handleStoreHostedCheckoutReturn() {
+        const returnDetails = resolveStoreHostedCheckoutReturnDetails();
+        if (!returnDetails.checkoutStatus) {
+          return;
+        }
+
+        if (returnDetails.checkoutStatus === 'cancel') {
+          updateCheckoutFeedback('Checkout was canceled. Review your details and try again.', false);
+          setStoreFlowStep('checkout');
+          clearStoreHostedCheckoutReturnDetails();
+          return;
+        }
+
+        if (returnDetails.checkoutStatus !== 'success') {
+          clearStoreHostedCheckoutReturnDetails();
+          return;
+        }
+
+        isStoreStripeCheckoutPending = true;
+        renderCart();
+        updateCheckoutFeedback('Finalizing your order...', true);
+
+        let completionResult = await finalizeStoreStripeCheckoutSession(returnDetails.sessionId);
+        let completionAttempts = 0;
+        while (completionResult.ok && !completionResult.completed && completionAttempts < 5) {
+          await new Promise((resolve) => window.setTimeout(resolve, 700));
+          completionAttempts += 1;
+          completionResult = await finalizeStoreStripeCheckoutSession(returnDetails.sessionId);
+        }
+
+        if (!completionResult.ok) {
+          isStoreStripeCheckoutPending = false;
+          renderCart();
+          updateCheckoutFeedback(completionResult.message || 'Unable to finalize checkout.', false);
+          setStoreFlowStep('checkout');
+          clearStoreHostedCheckoutReturnDetails();
+          return;
+        }
+
+        if (!completionResult.completed) {
+          isStoreStripeCheckoutPending = false;
+          renderCart();
+          updateCheckoutFeedback(completionResult.message || 'Payment is still processing. Refresh shortly.', true);
+          setStoreFlowStep('checkout');
+          clearStoreHostedCheckoutReturnDetails();
+          return;
+        }
+
+        await loadStoreProductCatalog();
+        await loadStoreInvoices();
+        storeInvoices = storeInvoices.map((invoice) => ({
+          ...invoice,
+          attributionKey: normalizeStoreCode(invoice?.attributionKey || storeAppliedUplineCode),
+        }));
+        syncStoreInvoicesForRuntimeMode();
+        renderProductGrid();
+        renderSelectedProductPage();
+        renderInvoiceFeed();
+        syncStoreMetrics();
+        renderRecentActivityFeed();
+
+        storeCart = [];
+        if (storeCheckoutFormElement) {
+          storeCheckoutFormElement.reset();
+        }
+        if (storeStripeCardElement) {
+          storeStripeCardElement.clear();
+        }
+        isStoreStripeCardComplete = false;
+        hydrateStoreCheckoutIdentityFields();
+        isStoreStripeCheckoutPending = false;
+        renderCart();
+        setStoreFlowStep('checkout');
+        updateCheckoutFeedback(completionResult.message || 'Payment confirmed successfully.', true);
+        clearStoreHostedCheckoutReturnDetails();
+      }
+
       async function createStoreStripePaymentIntent(checkoutData = {}) {
         try {
           const response = await fetch(STORE_CHECKOUT_INTENT_API, {
@@ -23378,9 +23587,6 @@
         if (storeFlowCheckoutView) {
           storeFlowCheckoutView.classList.toggle('hidden', nextStep !== 'checkout');
         }
-        if (nextStep === 'checkout') {
-          void initializeStoreStripeCheckout({ silent: true });
-        }
 
         storeFlowIndicatorButtons.forEach((button) => {
           const isActive = button.dataset.storeFlowIndicator === nextStep;
@@ -23610,14 +23816,11 @@
           storeCartTotalElement.textContent = formatCurrency(totals.total);
         }
         storeCartBpElement.textContent = `${formatInteger(totals.bp)} BV`;
-        const isStripeUnavailable = !isStoreStripeReady || !storeStripeClient || !storeStripeCardElement;
-        storeCheckoutButton.disabled = totals.items === 0 || !storeAppliedUplineCode || isStripeUnavailable || isStoreStripeCheckoutPending;
+        storeCheckoutButton.disabled = totals.items === 0 || !storeAppliedUplineCode || isStoreStripeCheckoutPending;
         if (isStoreStripeCheckoutPending) {
           storeCheckoutButton.textContent = 'Processing...';
-        } else if (isStripeUnavailable) {
-          storeCheckoutButton.textContent = 'Loading Stripe...';
         } else {
-          storeCheckoutButton.textContent = 'Pay With Stripe';
+          storeCheckoutButton.textContent = 'Continue to Stripe';
         }
 
         if (storeCart.length === 0) {
@@ -23829,12 +24032,6 @@
         const shippingMode = String(formData.get('shippingMode') || '').trim();
         if (!shippingMode) {
           return { ok: false, message: 'Select a mode of shipping.' };
-        }
-        if (!isStoreStripeReady || !storeStripeClient || !storeStripeCardElement) {
-          return { ok: false, message: 'Stripe checkout is still loading. Please wait a moment.' };
-        }
-        if (!isStoreStripeCardComplete) {
-          return { ok: false, message: 'Enter your full card details in the Stripe card form.' };
         }
 
         const billingAddress = String(formData.get('billingAddress') || '').trim();
@@ -24312,14 +24509,6 @@
           return;
         }
 
-        const stripeReady = isStoreStripeReady && storeStripeClient && storeStripeCardElement;
-        if (!stripeReady) {
-          const initialized = await initializeStoreStripeCheckout();
-          if (!initialized) {
-            return;
-          }
-        }
-
         const checkoutValidation = validateCheckoutForm();
         if (!checkoutValidation.ok) {
           updateCheckoutFeedback(checkoutValidation.message, false);
@@ -24330,18 +24519,13 @@
         const shippingMode = checkoutValidation.shippingMode || 'Standard Shipping';
         const buyerName = String(checkoutFields.buyerName || currentSessionUser?.name || currentSessionUser?.username || 'Store Buyer').trim();
         const buyerEmail = String(checkoutFields.buyerEmail || currentSessionUser?.email || '').trim().toLowerCase();
-        const billingAddress = String(checkoutFields.billingAddress || '').trim();
-        const billingCity = String(checkoutFields.billingCity || '').trim();
-        const billingState = String(checkoutFields.billingState || '').trim();
-        const billingPostalCode = String(checkoutFields.billingPostalCode || '').trim();
-        const billingCountryIsoCode = String(checkoutFields.billingCountryIsoCode || '').trim().toUpperCase();
 
         const checkoutLinesSnapshot = storeCart.map((line) => ({
           productId: String(line?.productId || '').trim(),
           quantity: Math.max(1, toWholeNumber(line?.quantity, 1)),
         })).filter((line) => line.productId);
 
-        const stripeIntentPayload = {
+        const checkoutSessionPayload = {
           cartLines: checkoutLinesSnapshot,
           storeCode: '',
           buyerName,
@@ -24360,88 +24544,17 @@
         isStoreStripeCheckoutPending = true;
         setStoreStripeCardError('');
         renderCart();
-        updateCheckoutFeedback('Preparing Stripe payment...', true);
+        updateCheckoutFeedback('Preparing Stripe checkout...', true);
 
-        const intentResult = await createStoreStripePaymentIntent(stripeIntentPayload);
-        if (!intentResult.ok) {
+        const sessionResult = await createStoreStripeCheckoutSession(checkoutSessionPayload);
+        if (!sessionResult.ok) {
           isStoreStripeCheckoutPending = false;
           renderCart();
-          updateCheckoutFeedback(intentResult.message || 'Unable to start Stripe payment.', false);
+          updateCheckoutFeedback(sessionResult.message || 'Unable to start Stripe checkout.', false);
           return;
         }
-
-        const { error: stripeError, paymentIntent } = await storeStripeClient.confirmCardPayment(
-          intentResult.clientSecret,
-          {
-            payment_method: {
-              card: storeStripeCardElement,
-              billing_details: {
-                name: buyerName,
-                email: buyerEmail,
-                address: {
-                  line1: billingAddress,
-                  city: billingCity,
-                  state: billingState,
-                  postal_code: billingPostalCode,
-                  country: billingCountryIsoCode,
-                },
-              },
-            },
-          },
-        );
-
-        if (stripeError) {
-          isStoreStripeCheckoutPending = false;
-          renderCart();
-          setStoreStripeCardError(stripeError.message || 'Payment could not be confirmed.');
-          updateCheckoutFeedback('Stripe payment failed. Please review your card details and try again.', false);
-          return;
-        }
-
-        const confirmedPaymentIntentId = String(paymentIntent?.id || intentResult.paymentIntentId || '').trim();
-        if (!confirmedPaymentIntentId) {
-          isStoreStripeCheckoutPending = false;
-          renderCart();
-          updateCheckoutFeedback('Stripe payment confirmation ID is missing. Please contact support.', false);
-          return;
-        }
-
-        updateCheckoutFeedback('Payment confirmed. Recording your order...', true);
-        const completionResult = await finalizeStoreStripePaymentIntent(confirmedPaymentIntentId);
-        if (!completionResult.ok) {
-          isStoreStripeCheckoutPending = false;
-          renderCart();
-          updateCheckoutFeedback(
-            `Payment ${confirmedPaymentIntentId} succeeded, but order recording failed: ${completionResult.message}`,
-            false,
-          );
-          return;
-        }
-
-        const persistedInvoice = completionResult.invoice;
-        storeInvoices.unshift(persistedInvoice);
-        syncStoreInvoiceSeedFromInvoices();
-        applyStorePurchaseToInventory(checkoutLinesSnapshot);
-        renderProductGrid();
-        renderSelectedProductPage();
-        renderInvoiceFeed();
-        syncStoreMetrics();
-        renderRecentActivityFeed();
-        const invoiceId = String(persistedInvoice?.id || '').trim() || `INV-${storeInvoiceSeed}`;
-        updateCheckoutFeedback(`${invoiceId} created from stripe checkout - ${shippingMode}.`, true);
-
-        storeCart = [];
-        if (storeCheckoutFormElement) {
-          storeCheckoutFormElement.reset();
-        }
-        if (storeStripeCardElement) {
-          storeStripeCardElement.clear();
-        }
-        isStoreStripeCardComplete = false;
-        hydrateStoreCheckoutIdentityFields();
-        isStoreStripeCheckoutPending = false;
-        renderCart();
-        renderSelectedProductPage();
+        updateCheckoutFeedback('Redirecting to secure Stripe checkout...', true);
+        window.location.assign(sessionResult.sessionUrl);
       }
 
       function openStoreProductPage(productId) {
@@ -24475,6 +24588,7 @@
         renderInvoiceFeed();
         syncStoreMetrics();
         renderRecentActivityFeed();
+        await handleStoreHostedCheckoutReturn();
         if (shouldBuyerReceiveStorePurchaseBv(currentSessionUser)) {
           void reconcileExistingStorePurchasePv();
         }

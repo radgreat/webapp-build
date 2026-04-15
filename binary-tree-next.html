@@ -468,6 +468,1293 @@
       }
     }
 
+    #tree-next-my-store-panel {
+      position: fixed;
+      left: var(--tree-next-my-store-left, 430px);
+      top: var(--tree-next-my-store-top, 18px);
+      width: var(--tree-next-my-store-width, 640px);
+      height: var(--tree-next-my-store-height, calc(100vh - 36px));
+      z-index: 16;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #E7E7EA;
+      border-radius: 36px;
+      background: #FFFFFF;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 12px 24px rgba(104, 112, 130, 0.08);
+      color: #101216;
+      font-family: "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      pointer-events: auto;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-my-store-panel,
+    #tree-next-my-store-panel * {
+      box-sizing: border-box;
+    }
+
+    #tree-next-my-store-panel.is-positioning {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(10px);
+    }
+
+    #tree-next-my-store-panel.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(12px);
+    }
+
+    .tree-next-my-store-scroll {
+      min-height: 0;
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 30px 30px 36px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 151, 160, 0.7) transparent;
+    }
+
+    .tree-next-my-store-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .tree-next-my-store-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .tree-next-my-store-scroll::-webkit-scrollbar-thumb {
+      border: 2px solid #FFFFFF;
+      border-radius: 8px;
+      background: rgba(148, 151, 160, 0.68);
+    }
+
+    .tree-next-my-store-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #E5E5E7;
+    }
+
+    .tree-next-my-store-title {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #111318;
+    }
+
+    #tree-next-my-store-close {
+      width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 10px;
+      background: #C9CCD4;
+      color: #FFFFFF;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-my-store-close:hover {
+      background: #B9BEC8;
+      transform: translateY(-1px);
+    }
+
+    #tree-next-my-store-close:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-my-store-close:active {
+      transform: scale(0.94);
+      opacity: 0.82;
+    }
+
+    .tree-next-my-store-breadcrumbs {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: #101216;
+    }
+
+    .tree-next-my-store-breadcrumb-link,
+    .tree-next-my-store-breadcrumb-current {
+      margin: 0;
+      color: #111318;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .tree-next-my-store-breadcrumb-link {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      transition:
+        color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-breadcrumb-link:hover {
+      color: #2B84EA;
+    }
+
+    .tree-next-my-store-breadcrumb-link:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+      border-radius: 8px;
+    }
+
+    .tree-next-my-store-breadcrumb-separator {
+      color: #2B84EA;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+      transform: translateY(-2px);
+      user-select: none;
+    }
+
+    #tree-next-my-store-panel [data-my-store-view] {
+      display: none;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="catalog"] [data-my-store-view="catalog"],
+    #tree-next-my-store-panel[data-my-store-step="review"] [data-my-store-view="review"],
+    #tree-next-my-store-panel[data-my-store-step="checkout"] [data-my-store-view="checkout"],
+    #tree-next-my-store-panel[data-my-store-step="thank-you"] [data-my-store-view="thank-you"] {
+      display: block;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] [data-my-store-share-block],
+    #tree-next-my-store-panel[data-my-store-step="thank-you"] [data-my-store-share-block] {
+      display: none;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"],
+    #tree-next-my-store-panel[data-my-store-step="thank-you"] {
+      height: auto;
+      max-height: calc(100vh - 36px);
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-card-error:empty,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-checkout-feedback:empty {
+      display: none;
+      margin: 0;
+      min-height: 0;
+      padding: 0;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-card-error:not(:empty),
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-checkout-feedback:not(:empty) {
+      display: block;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-scroll {
+      overflow-y: hidden;
+      padding: 28px 26px 28px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-header {
+      padding-bottom: 18px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-section.is-checkout {
+      padding-top: 30px;
+      padding-bottom: 32px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-summary {
+      margin: 24px auto 0;
+      padding: 24px 22px 22px;
+      border-radius: 24px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-heading {
+      margin-bottom: 12px;
+      font-size: 17px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-row {
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.28;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-divider {
+      margin: 14px 0 12px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-total {
+      font-size: 31px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-form {
+      margin-top: 18px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-field-stack {
+      gap: 14px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-form-input,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-stripe-card-shell,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-custom-select-trigger {
+      min-height: 52px;
+      border-radius: 20px;
+      padding: 0 18px;
+      font-size: 13.5px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-stripe-card-shell.is-card-number {
+      padding-right: 14px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-card-row,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-row,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-fields {
+      gap: 12px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-heading,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-field-label {
+      font-size: 12px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-card-error,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-checkout-feedback {
+      margin-top: 8px;
+      min-height: 16px;
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-actions.tree-next-enroll-actions {
+      margin-top: 16px;
+      padding-top: 18px;
+      gap: 12px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-action-btn {
+      min-height: 48px;
+      font-size: 14px;
+    }
+
+    .tree-next-my-store-sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+      white-space: nowrap;
+    }
+
+    .tree-next-my-store-section {
+      padding-top: 30px;
+    }
+
+    .tree-next-my-store-section.is-featured {
+      padding-bottom: 22px;
+      border-bottom: 1px solid #E5E5E7;
+      text-align: center;
+    }
+
+    .tree-next-my-store-section.is-upgrades {
+      padding-top: 34px;
+    }
+
+    .tree-next-my-store-section.is-upgrades.is-empty {
+      display: none;
+    }
+
+    .tree-next-my-store-section.is-share {
+      padding-top: 50px;
+      text-align: center;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="review"] .tree-next-my-store-section.is-share {
+      padding-top: 86px;
+    }
+
+    .tree-next-my-store-section-title {
+      margin: 0;
+      color: #101216;
+      font-size: 33px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .tree-next-my-store-section.is-featured .tree-next-my-store-section-title {
+      font-size: 30px;
+    }
+
+    .tree-next-my-store-featured-product {
+      margin-top: 24px;
+    }
+
+    .tree-next-my-store-product-button {
+      width: 100%;
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      color: inherit;
+      font: inherit;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .tree-next-my-store-product-button .tree-next-my-store-product-image-shell {
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-product-button:hover .tree-next-my-store-product-image-shell {
+      transform: translateY(-2px);
+    }
+
+    .tree-next-my-store-product-button:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 4px;
+      border-radius: 16px;
+    }
+
+    .tree-next-my-store-product-button:active .tree-next-my-store-product-image-shell {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
+    .tree-next-my-store-product-image-shell {
+      width: 100%;
+      border-radius: 28px;
+      background: #F2F2F6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .tree-next-my-store-product-image-shell.is-featured {
+      width: min(292px, 74vw);
+      aspect-ratio: 1 / 1;
+      padding: 30px;
+    }
+
+    .tree-next-my-store-product-image-shell.is-upgrade {
+      width: min(100%, 246px);
+      aspect-ratio: 1 / 1;
+      min-height: 192px;
+      padding: 22px;
+    }
+
+    .tree-next-my-store-product-image-shell img {
+      width: auto;
+      height: auto;
+      max-width: 86%;
+      max-height: 86%;
+      display: block;
+      margin: 0 auto;
+      object-fit: contain;
+      object-position: center;
+      justify-self: center;
+      align-self: center;
+    }
+
+    .tree-next-my-store-product-image-shell.is-featured img {
+      max-width: 78%;
+      max-height: 78%;
+    }
+
+    .tree-next-my-store-product-image-shell.is-upgrade img {
+      max-width: 82%;
+      max-height: 82%;
+    }
+
+    #tree-next-my-store-featured-label {
+      margin: 0;
+      color: #111318;
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.24;
+      text-align: center;
+    }
+
+    .tree-next-my-store-upgrades-grid {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(165px, 1fr));
+      gap: 20px;
+    }
+
+    .tree-next-my-store-upgrade-card {
+      min-width: 0;
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .tree-next-my-store-upgrade-label {
+      margin: 0;
+      color: #111318;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .tree-next-my-store-section.is-review {
+      padding-top: 28px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #E5E5E7;
+    }
+
+    .tree-next-my-store-review-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 20px;
+    }
+
+    .tree-next-my-store-review-main {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
+      gap: 18px;
+    }
+
+    .tree-next-my-store-product-image-shell.is-review {
+      width: min(250px, 42vw);
+      aspect-ratio: 1 / 1;
+      padding: 24px;
+    }
+
+    .tree-next-my-store-product-image-shell.is-review img {
+      max-width: 80%;
+      max-height: 80%;
+    }
+
+    .tree-next-my-store-review-details {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      align-content: start;
+      justify-items: start;
+      gap: 10px;
+      margin-top: 0;
+    }
+
+    .tree-next-my-store-review-name {
+      margin: 0;
+      color: #111318;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      word-break: break-word;
+    }
+
+    .tree-next-my-store-review-quantity {
+      margin: 0;
+      color: #111318;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .tree-next-my-store-review-quantity-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 22px;
+      border-radius: 999px;
+      background: #ECEEF2;
+      padding: 1px 7px;
+    }
+
+    .tree-next-my-store-review-quantity-control.is-readonly {
+      min-height: 0;
+      padding: 0;
+      background: transparent;
+    }
+
+    .tree-next-my-store-review-quantity-control.is-readonly .tree-next-my-store-review-qty-btn {
+      display: none;
+    }
+
+    .tree-next-my-store-upgrade-product-selector {
+      width: min(300px, 100%);
+      display: grid;
+      gap: 8px;
+    }
+
+    .tree-next-my-store-upgrade-product-selector.is-hidden {
+      display: none;
+    }
+
+    .tree-next-my-store-upgrade-product-title {
+      margin: 0;
+      color: #111318;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.24;
+      letter-spacing: -0.01em;
+    }
+
+    .tree-next-my-store-upgrade-product-options {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tree-next-my-store-upgrade-product-button {
+      width: 100%;
+      min-height: 36px;
+      border: 0;
+      border-radius: 11px;
+      padding: 0 14px;
+      text-align: left;
+      color: #FFFFFF;
+      background: #0B0F18;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-upgrade-product-button.is-selected {
+      background: linear-gradient(135deg, #1F7DE7 0%, #2F93EE 100%);
+    }
+
+    .tree-next-my-store-upgrade-product-button:hover {
+      filter: brightness(1.04);
+      transform: translateY(-1px);
+    }
+
+    .tree-next-my-store-upgrade-product-button:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    .tree-next-my-store-upgrade-product-button:active {
+      transform: scale(0.98);
+      opacity: 0.92;
+    }
+
+    .tree-next-my-store-review-qty-btn {
+      width: 16px;
+      height: 16px;
+      border: 0;
+      border-radius: 999px;
+      background: #FFFFFF;
+      color: #13161D;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-review-qty-btn:hover:not(:disabled) {
+      background: #F8FAFF;
+      transform: translateY(-1px);
+    }
+
+    .tree-next-my-store-review-qty-btn:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 2px;
+    }
+
+    .tree-next-my-store-review-qty-btn:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    .tree-next-my-store-review-qty-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .tree-next-my-store-review-side {
+      justify-self: end;
+      display: grid;
+      justify-items: end;
+      gap: 10px;
+    }
+
+    .tree-next-my-store-review-price {
+      margin: 0;
+      color: #101216;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .tree-next-my-store-review-bv {
+      margin: 0;
+      color: #111318;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .tree-next-my-store-review-remove {
+      margin: 8px 0 0;
+      border: 0;
+      background: transparent;
+      color: #2B84EA;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.2;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: none;
+      transition:
+        color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-review-remove:hover {
+      color: #1C6FD0;
+    }
+
+    .tree-next-my-store-review-remove:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+      border-radius: 8px;
+    }
+
+    .tree-next-my-store-review-checkout {
+      margin-top: 10px;
+      min-width: 220px;
+      min-height: 52px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #1F7DE7 0%, #2F93EE 100%);
+      box-shadow: none;
+      color: #FFFFFF;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-review-checkout:hover {
+      filter: brightness(1.03);
+      transform: translateY(-1px);
+    }
+
+    .tree-next-my-store-review-checkout:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    .tree-next-my-store-review-checkout:active {
+      transform: scale(0.98);
+      opacity: 0.92;
+    }
+
+    .tree-next-my-store-section.is-checkout {
+      padding-top: 28px;
+    }
+
+    .tree-next-my-store-checkout-title {
+      margin: 0;
+      color: #0F131A;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      text-align: center;
+    }
+
+    .tree-next-my-store-checkout-subtitle {
+      max-width: 640px;
+      margin: 12px auto 0;
+      color: #8C909A;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .tree-next-my-store-checkout-summary {
+      margin: 28px auto 0;
+      width: min(560px, 100%);
+      border-radius: 28px;
+      background: #EEEEEE;
+      padding: 24px 18px 20px;
+    }
+
+    .tree-next-my-store-checkout-summary-title {
+      margin: 0 0 10px;
+      color: #101216;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .tree-next-my-store-checkout-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 6px;
+      color: #111318;
+      font-size: 15px;
+      line-height: 1.22;
+    }
+
+    .tree-next-my-store-checkout-summary-divider {
+      margin: 14px 0 12px;
+      border: none;
+      border-top: 1px solid rgba(0, 0, 0, 0.24);
+    }
+
+    .tree-next-my-store-checkout-summary-row.is-total {
+      margin-top: 0;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .tree-next-my-store-checkout-summary-row.is-total strong {
+      font-size: 36px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .tree-next-my-store-checkout-form {
+      width: min(560px, 100%);
+      margin: 28px auto 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .tree-next-my-store-checkout-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .tree-next-my-store-checkout-input {
+      width: 100%;
+      min-height: 56px;
+      border: 0;
+      border-radius: 20px;
+      background: #E2E2E2;
+      color: #111318;
+      font: 500 13px/1.3 "Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      letter-spacing: -0.01em;
+      padding: 0 22px;
+      transition:
+        box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-checkout-input::placeholder {
+      color: #888888;
+    }
+
+    .tree-next-my-store-checkout-input:focus-visible {
+      outline: 2px solid rgba(7, 122, 255, 0.35);
+      outline-offset: 0;
+      background: #E6E6E6;
+      box-shadow:
+        0 0 0 3px rgba(7, 122, 255, 0.14);
+    }
+
+    .tree-next-my-store-checkout-billing-title {
+      margin: 22px 0 0;
+      color: #111318;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    .tree-next-my-store-checkout-feedback {
+      margin: 10px 0 0;
+      min-height: 16px;
+      color: #247CE0;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.25;
+      opacity: 0;
+      transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-checkout-feedback.is-visible {
+      opacity: 1;
+    }
+
+    .tree-next-my-store-checkout-feedback.is-error {
+      color: #B23A4D;
+    }
+
+    #tree-next-my-store-checkout-feedback:empty {
+      display: none;
+      margin: 0;
+      min-height: 0;
+    }
+
+    #tree-next-my-store-checkout-feedback:not(:empty) {
+      display: block;
+    }
+
+    .tree-next-my-store-checkout-actions {
+      width: min(560px, 100%);
+      margin: 22px auto 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .tree-next-my-store-checkout-action {
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-checkout-action.is-secondary {
+      background: #030303;
+    }
+
+    .tree-next-my-store-checkout-action.is-primary {
+      background: linear-gradient(135deg, #1F7DE7 0%, #2F93EE 100%);
+      box-shadow:
+        0 10px 20px rgba(45, 118, 212, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    }
+
+    .tree-next-my-store-checkout-action:hover {
+      filter: brightness(1.04);
+      transform: translateY(-1px);
+    }
+
+    .tree-next-my-store-checkout-action:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    .tree-next-my-store-checkout-action:active {
+      transform: scale(0.98);
+      opacity: 0.92;
+    }
+
+    .tree-next-my-store-section.is-thank-you {
+      padding-top: 28px;
+    }
+
+    #tree-next-my-store-thank-you-card {
+      width: min(560px, 100%);
+      margin: 0 auto;
+      border-radius: 28px;
+      background: #eeeeee;
+      padding: 28px 24px 24px;
+      color: #000000;
+    }
+
+    #tree-next-my-store-thank-you-card h3 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+
+    #tree-next-my-store-thank-you-card p {
+      margin: 0;
+      color: #70747d;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .tree-next-my-store-thank-you-actions.tree-next-enroll-actions {
+      width: min(560px, 100%);
+      margin: 18px auto 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .tree-next-my-store-share-copy {
+      margin: 12px auto 0;
+      max-width: 420px;
+      color: #333842;
+      font-size: 18px;
+      font-weight: 400;
+      line-height: 1.45;
+    }
+
+    #tree-next-my-store-copy-link {
+      margin-top: 20px;
+      min-width: 188px;
+      min-height: 42px;
+      padding: 0 24px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #2490F1 0%, #2F7FE8 100%);
+      box-shadow: none;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-my-store-copy-link:hover {
+      filter: brightness(1.03);
+      transform: translateY(-1px);
+    }
+
+    #tree-next-my-store-copy-link:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-my-store-copy-link:active {
+      transform: scale(0.97);
+      opacity: 0.9;
+    }
+
+    #tree-next-my-store-panel .tree-next-enroll-action-btn.is-primary,
+    #tree-next-my-store-panel .tree-next-enroll-action-btn.is-secondary {
+      box-shadow: none;
+    }
+
+    #tree-next-my-store-panel .tree-next-enroll-action-btn.is-primary:hover:not(:disabled),
+    #tree-next-my-store-panel .tree-next-enroll-action-btn.is-secondary:hover,
+    #tree-next-my-store-panel .tree-next-my-store-review-checkout:hover,
+    #tree-next-my-store-panel #tree-next-my-store-copy-link:hover {
+      box-shadow: none;
+    }
+
+    .tree-next-my-store-copy-feedback {
+      margin: 10px 0 0;
+      min-height: 17px;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+      color: #2F7FE8;
+      opacity: 0;
+      transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-copy-feedback.is-visible {
+      opacity: 1;
+    }
+
+    .tree-next-my-store-copy-feedback.is-error {
+      color: #B23A4D;
+    }
+
+    @media (max-width: 980px) {
+      #tree-next-my-store-panel {
+        left: var(--tree-next-my-store-left-mobile, 18px);
+        top: var(--tree-next-my-store-top-mobile, 78px);
+        width: calc(100vw - 36px);
+        height: calc(100vh - 96px);
+        border-radius: 30px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] {
+        height: auto;
+        max-height: calc(100vh - 96px);
+      }
+
+      .tree-next-my-store-scroll {
+        padding: 24px 20px 30px;
+      }
+
+      .tree-next-my-store-title {
+        font-size: 27px;
+      }
+
+      .tree-next-my-store-section-title {
+        font-size: 29px;
+      }
+
+      .tree-next-my-store-section.is-featured .tree-next-my-store-section-title {
+        font-size: 27px;
+      }
+
+      #tree-next-my-store-featured-label {
+        font-size: 34px;
+      }
+
+      .tree-next-my-store-upgrades-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .tree-next-my-store-share-copy {
+        font-size: 16px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="review"] .tree-next-my-store-section.is-share {
+        padding-top: 70px;
+      }
+
+      .tree-next-my-store-review-card {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .tree-next-my-store-review-main {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .tree-next-my-store-review-details {
+        gap: 10px;
+        justify-items: center;
+        margin-top: 0;
+      }
+
+      .tree-next-my-store-upgrade-product-selector {
+        width: min(340px, 100%);
+        justify-items: center;
+      }
+
+      .tree-next-my-store-upgrade-product-options {
+        width: min(340px, 100%);
+      }
+
+      .tree-next-my-store-upgrade-product-button {
+        text-align: center;
+      }
+
+      .tree-next-my-store-review-side {
+        justify-self: stretch;
+        justify-items: center;
+      }
+
+      .tree-next-my-store-review-checkout {
+        min-width: 200px;
+        min-height: 54px;
+        font-size: 22px;
+      }
+
+      .tree-next-my-store-product-image-shell.is-review {
+        width: min(286px, 80vw);
+        padding: 26px;
+      }
+
+      .tree-next-my-store-checkout-summary {
+        border-radius: 24px;
+        padding: 20px 20px 18px;
+      }
+
+      .tree-next-my-store-checkout-summary-title {
+        font-size: 18px;
+      }
+
+      .tree-next-my-store-checkout-summary-row {
+        font-size: 20px;
+      }
+
+      .tree-next-my-store-checkout-summary-row.is-total {
+        font-size: 22px;
+      }
+
+      .tree-next-my-store-checkout-summary-row.is-total strong {
+        font-size: 28px;
+      }
+
+      .tree-next-my-store-checkout-input {
+        min-height: 50px;
+        border-radius: 15px;
+        font-size: 16px;
+      }
+
+      .tree-next-my-store-checkout-billing-title {
+        font-size: 16px;
+      }
+
+      .tree-next-my-store-checkout-action {
+        min-height: 54px;
+        font-size: 20px;
+      }
+
+      #tree-next-my-store-thank-you-card {
+        padding: 22px 18px 18px;
+      }
+
+      #tree-next-my-store-thank-you-card h3 {
+        font-size: 26px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .tree-next-my-store-upgrades-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tree-next-my-store-product-image-shell.is-featured {
+        width: min(270px, 82vw);
+      }
+
+      #tree-next-my-store-featured-label {
+        font-size: 30px;
+      }
+
+      .tree-next-my-store-section.is-share {
+        padding-top: 40px;
+      }
+
+      .tree-next-my-store-breadcrumb-link,
+      .tree-next-my-store-breadcrumb-current {
+        font-size: 15px;
+      }
+
+      .tree-next-my-store-breadcrumb-separator {
+        font-size: 13px;
+      }
+
+      .tree-next-my-store-review-name {
+        font-size: 20px;
+      }
+
+      .tree-next-my-store-review-quantity,
+      .tree-next-my-store-review-price,
+      .tree-next-my-store-review-bv {
+        font-size: 20px;
+      }
+
+      .tree-next-my-store-review-quantity-control {
+        min-height: 22px;
+        padding: 1px 7px;
+        gap: 5px;
+      }
+
+      .tree-next-my-store-upgrade-product-title {
+        font-size: 13px;
+      }
+
+      .tree-next-my-store-upgrade-product-button {
+        min-height: 34px;
+        font-size: 13px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="review"] .tree-next-my-store-section.is-share {
+        padding-top: 56px;
+      }
+
+      .tree-next-my-store-review-qty-btn {
+        width: 16px;
+        height: 16px;
+        font-size: 11px;
+      }
+
+      .tree-next-my-store-checkout-title {
+        font-size: 26px;
+      }
+
+      .tree-next-my-store-checkout-subtitle {
+        font-size: 13px;
+      }
+
+      .tree-next-my-store-checkout-summary {
+        margin-top: 20px;
+      }
+
+      .tree-next-my-store-checkout-summary-title {
+        font-size: 16px;
+      }
+
+      #tree-next-my-store-thank-you-card h3 {
+        font-size: 24px;
+      }
+
+      .tree-next-my-store-checkout-summary-row {
+        font-size: 15px;
+      }
+
+      .tree-next-my-store-checkout-summary-row.is-total {
+        font-size: 17px;
+      }
+
+      .tree-next-my-store-checkout-summary-row.is-total strong {
+        font-size: 24px;
+      }
+
+      .tree-next-my-store-checkout-input {
+        min-height: 46px;
+        font-size: 15px;
+        padding: 0 16px;
+      }
+
+      .tree-next-my-store-checkout-billing-title {
+        margin-top: 14px;
+        font-size: 15px;
+      }
+
+      .tree-next-my-store-checkout-feedback {
+        font-size: 12px;
+      }
+
+      .tree-next-my-store-checkout-action {
+        min-height: 48px;
+        font-size: 18px;
+      }
+    }
+
     #binary-tree-loading {
       position: fixed;
       inset: 0;
@@ -1374,7 +2661,8 @@
       white-space: nowrap;
     }
 
-    #tree-next-enroll-checkout-summary {
+    #tree-next-enroll-checkout-summary,
+    .tree-next-enroll-checkout-summary {
       border-radius: 28px;
       background: #eeeeee;
       padding: 24px 18px 20px;
@@ -1453,7 +2741,8 @@
       padding-right: 16px;
     }
 
-    #tree-next-enroll-card-number-element {
+    #tree-next-enroll-card-number-element,
+    #tree-next-my-store-card-number-element {
       flex: 1 1 auto;
       width: auto;
       min-width: 0;
@@ -1462,7 +2751,9 @@
     }
 
     #tree-next-enroll-card-expiry-element,
-    #tree-next-enroll-card-cvc-element {
+    #tree-next-enroll-card-cvc-element,
+    #tree-next-my-store-card-expiry-element,
+    #tree-next-my-store-card-cvc-element {
       flex: 1 1 auto;
       width: 100%;
       min-width: 0;
@@ -1470,12 +2761,25 @@
       color: #888888;
     }
 
-    #tree-next-enroll-card-error {
+    #tree-next-enroll-card-error,
+    #tree-next-my-store-card-error {
       margin: -4px 2px 0;
       min-height: 17px;
       color: #c04157;
       font-size: 12px;
       line-height: 1.4;
+    }
+
+    #tree-next-my-store-card-error:empty {
+      display: none;
+      margin: 0;
+      min-height: 0;
+    }
+
+    #tree-next-my-store-card-error:not(:empty) {
+      display: block;
+      margin: 2px 2px 0;
+      min-height: 15px;
     }
 
     #tree-next-enroll-thank-you-card {
@@ -1868,7 +3172,7 @@
       }
     }
 
-    @media (max-height: 1065px) {
+    @media (max-height: 760px) {
       #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-step[data-enroll-step="3"].is-active {
         min-height: 0;
         display: flex;
@@ -1949,7 +3253,8 @@
         font-size: 11px;
       }
 
-      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-card-error {
+      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-card-error,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-card-error {
         margin-top: -2px;
         min-height: 15px;
         font-size: 11px;
@@ -1979,9 +3284,111 @@
         font-size: 11px;
         line-height: 1.25;
       }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-scroll {
+        overflow-y: hidden;
+        padding: 21px 22px 18px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-header {
+        padding-bottom: 14px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-section.is-checkout {
+        padding-top: 20px;
+        padding-bottom: 26px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-title {
+        font-size: 21px;
+        line-height: 1.08;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-subtitle {
+        margin-top: 6px;
+        max-width: 420px;
+        font-size: 11.5px;
+        line-height: 1.3;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-summary {
+        margin: 18px auto 0;
+        padding: 18px 18px 16px;
+        border-radius: 22px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-heading {
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-row {
+        margin-top: 6px;
+        font-size: 13.5px;
+        line-height: 1.28;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-divider {
+        margin: 12px 0 10px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-total {
+        font-size: 29px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-form {
+        margin-top: 14px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-field-stack {
+        gap: 11px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-form-input,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-stripe-card-shell,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-custom-select-trigger {
+        min-height: 48px;
+        border-radius: 18px;
+        padding: 0 17px;
+        font-size: 13px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-stripe-card-shell.is-card-number {
+        padding-right: 13px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-card-row,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-row,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-fields {
+        gap: 10px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-heading,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-field-label {
+        font-size: 11.5px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-card-error,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-checkout-feedback {
+        margin-top: 7px;
+        min-height: 15px;
+        font-size: 11.5px;
+        line-height: 1.3;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-actions.tree-next-enroll-actions {
+        margin-top: 13px;
+        padding-top: 14px;
+        gap: 10px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-action-btn {
+        min-height: 45px;
+        font-size: 13.5px;
+      }
     }
 
-    @media (max-height: 820px) {
+    @media (max-height: 680px) {
       #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-modal-header {
         padding: 8px 42px 2px;
       }
@@ -1999,6 +3406,66 @@
       #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-actions.is-dual {
         gap: 6px;
         padding-top: 8px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-scroll {
+        overflow-y: hidden;
+        padding: 16px 18px 14px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-header {
+        padding-bottom: 12px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-section.is-checkout {
+        padding-top: 15px;
+        padding-bottom: 22px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-title {
+        font-size: 20px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-subtitle {
+        margin-top: 4px;
+        font-size: 11px;
+        line-height: 1.28;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-summary {
+        margin-top: 14px;
+        padding: 16px 16px 14px;
+        border-radius: 20px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-heading {
+        font-size: 15px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-row {
+        font-size: 13px;
+        line-height: 1.26;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-total {
+        font-size: 28px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-form-input,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-stripe-card-shell,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-custom-select-trigger {
+        min-height: 46px;
+        font-size: 12.5px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-actions.tree-next-enroll-actions {
+        gap: 8px;
+        padding-top: 12px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-action-btn {
+        min-height: 42px;
+        font-size: 13px;
       }
     }
   </style>
@@ -2092,6 +3559,246 @@
             <p class="tree-next-account-overview-commission-label">Legacy Builder Bonus</p>
           </button>
         </div>
+      </section>
+    </div>
+  </aside>
+  <aside
+    id="tree-next-my-store-panel"
+    class="is-positioning is-hidden"
+    aria-label="My Store"
+    aria-hidden="true"
+    data-my-store-step="catalog"
+  >
+    <div class="tree-next-my-store-scroll">
+      <header class="tree-next-my-store-header">
+        <nav id="tree-next-my-store-breadcrumbs" class="tree-next-my-store-breadcrumbs" aria-label="Store checkout steps">
+          <span class="tree-next-my-store-breadcrumb-current">My Store</span>
+        </nav>
+        <button id="tree-next-my-store-close" type="button" aria-label="Hide my store panel">&times;</button>
+      </header>
+
+      <div data-my-store-view="catalog">
+        <section class="tree-next-my-store-section is-featured" aria-labelledby="tree-next-my-store-featured-title">
+          <h3 id="tree-next-my-store-featured-title" class="tree-next-my-store-section-title">Featured</h3>
+          <div class="tree-next-my-store-featured-product">
+            <button
+              id="tree-next-my-store-featured-button"
+              class="tree-next-my-store-product-button"
+              type="button"
+              data-my-store-product-action="featured"
+              data-my-store-product-key="metacharge"
+            >
+              <div class="tree-next-my-store-product-image-shell is-featured">
+                <img id="tree-next-my-store-featured-image" src="/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png" alt="MetaCharge bottle" />
+              </div>
+              <p id="tree-next-my-store-featured-label">MetaCharge&trade;</p>
+            </button>
+          </div>
+        </section>
+
+        <section id="tree-next-my-store-upgrades-section" class="tree-next-my-store-section is-upgrades" aria-labelledby="tree-next-my-store-upgrades-title">
+          <h3 id="tree-next-my-store-upgrades-title" class="tree-next-my-store-section-title">Account Upgrades</h3>
+          <div id="tree-next-my-store-upgrades-grid" class="tree-next-my-store-upgrades-grid"></div>
+        </section>
+      </div>
+
+      <section class="tree-next-my-store-section is-review" data-my-store-view="review" aria-labelledby="tree-next-my-store-review-title">
+        <h3 id="tree-next-my-store-review-title" class="tree-next-my-store-sr-only">Review Purchase</h3>
+        <article class="tree-next-my-store-review-card">
+          <div class="tree-next-my-store-review-main">
+            <div class="tree-next-my-store-product-image-shell is-review">
+              <img
+                id="tree-next-my-store-review-image"
+                src="/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png"
+                alt="MetaCharge bottle"
+              />
+            </div>
+            <div class="tree-next-my-store-review-details">
+              <p id="tree-next-my-store-review-name" class="tree-next-my-store-review-name">MetaCharge&trade;</p>
+              <div id="tree-next-my-store-review-quantity-control" class="tree-next-my-store-review-quantity-control" aria-label="Quantity selector">
+                <button
+                  id="tree-next-my-store-review-qty-decrease"
+                  class="tree-next-my-store-review-qty-btn"
+                  type="button"
+                  aria-label="Decrease quantity"
+                >-</button>
+                <span id="tree-next-my-store-review-quantity" class="tree-next-my-store-review-quantity" aria-live="polite">1x</span>
+                <button
+                  id="tree-next-my-store-review-qty-increase"
+                  class="tree-next-my-store-review-qty-btn"
+                  type="button"
+                  aria-label="Increase quantity"
+                >+</button>
+              </div>
+              <div
+                id="tree-next-my-store-upgrade-product-selector"
+                class="tree-next-my-store-upgrade-product-selector is-hidden"
+                aria-label="Upgrade product selector"
+              >
+                <p class="tree-next-my-store-upgrade-product-title">Select your product</p>
+                <div class="tree-next-my-store-upgrade-product-options" role="group" aria-label="Upgrade products">
+                  <button
+                    id="tree-next-my-store-upgrade-product-metacharge"
+                    class="tree-next-my-store-upgrade-product-button is-selected"
+                    type="button"
+                    data-my-store-upgrade-product-key="metacharge"
+                    aria-pressed="true"
+                  >MetaCharge&trade;</button>
+                  <button
+                    id="tree-next-my-store-upgrade-product-metaroast"
+                    class="tree-next-my-store-upgrade-product-button"
+                    type="button"
+                    data-my-store-upgrade-product-key="metaroast"
+                    aria-pressed="false"
+                  >MetaRoast&trade;</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tree-next-my-store-review-side">
+            <p id="tree-next-my-store-review-price" class="tree-next-my-store-review-price">$64.00</p>
+            <p id="tree-next-my-store-review-bv" class="tree-next-my-store-review-bv">38 BV</p>
+            <button id="tree-next-my-store-review-remove" class="tree-next-my-store-review-remove" type="button">Remove</button>
+            <button id="tree-next-my-store-review-checkout" class="tree-next-my-store-review-checkout" type="button">Checkout</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="tree-next-my-store-section is-checkout" data-my-store-view="checkout" aria-labelledby="tree-next-my-store-checkout-title">
+        <h3 id="tree-next-my-store-checkout-title" class="tree-next-my-store-checkout-title">Complete Checkout</h3>
+        <p class="tree-next-my-store-checkout-subtitle">
+          You're almost done! Please review all information entered and ensure the selected product is correct before proceeding.
+        </p>
+
+        <article class="tree-next-enroll-checkout-summary" aria-label="Checkout summary">
+          <p class="tree-next-enroll-checkout-heading">Sub total</p>
+          <div class="tree-next-enroll-checkout-row">
+            <span id="tree-next-my-store-checkout-product-label">MetaCharge&trade;</span>
+            <span id="tree-next-my-store-checkout-subtotal">$64.00</span>
+          </div>
+          <div class="tree-next-enroll-checkout-row">
+            <span>Discount</span>
+            <span id="tree-next-my-store-checkout-discount">$0.00</span>
+          </div>
+          <div class="tree-next-enroll-checkout-row">
+            <span>Tax</span>
+            <span id="tree-next-my-store-checkout-tax">$0.00</span>
+          </div>
+          <hr class="tree-next-enroll-checkout-divider" />
+          <div class="tree-next-enroll-checkout-row">
+            <span>Pay today</span>
+            <strong id="tree-next-my-store-checkout-total" class="tree-next-enroll-checkout-total">$64.00</strong>
+          </div>
+        </article>
+
+        <form id="tree-next-my-store-checkout-form" class="tree-next-my-store-checkout-form tree-next-enroll-field-stack" novalidate>
+          <input id="tree-next-my-store-checkout-name" class="tree-next-enroll-form-input" type="text" autocomplete="cc-name" placeholder="Name on Card" required />
+          <p class="tree-next-enroll-field-label">Secure Card (Stripe)</p>
+          <div class="tree-next-enroll-stripe-card-shell is-card-number" aria-label="Card Number Field">
+            <div id="tree-next-my-store-card-number-element"></div>
+          </div>
+          <div class="tree-next-enroll-card-row">
+            <div class="tree-next-enroll-stripe-card-shell" aria-label="Card Expiry Field">
+              <div id="tree-next-my-store-card-expiry-element"></div>
+            </div>
+            <div class="tree-next-enroll-stripe-card-shell" aria-label="Card CVC Field">
+              <div id="tree-next-my-store-card-cvc-element"></div>
+            </div>
+          </div>
+
+          <div class="tree-next-enroll-billing-fields">
+            <p class="tree-next-enroll-billing-heading">Billing Address</p>
+            <label class="tree-next-enroll-sr-only" for="tree-next-my-store-checkout-billing-address">Billing Address</label>
+            <input
+              id="tree-next-my-store-checkout-billing-address"
+              class="tree-next-enroll-form-input"
+              type="text"
+              autocomplete="address-line1"
+              placeholder="Billing Address"
+              required
+            />
+            <div class="tree-next-enroll-billing-row">
+              <label class="tree-next-enroll-sr-only" for="tree-next-my-store-checkout-billing-city">Billing City</label>
+              <input id="tree-next-my-store-checkout-billing-city" class="tree-next-enroll-form-input" type="text" autocomplete="address-level2" placeholder="City" required />
+              <label class="tree-next-enroll-sr-only" for="tree-next-my-store-checkout-billing-state">Billing State</label>
+              <input id="tree-next-my-store-checkout-billing-state" class="tree-next-enroll-form-input" type="text" autocomplete="address-level1" placeholder="State" required />
+            </div>
+            <div class="tree-next-enroll-billing-row">
+              <label class="tree-next-enroll-sr-only" for="tree-next-my-store-checkout-billing-postal">Billing Postal Code</label>
+              <input id="tree-next-my-store-checkout-billing-postal" class="tree-next-enroll-form-input" type="text" autocomplete="postal-code" placeholder="ZIP / Postal Code" required />
+              <label class="tree-next-enroll-sr-only" for="tree-next-my-store-checkout-billing-country">Billing Country</label>
+              <div class="tree-next-enroll-select-wrap" data-enroll-custom-select>
+                <button
+                  type="button"
+                  class="tree-next-enroll-custom-select-trigger"
+                  data-enroll-custom-select-trigger
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-controls="tree-next-my-store-billing-country-menu"
+                >
+                  <span class="tree-next-enroll-custom-select-value" data-enroll-custom-select-value>United States</span>
+                  <span class="material-symbols-outlined tree-next-enroll-custom-select-icon" aria-hidden="true">expand_more</span>
+                </button>
+                <div
+                  id="tree-next-my-store-billing-country-menu"
+                  class="tree-next-enroll-custom-select-menu"
+                  data-enroll-custom-select-menu
+                  role="listbox"
+                  aria-label="Billing Country"
+                ></div>
+                <select id="tree-next-my-store-checkout-billing-country" class="tree-next-enroll-form-select tree-next-enroll-native-select" name="myStoreBillingCountry" required>
+                  <option value="US">United States</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <p id="tree-next-my-store-card-error" class="tree-next-my-store-card-error" aria-live="polite"></p>
+          <p id="tree-next-my-store-checkout-feedback" class="tree-next-my-store-checkout-feedback" aria-live="polite"></p>
+        </form>
+
+        <div class="tree-next-my-store-checkout-actions tree-next-enroll-actions">
+          <button id="tree-next-my-store-checkout-previous" class="tree-next-enroll-action-btn is-secondary" type="button">Previous</button>
+          <button id="tree-next-my-store-checkout-pay" class="tree-next-enroll-action-btn is-primary" type="button">Pay Now</button>
+        </div>
+      </section>
+
+      <section class="tree-next-my-store-section is-thank-you" data-my-store-view="thank-you" aria-labelledby="tree-next-my-store-thank-you-title">
+        <article id="tree-next-my-store-thank-you-card">
+          <h3 id="tree-next-my-store-thank-you-title">Thank You!</h3>
+          <p id="tree-next-my-store-thank-you-message">Payment received and your order is now processing.</p>
+          <div class="tree-next-enroll-thank-you-details">
+            <div class="tree-next-enroll-thank-you-row">
+              <span>Invoice</span>
+              <span id="tree-next-my-store-thank-you-invoice">--</span>
+            </div>
+            <div class="tree-next-enroll-thank-you-row">
+              <span>Status</span>
+              <span id="tree-next-my-store-thank-you-status">Posted</span>
+            </div>
+            <div class="tree-next-enroll-thank-you-row">
+              <span>Amount Paid</span>
+              <strong id="tree-next-my-store-thank-you-amount">$0.00</strong>
+            </div>
+            <div class="tree-next-enroll-thank-you-row">
+              <span>Business Volume</span>
+              <span id="tree-next-my-store-thank-you-bv">0 BV</span>
+            </div>
+            <div class="tree-next-enroll-thank-you-row">
+              <span>Date</span>
+              <span id="tree-next-my-store-thank-you-date">--</span>
+            </div>
+          </div>
+        </article>
+        <div class="tree-next-my-store-thank-you-actions tree-next-enroll-actions">
+          <button id="tree-next-my-store-thank-you-done" class="tree-next-enroll-action-btn is-primary" type="button">Done</button>
+        </div>
+      </section>
+
+      <section class="tree-next-my-store-section is-share" data-my-store-share-block aria-labelledby="tree-next-my-store-share-title">
+        <h3 id="tree-next-my-store-share-title" class="tree-next-my-store-section-title">Share and Earn</h3>
+        <p class="tree-next-my-store-share-copy">Preferred customers receive 15% off. You earn Business Volume and Retail Bonuses on every completed sale.</p>
+        <button id="tree-next-my-store-copy-link" type="button">Copy Store Link</button>
+        <p id="tree-next-my-store-copy-feedback" class="tree-next-my-store-copy-feedback" aria-live="polite"></p>
       </section>
     </div>
   </aside>

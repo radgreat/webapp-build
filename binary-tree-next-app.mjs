@@ -20,6 +20,10 @@ const DEFAULT_ROOT_FOCUS_RADIUS = 38;
 const UNIVERSE_DEPTH_CAP = 20;
 const ANTICIPATION_MAX_GLOBAL_DEPTH = 20;
 const LIVE_TREE_GLOBAL_ROOT_ID = '__global-root__';
+const ADMIN_ROOT_DISPLAY_NAME = 'Administrator';
+const ADMIN_ROOT_USERNAME = 'administrator';
+const ADMIN_ROOT_TITLE = 'Administrator';
+const ADMIN_ROOT_ROLE = 'Administrator';
 const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
 const FREE_ACCOUNT_RANK_KEY_SET = new Set([
   'preferred customer',
@@ -132,6 +136,7 @@ const SERVER_CUTOFF_TIMEZONE = 'America/Los_Angeles';
 const SERVER_CUTOFF_WEEKDAY = 6;
 const SERVER_CUTOFF_HOUR = 23;
 const SERVER_CUTOFF_MINUTE = 59;
+const MEMBER_AUTH_SESSION_API = '/api/member-auth/session';
 const MEMBER_REGISTERED_MEMBERS_API = '/api/registered-members';
 const MEMBER_BINARY_TREE_PINNED_NODES_API = '/api/member-auth/binary-tree-next/pinned-nodes';
 const ADMIN_REGISTERED_MEMBERS_API = '/api/admin/registered-members';
@@ -142,13 +147,15 @@ const ACCOUNT_OVERVIEW_E_WALLET_API = '/api/e-wallet';
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_VISIBLE_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_HIDDEN_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS;
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_RETRY_INTERVAL_MS = 2800;
-const MEMBER_REGISTERED_MEMBERS_INTENT_API = '/api/registered-members/intent';
-const ADMIN_REGISTERED_MEMBERS_INTENT_API = '/api/admin/registered-members/intent';
-const MEMBER_REGISTERED_MEMBERS_INTENT_COMPLETE_API = '/api/registered-members/intent/complete';
-const ADMIN_REGISTERED_MEMBERS_INTENT_COMPLETE_API = '/api/admin/registered-members/intent/complete';
+const MEMBER_REGISTERED_MEMBERS_SESSION_API = '/api/registered-members/session';
+const ADMIN_REGISTERED_MEMBERS_SESSION_API = '/api/admin/registered-members/session';
+const MEMBER_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/registered-members/session/complete';
+const ADMIN_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/admin/registered-members/session/complete';
 const MEMBER_DASHBOARD_HOME_PATH = '/index.html';
 const ADMIN_DASHBOARD_HOME_PATH = '/admin.html';
 const ENROLL_STRIPE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
+const MY_STORE_CHECKOUT_SESSION_API = '/api/store-checkout/session';
+const MY_STORE_CHECKOUT_SESSION_COMPLETE_API = '/api/store-checkout/complete';
 const ENROLL_STRIPE_SCRIPT_URL = 'https://js.stripe.com/v3/';
 const ENROLL_BILLING_COUNTRY_CATALOG_URL = '/node_modules/flag-icons/country.json';
 const ENROLL_DEFAULT_COUNTRY_FLAG = 'us';
@@ -180,7 +187,7 @@ const ENROLL_PACKAGE_META = Object.freeze({
   }),
   'personal-builder-pack': Object.freeze({
     label: 'Personal Builder Pack',
-    bv: 192,
+    bv: 150,
     price: 192,
     selectableProducts: 3,
   }),
@@ -306,6 +313,91 @@ const ACCOUNT_OVERVIEW_BADGE_PALETTES = Object.freeze({
     dark: [118, 85, 22],
   }),
 });
+const MY_STORE_FEATURED_PRODUCT = Object.freeze({
+  productKey: 'metacharge',
+  label: 'MetaCharge™',
+  imageUrl: '/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png',
+  price: 64,
+  bv: 38,
+  quantity: 1,
+});
+const MY_STORE_UPGRADE_PRODUCT_UNIT_BV = 50;
+const MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY = 'metacharge';
+const MY_STORE_UPGRADE_PRODUCT_META = Object.freeze({
+  metacharge: Object.freeze({
+    productKey: 'metacharge',
+    label: 'MetaCharge™',
+    imageUrl: '/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png',
+    unitPrice: 64,
+    unitBv: MY_STORE_UPGRADE_PRODUCT_UNIT_BV,
+  }),
+  metaroast: Object.freeze({
+    productKey: 'metaroast',
+    label: 'MetaRoast™',
+    imageUrl: '/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png',
+    unitPrice: 64,
+    unitBv: MY_STORE_UPGRADE_PRODUCT_UNIT_BV,
+  }),
+});
+const MY_STORE_STEP_CATALOG = 'catalog';
+const MY_STORE_STEP_REVIEW = 'review';
+const MY_STORE_STEP_CHECKOUT = 'checkout';
+const MY_STORE_STEP_THANK_YOU = 'thank-you';
+const MY_STORE_VALID_STEPS = new Set([
+  MY_STORE_STEP_CATALOG,
+  MY_STORE_STEP_REVIEW,
+  MY_STORE_STEP_CHECKOUT,
+  MY_STORE_STEP_THANK_YOU,
+]);
+const TREE_NEXT_STRIPE_RETURN_FLOW_QUERY_KEY = 'bt_checkout_flow';
+const TREE_NEXT_STRIPE_RETURN_TARGET_QUERY_KEY = 'bt_return_target';
+const TREE_NEXT_STRIPE_RETURN_FLOW_MY_STORE = 'my-store';
+const TREE_NEXT_STRIPE_RETURN_FLOW_ENROLL = 'enroll-member';
+const TREE_NEXT_STRIPE_RETURN_SIGNAL_STORAGE_KEY = 'binary-tree-next-stripe-return-signal-v1';
+const TREE_NEXT_STRIPE_RETURN_SIGNAL_MAX_AGE_MS = 10 * 60 * 1000;
+const TREE_NEXT_STRIPE_RETURN_MESSAGE_TYPE = 'binary-tree-next-stripe-return';
+const MY_STORE_CHECKOUT_NETWORK_RETRY_LIMIT = 12;
+const MY_STORE_CHECKOUT_NETWORK_RETRY_DELAY_MS = 1800;
+const TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY = 'binary-tree-next-pending-checkout-my-store-v1';
+const TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY = 'binary-tree-next-pending-checkout-enroll-v1';
+const MY_STORE_PACKAGE_DISPLAY_META = Object.freeze({
+  'preferred-customer-pack': Object.freeze({
+    label: 'Preferred Customer Account',
+  }),
+  'personal-builder-pack': Object.freeze({
+    label: 'Personal Builder Package',
+  }),
+  'business-builder-pack': Object.freeze({
+    label: 'Business Builder Package',
+  }),
+  'infinity-builder-pack': Object.freeze({
+    label: 'Infinity Builder Package',
+  }),
+  'legacy-builder-pack': Object.freeze({
+    label: 'Legacy Builder Package',
+  }),
+});
+const MY_STORE_UPGRADE_PACKAGE_KEYS_BY_PACKAGE = Object.freeze({
+  'preferred-customer-pack': Object.freeze([
+    'personal-builder-pack',
+    'business-builder-pack',
+    'infinity-builder-pack',
+    'legacy-builder-pack',
+  ]),
+  'personal-builder-pack': Object.freeze([
+    'business-builder-pack',
+    'infinity-builder-pack',
+    'legacy-builder-pack',
+  ]),
+  'business-builder-pack': Object.freeze([
+    'infinity-builder-pack',
+    'legacy-builder-pack',
+  ]),
+  'infinity-builder-pack': Object.freeze([
+    'legacy-builder-pack',
+  ]),
+  'legacy-builder-pack': Object.freeze([]),
+});
 const SIDE_NAV_BRAND_MENU_ITEMS = [
   { id: 'profile', label: 'Profile', action: 'brand-menu:page:profile' },
   { id: 'dashboard', label: 'Home', action: 'brand-menu:page:dashboard' },
@@ -356,7 +448,77 @@ const accountOverviewFastTrackValueElement = document.getElementById('tree-next-
 const accountOverviewTrackSalesTeamValueElement = document.getElementById('tree-next-account-overview-track-sales-team-value');
 const accountOverviewInfinityBuilderValueElement = document.getElementById('tree-next-account-overview-infinity-builder-value');
 const accountOverviewLegacyBuilderValueElement = document.getElementById('tree-next-account-overview-legacy-builder-value');
+const accountOverviewActiveWindowLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewActiveWindowValueElement);
+const accountOverviewTotalBvLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewTotalBvValueElement);
+const accountOverviewPersonalBvLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewPersonalBvValueElement);
+const accountOverviewDirectSponsorsLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewDirectSponsorsValueElement);
+const accountOverviewEwalletLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewEwalletValueElement);
+const ACCOUNT_OVERVIEW_DEFAULT_LABELS = Object.freeze({
+  activeWindow: safeText(accountOverviewActiveWindowLabelElement?.textContent || 'Account Active Until') || 'Account Active Until',
+  totalBv: safeText(accountOverviewTotalBvLabelElement?.textContent || 'Total Organization Personal BV') || 'Total Organization Personal BV',
+  personalBv: safeText(accountOverviewPersonalBvLabelElement?.textContent || 'Personal BV') || 'Personal BV',
+  cycle: safeText(accountOverviewCycleLabelElement?.textContent || 'Weekly Cycle Cap') || 'Weekly Cycle Cap',
+  directSponsors: safeText(accountOverviewDirectSponsorsLabelElement?.textContent || 'Direct Sponsors') || 'Direct Sponsors',
+  eWallet: safeText(accountOverviewEwalletLabelElement?.textContent || 'E-Wallet') || 'E-Wallet',
+});
 const accountOverviewCommissionButtons = Array.from(document.querySelectorAll('[data-account-overview-commission]'));
+const myStorePanelElement = document.getElementById('tree-next-my-store-panel');
+const myStoreScrollElement = myStorePanelElement?.querySelector('.tree-next-my-store-scroll') || null;
+const myStoreHeaderElement = myStorePanelElement?.querySelector('.tree-next-my-store-header') || null;
+const myStoreCatalogViewElement = myStorePanelElement?.querySelector('[data-my-store-view="catalog"]') || null;
+const myStoreReviewViewElement = myStorePanelElement?.querySelector('[data-my-store-view="review"]') || null;
+const myStoreCheckoutViewElement = myStorePanelElement?.querySelector('[data-my-store-view="checkout"]') || null;
+const myStoreThankYouViewElement = myStorePanelElement?.querySelector('[data-my-store-view="thank-you"]') || null;
+const myStoreShareViewElement = myStorePanelElement?.querySelector('[data-my-store-share-block]') || null;
+const myStoreBreadcrumbsElement = document.getElementById('tree-next-my-store-breadcrumbs');
+const myStoreCloseButtonElement = document.getElementById('tree-next-my-store-close');
+const myStoreFeaturedImageElement = document.getElementById('tree-next-my-store-featured-image');
+const myStoreFeaturedLabelElement = document.getElementById('tree-next-my-store-featured-label');
+const myStoreUpgradesSectionElement = document.getElementById('tree-next-my-store-upgrades-section');
+const myStoreUpgradesGridElement = document.getElementById('tree-next-my-store-upgrades-grid');
+const myStoreReviewImageElement = document.getElementById('tree-next-my-store-review-image');
+const myStoreReviewTitleElement = document.getElementById('tree-next-my-store-review-title');
+const myStoreReviewNameElement = document.getElementById('tree-next-my-store-review-name');
+const myStoreReviewQuantityControlElement = document.getElementById('tree-next-my-store-review-quantity-control');
+const myStoreReviewQuantityDecreaseButtonElement = document.getElementById('tree-next-my-store-review-qty-decrease');
+const myStoreReviewQuantityIncreaseButtonElement = document.getElementById('tree-next-my-store-review-qty-increase');
+const myStoreReviewQuantityElement = document.getElementById('tree-next-my-store-review-quantity');
+const myStoreReviewUpgradeProductSelectorElement = document.getElementById('tree-next-my-store-upgrade-product-selector');
+const myStoreReviewUpgradeProductButtons = Array.from(
+  myStorePanelElement?.querySelectorAll('[data-my-store-upgrade-product-key]') || [],
+);
+const myStoreReviewPriceElement = document.getElementById('tree-next-my-store-review-price');
+const myStoreReviewBvElement = document.getElementById('tree-next-my-store-review-bv');
+const myStoreReviewRemoveButtonElement = document.getElementById('tree-next-my-store-review-remove');
+const myStoreReviewCheckoutButtonElement = document.getElementById('tree-next-my-store-review-checkout');
+const myStoreCheckoutFormElement = document.getElementById('tree-next-my-store-checkout-form');
+const myStoreCheckoutProductLabelElement = document.getElementById('tree-next-my-store-checkout-product-label');
+const myStoreCheckoutSubtotalElement = document.getElementById('tree-next-my-store-checkout-subtotal');
+const myStoreCheckoutDiscountElement = document.getElementById('tree-next-my-store-checkout-discount');
+const myStoreCheckoutTaxElement = document.getElementById('tree-next-my-store-checkout-tax');
+const myStoreCheckoutTotalElement = document.getElementById('tree-next-my-store-checkout-total');
+const myStoreCheckoutNameInputElement = document.getElementById('tree-next-my-store-checkout-name');
+const myStoreCardNumberElement = document.getElementById('tree-next-my-store-card-number-element');
+const myStoreCardExpiryElement = document.getElementById('tree-next-my-store-card-expiry-element');
+const myStoreCardCvcElement = document.getElementById('tree-next-my-store-card-cvc-element');
+const myStoreCheckoutBillingAddressInputElement = document.getElementById('tree-next-my-store-checkout-billing-address');
+const myStoreCheckoutBillingCityInputElement = document.getElementById('tree-next-my-store-checkout-billing-city');
+const myStoreCheckoutBillingStateInputElement = document.getElementById('tree-next-my-store-checkout-billing-state');
+const myStoreCheckoutBillingPostalInputElement = document.getElementById('tree-next-my-store-checkout-billing-postal');
+const myStoreCheckoutBillingCountrySelect = document.getElementById('tree-next-my-store-checkout-billing-country');
+const myStoreCheckoutCardErrorElement = document.getElementById('tree-next-my-store-card-error');
+const myStoreCheckoutPreviousButtonElement = document.getElementById('tree-next-my-store-checkout-previous');
+const myStoreCheckoutPayButtonElement = document.getElementById('tree-next-my-store-checkout-pay');
+const myStoreCheckoutFeedbackElement = document.getElementById('tree-next-my-store-checkout-feedback');
+const myStoreThankYouMessageElement = document.getElementById('tree-next-my-store-thank-you-message');
+const myStoreThankYouInvoiceElement = document.getElementById('tree-next-my-store-thank-you-invoice');
+const myStoreThankYouStatusElement = document.getElementById('tree-next-my-store-thank-you-status');
+const myStoreThankYouAmountElement = document.getElementById('tree-next-my-store-thank-you-amount');
+const myStoreThankYouBvElement = document.getElementById('tree-next-my-store-thank-you-bv');
+const myStoreThankYouDateElement = document.getElementById('tree-next-my-store-thank-you-date');
+const myStoreThankYouDoneButtonElement = document.getElementById('tree-next-my-store-thank-you-done');
+const myStoreCopyLinkButtonElement = document.getElementById('tree-next-my-store-copy-link');
+const myStoreCopyFeedbackElement = document.getElementById('tree-next-my-store-copy-feedback');
 const treeNextEnrollModalOverlayElement = document.getElementById('tree-next-enroll-modal-overlay');
 const treeNextEnrollModalElement = document.getElementById('tree-next-enroll-modal');
 const treeNextEnrollModalTitleElement = document.getElementById('tree-next-enroll-modal-title');
@@ -426,6 +588,12 @@ let treeNextEnrollStripeCardExpiry = null;
 let treeNextEnrollStripeCardCvc = null;
 let treeNextEnrollStripeInitPromise = null;
 let treeNextEnrollBillingCountryHydrationPromise = null;
+let myStoreStripeClient = null;
+let myStoreStripeElements = null;
+let myStoreStripeCardNumber = null;
+let myStoreStripeCardExpiry = null;
+let myStoreStripeCardCvc = null;
+let myStoreStripeInitPromise = null;
 let accountOverviewLastRenderSignature = '';
 let accountOverviewSelectedCommissionKey = '';
 let accountOverviewRemoteSnapshot = createEmptyAccountOverviewRemoteSnapshot();
@@ -438,10 +606,15 @@ let accountOverviewRemoteIdentityKey = '';
 let accountOverviewRemoteRequestSequence = 0;
 let accountOverviewCachedLegVolumeSignature = '';
 let accountOverviewCachedLegVolumeMetrics = null;
+let myStoreLastRenderSignature = '';
 let isTreeNextEnrollStripeReady = false;
 let isTreeNextEnrollStripeCardComplete = false;
 let isTreeNextEnrollStripeCardExpiryComplete = false;
 let isTreeNextEnrollStripeCardCvcComplete = false;
+let isMyStoreStripeReady = false;
+let isMyStoreStripeCardComplete = false;
+let isMyStoreStripeCardExpiryComplete = false;
+let isMyStoreStripeCardCvcComplete = false;
 
 if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error('Missing #figma-tree-canvas');
@@ -462,6 +635,11 @@ let pinnedNodeIdsServerSyncInFlight = false;
 let pinnedNodeIdsServerSyncQueued = false;
 let pinnedNodeIdsLastSyncedKey = '';
 let pinnedNodeIdsLocalDirty = false;
+const treeNextStripeReturnSignalHandledKeys = new Set();
+const myStoreCheckoutFinalizationInFlightSessionIds = new Set();
+const enrollCheckoutFinalizationInFlightSessionIds = new Set();
+const myStoreCheckoutRetryAttemptBySession = new Map();
+const myStoreCheckoutRetryTimeoutBySession = new Map();
 const avatarImageAssetCache = new Map();
 
 const state = {
@@ -498,6 +676,11 @@ const state = {
   ui: {
     sideNavOpen: true,
     accountOverviewVisible: false,
+    myStoreVisible: false,
+    myStoreStep: MY_STORE_STEP_CATALOG,
+    myStoreSelection: null,
+    myStoreCheckoutCompletion: null,
+    myStoreCheckoutSubmitting: false,
     sideNavBrandMenuOpen: false,
     sideNavBrandMenuAnchorRect: null,
     sideNavSearchInputRect: null,
@@ -1491,9 +1674,15 @@ function resolveNodeActivityState(node) {
   const safeNode = node && typeof node === 'object' ? node : null;
   const rawStatus = safeText(safeNode?.accountStatus || safeNode?.status || '').toLowerCase();
   const nodeIdKey = normalizeCredentialValue(safeNode?.id);
+  const nodeUsernameKey = normalizeCredentialValue(
+    safeText(safeNode?.username || safeNode?.memberCode || ''),
+  );
   if (
     nodeIdKey === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
     || nodeIdKey === 'company-root'
+    || nodeIdKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    || nodeUsernameKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    || (state.source === 'admin' && nodeIdKey === 'root')
   ) {
     return true;
   }
@@ -1877,12 +2066,19 @@ function requestEnrollMemberFromTree(parentId, side) {
     || parentNode.id
     || safeParentId,
   );
+  const parentUsername = safeText(
+    parentNode.username
+    || parentNode.memberCode
+    || parentNode.id
+    || safeParentId,
+  ).replace(/^@+/, '');
 
   window.dispatchEvent(new CustomEvent('binary-tree-enroll-member-request', {
     detail: {
       parentId: safeParentId,
       parentName,
       parentMemberCode,
+      parentUsername,
       placementLeg,
     },
   }));
@@ -1894,16 +2090,16 @@ function resolveEnrollRegisteredMembersApi() {
     : MEMBER_REGISTERED_MEMBERS_API;
 }
 
-function resolveEnrollRegisteredMembersIntentApi() {
+function resolveEnrollRegisteredMembersSessionApi() {
   return state.source === 'admin'
-    ? ADMIN_REGISTERED_MEMBERS_INTENT_API
-    : MEMBER_REGISTERED_MEMBERS_INTENT_API;
+    ? ADMIN_REGISTERED_MEMBERS_SESSION_API
+    : MEMBER_REGISTERED_MEMBERS_SESSION_API;
 }
 
-function resolveEnrollRegisteredMembersIntentCompleteApi() {
+function resolveEnrollRegisteredMembersSessionCompleteApi() {
   return state.source === 'admin'
-    ? ADMIN_REGISTERED_MEMBERS_INTENT_COMPLETE_API
-    : MEMBER_REGISTERED_MEMBERS_INTENT_COMPLETE_API;
+    ? ADMIN_REGISTERED_MEMBERS_SESSION_COMPLETE_API
+    : MEMBER_REGISTERED_MEMBERS_SESSION_COMPLETE_API;
 }
 
 function resolveEnrollFastTrackTierFromPackage(packageKey) {
@@ -2476,17 +2672,28 @@ function initTreeNextEnrollCustomSelects() {
   });
 }
 
+function resolveTreeNextBillingCountrySelectElements() {
+  const countrySelectElements = [];
+  if (treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement) {
+    countrySelectElements.push(treeNextEnrollBillingCountrySelect);
+  }
+  if (
+    myStoreCheckoutBillingCountrySelect instanceof HTMLSelectElement
+    && !countrySelectElements.some((element) => element === myStoreCheckoutBillingCountrySelect)
+  ) {
+    countrySelectElements.push(myStoreCheckoutBillingCountrySelect);
+  }
+  return countrySelectElements;
+}
+
 function applyTreeNextEnrollBillingCountryOptions(countryOptions = [], options = {}) {
-  if (!(treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement)) {
+  const countrySelectElements = resolveTreeNextBillingCountrySelectElements();
+  if (!countrySelectElements.length) {
     return;
   }
   const {
     preserveSelection = true,
   } = options;
-  const previousValue = safeText(treeNextEnrollBillingCountrySelect.value).trim().toUpperCase();
-  const desiredValue = preserveSelection && previousValue
-    ? previousValue
-    : ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
   const seenCodes = new Set();
   const normalizedOptions = [];
   for (const entry of Array.isArray(countryOptions) ? countryOptions : []) {
@@ -2508,39 +2715,49 @@ function applyTreeNextEnrollBillingCountryOptions(countryOptions = [], options =
     });
   }
 
-  treeNextEnrollBillingCountrySelect.innerHTML = '';
-  for (const optionData of normalizedOptions) {
-    const optionElement = document.createElement('option');
-    optionElement.value = optionData.code;
-    optionElement.textContent = optionData.label;
-    treeNextEnrollBillingCountrySelect.appendChild(optionElement);
-  }
-  if (!treeNextEnrollBillingCountrySelect.value) {
-    treeNextEnrollBillingCountrySelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
-  }
-  const hasDesiredValue = Array.from(treeNextEnrollBillingCountrySelect.options).some(
-    (option) => safeText(option?.value).trim().toUpperCase() === desiredValue,
-  );
-  treeNextEnrollBillingCountrySelect.value = hasDesiredValue
-    ? desiredValue
-    : ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
-  if (!treeNextEnrollBillingCountrySelect.value && treeNextEnrollBillingCountrySelect.options.length > 0) {
-    treeNextEnrollBillingCountrySelect.value = safeText(treeNextEnrollBillingCountrySelect.options[0]?.value);
-  }
+  for (const nativeSelect of countrySelectElements) {
+    const previousValue = safeText(nativeSelect.value).trim().toUpperCase();
+    const desiredValue = preserveSelection && previousValue
+      ? previousValue
+      : ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+    nativeSelect.innerHTML = '';
+    for (const optionData of normalizedOptions) {
+      const optionElement = document.createElement('option');
+      optionElement.value = optionData.code;
+      optionElement.textContent = optionData.label;
+      nativeSelect.appendChild(optionElement);
+    }
+    if (!nativeSelect.value) {
+      nativeSelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+    }
+    const hasDesiredValue = Array.from(nativeSelect.options).some(
+      (option) => safeText(option?.value).trim().toUpperCase() === desiredValue,
+    );
+    nativeSelect.value = hasDesiredValue
+      ? desiredValue
+      : ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+    if (!nativeSelect.value && nativeSelect.options.length > 0) {
+      nativeSelect.value = safeText(nativeSelect.options[0]?.value);
+    }
 
-  const entry = treeNextEnrollCustomSelectByNativeId.get(treeNextEnrollBillingCountrySelect.id);
-  if (entry) {
-    buildTreeNextEnrollCustomSelectMenu(entry);
+    const entry = treeNextEnrollCustomSelectByNativeId.get(nativeSelect.id);
+    if (entry) {
+      buildTreeNextEnrollCustomSelectMenu(entry);
+    }
+    syncTreeNextEnrollCustomSelectById(nativeSelect.id);
   }
-  syncTreeNextEnrollCustomSelectById(treeNextEnrollBillingCountrySelect.id);
 }
 
 async function hydrateTreeNextEnrollBillingCountryOptions() {
-  if (!(treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement)) {
+  const countrySelectElements = resolveTreeNextBillingCountrySelectElements();
+  if (!countrySelectElements.length) {
     return;
   }
-  if (treeNextEnrollBillingCountrySelect.dataset.countriesHydrated === 'true') {
-    syncTreeNextEnrollCustomSelectById(treeNextEnrollBillingCountrySelect.id);
+  const areAllHydrated = countrySelectElements.every((nativeSelect) => nativeSelect.dataset.countriesHydrated === 'true');
+  if (areAllHydrated) {
+    for (const nativeSelect of countrySelectElements) {
+      syncTreeNextEnrollCustomSelectById(nativeSelect.id);
+    }
     return;
   }
   if (treeNextEnrollBillingCountryHydrationPromise) {
@@ -2581,7 +2798,9 @@ async function hydrateTreeNextEnrollBillingCountryOptions() {
         options.unshift(preferredOption);
       }
       applyTreeNextEnrollBillingCountryOptions(options, { preserveSelection: true });
-      treeNextEnrollBillingCountrySelect.dataset.countriesHydrated = 'true';
+      for (const nativeSelect of resolveTreeNextBillingCountrySelectElements()) {
+        nativeSelect.dataset.countriesHydrated = 'true';
+      }
     } catch (error) {
       console.warn('Unable to hydrate enrollment billing countries:', error);
       applyTreeNextEnrollBillingCountryOptions(ENROLL_BILLING_COUNTRY_FALLBACK_OPTIONS, { preserveSelection: true });
@@ -2768,6 +2987,138 @@ async function initializeTreeNextEnrollStripeCard(options = {}) {
     return await treeNextEnrollStripeInitPromise;
   } finally {
     treeNextEnrollStripeInitPromise = null;
+  }
+}
+
+function setMyStoreCheckoutCardError(message = '') {
+  if (!(myStoreCheckoutCardErrorElement instanceof HTMLElement)) {
+    return;
+  }
+  myStoreCheckoutCardErrorElement.textContent = safeText(message);
+}
+
+function clearMyStoreCheckoutCardError() {
+  setMyStoreCheckoutCardError('');
+}
+
+function clearMyStoreStripeCardInput() {
+  isMyStoreStripeCardComplete = false;
+  isMyStoreStripeCardExpiryComplete = false;
+  isMyStoreStripeCardCvcComplete = false;
+  clearMyStoreCheckoutCardError();
+  if (myStoreStripeCardNumber && typeof myStoreStripeCardNumber.clear === 'function') {
+    try {
+      myStoreStripeCardNumber.clear();
+    } catch {
+      // no-op
+    }
+  }
+  if (myStoreStripeCardExpiry && typeof myStoreStripeCardExpiry.clear === 'function') {
+    try {
+      myStoreStripeCardExpiry.clear();
+    } catch {
+      // no-op
+    }
+  }
+  if (myStoreStripeCardCvc && typeof myStoreStripeCardCvc.clear === 'function') {
+    try {
+      myStoreStripeCardCvc.clear();
+    } catch {
+      // no-op
+    }
+  }
+}
+
+async function initializeMyStoreStripeCard(options = {}) {
+  if (
+    isMyStoreStripeReady
+    && myStoreStripeCardNumber
+    && myStoreStripeCardExpiry
+    && myStoreStripeCardCvc
+  ) {
+    return true;
+  }
+  if (
+    !(myStoreCardNumberElement instanceof HTMLElement)
+    || !(myStoreCardExpiryElement instanceof HTMLElement)
+    || !(myStoreCardCvcElement instanceof HTMLElement)
+  ) {
+    setMyStoreCheckoutCardError('Card payment fields are unavailable.');
+    return false;
+  }
+  if (myStoreStripeInitPromise) {
+    return myStoreStripeInitPromise;
+  }
+
+  myStoreStripeInitPromise = (async () => {
+    const stripeLoaded = await ensureTreeNextEnrollStripeScriptLoaded();
+    if (!stripeLoaded || typeof window.Stripe !== 'function') {
+      setMyStoreCheckoutCardError('Stripe checkout could not be loaded. Please refresh and try again.');
+      return false;
+    }
+
+    const configResult = await fetchTreeNextEnrollStripeCheckoutConfig();
+    if (!configResult.ok) {
+      setMyStoreCheckoutCardError(configResult.message || 'Unable to initialize Stripe checkout.');
+      return false;
+    }
+
+    try {
+      myStoreStripeClient = window.Stripe(configResult.publishableKey);
+      if (!myStoreStripeClient) {
+        throw new Error('Stripe client could not be initialized.');
+      }
+
+      myStoreStripeElements = myStoreStripeClient.elements();
+      myStoreStripeCardNumber = myStoreStripeElements.create('cardNumber', {
+        style: resolveTreeNextEnrollStripeCardStyle(),
+        placeholder: 'Card number',
+        showIcon: true,
+        iconStyle: 'solid',
+        disableLink: false,
+      });
+      myStoreStripeCardExpiry = myStoreStripeElements.create('cardExpiry', {
+        style: resolveTreeNextEnrollStripeCardStyle(),
+        placeholder: 'MM / YY',
+      });
+      myStoreStripeCardCvc = myStoreStripeElements.create('cardCvc', {
+        style: resolveTreeNextEnrollStripeCardStyle(),
+        placeholder: 'CVC',
+      });
+      myStoreStripeCardNumber.mount(myStoreCardNumberElement);
+      myStoreStripeCardExpiry.mount(myStoreCardExpiryElement);
+      myStoreStripeCardCvc.mount(myStoreCardCvcElement);
+      myStoreStripeCardNumber.on('change', (event) => {
+        isMyStoreStripeCardComplete = event?.complete === true;
+        setMyStoreCheckoutCardError(event?.error?.message || '');
+      });
+      myStoreStripeCardExpiry.on('change', (event) => {
+        isMyStoreStripeCardExpiryComplete = event?.complete === true;
+        setMyStoreCheckoutCardError(event?.error?.message || '');
+      });
+      myStoreStripeCardCvc.on('change', (event) => {
+        isMyStoreStripeCardCvcComplete = event?.complete === true;
+        setMyStoreCheckoutCardError(event?.error?.message || '');
+      });
+
+      isMyStoreStripeReady = true;
+      isMyStoreStripeCardComplete = false;
+      isMyStoreStripeCardExpiryComplete = false;
+      isMyStoreStripeCardCvcComplete = false;
+      if (options.silent !== true) {
+        clearMyStoreCheckoutCardError();
+      }
+      return true;
+    } catch (error) {
+      setMyStoreCheckoutCardError(error instanceof Error ? error.message : 'Unable to initialize Stripe card fields.');
+      return false;
+    }
+  })();
+
+  try {
+    return await myStoreStripeInitPromise;
+  } finally {
+    myStoreStripeInitPromise = null;
   }
 }
 
@@ -3145,6 +3496,18 @@ function isAccountOverviewPanelAvailable() {
   return accountOverviewPanelElement instanceof HTMLElement;
 }
 
+function resolveAccountOverviewTileLabelElement(valueElement) {
+  if (!(valueElement instanceof HTMLElement)) {
+    return null;
+  }
+  const tileElement = valueElement.closest('.tree-next-account-overview-tile');
+  if (!(tileElement instanceof HTMLElement)) {
+    return null;
+  }
+  const labelElement = tileElement.querySelector('.tree-next-account-overview-tile-label');
+  return labelElement instanceof HTMLElement ? labelElement : null;
+}
+
 function setAccountOverviewText(element, value) {
   if (!(element instanceof HTMLElement)) {
     return;
@@ -3178,34 +3541,166 @@ function resetAccountOverviewRemoteSnapshot() {
   accountOverviewLastRenderSignature = '';
 }
 
-function resolveAccountOverviewIdentityPayload(homeNode = null) {
+function normalizeAccountOverviewScopeKey(scopeInput = 'identity') {
+  return normalizeCredentialValue(scopeInput) === 'system' ? 'system' : 'identity';
+}
+
+function isAccountOverviewSystemTotalsNodeSelection(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return true;
+  }
+  const nodeIdKey = normalizeCredentialValue(safeText(node.id));
+  const usernameKey = normalizeCredentialValue(
+    safeText(node.username || node.memberCode || ''),
+  );
+  return (
+    !nodeIdKey
+    || nodeIdKey === 'root'
+    || nodeIdKey === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+    || nodeIdKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    || usernameKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+  );
+}
+
+function resolveAccountOverviewPanelContext() {
+  const preferredHomeNodeId = resolvePreferredGlobalHomeNodeId();
+  const preferredHomeNode = resolveNodeById(preferredHomeNodeId) || resolveNodeById('root') || null;
+  if (state.source !== 'admin') {
+    return {
+      homeNode: preferredHomeNode,
+      selectedNode: null,
+      systemTotals: false,
+      scope: 'identity',
+      preferHomeNodeIdentity: false,
+    };
+  }
+
+  const selectedNodeId = safeText(state.selectedId);
+  const selectedNode = resolveNodeById(selectedNodeId);
+  if (isAccountOverviewSystemTotalsNodeSelection(selectedNode)) {
+    return {
+      homeNode: preferredHomeNode,
+      selectedNode,
+      systemTotals: true,
+      scope: 'system',
+      preferHomeNodeIdentity: false,
+    };
+  }
+
+  return {
+    homeNode: selectedNode,
+    selectedNode,
+    systemTotals: false,
+    scope: 'identity',
+    preferHomeNodeIdentity: true,
+  };
+}
+
+function resolveAccountOverviewIdentityPayload(homeNode = null, options = {}) {
   const session = state.session && typeof state.session === 'object' ? state.session : null;
-  const userId = safeText(
-    session?.id
-    || session?.userId
-    || session?.user_id
-    || session?.memberId
-    || session?.member_id
-    || homeNode?.id
-    || '',
-  );
-  const username = safeText(
-    session?.username
-    || session?.memberUsername
-    || session?.member_username
-    || session?.userName
-    || session?.user_name
-    || homeNode?.username
-    || homeNode?.memberCode
-    || '',
-  ).replace(/^@+/, '');
-  const email = safeText(
-    session?.email
-    || session?.userEmail
-    || session?.user_email
-    || session?.login
-    || '',
-  );
+  const {
+    preferHomeNode = false,
+    allowAnonymous = false,
+  } = options;
+  if (allowAnonymous) {
+    return {
+      userId: '',
+      username: '',
+      email: '',
+    };
+  }
+
+  const orderedUserIdCandidates = preferHomeNode
+    ? [
+      homeNode?.userId,
+      homeNode?.memberUserId,
+      homeNode?.sourceUserId,
+      homeNode?.id,
+      session?.id,
+      session?.userId,
+      session?.user_id,
+      session?.memberId,
+      session?.member_id,
+    ]
+    : [
+      session?.id,
+      session?.userId,
+      session?.user_id,
+      session?.memberId,
+      session?.member_id,
+      homeNode?.userId,
+      homeNode?.memberUserId,
+      homeNode?.sourceUserId,
+      homeNode?.id,
+    ];
+  const orderedUsernameCandidates = preferHomeNode
+    ? [
+      homeNode?.username,
+      homeNode?.memberUsername,
+      homeNode?.member_username,
+      homeNode?.memberCode,
+      session?.username,
+      session?.memberUsername,
+      session?.member_username,
+      session?.userName,
+      session?.user_name,
+    ]
+    : [
+      session?.username,
+      session?.memberUsername,
+      session?.member_username,
+      session?.userName,
+      session?.user_name,
+      homeNode?.username,
+      homeNode?.memberUsername,
+      homeNode?.member_username,
+      homeNode?.memberCode,
+    ];
+  const orderedEmailCandidates = preferHomeNode
+    ? [
+      homeNode?.email,
+      homeNode?.memberEmail,
+      homeNode?.member_email,
+      session?.email,
+      session?.userEmail,
+      session?.user_email,
+      session?.login,
+    ]
+    : [
+      session?.email,
+      session?.userEmail,
+      session?.user_email,
+      session?.login,
+      homeNode?.email,
+      homeNode?.memberEmail,
+      homeNode?.member_email,
+    ];
+
+  let userId = '';
+  for (const candidate of orderedUserIdCandidates) {
+    userId = safeText(candidate);
+    if (userId) {
+      break;
+    }
+  }
+
+  let username = '';
+  for (const candidate of orderedUsernameCandidates) {
+    username = safeText(candidate).replace(/^@+/, '');
+    if (username) {
+      break;
+    }
+  }
+
+  let email = '';
+  for (const candidate of orderedEmailCandidates) {
+    email = safeText(candidate);
+    if (email) {
+      break;
+    }
+  }
+
   return {
     userId,
     username,
@@ -3307,12 +3802,100 @@ function resolveAccountOverviewSeedWalletBalance(homeNode = null) {
   return 0;
 }
 
+function resolveAccountOverviewBinaryTreeMetricsRecord(payload = null) {
+  if (payload?.snapshot && typeof payload.snapshot === 'object') {
+    return payload.snapshot;
+  }
+  const list = Array.isArray(payload?.snapshots) ? payload.snapshots : [];
+  return list.find((entry) => entry && typeof entry === 'object') || null;
+}
+
+function summarizeAccountOverviewBinaryTreeMetrics(payload = null) {
+  const list = Array.isArray(payload?.snapshots) ? payload.snapshots : [];
+  if (!list.length) {
+    return null;
+  }
+
+  const summary = {
+    id: 'system-binary-tree-summary',
+    totalAccumulatedBv: 0,
+    accountPersonalPv: 0,
+    totalCycles: 0,
+    leftLegBv: 0,
+    rightLegBv: 0,
+    accountRank: ADMIN_ROOT_DISPLAY_NAME,
+    updatedAt: '',
+  };
+
+  for (const entry of list) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+    summary.totalAccumulatedBv += Math.max(0, safeNumber(entry.totalAccumulatedBv, 0));
+    summary.accountPersonalPv += Math.max(0, safeNumber(entry.accountPersonalPv, 0));
+    summary.totalCycles += Math.max(0, safeNumber(entry.totalCycles, 0));
+    summary.leftLegBv += Math.max(0, safeNumber(entry.leftLegBv, 0));
+    summary.rightLegBv += Math.max(0, safeNumber(entry.rightLegBv, 0));
+  }
+
+  summary.totalAccumulatedBv = Math.floor(summary.totalAccumulatedBv);
+  summary.accountPersonalPv = Math.floor(summary.accountPersonalPv);
+  summary.totalCycles = Math.floor(summary.totalCycles);
+  summary.leftLegBv = Math.floor(summary.leftLegBv);
+  summary.rightLegBv = Math.floor(summary.rightLegBv);
+  return summary;
+}
+
 function resolveAccountOverviewSalesTeamCommissionRecord(payload = null) {
   if (payload?.commission && typeof payload.commission === 'object') {
     return payload.commission;
   }
   const list = Array.isArray(payload?.commissions) ? payload.commissions : [];
   return list.find((entry) => entry && typeof entry === 'object') || null;
+}
+
+function summarizeAccountOverviewSalesTeamCommissions(payload = null) {
+  const list = Array.isArray(payload?.commissions) ? payload.commissions : [];
+  if (!list.length) {
+    return null;
+  }
+
+  const summary = {
+    id: 'system-sales-team-summary',
+    accountPackageKey: ENROLL_DEFAULT_PACKAGE_KEY,
+    cycleMultiplier: 0,
+    perCycleAmount: 0,
+    weeklyCapCycles: 0,
+    totalCycles: 0,
+    cappedCycles: 0,
+    overflowCycles: 0,
+    grossCommissionAmount: 0,
+    payoutOffsetAmount: 0,
+    netCommissionAmount: 0,
+    currencyCode: 'USD',
+  };
+
+  for (const entry of list) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+    summary.weeklyCapCycles += Math.max(0, safeNumber(entry.weeklyCapCycles, 0));
+    summary.totalCycles += Math.max(0, safeNumber(entry.totalCycles, 0));
+    summary.cappedCycles += Math.max(0, safeNumber(entry.cappedCycles, 0));
+    summary.overflowCycles += Math.max(0, safeNumber(entry.overflowCycles, 0));
+    summary.grossCommissionAmount += Math.max(0, safeNumber(entry.grossCommissionAmount, 0));
+    summary.payoutOffsetAmount += Math.max(0, safeNumber(entry.payoutOffsetAmount, 0));
+    summary.netCommissionAmount += Math.max(0, safeNumber(entry.netCommissionAmount, 0));
+  }
+
+  summary.weeklyCapCycles = Math.floor(summary.weeklyCapCycles);
+  summary.totalCycles = Math.floor(summary.totalCycles);
+  summary.cappedCycles = Math.floor(summary.cappedCycles);
+  summary.overflowCycles = Math.floor(summary.overflowCycles);
+  summary.grossCommissionAmount = Math.round(summary.grossCommissionAmount * 100) / 100;
+  summary.payoutOffsetAmount = Math.round(summary.payoutOffsetAmount * 100) / 100;
+  summary.netCommissionAmount = Math.round(summary.netCommissionAmount * 100) / 100;
+  return summary;
 }
 
 function resolveAccountOverviewRemoteSyncIntervalMs(options = {}) {
@@ -3334,20 +3917,27 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
   const {
     force = false,
     homeNode = null,
+    scope = 'identity',
+    preferHomeNodeIdentity = false,
   } = options;
 
   if (accountOverviewRemoteSyncInFlight && accountOverviewRemoteSyncPromise) {
     return accountOverviewRemoteSyncPromise;
   }
 
-  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode);
-  const identityKey = resolveAccountOverviewIdentityKey(identityPayload);
+  const normalizedScope = normalizeAccountOverviewScopeKey(scope);
+  const allowAnonymous = normalizedScope === 'system';
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode, {
+    preferHomeNode: preferHomeNodeIdentity,
+    allowAnonymous,
+  });
+  const identityKey = `${normalizedScope}::${resolveAccountOverviewIdentityKey(identityPayload)}`;
   const hasIdentity = Boolean(
     safeText(identityPayload.userId)
     || safeText(identityPayload.username)
     || safeText(identityPayload.email),
   );
-  if (!hasIdentity) {
+  if (!allowAnonymous && !hasIdentity) {
     resetAccountOverviewRemoteSnapshot();
     return accountOverviewRemoteSnapshot;
   }
@@ -3374,12 +3964,14 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
   const requestSequence = accountOverviewRemoteRequestSequence;
   accountOverviewRemoteSyncPromise = (async () => {
     const identityQuery = new URLSearchParams();
-    appendAccountOverviewIdentityQuery(identityQuery, identityPayload);
+    if (hasIdentity) {
+      appendAccountOverviewIdentityQuery(identityQuery, identityPayload);
+    }
 
     const walletQuery = new URLSearchParams(identityQuery.toString());
     walletQuery.set('limit', '25');
     const seedBalance = resolveAccountOverviewSeedWalletBalance(homeNode);
-    if (seedBalance > 0) {
+    if (!allowAnonymous && seedBalance > 0) {
       walletQuery.set('seedBalance', seedBalance.toFixed(2));
     }
 
@@ -3391,17 +3983,26 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
     ] = await Promise.all([
       fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_BINARY_TREE_METRICS_API, identityQuery),
       fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API, identityQuery),
-      fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API, identityQuery),
-      fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_E_WALLET_API, walletQuery),
+      allowAnonymous
+        ? Promise.resolve(null)
+        : fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API, identityQuery),
+      allowAnonymous
+        ? Promise.resolve(null)
+        : fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_E_WALLET_API, walletQuery),
     ]);
 
-    const binaryTreeMetrics = (
-      binaryTreeMetricsPayload?.snapshot
-      && typeof binaryTreeMetricsPayload.snapshot === 'object'
-    )
-      ? binaryTreeMetricsPayload.snapshot
-      : null;
-    const salesTeamCommission = resolveAccountOverviewSalesTeamCommissionRecord(salesTeamCommissionsPayload);
+    const binaryTreeMetrics = normalizedScope === 'system'
+      ? (
+        summarizeAccountOverviewBinaryTreeMetrics(binaryTreeMetricsPayload)
+        || resolveAccountOverviewBinaryTreeMetricsRecord(binaryTreeMetricsPayload)
+      )
+      : resolveAccountOverviewBinaryTreeMetricsRecord(binaryTreeMetricsPayload);
+    const salesTeamCommission = normalizedScope === 'system'
+      ? (
+        summarizeAccountOverviewSalesTeamCommissions(salesTeamCommissionsPayload)
+        || resolveAccountOverviewSalesTeamCommissionRecord(salesTeamCommissionsPayload)
+      )
+      : resolveAccountOverviewSalesTeamCommissionRecord(salesTeamCommissionsPayload);
     const commissionContainerSnapshot = (
       commissionContainersPayload?.snapshot
       && typeof commissionContainersPayload.snapshot === 'object'
@@ -3421,7 +4022,9 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
       ? eWalletPayload.commissionOffsets
       : null;
 
-    const retailProfitBalance = resolveAccountOverviewRetailProfitFallback(homeNode);
+    const retailProfitBalance = normalizedScope === 'system'
+      ? 0
+      : resolveAccountOverviewRetailProfitFallback(homeNode);
     if (requestSequence !== accountOverviewRemoteRequestSequence) {
       return accountOverviewRemoteSnapshot;
     }
@@ -3432,12 +4035,20 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
       eWalletSnapshot,
       walletCommissionOffsets,
       retailProfitBalance,
+      scope: normalizedScope,
+      identity: identityPayload,
       updatedAtMs: Date.now(),
     };
 
     accountOverviewRemoteSnapshot = nextSnapshot;
     accountOverviewRemoteDataVersion += 1;
-    if (binaryTreeMetrics || salesTeamCommission || commissionContainerSnapshot || eWalletSnapshot) {
+    if (
+      binaryTreeMetrics
+      || salesTeamCommission
+      || commissionContainerSnapshot
+      || eWalletSnapshot
+      || normalizedScope === 'system'
+    ) {
       accountOverviewRemoteLastSyncedAtMs = nextSnapshot.updatedAtMs;
     }
     accountOverviewLastRenderSignature = '';
@@ -3454,20 +4065,26 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
   }
 }
 
-function maybeRefreshAccountOverviewRemoteSnapshot(homeNode = null) {
+function maybeRefreshAccountOverviewRemoteSnapshot(homeNode = null, options = {}) {
   if (!isAccountOverviewPanelAvailable()) {
     return;
   }
-  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode);
+  const normalizedScope = normalizeAccountOverviewScopeKey(options?.scope || 'identity');
+  const allowAnonymous = normalizedScope === 'system';
+  const preferHomeNodeIdentity = options?.preferHomeNodeIdentity === true;
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode, {
+    preferHomeNode: preferHomeNodeIdentity,
+    allowAnonymous,
+  });
   const hasIdentity = Boolean(
     safeText(identityPayload.userId)
     || safeText(identityPayload.username)
     || safeText(identityPayload.email),
   );
-  if (!hasIdentity) {
+  if (!allowAnonymous && !hasIdentity) {
     return;
   }
-  const identityKey = resolveAccountOverviewIdentityKey(identityPayload);
+  const identityKey = `${normalizedScope}::${resolveAccountOverviewIdentityKey(identityPayload)}`;
   const identityChanged = identityKey !== accountOverviewRemoteIdentityKey;
   const referenceMs = accountOverviewRemoteLastSyncedAtMs || accountOverviewRemoteLastRequestAtMs;
   const refreshIntervalMs = accountOverviewRemoteLastSyncedAtMs > 0
@@ -3481,6 +4098,8 @@ function maybeRefreshAccountOverviewRemoteSnapshot(homeNode = null) {
     void refreshAccountOverviewRemoteSnapshot({
       force: identityChanged,
       homeNode,
+      scope: normalizedScope,
+      preferHomeNodeIdentity,
     });
   }
 }
@@ -3525,25 +4144,43 @@ function formatAccountOverviewJoinedDate(joinedAtMs) {
   }
 }
 
-function resolveAccountOverviewDirectSponsorCount(homeNode = null) {
+function resolveAccountOverviewDirectSponsorCount(homeNode = null, options = {}) {
   const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
   if (!safeNodes.length) {
     return 0;
   }
 
+  if (options?.systemTotals === true) {
+    return safeNodes.reduce((count, node) => {
+      const nodeId = normalizeCredentialValue(safeText(node?.id));
+      if (
+        !nodeId
+        || nodeId === 'root'
+        || nodeId === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+        || nodeId === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+      ) {
+        return count;
+      }
+      return count + 1;
+    }, 0);
+  }
+
   const homeNodeId = normalizeCredentialValue(
     safeText(homeNode?.id || resolvePreferredGlobalHomeNodeId()),
+  );
+  const homeUsernameKey = normalizeCredentialValue(
+    safeText(homeNode?.username || homeNode?.memberCode || ''),
   );
   let totalDirectSponsors = 0;
 
   for (const node of safeNodes) {
     const nodeId = normalizeCredentialValue(safeText(node?.id));
-    if (!nodeId || nodeId === 'root' || (homeNodeId && nodeId === homeNodeId)) {
-      continue;
-    }
-
-    if (isNodePersonallyEnrolledBySession(node)) {
-      totalDirectSponsors += 1;
+    if (
+      !nodeId
+      || nodeId === 'root'
+      || nodeId === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+      || (homeNodeId && nodeId === homeNodeId)
+    ) {
       continue;
     }
 
@@ -3551,6 +4188,14 @@ function resolveAccountOverviewDirectSponsorCount(homeNode = null) {
       safeText(node?.sponsorId || node?.globalSponsorId || node?.sourceSponsorId || ''),
     );
     if (homeNodeId && sponsorNodeId && sponsorNodeId === homeNodeId) {
+      totalDirectSponsors += 1;
+      continue;
+    }
+
+    const sponsorUsernameKey = normalizeCredentialValue(
+      safeText(node?.sponsorUsername || node?.sponsor_username || '').replace(/^@+/, ''),
+    );
+    if (homeUsernameKey && sponsorUsernameKey && sponsorUsernameKey === homeUsernameKey) {
       totalDirectSponsors += 1;
     }
   }
@@ -3775,7 +4420,54 @@ function resolveAccountOverviewCycleCapMetrics(homeNode = null) {
   };
 }
 
-function resolveAccountOverviewEWalletBalance(homeNode = null) {
+function resolveAccountOverviewSystemSalesRevenueTotal() {
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  let totalRevenue = 0;
+  for (const node of safeNodes) {
+    const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+    if (
+      !nodeIdKey
+      || nodeIdKey === 'root'
+      || nodeIdKey === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+      || nodeIdKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    ) {
+      continue;
+    }
+    const packagePrice = safeNumber(node?.packagePrice, Number.NaN);
+    const fallbackBv = safeNumber(node?.packageBv, 0);
+    const amount = Number.isFinite(packagePrice) && packagePrice > 0
+      ? packagePrice
+      : Math.max(0, fallbackBv);
+    totalRevenue += amount;
+  }
+  return Math.max(0, Math.round(totalRevenue * 100) / 100);
+}
+
+function resolveAccountOverviewSystemFastTrackGeneratedTotal() {
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  let totalFastTrack = 0;
+  for (const node of safeNodes) {
+    const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+    if (
+      !nodeIdKey
+      || nodeIdKey === 'root'
+      || nodeIdKey === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+      || nodeIdKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    ) {
+      continue;
+    }
+    totalFastTrack += Math.max(0, safeNumber(
+      node?.fastTrackBonusAmount ?? node?.fast_track_bonus_amount,
+      0,
+    ));
+  }
+  return Math.max(0, Math.round(totalFastTrack * 100) / 100);
+}
+
+function resolveAccountOverviewEWalletBalance(homeNode = null, options = {}) {
+  if (options?.systemTotals === true) {
+    return resolveAccountOverviewSystemSalesRevenueTotal();
+  }
   const remoteWallet = accountOverviewRemoteSnapshot?.eWalletSnapshot;
   const remoteBalance = safeNumber(remoteWallet?.balance, Number.NaN);
   if (Number.isFinite(remoteBalance)) {
@@ -3794,7 +4486,7 @@ function resolveAccountOverviewCommissionValue(...candidates) {
   return 0;
 }
 
-function resolveAccountOverviewCommissionBalances(homeNode = null) {
+function resolveAccountOverviewCommissionBalances(homeNode = null, options = {}) {
   const session = state.session && typeof state.session === 'object' ? state.session : null;
   const commissionContainerBalances = (
     accountOverviewRemoteSnapshot?.commissionContainerSnapshot?.balances
@@ -3817,6 +4509,36 @@ function resolveAccountOverviewCommissionBalances(homeNode = null) {
   )
     ? accountOverviewRemoteSnapshot.walletCommissionOffsets
     : {};
+  if (options?.systemTotals === true) {
+    const generatedFastTrack = resolveAccountOverviewSystemFastTrackGeneratedTotal();
+    return {
+      retailProfit: resolveAccountOverviewCommissionValue(
+        walletCommissionOffsets.retailprofit,
+        walletCommissionOffsets.retail,
+        accountOverviewRemoteSnapshot?.retailProfitBalance,
+      ),
+      fastTrack: resolveAccountOverviewCommissionValue(
+        commissionContainerBalances.fasttrack,
+        commissionContainerBalances.fastTrack,
+        generatedFastTrack,
+      ),
+      salesTeam: resolveAccountOverviewCommissionValue(
+        commissionContainerBalances.salesteam,
+        commissionContainerBalances.salesTeam,
+        salesTeamCommission?.netCommissionAmount,
+        salesTeamCommission?.grossCommissionAmount,
+        fallbackSalesTeamGross,
+      ),
+      infinityBuilder: resolveAccountOverviewCommissionValue(
+        commissionContainerBalances.infinitybuilder,
+        commissionContainerBalances.infinityBuilder,
+      ),
+      legacyBuilder: resolveAccountOverviewCommissionValue(
+        commissionContainerBalances.legacyleadership,
+        commissionContainerBalances.legacyLeadership,
+      ),
+    };
+  }
   return {
     retailProfit: resolveAccountOverviewCommissionValue(
       walletCommissionOffsets.retailprofit,
@@ -3973,31 +4695,45 @@ function syncAccountOverviewPanelVisuals() {
   }
 
   const session = state.session && typeof state.session === 'object' ? state.session : null;
-  const homeNodeId = resolvePreferredGlobalHomeNodeId();
-  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
-  maybeRefreshAccountOverviewRemoteSnapshot(homeNode);
-  const displayName = resolveSessionDisplayName();
-  const email = resolveSessionDisplayEmail();
-  const username = safeText(homeNode?.username || session?.username || session?.login || '');
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  const systemTotalsMode = overviewContext?.systemTotals === true;
+  maybeRefreshAccountOverviewRemoteSnapshot(homeNode, {
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
+  const displayName = systemTotalsMode
+    ? ADMIN_ROOT_DISPLAY_NAME
+    : (safeText(homeNode?.name || resolveSessionDisplayName()) || resolveSessionDisplayName());
+  const email = systemTotalsMode
+    ? ''
+    : safeText(homeNode?.email || resolveSessionDisplayEmail());
+  const username = systemTotalsMode
+    ? ADMIN_ROOT_USERNAME
+    : safeText(homeNode?.username || homeNode?.memberCode || session?.username || session?.login || '');
   const handleSeed = username.replace(/^@+/, '') || safeText(email.split('@')[0]);
   const handleText = handleSeed ? `@${handleSeed}` : '@member';
-  const rankLabel = safeText(
-    homeNode?.rank
-    || homeNode?.accountRank
-    || homeNode?.account_rank
-    || session?.accountRank
-    || session?.account_rank
-    || session?.rank
-    || accountOverviewRankLabelElement?.textContent
-    || 'Legacy',
-  );
+  const rankLabel = systemTotalsMode
+    ? ADMIN_ROOT_DISPLAY_NAME
+    : safeText(
+      homeNode?.rank
+      || homeNode?.accountRank
+      || homeNode?.account_rank
+      || session?.accountRank
+      || session?.account_rank
+      || session?.rank
+      || accountOverviewRankLabelElement?.textContent
+      || 'Legacy',
+    );
   const fallbackTitleLabel = safeText(accountOverviewTitleLabelElement?.textContent) || rankLabel || 'Member Title';
   const sessionTitleLabel = resolveNodePrimaryTitleLabel(session, fallbackTitleLabel);
   const sessionTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sessionTitleLabel, rankLabel);
   const homeTitleLabel = resolveNodePrimaryTitleLabel(homeNode);
   const homeTitleIsFallback = isTreeNextRankBuilderFallbackTitle(homeTitleLabel, rankLabel);
-  let titleLabel = fallbackTitleLabel;
-  if (state.source === 'member') {
+  let titleLabel = systemTotalsMode ? 'System Overview' : fallbackTitleLabel;
+  if (systemTotalsMode) {
+    titleLabel = 'System Overview';
+  } else if (state.source === 'member') {
     if (sessionTitleLabel && !sessionTitleIsFallback) {
       titleLabel = sessionTitleLabel;
     } else if (homeTitleLabel && !homeTitleIsFallback) {
@@ -4010,7 +4746,9 @@ function syncAccountOverviewPanelVisuals() {
   } else {
     titleLabel = sessionTitleLabel || homeTitleLabel || fallbackTitleLabel;
   }
-  const joinedText = formatAccountOverviewJoinedDate(resolveAccountOverviewJoinedAtMs(homeNode));
+  const joinedText = systemTotalsMode
+    ? 'Live system totals'
+    : formatAccountOverviewJoinedDate(resolveAccountOverviewJoinedAtMs(homeNode));
   const iconSourceNode = {
     ...(homeNode && typeof homeNode === 'object' ? homeNode : {}),
     ...(session && typeof session === 'object' ? session : {}),
@@ -4021,17 +4759,64 @@ function syncAccountOverviewPanelVisuals() {
     profileAccountTitle: titleLabel,
   };
   const [rankIconPath, titleIconPath] = resolveNodeDetailRankAndTitleIcons(iconSourceNode);
-  const avatarSignature = resolveSessionAvatarSignature();
-  const activeState = homeNode ? resolveNodeActivityState(homeNode) : true;
-  const activeUntilLabel = resolveAccountOverviewActivityUntilLabel(homeNode);
+  const avatarSignature = [
+    systemTotalsMode ? 'system' : 'member',
+    safeText(homeNode?.id),
+    safeText(homeNode?.username),
+    safeText(homeNode?.avatarUrl || homeNode?.avatar_url),
+    resolveSessionAvatarSignature(),
+  ].join('|');
+  const activeState = systemTotalsMode
+    ? true
+    : (homeNode ? resolveNodeActivityState(homeNode) : true);
+  const activeUntilLabel = systemTotalsMode
+    ? 'Exempt'
+    : resolveAccountOverviewActivityUntilLabel(homeNode);
   const totalOrganizationBv = resolveAccountOverviewTotalOrganizationBv(homeNode);
   const personalBv = resolveAccountOverviewPersonalBv(homeNode);
   const cycleCapMetrics = resolveAccountOverviewCycleCapMetrics(homeNode);
-  const directSponsorCount = resolveAccountOverviewDirectSponsorCount(homeNode);
-  const eWalletBalance = resolveAccountOverviewEWalletBalance(homeNode);
-  const commissionBalances = resolveAccountOverviewCommissionBalances(homeNode);
-  const cycleCapText = `${formatInteger(cycleCapMetrics.cappedCycles, 0)} / ${formatInteger(cycleCapMetrics.weeklyCapCycles, 0)}`;
+  const directSponsorCount = resolveAccountOverviewDirectSponsorCount(homeNode, {
+    systemTotals: systemTotalsMode,
+  });
+  const eWalletBalance = resolveAccountOverviewEWalletBalance(homeNode, {
+    systemTotals: systemTotalsMode,
+  });
+  const commissionBalances = resolveAccountOverviewCommissionBalances(homeNode, {
+    systemTotals: systemTotalsMode,
+  });
+  const totalCommissionGenerated = Math.max(0, (
+    safeNumber(commissionBalances.retailProfit, 0)
+    + safeNumber(commissionBalances.fastTrack, 0)
+    + safeNumber(commissionBalances.salesTeam, 0)
+    + safeNumber(commissionBalances.infinityBuilder, 0)
+    + safeNumber(commissionBalances.legacyBuilder, 0)
+  ));
+  const cycleCapText = systemTotalsMode
+    ? formatEnrollCurrency(resolveAccountOverviewSystemSalesRevenueTotal())
+    : `${formatInteger(cycleCapMetrics.cappedCycles, 0)} / ${formatInteger(cycleCapMetrics.weeklyCapCycles, 0)}`;
+  const cycleLabelText = systemTotalsMode
+    ? 'Total Generated Revenue'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.cycle;
+  const activeWindowLabelText = systemTotalsMode
+    ? 'Administrator Mode'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.activeWindow;
+  const totalBvLabelText = systemTotalsMode
+    ? 'Total Organization BV'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.totalBv;
+  const personalBvLabelText = systemTotalsMode
+    ? 'Total Personal BV'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.personalBv;
+  const directSponsorsLabelText = systemTotalsMode
+    ? 'Total Members'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.directSponsors;
+  const eWalletLabelText = systemTotalsMode
+    ? 'Total Commission Generated'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.eWallet;
+  const ewalletDisplayValue = systemTotalsMode
+    ? formatEnrollCurrency(totalCommissionGenerated)
+    : formatEnrollCurrency(eWalletBalance);
   const renderSignature = [
+    systemTotalsMode ? 'system' : 'member',
     displayName,
     handleText,
     rankLabel,
@@ -4045,8 +4830,14 @@ function syncAccountOverviewPanelVisuals() {
     String(totalOrganizationBv),
     String(personalBv),
     cycleCapText,
+    cycleLabelText,
+    activeWindowLabelText,
+    totalBvLabelText,
+    personalBvLabelText,
+    directSponsorsLabelText,
+    eWalletLabelText,
     String(directSponsorCount),
-    formatEnrollCurrency(eWalletBalance),
+    ewalletDisplayValue,
     formatEnrollCurrency(commissionBalances.retailProfit),
     formatEnrollCurrency(commissionBalances.fastTrack),
     formatEnrollCurrency(commissionBalances.salesTeam),
@@ -4065,12 +4856,17 @@ function syncAccountOverviewPanelVisuals() {
   setAccountOverviewText(accountOverviewRankLabelElement, rankLabel);
   setAccountOverviewText(accountOverviewTitleLabelElement, titleLabel);
   setAccountOverviewText(accountOverviewActiveWindowValueElement, activeUntilLabel);
+  setAccountOverviewText(accountOverviewActiveWindowLabelElement, activeWindowLabelText);
   setAccountOverviewText(accountOverviewTotalBvValueElement, formatVolumeValue(totalOrganizationBv));
+  setAccountOverviewText(accountOverviewTotalBvLabelElement, totalBvLabelText);
   setAccountOverviewText(accountOverviewPersonalBvValueElement, formatVolumeValue(personalBv));
+  setAccountOverviewText(accountOverviewPersonalBvLabelElement, personalBvLabelText);
   setAccountOverviewText(accountOverviewCycleValueElement, cycleCapText);
-  setAccountOverviewText(accountOverviewCycleLabelElement, 'Weekly Cycle Cap');
+  setAccountOverviewText(accountOverviewCycleLabelElement, cycleLabelText);
   setAccountOverviewText(accountOverviewDirectSponsorsValueElement, formatInteger(directSponsorCount, 0));
-  setAccountOverviewText(accountOverviewEwalletValueElement, formatEnrollCurrency(eWalletBalance));
+  setAccountOverviewText(accountOverviewDirectSponsorsLabelElement, directSponsorsLabelText);
+  setAccountOverviewText(accountOverviewEwalletValueElement, ewalletDisplayValue);
+  setAccountOverviewText(accountOverviewEwalletLabelElement, eWalletLabelText);
   setAccountOverviewText(accountOverviewSalesTeamValueElement, formatEnrollCurrency(commissionBalances.salesTeam));
   setAccountOverviewText(accountOverviewRetailProfitValueElement, formatEnrollCurrency(commissionBalances.retailProfit));
   setAccountOverviewText(accountOverviewFastTrackValueElement, formatEnrollCurrency(commissionBalances.fastTrack));
@@ -4085,14 +4881,19 @@ function syncAccountOverviewPanelVisuals() {
     accountOverviewTitleIconElement.src = titleIconPath;
   }
 
+  const nodePhotoUrl = resolveNodeAvatarPhotoUrl(homeNode);
+  const nodeAvatarPalette = resolveAvatarPaletteFromRecord(homeNode) || resolveSessionAvatarPalette();
   const sessionAvatarBackground = resolveSessionAvatarCssBackground();
   if (accountOverviewAvatarElement instanceof HTMLElement) {
-    if (sessionAvatarBackground.isPhoto) {
+    if (!systemTotalsMode && nodePhotoUrl) {
+      accountOverviewAvatarElement.style.backgroundImage = `url("${nodePhotoUrl}")`;
+      accountOverviewAvatarElement.dataset.avatarPhoto = 'true';
+    } else if (!systemTotalsMode && sessionAvatarBackground.isPhoto) {
       accountOverviewAvatarElement.style.backgroundImage = sessionAvatarBackground.image;
       accountOverviewAvatarElement.dataset.avatarPhoto = 'true';
     } else {
       accountOverviewAvatarElement.style.backgroundImage = resolveAccountOverviewGradientBackground(
-        resolveSessionAvatarPalette(),
+        nodeAvatarPalette,
         { sheenAlpha: 0.26 },
       );
       accountOverviewAvatarElement.dataset.avatarPhoto = 'false';
@@ -4133,11 +4934,20 @@ function syncAccountOverviewPanelVisibility() {
 
 function setAccountOverviewPanelVisible(isVisible) {
   state.ui.accountOverviewVisible = Boolean(isVisible);
+  if (state.ui.accountOverviewVisible) {
+    state.ui.myStoreVisible = false;
+    syncMyStorePanelVisibility();
+  }
   syncAccountOverviewPanelVisibility();
   if (state.ui.accountOverviewVisible) {
-    const homeNodeId = resolvePreferredGlobalHomeNodeId();
-    const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
-    void refreshAccountOverviewRemoteSnapshot({ force: true, homeNode });
+    const overviewContext = resolveAccountOverviewPanelContext();
+    const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+    void refreshAccountOverviewRemoteSnapshot({
+      force: true,
+      homeNode,
+      scope: overviewContext?.scope,
+      preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+    });
   }
 }
 
@@ -4149,13 +4959,1541 @@ function initAccountOverviewPanel() {
   syncAccountOverviewPanelPosition();
   syncAccountOverviewPanelVisuals();
   syncAccountOverviewPanelVisibility();
-  void refreshAccountOverviewRemoteSnapshot({ force: true });
+  const overviewContext = resolveAccountOverviewPanelContext();
+  void refreshAccountOverviewRemoteSnapshot({
+    force: true,
+    homeNode: overviewContext?.homeNode || null,
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
 
   if (accountOverviewRefreshButtonElement instanceof HTMLElement) {
     accountOverviewRefreshButtonElement.addEventListener('click', () => {
       setAccountOverviewPanelVisible(false);
     });
   }
+}
+
+function isMyStorePanelAvailable() {
+  return myStorePanelElement instanceof HTMLElement;
+}
+
+function resolveMyStorePackageKeyFromValue(value) {
+  const normalizedValue = normalizeCredentialValue(value);
+  if (!normalizedValue) {
+    return '';
+  }
+  if (MY_STORE_PACKAGE_DISPLAY_META[normalizedValue]) {
+    return normalizedValue;
+  }
+  if (normalizedValue.includes('preferred') || normalizedValue.includes('free')) {
+    return 'preferred-customer-pack';
+  }
+  if (normalizedValue.includes('legacy')) {
+    return 'legacy-builder-pack';
+  }
+  if (normalizedValue.includes('infinity') || normalizedValue.includes('achiever')) {
+    return 'infinity-builder-pack';
+  }
+  if (normalizedValue.includes('business')) {
+    return 'business-builder-pack';
+  }
+  if (normalizedValue.includes('personal')) {
+    return 'personal-builder-pack';
+  }
+  return '';
+}
+
+function resolveMyStoreCurrentPackageKey(homeNode = null) {
+  const safeHomeNode = homeNode && typeof homeNode === 'object' ? homeNode : null;
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    safeHomeNode?.enrollmentPackage,
+    safeHomeNode?.enrollment_package,
+    safeHomeNode?.accountPackage,
+    safeHomeNode?.account_package,
+    session?.enrollmentPackage,
+    session?.enrollment_package,
+    session?.accountPackage,
+    session?.account_package,
+    session?.package,
+    session?.subscriptionPackage,
+    session?.subscription_package,
+    safeHomeNode?.rank,
+    session?.rank,
+  ];
+  for (const candidate of candidates) {
+    const packageKey = resolveMyStorePackageKeyFromValue(candidate);
+    if (packageKey) {
+      return packageKey;
+    }
+  }
+  return 'preferred-customer-pack';
+}
+
+function resolveMyStoreUpgradePackageKeys(packageKey) {
+  const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
+  const upgradeKeys = MY_STORE_UPGRADE_PACKAGE_KEYS_BY_PACKAGE[normalizedPackageKey];
+  return Array.isArray(upgradeKeys) ? [...upgradeKeys] : [];
+}
+
+function resolveMyStoreUpgradePackageLabel(packageKey) {
+  const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
+  const explicitLabel = safeText(MY_STORE_PACKAGE_DISPLAY_META[normalizedPackageKey]?.label);
+  if (explicitLabel) {
+    return explicitLabel;
+  }
+  const fallbackLabel = safeText(resolveEnrollPackageMeta(normalizedPackageKey)?.label);
+  return fallbackLabel || 'Package Upgrade';
+}
+
+function resolveMyStoreUpgradeProductMeta(productKey = '') {
+  const normalizedProductKey = normalizeCredentialValue(productKey);
+  if (normalizedProductKey && MY_STORE_UPGRADE_PRODUCT_META[normalizedProductKey]) {
+    return MY_STORE_UPGRADE_PRODUCT_META[normalizedProductKey];
+  }
+  return MY_STORE_UPGRADE_PRODUCT_META[MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY];
+}
+
+function resolveMyStorePackageSelectableProductCount(packageKey) {
+  const packageMeta = resolveEnrollPackageMeta(packageKey);
+  return Math.max(0, Math.floor(safeNumber(packageMeta?.selectableProducts, 0)));
+}
+
+function resolveMyStoreUpgradeDelta(currentPackageKey, targetPackageKey) {
+  const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey) || 'preferred-customer-pack';
+  const normalizedTargetPackage = resolveMyStorePackageKeyFromValue(targetPackageKey);
+  const currentPackageProducts = resolveMyStorePackageSelectableProductCount(normalizedCurrentPackage);
+  const targetPackageProducts = resolveMyStorePackageSelectableProductCount(normalizedTargetPackage);
+  const productGain = Math.max(0, targetPackageProducts - currentPackageProducts);
+  const unitProductPrice = Math.max(0, safeNumber(MY_STORE_FEATURED_PRODUCT.price, 0));
+  const unitProductBv = Math.max(0, Math.round(safeNumber(MY_STORE_UPGRADE_PRODUCT_UNIT_BV, 50)));
+  const priceDue = Math.round((productGain * unitProductPrice) * 100) / 100;
+  const bvGain = Math.max(0, Math.round(productGain * unitProductBv));
+  return {
+    currentPackageKey: normalizedCurrentPackage,
+    targetPackageKey: normalizedTargetPackage,
+    productGain,
+    priceDue,
+    bvGain,
+  };
+}
+
+function resolveMyStoreStoreCode(homeNode = null) {
+  const safeHomeNode = homeNode && typeof homeNode === 'object' ? homeNode : null;
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    session?.publicStoreCode,
+    session?.public_store_code,
+    session?.storeCode,
+    session?.store_code,
+    session?.memberStoreCode,
+    session?.member_store_code,
+    safeHomeNode?.publicStoreCode,
+    safeHomeNode?.public_store_code,
+    safeHomeNode?.storeCode,
+    safeHomeNode?.store_code,
+  ];
+  for (const candidate of candidates) {
+    const storeCode = safeText(candidate).replace(/\s+/g, '');
+    if (storeCode && storeCode.toLowerCase() !== 'none') {
+      return storeCode;
+    }
+  }
+  return '';
+}
+
+function resolveMyStoreShareLink(homeNode = null) {
+  const fallbackPath = '/store.html';
+  try {
+    const shareUrl = new URL(fallbackPath, window.location.origin);
+    const storeCode = resolveMyStoreStoreCode(homeNode);
+    if (storeCode) {
+      shareUrl.searchParams.set('store', storeCode);
+    }
+    return shareUrl.toString();
+  } catch {
+    return fallbackPath;
+  }
+}
+
+function resolveMyStoreStep(stepValue = '') {
+  const normalizedStep = normalizeCredentialValue(stepValue);
+  return MY_STORE_VALID_STEPS.has(normalizedStep) ? normalizedStep : MY_STORE_STEP_CATALOG;
+}
+
+function buildMyStoreSelection(action, packageKey = '', currentPackageKey = '') {
+  const normalizedAction = normalizeCredentialValue(action);
+  const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
+  const baseQuantity = Math.max(1, Math.round(safeNumber(MY_STORE_FEATURED_PRODUCT.quantity, 1)));
+  const baseSelection = {
+    action: 'featured',
+    productKey: safeText(MY_STORE_FEATURED_PRODUCT.productKey || 'metacharge') || 'metacharge',
+    packageKey: '',
+    label: safeText(MY_STORE_FEATURED_PRODUCT.label) || 'MetaCharge',
+    imageUrl: safeText(MY_STORE_FEATURED_PRODUCT.imageUrl),
+    unitPrice: Math.max(0, safeNumber(MY_STORE_FEATURED_PRODUCT.price, 0)),
+    unitBv: Math.max(0, Math.round(safeNumber(MY_STORE_FEATURED_PRODUCT.bv, 0))),
+    quantity: baseQuantity,
+    upgradeProductKey: '',
+    upgradeProductLabel: '',
+    upgradeProductImageUrl: '',
+    upgradeProductQuantity: 0,
+    upgradeProductUnitPrice: 0,
+    upgradeProductUnitBv: 0,
+  };
+  if (normalizedAction !== 'upgrade' || !normalizedPackageKey) {
+    return baseSelection;
+  }
+  const upgradeDelta = resolveMyStoreUpgradeDelta(currentPackageKey, normalizedPackageKey);
+  const upgradeProduct = resolveMyStoreUpgradeProductMeta(MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY);
+  const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(upgradeDelta.productGain, 0)));
+  const upgradeProductUnitPrice = Math.max(0, safeNumber(upgradeProduct.unitPrice, 0));
+  const upgradeProductUnitBv = Math.max(0, Math.round(safeNumber(upgradeProduct.unitBv, 0)));
+  const upgradeSubtotal = Math.round((upgradeProductQuantity * upgradeProductUnitPrice) * 100) / 100;
+  const upgradeTotalBv = Math.max(0, Math.round(upgradeProductQuantity * upgradeProductUnitBv));
+  return {
+    ...baseSelection,
+    action: 'upgrade',
+    productKey: upgradeProduct.productKey,
+    packageKey: normalizedPackageKey,
+    label: resolveMyStoreUpgradePackageLabel(normalizedPackageKey),
+    imageUrl: safeText(upgradeProduct.imageUrl) || baseSelection.imageUrl,
+    unitPrice: Math.max(0, safeNumber(upgradeSubtotal, 0)),
+    unitBv: Math.max(0, Math.round(safeNumber(upgradeTotalBv, 0))),
+    quantity: 1,
+    upgradeProductKey: upgradeProduct.productKey,
+    upgradeProductLabel: safeText(upgradeProduct.label) || 'Upgrade Product',
+    upgradeProductImageUrl: safeText(upgradeProduct.imageUrl),
+    upgradeProductQuantity,
+    upgradeProductUnitPrice,
+    upgradeProductUnitBv,
+  };
+}
+
+function resolveMyStoreSelection(currentPackageKey = '') {
+  const selectionInput = state.ui?.myStoreSelection;
+  const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey) || 'preferred-customer-pack';
+  if (!selectionInput || typeof selectionInput !== 'object') {
+    return buildMyStoreSelection('featured', '', normalizedCurrentPackage);
+  }
+  const normalizedAction = normalizeCredentialValue(selectionInput.action);
+  const normalizedPackageKey = resolveMyStorePackageKeyFromValue(selectionInput.packageKey);
+  const isUpgrade = normalizedAction === 'upgrade' && Boolean(normalizedPackageKey);
+  const fallbackSelection = isUpgrade
+    ? buildMyStoreSelection('upgrade', normalizedPackageKey, normalizedCurrentPackage)
+    : buildMyStoreSelection('featured', '', normalizedCurrentPackage);
+  const quantityValue = Math.max(1, Math.round(safeNumber(selectionInput.quantity, fallbackSelection.quantity)));
+  const quantity = isUpgrade ? 1 : quantityValue;
+  let productKey = safeText(selectionInput.productKey || fallbackSelection.productKey) || fallbackSelection.productKey;
+  let imageUrl = safeText(selectionInput.imageUrl || fallbackSelection.imageUrl) || fallbackSelection.imageUrl;
+  let unitPrice = Math.max(0, safeNumber(selectionInput.unitPrice, fallbackSelection.unitPrice));
+  let unitBv = Math.max(0, Math.round(safeNumber(selectionInput.unitBv, fallbackSelection.unitBv)));
+  let upgradeProductKey = '';
+  let upgradeProductLabel = '';
+  let upgradeProductImageUrl = '';
+  let upgradeProductQuantity = 0;
+  let upgradeProductUnitPrice = 0;
+  let upgradeProductUnitBv = 0;
+  if (isUpgrade) {
+    const upgradeDelta = resolveMyStoreUpgradeDelta(normalizedCurrentPackage, normalizedPackageKey);
+    const selectedUpgradeProduct = resolveMyStoreUpgradeProductMeta(
+      safeText(selectionInput.upgradeProductKey || selectionInput.productKey || fallbackSelection.upgradeProductKey),
+    );
+    upgradeProductQuantity = Math.max(0, Math.round(safeNumber(upgradeDelta.productGain, 0)));
+    upgradeProductUnitPrice = Math.max(0, safeNumber(selectedUpgradeProduct.unitPrice, 0));
+    upgradeProductUnitBv = Math.max(0, Math.round(safeNumber(selectedUpgradeProduct.unitBv, 0)));
+    unitPrice = Math.round((upgradeProductQuantity * upgradeProductUnitPrice) * 100) / 100;
+    unitBv = Math.max(0, Math.round(upgradeProductQuantity * upgradeProductUnitBv));
+    productKey = selectedUpgradeProduct.productKey;
+    imageUrl = safeText(selectedUpgradeProduct.imageUrl) || fallbackSelection.imageUrl;
+    upgradeProductKey = selectedUpgradeProduct.productKey;
+    upgradeProductLabel = safeText(selectedUpgradeProduct.label) || 'Upgrade Product';
+    upgradeProductImageUrl = safeText(selectedUpgradeProduct.imageUrl);
+  }
+  return {
+    action: isUpgrade ? 'upgrade' : 'featured',
+    productKey,
+    packageKey: isUpgrade ? normalizedPackageKey : '',
+    label: safeText(selectionInput.label || fallbackSelection.label) || fallbackSelection.label,
+    imageUrl,
+    unitPrice,
+    unitBv,
+    quantity,
+    upgradeProductKey,
+    upgradeProductLabel,
+    upgradeProductImageUrl,
+    upgradeProductQuantity,
+    upgradeProductUnitPrice,
+    upgradeProductUnitBv,
+  };
+}
+
+function resolveMyStoreCheckoutAmounts(selectionInput, currentPackageKey) {
+  const selection = selectionInput && typeof selectionInput === 'object'
+    ? selectionInput
+    : buildMyStoreSelection('featured', '', currentPackageKey);
+  const isUpgradeSelection = normalizeCredentialValue(selection.action) === 'upgrade'
+    && Boolean(resolveMyStorePackageKeyFromValue(selection.packageKey));
+  const quantity = isUpgradeSelection
+    ? 1
+    : Math.max(1, Math.round(safeNumber(selection.quantity, 1)));
+  const subtotal = Math.round(Math.max(0, safeNumber(selection.unitPrice, 0) * quantity) * 100) / 100;
+  const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey);
+  const discountRate = !isUpgradeSelection && normalizedCurrentPackage === 'preferred-customer-pack' ? 0.15 : 0;
+  const discount = Math.round((subtotal * discountRate) * 100) / 100;
+  const taxableTotal = Math.max(0, subtotal - discount);
+  const tax = 0;
+  const total = Math.round(taxableTotal * 100) / 100;
+  const totalBv = Math.max(0, Math.round(safeNumber(selection.unitBv, 0) * quantity));
+  return {
+    isUpgradeSelection,
+    quantity,
+    subtotal,
+    discount,
+    tax,
+    total,
+    totalBv,
+  };
+}
+
+function renderMyStoreBreadcrumbs(stepValue = MY_STORE_STEP_CATALOG, options = {}) {
+  if (!(myStoreBreadcrumbsElement instanceof HTMLElement)) {
+    return;
+  }
+  const step = resolveMyStoreStep(stepValue);
+  const isUpgradeReview = Boolean(options?.isUpgradeReview);
+  const reviewLabel = isUpgradeReview ? 'Review Upgrade' : 'Review Purchase';
+  if (step === MY_STORE_STEP_THANK_YOU) {
+    myStoreBreadcrumbsElement.innerHTML = `
+      <button type="button" class="tree-next-my-store-breadcrumb-link" data-my-store-nav-step="${MY_STORE_STEP_CATALOG}">My Store</button>
+      <span class="tree-next-my-store-breadcrumb-separator" aria-hidden="true">&gt;</span>
+      <button type="button" class="tree-next-my-store-breadcrumb-link" data-my-store-nav-step="${MY_STORE_STEP_REVIEW}">${reviewLabel}</button>
+      <span class="tree-next-my-store-breadcrumb-separator" aria-hidden="true">&gt;</span>
+      <span class="tree-next-my-store-breadcrumb-current" aria-current="page">Thank You</span>
+    `;
+    return;
+  }
+  if (step === MY_STORE_STEP_CHECKOUT) {
+    myStoreBreadcrumbsElement.innerHTML = `
+      <button type="button" class="tree-next-my-store-breadcrumb-link" data-my-store-nav-step="${MY_STORE_STEP_CATALOG}">My Store</button>
+      <span class="tree-next-my-store-breadcrumb-separator" aria-hidden="true">&gt;</span>
+      <button type="button" class="tree-next-my-store-breadcrumb-link" data-my-store-nav-step="${MY_STORE_STEP_REVIEW}">${reviewLabel}</button>
+      <span class="tree-next-my-store-breadcrumb-separator" aria-hidden="true">&gt;</span>
+      <span class="tree-next-my-store-breadcrumb-current" aria-current="page">Checkout</span>
+    `;
+    return;
+  }
+  if (step === MY_STORE_STEP_REVIEW) {
+    myStoreBreadcrumbsElement.innerHTML = `
+      <button type="button" class="tree-next-my-store-breadcrumb-link" data-my-store-nav-step="${MY_STORE_STEP_CATALOG}">My Store</button>
+      <span class="tree-next-my-store-breadcrumb-separator" aria-hidden="true">&gt;</span>
+      <span class="tree-next-my-store-breadcrumb-current" aria-current="page">${reviewLabel}</span>
+    `;
+    return;
+  }
+  myStoreBreadcrumbsElement.innerHTML = '<span class="tree-next-my-store-breadcrumb-current" aria-current="page">My Store</span>';
+}
+
+function setMyStoreCheckoutFeedback(message = '', options = {}) {
+  if (!(myStoreCheckoutFeedbackElement instanceof HTMLElement)) {
+    return;
+  }
+  const safeMessage = safeText(message);
+  const isError = Boolean(options?.isError);
+  myStoreCheckoutFeedbackElement.textContent = safeMessage;
+  myStoreCheckoutFeedbackElement.classList.toggle('is-visible', Boolean(safeMessage));
+  myStoreCheckoutFeedbackElement.classList.toggle('is-error', Boolean(safeMessage) && isError);
+}
+
+function setMyStoreCheckoutSubmitting(isSubmitting, submitLabel = '') {
+  const nextSubmitting = Boolean(isSubmitting);
+  state.ui.myStoreCheckoutSubmitting = nextSubmitting;
+  if (myStoreCheckoutPayButtonElement instanceof HTMLButtonElement) {
+    myStoreCheckoutPayButtonElement.disabled = nextSubmitting;
+    myStoreCheckoutPayButtonElement.textContent = nextSubmitting
+      ? (safeText(submitLabel) || 'Processing...')
+      : 'Continue to Stripe';
+  }
+  if (myStoreCheckoutPreviousButtonElement instanceof HTMLButtonElement) {
+    myStoreCheckoutPreviousButtonElement.disabled = nextSubmitting;
+  }
+}
+
+function formatMyStoreCheckoutDate(value) {
+  const normalizedValue = safeText(value);
+  if (!normalizedValue) {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date());
+  }
+  const parsedValue = new Date(normalizedValue);
+  if (Number.isNaN(parsedValue.getTime())) {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date());
+  }
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(parsedValue);
+}
+
+function resolveMyStoreCheckoutCompletionSummary() {
+  const completion = state.ui?.myStoreCheckoutCompletion;
+  if (!completion || typeof completion !== 'object') {
+    return {
+      message: 'Payment received and your order is now processing.',
+      invoiceId: '--',
+      status: 'Posted',
+      amountPaid: 0,
+      bv: 0,
+      dateLabel: '--',
+    };
+  }
+  return {
+    message: safeText(completion.message) || 'Payment received and your order is now processing.',
+    invoiceId: safeText(completion.invoiceId) || '--',
+    status: safeText(completion.status) || 'Posted',
+    amountPaid: Math.max(0, safeNumber(completion.amountPaid, 0)),
+    bv: Math.max(0, Math.round(safeNumber(completion.bv, 0))),
+    dateLabel: safeText(completion.dateLabel) || '--',
+  };
+}
+
+function showMyStoreCheckoutThankYouStep(options = {}) {
+  state.ui.myStoreCheckoutCompletion = {
+    message: safeText(options?.message) || 'Payment received and your order is now processing.',
+    invoiceId: safeText(options?.invoiceId) || '--',
+    status: safeText(options?.status) || 'Posted',
+    amountPaid: Math.max(0, safeNumber(options?.amountPaid, 0)),
+    bv: Math.max(0, Math.round(safeNumber(options?.bv, 0))),
+    dateLabel: safeText(options?.dateLabel) || formatMyStoreCheckoutDate(options?.createdAt),
+  };
+  setMyStoreStep(MY_STORE_STEP_THANK_YOU, {
+    clearCheckoutFeedback: true,
+    preserveCheckoutCompletion: true,
+  });
+}
+
+function showMyStoreCheckoutPendingThankYouStep(options = {}) {
+  const completionSummary = resolveMyStoreCheckoutCompletionSummary();
+  const fallbackDateLabel = formatMyStoreCheckoutDate(new Date().toISOString());
+  showMyStoreCheckoutThankYouStep({
+    message: safeText(options?.message) || 'Payment successful. Receipt is syncing now.',
+    invoiceId: safeText(options?.invoiceId) || completionSummary.invoiceId || 'Generating...',
+    status: safeText(options?.status) || 'Pending',
+    amountPaid: Math.max(0, safeNumber(options?.amountPaid, completionSummary.amountPaid || 0)),
+    bv: Math.max(0, Math.round(safeNumber(options?.bv, completionSummary.bv || 0))),
+    dateLabel: safeText(options?.dateLabel) || completionSummary.dateLabel || fallbackDateLabel,
+  });
+}
+
+function resolveMyStorePendingCheckoutSummary(sessionId = '') {
+  const pendingCheckoutState = readTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY);
+  if (!pendingCheckoutState || typeof pendingCheckoutState !== 'object') {
+    return null;
+  }
+  const safeSessionId = safeText(sessionId);
+  const pendingSessionId = safeText(pendingCheckoutState.sessionId);
+  if (safeSessionId && pendingSessionId && pendingSessionId !== safeSessionId) {
+    return null;
+  }
+  return {
+    invoiceId: safeText(pendingCheckoutState.invoiceId),
+    amountPaid: Math.max(0, safeNumber(pendingCheckoutState.amountPaid, 0)),
+    bv: Math.max(0, Math.round(safeNumber(pendingCheckoutState.bv, 0))),
+    productLabel: safeText(pendingCheckoutState.productLabel),
+    quantity: Math.max(1, Math.round(safeNumber(pendingCheckoutState.quantity, 1))),
+    dateLabel: safeText(pendingCheckoutState.dateLabel) || formatMyStoreCheckoutDate(new Date().toISOString()),
+  };
+}
+
+function setMyStoreStep(stepValue, options = {}) {
+  const nextStep = resolveMyStoreStep(stepValue);
+  state.ui.myStoreStep = nextStep;
+  if (
+    nextStep !== MY_STORE_STEP_THANK_YOU
+    && options?.preserveCheckoutCompletion !== true
+  ) {
+    state.ui.myStoreCheckoutCompletion = null;
+  }
+  if (Boolean(options?.clearCheckoutFeedback)) {
+    setMyStoreCheckoutFeedback('');
+  }
+  if (options?.sync !== false) {
+    syncMyStorePanelVisuals();
+  }
+}
+
+function resetMyStoreCheckoutForm() {
+  if (myStoreCheckoutFormElement instanceof HTMLFormElement) {
+    myStoreCheckoutFormElement.reset();
+  }
+  setMyStoreCheckoutSubmitting(false);
+  clearMyStoreStripeCardInput();
+  if (myStoreCheckoutBillingCountrySelect instanceof HTMLSelectElement) {
+    myStoreCheckoutBillingCountrySelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+    syncTreeNextEnrollCustomSelectById(myStoreCheckoutBillingCountrySelect.id);
+  }
+  setMyStoreCheckoutFeedback('');
+}
+
+function navigateToMyStoreProduct(action, packageKey = '') {
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  state.ui.myStoreSelection = buildMyStoreSelection(action, packageKey, currentPackageKey);
+  setMyStoreStep(MY_STORE_STEP_REVIEW, { clearCheckoutFeedback: true, sync: false });
+  syncMyStorePanelVisuals();
+}
+
+function setMyStoreSelectionQuantity(quantityValue) {
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  const currentSelection = resolveMyStoreSelection(currentPackageKey);
+  if (normalizeCredentialValue(currentSelection.action) === 'upgrade') {
+    return;
+  }
+  const nextQuantity = clamp(Math.round(safeNumber(quantityValue, currentSelection.quantity)), 1, 99);
+  if (nextQuantity === currentSelection.quantity) {
+    return;
+  }
+  state.ui.myStoreSelection = {
+    ...currentSelection,
+    quantity: nextQuantity,
+  };
+  syncMyStorePanelVisuals();
+}
+
+function setMyStoreUpgradeSelectionProduct(productKey = '') {
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  const currentSelection = resolveMyStoreSelection(currentPackageKey);
+  if (normalizeCredentialValue(currentSelection.action) !== 'upgrade') {
+    return;
+  }
+  const selectedUpgradeProduct = resolveMyStoreUpgradeProductMeta(productKey);
+  if (safeText(currentSelection.upgradeProductKey) === selectedUpgradeProduct.productKey) {
+    return;
+  }
+  state.ui.myStoreSelection = {
+    ...currentSelection,
+    upgradeProductKey: selectedUpgradeProduct.productKey,
+  };
+  syncMyStorePanelVisuals();
+}
+
+function resolveMyStoreCheckoutFieldList() {
+  return [
+    myStoreCheckoutNameInputElement,
+    myStoreCheckoutBillingAddressInputElement,
+    myStoreCheckoutBillingCityInputElement,
+    myStoreCheckoutBillingStateInputElement,
+    myStoreCheckoutBillingPostalInputElement,
+  ].filter((element) => element instanceof HTMLInputElement);
+}
+
+async function refreshMyStorePostCheckoutUpgrade(accountUpgradeInput = null) {
+  const accountUpgrade = accountUpgradeInput && typeof accountUpgradeInput === 'object'
+    ? accountUpgradeInput
+    : null;
+  const upgradedUser = accountUpgrade?.user && typeof accountUpgrade.user === 'object'
+    ? accountUpgrade.user
+    : null;
+  if (upgradedUser) {
+    applyAccountUpgradeUserToLocalState(upgradedUser);
+  }
+
+  await refreshAuthenticatedMemberSessionSnapshot({ skipAccountOverviewReset: true });
+  await syncTreeNextLiveNodes({ force: true, silent: true, reason: 'my-store-upgrade' });
+
+  resetAccountOverviewRemoteSnapshot();
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  await refreshAccountOverviewRemoteSnapshot({
+    force: true,
+    homeNode,
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
+  syncAccountOverviewPanelVisuals();
+  syncMyStorePanelVisuals();
+}
+
+async function createMyStoreCheckoutSession(payload = {}) {
+  const response = await fetch(MY_STORE_CHECKOUT_SESSION_API, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(payload),
+  });
+  const responsePayload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const failureMessage = typeof responsePayload?.error === 'string'
+      ? responsePayload.error
+      : 'Unable to start My Store Stripe checkout.';
+    throw new Error(failureMessage);
+  }
+
+  const sessionId = safeText(responsePayload?.sessionId);
+  const sessionUrl = safeText(responsePayload?.sessionUrl);
+  if (!sessionId || !sessionUrl) {
+    throw new Error('My Store checkout response is missing Stripe session details.');
+  }
+
+  return {
+    sessionId,
+    sessionUrl,
+    checkout: responsePayload?.checkout && typeof responsePayload.checkout === 'object'
+      ? responsePayload.checkout
+      : {},
+  };
+}
+
+async function completeMyStoreCheckoutSession(sessionId) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    throw new Error('Checkout session ID is required to finalize My Store checkout.');
+  }
+
+  const response = await fetch(MY_STORE_CHECKOUT_SESSION_COMPLETE_API, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify({
+      sessionId: safeSessionId,
+    }),
+  });
+
+  const responsePayload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const failureMessage = typeof responsePayload?.error === 'string'
+      ? responsePayload.error
+      : 'Unable to finalize My Store checkout.';
+    throw new Error(failureMessage);
+  }
+
+  return {
+    completed: responsePayload?.completed === true,
+    alreadyProcessed: responsePayload?.alreadyProcessed === true,
+    invoice: responsePayload?.invoice && typeof responsePayload.invoice === 'object'
+      ? responsePayload.invoice
+      : null,
+    accountUpgrade: responsePayload?.accountUpgrade && typeof responsePayload.accountUpgrade === 'object'
+      ? responsePayload.accountUpgrade
+      : null,
+    preferredCustomer: responsePayload?.preferredCustomer && typeof responsePayload.preferredCustomer === 'object'
+      ? responsePayload.preferredCustomer
+      : null,
+    paymentIntent: responsePayload?.paymentIntent && typeof responsePayload.paymentIntent === 'object'
+      ? responsePayload.paymentIntent
+      : null,
+    checkoutSession: responsePayload?.checkoutSession && typeof responsePayload.checkoutSession === 'object'
+      ? responsePayload.checkoutSession
+      : null,
+  };
+}
+
+function openTreeNextStripeCheckoutWindow() {
+  const checkoutWindow = window.open(
+    'about:blank',
+    '_blank',
+    'popup=yes,width=520,height=760,resizable=yes,scrollbars=yes',
+  );
+  if (!checkoutWindow || checkoutWindow.closed) {
+    return null;
+  }
+  return checkoutWindow;
+}
+
+function isLikelyFetchNetworkError(error) {
+  const message = safeText(error instanceof Error ? error.message : String(error)).toLowerCase();
+  return (
+    message === 'failed to fetch'
+    || message.includes('networkerror')
+    || message.includes('network request failed')
+    || message.includes('load failed')
+  );
+}
+
+function clearMyStoreCheckoutRetryTracking(sessionId) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    return;
+  }
+  myStoreCheckoutRetryAttemptBySession.delete(safeSessionId);
+  const timeoutId = myStoreCheckoutRetryTimeoutBySession.get(safeSessionId);
+  if (safeNumber(timeoutId, 0) > 0) {
+    window.clearTimeout(timeoutId);
+  }
+  myStoreCheckoutRetryTimeoutBySession.delete(safeSessionId);
+}
+
+function scheduleMyStoreCheckoutNetworkRetry(sessionId) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    return false;
+  }
+  const existingTimeoutId = safeNumber(myStoreCheckoutRetryTimeoutBySession.get(safeSessionId), 0);
+  if (existingTimeoutId > 0) {
+    return true;
+  }
+  const currentAttempt = Math.max(0, Math.floor(safeNumber(
+    myStoreCheckoutRetryAttemptBySession.get(safeSessionId),
+    0,
+  )));
+  if (currentAttempt >= MY_STORE_CHECKOUT_NETWORK_RETRY_LIMIT) {
+    return false;
+  }
+  const nextAttempt = currentAttempt + 1;
+  myStoreCheckoutRetryAttemptBySession.set(safeSessionId, nextAttempt);
+  const timeoutId = window.setTimeout(() => {
+    myStoreCheckoutRetryTimeoutBySession.delete(safeSessionId);
+    void finalizeMyStoreCheckoutSessionFromStripeReturn(safeSessionId, {
+      preserveCurrentStep: true,
+      ensurePanelVisible: true,
+      maxAttempts: 50,
+      pollDelayMs: 700,
+    });
+  }, MY_STORE_CHECKOUT_NETWORK_RETRY_DELAY_MS);
+  myStoreCheckoutRetryTimeoutBySession.set(safeSessionId, timeoutId);
+  return true;
+}
+
+async function finalizeMyStoreCheckoutSessionFromStripeReturn(sessionId, options = {}) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    return;
+  }
+  if (myStoreCheckoutFinalizationInFlightSessionIds.has(safeSessionId)) {
+    return;
+  }
+  myStoreCheckoutFinalizationInFlightSessionIds.add(safeSessionId);
+  const checkoutWindow = options?.checkoutWindow;
+  const preserveCurrentStep = Boolean(options?.preserveCurrentStep);
+  const submitLabel = myStoreCheckoutPayButtonElement instanceof HTMLButtonElement
+    ? myStoreCheckoutPayButtonElement.textContent || 'Continue to Stripe'
+    : 'Continue to Stripe';
+  const requestedMaxAttempts = Math.floor(Number(options?.maxAttempts));
+  const requestedPollDelayMs = Math.floor(Number(options?.pollDelayMs));
+  const maxAttempts = Number.isFinite(requestedMaxAttempts) && requestedMaxAttempts > 0
+    ? requestedMaxAttempts
+    : (checkoutWindow ? 240 : 5);
+  const pollDelayMs = Number.isFinite(requestedPollDelayMs) && requestedPollDelayMs >= 250
+    ? requestedPollDelayMs
+    : (checkoutWindow ? 1200 : 700);
+
+  try {
+    if (options?.ensurePanelVisible !== false && !Boolean(state.ui?.myStoreVisible)) {
+      setMyStorePanelVisible(true);
+    }
+    if (!preserveCurrentStep) {
+      setMyStoreStep(MY_STORE_STEP_CHECKOUT, { clearCheckoutFeedback: true });
+    }
+    setMyStoreCheckoutSubmitting(true, 'Finalizing...');
+
+    setMyStoreCheckoutFeedback('Finalizing your order...');
+    let completionResult = await completeMyStoreCheckoutSession(safeSessionId);
+    let completionAttempts = 0;
+    while (!completionResult.completed && completionAttempts < maxAttempts) {
+      if (checkoutWindow?.closed) {
+        completionResult = await completeMyStoreCheckoutSession(safeSessionId);
+        if (!completionResult.completed) {
+          throw new Error('Stripe checkout window was closed before payment completed.');
+        }
+        break;
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, pollDelayMs));
+      completionAttempts += 1;
+      completionResult = await completeMyStoreCheckoutSession(safeSessionId);
+    }
+    if (!completionResult.completed) {
+      throw new Error('Payment captured, but order is still processing. Please retry shortly.');
+    }
+    if (checkoutWindow && !checkoutWindow.closed) {
+      checkoutWindow.close();
+    }
+
+    const accountUpgrade = completionResult.accountUpgrade && typeof completionResult.accountUpgrade === 'object'
+      ? completionResult.accountUpgrade
+      : null;
+    let accountUpgradeWarning = '';
+    if (accountUpgrade) {
+      if (accountUpgrade?.ok === true) {
+        await refreshMyStorePostCheckoutUpgrade(accountUpgrade);
+      } else {
+        accountUpgradeWarning = safeText(accountUpgrade?.message)
+          || 'Payment confirmed, but account upgrade is still processing.';
+      }
+    }
+
+    const invoice = completionResult.invoice && typeof completionResult.invoice === 'object'
+      ? completionResult.invoice
+      : null;
+    const invoiceId = safeText(invoice?.id);
+    const invoiceStatus = safeText(invoice?.status) || 'Posted';
+    const invoiceAmount = Math.max(0, safeNumber(invoice?.amount, 0));
+    const invoiceBv = Math.max(0, Math.round(safeNumber(invoice?.bp, 0)));
+    const invoiceDateLabel = formatMyStoreCheckoutDate(invoice?.createdAt);
+    const paymentSuccessMessage = completionResult.alreadyProcessed
+      ? 'Payment was already confirmed and linked to your order.'
+      : 'Payment confirmed successfully. Your order is complete.';
+    const successMessage = accountUpgradeWarning
+      ? `${paymentSuccessMessage} ${accountUpgradeWarning}`
+      : paymentSuccessMessage;
+
+    resetMyStoreCheckoutForm();
+    showMyStoreCheckoutThankYouStep({
+      message: successMessage,
+      invoiceId,
+      status: invoiceStatus,
+      amountPaid: invoiceAmount,
+      bv: invoiceBv,
+      dateLabel: invoiceDateLabel,
+    });
+    clearTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY);
+    clearMyStoreCheckoutRetryTracking(safeSessionId);
+  } catch (error) {
+    const isNetworkError = isLikelyFetchNetworkError(error);
+    const retryScheduled = isNetworkError
+      ? scheduleMyStoreCheckoutNetworkRetry(safeSessionId)
+      : false;
+    const retryAttempt = Math.max(1, Math.floor(safeNumber(
+      myStoreCheckoutRetryAttemptBySession.get(safeSessionId),
+      1,
+    )));
+    const fallbackMessage = isNetworkError
+      ? (
+        retryScheduled
+          ? `Payment succeeded. Syncing your order details now (retry ${retryAttempt}/${MY_STORE_CHECKOUT_NETWORK_RETRY_LIMIT})...`
+          : 'Payment succeeded, but we still cannot reach the server. Keep this tab open and refresh shortly to load invoice details.'
+      )
+      : (
+        error instanceof Error
+          ? error.message
+          : 'Unable to finalize checkout right now.'
+      );
+    if (resolveMyStoreStep(state.ui?.myStoreStep) === MY_STORE_STEP_THANK_YOU) {
+      showMyStoreCheckoutPendingThankYouStep({
+        message: fallbackMessage,
+      });
+    }
+    setMyStoreCheckoutFeedback(fallbackMessage, { isError: true });
+    setMyStoreCopyFeedback(fallbackMessage, { isError: true });
+  } finally {
+    setMyStoreCheckoutSubmitting(false, submitLabel);
+    myStoreCheckoutFinalizationInFlightSessionIds.delete(safeSessionId);
+  }
+}
+
+async function submitMyStoreCheckout() {
+  if (state.ui?.myStoreCheckoutSubmitting) {
+    return;
+  }
+  setMyStoreCheckoutFeedback('');
+  clearMyStoreCheckoutCardError();
+
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  const selection = resolveMyStoreSelection(currentPackageKey);
+  const checkoutAmounts = resolveMyStoreCheckoutAmounts(selection, currentPackageKey);
+  const checkoutProductId = safeText(selection.productKey || selection.upgradeProductKey || MY_STORE_FEATURED_PRODUCT.productKey);
+  const checkoutQuantity = checkoutAmounts.isUpgradeSelection
+    ? Math.max(1, Math.round(safeNumber(selection.upgradeProductQuantity, 1)))
+    : Math.max(1, Math.round(safeNumber(checkoutAmounts.quantity, 1)));
+  if (!checkoutProductId || checkoutQuantity <= 0) {
+    setMyStoreCheckoutFeedback('Unable to build cart selection for checkout.', { isError: true });
+    return;
+  }
+
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const buyerEmail = safeText(
+    session?.email
+    || session?.userEmail
+    || session?.user_email
+    || '',
+  );
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) {
+    setMyStoreCheckoutFeedback('A valid account email is required before checkout.', { isError: true });
+    return;
+  }
+
+  const buyerUserId = safeText(
+    session?.id
+    || session?.userId
+    || session?.user_id
+    || session?.memberId
+    || session?.member_id
+    || '',
+  );
+  const buyerUsername = safeText(
+    session?.username
+    || session?.memberUsername
+    || session?.member_username
+    || '',
+  ).replace(/^@+/, '');
+  const checkoutSource = state.source === 'member' ? 'member-dashboard' : 'binary-tree-next';
+  const discountPercent = (!checkoutAmounts.isUpgradeSelection
+    && resolveMyStorePackageKeyFromValue(currentPackageKey) === 'preferred-customer-pack')
+    ? 15
+    : 0;
+  const cardholderName = safeText(myStoreCheckoutNameInputElement?.value) || resolveSessionDisplayName();
+  const shippingAddress = safeText(myStoreCheckoutBillingAddressInputElement?.value) || 'Collected in Stripe Checkout';
+  const storeCode = resolveMyStoreStoreCode(homeNode);
+  const memberStoreLink = resolveMyStoreShareLink(homeNode);
+  const accountUpgradeTargetPackage = checkoutAmounts.isUpgradeSelection
+    ? resolveMyStorePackageKeyFromValue(selection.packageKey)
+    : '';
+  const checkoutWindow = openTreeNextStripeCheckoutWindow();
+  if (!checkoutWindow) {
+    const popupMessage = 'Pop-up blocked. Please allow pop-ups to continue with Stripe checkout.';
+    setMyStoreCheckoutFeedback(popupMessage, { isError: true });
+    setMyStoreCopyFeedback(popupMessage, { isError: true });
+    return;
+  }
+
+  const submitLabel = myStoreCheckoutPayButtonElement instanceof HTMLButtonElement
+    ? myStoreCheckoutPayButtonElement.textContent || 'Continue to Stripe'
+    : 'Continue to Stripe';
+  setMyStoreCheckoutSubmitting(true, 'Preparing payment...');
+
+  try {
+    setMyStoreCheckoutFeedback('Preparing secure payment...');
+    const checkoutSessionResult = await createMyStoreCheckoutSession({
+      cartLines: [
+        {
+          productId: checkoutProductId,
+          quantity: checkoutQuantity,
+        },
+      ],
+      storeCode,
+      buyerName: cardholderName || resolveSessionDisplayName(),
+      buyerEmail,
+      shippingAddress,
+      shippingMode: 'Standard Shipping',
+      source: checkoutSource,
+      memberStoreLink,
+      discountPercent,
+      checkoutMode: 'guest',
+      buyerUserId,
+      buyerUsername,
+      accountUpgradeTargetPackage,
+      returnPath: buildTreeNextStripeReturnPath(TREE_NEXT_STRIPE_RETURN_FLOW_MY_STORE),
+    });
+    persistTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY, {
+      sessionId: checkoutSessionResult.sessionId,
+      invoiceId: safeText(checkoutSessionResult.checkout?.invoiceId),
+      amountPaid: checkoutAmounts.total,
+      bv: checkoutAmounts.totalBv,
+      productLabel: checkoutAmounts.isUpgradeSelection
+        ? `Upgrade: ${safeText(selection.label) || 'Package Upgrade'}`
+        : (safeText(selection.label) || safeText(myStoreCheckoutProductLabelElement?.textContent) || 'Product'),
+      quantity: checkoutQuantity,
+      dateLabel: formatMyStoreCheckoutDate(new Date().toISOString()),
+      submittedAt: new Date().toISOString(),
+    });
+    setMyStoreCheckoutFeedback('Stripe checkout opened in a new window. Complete payment, then return to this tab.');
+    checkoutWindow.location.replace(checkoutSessionResult.sessionUrl);
+    checkoutWindow.focus();
+  } catch (error) {
+    const fallbackMessage = error instanceof Error
+      ? error.message
+      : 'Unable to complete checkout right now.';
+    setMyStoreCheckoutFeedback(fallbackMessage, { isError: true });
+    setMyStoreCopyFeedback(fallbackMessage, { isError: true });
+  } finally {
+    setMyStoreCheckoutSubmitting(false, submitLabel);
+  }
+}
+
+function removeMyStoreSelection() {
+  state.ui.myStoreSelection = null;
+  setMyStoreStep(MY_STORE_STEP_CATALOG, { clearCheckoutFeedback: true, sync: false });
+  resetMyStoreCheckoutForm();
+  syncMyStorePanelVisuals();
+}
+
+function openMyStoreCheckoutStep() {
+  setMyStoreStep(MY_STORE_STEP_CHECKOUT, { clearCheckoutFeedback: true });
+  setMyStoreCheckoutSubmitting(false);
+  void hydrateTreeNextEnrollBillingCountryOptions();
+  if (myStoreCheckoutBillingCountrySelect instanceof HTMLSelectElement) {
+    syncTreeNextEnrollCustomSelectById(myStoreCheckoutBillingCountrySelect.id);
+  }
+}
+
+function returnToMyStoreReviewStep() {
+  setMyStoreStep(MY_STORE_STEP_REVIEW, { clearCheckoutFeedback: true });
+}
+
+function setMyStoreCopyFeedback(message, options = {}) {
+  if (!(myStoreCopyFeedbackElement instanceof HTMLElement)) {
+    return;
+  }
+  const safeMessage = safeText(message);
+  const isError = Boolean(options?.isError);
+  myStoreCopyFeedbackElement.textContent = safeMessage;
+  myStoreCopyFeedbackElement.classList.toggle('is-visible', Boolean(safeMessage));
+  myStoreCopyFeedbackElement.classList.toggle('is-error', Boolean(safeMessage) && isError);
+}
+
+async function copyMyStoreShareLink() {
+  const fallbackLink = resolveMyStoreShareLink();
+  const shareLink = safeText(myStoreCopyLinkButtonElement?.dataset?.shareLink || fallbackLink);
+  if (!shareLink) {
+    setMyStoreCopyFeedback('Store link unavailable.', { isError: true });
+    return;
+  }
+
+  let copied = false;
+  if (navigator.clipboard && window.isSecureContext) {
+    copied = await navigator.clipboard.writeText(shareLink)
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  if (!copied) {
+    const helperInput = document.createElement('textarea');
+    helperInput.value = shareLink;
+    helperInput.setAttribute('readonly', 'true');
+    helperInput.style.position = 'absolute';
+    helperInput.style.left = '-9999px';
+    helperInput.style.opacity = '0';
+    document.body.appendChild(helperInput);
+    helperInput.select();
+    helperInput.setSelectionRange(0, helperInput.value.length);
+    try {
+      copied = document.execCommand('copy');
+    } catch {
+      copied = false;
+    }
+    document.body.removeChild(helperInput);
+  }
+
+  setMyStoreCopyFeedback(
+    copied ? 'Store link copied.' : 'Unable to copy link. Please copy manually.',
+    { isError: !copied },
+  );
+}
+
+function syncMyStorePanelPosition(layoutInput = state.layout) {
+  if (!isMyStorePanelAvailable()) {
+    return;
+  }
+
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const sideNav = layout?.sideNav || null;
+  const sideNavToggle = layout?.sideNavToggle || null;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
+  );
+
+  const panelHorizontalGap = 18;
+  const panelEdgePadding = 18;
+  const rightDockReservedWidth = 72;
+  const panelTop = sideNav
+    ? Math.round(sideNav.y)
+    : panelEdgePadding;
+  const panelHeight = sideNav
+    ? Math.round(sideNav.height)
+    : Math.max(320, viewportHeight - (panelEdgePadding * 2));
+
+  let anchorLeft = Math.round((viewportWidth - 640) / 2);
+  if (sideNavOpen && sideNav) {
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
+  } else if (sideNavToggle) {
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
+  }
+
+  const maxUsableWidth = Math.max(
+    360,
+    Math.floor(viewportWidth - anchorLeft - rightDockReservedWidth),
+  );
+  const panelWidth = clamp(Math.round(Math.min(820, maxUsableWidth)), 360, maxUsableWidth);
+
+  const clampedLeft = clamp(
+    anchorLeft,
+    panelEdgePadding,
+    Math.max(
+      panelEdgePadding,
+      viewportWidth - panelWidth - rightDockReservedWidth,
+    ),
+  );
+  const clampedTop = clamp(
+    panelTop,
+    panelEdgePadding,
+    Math.max(panelEdgePadding, viewportHeight - panelHeight - panelEdgePadding),
+  );
+  let clampedHeight = clamp(
+    panelHeight,
+    320,
+    Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+  );
+
+  const currentMyStoreStep = resolveMyStoreStep(state.ui?.myStoreStep);
+  if (
+    myStoreScrollElement instanceof HTMLElement
+    && myStoreHeaderElement instanceof HTMLElement
+  ) {
+    const scrollComputedStyle = window.getComputedStyle(myStoreScrollElement);
+    const scrollPaddingTop = Math.max(0, safeNumber(Number.parseFloat(scrollComputedStyle.paddingTop), 0));
+    const scrollPaddingBottom = Math.max(0, safeNumber(Number.parseFloat(scrollComputedStyle.paddingBottom), 0));
+    const headerHeight = Math.max(0, safeNumber(myStoreHeaderElement.getBoundingClientRect().height, 0));
+    if (
+      currentMyStoreStep === MY_STORE_STEP_CHECKOUT
+      && myStoreCheckoutViewElement instanceof HTMLElement
+    ) {
+      const checkoutContentHeight = Math.max(0, safeNumber(myStoreCheckoutViewElement.scrollHeight, 0));
+      const checkoutTargetHeight = Math.ceil(
+        headerHeight
+        + scrollPaddingTop
+        + checkoutContentHeight
+        + scrollPaddingBottom
+        + 96,
+      );
+      clampedHeight = clamp(
+        checkoutTargetHeight,
+        460,
+        Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+      );
+    } else if (
+      currentMyStoreStep === MY_STORE_STEP_THANK_YOU
+      && myStoreThankYouViewElement instanceof HTMLElement
+    ) {
+      const thankYouContentHeight = Math.max(0, safeNumber(myStoreThankYouViewElement.scrollHeight, 0));
+      const thankYouTargetHeight = Math.ceil(
+        headerHeight
+        + scrollPaddingTop
+        + thankYouContentHeight
+        + scrollPaddingBottom
+        + 60,
+      );
+      clampedHeight = clamp(
+        thankYouTargetHeight,
+        420,
+        Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+      );
+    } else if (
+      currentMyStoreStep === MY_STORE_STEP_REVIEW
+      && myStoreReviewViewElement instanceof HTMLElement
+    ) {
+      const reviewContentHeight = Math.max(0, safeNumber(myStoreReviewViewElement.scrollHeight, 0));
+      const includeShareSection = myStoreShareViewElement instanceof HTMLElement
+        && window.getComputedStyle(myStoreShareViewElement).display !== 'none';
+      const shareContentHeight = includeShareSection
+        ? Math.max(0, safeNumber(myStoreShareViewElement.scrollHeight, 0))
+        : 0;
+      const reviewTargetHeight = Math.ceil(
+        headerHeight
+        + scrollPaddingTop
+        + reviewContentHeight
+        + shareContentHeight
+        + scrollPaddingBottom
+        + 44,
+      );
+      clampedHeight = clamp(
+        reviewTargetHeight,
+        420,
+        Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+      );
+    } else if (
+      currentMyStoreStep === MY_STORE_STEP_CATALOG
+      && myStoreCatalogViewElement instanceof HTMLElement
+    ) {
+      const homeNodeId = resolvePreferredGlobalHomeNodeId();
+      const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+      const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+      const hasUpgradeablePackages = resolveMyStoreUpgradePackageKeys(currentPackageKey).length > 0;
+      if (!hasUpgradeablePackages) {
+        const catalogContentHeight = Math.max(0, safeNumber(myStoreCatalogViewElement.scrollHeight, 0));
+        const includeShareSection = myStoreShareViewElement instanceof HTMLElement
+          && window.getComputedStyle(myStoreShareViewElement).display !== 'none';
+        const shareContentHeight = includeShareSection
+          ? Math.max(0, safeNumber(myStoreShareViewElement.scrollHeight, 0))
+          : 0;
+        const catalogTargetHeight = Math.ceil(
+          headerHeight
+          + scrollPaddingTop
+          + catalogContentHeight
+          + shareContentHeight
+          + scrollPaddingBottom
+          + 44,
+        );
+        clampedHeight = clamp(
+          catalogTargetHeight,
+          420,
+          Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+        );
+      }
+    }
+  }
+
+  myStorePanelElement.style.setProperty('--tree-next-my-store-left', `${clampedLeft}px`);
+  myStorePanelElement.style.setProperty('--tree-next-my-store-top', `${clampedTop}px`);
+  myStorePanelElement.style.setProperty('--tree-next-my-store-width', `${panelWidth}px`);
+  myStorePanelElement.style.setProperty('--tree-next-my-store-height', `${clampedHeight}px`);
+  myStorePanelElement.classList.remove('is-positioning');
+}
+
+function syncMyStorePanelVisuals() {
+  if (!isMyStorePanelAvailable()) {
+    return;
+  }
+
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  const currentStep = resolveMyStoreStep(state.ui?.myStoreStep);
+  const selection = resolveMyStoreSelection(currentPackageKey);
+  const checkoutAmounts = resolveMyStoreCheckoutAmounts(selection, currentPackageKey);
+  const upgradeKeys = resolveMyStoreUpgradePackageKeys(currentPackageKey);
+  const shareLink = resolveMyStoreShareLink(homeNode);
+  const completionSummary = resolveMyStoreCheckoutCompletionSummary();
+  const renderSignature = [
+    currentStep,
+    selection.action,
+    selection.packageKey,
+    selection.upgradeProductKey,
+    selection.upgradeProductQuantity,
+    selection.label,
+    selection.unitPrice,
+    selection.unitBv,
+    selection.quantity,
+    currentPackageKey,
+    upgradeKeys.join('|'),
+    shareLink,
+    completionSummary.message,
+    completionSummary.invoiceId,
+    completionSummary.status,
+    completionSummary.amountPaid,
+    completionSummary.bv,
+    completionSummary.dateLabel,
+    state.ui?.myStoreCheckoutSubmitting ? '1' : '0',
+  ].join('::');
+  if (renderSignature === myStoreLastRenderSignature) {
+    return;
+  }
+  myStoreLastRenderSignature = renderSignature;
+
+  if (myStoreFeaturedLabelElement instanceof HTMLElement) {
+    myStoreFeaturedLabelElement.textContent = MY_STORE_FEATURED_PRODUCT.label;
+  }
+  if (myStoreFeaturedImageElement instanceof HTMLImageElement) {
+    myStoreFeaturedImageElement.src = MY_STORE_FEATURED_PRODUCT.imageUrl;
+    myStoreFeaturedImageElement.alt = MY_STORE_FEATURED_PRODUCT.label;
+  }
+
+  myStorePanelElement.setAttribute('data-my-store-step', currentStep);
+  renderMyStoreBreadcrumbs(currentStep, { isUpgradeReview: checkoutAmounts.isUpgradeSelection });
+  if (myStoreReviewTitleElement instanceof HTMLElement) {
+    myStoreReviewTitleElement.textContent = checkoutAmounts.isUpgradeSelection
+      ? 'Review Upgrade'
+      : 'Review Purchase';
+  }
+
+  if (myStoreReviewImageElement instanceof HTMLImageElement) {
+    myStoreReviewImageElement.src = selection.imageUrl || MY_STORE_FEATURED_PRODUCT.imageUrl;
+    myStoreReviewImageElement.alt = checkoutAmounts.isUpgradeSelection
+      ? (safeText(selection.upgradeProductLabel) || selection.label)
+      : selection.label;
+  }
+  if (myStoreReviewNameElement instanceof HTMLElement) {
+    myStoreReviewNameElement.textContent = selection.label;
+  }
+  if (myStoreReviewQuantityElement instanceof HTMLElement) {
+    if (checkoutAmounts.isUpgradeSelection) {
+      const upgradeProductLabel = safeText(selection.upgradeProductLabel)
+        || resolveMyStoreUpgradeProductMeta(selection.upgradeProductKey).label;
+      const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeProductQuantity, 0)));
+      myStoreReviewQuantityElement.textContent = `${upgradeProductLabel} ${formatInteger(upgradeProductQuantity)}x`;
+    } else {
+      myStoreReviewQuantityElement.textContent = `${checkoutAmounts.quantity}x`;
+    }
+  }
+  const isQuantityEditable = !checkoutAmounts.isUpgradeSelection;
+  if (myStoreReviewQuantityControlElement instanceof HTMLElement) {
+    myStoreReviewQuantityControlElement.classList.toggle('is-readonly', !isQuantityEditable);
+  }
+  if (myStoreReviewUpgradeProductSelectorElement instanceof HTMLElement) {
+    myStoreReviewUpgradeProductSelectorElement.classList.toggle('is-hidden', !checkoutAmounts.isUpgradeSelection);
+  }
+  for (const buttonElement of myStoreReviewUpgradeProductButtons) {
+    if (!(buttonElement instanceof HTMLButtonElement)) {
+      continue;
+    }
+    const buttonProductKey = normalizeCredentialValue(buttonElement.dataset.myStoreUpgradeProductKey);
+    const isSelected = checkoutAmounts.isUpgradeSelection
+      && buttonProductKey
+      && buttonProductKey === normalizeCredentialValue(selection.upgradeProductKey);
+    buttonElement.classList.toggle('is-selected', Boolean(isSelected));
+    buttonElement.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+  }
+  if (myStoreReviewQuantityDecreaseButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewQuantityDecreaseButtonElement.disabled = !isQuantityEditable || checkoutAmounts.quantity <= 1;
+  }
+  if (myStoreReviewQuantityIncreaseButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewQuantityIncreaseButtonElement.disabled = !isQuantityEditable || checkoutAmounts.quantity >= 99;
+  }
+  if (myStoreReviewPriceElement instanceof HTMLElement) {
+    myStoreReviewPriceElement.textContent = formatEnrollCurrency(checkoutAmounts.subtotal);
+  }
+  if (myStoreReviewBvElement instanceof HTMLElement) {
+    myStoreReviewBvElement.textContent = `${formatInteger(checkoutAmounts.totalBv)} BV`;
+  }
+
+  if (myStoreUpgradesSectionElement instanceof HTMLElement) {
+    const shouldShowUpgrades = upgradeKeys.length > 0;
+    myStoreUpgradesSectionElement.classList.toggle('is-empty', !shouldShowUpgrades);
+  }
+
+  if (myStoreUpgradesGridElement instanceof HTMLElement) {
+    if (!upgradeKeys.length) {
+      myStoreUpgradesGridElement.innerHTML = '';
+    } else {
+      myStoreUpgradesGridElement.innerHTML = upgradeKeys.map((packageKey) => {
+        const packageLabel = resolveMyStoreUpgradePackageLabel(packageKey);
+        return `
+          <button
+            class="tree-next-my-store-upgrade-card tree-next-my-store-product-button"
+            type="button"
+            data-my-store-product-action="upgrade"
+            data-my-store-package-key="${packageKey}"
+          >
+            <div class="tree-next-my-store-product-image-shell is-upgrade">
+              <img src="${MY_STORE_FEATURED_PRODUCT.imageUrl}" alt="${packageLabel}" />
+            </div>
+            <p class="tree-next-my-store-upgrade-label">${packageLabel}</p>
+          </button>
+        `;
+      }).join('');
+    }
+  }
+
+  if (myStoreCheckoutProductLabelElement instanceof HTMLElement) {
+    if (checkoutAmounts.isUpgradeSelection) {
+      const upgradeProductLabel = safeText(selection.upgradeProductLabel)
+        || resolveMyStoreUpgradeProductMeta(selection.upgradeProductKey).label;
+      const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeProductQuantity, 0)));
+      myStoreCheckoutProductLabelElement.textContent = `${selection.label} - ${upgradeProductLabel} x${formatInteger(upgradeProductQuantity)}`;
+    } else {
+      myStoreCheckoutProductLabelElement.textContent = selection.label;
+    }
+  }
+  if (myStoreCheckoutSubtotalElement instanceof HTMLElement) {
+    myStoreCheckoutSubtotalElement.textContent = formatEnrollCurrency(checkoutAmounts.subtotal);
+  }
+  if (myStoreCheckoutDiscountElement instanceof HTMLElement) {
+    myStoreCheckoutDiscountElement.textContent = formatEnrollCurrency(checkoutAmounts.discount);
+  }
+  if (myStoreCheckoutTaxElement instanceof HTMLElement) {
+    myStoreCheckoutTaxElement.textContent = formatEnrollCurrency(checkoutAmounts.tax);
+  }
+  if (myStoreCheckoutTotalElement instanceof HTMLElement) {
+    myStoreCheckoutTotalElement.textContent = formatEnrollCurrency(checkoutAmounts.total);
+  }
+  if (myStoreThankYouMessageElement instanceof HTMLElement) {
+    myStoreThankYouMessageElement.textContent = completionSummary.message;
+  }
+  if (myStoreThankYouInvoiceElement instanceof HTMLElement) {
+    myStoreThankYouInvoiceElement.textContent = completionSummary.invoiceId;
+  }
+  if (myStoreThankYouStatusElement instanceof HTMLElement) {
+    myStoreThankYouStatusElement.textContent = completionSummary.status;
+  }
+  if (myStoreThankYouAmountElement instanceof HTMLElement) {
+    myStoreThankYouAmountElement.textContent = formatEnrollCurrency(completionSummary.amountPaid);
+  }
+  if (myStoreThankYouBvElement instanceof HTMLElement) {
+    myStoreThankYouBvElement.textContent = `${formatInteger(completionSummary.bv)} BV`;
+  }
+  if (myStoreThankYouDateElement instanceof HTMLElement) {
+    myStoreThankYouDateElement.textContent = completionSummary.dateLabel;
+  }
+  if (myStoreCheckoutPayButtonElement instanceof HTMLButtonElement) {
+    const isSubmitting = Boolean(state.ui?.myStoreCheckoutSubmitting);
+    myStoreCheckoutPayButtonElement.disabled = isSubmitting;
+    if (!isSubmitting) {
+      myStoreCheckoutPayButtonElement.textContent = 'Continue to Stripe';
+    }
+  }
+  if (myStoreCheckoutPreviousButtonElement instanceof HTMLButtonElement) {
+    myStoreCheckoutPreviousButtonElement.disabled = Boolean(state.ui?.myStoreCheckoutSubmitting);
+  }
+
+  if (myStoreCopyLinkButtonElement instanceof HTMLButtonElement) {
+    myStoreCopyLinkButtonElement.dataset.shareLink = shareLink;
+    myStoreCopyLinkButtonElement.setAttribute('title', shareLink);
+  }
+}
+
+function syncMyStorePanelVisibility() {
+  if (!isMyStorePanelAvailable()) {
+    return;
+  }
+
+  const isVisible = Boolean(state.ui?.myStoreVisible);
+  myStorePanelElement.classList.toggle('is-hidden', !isVisible);
+  myStorePanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+}
+
+function setMyStorePanelVisible(isVisible) {
+  const nextVisible = Boolean(isVisible);
+  state.ui.myStoreVisible = nextVisible;
+  if (nextVisible) {
+    state.ui.accountOverviewVisible = false;
+    syncAccountOverviewPanelVisibility();
+    state.ui.myStoreStep = MY_STORE_STEP_CATALOG;
+    state.ui.myStoreCheckoutCompletion = null;
+    state.ui.myStoreCheckoutSubmitting = false;
+    if (!state.ui.myStoreSelection || typeof state.ui.myStoreSelection !== 'object') {
+      state.ui.myStoreSelection = buildMyStoreSelection('featured');
+    }
+    setMyStoreCopyFeedback('');
+    resetMyStoreCheckoutForm();
+    myStoreLastRenderSignature = '';
+    syncMyStorePanelVisuals();
+  } else {
+    setMyStoreCheckoutFeedback('');
+  }
+  syncMyStorePanelVisibility();
+}
+
+function initMyStorePanel() {
+  if (!isMyStorePanelAvailable()) {
+    return;
+  }
+
+  syncMyStorePanelPosition();
+  syncMyStorePanelVisuals();
+  syncMyStorePanelVisibility();
+  setMyStoreCopyFeedback('');
+  setMyStoreCheckoutFeedback('');
+
+  if (myStoreCloseButtonElement instanceof HTMLButtonElement) {
+    myStoreCloseButtonElement.addEventListener('click', () => {
+      setMyStorePanelVisible(false);
+    });
+  }
+
+  if (myStoreCopyLinkButtonElement instanceof HTMLButtonElement) {
+    myStoreCopyLinkButtonElement.addEventListener('click', () => {
+      void copyMyStoreShareLink();
+    });
+  }
+
+  if (myStoreReviewRemoveButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewRemoveButtonElement.addEventListener('click', () => {
+      removeMyStoreSelection();
+    });
+  }
+
+  if (myStoreReviewCheckoutButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewCheckoutButtonElement.addEventListener('click', () => {
+      void submitMyStoreCheckout();
+    });
+  }
+
+  if (myStoreReviewQuantityDecreaseButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewQuantityDecreaseButtonElement.addEventListener('click', () => {
+      const homeNodeId = resolvePreferredGlobalHomeNodeId();
+      const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+      const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+      const currentSelection = resolveMyStoreSelection(currentPackageKey);
+      setMyStoreSelectionQuantity(currentSelection.quantity - 1);
+    });
+  }
+
+  if (myStoreReviewQuantityIncreaseButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewQuantityIncreaseButtonElement.addEventListener('click', () => {
+      const homeNodeId = resolvePreferredGlobalHomeNodeId();
+      const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+      const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+      const currentSelection = resolveMyStoreSelection(currentPackageKey);
+      setMyStoreSelectionQuantity(currentSelection.quantity + 1);
+    });
+  }
+
+  if (myStoreCheckoutPreviousButtonElement instanceof HTMLButtonElement) {
+    myStoreCheckoutPreviousButtonElement.addEventListener('click', () => {
+      returnToMyStoreReviewStep();
+    });
+  }
+
+  if (myStoreThankYouDoneButtonElement instanceof HTMLButtonElement) {
+    myStoreThankYouDoneButtonElement.addEventListener('click', () => {
+      removeMyStoreSelection();
+    });
+  }
+
+  if (myStoreCheckoutPayButtonElement instanceof HTMLButtonElement) {
+    myStoreCheckoutPayButtonElement.addEventListener('click', () => {
+      void submitMyStoreCheckout();
+    });
+  }
+
+  if (myStoreCheckoutFormElement instanceof HTMLFormElement) {
+    myStoreCheckoutFormElement.addEventListener('submit', (event) => {
+      event.preventDefault();
+      void submitMyStoreCheckout();
+    });
+  }
+
+  if (myStoreCheckoutBillingCountrySelect instanceof HTMLSelectElement) {
+    myStoreCheckoutBillingCountrySelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+    myStoreCheckoutBillingCountrySelect.addEventListener('change', () => {
+      setMyStoreCheckoutFeedback('');
+      clearMyStoreCheckoutCardError();
+    });
+  }
+
+  myStorePanelElement.addEventListener('click', (event) => {
+    const targetElement = event.target instanceof Element ? event.target : null;
+    if (!targetElement) {
+      return;
+    }
+    const navStepButton = targetElement.closest('[data-my-store-nav-step]');
+    if (navStepButton instanceof HTMLButtonElement) {
+      if (state.ui?.myStoreCheckoutSubmitting) {
+        return;
+      }
+      const nextStep = safeText(navStepButton.dataset.myStoreNavStep);
+      setMyStoreStep(nextStep, { clearCheckoutFeedback: true });
+      return;
+    }
+    const upgradeProductButton = targetElement.closest('[data-my-store-upgrade-product-key]');
+    if (upgradeProductButton instanceof HTMLButtonElement) {
+      const upgradeProductKey = safeText(upgradeProductButton.dataset.myStoreUpgradeProductKey);
+      setMyStoreUpgradeSelectionProduct(upgradeProductKey);
+      return;
+    }
+    const productActionButton = targetElement.closest('[data-my-store-product-action]');
+    if (!(productActionButton instanceof HTMLButtonElement)) {
+      return;
+    }
+    const productAction = safeText(productActionButton.dataset.myStoreProductAction);
+    const packageKey = safeText(productActionButton.dataset.myStorePackageKey);
+    navigateToMyStoreProduct(productAction, packageKey);
+  });
 }
 
 function setTreeNextEnrollModalOpen(isOpen) {
@@ -4252,8 +6590,8 @@ function openTreeNextEnrollModal(requestDetail = {}) {
     || parentId,
   ) || parentId;
   const parentReference = safeText(
-    requestDetail?.parentMemberCode
-    || requestDetail?.parentUsername
+    requestDetail?.parentUsername
+    || requestDetail?.parentMemberCode
     || parentId,
   ) || parentId;
 
@@ -4323,7 +6661,6 @@ function openTreeNextEnrollModal(requestDetail = {}) {
       treeNextEnrollEmailInput.focus({ preventScroll: true });
     }
   });
-  void initializeTreeNextEnrollStripeCard({ silent: true });
 }
 
 function resolvePlacementSponsorIdentity(placementLock) {
@@ -4351,12 +6688,32 @@ function resolvePlacementSponsorIdentity(placementLock) {
   };
 }
 
+function buildTreeNextEnrollRequestHeaders(baseHeaders = {}) {
+  const headers = {
+    ...baseHeaders,
+  };
+
+  if (state.source !== 'member') {
+    return headers;
+  }
+
+  const authToken = safeText(state.session?.authToken);
+  if (!authToken) {
+    throw new Error('Missing member auth token. Sign in again before enrolling.');
+  }
+
+  return {
+    ...headers,
+    Authorization: `Bearer ${authToken}`,
+  };
+}
+
 async function submitTreeNextEnrollmentRequest(payload = {}) {
   const response = await fetch(resolveEnrollRegisteredMembersApi(), {
     method: 'POST',
-    headers: {
+    headers: buildTreeNextEnrollRequestHeaders({
       'Content-Type': 'application/json',
-    },
+    }),
     credentials: 'same-origin',
     body: JSON.stringify(payload),
   });
@@ -4382,12 +6739,12 @@ async function submitTreeNextEnrollmentRequest(payload = {}) {
   return createdMember;
 }
 
-async function createTreeNextEnrollmentPaymentIntent(payload = {}) {
-  const response = await fetch(resolveEnrollRegisteredMembersIntentApi(), {
+async function createTreeNextEnrollmentCheckoutSession(payload = {}) {
+  const response = await fetch(resolveEnrollRegisteredMembersSessionApi(), {
     method: 'POST',
-    headers: {
+    headers: buildTreeNextEnrollRequestHeaders({
       'Content-Type': 'application/json',
-    },
+    }),
     credentials: 'same-origin',
     body: JSON.stringify(payload),
   });
@@ -4396,39 +6753,39 @@ async function createTreeNextEnrollmentPaymentIntent(payload = {}) {
   if (!response.ok) {
     const failureMessage = typeof responsePayload?.error === 'string'
       ? responsePayload.error
-      : 'Unable to create Stripe payment intent for enrollment.';
+      : 'Unable to create Stripe checkout session for enrollment.';
     throw new Error(failureMessage);
   }
 
-  const paymentIntentId = safeText(responsePayload?.paymentIntentId);
-  const clientSecret = safeText(responsePayload?.clientSecret);
-  if (!paymentIntentId || !clientSecret) {
-    throw new Error('Enrollment payment intent response is missing required Stripe fields.');
+  const sessionId = safeText(responsePayload?.sessionId);
+  const sessionUrl = safeText(responsePayload?.sessionUrl);
+  if (!sessionId || !sessionUrl) {
+    throw new Error('Enrollment checkout response is missing Stripe session details.');
   }
 
   return {
-    paymentIntentId,
-    clientSecret,
+    sessionId,
+    sessionUrl,
     checkout: responsePayload?.checkout && typeof responsePayload.checkout === 'object'
       ? responsePayload.checkout
       : {},
   };
 }
 
-async function completeTreeNextEnrollmentPaymentIntent(paymentIntentId) {
-  const safePaymentIntentId = safeText(paymentIntentId);
-  if (!safePaymentIntentId) {
-    throw new Error('Payment intent ID is required to finalize enrollment.');
+async function completeTreeNextEnrollmentCheckoutSession(sessionId) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    throw new Error('Checkout session ID is required to finalize enrollment.');
   }
 
-  const response = await fetch(resolveEnrollRegisteredMembersIntentCompleteApi(), {
+  const response = await fetch(resolveEnrollRegisteredMembersSessionCompleteApi(), {
     method: 'POST',
-    headers: {
+    headers: buildTreeNextEnrollRequestHeaders({
       'Content-Type': 'application/json',
-    },
+    }),
     credentials: 'same-origin',
     body: JSON.stringify({
-      paymentIntentId: safePaymentIntentId,
+      sessionId: safeSessionId,
     }),
   });
 
@@ -4436,7 +6793,7 @@ async function completeTreeNextEnrollmentPaymentIntent(paymentIntentId) {
   if (!response.ok) {
     const failureMessage = typeof responsePayload?.error === 'string'
       ? responsePayload.error
-      : 'Unable to finalize enrollment payment.';
+      : 'Unable to finalize enrollment checkout.';
     throw new Error(failureMessage);
   }
 
@@ -4452,10 +6809,386 @@ async function completeTreeNextEnrollmentPaymentIntent(paymentIntentId) {
       ? responsePayload.invoice
       : null,
     warning: safeText(responsePayload?.warning),
+    checkoutSession: responsePayload?.checkoutSession && typeof responsePayload.checkoutSession === 'object'
+      ? responsePayload.checkoutSession
+      : null,
     paymentIntent: responsePayload?.paymentIntent && typeof responsePayload.paymentIntent === 'object'
       ? responsePayload.paymentIntent
       : null,
   };
+}
+
+async function finalizeTreeNextEnrollmentCheckoutSessionFromStripeReturn(sessionId, options = {}) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    return;
+  }
+  if (enrollCheckoutFinalizationInFlightSessionIds.has(safeSessionId)) {
+    return;
+  }
+  enrollCheckoutFinalizationInFlightSessionIds.add(safeSessionId);
+  const submitLabel = treeNextEnrollModalSubmitButton instanceof HTMLButtonElement
+    ? treeNextEnrollModalSubmitButton.textContent || 'Register and Pay'
+    : 'Register and Pay';
+
+  try {
+    const checkoutWindow = options?.checkoutWindow;
+    const preserveCurrentStep = Boolean(options?.preserveCurrentStep);
+    const pendingCheckoutState = readTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY);
+    const pendingPlacementLock = (
+      pendingCheckoutState?.placementLock && typeof pendingCheckoutState.placementLock === 'object'
+    )
+      ? pendingCheckoutState.placementLock
+      : null;
+    const pendingPackageKey = resolveTreeNextEnrollPackageKey(
+      pendingCheckoutState?.packageKey || ENROLL_DEFAULT_PACKAGE_KEY,
+    );
+    const pendingTierKey = normalizeCredentialValue(
+      pendingCheckoutState?.tierKey || resolveEnrollFastTrackTierFromPackage(pendingPackageKey),
+    );
+    const pendingSpilloverSide = normalizeBinarySide(pendingCheckoutState?.spilloverPlacementSide) === 'right'
+      ? 'right'
+      : 'left';
+    const pendingSpilloverMode = Boolean(pendingCheckoutState?.isSpilloverPlacement);
+
+    if (pendingPlacementLock && typeof pendingPlacementLock === 'object') {
+      state.enroll.placementLock = {
+        ...pendingPlacementLock,
+      };
+    }
+
+    setTreeNextEnrollModalOpen(true);
+    if (!preserveCurrentStep) {
+      setTreeNextEnrollStep(3, { focusField: false });
+    }
+    state.enroll.submitting = true;
+    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
+      treeNextEnrollModalSubmitButton.disabled = true;
+      treeNextEnrollModalSubmitButton.textContent = 'Finalizing enrollment...';
+    }
+    setTreeNextEnrollFeedback('Finalizing enrollment...', 'neutral', { loading: true });
+
+    const maxAttempts = checkoutWindow ? 240 : 5;
+    const pollDelayMs = checkoutWindow ? 1200 : 700;
+    let completionResult = await completeTreeNextEnrollmentCheckoutSession(safeSessionId);
+    let completionAttempts = 0;
+    while (!completionResult.completed && completionAttempts < maxAttempts) {
+      if (checkoutWindow?.closed) {
+        completionResult = await completeTreeNextEnrollmentCheckoutSession(safeSessionId);
+        if (!completionResult.completed) {
+          throw new Error('Stripe checkout window was closed before payment completed.');
+        }
+        break;
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, pollDelayMs));
+      completionAttempts += 1;
+      completionResult = await completeTreeNextEnrollmentCheckoutSession(safeSessionId);
+    }
+    if (!completionResult.completed || !completionResult.member) {
+      throw new Error('Payment captured, but enrollment is still processing. Please retry in a moment.');
+    }
+    if (checkoutWindow && !checkoutWindow.closed) {
+      checkoutWindow.close();
+    }
+
+    const createdMember = completionResult.member;
+    const enrolledName = safeText(createdMember?.fullName || createdMember?.name) || 'Member';
+    const packageLabel = safeText(
+      createdMember?.enrollmentPackageLabel
+      || resolveEnrollPackageMeta(pendingPackageKey)?.label
+      || 'Legacy Builder Package',
+    ) || 'Legacy Builder Package';
+    const effectiveTier = normalizeCredentialValue(createdMember?.fastTrackTier || pendingTierKey);
+    const fallbackBonus = resolveEnrollFastTrackBonusAmount(pendingPackageKey, effectiveTier);
+    const commissionAmount = Math.max(0, safeNumber(createdMember?.fastTrackBonusAmount, fallbackBonus));
+
+    const placementLock = pendingPlacementLock && typeof pendingPlacementLock === 'object'
+      ? pendingPlacementLock
+      : null;
+    const placementSide = normalizeBinarySide(placementLock?.placementLeg) || pendingSpilloverSide;
+    const placementSideLabel = (placementSide === 'right' ? 'RIGHT' : 'LEFT');
+    const isSpilloverPlacement = pendingSpilloverMode || normalizeCredentialValue(placementLock?.placementLeg) === 'spillover';
+    const placementSummary = isSpilloverPlacement
+      ? `SPILLOVER ${placementSideLabel}`
+      : `${placementSideLabel} leg`;
+    const spilloverParentReference = safeText(
+      createdMember?.spilloverParentReference
+      || createdMember?.spillover_parent_reference,
+    );
+    const hasManualSpilloverParent = isSpilloverPlacement && Boolean(spilloverParentReference);
+    const parentLabel = safeText(placementLock?.parentName || placementLock?.parentId || 'selected sponsor');
+    const successFeedback = (isSpilloverPlacement && !hasManualSpilloverParent)
+      ? `${enrolledName} enrolled on ${placementSummary}. Receiving parent will auto-assign after live sync.`
+      : `${enrolledName} enrolled on ${placementSummary} under ${parentLabel}.`;
+    const finalFeedback = completionResult.warning
+      ? `${successFeedback} ${completionResult.warning}`
+      : successFeedback;
+
+    if (placementLock) {
+      state.enroll.pendingPlacement = {
+        createdMember,
+        placementLock: {
+          ...placementLock,
+        },
+        packageKey: pendingPackageKey,
+      };
+    } else {
+      state.enroll.pendingPlacement = null;
+    }
+
+    // Keep the tree slot reserved until the user confirms via Done.
+    // Forced live sync here can pre-place the node and cause duplicate placement errors.
+    if (!state.enroll.pendingPlacement) {
+      await syncTreeNextLiveNodes({ force: true, silent: true, reason: 'enroll-hosted-checkout' });
+    }
+
+    void (async () => {
+      try {
+        if (state.source === 'member') {
+          await refreshAuthenticatedMemberSessionSnapshot({ skipAccountOverviewReset: true });
+        }
+        resetAccountOverviewRemoteSnapshot();
+        const overviewContext = resolveAccountOverviewPanelContext();
+        const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+        await refreshAccountOverviewRemoteSnapshot({
+          force: true,
+          homeNode,
+          scope: overviewContext?.scope,
+          preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+        });
+        syncAccountOverviewPanelVisuals();
+      } catch {
+        // Enrollment success should not fail when account-overview refresh has transient network issues.
+      }
+    })();
+
+    setTreeNextEnrollFeedback(finalFeedback, true);
+    showTreeNextEnrollThankYouStep({
+      enrolledName,
+      packageLabel,
+      commissionAmount,
+      passwordSetupLink: createdMember?.passwordSetupLink,
+    });
+    clearTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY);
+  } catch (error) {
+    const fallbackMessage = error instanceof Error
+      ? error.message
+      : 'Unable to finalize enrollment right now.';
+    setTreeNextEnrollFeedback(fallbackMessage, false);
+  } finally {
+    state.enroll.submitting = false;
+    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
+      treeNextEnrollModalSubmitButton.disabled = false;
+      treeNextEnrollModalSubmitButton.textContent = submitLabel;
+    }
+    enrollCheckoutFinalizationInFlightSessionIds.delete(safeSessionId);
+  }
+}
+
+function normalizeTreeNextStripeReturnPayload(payload = {}) {
+  const source = payload && typeof payload === 'object'
+    ? payload
+    : {};
+  const checkoutStatus = normalizeCredentialValue(
+    source.checkoutStatus || source.status,
+  );
+  const flow = normalizeCredentialValue(source.flow);
+  const sessionId = safeText(source.sessionId);
+  const signalId = safeText(source.signalId || source.id);
+  const emittedAtRaw = safeText(source.emittedAt);
+  const emittedAtMs = emittedAtRaw
+    ? Date.parse(emittedAtRaw)
+    : Number.NaN;
+  if (!checkoutStatus || !flow) {
+    return null;
+  }
+  if (checkoutStatus === 'success' && !sessionId) {
+    return null;
+  }
+  return {
+    checkoutStatus,
+    flow,
+    sessionId,
+    signalId,
+    emittedAtMs: Number.isFinite(emittedAtMs) ? emittedAtMs : 0,
+  };
+}
+
+function buildTreeNextStripeReturnSignalKey(payload = {}) {
+  const normalizedPayload = normalizeTreeNextStripeReturnPayload(payload);
+  if (!normalizedPayload) {
+    return '';
+  }
+  if (normalizedPayload.signalId) {
+    return normalizedPayload.signalId;
+  }
+  return `${normalizedPayload.flow}:${normalizedPayload.checkoutStatus}:${normalizedPayload.sessionId || 'none'}`;
+}
+
+async function processTreeNextStripeCheckoutReturnPayload(payload = {}, options = {}) {
+  const normalizedPayload = normalizeTreeNextStripeReturnPayload(payload);
+  if (!normalizedPayload) {
+    return false;
+  }
+  const checkoutStatus = normalizedPayload.checkoutStatus;
+  const flow = normalizedPayload.flow;
+  const sessionId = normalizedPayload.sessionId;
+  const preserveCurrentStep = Boolean(options?.preserveCurrentStep);
+
+  if (flow === TREE_NEXT_STRIPE_RETURN_FLOW_MY_STORE) {
+    if (checkoutStatus === 'cancel') {
+      setMyStorePanelVisible(true);
+      if (!preserveCurrentStep) {
+        setMyStoreStep(MY_STORE_STEP_CHECKOUT, { clearCheckoutFeedback: true });
+      }
+      setMyStoreCheckoutFeedback('Checkout was canceled. You can review your details and try again.', {
+        isError: true,
+      });
+      clearTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY);
+      return true;
+    }
+    if (checkoutStatus === 'success') {
+      if (options?.showPendingThankYou !== false) {
+        const pendingSummary = resolveMyStorePendingCheckoutSummary(sessionId);
+        setMyStorePanelVisible(true);
+        showMyStoreCheckoutPendingThankYouStep({
+          message: pendingSummary
+            ? 'Payment successful. Order confirmed instantly.'
+            : 'Payment successful. Receipt is syncing now.',
+          amountPaid: pendingSummary?.amountPaid,
+          bv: pendingSummary?.bv,
+          status: 'Pending',
+          invoiceId: pendingSummary?.invoiceId || 'Generating...',
+          dateLabel: pendingSummary?.dateLabel,
+        });
+      }
+      await finalizeMyStoreCheckoutSessionFromStripeReturn(sessionId, {
+        preserveCurrentStep: options?.showPendingThankYou !== false
+          ? true
+          : preserveCurrentStep,
+        ensurePanelVisible: options?.ensureMyStorePanelVisible !== false,
+        maxAttempts: options?.maxAttempts,
+        pollDelayMs: options?.pollDelayMs,
+      });
+      return true;
+    }
+    return true;
+  }
+
+  if (flow === TREE_NEXT_STRIPE_RETURN_FLOW_ENROLL) {
+    if (checkoutStatus === 'cancel') {
+      setTreeNextEnrollModalOpen(true);
+      if (!preserveCurrentStep) {
+        setTreeNextEnrollStep(1, { focusField: false });
+      }
+      setTreeNextEnrollFeedback('Checkout was canceled. Enrollment details were not submitted.', false);
+      clearTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY);
+      return true;
+    }
+    if (checkoutStatus === 'success') {
+      await finalizeTreeNextEnrollmentCheckoutSessionFromStripeReturn(sessionId, {
+        preserveCurrentStep,
+      });
+      return true;
+    }
+    return true;
+  }
+
+  return false;
+}
+
+function resolveTreeNextStripeReturnSignalPayload(rawValue) {
+  const parsed = parseSessionPayload(rawValue);
+  return normalizeTreeNextStripeReturnPayload(parsed || {});
+}
+
+async function processTreeNextStripeReturnSignalPayload(payload = {}, options = {}) {
+  const normalizedPayload = normalizeTreeNextStripeReturnPayload(payload);
+  if (!normalizedPayload) {
+    return false;
+  }
+  if (
+    normalizedPayload.emittedAtMs > 0
+    && (Date.now() - normalizedPayload.emittedAtMs) > TREE_NEXT_STRIPE_RETURN_SIGNAL_MAX_AGE_MS
+  ) {
+    return false;
+  }
+  const signalKey = buildTreeNextStripeReturnSignalKey(normalizedPayload);
+  if (signalKey && treeNextStripeReturnSignalHandledKeys.has(signalKey)) {
+    return false;
+  }
+  if (signalKey) {
+    treeNextStripeReturnSignalHandledKeys.add(signalKey);
+  }
+  try {
+    const handled = await processTreeNextStripeCheckoutReturnPayload(normalizedPayload, {
+      preserveCurrentStep: true,
+      ensureMyStorePanelVisible: true,
+      showPendingThankYou: true,
+      maxAttempts: 90,
+      pollDelayMs: 700,
+      ...options,
+    });
+    if (handled && options?.consumeSignal !== false) {
+      safeStorageRemove(window.localStorage, TREE_NEXT_STRIPE_RETURN_SIGNAL_STORAGE_KEY);
+    }
+    return handled;
+  } finally {
+    if (signalKey) {
+      treeNextStripeReturnSignalHandledKeys.delete(signalKey);
+    }
+  }
+}
+
+async function processTreeNextStripeReturnSignalFromStorage(options = {}) {
+  const signalPayload = resolveTreeNextStripeReturnSignalPayload(
+    safeStorageGet(window.localStorage, TREE_NEXT_STRIPE_RETURN_SIGNAL_STORAGE_KEY),
+  );
+  if (!signalPayload) {
+    return false;
+  }
+  return processTreeNextStripeReturnSignalPayload(signalPayload, options);
+}
+
+function onTreeNextStripeReturnMessage(event) {
+  if (!event || safeText(event.origin) !== window.location.origin) {
+    return;
+  }
+  const data = event.data && typeof event.data === 'object'
+    ? event.data
+    : null;
+  if (!data) {
+    return;
+  }
+  if (safeText(data.type) !== TREE_NEXT_STRIPE_RETURN_MESSAGE_TYPE) {
+    return;
+  }
+  const payload = data.payload && typeof data.payload === 'object'
+    ? data.payload
+    : data;
+  void processTreeNextStripeReturnSignalPayload(payload, {
+    preserveCurrentStep: true,
+  });
+}
+
+async function processTreeNextStripeCheckoutReturn() {
+  const returnDetails = resolveTreeNextStripeReturnDetails();
+  const hasReturnParams = Boolean(
+    returnDetails.checkoutStatus
+    || returnDetails.flow
+    || returnDetails.sessionId,
+  );
+  if (!hasReturnParams) {
+    return;
+  }
+  await processTreeNextStripeCheckoutReturnPayload(returnDetails, {
+    preserveCurrentStep: false,
+    ensureMyStorePanelVisible: true,
+    showPendingThankYou: true,
+    maxAttempts: 90,
+    pollDelayMs: 700,
+  });
+  clearTreeNextStripeReturnQueryParameters();
 }
 
 function resolveUniqueTreeNodeId(baseId) {
@@ -4476,6 +7209,139 @@ function resolveUniqueTreeNodeId(baseId) {
   }
 
   return `${fallbackBaseId}-${Date.now()}`;
+}
+
+function shouldSkipTreeNextPendingPlacementApply(pendingPlacement = null) {
+  const createdMember = pendingPlacement?.createdMember;
+  if (!createdMember || typeof createdMember !== 'object') {
+    return false;
+  }
+
+  const placementLegKey = normalizeCredentialValue(createdMember?.placementLeg);
+  const isSpilloverPlacement = Boolean(createdMember?.isSpillover) || SPILLOVER_PLACEMENT_KEY_SET.has(placementLegKey);
+  if (!isSpilloverPlacement) {
+    return false;
+  }
+
+  const spilloverParentReference = safeText(
+    createdMember?.spilloverParentReference
+    || createdMember?.spillover_parent_reference,
+  );
+  return !spilloverParentReference;
+}
+
+function buildTreeNextPlacementIdentityLookupSet(record = null) {
+  const source = record && typeof record === 'object' ? record : null;
+  const lookup = new Set();
+  if (!source) {
+    return lookup;
+  }
+
+  const register = (value) => {
+    const safeValue = safeText(value).replace(/^@+/, '');
+    const key = normalizeTreeNextLiveLookupKey(safeValue);
+    if (key) {
+      lookup.add(key);
+    }
+  };
+
+  register(source?.id);
+  register(source?.userId);
+  register(source?.user_id);
+  register(source?.memberId);
+  register(source?.member_id);
+  register(source?.memberUsername);
+  register(source?.member_username);
+  register(source?.username);
+  register(source?.memberCode);
+  register(source?.member_code);
+  register(source?.email);
+
+  return lookup;
+}
+
+function resolveExistingTreeNextPendingPlacementNode(pendingPlacement = null) {
+  const pending = pendingPlacement && typeof pendingPlacement === 'object'
+    ? pendingPlacement
+    : null;
+  const createdMember = pending?.createdMember && typeof pending.createdMember === 'object'
+    ? pending.createdMember
+    : null;
+  if (!createdMember) {
+    return null;
+  }
+
+  const memberLookup = buildTreeNextPlacementIdentityLookupSet(createdMember);
+  if (!memberLookup.size) {
+    return null;
+  }
+
+  const expectedParentId = safeText(pending?.placementLock?.parentId);
+  const expectedPlacementLeg = normalizeBinarySide(pending?.placementLock?.placementLeg) === 'right'
+    ? 'right'
+    : 'left';
+
+  let fallbackMatch = null;
+  for (const rawNode of state.nodes) {
+    const node = rawNode && typeof rawNode === 'object' ? rawNode : null;
+    if (!node) {
+      continue;
+    }
+    const nodeId = safeText(node?.id);
+    if (!nodeId || nodeId === 'root') {
+      continue;
+    }
+
+    const nodeLookup = buildTreeNextPlacementIdentityLookupSet({
+      id: nodeId,
+      userId: node?.userId,
+      user_id: node?.user_id,
+      memberId: node?.memberId,
+      member_id: node?.member_id,
+      memberUsername: node?.memberUsername || node?.username,
+      username: node?.username,
+      memberCode: node?.memberCode,
+      member_code: node?.member_code,
+      email: node?.email,
+    });
+    if (!nodeLookup.size) {
+      continue;
+    }
+
+    let matchedIdentity = false;
+    for (const key of nodeLookup) {
+      if (memberLookup.has(key)) {
+        matchedIdentity = true;
+        break;
+      }
+    }
+    if (!matchedIdentity) {
+      continue;
+    }
+
+    const nodeParentId = safeText(node?.parent || node?.parentId);
+    const nodePlacementLegRaw = normalizeBinarySide(node?.side || node?.placementSide || node?.sponsorLeg);
+    const nodePlacementLeg = nodePlacementLegRaw === 'right'
+      ? 'right'
+      : (nodePlacementLegRaw === 'left' ? 'left' : expectedPlacementLeg);
+    const strictPlacementMatch = expectedParentId
+      ? (nodeParentId === expectedParentId && nodePlacementLeg === expectedPlacementLeg)
+      : true;
+    const matchResult = {
+      nodeId,
+      parentId: nodeParentId || expectedParentId,
+      placementLeg: nodePlacementLeg || expectedPlacementLeg,
+    };
+
+    if (strictPlacementMatch) {
+      return matchResult;
+    }
+    if (!fallbackMatch) {
+      fallbackMatch = matchResult;
+    }
+  }
+
+  return fallbackMatch;
 }
 
 function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
@@ -4585,6 +7451,26 @@ function finalizePendingTreeNextEnrollmentPlacement(options = {}) {
       error: 'No pending enrollment placement to apply.',
     };
   }
+  if (shouldSkipTreeNextPendingPlacementApply(pendingPlacement)) {
+    state.enroll.pendingPlacement = null;
+    return {
+      success: false,
+      skipped: true,
+      reason: 'spillover-auto-placement',
+    };
+  }
+
+  const existingPlacement = resolveExistingTreeNextPendingPlacementNode(pendingPlacement);
+  if (existingPlacement?.nodeId) {
+    state.enroll.pendingPlacement = null;
+    return {
+      success: true,
+      nodeId: existingPlacement.nodeId,
+      parentId: existingPlacement.parentId,
+      placementLeg: normalizeBinarySide(existingPlacement.placementLeg) === 'right' ? 'right' : 'left',
+      alreadyPlaced: true,
+    };
+  }
 
   const applyResult = applyTreeNextEnrollmentNode(
     pendingPlacement.createdMember,
@@ -4669,11 +7555,14 @@ function validateTreeNextEnrollStepTwo() {
   return true;
 }
 
-async function handleTreeNextEnrollModalSubmit(event) {
-  event.preventDefault();
+async function handleTreeNextEnrollModalSubmit(event = null) {
+  if (event && typeof event.preventDefault === 'function') {
+    event.preventDefault();
+  }
   clearTreeNextEnrollFeedback();
 
-  if (resolveTreeNextEnrollStep() !== 3) {
+  const currentStep = resolveTreeNextEnrollStep();
+  if (currentStep < 2) {
     return;
   }
   if (!(treeNextEnrollModalForm instanceof HTMLFormElement)) {
@@ -4699,59 +7588,6 @@ async function handleTreeNextEnrollModalSubmit(event) {
     return;
   }
 
-  const stripeReady = await initializeTreeNextEnrollStripeCard({ silent: true });
-  if (!stripeReady) {
-    setTreeNextEnrollFeedback('Stripe card fields are not ready yet.', false);
-    return;
-  }
-
-  const cardholderName = safeText(treeNextEnrollNameOnCardInput?.value);
-  const billingAddress = safeText(treeNextEnrollBillingAddressInput?.value);
-  const billingCity = safeText(treeNextEnrollBillingCityInput?.value);
-  const billingState = safeText(treeNextEnrollBillingStateInput?.value);
-  const billingPostalCode = safeText(treeNextEnrollBillingPostalCodeInput?.value);
-  const billingCountryValue = safeText(treeNextEnrollBillingCountrySelect?.value);
-  const billingCountryLabel = safeText(
-    treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement
-      ? treeNextEnrollBillingCountrySelect.selectedOptions?.[0]?.textContent
-      : '',
-  );
-  const billingCountryCode = resolveTreeNextEnrollStripeBillingCountryCode(
-    billingCountryValue || billingCountryLabel,
-  );
-  if (!cardholderName) {
-    setTreeNextEnrollFeedback('Cardholder name is required before checkout.', false);
-    if (treeNextEnrollNameOnCardInput instanceof HTMLInputElement) {
-      treeNextEnrollNameOnCardInput.focus({ preventScroll: true });
-    }
-    return;
-  }
-  if (!billingAddress || !billingCity || !billingState || !billingPostalCode || !billingCountryCode) {
-    setTreeNextEnrollFeedback('Billing address, city, state, ZIP, and country are required.', false);
-    if (!billingAddress && treeNextEnrollBillingAddressInput instanceof HTMLInputElement) {
-      treeNextEnrollBillingAddressInput.focus({ preventScroll: true });
-    } else if (!billingCity && treeNextEnrollBillingCityInput instanceof HTMLInputElement) {
-      treeNextEnrollBillingCityInput.focus({ preventScroll: true });
-    } else if (!billingState && treeNextEnrollBillingStateInput instanceof HTMLInputElement) {
-      treeNextEnrollBillingStateInput.focus({ preventScroll: true });
-    } else if (!billingPostalCode && treeNextEnrollBillingPostalCodeInput instanceof HTMLInputElement) {
-      treeNextEnrollBillingPostalCodeInput.focus({ preventScroll: true });
-    } else if (!billingCountryCode) {
-      const billingCountryEntry = treeNextEnrollCustomSelectByNativeId.get('tree-next-enroll-billing-country');
-      if (billingCountryEntry?.trigger instanceof HTMLButtonElement) {
-        billingCountryEntry.trigger.focus({ preventScroll: true });
-      } else if (treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement) {
-        treeNextEnrollBillingCountrySelect.focus({ preventScroll: true });
-      }
-    }
-    return;
-  }
-  if (!isTreeNextEnrollStripeCardComplete || !isTreeNextEnrollStripeCardExpiryComplete || !isTreeNextEnrollStripeCardCvcComplete) {
-    setTreeNextEnrollCardError('Please enter a complete card number, expiry date, and CVC.');
-    setTreeNextEnrollFeedback('Please enter a complete card number, expiry date, and CVC.', false);
-    return;
-  }
-
   const email = safeText(treeNextEnrollEmailInput?.value);
   const memberUsername = safeText(treeNextEnrollUsernameInput?.value).replace(/^@+/, '');
   const firstName = safeText(treeNextEnrollFirstNameInput?.value);
@@ -4769,12 +7605,11 @@ async function handleTreeNextEnrollModalSubmit(event) {
   const isSpilloverPlacement = spilloverMode === ENROLL_SPILLOVER_MODE_SPILLOVER;
   const placementLeg = isSpilloverPlacement ? 'spillover' : placementSide;
   const spilloverPlacementSide = placementSide;
-  const spilloverParentMode = isSpilloverPlacement
-    ? (isAdminPlacementMode ? 'manual' : 'auto')
-    : 'auto';
-  const spilloverParentReference = (isSpilloverPlacement && isAdminPlacementMode)
-    ? safeText(placementLock.parentReference || placementLock.parentId)
-    : '';
+  // Always forward the anticipation parent as a server-side spillover anchor.
+  // If server policy forces spillover (first level fully occupied), this prevents
+  // fallback queue placement from drifting away from the selected anticipation node.
+  const spilloverParentReference = safeText(placementLock.parentReference || placementLock.parentId);
+  const spilloverParentMode = spilloverParentReference ? 'manual' : 'auto';
 
   if (!countryFlag) {
     setTreeNextEnrollFeedback('Country flag is required.', false);
@@ -4790,29 +7625,28 @@ async function handleTreeNextEnrollModalSubmit(event) {
   }
 
   const { sponsorUsername, sponsorName } = resolveTreeNextEnrollSponsorIdentityForMode(placementLock);
-  const submitLabel = treeNextEnrollModalSubmitButton instanceof HTMLButtonElement
-    ? treeNextEnrollModalSubmitButton.textContent || 'Register and Pay'
-    : 'Register and Pay';
+  const actionButton = currentStep === 2
+    ? treeNextEnrollStepTwoNextButton
+    : treeNextEnrollModalSubmitButton;
+  const submitLabel = actionButton instanceof HTMLButtonElement
+    ? actionButton.textContent || 'Continue to Stripe'
+    : 'Continue to Stripe';
+  const checkoutWindow = openTreeNextStripeCheckoutWindow();
+  if (!checkoutWindow) {
+    setTreeNextEnrollFeedback('Pop-up blocked. Please allow pop-ups to continue with Stripe checkout.', false);
+    return;
+  }
+
   state.enroll.submitting = true;
-  if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
-    treeNextEnrollModalSubmitButton.disabled = true;
-    treeNextEnrollModalSubmitButton.textContent = 'Registering...';
+  if (actionButton instanceof HTMLButtonElement) {
+    actionButton.disabled = true;
+    actionButton.textContent = 'Opening Stripe...';
   }
 
   try {
-    const stripeBillingAddress = {
-      line1: billingAddress,
-      city: billingCity,
-      state: billingState,
-      postal_code: billingPostalCode,
-    };
-    if (billingCountryCode) {
-      stripeBillingAddress.country = billingCountryCode;
-    }
-
     state.enroll.pendingPlacement = null;
     setTreeNextEnrollFeedback('Preparing secure payment...', 'neutral', { loading: true });
-    const paymentIntentResult = await createTreeNextEnrollmentPaymentIntent({
+    const checkoutSessionResult = await createTreeNextEnrollmentCheckoutSession({
       fullName,
       email,
       memberUsername,
@@ -4827,95 +7661,31 @@ async function handleTreeNextEnrollModalSubmit(event) {
       fastTrackTier: tierKey,
       sponsorUsername,
       sponsorName,
-      billingAddress,
-      billingCity,
-      billingState,
-      billingPostalCode,
-      billingCountry: billingCountryLabel || billingCountryCode,
-      billingCountryCode,
+      billingAddress: '',
+      billingCity: '',
+      billingState: '',
+      billingPostalCode: '',
+      billingCountry: '',
+      billingCountryCode: '',
+      returnPath: buildTreeNextStripeReturnPath(TREE_NEXT_STRIPE_RETURN_FLOW_ENROLL),
     });
-
-    if (!(treeNextEnrollStripeClient && treeNextEnrollStripeCardNumber)) {
-      throw new Error('Stripe card fields are not ready yet.');
-    }
-    clearTreeNextEnrollCardError();
-    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
-      treeNextEnrollModalSubmitButton.textContent = 'Confirming card...';
-    }
-    setTreeNextEnrollFeedback('Confirming your payment with Stripe...', 'neutral', { loading: true });
-
-    const { error: stripeConfirmError, paymentIntent } = await treeNextEnrollStripeClient.confirmCardPayment(
-      paymentIntentResult.clientSecret,
-      {
-        payment_method: {
-          card: treeNextEnrollStripeCardNumber,
-          billing_details: {
-            name: cardholderName,
-            email,
-            address: stripeBillingAddress,
-          },
-        },
-      },
-    );
-    if (stripeConfirmError) {
-      const stripeErrorMessage = safeText(stripeConfirmError?.message) || 'Payment could not be confirmed.';
-      setTreeNextEnrollCardError(stripeErrorMessage);
-      throw new Error(stripeErrorMessage);
-    }
-
-    const finalizedPaymentIntentId = safeText(paymentIntent?.id || paymentIntentResult.paymentIntentId);
-    if (!finalizedPaymentIntentId) {
-      throw new Error('Payment was submitted, but no Stripe payment reference was returned.');
-    }
-
-    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
-      treeNextEnrollModalSubmitButton.textContent = 'Finalizing enrollment...';
-    }
-    setTreeNextEnrollFeedback('Finalizing enrollment...', 'neutral', { loading: true });
-
-    let completionResult = await completeTreeNextEnrollmentPaymentIntent(finalizedPaymentIntentId);
-    let completionAttempts = 0;
-    while (!completionResult.completed && completionAttempts < 5) {
-      await new Promise((resolve) => window.setTimeout(resolve, 700));
-      completionAttempts += 1;
-      completionResult = await completeTreeNextEnrollmentPaymentIntent(finalizedPaymentIntentId);
-    }
-    if (!completionResult.completed || !completionResult.member) {
-      throw new Error('Payment captured, but enrollment is still processing. Please retry in a moment.');
-    }
-
-    const createdMember = completionResult.member;
-    const enrolledName = safeText(createdMember?.fullName || fullName) || 'Member';
-    const packageLabel = safeText(
-      createdMember?.enrollmentPackageLabel
-      || resolveEnrollPackageMeta(packageKey)?.label
-      || 'Legacy Builder Package',
-    ) || 'Legacy Builder Package';
-    const effectiveTier = normalizeCredentialValue(createdMember?.fastTrackTier || tierKey);
-    const fallbackBonus = resolveEnrollFastTrackBonusAmount(packageKey, effectiveTier);
-    const commissionAmount = Math.max(0, safeNumber(createdMember?.fastTrackBonusAmount, fallbackBonus));
-    const placementSideLabel = spilloverPlacementSide.toUpperCase();
-    const placementSummary = isSpilloverPlacement
-      ? `SPILLOVER ${placementSideLabel}`
-      : `${placementSideLabel} leg`;
-    const successFeedback = `${enrolledName} enrolled on ${placementSummary} under ${placementLock.parentName}.`;
-    const finalFeedback = completionResult.warning
-      ? `${successFeedback} ${completionResult.warning}`
-      : successFeedback;
-    setTreeNextEnrollFeedback(finalFeedback, true);
-    showTreeNextEnrollThankYouStep({
-      enrolledName,
-      packageLabel,
-      commissionAmount,
-      passwordSetupLink: createdMember?.passwordSetupLink,
-    });
-    state.enroll.pendingPlacement = {
-      createdMember,
+    persistTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY, {
+      packageKey,
+      tierKey,
+      isSpilloverPlacement,
+      spilloverPlacementSide,
       placementLock: {
         ...placementLock,
       },
-      packageKey,
-    };
+      submittedAt: new Date().toISOString(),
+    });
+    setTreeNextEnrollFeedback('Stripe checkout opened in a new window. Complete payment to continue...', 'neutral', { loading: true });
+    checkoutWindow.location.replace(checkoutSessionResult.sessionUrl);
+    checkoutWindow.focus();
+    await finalizeTreeNextEnrollmentCheckoutSessionFromStripeReturn(checkoutSessionResult.sessionId, {
+      checkoutWindow,
+      preserveCurrentStep: true,
+    });
   } catch (error) {
     const fallbackMessage = error instanceof Error
       ? error.message
@@ -4923,9 +7693,9 @@ async function handleTreeNextEnrollModalSubmit(event) {
     setTreeNextEnrollFeedback(fallbackMessage, false);
   } finally {
     state.enroll.submitting = false;
-    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
-      treeNextEnrollModalSubmitButton.disabled = false;
-      treeNextEnrollModalSubmitButton.textContent = submitLabel;
+    if (actionButton instanceof HTMLButtonElement) {
+      actionButton.disabled = false;
+      actionButton.textContent = submitLabel;
     }
   }
 }
@@ -5000,6 +7770,13 @@ function initTreeNextEnrollModal() {
         setTreeNextEnrollFeedback(`Member created, but tree update failed: ${applyResult.error}`, false);
         return;
       }
+      if (applyResult.skipped) {
+        void syncTreeNextLiveNodes({
+          force: true,
+          silent: true,
+          reason: 'enroll-done-skip-pending-placement',
+        });
+      }
       closeTreeNextEnrollModal({
         restoreFocus: false,
         clearFeedback: true,
@@ -5051,13 +7828,8 @@ function initTreeNextEnrollModal() {
     });
   }
   if (treeNextEnrollStepTwoNextButton instanceof HTMLButtonElement) {
-    treeNextEnrollStepTwoNextButton.addEventListener('click', async () => {
-      clearTreeNextEnrollFeedback();
-      if (!validateTreeNextEnrollStepTwo()) {
-        return;
-      }
-      setTreeNextEnrollStep(3, { focusField: true });
-      await initializeTreeNextEnrollStripeCard({ silent: true });
+    treeNextEnrollStepTwoNextButton.addEventListener('click', () => {
+      void handleTreeNextEnrollModalSubmit();
     });
   }
   if (treeNextEnrollStepThreePreviousButton instanceof HTMLButtonElement) {
@@ -5085,9 +7857,7 @@ function initTreeNextEnrollModal() {
     }
     if (currentStep === 2) {
       event.preventDefault();
-      if (validateTreeNextEnrollStepTwo()) {
-        setTreeNextEnrollStep(3, { focusField: true });
-      }
+      void handleTreeNextEnrollModalSubmit();
     }
   });
 
@@ -5406,6 +8176,10 @@ function isManualWheelZoomModifierPressed(event) {
 }
 
 function resolveSessionDisplayName() {
+  if (state.source === 'admin') {
+    return ADMIN_ROOT_DISPLAY_NAME;
+  }
+
   const session = state.session && typeof state.session === 'object' ? state.session : null;
   const firstName = safeText(session?.firstName || session?.first_name || session?.givenName || session?.given_name);
   const lastName = safeText(session?.lastName || session?.last_name || session?.familyName || session?.family_name);
@@ -5417,7 +8191,7 @@ function resolveSessionDisplayName() {
   if (combinedName) {
     return combinedName;
   }
-  return state.source === 'admin' ? 'Admin' : 'Member';
+  return 'Member';
 }
 
 function resolveSessionDisplayEmail() {
@@ -6382,6 +9156,284 @@ function safeStorageGet(storage, key) {
   }
 }
 
+function safeStorageSet(storage, key, value) {
+  try {
+    if (!storage) {
+      return false;
+    }
+    storage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function safeStorageRemove(storage, key) {
+  try {
+    if (!storage) {
+      return false;
+    }
+    storage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function persistTreeNextPendingCheckoutState(storageKey, payload = {}) {
+  if (!storageKey) {
+    return false;
+  }
+
+  const serialized = JSON.stringify(payload || {});
+  const wroteSession = safeStorageSet(window.sessionStorage, storageKey, serialized);
+  const wroteLocal = safeStorageSet(window.localStorage, storageKey, serialized);
+  return wroteSession || wroteLocal;
+}
+
+function readTreeNextPendingCheckoutState(storageKey) {
+  if (!storageKey) {
+    return null;
+  }
+  const raw = safeStorageGet(window.sessionStorage, storageKey)
+    || safeStorageGet(window.localStorage, storageKey);
+  return parseSessionPayload(raw);
+}
+
+function clearTreeNextPendingCheckoutState(storageKey) {
+  if (!storageKey) {
+    return;
+  }
+  safeStorageRemove(window.sessionStorage, storageKey);
+  safeStorageRemove(window.localStorage, storageKey);
+}
+
+function resolveTreeNextStripeReturnDetails() {
+  const query = new URLSearchParams(window.location.search || '');
+  return {
+    checkoutStatus: normalizeCredentialValue(query.get('checkout')),
+    sessionId: safeText(query.get('session_id')),
+    flow: normalizeCredentialValue(query.get(TREE_NEXT_STRIPE_RETURN_FLOW_QUERY_KEY)),
+  };
+}
+
+function resolveTreeNextStripeReturnTargetPath() {
+  const currentUrl = new URL(window.location.href);
+  currentUrl.searchParams.delete('checkout');
+  currentUrl.searchParams.delete('session_id');
+  currentUrl.searchParams.delete(TREE_NEXT_STRIPE_RETURN_FLOW_QUERY_KEY);
+  currentUrl.searchParams.delete(TREE_NEXT_STRIPE_RETURN_TARGET_QUERY_KEY);
+  return `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`;
+}
+
+function buildTreeNextStripeReturnPath(flow) {
+  const flowKey = normalizeCredentialValue(flow);
+  const returnUrl = new URL('/stripe-checkout-return.html', window.location.origin);
+  const targetPath = resolveTreeNextStripeReturnTargetPath();
+  if (flowKey) {
+    returnUrl.searchParams.set(TREE_NEXT_STRIPE_RETURN_FLOW_QUERY_KEY, flowKey);
+  }
+  if (targetPath) {
+    returnUrl.searchParams.set(TREE_NEXT_STRIPE_RETURN_TARGET_QUERY_KEY, targetPath);
+  }
+
+  return `${returnUrl.pathname}${returnUrl.search}${returnUrl.hash}`;
+}
+
+function clearTreeNextStripeReturnQueryParameters() {
+  const currentUrl = new URL(window.location.href);
+  currentUrl.searchParams.delete('checkout');
+  currentUrl.searchParams.delete('session_id');
+  currentUrl.searchParams.delete(TREE_NEXT_STRIPE_RETURN_FLOW_QUERY_KEY);
+  currentUrl.searchParams.delete(TREE_NEXT_STRIPE_RETURN_TARGET_QUERY_KEY);
+  const nextPath = `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`;
+  window.history.replaceState(window.history.state || {}, '', nextPath);
+}
+
+function writeCookieValue(key, value) {
+  try {
+    document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(value)}; path=/; SameSite=Lax`;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function persistSessionSnapshot(storageKey, cookieKey, sessionValue) {
+  if (!storageKey || !cookieKey || !sessionValue || typeof sessionValue !== 'object') {
+    return false;
+  }
+  const serializedSession = JSON.stringify(sessionValue);
+  const wroteLocal = safeStorageSet(window.localStorage, storageKey, serializedSession);
+  const wroteSession = safeStorageSet(window.sessionStorage, storageKey, serializedSession);
+  const wroteCookie = writeCookieValue(cookieKey, serializedSession);
+  return wroteLocal || wroteSession || wroteCookie;
+}
+
+function persistCurrentSourceSessionSnapshot(sessionValue = state.session) {
+  if (!sessionValue || typeof sessionValue !== 'object') {
+    return false;
+  }
+  const storageKey = state.source === 'admin'
+    ? ADMIN_AUTH_STORAGE_KEY
+    : MEMBER_AUTH_STORAGE_KEY;
+  const cookieKey = state.source === 'admin'
+    ? ADMIN_AUTH_COOKIE_KEY
+    : MEMBER_AUTH_COOKIE_KEY;
+  return persistSessionSnapshot(storageKey, cookieKey, sessionValue);
+}
+
+async function refreshAuthenticatedMemberSessionSnapshot(options = {}) {
+  if (state.source !== 'member') {
+    return {
+      ok: false,
+      reason: 'non-member-source',
+    };
+  }
+
+  const currentSession = state.session && typeof state.session === 'object' ? state.session : null;
+  const authToken = safeText(currentSession?.authToken);
+  if (!authToken) {
+    return {
+      ok: false,
+      reason: 'missing-auth-token',
+    };
+  }
+
+  try {
+    const response = await fetch(MEMBER_AUTH_SESSION_API, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      return {
+        ok: false,
+        reason: `http-${response.status}`,
+      };
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    const refreshedUser = payload?.user && typeof payload.user === 'object'
+      ? payload.user
+      : null;
+    if (!refreshedUser) {
+      return {
+        ok: false,
+        reason: 'missing-user',
+      };
+    }
+
+    const nextSession = {
+      ...(currentSession && typeof currentSession === 'object' ? currentSession : {}),
+      ...refreshedUser,
+      authToken,
+      authTokenExpiresAt: safeText(currentSession?.authTokenExpiresAt),
+    };
+    state.session = nextSession;
+    persistCurrentSourceSessionSnapshot(nextSession);
+    if (options?.skipAccountOverviewReset !== true) {
+      resetAccountOverviewRemoteSnapshot();
+    }
+    return {
+      ok: true,
+      session: nextSession,
+      checkedAt: safeText(payload?.checkedAt),
+    };
+  } catch {
+    return {
+      ok: false,
+      reason: 'network-fallback',
+    };
+  }
+}
+
+function applyAccountUpgradeUserToLocalState(userInput = null) {
+  const upgradedUser = userInput && typeof userInput === 'object' ? userInput : null;
+  if (!upgradedUser) {
+    return;
+  }
+
+  const currentSession = state.session && typeof state.session === 'object' ? state.session : {};
+  const nextSession = {
+    ...currentSession,
+    ...upgradedUser,
+    authToken: safeText(currentSession.authToken),
+    authTokenExpiresAt: safeText(currentSession.authTokenExpiresAt),
+  };
+  state.session = nextSession;
+  persistCurrentSourceSessionSnapshot(nextSession);
+
+  if (!Array.isArray(state.nodes) || !state.nodes.length) {
+    return;
+  }
+
+  const upgradedUsername = normalizeCredentialValue(upgradedUser.username);
+  const upgradedEmail = normalizeCredentialValue(upgradedUser.email);
+  let didMutateNodes = false;
+  state.nodes = state.nodes.map((node) => {
+    const safeNode = node && typeof node === 'object' ? node : null;
+    if (!safeNode) {
+      return node;
+    }
+    const nodeUsername = normalizeCredentialValue(safeNode.username || safeNode.memberCode);
+    const nodeEmail = normalizeCredentialValue(safeNode.email);
+    const matchesIdentity = (
+      (upgradedUsername && nodeUsername && upgradedUsername === nodeUsername)
+      || (upgradedEmail && nodeEmail && upgradedEmail === nodeEmail)
+    );
+    const matchesMemberRootNode = safeText(safeNode.id) === 'root' && state.source === 'member';
+    if (!matchesIdentity && !matchesMemberRootNode) {
+      return node;
+    }
+
+    didMutateNodes = true;
+    return {
+      ...safeNode,
+      rank: safeText(upgradedUser.accountRank || upgradedUser.rank || safeNode.rank),
+      accountRank: safeText(upgradedUser.accountRank || upgradedUser.rank || safeNode.accountRank),
+      enrollmentPackage: safeText(upgradedUser.enrollmentPackage || safeNode.enrollmentPackage),
+      enrollmentPackageLabel: safeText(upgradedUser.enrollmentPackageLabel || safeNode.enrollmentPackageLabel),
+      packageBv: Math.max(0, Math.round(safeNumber(
+        upgradedUser.enrollmentPackageBv,
+        safeNode.packageBv,
+      ))),
+      starterPersonalPv: Math.max(0, Math.round(safeNumber(
+        upgradedUser.starterPersonalPv,
+        safeNode.starterPersonalPv,
+      ))),
+      currentPersonalPvBv: Math.max(0, Math.round(safeNumber(
+        upgradedUser.currentPersonalPvBv,
+        safeNode.currentPersonalPvBv,
+      ))),
+      accountStatus: safeText(upgradedUser.accountStatus || safeNode.accountStatus || safeNode.status),
+      status: safeText(upgradedUser.accountStatus || safeNode.status || safeNode.accountStatus),
+      activityActiveUntilAt: safeText(upgradedUser.activityActiveUntilAt || safeNode.activityActiveUntilAt),
+      lastProductPurchaseAt: safeText(upgradedUser.lastProductPurchaseAt || safeNode.lastProductPurchaseAt),
+      lastPurchaseAt: safeText(upgradedUser.lastPurchaseAt || safeNode.lastPurchaseAt),
+      lastAccountUpgradeAt: safeText(upgradedUser.lastAccountUpgradeAt || safeNode.lastAccountUpgradeAt),
+      lastAccountUpgradeFromPackage: safeText(
+        upgradedUser.lastAccountUpgradeFromPackage || safeNode.lastAccountUpgradeFromPackage,
+      ),
+      lastAccountUpgradeToPackage: safeText(
+        upgradedUser.lastAccountUpgradeToPackage || safeNode.lastAccountUpgradeToPackage,
+      ),
+      lastAccountUpgradePvGain: Math.max(0, Math.round(safeNumber(
+        upgradedUser.lastAccountUpgradePvGain,
+        safeNode.lastAccountUpgradePvGain,
+      ))),
+    };
+  });
+
+  if (didMutateNodes) {
+    state.adapter.setNodes(state.nodes);
+    rebuildNodeChildLegIndex();
+    updateTreeNextLiveSnapshotHash(state.nodes);
+  }
+}
+
 function readCookieValue(key) {
   const source = safeText(document.cookie);
   const encodedKey = `${encodeURIComponent(key)}=`;
@@ -7138,6 +10190,7 @@ function createTreeNextLiveNodeIdForMember(member = {}, index = 0, usedNodeIds =
 function createTreeNextLiveScopedRootNode(sourceNode = null) {
   const source = sourceNode && typeof sourceNode === 'object' ? sourceNode : null;
   const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const isAdminSource = state.source === 'admin';
   const sessionDisplayName = safeText(resolveSessionDisplayName());
   const sourceDisplayName = safeText(source?.name);
   const sourceUsername = safeText(source?.username || source?.memberCode).replace(/^@+/, '');
@@ -7147,21 +10200,23 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     || session?.email
     || '',
   ).replace(/^@+/, '');
-  const displayName = state.source === 'admin'
-    ? (sourceDisplayName || sessionDisplayName || 'Company Root')
+  const displayName = isAdminSource
+    ? ADMIN_ROOT_DISPLAY_NAME
     : (sourceDisplayName || sessionDisplayName || 'Member');
-  const username = state.source === 'admin'
-    ? (sourceUsername || sessionUsername || 'company-root')
+  const username = isAdminSource
+    ? ADMIN_ROOT_USERNAME
     : (sourceUsername || sessionUsername || 'member');
-  const rank = safeText(
-    source?.rank
-    || source?.accountRank
-    || source?.account_rank
-    || session?.accountRank
-    || session?.account_rank
-    || session?.rank
-    || 'Legacy',
-  ) || 'Legacy';
+  const rank = isAdminSource
+    ? ADMIN_ROOT_DISPLAY_NAME
+    : (safeText(
+      source?.rank
+      || source?.accountRank
+      || source?.account_rank
+      || session?.accountRank
+      || session?.account_rank
+      || session?.rank
+      || 'Legacy',
+    ) || 'Legacy');
   const accountStatus = safeText(source?.accountStatus || source?.status || 'Active') || 'Active';
   const fallbackTitle = `${rank} Builder`;
   const sourceTitle = resolveNodePrimaryTitleLabel(source);
@@ -7169,7 +10224,9 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
   const sessionTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sessionTitle, rank);
   const sourceTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sourceTitle, rank);
   let title = fallbackTitle;
-  if (state.source === 'member') {
+  if (isAdminSource) {
+    title = ADMIN_ROOT_TITLE;
+  } else if (state.source === 'member') {
     if (sessionTitle && !sessionTitleIsFallback) {
       title = sessionTitle;
     } else if (sourceTitle && !sourceTitleIsFallback) {
@@ -7188,7 +10245,9 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
   const sourceBadges = Array.isArray(source?.badges)
     ? source.badges.map((badge) => safeText(badge)).filter(Boolean)
     : [];
-  const badges = sourceBadges.length ? sourceBadges : [rank];
+  const badges = isAdminSource
+    ? [ADMIN_ROOT_DISPLAY_NAME]
+    : (sourceBadges.length ? sourceBadges : [rank]);
   const volume = Math.max(0, Math.floor(safeNumber(source?.volume, 0)));
   const starterPersonalPv = Math.max(0, Math.floor(safeNumber(source?.starterPersonalPv, volume)));
   const baselineStarterPersonalPv = Math.max(0, Math.floor(safeNumber(
@@ -7233,10 +10292,21 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     id: 'root',
     parent: '',
     side: '',
+    userId: safeText(
+      source?.userId
+      || source?.memberUserId
+      || session?.id
+      || session?.userId
+      || session?.user_id
+      || '',
+    ),
+    email: safeText(source?.email || session?.email || ''),
     memberCode: username,
     name: displayName,
     username,
-    role: safeText(source?.role || 'Network Head') || 'Network Head',
+    role: isAdminSource
+      ? ADMIN_ROOT_ROLE
+      : (safeText(source?.role || 'Network Head') || 'Network Head'),
     status: resolveTreeNextLiveNodeStatusFromAccountStatus(accountStatus),
     accountStatus,
     rank,
@@ -7263,6 +10333,14 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     isSpillover: false,
     countryFlag: safeText(source?.countryFlag || session?.countryFlag || ''),
     enrollmentPackage: safeText(source?.enrollmentPackage || session?.enrollmentPackage || ''),
+    packagePrice: Math.max(0, safeNumber(source?.packagePrice ?? session?.packagePrice, 0)),
+    fastTrackBonusAmount: Math.max(0, safeNumber(
+      source?.fastTrackBonusAmount
+      ?? source?.fast_track_bonus_amount
+      ?? session?.fastTrackBonusAmount
+      ?? session?.fast_track_bonus_amount,
+      0,
+    )),
     avatarSeed: sourceAvatarSeed,
     avatarColor: sourceAvatarColorValue,
     avatarColorRgb: sourceAvatarColorTriplet ? [...sourceAvatarColorTriplet] : null,
@@ -7308,6 +10386,10 @@ function rebuildTreeNextLiveChildReferences(nodesInput = []) {
 }
 
 function resolveTreeNextLiveViewerGlobalNodeId(nodeById, lookupToNodeId) {
+  if (state.source === 'admin') {
+    return LIVE_TREE_GLOBAL_ROOT_ID;
+  }
+
   const session = state.session && typeof state.session === 'object' ? state.session : null;
   const candidates = [
     session?.rootNodeId,
@@ -7374,9 +10456,13 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
   const lookupToNodeId = new Map();
   const memberNodeIdByIndex = new Map();
 
-  const registerLookup = (rawValue, nodeId) => {
+  const registerLookup = (rawValue, nodeId, options = {}) => {
+    const preserveExisting = options?.preserveExisting === true;
     const lookupKey = normalizeTreeNextLiveLookupKey(rawValue);
     if (!lookupKey || !nodeId) {
+      return;
+    }
+    if (preserveExisting && lookupToNodeId.has(lookupKey)) {
       return;
     }
     lookupToNodeId.set(lookupKey, nodeId);
@@ -7386,20 +10472,25 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     id: LIVE_TREE_GLOBAL_ROOT_ID,
     parent: '',
     side: '',
-    memberCode: 'company-root',
-    name: 'Company Root',
-    username: 'company-root',
-    role: 'Network Head',
+    userId: ADMIN_ROOT_USERNAME,
+    email: safeText(state.session?.email || ''),
+    memberCode: ADMIN_ROOT_USERNAME,
+    name: ADMIN_ROOT_DISPLAY_NAME,
+    username: ADMIN_ROOT_USERNAME,
+    role: ADMIN_ROOT_ROLE,
     status: 'active',
     accountStatus: 'Active',
-    rank: 'Legacy',
-    title: 'Company Root',
-    badges: ['Legacy'],
+    rank: ADMIN_ROOT_DISPLAY_NAME,
+    accountRank: ADMIN_ROOT_DISPLAY_NAME,
+    title: ADMIN_ROOT_TITLE,
+    badges: [ADMIN_ROOT_DISPLAY_NAME],
     volume: 0,
     starterPersonalPv: 0,
     serverCutoffBaselineStarterPersonalPv: 0,
     currentPersonalPvBv: 0,
     monthlyPersonalBv: 0,
+    packagePrice: 0,
+    fastTrackBonusAmount: 0,
     sponsorId: '',
     globalSponsorId: '',
     sponsorUsername: '',
@@ -7408,8 +10499,10 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
   };
   nodeById.set(LIVE_TREE_GLOBAL_ROOT_ID, globalRootNode);
   registerLookup(LIVE_TREE_GLOBAL_ROOT_ID, LIVE_TREE_GLOBAL_ROOT_ID);
+  registerLookup(ADMIN_ROOT_USERNAME, LIVE_TREE_GLOBAL_ROOT_ID);
   registerLookup('company-root', LIVE_TREE_GLOBAL_ROOT_ID);
   registerLookup('admin', LIVE_TREE_GLOBAL_ROOT_ID);
+  registerLookup('administrator', LIVE_TREE_GLOBAL_ROOT_ID);
 
   members.forEach((member, index) => {
     const nodeId = createTreeNextLiveNodeIdForMember(member, index, usedNodeIds);
@@ -7456,6 +10549,8 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
       id: nodeId,
       parent: '',
       side: '',
+      userId: safeText(member?.userId || member?.id || ''),
+      email: safeText(member?.email || ''),
       memberCode: username || nodeId,
       name: displayName,
       username: username || nodeId,
@@ -7488,8 +10583,13 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
       isSpillover: false,
       countryFlag: normalizeCredentialValue(member?.countryFlag),
       enrollmentPackage: normalizeCredentialValue(member?.enrollmentPackage),
+      packagePrice: Math.max(0, safeNumber(member?.packagePrice, 0)),
       packageBv: personalVolumeSnapshot.packageBv,
       fastTrackTier: normalizeCredentialValue(member?.fastTrackTier),
+      fastTrackBonusAmount: Math.max(0, safeNumber(
+        member?.fastTrackBonusAmount ?? member?.fast_track_bonus_amount,
+        0,
+      )),
       businessCenterNodeType: safeText(member?.businessCenterNodeType),
       isStaffTreeAccount: Boolean(member?.isStaffTreeAccount),
       createdAt,
@@ -7506,6 +10606,9 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     registerLookup(member?.memberUsername, nodeId);
     registerLookup(member?.username, nodeId);
     registerLookup(member?.email, nodeId);
+    registerLookup(member?.memberCode, nodeId, { preserveExisting: true });
+    registerLookup(member?.fullName, nodeId, { preserveExisting: true });
+    registerLookup(member?.name, nodeId, { preserveExisting: true });
     registerLookup(nodeId, nodeId);
   });
 
@@ -7867,9 +10970,12 @@ function applyTreeNextLiveNodes(nextNodes, options = {}) {
   state.adapter.setNodes(state.nodes);
   rebuildNodeChildLegIndex();
   updateTreeNextLiveSnapshotHash(state.nodes);
-  const homeNodeId = resolvePreferredGlobalHomeNodeId();
-  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
-  maybeRefreshAccountOverviewRemoteSnapshot(homeNode);
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  maybeRefreshAccountOverviewRemoteSnapshot(homeNode, {
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
 
   if (previousSelectedId) {
     const selectedStillExists = state.nodes.some((node) => safeText(node?.id) === previousSelectedId);
@@ -7974,6 +11080,10 @@ function onTreeNextLiveSyncVisibilityChange() {
     return;
   }
   if (document.visibilityState === 'visible') {
+    void processTreeNextStripeReturnSignalFromStorage({
+      preserveCurrentStep: true,
+      consumeSignal: true,
+    });
     void syncTreeNextLiveNodes({ force: true, silent: true, reason: 'visibility' });
   }
   scheduleTreeNextLiveSync(resolveTreeNextLiveSyncIntervalMs());
@@ -7983,6 +11093,10 @@ function onTreeNextLiveSyncWindowFocus() {
   if (!state.liveSync?.started) {
     return;
   }
+  void processTreeNextStripeReturnSignalFromStorage({
+    preserveCurrentStep: true,
+    consumeSignal: true,
+  });
   void syncTreeNextLiveNodes({ force: true, silent: true, reason: 'focus' });
   scheduleTreeNextLiveSync(resolveTreeNextLiveSyncIntervalMs());
 }
@@ -11587,6 +14701,9 @@ function renderFrame() {
   syncAccountOverviewPanelPosition(state.layout);
   syncAccountOverviewPanelVisuals();
   syncAccountOverviewPanelVisibility();
+  syncMyStorePanelPosition(state.layout);
+  syncMyStorePanelVisuals();
+  syncMyStorePanelVisibility();
   syncSideNavSearchInput();
   syncSideNavProfileMenu();
 }
@@ -11788,6 +14905,10 @@ function focusRoot(animated = true) {
 }
 
 function resolvePreferredGlobalHomeNodeId() {
+  if (state.source === 'admin') {
+    return 'root';
+  }
+
   const session = state.session && typeof state.session === 'object' ? state.session : null;
   const candidates = [
     session?.rootNodeId,
@@ -12020,6 +15141,10 @@ function triggerAction(action) {
   if (safeAction.startsWith('brand-menu:page:')) {
     const targetPage = safeAction.slice('brand-menu:page:'.length);
     state.ui.sideNavBrandMenuOpen = false;
+    if (targetPage === 'my-store') {
+      setMyStorePanelVisible(true);
+      return;
+    }
     if (targetPage === 'dashboard') {
       const dashboardPath = state.source === 'admin'
         ? ADMIN_DASHBOARD_HOME_PATH
@@ -12465,13 +15590,24 @@ function onKeyDown(event) {
 }
 
 function onSessionStorageChange(event) {
+  const changedKey = safeText(event?.key);
+  if (changedKey === TREE_NEXT_STRIPE_RETURN_SIGNAL_STORAGE_KEY) {
+    const signalPayload = resolveTreeNextStripeReturnSignalPayload(event?.newValue);
+    if (signalPayload) {
+      void processTreeNextStripeReturnSignalPayload(signalPayload, {
+        preserveCurrentStep: true,
+        consumeSignal: true,
+      });
+    }
+    return;
+  }
+
   const expectedStorageKey = state.source === 'admin'
     ? ADMIN_AUTH_STORAGE_KEY
     : MEMBER_AUTH_STORAGE_KEY;
   const expectedCookieKey = state.source === 'admin'
     ? ADMIN_AUTH_COOKIE_KEY
     : MEMBER_AUTH_COOKIE_KEY;
-  const changedKey = safeText(event?.key);
   if (changedKey && changedKey !== expectedStorageKey) {
     return;
   }
@@ -12483,7 +15619,13 @@ function onSessionStorageChange(event) {
   resetAccountOverviewRemoteSnapshot();
   pinnedNodeIdsLastSyncedKey = '';
   pinnedNodeIdsLocalDirty = false;
-  void refreshAccountOverviewRemoteSnapshot({ force: true });
+  const overviewContext = resolveAccountOverviewPanelContext();
+  void refreshAccountOverviewRemoteSnapshot({
+    force: true,
+    homeNode: overviewContext?.homeNode || null,
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
   if (state.source === 'member') {
     schedulePinnedNodeIdsServerSync({ immediate: true });
   }
@@ -12493,6 +15635,7 @@ function bindEvents() {
   window.addEventListener('resize', updateCanvasSize);
   window.addEventListener('keydown', onKeyDown, { passive: false });
   window.addEventListener('storage', onSessionStorageChange);
+  window.addEventListener('message', onTreeNextStripeReturnMessage);
   document.addEventListener('visibilitychange', onTreeNextLiveSyncVisibilityChange);
   window.addEventListener('focus', onTreeNextLiveSyncWindowFocus);
   canvas.addEventListener('pointerdown', onPointerDown);
@@ -12606,6 +15749,12 @@ async function bootstrap() {
   bindEvents();
   initTreeNextEnrollModal();
   initAccountOverviewPanel();
+  initMyStorePanel();
+  await processTreeNextStripeCheckoutReturn();
+  await processTreeNextStripeReturnSignalFromStorage({
+    preserveCurrentStep: true,
+    consumeSignal: true,
+  });
   startTreeNextLiveSync();
 
   setCameraTarget(computeHomeView(), false);

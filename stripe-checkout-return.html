@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stripe Checkout Status</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg-top: #f8fbff;
+      --bg-bottom: #e5edf8;
+      --panel-bg: rgba(255, 255, 255, 0.9);
+      --panel-border: rgba(20, 28, 48, 0.12);
+      --text-main: #10203a;
+      --text-muted: #4b5f82;
+      --accent: #2d8cff;
+      --accent-hover: #1f77e6;
+      --success-bg: #e7f8ee;
+      --success-text: #0f6c38;
+      --cancel-bg: #fff4e5;
+      --cancel-text: #8d5f17;
+      --neutral-bg: #ecf1fa;
+      --neutral-text: #38527c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(45, 140, 255, 0.14), transparent 52%),
+        radial-gradient(circle at 90% 90%, rgba(26, 188, 156, 0.12), transparent 48%),
+        linear-gradient(160deg, var(--bg-top), var(--bg-bottom));
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--text-main);
+    }
+
+    .card {
+      width: min(520px, 100%);
+      border-radius: 18px;
+      border: 1px solid var(--panel-border);
+      background: var(--panel-bg);
+      box-shadow:
+        0 24px 48px -30px rgba(18, 38, 69, 0.55),
+        0 10px 24px -22px rgba(22, 72, 138, 0.45);
+      padding: 24px;
+      backdrop-filter: blur(8px);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+    }
+
+    p {
+      margin: 12px 0 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 14px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .badge.success {
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+
+    .badge.cancel {
+      background: var(--cancel-bg);
+      color: var(--cancel-text);
+    }
+
+    .badge.neutral {
+      background: var(--neutral-bg);
+      color: var(--neutral-text);
+    }
+
+    .session {
+      margin-top: 16px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(16, 32, 58, 0.05);
+      font-size: 0.83rem;
+      color: #2f4263;
+      word-break: break-word;
+    }
+
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms ease, background-color 160ms ease;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid rgba(45, 140, 255, 0.45);
+      outline-offset: 2px;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn.primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn.primary:active {
+      transform: translateY(0);
+      opacity: 0.92;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      border-color: rgba(20, 28, 48, 0.18);
+      color: #1e3559;
+    }
+
+    .btn.secondary:hover {
+      background: #f4f8ff;
+      transform: translateY(-1px);
+    }
+
+    .btn.secondary:active {
+      transform: translateY(0);
+      opacity: 0.92;
+    }
+  </style>
+</head>
+<body>
+  <main class="card" role="status" aria-live="polite">
+    <h1 id="status-title">Checkout status updated</h1>
+    <span id="status-badge" class="badge neutral">Awaiting update</span>
+    <p id="status-message">Return to your Binary Tree tab to continue.</p>
+    <p id="status-session" class="session" hidden></p>
+    <div class="actions">
+      <a id="back-link" class="btn primary" href="/binary-tree-next.html">Back to Binary Tree</a>
+      <button id="close-button" class="btn secondary" type="button">Close this tab</button>
+    </div>
+  </main>
+
+  <script>
+    (function bootstrapStripeCheckoutReturnPage() {
+      const FLOW_QUERY_KEY = 'bt_checkout_flow';
+      const TARGET_QUERY_KEY = 'bt_return_target';
+      const SIGNAL_STORAGE_KEY = 'binary-tree-next-stripe-return-signal-v1';
+      const MESSAGE_TYPE = 'binary-tree-next-stripe-return';
+
+      const statusTitleElement = document.getElementById('status-title');
+      const statusBadgeElement = document.getElementById('status-badge');
+      const statusMessageElement = document.getElementById('status-message');
+      const statusSessionElement = document.getElementById('status-session');
+      const backLinkElement = document.getElementById('back-link');
+      const closeButtonElement = document.getElementById('close-button');
+
+      const query = new URLSearchParams(window.location.search || '');
+      const checkoutStatus = String(query.get('checkout') || '').trim().toLowerCase();
+      const flow = String(query.get(FLOW_QUERY_KEY) || '').trim().toLowerCase();
+      const sessionId = String(query.get('session_id') || '').trim();
+      const targetRaw = String(query.get(TARGET_QUERY_KEY) || '').trim();
+
+      function resolveTargetPath(rawPath) {
+        if (!rawPath) {
+          return '/binary-tree-next.html';
+        }
+        try {
+          const parsed = new URL(rawPath, window.location.origin);
+          if (parsed.origin !== window.location.origin) {
+            return '/binary-tree-next.html';
+          }
+          return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+        } catch {
+          return '/binary-tree-next.html';
+        }
+      }
+
+      function renderStatus() {
+        if (!statusTitleElement || !statusBadgeElement || !statusMessageElement) {
+          return;
+        }
+        if (checkoutStatus === 'success') {
+          statusTitleElement.textContent = 'Payment completed successfully';
+          statusBadgeElement.textContent = 'Payment success';
+          statusBadgeElement.className = 'badge success';
+          statusMessageElement.textContent = 'Stripe checkout is complete. Return to your Binary Tree tab to see the Thank You confirmation.';
+          return;
+        }
+        if (checkoutStatus === 'cancel') {
+          statusTitleElement.textContent = 'Checkout was canceled';
+          statusBadgeElement.textContent = 'Checkout canceled';
+          statusBadgeElement.className = 'badge cancel';
+          statusMessageElement.textContent = 'No charge was captured. Return to your Binary Tree tab to review and retry checkout.';
+          return;
+        }
+        statusTitleElement.textContent = 'Checkout status updated';
+        statusBadgeElement.textContent = 'Status pending';
+        statusBadgeElement.className = 'badge neutral';
+        statusMessageElement.textContent = 'Return to your Binary Tree tab to continue.';
+      }
+
+      function broadcastStatus() {
+        if (!flow || (checkoutStatus !== 'success' && checkoutStatus !== 'cancel')) {
+          return;
+        }
+        if (checkoutStatus === 'success' && !sessionId) {
+          return;
+        }
+        const payload = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+          checkoutStatus,
+          sessionId,
+          flow,
+          emittedAt: new Date().toISOString(),
+        };
+        try {
+          window.localStorage.setItem(SIGNAL_STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+          // Ignore storage write failures.
+        }
+        try {
+          if (window.opener && typeof window.opener.postMessage === 'function') {
+            window.opener.postMessage({
+              type: MESSAGE_TYPE,
+              payload,
+            }, window.location.origin);
+          }
+        } catch {
+          // Ignore postMessage failures.
+        }
+
+        if (window.opener && !window.opener.closed) {
+          window.setTimeout(() => {
+            try {
+              window.close();
+            } catch {
+              // Ignore close failures.
+            }
+          }, 900);
+        }
+      }
+
+      const targetPath = resolveTargetPath(targetRaw);
+      if (backLinkElement instanceof HTMLAnchorElement) {
+        backLinkElement.href = targetPath;
+      }
+      if (statusSessionElement instanceof HTMLElement && sessionId) {
+        statusSessionElement.textContent = `Session: ${sessionId}`;
+        statusSessionElement.hidden = false;
+      }
+
+      renderStatus();
+      broadcastStatus();
+
+      if (closeButtonElement instanceof HTMLButtonElement) {
+        closeButtonElement.addEventListener('click', () => {
+          window.close();
+        });
+      }
+    }());
+  </script>
+</body>
+</html>

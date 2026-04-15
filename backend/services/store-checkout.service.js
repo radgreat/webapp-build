@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 
 import { createStoreInvoice } from './invoice.service.js';
-import { createRegisteredMember, recordMemberPurchase } from './member.service.js';
+import { createRegisteredMember, recordMemberPurchase, upgradeMemberAccount } from './member.service.js';
 import { readStoreProductsStore } from '../stores/store-product.store.js';
 import {
   readMockStoreInvoicesStore,
@@ -444,13 +444,14 @@ function resolveCheckoutReturnUrls(origin, returnPath, storeCode) {
   const successUrl = new URL(baseReturnUrl.toString());
   successUrl.searchParams.set('checkout', 'success');
   successUrl.searchParams.set('session_id', '{CHECKOUT_SESSION_ID}');
+  const successUrlString = successUrl.toString().replace('%7BCHECKOUT_SESSION_ID%7D', '{CHECKOUT_SESSION_ID}');
 
   const cancelUrl = new URL(baseReturnUrl.toString());
   cancelUrl.searchParams.set('checkout', 'cancel');
   cancelUrl.searchParams.delete('session_id');
 
   return {
-    successUrl: successUrl.toString(),
+    successUrl: successUrlString,
     cancelUrl: cancelUrl.toString(),
   };
 }
@@ -911,6 +912,104 @@ async function resolveCheckoutBuyerPreferredCustomerIdentity({
   };
 }
 
+function resolveCheckoutAccountUpgradeTargetPackage(metadata = {}) {
+  return normalizeStorePackageKey(
+    metadata.account_upgrade_target_package
+    || metadata.accountUpgradeTargetPackage
+    || metadata.account_upgrade_package
+    || '',
+  );
+}
+
+function isCheckoutAccountUpgradeEnabled(metadata = {}) {
+  const explicitFlag = normalizeText(
+    metadata.account_upgrade_enabled
+    || metadata.accountUpgradeEnabled
+    || '',
+  ).toLowerCase();
+  if (explicitFlag === '1' || explicitFlag === 'true' || explicitFlag === 'yes') {
+    return true;
+  }
+  return Boolean(resolveCheckoutAccountUpgradeTargetPackage(metadata));
+}
+
+async function applyCheckoutAccountUpgrade({
+  metadata = {},
+  buyerUserId = '',
+  buyerUsername = '',
+  buyerEmail = '',
+} = {}) {
+  const upgradeTargetPackage = resolveCheckoutAccountUpgradeTargetPackage(metadata);
+  const shouldUpgrade = isCheckoutAccountUpgradeEnabled(metadata) && Boolean(upgradeTargetPackage);
+  if (!shouldUpgrade) {
+    return {
+      ok: true,
+      attempted: false,
+      targetPackage: '',
+      message: 'No account upgrade requested for this checkout.',
+    };
+  }
+
+  const userId = normalizeText(buyerUserId);
+  const username = normalizeText(buyerUsername);
+  const email = normalizeEmail(buyerEmail);
+  if (!userId && !username && !email) {
+    return {
+      ok: false,
+      attempted: true,
+      targetPackage: upgradeTargetPackage,
+      message: 'Payment completed, but account upgrade could not be linked to a member account.',
+    };
+  }
+
+  const upgradeResult = await upgradeMemberAccount({
+    userId,
+    username,
+    email,
+    targetPackage: upgradeTargetPackage,
+  });
+  if (upgradeResult?.success) {
+    return {
+      ok: true,
+      attempted: true,
+      targetPackage: upgradeTargetPackage,
+      message: 'Account upgrade applied.',
+      user: upgradeResult.user || null,
+      member: upgradeResult.member || null,
+      upgrade: upgradeResult.upgrade || null,
+    };
+  }
+
+  const errorMessage = normalizeText(upgradeResult?.error);
+  const normalizedErrorMessage = errorMessage.toLowerCase();
+  const alreadyUpgraded = (
+    upgradeResult?.status === 409
+    && (
+      normalizedErrorMessage.includes('already on this package tier')
+      || normalizedErrorMessage.includes('already at the highest package tier')
+    )
+  );
+  if (alreadyUpgraded) {
+    return {
+      ok: true,
+      attempted: true,
+      targetPackage: upgradeTargetPackage,
+      message: errorMessage || 'Account already upgraded to the requested package tier.',
+      user: upgradeResult.user || null,
+      member: upgradeResult.member || null,
+      upgrade: upgradeResult.upgrade || null,
+    };
+  }
+
+  return {
+    ok: false,
+    attempted: true,
+    targetPackage: upgradeTargetPackage,
+    status: Number.isFinite(Number(upgradeResult?.status)) ? Number(upgradeResult.status) : 500,
+    message: errorMessage || 'Payment completed, but account upgrade could not be processed.',
+  };
+}
+
 async function finalizeSuccessfulStoreCheckout({
   amount,
   metadata = {},
@@ -947,6 +1046,11 @@ async function finalizeSuccessfulStoreCheckout({
     checkoutMode,
     source: metadata.source || metadata.source_label || '',
   });
+  const accountUpgradeTargetPackage = resolveCheckoutAccountUpgradeTargetPackage(metadata);
+  const isAccountUpgradeCheckout = (
+    isCheckoutAccountUpgradeEnabled(metadata)
+    && Boolean(accountUpgradeTargetPackage)
+  );
   const resolvedBuyerPackageKey = buyerPackageKey
     || (checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT ? FREE_ACCOUNT_PACKAGE_KEY : '');
   const isPreferredBuyerCheckout = resolvedBuyerPackageKey === FREE_ACCOUNT_PACKAGE_KEY;
@@ -1001,6 +1105,12 @@ async function finalizeSuccessfulStoreCheckout({
   ));
 
   if (existingInvoice) {
+    const accountUpgrade = await applyCheckoutAccountUpgrade({
+      metadata,
+      buyerUserId,
+      buyerUsername,
+      buyerEmail: buyerEmailForInvoice,
+    });
     return {
       success: true,
       status: 200,
@@ -1010,6 +1120,7 @@ async function finalizeSuccessfulStoreCheckout({
         alreadyProcessed: true,
         invoice: existingInvoice,
         preferredCustomer: preferredCustomerIdentity,
+        accountUpgrade,
         ...paymentReference,
       },
     };
@@ -1039,6 +1150,12 @@ async function finalizeSuccessfulStoreCheckout({
         normalizeText(invoice?.id).toUpperCase() === invoiceId
       ));
       if (matchedInvoice) {
+        const accountUpgrade = await applyCheckoutAccountUpgrade({
+          metadata,
+          buyerUserId,
+          buyerUsername,
+          buyerEmail: buyerEmailForInvoice,
+        });
         return {
           success: true,
           status: 200,
@@ -1048,6 +1165,7 @@ async function finalizeSuccessfulStoreCheckout({
             alreadyProcessed: true,
             invoice: matchedInvoice,
             preferredCustomer: preferredCustomerIdentity,
+            accountUpgrade,
             ...paymentReference,
           },
         };
@@ -1066,10 +1184,16 @@ async function finalizeSuccessfulStoreCheckout({
 
   let buyerCredit = {
     ok: true,
-    message: 'No buyer BV credit required.',
+    message: isAccountUpgradeCheckout
+      ? 'Buyer BV credit skipped for account upgrade checkout.'
+      : 'No buyer BV credit required.',
   };
 
-  if (buyerBv > 0 && (buyerUserId || buyerUsername || buyerEmailForInvoice)) {
+  if (
+    !isAccountUpgradeCheckout
+    && buyerBv > 0
+    && (buyerUserId || buyerUsername || buyerEmailForInvoice)
+  ) {
     const buyerCreditResult = await recordMemberPurchase({
       userId: buyerUserId,
       username: buyerUsername,
@@ -1134,6 +1258,12 @@ async function finalizeSuccessfulStoreCheckout({
         ? 'Retail commission recorded without attribution owner.'
         : 'No retail commission for this checkout.'),
   };
+  const accountUpgrade = await applyCheckoutAccountUpgrade({
+    metadata,
+    buyerUserId,
+    buyerUsername,
+    buyerEmail: buyerEmailForInvoice,
+  });
 
   return {
     success: true,
@@ -1145,6 +1275,7 @@ async function finalizeSuccessfulStoreCheckout({
       invoice: createdInvoice,
       attributionOwner,
       preferredCustomer: preferredCustomerIdentity,
+      accountUpgrade,
       buyerCredit,
       ownerCredit,
       ownerRetailCommission,
@@ -1277,6 +1408,10 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
     checkoutMode,
     source: payload.source,
   });
+  const accountUpgradeTargetPackage = normalizeStorePackageKey(
+    payload.accountUpgradeTargetPackage || payload.account_upgrade_target_package,
+  );
+  const isAccountUpgradeCheckout = Boolean(accountUpgradeTargetPackage);
 
   const checkoutMetadata = {
     checkout_type: 'storefront',
@@ -1319,6 +1454,8 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
     discount_amount: String(checkoutSummary.discount),
     discount_percent: String(discountPercent),
     invoice_status: sanitizeStripeMetadataValue(invoiceStatus),
+    account_upgrade_enabled: isAccountUpgradeCheckout ? 'true' : 'false',
+    account_upgrade_target_package: sanitizeStripeMetadataValue(accountUpgradeTargetPackage),
     source: sanitizeStripeMetadataValue(payload.source || 'storefront'),
   };
 
@@ -1485,6 +1622,10 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     checkoutMode,
     source: payload.source,
   });
+  const accountUpgradeTargetPackage = normalizeStorePackageKey(
+    payload.accountUpgradeTargetPackage || payload.account_upgrade_target_package,
+  );
+  const isAccountUpgradeCheckout = Boolean(accountUpgradeTargetPackage);
 
   const checkoutMetadata = {
     checkout_type: 'storefront',
@@ -1527,6 +1668,8 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     discount_amount: String(checkoutSummary.discount),
     discount_percent: String(discountPercent),
     invoice_status: sanitizeStripeMetadataValue(invoiceStatus),
+    account_upgrade_enabled: isAccountUpgradeCheckout ? 'true' : 'false',
+    account_upgrade_target_package: sanitizeStripeMetadataValue(accountUpgradeTargetPackage),
     source: sanitizeStripeMetadataValue(payload.source || 'storefront'),
   };
 
@@ -1546,6 +1689,8 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     owner_bv: checkoutMetadata.owner_bv,
     retail_commission: checkoutMetadata.retail_commission,
     bp: checkoutMetadata.bp,
+    account_upgrade_enabled: checkoutMetadata.account_upgrade_enabled,
+    account_upgrade_target_package: checkoutMetadata.account_upgrade_target_package,
     source: checkoutMetadata.source,
   };
 
