@@ -32,6 +32,13 @@ function roundCurrencyAmount(value) {
   return Math.round((Math.max(0, Number(value) || 0) + Number.EPSILON) * 100) / 100;
 }
 
+function normalizeJsonObject(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+  return value;
+}
+
 function resolveStoreCodeFromLink(linkValue) {
   const normalizedLink = String(linkValue || '').trim();
   if (!normalizedLink) {
@@ -107,6 +114,8 @@ export async function createStoreInvoice(payload = {}) {
   );
   const bp = Math.max(0, Math.floor(Number(payload.bp) || 0));
   const discount = Number(payload.discount);
+  const attributionSnapshot = normalizeJsonObject(payload.attributionSnapshot);
+  const settlementProfile = normalizeJsonObject(payload.settlementProfile);
   const status = normalizeStoreInvoiceStatus(payload.status);
 
   if (!buyer) {
@@ -165,6 +174,8 @@ export async function createStoreInvoice(payload = {}) {
     retailCommission,
     bp,
     discount: Number.isFinite(discount) ? discount : 0,
+    attributionSnapshot,
+    settlementProfile,
     status,
     createdAt,
   }, invoiceId);

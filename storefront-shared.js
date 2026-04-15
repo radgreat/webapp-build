@@ -13,6 +13,8 @@
   const PUBLIC_DISCOUNT_RATE = PUBLIC_DISCOUNT_PERCENT / 100;
   const MAX_CHECKOUT_DISCOUNT_PERCENT = 60;
   const DEFAULT_PRODUCT_IMAGE = 'https://placehold.co/1000x1250?text=Product';
+  const META_CHARGE_PRODUCT_KEY = 'metacharge';
+  const META_CHARGE_NOBG_IMAGE = '/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png';
   const CHECKOUT_MODE_GUEST = 'guest';
   const CHECKOUT_MODE_FREE_ACCOUNT = 'free-account';
   const AUTH_STORAGE_KEY = 'vault-auth-user';
@@ -42,6 +44,10 @@
 
   function normalizeText(value) {
     return String(value || '').trim();
+  }
+
+  function normalizeProductIdentityKey(value) {
+    return normalizeText(value).toLowerCase().replace(/[^a-z0-9]/g, '');
   }
 
   function normalizeStoreCode(value) {
@@ -344,6 +350,67 @@
     return null;
   }
 
+  function clearCookieValueWithDomain(key, domainValue = '') {
+    const normalizedKey = normalizeText(key);
+    if (!normalizedKey) {
+      return false;
+    }
+
+    try {
+      const cookieSegments = [
+        `${encodeURIComponent(normalizedKey)}=`,
+        'Max-Age=0',
+        'path=/',
+        'SameSite=Lax',
+      ];
+      if (domainValue) {
+        cookieSegments.push(`domain=${domainValue}`);
+      }
+      document.cookie = cookieSegments.join('; ');
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function buildCookieDomainCandidates(hostnameInput) {
+    const hostname = normalizeText(hostnameInput).toLowerCase();
+    if (!hostname || hostname === 'localhost' || /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
+      return [];
+    }
+
+    const hostnameParts = hostname.split('.').filter(Boolean);
+    if (hostnameParts.length < 2) {
+      return [];
+    }
+
+    const candidates = [];
+    for (let index = 0; index <= hostnameParts.length - 2; index += 1) {
+      candidates.push(`.${hostnameParts.slice(index).join('.')}`);
+    }
+    return candidates;
+  }
+
+  function clearCookieValueEverywhere(key) {
+    let removed = clearCookieValueWithDomain(key);
+    const domainCandidates = buildCookieDomainCandidates(window.location.hostname);
+    domainCandidates.forEach((domainValue) => {
+      removed = clearCookieValueWithDomain(key, domainValue) || removed;
+    });
+    return removed;
+  }
+
+  function clearUserSession(options = {}) {
+    safeStorageRemove(window.localStorage, AUTH_STORAGE_KEY);
+    safeStorageRemove(window.sessionStorage, AUTH_STORAGE_KEY);
+    clearCookieValueEverywhere(AUTH_COOKIE_KEY);
+    if (options?.clearCart === true) {
+      clearCart();
+    }
+    safeStorageSet(window.localStorage, 'vault-auth-last-logout-at', new Date().toISOString());
+    return true;
+  }
+
   function readUserSession() {
     const localSession = parseSessionPayload(safeStorageGet(window.localStorage, AUTH_STORAGE_KEY));
     if (localSession) {
@@ -433,7 +500,7 @@
     const legacyBv = toWholeNumber(packageEarnings?.['legacy-builder-pack']?.bv, bp);
     const stock = toWholeNumber(rawProduct?.stock, 0);
 
-    return {
+    const normalizedProduct = {
       id,
       title,
       description,
@@ -445,6 +512,17 @@
       packageEarnings,
       stock,
     };
+
+    const idKey = normalizeProductIdentityKey(normalizedProduct.id);
+    const titleKey = normalizeProductIdentityKey(normalizedProduct.title);
+    if (idKey === META_CHARGE_PRODUCT_KEY || titleKey.includes(META_CHARGE_PRODUCT_KEY)) {
+      const filteredImages = normalizedProduct.images.filter((imageValue) => normalizeText(imageValue) !== META_CHARGE_NOBG_IMAGE);
+      const nextImages = [META_CHARGE_NOBG_IMAGE, ...filteredImages].slice(0, 12);
+      normalizedProduct.image = META_CHARGE_NOBG_IMAGE;
+      normalizedProduct.images = nextImages;
+    }
+
+    return normalizedProduct;
   }
 
   function mapProductsById(products) {
@@ -1270,6 +1348,7 @@
     buildDashboardUrl,
     buildContactUrl,
     readUserSession,
+    clearUserSession,
     isFreeAccountUser,
     readCart,
     writeCart,

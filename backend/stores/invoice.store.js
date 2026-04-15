@@ -8,6 +8,30 @@ function roundCurrency(value) {
   return Math.round((Math.max(0, Number(value) || 0) + Number.EPSILON) * 100) / 100;
 }
 
+function normalizeJsonObject(value) {
+  if (!value) {
+    return {};
+  }
+
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        return {};
+      }
+      return parsed;
+    } catch {
+      return {};
+    }
+  }
+
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+
+  return value;
+}
+
 function toIsoStringOrEmpty(value) {
   if (!value) {
     return '';
@@ -43,6 +67,8 @@ function mapDbInvoiceToAppInvoice(row) {
     retailCommission: roundCurrency(row.retail_commission),
     bp: Number(row.bp || 0),
     discount: Number(row.discount || 0),
+    attributionSnapshot: normalizeJsonObject(row.attribution_snapshot_json),
+    settlementProfile: normalizeJsonObject(row.settlement_profile_json),
     status: normalizeStoreInvoiceStatus(row.status),
     createdAt: toIsoStringOrEmpty(row.created_at),
     updatedAt: toIsoStringOrEmpty(row.updated_at),
@@ -64,6 +90,8 @@ function mapAppInvoiceToDbInvoice(invoice) {
     ),
     bp: Math.max(0, Math.floor(Number(invoice?.bp) || 0)),
     discount: Number(invoice?.discount || 0),
+    attribution_snapshot_json: normalizeJsonObject(invoice?.attributionSnapshot),
+    settlement_profile_json: normalizeJsonObject(invoice?.settlementProfile),
     status: normalizeStoreInvoiceStatus(invoice?.status),
     created_at: invoice?.createdAt || new Date().toISOString(),
   };
@@ -88,6 +116,14 @@ async function ensureStoreInvoiceColumns() {
     await pool.query(`
       ALTER TABLE charge.store_invoices
       ADD COLUMN IF NOT EXISTS retail_commission numeric(12,2) NOT NULL DEFAULT 0
+    `);
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS attribution_snapshot_json jsonb NOT NULL DEFAULT '{}'::jsonb
+    `);
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS settlement_profile_json jsonb NOT NULL DEFAULT '{}'::jsonb
     `);
     storeInvoiceColumnsReady = true;
   })().catch((error) => {
@@ -144,6 +180,8 @@ export function sanitizeStoreInvoiceRecord(invoice, fallbackId = '') {
     retailCommission: roundCurrency(invoice.retailCommission ?? amountRaw),
     bp: Math.max(0, Math.floor(Number(invoice.bp) || 0)),
     discount: Number.isFinite(discountRaw) ? Math.max(0, discountRaw) : 0,
+    attributionSnapshot: normalizeJsonObject(invoice.attributionSnapshot),
+    settlementProfile: normalizeJsonObject(invoice.settlementProfile),
     status: normalizeStoreInvoiceStatus(invoice.status),
     createdAt: Number.isFinite(createdAtMs) ? new Date(createdAtMs).toISOString() : new Date().toISOString(),
   };
@@ -165,6 +203,8 @@ export async function readMockStoreInvoicesStore() {
       retail_commission,
       bp,
       discount,
+      attribution_snapshot_json,
+      settlement_profile_json,
       status,
       created_at,
       updated_at
@@ -200,10 +240,12 @@ export async function writeMockStoreInvoicesStore(invoices) {
           retail_commission,
           bp,
           discount,
+          attribution_snapshot_json,
+          settlement_profile_json,
           status,
           created_at
         )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
       `, [
         row.id,
         row.buyer,
@@ -216,6 +258,8 @@ export async function writeMockStoreInvoicesStore(invoices) {
         row.retail_commission,
         row.bp,
         row.discount,
+        row.attribution_snapshot_json,
+        row.settlement_profile_json,
         row.status,
         row.created_at,
       ]);

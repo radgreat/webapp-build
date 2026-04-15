@@ -48,6 +48,10 @@ const STRIPE_METADATA_VALUE_LIMIT = 500;
 const ENROLLMENT_PAYMENT_FLOW = 'member-enrollment';
 const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
 const FREE_ACCOUNT_RANK_LABEL = 'Preferred Customer';
+const STORE_LINK_CODE_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const DEFAULT_STORE_LINK_CODE_LENGTH = 10;
+const MIN_STORE_LINK_CODE_LENGTH = 6;
+const MAX_STORE_LINK_CODE_LENGTH = 24;
 const PLACEMENT_LEG_LEFT = 'left';
 const PLACEMENT_LEG_RIGHT = 'right';
 const PLACEMENT_LEG_SPILLOVER = 'spillover';
@@ -181,19 +185,22 @@ function normalizeStoreCode(value) {
     .replace(/[^A-Z0-9-]/g, '');
 }
 
-function createStoreCodeSuffix(seedValue, fallbackSuffix = '1000') {
-  const normalizedSeed = String(seedValue || '')
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '');
-  if (normalizedSeed.length >= 4) {
-    return normalizedSeed.slice(0, 4);
+function clampStoreLinkCodeLength(value, fallback = DEFAULT_STORE_LINK_CODE_LENGTH) {
+  const numeric = Number.parseInt(String(value || ''), 10);
+  if (!Number.isFinite(numeric)) {
+    return fallback;
   }
-  const fallback = String(fallbackSuffix || '1000')
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '') || '1000';
-  return `${normalizedSeed}${fallback}`.slice(0, 4);
+  return Math.min(MAX_STORE_LINK_CODE_LENGTH, Math.max(MIN_STORE_LINK_CODE_LENGTH, numeric));
+}
+
+function createRandomStoreLinkCode(length = DEFAULT_STORE_LINK_CODE_LENGTH) {
+  const resolvedLength = clampStoreLinkCodeLength(length, DEFAULT_STORE_LINK_CODE_LENGTH);
+  let generatedCode = '';
+  for (let index = 0; index < resolvedLength; index += 1) {
+    const nextCharacterIndex = randomInt(0, STORE_LINK_CODE_ALPHABET.length);
+    generatedCode += STORE_LINK_CODE_ALPHABET[nextCharacterIndex];
+  }
+  return generatedCode;
 }
 
 function composeUsernameCandidate(base, suffix) {
@@ -235,12 +242,11 @@ async function createUniqueUsernameWithLookup(requestedUsername, email, options 
   return fallbackTaken ? `member${Date.now()}` : fallback;
 }
 
-async function createUniqueStoreCode(prefix, preferredSuffix, options = {}) {
-  const normalizedPrefix = String(prefix || 'CHG')
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '') || 'CHG';
-  const normalizedPreferredSuffix = createStoreCodeSuffix(preferredSuffix);
+async function createUniqueStoreCode(options = {}) {
+  const configuredLength = clampStoreLinkCodeLength(
+    options?.length ?? process.env.STORE_LINK_CODE_LENGTH,
+    DEFAULT_STORE_LINK_CODE_LENGTH,
+  );
   const safeReservedCodes = options?.reservedStoreCodes instanceof Set
     ? options.reservedStoreCodes
     : new Set();
@@ -259,37 +265,29 @@ async function createUniqueStoreCode(prefix, preferredSuffix, options = {}) {
     return candidate;
   };
 
-  const preferredCode = `${normalizedPrefix}-${normalizedPreferredSuffix}`;
-  const reservedPreferred = await tryReserve(preferredCode);
-  if (reservedPreferred) {
-    return reservedPreferred;
-  }
-
-  for (let index = 0; index < 250; index += 1) {
-    const randomSuffix = String(randomInt(1000, 10000));
-    const candidate = `${normalizedPrefix}-${randomSuffix}`;
+  for (let index = 0; index < 700; index += 1) {
+    const candidate = createRandomStoreLinkCode(configuredLength);
     const reservedCandidate = await tryReserve(candidate);
     if (reservedCandidate) {
       return reservedCandidate;
     }
   }
 
-  const timestampSuffix = String(Date.now()).slice(-4);
-  const fallbackCode = `${normalizedPrefix}-${timestampSuffix}`;
+  const fallbackCode = normalizeStoreCode(randomUUID().replace(/-/g, '')).slice(0, configuredLength);
   const reservedFallbackCode = await tryReserve(fallbackCode);
   if (reservedFallbackCode) {
     return reservedFallbackCode;
   }
 
-  for (let attempt = 0; attempt < 120; attempt += 1) {
-    const candidate = `${normalizedPrefix}-${String(randomInt(1000, 10000))}`;
+  for (let attempt = 0; attempt < 300; attempt += 1) {
+    const candidate = createRandomStoreLinkCode(configuredLength);
     const reservedCandidate = await tryReserve(candidate);
     if (reservedCandidate) {
       return reservedCandidate;
     }
   }
 
-  return `${normalizedPrefix}-${Date.now()}`;
+  throw new Error('Unable to generate a unique random store code.');
 }
 
 function resolveSponsorAttributionStoreCode(sponsorUser) {
@@ -1591,12 +1589,11 @@ export async function createRegisteredMember(payload) {
         reservedStoreCodes.add(sponsorPublicStoreCode);
       }
       if (!sponsorStoreCode || !sponsorPublicStoreCode) {
-        const sponsorStoreSeed = matchedSponsorUser?.username || sponsorUsername || `sponsor-${Date.now()}`;
-        const nextSponsorStoreCode = sponsorStoreCode || await createUniqueStoreCode('M', sponsorStoreSeed, {
+        const nextSponsorStoreCode = sponsorStoreCode || await createUniqueStoreCode({
           reservedStoreCodes,
           client,
         });
-        const nextSponsorPublicStoreCode = sponsorPublicStoreCode || await createUniqueStoreCode('CHG', sponsorStoreSeed, {
+        const nextSponsorPublicStoreCode = sponsorPublicStoreCode || await createUniqueStoreCode({
           reservedStoreCodes,
           client,
         });
@@ -1610,11 +1607,11 @@ export async function createRegisteredMember(payload) {
     }
 
     const sponsorAttributionStoreCode = resolveSponsorAttributionStoreCode(matchedSponsorUser);
-    const publicStoreCode = await createUniqueStoreCode('CHG', memberUsername, {
+    const publicStoreCode = await createUniqueStoreCode({
       reservedStoreCodes,
       client,
     });
-    const storeCode = await createUniqueStoreCode('M', memberUsername, {
+    const storeCode = await createUniqueStoreCode({
       reservedStoreCodes,
       client,
     });

@@ -4,6 +4,7 @@ import {
   completeStoreCheckoutSession,
   createStoreCheckoutPaymentIntent,
   completeStoreCheckoutPaymentIntent,
+  registerPreferredCustomerWithoutCheckout,
 } from '../services/store-checkout.service.js';
 
 function resolveRequestOrigin(req) {
@@ -87,6 +88,26 @@ export async function postStoreCheckoutPaymentIntent(req, res) {
     console.error(error);
     return res.status(500).json({
       error: 'Unable to create Stripe payment intent.',
+    });
+  }
+}
+
+export async function postPreferredCustomerRegistration(req, res) {
+  try {
+    const result = await registerPreferredCustomerWithoutCheckout(req.body || {}, {
+      origin: resolveRequestOrigin(req),
+      referrerStoreCode: resolveReferrerStoreCode(req),
+    });
+
+    if (!result.success) {
+      return res.status(result.status).json({ error: result.error });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to register preferred customer.',
     });
   }
 }

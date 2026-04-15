@@ -20,8 +20,10 @@ import memberAchievementRoutes from './routes/member-achievement.routes.js';
 import memberGoodLifeRoutes from './routes/member-good-life.routes.js';
 import memberNotificationRoutes from './routes/member-notification.routes.js';
 import memberBusinessCenterRoutes from './routes/member-business-center.routes.js';
+import preferredAttributionRoutes from './routes/preferred-attribution.routes.js';
 import { warmRegisteredMembersStoreSchema } from './stores/member.store.js';
 import { ensureMemberUserLookupIndexes } from './stores/user.store.js';
+import { warmPreferredAttributionStoreSchema } from './stores/preferred-attribution.store.js';
 
 const app = express();
 const PORT = Number.parseInt(process.env.PORT || '3000', 10);
@@ -33,6 +35,7 @@ const projectRoot = path.join(__dirname, '..');
 
 app.use(express.json({ limit: '12mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(preferredAttributionRoutes);
 
 app.use('/api/member-auth', authRoutes);
 app.use('/api/member-auth', memberAchievementRoutes);
@@ -124,6 +127,10 @@ async function warmStartupStores() {
     {
       label: 'registered_members schema',
       run: warmRegisteredMembersStoreSchema,
+    },
+    {
+      label: 'preferred attribution schema',
+      run: warmPreferredAttributionStoreSchema,
     },
     {
       label: 'member_users lookup indexes',

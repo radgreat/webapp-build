@@ -233,3 +233,182 @@ Status: In Progress (Phase 1 foundation complete)
 
 - `index.html` inline scripts parse OK:
   - `All inline scripts parsed successfully. Blocks: 2`
+
+## Recent Update (2026-04-15) - Preferred Registration Page UX Refresh
+
+### What Changed
+
+- Reworked `store-register.html` into a full-page registration experience consistent with the updated Preferred storefront visual language.
+- Added attribution-aware status card behavior by calling `GET /api/preferred/claim`:
+  - member-linked claim -> displays owner/store attribution context
+  - direct traffic/no claim -> displays admin-parking default context.
+- Updated registration draft handling:
+  - new storage key: `ldp-preferred-registration-draft-v1`
+  - persists buyer/account fields for downstream checkout step.
+- Continued handoff behavior:
+  - submit -> validates fields -> persists draft -> routes to checkout entry URL with `mode=free-account&register=1`.
+
+### Files Updated
+
+- `store-register.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Design Decisions
+
+- Kept registration and attribution messaging explicit to reduce confusion between attributed and direct registrations.
+- Preserved existing backend handoff contract instead of introducing a new registration API in this pass.
+- Removed legacy UI naming references from the page content.
+
+### Validation
+
+- Inline script parse for `store-register.html` passed.
+- Search for legacy text markers (`Charge`, `CHG-`) in `store-register.html` returned no matches.
+
+## Recent Update (2026-04-15) - Reference-Matched Registration Redesign
+
+### What Changed
+
+- Replaced `store-register.html` with a strict reference-match redesign:
+  - top black navigation bar
+  - centered `You made it!` registration form screen
+  - post-submit `Thank you for Joining!` confirmation screen.
+- Simplified visible UI by removing prior side panels, attribution card, legal blocks, and extra CTA controls.
+- Kept submission behavior simple:
+  - validates email/username/first/last name
+  - persists registration draft
+  - toggles into thank-you view.
+
+### Files Updated
+
+- `store-register.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Design Decisions
+
+- Prioritized visual parity with provided screenshots over previous enhanced layout structure.
+- Implemented two on-page states (form -> thank-you) to mirror both reference images in one route.
+
+### Validation
+
+- Inline script parse for `store-register.html` passed.
+
+## Recent Update (2026-04-15) - Registration Design Refinement (Apple-Style Tokens)
+
+### What Changed
+
+- Applied a targeted visual refinement pass to `store-register.html` based on updated UI tokens:
+  - background set to `#FFFFFF`
+  - font set to Inter at medium weight (`500`)
+  - input surfaces set to `#E2E2E2`
+  - placeholder text set to `#444444`
+  - join button color set to `#077AFF`.
+- Improved vertical spacing and proportion balance across:
+  - top navigation
+  - hero heading/subtext
+  - input stack and CTA spacing
+  - thank-you follow-up content.
+
+### Files Updated
+
+- `store-register.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- Inline script parse for `store-register.html` passed.
+- Visual token scan confirmed updated color and typography values in CSS.
+
+## Recent Update (2026-04-15) - Field Text Weight Correction
+
+### What Changed
+
+- Updated `store-register.html` input typography:
+  - input text weight changed to regular (`400`)
+  - placeholder weight changed to regular (`400`).
+
+### Files Updated
+
+- `store-register.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- Inline script parse for `store-register.html` passed.
+
+## Recent Update (2026-04-15) - Direct Setup Password Link Added on Registration Thank-You
+
+### What Changed
+
+- Added a `Set Password Now` action to `store-register.html` thank-you state.
+- CTA behavior now:
+  - starts with direct fallback setup URL (`/store-password-setup.html` with audience/email/store context)
+  - attempts backend token-link recovery through `/api/member-auth/setup-password?email=...`
+  - upgrades CTA to tokenized setup link when available.
+- Added setup status helper text below CTA.
+
+### Files Updated
+
+- `store-register.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- Inline script parse check passed for `store-register.html`.
+
+## Recent Update (2026-04-15) - Store Password Setup Link Recovery
+
+### What Changed
+
+- Updated `store-password-setup.html` missing-token behavior:
+  - when `token` is absent but `email` is present, page now attempts setup-link recovery using `/api/member-auth/setup-password?email=...`
+  - redirects automatically to returned tokenized setup link when available
+  - keeps `store` attribution in redirect query.
+- Added clearer status messaging for cases where setup token is not yet issued.
+
+### Files Updated
+
+- `store-password-setup.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- Inline script parse check passed for `store-password-setup.html`.
+
+## Recent Update (2026-04-15) - Registration Now Returns Immediate Setup Password Link
+
+### What Changed
+
+- `store-register.html` now submits directly to backend preferred registration endpoint:
+  - `POST /api/store-checkout/preferred-register`
+- On successful registration, thank-you screen now gets immediate setup response and shows:
+  - `Set Password Now` with returned tokenized setup link
+  - no retry/waiting message dependency.
+- Existing-account fallback:
+  - if account already has password setup, thank-you CTA switches to login continuation.
+
+### Files Updated
+
+- `store-register.html`
+- `backend/services/store-checkout.service.js`
+- `backend/controllers/store-checkout.controller.js`
+- `backend/routes/store-checkout.routes.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- Backend syntax checks passed for updated route/controller/service files.
+- Inline script parse for `store-register.html` passed.

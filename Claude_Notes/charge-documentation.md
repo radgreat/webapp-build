@@ -27392,3 +27392,811 @@ Updated `binary-tree-next-app.mjs`:
 
 - Validation:
   - `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-14) - Preferred Customer Store Redesign to Binary Tree Next My Store Flow
+
+### What Was Changed
+
+- Rebuilt `store.html` into a full-page Binary Tree Next-style `My Store` flow:
+  - `catalog` view with featured product + account-upgrade grid cards
+  - `review` view with quantity controls, price/BV summary, remove/reset
+  - `checkout` view with summary + shipping/contact inputs
+  - `thank-you` view populated from finalized Stripe checkout invoice data.
+- Added Preferred-account-only purchase gating:
+  - checkout actions are disabled for non-preferred sessions
+  - visible gate CTA prompts for Preferred login/registration
+  - guest checkout UI path was removed from the storefront page.
+- Kept hosted Stripe checkout behavior and return finalization:
+  - starts session via `/api/store-checkout/session`
+  - finalizes success return via `/api/store-checkout/complete` through shared helper polling
+  - updates thank-you invoice fields from completion payload.
+- Converted legacy `store-checkout.html` into a compatibility redirect to `store.html` while preserving query params/hash.
+
+### Files Affected
+
+- `store.html`
+- `store-checkout.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+### Design Decisions
+
+- Matched the Binary Tree Next My Store structure and class naming to keep step flow/visual hierarchy familiar.
+- Enforced Preferred-only checkout at the storefront layer immediately while deferring registration-flow redesign to a later pass.
+- Retained `checkoutMode: guest` for API compatibility, but checkout initiation now requires a Preferred session and uses member identity fields.
+
+### Known Limitations
+
+- Screenshot comparison passes could not be completed in this run because Puppeteer launch requires unsandboxed execution (`spawn EPERM`) and escalation was not approved.
+- `store-checkout.html` now serves only as a redirect compatibility route.
+
+### Validation
+
+- Inline script parse checks passed:
+  - `store.html: parsed 1 inline script block(s)`
+  - `store-checkout.html: parsed 1 inline script block(s)`
+- Local HTTP check passed for redesigned page:
+  - `GET http://localhost:3000/store.html -> 200`.
+
+## Update (2026-04-15) - Preferred Accounts Shopify-Link Backend Plan Document
+
+### What Was Changed
+
+- Created new planning doc: `Claude_Notes/Preferred Accounts - Shopify Link.md`.
+- Captured agreed preferred-account attribution business logic:
+  - member attribution-link route
+  - no-attribution admin parking route.
+- Defined backend-first implementation phases for:
+  - attribution claims and lock model
+  - secure Shopify CTA ingest/redirect
+  - registration attribution persistence
+  - checkout attribution enforcement
+  - settlement/invoice snapshot immutability
+  - admin parking reassignment controls.
+- Added acceptance criteria, safeguards, rollout order, and open policy decisions.
+
+### Files Affected
+
+- `Claude_Notes/Preferred Accounts - Shopify Link.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Notes
+
+- This update is planning/documentation only (no application runtime code changes).
+- Backend implementation should begin from Phase 1 in the new plan.
+
+## Update (2026-04-15) - Preferred Attribution Phase 1 Backend Foundation Implemented
+
+### What Was Changed
+
+- Added new backend attribution store module: `backend/stores/preferred-attribution.store.js`.
+- Implemented schema + indexes for:
+  - `charge.preferred_attribution_claims`
+  - `charge.preferred_account_attribution_locks`
+- Added claim and lock data helpers:
+  - claim create/find/consume (single-use claim consumption guard)
+  - per-user attribution lock upsert/read.
+- Wired startup warmup in `backend/app.js`:
+  - `warmPreferredAttributionStoreSchema` now runs during server warmup.
+- Extended invoice store schema support in `backend/stores/invoice.store.js`:
+  - `attribution_snapshot_json` jsonb
+  - `settlement_profile_json` jsonb
+  - full map/read/write/sanitize support.
+- Updated invoice service paths to carry snapshot payloads:
+  - `backend/services/invoice.service.js`
+  - `backend/services/store-checkout.service.js`.
+
+### Files Affected
+
+- `backend/stores/preferred-attribution.store.js`
+- `backend/stores/invoice.store.js`
+- `backend/services/invoice.service.js`
+- `backend/services/store-checkout.service.js`
+- `backend/app.js`
+- `Claude_Notes/Preferred Accounts - Shopify Link.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Used a dedicated attribution lock table keyed by `user_id` instead of broad immediate edits to `member_users` to reduce migration risk while still enforcing lock semantics.
+- Kept invoice attribution/settlement snapshots immutable per invoice record for auditability.
+
+### Validation
+
+- `node --check backend/stores/preferred-attribution.store.js` passed.
+- `node --check backend/stores/invoice.store.js` passed.
+- `node --check backend/services/invoice.service.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/app.js` passed.
+
+## Update (2026-04-15) - Preferred Attribution Phase 2 Endpoints + Member Signed Link Generation
+
+### What Was Changed
+
+- Added a new preferred attribution backend service stack:
+  - `backend/services/preferred-attribution.service.js`
+  - `backend/controllers/preferred-attribution.controller.js`
+  - `backend/routes/preferred-attribution.routes.js`
+- Wired route registration in `backend/app.js`.
+- Implemented Phase 2 routes:
+  - `GET /go/preferred-register`
+    - validates signed attribution token query (`at`)
+    - validates HMAC signature, nonce, and expiry
+    - resolves attribution owner via member user id/store code
+    - creates claim row in `preferred_attribution_claims`
+    - sets signed httpOnly claim cookie
+    - redirects to `/store-register.html` (store-param scoped when attributed)
+  - `GET /api/preferred/claim`
+    - reads/validates claim cookie
+    - returns sanitized claim summary
+    - clears stale/invalid/expired claim cookie values
+  - `GET /api/member-auth/preferred/attribution-link`
+    - requires member auth bearer token
+    - generates signed redirect URL/token for member share links
+    - resolves store code from member `publicStoreCode/storeCode/attributionStoreCode`.
+
+### Domain + Link Generation Notes
+
+- Production domain support is now environment-driven:
+  - `PREFERRED_ATTRIBUTION_LINK_ORIGIN` controls generated signed link host (set to `https://ldpremiere.com` for production).
+  - `PUBLIC_APP_ORIGIN` remains fallback app origin.
+- Token signing requires:
+  - `PREFERRED_ATTRIBUTION_SIGNING_SECRET`
+- Existing frontend UI still renders plain `?store=` share links today; backend now provides signed-link API for migration in the next UI pass.
+
+### Files Affected
+
+- `backend/services/preferred-attribution.service.js`
+- `backend/controllers/preferred-attribution.controller.js`
+- `backend/routes/preferred-attribution.routes.js`
+- `backend/app.js`
+- `Claude_Notes/Preferred Accounts - Shopify Link.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Implemented signed token + signed cookie integrity checks to prevent client-side attribution tampering.
+- Kept redirect target path configurable (`PREFERRED_REGISTER_REDIRECT_PATH`) while defaulting to current register route.
+- Added authenticated member endpoint for link generation so share links can move from static store-code URLs to server-issued signed attribution URLs.
+
+### Validation
+
+- `node --check backend/services/preferred-attribution.service.js` passed.
+- `node --check backend/controllers/preferred-attribution.controller.js` passed.
+- `node --check backend/routes/preferred-attribution.routes.js` passed.
+- `node --check backend/app.js` passed.
+
+## Update (2026-04-15) - Preferred Attribution Production Domain Env Setup
+
+### What Was Changed
+
+- Updated application env origin to production domain:
+  - `PUBLIC_APP_ORIGIN=https://ldpremiere.com`
+- Added preferred attribution link origin:
+  - `PREFERRED_ATTRIBUTION_LINK_ORIGIN=https://ldpremiere.com`
+- Added preferred attribution signing secret:
+  - `PREFERRED_ATTRIBUTION_SIGNING_SECRET=<generated>`
+
+### Files Affected
+
+- `.env`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Notes
+
+- This change prepares backend-generated preferred attribution links to use `ldpremiere.com` host.
+- Server restart is required for running backend process to pick up updated env values.
+
+## Update (2026-04-15) - Single CTA Support via `/go/preferred-register` Unattributed Fallback
+
+### What Was Changed
+
+- Updated `backend/services/preferred-attribution.service.js` so `createPreferredAttributionRedirectClaim(...)` now supports missing `at` token values.
+- New behavior when `at` is absent:
+  - returns redirect success
+  - redirects directly to preferred registration path (`/store-register.html` by default)
+  - does not set claim cookie
+  - marks flow as unattributed fallback.
+
+### Why
+
+- Shopify can be configured with a single static CTA URL.
+- This enables one CTA link (`/go/preferred-register`) to work for both attributed and non-attributed traffic.
+
+### Validation
+
+- `node --check backend/services/preferred-attribution.service.js` passed.
+
+## Update (2026-04-15) - Testing Domain Origin Switch (`test.ldpremiere.com`)
+
+### What Was Changed
+
+- Updated env origins for testing deployment:
+  - `PUBLIC_APP_ORIGIN=https://test.ldpremiere.com`
+  - `PREFERRED_ATTRIBUTION_LINK_ORIGIN=https://test.ldpremiere.com`
+
+### Files Affected
+
+- `.env`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Notes
+
+- Preferred attribution links and redirect URL host resolution now target test domain.
+- Restart backend process to apply env changes.
+
+## Update (2026-04-15) - Reusable/Permanent Preferred Attribution Share Links
+
+### What Was Changed
+
+- Updated `backend/services/preferred-attribution.service.js` to support reusable member attribution tokens (not one-time token rejection).
+- Removed nonce-based hard rejection for repeated token use at redirect entry.
+- Claim records now use a per-visit generated nonce while preserving token nonce in `rawPayload` for traceability.
+- Updated member link generation to default to long-lived TTL via:
+  - `PREFERRED_ATTRIBUTION_PERMANENT_LINK_TTL_SECONDS`
+  - fallback default in code: multi-year (5 years), max clamp supports up to 10 years.
+- Added explicit env value in `.env`:
+  - `PREFERRED_ATTRIBUTION_PERMANENT_LINK_TTL_SECONDS=315360000` (10 years)
+
+### Why
+
+- Member store links need to be shareable/permanent and reusable across many customers.
+- One-time token rejection would break ongoing link sharing after first use.
+
+### Files Affected
+
+- `backend/services/preferred-attribution.service.js`
+- `.env`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/Preferred Accounts - Shopify Link.md`
+
+### Validation
+
+- `node --check backend/services/preferred-attribution.service.js` passed.
+- `node --check backend/controllers/preferred-attribution.controller.js` passed.
+- `node --check backend/routes/preferred-attribution.routes.js` passed.
+- `node --check backend/app.js` passed.
+
+## Update (2026-04-15) - Store Link Codes Migrated to Random Alphanumeric (No `CHG`/`M` Prefixes)
+
+### What Was Changed
+
+- Updated store-link code generation in `backend/services/member.service.js`:
+  - removed prefix-based generation (`M-xxxx` / `CHG-xxxx`)
+  - new generation is random uppercase alphanumeric only (letters/numbers)
+  - uniqueness checks still enforced against all store-code fields through `isStoreCodeTaken(...)`.
+- Updated store-link backfill script in `backend/scripts/backfill-user-store-links.mjs`:
+  - replaced prefix-based generation with random alphanumeric generation
+  - added `--refresh-all` mode to rotate `storeCode`, `publicStoreCode`, and recalculate `attributionStoreCode`
+  - added `--dry-run` mode for non-destructive preview
+  - added optional `--code-length=<n>` / `--length=<n>` support (clamped 6..24).
+- Executed full refresh run:
+  - `node backend/scripts/backfill-user-store-links.mjs --refresh-all`
+  - result: `102` users updated, all store/public/attribution link codes rotated.
+
+### Files Affected
+
+- `backend/services/member.service.js`
+- `backend/scripts/backfill-user-store-links.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/Preferred Accounts - Shopify Link.md`
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/scripts/backfill-user-store-links.mjs` passed.
+- `node backend/scripts/backfill-user-store-links.mjs --refresh-all --dry-run` passed.
+- Post-refresh verification query showed zero legacy-prefixed codes:
+  - `storeCode`: `0`
+  - `publicStoreCode`: `0`
+  - `attributionStoreCode`: `0`.
+
+### Known Impact / Limitation
+
+- Existing previously shared legacy store links (`CHG-*` / `M-*`) will no longer match refreshed user store codes after rotation.
+- Regeneration command should be coordinated with communications whenever run in production to avoid stale links in circulation.
+
+## Update (2026-04-15) - Preferred Registration Page UX Refresh
+
+### What Was Changed
+
+- Rebuilt `store-register.html` to match the current Preferred storefront visual style (hero + full-page panel + polished form structure).
+- Added claim-aware attribution display on page load using:
+  - `GET /api/preferred/claim`
+- Attribution messaging now distinguishes:
+  - member-linked claim attribution
+  - direct/no-claim (admin parking) path.
+- Updated registration draft persistence:
+  - storage key now uses `ldp-preferred-registration-draft-v1`
+  - draft payload includes account fields and claim summary snapshot.
+- Kept registration handoff behavior:
+  - form validation -> persist draft -> redirect to checkout entry URL with preferred registration query params.
+- Removed old legacy naming references from this page (`Charge`/`CHG` in UI copy).
+
+### Files Affected
+
+- `store-register.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- inline script parse check passed for `store-register.html`.
+- text scan for `Charge` and `CHG-` in `store-register.html` returned no matches.
+
+### Known Limitations
+
+- This pass focused on registration-page UX and attribution visibility, while preserving current downstream checkout handoff.
+- A full direct registration-API completion flow (account creation before checkout) remains a separate backend integration task.
+
+## Update (2026-04-15) - Registration Page Replaced to Match Provided Reference Screens
+
+### What Was Changed
+
+- Fully replaced `store-register.html` visual design with a strict screenshot-match layout.
+- New top navigation now mirrors reference:
+  - black bar
+  - left logo icon + `Store`, `About Us`, `Support`
+  - right `Login` link.
+- Added two in-page states matching both provided images:
+  1. Registration screen:
+     - heading `You made it!`
+     - supportive paragraph copy
+     - four rounded gray inputs (`Email`, `Username`, `First Name`, `Last Name`)
+     - blue `Join Now` button.
+  2. Confirmation screen:
+     - heading `Thank you for Joining!`
+     - confirmation message + delayed informational paragraph.
+- Removed previous complex registration UI sections (panel split, attribution card, legal block rendering, extra CTA buttons) from visible layout.
+- Submit behavior now:
+  - validates required fields
+  - persists registration draft payload (`ldp-preferred-registration-draft-v1`)
+  - switches to thank-you view.
+
+### Files Affected
+
+- `store-register.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- inline script parse check passed for `store-register.html`.
+
+### Known Limitation
+
+- This pass prioritized exact reference visual behavior; downstream checkout handoff from this screen is intentionally not auto-triggered in the new confirmation-state flow.
+
+## Update (2026-04-15) - Registration Design Refinement (Apple-Style Tokens)
+
+### What Was Changed
+
+- Refined `store-register.html` styling per updated design requirements:
+  - background color: `#FFFFFF`
+  - typography: Inter, medium weight (`500`)
+  - input field color: `#E2E2E2`
+  - placeholder color: `#444444`
+  - primary button color: `#077AFF`.
+- Improved spacing rhythm and layout balance for a cleaner Apple-style look while preserving the two-state flow:
+  - registration screen
+  - thank-you confirmation screen.
+- Retained submission behavior:
+  - validates inputs
+  - persists registration draft (`ldp-preferred-registration-draft-v1`)
+  - transitions to thank-you state.
+
+### Files Affected
+
+- `store-register.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- inline script parse check passed for `store-register.html`.
+- CSS token scan confirmed required values are present.
+
+## Update (2026-04-15) - Registration Field Weight Set to Regular
+
+### What Was Changed
+
+- Updated `store-register.html` field typography so in-field copy is regular weight:
+  - input text weight: `400`
+  - placeholder weight: `400`.
+
+### Files Affected
+
+- `store-register.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- inline script parse check passed for `store-register.html`.
+
+## Update (2026-04-15) - Store Page Restyled to Match Registration Look & Feel
+
+### What Was Changed
+
+- Rebuilt `store.html` UI structure to align with the new registration page visual language.
+- Applied core visual tokens across store surfaces:
+  - background: `#FFFFFF`
+  - field/input background: `#E2E2E2`
+  - placeholder text: `#444444`
+  - primary buttons: `#077AFF`
+  - typography: Inter.
+- Added a cleaner storefront layout with:
+  - top navigation consistent with registration page
+  - hero section + store link badge
+  - preferred-account gate card
+  - product grid + cart + checkout panel.
+- Preserved functional behavior in the new layout:
+  - product loading from shared storefront helpers
+  - cart add/remove/quantity updates
+  - preferred-only checkout enforcement
+  - Stripe checkout session redirect
+  - checkout return completion handling for `checkout=success&session_id=...`.
+
+### Files Affected
+
+- `store.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- inline script parse check passed for `store.html`.
+- style token scan confirmed presence of required design values.
+
+### Known Limitation
+
+- This pass focuses on visual + flow consistency; additional micro-interaction tuning can be layered once final copy and conversion states are approved.
+
+## Update (2026-04-15) - Preferred-Only Cart Flow + Dashboard Rebuild
+
+### What Was Changed
+
+- Rebuilt `store.html` around a stricter gate and simplified checkout flow:
+  - removed in-page checkout form section
+  - kept products + cart only
+  - added single checkout action: `Continue to Stripe`
+  - non-auth users now see `Join us to purchase` gate and cannot add/edit cart or continue checkout
+  - preferred members can proceed directly to Stripe with session-derived buyer data.
+- Rebuilt `store-dashboard.html` to match the new visual direction:
+  - same white/gray/blue palette and Inter typography used in store/register pages
+  - preserved preferred-account auth guard
+  - preserved store-scoped links via `store` query attribution
+  - preserved upgrade workflow, purchase activity feed, profile save, and saved-address save logic.
+
+### Files Affected
+
+- `store.html`
+- `store-dashboard.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/preferred-dashboard-page.md`
+
+### Design Decisions
+
+- Moved fully to cart-first checkout so storefront does not duplicate checkout form responsibilities.
+- Enforced account-only purchasing at interaction level (product add, cart controls, and Stripe handoff).
+- Kept pricing/BV/discount summary visible in cart for transparency while locking purchase actions for non-members.
+
+### Validation
+
+- Inline script parse check passed for `store.html`.
+- Inline script parse check passed for `store-dashboard.html`.
+
+### Known Limitations
+
+- Store checkout currently uses session/profile/address fallbacks for payload fields before redirecting to Stripe.
+- No screenshot diff run was performed in this pass per user direction.
+
+## Update (2026-04-15) - BV Hidden in Preferred Storefront Surfaces
+
+### What Was Changed
+
+- Removed BV display from preferred storefront-facing pages:
+  - `store.html` product cards no longer show BV
+  - `store.html` cart summary no longer shows Business Volume line
+  - `store.html` post-checkout confirmation metadata no longer shows BV
+  - `store-dashboard.html` purchase metric card for BV removed
+  - `store-dashboard.html` per-order BV row removed from purchase activity.
+- Verified checkout-facing routes do not display BV:
+  - `store-checkout.html` redirect page
+  - `stripe-checkout-return.html` status page.
+
+### Files Affected
+
+- `store.html`
+- `store-dashboard.html`
+- `store-checkout.html` (verified only)
+- `stripe-checkout-return.html` (verified only)
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/preferred-dashboard-page.md`
+
+### Validation
+
+- Inline script parse checks passed for:
+  - `store.html`
+  - `store-dashboard.html`
+  - `store-checkout.html`
+  - `stripe-checkout-return.html`.
+- Search scan confirmed no remaining `BV` or `Business Volume` labels in preferred store/dashboard/checkout pages.
+
+## Update (2026-04-15) - Registration Thank-You Adds Direct Password Setup Link
+
+### What Was Changed
+
+- Updated `store-register.html` thank-you state to include a prominent `Set Password Now` CTA.
+- Added setup-link resolution logic:
+  - CTA defaults to `/store-password-setup.html?audience=free` (plus email/store context when available)
+  - page now attempts to fetch a tokenized setup link via `/api/member-auth/setup-password?email=...`
+  - when backend returns `setupLink`, CTA is upgraded to tokenized setup URL.
+- Added user-facing setup status text under the CTA to clarify readiness.
+
+### Files Affected
+
+- `store-register.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- Inline script parse check passed for `store-register.html`.
+
+## Update (2026-04-15) - Free Account Password Setup Link Recovery (No Token Fallback)
+
+### What Was Changed
+
+- Updated `store-password-setup.html` to handle missing token links more gracefully.
+- New recovery behavior:
+  - if `token` is missing but `email` exists, page now calls `/api/member-auth/setup-password?email=...`
+  - when backend returns `setupLink`, page redirects to that tokenized setup URL automatically
+  - store attribution (`store` query) is preserved when redirecting.
+- Improved missing-token error copy with actionable next steps.
+
+### Files Affected
+
+- `store-password-setup.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- Inline script parse check passed for `store-password-setup.html`.
+
+## Update (2026-04-15) - Registration Uses Immediate Preferred Account Creation + Setup Link
+
+### What Was Changed
+
+- Added a dedicated public registration endpoint for preferred accounts (no checkout required):
+  - `POST /api/store-checkout/preferred-register`
+  - wired to existing checkout-time preferred account creation logic so setup links are generated immediately.
+- Backend implementation:
+  - `registerPreferredCustomerWithoutCheckout(...)` added in `backend/services/store-checkout.service.js`
+  - `postPreferredCustomerRegistration` controller added
+  - route registered in `backend/routes/store-checkout.routes.js`.
+- Updated `store-register.html` submit flow:
+  - form now calls `/api/store-checkout/preferred-register` directly
+  - on success, thank-you screen receives immediate `setupLink` and surfaces `Set Password Now` without waiting/retry state
+  - fallback handles existing accounts (shows continue-to-login state).
+
+### Files Affected
+
+- `backend/services/store-checkout.service.js`
+- `backend/controllers/store-checkout.controller.js`
+- `backend/routes/store-checkout.routes.js`
+- `store-register.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/controllers/store-checkout.controller.js` passed.
+- `node --check backend/routes/store-checkout.routes.js` passed.
+- inline script parse check passed for `store-register.html`.
+
+## Update (2026-04-15) - Preferred Store Login-First Flow + Auth Header Standardization
+
+### What Was Changed
+
+- Reworked `store.html` flow to be **login-first**:
+  - guest users now see a dedicated preferred access gate (login/join actions), not active purchasing.
+  - preferred logged-in users now see the store and cart purchase interface.
+- Preserved store attribution handling across guest/member links (`?store=`) and checkout flow.
+- Kept Stripe checkout continuation from cart while enforcing account-only storefront access.
+- Standardized logged-in header links to requested order across preferred pages:
+  - `Dashboard`, `Store`, `Support` on the left
+  - `Logout` on the right
+- Updated `store-dashboard.html` header/navigation wiring to the new order and scoped URLs.
+- Rebuilt `store-support.html` header/session behavior to match the same logged-in navigation contract and logout behavior.
+
+### Files Affected
+
+- `store.html`
+- `store-dashboard.html`
+- `store-support.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+### Validation
+
+- Inline script parse check passed for:
+  - `store.html`
+  - `store-dashboard.html`
+  - `store-support.html`
+
+## Update (2026-04-15) - Preferred UI Cleanup + Reliable Logout Session Reset
+
+### What Was Changed
+
+- Removed preferred-facing identity/attribution labels from preferred storefront/dashboard surfaces:
+  - removed `Username`, `Email`, and `Store Link` chip row from preferred dashboard hero.
+  - removed `Store Link` + `Preferred account purchase flow` meta labels from logged-in preferred store view.
+  - removed remaining store-link pill from the guest gate in `store.html` to keep the page cleaner.
+- Hardened logout/session lifecycle to enforce single-account browser behavior:
+  - added `clearUserSession(...)` utility in `storefront-shared.js`.
+  - utility now clears auth storage + session storage and expires auth cookie across host and parent-domain scopes.
+  - logout handlers now route through this shared clear helper and redirect to login with `?logout=1` cache-busting markers.
+  - added cross-tab sync via `storage` listener reload on auth changes (`vault-auth-user`, `vault-auth-last-logout-at`).
+- Updated login flow:
+  - `login.html` now clears prior session state before persisting a new login session.
+  - `login.html` processes `?logout=1` on load, clears all auth state, then cleans URL params.
+
+### Files Affected
+
+- `store.html`
+- `store-dashboard.html`
+- `store-support.html`
+- `storefront-shared.js`
+- `login.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+### Validation
+
+- `node --check storefront-shared.js` passed.
+- inline non-module script parse check passed for:
+  - `store.html`
+  - `store-dashboard.html`
+  - `store-support.html`
+  - `login.html`
+
+## Update (2026-04-15) - MetaCharge Product Image Forced to NOBG Asset
+
+### What Was Changed
+
+- Added a product-image normalization override in `backend/stores/store-product.store.js` so MetaCharge products always use:
+  - `/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png`
+- Override matches by product id/title normalization (primary target: `metacharge`).
+- Applied override in both read and write mapping paths:
+  - DB -> app product mapping now returns NOBG image first.
+  - app -> DB mapping now persists NOBG as primary image for MetaCharge updates.
+- This avoids manual DB cleanup of older JPG image URLs and ensures storefront/admin product views use the non-background bottle art.
+
+### Files Affected
+
+- `backend/stores/store-product.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/public-store-page.md`
+
+### Validation
+
+- `node --check backend/stores/store-product.store.js` passed.
+
+## Update (2026-04-15) - Store Page MetaCharge Image Cache-Bust + Forced Render
+
+### What Changed
+- Added a store-page-level image resolver in `store.html` that forces MetaCharge product cards to use:
+- `/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png?v=20260415a`
+- Updated the shared script include on `store.html` to:
+- `/storefront-shared.js?v=20260415a`
+
+### Why
+- Live API output was still returning legacy uploaded JPG image URLs for `metacharge`.
+- Browser/runtime cache could still load older `storefront-shared.js`, so users continued seeing the old photo.
+
+### Files
+- `store.html`
+
+### Result
+- Store cards now display the transparent NOBG MetaCharge bottle immediately on refresh, regardless of older API image payload values.
+
+## Update (2026-04-15) - Preferred Dashboard Upgrade UI: Dedicated Package List
+
+### What Changed
+- Reworked `store-dashboard.html` Upgrade Account section from a dropdown into a dedicated package-card list.
+- Removed the `Target Package` label + `<select>` control.
+- Added package-by-package details and benefit bullets for:
+- Personal Builder Pack
+- Business Builder Pack
+- Infinity Builder Pack
+- Legacy Builder Pack
+- Added selected-package indicator text (`Selected package: ...`) above the upgrade CTA.
+- Updated upgrade selection logic to use package cards (`data-package-key`) instead of dropdown value reads.
+
+### UX/Logic
+- Clicking a package card now sets the active target package.
+- Active package card gets selected visual state and `aria-pressed` sync.
+- Upgrade submit now uses the selected card key.
+- Upgrade busy state disables package cards and submit button while request is in-flight.
+
+### Files
+- `store-dashboard.html`
+
+### Notes
+- The upgrade endpoint payload still uses `targetPackage` unchanged, so backend API compatibility is preserved.
+
+## Update (2026-04-15) - Upgrade Account Carousel with Package Images
+
+### What Changed
+- Replaced the static upgrade package list with a carousel layout in `store-dashboard.html`.
+- Added left/right carousel navigation buttons and active-slide dot indicators.
+- Added package image panels sourced from brand assets:
+- `/brand_assets/Icons/Achievements/personal.svg`
+- `/brand_assets/Icons/Achievements/business.svg`
+- `/brand_assets/Icons/Achievements/infinity.svg`
+- `/brand_assets/Icons/Achievements/legacy.svg`
+
+### Behavior
+- Package cards now scroll horizontally with snap behavior.
+- Prev/next buttons navigate between package slides.
+- Active slide updates selected package label and upgrade target package.
+- Upgrade submission still posts `targetPackage` to existing backend endpoint unchanged.
+- Busy state disables cards and carousel nav while upgrade request is in-flight.
+
+### Files
+- `store-dashboard.html`
+
+### Notes
+- Mobile viewport includes resized carousel controls and media height adjustments.
+- Existing upgrade logic contract remains backward compatible.
+
+## Update (2026-04-15) - Upgrade Carousel Redesign (Premium Slide Layout)
+
+### What Changed
+- Rebuilt the Preferred Dashboard upgrade selector from scroll-snap cards into a true slide carousel architecture.
+- Carousel now uses transform-based slide transitions (`translateX`) with easing for cleaner motion.
+- Replaced simple arrow glyph controls with styled icon buttons and polished spacing hierarchy.
+- Upgraded slide visuals to include:
+- product hero image (`MetaCharge Blue Bottle - NOBG`)
+- package achievement icon badge overlay
+- package-specific accent/glow colors
+- Added touch swipe gesture support on mobile/tablet (`touchstart`/`touchmove`/`touchend`).
+- Dot indicators are now interactive buttons (clickable jump-to-slide), not static spans.
+
+### UX/Behavior
+- Active slide remains the selected package.
+- Prev/next controls, dots, and card click all keep selection + target package in sync.
+- Resize keeps active slide aligned.
+- Upgrade API payload contract remains unchanged (`targetPackage`).
+
+### Files
+- `store-dashboard.html`
+
+### Notes
+- This replaces the earlier rough carousel style with a cleaner, less generic visual system while preserving account-upgrade backend compatibility.

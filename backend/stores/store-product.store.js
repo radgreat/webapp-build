@@ -6,9 +6,16 @@ import {
 } from '../utils/store-product-earnings.helpers.js';
 
 const DEFAULT_PRODUCT_IMAGE = 'https://placehold.co/1000x1250?text=Product';
+const META_CHARGE_PRODUCT_ID = 'metacharge';
+const META_CHARGE_TITLE_KEY = 'metacharge';
+const META_CHARGE_NOBG_IMAGE = '/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png';
 
 function normalizeText(value) {
   return String(value || '').trim();
+}
+
+function normalizeProductIdentityKey(value) {
+  return normalizeText(value).toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 function normalizeStoreProductStatus(value) {
@@ -89,6 +96,33 @@ function normalizeProductImages(imagesValue = [], fallbackImage = '') {
   return dedupedImages.slice(0, 12);
 }
 
+function isMetaChargeProductReference(productIdValue, titleValue = '') {
+  const normalizedId = normalizeProductIdentityKey(productIdValue);
+  const normalizedTitle = normalizeProductIdentityKey(titleValue);
+  if (normalizedId === META_CHARGE_PRODUCT_ID) {
+    return true;
+  }
+  return normalizedTitle.includes(META_CHARGE_TITLE_KEY);
+}
+
+function applyPreferredProductImage(product = {}) {
+  const productId = normalizeText(product?.id || product?.product_id);
+  const productTitle = normalizeText(product?.title);
+  if (!isMetaChargeProductReference(productId, productTitle)) {
+    return product;
+  }
+
+  const normalizedImages = normalizeProductImages(product?.images, product?.image);
+  const filteredImages = normalizedImages.filter((imageValue) => normalizeText(imageValue) !== META_CHARGE_NOBG_IMAGE);
+  const nextImages = [META_CHARGE_NOBG_IMAGE, ...filteredImages].slice(0, 12);
+
+  return {
+    ...product,
+    image: META_CHARGE_NOBG_IMAGE,
+    images: nextImages,
+  };
+}
+
 function mapDbStoreProductToAppProduct(row) {
   if (!row) {
     return null;
@@ -104,7 +138,7 @@ function mapDbStoreProductToAppProduct(row) {
     bp: row.bp_value,
   });
 
-  return {
+  return applyPreferredProductImage({
     id: normalizeText(row.product_id),
     title: normalizeText(row.title),
     description: normalizeText(row.description),
@@ -118,11 +152,18 @@ function mapDbStoreProductToAppProduct(row) {
     status: normalizeStoreProductStatus(row.status),
     createdAt: toIsoStringOrEmpty(row.created_at),
     updatedAt: toIsoStringOrEmpty(row.updated_at),
-  };
+  });
 }
 
 function mapAppStoreProductToDbStoreProduct(product, sortOrder = 0) {
-  const images = normalizeProductImages(product?.images, product?.image);
+  const normalizedProduct = applyPreferredProductImage({
+    ...product,
+    id: normalizeText(product?.id),
+    title: normalizeText(product?.title),
+    image: normalizeText(product?.image),
+    images: normalizeProductImages(product?.images, product?.image),
+  });
+  const images = normalizeProductImages(normalizedProduct?.images, normalizedProduct?.image);
   const primaryImage = images[0] || DEFAULT_PRODUCT_IMAGE;
   const packageEarnings = normalizeStoreProductPackageEarnings(product?.packageEarnings, {
     fallbackBp: toWholeNumber(product?.bp, 0),

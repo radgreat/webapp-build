@@ -800,3 +800,219 @@
   - fixes Stripe confirm-card errors caused by full country names in billing country field.
 - File updated:
   - `index.html`
+
+## Update (2026-04-14) - Preferred Customer Store Front Redesign (Binary Tree Next My Store Match)
+
+### What Was Changed
+
+- Replaced `store.html` browse-only layout with a full-page Binary Tree Next My Store-inspired flow:
+  - Catalog (featured + upgrade cards)
+  - Review (single-selection quantity controls)
+  - Checkout (summary + shipping/contact capture)
+  - Thank-you (invoice status/details from completed Stripe session)
+- Enforced Preferred-only checkout flow on storefront:
+  - non-preferred sessions are blocked from checkout progression
+  - explicit gate prompts login/registration
+  - guest checkout UX removed from store page.
+- Preserved hosted Stripe checkout session behavior and return completion polling.
+- Replaced legacy `store-checkout.html` content with a redirect to `store.html` to preserve old links.
+
+### Files Affected
+
+- `store.html`
+- `store-checkout.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept the class naming and step progression close to Binary Tree Next My Store to reduce visual/interaction drift.
+- Maintained API compatibility by retaining hosted checkout request shape while blocking non-preferred storefront purchases at the UI layer.
+
+### Validation
+
+- Inline script parse checks passed:
+  - `store.html: parsed 1 inline script block(s)`
+  - `store-checkout.html: parsed 1 inline script block(s)`
+
+### Known Limitations
+
+- Legacy `/store-checkout.html` is now a redirect-only path.
+- Screenshot pass intentionally skipped per user direction.
+
+## Update (2026-04-15) - Store Page Redesign to Match Registration Visual Language
+
+### What Was Changed
+
+- Replaced `store.html` visual structure with a cleaner, registration-aligned style system.
+- New store surface now uses:
+  - white background (`#FFFFFF`)
+  - Inter typography
+  - gray input/field surfaces (`#E2E2E2`)
+  - placeholder color (`#444444`)
+  - primary CTA color (`#077AFF`).
+- Kept real storefront behavior in the redesigned layout:
+  - loads products through shared storefront API
+  - supports add/remove/update cart quantity
+  - enforces preferred-account gate before checkout
+  - submits checkout to Stripe via shared checkout helper
+  - finalizes successful return sessions with checkout completion polling.
+
+### Files Affected
+
+- `store.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Prioritized consistency with the newly refined registration page so both pages feel like one product flow.
+- Preserved checkout and cart logic while replacing only UI structure and interaction presentation.
+
+### Validation
+
+- Inline script parse check passed for `store.html`.
+- Required visual tokens verified in CSS (`#FFFFFF`, `#E2E2E2`, `#444444`, `#077AFF`, Inter).
+
+## Update (2026-04-15) - Store Flow Shift to Cart-Only Stripe Checkout
+
+### What Was Changed
+
+- Reworked `store.html` flow to remove embedded checkout form.
+- Store now supports:
+  - product browsing
+  - cart management
+  - single CTA to Stripe (`Continue to Stripe`).
+- Added stricter purchase gate for non-members:
+  - `Join us to purchase` callout is shown when no preferred session is present
+  - add-to-cart and cart quantity/remove controls are disabled
+  - Stripe CTA is disabled until preferred login exists.
+
+### Files Affected
+
+- `store.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Removed checkout form duplication from storefront UI and kept payment flow centralized through Stripe.
+- Preserved cart summary visibility (subtotal/discount/BV/total) even when purchase actions are locked.
+
+### Validation
+
+- Inline script parse check passed for `store.html`.
+
+### Known Limitations
+
+- Buyer and shipping fields are currently resolved from preferred session + saved profile/address fallbacks before Stripe redirect.
+
+## Update (2026-04-15) - BV Removed from Preferred Store UI
+
+### What Was Changed
+
+- Removed BV display from `store.html` surfaces:
+  - product card BV text removed
+  - cart summary Business Volume line removed
+  - post-checkout invoice meta no longer includes BV.
+
+### Files Affected
+
+- `store.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Search scan confirmed no `BV` labels remain in `store.html`.
+- Inline script parse check passed for `store.html`.
+
+## Update (2026-04-15) - Login-First Preferred Store and Auth Header Consistency
+
+### Summary
+
+- Converted `store.html` from mixed guest/storefront behavior into login-first flow:
+  - guest view now prompts Preferred login/join.
+  - authenticated preferred view contains store + cart + Stripe continue flow.
+- Standardized authenticated store header expectations:
+  - left: `Dashboard`, `Store`, `Support`
+  - right: `Logout`
+- Aligned header/nav behavior with scoped `?store=` attribution links on:
+  - `store.html`
+  - `store-dashboard.html`
+  - `store-support.html`
+
+### Files Updated
+
+- `store.html`
+- `store-dashboard.html`
+- `store-support.html`
+
+### Notes
+
+- Existing Stripe continuation logic remains active from cart.
+- Guest purchase path is now gated out at the storefront layer.
+
+### Validation
+
+- Inline script parse check passed for all updated pages.
+
+## Update (2026-04-15) - UI Metadata Cleanup + Session Clear Hardening
+
+### Summary
+
+- Removed preferred-facing metadata clutter:
+  - dashboard hero chips (`Username`, `Email`, `Store Link`) removed.
+  - logged-in store meta pills (`Store Link`, `Preferred account purchase flow`) removed.
+- Strengthened logout/account switching:
+  - introduced shared `clearUserSession()` in `storefront-shared.js`.
+  - clears session from local/session storage and cookie across host + parent domain candidates.
+  - logout now redirects with `?logout=1&t=...` and login consumes it to force clean state.
+  - added auth-change storage listeners on store pages for cross-tab session consistency.
+
+### Files Updated
+
+- `store.html`
+- `store-dashboard.html`
+- `store-support.html`
+- `storefront-shared.js`
+- `login.html`
+
+### Validation
+
+- `node --check storefront-shared.js` passed.
+- inline non-module script parse check passed for updated html pages.
+
+## Update (2026-04-15) - MetaCharge Product Image Source Switched to NOBG Asset
+
+### Summary
+
+- Enforced MetaCharge bottle imagery to use brand asset:
+  - `/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png`
+- Added backend-level override in store product mapping so legacy/uploaded JPG paths do not override storefront rendering for MetaCharge.
+
+### File Updated
+
+- `backend/stores/store-product.store.js`
+
+### Validation
+
+- `node --check backend/stores/store-product.store.js` passed.
+
+## Update (2026-04-15) - Store Product Card Image Hotfix
+
+### Scope
+- `store.html` rendering path only.
+
+### Changes
+- Added `resolveProductImage(product)` helper in store page script.
+- MetaCharge id/title matches now force:
+- `/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png?v=20260415a`
+- Added script cache-bust query to shared loader in `store.html`.
+
+### Notes
+- This is a storefront fail-safe while backend/API product image payloads are refreshed/restarted.

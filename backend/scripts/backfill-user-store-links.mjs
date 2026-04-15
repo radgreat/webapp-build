@@ -6,6 +6,10 @@ import { readRegisteredMembersStore } from '../stores/member.store.js';
 dotenv.config();
 
 const DEFAULT_ATTRIBUTION_STORE_CODE = 'REGISTRATION_LOCKED';
+const STORE_LINK_CODE_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const DEFAULT_STORE_LINK_CODE_LENGTH = 10;
+const MIN_STORE_LINK_CODE_LENGTH = 6;
+const MAX_STORE_LINK_CODE_LENGTH = 24;
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -22,22 +26,43 @@ function normalizeStoreCode(value) {
     .replace(/[^A-Z0-9-]/g, '');
 }
 
-function createStoreCodeSuffix(seedValue, fallbackSuffix = '1000') {
-  const normalizedSeed = String(seedValue || '')
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '');
-
-  if (normalizedSeed.length >= 4) {
-    return normalizedSeed.slice(0, 4);
+function clampStoreLinkCodeLength(value, fallback = DEFAULT_STORE_LINK_CODE_LENGTH) {
+  const numeric = Number.parseInt(String(value || ''), 10);
+  if (!Number.isFinite(numeric)) {
+    return fallback;
   }
+  return Math.min(MAX_STORE_LINK_CODE_LENGTH, Math.max(MIN_STORE_LINK_CODE_LENGTH, numeric));
+}
 
-  const fallback = String(fallbackSuffix || '1000')
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '') || '1000';
+function createRandomStoreLinkCode(length = DEFAULT_STORE_LINK_CODE_LENGTH) {
+  const resolvedLength = clampStoreLinkCodeLength(length, DEFAULT_STORE_LINK_CODE_LENGTH);
+  let generatedCode = '';
+  for (let index = 0; index < resolvedLength; index += 1) {
+    const nextCharacterIndex = randomInt(0, STORE_LINK_CODE_ALPHABET.length);
+    generatedCode += STORE_LINK_CODE_ALPHABET[nextCharacterIndex];
+  }
+  return generatedCode;
+}
 
-  return `${normalizedSeed}${fallback}`.slice(0, 4);
+function resolveScriptOptions(args = []) {
+  const normalizedArgs = Array.isArray(args)
+    ? args.map((value) => normalizeText(value).toLowerCase()).filter(Boolean)
+    : [];
+  const codeLengthArg = normalizedArgs.find((value) => (
+    value.startsWith('--code-length=')
+    || value.startsWith('--length=')
+  ));
+  const parsedCodeLength = codeLengthArg
+    ? Number.parseInt(codeLengthArg.split('=')[1] || '', 10)
+    : Number.NaN;
+
+  return {
+    refreshAllStoreCodes: normalizedArgs.includes('--refresh-all'),
+    dryRun: normalizedArgs.includes('--dry-run'),
+    codeLength: Number.isFinite(parsedCodeLength)
+      ? parsedCodeLength
+      : undefined,
+  };
 }
 
 function collectExistingStoreCodes(users) {
@@ -59,33 +84,32 @@ function collectExistingStoreCodes(users) {
   return existingCodes;
 }
 
-function createUniqueStoreCode(existingCodes, prefix, preferredSuffix) {
-  const normalizedPrefix = String(prefix || 'CHG')
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '') || 'CHG';
-  const normalizedPreferredSuffix = createStoreCodeSuffix(preferredSuffix);
+function createUniqueStoreCode(existingCodes, options = {}) {
   const safeExistingCodes = existingCodes instanceof Set ? existingCodes : new Set();
+  const resolvedLength = clampStoreLinkCodeLength(
+    options?.codeLength ?? process.env.STORE_LINK_CODE_LENGTH,
+    DEFAULT_STORE_LINK_CODE_LENGTH,
+  );
 
-  const preferredCode = `${normalizedPrefix}-${normalizedPreferredSuffix}`;
-  if (!safeExistingCodes.has(preferredCode)) {
-    safeExistingCodes.add(preferredCode);
-    return preferredCode;
-  }
-
-  for (let index = 0; index < 250; index += 1) {
-    const randomSuffix = String(randomInt(1000, 10000));
-    const candidateCode = `${normalizedPrefix}-${randomSuffix}`;
+  for (let index = 0; index < 1000; index += 1) {
+    const candidateCode = createRandomStoreLinkCode(resolvedLength);
     if (!safeExistingCodes.has(candidateCode)) {
       safeExistingCodes.add(candidateCode);
       return candidateCode;
     }
   }
 
-  const timestampSuffix = String(Date.now()).slice(-4);
-  const fallbackCode = `${normalizedPrefix}-${timestampSuffix}`;
-  safeExistingCodes.add(fallbackCode);
-  return fallbackCode;
+  for (let attempt = 0; attempt < 500; attempt += 1) {
+    const fallbackCode = createRandomStoreLinkCode(resolvedLength);
+    if (!safeExistingCodes.has(fallbackCode)) {
+      safeExistingCodes.add(fallbackCode);
+      return fallbackCode;
+    }
+  }
+
+  const guaranteedFallback = createRandomStoreLinkCode(resolvedLength);
+  safeExistingCodes.add(guaranteedFallback);
+  return guaranteedFallback;
 }
 
 function createMemberLookupMaps(members) {
@@ -176,6 +200,7 @@ function userStoreFieldsChanged(previousUser, nextUser) {
 }
 
 async function run() {
+  const scriptOptions = resolveScriptOptions(process.argv.slice(2));
   const users = await readMockUsersStore();
   const members = await readRegisteredMembersStore();
 
@@ -184,6 +209,7 @@ async function run() {
       totalUsers: 0,
       updatedUsers: 0,
       message: 'No users found. Nothing to backfill.',
+      options: scriptOptions,
     }, null, 2));
     return;
   }
@@ -193,19 +219,29 @@ async function run() {
   let assignedPublicStoreCodeCount = 0;
 
   const usersWithStoreCodes = users.map((user) => {
-    const seed = user?.username || user?.email || user?.id || String(Date.now());
     const currentStoreCode = normalizeStoreCode(user?.storeCode);
     const currentPublicStoreCode = normalizeStoreCode(user?.publicStoreCode);
 
-    const nextStoreCode = currentStoreCode || (() => {
-      assignedStoreCodeCount += 1;
-      return createUniqueStoreCode(existingCodes, 'M', seed);
-    })();
+    const shouldRefreshStoreCode = scriptOptions.refreshAllStoreCodes || !currentStoreCode;
+    const shouldRefreshPublicStoreCode = scriptOptions.refreshAllStoreCodes || !currentPublicStoreCode;
 
-    const nextPublicStoreCode = currentPublicStoreCode || (() => {
-      assignedPublicStoreCodeCount += 1;
-      return createUniqueStoreCode(existingCodes, 'CHG', seed);
-    })();
+    const nextStoreCode = shouldRefreshStoreCode
+      ? (() => {
+        assignedStoreCodeCount += 1;
+        return createUniqueStoreCode(existingCodes, {
+          codeLength: scriptOptions.codeLength,
+        });
+      })()
+      : currentStoreCode;
+
+    const nextPublicStoreCode = shouldRefreshPublicStoreCode
+      ? (() => {
+        assignedPublicStoreCodeCount += 1;
+        return createUniqueStoreCode(existingCodes, {
+          codeLength: scriptOptions.codeLength,
+        });
+      })()
+      : currentPublicStoreCode;
 
     return {
       ...user,
@@ -227,7 +263,8 @@ async function run() {
 
   const usersWithAttribution = usersWithStoreCodes.map((user) => {
     const currentAttributionCode = normalizeStoreCode(user?.attributionStoreCode);
-    if (currentAttributionCode) {
+    const shouldRefreshAttributionCode = scriptOptions.refreshAllStoreCodes || !currentAttributionCode;
+    if (!shouldRefreshAttributionCode) {
       return {
         ...user,
         attributionStoreCode: currentAttributionCode,
@@ -256,7 +293,22 @@ async function run() {
       assignedStoreCodeCount: 0,
       assignedPublicStoreCodeCount: 0,
       assignedAttributionStoreCodeCount: 0,
-      message: 'All users already had valid store-link fields.',
+      message: 'All users already had valid store-link fields for current script options.',
+      options: scriptOptions,
+    }, null, 2));
+    return;
+  }
+
+  if (scriptOptions.dryRun) {
+    console.log(JSON.stringify({
+      totalUsers: users.length,
+      updatedUsers: changedUsers.length,
+      assignedStoreCodeCount,
+      assignedPublicStoreCodeCount,
+      assignedAttributionStoreCodeCount,
+      dryRun: true,
+      options: scriptOptions,
+      sampleUpdatedUsers: changedUsers.slice(0, 10),
     }, null, 2));
     return;
   }
@@ -269,6 +321,8 @@ async function run() {
     assignedStoreCodeCount,
     assignedPublicStoreCodeCount,
     assignedAttributionStoreCodeCount,
+    dryRun: false,
+    options: scriptOptions,
     sampleUpdatedUsers: changedUsers.slice(0, 10),
   }, null, 2));
 }

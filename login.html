@@ -641,6 +641,18 @@
       }
     }
 
+    function safeStorageRemove(storage, key) {
+      try {
+        if (!storage) {
+          return false;
+        }
+        storage.removeItem(key);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
     function readCookieValue(key) {
       const source = document.cookie || '';
       const encodedKey = `${encodeURIComponent(key)}=`;
@@ -665,6 +677,63 @@
       } catch {
         return false;
       }
+    }
+
+    function clearCookieValueWithDomain(key, domainValue = '') {
+      const normalizedKey = String(key || '').trim();
+      if (!normalizedKey) {
+        return false;
+      }
+
+      try {
+        const segments = [
+          `${encodeURIComponent(normalizedKey)}=`,
+          'Max-Age=0',
+          'path=/',
+          'SameSite=Lax',
+        ];
+        if (domainValue) {
+          segments.push(`domain=${domainValue}`);
+        }
+        document.cookie = segments.join('; ');
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function buildCookieDomainCandidates(hostnameInput) {
+      const hostname = String(hostnameInput || '').trim().toLowerCase();
+      if (!hostname || hostname === 'localhost' || /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
+        return [];
+      }
+
+      const parts = hostname.split('.').filter(Boolean);
+      if (parts.length < 2) {
+        return [];
+      }
+
+      const candidates = [];
+      for (let index = 0; index <= parts.length - 2; index += 1) {
+        candidates.push(`.${parts.slice(index).join('.')}`);
+      }
+      return candidates;
+    }
+
+    function clearCookieValueEverywhere(key) {
+      let removed = clearCookieValueWithDomain(key);
+      const domainCandidates = buildCookieDomainCandidates(window.location.hostname);
+      domainCandidates.forEach((domainValue) => {
+        removed = clearCookieValueWithDomain(key, domainValue) || removed;
+      });
+      return removed;
+    }
+
+    function clearUserSession() {
+      safeStorageRemove(window.localStorage, AUTH_STORAGE_KEY);
+      safeStorageRemove(window.sessionStorage, AUTH_STORAGE_KEY);
+      clearCookieValueEverywhere(AUTH_COOKIE_KEY);
+      safeStorageSet(window.localStorage, 'vault-auth-last-logout-at', new Date().toISOString());
     }
 
     function parseSessionPayload(raw) {
@@ -736,6 +805,7 @@
         authTokenExpiresAt: typeof user?.authTokenExpiresAt === 'string' ? user.authTokenExpiresAt : '',
       };
 
+      clearUserSession();
       const serializedSession = JSON.stringify(sessionUser);
       const wroteLocal = safeStorageSet(window.localStorage, AUTH_STORAGE_KEY, serializedSession);
       const wroteSession = safeStorageSet(window.sessionStorage, AUTH_STORAGE_KEY, serializedSession);
@@ -1024,6 +1094,17 @@
     });
 
     startInspirationRotation();
+
+    const loginQueryParams = new URLSearchParams(window.location.search);
+    const logoutRequested = loginQueryParams.get('logout') === '1';
+    if (logoutRequested) {
+      clearUserSession();
+      loginQueryParams.delete('logout');
+      loginQueryParams.delete('t');
+      const nextSearch = loginQueryParams.toString();
+      const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash || ''}`;
+      window.history.replaceState({}, '', nextUrl);
+    }
 
     const existingSession = readUserSession();
     if (existingSession) {

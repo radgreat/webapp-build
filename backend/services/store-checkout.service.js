@@ -1126,6 +1126,24 @@ async function finalizeSuccessfulStoreCheckout({
     };
   }
 
+  const attributionSnapshot = {
+    attributionKey: attributionKey || '',
+    memberStoreCode: memberStoreCode || '',
+    memberStoreLink: memberStoreLink || '',
+    checkoutMode,
+    source: normalizeText(metadata.source || metadata.source_label || ''),
+    fallbackAttributionUsed: normalizeText(metadata.fallback_attribution_used).toLowerCase() === 'true',
+  };
+  const settlementProfileSnapshot = {
+    buyerPackageKey: resolvedBuyerPackageKey || '',
+    isPreferredBuyerCheckout,
+    ownerBv,
+    buyerBv,
+    retailCommission,
+    discount,
+    accountUpgradeTargetPackage,
+  };
+
   const invoiceResult = await createStoreInvoice({
     invoiceId,
     buyer: resolvedBuyerName || 'Store Buyer',
@@ -1140,6 +1158,8 @@ async function finalizeSuccessfulStoreCheckout({
     retailCommission,
     buyerPackageKey,
     discount,
+    attributionSnapshot,
+    settlementProfile: settlementProfileSnapshot,
     status: invoiceStatus,
   });
 
@@ -1302,6 +1322,132 @@ export function getStoreCheckoutConfig() {
       error: error instanceof Error ? error.message : 'Stripe is unavailable.',
     };
   }
+}
+
+function appendStoreCodeToRelativePath(pathnameWithSearch = '', storeCode = '') {
+  const normalizedPathnameWithSearch = normalizeText(pathnameWithSearch);
+  const normalizedStoreCode = normalizeStoreCode(storeCode);
+  if (!normalizedPathnameWithSearch) {
+    return '';
+  }
+
+  try {
+    const parsedUrl = new URL(normalizedPathnameWithSearch, 'http://localhost');
+    if (normalizedStoreCode) {
+      parsedUrl.searchParams.set('store', normalizedStoreCode);
+    }
+    return `${parsedUrl.pathname}${parsedUrl.search}`;
+  } catch {
+    return normalizedPathnameWithSearch;
+  }
+}
+
+function resolvePreferredRegistrationPayloadFields(payload = {}) {
+  const buyerName = normalizeText(payload?.buyerName || payload?.fullName || payload?.name);
+  const buyerEmail = normalizeEmail(payload?.buyerEmail || payload?.email);
+  const freeAccountRegistration = resolveFreeAccountCheckoutFields(payload);
+
+  if (!buyerName) {
+    return {
+      ok: false,
+      status: 400,
+      error: 'Full name is required.',
+    };
+  }
+
+  if (!buyerEmail) {
+    return {
+      ok: false,
+      status: 400,
+      error: 'A valid email is required.',
+    };
+  }
+
+  if (!freeAccountRegistration.memberUsername) {
+    return {
+      ok: false,
+      status: 400,
+      error: 'Username is required for Preferred Account registration.',
+    };
+  }
+
+  if (!FREE_ACCOUNT_USERNAME_PATTERN.test(freeAccountRegistration.memberUsername)) {
+    return {
+      ok: false,
+      status: 400,
+      error: 'Username must be 3-24 characters and can include letters, numbers, dot, underscore, and dash.',
+    };
+  }
+
+  return {
+    ok: true,
+    fields: {
+      buyerName,
+      buyerEmail,
+      freeAccountRegistration,
+    },
+  };
+}
+
+export async function registerPreferredCustomerWithoutCheckout(payload = {}, context = {}) {
+  const storeCodeResolution = resolveRequestedCheckoutStoreCode(payload, context);
+  if (!storeCodeResolution.ok) {
+    return {
+      success: false,
+      status: storeCodeResolution.status,
+      error: storeCodeResolution.error,
+    };
+  }
+  const requestedStoreCode = storeCodeResolution.storeCode;
+
+  const payloadFields = resolvePreferredRegistrationPayloadFields(payload);
+  if (!payloadFields.ok) {
+    return {
+      success: false,
+      status: payloadFields.status,
+      error: payloadFields.error,
+    };
+  }
+
+  const identity = await resolveCheckoutBuyerPreferredCustomerIdentity({
+    attributionKey: requestedStoreCode,
+    buyerName: payloadFields.fields.buyerName,
+    buyerEmail: payloadFields.fields.buyerEmail,
+    freeAccountRegistration: payloadFields.fields.freeAccountRegistration,
+  });
+
+  if (!identity.ok) {
+    return {
+      success: false,
+      status: 422,
+      error: identity.reason || 'Unable to register Preferred Account at this time.',
+    };
+  }
+
+  const setupLink = appendStoreCodeToRelativePath(identity.setupLink, requestedStoreCode);
+  const loginLink = appendStoreCodeToRelativePath('/login.html', requestedStoreCode);
+  const created = identity.created === true;
+
+  return {
+    success: true,
+    status: created ? 201 : 200,
+    data: {
+      success: true,
+      registration: {
+        created,
+        userId: normalizeText(identity.userId),
+        username: normalizeText(identity.username),
+        email: normalizeEmail(identity.email),
+        attributionStoreCode: requestedStoreCode,
+        requiresPasswordSetup: Boolean(setupLink),
+        setupLink,
+        loginLink,
+        message: setupLink
+          ? 'Preferred account is ready. Continue to password setup.'
+          : 'Preferred account exists and already has a password. Continue to login.',
+      },
+    },
+  };
 }
 
 export async function createStoreCheckoutPaymentIntent(payload = {}, context = {}) {
