@@ -1016,3 +1016,33 @@
 
 ### Notes
 - This is a storefront fail-safe while backend/API product image payloads are refreshed/restarted.
+
+## Update (2026-04-16) - Header Navigation Trim
+
+### Scope
+- Public Preferred store page (`store.html`).
+
+### Changes
+- Removed guest `About Us` link from the top navigation.
+- Guest header now shows:
+  - Store
+  - Support
+  - Login
+
+### Result
+- Header is cleaner and aligned with the account-gated purchase journey.
+
+## Update (2026-04-16) - Support Header Navigation Trim
+
+### Scope
+- Public store support page (`store-support.html`).
+
+### Changes
+- Removed guest `About Us` link from the top navigation.
+- Guest support header now shows:
+  - Store
+  - Support
+  - Login
+
+### Result
+- Support page header now matches the simplified store navigation flow.

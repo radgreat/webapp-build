@@ -1,11 +1,89 @@
 # Member Login Page Notes
 
-Last Updated: 2026-04-07
+Last Updated: 2026-04-16
 
 ## Scope
 
 - Page: `login.html`
 - Purpose: Unified authentication entry page (`/api/member-auth/login`) for both paid members and free/preferred customers, with a ColorBends background and glass-style panel.
+
+## Recent Update (2026-04-16) - ColorBends Background Race Fix After Intro Timing Change
+
+- Fixed background regression introduced by earlier intro scheduling hardening:
+  - root cause: `runLoginIntroAnimation()` can execute before module script registers `window.startColorBendsIntro`
+  - result before fix: shader intro uniforms stayed at pre-intro state on some loads.
+- Added pending-intro handshake:
+  - if ColorBends intro function is not ready, login intro now sets `window.__loginPendingColorBendsIntro = true`
+  - module init consumes the pending flag and immediately starts ColorBends intro once registered.
+- Result:
+  - background animation behavior is restored while keeping single-pass login intro scheduling.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Parsed plain inline scripts successfully in `login.html` (`2` blocks).
+
+## Recent Update (2026-04-16) - Startup Intro Hiccup Fix (Store -> Login Flow)
+
+- Fixed login intro animation jitter seen after redirecting from `store.html`:
+  - removed delayed intro trigger (`setTimeout` path)
+  - added one-shot intro scheduler to prevent duplicate execution on normal first load
+  - limited `pageshow` intro rerun to BFCache restores only (`event.persisted === true`).
+- Result:
+  - login panel no longer appears, disappears, then replays intro on normal navigation
+  - first-load transition is now single-pass and stable.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Parsed plain inline scripts successfully in `login.html` (`2` blocks).
+
+## Recent Update (2026-04-16) - Preferred Registration Link Added Under Login Panel
+
+- Added a new inline CTA row directly below the login card:
+  - copy: `Don't have an account? Register as a Preferred Account`
+  - link target: `/store-register.html`.
+- Added runtime URL handling to preserve valid store attribution when present:
+  - reads `?store=` from `login.html`
+  - normalizes aliases and unattributed codes through existing store-code normalization
+  - appends normalized `store` to the preferred registration URL.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Parsed plain inline scripts successfully in `login.html` (`2` blocks).
+
+## Recent Update (2026-04-16) - Member Password Setup UI Restyled to Store/Register Theme
+
+- Updated `password-setup.html` from the legacy dark/glass panel to the newer white store/register style language.
+- Kept all existing setup behavior unchanged:
+  - token validation endpoint
+  - setup-link recovery redirect handling
+  - free-account redirect to `store-password-setup.html`
+  - password submission flow to `/api/member-auth/setup-password`.
+- Visual alignment updates:
+  - Inter typography, white page shell, neutral gray fields, blue primary CTA.
+
+### Files Affected
+
+- `password-setup.html`
+- `Claude_Notes/member-login-page.md`
+
+### Validation
+
+- Inline script parse check passed for `password-setup.html`.
 
 ## Recent Update (2026-04-07) - Member + Free Account Merge
 
@@ -112,3 +190,14 @@ Last Updated: 2026-04-07
 - Inline script parse check passed for `login.html`.
 - `node --check storefront-shared.js` passed.
 - No screenshots captured for this pass per user instruction.
+
+## Update (2026-04-15) - No-Attribution Store Query Handling
+
+### Changes
+- Added guard in login path to treat `REGISTRATIONLOCKED`/`REGISTRATION-LOCKED` as no-attribution.
+- Unified login redirect bridge (`store-login.html`) now drops these values instead of forwarding them to `login.html`.
+
+### Result
+- Cleaner login URLs for no-attribution traffic.
+- Default no-attribution path works with no `?store=` query.
+

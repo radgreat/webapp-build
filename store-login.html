@@ -5,10 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Redirecting to Login</title>
   <script>
+    const UNATTRIBUTED_STORE_CODE_SET = new Set([
+      'REGISTRATIONLOCKED',
+      'REGISTRATION-LOCKED',
+    ]);
+
+    function normalizeStoreCode(value) {
+      const normalizedStoreCode = String(value || '')
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9-]/g, '');
+      return UNATTRIBUTED_STORE_CODE_SET.has(normalizedStoreCode) ? '' : normalizedStoreCode;
+    }
+
     (function redirectToUnifiedLogin() {
       const currentUrl = new URL(window.location.href);
       const targetUrl = new URL('/login.html', window.location.origin);
-      const storeCode = String(currentUrl.searchParams.get('store') || '').trim();
+      const storeCode = normalizeStoreCode(currentUrl.searchParams.get('store'));
       if (storeCode) {
         targetUrl.searchParams.set('store', storeCode);
       }
@@ -27,7 +40,7 @@
       }
       const currentUrl = new URL(window.location.href);
       const targetUrl = new URL('/login.html', window.location.origin);
-      const storeCode = String(currentUrl.searchParams.get('store') || '').trim();
+      const storeCode = normalizeStoreCode(currentUrl.searchParams.get('store'));
       if (storeCode) {
         targetUrl.searchParams.set('store', storeCode);
       }

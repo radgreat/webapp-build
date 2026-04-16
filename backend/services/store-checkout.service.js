@@ -12,6 +12,7 @@ import {
   readPasswordSetupTokensStore,
   writePasswordSetupTokensStore,
 } from '../stores/token.store.js';
+import { readRuntimeSettingsStore } from '../stores/runtime.store.js';
 import {
   buildPasswordSetupLink,
   isSetupTokenExpired,
@@ -37,6 +38,9 @@ const STRIPE_METADATA_VALUE_LIMIT = 500;
 const CHECKOUT_MODE_GUEST = 'guest';
 const CHECKOUT_MODE_FREE_ACCOUNT = 'free-account';
 const DEFAULT_BUILDER_PACKAGE_KEY = 'personal-builder-pack';
+const PREFERRED_UPGRADE_CHECKOUT_CLIENT = 'preferred-dashboard-upgrade';
+const CHECKOUT_PERSIST_MODE_REWRITE = 'rewrite';
+const CHECKOUT_PERSIST_MODE_UPSERT = 'upsert';
 const FREE_ACCOUNT_USERNAME_PATTERN = /^[a-zA-Z0-9._-]{3,24}$/;
 const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
 const PLACEMENT_LEG_EXTREME_LEFT = 'extreme-left';
@@ -133,6 +137,38 @@ function normalizeCheckoutMode(value) {
   return normalizedValue === CHECKOUT_MODE_FREE_ACCOUNT
     ? CHECKOUT_MODE_FREE_ACCOUNT
     : CHECKOUT_MODE_GUEST;
+}
+
+function resolveCheckoutClientTag(value) {
+  return normalizeText(value).toLowerCase();
+}
+
+function resolveCheckoutClientTagFromPayload(payload = {}) {
+  return resolveCheckoutClientTag(
+    payload.checkoutClient
+    || payload.checkout_client
+    || payload.checkout_client_tag
+    || '',
+  );
+}
+
+function resolveCheckoutClientTagFromMetadata(metadata = {}) {
+  return resolveCheckoutClientTag(
+    metadata.checkout_client
+    || metadata.checkoutClient
+    || metadata.checkout_client_tag
+    || '',
+  );
+}
+
+function isPreferredUpgradeCheckoutClient(value = '') {
+  return resolveCheckoutClientTag(value) === PREFERRED_UPGRADE_CHECKOUT_CLIENT;
+}
+
+function resolveCheckoutPersistenceMode(metadata = {}) {
+  return isPreferredUpgradeCheckoutClient(resolveCheckoutClientTagFromMetadata(metadata))
+    ? CHECKOUT_PERSIST_MODE_UPSERT
+    : CHECKOUT_PERSIST_MODE_REWRITE;
 }
 
 function shouldPersistBuyerIdentityForCheckout({
@@ -327,7 +363,19 @@ function resolveCheckoutSettlementProfile({
   };
 }
 
-function resolveConfiguredUnattributedFreeAccountSponsorUsername() {
+async function resolveConfiguredUnattributedFreeAccountSponsorUsername() {
+  try {
+    const runtimeSettings = await readRuntimeSettingsStore();
+    const runtimeConfiguredValue = normalizeText(
+      runtimeSettings?.unattributed_free_account_fallback_sponsor_username,
+    );
+    if (runtimeConfiguredValue) {
+      return runtimeConfiguredValue;
+    }
+  } catch (error) {
+    console.warn('[store-checkout] Unable to read runtime fallback sponsor setting:', error);
+  }
+
   for (const envKey of UNATTRIBUTED_FREE_ACCOUNT_SPONSOR_ENV_KEYS) {
     const candidateValue = normalizeText(process.env[envKey]);
     if (candidateValue) {
@@ -805,7 +853,9 @@ async function resolveCheckoutBuyerPreferredCustomerIdentity({
   // Free-account checkouts without referral attribution are parked under a holding sponsor
   // (defaults to "admin") so Admin can reassign later without crediting random uplines.
   if (!sponsorUsername && !normalizedAttributionKey) {
-    const configuredHoldingSponsorUsername = normalizeText(resolveConfiguredUnattributedFreeAccountSponsorUsername());
+    const configuredHoldingSponsorUsername = normalizeText(
+      await resolveConfiguredUnattributedFreeAccountSponsorUsername(),
+    );
     const matchedHoldingSponsorUser = (Array.isArray(users) ? users : []).find((user) => {
       const username = normalizeText(user?.username).toLowerCase();
       const email = normalizeEmail(user?.email);
@@ -967,6 +1017,8 @@ async function applyCheckoutAccountUpgrade({
     username,
     email,
     targetPackage: upgradeTargetPackage,
+  }, {
+    persistMode: resolveCheckoutPersistenceMode(metadata),
   });
   if (upgradeResult?.success) {
     return {
@@ -1051,6 +1103,7 @@ async function finalizeSuccessfulStoreCheckout({
     isCheckoutAccountUpgradeEnabled(metadata)
     && Boolean(accountUpgradeTargetPackage)
   );
+  const checkoutPersistenceMode = resolveCheckoutPersistenceMode(metadata);
   const resolvedBuyerPackageKey = buyerPackageKey
     || (checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT ? FREE_ACCOUNT_PACKAGE_KEY : '');
   const isPreferredBuyerCheckout = resolvedBuyerPackageKey === FREE_ACCOUNT_PACKAGE_KEY;
@@ -1219,6 +1272,8 @@ async function finalizeSuccessfulStoreCheckout({
       username: buyerUsername,
       email: buyerEmailForInvoice,
       pvGain: buyerBv,
+    }, {
+      persistMode: checkoutPersistenceMode,
     });
 
     buyerCredit = buyerCreditResult.success
@@ -1249,6 +1304,8 @@ async function finalizeSuccessfulStoreCheckout({
       username: normalizeText(attributionOwner.username),
       email: normalizeText(attributionOwner.email),
       pvGain: ownerBv,
+    }, {
+      persistMode: checkoutPersistenceMode,
     });
 
     ownerCredit = ownerCreditResult.success
@@ -1558,6 +1615,7 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
     payload.accountUpgradeTargetPackage || payload.account_upgrade_target_package,
   );
   const isAccountUpgradeCheckout = Boolean(accountUpgradeTargetPackage);
+  const checkoutClientTag = resolveCheckoutClientTagFromPayload(payload);
 
   const checkoutMetadata = {
     checkout_type: 'storefront',
@@ -1602,6 +1660,7 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
     invoice_status: sanitizeStripeMetadataValue(invoiceStatus),
     account_upgrade_enabled: isAccountUpgradeCheckout ? 'true' : 'false',
     account_upgrade_target_package: sanitizeStripeMetadataValue(accountUpgradeTargetPackage),
+    checkout_client: sanitizeStripeMetadataValue(checkoutClientTag),
     source: sanitizeStripeMetadataValue(payload.source || 'storefront'),
   };
 
@@ -1772,6 +1831,7 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     payload.accountUpgradeTargetPackage || payload.account_upgrade_target_package,
   );
   const isAccountUpgradeCheckout = Boolean(accountUpgradeTargetPackage);
+  const checkoutClientTag = resolveCheckoutClientTagFromPayload(payload);
 
   const checkoutMetadata = {
     checkout_type: 'storefront',
@@ -1816,6 +1876,7 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     invoice_status: sanitizeStripeMetadataValue(invoiceStatus),
     account_upgrade_enabled: isAccountUpgradeCheckout ? 'true' : 'false',
     account_upgrade_target_package: sanitizeStripeMetadataValue(accountUpgradeTargetPackage),
+    checkout_client: sanitizeStripeMetadataValue(checkoutClientTag),
     source: sanitizeStripeMetadataValue(payload.source || 'storefront'),
   };
 
@@ -1837,6 +1898,7 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     bp: checkoutMetadata.bp,
     account_upgrade_enabled: checkoutMetadata.account_upgrade_enabled,
     account_upgrade_target_package: checkoutMetadata.account_upgrade_target_package,
+    checkout_client: checkoutMetadata.checkout_client,
     source: checkoutMetadata.source,
   };
 

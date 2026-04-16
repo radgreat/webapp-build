@@ -2938,7 +2938,7 @@
             <div>
               <h3 class="font-body font-medium text-display-sm text-text-primary">Preferred Customers</h3>
               <p class="text-body-sm text-text-secondary mt-1">
-                Free Account profiles are listed here. Unattributed signups are parked under Admin Holding until reassigned.
+                Free Account profiles are listed here. Unattributed signups are parked under the configured fallback holding sponsor until reassigned.
               </p>
             </div>
             <button id="preferred-customers-refresh-button" type="button" class="inline-flex h-10 w-32 items-center justify-center gap-2 rounded-lg border border-surface-border bg-surface-base text-body-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring whitespace-nowrap">
@@ -2952,7 +2952,7 @@
               <p id="preferred-customers-total-count" class="mt-1.5 font-body font-semibold text-mono-data text-text-primary">0</p>
             </article>
             <article class="rounded-lg border border-surface-border bg-surface-base/45 px-3 py-2.5">
-              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Parked (Admin Holding)</p>
+              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Parked (Fallback Holding)</p>
               <p id="preferred-customers-parked-count" class="mt-1.5 font-body font-semibold text-mono-data text-semantic-warning">0</p>
             </article>
             <article class="rounded-lg border border-surface-border bg-surface-base/45 px-3 py-2.5">
@@ -4121,6 +4121,31 @@
               <div class="rounded-xl border border-surface-border bg-surface-base/25 p-5 space-y-4">
                 <div class="flex items-start justify-between gap-3">
                   <div>
+                    <h4 class="font-body font-medium text-body text-text-primary">Preferred Fallback Sponsor</h4>
+                    <p class="text-caption text-text-secondary mt-1">When a Preferred signup has no store attribution link, route it to this holding sponsor for later transfer.</p>
+                  </div>
+                  <span class="inline-flex items-center gap-1 rounded-full border border-brand-500/35 px-2 py-0.5 text-caption text-brand-400">Preferred Accounts</span>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                  <label class="space-y-1">
+                    <span class="text-caption text-text-tertiary">Fallback Sponsor</span>
+                    <select id="settings-fallback-sponsor-select" class="w-full rounded-xl border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                      <option value="">Admin (default)</option>
+                    </select>
+                  </label>
+                  <button id="settings-fallback-sponsor-save-button" type="button" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-brand-500/50 bg-brand-500 text-text-inverse font-medium text-body-sm hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised active:scale-[0.97] transition-transform duration-150 ease-spring">
+                    Save Fallback
+                  </button>
+                </div>
+
+                <p class="text-caption text-text-tertiary">Use Admin (default) to keep unattributed Preferred users parked under admin holding.</p>
+                <p id="settings-fallback-sponsor-feedback" class="hidden text-body-sm"></p>
+              </div>
+
+              <div class="rounded-xl border border-surface-border bg-surface-base/25 p-5 space-y-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
                     <h4 class="font-body font-medium text-body text-text-primary">Category: Legal</h4>
                     <p class="text-caption text-text-secondary mt-1">Open legal document management in its own settings flow.</p>
                   </div>
@@ -4700,6 +4725,9 @@
       const settingsTierClaimMockToggle = document.getElementById('settings-tier-claim-mock-toggle');
       const settingsTierClaimModeStatus = document.getElementById('settings-tier-claim-mode-status');
       const settingsTierClaimModeFeedback = document.getElementById('settings-tier-claim-mode-feedback');
+      const settingsFallbackSponsorSelect = document.getElementById('settings-fallback-sponsor-select');
+      const settingsFallbackSponsorSaveButton = document.getElementById('settings-fallback-sponsor-save-button');
+      const settingsFallbackSponsorFeedback = document.getElementById('settings-fallback-sponsor-feedback');
       const settingsMainView = document.getElementById('settings-main-view');
       const settingsOpenLegalCategoryButton = document.getElementById('settings-open-legal-category-button');
       const settingsLegalCategoryView = document.getElementById('settings-legal-category-view');
@@ -4828,6 +4856,7 @@
       let spilloverParentSuggestionKeys = new Set();
       let spilloverParentSuggestionItems = [];
       let settingsTierClaimToggleHydrating = false;
+      let settingsFallbackSponsorUsername = '';
       let settingsLegalDocumentsState = normalizeSettingsLegalDocuments({});
       let activeSettingsLegalDocumentKey = 'termsOfService';
       let activeSettingsLegalView = 'main';
@@ -5858,6 +5887,10 @@
 
       function resolveAdminHoldingSponsorKeySet() {
         const adminHoldingKeys = new Set(['admin']);
+        const configuredFallbackUsername = normalizeSettingsFallbackSponsorUsername(settingsFallbackSponsorUsername);
+        if (configuredFallbackUsername) {
+          adminHoldingKeys.add(configuredFallbackUsername);
+        }
         const currentSessionUsername = normalizeMemberKey(currentSessionUser?.username);
         if (currentSessionUsername && currentSessionUsername.includes('admin')) {
           adminHoldingKeys.add(currentSessionUsername);
@@ -7289,6 +7322,10 @@
         };
       }
 
+      function normalizeSettingsFallbackSponsorUsername(value) {
+        return String(value || '').trim().toLowerCase();
+      }
+
       function resolveSettingsLegalDocumentMeta(documentKey) {
         const normalizedKey = normalizeMemberKey(documentKey);
         if (Object.prototype.hasOwnProperty.call(SETTINGS_LEGAL_DOCUMENT_META, normalizedKey)) {
@@ -7456,6 +7493,123 @@
         });
       }
 
+      function setSettingsFallbackSponsorFeedback(message, isSuccess = true) {
+        if (!settingsFallbackSponsorFeedback) {
+          return;
+        }
+
+        const normalizedMessage = String(message || '').trim();
+        if (!normalizedMessage) {
+          settingsFallbackSponsorFeedback.textContent = '';
+          settingsFallbackSponsorFeedback.classList.add('hidden');
+          settingsFallbackSponsorFeedback.classList.remove('text-semantic-success', 'text-semantic-danger');
+          return;
+        }
+
+        settingsFallbackSponsorFeedback.textContent = normalizedMessage;
+        settingsFallbackSponsorFeedback.classList.remove('hidden', 'text-semantic-success', 'text-semantic-danger');
+        settingsFallbackSponsorFeedback.classList.add(isSuccess ? 'text-semantic-success' : 'text-semantic-danger');
+      }
+
+      function clearSettingsFallbackSponsorFeedback() {
+        setSettingsFallbackSponsorFeedback('');
+      }
+
+      function collectSettingsFallbackSponsorOptions() {
+        const optionMap = new Map();
+        const addOption = (usernameRaw, displayNameRaw = '') => {
+          const username = normalizeSettingsFallbackSponsorUsername(usernameRaw);
+          if (!username) {
+            return;
+          }
+
+          const displayName = String(displayNameRaw || '').trim();
+          const previousOption = optionMap.get(username) || null;
+          const previousName = String(previousOption?.name || '').trim();
+          optionMap.set(username, {
+            username,
+            name: displayName || previousName,
+          });
+        };
+
+        addOption('admin', 'Admin');
+        addOption(currentSessionUser?.username || currentSessionUser?.email, currentSessionUser?.name || currentSessionUser?.username || 'Admin');
+
+        (Array.isArray(registeredMembers) ? registeredMembers : []).forEach((member) => {
+          addOption(
+            member?.memberUsername || member?.username,
+            member?.fullName || member?.name || member?.memberUsername || member?.username,
+          );
+          addOption(
+            member?.sponsorUsername,
+            member?.sponsorName || member?.sponsorUsername,
+          );
+        });
+
+        return Array.from(optionMap.values()).sort((left, right) => {
+          if (left.username === 'admin') {
+            return -1;
+          }
+          if (right.username === 'admin') {
+            return 1;
+          }
+
+          const leftLabel = String(left.name || left.username).toLowerCase();
+          const rightLabel = String(right.name || right.username).toLowerCase();
+          if (leftLabel < rightLabel) {
+            return -1;
+          }
+          if (leftLabel > rightLabel) {
+            return 1;
+          }
+          return 0;
+        });
+      }
+
+      function applySettingsFallbackSponsorToForm(value) {
+        settingsFallbackSponsorUsername = normalizeSettingsFallbackSponsorUsername(value);
+        if (!settingsFallbackSponsorSelect) {
+          return;
+        }
+
+        const availableOptions = collectSettingsFallbackSponsorOptions();
+        const optionFragment = document.createDocumentFragment();
+        const defaultOptionElement = document.createElement('option');
+        defaultOptionElement.value = '';
+        defaultOptionElement.textContent = 'Admin (default)';
+        optionFragment.appendChild(defaultOptionElement);
+
+        let hasSelectedOption = settingsFallbackSponsorUsername === '';
+        availableOptions.forEach((option) => {
+          if (option.username === 'admin') {
+            return;
+          }
+
+          const optionElement = document.createElement('option');
+          optionElement.value = option.username;
+          optionElement.textContent = option?.name
+            ? `${option.name} (@${option.username})`
+            : `@${option.username}`;
+          optionFragment.appendChild(optionElement);
+          if (option.username === settingsFallbackSponsorUsername) {
+            hasSelectedOption = true;
+          }
+        });
+
+        if (!hasSelectedOption && settingsFallbackSponsorUsername) {
+          const currentOptionElement = document.createElement('option');
+          currentOptionElement.value = settingsFallbackSponsorUsername;
+          currentOptionElement.textContent = `@${settingsFallbackSponsorUsername} (current fallback)`;
+          optionFragment.appendChild(currentOptionElement);
+          hasSelectedOption = true;
+        }
+
+        settingsFallbackSponsorSelect.replaceChildren(optionFragment);
+        settingsFallbackSponsorSelect.value = hasSelectedOption
+          ? settingsFallbackSponsorUsername
+          : '';
+      }
+
       function readRuntimeSettingsFallback() {
         const rawValue = safeStorageGet(window.localStorage, RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY);
         if (!rawValue) {
@@ -7500,6 +7654,13 @@
             ? incomingLegalSource
             : currentLegalSource,
         );
+        const hasIncomingFallbackSponsor = Object.prototype.hasOwnProperty.call(
+          incomingSettings,
+          'unattributedFreeAccountFallbackSponsorUsername',
+        );
+        const nextFallbackSponsorUsername = hasIncomingFallbackSponsor
+          ? normalizeSettingsFallbackSponsorUsername(incomingSettings.unattributedFreeAccountFallbackSponsorUsername)
+          : normalizeSettingsFallbackSponsorUsername(currentSettings.unattributedFreeAccountFallbackSponsorUsername);
         const nextSettings = {
           ...currentSettings,
           ...incomingSettings,
@@ -7507,6 +7668,7 @@
           tierClaimMockModeEnabled: nextTierClaimModeEnabled,
           legal: nextLegalDocuments,
           legalDocuments: nextLegalDocuments,
+          unattributedFreeAccountFallbackSponsorUsername: nextFallbackSponsorUsername,
           updatedAt: new Date().toISOString(),
         };
         return safeStorageSet(
@@ -8292,6 +8454,126 @@
         }
       }
 
+      async function loadSettingsFallbackSponsor() {
+        if (!settingsFallbackSponsorSelect) {
+          return;
+        }
+
+        try {
+          const response = await fetch(ADMIN_RUNTIME_SETTINGS_API, {
+            method: 'GET',
+            cache: 'no-store',
+            credentials: 'same-origin',
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string'
+              ? payload.error
+              : 'Unable to load preferred fallback sponsor setting.';
+            throw new Error(message);
+          }
+
+          const nextFallbackSponsorUsername = normalizeSettingsFallbackSponsorUsername(
+            payload?.settings?.unattributedFreeAccountFallbackSponsorUsername,
+          );
+          applySettingsFallbackSponsorToForm(nextFallbackSponsorUsername);
+          renderPreferredCustomersPage();
+          writeRuntimeSettingsFallback({
+            unattributedFreeAccountFallbackSponsorUsername: nextFallbackSponsorUsername,
+          });
+          return;
+        } catch {
+          const fallbackSettings = readRuntimeSettingsFallback();
+          const hasFallbackSponsor = Object.prototype.hasOwnProperty.call(
+            fallbackSettings,
+            'unattributedFreeAccountFallbackSponsorUsername',
+          );
+          if (hasFallbackSponsor) {
+            applySettingsFallbackSponsorToForm(
+              fallbackSettings.unattributedFreeAccountFallbackSponsorUsername,
+            );
+            renderPreferredCustomersPage();
+            setSettingsFallbackSponsorFeedback(
+              'Runtime settings API unavailable. Using local fallback sponsor setting for this browser.',
+              true,
+            );
+            return;
+          }
+        }
+
+        throw new Error('Unable to load preferred fallback sponsor setting. API unavailable and no local fallback found.');
+      }
+
+      async function persistSettingsFallbackSponsor() {
+        if (!settingsFallbackSponsorSelect || !settingsFallbackSponsorSaveButton) {
+          return;
+        }
+
+        const selectedFallbackSponsorUsername = normalizeSettingsFallbackSponsorUsername(settingsFallbackSponsorSelect.value);
+        const previousButtonLabel = settingsFallbackSponsorSaveButton.textContent || 'Save Fallback';
+        settingsFallbackSponsorSelect.disabled = true;
+        settingsFallbackSponsorSaveButton.disabled = true;
+        settingsFallbackSponsorSaveButton.textContent = 'Saving...';
+        clearSettingsFallbackSponsorFeedback();
+
+        try {
+          const response = await fetch(ADMIN_RUNTIME_SETTINGS_API, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              unattributedFreeAccountFallbackSponsorUsername: selectedFallbackSponsorUsername,
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string'
+              ? payload.error
+              : 'Unable to save preferred fallback sponsor setting.';
+            throw new Error(message);
+          }
+
+          const persistedFallbackSponsorUsername = normalizeSettingsFallbackSponsorUsername(
+            payload?.settings?.unattributedFreeAccountFallbackSponsorUsername,
+          );
+          applySettingsFallbackSponsorToForm(persistedFallbackSponsorUsername);
+          writeRuntimeSettingsFallback({
+            unattributedFreeAccountFallbackSponsorUsername: persistedFallbackSponsorUsername,
+          });
+          renderPreferredCustomersPage();
+          setSettingsFallbackSponsorFeedback(
+            persistedFallbackSponsorUsername
+              ? `Preferred fallback sponsor saved. Unattributed signups now park under @${persistedFallbackSponsorUsername}.`
+              : 'Preferred fallback sponsor reset to Admin (default).',
+            true,
+          );
+        } catch (error) {
+          const wroteFallback = writeRuntimeSettingsFallback({
+            unattributedFreeAccountFallbackSponsorUsername: selectedFallbackSponsorUsername,
+          });
+
+          if (wroteFallback) {
+            applySettingsFallbackSponsorToForm(selectedFallbackSponsorUsername);
+            renderPreferredCustomersPage();
+            setSettingsFallbackSponsorFeedback(
+              'Saved locally only because runtime settings API is unavailable. Restart backend for global sync.',
+              true,
+            );
+          } else {
+            const message = error instanceof Error
+              ? error.message
+              : 'Unable to save preferred fallback sponsor setting.';
+            setSettingsFallbackSponsorFeedback(message, false);
+          }
+        } finally {
+          settingsFallbackSponsorSelect.disabled = false;
+          settingsFallbackSponsorSaveButton.disabled = false;
+          settingsFallbackSponsorSaveButton.textContent = previousButtonLabel;
+        }
+      }
+
       async function loadSettingsLegalDocuments() {
         if (settingsLegalPreviewElements.length === 0 && !settingsLegalEditorInput) {
           return;
@@ -8903,9 +9185,11 @@
         clearSettingsForceServerCutoffHistoryFeedback();
         renderSettingsForceServerCutoffHistory();
         clearSettingsTierClaimModeFeedback();
+        clearSettingsFallbackSponsorFeedback();
         clearSettingsLegalFeedback();
         setSettingsLegalView('main');
         renderSettingsLegalCategoryPreviews();
+        applySettingsFallbackSponsorToForm(settingsFallbackSponsorUsername);
         applyQuickActionRequestPayoutMode(false);
 
         if (settingsTierClaimMockToggle) {
@@ -8919,6 +9203,26 @@
               return;
             }
             persistSettingsTierClaimModeToggle(settingsTierClaimMockToggle.checked);
+          });
+        }
+
+        if (settingsFallbackSponsorSelect) {
+          loadSettingsFallbackSponsor().catch((error) => {
+            const message = error instanceof Error ? error.message : 'Unable to load preferred fallback sponsor setting.';
+            setSettingsFallbackSponsorFeedback(message, false);
+          });
+
+          settingsFallbackSponsorSelect.addEventListener('change', () => {
+            clearSettingsFallbackSponsorFeedback();
+          });
+        }
+
+        if (settingsFallbackSponsorSaveButton) {
+          settingsFallbackSponsorSaveButton.addEventListener('click', () => {
+            persistSettingsFallbackSponsor().catch((error) => {
+              const message = error instanceof Error ? error.message : 'Unable to save preferred fallback sponsor setting.';
+              setSettingsFallbackSponsorFeedback(message, false);
+            });
           });
         }
 
@@ -9758,12 +10062,14 @@
           const payload = await response.json();
           await rankLookupPromise;
           registeredMembers = Array.isArray(payload?.members) ? payload.members : [];
+          applySettingsFallbackSponsorToForm(settingsFallbackSponsorUsername);
           recalculateEnrollDerivedMetrics();
           syncBinaryTreeFromRegisteredMembers();
         } catch (error) {
           console.error('Failed to load registered members:', error);
           registeredMembers = [];
           resetMemberRankLookup([]);
+          applySettingsFallbackSponsorToForm(settingsFallbackSponsorUsername);
           recalculateEnrollDerivedMetrics();
           syncBinaryTreeFromRegisteredMembers();
         }

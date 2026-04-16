@@ -18,27 +18,33 @@
 .metric{border:1px solid var(--line);border-radius:12px;padding:12px;background:#FAFBFD}.metric p{margin:0}.metric-label{font-size:12px;color:#5E636B}.metric-value{margin-top:4px!important;font-size:24px;letter-spacing:-.03em}
 .field{display:grid;gap:6px}.field label{font-size:12px;color:#4B5058;letter-spacing:-.01em}.input,.select{width:100%;height:44px;border:0;border-radius:12px;background:var(--field);padding:0 12px;font:400 14px "Inter",sans-serif;letter-spacing:-.01em;color:#171717;outline:none}.input::placeholder{color:#444}.input:focus,.select:focus{box-shadow:0 0 0 2px rgba(7,122,255,.22)}.input[readonly]{opacity:.7}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.form-grid{display:grid;gap:10px}.inline-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.inline-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.upgrade-panel{position:relative;overflow:hidden}.upgrade-carousel{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;align-items:center;gap:12px;margin-top:14px}
-.upgrade-nav{height:46px;width:46px;border:1px solid #D6E0ED;border-radius:14px;background:#fff;color:#313A45;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .18s,background .18s,border-color .18s}.upgrade-nav svg{width:16px;height:16px}.upgrade-nav:hover{background:#F3F8FF;border-color:#BDD1EA;transform:translateY(-1px)}.upgrade-nav:disabled{opacity:.45;cursor:default;transform:none}
-.upgrade-viewport{overflow:hidden}.upgrade-packages{display:flex;transform:translateX(0);transition:transform .46s cubic-bezier(.22,1,.36,1);will-change:transform}
-.upgrade-option{--upgrade-accent:#4E7EFF;--upgrade-glow:rgba(78,126,255,.28);flex:0 0 100%;width:100%;border:0;background:transparent;padding:2px;text-align:left;cursor:pointer}
-.upgrade-card{border:1px solid #DCE5F1;border-radius:18px;background:#FAFCFF;padding:14px;display:grid;gap:10px;transition:border-color .18s,box-shadow .18s,transform .18s}.upgrade-option:hover .upgrade-card{border-color:#C4D6EC;transform:translateY(-1px)}.upgrade-option:focus-visible .upgrade-card{outline:2px solid rgba(7,122,255,.34);outline-offset:2px}.upgrade-option:disabled{opacity:.58;cursor:default}.upgrade-option:disabled .upgrade-card{transform:none}.upgrade-option.is-selected .upgrade-card{border-color:var(--upgrade-accent);box-shadow:0 18px 34px -28px var(--upgrade-glow),0 0 0 1px var(--upgrade-glow)}
-.upgrade-media{position:relative;height:174px;border:1px solid #DEE7F4;border-radius:14px;background:radial-gradient(circle at 25% 20%,#FCFEFF 0%,#ECF2FC 58%,#E4ECF8 100%);display:grid;place-items:center;overflow:hidden}.upgrade-product-image{max-height:74%;width:auto;object-fit:contain;filter:drop-shadow(0 14px 26px rgba(12,40,86,.22))}.upgrade-package-image{position:absolute;top:10px;right:10px;width:34px;height:34px;opacity:.92}
-.upgrade-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.upgrade-name{margin:0;font-size:16px;letter-spacing:-.02em;font-weight:500}.upgrade-tier{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:#E8F1FF;color:#244E84;font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase}
-.upgrade-copy{margin:0;color:#4F5560;font-size:13px;line-height:1.5}.upgrade-benefits{margin:0;padding:0;list-style:none;display:grid;gap:6px}.upgrade-benefits li{position:relative;padding-left:16px;color:#232831;font-size:13px;line-height:1.45}.upgrade-benefits li::before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:999px;background:#077AFF}
-.upgrade-dots{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px}.upgrade-dot{width:8px;height:8px;border:0;border-radius:999px;background:#CCD3DE;padding:0;cursor:pointer;transition:transform .18s,background .18s}.upgrade-dot.is-active{background:#077AFF;transform:scale(1.2)}
+.business-teaser{border-color:#E4E7EC;background:linear-gradient(180deg,#FCFCFD 0%,#F7F8FA 100%)}.business-teaser-copy{display:grid;gap:10px;max-width:760px}.business-teaser-kicker{margin:0;font-size:12px;line-height:1.2;letter-spacing:.09em;text-transform:uppercase;color:#6A7280}.business-teaser-title{margin:0;font-size:28px;line-height:1.15;letter-spacing:-.03em;font-weight:500;color:#0F1724}.business-teaser-sub{margin:0;font-size:14px;line-height:1.6;color:#5A6270}.business-teaser-points{margin:2px 0 0;padding:0;list-style:none;display:grid;gap:8px}.business-teaser-points li{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#323843;font-weight:400}.business-teaser-points li::before{content:'';width:14px;height:14px;flex:0 0 14px;margin-top:.25em;background-repeat:no-repeat;background-size:14px 14px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Ccircle cx='10' cy='10' r='9' stroke='%23111722' stroke-width='1.5'/%3E%3Cpath d='M6 10.3l2.4 2.4L14 7.5' stroke='%23111722' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}.business-invite-feedback{margin:12px 0 0}.upgrade-checkout-flow{display:grid;gap:16px;margin-top:26px}.upgrade-product-picker{display:flex;align-items:center;justify-content:center;gap:8px;row-gap:10px;flex-wrap:wrap}.upgrade-product-picker-title{margin:0;width:100%;text-align:center;font-size:15px;font-weight:500;letter-spacing:-.02em;color:#111722;line-height:1.25}.upgrade-product-picker-caption{margin:0;width:100%;text-align:center;font-size:12px;color:#596273;line-height:1.45}.upgrade-product-option{height:34px;border:1px solid #D7DCE4;background:#fff;color:#151B25;border-radius:999px;padding:0 12px;font:400 13px "Inter",sans-serif;letter-spacing:-.01em;cursor:pointer;transition:border-color .18s,background .18s,color .18s}.upgrade-product-option:hover{border-color:#BBC6D5}.upgrade-product-option.is-selected{background:#10141B;color:#fff;border-color:#10141B}
+.upgrade-modal-backdrop{position:fixed;inset:0;background:rgba(10,15,24,.38);backdrop-filter:blur(2px);display:none;align-items:flex-start;justify-content:center;padding:34px 16px;z-index:1100}.upgrade-modal-backdrop.is-open{display:flex}.upgrade-modal{width:min(1280px,100%);max-height:calc(100vh - 68px);overflow:auto;background:#fff;border:1px solid #D9DDE4;border-radius:18px;box-shadow:0 32px 80px -54px rgba(0,0,0,.55);padding:14px}.upgrade-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:2px 4px 12px}.upgrade-modal-title{margin:0;font-size:22px;line-height:1.15;letter-spacing:-.03em;font-weight:500;color:#0F1724}.upgrade-modal-sub{margin:5px 0 0;font-size:13px;line-height:1.5;color:#5B6371}.upgrade-close{min-width:40px;width:40px;height:40px;padding:0;border-radius:12px;background:#F1F4F8;color:#141A24;border:0;cursor:pointer;transition:filter .18s,transform .18s}.upgrade-close:hover{filter:brightness(1.03);transform:translateY(-1px)}.upgrade-close:focus-visible{outline:2px solid rgba(7,122,255,.38);outline-offset:2px}
+.upgrade-thankyou-backdrop{position:fixed;inset:0;background:rgba(10,15,24,.42);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;padding:20px 12px;z-index:1200}.upgrade-thankyou-backdrop.is-open{display:flex}.upgrade-thankyou-modal{width:min(560px,100%);background:#fff;border:1px solid #D9DDE4;border-radius:18px;box-shadow:0 36px 84px -58px rgba(0,0,0,.55);padding:20px;display:grid;gap:12px}.upgrade-thankyou-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.upgrade-thankyou-kicker{margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5F6A7A}.upgrade-thankyou-title{margin:6px 0 0;font-size:34px;line-height:1.05;letter-spacing:-.04em;font-weight:500;color:#0E1522}.upgrade-thankyou-message{margin:0;font-size:14px;line-height:1.6;color:#4E5868}.upgrade-thankyou-status{margin:0;padding:9px 10px;border-radius:10px;border:1px solid #CFE2FF;background:#EEF4FF;color:#2A5DA3;font-size:12px;line-height:1.4;display:flex;align-items:center;gap:8px}.upgrade-thankyou-status-spinner{width:14px;height:14px;border-radius:999px;border:2px solid rgba(42,93,163,.28);border-top-color:#2A5DA3;display:none;flex:0 0 14px}.upgrade-thankyou-status.is-loading .upgrade-thankyou-status-spinner{display:inline-flex;animation:upgradeThankYouSpin .85s linear infinite}.upgrade-thankyou-status.is-success{border-color:#BFE5CB;background:#EAF7EF;color:#1D6C3A}.upgrade-thankyou-status.is-success .upgrade-thankyou-status-spinner,.upgrade-thankyou-status.is-error .upgrade-thankyou-status-spinner{display:none}.upgrade-thankyou-status.is-error{border-color:#F1C9C9;background:#FCECEC;color:#9E1D1D}.upgrade-thankyou-progress-note{margin:0;padding:8px 10px;border-radius:10px;border:1px solid #E2E5EA;background:#F7F8FA;color:#404753;font-size:12px;line-height:1.45}.upgrade-thankyou-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+@keyframes upgradeThankYouSpin{to{transform:rotate(360deg)}}
+.upgrade-panel{background:#F3F3F3;border-color:#E4E5E8}.upgrade-intro{text-align:center;max-width:650px;margin:4px auto 0;display:grid;gap:10px}.upgrade-intro-title{margin:0;font-size:54px;line-height:1.02;letter-spacing:-.04em;font-weight:500;color:#0B1220}.upgrade-intro-sub{margin:0;font-size:17px;line-height:1.55;color:#596170}
+.upgrade-packages{margin-top:24px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}.upgrade-option{width:100%;border:1px solid #D9DDE2;background:#fff;border-radius:14px;padding:0;text-align:left;cursor:pointer;display:flex;flex-direction:column;overflow:hidden;appearance:none;-webkit-appearance:none;line-height:normal;vertical-align:top;transition:border-color .18s,box-shadow .18s,transform .18s}.upgrade-option:hover{border-color:#C6CFDA;transform:translateY(-1px)}.upgrade-option:focus-visible{outline:2px solid rgba(7,122,255,.34);outline-offset:2px}.upgrade-option:disabled{opacity:.6;cursor:default;transform:none}.upgrade-option.is-selected{border-color:#151A22;box-shadow:0 14px 30px -26px rgba(0,0,0,.45)}
+.upgrade-card-top{padding:20px 20px 14px;display:grid;gap:12px}.upgrade-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.upgrade-name{margin:0;font-size:20px;line-height:1.16;letter-spacing:-.02em;font-weight:500;color:#0D121A}.upgrade-bv{margin:0;font-size:44px;line-height:1;letter-spacing:-.03em;font-weight:500;color:#0B1220}.upgrade-price{margin:0;font-size:18px;line-height:1.35;color:#5A6372;font-weight:500}.upgrade-products{margin:0;font-size:13px;line-height:1.45;color:#6A7383;font-weight:400}
+.upgrade-divider{height:1px;background:#E6E9EE}
+.upgrade-benefits{margin:0;padding:18px 20px 22px;list-style:none;display:grid;gap:12px;flex:1 1 auto}.upgrade-benefits li{display:flex;align-items:flex-start;gap:8px;padding-left:0;color:#232933;font-size:14px;line-height:1.55;font-weight:400}.upgrade-benefits li::before{content:'';width:14px;height:14px;flex:0 0 14px;margin-top:.3em;background-repeat:no-repeat;background-size:14px 14px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Ccircle cx='10' cy='10' r='9' stroke='%231b1f26' stroke-width='1.5'/%3E%3Cpath d='M6 10.3l2.4 2.4L14 7.5' stroke='%231b1f26' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}.upgrade-benefits li[data-icon='cap']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M4 15.5h12' stroke='%231b1f26' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M6.2 15.5V9.4M10 15.5V6.9M13.8 15.5V11.1' stroke='%231b1f26' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E")}.upgrade-benefits li[data-icon='money']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Crect x='3.2' y='5.2' width='13.6' height='9.6' rx='2' stroke='%231b1f26' stroke-width='1.5'/%3E%3Ccircle cx='12.6' cy='10' r='1.5' fill='%231b1f26'/%3E%3C/svg%3E")}.upgrade-benefits li[data-icon='lock']{color:#8B93A1}.upgrade-benefits li[data-icon='lock']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Crect x='4.1' y='9' width='11.8' height='7.5' rx='1.8' stroke='%238b93a1' stroke-width='1.5'/%3E%3Cpath d='M6.8 9V6.8a3.2 3.2 0 0 1 6.4 0V9' stroke='%238b93a1' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")}.upgrade-benefits li[data-icon='unlock']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Crect x='4.1' y='9' width='11.8' height='7.5' rx='1.8' stroke='%231b1f26' stroke-width='1.5'/%3E%3Cpath d='M12.9 6.8a3.2 3.2 0 0 0-6.1-1.3' stroke='%231b1f26' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M6.8 9V8.1' stroke='%231b1f26' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")}.upgrade-benefits li[data-icon='infinity-unlock']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5.8 13.1A3.1 3.1 0 1 1 5.8 6.9c1.9 0 2.8 2 4.2 3.6 1.4-1.6 2.3-3.6 4.2-3.6a3.1 3.1 0 1 1 0 6.2c-1.9 0-2.8-2-4.2-3.6-1.4 1.6-2.3 3.6-4.2 3.6Z' stroke='%231b1f26' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")} .upgrade-select{height:46px;border:0;border-top:1px solid #E6E9EE;background:#fff;border-radius:0 0 14px 14px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:#111722;letter-spacing:-.01em;flex-shrink:0;margin-top:auto}
+.upgrade-option.is-selected .upgrade-select{background:#111317;color:#fff;border-top-color:#111317}
+.upgrade-benefits li[data-icon='legacy-unlock']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M3.5 14.6h13l-1.1-6.2-4 2.6L10 6.2 8.6 11 4.6 8.4l-1.1 6.2Z' stroke='%231b1f26' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M4.8 14.6h10.4' stroke='%231b1f26' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='5.1' r='1.2' fill='%231b1f26'/%3E%3C/svg%3E")}
 .upgrade-selected{margin:0;font-size:13px;color:#4B5058}
 .feedback{margin:0;font-size:12px;line-height:1.4;padding:9px 10px;border:1px solid transparent;border-radius:10px;display:none}.feedback.is-error{display:block;border-color:#F1C9C9;background:#FCECEC;color:var(--danger)}.feedback.is-success{display:block;border-color:#BFE5CB;background:#EAF7EF;color:var(--ok)}.feedback.is-info{display:block;border-color:#CFE2FF;background:#EEF4FF;color:#2A5DA3}
 .purchase-list{display:grid;gap:10px}.purchase-item{border:1px solid var(--line);border-radius:12px;padding:12px;background:#FAFBFD;display:grid;gap:8px}.purchase-item-top,.purchase-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.purchase-id{margin:0;font-size:14px}.purchase-date{margin:2px 0 0;font-size:12px;color:#666B73}.status{font-size:12px;padding:5px 8px;border-radius:999px;border:1px solid #DCE8FF;background:#F3F7FF;color:#3A5F91}.status.pending{border-color:#F3DCB3;background:#FFF7E8;color:#8A611D}.empty{border:1px dashed #CED4DC;border-radius:12px;padding:12px;font-size:14px;color:#666B73;background:#FBFCFE}
-@media (max-width:1040px){.topbar-inner,.page{width:min(1240px,calc(100vw - 26px))}.grid-two{grid-template-columns:1fr}.inline-grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:760px){.topbar{height:60px}.topbar-inner{width:calc(100vw - 18px)}.top-left{gap:10px}.brand-icon{width:24px;height:24px}.nav-link{font-size:13px}.page{width:calc(100vw - 18px);padding:24px 0 44px;gap:14px}.panel{padding:14px}.panel-title{font-size:21px}.grid-three,.inline-grid,.inline-grid-3{grid-template-columns:1fr}.btn{height:42px}.upgrade-carousel{grid-template-columns:36px minmax(0,1fr) 36px}.upgrade-nav{height:36px;width:36px;border-radius:12px}.upgrade-media{height:146px}.upgrade-package-image{width:30px;height:30px}}
+@media (max-width:1040px){.topbar-inner,.page{width:min(1240px,calc(100vw - 26px))}.grid-two{grid-template-columns:1fr}.inline-grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}.business-teaser .row{align-items:flex-start}}
+@media (max-width:1040px){.upgrade-packages{grid-template-columns:repeat(2,minmax(0,1fr))}.upgrade-intro-title{font-size:46px}}
+@media (max-width:760px){.topbar{height:60px}.topbar-inner{width:calc(100vw - 18px)}.top-left{gap:10px}.brand-icon{width:24px;height:24px}.nav-link{font-size:13px}.page{width:calc(100vw - 18px);padding:24px 0 44px;gap:14px}.panel{padding:14px}.panel-title{font-size:21px}.grid-three,.inline-grid,.inline-grid-3{grid-template-columns:1fr}.btn{height:42px}.business-teaser-title{font-size:24px}.business-teaser-sub{font-size:13px}.business-teaser-points li{font-size:12px}.business-teaser .row{align-items:flex-start}.upgrade-modal-backdrop{padding:12px 8px}.upgrade-modal{max-height:calc(100vh - 24px);padding:10px}.upgrade-modal-title{font-size:20px}.upgrade-modal-sub{font-size:12px}.upgrade-product-picker{justify-content:center}.upgrade-product-picker-title,.upgrade-product-picker-caption{width:100%}.upgrade-packages{grid-template-columns:1fr}.upgrade-intro{margin-top:2px;gap:8px}.upgrade-intro-title{font-size:34px}.upgrade-intro-sub{font-size:15px}.upgrade-name{font-size:24px}.upgrade-bv{font-size:38px}.upgrade-price{font-size:16px}.upgrade-card-top{padding:18px 18px 12px}.upgrade-benefits{padding:16px 18px 18px;gap:10px}}
+@media (max-width:760px){.upgrade-thankyou-modal{padding:16px}.upgrade-thankyou-title{font-size:28px}.upgrade-thankyou-actions{justify-content:stretch}.upgrade-thankyou-actions .btn{flex:1 1 auto}}
 </style>
 </head>
 <body>
 <header class="topbar"><div class="topbar-inner"><div class="top-left"><a id="brand-home-link" href="/store-dashboard.html" aria-label="Preferred Dashboard"><img class="brand-icon" src="/brand_assets/Logos/L&D Icon.svg" alt="L&D icon"></a><a id="nav-dashboard-link" class="nav-link" href="/store-dashboard.html">Dashboard</a><a id="nav-store-link" class="nav-link" href="/store.html">Store</a><a id="nav-support-link" class="nav-link" href="/store-support.html">Support</a></div><button id="logout-button" class="btn btn-secondary" type="button">Logout</button></div></header>
 <main class="page">
 <section class="panel hero"><div class="hero-copy"><p class="eyebrow">Preferred Dashboard</p><h1 id="welcome-heading" class="panel-title">Hi Preferred Member</h1><p id="welcome-subtitle" class="panel-sub">Manage your purchases, profile, address, and account upgrade in one place.</p></div><div class="row"><a id="shop-now-link" href="/store.html" class="btn btn-primary">Shop Store</a></div></section>
-<section class="panel upgrade-panel"><div class="row"><div><h2 class="panel-title">Upgrade Account</h2><p class="panel-sub">Choose a paid member package to unlock commissions, placement eligibility, and full member growth tools.</p></div></div><div class="upgrade-carousel"><button id="upgrade-carousel-prev" class="upgrade-nav" type="button" aria-label="Previous package"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M11.9 4.5 6.9 9.5l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div id="upgrade-carousel-viewport" class="upgrade-viewport"><div id="upgrade-package-list" class="upgrade-packages"><button class="upgrade-option is-selected" type="button" data-package-key="personal-builder-pack" aria-pressed="true" style="--upgrade-accent:#4E7EFF;--upgrade-glow:rgba(78,126,255,.34)"><div class="upgrade-card"><div class="upgrade-media"><img class="upgrade-product-image" src="/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png" alt="MetaCharge bottle"><img class="upgrade-package-image" src="/brand_assets/Icons/Achievements/personal.svg" alt="" aria-hidden="true"></div><div class="upgrade-head"><p class="upgrade-name">Personal Builder Pack</p><span class="upgrade-tier">Starter</span></div><p class="upgrade-copy">Best for Preferred customers moving into their first paid membership.</p><ul class="upgrade-benefits"><li>Unlock paid member status and full account permissions</li><li>Start earning retail commission from attributed Preferred orders</li><li>Become eligible for binary placement when ready to build</li></ul></div></button><button class="upgrade-option" type="button" data-package-key="business-builder-pack" aria-pressed="false" style="--upgrade-accent:#1E8FAF;--upgrade-glow:rgba(30,143,175,.32)"><div class="upgrade-card"><div class="upgrade-media"><img class="upgrade-product-image" src="/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png" alt="MetaCharge bottle"><img class="upgrade-package-image" src="/brand_assets/Icons/Achievements/business.svg" alt="" aria-hidden="true"></div><div class="upgrade-head"><p class="upgrade-name">Business Builder Pack</p><span class="upgrade-tier">Growth</span></div><p class="upgrade-copy">Built for members who want stronger earnings and faster team momentum.</p><ul class="upgrade-benefits"><li>Higher retail commission level than Starter</li><li>Priority package for members actively building a customer base</li><li>Expanded payout potential as your attributed volume grows</li></ul></div></button><button class="upgrade-option" type="button" data-package-key="infinity-builder-pack" aria-pressed="false" style="--upgrade-accent:#6A63F8;--upgrade-glow:rgba(106,99,248,.30)"><div class="upgrade-card"><div class="upgrade-media"><img class="upgrade-product-image" src="/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png" alt="MetaCharge bottle"><img class="upgrade-package-image" src="/brand_assets/Icons/Achievements/infinity.svg" alt="" aria-hidden="true"></div><div class="upgrade-head"><p class="upgrade-name">Infinity Builder Pack</p><span class="upgrade-tier">Pro</span></div><p class="upgrade-copy">For serious builders scaling personal sales and long-term organization growth.</p><ul class="upgrade-benefits"><li>Top-tier modern commission level among active packages</li><li>Optimized for members managing higher customer/order activity</li><li>Positions your account for stronger long-term income expansion</li></ul></div></button><button class="upgrade-option" type="button" data-package-key="legacy-builder-pack" aria-pressed="false" style="--upgrade-accent:#A76F2E;--upgrade-glow:rgba(167,111,46,.30)"><div class="upgrade-card"><div class="upgrade-media"><img class="upgrade-product-image" src="/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png" alt="MetaCharge bottle"><img class="upgrade-package-image" src="/brand_assets/Icons/Achievements/legacy.svg" alt="" aria-hidden="true"></div><div class="upgrade-head"><p class="upgrade-name">Legacy Builder Pack</p><span class="upgrade-tier">Legacy</span></div><p class="upgrade-copy">Highest historical package profile for maximum retail commission structure.</p><ul class="upgrade-benefits"><li>Highest retail commission level in the package lineup</li><li>Designed for experienced members operating at larger scale</li><li>Best suited for deep team/customer attribution strategies</li></ul></div></button></div></div><button id="upgrade-carousel-next" class="upgrade-nav" type="button" aria-label="Next package"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m8.1 4.5 5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div id="upgrade-carousel-dots" class="upgrade-dots"></div><div class="row" style="margin-top:12px"><p id="upgrade-selected-label" class="upgrade-selected">Selected package: Personal Builder Pack</p><button id="upgrade-account-button" class="btn btn-primary" type="button">Upgrade Account</button></div><p id="upgrade-feedback" class="feedback" role="status"></p></section>
+<section class="panel business-teaser"><div class="row"><div class="business-teaser-copy"><p class="business-teaser-kicker">Business Invitation</p><h2 class="business-teaser-title">Curious about building a business with us?</h2><p class="business-teaser-sub">Preferred Customers can stay product-focused, or explore our builder side when ready. This preview gives a quick look at how earning opportunities scale by package.</p><ul class="business-teaser-points"><li>Retail commissions are based on your package level.</li><li>Fast Track bonus and cycle caps expand as you upgrade.</li><li>Infinity and Legacy bonuses unlock at higher builder tiers.</li></ul></div><button id="open-upgrade-modal-button" class="btn btn-primary" type="button">Explore Builder Packages</button></div><p id="business-invite-feedback" class="feedback business-invite-feedback" role="status"></p></section>
+<div id="upgrade-modal-backdrop" class="upgrade-modal-backdrop" aria-hidden="true"><div class="upgrade-modal" role="dialog" aria-modal="true" aria-labelledby="upgrade-modal-title"><div class="upgrade-modal-head"><div><h2 id="upgrade-modal-title" class="upgrade-modal-title">Builder Compensation Plan</h2><p class="upgrade-modal-sub">When you are ready to do business with L&amp;D Premiere, choose a package below. Your upgrade is processed securely and then continues in the member dashboard.</p></div><button id="close-upgrade-modal-button" class="upgrade-close" type="button" aria-label="Close upgrade modal">&times;</button></div><section class="panel upgrade-panel"><div class="upgrade-intro"><h2 class="upgrade-intro-title">Pricing that scales with your business</h2><p class="upgrade-intro-sub">Choose the right builder package for your growth goals, earnings potential, and leadership unlocks.</p></div><div id="upgrade-package-list" class="upgrade-packages"><button class="upgrade-option is-selected" type="button" data-package-key="personal-builder-pack" aria-pressed="true"><div class="upgrade-card-top"><div class="upgrade-head"><p class="upgrade-name">Personal Builder Pack</p></div><p class="upgrade-bv">150 BV</p><p class="upgrade-price">$192.00</p><p class="upgrade-products">3 Selectable Products</p></div><div class="upgrade-divider"></div><ul class="upgrade-benefits"><li data-icon="cap">50 Cycle Weekly Cap</li><li data-icon="money">Earn up to $4 on Retail Commission</li><li data-icon="money">Earn up to $75 on Fast Track Bonus</li><li data-icon="lock">Infinity Builder Bonus Locked</li><li data-icon="lock">Legacy Leadership Bonus Locked</li></ul><div class="upgrade-select">Select Plan</div></button><button class="upgrade-option" type="button" data-package-key="business-builder-pack" aria-pressed="false"><div class="upgrade-card-top"><div class="upgrade-head"><p class="upgrade-name">Business Builder Pack</p></div><p class="upgrade-bv">300 BV</p><p class="upgrade-price">$384.00</p><p class="upgrade-products">6 Selectable Products</p></div><div class="upgrade-divider"></div><ul class="upgrade-benefits"><li data-icon="cap">250 Cycle Weekly Cap</li><li data-icon="money">Earn up to $8 on Retail Commission</li><li data-icon="money">Earn up to $100 on Fast Track Bonus</li><li data-icon="lock">Infinity Builder Bonus Locked</li><li data-icon="lock">Legacy Leadership Bonus Locked</li></ul><div class="upgrade-select">Select Plan</div></button><button class="upgrade-option" type="button" data-package-key="infinity-builder-pack" aria-pressed="false"><div class="upgrade-card-top"><div class="upgrade-head"><p class="upgrade-name">Infinity Builder Pack</p></div><p class="upgrade-bv">500 BV</p><p class="upgrade-price">$640.00</p><p class="upgrade-products">10 Selectable Products</p></div><div class="upgrade-divider"></div><ul class="upgrade-benefits"><li data-icon="cap">500 Cycle Weekly Cap</li><li data-icon="money">Earn up to $12 on Retail Commission</li><li data-icon="money">Earn up to $125 on Fast Track Bonus</li><li data-icon="infinity-unlock">Infinity Builder Bonus Unlocked</li><li data-icon="lock">Legacy Leadership Bonus Locked</li></ul><div class="upgrade-select">Select Plan</div></button><button class="upgrade-option" type="button" data-package-key="legacy-builder-pack" aria-pressed="false"><div class="upgrade-card-top"><div class="upgrade-head"><p class="upgrade-name">Legacy Builder Pack</p></div><p class="upgrade-bv">1000 BV</p><p class="upgrade-price">$1280.00</p><p class="upgrade-products">20 Selectable Products</p></div><div class="upgrade-divider"></div><ul class="upgrade-benefits"><li data-icon="cap">1000 Cycle Weekly Cap</li><li data-icon="money">Earn up to $20 on Retail Commission</li><li data-icon="money">Earn up to $200 on Fast Track Bonus</li><li data-icon="infinity-unlock">Infinity Builder Bonus Unlocked</li><li data-icon="legacy-unlock">Legacy Leadership Bonus Unlocked</li></ul><div class="upgrade-select">Select Plan</div></button></div><div class="upgrade-checkout-flow"><div class="upgrade-product-picker" role="group" aria-label="Upgrade product selector"><p class="upgrade-product-picker-title">Select your product</p><p class="upgrade-product-picker-caption">Choose one product to pair with your selected builder package.</p><button class="upgrade-product-option is-selected" type="button" data-upgrade-product-key="metacharge" aria-pressed="true">MetaCharge&trade;</button><button class="upgrade-product-option" type="button" data-upgrade-product-key="metaroast" aria-pressed="false">MetaRoast&trade;</button></div><div class="row" style="justify-content:center"><button id="upgrade-account-button" class="btn btn-primary" type="button">Upgrade Account</button></div></div><p id="upgrade-feedback" class="feedback" role="status"></p></section></div></div>
+<div id="upgrade-thankyou-backdrop" class="upgrade-thankyou-backdrop" aria-hidden="true"><div class="upgrade-thankyou-modal" role="dialog" aria-modal="true" aria-labelledby="upgrade-thankyou-title"><div class="upgrade-thankyou-head"><div><p class="upgrade-thankyou-kicker">Payment received</p><h2 id="upgrade-thankyou-title" class="upgrade-thankyou-title">Thank you!</h2></div><button id="close-upgrade-thankyou-button" class="upgrade-close" type="button" aria-label="Close thank you modal">&times;</button></div><p id="upgrade-thankyou-message" class="upgrade-thankyou-message">Your payment was successful.</p><p id="upgrade-thankyou-status" class="upgrade-thankyou-status"><span id="upgrade-thankyou-status-spinner" class="upgrade-thankyou-status-spinner" aria-hidden="true"></span><span id="upgrade-thankyou-status-text">We are upgrading your account now...</span></p><p id="upgrade-thankyou-progress-note" class="upgrade-thankyou-progress-note" hidden>Do not close or exit this browser while your upgrade is in progress.</p><div class="upgrade-thankyou-actions"><button id="upgrade-thankyou-dismiss-button" class="btn btn-secondary" type="button">Close</button><button id="upgrade-thankyou-dashboard-button" class="btn btn-primary" type="button" disabled>Go To Member Dashboard</button></div></div></div>
 <section class="panel"><div class="row"><div><h2 class="panel-title">Purchase Activity</h2><p class="panel-sub">Recent purchases tied to your account.</p></div><button id="refresh-purchases-button" class="btn btn-secondary" type="button">Refresh</button></div><div class="grid-three" style="margin-top:12px"><article class="metric"><p class="metric-label">Orders</p><p id="purchase-order-count" class="metric-value">0</p></article><article class="metric"><p class="metric-label">Total Spent</p><p id="purchase-total-spent" class="metric-value">$0.00</p></article></div><p id="purchase-feedback" class="feedback" role="status"></p><div id="purchase-empty" class="empty" style="margin-top:12px">No purchases found yet. Shop products to generate your first order.</div><div id="purchase-list" class="purchase-list" style="margin-top:12px"></div></section>
 <div class="grid-two"><section class="panel"><h2 class="panel-title">Profile</h2><p class="panel-sub">Your account details used in storefront checkout.</p><form id="profile-form" class="form-grid" style="margin-top:12px" novalidate><div class="field"><label for="profile-display-name">Display Name</label><input id="profile-display-name" name="displayName" class="input" type="text" required></div><div class="field"><label for="profile-username">Username</label><input id="profile-username" name="username" class="input" type="text" readonly></div><div class="field"><label for="profile-email">Email</label><input id="profile-email" name="email" class="input" type="email" readonly></div><div class="inline-grid"><div class="field"><label for="profile-phone">Phone</label><input id="profile-phone" name="phone" class="input" type="text" placeholder="Phone"></div><div class="field"><label for="profile-country">Country Code</label><input id="profile-country" name="country" class="input" type="text" maxlength="2" placeholder="US"></div></div><p id="profile-feedback" class="feedback" role="status"></p><button class="btn btn-primary" type="submit">Save Profile</button></form></section>
 <section class="panel"><h2 class="panel-title">Saved Address</h2><p class="panel-sub">Store your default shipping address for faster checkout.</p><form id="address-form" class="form-grid" style="margin-top:12px" novalidate><div class="field"><label for="address-full-name">Full Name</label><input id="address-full-name" name="fullName" class="input" type="text"></div><div class="field"><label for="address-line-1">Address Line 1</label><input id="address-line-1" name="line1" class="input" type="text"></div><div class="field"><label for="address-line-2">Address Line 2</label><input id="address-line-2" name="line2" class="input" type="text"></div><div class="inline-grid-3"><div class="field"><label for="address-city">City</label><input id="address-city" name="city" class="input" type="text"></div><div class="field"><label for="address-state">State</label><input id="address-state" name="state" class="input" type="text"></div><div class="field"><label for="address-postal">Postal</label><input id="address-postal" name="postal" class="input" type="text"></div></div><div class="field"><label for="address-country">Country</label><input id="address-country" name="country" class="input" type="text"></div><p id="address-feedback" class="feedback" role="status"></p><button class="btn btn-primary" type="submit">Save Address</button></form></section></div>
@@ -48,10 +54,15 @@
 const shared=window.StorefrontShared;
 const AUTH_STORAGE_KEY='vault-auth-user';
 const AUTH_COOKIE_KEY='vault-auth-user-cookie';
-const MEMBER_ACCOUNT_UPGRADE_API='/api/member-auth/upgrade-account';
 const FREE_ACCOUNT_PACKAGE_KEY='preferred-customer-pack';
 const FREE_ACCOUNT_RANK_KEY_SET=new Set(['preferred customer','free account','free']);
 const UPGRADE_LABEL={"personal-builder-pack":"Personal Builder Pack","business-builder-pack":"Business Builder Pack","infinity-builder-pack":"Infinity Builder Pack","legacy-builder-pack":"Legacy Builder Pack"};
+const STORE_CHECKOUT_SESSION_API='/api/store-checkout/session';
+const UPGRADE_PENDING_CHECKOUT_STORAGE_KEY='preferred-dashboard-upgrade-pending-checkout-v1';
+const UPGRADE_CHECKOUT_NETWORK_RETRY_LIMIT=12;
+const UPGRADE_CHECKOUT_NETWORK_RETRY_DELAY_MS=1200;
+const UPGRADE_PACKAGE_PRODUCT_COUNT={"personal-builder-pack":3,"business-builder-pack":6,"infinity-builder-pack":10,"legacy-builder-pack":20};
+const UPGRADE_PRODUCT_META={metacharge:{label:'MetaCharge',fallbackId:'metacharge',unitPrice:64},metaroast:{label:'MetaRoast',fallbackId:'metaroast',unitPrice:64}};
 
 const el={
   orderCount:document.getElementById('purchase-order-count'),
@@ -77,15 +88,24 @@ const el={
   addrPostal:document.getElementById('address-postal'),
   addrCountry:document.getElementById('address-country'),
   addrFeedback:document.getElementById('address-feedback'),
-  upgradePrev:document.getElementById('upgrade-carousel-prev'),
-  upgradeNext:document.getElementById('upgrade-carousel-next'),
-  upgradeViewport:document.getElementById('upgrade-carousel-viewport'),
-  upgradeDots:document.getElementById('upgrade-carousel-dots'),
-  upgradeList:document.getElementById('upgrade-package-list'),
-  upgradeSelectedLabel:document.getElementById('upgrade-selected-label'),
+  inviteFeedback:document.getElementById('business-invite-feedback'),
   upgradeOptions:Array.from(document.querySelectorAll('[data-package-key]')),
+  upgradeProductOptions:Array.from(document.querySelectorAll('[data-upgrade-product-key]')),
   upgradeBtn:document.getElementById('upgrade-account-button'),
   upgradeFeedback:document.getElementById('upgrade-feedback'),
+  upgradeModalOpen:document.getElementById('open-upgrade-modal-button'),
+  upgradeModalClose:document.getElementById('close-upgrade-modal-button'),
+  upgradeModalBackdrop:document.getElementById('upgrade-modal-backdrop'),
+  upgradeModalDialog:document.querySelector('#upgrade-modal-backdrop .upgrade-modal'),
+  upgradeThankYouBackdrop:document.getElementById('upgrade-thankyou-backdrop'),
+  upgradeThankYouClose:document.getElementById('close-upgrade-thankyou-button'),
+  upgradeThankYouDismiss:document.getElementById('upgrade-thankyou-dismiss-button'),
+  upgradeThankYouMessage:document.getElementById('upgrade-thankyou-message'),
+  upgradeThankYouStatus:document.getElementById('upgrade-thankyou-status'),
+  upgradeThankYouStatusText:document.getElementById('upgrade-thankyou-status-text'),
+  upgradeThankYouStatusSpinner:document.getElementById('upgrade-thankyou-status-spinner'),
+  upgradeThankYouProgressNote:document.getElementById('upgrade-thankyou-progress-note'),
+  upgradeThankYouDashboard:document.getElementById('upgrade-thankyou-dashboard-button'),
   welcomeHeading:document.getElementById('welcome-heading'),
   welcomeSub:document.getElementById('welcome-subtitle'),
   brandHome:document.getElementById('brand-home-link'),
@@ -100,6 +120,15 @@ const qp=new URLSearchParams(window.location.search);
 let currentUser=null;
 let activeStoreCode='';
 let selectedUpgradePackage='personal-builder-pack';
+let selectedUpgradeProductKey='metacharge';
+const upgradeCheckoutCatalogByKey=new Map();
+const upgradeCheckoutFinalizationInFlightSessionIds=new Set();
+const upgradeCheckoutRetryAttemptBySession=new Map();
+const upgradeCheckoutRetryTimeoutBySession=new Map();
+let lastFocusBeforeUpgradeModal=null;
+let lastFocusBeforeUpgradeThankYouModal=null;
+let upgradeFinalizationReady=false;
+let upgradeFinalizationInProgress=false;
 const t=v=>String(v||'').trim();
 const low=v=>t(v).toLowerCase();
 const store=v=>shared.normalizeStoreCode(v);
@@ -176,6 +205,523 @@ function bindLinks(){
   if(el.navSupport) el.navSupport.href=supportUrl;
 }
 
+function isUpgradeModalOpen(){return Boolean(el.upgradeModalBackdrop?.classList.contains('is-open'))}
+function isUpgradeThankYouModalOpen(){return Boolean(el.upgradeThankYouBackdrop?.classList.contains('is-open'))}
+function syncModalBodyLock(){
+  document.body.style.overflow=(isUpgradeModalOpen()||isUpgradeThankYouModalOpen())?'hidden':'';
+}
+function openUpgradeModal(){
+  if(!el.upgradeModalBackdrop) return;
+  lastFocusBeforeUpgradeModal=document.activeElement instanceof HTMLElement?document.activeElement:null;
+  el.upgradeModalBackdrop.classList.add('is-open');
+  el.upgradeModalBackdrop.setAttribute('aria-hidden','false');
+  syncModalBodyLock();
+  window.setTimeout(()=>{el.upgradeModalClose?.focus()},0);
+}
+function closeUpgradeModal({restoreFocus=true}={}){
+  if(!el.upgradeModalBackdrop) return;
+  el.upgradeModalBackdrop.classList.remove('is-open');
+  el.upgradeModalBackdrop.setAttribute('aria-hidden','true');
+  syncModalBodyLock();
+  if(restoreFocus&&lastFocusBeforeUpgradeModal&&typeof lastFocusBeforeUpgradeModal.focus==='function'){
+    lastFocusBeforeUpgradeModal.focus();
+  }
+  lastFocusBeforeUpgradeModal=null;
+}
+function setUpgradeThankYouState({message='',status='',tone='info',dashboardReady=false}={}){
+  if(el.upgradeThankYouMessage) el.upgradeThankYouMessage.textContent=t(message||'Your payment was successful.');
+  const resolvedStatus=t(status||'We are upgrading your account now...');
+  const shouldShowLoading=tone!=='success'&&tone!=='error'&&!dashboardReady;
+  if(el.upgradeThankYouStatus){
+    if(el.upgradeThankYouStatusText){
+      el.upgradeThankYouStatusText.textContent=resolvedStatus;
+    }else{
+      el.upgradeThankYouStatus.textContent=resolvedStatus;
+    }
+    el.upgradeThankYouStatus.className='upgrade-thankyou-status';
+    if(shouldShowLoading) el.upgradeThankYouStatus.classList.add('is-loading');
+    if(tone==='success') el.upgradeThankYouStatus.classList.add('is-success');
+    else if(tone==='error') el.upgradeThankYouStatus.classList.add('is-error');
+  }
+  upgradeFinalizationReady=Boolean(dashboardReady);
+  upgradeFinalizationInProgress=shouldShowLoading;
+  if(el.upgradeThankYouProgressNote) el.upgradeThankYouProgressNote.hidden=!shouldShowLoading;
+  if(el.upgradeThankYouDashboard) el.upgradeThankYouDashboard.disabled=!upgradeFinalizationReady;
+}
+function openUpgradeThankYouModal({message='',status='',tone='info'}={}){
+  if(!el.upgradeThankYouBackdrop) return;
+  lastFocusBeforeUpgradeThankYouModal=document.activeElement instanceof HTMLElement?document.activeElement:null;
+  setUpgradeThankYouState({message,status,tone,dashboardReady:false});
+  el.upgradeThankYouBackdrop.classList.add('is-open');
+  el.upgradeThankYouBackdrop.setAttribute('aria-hidden','false');
+  syncModalBodyLock();
+  window.setTimeout(()=>{
+    const focusTarget=el.upgradeThankYouDismiss||el.upgradeThankYouClose||el.upgradeThankYouDashboard;
+    focusTarget?.focus();
+  },0);
+}
+function closeUpgradeThankYouModal({restoreFocus=true}={}){
+  if(!el.upgradeThankYouBackdrop) return;
+  el.upgradeThankYouBackdrop.classList.remove('is-open');
+  el.upgradeThankYouBackdrop.setAttribute('aria-hidden','true');
+  syncModalBodyLock();
+  if(restoreFocus&&lastFocusBeforeUpgradeThankYouModal&&typeof lastFocusBeforeUpgradeThankYouModal.focus==='function'){
+    lastFocusBeforeUpgradeThankYouModal.focus();
+  }
+  lastFocusBeforeUpgradeThankYouModal=null;
+}
+function setupUpgradeModal(){
+  el.upgradeModalOpen?.addEventListener('click',()=>openUpgradeModal());
+  el.upgradeModalClose?.addEventListener('click',()=>closeUpgradeModal());
+  el.upgradeModalBackdrop?.addEventListener('click',(event)=>{
+    if(event.target===el.upgradeModalBackdrop) closeUpgradeModal();
+  });
+  el.upgradeThankYouClose?.addEventListener('click',()=>closeUpgradeThankYouModal());
+  el.upgradeThankYouDismiss?.addEventListener('click',()=>closeUpgradeThankYouModal());
+  el.upgradeThankYouDashboard?.addEventListener('click',()=>{
+    if(!upgradeFinalizationReady) return;
+    window.location.replace('/index.html');
+  });
+  el.upgradeThankYouBackdrop?.addEventListener('click',(event)=>{
+    if(event.target===el.upgradeThankYouBackdrop) closeUpgradeThankYouModal();
+  });
+  document.addEventListener('keydown',(event)=>{
+    if(event.key!=='Escape') return;
+    if(isUpgradeThankYouModalOpen()){
+      event.preventDefault();
+      closeUpgradeThankYouModal();
+      return;
+    }
+    if(isUpgradeModalOpen()){
+      event.preventDefault();
+      closeUpgradeModal();
+    }
+  });
+  window.addEventListener('beforeunload',(event)=>{
+    if(!upgradeFinalizationInProgress) return;
+    event.preventDefault();
+    event.returnValue='';
+  });
+}
+
+function wait(ms=0){return new Promise((resolve)=>window.setTimeout(resolve,Math.max(0,Number(ms)||0)))}
+function persistUpgradePendingCheckoutState(payload={}){
+  const sessionId=t(payload?.sessionId);
+  if(!sessionId) return;
+  const nextState={
+    sessionId,
+    packageKey:low(payload?.packageKey),
+    packageLabel:t(payload?.packageLabel),
+    productLabel:t(payload?.productLabel),
+    quantity:Math.max(1,Math.round(Number(payload?.quantity)||1)),
+    total:Math.max(0,Number(payload?.total)||0),
+    createdAt:new Date().toISOString(),
+  };
+  safeSet(window.localStorage,UPGRADE_PENDING_CHECKOUT_STORAGE_KEY,JSON.stringify(nextState));
+}
+function readUpgradePendingCheckoutState(sessionId=''){
+  const payload=parse(safeGet(window.localStorage,UPGRADE_PENDING_CHECKOUT_STORAGE_KEY));
+  if(!payload||typeof payload!=='object') return null;
+  const pendingSessionId=t(payload?.sessionId);
+  const targetSessionId=t(sessionId);
+  if(targetSessionId&&pendingSessionId&&pendingSessionId!==targetSessionId) return null;
+  return {
+    sessionId:pendingSessionId,
+    packageKey:low(payload?.packageKey),
+    packageLabel:t(payload?.packageLabel),
+    productLabel:t(payload?.productLabel),
+    quantity:Math.max(1,Math.round(Number(payload?.quantity)||1)),
+    total:Math.max(0,Number(payload?.total)||0),
+    createdAt:t(payload?.createdAt),
+  };
+}
+function clearUpgradePendingCheckoutState(){
+  safeRemove(window.localStorage,UPGRADE_PENDING_CHECKOUT_STORAGE_KEY);
+}
+function clearUpgradeCheckoutRetryTracking(sessionId=''){
+  const safeSessionId=t(sessionId);
+  if(!safeSessionId) return;
+  upgradeCheckoutRetryAttemptBySession.delete(safeSessionId);
+  const timeoutId=Number(upgradeCheckoutRetryTimeoutBySession.get(safeSessionId)||0);
+  if(timeoutId) window.clearTimeout(timeoutId);
+  upgradeCheckoutRetryTimeoutBySession.delete(safeSessionId);
+}
+function scheduleUpgradeCheckoutNetworkRetry(sessionId=''){
+  const safeSessionId=t(sessionId);
+  if(!safeSessionId) return false;
+  const existingTimeoutId=Number(upgradeCheckoutRetryTimeoutBySession.get(safeSessionId)||0);
+  if(existingTimeoutId){
+    window.clearTimeout(existingTimeoutId);
+    upgradeCheckoutRetryTimeoutBySession.delete(safeSessionId);
+  }
+  const currentAttempt=Math.max(0,Math.floor(Number(upgradeCheckoutRetryAttemptBySession.get(safeSessionId)||0)));
+  if(currentAttempt>=UPGRADE_CHECKOUT_NETWORK_RETRY_LIMIT){
+    return false;
+  }
+  const nextAttempt=currentAttempt+1;
+  upgradeCheckoutRetryAttemptBySession.set(safeSessionId,nextAttempt);
+  const timeoutId=window.setTimeout(()=>{
+    upgradeCheckoutRetryTimeoutBySession.delete(safeSessionId);
+    void finalizeUpgradeCheckoutInBackground(safeSessionId,{
+      triggeredByRetry:true,
+      maxAttempts:8,
+      pollDelayMs:500,
+    });
+  },UPGRADE_CHECKOUT_NETWORK_RETRY_DELAY_MS);
+  upgradeCheckoutRetryTimeoutBySession.set(safeSessionId,timeoutId);
+  return true;
+}
+function resolveUpgradeRetryProgress(sessionId=''){
+  const attempt=Math.max(1,Math.floor(Number(upgradeCheckoutRetryAttemptBySession.get(t(sessionId))||1)));
+  return `${attempt}/${UPGRADE_CHECKOUT_NETWORK_RETRY_LIMIT}`;
+}
+function isLikelyFetchNetworkError(error){
+  const message=low(error instanceof Error?error.message:String(error||''));
+  if(!message) return false;
+  return (
+    message.includes('failed to fetch')
+    || message.includes('networkerror')
+    || message.includes('network request failed')
+    || message.includes('network error')
+    || message.includes('load failed')
+  );
+}
+async function finalizeUpgradeCheckoutInBackground(sessionId,options={}){
+  const safeSessionId=t(sessionId);
+  if(!safeSessionId) return;
+  if(upgradeCheckoutFinalizationInFlightSessionIds.has(safeSessionId)) return;
+  upgradeCheckoutFinalizationInFlightSessionIds.add(safeSessionId);
+  const requestedMaxAttempts=Math.floor(Number(options?.maxAttempts));
+  const requestedPollDelayMs=Math.floor(Number(options?.pollDelayMs));
+  const maxAttempts=Number.isFinite(requestedMaxAttempts)&&requestedMaxAttempts>0?requestedMaxAttempts:5;
+  const pollDelayMs=Number.isFinite(requestedPollDelayMs)&&requestedPollDelayMs>=250?requestedPollDelayMs:700;
+  try{
+    let completion=await shared.completeCheckoutSession(safeSessionId);
+    let attempts=0;
+    while(completion.ok&&!completion.completed&&attempts<maxAttempts){
+      await wait(pollDelayMs);
+      completion=await shared.completeCheckoutSession(safeSessionId);
+      attempts+=1;
+    }
+
+    if(!completion.ok){
+      const isNetworkIssue=isLikelyFetchNetworkError(completion?.message);
+      const retryScheduled=isNetworkIssue
+        ? scheduleUpgradeCheckoutNetworkRetry(safeSessionId)
+        : false;
+      if(retryScheduled){
+        setUpgradeThankYouState({
+          status:`Finalizing your upgrade (retry ${resolveUpgradeRetryProgress(safeSessionId)})...`,
+          tone:'info',
+        });
+        setUpgradeFlowFeedback('','');
+      }else{
+        const failureMessage=completion.message||'Payment was successful, but account-upgrade finalization failed. Please contact support.';
+        setUpgradeThankYouState({
+          status:failureMessage,
+          tone:'error',
+        });
+        setUpgradeFlowFeedback(failureMessage,'error');
+      }
+      return;
+    }
+
+    if(!completion.completed){
+      const retryScheduled=scheduleUpgradeCheckoutNetworkRetry(safeSessionId);
+      if(retryScheduled){
+        setUpgradeThankYouState({
+          status:`Payment confirmed. Upgrading your account (retry ${resolveUpgradeRetryProgress(safeSessionId)})...`,
+          tone:'info',
+        });
+        setUpgradeFlowFeedback('','');
+      }else{
+        const pendingMessage=completion.message||'Payment is processing in the background. Please keep this tab open while we finish your upgrade.';
+        setUpgradeThankYouState({
+          status:pendingMessage,
+          tone:'info',
+        });
+        setUpgradeFlowFeedback('','');
+      }
+      return;
+    }
+
+    clearUpgradeCheckoutRetryTracking(safeSessionId);
+    clearUpgradePendingCheckoutState();
+    const payload=completion.payload&&typeof completion.payload==='object'?completion.payload:{};
+    const accountUpgrade=payload.accountUpgrade&&typeof payload.accountUpgrade==='object'?payload.accountUpgrade:null;
+    if(accountUpgrade&&accountUpgrade.ok===false){
+      const accountUpgradeError=accountUpgrade.message||'Payment completed, but account upgrade failed. Please contact support.';
+      setUpgradeThankYouState({
+        status:accountUpgradeError,
+        tone:'error',
+      });
+      setUpgradeFlowFeedback(accountUpgradeError,'error');
+      return;
+    }
+
+    if(accountUpgrade?.user&&typeof accountUpgrade.user==='object'){
+      currentUser={...currentUser,...accountUpgrade.user};
+      persistSession(currentUser);
+      renderWelcome(currentUser);
+      hydrateProfile(currentUser);
+    }
+
+    if(accountUpgrade?.attempted){
+      setUpgradeThankYouState({
+        message:'Your payment is confirmed and your account is now upgraded.',
+        status:'Upgrade complete. You can continue to your member dashboard.',
+        tone:'success',
+        dashboardReady:true,
+      });
+      setUpgradeFlowFeedback('','');
+      return;
+    }
+    const completionMessage=completion.message||'Payment confirmed successfully.';
+    setUpgradeThankYouState({
+      message:'Your payment is confirmed.',
+      status:completionMessage,
+      tone:'success',
+      dashboardReady:true,
+    });
+    setUpgradeFlowFeedback('','');
+  }catch(error){
+    const isNetworkError=isLikelyFetchNetworkError(error);
+    const retryScheduled=isNetworkError?scheduleUpgradeCheckoutNetworkRetry(safeSessionId):false;
+    if(retryScheduled){
+      setUpgradeThankYouState({
+        status:`Finalizing your upgrade (retry ${resolveUpgradeRetryProgress(safeSessionId)})...`,
+        tone:'info',
+      });
+      setUpgradeFlowFeedback('','');
+      return;
+    }
+    const finalizationError=error instanceof Error?error.message:'Unable to finalize checkout right now.';
+    setUpgradeThankYouState({
+      status:finalizationError,
+      tone:'error',
+    });
+    setUpgradeFlowFeedback(finalizationError,'error');
+  }finally{
+    upgradeCheckoutFinalizationInFlightSessionIds.delete(safeSessionId);
+  }
+}
+function normalizeUpgradeProductKey(value=''){
+  const normalized=low(value).replace(/[^a-z0-9]/g,'');
+  if(normalized.includes('roast')) return 'metaroast';
+  return 'metacharge';
+}
+function resolveUpgradePackageProductCount(packageKey=''){
+  return Math.max(1,Math.round(Number(UPGRADE_PACKAGE_PRODUCT_COUNT[low(packageKey)]||3)||3));
+}
+function setUpgradeFlowFeedback(message='',type=''){
+  setFeedback(el.upgradeFeedback,message,type);
+  setFeedback(el.inviteFeedback,message,type);
+}
+function resolveUpgradeCheckoutProduct(productKey=''){
+  const normalizedKey=normalizeUpgradeProductKey(productKey);
+  const productMeta=UPGRADE_PRODUCT_META[normalizedKey]||UPGRADE_PRODUCT_META.metacharge;
+  const productFromCatalog=upgradeCheckoutCatalogByKey.get(normalizedKey)
+    || upgradeCheckoutCatalogByKey.get('metacharge')
+    || null;
+  const productId=t(productFromCatalog?.id||UPGRADE_PRODUCT_META.metacharge.fallbackId||productMeta.fallbackId);
+  const unitPrice=Math.max(0,Number(productFromCatalog?.price||productMeta.unitPrice||0));
+  const label=t(productFromCatalog?.title||productMeta.label||'Product');
+  return {
+    key:normalizedKey,
+    id:productId,
+    label,
+    unitPrice,
+  };
+}
+async function hydrateUpgradeCheckoutCatalog(){
+  upgradeCheckoutCatalogByKey.clear();
+  try{
+    const products=await shared.fetchProducts();
+    (Array.isArray(products)?products:[]).forEach((product)=>{
+      const idKey=normalizeUpgradeProductKey(product?.id);
+      const titleKey=normalizeUpgradeProductKey(product?.title);
+      if(idKey==='metacharge'||titleKey==='metacharge'){
+        upgradeCheckoutCatalogByKey.set('metacharge',product);
+      }
+      if(idKey==='metaroast'||titleKey==='metaroast'){
+        upgradeCheckoutCatalogByKey.set('metaroast',product);
+      }
+    });
+  }catch{}
+}
+function resolveUpgradeCheckoutQuote(){
+  const packageKey=UPGRADE_LABEL[low(selectedUpgradePackage)]?low(selectedUpgradePackage):'personal-builder-pack';
+  const packageLabel=UPGRADE_LABEL[packageKey]||'Personal Builder Pack';
+  const quantity=resolveUpgradePackageProductCount(packageKey);
+  const product=resolveUpgradeCheckoutProduct(selectedUpgradeProductKey);
+  const total=Math.round((quantity*product.unitPrice+Number.EPSILON)*100)/100;
+  return {
+    packageKey,
+    packageLabel,
+    product,
+    quantity,
+    total,
+  };
+}
+function renderUpgradeCheckoutSummary(){
+  // Summary row intentionally removed from modal UI.
+}
+function setSelectedUpgradeProduct(nextProduct=''){
+  selectedUpgradeProductKey=normalizeUpgradeProductKey(nextProduct||selectedUpgradeProductKey||'metacharge');
+  (Array.isArray(el.upgradeProductOptions)?el.upgradeProductOptions:[]).forEach((optionNode)=>{
+    const nodeKey=normalizeUpgradeProductKey(optionNode?.dataset?.upgradeProductKey||'metacharge');
+    const isSelected=nodeKey===selectedUpgradeProductKey;
+    optionNode.classList.toggle('is-selected',isSelected);
+    optionNode.setAttribute('aria-pressed',isSelected?'true':'false');
+  });
+  renderUpgradeCheckoutSummary();
+}
+function buildUpgradeShippingAddress(){
+  const parts=[
+    t(el.addrName?.value),
+    t(el.addr1?.value),
+    t(el.addr2?.value),
+    t(el.addrCity?.value),
+    t(el.addrState?.value),
+    t(el.addrPostal?.value),
+    t(el.addrCountry?.value),
+  ].filter(Boolean);
+  if(parts.length===0){
+    const fallbackSavedAddress=readJson(addressKey(currentUser))||{};
+    const fallbackParts=[
+      t(fallbackSavedAddress.fullName),
+      t(fallbackSavedAddress.line1),
+      t(fallbackSavedAddress.line2),
+      t(fallbackSavedAddress.city),
+      t(fallbackSavedAddress.state),
+      t(fallbackSavedAddress.postal),
+      t(fallbackSavedAddress.country),
+    ].filter(Boolean);
+    if(fallbackParts.length>0) return fallbackParts.join(', ');
+  }
+  return parts.length>0?parts.join(', '):'Collected in Stripe Checkout';
+}
+async function createUpgradeCheckoutSession(payload={}){
+  const response=await fetch(STORE_CHECKOUT_SESSION_API,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    credentials:'same-origin',
+    body:JSON.stringify(payload),
+  });
+  const responsePayload=await response.json().catch(()=>null);
+  if(!response.ok){
+    throw new Error(typeof responsePayload?.error==='string'?responsePayload.error:'Unable to create Stripe checkout session.');
+  }
+  const sessionId=t(responsePayload?.sessionId);
+  const sessionUrl=t(responsePayload?.sessionUrl);
+  if(!sessionId||!sessionUrl){
+    throw new Error('Checkout session response is missing Stripe session details.');
+  }
+  return {sessionId,sessionUrl,checkout:responsePayload?.checkout&&typeof responsePayload.checkout==='object'?responsePayload.checkout:{}};
+}
+async function startUpgradeStripeCheckout(){
+  if(!currentUser||!isPreferredUser(currentUser)){
+    setUpgradeFlowFeedback('Please login as a Preferred account before upgrading.','error');
+    return;
+  }
+
+  const quote=resolveUpgradeCheckoutQuote();
+  if(!quote.product.id||quote.quantity<=0){
+    setUpgradeFlowFeedback('Unable to prepare checkout cart for this package.','error');
+    return;
+  }
+
+  const buyerEmail=t(currentUser?.email||el.profileEmail?.value);
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)){
+    setUpgradeFlowFeedback('A valid account email is required before checkout.','error');
+    return;
+  }
+
+  const buyerUserId=t(currentUser?.id||currentUser?.userId||'');
+  const buyerUsername=t(currentUser?.username||'').replace(/^@+/,'');
+  const buyerName=t(el.profileDisplay?.value||currentUser?.name||buyerUsername||'Preferred Member');
+  const payload={
+    cartLines:[{productId:quote.product.id,quantity:quote.quantity}],
+    storeCode:activeStoreCode,
+    buyerName,
+    buyerEmail,
+    shippingAddress:buildUpgradeShippingAddress(),
+    shippingMode:'Standard Shipping',
+    source:'member-dashboard',
+    memberStoreLink:`${window.location.origin}${scoped('/store.html')}`,
+    discountPercent:0,
+    checkoutMode:'guest',
+    buyerUserId,
+    buyerUsername,
+    checkoutClient:'preferred-dashboard-upgrade',
+    accountUpgradeTargetPackage:quote.packageKey,
+    returnPath:scoped('/store-dashboard.html'),
+  };
+
+  upgradeBusy(true);
+  setUpgradeFlowFeedback('Preparing secure Stripe checkout...','info');
+
+  try{
+    const checkoutSession=await createUpgradeCheckoutSession(payload);
+    persistUpgradePendingCheckoutState({
+      sessionId:checkoutSession.sessionId,
+      packageKey:quote.packageKey,
+      packageLabel:quote.packageLabel,
+      productLabel:quote.product.label,
+      quantity:quote.quantity,
+      total:quote.total,
+    });
+    setUpgradeFlowFeedback('Redirecting to secure Stripe checkout...','info');
+    window.location.assign(checkoutSession.sessionUrl);
+  }catch(error){
+    setUpgradeFlowFeedback(error instanceof Error?error.message:'Unable to start Stripe checkout.','error');
+    upgradeBusy(false);
+  }
+}
+function clearUpgradeReturnQueryParams(){
+  try{
+    const url=new URL(window.location.href);
+    url.searchParams.delete('checkout');
+    url.searchParams.delete('session_id');
+    window.history.replaceState({},'',`${url.pathname}${url.search}${url.hash}`);
+  }catch{}
+}
+async function handleUpgradeCheckoutReturn(){
+  const checkoutStatus=low(qp.get('checkout'));
+  const sessionId=t(qp.get('session_id'));
+  if(!checkoutStatus) return;
+  if(checkoutStatus==='cancel'){
+    if(sessionId) clearUpgradeCheckoutRetryTracking(sessionId);
+    clearUpgradePendingCheckoutState();
+    closeUpgradeThankYouModal({restoreFocus:false});
+    setUpgradeFlowFeedback('Checkout was canceled. You can review package and try again.','info');
+    clearUpgradeReturnQueryParams();
+    return;
+  }
+  if(checkoutStatus!=='success'||!sessionId){
+    if(sessionId) clearUpgradeCheckoutRetryTracking(sessionId);
+    clearUpgradeReturnQueryParams();
+    return;
+  }
+  clearUpgradeCheckoutRetryTracking(sessionId);
+  const pendingSummary=readUpgradePendingCheckoutState(sessionId);
+  closeUpgradeModal({restoreFocus:false});
+  const thanksMessage=pendingSummary?.packageLabel
+    ? `Your payment for ${pendingSummary.packageLabel} was successful.`
+    : 'Your upgrade payment was successful.';
+  openUpgradeThankYouModal({
+    message:thanksMessage,
+    status:'We are upgrading your account now...',
+    tone:'info',
+  });
+  setUpgradeFlowFeedback('','');
+  clearUpgradeReturnQueryParams();
+  void finalizeUpgradeCheckoutInBackground(sessionId,{
+    maxAttempts:14,
+    pollDelayMs:350,
+  });
+}
+
 function currency(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Math.max(0,Number(v)||0))}
 function integer(v){return new Intl.NumberFormat('en-US').format(Math.max(0,Math.floor(Number(v)||0)))}
 function dateTime(v){const ms=Date.parse(String(v||''));if(!Number.isFinite(ms))return'--';return new Intl.DateTimeFormat('en-US',{month:'short',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(ms))}
@@ -191,79 +737,48 @@ function setFeedback(node,msg,type=''){
 }
 
 function upgradeOptionNodes(){return Array.isArray(el.upgradeOptions)?el.upgradeOptions:[]}
-function upgradeIndexForPackage(packageKey=''){return upgradeOptionNodes().findIndex((node)=>low(node?.dataset?.packageKey)===low(packageKey))}
-function packageForUpgradeIndex(index=0){return low(upgradeOptionNodes()[index]?.dataset?.packageKey)}
-function normalizeUpgradeIndex(index=0){const max=Math.max(0,upgradeOptionNodes().length-1);return Math.min(max,Math.max(0,Number(index)||0))}
-function activeUpgradeIndex(){return normalizeUpgradeIndex(upgradeIndexForPackage(selectedUpgradePackage))}
-function renderUpgradeDots(activeIndex=0){
-  if(!el.upgradeDots) return;
-  const safeActiveIndex=normalizeUpgradeIndex(activeIndex);
-  const dotMarkup=upgradeOptionNodes().map((_,dotIndex)=>`<button type="button" class="upgrade-dot${dotIndex===safeActiveIndex?' is-active':''}" data-upgrade-dot-index="${dotIndex}" aria-label="View package ${dotIndex+1}"></button>`).join('');
-  el.upgradeDots.innerHTML=dotMarkup;
+function resolveBenefitIconKey(label=''){
+  const normalized=low(label);
+  if(!normalized) return 'check';
+  if(normalized.includes('cycle weekly cap')) return 'cap';
+  if(normalized.includes('retail commission')||normalized.includes('fast track bonus')) return 'money';
+  if(normalized.includes('infinity builder bonus unlocked')) return 'infinity-unlock';
+  if(normalized.includes('legacy leadership bonus unlocked')) return 'legacy-unlock';
+  if(normalized.includes('unlocked')) return 'unlock';
+  if(normalized.includes('locked')) return 'lock';
+  return 'check';
 }
-function syncUpgradeNavButtons(activeIndex=0){
-  const safeActiveIndex=normalizeUpgradeIndex(activeIndex);
-  const lastIndex=Math.max(0,upgradeOptionNodes().length-1);
-  const isBusy=el.upgradeBtn?.disabled===true;
-  if(el.upgradePrev) el.upgradePrev.disabled=isBusy||safeActiveIndex<=0;
-  if(el.upgradeNext) el.upgradeNext.disabled=isBusy||safeActiveIndex>=lastIndex;
-  if(el.upgradeDots){
-    Array.from(el.upgradeDots.querySelectorAll('[data-upgrade-dot-index]')).forEach((dotNode)=>{
-      if(dotNode instanceof HTMLButtonElement){
-        dotNode.disabled=isBusy;
-      }
+function applyUpgradeBenefitIcons(){
+  upgradeOptionNodes().forEach((optionNode)=>{
+    optionNode.querySelectorAll('.upgrade-benefits li').forEach((itemNode)=>{
+      const iconKey=resolveBenefitIconKey(itemNode.textContent||'');
+      itemNode.setAttribute('data-icon',iconKey);
     });
-  }
+  });
 }
-function renderUpgradeTrack(index=0,behavior='smooth'){
-  const track=el.upgradeList;
-  if(!track) return;
-  const safeIndex=normalizeUpgradeIndex(index);
-  const transitionValue='transform .46s cubic-bezier(.22,1,.36,1)';
-  if(behavior==='auto'){
-    track.style.transition='none';
-  }else{
-    track.style.transition=transitionValue;
-  }
-  track.style.transform=`translateX(-${safeIndex*100}%)`;
-  if(behavior==='auto'){
-    window.requestAnimationFrame(()=>{
-      if(el.upgradeList){
-        el.upgradeList.style.transition=transitionValue;
-      }
-    });
-  }
-  renderUpgradeDots(safeIndex);
-  syncUpgradeNavButtons(safeIndex);
-}
-function moveUpgradeToIndex(index=0,behavior='smooth'){
-  const safeIndex=normalizeUpgradeIndex(index);
-  const nextPackage=packageForUpgradeIndex(safeIndex);
-  if(!UPGRADE_LABEL[nextPackage]) return;
-  setSelectedUpgradePackage(nextPackage,{behavior});
-}
-function setSelectedUpgradePackage(nextPackage='',options={}){
+function setSelectedUpgradePackage(nextPackage=''){
   const requestedPackage=low(nextPackage);
   const firstPackage=low(upgradeOptionNodes()[0]?.dataset?.packageKey||'personal-builder-pack');
   selectedUpgradePackage=UPGRADE_LABEL[requestedPackage]?requestedPackage:firstPackage;
-  const selectedIndex=normalizeUpgradeIndex(upgradeIndexForPackage(selectedUpgradePackage));
   upgradeOptionNodes().forEach((optionNode)=>{
     const nodePackage=low(optionNode?.dataset?.packageKey);
     const isSelected=nodePackage===selectedUpgradePackage;
     optionNode.classList.toggle('is-selected',isSelected);
     optionNode.setAttribute('aria-pressed',isSelected?'true':'false');
+    const selectLabel=optionNode.querySelector('.upgrade-select');
+    if(selectLabel){
+      selectLabel.textContent=isSelected?'Selected Plan':'Select Plan';
+    }
   });
-  if(el.upgradeSelectedLabel){
-    el.upgradeSelectedLabel.textContent=`Selected package: ${UPGRADE_LABEL[selectedUpgradePackage]||'Personal Builder Pack'}`;
-  }
-  renderUpgradeTrack(selectedIndex,options.behavior||'smooth');
+  renderUpgradeCheckoutSummary();
 }
 function upgradeBusy(on){
   if(!el.upgradeBtn) return;
   el.upgradeBtn.disabled=on;
   upgradeOptionNodes().forEach((optionNode)=>{optionNode.disabled=Boolean(on)});
-  el.upgradeBtn.textContent=on?'Upgrading...':'Upgrade Account';
-  syncUpgradeNavButtons(activeUpgradeIndex());
+  (Array.isArray(el.upgradeProductOptions)?el.upgradeProductOptions:[]).forEach((optionNode)=>{optionNode.disabled=Boolean(on)});
+  if(el.upgradeModalOpen instanceof HTMLButtonElement) el.upgradeModalOpen.disabled=Boolean(on);
+  el.upgradeBtn.textContent=on?'Preparing Stripe...':'Upgrade Account';
 }
 
 function identity(user){return t(user?.id||user?.username||user?.email||'preferred-account')}
@@ -394,84 +909,30 @@ function saveAddress(){
 }
 
 function setupUpgrade(){
+  applyUpgradeBenefitIcons();
+  void hydrateUpgradeCheckoutCatalog().then(()=>{renderUpgradeCheckoutSummary()});
+
   upgradeOptionNodes().forEach((optionNode)=>{
     optionNode.addEventListener('click',()=>{
       const nextPackage=low(optionNode?.dataset?.packageKey);
       if(!UPGRADE_LABEL[nextPackage]) return;
-      setSelectedUpgradePackage(nextPackage,{behavior:'smooth'});
-      setFeedback(el.upgradeFeedback,'');
+      setSelectedUpgradePackage(nextPackage);
+      setUpgradeFlowFeedback('');
     });
   });
-  el.upgradePrev?.addEventListener('click',()=>{
-    moveUpgradeToIndex(activeUpgradeIndex()-1,'smooth');
-    setFeedback(el.upgradeFeedback,'');
-  });
-  el.upgradeNext?.addEventListener('click',()=>{
-    moveUpgradeToIndex(activeUpgradeIndex()+1,'smooth');
-    setFeedback(el.upgradeFeedback,'');
-  });
-  el.upgradeDots?.addEventListener('click',(event)=>{
-    const dotNode=event.target instanceof Element
-      ? event.target.closest('[data-upgrade-dot-index]')
-      : null;
-    if(!(dotNode instanceof HTMLElement)) return;
-    const nextIndex=normalizeUpgradeIndex(Number(dotNode.dataset.upgradeDotIndex));
-    moveUpgradeToIndex(nextIndex,'smooth');
-    setFeedback(el.upgradeFeedback,'');
+
+  (Array.isArray(el.upgradeProductOptions)?el.upgradeProductOptions:[]).forEach((optionNode)=>{
+    optionNode.addEventListener('click',()=>{
+      const nextProduct=normalizeUpgradeProductKey(optionNode?.dataset?.upgradeProductKey);
+      setSelectedUpgradeProduct(nextProduct);
+      setUpgradeFlowFeedback('');
+    });
   });
 
-  let touchStartX=0;
-  let touchDeltaX=0;
-  let trackingTouch=false;
-  const touchTarget=el.upgradeViewport||el.upgradeList;
-  touchTarget?.addEventListener('touchstart',(event)=>{
-    if(event.touches.length!==1) return;
-    trackingTouch=true;
-    touchStartX=event.touches[0].clientX;
-    touchDeltaX=0;
-  },{passive:true});
-  touchTarget?.addEventListener('touchmove',(event)=>{
-    if(!trackingTouch||event.touches.length!==1) return;
-    touchDeltaX=event.touches[0].clientX-touchStartX;
-  },{passive:true});
-  touchTarget?.addEventListener('touchend',()=>{
-    if(!trackingTouch) return;
-    trackingTouch=false;
-    if(Math.abs(touchDeltaX)<44) return;
-    moveUpgradeToIndex(activeUpgradeIndex()+(touchDeltaX<0?1:-1),'smooth');
-    setFeedback(el.upgradeFeedback,'');
-  });
-  window.addEventListener('resize',()=>{renderUpgradeTrack(activeUpgradeIndex(),'auto')});
+  setSelectedUpgradePackage(selectedUpgradePackage);
+  setSelectedUpgradeProduct(selectedUpgradeProductKey);
 
-  setSelectedUpgradePackage(selectedUpgradePackage,{behavior:'auto'});
-
-  el.upgradeBtn?.addEventListener('click',async()=>{
-    const target=low(selectedUpgradePackage);
-    if(!target||!UPGRADE_LABEL[target]){
-      setFeedback(el.upgradeFeedback,'Select a valid package to upgrade.','error');
-      return;
-    }
-
-    upgradeBusy(true);
-    setFeedback(el.upgradeFeedback,'');
-
-    try{
-      const res=await fetch(MEMBER_ACCOUNT_UPGRADE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:t(currentUser?.id),username:t(currentUser?.username),email:t(currentUser?.email),targetPackage:target})});
-      const payload=await res.json().catch(()=>({}));
-      if(!res.ok) throw new Error(typeof payload?.error==='string'?payload.error:`Upgrade failed (${res.status}).`);
-
-      const upgraded=payload?.user&&typeof payload.user==='object'?payload.user:{};
-      currentUser={...currentUser,...upgraded};
-      persistSession(currentUser);
-
-      setFeedback(el.upgradeFeedback,`Upgrade complete: ${UPGRADE_LABEL[target]}. Redirecting to member dashboard...`,'success');
-      window.setTimeout(()=>window.location.replace('/index.html'),1200);
-    }catch(error){
-      setFeedback(el.upgradeFeedback,error instanceof Error?error.message:'Unable to process account upgrade.','error');
-    }finally{
-      upgradeBusy(false);
-    }
-  });
+  el.upgradeBtn?.addEventListener('click',()=>{void startUpgradeStripeCheckout()});
 }
 
 function setupLogout(){
@@ -510,7 +971,9 @@ function bootstrap(){
   hydrateAddress(currentUser);
   saveProfile();
   saveAddress();
+  setupUpgradeModal();
   setupUpgrade();
+  void handleUpgradeCheckoutReturn();
   setupLogout();
 
   el.refresh?.addEventListener('click',()=>{loadPurchases()});
@@ -521,5 +984,16 @@ bootstrap();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
 
 

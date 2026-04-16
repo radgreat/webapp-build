@@ -259,7 +259,6 @@
           <img class="brand-icon" src="/brand_assets/Logos/L&D Icon.svg" alt="L&D icon">
         </a>
         <a class="nav-link" href="/store.html">Store</a>
-        <a class="nav-link" href="/">About Us</a>
         <a class="nav-link" href="/store-support.html">Support</a>
       </div>
       <a class="nav-link" href="/login.html">Login</a>
@@ -305,12 +304,18 @@
     const registerSubmitButtonElement = registerFormElement?.querySelector('button[type="submit"]');
     const setupPasswordLinkElement = document.getElementById('setup-password-link');
     const setupPasswordStatusElement = document.getElementById('setup-password-status');
+    const RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY = 'charge-runtime-settings-v1';
+    const UNATTRIBUTED_STORE_CODE_SET = new Set([
+      'REGISTRATIONLOCKED',
+      'REGISTRATION-LOCKED',
+    ]);
 
     function normalizeStoreCode(value) {
-      return String(value || '')
+      const normalizedStoreCode = String(value || '')
         .trim()
         .toUpperCase()
         .replace(/[^A-Z0-9-]/g, '');
+      return UNATTRIBUTED_STORE_CODE_SET.has(normalizedStoreCode) ? '' : normalizedStoreCode;
     }
 
     function safeStorageSet(storage, key, value) {
@@ -323,6 +328,31 @@
       } catch {
         return false;
       }
+    }
+
+    function persistDefaultLightThemeForNewAccount() {
+      let fallbackSettings = {};
+      try {
+        const rawSettings = window.localStorage?.getItem(RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY);
+        const parsedSettings = rawSettings ? JSON.parse(rawSettings) : {};
+        if (parsedSettings && typeof parsedSettings === 'object') {
+          fallbackSettings = parsedSettings;
+        }
+      } catch {
+        fallbackSettings = {};
+      }
+
+      const nextSettings = {
+        ...fallbackSettings,
+        appTheme: 'light',
+        updatedAt: new Date().toISOString(),
+      };
+
+      safeStorageSet(
+        window.localStorage,
+        RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY,
+        JSON.stringify(nextSettings),
+      );
     }
 
     function setFeedback(message) {
@@ -518,6 +548,10 @@
           if (!registrationResult.ok) {
             setFeedback(registrationResult.message || 'Unable to register account right now.');
             return;
+          }
+
+          if (registrationResult.created === true) {
+            persistDefaultLightThemeForNewAccount();
           }
 
           showThankYou(registrationResult, result.fields);

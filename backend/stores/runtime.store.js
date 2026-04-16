@@ -6,7 +6,8 @@ async function ensureRuntimeSettingsLegalColumnsStore() {
       ADD COLUMN IF NOT EXISTS legal_terms_of_service TEXT,
       ADD COLUMN IF NOT EXISTS legal_agreement TEXT,
       ADD COLUMN IF NOT EXISTS legal_shipping_policy TEXT,
-      ADD COLUMN IF NOT EXISTS legal_refund_policy TEXT
+      ADD COLUMN IF NOT EXISTS legal_refund_policy TEXT,
+      ADD COLUMN IF NOT EXISTS unattributed_free_account_fallback_sponsor_username TEXT
   `)
 }
 
@@ -21,6 +22,7 @@ export async function readRuntimeSettingsStore() {
       legal_agreement,
       legal_shipping_policy,
       legal_refund_policy,
+      unattributed_free_account_fallback_sponsor_username,
       updated_by,
       updated_at
     FROM charge.runtime_settings
@@ -40,6 +42,7 @@ export async function writeRuntimeSettingsStore(payload) {
     legalAgreement,
     legalShippingPolicy,
     legalRefundPolicy,
+    unattributedFreeAccountFallbackSponsorUsername,
     updatedBy
   } = payload
 
@@ -52,7 +55,8 @@ export async function writeRuntimeSettingsStore(payload) {
       legal_agreement = $4,
       legal_shipping_policy = $5,
       legal_refund_policy = $6,
-      updated_by = $7,
+      unattributed_free_account_fallback_sponsor_username = $7,
+      updated_by = $8,
       updated_at = NOW()
     WHERE id = 1
     RETURNING *
@@ -63,6 +67,7 @@ export async function writeRuntimeSettingsStore(payload) {
     legalAgreement,
     legalShippingPolicy,
     legalRefundPolicy,
+    unattributedFreeAccountFallbackSponsorUsername,
     updatedBy || 'system'
   ])
 

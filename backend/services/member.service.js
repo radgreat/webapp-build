@@ -841,10 +841,12 @@ async function creditSponsorFastTrackCommissionContainer({
   sponsorUser = null,
   fastTrackBonusAmount = 0,
   client = null,
+  executor = null,
 } = {}) {
   const safeBonusAmount = roundCurrencyAmount(fastTrackBonusAmount);
   const sponsor = sponsorUser && typeof sponsorUser === 'object' ? sponsorUser : null;
-  if (!client || !sponsor || safeBonusAmount <= 0) {
+  const dbExecutor = executor || client || pool;
+  if (!sponsor || safeBonusAmount <= 0) {
     return null;
   }
 
@@ -854,7 +856,7 @@ async function creditSponsorFastTrackCommissionContainer({
   }
 
   try {
-    const existingSnapshot = await readCommissionContainerByUserId(sponsorUserId, client);
+    const existingSnapshot = await readCommissionContainerByUserId(sponsorUserId, dbExecutor);
     const existingBalances = existingSnapshot?.balances && typeof existingSnapshot.balances === 'object'
       ? existingSnapshot.balances
       : {};
@@ -875,7 +877,7 @@ async function creditSponsorFastTrackCommissionContainer({
         salesteam: resolveCommissionContainerBalanceNumber(existingBalances, 'salesteam', 'salesTeam'),
       },
       claimMaps: existingSnapshot?.claimMaps,
-    }, client);
+    }, dbExecutor);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error || '');
     console.warn(`[MemberEnrollment] Fast Track credit sync skipped for ${sponsorUserId}: ${errorMessage}`);
@@ -1993,11 +1995,13 @@ export async function getMemberRanks() {
 }
 
 
-export async function recordMemberPurchase(payload) {
+export async function recordMemberPurchase(payload, options = {}) {
   const userId = normalizeText(payload?.userId);
   const username = normalizeCredential(payload?.username);
   const email = normalizeCredential(payload?.email);
   const pvGain = Math.max(0, Math.floor(Number(payload?.pvGain) || 0));
+  const persistMode = normalizeCredential(options?.persistMode || 'rewrite');
+  const useTargetedPersistence = persistMode === 'upsert';
 
   if (!userId && !username && !email) {
     return {
@@ -2079,7 +2083,11 @@ export async function recordMemberPurchase(payload) {
     lastPurchaseAt: nowIso,
   };
 
-  await writeMockUsersStore(users);
+  if (useTargetedPersistence) {
+    await upsertMockUserRecord(users[userIndex]);
+  } else {
+    await writeMockUsersStore(users);
+  }
 
   const matchedUser = users[userIndex];
   const identity = {
@@ -2106,7 +2114,16 @@ export async function recordMemberPurchase(payload) {
     };
   });
 
-  await writeRegisteredMembersStore(updatedMembers);
+  if (useTargetedPersistence) {
+    if (primaryMemberIndex >= 0 && !isBusinessCenterPlaceholderMember(members[primaryMemberIndex])) {
+      const nextPrimaryMember = updatedMembers[primaryMemberIndex];
+      if (nextPrimaryMember) {
+        await upsertRegisteredMemberRecord(nextPrimaryMember);
+      }
+    }
+  } else {
+    await writeRegisteredMembersStore(updatedMembers);
+  }
 
   return {
     success: true,
@@ -2525,11 +2542,13 @@ export async function completeRegisteredMemberCheckoutSession(payload = {}) {
   };
 }
 
-export async function upgradeMemberAccount(payload) {
+export async function upgradeMemberAccount(payload, options = {}) {
   const userId = normalizeText(payload?.userId);
   const username = normalizeCredential(payload?.username);
   const email = normalizeCredential(payload?.email);
   const targetPackageInput = normalizeCredential(payload?.targetPackage);
+  const persistMode = normalizeCredential(options?.persistMode || 'rewrite');
+  const useTargetedPersistence = persistMode === 'upsert';
 
   const ACCOUNT_UPGRADE_PACKAGE_ORDER = [
     FREE_ACCOUNT_PACKAGE_KEY,
@@ -2719,6 +2738,21 @@ export async function upgradeMemberAccount(payload) {
     email: normalizeCredential(matchedUser?.email),
   };
   const primaryMemberIndex = resolvePrimaryMemberIndexForIdentity(members, identity);
+  const sourceMemberRecord = primaryMemberIndex >= 0 ? members[primaryMemberIndex] : null;
+  const sponsorUsernameForFastTrackUpgrade = normalizeCredential(
+    sourceMemberRecord?.sponsorUsername || sourceMemberRecord?.sponsor_username,
+  );
+  const isPreferredToPaidUpgrade = (
+    currentPackageKey === FREE_ACCOUNT_PACKAGE_KEY
+    && targetPackageKey !== FREE_ACCOUNT_PACKAGE_KEY
+  );
+  let fastTrackUpgradeBonusAmount = 0;
+  let fastTrackUpgradeBonusApplied = false;
+  let fastTrackUpgradeSponsorUsername = '';
+  let fastTrackUpgradeSponsorTier = '';
+  let fastTrackUpgradeBonusMessage = isPreferredToPaidUpgrade
+    ? 'Preferred upgrade detected. Fast Track sponsor credit is pending.'
+    : 'Fast Track bonus is disabled for paid-to-paid upgrades.';
 
   let updatedMemberRecord = null;
 
@@ -2752,8 +2786,58 @@ export async function upgradeMemberAccount(payload) {
     return upgradedMember;
   });
 
-  await writeMockUsersStore(users);
-  await writeRegisteredMembersStore(updatedMembers);
+  if (useTargetedPersistence) {
+    await upsertMockUserRecord(users[userIndex]);
+    if (updatedMemberRecord) {
+      await upsertRegisteredMemberRecord(updatedMemberRecord);
+    }
+  } else {
+    await writeMockUsersStore(users);
+    await writeRegisteredMembersStore(updatedMembers);
+  }
+
+  if (isPreferredToPaidUpgrade) {
+    if (!sponsorUsernameForFastTrackUpgrade) {
+      fastTrackUpgradeBonusMessage = 'Preferred upgrade completed, but sponsor was missing so Fast Track was skipped.';
+    } else {
+      const matchedSponsorUser = users.find((user) => (
+        normalizeCredential(user?.username) === sponsorUsernameForFastTrackUpgrade
+      )) || await findUserByUsername(sponsorUsernameForFastTrackUpgrade);
+
+      if (!matchedSponsorUser) {
+        fastTrackUpgradeBonusMessage = 'Preferred upgrade completed, but sponsor account was not found so Fast Track was skipped.';
+      } else {
+        const resolvedSponsorFastTrackTier = resolveFastTrackTierFromSponsorUser(matchedSponsorUser);
+        fastTrackUpgradeSponsorUsername = normalizeText(
+          matchedSponsorUser?.username || sponsorUsernameForFastTrackUpgrade,
+        );
+        fastTrackUpgradeSponsorTier = resolvedSponsorFastTrackTier;
+
+        if (!FAST_TRACK_TIER_META[resolvedSponsorFastTrackTier]) {
+          fastTrackUpgradeBonusMessage = 'Preferred upgrade completed, but sponsor Fast Track tier was invalid.';
+        } else {
+          fastTrackUpgradeBonusAmount = resolveFastTrackBonusAmount({
+            enrollmentPackage: targetPackageKey,
+            sponsorFastTrackTier: resolvedSponsorFastTrackTier,
+            isAdminPlacement: false,
+          });
+
+          if (fastTrackUpgradeBonusAmount > 0) {
+            const fastTrackCreditResult = await creditSponsorFastTrackCommissionContainer({
+              sponsorUser: matchedSponsorUser,
+              fastTrackBonusAmount: fastTrackUpgradeBonusAmount,
+            });
+            fastTrackUpgradeBonusApplied = Boolean(fastTrackCreditResult);
+            fastTrackUpgradeBonusMessage = fastTrackUpgradeBonusApplied
+              ? 'Fast Track bonus credited to sponsor from Preferred upgrade.'
+              : 'Preferred upgrade completed, but Fast Track commission wallet write failed.';
+          } else {
+            fastTrackUpgradeBonusMessage = 'Preferred upgrade completed with zero Fast Track bonus amount.';
+          }
+        }
+      }
+    }
+  }
 
   return {
     success: true,
@@ -2791,7 +2875,11 @@ export async function upgradeMemberAccount(payload) {
       pvGain: upgradeBvGain,
       productCount: upgradeProductCount,
       productBv: upgradeProductCount * PACKAGE_PRODUCT_BV,
-      fastTrackBonusApplied: false,
+      fastTrackBonusApplied: fastTrackUpgradeBonusApplied,
+      fastTrackBonusAmount: fastTrackUpgradeBonusAmount,
+      fastTrackBonusSponsorUsername: fastTrackUpgradeSponsorUsername,
+      fastTrackBonusSponsorTier: fastTrackUpgradeSponsorTier,
+      fastTrackBonusMessage: fastTrackUpgradeBonusMessage,
     },
   };
 }

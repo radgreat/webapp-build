@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="antialiased" data-theme="dark">
+<html lang="en" class="antialiased" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
@@ -17,6 +17,63 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://js.stripe.com/v3/"></script>
   <script src="/vendor/pixi.min.js"></script>
+  <script>
+    (function runDashboardAuthPreflight() {
+      const AUTH_STORAGE_KEY = 'vault-auth-user';
+      const AUTH_COOKIE_KEY = 'vault-auth-user-cookie';
+
+      function safeStorageGet(storage, key) {
+        try {
+          if (!storage) {
+            return null;
+          }
+          return storage.getItem(key);
+        } catch {
+          return null;
+        }
+      }
+
+      function parseSessionPayload(raw) {
+        if (!raw) {
+          return null;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== 'object') {
+            return null;
+          }
+          return parsed;
+        } catch {
+          return null;
+        }
+      }
+
+      function readCookieValue(key) {
+        const source = document.cookie || '';
+        const encodedKey = `${encodeURIComponent(key)}=`;
+        const pairs = source.split(';');
+
+        for (const pair of pairs) {
+          const trimmed = pair.trim();
+          if (!trimmed.startsWith(encodedKey)) {
+            continue;
+          }
+          return decodeURIComponent(trimmed.slice(encodedKey.length));
+        }
+
+        return null;
+      }
+
+      const localSession = parseSessionPayload(safeStorageGet(window.localStorage, AUTH_STORAGE_KEY));
+      const tabSession = parseSessionPayload(safeStorageGet(window.sessionStorage, AUTH_STORAGE_KEY));
+      const cookieSession = parseSessionPayload(readCookieValue(AUTH_COOKIE_KEY));
+      const currentSessionUser = localSession || tabSession || cookieSession;
+      const authToken = String(currentSessionUser?.authToken || '').trim();
+      if (!authToken) {
+        window.location.replace('./login.html');
+      }
+    })();
+  </script>
   <script>
     tailwind.config = {
       theme: {
@@ -4565,20 +4622,6 @@
               </div>
               <div id="preferred-customer-list" class="mt-4 space-y-3"></div>
               <p id="preferred-customer-empty-state" class="mt-3 text-body-sm text-text-tertiary">No preferred customers assigned yet.</p>
-              <div class="mt-6 border-t border-surface-border pt-4">
-                <div class="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <p class="text-body-sm font-medium text-text-primary">Guest Attributed Purchases</p>
-                    <p class="text-caption text-text-tertiary mt-1">Guest and unlinked checkouts are tracked here for preferred-customer follow-up.</p>
-                  </div>
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span id="preferred-customer-guest-record-count" class="text-caption px-2 py-1 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">0 invoices</span>
-                    <span id="preferred-customer-guest-total-purchased" class="text-caption px-2 py-1 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">$0.00 purchased</span>
-                  </div>
-                </div>
-                <div id="preferred-customer-guest-sales-list" class="mt-3 space-y-2"></div>
-                <p id="preferred-customer-guest-sales-empty-state" class="mt-2 text-caption text-text-tertiary">No guest-attributed purchases yet.</p>
-              </div>
             </div>
 
             <div class="bg-surface-raised border border-surface-border rounded-xl p-5 shadow-depth-1 space-y-4">
@@ -5777,6 +5820,72 @@
       }
     }
 
+    let loginRedirectInFlight = false;
+    function redirectToLogin() {
+      if (loginRedirectInFlight) {
+        return;
+      }
+      loginRedirectInFlight = true;
+      window.location.replace('./login.html');
+    }
+
+    async function hydrateCurrentSessionUserFromServer(user, authToken) {
+      try {
+        const response = await fetch('/api/member-auth/session', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            Accept: 'application/json',
+          },
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+
+        let responsePayload = {};
+        try {
+          responsePayload = await response.json();
+        } catch {
+          responsePayload = {};
+        }
+
+        if (response.status === 401 || response.status === 403) {
+          clearUserSession();
+          redirectToLogin();
+          return;
+        }
+
+        if (!response.ok) {
+          console.warn(`Session sync skipped (HTTP ${response.status}).`);
+          return;
+        }
+
+        const serverUser = responsePayload?.user;
+        if (!serverUser || typeof serverUser !== 'object') {
+          console.warn('Session sync skipped: missing `user` payload.');
+          return;
+        }
+
+        const preservedAuthToken = String(user?.authToken || '').trim();
+        const preservedAuthTokenExpiresAt = String(user?.authTokenExpiresAt || '').trim();
+        Object.assign(user, {
+          ...user,
+          ...serverUser,
+        });
+
+        if (preservedAuthToken) {
+          user.authToken = preservedAuthToken;
+        }
+        if (preservedAuthTokenExpiresAt) {
+          user.authTokenExpiresAt = preservedAuthTokenExpiresAt;
+        }
+
+        persistUserSessionSnapshot(user);
+        window.__vaultAuthUser = user;
+      } catch (error) {
+        console.warn('Session sync skipped: network or server unavailable.', error);
+      }
+    }
+
     function hydrateCurrentSessionUserFromServerSync(user) {
       if (!user || typeof user !== 'object') {
         return false;
@@ -5785,62 +5894,15 @@
       const authToken = String(user?.authToken || '').trim();
       if (!authToken) {
         clearUserSession();
-        window.location.replace('./login.html');
+        redirectToLogin();
         return false;
       }
-
-      let responsePayload = null;
-      try {
-        const request = new XMLHttpRequest();
-        request.open('GET', '/api/member-auth/session', false);
-        request.setRequestHeader('Authorization', `Bearer ${authToken}`);
-        request.setRequestHeader('Accept', 'application/json');
-        request.send(null);
-
-        try {
-          responsePayload = JSON.parse(request.responseText || '{}');
-        } catch {
-          responsePayload = {};
-        }
-
-        if (request.status < 200 || request.status >= 300) {
-          clearUserSession();
-          window.location.replace('./login.html');
-          return false;
-        }
-      } catch {
-        clearUserSession();
-        window.location.replace('./login.html');
-        return false;
-      }
-
-      const serverUser = responsePayload?.user;
-      if (!serverUser || typeof serverUser !== 'object') {
-        clearUserSession();
-        window.location.replace('./login.html');
-        return false;
-      }
-
-      const preservedAuthToken = String(user?.authToken || '').trim();
-      const preservedAuthTokenExpiresAt = String(user?.authTokenExpiresAt || '').trim();
-      Object.assign(user, {
-        ...user,
-        ...serverUser,
-      });
-
-      if (preservedAuthToken) {
-        user.authToken = preservedAuthToken;
-      }
-      if (preservedAuthTokenExpiresAt) {
-        user.authTokenExpiresAt = preservedAuthTokenExpiresAt;
-      }
-
-      persistUserSessionSnapshot(user);
+      void hydrateCurrentSessionUserFromServer(user, authToken);
       return true;
     }
     const currentSessionUser = readUserSession();
     if (!currentSessionUser) {
-      window.location.replace('./login.html');
+      redirectToLogin();
     } else {
       const sessionHydratedFromServer = hydrateCurrentSessionUserFromServerSync(currentSessionUser);
       if (sessionHydratedFromServer) {
@@ -6058,10 +6120,6 @@
       const preferredCustomerTotalPurchasedElement = document.getElementById('preferred-customer-total-purchased');
       const preferredCustomerListElement = document.getElementById('preferred-customer-list');
       const preferredCustomerEmptyStateElement = document.getElementById('preferred-customer-empty-state');
-      const preferredCustomerGuestRecordCountElement = document.getElementById('preferred-customer-guest-record-count');
-      const preferredCustomerGuestTotalPurchasedElement = document.getElementById('preferred-customer-guest-total-purchased');
-      const preferredCustomerGuestSalesListElement = document.getElementById('preferred-customer-guest-sales-list');
-      const preferredCustomerGuestSalesEmptyStateElement = document.getElementById('preferred-customer-guest-sales-empty-state');
       const preferredCustomerSelectedNameElement = document.getElementById('preferred-customer-selected-name');
       const preferredCustomerSelectedContactElement = document.getElementById('preferred-customer-selected-contact');
       const preferredCustomerSelectedTotalElement = document.getElementById('preferred-customer-selected-total');
@@ -7970,7 +8028,7 @@
       let eWalletModalInteractionHandlersBound = false;
       let dashboardMockupModeEnabled = false;
       let tierClaimMockModeEnabled = false;
-      let appTheme = 'dark';
+      let appTheme = 'light';
       let persistedCommissionPayoutRequestEntries = [];
       let hasRegisteredMembersHydrated = false;
       let commissionContainerSnapshot = null;
@@ -14140,7 +14198,7 @@
         if (normalizedTheme === 'dark' || normalizedTheme === 'default' || normalizedTheme === 'shopify') {
           return 'dark';
         }
-        return APP_THEMES.includes(normalizedTheme) ? normalizedTheme : 'dark';
+        return APP_THEMES.includes(normalizedTheme) ? normalizedTheme : 'light';
       }
 
       function syncSidebarThemeToggle() {
@@ -20035,41 +20093,6 @@
             return (Number.isFinite(rightCreatedMs) ? rightCreatedMs : 0) - (Number.isFinite(leftCreatedMs) ? leftCreatedMs : 0);
           });
 
-        const preferredCustomerGuestInvoices = ownerInvoices
-          .filter((invoice) => isInvoiceAttributedGuestCheckout(invoice))
-          .filter((invoice) => {
-            const invoiceIdentityKey = normalizeMemberKey(invoice?.id);
-            if (!invoiceIdentityKey) {
-              return true;
-            }
-            return !matchedOwnerInvoiceIds.has(invoiceIdentityKey);
-          });
-        const preferredCustomerGuestInvoicesFallback = (
-          preferredCustomerGuestInvoices.length > 0
-            ? preferredCustomerGuestInvoices
-            : (Array.isArray(storeInvoices) ? storeInvoices : []).filter((invoice) => {
-              if (!invoice || typeof invoice !== 'object') {
-                return false;
-              }
-              if (isEnrollmentGeneratedInvoice(invoice)) {
-                return false;
-              }
-              if (hasInvoiceLinkedBuyerIdentity(invoice)) {
-                return false;
-              }
-              const normalizedAttributionKey = normalizeStoreCode(invoice?.attributionKey || '');
-              const normalizedDefaultAttribution = normalizeStoreCode(defaultUplineStoreCode);
-              return Boolean(normalizedAttributionKey) && normalizedAttributionKey !== normalizedDefaultAttribution;
-            })
-        ).filter((invoice) => {
-          const invoiceIdentityKey = normalizeMemberKey(invoice?.id);
-          if (!invoiceIdentityKey) {
-            return true;
-          }
-          return !matchedOwnerInvoiceIds.has(invoiceIdentityKey);
-        });
-        renderPreferredCustomerGuestSales(preferredCustomerGuestInvoicesFallback);
-
         const totalPurchased = preferredCustomerPlannerRows.reduce((sum, row) => sum + row.totalPurchased, 0);
         preferredCustomerRecordCountElement.textContent = `${preferredCustomerPlannerRows.length} customer${preferredCustomerPlannerRows.length === 1 ? '' : 's'}`;
         preferredCustomerTotalPurchasedElement.textContent = `${formatCurrency(totalPurchased)} purchased`;
@@ -20115,68 +20138,6 @@
         }).join('');
 
         renderPreferredCustomerPlanSelection();
-      }
-
-      function renderPreferredCustomerGuestSales(invoices = []) {
-        if (
-          !preferredCustomerGuestRecordCountElement
-          || !preferredCustomerGuestTotalPurchasedElement
-          || !preferredCustomerGuestSalesListElement
-          || !preferredCustomerGuestSalesEmptyStateElement
-        ) {
-          return;
-        }
-
-        const safeInvoices = Array.isArray(invoices)
-          ? invoices.filter((invoice) => invoice && typeof invoice === 'object')
-          : [];
-        const sortedInvoices = safeInvoices.slice().sort((left, right) => {
-          const leftMs = Date.parse(String(left?.createdAt || ''));
-          const rightMs = Date.parse(String(right?.createdAt || ''));
-          return (Number.isFinite(rightMs) ? rightMs : 0) - (Number.isFinite(leftMs) ? leftMs : 0);
-        });
-        const totalPurchased = sortedInvoices.reduce((sum, invoice) => {
-          return sum + Math.max(0, Number(invoice?.amount || 0));
-        }, 0);
-
-        preferredCustomerGuestRecordCountElement.textContent = `${sortedInvoices.length} invoice${sortedInvoices.length === 1 ? '' : 's'}`;
-        preferredCustomerGuestTotalPurchasedElement.textContent = `${formatCurrency(totalPurchased)} purchased`;
-
-        if (sortedInvoices.length === 0) {
-          preferredCustomerGuestSalesListElement.innerHTML = '';
-          preferredCustomerGuestSalesEmptyStateElement.classList.remove('hidden');
-          return;
-        }
-
-        preferredCustomerGuestSalesEmptyStateElement.classList.add('hidden');
-        preferredCustomerGuestSalesListElement.innerHTML = sortedInvoices.slice(0, 12).map((invoice) => {
-          const invoiceId = escapeHtml(String(invoice?.id || '--').trim() || '--');
-          const buyerLabel = escapeHtml(String(invoice?.buyer || invoice?.buyerEmail || 'Guest buyer').trim() || 'Guest buyer');
-          const buyerEmail = escapeHtml(String(invoice?.buyerEmail || '--').trim() || '--');
-          const status = escapeHtml(String(invoice?.status || 'Pending').trim() || 'Pending');
-          const createdLabel = escapeHtml(formatMemberDateTime(invoice?.createdAt));
-          const statusClass = normalizeMemberKey(invoice?.status) === 'posted'
-            ? 'text-semantic-success'
-            : 'text-semantic-warning';
-          return `
-            <article class="rounded-lg border border-surface-border bg-surface-base/30 px-3 py-2.5">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <p class="text-caption text-text-tertiary">${invoiceId}</p>
-                <p class="text-caption ${statusClass}">${status}</p>
-              </div>
-              <p class="text-body-sm text-text-primary mt-1">${buyerLabel}</p>
-              <div class="mt-1 flex flex-wrap items-center gap-2 text-caption text-text-tertiary">
-                <span>${buyerEmail}</span>
-                <span>-</span>
-                <span>${formatCurrency(Number(invoice?.amount || 0))}</span>
-                <span>-</span>
-                <span>${formatInteger(invoice?.bp)} BV</span>
-                <span>-</span>
-                <span>${createdLabel}</span>
-              </div>
-            </article>
-          `;
-        }).join('');
       }
 
       async function submitPreferredCustomerPlan(event) {
@@ -22789,7 +22750,7 @@
       }
 
       function resolveStoreStripeAppearance() {
-        const activeTheme = normalizeAppTheme(document.documentElement?.dataset?.theme || appTheme || 'dark');
+        const activeTheme = normalizeAppTheme(document.documentElement?.dataset?.theme || appTheme || 'light');
         const isLightTheme = activeTheme === 'light';
 
         if (isLightTheme) {
@@ -22819,7 +22780,7 @@
       }
 
       function resolveStoreStripeCardStyle() {
-        const activeTheme = normalizeAppTheme(document.documentElement?.dataset?.theme || appTheme || 'dark');
+        const activeTheme = normalizeAppTheme(document.documentElement?.dataset?.theme || appTheme || 'light');
         const isLightTheme = activeTheme === 'light';
 
         if (isLightTheme) {
@@ -23873,7 +23834,7 @@
           storeInvoiceFeed.innerHTML = `
             <div class="rounded-lg border border-surface-border bg-surface-base/30 p-3 sm:col-span-3">
               <p class="text-body-sm text-text-primary">No linked member invoices in this owner view.</p>
-              <p class="text-caption text-text-tertiary mt-1">Guest-attributed purchases now appear in the Preferred Customers page.</p>
+              <p class="text-caption text-text-tertiary mt-1">Only linked Preferred-customer purchases appear here.</p>
             </div>
           `;
           return;
@@ -25582,12 +25543,12 @@
 
       if (themeSwitcher) {
         themeSwitcher.addEventListener('change', (event) => {
-          applyAppTheme(event?.target?.value || 'dark');
+          applyAppTheme(event?.target?.value || 'light');
         });
       }
       if (settingsThemeSwitcher) {
         settingsThemeSwitcher.addEventListener('change', (event) => {
-          applyAppTheme(event?.target?.value || 'dark');
+          applyAppTheme(event?.target?.value || 'light');
         });
       }
       if (sidebarThemeToggleButton) {

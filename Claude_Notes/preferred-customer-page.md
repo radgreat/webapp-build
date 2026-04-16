@@ -1,7 +1,68 @@
 # Preferred Customer Page Notes
 
-Last Updated: 2026-04-14
+Last Updated: 2026-04-16
 Status: In Progress (Phase 1 foundation complete)
+
+## Recent Update (2026-04-16) - Preferred Password Setup UI Matched to New Store/Register Theme
+
+- Redesigned `store-password-setup.html` to match the current store/register visual style:
+  - white layout, Inter typography, gray fields, blue CTA.
+- Preserved preferred setup runtime behavior:
+  - token validation + refresh
+  - missing-token email recovery path
+  - member audience redirect to `password-setup.html`
+  - store-code-scoped header/login links.
+
+### Files Affected
+
+- `store-password-setup.html`
+- `Claude_Notes/preferred-customer-page.md`
+
+### Validation
+
+- Inline script parse check passed for `store-password-setup.html`.
+
+## Recent Update (2026-04-16) - Registration Seeds Light Theme by Default
+
+- Updated preferred registration completion flow in `store-register.html` to write runtime fallback settings with `appTheme: 'light'` when a new account is created.
+- This aligns new Preferred account onboarding with the member app default-light direction.
+
+### Files Affected
+
+- `store-register.html`
+- `index.html`
+
+### Known Limitation
+
+- Theme persistence remains browser-local storage based and is not yet a per-user backend preference.
+
+## Recent Update (2026-04-16) - Configurable Fallback Holding Sponsor for Unattributed Preferred Accounts
+
+- Added backend runtime setting support for unattributed Preferred routing fallback:
+  - `unattributed_free_account_fallback_sponsor_username`
+- Updated Preferred registration identity resolver in checkout service:
+  - runtime fallback sponsor is now checked first
+  - env fallback remains as secondary path
+  - hard fallback remains `admin`.
+- Added Admin Settings controls in `admin.html`:
+  - new `Preferred Fallback Sponsor` dropdown
+  - save flow persists via runtime settings API
+  - local browser fallback retained when API is unavailable.
+- Updated admin Preferred Customers parked-state handling:
+  - parked status now treats configured fallback sponsor as holding sponsor
+  - summary label updated to `Parked (Fallback Holding)`.
+
+### Files Affected
+
+- `backend/stores/runtime.store.js`
+- `backend/services/runtime.service.js`
+- `backend/services/store-checkout.service.js`
+- `backend/routes/runtime.routes.js`
+- `admin.html`
+
+### Known Limitation
+
+- Fallback sponsor options in admin are sourced from known admin/member identities already loaded in current runtime datasets; external users not present in these datasets will not appear as selectable options.
 
 ## Recent Update (2026-04-14) - Page Render Fix (`normalizeText` ReferenceError)
 
@@ -412,3 +473,46 @@ Status: In Progress (Phase 1 foundation complete)
 
 - Backend syntax checks passed for updated route/controller/service files.
 - Inline script parse for `store-register.html` passed.
+
+
+
+
+
+
+
+
+
+
+
+
+## Update (2026-04-16) - Registration Header Nav Cleanup
+
+### Scope
+- Preferred registration page header (`store-register.html`).
+
+### Changes
+- Removed `About Us` from top navigation.
+- Header now keeps only:
+  - Store
+  - Support
+  - Login
+
+### Result
+- Registration entry experience now matches simplified store header pattern.
+
+## Update (2026-04-16) - Dashboard Preferred Customer Page: Guest Section Removed
+
+### Scope
+- User dashboard -> side nav `Preferred Customer` page (`index.html`).
+
+### Changes
+- Deleted `Guest Attributed Purchases` UI block.
+- Removed guest section counters/list empty-state element references in script.
+- Removed guest purchase fallback/filter/render path previously used for that block.
+- Updated invoice helper caption from:
+  - `Guest-attributed purchases now appear in the Preferred Customers page.`
+  to:
+  - `Only linked Preferred-customer purchases appear here.`
+
+### Result
+- Preferred Customer dashboard now focuses only on linked preferred accounts and upgrade planning, with no guest-checkout follow-up section.

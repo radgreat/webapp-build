@@ -9,6 +9,10 @@
   const LEGACY_STORE_CODE_ALIASES = Object.freeze({
     'CHG-7X42': 'CHG-ZERO',
   });
+  const UNATTRIBUTED_STORE_CODE_SET = new Set([
+    'REGISTRATIONLOCKED',
+    'REGISTRATION-LOCKED',
+  ]);
   const PUBLIC_DISCOUNT_PERCENT = 15;
   const PUBLIC_DISCOUNT_RATE = PUBLIC_DISCOUNT_PERCENT / 100;
   const MAX_CHECKOUT_DISCOUNT_PERCENT = 60;
@@ -52,7 +56,8 @@
 
   function normalizeStoreCode(value) {
     const normalizedValue = normalizeText(value).toUpperCase().replace(/[^A-Z0-9-]/g, '');
-    return LEGACY_STORE_CODE_ALIASES[normalizedValue] || normalizedValue;
+    const aliasedStoreCode = LEGACY_STORE_CODE_ALIASES[normalizedValue] || normalizedValue;
+    return UNATTRIBUTED_STORE_CODE_SET.has(aliasedStoreCode) ? '' : aliasedStoreCode;
   }
 
   function normalizeEmail(value) {
