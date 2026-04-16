@@ -27261,3 +27261,454 @@ Updated `binary-tree-next-app.mjs`:
 ### Validation
 
 - Confirmed guest section IDs and `renderPreferredCustomerGuestSales` references are no longer present in `index.html`.
+
+
+
+## Update (2026-04-16) - Binary Tree Next Left Panel Personal BV + Live Sync Signature Fix
+
+### What Was Changed
+
+- Added a new Personal BV metric row directly under Total Organizational BV in the Binary Tree Next side metrics list (binary-tree-next-app.mjs).
+- Updated side-metric Personal BV source to use activity-aware personal volume (currentPersonalPvBv/monthly personal BV resolution) instead of static node volume.
+- Hardened live-sync payload parsing to prefer explicit server-sent personal BV fields when available:
+  - currentPersonalPvBv
+  - current_personal_pv_bv
+  - monthlyPersonalBv
+  - monthly_personal_bv
+  - fallback to derived value remains in place.
+- Expanded live-node signature hash inputs to include personal BV fields so server-side Personal BV changes trigger re-apply/re-render in real time, even when base node volume is unchanged.
+- Corrected Account Overview default label copy from Total Organization Personal BV to Total Organization BV for consistency.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- binary-tree-next.html
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+- Claude_Notes/binary-tree-next.md
+
+### Design Decisions
+
+- Kept existing live-sync model (poll + hash apply) and fixed Personal BV freshness by extending hash inputs rather than adding a separate request channel.
+- Preserved fallback behavior for incomplete member payloads so legacy/test data still renders safely.
+
+### Known Limitations
+
+- Live updates still follow existing Binary Tree Next polling cadence; this is near-real-time polling, not websocket streaming.
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
+
+## Update (2026-04-16) - Binary Tree Next Inactive Node Color Enforcement (Gray/Dark Gray)
+
+### What Was Changed
+
+- Enforced dedicated inactive node palettes in Binary Tree Next:
+  - inactive nodes use a gray-only palette
+  - inactive direct-sponsor nodes use a darker gray palette
+  - direct sponsors remain purple only when active.
+- Updated node rendering to use inactive palette key instead of neutral fallback for inactive accounts.
+- Hardened activity-state checks for color routing:
+  - treats stabilizing status as inactive for node theming
+  - respects explicit boolean activity flags (isActive/active) when provided.
+- Prevented gray profile colors from being used as normal active profile palettes:
+  - gray source palette/color triplets are filtered from avatar palette resolution
+  - session avatar palette resolution also ignores gray source profile colors.
+- Removed neutral/gray from automatic active profile color rotation so generated active colors do not land on gray.
+- Aligned selected-node details avatar to same color policy:
+  - inactive selected nodes now render gray/dark gray and do not render photo avatars.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+- Claude_Notes/binary-tree-next.md
+
+### Design Decisions
+
+- Gray theming was treated as a reserved inactive-state visual, so active profile color generation excludes gray.
+- Kept direct-sponsor active purple behavior unchanged and scoped dark gray to direct-sponsor inactive only.
+
+### Known Limitations
+
+- Existing persisted gray profile color values are ignored in active avatar rendering; they are not removed from storage in this pass.
+- Live updates remain on polling cadence (existing Binary Tree Next live sync interval model).
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
+## [2026-04-16 01:49:19] Binary Tree Next - Preferred Accounts Panel (UI + Live Data)
+
+### What changed
+- Added a new Preferred Customers side panel to inary-tree-next.html and wired it into inary-tree-next-app.mjs.
+- Reused the Account Overview/My Store panel shell behavior (floating panel, hide/show states, responsive sizing, smooth transitions).
+- Added panel data bindings for:
+  - Profile avatar with generated gradient + initials + icon.
+  - Total Spend.
+  - Total BV Credited.
+  - Preferred Subscriber Since.
+  - From/Origin (Direct Link or System Transfer).
+  - Placement Plan dropdown.
+  - Current preferred-customer list with click-to-select details.
+- Added save flow for placement plan updates using live API patch calls to:
+  - /api/registered-members/:memberId/placement
+  - /api/admin/registered-members/:memberId/placement
+- Added live/real-time refresh behavior:
+  - Preferred panel fetches live registered members + store invoices from server.
+  - Refresh is interval-based while visible and also refreshed on relevant sync/update paths.
+
+### Files touched
+- inary-tree-next.html
+- inary-tree-next-app.mjs
+
+### Design/implementation decisions
+- Replaced the previous placeholder left-dock action with a real Preferred Accounts toggle action.
+- Matched the provided visual reference direction while preserving existing Binary Tree Next visual language.
+- Origin logic:
+  - System Transfer when isAdminPlacement is true.
+  - Direct Link otherwise.
+- Placement dropdown options implemented exactly as requested:
+  - Left, Right, Spill Over Left, Spill Over Right, Extreme Left, Extreme Right.
+
+### Known limitations
+- Origin currently infers Direct Link for non-admin-placement preferred members; if future backend fields add explicit origin taxonomy, mapping can be made fully explicit.
+- Invoice matching is identity-based (user id / username / email); if invoice identity data is incomplete, totals may undercount.
+### Documentation Correction
+- Corrected file references from the previous entry:
+  - binary-tree-next.html
+  - binary-tree-next-app.mjs
+- Corrected terminology from the previous entry:
+  - Total BV Credited is aggregated from invoice bp values.
+
+## Update (2026-04-16) - Preferred Customers Panel UI Refinement (Font Scale + List Cleanup)
+
+### What Was Changed
+
+- Tuned Preferred Customers panel typography to match the Account Overview feel:
+  - selected customer name reduced to Account Overview-like scale
+  - `Preferred Customer` subtitle reduced for lighter visual weight
+  - field label/value typography reduced for consistency.
+- Improved row breathing room in profile fields:
+  - adjusted field row height/padding for cleaner vertical spacing.
+- Updated Current list rendering to match requested behavior:
+  - removed secondary meta line (username/spend text)
+  - list now displays name only
+  - list avatars now use gradient + initials (same style direction as Binary Tree nodes).
+- Removed legacy selected-profile icon behavior completely:
+  - removed icon reference from render pipeline to prevent stale UI writes.
+- Refined Current list hover/selection feel to match left search dropdown style:
+  - active/hover surface color and row rhythm aligned with existing search dropdown interaction style.
+- Kept Save Profile Plan action centered.
+
+### Files Affected
+
+- binary-tree-next.html
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+- Claude_Notes/binary-tree-next.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
+
+## Update (2026-04-16) - Preferred Panel Resize Stability (Prevent Canvas Blackout)
+
+### What Was Changed
+
+- Added a guarded Preferred Accounts sync block inside the main render loop.
+- Preferred panel position/visual/visibility sync now runs inside `try/catch` during frame render.
+- Added throttled console error logging (`>=1000ms`) for Preferred panel sync failures during render.
+
+### Why
+
+- A runtime exception in Preferred panel sync during resize could stop the render loop, leaving only DOM overlays visible and the tree canvas appearing black.
+- Guarding this path keeps core tree rendering alive during resize even if panel sync hits transient errors.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+- Claude_Notes/binary-tree-next.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
+## Update (2026-04-16) - Preferred Panel Drag Freeze Fix (Render Loop Crash Root Cause)
+
+### What Was Changed
+
+- Fixed a render-loop crash in `syncAccountOverviewPanelVisuals()` when Preferred Customers is visible:
+  - replaced invalid `options?.force` reference with a safe `maybeRefreshPreferredAccountsSnapshot()` call.
+- Added render-loop crash recovery guard in `tickFrame()`:
+  - wrapped per-frame render/update body in `try/catch`
+  - added throttled error logging (`>=1000ms`)
+  - `requestAnimationFrame(tickFrame)` now runs from `finally` so one frame error cannot permanently stop rendering.
+
+### Root Cause
+
+- `syncAccountOverviewPanelVisuals()` referenced `options` that does not exist in that scope.
+- When Preferred panel was open, this threw a `ReferenceError`, killing the RAF loop.
+- Once RAF stopped, the tree appeared frozen/black and drag interactions appeared broken even after closing the panel.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+- Claude_Notes/binary-tree-next.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
+## Update (2026-04-16) - Preferred Placement Save UX/Latency Improvement
+
+### What Was Changed
+
+- Reduced perceived save delay for Preferred placement updates:
+  - removed blocking `await refreshPreferredAccountsSnapshot({ force: true })` from the successful save path
+  - now refreshes Preferred snapshot in background after save success.
+- Added save progress feedback:
+  - shows `Saving profile plan...` while API request is in-flight.
+- Added save loading animation:
+  - Save button now enters `is-loading` state with spinner animation and `aria-busy` updates.
+- Added clearer success note:
+  - after successful save, shows `Profile plan saved successfully.`
+  - success state has dedicated styling (`is-success`).
+- Preserved immediate UI consistency by updating selected row placement option optimistically after success, then background-refreshing from server.
+
+### Why It Felt Slow
+
+- The previous implementation waited for a full forced Preferred panel refresh (members + invoices) before completing the save cycle and returning the button to normal.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- binary-tree-next.html
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+- Claude_Notes/binary-tree-next.md
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
+## Update (2026-04-16) - My Store in User Dashboard Reused Latest `store.html` Flow
+
+### What Was Changed
+
+- Replaced the visible legacy `My Store` storefront experience in `index.html` with an embedded latest-store shell.
+- Added a storefront embed container and iframe in dashboard `My Store` view:
+  - iframe source now points to `/store.html?embedded=1`
+  - includes an `Open Full Store` action for full-page access.
+- Preserved the previous dashboard storefront flow by wrapping it in a hidden legacy container (`#storefront-legacy-flow`) for rollback safety.
+- Added iframe sync logic in dashboard app script:
+  - introduced `syncStorefrontEmbedFrame(...)`
+  - appends active store code (`store=...`) to iframe URL
+  - avoids unnecessary reloads using a `data-last-src` guard
+  - runs during My Store init and whenever storefront tab becomes active.
+- Added embedded-display mode support to `store.html`:
+  - `embedded=1` query activates `data-store-embedded`
+  - top navigation is hidden in embedded mode
+  - page/hero spacing tightened for dashboard framing.
+
+### Files Affected
+
+- `index.html`
+- `store.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Reused the canonical `store.html` flow directly instead of duplicating UI/state inside dashboard.
+- Kept legacy dashboard store markup in-place but hidden to allow fast fallback during transition.
+
+### Known Limitations
+
+- Embedded viewport currently uses a fixed iframe height (`1200px`); dynamic auto-resize can be added in a follow-up.
+
+### Validation
+
+- Inline script parse checks passed:
+  - `index.html` (`3` blocks)
+  - `store.html` (`2` blocks)
+
+## Update (2026-04-16) - My Store Sidebar Corrected to Native Store Components (No Iframe)
+
+### What Was Changed
+
+- Removed the iframe/embed implementation from dashboard `My Store` storefront.
+- Rebuilt dashboard storefront using native component structure matching latest `store.html` composition:
+  - `Store` product panel
+  - `Cart` panel
+  - `Continue to Stripe` CTA
+- Updated product-card and cart-row rendering markup in `index.html` to the new component style.
+- Rewired checkout CTA in the cart panel to call hosted checkout directly from storefront.
+- Removed temporary embedded-mode changes from `store.html` (no `embedded=1` behavior).
+
+### PV/BV + Logic Safety
+
+- Preserved original checkout credit pipeline:
+  - cart lines still post through `createStoreStripeCheckoutSession(...)`
+  - hosted return still finalizes through `finalizeStoreStripeCheckoutSession(...)`
+  - existing buyer attribution payload fields (`buyerUserId`, `buyerUsername`, `discountPercent`) remain in checkout payload
+  - existing `shouldBuyerReceiveStorePurchaseBv(...)` + reconciliation path remains unchanged.
+
+### Files Affected
+
+- `index.html`
+- `store.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script parse checks passed:
+  - `index.html` (`3` blocks)
+  - `store.html` (`1` block)
+
+## Update (2026-04-16) - My Store Simplified to Store + Cart + Bottom Share and Earn
+
+### What Was Changed
+
+- Removed top `My Storefront` wrapper card and removed visible shareable-link block from dashboard storefront view.
+- Simplified storefront structure to requested sequence only:
+  1. `Store` panel
+  2. `Cart` panel
+  3. bottom `Share and Earn` section.
+- Added bottom `Share and Earn` block styled after Binary Tree Next store panel direction, with only:
+  - `Copy Store Link` button
+  - feedback line.
+- Kept `store-link-value` as hidden data source for copy behavior.
+- Tuned store/cart sizing to mirror `store.html` proportions:
+  - `1240px` max storefront width
+  - `1fr + 390px` layout
+  - panel paddings/radii/typography aligned to store-page scale
+  - product card and cart row dimensions adjusted to store-page rhythm.
+
+### Logic Safety
+
+- Original PV/BV credit and attribution logic unchanged.
+- Checkout still uses hosted session create/finalize route and existing reconcile paths.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script parse check passed for `index.html` (`3` blocks).
+
+## Update (2026-04-16) - My Store First-Load Stretch Stabilization
+
+### What Was Changed
+
+- Added `scrollbar-gutter: stable` on root `html` to reduce first-load layout shift when vertical scrollbar state changes.
+- Changed My Store layout collapse breakpoint to `1040px` to match `store.html` behavior (instead of `1240px`).
+- Added fixed/min-width alignment behavior to discount chip in store header to reduce reflow when discount text updates after hydration.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- Inline script parse check passed (`index.html`: `3` blocks).
+
+## Update (2026-04-16) - My Store Warm-Load While on Home + First-Open Stretch Reduction
+
+### What Was Changed
+
+- Added Store image warm-preload routine:
+  - `warmStoreProductImages(products, { maxCount })`
+  - preloads top storefront product images in background.
+- Integrated warm-preload into `initMyStore()` right after catalog load.
+- Added timed warm wait while not on My Store page:
+  - waits briefly (`Promise.race` with ~320ms cap) so first open has assets hydrated without blocking the dashboard.
+- Moved `void initMyStore();` earlier in startup sequence so My Store warm-init starts sooner while user is on Home.
+- Added a stable default loading placeholder in Store grid markup (`Loading products...`) plus fixed minimum grid height to reduce panel resize jump before first render.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Design Decisions
+
+- Kept warm-load non-blocking for dashboard responsiveness while still giving My Store first-open a short hydration head-start.
+- Used bounded wait instead of full blocking preload to avoid degrading startup on slow networks.
+
+### Validation
+
+- Inline script parse check passed (`index.html`: `3` blocks).
+
+## Update (2026-04-16) - My Store Image Stretch Follow-Up Fix (Full Background Warmup)
+
+### What Was Changed
+
+- Upgraded image warm-load behavior in `initMyStore()`:
+  - while user is not on My Store page, startup now waits for full store image warm-preload completion (instead of only a short race wait)
+  - while already on My Store page, warm preload remains bounded with a fallback timeout.
+- Added robust per-image preload timeout handling in `warmStoreProductImages(...)` so warm-preload resolves cleanly even on slow/broken image responses.
+- Hardened product image rendering attributes in Store cards:
+  - explicit `width`/`height`
+  - `loading="eager"`
+  - `decoding="async"`
+  - `fetchpriority="high"`
+- Added additional image CSS stability hints (`object-position`, `display: block`, `image-orientation`) for consistent first paint.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- Inline script parse check passed (`index.html`: `3` blocks).
+
+## Update (2026-04-16) - My Store Product Image Reveal Stabilizer
+
+### What Was Changed
+
+- Added image reveal stabilizer for storefront product cards:
+  - product images render with `opacity: 0` initially
+  - JS marks images `is-ready` on `load`/`error` (or immediately if cached/complete)
+  - images fade in only when ready.
+
+### Why
+
+- Eliminates visible stretched/snap state while image decode settles on first-open.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- Inline script parse check passed (`index.html`: `3` blocks).

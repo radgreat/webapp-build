@@ -57,6 +57,28 @@ const EXTREME_PLACEMENT_KEY_SET = new Set([
   'extreme_right',
   'extreme right',
 ]);
+const PLACEMENT_OPTION_LEFT = 'left';
+const PLACEMENT_OPTION_RIGHT = 'right';
+const PLACEMENT_OPTION_SPILLOVER_LEFT = 'spillover-left';
+const PLACEMENT_OPTION_SPILLOVER_RIGHT = 'spillover-right';
+const PLACEMENT_OPTION_EXTREME_LEFT = 'extreme-left';
+const PLACEMENT_OPTION_EXTREME_RIGHT = 'extreme-right';
+const PREFERRED_ACCOUNTS_PLACEMENT_OPTIONS = Object.freeze([
+  PLACEMENT_OPTION_LEFT,
+  PLACEMENT_OPTION_RIGHT,
+  PLACEMENT_OPTION_SPILLOVER_LEFT,
+  PLACEMENT_OPTION_SPILLOVER_RIGHT,
+  PLACEMENT_OPTION_EXTREME_LEFT,
+  PLACEMENT_OPTION_EXTREME_RIGHT,
+]);
+const PREFERRED_ACCOUNTS_PLACEMENT_LABEL_BY_OPTION = Object.freeze({
+  [PLACEMENT_OPTION_LEFT]: 'Left',
+  [PLACEMENT_OPTION_RIGHT]: 'Right',
+  [PLACEMENT_OPTION_SPILLOVER_LEFT]: 'Spill Over Left',
+  [PLACEMENT_OPTION_SPILLOVER_RIGHT]: 'Spill Over Right',
+  [PLACEMENT_OPTION_EXTREME_LEFT]: 'Extreme Left',
+  [PLACEMENT_OPTION_EXTREME_RIGHT]: 'Extreme Right',
+});
 const SELECTION_POP_MS = 320;
 const SELECTION_RELEASE_MS = 220;
 const SELECTION_MAX_EMPHASIS = 1.22;
@@ -151,6 +173,7 @@ const MEMBER_REGISTERED_MEMBERS_SESSION_API = '/api/registered-members/session';
 const ADMIN_REGISTERED_MEMBERS_SESSION_API = '/api/admin/registered-members/session';
 const MEMBER_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/registered-members/session/complete';
 const ADMIN_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/admin/registered-members/session/complete';
+const STORE_INVOICES_API = '/api/store-invoices';
 const MEMBER_DASHBOARD_HOME_PATH = '/index.html';
 const ADMIN_DASHBOARD_HOME_PATH = '/admin.html';
 const ENROLL_STRIPE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
@@ -269,15 +292,20 @@ const APPLE_MAPS_NODE_PALETTES = Object.freeze({
     mid: [145, 154, 173],
     dark: [122, 131, 150],
   }),
+  inactive: Object.freeze({
+    light: [171, 176, 186],
+    mid: [141, 147, 158],
+    dark: [112, 119, 131],
+  }),
   direct: Object.freeze({
     light: [191, 130, 255],
     mid: [158, 95, 236],
     dark: [123, 66, 209],
   }),
   directInactive: Object.freeze({
-    light: [138, 145, 158],
-    mid: [109, 117, 130],
-    dark: [82, 90, 103],
+    light: [138, 144, 154],
+    mid: [107, 113, 124],
+    dark: [77, 84, 96],
   }),
   ocean: Object.freeze({
     light: [122, 181, 226],
@@ -300,7 +328,7 @@ const APPLE_MAPS_NODE_PALETTES = Object.freeze({
     dark: [158, 99, 97],
   }),
 });
-const APPLE_MAPS_NODE_COLOR_ROTATION = Object.freeze(['neutral', 'ocean', 'mint', 'amber', 'rose']);
+const APPLE_MAPS_NODE_COLOR_ROTATION = Object.freeze(['ocean', 'mint', 'amber', 'rose']);
 const ACCOUNT_OVERVIEW_BADGE_PALETTES = Object.freeze({
   legacyRank: Object.freeze({
     light: [72, 128, 156],
@@ -455,13 +483,27 @@ const accountOverviewDirectSponsorsLabelElement = resolveAccountOverviewTileLabe
 const accountOverviewEwalletLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewEwalletValueElement);
 const ACCOUNT_OVERVIEW_DEFAULT_LABELS = Object.freeze({
   activeWindow: safeText(accountOverviewActiveWindowLabelElement?.textContent || 'Account Active Until') || 'Account Active Until',
-  totalBv: safeText(accountOverviewTotalBvLabelElement?.textContent || 'Total Organization Personal BV') || 'Total Organization Personal BV',
+  totalBv: safeText(accountOverviewTotalBvLabelElement?.textContent || 'Total Organization BV') || 'Total Organization BV',
   personalBv: safeText(accountOverviewPersonalBvLabelElement?.textContent || 'Personal BV') || 'Personal BV',
   cycle: safeText(accountOverviewCycleLabelElement?.textContent || 'Weekly Cycle Cap') || 'Weekly Cycle Cap',
   directSponsors: safeText(accountOverviewDirectSponsorsLabelElement?.textContent || 'Direct Sponsors') || 'Direct Sponsors',
   eWallet: safeText(accountOverviewEwalletLabelElement?.textContent || 'E-Wallet') || 'E-Wallet',
 });
 const accountOverviewCommissionButtons = Array.from(document.querySelectorAll('[data-account-overview-commission]'));
+const preferredAccountsPanelElement = document.getElementById('tree-next-preferred-accounts-panel');
+const preferredAccountsCloseButtonElement = document.getElementById('tree-next-preferred-accounts-close');
+const preferredAccountsAvatarElement = document.getElementById('tree-next-preferred-accounts-avatar');
+const preferredAccountsAvatarInitialsElement = document.getElementById('tree-next-preferred-accounts-initials');
+const preferredAccountsNameElement = document.getElementById('tree-next-preferred-accounts-name');
+const preferredAccountsTotalSpendElement = document.getElementById('tree-next-preferred-accounts-total-spend');
+const preferredAccountsTotalBvElement = document.getElementById('tree-next-preferred-accounts-total-bv');
+const preferredAccountsSinceElement = document.getElementById('tree-next-preferred-accounts-since');
+const preferredAccountsOriginElement = document.getElementById('tree-next-preferred-accounts-origin');
+const preferredAccountsPlacementPlanInput = document.getElementById('tree-next-preferred-accounts-placement-plan');
+const preferredAccountsSaveButtonElement = document.getElementById('tree-next-preferred-accounts-save');
+const preferredAccountsFeedbackElement = document.getElementById('tree-next-preferred-accounts-feedback');
+const preferredAccountsEmptyElement = document.getElementById('tree-next-preferred-accounts-empty');
+const preferredAccountsListElement = document.getElementById('tree-next-preferred-accounts-list');
 const myStorePanelElement = document.getElementById('tree-next-my-store-panel');
 const myStoreScrollElement = myStorePanelElement?.querySelector('.tree-next-my-store-scroll') || null;
 const myStoreHeaderElement = myStorePanelElement?.querySelector('.tree-next-my-store-header') || null;
@@ -606,6 +648,19 @@ let accountOverviewRemoteIdentityKey = '';
 let accountOverviewRemoteRequestSequence = 0;
 let accountOverviewCachedLegVolumeSignature = '';
 let accountOverviewCachedLegVolumeMetrics = null;
+let preferredAccountsLastRenderSignature = '';
+let preferredAccountsRows = [];
+let preferredAccountsRowsDataSignature = '';
+let preferredAccountsSelectedMemberId = '';
+let preferredAccountsInvoices = [];
+let preferredAccountsDataVersion = 0;
+let preferredAccountsSyncPromise = null;
+let preferredAccountsSyncInFlight = false;
+let preferredAccountsLastRequestAtMs = 0;
+let preferredAccountsLastSyncedAtMs = 0;
+let preferredAccountsFeedbackTimerId = 0;
+let preferredAccountsRenderErrorLoggedAtMs = 0;
+let renderLoopErrorLoggedAtMs = 0;
 let myStoreLastRenderSignature = '';
 let isTreeNextEnrollStripeReady = false;
 let isTreeNextEnrollStripeCardComplete = false;
@@ -676,6 +731,8 @@ const state = {
   ui: {
     sideNavOpen: true,
     accountOverviewVisible: false,
+    preferredAccountsVisible: false,
+    preferredAccountsSaving: false,
     myStoreVisible: false,
     myStoreStep: MY_STORE_STEP_CATALOG,
     myStoreSelection: null,
@@ -1689,12 +1746,19 @@ function resolveNodeActivityState(node) {
   if (
     rawStatus.includes('inactive')
     || rawStatus.includes('dormant')
+    || rawStatus.includes('stabilizing')
     || rawStatus.includes('review')
     || rawStatus.includes('suspend')
     || rawStatus.includes('disable')
     || rawStatus.includes('expired')
   ) {
     return false;
+  }
+  if (typeof safeNode?.isActive === 'boolean') {
+    return safeNode.isActive;
+  }
+  if (typeof safeNode?.active === 'boolean') {
+    return safeNode.active;
   }
 
   const currentPersonalBv = resolveNodeCurrentPersonalBvForActivity(safeNode);
@@ -4702,6 +4766,9 @@ function syncAccountOverviewPanelVisuals() {
     scope: overviewContext?.scope,
     preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
   });
+  if (Boolean(state.ui?.preferredAccountsVisible)) {
+    maybeRefreshPreferredAccountsSnapshot();
+  }
   const displayName = systemTotalsMode
     ? ADMIN_ROOT_DISPLAY_NAME
     : (safeText(homeNode?.name || resolveSessionDisplayName()) || resolveSessionDisplayName());
@@ -4935,7 +5002,9 @@ function syncAccountOverviewPanelVisibility() {
 function setAccountOverviewPanelVisible(isVisible) {
   state.ui.accountOverviewVisible = Boolean(isVisible);
   if (state.ui.accountOverviewVisible) {
+    state.ui.preferredAccountsVisible = false;
     state.ui.myStoreVisible = false;
+    syncPreferredAccountsPanelVisibility();
     syncMyStorePanelVisibility();
   }
   syncAccountOverviewPanelVisibility();
@@ -4970,6 +5039,757 @@ function initAccountOverviewPanel() {
   if (accountOverviewRefreshButtonElement instanceof HTMLElement) {
     accountOverviewRefreshButtonElement.addEventListener('click', () => {
       setAccountOverviewPanelVisible(false);
+    });
+  }
+}
+
+function isPreferredAccountsPanelAvailable() {
+  return preferredAccountsPanelElement instanceof HTMLElement;
+}
+
+function resolvePreferredAccountsSyncIntervalMs(options = {}) {
+  if (options?.forRetry) {
+    return ACCOUNT_OVERVIEW_REMOTE_SYNC_RETRY_INTERVAL_MS;
+  }
+  return document.visibilityState === 'hidden'
+    ? TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS
+    : TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
+}
+
+function normalizePreferredPlacementOptionValue(value, fallbackValue = PLACEMENT_OPTION_LEFT) {
+  const normalized = normalizeCredentialValue(value);
+  if (PREFERRED_ACCOUNTS_PLACEMENT_OPTIONS.includes(normalized)) {
+    return normalized;
+  }
+  if (SPILLOVER_PLACEMENT_KEY_SET.has(normalized)) {
+    return RIGHT_PLACEMENT_KEY_SET.has(normalized)
+      ? PLACEMENT_OPTION_SPILLOVER_RIGHT
+      : PLACEMENT_OPTION_SPILLOVER_LEFT;
+  }
+  if (EXTREME_PLACEMENT_KEY_SET.has(normalized)) {
+    return RIGHT_PLACEMENT_KEY_SET.has(normalized)
+      ? PLACEMENT_OPTION_EXTREME_RIGHT
+      : PLACEMENT_OPTION_EXTREME_LEFT;
+  }
+  if (normalized === 'right') {
+    return PLACEMENT_OPTION_RIGHT;
+  }
+  return PREFERRED_ACCOUNTS_PLACEMENT_OPTIONS.includes(fallbackValue)
+    ? fallbackValue
+    : PLACEMENT_OPTION_LEFT;
+}
+
+function resolvePreferredPlacementOptionFromMember(member = {}) {
+  const placementLeg = normalizeCredentialValue(member?.placementLeg);
+  if (placementLeg === PLACEMENT_OPTION_EXTREME_RIGHT) {
+    return PLACEMENT_OPTION_EXTREME_RIGHT;
+  }
+  if (placementLeg === PLACEMENT_OPTION_EXTREME_LEFT) {
+    return PLACEMENT_OPTION_EXTREME_LEFT;
+  }
+  if (SPILLOVER_PLACEMENT_KEY_SET.has(placementLeg)) {
+    const spilloverSide = normalizeCredentialValue(member?.spilloverPlacementSide);
+    return spilloverSide === 'right'
+      ? PLACEMENT_OPTION_SPILLOVER_RIGHT
+      : PLACEMENT_OPTION_SPILLOVER_LEFT;
+  }
+  return placementLeg === 'right'
+    ? PLACEMENT_OPTION_RIGHT
+    : PLACEMENT_OPTION_LEFT;
+}
+
+function resolvePreferredPlacementPayloadFromOption(placementOption) {
+  const normalizedOption = normalizePreferredPlacementOptionValue(placementOption);
+  if (normalizedOption === PLACEMENT_OPTION_RIGHT) {
+    return {
+      placementLeg: 'right',
+      spilloverPlacementSide: '',
+    };
+  }
+  if (normalizedOption === PLACEMENT_OPTION_EXTREME_LEFT) {
+    return {
+      placementLeg: PLACEMENT_OPTION_EXTREME_LEFT,
+      spilloverPlacementSide: '',
+    };
+  }
+  if (normalizedOption === PLACEMENT_OPTION_EXTREME_RIGHT) {
+    return {
+      placementLeg: PLACEMENT_OPTION_EXTREME_RIGHT,
+      spilloverPlacementSide: '',
+    };
+  }
+  if (normalizedOption === PLACEMENT_OPTION_SPILLOVER_RIGHT) {
+    return {
+      placementLeg: 'spillover',
+      spilloverPlacementSide: 'right',
+    };
+  }
+  if (normalizedOption === PLACEMENT_OPTION_SPILLOVER_LEFT) {
+    return {
+      placementLeg: 'spillover',
+      spilloverPlacementSide: 'left',
+    };
+  }
+  return {
+    placementLeg: 'left',
+    spilloverPlacementSide: '',
+  };
+}
+
+function formatPreferredAccountsDate(value, fallback = '--') {
+  const parsedMs = Date.parse(safeText(value));
+  if (!Number.isFinite(parsedMs)) {
+    return fallback;
+  }
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+    }).format(new Date(parsedMs));
+  } catch {
+    return fallback;
+  }
+}
+
+function resolvePreferredAccountsOriginLabel(member = {}) {
+  if (Boolean(member?.isAdminPlacement)) {
+    return 'System Transfer';
+  }
+  return 'Direct Link';
+}
+
+function collectPreferredAccountsMemberIdentityKeys(member = {}) {
+  return new Set([
+    normalizeCredentialValue(member?.userId),
+    normalizeCredentialValue(member?.id),
+    normalizeCredentialValue(member?.memberUsername || member?.username),
+    normalizeCredentialValue(member?.email),
+  ].filter(Boolean));
+}
+
+function collectPreferredAccountsInvoiceIdentityKeys(invoice = {}) {
+  return [
+    normalizeCredentialValue(invoice?.buyerUserId),
+    normalizeCredentialValue(invoice?.buyerUsername),
+    normalizeCredentialValue(invoice?.buyerEmail),
+  ].filter(Boolean);
+}
+
+function doesInvoiceMatchPreferredAccountsMember(invoice = {}, member = {}) {
+  const memberIdentityKeys = collectPreferredAccountsMemberIdentityKeys(member);
+  if (memberIdentityKeys.size === 0) {
+    return false;
+  }
+  const invoiceIdentityKeys = collectPreferredAccountsInvoiceIdentityKeys(invoice);
+  return invoiceIdentityKeys.some((identityKey) => memberIdentityKeys.has(identityKey));
+}
+
+function resolvePreferredAccountsOwnerUsernameKey() {
+  if (state.source === 'admin') {
+    return '';
+  }
+  const homeNode = resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+  const candidates = [
+    homeNode?.username,
+    homeNode?.memberCode,
+    state.session?.username,
+    state.session?.memberUsername,
+    state.session?.member_username,
+  ];
+  for (const candidate of candidates) {
+    const resolved = normalizeCredentialValue(safeText(candidate).replace(/^@+/, ''));
+    if (resolved && resolved !== normalizeCredentialValue(ADMIN_ROOT_USERNAME)) {
+      return resolved;
+    }
+  }
+  return '';
+}
+
+function isPreferredAccountsMemberCandidate(member = {}) {
+  const packageKey = normalizeCredentialValue(member?.enrollmentPackage);
+  if (packageKey === FREE_ACCOUNT_PACKAGE_KEY) {
+    return true;
+  }
+  const rankKey = normalizeCredentialValue(member?.accountRank || member?.rank);
+  return FREE_ACCOUNT_RANK_KEY_SET.has(rankKey);
+}
+
+function resolvePreferredAccountsDisplayName(member = {}) {
+  return safeText(
+    member?.fullName
+    || member?.name
+    || member?.memberUsername
+    || member?.username
+    || member?.email
+    || 'Preferred Customer',
+  ) || 'Preferred Customer';
+}
+
+function buildPreferredAccountsRowsFromData(membersInput = [], invoicesInput = []) {
+  const safeMembers = Array.isArray(membersInput) ? membersInput : [];
+  const safeInvoices = Array.isArray(invoicesInput) ? invoicesInput : [];
+  const ownerUsernameKey = resolvePreferredAccountsOwnerUsernameKey();
+
+  return safeMembers
+    .filter((member) => {
+      if (!member || typeof member !== 'object') {
+        return false;
+      }
+      if (!isPreferredAccountsMemberCandidate(member)) {
+        return false;
+      }
+      if (!ownerUsernameKey) {
+        return true;
+      }
+      const sponsorUsernameKey = normalizeCredentialValue(
+        safeText(member?.sponsorUsername || member?.sponsor_username).replace(/^@+/, ''),
+      );
+      if (!sponsorUsernameKey) {
+        return false;
+      }
+      return sponsorUsernameKey === ownerUsernameKey;
+    })
+    .map((member) => {
+      const memberId = safeText(
+        member?.id
+        || member?.userId
+        || member?.memberUsername
+        || member?.username
+        || member?.email,
+      );
+      if (!memberId) {
+        return null;
+      }
+
+      const matchedInvoices = safeInvoices.filter((invoice) => doesInvoiceMatchPreferredAccountsMember(invoice, member));
+      const totals = matchedInvoices.reduce((accumulator, invoice) => {
+        accumulator.totalSpend += Math.max(0, safeNumber(invoice?.amount, 0));
+        accumulator.totalBv += Math.max(0, Math.floor(safeNumber(invoice?.bp, 0)));
+        const invoiceCreatedAtMs = Date.parse(safeText(invoice?.createdAt));
+        if (Number.isFinite(invoiceCreatedAtMs) && invoiceCreatedAtMs > accumulator.lastPurchaseAtMs) {
+          accumulator.lastPurchaseAtMs = invoiceCreatedAtMs;
+          accumulator.lastPurchaseAt = safeText(invoice?.createdAt);
+        }
+        return accumulator;
+      }, {
+        totalSpend: 0,
+        totalBv: 0,
+        lastPurchaseAtMs: 0,
+        lastPurchaseAt: '',
+      });
+
+      const createdAt = safeText(member?.createdAt);
+      const createdAtMs = Date.parse(createdAt);
+      const avatarSeed = safeText(
+        member?.id
+        || member?.userId
+        || member?.memberUsername
+        || member?.username
+        || member?.email
+        || memberId,
+      );
+      const avatarPalette = resolveNodeAvatarPalette(`preferred-accounts:${avatarSeed}`, {
+        node: member,
+        variant: 'ocean',
+      });
+
+      return {
+        memberId,
+        member,
+        displayName: resolvePreferredAccountsDisplayName(member),
+        totalSpend: Math.round((totals.totalSpend + Number.EPSILON) * 100) / 100,
+        totalBv: Math.max(0, Math.floor(totals.totalBv)),
+        preferredSince: createdAt,
+        originLabel: resolvePreferredAccountsOriginLabel(member),
+        placementOption: resolvePreferredPlacementOptionFromMember(member),
+        avatarPalette,
+        avatarSeed,
+        createdAtMs: Number.isFinite(createdAtMs) ? createdAtMs : 0,
+        lastPurchaseAt: totals.lastPurchaseAt,
+        lastPurchaseAtMs: totals.lastPurchaseAtMs,
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) => {
+      if (right.lastPurchaseAtMs !== left.lastPurchaseAtMs) {
+        return right.lastPurchaseAtMs - left.lastPurchaseAtMs;
+      }
+      return right.createdAtMs - left.createdAtMs;
+    });
+}
+
+function resolvePreferredAccountsRowsSignature(rowsInput = []) {
+  const rows = Array.isArray(rowsInput) ? rowsInput : [];
+  return rows.map((row) => [
+    safeText(row?.memberId),
+    safeText(row?.displayName),
+    Number.isFinite(Number(row?.totalSpend)) ? Number(row.totalSpend).toFixed(2) : '0.00',
+    formatInteger(row?.totalBv, 0),
+    safeText(row?.preferredSince),
+    safeText(row?.originLabel),
+    safeText(row?.placementOption),
+    safeText(row?.lastPurchaseAt),
+  ].join('|')).join('~');
+}
+
+async function fetchPreferredAccountsStoreInvoices() {
+  const response = await fetch(STORE_INVOICES_API, {
+    method: 'GET',
+    cache: 'no-store',
+    credentials: 'same-origin',
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const errorMessage = safeText(payload?.error) || `Unable to load store invoices (${response.status}).`;
+    throw new Error(errorMessage);
+  }
+  return Array.isArray(payload?.invoices) ? payload.invoices : [];
+}
+
+function resolvePreferredAccountsSelectedRow() {
+  return preferredAccountsRows.find((row) => row.memberId === preferredAccountsSelectedMemberId) || null;
+}
+
+function clearPreferredAccountsFeedbackTimer() {
+  const timerId = Math.floor(safeNumber(preferredAccountsFeedbackTimerId, 0));
+  if (timerId > 0) {
+    window.clearTimeout(timerId);
+  }
+  preferredAccountsFeedbackTimerId = 0;
+}
+
+function setPreferredAccountsFeedback(message = '', options = {}) {
+  if (!(preferredAccountsFeedbackElement instanceof HTMLElement)) {
+    return;
+  }
+
+  clearPreferredAccountsFeedbackTimer();
+  const safeMessage = safeText(message);
+  preferredAccountsFeedbackElement.textContent = safeMessage;
+  preferredAccountsFeedbackElement.classList.remove('is-visible', 'is-error', 'is-success');
+
+  if (!safeMessage) {
+    return;
+  }
+
+  if (options?.isError) {
+    preferredAccountsFeedbackElement.classList.add('is-error');
+  } else if (options?.isSuccess) {
+    preferredAccountsFeedbackElement.classList.add('is-success');
+  }
+  preferredAccountsFeedbackElement.classList.add('is-visible');
+  if (options?.persist !== true) {
+    preferredAccountsFeedbackTimerId = window.setTimeout(() => {
+      preferredAccountsFeedbackTimerId = 0;
+      preferredAccountsFeedbackElement.classList.remove('is-visible', 'is-error', 'is-success');
+      preferredAccountsFeedbackElement.textContent = '';
+    }, 4200);
+  }
+}
+
+function syncPreferredAccountsPanelPosition(layoutInput = state.layout) {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return;
+  }
+
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const sideNav = layout?.sideNav || null;
+  const sideNavToggle = layout?.sideNavToggle || null;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
+  );
+
+  const panelHorizontalGap = 18;
+  const panelEdgePadding = 18;
+  const rightDockReservedWidth = 72;
+  const panelTop = sideNav
+    ? Math.round(sideNav.y)
+    : panelEdgePadding;
+  const panelHeight = sideNav
+    ? Math.round(sideNav.height)
+    : Math.max(320, viewportHeight - (panelEdgePadding * 2));
+
+  let anchorLeft = Math.round((viewportWidth - 640) / 2);
+  if (sideNavOpen && sideNav) {
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
+  } else if (sideNavToggle) {
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
+  }
+
+  const maxUsableWidth = Math.max(
+    360,
+    Math.floor(viewportWidth - anchorLeft - rightDockReservedWidth),
+  );
+  const panelWidth = clamp(Math.round(Math.min(760, maxUsableWidth)), 360, maxUsableWidth);
+
+  const clampedLeft = clamp(
+    anchorLeft,
+    panelEdgePadding,
+    Math.max(
+      panelEdgePadding,
+      viewportWidth - panelWidth - rightDockReservedWidth,
+    ),
+  );
+  const clampedTop = clamp(
+    panelTop,
+    panelEdgePadding,
+    Math.max(panelEdgePadding, viewportHeight - panelHeight - panelEdgePadding),
+  );
+  const clampedHeight = clamp(
+    panelHeight,
+    320,
+    Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+  );
+
+  preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-left', `${clampedLeft}px`);
+  preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-top', `${clampedTop}px`);
+  preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-width', `${panelWidth}px`);
+  preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-height', `${clampedHeight}px`);
+  preferredAccountsPanelElement.classList.remove('is-positioning');
+}
+
+function syncPreferredAccountsPanelVisuals() {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return;
+  }
+
+  if (state.ui?.preferredAccountsVisible) {
+    maybeRefreshPreferredAccountsSnapshot();
+  }
+
+  const selectedRow = resolvePreferredAccountsSelectedRow();
+  const hasSelection = Boolean(selectedRow);
+  const rowsSignature = preferredAccountsRows.map((row) => [
+    row.memberId,
+    row.displayName,
+    row.totalSpend,
+    row.totalBv,
+    row.preferredSince,
+    row.originLabel,
+    row.placementOption,
+    row.lastPurchaseAt,
+  ].join('|')).join('~');
+  const renderSignature = [
+    preferredAccountsDataVersion,
+    preferredAccountsSelectedMemberId,
+    rowsSignature,
+    state.ui?.preferredAccountsSaving ? '1' : '0',
+  ].join('::');
+  if (renderSignature === preferredAccountsLastRenderSignature) {
+    return;
+  }
+  preferredAccountsLastRenderSignature = renderSignature;
+
+  if (preferredAccountsNameElement instanceof HTMLElement) {
+    preferredAccountsNameElement.textContent = hasSelection
+      ? selectedRow.displayName
+      : 'No preferred customer selected';
+  }
+  if (preferredAccountsTotalSpendElement instanceof HTMLElement) {
+    preferredAccountsTotalSpendElement.textContent = hasSelection
+      ? formatEnrollCurrency(selectedRow.totalSpend)
+      : formatEnrollCurrency(0);
+  }
+  if (preferredAccountsTotalBvElement instanceof HTMLElement) {
+    preferredAccountsTotalBvElement.textContent = hasSelection
+      ? `${formatInteger(selectedRow.totalBv)} BV`
+      : '0 BV';
+  }
+  if (preferredAccountsSinceElement instanceof HTMLElement) {
+    preferredAccountsSinceElement.textContent = hasSelection
+      ? formatPreferredAccountsDate(selectedRow.preferredSince)
+      : '--';
+  }
+  if (preferredAccountsOriginElement instanceof HTMLElement) {
+    preferredAccountsOriginElement.textContent = hasSelection
+      ? selectedRow.originLabel
+      : '--';
+  }
+  if (preferredAccountsAvatarElement instanceof HTMLElement) {
+    if (hasSelection) {
+      preferredAccountsAvatarElement.style.backgroundImage = resolveCssGradientFromPalette(selectedRow.avatarPalette);
+    } else {
+      preferredAccountsAvatarElement.style.backgroundImage = resolveCssGradientFromPalette(
+        resolveNodeAvatarPalette('preferred-accounts:empty', { variant: 'neutral' }),
+      );
+    }
+  }
+  if (preferredAccountsAvatarInitialsElement instanceof HTMLElement) {
+    preferredAccountsAvatarInitialsElement.textContent = hasSelection
+      ? resolveInitials(selectedRow.displayName)
+      : 'PA';
+  }
+
+  if (preferredAccountsPlacementPlanInput instanceof HTMLSelectElement) {
+    preferredAccountsPlacementPlanInput.disabled = !hasSelection || Boolean(state.ui?.preferredAccountsSaving);
+    preferredAccountsPlacementPlanInput.value = hasSelection
+      ? normalizePreferredPlacementOptionValue(selectedRow.placementOption)
+      : PLACEMENT_OPTION_LEFT;
+  }
+
+  if (preferredAccountsSaveButtonElement instanceof HTMLButtonElement) {
+    const isSaving = Boolean(state.ui?.preferredAccountsSaving);
+    preferredAccountsSaveButtonElement.disabled = !hasSelection || isSaving;
+    preferredAccountsSaveButtonElement.classList.toggle('is-loading', isSaving);
+    preferredAccountsSaveButtonElement.setAttribute('aria-busy', isSaving ? 'true' : 'false');
+    preferredAccountsSaveButtonElement.textContent = isSaving ? 'Saving Plan' : 'Save Profile Plan';
+  }
+
+  if (preferredAccountsEmptyElement instanceof HTMLElement) {
+    preferredAccountsEmptyElement.style.display = preferredAccountsRows.length > 0 ? 'none' : '';
+  }
+
+  if (preferredAccountsListElement instanceof HTMLElement) {
+    preferredAccountsListElement.innerHTML = '';
+    const rowsFragment = document.createDocumentFragment();
+    for (const row of preferredAccountsRows) {
+      const rowButton = document.createElement('button');
+      rowButton.type = 'button';
+      rowButton.className = `tree-next-preferred-accounts-list-item${row.memberId === preferredAccountsSelectedMemberId ? ' is-active' : ''}`;
+      rowButton.dataset.preferredAccountsMemberId = row.memberId;
+
+      const rowContent = document.createElement('div');
+      rowContent.className = 'tree-next-preferred-accounts-list-row';
+
+      const avatarDot = document.createElement('span');
+      avatarDot.className = 'tree-next-preferred-accounts-list-avatar';
+      avatarDot.style.backgroundImage = resolveCssGradientFromPalette(row.avatarPalette);
+      avatarDot.textContent = resolveInitials(row.displayName);
+
+      const rowCopy = document.createElement('div');
+      rowCopy.className = 'tree-next-preferred-accounts-list-copy';
+
+      const rowName = document.createElement('p');
+      rowName.className = 'tree-next-preferred-accounts-list-name';
+      rowName.textContent = row.displayName;
+      rowCopy.append(rowName);
+      rowContent.append(avatarDot, rowCopy);
+      rowButton.append(rowContent);
+      rowsFragment.append(rowButton);
+    }
+    preferredAccountsListElement.append(rowsFragment);
+  }
+}
+
+function syncPreferredAccountsPanelVisibility() {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return;
+  }
+
+  const isVisible = Boolean(state.ui?.preferredAccountsVisible);
+  preferredAccountsPanelElement.classList.toggle('is-hidden', !isVisible);
+  preferredAccountsPanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+}
+
+function setPreferredAccountsPanelVisible(isVisible) {
+  const nextVisible = Boolean(isVisible);
+  state.ui.preferredAccountsVisible = nextVisible;
+  if (nextVisible) {
+    state.ui.preferredAccountsSaving = false;
+    state.ui.accountOverviewVisible = false;
+    state.ui.myStoreVisible = false;
+    syncAccountOverviewPanelVisibility();
+    syncMyStorePanelVisibility();
+    preferredAccountsLastRenderSignature = '';
+    setPreferredAccountsFeedback('');
+    void refreshPreferredAccountsSnapshot({ force: true });
+  }
+  syncPreferredAccountsPanelVisibility();
+}
+
+async function refreshPreferredAccountsSnapshot(options = {}) {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return null;
+  }
+  if (preferredAccountsSyncInFlight) {
+    return preferredAccountsSyncPromise;
+  }
+
+  const force = options?.force === true;
+  if (!force) {
+    const referenceMs = preferredAccountsLastSyncedAtMs || preferredAccountsLastRequestAtMs;
+    const refreshIntervalMs = preferredAccountsLastSyncedAtMs > 0
+      ? resolvePreferredAccountsSyncIntervalMs()
+      : resolvePreferredAccountsSyncIntervalMs({ forRetry: true });
+    if (referenceMs > 0 && (Date.now() - referenceMs) < refreshIntervalMs) {
+      return preferredAccountsRows;
+    }
+  }
+
+  preferredAccountsSyncInFlight = true;
+  preferredAccountsLastRequestAtMs = Date.now();
+  preferredAccountsSyncPromise = (async () => {
+    const members = await fetchTreeNextLiveRegisteredMembers();
+    let invoices = [];
+    try {
+      invoices = await fetchPreferredAccountsStoreInvoices();
+    } catch (error) {
+      console.warn('[TreeNext] Preferred accounts invoice fetch failed:', error);
+      invoices = [];
+    }
+    const nextRows = buildPreferredAccountsRowsFromData(members, invoices);
+    const nextRowsSignature = resolvePreferredAccountsRowsSignature(nextRows);
+    const rowsChanged = nextRowsSignature !== preferredAccountsRowsDataSignature;
+    preferredAccountsInvoices = invoices;
+    if (rowsChanged) {
+      preferredAccountsRows = nextRows;
+      preferredAccountsRowsDataSignature = nextRowsSignature;
+      preferredAccountsDataVersion += 1;
+    }
+    preferredAccountsLastSyncedAtMs = Date.now();
+
+    const hasSelectedMember = preferredAccountsRows.some((row) => row.memberId === preferredAccountsSelectedMemberId);
+    if (!hasSelectedMember) {
+      preferredAccountsSelectedMemberId = preferredAccountsRows[0]?.memberId || '';
+      preferredAccountsLastRenderSignature = '';
+    }
+    syncPreferredAccountsPanelVisuals();
+    return preferredAccountsRows;
+  })().finally(() => {
+    preferredAccountsSyncPromise = null;
+    preferredAccountsSyncInFlight = false;
+  });
+
+  return preferredAccountsSyncPromise;
+}
+
+function maybeRefreshPreferredAccountsSnapshot(options = {}) {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return;
+  }
+  if (!Boolean(state.ui?.preferredAccountsVisible) && options?.force !== true) {
+    return;
+  }
+  void refreshPreferredAccountsSnapshot(options);
+}
+
+async function submitPreferredAccountsPlacementPlan() {
+  if (!(preferredAccountsPlacementPlanInput instanceof HTMLSelectElement)) {
+    return;
+  }
+  if (Boolean(state.ui?.preferredAccountsSaving)) {
+    return;
+  }
+
+  const selectedRow = resolvePreferredAccountsSelectedRow();
+  if (!selectedRow) {
+    setPreferredAccountsFeedback('Select a preferred customer first.', { isError: true });
+    return;
+  }
+
+  const selectedPlacementOption = normalizePreferredPlacementOptionValue(
+    preferredAccountsPlacementPlanInput.value,
+    selectedRow.placementOption,
+  );
+  const placementPayload = resolvePreferredPlacementPayloadFromOption(selectedPlacementOption);
+  const sponsorUsername = safeText(selectedRow.member?.sponsorUsername || selectedRow.member?.sponsor_username);
+
+  state.ui.preferredAccountsSaving = true;
+  syncPreferredAccountsPanelVisuals();
+  setPreferredAccountsFeedback('Saving profile plan...', { persist: true });
+
+  try {
+    const response = await fetch(
+      `${resolveEnrollRegisteredMembersApi()}/${encodeURIComponent(selectedRow.memberId)}/placement`,
+      {
+        method: 'PATCH',
+        headers: buildTreeNextEnrollRequestHeaders({
+          'Content-Type': 'application/json',
+        }),
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          sponsorUsername,
+          placementLeg: placementPayload.placementLeg,
+          spilloverPlacementSide: placementPayload.spilloverPlacementSide,
+          spilloverParentMode: 'auto',
+          spilloverParentReference: '',
+        }),
+      },
+    );
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const errorMessage = safeText(payload?.error) || `Unable to save placement plan (${response.status}).`;
+      throw new Error(errorMessage);
+    }
+
+    selectedRow.placementOption = selectedPlacementOption;
+    if (selectedRow.member && typeof selectedRow.member === 'object') {
+      selectedRow.member.placementLeg = placementPayload.placementLeg;
+      selectedRow.member.spilloverPlacementSide = placementPayload.spilloverPlacementSide;
+    }
+    preferredAccountsRowsDataSignature = resolvePreferredAccountsRowsSignature(preferredAccountsRows);
+    preferredAccountsDataVersion += 1;
+    preferredAccountsLastRenderSignature = '';
+    setPreferredAccountsFeedback('Profile plan saved successfully.', { isSuccess: true });
+    void refreshPreferredAccountsSnapshot({ force: true }).catch((error) => {
+      console.warn('[TreeNext] Preferred accounts refresh after placement save failed:', error);
+    });
+    void syncTreeNextLiveNodes({ force: true, silent: true, reason: 'preferred-accounts-placement' });
+  } catch (error) {
+    const message = error instanceof Error && error.message
+      ? error.message
+      : 'Unable to save preferred account placement plan.';
+    setPreferredAccountsFeedback(message, { isError: true, persist: true });
+  } finally {
+    state.ui.preferredAccountsSaving = false;
+    syncPreferredAccountsPanelVisuals();
+  }
+}
+
+function initPreferredAccountsPanel() {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return;
+  }
+
+  syncPreferredAccountsPanelPosition();
+  syncPreferredAccountsPanelVisuals();
+  syncPreferredAccountsPanelVisibility();
+  void refreshPreferredAccountsSnapshot({ force: true });
+
+  if (preferredAccountsCloseButtonElement instanceof HTMLButtonElement) {
+    preferredAccountsCloseButtonElement.addEventListener('click', () => {
+      setPreferredAccountsPanelVisible(false);
+    });
+  }
+
+  if (preferredAccountsPlacementPlanInput instanceof HTMLSelectElement) {
+    preferredAccountsPlacementPlanInput.addEventListener('change', () => {
+      setPreferredAccountsFeedback('');
+    });
+  }
+
+  if (preferredAccountsSaveButtonElement instanceof HTMLButtonElement) {
+    preferredAccountsSaveButtonElement.addEventListener('click', () => {
+      void submitPreferredAccountsPlacementPlan();
+    });
+  }
+
+  if (preferredAccountsListElement instanceof HTMLElement) {
+    preferredAccountsListElement.addEventListener('click', (event) => {
+      const targetElement = event.target instanceof HTMLElement
+        ? event.target
+        : null;
+      const rowButton = targetElement?.closest('[data-preferred-accounts-member-id]');
+      if (!(rowButton instanceof HTMLElement)) {
+        return;
+      }
+      const memberId = safeText(rowButton.dataset.preferredAccountsMemberId);
+      if (!memberId || memberId === preferredAccountsSelectedMemberId) {
+        return;
+      }
+      preferredAccountsSelectedMemberId = memberId;
+      preferredAccountsLastRenderSignature = '';
+      setPreferredAccountsFeedback('');
+      syncPreferredAccountsPanelVisuals();
     });
   }
 }
@@ -5524,7 +6344,9 @@ async function refreshMyStorePostCheckoutUpgrade(accountUpgradeInput = null) {
     scope: overviewContext?.scope,
     preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
   });
+  await refreshPreferredAccountsSnapshot({ force: true });
   syncAccountOverviewPanelVisuals();
+  syncPreferredAccountsPanelVisuals();
   syncMyStorePanelVisuals();
 }
 
@@ -6361,7 +7183,9 @@ function setMyStorePanelVisible(isVisible) {
   state.ui.myStoreVisible = nextVisible;
   if (nextVisible) {
     state.ui.accountOverviewVisible = false;
+    state.ui.preferredAccountsVisible = false;
     syncAccountOverviewPanelVisibility();
+    syncPreferredAccountsPanelVisibility();
     state.ui.myStoreStep = MY_STORE_STEP_CATALOG;
     state.ui.myStoreCheckoutCompletion = null;
     state.ui.myStoreCheckoutSubmitting = false;
@@ -7883,7 +8707,7 @@ function resolveNodeReferenceLabel(nodeId, fallback = '-') {
 function resolveNodeLegVolumes(nodeId) {
   const globalMeta = resolveGlobalNodeMetrics(nodeId);
   const selectedNode = globalMeta?.node || null;
-  const personalVolume = Math.max(0, Math.floor(safeNumber(selectedNode?.volume, 0)));
+  const personalVolume = Math.max(0, Math.floor(resolveNodeCurrentPersonalBvForActivity(selectedNode)));
   if (!globalMeta) {
     return {
       personalVolume,
@@ -8277,6 +9101,27 @@ function isAvatarPaletteRecord(palette) {
   ));
 }
 
+function isGrayRgbTriplet(rgbTriplet, channelDeltaThreshold = 14) {
+  if (!Array.isArray(rgbTriplet) || rgbTriplet.length < 3) {
+    return false;
+  }
+  const [red, green, blue] = normalizeRgbTriplet(rgbTriplet[0], rgbTriplet[1], rgbTriplet[2]);
+  const maxChannel = Math.max(red, green, blue);
+  const minChannel = Math.min(red, green, blue);
+  return (maxChannel - minChannel) <= Math.max(0, Math.floor(safeNumber(channelDeltaThreshold, 14)));
+}
+
+function isGrayAvatarPalette(palette, channelDeltaThreshold = 14) {
+  if (!isAvatarPaletteRecord(palette)) {
+    return false;
+  }
+  return (
+    isGrayRgbTriplet(palette.light, channelDeltaThreshold)
+    && isGrayRgbTriplet(palette.mid, channelDeltaThreshold)
+    && isGrayRgbTriplet(palette.dark, channelDeltaThreshold)
+  );
+}
+
 function resolveAvatarColorTripletFromRecord(recordInput = null) {
   const record = recordInput && typeof recordInput === 'object' ? recordInput : null;
   if (!record) {
@@ -8393,12 +9238,12 @@ function resolveSessionAvatarSeed(sessionInput = state.session) {
 
 function resolveSessionAvatarPalette(sessionInput = state.session) {
   const explicitPalette = resolveAvatarPaletteFromRecord(sessionInput);
-  if (explicitPalette) {
+  if (explicitPalette && !isGrayAvatarPalette(explicitPalette)) {
     return explicitPalette;
   }
 
   const colorTriplet = resolveSessionAvatarColorTriplet(sessionInput);
-  if (colorTriplet) {
+  if (colorTriplet && !isGrayRgbTriplet(colorTriplet)) {
     return buildAvatarPaletteFromColorTriplet(colorTriplet);
   }
 
@@ -10127,7 +10972,19 @@ function resolveTreeNextLiveMemberPersonalVolumeSnapshot(member = {}) {
     ?? member?.server_cutoff_baseline_starter_personal_pv,
     0,
   )));
-  const currentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  const explicitCurrentPersonalPvBv = safeNumber(
+    member?.currentPersonalPvBv
+    ?? member?.current_personal_pv_bv
+    ?? member?.monthlyPersonalBv
+    ?? member?.monthly_personal_bv
+    ?? member?.currentWeekPersonalPv
+    ?? member?.current_week_personal_pv,
+    Number.NaN,
+  );
+  const derivedCurrentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  const currentPersonalPvBv = Number.isFinite(explicitCurrentPersonalPvBv)
+    ? Math.max(0, Math.floor(explicitCurrentPersonalPvBv))
+    : derivedCurrentPersonalPvBv;
   return {
     packageBv,
     starterPersonalPv,
@@ -10845,6 +11702,13 @@ function resolveTreeNextLiveNodeSignature(node = {}) {
     safeText(safeNode.rank || safeNode.accountRank),
     safeText(safeNode.title),
     Math.floor(safeNumber(safeNode.volume, 0)),
+    Math.floor(safeNumber(
+      safeNode.currentPersonalPvBv
+      ?? safeNode.current_personal_pv_bv
+      ?? safeNode.monthlyPersonalBv
+      ?? safeNode.monthly_personal_bv,
+      0,
+    )),
     safeText(safeNode.businessCenterNodeType),
     safeText(safeNode.memberCode),
     safeNode.isSpillover ? '1' : '0',
@@ -11428,13 +12292,14 @@ function resolveNodeAvatarPalette(nodeId = '', options = {}) {
     ? options.node
     : null;
   const ignoreSourcePalette = options?.ignoreSourcePalette === true;
+  const allowGraySourcePalette = options?.allowGraySourcePalette === true;
   if (!ignoreSourcePalette) {
     const sourcePalette = resolveAvatarPaletteFromRecord(sourceNode);
-    if (sourcePalette) {
+    if (sourcePalette && (allowGraySourcePalette || !isGrayAvatarPalette(sourcePalette))) {
       return sourcePalette;
     }
     const sourceColorTriplet = resolveAvatarColorTripletFromRecord(sourceNode);
-    if (sourceColorTriplet) {
+    if (sourceColorTriplet && (allowGraySourcePalette || !isGrayRgbTriplet(sourceColorTriplet))) {
       return buildAvatarPaletteFromColorTriplet(sourceColorTriplet);
     }
   }
@@ -13259,12 +14124,29 @@ function drawSideNav(layout) {
       const username = truncateText(safeText(selectedNode.username || selectedNode.id), 24);
       const nodeInitials = resolveInitials(safeText(selectedNode.name || selectedNode.id));
       const selectedAvatarNodeId = safeText(selectedNode.id || selectedNodeId);
-      const selectedAvatarVariant = isSessionAvatarNodeId(selectedAvatarNodeId)
+      const selectedBaseAvatarVariant = isSessionAvatarNodeId(selectedAvatarNodeId)
         ? 'auto'
         : (selectedAvatarNodeId.toLowerCase() === 'root' ? 'root' : 'auto');
+      const isDirectSponsorNode = isNodePersonallyEnrolledBySession(selectedNode);
+      const selectedAvatarVariant = isDirectSponsorNode ? 'direct' : selectedBaseAvatarVariant;
       const rankValue = truncateText(safeText(selectedNode.rank || '-'), 16) || '-';
       const isActiveAccount = resolveNodeActivityState(selectedNode);
       const activityDotColor = isActiveAccount ? '#30C655' : '#B5B5B5';
+      const selectedAvatarRenderOptions = isActiveAccount
+        ? (isDirectSponsorNode
+          ? {
+            variant: selectedAvatarVariant,
+            disablePhoto: true,
+            ignoreSourcePalette: true,
+          }
+          : {
+            variant: selectedAvatarVariant,
+          })
+        : {
+          variant: isDirectSponsorNode ? 'directInactive' : 'inactive',
+          disablePhoto: true,
+          ignoreSourcePalette: true,
+        };
       const rankAndTitleIconPaths = resolveNodeDetailRankAndTitleIcons(selectedNode).slice(0, 2);
 
       const avatarRadius = Math.round(34 + (20 * detailVerticalScale));
@@ -13276,7 +14158,9 @@ function drawSideNav(layout) {
         + ((preferredHeaderToAvatarTopGap - compactHeaderToAvatarTopGap) * detailVerticalScale),
       );
       const avatarCenterY = detailsHeadingY + headerToAvatarTopGap + avatarRadius;
-      const nodePhotoUrl = resolveNodeAvatarPhotoUrl(selectedNode);
+      const nodePhotoUrl = selectedAvatarRenderOptions.disablePhoto === true
+        ? ''
+        : resolveNodeAvatarPhotoUrl(selectedNode);
       let usedPhotoAvatar = false;
       context.beginPath();
       context.arc(detailCenterX, avatarCenterY, avatarRadius + 1.5, 0, Math.PI * 2);
@@ -13288,7 +14172,7 @@ function drawSideNav(layout) {
       if (!usedPhotoAvatar) {
         drawResolvedAvatarCircle(detailCenterX, avatarCenterY, avatarRadius, selectedAvatarNodeId, {
           node: selectedNode,
-          variant: selectedAvatarVariant,
+          ...selectedAvatarRenderOptions,
           alpha: 0.98,
           sheenAlpha: 0.16,
         });
@@ -13401,7 +14285,8 @@ function drawSideNav(layout) {
         relationButtons.length * relationButtonHeight
       ) + (Math.max(0, relationButtons.length - 1) * relationButtonGap);
       const metricRows = [
-        { label: 'Total Organization BV', value: formatExactVolumeValue(volumeMetrics.totalVolume) },
+        { label: 'Total Organizational BV', value: formatExactVolumeValue(volumeMetrics.totalVolume) },
+        { label: 'Personal BV', value: formatExactVolumeValue(volumeMetrics.personalVolume) },
         { label: 'Left Leg', value: formatExactVolumeValue(volumeMetrics.leftVolume) },
         { label: 'Right Leg', value: formatExactVolumeValue(volumeMetrics.rightVolume) },
         { label: 'Cycles', value: String(cyclesCount) },
@@ -13793,10 +14678,10 @@ function drawBottomToolBar(layout) {
       action: 'panel:account-overview:toggle',
     },
     {
-      id: 'profile-left-dock-rank-advancement',
-      iconGlyph: String.fromCodePoint(0xEB6B),
-      iconLigature: 'workspace_premium',
-      action: 'panel:rank-advancement:placeholder',
+      id: 'profile-left-dock-preferred-accounts',
+      iconGlyph: String.fromCodePoint(0xE7FD),
+      iconLigature: 'person_add',
+      action: 'panel:preferred-accounts:toggle',
     },
   ];
   const profileLeftDockButtonSize = 40;
@@ -13806,7 +14691,11 @@ function drawBottomToolBar(layout) {
     const button = profileLeftDockButtons[index];
     const hovered = state.hoveredButtonId === button.id;
     const isAccountOverviewToggle = button.action === 'panel:account-overview:toggle';
-    const active = isAccountOverviewToggle && Boolean(state.ui?.accountOverviewVisible);
+    const isPreferredAccountsToggle = button.action === 'panel:preferred-accounts:toggle';
+    const active = (
+      (isAccountOverviewToggle && Boolean(state.ui?.accountOverviewVisible))
+      || (isPreferredAccountsToggle && Boolean(state.ui?.preferredAccountsVisible))
+    );
     const x = profileLeftDockCursorRight - profileLeftDockButtonSize;
     const y = profileY + Math.round((floatingProfileSize - profileLeftDockButtonSize) / 2);
     const fill = active
@@ -13909,7 +14798,11 @@ function drawBottomToolBar(layout) {
     const button = dockButtons[index];
     const hovered = state.hoveredButtonId === button.id;
     const isAccountOverviewToggle = button.action === 'panel:account-overview:toggle';
-    const active = isAccountOverviewToggle && Boolean(state.ui?.accountOverviewVisible);
+    const isPreferredAccountsToggle = button.action === 'panel:preferred-accounts:toggle';
+    const active = (
+      (isAccountOverviewToggle && Boolean(state.ui?.accountOverviewVisible))
+      || (isPreferredAccountsToggle && Boolean(state.ui?.preferredAccountsVisible))
+    );
     const x = railX;
     const y = railStartY + (index * (railButtonSize + railGap));
     const fill = active
@@ -14508,7 +15401,7 @@ function drawNode(node) {
       }
       : {})
     : {
-      variant: isPersonallyEnrolledNode ? 'directInactive' : 'neutral',
+      variant: isPersonallyEnrolledNode ? 'directInactive' : 'inactive',
       disablePhoto: true,
       ignoreSourcePalette: true,
     };
@@ -14701,6 +15594,17 @@ function renderFrame() {
   syncAccountOverviewPanelPosition(state.layout);
   syncAccountOverviewPanelVisuals();
   syncAccountOverviewPanelVisibility();
+  try {
+    syncPreferredAccountsPanelPosition(state.layout);
+    syncPreferredAccountsPanelVisuals();
+    syncPreferredAccountsPanelVisibility();
+  } catch (error) {
+    const nowMs = performance.now();
+    if ((nowMs - preferredAccountsRenderErrorLoggedAtMs) >= 1000) {
+      preferredAccountsRenderErrorLoggedAtMs = nowMs;
+      console.error('[TreeNext] Preferred accounts panel sync failed during render:', error);
+    }
+  }
   syncMyStorePanelPosition(state.layout);
   syncMyStorePanelVisuals();
   syncMyStorePanelVisibility();
@@ -15136,6 +16040,10 @@ function triggerAction(action) {
   }
   if (safeAction === 'panel:account-overview:toggle') {
     setAccountOverviewPanelVisible(!Boolean(state.ui?.accountOverviewVisible));
+    return;
+  }
+  if (safeAction === 'panel:preferred-accounts:toggle') {
+    setPreferredAccountsPanelVisible(!Boolean(state.ui?.preferredAccountsVisible));
     return;
   }
   if (safeAction.startsWith('brand-menu:page:')) {
@@ -15648,25 +16556,33 @@ function bindEvents() {
 
 let lastTimestamp = performance.now();
 function tickFrame(timestamp) {
-  state.timeMs = timestamp;
-  updateSelectionAnimations(timestamp);
-  updatePlacementAnimations(timestamp);
+  try {
+    state.timeMs = timestamp;
+    updateSelectionAnimations(timestamp);
+    updatePlacementAnimations(timestamp);
 
-  const deltaSeconds = Math.max(0.0001, Math.min(0.08, (timestamp - lastTimestamp) / 1000));
-  lastTimestamp = timestamp;
+    const deltaSeconds = Math.max(0.0001, Math.min(0.08, (timestamp - lastTimestamp) / 1000));
+    lastTimestamp = timestamp;
 
-  adaptStartupRevealForFrameBudget(deltaSeconds * 1000);
-  animateCamera(deltaSeconds);
-  consumePendingPlacementReveal({ nowMs: timestamp });
-  renderFrame();
+    adaptStartupRevealForFrameBudget(deltaSeconds * 1000);
+    animateCamera(deltaSeconds);
+    consumePendingPlacementReveal({ nowMs: timestamp });
+    renderFrame();
 
-  const instantFps = 1 / deltaSeconds;
-  state.perf.fps = state.perf.fps === 0
-    ? instantFps
-    : ((state.perf.fps * 0.88) + (instantFps * 0.12));
-  state.perf.frameMs = state.perf.fps > 0 ? (1000 / state.perf.fps) : 0;
-
-  window.requestAnimationFrame(tickFrame);
+    const instantFps = 1 / deltaSeconds;
+    state.perf.fps = state.perf.fps === 0
+      ? instantFps
+      : ((state.perf.fps * 0.88) + (instantFps * 0.12));
+    state.perf.frameMs = state.perf.fps > 0 ? (1000 / state.perf.fps) : 0;
+  } catch (error) {
+    const nowMs = performance.now();
+    if ((nowMs - renderLoopErrorLoggedAtMs) >= 1000) {
+      renderLoopErrorLoggedAtMs = nowMs;
+      console.error('[TreeNext] Render loop recovered from frame error:', error);
+    }
+  } finally {
+    window.requestAnimationFrame(tickFrame);
+  }
 }
 
 async function bootstrap() {
@@ -15749,6 +16665,7 @@ async function bootstrap() {
   bindEvents();
   initTreeNextEnrollModal();
   initAccountOverviewPanel();
+  initPreferredAccountsPanel();
   initMyStorePanel();
   await processTreeNextStripeCheckoutReturn();
   await processTreeNextStripeReturnSignalFromStorage({
@@ -15774,3 +16691,4 @@ bootstrap().catch((error) => {
   hideFirstOpenSplashImmediately();
   showBootError(error instanceof Error ? error.message : String(error));
 });
+

@@ -1046,3 +1046,60 @@
 
 ### Result
 - Support page header now matches the simplified store navigation flow.
+
+## Update (2026-04-16) - Embedded Mode Added for Dashboard My Store Reuse
+
+### What Was Changed
+
+- Added embedded mode detection in `store.html` using `embedded=1` query parameter.
+- Added embedded CSS adjustments to support in-dashboard rendering:
+  - hide top nav in embedded mode
+  - tighten page and hero spacing for panel embedding
+  - mobile embedded width/padding overrides.
+- Dashboard `index.html` now loads `store.html` in `My Store` via iframe and passes active store code.
+
+### Files Affected
+
+- `store.html`
+- `index.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Reused the latest public-store implementation as the source of truth for dashboard storefront UX.
+- Kept full-page `store.html` behavior unchanged when not in embedded mode.
+
+### Known Limitations
+
+- Frame height is static in dashboard embed and may require follow-up auto-resize handling.
+
+### Validation
+
+- Inline script parse checks passed:
+  - `store.html` (`2` blocks)
+  - `index.html` (`3` blocks)
+
+## Update (2026-04-16) - Embedded Mode Rollback After Dashboard Native Component Migration
+
+### What Was Changed
+
+- Removed temporary embedded-mode hooks added earlier in `store.html` (`embedded=1` handling and related CSS overrides).
+- Dashboard now uses native in-page Store/Cart components in `index.html`, so public store page no longer needs embed-specific branch behavior.
+
+### Files Affected
+
+- `store.html`
+- `index.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Inline script parse checks passed:
+  - `store.html` (`1` block)
+  - `index.html` (`3` blocks)

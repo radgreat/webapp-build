@@ -1105,7 +1105,7 @@
 ## Recent Update (2026-04-14) - My Store Checkout Field Spacing Polish Pass
 
 - Completed:
-  - rebalanced My Store checkout spacing tokens in inary-tree-next.html for cleaner, more polished form rhythm.
+  - rebalanced My Store checkout spacing tokens in inary-tree-next.html for cleaner, more polished form rhythm.
   - increased desktop checkout breathing room:
     - larger checkout scroll padding and section spacing
     - larger summary card margin/padding and row rhythm
@@ -1160,7 +1160,7 @@
   - upgrade calculations were anchored to product-count deltas (selectableProducts) and fixed per-upgrade product BV (50) to enforce "BV follows products".
   - product choice is currently single-selection per upgrade transaction (all delta products assigned to one chosen product type).
 - Known limitations:
-  - MetaRoast™ currently reuses the available MetaCharge product image asset until a dedicated MetaRoast asset is added in rand_assets/Product Images/.
+  - MetaRoast™ currently reuses the available MetaCharge product image asset until a dedicated MetaRoast asset is added in rand_assets/Product Images/.
   - split-product allocation (e.g., mix of MetaCharge + MetaRoast counts in one upgrade) is not yet implemented.
 - Validation:
   - node --check binary-tree-next-app.mjs passed.
@@ -1680,3 +1680,158 @@
 
 ### Known limitation
 - System commission total currently composes from available synced data in this page (sales-team aggregate + fast-track node totals + available remote balances). A single backend-wide consolidated financial summary endpoint is still optional follow-up.
+
+
+
+## Update (2026-04-16) - Left Panel Personal BV + Real-Time Server Sync Refresh Trigger
+
+### What Changed
+
+- Added Personal BV directly below Total Organizational BV in the Binary Tree Next side metrics list.
+- Updated Personal BV value source in side metrics to use current personal BV resolution instead of static node volume.
+- Updated live member parsing to prefer explicit server-provided personal BV fields before fallback derivation.
+- Extended live node signature hashing with personal BV fields so Personal BV server changes trigger immediate live-sync apply/re-render.
+- Corrected Account Overview total-BV label copy to Total Organization BV.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+- binary-tree-next.html
+
+### Known Limitations
+
+- Sync remains polling-based on the existing Binary Tree Next cadence (not websocket push).
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
+
+## Update (2026-04-16) - Inactive/Dark-Gray Node Theme Enforcement + No Gray Active Profile Generation
+
+### What Changed
+
+- Added dedicated inactive gray palette and tightened directInactive to darker gray.
+- Updated draw-path inactive branch to use inactive gray theme explicitly.
+- Kept direct sponsors purple while active.
+- Added activity-state hardening for color logic:
+  - stabilizing status is treated as inactive
+  - explicit isActive/active booleans are honored.
+- Added gray-color filtering for active profile palette resolution:
+  - source gray palette/color triplets are skipped for active palette generation
+  - session avatar palette also skips gray profile colors.
+- Removed gray from the active color rotation list so generated active profile colors no longer land on gray.
+- Updated selected-details avatar rendering to follow same rule set (inactive gray/dark gray, no photo).
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+
+### Known Limitations
+
+- This pass does not migrate stored profile-color values; it enforces runtime rendering behavior.
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
+## [2026-04-16 01:49:19] Preferred Accounts Panel Integration (Binary Tree Next)
+
+### Summary
+- Added a dedicated Preferred Customers panel in Binary Tree Next with dynamic profile detail rendering and placement-plan saving.
+
+### Implemented behavior
+- New dock action panel:preferred-accounts:toggle.
+- Panel visibility interoperability:
+  - Opening Preferred panel closes Account Overview and My Store panels.
+- Live data fetches:
+  - Registered members (source-aware member/admin endpoint).
+  - Store invoices for spend/BV aggregation.
+- Current list selection updates profile detail section.
+- Placement plan save persists server-side and refreshes panel data immediately.
+
+### Data fields surfaced
+- Total Spend (aggregated from matched invoices)
+- Total BV Credited (aggregated invoice p)
+- Preferred Subscriber Since (member created date)
+- From (Direct Link / System Transfer)
+- Placement Plan (Left/Right/Spillover/Extreme options)
+
+### Follow-up checks
+- Validate panel rows with accounts that have mixed invoice identity metadata.
+- Validate admin-view behavior on datasets with large preferred-customer counts.
+### Documentation Correction
+- Corrected metrics wording: Total BV Credited is aggregated from invoice bp values.
+- Corrected file naming references for Binary Tree Next implementation notes.
+
+## Follow-up Update (2026-04-16) - Preferred Customers Visual Alignment + Current List Behavior
+
+### What changed
+- Matched Preferred Customers top profile text scale to Account Overview visual hierarchy.
+- Reduced `Preferred Customer` subtitle size.
+- Rebalanced profile field spacing and text sizing for improved legibility.
+- Updated Current list to name-only rows (removed meta/spend line).
+- Updated Current list avatars to render gradient + initials.
+- Removed selected-profile icon output from render logic and panel markup flow.
+- Kept Save Profile Plan centered.
+
+### Files updated
+- binary-tree-next.html
+- binary-tree-next-app.mjs
+
+### Validation
+- node --check binary-tree-next-app.mjs passed.
+
+
+## Follow-up Update (2026-04-16) - Preferred Panel Resize Render Guard
+
+### What changed
+- Added a protected Preferred panel sync block in `renderFrame()`:
+  - `syncPreferredAccountsPanelPosition(state.layout)`
+  - `syncPreferredAccountsPanelVisuals()`
+  - `syncPreferredAccountsPanelVisibility()`
+- Added throttled error logging for Preferred panel render-sync failures.
+
+### Why
+- Prevents Preferred-panel-only runtime errors during resize from breaking the overall frame loop and leaving a black tree canvas.
+
+### Files updated
+- binary-tree-next-app.mjs
+
+### Validation
+- node --check binary-tree-next-app.mjs passed.
+
+## Follow-up Update (2026-04-16) - Preferred Panel Interaction Freeze Root-Cause Fix
+
+### What changed
+- Corrected Preferred-open path in `syncAccountOverviewPanelVisuals()` by removing invalid `options` scope usage.
+- Added fail-safe protection in `tickFrame()` so render-loop exceptions are logged and recovered without stopping RAF.
+
+### Why
+- Prevents Preferred-panel visibility state from triggering frame-loop termination that made tree dragging appear broken.
+
+### Files updated
+- binary-tree-next-app.mjs
+
+### Validation
+- node --check binary-tree-next-app.mjs passed.
+
+## Follow-up Update (2026-04-16) - Preferred Placement Save UX Improvements
+
+### What changed
+- Updated save flow to avoid blocking on full forced Preferred snapshot refresh.
+- Added loading state animation on Save button (`is-loading` spinner).
+- Added clearer save lifecycle notes:
+  - saving note while request is in-flight
+  - explicit success note after save.
+- Added `is-success` feedback style.
+
+### Why
+- Improve save responsiveness and make save status clear to users.
+
+### Files updated
+- binary-tree-next-app.mjs
+- binary-tree-next.html
+
+### Validation
+- node --check binary-tree-next-app.mjs passed.

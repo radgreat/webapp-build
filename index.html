@@ -270,6 +270,7 @@
     html {
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      scrollbar-gutter: stable;
     }
 
     .achievement-icon-image {
@@ -2791,6 +2792,445 @@
       }
     }
   </style>
+  <style>
+    .storefront-v2-surface {
+      width: min(1240px, 100%);
+      margin: 0 auto;
+    }
+
+    .storefront-v2-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .storefront-v2-panel {
+      border: 1px solid rgb(var(--surface-border));
+      border-radius: 18px;
+      background: rgb(var(--surface-raised));
+      overflow: hidden;
+      box-shadow: var(--shadow-depth-1);
+    }
+
+    .storefront-v2-panel-head {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid rgb(var(--surface-border));
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .storefront-v2-panel-title {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      font-weight: 500;
+      color: rgb(var(--text-primary));
+    }
+
+    .storefront-v2-panel-subtitle {
+      margin: 5px 0 0;
+      font-size: 14px;
+      line-height: 1.35;
+      color: rgb(var(--text-secondary));
+    }
+
+    .storefront-v2-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid rgb(var(--surface-border-light));
+      background: rgb(var(--surface-base));
+      padding: 0 12px;
+      min-width: 210px;
+      height: 28px;
+      font-size: 12px;
+      line-height: 1;
+      color: rgb(var(--text-secondary));
+      white-space: nowrap;
+    }
+
+    .storefront-v2-products {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      min-height: 420px;
+      align-content: start;
+    }
+
+    .storefront-v2-product {
+      border: 1px solid rgb(var(--surface-border));
+      border-radius: 16px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      background: rgb(var(--surface-base) / 0.34);
+    }
+
+    .storefront-v2-product-media {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 12px;
+      background: rgb(var(--surface-base));
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid rgb(var(--surface-border));
+    }
+
+    .storefront-v2-product-media img {
+      width: 78%;
+      height: 78%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      image-orientation: from-image;
+      opacity: 0;
+      transition: opacity 140ms ease-out;
+    }
+
+    .storefront-v2-product-media img.is-ready {
+      opacity: 1;
+    }
+
+    .storefront-v2-product-name {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      font-weight: 500;
+      color: rgb(var(--text-primary));
+    }
+
+    .storefront-v2-product-copy {
+      margin: 0;
+      color: rgb(var(--text-secondary));
+      font-size: 13px;
+      line-height: 1.4;
+      min-height: 2.8em;
+    }
+
+    .storefront-v2-product-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .storefront-v2-product-price {
+      font-size: 17px;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      font-weight: 500;
+      color: rgb(var(--text-primary));
+    }
+
+    .storefront-v2-product-stock {
+      font-size: 12px;
+      line-height: 1.2;
+      color: rgb(var(--text-tertiary));
+      white-space: nowrap;
+    }
+
+    .storefront-v2-product-button {
+      width: 100%;
+      height: 40px;
+      border: 0;
+      border-radius: 12px;
+      background: rgb(var(--brand-500));
+      color: rgb(var(--text-inverse));
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), filter 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .storefront-v2-product-button:hover {
+      filter: brightness(1.03);
+      transform: translateY(-1px);
+    }
+
+    .storefront-v2-product-button:focus-visible {
+      outline: 2px solid rgb(var(--brand-500) / 0.44);
+      outline-offset: 2px;
+    }
+
+    .storefront-v2-product-button:disabled {
+      opacity: 0.46;
+      cursor: not-allowed;
+      transform: none;
+      filter: none;
+    }
+
+    .storefront-v2-no-products {
+      grid-column: 1 / -1;
+      border: 1px solid rgb(var(--surface-border));
+      border-radius: 16px;
+      background: rgb(var(--surface-base) / 0.34);
+      padding: 18px;
+      color: rgb(var(--text-secondary));
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .storefront-v2-no-products.is-loading {
+      color: rgb(var(--text-tertiary));
+    }
+
+    .storefront-v2-cart-body {
+      padding: 14px 18px 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .storefront-v2-cart-list {
+      display: grid;
+      gap: 10px;
+      max-height: 280px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .storefront-v2-cart-empty {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.4;
+      color: rgb(var(--text-secondary));
+      border: 1px solid rgb(var(--surface-border));
+      border-radius: 12px;
+      background: rgb(var(--surface-base) / 0.34);
+      padding: 12px;
+    }
+
+    .storefront-v2-cart-item {
+      border: 1px solid rgb(var(--surface-border));
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      background: rgb(var(--surface-base) / 0.34);
+    }
+
+    .storefront-v2-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .storefront-v2-item-name,
+    .storefront-v2-item-price {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.3;
+      color: rgb(var(--text-primary));
+    }
+
+    .storefront-v2-item-price {
+      white-space: nowrap;
+    }
+
+    .storefront-v2-qty {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .storefront-v2-qty button {
+      width: 24px;
+      height: 24px;
+      border: 0;
+      border-radius: 8px;
+      background: rgb(var(--surface-base));
+      color: rgb(var(--text-secondary));
+      font-size: 14px;
+      cursor: pointer;
+      transition: filter 150ms ease;
+    }
+
+    .storefront-v2-qty button:hover {
+      filter: brightness(1.04);
+    }
+
+    .storefront-v2-qty span {
+      min-width: 18px;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1;
+      color: rgb(var(--text-primary));
+    }
+
+    .storefront-v2-remove {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: rgb(var(--text-secondary));
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .storefront-v2-remove:hover {
+      color: rgb(var(--semantic-danger));
+    }
+
+    .storefront-v2-summary {
+      border-top: 1px solid rgb(var(--surface-border));
+      padding-top: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .storefront-v2-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      line-height: 1.3;
+      color: rgb(var(--text-secondary));
+    }
+
+    .storefront-v2-summary-row span:last-child {
+      color: rgb(var(--text-primary));
+      white-space: nowrap;
+    }
+
+    .storefront-v2-summary-row-total {
+      color: rgb(var(--text-primary));
+    }
+
+    .storefront-v2-summary-row-total strong {
+      font-size: 18px;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: rgb(var(--text-primary));
+    }
+
+    .storefront-v2-checkout-button {
+      width: 100%;
+      height: 40px;
+      border: 0;
+      border-radius: 12px;
+      background: rgb(var(--brand-500));
+      color: rgb(var(--text-inverse));
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), filter 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .storefront-v2-checkout-button:hover {
+      filter: brightness(1.03);
+      transform: translateY(-1px);
+    }
+
+    .storefront-v2-checkout-button:focus-visible {
+      outline: 2px solid rgb(var(--brand-500) / 0.44);
+      outline-offset: 2px;
+    }
+
+    .storefront-v2-checkout-button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      filter: none;
+    }
+
+    .storefront-v2-share {
+      border: 1px solid rgb(var(--surface-border));
+      border-radius: 18px;
+      background: rgb(var(--surface-raised));
+      box-shadow: var(--shadow-depth-1);
+      padding: 20px 18px;
+      text-align: center;
+    }
+
+    .storefront-v2-share-title {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      font-weight: 500;
+      color: rgb(var(--text-primary));
+    }
+
+    .storefront-v2-share-copy {
+      margin: 10px auto 0;
+      max-width: 520px;
+      color: rgb(var(--text-secondary));
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .storefront-v2-share-button {
+      margin-top: 16px;
+      min-width: 188px;
+      min-height: 42px;
+      padding: 0 24px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #2490F1 0%, #2F7FE8 100%);
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), filter 180ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .storefront-v2-share-button:hover {
+      filter: brightness(1.03);
+      transform: translateY(-1px);
+    }
+
+    .storefront-v2-share-button:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    .storefront-v2-share-button:active {
+      transform: scale(0.97);
+      opacity: 0.92;
+    }
+
+    .storefront-v2-share-feedback {
+      margin: 10px 0 0;
+      min-height: 18px;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 1040px) {
+      .storefront-v2-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .storefront-v2-products {
+        grid-template-columns: 1fr;
+        padding: 14px;
+      }
+
+      .storefront-v2-panel-head {
+        padding: 14px;
+      }
+
+      .storefront-v2-cart-body {
+        padding: 12px 14px 14px;
+      }
+
+      .storefront-v2-panel-title {
+        font-size: 22px;
+      }
+    }
+  </style>
 </head>
 
 <body class="bg-surface-base text-text-primary font-body min-h-screen">
@@ -5244,212 +5684,74 @@
 
         <section id="page-my-store" data-page-view="my-store" class="hidden space-y-6">
           <div data-store-view="storefront" class="space-y-6">
-            <div class="relative overflow-hidden rounded-2xl border border-surface-border bg-surface-raised p-6 shadow-depth-2">
-              <div class="pointer-events-none absolute inset-0">
-                <div class="absolute -top-16 left-0 h-40 w-40 rounded-full bg-brand-500/20 blur-3xl"></div>
-                <div class="absolute -bottom-20 right-4 h-44 w-44 rounded-full bg-semantic-info/20 blur-3xl"></div>
-              </div>
-              <div class="relative">
-                <div class="flex flex-wrap items-start justify-between gap-4">
-                  <div class="max-w-2xl">
-                    <h3 class="font-body font-medium text-display-sm text-text-primary">My Storefront</h3>
-                    <p class="text-caption text-text-tertiary mt-1">Simple, clean product browsing powered by your live admin catalog.</p>
-                  </div>
-                  <span id="store-rank-discount-badge" class="inline-flex items-center gap-1 rounded-full bg-semantic-success-bg text-semantic-success px-3 py-1 text-caption font-medium">
-                    Member Discount: 0%
-                  </span>
-                </div>
+            <p id="store-checkout-feedback" class="storefront-v2-surface hidden text-caption"></p>
 
-                <div class="mt-5 rounded-xl border border-surface-border bg-surface-base/50 p-4">
-                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div class="min-w-0">
-                      <p class="text-caption text-text-tertiary">Shareable Store Link</p>
-                      <p id="store-link-value" class="text-body-sm text-text-primary mt-1 break-all">shop.premierelife.com?store=CHG-ZERO</p>
-                      <p class="text-caption text-text-tertiary mt-1">Send this link to customers to open your storefront directly.</p>
-                    </div>
-                    <button id="copy-store-link-button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                      Copy Store Link
-                    </button>
-                  </div>
-                  <p id="copy-store-link-feedback" class="hidden text-caption text-semantic-success mt-2">Store link copied.</p>
-                </div>
-
-                <p id="store-checkout-feedback" class="hidden text-caption mt-4"></p>
-              </div>
-            </div>
-
-            <div id="store-flow-grid-view" class="space-y-5">
-              <div class="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <h3 class="font-body font-medium text-display-sm text-text-primary">Featured Products</h3>
-                  <p class="text-caption text-text-tertiary mt-1">Tap a card for details, add products to cart, and checkout inside this dashboard.</p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <p id="store-grid-product-count" class="text-caption text-text-tertiary">0 live products</p>
-                  <span id="store-grid-cart-count-badge" class="inline-flex items-center gap-1 rounded-full bg-semantic-info-bg text-semantic-info px-2 py-0.5 text-caption font-medium">0 items in cart</span>
-                  <button type="button" data-store-flow-action="go-checkout" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-500 text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                    Go To Checkout
-                  </button>
-                </div>
-              </div>
-              <div id="store-product-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
-            </div>
-
-            <div id="store-flow-product-view" class="hidden">
-              <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-6">
-                <article class="overflow-hidden rounded-2xl border border-surface-border bg-surface-raised shadow-depth-1">
-                  <div class="p-4">
-                    <button type="button" data-store-flow-action="back-to-grid" class="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                      Back To Products
-                    </button>
-                  </div>
-                  <div class="relative border-t border-surface-border">
-                    <img id="store-selected-product-image" src="https://placehold.co/1000x1250?text=Product" alt="Selected product image" draggable="false" class="w-full aspect-[4/5] select-none object-cover" style="-webkit-user-drag: none;">
-                    <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-surface-base/80 via-surface-base/20 to-transparent"></div>
-                  </div>
-                </article>
-
-                <article class="rounded-2xl border border-surface-border bg-surface-raised p-6 shadow-depth-1">
-                  <h3 id="store-selected-product-title" class="font-body font-medium text-display-sm text-text-primary">Select a product</h3>
-                  <p id="store-selected-product-description" class="text-body-sm text-text-secondary mt-2">Choose a product from the grid to open full details.</p>
-
-                  <dl class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
-                      <dt class="text-caption text-text-tertiary">Price</dt>
-                      <dd id="store-selected-product-price" class="text-body-sm text-text-primary mt-1">$0.00</dd>
-                    </div>
-                    <div class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
-                      <dt class="text-caption text-text-tertiary">Stock</dt>
-                      <dd id="store-selected-product-stock" class="text-body-sm text-text-primary mt-1">0 available</dd>
-                    </div>
-                    <div class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
-                      <dt class="text-caption text-text-tertiary">Member Savings</dt>
-                      <dd id="store-selected-product-rank-discount" class="text-body-sm text-semantic-success mt-1">0%</dd>
-                    </div>
-                    <div class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
-                      <dt class="text-caption text-text-tertiary">Business Volume</dt>
-                      <dd id="store-selected-product-bv" class="text-body-sm text-text-primary mt-1">0 BV</dd>
-                    </div>
-                  </dl>
-
-                  <ul id="store-selected-product-details" class="mt-5 space-y-2 text-body-sm text-text-secondary"></ul>
-
-                  <label for="store-product-quantity-input" class="mt-5 block text-caption text-text-tertiary">Quantity</label>
-                  <input id="store-product-quantity-input" type="number" min="1" value="1" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-
-                  <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button type="button" data-product-page-action="add-to-cart" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                      Add To Cart
-                    </button>
-                    <button type="button" data-product-page-action="go-checkout" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-500 text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                      Go To Checkout
-                    </button>
-                  </div>
-                </article>
-              </div>
-            </div>
-
-            <div id="store-flow-checkout-view" class="hidden space-y-5">
-              <div class="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <h3 class="font-body font-medium text-display-sm text-text-primary">Checkout</h3>
-                  <p class="text-caption text-text-tertiary mt-1">Complete payment directly in your dashboard store flow.</p>
-                </div>
-                <button type="button" data-store-flow-action="back-to-grid" class="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                  Back To Products
-                </button>
-              </div>
-
-              <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-6">
-                <form id="store-checkout-form" class="rounded-2xl border border-surface-border bg-surface-raised p-6 shadow-depth-1 space-y-6">
+            <div id="store-flow-grid-view" class="storefront-v2-layout storefront-v2-surface">
+              <article class="storefront-v2-panel">
+                <header class="storefront-v2-panel-head">
                   <div>
-                    <h4 class="text-body-sm font-medium text-text-primary mb-3">Card Details</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <label class="text-caption text-text-tertiary">Cardholder Name
-                        <input name="cardholderName" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                      </label>
-                      <label class="text-caption text-text-tertiary">Email
-                        <input name="buyerEmail" type="email" autocomplete="email" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                      </label>
-                      <div class="md:col-span-2">
-                        <p class="text-caption text-text-tertiary mb-1">Secure Card (Stripe)</p>
-                        <div id="store-stripe-card-element" class="rounded-lg border border-surface-border bg-surface-base px-3 py-3 min-h-[44px]"></div>
-                        <p id="store-stripe-card-error" class="hidden mt-2 text-caption text-semantic-danger"></p>
-                      </div>
-                    </div>
+                    <h4 class="storefront-v2-panel-title">Store</h4>
+                    <p class="storefront-v2-panel-subtitle">Choose products to add into cart.</p>
                   </div>
+                  <div class="flex flex-col items-end gap-1">
+                    <span id="store-rank-discount-badge" class="storefront-v2-chip">Member Discount: 0%</span>
+                    <p id="store-grid-product-count" class="text-caption text-text-tertiary">0 live products</p>
+                  </div>
+                </header>
+                <div id="store-product-grid" class="storefront-v2-products">
+                  <div class="storefront-v2-no-products is-loading">Loading products...</div>
+                </div>
+              </article>
 
+              <aside class="storefront-v2-panel">
+                <header class="storefront-v2-panel-head">
                   <div>
-                    <h4 class="text-body-sm font-medium text-text-primary mb-3">Billing Address</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <label class="text-caption text-text-tertiary md:col-span-2">Address
-                        <input name="billingAddress" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                      </label>
-                      <label class="text-caption text-text-tertiary">City
-                        <input name="billingCity" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                      </label>
-                      <label class="text-caption text-text-tertiary">State
-                        <input name="billingState" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                      </label>
-                      <label class="text-caption text-text-tertiary">ZIP / Postal Code
-                        <input name="billingPostalCode" type="text" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                      </label>
-                      <label class="text-caption text-text-tertiary">Country
-                        <input name="billingCountry" type="text" value="United States" required class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                      </label>
-                    </div>
+                    <h4 class="storefront-v2-panel-title">Cart</h4>
+                    <p id="store-grid-discount-label" class="storefront-v2-panel-subtitle">Discount (Member 0%)</p>
                   </div>
-
-                  <div>
-                    <h4 class="text-body-sm font-medium text-text-primary mb-3">Shipping</h4>
-                    <div class="space-y-2">
-                      <label class="flex items-center gap-2 rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2 text-body-sm text-text-secondary">
-                        <input type="radio" name="shippingMode" value="Standard Shipping" checked class="accent-brand-500">
-                        Standard Shipping (3-5 business days)
-                      </label>
-                      <label class="flex items-center gap-2 rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2 text-body-sm text-text-secondary">
-                        <input type="radio" name="shippingMode" value="Express Shipping" class="accent-brand-500">
-                        Express Shipping (2 business days)
-                      </label>
-                      <label class="flex items-center gap-2 rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2 text-body-sm text-text-secondary">
-                        <input type="radio" name="shippingMode" value="Overnight Shipping" class="accent-brand-500">
-                        Overnight Shipping (next day)
-                      </label>
-                    </div>
-                  </div>
-                </form>
-
-                <aside class="rounded-2xl border border-surface-border bg-surface-raised p-6 shadow-depth-1">
-                  <div class="flex items-center justify-between mb-4">
-                    <h4 class="font-body font-medium text-display-sm text-text-primary">Order Summary</h4>
+                  <div class="flex flex-col items-end gap-1">
+                    <span id="store-grid-cart-count-badge" class="storefront-v2-chip">0 items in cart</span>
                     <span id="store-cart-count" class="text-caption text-text-tertiary">0 items</span>
                   </div>
-                  <div id="store-cart-empty" class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-4 text-body-sm text-text-secondary">Your cart is empty.</div>
-                  <div id="store-cart-items" class="space-y-2"></div>
-                  <div class="mt-4 space-y-2 border-t border-surface-border pt-4">
-                    <div class="flex items-center justify-between text-body-sm">
-                      <span class="text-text-secondary">Subtotal</span>
-                      <span id="store-cart-subtotal" class="text-text-primary">$0.00</span>
+                </header>
+
+                <div class="storefront-v2-cart-body">
+                  <div id="store-cart-empty" class="storefront-v2-cart-empty">Your cart is empty.</div>
+                  <div id="store-cart-items" class="storefront-v2-cart-list"></div>
+
+                  <div class="storefront-v2-summary">
+                    <div class="storefront-v2-summary-row">
+                      <span>Subtotal</span>
+                      <span id="store-cart-subtotal">$0.00</span>
                     </div>
-                    <div class="flex items-center justify-between text-body-sm">
-                      <span id="store-cart-discount-label" class="text-text-secondary">Discount (Rank 0%)</span>
+                    <div class="storefront-v2-summary-row">
+                      <span id="store-cart-discount-label">Discount (Member 0%)</span>
                       <span id="store-cart-discount" class="text-semantic-success">-$0.00</span>
                     </div>
-                    <div class="flex items-center justify-between text-body-sm">
-                      <span class="text-text-secondary">Total</span>
-                      <span id="store-cart-total" class="text-text-primary">$0.00</span>
+                    <div class="storefront-v2-summary-row storefront-v2-summary-row-total">
+                      <span>Total</span>
+                      <strong id="store-cart-total">$0.00</strong>
                     </div>
-                    <div class="flex items-center justify-between text-body-sm">
-                      <span class="text-text-secondary">Business Volume</span>
-                      <span id="store-cart-bp" class="text-text-primary">0 BV</span>
+                    <div class="storefront-v2-summary-row">
+                      <span>Business Volume</span>
+                      <span id="store-cart-bp">0 BV</span>
                     </div>
-                    <button id="store-checkout-btn" type="submit" form="store-checkout-form" class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-500 text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring disabled:opacity-40 disabled:cursor-not-allowed" disabled>
-                      Pay With Stripe
-                    </button>
                   </div>
-                </aside>
-              </div>
+
+                  <button id="store-checkout-btn" type="button" class="storefront-v2-checkout-button" disabled>
+                    Continue to Stripe
+                  </button>
+                </div>
+              </aside>
             </div>
+
+            <section class="storefront-v2-share storefront-v2-surface" aria-labelledby="store-share-and-earn-title">
+              <h3 id="store-share-and-earn-title" class="storefront-v2-share-title">Share and Earn</h3>
+              <p class="storefront-v2-share-copy">Preferred customers receive 15% off. You earn Business Volume and Retail Bonuses on every completed sale.</p>
+              <p id="store-link-value" class="hidden">shop.premierelife.com?store=CHG-ZERO</p>
+              <button id="copy-store-link-button" type="button" class="storefront-v2-share-button">Copy Store Link</button>
+              <p id="copy-store-link-feedback" class="storefront-v2-share-feedback hidden text-semantic-success">Store link copied.</p>
+            </section>
           </div>
 
           <div data-store-view="analytics" class="hidden space-y-6">
@@ -22318,6 +22620,7 @@
       let isStoreStripeReady = false;
       let isStoreStripeCheckoutPending = false;
       let isStoreStripeCardComplete = false;
+      let pendingStoreImageWarmupPromise = null;
 
       function resolveStoreInvoiceSeedValue(invoiceId) {
         const match = String(invoiceId || '').trim().toUpperCase().match(/^INV-(\d+)$/);
@@ -23053,7 +23356,7 @@
 
         if (returnDetails.checkoutStatus === 'cancel') {
           updateCheckoutFeedback('Checkout was canceled. Review your details and try again.', false);
-          setStoreFlowStep('checkout');
+          setStoreFlowStep('grid');
           clearStoreHostedCheckoutReturnDetails();
           return;
         }
@@ -23079,7 +23382,7 @@
           isStoreStripeCheckoutPending = false;
           renderCart();
           updateCheckoutFeedback(completionResult.message || 'Unable to finalize checkout.', false);
-          setStoreFlowStep('checkout');
+          setStoreFlowStep('grid');
           clearStoreHostedCheckoutReturnDetails();
           return;
         }
@@ -23088,7 +23391,7 @@
           isStoreStripeCheckoutPending = false;
           renderCart();
           updateCheckoutFeedback(completionResult.message || 'Payment is still processing. Refresh shortly.', true);
-          setStoreFlowStep('checkout');
+          setStoreFlowStep('grid');
           clearStoreHostedCheckoutReturnDetails();
           return;
         }
@@ -23117,7 +23420,7 @@
         hydrateStoreCheckoutIdentityFields();
         isStoreStripeCheckoutPending = false;
         renderCart();
-        setStoreFlowStep('checkout');
+        setStoreFlowStep('grid');
         updateCheckoutFeedback(completionResult.message || 'Payment confirmed successfully.', true);
         clearStoreHostedCheckoutReturnDetails();
       }
@@ -23489,6 +23792,42 @@
         normalizeCartAfterCatalogChange();
       }
 
+      async function warmStoreProductImages(products = [], options = {}) {
+        const maxCount = Math.max(0, toWholeNumber(options.maxCount, 8));
+        const timeoutMs = Math.max(400, toWholeNumber(options.timeoutMs, 4500));
+        const urls = Array.from(new Set(
+          (Array.isArray(products) ? products : [])
+            .map((product) => String(product?.image || '').trim())
+            .filter((url) => url),
+        )).slice(0, maxCount);
+        if (urls.length === 0) {
+          return;
+        }
+
+        await Promise.all(urls.map((url) => new Promise((resolve) => {
+          const image = new Image();
+          image.decoding = 'async';
+          image.loading = 'eager';
+          image.referrerPolicy = 'no-referrer';
+          let settled = false;
+          const settle = () => {
+            if (settled) {
+              return;
+            }
+            settled = true;
+            window.clearTimeout(timeoutId);
+            resolve();
+          };
+          const timeoutId = window.setTimeout(settle, timeoutMs);
+          image.onload = settle;
+          image.onerror = settle;
+          image.src = url;
+          if (image.complete) {
+            settle();
+          }
+        })));
+      }
+
       function normalizeCartAfterCatalogChange() {
         const nextCart = [];
         storeCart.forEach((line) => {
@@ -23603,6 +23942,27 @@
         }
       }
 
+      function stabilizeStoreProductImagePaint() {
+        if (!storeProductGrid) {
+          return;
+        }
+        const imageNodes = Array.from(storeProductGrid.querySelectorAll('.storefront-v2-product-media img'));
+        imageNodes.forEach((imageNode) => {
+          if (!(imageNode instanceof HTMLImageElement)) {
+            return;
+          }
+          const markReady = () => {
+            imageNode.classList.add('is-ready');
+          };
+          if (imageNode.complete && imageNode.naturalWidth > 0) {
+            markReady();
+            return;
+          }
+          imageNode.addEventListener('load', markReady, { once: true });
+          imageNode.addEventListener('error', markReady, { once: true });
+        });
+      }
+
       function renderProductGrid() {
         if (!storeProductGrid) {
           return;
@@ -23616,7 +23976,7 @@
 
         if (storefrontProducts.length === 0) {
           storeProductGrid.innerHTML = `
-            <div class="sm:col-span-2 xl:col-span-3 rounded-2xl border border-surface-border bg-surface-raised/70 p-6 text-body-sm text-text-secondary shadow-depth-1">
+            <div class="storefront-v2-no-products">
               No active products are currently available. Add products in Admin Store Setup to publish them here.
             </div>
           `;
@@ -23625,54 +23985,27 @@
 
         storeProductGrid.innerHTML = storefrontProducts.map((product) => {
           const unitPrice = resolveProductUnitPrice(product);
-          const productBv = resolveStoreProductBvForCurrentBuyer(product);
           const stockLabel = product.stock > 0 ? `${formatInteger(product.stock)} in stock` : 'Out of stock';
           const canAddToCart = product.stock > 0;
-          const stockChipClass = product.stock > 0
-            ? 'border-semantic-success/30 bg-semantic-success-bg text-semantic-success'
-            : 'border-semantic-danger/30 bg-semantic-danger-bg text-semantic-danger';
-          const stockChipLabel = product.stock > 0 ? 'In Stock' : 'Out Of Stock';
-          const detailPreview = product.details.slice(0, 2).map((detail) => (
-            `<li class="truncate">${escapeHtml(detail)}</li>`
-          )).join('');
+          const productCopy = String(product.description || '').trim().slice(0, 110);
           return `
-            <article class="group overflow-hidden rounded-2xl border border-surface-border bg-surface-raised shadow-depth-1">
-              <div class="relative overflow-hidden">
-                <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" draggable="false" class="w-full aspect-[4/5] select-none object-cover transition-transform duration-300 ease-out-expo group-hover:scale-[1.02]" style="-webkit-user-drag: none;"/>
-                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-surface-base/90 via-surface-base/20 to-transparent"></div>
-                <div class="absolute left-3 top-3 inline-flex items-center rounded-full border border-surface-border bg-surface-base/80 px-2 py-0.5 text-caption text-text-primary">
-                  ${formatInteger(productBv)} BV
-                </div>
-                <div class="absolute right-3 top-3 inline-flex items-center rounded-full border px-2 py-0.5 text-caption ${stockChipClass}">
-                  ${stockChipLabel}
-                </div>
+            <article class="storefront-v2-product">
+              <div class="storefront-v2-product-media">
+                <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" width="700" height="700" loading="eager" decoding="async" fetchpriority="high" draggable="false" style="-webkit-user-drag: none;"/>
               </div>
-              <div class="p-4 space-y-3">
-                <div>
-                  <h4 class="text-body-sm font-medium text-text-primary">${escapeHtml(product.title)}</h4>
-                  <p class="text-caption text-text-tertiary mt-1">${escapeHtml(product.description)}</p>
-                </div>
-                <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-baseline gap-2">
-                    <span class="font-body font-semibold text-body text-text-primary">${formatCurrency(unitPrice)}</span>
-                  </div>
-                  <span class="text-caption text-text-tertiary">${escapeHtml(stockLabel)}</span>
-                </div>
-                <ul class="space-y-1 text-caption text-text-tertiary">
-                  ${detailPreview}
-                </ul>
-                <div class="grid grid-cols-2 gap-2">
-                  <button data-product-action="view" data-product-id="${escapeHtml(product.id)}" class="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-surface-border bg-surface-raised text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                    Quick View
-                  </button>
-                  <button data-product-action="add" data-product-id="${escapeHtml(product.id)}" class="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-brand-500 text-text-inverse hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring ${canAddToCart ? '' : 'opacity-40 cursor-not-allowed'}" ${canAddToCart ? '' : 'disabled'}>
-                    Add To Cart
-                  </button>
-                </div>
+              <p class="storefront-v2-product-name">${escapeHtml(product.title)}</p>
+              <p class="storefront-v2-product-copy">${escapeHtml(productCopy || 'Preferred product from your live catalog.')}</p>
+              <div class="storefront-v2-product-meta">
+                <span class="storefront-v2-product-price">${formatCurrency(unitPrice)}</span>
+                <span class="storefront-v2-product-stock">${escapeHtml(stockLabel)}</span>
               </div>
+              <button data-product-action="add" data-product-id="${escapeHtml(product.id)}" class="storefront-v2-product-button" ${canAddToCart ? '' : 'disabled'}>
+                Add
+              </button>
             </article>
           `;
         }).join('');
+        stabilizeStoreProductImagePaint();
       }
 
       function renderSelectedProductPage() {
@@ -23798,28 +24131,24 @@
           }
 
           const unitPrice = resolveProductUnitPrice(product);
-          const productBv = resolveStoreProductBvForCurrentBuyer(product);
           const lineTotal = roundCurrency(unitPrice * line.quantity);
           return `
-            <div class="rounded-lg border border-surface-border bg-surface-base/40 p-3">
-              <div class="flex items-start justify-between gap-3">
-                <div>
-                  <p class="text-body-sm text-text-primary">${escapeHtml(product.title)}</p>
-                  <p class="text-caption text-text-tertiary mt-1">${formatCurrency(unitPrice)} each - ${formatInteger(productBv)} BV</p>
+            <article class="storefront-v2-cart-item">
+              <div class="storefront-v2-row">
+                <p class="storefront-v2-item-name">${escapeHtml(product.title)}</p>
+                <p class="storefront-v2-item-price">${formatCurrency(lineTotal)}</p>
+              </div>
+              <div class="storefront-v2-row">
+                <div class="storefront-v2-qty">
+                  <button type="button" data-cart-action="decrease" data-product-id="${escapeHtml(product.id)}">-</button>
+                  <span>${formatInteger(line.quantity)}</span>
+                  <button type="button" data-cart-action="increase" data-product-id="${escapeHtml(product.id)}">+</button>
                 </div>
-                <button data-cart-action="remove" data-product-id="${escapeHtml(product.id)}" class="text-caption text-semantic-danger hover:text-semantic-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 rounded">
+                <button type="button" data-cart-action="remove" data-product-id="${escapeHtml(product.id)}" class="storefront-v2-remove">
                   Remove
                 </button>
               </div>
-              <div class="flex items-center justify-between mt-3">
-                <div class="inline-flex items-center rounded-lg border border-surface-border overflow-hidden">
-                  <button data-cart-action="decrease" data-product-id="${escapeHtml(product.id)}" class="px-2 py-1 text-text-secondary hover:text-text-primary hover:bg-surface-elevated">-</button>
-                  <span class="px-3 py-1 text-body-sm text-text-primary">${formatInteger(line.quantity)}</span>
-                  <button data-cart-action="increase" data-product-id="${escapeHtml(product.id)}" class="px-2 py-1 text-text-secondary hover:text-text-primary hover:bg-surface-elevated">+</button>
-                </div>
-                <span class="text-body-sm text-text-primary">${formatCurrency(lineTotal)}</span>
-              </div>
-            </div>
+            </article>
           `;
         }).join('');
       }
@@ -24470,16 +24799,26 @@
           return;
         }
 
-        const checkoutValidation = validateCheckoutForm();
-        if (!checkoutValidation.ok) {
-          updateCheckoutFeedback(checkoutValidation.message, false);
+        const buyerName = String(currentSessionUser?.name || currentSessionUser?.username || 'Store Buyer').trim();
+        const buyerEmail = String(currentSessionUser?.email || '').trim().toLowerCase();
+        if (!buyerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) {
+          updateCheckoutFeedback('Your account needs a valid email before checkout.', false);
           return;
         }
 
-        const checkoutFields = checkoutValidation.checkoutFields || {};
-        const shippingMode = checkoutValidation.shippingMode || 'Standard Shipping';
-        const buyerName = String(checkoutFields.buyerName || currentSessionUser?.name || currentSessionUser?.username || 'Store Buyer').trim();
-        const buyerEmail = String(checkoutFields.buyerEmail || currentSessionUser?.email || '').trim().toLowerCase();
+        const addressParts = [
+          currentSessionUser?.shippingAddress,
+          currentSessionUser?.address,
+          currentSessionUser?.billingAddress,
+          currentSessionUser?.city,
+          currentSessionUser?.state,
+          currentSessionUser?.postalCode,
+          currentSessionUser?.country,
+        ].map((value) => String(value || '').trim()).filter(Boolean);
+        const shippingAddress = addressParts.length > 0
+          ? addressParts.join(', ')
+          : 'Shipping address will be confirmed during Stripe checkout.';
+        const shippingMode = 'Standard Shipping';
 
         const checkoutLinesSnapshot = storeCart.map((line) => ({
           productId: String(line?.productId || '').trim(),
@@ -24491,7 +24830,7 @@
           storeCode: '',
           buyerName,
           buyerEmail,
-          shippingAddress: String(checkoutFields.shippingAddress || '').trim(),
+          shippingAddress,
           shippingMode,
           source: 'member-dashboard',
           returnPath: '/index.html',
@@ -24534,10 +24873,23 @@
         storePublicCode = resolvePublicStoreCode();
         syncStoreRankDiscountState();
         await loadStoreProductCatalog();
+        const storefrontProducts = resolveStorefrontProducts();
+        pendingStoreImageWarmupPromise = warmStoreProductImages(storefrontProducts, {
+          maxCount: 12,
+          timeoutMs: 4500,
+        }).finally(() => {
+          pendingStoreImageWarmupPromise = null;
+        });
+        if (activePage !== 'my-store') {
+          await pendingStoreImageWarmupPromise;
+        } else {
+          await Promise.race([
+            pendingStoreImageWarmupPromise,
+            new Promise((resolve) => window.setTimeout(resolve, 900)),
+          ]);
+        }
         hydrateStoreSetupIdentity();
-        hydrateStoreCheckoutIdentityFields();
         renderProductGrid();
-        renderSelectedProductPage();
         renderCart();
         setStoreFlowStep('grid');
         await loadStoreInvoices();
@@ -24564,11 +24916,6 @@
             const action = actionButton.dataset.productAction;
             const productId = actionButton.dataset.productId;
             if (!productId) {
-              return;
-            }
-
-            if (action === 'view') {
-              openStoreProductPage(productId);
               return;
             }
 
@@ -24684,6 +25031,12 @@
         if (storeCheckoutFormElement) {
           storeCheckoutFormElement.addEventListener('submit', (event) => {
             event.preventDefault();
+            void checkoutCart();
+          });
+        }
+
+        if (storeCheckoutButton) {
+          storeCheckoutButton.addEventListener('click', () => {
             void checkoutCart();
           });
         }
@@ -25876,6 +26229,7 @@
       beginDashboardSkeletonLoading();
       initializeServerCutoffCard();
       initializeThemeFromSettings();
+      void initMyStore();
       loadRuntimeSettings().catch((error) => {
         console.warn('Unable to initialize runtime settings:', error);
       });
@@ -25896,7 +26250,6 @@
         markDashboardSkeletonStepComplete('summary');
         console.error('Unable to preload Binary Tree summary:', error);
       });
-      void initMyStore();
       initCommissionPayoutButtons();
       initializeEWalletModule();
       loadEWalletSnapshotForCurrentUser({ silent: true }).catch((error) => {
