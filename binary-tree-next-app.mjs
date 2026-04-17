@@ -161,14 +161,20 @@ const SERVER_CUTOFF_MINUTE = 59;
 const MEMBER_AUTH_SESSION_API = '/api/member-auth/session';
 const MEMBER_REGISTERED_MEMBERS_API = '/api/registered-members';
 const MEMBER_BINARY_TREE_PINNED_NODES_API = '/api/member-auth/binary-tree-next/pinned-nodes';
+const MEMBER_BINARY_TREE_TIER_SORT_DIRECTIONS_API = '/api/member-auth/binary-tree-next/tier-sort-directions';
 const ADMIN_REGISTERED_MEMBERS_API = '/api/admin/registered-members';
 const ACCOUNT_OVERVIEW_BINARY_TREE_METRICS_API = '/api/binary-tree-metrics';
 const ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API = '/api/sales-team-commissions';
 const ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API = '/api/commission-containers';
 const ACCOUNT_OVERVIEW_E_WALLET_API = '/api/e-wallet';
+const MEMBER_ACHIEVEMENTS_API = '/api/member-auth/achievements';
+const MEMBER_GOOD_LIFE_MONTHLY_API = '/api/member-auth/good-life/monthly';
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_VISIBLE_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_HIDDEN_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS;
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_RETRY_INTERVAL_MS = 2800;
+const RANK_ADVANCEMENT_REMOTE_SYNC_VISIBLE_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
+const RANK_ADVANCEMENT_REMOTE_SYNC_HIDDEN_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS;
+const RANK_ADVANCEMENT_REMOTE_SYNC_RETRY_INTERVAL_MS = 2800;
 const MEMBER_REGISTERED_MEMBERS_SESSION_API = '/api/registered-members/session';
 const ADMIN_REGISTERED_MEMBERS_SESSION_API = '/api/admin/registered-members/session';
 const MEMBER_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/registered-members/session/complete';
@@ -239,6 +245,28 @@ const ENROLL_PAID_PACKAGE_KEY_SET = new Set([
   'infinity-builder-pack',
   'legacy-builder-pack',
 ]);
+const INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER = 3;
+const INFINITY_BUILDER_TIER_NODE_REQUIREMENT = 3;
+const INFINITY_BUILDER_TIER_BONUS_USD = 150;
+const LEGACY_LEADERSHIP_TIER_BONUS_USD = 2000;
+const INFINITY_BUILDER_TIER_OVERRIDE_RATE = 0.01;
+const INFINITY_BUILDER_MIN_VISIBLE_TIERS = 6;
+const INFINITY_BUILDER_MAX_VISIBLE_TIERS = 18;
+const INFINITY_BUILDER_QUALIFYING_PACKAGE_KEY_SET = new Set([
+  'infinity-builder-pack',
+  'legacy-builder-pack',
+]);
+const LEGACY_LEADERSHIP_REQUIRED_PACKAGE_KEY = 'legacy-builder-pack';
+const LEGACY_LEADERSHIP_TOTAL_NODES_PER_TIER = 40;
+const LEGACY_LEADERSHIP_MAX_DEPTH = 3;
+const LEGACY_LEADERSHIP_BASE_VISIBLE_TIERS = 1;
+const LEGACY_LEADERSHIP_PREVIEW_LOCKED_TIERS = 0;
+const LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH = Object.freeze([1, 3, 9, 27]);
+const LEGACY_TIER_CANVAS_PLACEHOLDER_ID_PREFIX = 'legacy-tier-canvas-empty';
+const LEGACY_TIER_CANVAS_RADIUS_DEPTH_DECAY = 0.56;
+const LEGACY_TIER_CANVAS_WORLD_RADIUS_MIN = 0.0002;
+const INFINITY_BUILDER_PANEL_MODE_INFINITY = 'infinity';
+const INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP = 'legacy-leadership';
 const ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY = Object.freeze({
   'personal-pack': 'Personal Pack',
   'business-pack': 'Business Pack',
@@ -490,6 +518,47 @@ const ACCOUNT_OVERVIEW_DEFAULT_LABELS = Object.freeze({
   eWallet: safeText(accountOverviewEwalletLabelElement?.textContent || 'E-Wallet') || 'E-Wallet',
 });
 const accountOverviewCommissionButtons = Array.from(document.querySelectorAll('[data-account-overview-commission]'));
+const infinityBuilderPanelElement = document.getElementById('tree-next-infinity-builder-panel');
+const infinityBuilderCloseButtonElement = document.getElementById('tree-next-infinity-builder-close');
+const infinityBuilderBackButtonElement = document.getElementById('tree-next-infinity-builder-back');
+const infinityBuilderBreadcrumbCurrentElement = document.getElementById('tree-next-infinity-builder-breadcrumb-current');
+const infinityBuilderTitleElement = document.getElementById('tree-next-infinity-builder-title');
+const infinityBuilderCopyElement = document.getElementById('tree-next-infinity-builder-copy');
+const infinityBuilderTierTitleElement = document.getElementById('tree-next-infinity-builder-tier-title');
+const infinityBuilderTierSubtitleElement = document.getElementById('tree-next-infinity-builder-tier-subtitle');
+const infinityBuilderTierGridElement = document.getElementById('tree-next-infinity-builder-tier-grid');
+const infinityBuilderTierBonusElement = document.getElementById('tree-next-infinity-builder-tier-bonus');
+const infinityBuilderClaimButtonElement = document.getElementById('tree-next-infinity-builder-claim');
+const infinityBuilderViewTreeButtonElement = document.getElementById('tree-next-infinity-builder-view-tree');
+const infinityBuilderClaimFeedbackElement = document.getElementById('tree-next-infinity-builder-claim-feedback');
+const infinityBuilderCurrentSortElement = document.getElementById('tree-next-infinity-builder-current-sort');
+const infinityBuilderCurrentListElement = document.getElementById('tree-next-infinity-builder-current-list');
+const infinityBuilderCurrentEmptyElement = document.getElementById('tree-next-infinity-builder-current-empty');
+const rankAdvancementPanelElement = document.getElementById('tree-next-rank-advancement-panel');
+const rankAdvancementCloseButtonElement = document.getElementById('tree-next-rank-advancement-close');
+const rankAdvancementTargetPrefixElement = document.getElementById('tree-next-rank-advancement-target-prefix');
+const rankAdvancementTargetRankElement = document.getElementById('tree-next-rank-advancement-target-rank');
+const rankAdvancementAcquiredSinceElement = document.getElementById('tree-next-rank-advancement-acquired-since');
+const rankAdvancementRewardPreviewElement = document.getElementById('tree-next-rank-advancement-reward-preview');
+const rankAdvancementGoodLifePreviewElement = document.getElementById('tree-next-rank-advancement-good-life-preview');
+const rankAdvancementPersonalRequirementElement = document.getElementById('tree-next-rank-advancement-personal-requirement');
+const rankAdvancementDirectRequirementElement = document.getElementById('tree-next-rank-advancement-direct-requirement');
+const rankAdvancementCyclesRequirementElement = document.getElementById('tree-next-rank-advancement-cycles-requirement');
+const rankAdvancementMembersRequirementElement = document.getElementById('tree-next-rank-advancement-members-requirement');
+const rankAdvancementMilestonesElement = document.getElementById('tree-next-rank-advancement-milestones');
+const rankAdvancementProgressFillElement = document.getElementById('tree-next-rank-advancement-progress-fill');
+const rankAdvancementRewardIconElement = document.getElementById('tree-next-rank-advancement-reward-icon');
+const rankAdvancementRewardRankElement = document.getElementById('tree-next-rank-advancement-reward-rank');
+const rankAdvancementRewardAmountElement = document.getElementById('tree-next-rank-advancement-reward-amount');
+const rankAdvancementGoodLifeCopyElement = document.getElementById('tree-next-rank-advancement-good-life-copy');
+const rankAdvancementGoodLifeRankElement = document.getElementById('tree-next-rank-advancement-good-life-rank');
+const rankAdvancementGoodLifeAmountElement = document.getElementById('tree-next-rank-advancement-good-life-amount');
+const rankAdvancementAnalysisTotalBvElement = document.getElementById('tree-next-rank-advancement-analysis-total-bv');
+const rankAdvancementAnalysisPersonalBvElement = document.getElementById('tree-next-rank-advancement-analysis-personal-bv');
+const rankAdvancementAnalysisCyclesElement = document.getElementById('tree-next-rank-advancement-analysis-cycles');
+const rankAdvancementClaimButtonElement = document.getElementById('tree-next-rank-advancement-claim');
+const rankAdvancementClaimTimerElement = document.getElementById('tree-next-rank-advancement-claim-timer');
+const rankAdvancementFeedbackElement = document.getElementById('tree-next-rank-advancement-feedback');
 const preferredAccountsPanelElement = document.getElementById('tree-next-preferred-accounts-panel');
 const preferredAccountsCloseButtonElement = document.getElementById('tree-next-preferred-accounts-close');
 const preferredAccountsAvatarElement = document.getElementById('tree-next-preferred-accounts-avatar');
@@ -648,6 +717,49 @@ let accountOverviewRemoteIdentityKey = '';
 let accountOverviewRemoteRequestSequence = 0;
 let accountOverviewCachedLegVolumeSignature = '';
 let accountOverviewCachedLegVolumeMetrics = null;
+let rankAdvancementLastRenderSignature = '';
+let rankAdvancementSnapshot = null;
+let rankAdvancementDataVersion = 0;
+let rankAdvancementSyncPromise = null;
+let rankAdvancementSyncInFlight = false;
+let rankAdvancementLastRequestAtMs = 0;
+let rankAdvancementLastSyncedAtMs = 0;
+let rankAdvancementIdentityKey = '';
+let rankAdvancementLoading = false;
+let rankAdvancementClaimInFlight = false;
+let rankAdvancementCachedAchievementsPayload = null;
+let rankAdvancementCachedGoodLifePayload = null;
+let rankAdvancementFeedbackTimerId = 0;
+let rankAdvancementClaimTimerIntervalId = 0;
+let rankAdvancementSelectedMilestoneId = '';
+let infinityBuilderPanelMode = INFINITY_BUILDER_PANEL_MODE_INFINITY;
+let infinityBuilderLastRenderSignature = '';
+let infinityBuilderSelectedTierNumber = 1;
+let infinityBuilderClaimInFlight = false;
+let infinityBuilderClaimFeedbackTimerId = 0;
+let infinityBuilderClaimFeedbackTierNumber = 0;
+let infinityBuilderLastPanelSnapshot = null;
+let infinityBuilderTierSortDirectionInfinity = 'asc';
+let infinityBuilderTierSortDirectionLegacyLeadership = 'asc';
+let infinityBuilderTierSortDirectionsUpdatedAt = '';
+let infinityBuilderTierSortDirectionsSyncInFlight = false;
+let infinityBuilderTierSortDirectionsSyncQueued = false;
+let infinityBuilderTierSortDirectionsLastSyncedKey = '';
+let infinityBuilderTierSortDirectionsLocalDirty = false;
+let legacyTierCanvasOpenTimerId = 0;
+let legacyTierCanvasOpenToken = '';
+let legacyTierCanvasTierSwitchTimerId = 0;
+let legacyTierCanvasTierSwitchToken = '';
+const legacyTierCanvasViewState = {
+  active: false,
+  tierNumber: 0,
+  signature: '',
+  model: null,
+  anchorView: null,
+  tierEntries: [],
+  dropdownOpen: false,
+  tierSwitchInFlight: false,
+};
 let preferredAccountsLastRenderSignature = '';
 let preferredAccountsRows = [];
 let preferredAccountsRowsDataSignature = '';
@@ -731,6 +843,8 @@ const state = {
   ui: {
     sideNavOpen: true,
     accountOverviewVisible: false,
+    infinityBuilderVisible: false,
+    rankAdvancementVisible: false,
     preferredAccountsVisible: false,
     preferredAccountsSaving: false,
     myStoreVisible: false,
@@ -829,6 +943,9 @@ const state = {
     lastOpenedAt: '',
     pinnedNodeIds: [],
     pinnedNodeIdsUpdatedAt: '',
+    infinityBuilderTierSortDirection: 'asc',
+    legacyLeadershipTierSortDirection: 'asc',
+    tierSortDirectionsUpdatedAt: '',
     checkedAt: '',
     source: 'uninitialized',
   },
@@ -5002,8 +5119,12 @@ function syncAccountOverviewPanelVisibility() {
 function setAccountOverviewPanelVisible(isVisible) {
   state.ui.accountOverviewVisible = Boolean(isVisible);
   if (state.ui.accountOverviewVisible) {
+    state.ui.infinityBuilderVisible = false;
+    state.ui.rankAdvancementVisible = false;
     state.ui.preferredAccountsVisible = false;
     state.ui.myStoreVisible = false;
+    syncInfinityBuilderPanelVisibility();
+    syncRankAdvancementPanelVisibility();
     syncPreferredAccountsPanelVisibility();
     syncMyStorePanelVisibility();
   }
@@ -5039,6 +5160,4635 @@ function initAccountOverviewPanel() {
   if (accountOverviewRefreshButtonElement instanceof HTMLElement) {
     accountOverviewRefreshButtonElement.addEventListener('click', () => {
       setAccountOverviewPanelVisible(false);
+    });
+  }
+  for (const commissionButton of accountOverviewCommissionButtons) {
+    if (!(commissionButton instanceof HTMLButtonElement)) {
+      continue;
+    }
+    commissionButton.addEventListener('click', () => {
+      const commissionKey = normalizeCredentialValue(
+        commissionButton.dataset.accountOverviewCommission || '',
+      );
+      accountOverviewSelectedCommissionKey = commissionKey;
+      if (commissionKey === 'infinity-builder' || commissionKey === 'infinitybuilder') {
+        setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_INFINITY);
+        setInfinityBuilderPanelVisible(true);
+      } else if (
+        commissionKey === 'legacy-builder'
+        || commissionKey === 'legacybuilder'
+        || commissionKey === 'legacy-leadership'
+        || commissionKey === 'legacyleadership'
+      ) {
+        setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+        setInfinityBuilderPanelVisible(true);
+      }
+    });
+  }
+}
+
+function isInfinityBuilderPanelAvailable() {
+  return infinityBuilderPanelElement instanceof HTMLElement;
+}
+
+function normalizeInfinityBuilderPanelMode(modeInput = INFINITY_BUILDER_PANEL_MODE_INFINITY) {
+  const normalizedMode = normalizeCredentialValue(modeInput);
+  if (
+    normalizedMode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP
+    || normalizedMode === 'legacyleadership'
+    || normalizedMode === 'legacy-builder'
+    || normalizedMode === 'legacybuilder'
+  ) {
+    return INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP;
+  }
+  return INFINITY_BUILDER_PANEL_MODE_INFINITY;
+}
+
+function isLegacyLeadershipPanelMode() {
+  return normalizeInfinityBuilderPanelMode(infinityBuilderPanelMode)
+    === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP;
+}
+
+function resolveInfinityBuilderPanelModeConfig(modeInput = infinityBuilderPanelMode) {
+  const mode = normalizeInfinityBuilderPanelMode(modeInput);
+  if (mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    return {
+      mode,
+      panelTitle: 'Legacy Leadership Bonus',
+      panelCopyHtml: (
+        'The <strong>Legacy Leadership Bonus</strong> rewards leaders who build Legacy-only'
+        + ' teams through mapped depth levels (0-3). Each completed tier unlocks a one-time'
+        + ' tier reward.'
+      ),
+      tierLabelPrefix: 'Legacy Tier',
+      claimMapPrimaryKey: 'legacyleadership',
+      claimMapFallbackKey: 'legacyLeadership',
+      claimMessageLabel: 'Legacy tier reward',
+      currentEmptyText: 'Enroll Legacy package members to start building Tier 1.',
+      currentAriaLabelPrefix: 'View Legacy Tier',
+      commissionBalanceKey: 'legacyBuilder',
+      maxDepth: LEGACY_LEADERSHIP_MAX_DEPTH,
+      totalNodesPerTier: LEGACY_LEADERSHIP_TOTAL_NODES_PER_TIER,
+      baseVisibleTierCount: LEGACY_LEADERSHIP_BASE_VISIBLE_TIERS,
+      previewLockedTierCount: LEGACY_LEADERSHIP_PREVIEW_LOCKED_TIERS,
+      showMonthlyOverride: false,
+      unlockByDirectRequirement: true,
+      directSeedLabel: 'Legacy enrollments',
+    };
+  }
+  return {
+    mode,
+    panelTitle: 'Infinity Builder Bonus',
+    panelCopyHtml: (
+      'The <strong>Infinity Builder Bonus</strong> rewards members who build strong foundations.'
+      + ' Each tier is completed after 3 direct Infinity/Legacy enrollments. Then each member'
+      + ' unlocks 1% monthly only after duplicating to 3 active direct enrollments.'
+    ),
+    tierLabelPrefix: 'Infinity Tier',
+    claimMapPrimaryKey: 'infinitybuilder',
+    claimMapFallbackKey: 'infinityBuilder',
+    claimMessageLabel: 'Tier reward',
+    currentEmptyText: 'Enroll Infinity or Legacy package members to start building Tier 1.',
+    currentAriaLabelPrefix: 'View Infinity Tier',
+    commissionBalanceKey: 'infinityBuilder',
+    maxDepth: 1,
+    totalNodesPerTier: INFINITY_BUILDER_TIER_NODE_REQUIREMENT,
+    baseVisibleTierCount: INFINITY_BUILDER_MIN_VISIBLE_TIERS,
+    previewLockedTierCount: 0,
+    showMonthlyOverride: true,
+    unlockByDirectRequirement: false,
+    directSeedLabel: 'Infinity/Legacy enrollments',
+  };
+}
+
+function isLegacyTierCanvasViewActive() {
+  return Boolean(
+    legacyTierCanvasViewState.active
+    && legacyTierCanvasViewState.model
+    && isLegacyLeadershipPanelMode(),
+  );
+}
+
+function clearPendingLegacyTierCanvasOpen() {
+  if (legacyTierCanvasOpenTimerId > 0) {
+    window.clearTimeout(legacyTierCanvasOpenTimerId);
+  }
+  legacyTierCanvasOpenTimerId = 0;
+  legacyTierCanvasOpenToken = '';
+}
+
+function clearPendingLegacyTierCanvasTierSwitch(options = {}) {
+  const preserveFade = options?.preserveFade === true;
+  if (legacyTierCanvasTierSwitchTimerId > 0) {
+    window.clearTimeout(legacyTierCanvasTierSwitchTimerId);
+  }
+  legacyTierCanvasTierSwitchTimerId = 0;
+  legacyTierCanvasTierSwitchToken = '';
+  legacyTierCanvasViewState.tierSwitchInFlight = false;
+  if (!preserveFade) {
+    setUniverseEnterViewFade('none');
+  }
+}
+
+function captureLegacyTierCanvasAnchorView(options = {}) {
+  const preferTarget = options?.preferTarget !== false;
+  const cameraTarget = preferTarget && state.camera?.target && typeof state.camera.target === 'object'
+    ? state.camera.target
+    : null;
+  const cameraView = state.camera?.view && typeof state.camera.view === 'object'
+    ? state.camera.view
+    : null;
+  const sourceView = cameraTarget || cameraView || null;
+  if (!sourceView) {
+    return {
+      x: 0,
+      y: 0,
+      scale: DEFAULT_HOME_SCALE,
+    };
+  }
+  return {
+    x: safeNumber(sourceView.x, 0),
+    y: safeNumber(sourceView.y, 0),
+    scale: clamp(safeNumber(sourceView.scale, DEFAULT_HOME_SCALE), MIN_SCALE, MAX_SCALE),
+  };
+}
+
+function resolveLegacyTierCanvasTierEntries(snapshotInput = null, selectedTierInput = null) {
+  const snapshot = snapshotInput && typeof snapshotInput === 'object' ? snapshotInput : null;
+  const tiers = Array.isArray(snapshot?.tiers) ? snapshot.tiers : [];
+  const selectedTierNumber = Math.max(
+    1,
+    Math.floor(safeNumber(
+      selectedTierInput?.tierNumber,
+      safeNumber(infinityBuilderSelectedTierNumber, 1),
+    )),
+  );
+  const unlockedOrSelected = tiers.filter((tier) => (
+    tier
+    && typeof tier === 'object'
+    && (Boolean(tier.isUnlocked) || Math.floor(safeNumber(tier.tierNumber, 0)) === selectedTierNumber)
+  ));
+  const sourceTiers = unlockedOrSelected.length ? unlockedOrSelected : tiers;
+  const tierNumberSet = new Set();
+  for (const tier of sourceTiers) {
+    const tierNumber = Math.floor(safeNumber(tier?.tierNumber, 0));
+    if (tierNumber > 0) {
+      tierNumberSet.add(tierNumber);
+    }
+  }
+  if (!tierNumberSet.size && selectedTierNumber > 0) {
+    tierNumberSet.add(selectedTierNumber);
+  }
+  const tierNumbers = Array.from(tierNumberSet).sort((a, b) => a - b);
+  return tierNumbers.map((tierNumber) => ({
+    tierNumber,
+    label: `Legacy Tier ${tierNumber}`,
+    isSelected: tierNumber === selectedTierNumber,
+  }));
+}
+
+function syncLegacyTierCanvasTierEntries(snapshotInput = null, selectedTierInput = null) {
+  legacyTierCanvasViewState.tierEntries = resolveLegacyTierCanvasTierEntries(
+    snapshotInput,
+    selectedTierInput,
+  );
+  if (legacyTierCanvasViewState.tierEntries.length <= 1) {
+    legacyTierCanvasViewState.dropdownOpen = false;
+  }
+}
+
+function selectLegacyTierCanvasTier(tierNumberInput = 0, options = {}) {
+  const requestedTierNumber = Math.floor(safeNumber(tierNumberInput, NaN));
+  if (!Number.isFinite(requestedTierNumber) || requestedTierNumber <= 0) {
+    return false;
+  }
+  if (!isLegacyLeadershipPanelMode()) {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+  }
+
+  const previousTierNumber = infinityBuilderSelectedTierNumber;
+  const wasLegacyViewActive = isLegacyTierCanvasViewActive();
+  const previousLegacyTierNumber = Math.max(
+    1,
+    Math.floor(safeNumber(
+      legacyTierCanvasViewState?.tierNumber,
+      previousTierNumber,
+    )),
+  );
+  infinityBuilderSelectedTierNumber = requestedTierNumber;
+  let selectedTierContext = resolveInfinityBuilderSelectedTierContext();
+  if (!selectedTierContext) {
+    const fallbackSnapshot = infinityBuilderLastPanelSnapshot;
+    const fallbackTier = resolveInfinityBuilderSelectedTierFromSnapshot(
+      fallbackSnapshot,
+      requestedTierNumber,
+    );
+    if (fallbackSnapshot && fallbackTier) {
+      selectedTierContext = {
+        snapshot: fallbackSnapshot,
+        selectedTier: fallbackTier,
+      };
+    }
+  }
+  if (!selectedTierContext) {
+    infinityBuilderSelectedTierNumber = previousTierNumber;
+    return false;
+  }
+
+  const resolvedTierNumber = Math.max(
+    1,
+    Math.floor(safeNumber(selectedTierContext?.selectedTier?.tierNumber, requestedTierNumber)),
+  );
+  infinityBuilderSelectedTierNumber = resolvedTierNumber;
+  infinityBuilderClaimFeedbackTierNumber = 0;
+  infinityBuilderLastRenderSignature = '';
+  infinityBuilderLastPanelSnapshot = selectedTierContext.snapshot || infinityBuilderLastPanelSnapshot;
+  syncLegacyTierCanvasTierEntries(selectedTierContext.snapshot, selectedTierContext.selectedTier);
+
+  const keepDropdownOpen = options?.keepDropdownOpen === true;
+  if (!keepDropdownOpen) {
+    legacyTierCanvasViewState.dropdownOpen = false;
+  }
+
+  const tierChanged = resolvedTierNumber !== previousLegacyTierNumber;
+  const shouldAnimateTierSwitch = wasLegacyViewActive && tierChanged;
+  if (shouldAnimateTierSwitch) {
+    const fadeOutDurationMs = 500;
+    const fadeInDurationMs = 760;
+    clearPendingLegacyTierCanvasTierSwitch({ preserveFade: true });
+    clearPendingUniverseEnterPrep({ preserveFade: true });
+    clearPendingUniverseBackPrep({ preserveFade: true });
+    legacyTierCanvasViewState.tierSwitchInFlight = true;
+    setUniverseEnterViewFade('out', fadeOutDurationMs);
+    const switchToken = `${resolvedTierNumber}:${Math.floor(getNowMs())}`;
+    legacyTierCanvasTierSwitchToken = switchToken;
+    legacyTierCanvasTierSwitchTimerId = window.setTimeout(() => {
+      if (legacyTierCanvasTierSwitchToken !== switchToken) {
+        return;
+      }
+      legacyTierCanvasTierSwitchToken = '';
+      legacyTierCanvasTierSwitchTimerId = 0;
+      legacyTierCanvasViewState.tierSwitchInFlight = false;
+      syncLegacyTierCanvasViewModel(selectedTierContext.snapshot, selectedTierContext.selectedTier);
+      setUniverseEnterViewFade('in', fadeInDurationMs);
+    }, fadeOutDurationMs);
+  } else if (wasLegacyViewActive) {
+    clearPendingLegacyTierCanvasTierSwitch();
+    syncLegacyTierCanvasViewModel(selectedTierContext.snapshot, selectedTierContext.selectedTier);
+  }
+
+  if (Boolean(state.ui?.infinityBuilderVisible)) {
+    syncInfinityBuilderPanelVisuals();
+  } else {
+    syncInfinityBuilderViewTreeButtonState({
+      isLegacyMode: true,
+      tierNumber: infinityBuilderSelectedTierNumber,
+    });
+  }
+  return true;
+}
+
+function closeLegacyTierCanvasView(options = {}) {
+  const preserveSelection = options?.preserveSelection !== false;
+  clearPendingLegacyTierCanvasOpen();
+  clearPendingLegacyTierCanvasTierSwitch();
+  const hadViewState = Boolean(legacyTierCanvasViewState.active || legacyTierCanvasViewState.model);
+  legacyTierCanvasViewState.active = false;
+  legacyTierCanvasViewState.tierNumber = 0;
+  legacyTierCanvasViewState.signature = '';
+  legacyTierCanvasViewState.model = null;
+  legacyTierCanvasViewState.anchorView = null;
+  legacyTierCanvasViewState.tierEntries = [];
+  legacyTierCanvasViewState.dropdownOpen = false;
+  legacyTierCanvasViewState.tierSwitchInFlight = false;
+  if (!preserveSelection || !hadViewState) {
+    return;
+  }
+  const selectedId = safeText(state.selectedId);
+  if (!selectedId) {
+    return;
+  }
+  const existsInMainTree = Array.isArray(state.nodes)
+    && state.nodes.some((node) => normalizeCredentialValue(node?.id) === normalizeCredentialValue(selectedId));
+  if (!existsInMainTree) {
+    setSelectedNode('', { animate: false });
+  }
+}
+
+function exitLegacyTierCanvasToBinaryDefault(animated = true) {
+  if (!isLegacyTierCanvasViewActive()) {
+    return false;
+  }
+  closeLegacyTierCanvasView({ preserveSelection: true });
+  goToGlobalHome(animated);
+  return true;
+}
+
+function toggleLegacyTierCanvasPanelVisibility() {
+  if (!isLegacyTierCanvasViewActive()) {
+    return false;
+  }
+  legacyTierCanvasViewState.dropdownOpen = false;
+  const nextVisible = !Boolean(state.ui?.infinityBuilderVisible);
+  if (nextVisible) {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+  }
+  setInfinityBuilderPanelVisible(nextVisible);
+  return true;
+}
+
+function allocateLegacyTierCanvasNodeId(baseIdInput = '', fallbackId = '', usageByBase = new Map()) {
+  const baseId = safeText(baseIdInput) || safeText(fallbackId) || 'legacy-tier-canvas-node';
+  const seenCount = Math.max(0, Math.floor(safeNumber(usageByBase.get(baseId), 0)));
+  usageByBase.set(baseId, seenCount + 1);
+  if (seenCount === 0) {
+    return baseId;
+  }
+  return `${baseId}::${seenCount + 1}`;
+}
+
+function createLegacyTierCanvasPlaceholderNode(nodeId = '', parentId = '', tierNumber = 1, depthLevel = 0, slotIndex = 0) {
+  return {
+    id: safeText(nodeId),
+    parent: safeText(parentId),
+    side: 'left',
+    depth: Math.max(0, Math.floor(safeNumber(depthLevel, 0))),
+    path: '',
+    name: '',
+    username: '',
+    accountStatus: 'inactive',
+    isActive: false,
+    isLegacyTierEmptySlot: true,
+    isLegacyTierViewPlaceholder: true,
+    legacyTierNumber: Math.max(1, Math.floor(safeNumber(tierNumber, 1))),
+    legacyTierSlotIndex: Math.max(0, Math.floor(safeNumber(slotIndex, 0))),
+  };
+}
+
+function buildLegacyTierCanvasNodeDescriptor(options = {}) {
+  const tierNumber = Math.max(1, Math.floor(safeNumber(options?.tierNumber, 1)));
+  const depthLevel = Math.max(0, Math.floor(safeNumber(options?.depthLevel, 0)));
+  const slotIndex = Math.max(0, Math.floor(safeNumber(options?.slotIndex, 0)));
+  const parentId = safeText(options?.parentId);
+  const snapshotEntry = options?.snapshotEntry && typeof options.snapshotEntry === 'object'
+    ? options.snapshotEntry
+    : null;
+  const usageByBase = options?.usageByBase instanceof Map ? options.usageByBase : new Map();
+  const sourceNode = snapshotEntry?.node && typeof snapshotEntry.node === 'object'
+    ? snapshotEntry.node
+    : null;
+  const preferredNodeId = safeText(snapshotEntry?.nodeId || sourceNode?.id);
+  const fallbackNodeId = `${LEGACY_TIER_CANVAS_PLACEHOLDER_ID_PREFIX}:tier-${tierNumber}:depth-${depthLevel}:slot-${slotIndex}`;
+  const resolvedNodeId = allocateLegacyTierCanvasNodeId(preferredNodeId, fallbackNodeId, usageByBase);
+  const isEmpty = !sourceNode;
+  const avatarSeedId = safeText(sourceNode?.id || snapshotEntry?.nodeId || resolvedNodeId) || resolvedNodeId;
+  const displayName = safeText(
+    snapshotEntry?.displayName
+    || sourceNode?.name
+    || snapshotEntry?.username
+    || sourceNode?.username
+    || sourceNode?.memberCode
+    || sourceNode?.member_code
+    || sourceNode?.id
+    || '',
+  );
+  const username = safeText(
+    snapshotEntry?.username
+    || sourceNode?.username
+    || sourceNode?.memberCode
+    || sourceNode?.member_code
+    || '',
+  );
+  const nodeRecord = isEmpty
+    ? createLegacyTierCanvasPlaceholderNode(
+      resolvedNodeId,
+      parentId,
+      tierNumber,
+      depthLevel,
+      slotIndex,
+    )
+    : {
+      ...sourceNode,
+      id: resolvedNodeId,
+      parent: parentId,
+      side: safeText(sourceNode?.side || ''),
+      depth: depthLevel,
+      path: safeText(sourceNode?.path),
+      name: displayName || safeText(sourceNode?.name),
+      username,
+      avatarSeed: safeText(sourceNode?.avatarSeed || sourceNode?.avatar_seed || avatarSeedId) || avatarSeedId,
+      avatarSeedId,
+      isLegacyTierEmptySlot: false,
+      isLegacyTierViewPlaceholder: false,
+    };
+  const isActive = isEmpty ? false : resolveNodeActivityState(sourceNode);
+  return {
+    id: resolvedNodeId,
+    parentId,
+    node: nodeRecord,
+    isEmpty,
+    isActive,
+    avatarSeedId,
+    depthLevel,
+    slotIndex,
+  };
+}
+
+function buildLegacyTierCanvasViewModel(snapshotInput = null, selectedTierInput = null) {
+  const snapshot = snapshotInput && typeof snapshotInput === 'object' ? snapshotInput : null;
+  const selectedTier = selectedTierInput && typeof selectedTierInput === 'object' ? selectedTierInput : null;
+  if (!snapshot || !selectedTier) {
+    return null;
+  }
+  const tierNumber = Math.max(1, Math.floor(safeNumber(selectedTier?.tierNumber, 1)));
+  const usageByBase = new Map();
+  const rootSnapshotEntry = {
+    node: snapshot?.homeNode && typeof snapshot.homeNode === 'object' ? snapshot.homeNode : null,
+    nodeId: safeText(snapshot?.homeNode?.id || ''),
+    username: resolveInfinityBuilderNodeUsername(snapshot?.homeNode),
+    displayName: safeText(
+      snapshot?.homeNode?.name
+      || snapshot?.homeNode?.username
+      || snapshot?.homeNode?.memberCode
+      || snapshot?.homeNode?.id,
+    ),
+  };
+  const rootDescriptor = buildLegacyTierCanvasNodeDescriptor({
+    snapshotEntry: rootSnapshotEntry,
+    parentId: '',
+    tierNumber,
+    depthLevel: 0,
+    slotIndex: 0,
+    usageByBase,
+  });
+
+  const seedSnapshotsInput = Array.isArray(selectedTier?.seedSnapshots)
+    ? selectedTier.seedSnapshots
+    : [];
+  const seedSnapshots = Array.from(
+    { length: INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER },
+    (_, seedIndex) => {
+      const seedSnapshot = seedSnapshotsInput[seedIndex];
+      return seedSnapshot && typeof seedSnapshot === 'object' ? seedSnapshot : null;
+    },
+  );
+
+  const levelOneDescriptors = seedSnapshots.map((seedSnapshot, seedIndex) => (
+    buildLegacyTierCanvasNodeDescriptor({
+      snapshotEntry: seedSnapshot,
+      parentId: rootDescriptor.id,
+      tierNumber,
+      depthLevel: 1,
+      slotIndex: seedIndex,
+      usageByBase,
+    })
+  ));
+
+  const levelTwoDescriptors = [];
+  for (let seedIndex = 0; seedIndex < INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER; seedIndex += 1) {
+    const seedSnapshot = seedSnapshots[seedIndex];
+    const childSnapshotsInput = Array.isArray(seedSnapshot?.childSnapshots)
+      ? seedSnapshot.childSnapshots
+      : [];
+    for (let childIndex = 0; childIndex < INFINITY_BUILDER_TIER_NODE_REQUIREMENT; childIndex += 1) {
+      const slotIndex = (seedIndex * INFINITY_BUILDER_TIER_NODE_REQUIREMENT) + childIndex;
+      const parentDescriptor = levelOneDescriptors[seedIndex];
+      levelTwoDescriptors.push(buildLegacyTierCanvasNodeDescriptor({
+        snapshotEntry: childSnapshotsInput[childIndex] || null,
+        parentId: safeText(parentDescriptor?.id),
+        tierNumber,
+        depthLevel: 2,
+        slotIndex,
+        usageByBase,
+      }));
+    }
+  }
+
+  const levelThreeDescriptors = [];
+  for (let seedIndex = 0; seedIndex < INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER; seedIndex += 1) {
+    const seedSnapshot = seedSnapshots[seedIndex];
+    const depthTwoGroupSnapshotsInput = Array.isArray(seedSnapshot?.depthTwoGroupSnapshots)
+      ? seedSnapshot.depthTwoGroupSnapshots
+      : [];
+    for (let groupIndex = 0; groupIndex < INFINITY_BUILDER_TIER_NODE_REQUIREMENT; groupIndex += 1) {
+      const parentLevelTwoIndex = (seedIndex * INFINITY_BUILDER_TIER_NODE_REQUIREMENT) + groupIndex;
+      const parentDescriptor = levelTwoDescriptors[parentLevelTwoIndex];
+      const groupSnapshot = Array.isArray(depthTwoGroupSnapshotsInput[groupIndex])
+        ? depthTwoGroupSnapshotsInput[groupIndex]
+        : [];
+      for (let childIndex = 0; childIndex < INFINITY_BUILDER_TIER_NODE_REQUIREMENT; childIndex += 1) {
+        const slotIndex = (
+          (seedIndex * levelTwoDescriptors.length)
+          + (groupIndex * INFINITY_BUILDER_TIER_NODE_REQUIREMENT)
+          + childIndex
+        );
+        levelThreeDescriptors.push(buildLegacyTierCanvasNodeDescriptor({
+          snapshotEntry: groupSnapshot[childIndex] || null,
+          parentId: safeText(parentDescriptor?.id),
+          tierNumber,
+          depthLevel: 3,
+          slotIndex,
+          usageByBase,
+        }));
+      }
+    }
+  }
+
+  const nodesByDepth = [
+    [rootDescriptor],
+    levelOneDescriptors,
+    levelTwoDescriptors,
+    levelThreeDescriptors,
+  ];
+  const descriptors = nodesByDepth.reduce(
+    (accumulator, depthDescriptors) => accumulator.concat(depthDescriptors),
+    [],
+  );
+  const signature = [
+    `tier:${tierNumber}`,
+    ...descriptors.map((descriptor) => [
+      descriptor.depthLevel,
+      descriptor.slotIndex,
+      descriptor.avatarSeedId,
+      descriptor.isEmpty ? '0' : (descriptor.isActive ? '1' : '2'),
+    ].join(':')),
+  ].join('|');
+  return {
+    tierNumber,
+    title: `Legacy Tier ${tierNumber} Tree View`,
+    rootId: rootDescriptor.id,
+    nodesByDepth,
+    descriptors,
+    signature,
+  };
+}
+
+function syncLegacyTierCanvasViewModel(snapshotInput = null, selectedTierInput = null) {
+  if (!legacyTierCanvasViewState.active) {
+    return false;
+  }
+  const model = buildLegacyTierCanvasViewModel(snapshotInput, selectedTierInput);
+  if (!model) {
+    closeLegacyTierCanvasView({ preserveSelection: true });
+    return false;
+  }
+  legacyTierCanvasViewState.active = true;
+  legacyTierCanvasViewState.tierNumber = model.tierNumber;
+  legacyTierCanvasViewState.signature = model.signature;
+  legacyTierCanvasViewState.model = model;
+  syncLegacyTierCanvasTierEntries(snapshotInput, selectedTierInput);
+  if (!legacyTierCanvasViewState.anchorView || typeof legacyTierCanvasViewState.anchorView !== 'object') {
+    legacyTierCanvasViewState.anchorView = captureLegacyTierCanvasAnchorView({
+      preferTarget: true,
+    });
+  }
+  const selectedId = safeText(state.selectedId);
+  const visibleIds = new Set(model.descriptors.map((descriptor) => descriptor.id));
+  if (!selectedId || !visibleIds.has(selectedId)) {
+    setSelectedNode(model.rootId, { animate: false });
+  }
+  return true;
+}
+
+function openLegacyTierCanvasView(snapshotInput = null, selectedTierInput = null, options = {}) {
+  clearPendingLegacyTierCanvasTierSwitch({ preserveFade: true });
+  legacyTierCanvasViewState.active = true;
+  const resetAnchorView = options?.resetAnchorView !== false;
+  if (resetAnchorView || !legacyTierCanvasViewState.anchorView) {
+    legacyTierCanvasViewState.anchorView = captureLegacyTierCanvasAnchorView({
+      preferTarget: options?.preferTargetAnchor !== false,
+    });
+  }
+  return syncLegacyTierCanvasViewModel(snapshotInput, selectedTierInput);
+}
+
+function syncInfinityBuilderViewTreeButtonState(options = {}) {
+  if (!(infinityBuilderViewTreeButtonElement instanceof HTMLButtonElement)) {
+    return;
+  }
+  const isLegacyMode = options?.isLegacyMode === true;
+  const tierNumber = Math.max(
+    1,
+    Math.floor(safeNumber(options?.tierNumber, infinityBuilderSelectedTierNumber || 1)),
+  );
+  if (isLegacyMode) {
+    infinityBuilderViewTreeButtonElement.hidden = false;
+    infinityBuilderViewTreeButtonElement.disabled = false;
+    infinityBuilderViewTreeButtonElement.textContent = 'View Tree';
+    infinityBuilderViewTreeButtonElement.setAttribute('aria-pressed', 'false');
+    infinityBuilderViewTreeButtonElement.setAttribute('aria-label', `View Legacy Tier ${tierNumber} Tree`);
+    return;
+  }
+  infinityBuilderViewTreeButtonElement.hidden = true;
+  infinityBuilderViewTreeButtonElement.disabled = true;
+  infinityBuilderViewTreeButtonElement.setAttribute('aria-pressed', 'false');
+  infinityBuilderViewTreeButtonElement.textContent = 'View Tree';
+  infinityBuilderViewTreeButtonElement.setAttribute('aria-label', 'View Legacy Tier Tree');
+}
+
+function normalizeInfinityBuilderTierSortDirection(directionInput = 'asc') {
+  const safeDirection = safeText(directionInput).toLowerCase();
+  return safeDirection === 'desc' ? 'desc' : 'asc';
+}
+
+function normalizeInfinityBuilderTierSortMode(modeInput = infinityBuilderPanelMode) {
+  return normalizeInfinityBuilderPanelMode(modeInput) === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP
+    ? INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP
+    : INFINITY_BUILDER_PANEL_MODE_INFINITY;
+}
+
+function resolveInfinityBuilderTierSortDirectionForMode(modeInput = infinityBuilderPanelMode) {
+  const mode = normalizeInfinityBuilderTierSortMode(modeInput);
+  if (mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    return normalizeInfinityBuilderTierSortDirection(infinityBuilderTierSortDirectionLegacyLeadership);
+  }
+  return normalizeInfinityBuilderTierSortDirection(infinityBuilderTierSortDirectionInfinity);
+}
+
+function resolveInfinityBuilderTierSortDirectionsSyncKey() {
+  return [
+    resolveInfinityBuilderTierSortDirectionForMode(INFINITY_BUILDER_PANEL_MODE_INFINITY),
+    resolveInfinityBuilderTierSortDirectionForMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP),
+  ].join('|');
+}
+
+function applyInfinityBuilderTierSortDirections(directionsInput = {}, options = {}) {
+  const source = directionsInput && typeof directionsInput === 'object' ? directionsInput : {};
+  const previousSyncKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+
+  infinityBuilderTierSortDirectionInfinity = normalizeInfinityBuilderTierSortDirection(
+    source.infinityBuilderTierSortDirection
+      || source.infinityBuilder
+      || infinityBuilderTierSortDirectionInfinity,
+  );
+  infinityBuilderTierSortDirectionLegacyLeadership = normalizeInfinityBuilderTierSortDirection(
+    source.legacyLeadershipTierSortDirection
+      || source.legacyLeadership
+      || infinityBuilderTierSortDirectionLegacyLeadership,
+  );
+  const updatedAt = safeText(source.tierSortDirectionsUpdatedAt);
+  if (updatedAt) {
+    infinityBuilderTierSortDirectionsUpdatedAt = updatedAt;
+  }
+
+  const nextSyncKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+  if (nextSyncKey !== previousSyncKey) {
+    infinityBuilderLastRenderSignature = '';
+    if (Boolean(state.ui?.infinityBuilderVisible)) {
+      syncInfinityBuilderPanelVisuals();
+    }
+    if (options?.syncServer !== false) {
+      if (canSyncInfinityBuilderTierSortDirectionsToServer()) {
+        infinityBuilderTierSortDirectionsLocalDirty = true;
+      }
+      requestInfinityBuilderTierSortDirectionsServerSync();
+    }
+  }
+}
+
+function applyInfinityBuilderTierSortDirectionsFromLaunchState(launchStateInput = state.launchState, options = {}) {
+  const launchState = launchStateInput && typeof launchStateInput === 'object'
+    ? launchStateInput
+    : {};
+  applyInfinityBuilderTierSortDirections({
+    infinityBuilderTierSortDirection: launchState?.infinityBuilderTierSortDirection,
+    legacyLeadershipTierSortDirection: launchState?.legacyLeadershipTierSortDirection,
+    tierSortDirectionsUpdatedAt: launchState?.tierSortDirectionsUpdatedAt,
+  }, {
+    syncServer: options?.syncServer === true,
+  });
+  if (options?.markSynced === true) {
+    infinityBuilderTierSortDirectionsLastSyncedKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+    infinityBuilderTierSortDirectionsLocalDirty = false;
+  }
+}
+
+function resolveInfinityBuilderTierSortLabel(
+  directionInput = resolveInfinityBuilderTierSortDirectionForMode(infinityBuilderPanelMode),
+) {
+  const direction = normalizeInfinityBuilderTierSortDirection(directionInput);
+  return direction === 'desc' ? 'Sort: Descending' : 'Sort: Ascending';
+}
+
+function toggleInfinityBuilderTierSortDirection() {
+  const mode = normalizeInfinityBuilderTierSortMode(infinityBuilderPanelMode);
+  const currentDirection = resolveInfinityBuilderTierSortDirectionForMode(mode);
+  const nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+  if (mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    applyInfinityBuilderTierSortDirections({
+      legacyLeadershipTierSortDirection: nextDirection,
+    }, {
+      syncServer: true,
+    });
+    return;
+  }
+  applyInfinityBuilderTierSortDirections({
+    infinityBuilderTierSortDirection: nextDirection,
+  }, {
+    syncServer: true,
+  });
+}
+
+function resolveInfinityBuilderSelectedTierFromSnapshot(snapshotInput = null, tierNumberInput = infinityBuilderSelectedTierNumber) {
+  const snapshot = snapshotInput && typeof snapshotInput === 'object' ? snapshotInput : null;
+  const tiers = Array.isArray(snapshot?.tiers) ? snapshot.tiers : [];
+  if (tiers.length === 0) {
+    return null;
+  }
+  const requestedTierNumber = Math.max(1, Math.floor(safeNumber(tierNumberInput, infinityBuilderSelectedTierNumber)));
+  return tiers.find((tier) => tier.tierNumber === requestedTierNumber)
+    || tiers.find((tier) => tier.isUnlocked)
+    || tiers[0]
+    || null;
+}
+
+function resolveInfinityBuilderSelectedTierContext() {
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  const snapshot = buildInfinityBuilderPanelSnapshot(homeNode);
+  const selectedTier = resolveInfinityBuilderSelectedTierFromSnapshot(snapshot);
+  if (!selectedTier) {
+    return null;
+  }
+  return {
+    snapshot,
+    selectedTier,
+  };
+}
+
+function resolveLegacyTierCanvasAnimationAnchorNodeId(snapshotInput = null, selectedTierInput = null) {
+  const snapshot = snapshotInput && typeof snapshotInput === 'object' ? snapshotInput : null;
+  const selectedTier = selectedTierInput && typeof selectedTierInput === 'object' ? selectedTierInput : null;
+  const seedSnapshots = Array.isArray(selectedTier?.seedSnapshots)
+    ? selectedTier.seedSnapshots
+    : [];
+  for (const seedSnapshot of seedSnapshots) {
+    const seedNode = seedSnapshot?.node && typeof seedSnapshot.node === 'object'
+      ? seedSnapshot.node
+      : null;
+    if (!seedNode) {
+      continue;
+    }
+    const focusId = resolveInfinityBuilderFocusNodeId(seedNode, {
+      nodeId: seedSnapshot?.nodeId,
+      username: seedSnapshot?.username,
+    });
+    if (focusId) {
+      return focusId;
+    }
+  }
+  const homeNode = snapshot?.homeNode && typeof snapshot.homeNode === 'object'
+    ? snapshot.homeNode
+    : null;
+  const homeFocusId = resolveInfinityBuilderFocusNodeId(homeNode, {
+    nodeId: safeText(homeNode?.id),
+    username: resolveInfinityBuilderNodeUsername(homeNode),
+  });
+  if (homeFocusId) {
+    return homeFocusId;
+  }
+  return safeText(resolvePreferredGlobalHomeNodeId() || 'root') || 'root';
+}
+
+function viewLegacyTierCanvasTree() {
+  if (!isLegacyLeadershipPanelMode()) {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+  }
+  const modeConfig = resolveInfinityBuilderPanelModeConfig();
+  if (modeConfig.mode !== INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    closeLegacyTierCanvasView({ preserveSelection: true });
+    return false;
+  }
+  let selectedTierContext = resolveInfinityBuilderSelectedTierContext();
+  if (!selectedTierContext) {
+    const fallbackSnapshot = infinityBuilderLastPanelSnapshot;
+    const fallbackTier = resolveInfinityBuilderSelectedTierFromSnapshot(fallbackSnapshot);
+    if (fallbackSnapshot && fallbackTier) {
+      selectedTierContext = {
+        snapshot: fallbackSnapshot,
+        selectedTier: fallbackTier,
+      };
+    }
+  }
+  if (!selectedTierContext) {
+    syncInfinityBuilderPanelVisuals();
+    selectedTierContext = resolveInfinityBuilderSelectedTierContext();
+  }
+  if (!selectedTierContext) {
+    return false;
+  }
+
+  syncInfinityBuilderViewTreeButtonState({
+    isLegacyMode: true,
+    tierNumber: selectedTierContext?.selectedTier?.tierNumber,
+  });
+  infinityBuilderLastPanelSnapshot = selectedTierContext.snapshot || infinityBuilderLastPanelSnapshot;
+  legacyTierCanvasViewState.dropdownOpen = false;
+
+  clearPendingUniverseEnterPrep({ preserveFade: true });
+  clearPendingUniverseBackPrep({ preserveFade: true });
+  clearPendingLegacyTierCanvasOpen();
+  clearPendingLegacyTierCanvasTierSwitch({ preserveFade: true });
+
+  const anchorNodeId = resolveLegacyTierCanvasAnimationAnchorNodeId(
+    selectedTierContext.snapshot,
+    selectedTierContext.selectedTier,
+  );
+  setUniverseEnterViewFade('out', Math.min(220, UNIVERSE_ENTER_GLOBAL_ZOOM_MS));
+  if (anchorNodeId && focusNode(anchorNodeId, UNIVERSE_ENTER_GLOBAL_FOCUS_RADIUS, true)) {
+    state.camera.targetReason = 'universe-enter';
+  }
+
+  legacyTierCanvasOpenTimerId = 0;
+  legacyTierCanvasOpenToken = '';
+  let opened = false;
+  try {
+    opened = openLegacyTierCanvasView(
+      selectedTierContext.snapshot,
+      selectedTierContext.selectedTier,
+      {
+        resetAnchorView: true,
+        preferTargetAnchor: true,
+      },
+    );
+  } catch (error) {
+    console.error('[TreeNext] Legacy tier canvas open failed:', error);
+    opened = false;
+  }
+  if (!opened) {
+    setUniverseEnterViewFade('none');
+    syncInfinityBuilderViewTreeButtonState({
+      isLegacyMode: true,
+      tierNumber: selectedTierContext?.selectedTier?.tierNumber,
+    });
+    return false;
+  }
+  setUniverseEnterViewFade('in', UNIVERSE_ENTER_LOCAL_FADE_IN_MS);
+  infinityBuilderLastRenderSignature = '';
+  syncInfinityBuilderPanelVisuals();
+  window.requestAnimationFrame(() => {
+    try {
+      renderFrame();
+    } catch (error) {
+      console.error('[TreeNext] Legacy tier canvas immediate render failed:', error);
+    }
+  });
+  return true;
+}
+
+function openLegacyTierOneCanvasView() {
+  const targetTierNumber = 1;
+  legacyTierCanvasViewState.dropdownOpen = false;
+  if (!isLegacyLeadershipPanelMode()) {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+  }
+  infinityBuilderSelectedTierNumber = targetTierNumber;
+  infinityBuilderClaimFeedbackTierNumber = 0;
+  infinityBuilderLastRenderSignature = '';
+
+  if (isLegacyTierCanvasViewActive()) {
+    return selectLegacyTierCanvasTier(targetTierNumber);
+  }
+  return viewLegacyTierCanvasTree();
+}
+
+function toggleLegacyTierQuickAccessView() {
+  if (isLegacyTierCanvasViewActive()) {
+    return exitLegacyTierCanvasToBinaryDefault(true);
+  }
+  return openLegacyTierOneCanvasView();
+}
+
+function setInfinityBuilderPanelMode(modeInput = INFINITY_BUILDER_PANEL_MODE_INFINITY) {
+  const normalizedMode = normalizeInfinityBuilderPanelMode(modeInput);
+  if (normalizedMode === infinityBuilderPanelMode) {
+    return;
+  }
+  infinityBuilderPanelMode = normalizedMode;
+  if (normalizedMode !== INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    closeLegacyTierCanvasView({ preserveSelection: true });
+  }
+  infinityBuilderSelectedTierNumber = 1;
+  infinityBuilderClaimFeedbackTierNumber = 0;
+  infinityBuilderLastRenderSignature = '';
+  infinityBuilderLastPanelSnapshot = null;
+  setInfinityBuilderClaimFeedback('');
+  syncInfinityBuilderViewTreeButtonState({
+    isLegacyMode: normalizedMode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP,
+    tierNumber: infinityBuilderSelectedTierNumber,
+  });
+  if (Boolean(state.ui?.infinityBuilderVisible)) {
+    syncInfinityBuilderPanelVisuals();
+  }
+}
+
+function resetInfinityBuilderPanelState() {
+  infinityBuilderPanelMode = INFINITY_BUILDER_PANEL_MODE_INFINITY;
+  infinityBuilderLastRenderSignature = '';
+  infinityBuilderLastPanelSnapshot = null;
+  infinityBuilderSelectedTierNumber = 1;
+  infinityBuilderTierSortDirectionInfinity = 'asc';
+  infinityBuilderTierSortDirectionLegacyLeadership = 'asc';
+  infinityBuilderTierSortDirectionsUpdatedAt = '';
+  infinityBuilderTierSortDirectionsSyncInFlight = false;
+  infinityBuilderTierSortDirectionsSyncQueued = false;
+  infinityBuilderTierSortDirectionsLastSyncedKey = '';
+  infinityBuilderTierSortDirectionsLocalDirty = false;
+  infinityBuilderClaimInFlight = false;
+  infinityBuilderClaimFeedbackTierNumber = 0;
+  if (infinityBuilderClaimFeedbackTimerId) {
+    clearTimeout(infinityBuilderClaimFeedbackTimerId);
+    infinityBuilderClaimFeedbackTimerId = 0;
+  }
+  setInfinityBuilderClaimFeedback('');
+  closeLegacyTierCanvasView({ preserveSelection: false });
+  syncInfinityBuilderViewTreeButtonState({ isLegacyMode: false });
+}
+
+function isInfinityBuilderPlaceholderNode(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return false;
+  }
+  const placeholderType = normalizeCredentialValue(
+    safeText(node?.businessCenterNodeType || node?.business_center_node_type || ''),
+  );
+  if (!placeholderType) {
+    return false;
+  }
+  return (
+    placeholderType.includes('placeholder')
+    || placeholderType.includes('queued')
+    || placeholderType.includes('reserved')
+  );
+}
+
+function isInfinityBuilderSpilloverNode(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return false;
+  }
+  const placementLeg = normalizeCredentialValue(
+    safeText(node?.placementLeg || node?.placement_leg || node?.sponsorLeg || node?.sponsor_leg || ''),
+  );
+  if (SPILLOVER_PLACEMENT_KEY_SET.has(placementLeg)) {
+    return true;
+  }
+  if (Boolean(node?.isSpillover || node?.is_spillover)) {
+    return true;
+  }
+  const parentKey = normalizeCredentialValue(
+    safeText(node?.parent || node?.parentId || node?.parent_id || ''),
+  );
+  const sponsorKey = normalizeCredentialValue(
+    safeText(node?.sponsorId || node?.globalSponsorId || node?.sourceSponsorId || ''),
+  );
+  return Boolean(parentKey && sponsorKey && sponsorKey !== parentKey);
+}
+
+function resolveInfinityBuilderNodeAddedAtMs(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return 0;
+  }
+  const numericAddedAt = safeNumber(node?.addedAt, Number.NaN);
+  if (Number.isFinite(numericAddedAt)) {
+    return Math.max(0, Math.floor(numericAddedAt));
+  }
+  const candidates = [
+    node?.createdAt,
+    node?.created_at,
+    node?.addedAt,
+    node?.added_at,
+    node?.updatedAt,
+    node?.updated_at,
+    node?.enrolledAt,
+    node?.enrolled_at,
+  ];
+  for (const candidate of candidates) {
+    const parsed = Date.parse(safeText(candidate));
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return 0;
+}
+
+function compareInfinityBuilderNodesOldestToNewest(leftNodeInput = null, rightNodeInput = null) {
+  const leftNode = leftNodeInput && typeof leftNodeInput === 'object' ? leftNodeInput : null;
+  const rightNode = rightNodeInput && typeof rightNodeInput === 'object' ? rightNodeInput : null;
+  const leftAddedAt = resolveInfinityBuilderNodeAddedAtMs(leftNode);
+  const rightAddedAt = resolveInfinityBuilderNodeAddedAtMs(rightNode);
+  if (leftAddedAt !== rightAddedAt) {
+    return leftAddedAt - rightAddedAt;
+  }
+  const leftKey = safeText(leftNode?.id || leftNode?.username || leftNode?.memberCode || '');
+  const rightKey = safeText(rightNode?.id || rightNode?.username || rightNode?.memberCode || '');
+  return leftKey.localeCompare(rightKey);
+}
+
+function isInfinityBuilderQualifyingSeedNode(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node || isInfinityBuilderPlaceholderNode(node)) {
+    return false;
+  }
+  const modeConfig = resolveInfinityBuilderPanelModeConfig(options?.mode || infinityBuilderPanelMode);
+  const packageKey = normalizeCredentialValue(
+    node?.enrollmentPackage
+    || node?.enrollment_package
+    || node?.packageKey
+    || node?.package_key,
+  );
+  if (modeConfig.mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    return packageKey === LEGACY_LEADERSHIP_REQUIRED_PACKAGE_KEY;
+  }
+  return INFINITY_BUILDER_QUALIFYING_PACKAGE_KEY_SET.has(packageKey);
+}
+
+function isInfinityBuilderQualifyingChildNode(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node || isInfinityBuilderPlaceholderNode(node)) {
+    return false;
+  }
+  const modeConfig = resolveInfinityBuilderPanelModeConfig(options?.mode || infinityBuilderPanelMode);
+  const packageKey = normalizeCredentialValue(
+    node?.enrollmentPackage
+    || node?.enrollment_package
+    || node?.packageKey
+    || node?.package_key,
+  );
+  if (modeConfig.mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    return packageKey === LEGACY_LEADERSHIP_REQUIRED_PACKAGE_KEY;
+  }
+  return ENROLL_PAID_PACKAGE_KEY_SET.has(packageKey);
+}
+
+function resolveInfinityBuilderNodeUsername(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return '';
+  }
+  const rawUsername = safeText(
+    node?.username
+    || node?.memberUsername
+    || node?.member_username
+    || node?.memberCode
+    || node?.member_code
+    || node?.id,
+  );
+  if (!rawUsername) {
+    return '';
+  }
+  return rawUsername.startsWith('@') ? rawUsername : `@${rawUsername}`;
+}
+
+function resolveInfinityBuilderNodeInitials(initialsInput = '') {
+  const initials = safeText(initialsInput).replace(/\s+/g, '').slice(0, 2).toUpperCase();
+  return initials;
+}
+
+function resolveInfinityBuilderMutedPalette(basePaletteInput = null, mixRatio = 0.52) {
+  const basePalette = isAvatarPaletteRecord(basePaletteInput)
+    ? {
+      light: normalizeRgbTriplet(basePaletteInput.light[0], basePaletteInput.light[1], basePaletteInput.light[2]),
+      mid: normalizeRgbTriplet(basePaletteInput.mid[0], basePaletteInput.mid[1], basePaletteInput.mid[2]),
+      dark: normalizeRgbTriplet(basePaletteInput.dark[0], basePaletteInput.dark[1], basePaletteInput.dark[2]),
+    }
+    : resolveNodeAvatarPalette('infinity-builder:muted-fallback', { variant: 'ocean' });
+  const inactivePalette = APPLE_MAPS_NODE_PALETTES.inactive;
+  const safeMix = clamp(safeNumber(mixRatio, 0.52), 0, 1);
+  const blendChannel = (baseValue, inactiveValue) => Math.round(
+    (baseValue * (1 - safeMix)) + (inactiveValue * safeMix),
+  );
+  const blendTriplet = (baseTriplet, inactiveTriplet) => normalizeRgbTriplet(
+    blendChannel(baseTriplet[0], inactiveTriplet[0]),
+    blendChannel(baseTriplet[1], inactiveTriplet[1]),
+    blendChannel(baseTriplet[2], inactiveTriplet[2]),
+  );
+  return {
+    light: blendTriplet(basePalette.light, inactivePalette.light),
+    mid: blendTriplet(basePalette.mid, inactivePalette.mid),
+    dark: blendTriplet(basePalette.dark, inactivePalette.dark),
+  };
+}
+
+function resolveInfinityBuilderNodeBackgroundImage(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const fallbackSeed = safeText(
+    options?.fallbackSeed
+    || node?.id
+    || node?.username
+    || node?.memberCode
+    || 'placeholder',
+  );
+  if (!node) {
+    // Empty slots always use a consistent gray placeholder tone.
+    return resolveCssGradientFromPalette(APPLE_MAPS_NODE_PALETTES.inactive);
+  }
+
+  const nodeId = safeText(
+    node?.id
+    || node?.nodeId
+    || node?.userId
+    || node?.memberId
+    || node?.username
+    || node?.memberCode
+    || fallbackSeed,
+  );
+  const nodeRecord = resolveNodeById(nodeId) || node;
+  const isActiveAccount = options?.active !== false && resolveNodeActivityState(nodeRecord);
+  const isPersonallyEnrolledNode = isNodePersonallyEnrolledBySession(nodeRecord);
+  const baseVariant = isSessionAvatarNodeId(nodeId)
+    ? 'auto'
+    : (nodeId.toLowerCase() === 'root' ? 'root' : 'auto');
+  const nodeVariant = isPersonallyEnrolledNode ? 'direct' : baseVariant;
+
+  const paletteForState = resolveNodeAvatarPalette(
+    nodeId || `infinity-builder:${fallbackSeed}`,
+    isActiveAccount
+      ? (isPersonallyEnrolledNode
+        ? {
+          node: nodeRecord,
+          variant: nodeVariant,
+          ignoreSourcePalette: true,
+        }
+        : {
+          node: nodeRecord,
+          variant: nodeVariant,
+        })
+      : {
+        node: nodeRecord,
+        variant: isPersonallyEnrolledNode ? 'directInactive' : 'inactive',
+        ignoreSourcePalette: true,
+      },
+  );
+  return resolveCssGradientFromPalette(paletteForState);
+}
+
+function resolveInfinityBuilderFocusNodeId(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const directNodeId = safeText(options?.nodeId || node?.id);
+  if (directNodeId) {
+    return directNodeId;
+  }
+  const rawUsername = safeText(
+    options?.username
+    || node?.username
+    || node?.memberUsername
+    || node?.member_username
+    || node?.memberCode
+    || node?.member_code
+    || '',
+  ).replace(/^@+/, '');
+  if (!rawUsername) {
+    return '';
+  }
+  return safeText(resolveNodeIdByUsername(rawUsername));
+}
+
+function buildInfinityBuilderEmptyChildSnapshot(seedToken = '') {
+  return {
+    node: null,
+    nodeId: '',
+    username: '',
+    initials: '',
+    isActive: false,
+    backgroundImage: resolveInfinityBuilderNodeBackgroundImage(null, {
+      active: true,
+      fallbackSeed: `child-empty:${seedToken}`,
+    }),
+  };
+}
+
+function buildInfinityBuilderEmptySeedSnapshot(slotIndex = 0, tierNumber = 1) {
+  return {
+    slotIndex,
+    node: null,
+    nodeId: '',
+    displayName: '',
+    username: '',
+    initials: '',
+    isActive: false,
+    isCompletedNode: false,
+    completedChildCount: 0,
+    totalOrganizationBv: 0,
+    monthlyOverrideUsd: 0,
+    weeklyOverrideUsd: 0,
+    backgroundImage: resolveInfinityBuilderNodeBackgroundImage(null, {
+      active: true,
+      fallbackSeed: `seed-empty:tier-${tierNumber}:slot-${slotIndex}`,
+    }),
+    childSnapshots: Array.from(
+      { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+      (_, childIndex) => buildInfinityBuilderEmptyChildSnapshot(`tier-${tierNumber}:slot-${slotIndex}:${childIndex}`),
+    ),
+  };
+}
+
+function resolveInfinityBuilderRawClaimMap(modeInput = infinityBuilderPanelMode) {
+  const modeConfig = resolveInfinityBuilderPanelModeConfig(modeInput);
+  const rawClaimMaps = (
+    accountOverviewRemoteSnapshot?.commissionContainerSnapshot?.claimMaps
+    && typeof accountOverviewRemoteSnapshot.commissionContainerSnapshot.claimMaps === 'object'
+  )
+    ? accountOverviewRemoteSnapshot.commissionContainerSnapshot.claimMaps
+    : {};
+  const primaryKey = safeText(modeConfig?.claimMapPrimaryKey);
+  const fallbackKey = safeText(modeConfig?.claimMapFallbackKey);
+  if (primaryKey && rawClaimMaps?.[primaryKey] && typeof rawClaimMaps[primaryKey] === 'object') {
+    return rawClaimMaps[primaryKey];
+  }
+  if (fallbackKey && rawClaimMaps?.[fallbackKey] && typeof rawClaimMaps[fallbackKey] === 'object') {
+    return rawClaimMaps[fallbackKey];
+  }
+  return {};
+}
+
+function resolveInfinityBuilderClaimRecordMap(modeInput = infinityBuilderPanelMode) {
+  const rawClaimMapInput = resolveInfinityBuilderRawClaimMap(modeInput);
+  const rawClaimMap = (
+    rawClaimMapInput
+    && typeof rawClaimMapInput === 'object'
+  )
+    ? rawClaimMapInput
+    : {};
+  const claimRecordMap = new Map();
+  for (const [tierKey, claimRecordInput] of Object.entries(rawClaimMap)) {
+    const claimRecord = claimRecordInput && typeof claimRecordInput === 'object'
+      ? claimRecordInput
+      : {};
+    const tierFromKey = Math.floor(safeNumber(tierKey, Number.NaN));
+    const tierFromRecord = Math.floor(safeNumber(claimRecord?.tierNumber, Number.NaN));
+    const tierNumber = Number.isFinite(tierFromRecord) && tierFromRecord > 0
+      ? tierFromRecord
+      : tierFromKey;
+    if (!Number.isFinite(tierNumber) || tierNumber <= 0) {
+      continue;
+    }
+    claimRecordMap.set(tierNumber, {
+      tierNumber,
+      amount: Math.max(0, safeNumber(claimRecord?.amount, 0)),
+      claimedAt: safeText(claimRecord?.claimedAt),
+      startedAt: safeText(claimRecord?.startedAt),
+      completedNodeCount: Math.max(0, Math.floor(safeNumber(claimRecord?.completedNodeCount, 0))),
+      seedHandles: Array.isArray(claimRecord?.seedHandles)
+        ? claimRecord.seedHandles.map((value) => safeText(value)).filter(Boolean)
+        : [],
+    });
+  }
+  return claimRecordMap;
+}
+
+function setInfinityBuilderClaimFeedback(message, options = {}) {
+  if (!(infinityBuilderClaimFeedbackElement instanceof HTMLElement)) {
+    return;
+  }
+  const {
+    isError = false,
+    isSuccess = false,
+    persist = false,
+  } = options;
+  const text = safeText(message);
+  infinityBuilderClaimFeedbackElement.textContent = text;
+  infinityBuilderClaimFeedbackElement.classList.toggle('is-error', Boolean(text) && Boolean(isError));
+  infinityBuilderClaimFeedbackElement.classList.toggle('is-success', Boolean(text) && Boolean(isSuccess));
+  if (infinityBuilderClaimFeedbackTimerId) {
+    clearTimeout(infinityBuilderClaimFeedbackTimerId);
+    infinityBuilderClaimFeedbackTimerId = 0;
+  }
+  if (!text || persist) {
+    return;
+  }
+  const capture = text;
+  infinityBuilderClaimFeedbackTimerId = window.setTimeout(() => {
+    if (!(infinityBuilderClaimFeedbackElement instanceof HTMLElement)) {
+      return;
+    }
+    if (safeText(infinityBuilderClaimFeedbackElement.textContent) !== capture) {
+      return;
+    }
+    infinityBuilderClaimFeedbackElement.textContent = '';
+    infinityBuilderClaimFeedbackElement.classList.remove('is-error', 'is-success');
+    infinityBuilderClaimFeedbackTimerId = 0;
+  }, 4000);
+}
+
+async function claimInfinityBuilderTierReward() {
+  if (infinityBuilderClaimInFlight) {
+    return;
+  }
+
+  const modeConfig = resolveInfinityBuilderPanelModeConfig();
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  const snapshot = buildInfinityBuilderPanelSnapshot(homeNode);
+  if (!Array.isArray(snapshot?.tiers) || snapshot.tiers.length === 0) {
+    setInfinityBuilderClaimFeedback('Tier details are not available yet.', { isError: true });
+    return;
+  }
+  const selectedTier = snapshot.tiers.find((tier) => tier.tierNumber === infinityBuilderSelectedTierNumber)
+    || snapshot.tiers.find((tier) => tier.isUnlocked)
+    || snapshot.tiers[0];
+  if (!selectedTier || !selectedTier.isUnlocked) {
+    setInfinityBuilderClaimFeedback('This tier is not unlocked yet.', { isError: true });
+    return;
+  }
+  if (!selectedTier.isCompleted) {
+    setInfinityBuilderClaimFeedback('Complete this tier before claiming its reward.', { isError: true });
+    return;
+  }
+  if (selectedTier.isClaimed) {
+    setInfinityBuilderClaimFeedback('This tier reward has already been claimed.', { isSuccess: true });
+    return;
+  }
+
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode, {
+    preferHomeNode: overviewContext?.preferHomeNodeIdentity === true,
+    allowAnonymous: false,
+  });
+  const hasIdentity = Boolean(
+    safeText(identityPayload?.userId)
+    || safeText(identityPayload?.username)
+    || safeText(identityPayload?.email),
+  );
+  if (!hasIdentity) {
+    setInfinityBuilderClaimFeedback('Sign in before claiming tier rewards.', { isError: true });
+    return;
+  }
+
+  const existingInfinityClaimMap = resolveInfinityBuilderRawClaimMap(modeConfig.mode);
+  const tierKey = String(selectedTier.tierNumber);
+  const existingTierRecord = (
+    existingInfinityClaimMap[tierKey]
+    && typeof existingInfinityClaimMap[tierKey] === 'object'
+  )
+    ? existingInfinityClaimMap[tierKey]
+    : {};
+  const claimedAt = new Date().toISOString();
+  const enrolledHandles = selectedTier.seedSnapshots
+    .map((memberSnapshot) => safeText(
+      memberSnapshot?.node?.username
+      || memberSnapshot?.node?.memberCode
+      || memberSnapshot?.node?.id,
+    ))
+    .filter(Boolean);
+  const tierRewardUsdFallback = modeConfig.mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP
+    ? LEGACY_LEADERSHIP_TIER_BONUS_USD
+    : INFINITY_BUILDER_TIER_BONUS_USD;
+  const tierRewardUsd = Math.max(0, safeNumber(selectedTier?.tierBonusUsd, tierRewardUsdFallback));
+  const nextInfinityClaimMap = {
+    ...existingInfinityClaimMap,
+    [tierKey]: {
+      tierNumber: selectedTier.tierNumber,
+      amount: tierRewardUsd,
+      claimedAt,
+      startedAt: safeText(existingTierRecord?.startedAt) || claimedAt,
+      completedNodeCount: Math.max(
+        0,
+        Math.floor(safeNumber(
+          selectedTier?.tierProgressCount,
+          safeNumber(selectedTier?.litNodeCount, selectedTier.seedCount),
+        )),
+      ),
+      seedHandles: enrolledHandles,
+    },
+  };
+
+  infinityBuilderClaimInFlight = true;
+  infinityBuilderClaimFeedbackTierNumber = selectedTier.tierNumber;
+  setInfinityBuilderClaimFeedback(`Claiming ${modeConfig.claimMessageLabel.toLowerCase()}...`, { persist: true });
+  infinityBuilderLastRenderSignature = '';
+  syncInfinityBuilderPanelVisuals();
+
+  try {
+    const nextClaimMaps = {
+      [modeConfig.claimMapPrimaryKey]: nextInfinityClaimMap,
+    };
+    const response = await fetch(ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API, {
+      method: 'POST',
+      cache: 'no-store',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: safeText(identityPayload.userId),
+        username: safeText(identityPayload.username),
+        email: safeText(identityPayload.email),
+        claimMaps: nextClaimMaps,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const errorMessage = safeText(payload?.error)
+        || `Unable to claim tier reward (${response.status}).`;
+      throw new Error(errorMessage);
+    }
+    if (payload?.snapshot && typeof payload.snapshot === 'object') {
+      accountOverviewRemoteSnapshot = {
+        ...accountOverviewRemoteSnapshot,
+        commissionContainerSnapshot: payload.snapshot,
+        updatedAtMs: Date.now(),
+      };
+      accountOverviewRemoteDataVersion += 1;
+    }
+    const successLabel = modeConfig.mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP
+      ? `Legacy Tier ${selectedTier.tierNumber} reward claimed successfully.`
+      : `Tier ${selectedTier.tierNumber} reward claimed successfully.`;
+    setInfinityBuilderClaimFeedback(successLabel, { isSuccess: true });
+    infinityBuilderLastRenderSignature = '';
+    syncInfinityBuilderPanelVisuals();
+    void refreshAccountOverviewRemoteSnapshot({
+      force: true,
+      homeNode,
+      scope: overviewContext?.scope,
+      preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+    });
+  } catch (error) {
+    setInfinityBuilderClaimFeedback(
+      safeText(error?.message) || 'Unable to claim tier reward right now.',
+      { isError: true },
+    );
+  } finally {
+    infinityBuilderClaimInFlight = false;
+    infinityBuilderLastRenderSignature = '';
+    syncInfinityBuilderPanelVisuals();
+  }
+}
+
+function focusInfinityBuilderPanelNode(nodeIdInput = '') {
+  const nodeId = safeText(nodeIdInput);
+  if (!nodeId) {
+    return false;
+  }
+  if (isLegacyTierCanvasViewActive()) {
+    const projectedNodes = Array.isArray(state.frameResult?.projectedNodes)
+      ? state.frameResult.projectedNodes
+      : [];
+    if (projectedNodes.some((node) => safeText(node?.id) === nodeId)) {
+      setSelectedNode(nodeId, { animate: true });
+      return true;
+    }
+  }
+  if (focusNode(nodeId, 30, true)) {
+    return true;
+  }
+
+  const globalMetrics = state.adapter.resolveNodeMetrics(nodeId, getGlobalUniverseOptions());
+  if (!globalMetrics?.node) {
+    return false;
+  }
+
+  goToGlobalHome(false);
+  return focusNode(nodeId, 30, true);
+}
+
+function resolveInfinityBuilderEventTargetElement(eventInput = null) {
+  const rawTarget = eventInput?.target || null;
+  if (rawTarget instanceof Element) {
+    return rawTarget;
+  }
+  if (
+    rawTarget
+    && typeof rawTarget === 'object'
+    && 'parentElement' in rawTarget
+    && rawTarget.parentElement instanceof Element
+  ) {
+    return rawTarget.parentElement;
+  }
+  return null;
+}
+
+function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  const resolvedHomeNode = homeNode && typeof homeNode === 'object'
+    ? homeNode
+    : (resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root') || null);
+  const homeNodeIdKey = normalizeCredentialValue(
+    safeText(resolvedHomeNode?.id || 'root'),
+  );
+  const homeGlobalNodeIdKey = normalizeCredentialValue(
+    safeText(resolvePreferredGlobalHomeNodeId() || resolvedHomeNode?.id || 'root'),
+  );
+  const homeUsernameKey = normalizeCredentialValue(
+    safeText(resolvedHomeNode?.username || resolvedHomeNode?.memberCode || '').replace(/^@+/, ''),
+  );
+  const rootKey = normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID);
+  const adminKey = normalizeCredentialValue(ADMIN_ROOT_USERNAME);
+  const sponsorChildrenById = new Map();
+  const sponsorChildrenByUsername = new Map();
+  const directSeedNodes = [];
+
+  for (const nodeInput of safeNodes) {
+    const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+    if (!node) {
+      continue;
+    }
+    const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+    if (!nodeIdKey || nodeIdKey === 'root' || nodeIdKey === rootKey || nodeIdKey === adminKey) {
+      continue;
+    }
+    if (isInfinityBuilderPlaceholderNode(node)) {
+      continue;
+    }
+    const mappedSponsorIdKey = normalizeCredentialValue(
+      safeText(node?.sponsorId || node?.globalSponsorId || ''),
+    );
+    const sourceSponsorIdKey = normalizeCredentialValue(
+      safeText(node?.sourceSponsorId || node?.source_sponsor_id || ''),
+    );
+    if (mappedSponsorIdKey) {
+      if (!sponsorChildrenById.has(mappedSponsorIdKey)) {
+        sponsorChildrenById.set(mappedSponsorIdKey, []);
+      }
+      sponsorChildrenById.get(mappedSponsorIdKey).push(node);
+    }
+    const sponsorUsernameKey = normalizeCredentialValue(
+      safeText(node?.sponsorUsername || node?.sponsor_username || '').replace(/^@+/, ''),
+    );
+    if (sponsorUsernameKey) {
+      if (!sponsorChildrenByUsername.has(sponsorUsernameKey)) {
+        sponsorChildrenByUsername.set(sponsorUsernameKey, []);
+      }
+      sponsorChildrenByUsername.get(sponsorUsernameKey).push(node);
+    }
+    if (!isInfinityBuilderQualifyingSeedNode(node, {
+      mode: INFINITY_BUILDER_PANEL_MODE_INFINITY,
+    })) {
+      continue;
+    }
+    const directSponsorIdKey = sourceSponsorIdKey || mappedSponsorIdKey;
+    const isDirectBySponsorId = Boolean(
+      directSponsorIdKey
+      && (
+        (homeNodeIdKey && directSponsorIdKey === homeNodeIdKey)
+        || (homeGlobalNodeIdKey && directSponsorIdKey === homeGlobalNodeIdKey)
+      ),
+    );
+    const isDirectBySponsorUsername = Boolean(
+      homeUsernameKey
+      && sponsorUsernameKey
+      && sponsorUsernameKey === homeUsernameKey,
+    );
+    if (isDirectBySponsorId || isDirectBySponsorUsername) {
+      directSeedNodes.push(node);
+    }
+  }
+
+  for (const [sponsorIdKey, childNodesInput] of sponsorChildrenById.entries()) {
+    const childNodes = Array.isArray(childNodesInput) ? childNodesInput.slice() : [];
+    childNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+    sponsorChildrenById.set(sponsorIdKey, childNodes);
+  }
+  for (const [sponsorUsernameKey, childNodesInput] of sponsorChildrenByUsername.entries()) {
+    const childNodes = Array.isArray(childNodesInput) ? childNodesInput.slice() : [];
+    childNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+    sponsorChildrenByUsername.set(sponsorUsernameKey, childNodes);
+  }
+  directSeedNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+
+  const computedTierCount = Math.max(
+    INFINITY_BUILDER_MIN_VISIBLE_TIERS,
+    Math.ceil(directSeedNodes.length / INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER) + 1,
+  );
+  const tierCount = clamp(
+    computedTierCount,
+    INFINITY_BUILDER_MIN_VISIBLE_TIERS,
+    INFINITY_BUILDER_MAX_VISIBLE_TIERS,
+  );
+  const claimRecordMap = resolveInfinityBuilderClaimRecordMap(
+    INFINITY_BUILDER_PANEL_MODE_INFINITY,
+  );
+  const tiers = [];
+  for (let tierIndex = 0; tierIndex < tierCount; tierIndex += 1) {
+    const tierNumber = tierIndex + 1;
+    const tierSeedNodes = directSeedNodes.slice(
+      tierIndex * INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER,
+      (tierIndex + 1) * INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER,
+    );
+    const seedSnapshots = [];
+    let completedSeedNodeCount = 0;
+    for (let slotIndex = 0; slotIndex < INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER; slotIndex += 1) {
+      const seedNode = tierSeedNodes[slotIndex] || null;
+      if (!seedNode) {
+        seedSnapshots.push(buildInfinityBuilderEmptySeedSnapshot(slotIndex, tierNumber));
+        continue;
+      }
+      const seedNodeId = safeText(seedNode?.id);
+      const seedNodeIdKey = normalizeCredentialValue(seedNodeId);
+      const seedUsernameKey = normalizeCredentialValue(
+        safeText(seedNode?.username || seedNode?.memberCode || '').replace(/^@+/, ''),
+      );
+      const rawChildCandidates = seedNodeIdKey && sponsorChildrenById.has(seedNodeIdKey)
+        ? sponsorChildrenById.get(seedNodeIdKey)
+        : (seedUsernameKey && sponsorChildrenByUsername.has(seedUsernameKey)
+          ? sponsorChildrenByUsername.get(seedUsernameKey)
+          : []);
+      const childCandidates = Array.isArray(rawChildCandidates)
+        ? rawChildCandidates
+          .filter((childNode) => isInfinityBuilderQualifyingChildNode(childNode, {
+            mode: INFINITY_BUILDER_PANEL_MODE_INFINITY,
+          }))
+          .slice()
+          .sort(compareInfinityBuilderNodesOldestToNewest)
+        : [];
+      const childNodes = childCandidates.slice(0, INFINITY_BUILDER_TIER_NODE_REQUIREMENT);
+      const childSnapshots = [];
+      let completedChildCount = 0;
+      for (let childIndex = 0; childIndex < INFINITY_BUILDER_TIER_NODE_REQUIREMENT; childIndex += 1) {
+        const childNode = childNodes[childIndex] || null;
+        if (!childNode) {
+          childSnapshots.push(buildInfinityBuilderEmptyChildSnapshot(`tier-${tierNumber}:slot-${slotIndex}:${childIndex}`));
+          continue;
+        }
+        const childDisplayName = safeText(
+          childNode?.name
+          || childNode?.username
+          || childNode?.memberCode
+          || childNode?.id
+          || 'Member',
+        ) || 'Member';
+        const childUsername = resolveInfinityBuilderNodeUsername(childNode);
+        const childNodeId = safeText(childNode?.id);
+        const childActive = resolveNodeActivityState(childNode);
+        if (childActive) {
+          completedChildCount += 1;
+        }
+        childSnapshots.push({
+          node: childNode,
+          nodeId: childNodeId,
+          username: childUsername,
+          initials: resolveInitials(childDisplayName),
+          isActive: childActive,
+          backgroundImage: resolveInfinityBuilderNodeBackgroundImage(childNode, {
+            active: childActive,
+            fallbackSeed: `tier-${tierNumber}:slot-${slotIndex}:child-${childIndex}`,
+          }),
+        });
+      }
+      const seedDisplayName = safeText(
+        seedNode?.name
+        || seedNode?.username
+        || seedNode?.memberCode
+        || seedNodeId
+        || 'Member',
+      ) || 'Member';
+      const seedUsername = resolveInfinityBuilderNodeUsername(seedNode);
+      const seedActive = resolveNodeActivityState(seedNode);
+      const isCompletedNode = seedActive && completedChildCount >= INFINITY_BUILDER_TIER_NODE_REQUIREMENT;
+      if (isCompletedNode) {
+        completedSeedNodeCount += 1;
+      }
+      const volumeMetrics = resolveNodeLegVolumes(seedNodeId);
+      const totalOrganizationBv = Math.max(0, Math.floor(safeNumber(volumeMetrics?.totalVolume, 0)));
+      const monthlyOverrideUsd = isCompletedNode
+        ? Math.max(0, Math.round(totalOrganizationBv * INFINITY_BUILDER_TIER_OVERRIDE_RATE * 100) / 100)
+        : 0;
+      seedSnapshots.push({
+        slotIndex,
+        node: seedNode,
+        nodeId: seedNodeId,
+        displayName: seedDisplayName,
+        username: seedUsername,
+        initials: resolveInitials(seedDisplayName),
+        isActive: seedActive,
+        isCompletedNode,
+        completedChildCount,
+        totalOrganizationBv,
+        monthlyOverrideUsd,
+        weeklyOverrideUsd: monthlyOverrideUsd,
+        backgroundImage: resolveInfinityBuilderNodeBackgroundImage(seedNode, {
+          active: seedActive,
+          fallbackSeed: `tier-${tierNumber}:slot-${slotIndex}`,
+        }),
+        childSnapshots,
+      });
+    }
+    const directRequirementMet = tierSeedNodes.length >= INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER;
+    const tierCompleted = directRequirementMet;
+    const claimRecord = claimRecordMap.get(tierNumber) || null;
+    const isClaimed = Boolean(safeText(claimRecord?.claimedAt));
+    tiers.push({
+      tierNumber,
+      seedCount: tierSeedNodes.length,
+      directRequirementMet,
+      completedSeedNodeCount,
+      isCompleted: tierCompleted,
+      isUnlocked: false,
+      isClaimed,
+      claimRecord,
+      tierBonusUsd: INFINITY_BUILDER_TIER_BONUS_USD,
+      seedSnapshots,
+    });
+  }
+
+  for (let tierIndex = 0; tierIndex < tiers.length; tierIndex += 1) {
+    if (tierIndex === 0) {
+      tiers[tierIndex].isUnlocked = true;
+      continue;
+    }
+    const previousTier = tiers[tierIndex - 1];
+    tiers[tierIndex].isUnlocked = Boolean(previousTier?.isUnlocked && previousTier?.isCompleted);
+  }
+
+  const completedTierCount = tiers.reduce((count, tier) => count + (tier.isCompleted ? 1 : 0), 0);
+  const claimedTierCount = tiers.reduce((count, tier) => count + (tier.isClaimed ? 1 : 0), 0);
+  const unlockedTierCount = tiers.reduce((count, tier) => count + (tier.isUnlocked ? 1 : 0), 0);
+  const totalMonthlyOverrideUsd = tiers.reduce((sum, tier) => (
+    sum + tier.seedSnapshots.reduce(
+      (seedSum, seedSnapshot) => seedSum + Math.max(0, safeNumber(
+        seedSnapshot?.monthlyOverrideUsd,
+        safeNumber(seedSnapshot?.weeklyOverrideUsd, 0),
+      )),
+      0,
+    )
+  ), 0);
+  const commissionBalances = resolveAccountOverviewCommissionBalances(resolvedHomeNode, {
+    systemTotals: false,
+  });
+  const currentBalanceUsd = Math.max(0, safeNumber(commissionBalances?.infinityBuilder, 0));
+
+  return {
+    homeNode: resolvedHomeNode,
+    tiers,
+    directSeedCount: directSeedNodes.length,
+    completedTierCount,
+    claimedTierCount,
+    unlockedTierCount,
+    totalTierRewardUsd: completedTierCount * INFINITY_BUILDER_TIER_BONUS_USD,
+    claimableTierRewardUsd: Math.max(0, (completedTierCount - claimedTierCount) * INFINITY_BUILDER_TIER_BONUS_USD),
+    totalMonthlyOverrideUsd: Math.max(0, Math.round(totalMonthlyOverrideUsd * 100) / 100),
+    totalWeeklyOverrideUsd: Math.max(0, Math.round(totalMonthlyOverrideUsd * 100) / 100),
+    currentBalanceUsd,
+  };
+}
+
+function buildLegacyLeadershipPanelSnapshot(homeNode = null) {
+  const modeConfig = resolveInfinityBuilderPanelModeConfig(
+    INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP,
+  );
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  const resolvedHomeNode = homeNode && typeof homeNode === 'object'
+    ? homeNode
+    : (resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root') || null);
+  const homeNodeIdKey = normalizeCredentialValue(
+    safeText(resolvedHomeNode?.id || 'root'),
+  );
+  const homeGlobalNodeIdKey = normalizeCredentialValue(
+    safeText(resolvePreferredGlobalHomeNodeId() || resolvedHomeNode?.id || 'root'),
+  );
+  const homeUsernameKey = normalizeCredentialValue(
+    safeText(resolvedHomeNode?.username || resolvedHomeNode?.memberCode || '').replace(/^@+/, ''),
+  );
+  const rootKey = normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID);
+  const adminKey = normalizeCredentialValue(ADMIN_ROOT_USERNAME);
+  const sponsorChildrenById = new Map();
+  const sponsorChildrenByUsername = new Map();
+  const directSeedNodes = [];
+
+  const toNodeIdentityKey = (nodeInput = null) => normalizeCredentialValue(
+    safeText(
+      nodeInput?.id
+      || nodeInput?.username
+      || nodeInput?.memberCode
+      || nodeInput?.member_code
+      || '',
+    ),
+  );
+
+  for (const nodeInput of safeNodes) {
+    const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+    if (!node) {
+      continue;
+    }
+    const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+    if (!nodeIdKey || nodeIdKey === 'root' || nodeIdKey === rootKey || nodeIdKey === adminKey) {
+      continue;
+    }
+    if (isInfinityBuilderPlaceholderNode(node)) {
+      continue;
+    }
+    if (!isInfinityBuilderQualifyingChildNode(node, { mode: modeConfig.mode })) {
+      continue;
+    }
+    const mappedSponsorIdKey = normalizeCredentialValue(
+      safeText(node?.sponsorId || node?.globalSponsorId || ''),
+    );
+    const sourceSponsorIdKey = normalizeCredentialValue(
+      safeText(node?.sourceSponsorId || node?.source_sponsor_id || ''),
+    );
+    if (mappedSponsorIdKey) {
+      if (!sponsorChildrenById.has(mappedSponsorIdKey)) {
+        sponsorChildrenById.set(mappedSponsorIdKey, []);
+      }
+      sponsorChildrenById.get(mappedSponsorIdKey).push(node);
+    }
+    const sponsorUsernameKey = normalizeCredentialValue(
+      safeText(node?.sponsorUsername || node?.sponsor_username || '').replace(/^@+/, ''),
+    );
+    if (sponsorUsernameKey) {
+      if (!sponsorChildrenByUsername.has(sponsorUsernameKey)) {
+        sponsorChildrenByUsername.set(sponsorUsernameKey, []);
+      }
+      sponsorChildrenByUsername.get(sponsorUsernameKey).push(node);
+    }
+    if (!isInfinityBuilderQualifyingSeedNode(node, { mode: modeConfig.mode })) {
+      continue;
+    }
+    const directSponsorIdKey = sourceSponsorIdKey || mappedSponsorIdKey;
+    const isDirectBySponsorId = Boolean(
+      directSponsorIdKey
+      && (
+        (homeNodeIdKey && directSponsorIdKey === homeNodeIdKey)
+        || (homeGlobalNodeIdKey && directSponsorIdKey === homeGlobalNodeIdKey)
+      ),
+    );
+    const isDirectBySponsorUsername = Boolean(
+      homeUsernameKey
+      && sponsorUsernameKey
+      && sponsorUsernameKey === homeUsernameKey,
+    );
+    if (isDirectBySponsorId || isDirectBySponsorUsername) {
+      directSeedNodes.push(node);
+    }
+  }
+
+  for (const [sponsorIdKey, childNodesInput] of sponsorChildrenById.entries()) {
+    const childNodes = Array.isArray(childNodesInput) ? childNodesInput.slice() : [];
+    childNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+    sponsorChildrenById.set(sponsorIdKey, childNodes);
+  }
+  for (const [sponsorUsernameKey, childNodesInput] of sponsorChildrenByUsername.entries()) {
+    const childNodes = Array.isArray(childNodesInput) ? childNodesInput.slice() : [];
+    childNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+    sponsorChildrenByUsername.set(sponsorUsernameKey, childNodes);
+  }
+  directSeedNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+
+  const levelTwoCap = INFINITY_BUILDER_TIER_NODE_REQUIREMENT ** 2;
+  const levelThreeCap = INFINITY_BUILDER_TIER_NODE_REQUIREMENT ** 3;
+  const fullySeededTierCount = Math.floor(
+    directSeedNodes.length / INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER,
+  );
+  const computedTierCount = Math.max(
+    modeConfig.baseVisibleTierCount + modeConfig.previewLockedTierCount,
+    fullySeededTierCount + 1 + modeConfig.previewLockedTierCount,
+  );
+  const tierCount = clamp(
+    computedTierCount,
+    modeConfig.baseVisibleTierCount,
+    INFINITY_BUILDER_MAX_VISIBLE_TIERS,
+  );
+
+  const resolveChildCandidates = (nodeInput = null) => {
+    const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+    if (!node) {
+      return [];
+    }
+    const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+    const nodeUsernameKey = normalizeCredentialValue(
+      safeText(node?.username || node?.memberCode || '').replace(/^@+/, ''),
+    );
+    const rawCandidatesById = nodeIdKey && sponsorChildrenById.has(nodeIdKey)
+      ? sponsorChildrenById.get(nodeIdKey)
+      : [];
+    const rawCandidatesByUsername = nodeUsernameKey && sponsorChildrenByUsername.has(nodeUsernameKey)
+      ? sponsorChildrenByUsername.get(nodeUsernameKey)
+      : [];
+    const seenNodeKeys = new Set();
+    const resolvedChildren = [];
+    for (const candidateInput of [...rawCandidatesById, ...rawCandidatesByUsername]) {
+      const candidate = candidateInput && typeof candidateInput === 'object'
+        ? candidateInput
+        : null;
+      if (!candidate || !isInfinityBuilderQualifyingChildNode(candidate, { mode: modeConfig.mode })) {
+        continue;
+      }
+      const candidateKey = toNodeIdentityKey(candidate);
+      if (!candidateKey || seenNodeKeys.has(candidateKey)) {
+        continue;
+      }
+      seenNodeKeys.add(candidateKey);
+      resolvedChildren.push(candidate);
+    }
+    resolvedChildren.sort(compareInfinityBuilderNodesOldestToNewest);
+    return resolvedChildren;
+  };
+
+  const buildLegacyChildSnapshot = (nodeInput = null, fallbackSeed = '', depthLevel = 1) => {
+    const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+    if (!node) {
+      return {
+        node: null,
+        nodeId: '',
+        username: '',
+        initials: '',
+        isActive: false,
+        depthLevel,
+        backgroundImage: resolveInfinityBuilderNodeBackgroundImage(null, {
+          active: true,
+          fallbackSeed,
+        }),
+      };
+    }
+    const displayName = safeText(
+      node?.name
+      || node?.username
+      || node?.memberCode
+      || node?.id,
+    );
+    const nodeActive = resolveNodeActivityState(node);
+    return {
+      node,
+      nodeId: safeText(node?.id),
+      username: resolveInfinityBuilderNodeUsername(node),
+      initials: displayName ? resolveInitials(displayName) : '',
+      isActive: nodeActive,
+      depthLevel,
+      backgroundImage: resolveInfinityBuilderNodeBackgroundImage(node, {
+        active: nodeActive,
+        fallbackSeed,
+      }),
+    };
+  };
+
+  const buildLegacyEmptySeedSnapshot = (slotIndex = 0, tierNumber = 1) => ({
+    slotIndex,
+    node: null,
+    nodeId: '',
+    displayName: '',
+    username: '',
+    initials: '',
+    isActive: false,
+    isCompletedNode: false,
+    completedChildCount: 0,
+    totalOrganizationBv: 0,
+    monthlyOverrideUsd: 0,
+    weeklyOverrideUsd: 0,
+    tierMappedNodeCount: 0,
+    backgroundImage: resolveInfinityBuilderNodeBackgroundImage(null, {
+      active: true,
+      fallbackSeed: `legacy-seed-empty:tier-${tierNumber}:slot-${slotIndex}`,
+    }),
+    childSnapshots: Array.from(
+      { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+      (_, childIndex) => buildLegacyChildSnapshot(
+        null,
+        `legacy-child-empty:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+        1,
+      ),
+    ),
+    depthTwoSnapshots: Array.from(
+      { length: levelTwoCap },
+      (_, childIndex) => buildLegacyChildSnapshot(
+        null,
+        `legacy-depth-two-empty:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+        2,
+      ),
+    ),
+    depthTwoGroupSnapshots: Array.from(
+      { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+      (_, groupIndex) => Array.from(
+        { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+        (_, childIndex) => buildLegacyChildSnapshot(
+          null,
+          `legacy-depth-two-empty-group:tier-${tierNumber}:slot-${slotIndex}:${groupIndex}:${childIndex}`,
+          2,
+        ),
+      ),
+    ),
+    depthThreeSnapshots: Array.from(
+      { length: levelThreeCap },
+      (_, childIndex) => buildLegacyChildSnapshot(
+        null,
+        `legacy-depth-three-empty:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+        3,
+      ),
+    ),
+    depthThreeGroupSnapshots: Array.from(
+      { length: levelTwoCap },
+      (_, groupIndex) => Array.from(
+        { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+        (_, childIndex) => buildLegacyChildSnapshot(
+          null,
+          `legacy-depth-three-empty-group:tier-${tierNumber}:slot-${slotIndex}:${groupIndex}:${childIndex}`,
+          3,
+        ),
+      ),
+    ),
+  });
+
+  const claimRecordMap = resolveInfinityBuilderClaimRecordMap(modeConfig.mode);
+  const tiers = [];
+  for (let tierIndex = 0; tierIndex < tierCount; tierIndex += 1) {
+    const tierNumber = tierIndex + 1;
+    const tierSeedNodes = directSeedNodes.slice(
+      tierIndex * INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER,
+      (tierIndex + 1) * INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER,
+    );
+    const seedSnapshots = [];
+    let tierQualifiedNodeCount = 0;
+    for (let slotIndex = 0; slotIndex < INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER; slotIndex += 1) {
+      const seedNode = tierSeedNodes[slotIndex] || null;
+      if (!seedNode) {
+        seedSnapshots.push(buildLegacyEmptySeedSnapshot(slotIndex, tierNumber));
+        continue;
+      }
+      const levelOneNodes = resolveChildCandidates(seedNode).slice(
+        0,
+        INFINITY_BUILDER_TIER_NODE_REQUIREMENT,
+      );
+      const levelTwoNodeGroups = Array.from(
+        { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+        () => [],
+      );
+      for (
+        let levelOneIndex = 0;
+        levelOneIndex < INFINITY_BUILDER_TIER_NODE_REQUIREMENT;
+        levelOneIndex += 1
+      ) {
+        const levelOneNode = levelOneNodes[levelOneIndex] || null;
+        if (!levelOneNode) {
+          continue;
+        }
+        levelTwoNodeGroups[levelOneIndex] = resolveChildCandidates(levelOneNode).slice(
+          0,
+          INFINITY_BUILDER_TIER_NODE_REQUIREMENT,
+        );
+      }
+      const levelTwoNodes = levelTwoNodeGroups.flat().slice(0, levelTwoCap);
+      const levelThreeNodeGroups = Array.from({ length: levelTwoCap }, () => []);
+      for (let levelTwoIndex = 0; levelTwoIndex < levelTwoCap; levelTwoIndex += 1) {
+        const levelTwoNode = levelTwoNodes[levelTwoIndex] || null;
+        if (!levelTwoNode) {
+          continue;
+        }
+        levelThreeNodeGroups[levelTwoIndex] = resolveChildCandidates(levelTwoNode).slice(
+          0,
+          INFINITY_BUILDER_TIER_NODE_REQUIREMENT,
+        );
+      }
+      const levelThreeNodes = levelThreeNodeGroups.flat().slice(0, levelThreeCap);
+
+      const levelOneSnapshots = Array.from(
+        { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+        (_, childIndex) => buildLegacyChildSnapshot(
+          levelOneNodes[childIndex] || null,
+          `legacy-child:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+          1,
+        ),
+      );
+      const levelTwoSnapshots = Array.from(
+        { length: levelTwoCap },
+        (_, childIndex) => buildLegacyChildSnapshot(
+          levelTwoNodes[childIndex] || null,
+          `legacy-depth-two:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+          2,
+        ),
+      );
+      const levelTwoGroupSnapshots = Array.from(
+        { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+        (_, groupIndex) => Array.from(
+          { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+          (_, childIndex) => buildLegacyChildSnapshot(
+            levelTwoNodeGroups[groupIndex]?.[childIndex] || null,
+            `legacy-depth-two-group:tier-${tierNumber}:slot-${slotIndex}:${groupIndex}:${childIndex}`,
+            2,
+          ),
+        ),
+      );
+      const levelThreeSnapshots = Array.from(
+        { length: levelThreeCap },
+        (_, childIndex) => buildLegacyChildSnapshot(
+          levelThreeNodes[childIndex] || null,
+          `legacy-depth-three:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+          3,
+        ),
+      );
+      const levelThreeGroupSnapshots = Array.from(
+        { length: levelTwoCap },
+        (_, groupIndex) => Array.from(
+          { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+          (_, childIndex) => buildLegacyChildSnapshot(
+            levelThreeNodeGroups[groupIndex]?.[childIndex] || null,
+            `legacy-depth-three-group:tier-${tierNumber}:slot-${slotIndex}:${groupIndex}:${childIndex}`,
+            3,
+          ),
+        ),
+      );
+
+      const seedNodeId = safeText(seedNode?.id);
+      const seedDisplayName = safeText(
+        seedNode?.name
+        || seedNode?.username
+        || seedNode?.memberCode
+        || seedNodeId,
+      );
+      const seedActive = resolveNodeActivityState(seedNode);
+      const seedMappedNodeCount = (
+        1
+        + levelOneNodes.length
+        + levelTwoNodes.length
+        + levelThreeNodes.length
+      );
+      tierQualifiedNodeCount += seedMappedNodeCount;
+      seedSnapshots.push({
+        slotIndex,
+        node: seedNode,
+        nodeId: seedNodeId,
+        displayName: seedDisplayName,
+        username: resolveInfinityBuilderNodeUsername(seedNode),
+        initials: seedDisplayName ? resolveInitials(seedDisplayName) : '',
+        isActive: seedActive,
+        isCompletedNode: false,
+        completedChildCount: levelOneNodes.length,
+        totalOrganizationBv: seedMappedNodeCount,
+        monthlyOverrideUsd: 0,
+        weeklyOverrideUsd: 0,
+        tierMappedNodeCount: seedMappedNodeCount,
+        backgroundImage: resolveInfinityBuilderNodeBackgroundImage(seedNode, {
+          active: seedActive,
+          fallbackSeed: `legacy-seed:tier-${tierNumber}:slot-${slotIndex}`,
+        }),
+        childSnapshots: levelOneSnapshots,
+        depthTwoSnapshots: levelTwoSnapshots,
+        depthTwoGroupSnapshots: levelTwoGroupSnapshots,
+        depthThreeSnapshots: levelThreeSnapshots,
+        depthThreeGroupSnapshots: levelThreeGroupSnapshots,
+      });
+    }
+
+    const directRequirementMet = tierSeedNodes.length >= INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER;
+    const downlineNodeCap = Math.max(0, modeConfig.totalNodesPerTier - 1);
+    const cappedQualifiedNodeCount = Math.min(downlineNodeCap, tierQualifiedNodeCount);
+    const effectiveQualifiedNodeCount = directRequirementMet
+      ? cappedQualifiedNodeCount
+      : Math.min(cappedQualifiedNodeCount, tierSeedNodes.length);
+    // Legacy tier view is a 40-node map that includes the home/root node.
+    const baseRootNodeCount = resolvedHomeNode ? 1 : 0;
+    const tierProgressCount = Math.min(
+      modeConfig.totalNodesPerTier,
+      baseRootNodeCount + effectiveQualifiedNodeCount,
+    );
+    const tierCompleted = directRequirementMet && tierProgressCount >= modeConfig.totalNodesPerTier;
+    const claimRecord = claimRecordMap.get(tierNumber) || null;
+    const isClaimed = Boolean(safeText(claimRecord?.claimedAt));
+    const completedSeedNodeCount = seedSnapshots.reduce(
+      (count, seedSnapshot) => count + (seedSnapshot?.node ? 1 : 0),
+      0,
+    );
+    tiers.push({
+      tierNumber,
+      seedCount: tierSeedNodes.length,
+      directRequirementMet,
+      completedSeedNodeCount,
+      isCompleted: tierCompleted,
+      isUnlocked: false,
+      isClaimed,
+      claimRecord,
+      tierBonusUsd: Math.max(
+        0,
+        safeNumber(claimRecord?.amount, LEGACY_LEADERSHIP_TIER_BONUS_USD),
+      ),
+      tierProgressCount,
+      totalNodeRequirement: modeConfig.totalNodesPerTier,
+      litNodeCount: tierProgressCount,
+      seedSnapshots,
+    });
+  }
+
+  for (let tierIndex = 0; tierIndex < tiers.length; tierIndex += 1) {
+    const isBaseVisibleTier = tierIndex < modeConfig.baseVisibleTierCount;
+    if (tierIndex === 0) {
+      tiers[tierIndex].isUnlocked = true;
+      continue;
+    }
+    const previousTier = tiers[tierIndex - 1];
+    const unlockedByProgress = modeConfig.unlockByDirectRequirement
+      ? Boolean(previousTier?.isUnlocked && previousTier?.directRequirementMet)
+      : Boolean(previousTier?.isUnlocked && previousTier?.isCompleted);
+    tiers[tierIndex].isUnlocked = isBaseVisibleTier || unlockedByProgress;
+  }
+
+  const completedTierCount = tiers.reduce((count, tier) => count + (tier.isCompleted ? 1 : 0), 0);
+  const claimedTierCount = tiers.reduce((count, tier) => count + (tier.isClaimed ? 1 : 0), 0);
+  const unlockedTierCount = tiers.reduce((count, tier) => count + (tier.isUnlocked ? 1 : 0), 0);
+  const totalTierRewardUsd = tiers.reduce(
+    (sum, tier) => sum + (tier?.isCompleted ? Math.max(0, safeNumber(tier?.tierBonusUsd, 0)) : 0),
+    0,
+  );
+  const claimableTierRewardUsd = tiers.reduce(
+    (sum, tier) => sum + (
+      tier?.isCompleted && !tier?.isClaimed
+        ? Math.max(0, safeNumber(tier?.tierBonusUsd, 0))
+        : 0
+    ),
+    0,
+  );
+  const commissionBalances = resolveAccountOverviewCommissionBalances(resolvedHomeNode, {
+    systemTotals: false,
+  });
+  const currentBalanceUsd = Math.max(0, safeNumber(commissionBalances?.legacyBuilder, 0));
+
+  return {
+    homeNode: resolvedHomeNode,
+    tiers,
+    directSeedCount: directSeedNodes.length,
+    completedTierCount,
+    claimedTierCount,
+    unlockedTierCount,
+    totalTierRewardUsd,
+    claimableTierRewardUsd,
+    totalMonthlyOverrideUsd: 0,
+    totalWeeklyOverrideUsd: 0,
+    currentBalanceUsd,
+    totalNodeRequirement: modeConfig.totalNodesPerTier,
+  };
+}
+
+function buildInfinityBuilderPanelSnapshot(homeNode = null) {
+  if (isLegacyLeadershipPanelMode()) {
+    return buildLegacyLeadershipPanelSnapshot(homeNode);
+  }
+  return buildInfinityBuilderBonusPanelSnapshot(homeNode);
+}
+
+function syncInfinityBuilderPanelPosition(layoutInput = state.layout) {
+  if (!isInfinityBuilderPanelAvailable()) {
+    return;
+  }
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const sideNav = layout?.sideNav || null;
+  const sideNavToggle = layout?.sideNavToggle || null;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
+  );
+  const panelHorizontalGap = 18;
+  const panelEdgePadding = 18;
+  const rightDockReservedWidth = 72;
+  const panelTop = sideNav
+    ? Math.round(sideNav.y)
+    : panelEdgePadding;
+  const panelHeight = sideNav
+    ? Math.round(sideNav.height)
+    : Math.max(320, viewportHeight - (panelEdgePadding * 2));
+
+  let anchorLeft = Math.round((viewportWidth - 640) / 2);
+  if (sideNavOpen && sideNav) {
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
+  } else if (sideNavToggle) {
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
+  }
+
+  const maxUsableWidth = Math.max(
+    360,
+    Math.floor(viewportWidth - anchorLeft - rightDockReservedWidth),
+  );
+  const panelWidth = clamp(Math.round(Math.min(760, maxUsableWidth)), 360, maxUsableWidth);
+  const clampedLeft = clamp(
+    anchorLeft,
+    panelEdgePadding,
+    Math.max(
+      panelEdgePadding,
+      viewportWidth - panelWidth - rightDockReservedWidth,
+    ),
+  );
+  const clampedTop = clamp(
+    panelTop,
+    panelEdgePadding,
+    Math.max(panelEdgePadding, viewportHeight - panelHeight - panelEdgePadding),
+  );
+  const clampedHeight = clamp(
+    panelHeight,
+    320,
+    Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+  );
+
+  infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-left', `${clampedLeft}px`);
+  infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-top', `${clampedTop}px`);
+  infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-width', `${panelWidth}px`);
+  infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-height', `${clampedHeight}px`);
+  infinityBuilderPanelElement.classList.remove('is-positioning');
+}
+
+function syncInfinityBuilderPanelVisuals() {
+  if (!isInfinityBuilderPanelAvailable() || !Boolean(state.ui?.infinityBuilderVisible)) {
+    return;
+  }
+  const modeConfig = resolveInfinityBuilderPanelModeConfig();
+  const isLegacyMode = modeConfig.mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP;
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  maybeRefreshAccountOverviewRemoteSnapshot(homeNode, {
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
+  const snapshot = buildInfinityBuilderPanelSnapshot(homeNode);
+  if (!Array.isArray(snapshot?.tiers) || snapshot.tiers.length === 0) {
+    syncInfinityBuilderViewTreeButtonState({ isLegacyMode });
+    return;
+  }
+  infinityBuilderLastPanelSnapshot = snapshot;
+  const selectedTier = resolveInfinityBuilderSelectedTierFromSnapshot(snapshot);
+  if (!selectedTier) {
+    syncInfinityBuilderViewTreeButtonState({ isLegacyMode });
+    return;
+  }
+  if (selectedTier.tierNumber !== infinityBuilderSelectedTierNumber) {
+    infinityBuilderSelectedTierNumber = selectedTier.tierNumber;
+  }
+  if (!isLegacyMode && isLegacyTierCanvasViewActive()) {
+    closeLegacyTierCanvasView({ preserveSelection: true });
+  } else if (
+    isLegacyMode
+    && isLegacyTierCanvasViewActive()
+    && !legacyTierCanvasViewState.tierSwitchInFlight
+  ) {
+    syncLegacyTierCanvasViewModel(snapshot, selectedTier);
+  }
+
+  const tiersSignature = snapshot.tiers.map((tier) => [
+    tier.tierNumber,
+    tier.isUnlocked ? '1' : '0',
+    tier.isCompleted ? '1' : '0',
+    tier.isClaimed ? '1' : '0',
+    tier.seedCount,
+    tier.completedSeedNodeCount,
+    tier.seedSnapshots.map((seedSnapshot) => {
+      if (!seedSnapshot?.node) {
+        return 'empty';
+      }
+      return [
+        safeText(seedSnapshot.nodeId),
+        seedSnapshot.isActive ? '1' : '0',
+        seedSnapshot.isCompletedNode ? '1' : '0',
+        seedSnapshot.completedChildCount,
+        Math.floor(safeNumber(seedSnapshot.totalOrganizationBv, 0)),
+      ].join(':');
+    }).join(','),
+  ].join('|')).join('~');
+  const renderSignature = [
+    safeText(state.liveSync?.lastAppliedHash || ''),
+    modeConfig.mode,
+    accountOverviewRemoteDataVersion,
+    infinityBuilderSelectedTierNumber,
+    resolveInfinityBuilderTierSortDirectionForMode(INFINITY_BUILDER_PANEL_MODE_INFINITY),
+    resolveInfinityBuilderTierSortDirectionForMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP),
+    snapshot.directSeedCount,
+    snapshot.completedTierCount,
+    snapshot.claimedTierCount,
+    snapshot.totalTierRewardUsd.toFixed(2),
+    snapshot.currentBalanceUsd.toFixed(2),
+    safeNumber(snapshot.totalMonthlyOverrideUsd, snapshot.totalWeeklyOverrideUsd).toFixed(2),
+    tiersSignature,
+  ].join('::');
+  if (renderSignature === infinityBuilderLastRenderSignature) {
+    return;
+  }
+  infinityBuilderLastRenderSignature = renderSignature;
+
+  if (infinityBuilderBreadcrumbCurrentElement instanceof HTMLElement) {
+    infinityBuilderBreadcrumbCurrentElement.textContent = modeConfig.panelTitle;
+  }
+  if (infinityBuilderTitleElement instanceof HTMLElement) {
+    infinityBuilderTitleElement.textContent = modeConfig.panelTitle;
+  }
+  if (infinityBuilderCopyElement instanceof HTMLElement) {
+    infinityBuilderCopyElement.innerHTML = modeConfig.panelCopyHtml;
+  }
+
+  if (infinityBuilderTierTitleElement instanceof HTMLElement) {
+    infinityBuilderTierTitleElement.textContent = `${modeConfig.tierLabelPrefix} ${selectedTier.tierNumber}`;
+  }
+  if (infinityBuilderTierSubtitleElement instanceof HTMLElement) {
+    const previousTierNumber = Math.max(1, selectedTier.tierNumber - 1);
+    const remainingSeeds = Math.max(0, INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER - selectedTier.seedCount);
+    const tierProgressCount = Math.max(
+      0,
+      Math.floor(safeNumber(
+        selectedTier?.tierProgressCount,
+        safeNumber(selectedTier?.litNodeCount, selectedTier.seedCount),
+      )),
+    );
+    const totalNodeRequirement = Math.max(
+      0,
+      Math.floor(safeNumber(
+        selectedTier?.totalNodeRequirement,
+        safeNumber(snapshot?.totalNodeRequirement, modeConfig.totalNodesPerTier),
+      )),
+    );
+    if (!selectedTier.isUnlocked) {
+      infinityBuilderTierSubtitleElement.textContent = (
+        `Tier ${selectedTier.tierNumber} unlocks after Tier ${previousTierNumber} reaches `
+        + `${INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER} ${modeConfig.directSeedLabel}.`
+      );
+    } else if (selectedTier.isCompleted) {
+      if (isLegacyMode) {
+        infinityBuilderTierSubtitleElement.textContent = selectedTier.isClaimed
+          ? 'Tier completed and claimed. One-time reward archived.'
+          : 'Tier completed. One-time reward is ready to claim.';
+      } else {
+        infinityBuilderTierSubtitleElement.textContent = (
+          selectedTier.isClaimed
+            ? 'Tier completed and claimed. Monthly 1% bonuses remain active per qualified member.'
+            : 'Tier completed. Monthly 1% bonuses are active per qualified member.'
+        );
+      }
+    } else if (isLegacyMode) {
+      if (!selectedTier.directRequirementMet) {
+        infinityBuilderTierSubtitleElement.textContent = (
+          `${selectedTier.seedCount}/${INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER} Legacy enrollments completed. `
+          + (remainingSeeds > 0
+            ? `Enroll ${remainingSeeds} more Legacy member${remainingSeeds === 1 ? '' : 's'} to continue.`
+            : 'Direct requirement met.')
+        );
+      } else {
+        infinityBuilderTierSubtitleElement.textContent = '';
+      }
+    } else {
+      infinityBuilderTierSubtitleElement.textContent = (
+        `${selectedTier.seedCount}/${INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER} Infinity/Legacy enrollments completed. `
+        + (remainingSeeds > 0
+          ? `Enroll ${remainingSeeds} more to complete this tier.`
+          : 'Tier enrollment requirement met.')
+      );
+    }
+  }
+  const selectedTierRewardUsd = Math.max(
+    0,
+    safeNumber(
+      selectedTier?.tierBonusUsd,
+      isLegacyMode ? LEGACY_LEADERSHIP_TIER_BONUS_USD : INFINITY_BUILDER_TIER_BONUS_USD,
+    ),
+  );
+  if (infinityBuilderTierBonusElement instanceof HTMLElement) {
+    const selectedTierMonthlyOverrideUsd = selectedTier.seedSnapshots.reduce(
+      (sum, seedSnapshot) => sum + Math.max(0, safeNumber(
+        seedSnapshot?.monthlyOverrideUsd,
+        safeNumber(seedSnapshot?.weeklyOverrideUsd, 0),
+      )),
+      0,
+    );
+    if (!selectedTier.isUnlocked) {
+      infinityBuilderTierBonusElement.textContent = `Tier reward: ${formatEnrollCurrency(selectedTierRewardUsd)} (locked)`;
+    } else if (selectedTier.isClaimed) {
+      infinityBuilderTierBonusElement.textContent = `Tier reward claimed: ${formatEnrollCurrency(selectedTierRewardUsd)} USD`;
+    } else if (selectedTier.isCompleted) {
+      if (isLegacyMode) {
+        infinityBuilderTierBonusElement.textContent = (
+          `Tier completed: ${formatEnrollCurrency(selectedTierRewardUsd)} USD one-time reward ready`
+        );
+      } else {
+        infinityBuilderTierBonusElement.textContent = (
+          `Tier completed: ${formatEnrollCurrency(selectedTierRewardUsd)} USD ready `
+          + `| Active monthly 1% total: ${formatEnrollCurrency(selectedTierMonthlyOverrideUsd)}`
+        );
+      }
+    } else {
+      const tierProgressCount = Math.max(
+        0,
+        Math.floor(safeNumber(
+          selectedTier?.tierProgressCount,
+          safeNumber(selectedTier?.litNodeCount, selectedTier.seedCount),
+        )),
+      );
+      const totalNodeRequirement = Math.max(
+        0,
+        Math.floor(safeNumber(
+          selectedTier?.totalNodeRequirement,
+          safeNumber(snapshot?.totalNodeRequirement, modeConfig.totalNodesPerTier),
+        )),
+      );
+      infinityBuilderTierBonusElement.textContent = isLegacyMode
+        ? `Tier progress: ${tierProgressCount}/${totalNodeRequirement} mapped Legacy nodes`
+        : `Tier reward: ${formatEnrollCurrency(selectedTierRewardUsd)} USD`;
+    }
+  }
+  if (infinityBuilderClaimButtonElement instanceof HTMLButtonElement) {
+    const claimAmountLabel = formatEnrollCurrency(selectedTierRewardUsd);
+    if (infinityBuilderClaimInFlight) {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = 'Claiming...';
+    } else if (!selectedTier.isUnlocked) {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = `Claim ${claimAmountLabel} Tier Reward`;
+    } else if (selectedTier.isClaimed) {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = 'Tier Reward Claimed';
+    } else if (selectedTier.isCompleted) {
+      infinityBuilderClaimButtonElement.disabled = false;
+      infinityBuilderClaimButtonElement.textContent = `Claim ${claimAmountLabel} Tier Reward`;
+    } else {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = `Claim ${claimAmountLabel} Tier Reward`;
+    }
+  }
+  syncInfinityBuilderViewTreeButtonState({
+    isLegacyMode,
+    tierNumber: selectedTier?.tierNumber,
+  });
+  if (infinityBuilderClaimFeedbackElement instanceof HTMLElement) {
+    if (!infinityBuilderClaimInFlight && infinityBuilderClaimFeedbackTierNumber !== selectedTier.tierNumber) {
+      setInfinityBuilderClaimFeedback('');
+    }
+  }
+
+  if (infinityBuilderTierGridElement instanceof HTMLElement) {
+    infinityBuilderTierGridElement.innerHTML = '';
+    const tierFragment = document.createDocumentFragment();
+    for (const seedSnapshot of selectedTier.seedSnapshots) {
+      const seedCard = document.createElement('article');
+      seedCard.className = 'tree-next-infinity-builder-node-card';
+      if (isLegacyMode) {
+        seedCard.classList.add('is-legacy-mode');
+      }
+      const seedCore = document.createElement('div');
+      seedCore.className = 'tree-next-infinity-builder-node-core';
+      if (!seedSnapshot.node) {
+        seedCore.classList.add('is-empty');
+      } else if (!seedSnapshot.isActive) {
+        seedCore.classList.add('is-inactive');
+      }
+      seedCore.style.backgroundImage = safeText(seedSnapshot.backgroundImage);
+      seedCore.textContent = seedSnapshot.node
+        ? resolveInfinityBuilderNodeInitials(seedSnapshot.initials || '')
+        : '';
+      if (seedSnapshot.node) {
+        const seedNodeId = resolveInfinityBuilderFocusNodeId(seedSnapshot.node, {
+          nodeId: seedSnapshot.nodeId,
+          username: seedSnapshot.username,
+        });
+        if (seedNodeId) {
+          seedCore.dataset.infinityBuilderFocusNodeId = seedNodeId;
+          seedCore.classList.add('is-focusable');
+          seedCore.tabIndex = 0;
+          seedCore.setAttribute('role', 'button');
+        }
+        const seedLabel = safeText(seedSnapshot.username || seedSnapshot.displayName || '');
+        if (seedLabel) {
+          seedCore.title = seedLabel;
+        }
+      }
+
+      const branchElement = document.createElement('div');
+      branchElement.className = 'tree-next-infinity-builder-node-branch';
+      const childRow = document.createElement('div');
+      childRow.className = 'tree-next-infinity-builder-node-children';
+      for (const childSnapshot of seedSnapshot.childSnapshots) {
+        const childItem = document.createElement('span');
+        childItem.className = 'tree-next-infinity-builder-node-child-item';
+        const childDot = document.createElement('span');
+        childDot.className = 'tree-next-infinity-builder-node-child';
+        if (!childSnapshot.node) {
+          childDot.classList.add('is-empty');
+        } else if (!childSnapshot.isActive) {
+          childDot.classList.add('is-inactive');
+        }
+        childDot.style.backgroundImage = safeText(childSnapshot.backgroundImage);
+        childDot.textContent = childSnapshot.node
+          ? resolveInfinityBuilderNodeInitials(childSnapshot.initials || '')
+          : '';
+        if (childSnapshot.node) {
+          const childNodeId = resolveInfinityBuilderFocusNodeId(childSnapshot.node, {
+            nodeId: childSnapshot.nodeId,
+            username: childSnapshot.username,
+          });
+          if (childNodeId) {
+            childDot.dataset.infinityBuilderFocusNodeId = childNodeId;
+            childDot.classList.add('is-focusable');
+            childDot.tabIndex = 0;
+            childDot.setAttribute('role', 'button');
+            childItem.dataset.infinityBuilderFocusNodeId = childNodeId;
+            childItem.classList.add('is-focusable');
+          }
+          const childLabel = safeText(childSnapshot.username || '');
+          if (childLabel) {
+            childDot.title = childLabel;
+          }
+        }
+
+        childItem.append(childDot);
+        childRow.append(childItem);
+      }
+
+      let bvElement = null;
+      let payoutElement = null;
+      let usernameElement = null;
+      let statusElement = null;
+      if (!isLegacyMode) {
+        bvElement = document.createElement('p');
+        bvElement.className = 'tree-next-infinity-builder-node-bv';
+        bvElement.textContent = formatVolumeValue(seedSnapshot.totalOrganizationBv);
+
+        payoutElement = document.createElement('p');
+        payoutElement.className = 'tree-next-infinity-builder-node-payout';
+        payoutElement.textContent = `${formatEnrollCurrency(safeNumber(
+          seedSnapshot.monthlyOverrideUsd,
+          seedSnapshot.weeklyOverrideUsd,
+        ))} / month`;
+
+        usernameElement = document.createElement('p');
+        usernameElement.className = 'tree-next-infinity-builder-node-username';
+        usernameElement.textContent = safeText(seedSnapshot.node ? seedSnapshot.username : '');
+        if (!usernameElement.textContent) {
+          usernameElement.hidden = true;
+        }
+
+        statusElement = document.createElement('p');
+        statusElement.className = 'tree-next-infinity-builder-node-status';
+        if (!seedSnapshot.node) {
+          statusElement.textContent = '';
+        } else if (!selectedTier.directRequirementMet) {
+          const tierSeedsNeeded = Math.max(0, INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER - selectedTier.seedCount);
+          statusElement.textContent = tierSeedsNeeded > 0
+            ? `Need ${tierSeedsNeeded} more enrollment${tierSeedsNeeded === 1 ? '' : 's'}`
+            : 'Waiting for enrollment completion';
+        } else if (!seedSnapshot.isActive) {
+          statusElement.textContent = 'Account inactive';
+        } else if (seedSnapshot.isCompletedNode) {
+          statusElement.textContent = '1% monthly active';
+        } else {
+          const remainingChildren = Math.max(0, INFINITY_BUILDER_TIER_NODE_REQUIREMENT - seedSnapshot.completedChildCount);
+          statusElement.textContent = `Need ${remainingChildren} active enrollment${remainingChildren === 1 ? '' : 's'} for 1%`;
+        }
+      }
+
+      seedCard.append(seedCore, branchElement, childRow);
+      if (!isLegacyMode) {
+        seedCard.append(bvElement, payoutElement, usernameElement, statusElement);
+      }
+      tierFragment.append(seedCard);
+    }
+    infinityBuilderTierGridElement.append(tierFragment);
+  }
+
+  if (infinityBuilderCurrentListElement instanceof HTMLElement) {
+    if (infinityBuilderCurrentSortElement instanceof HTMLButtonElement) {
+      const tierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(infinityBuilderPanelMode);
+      const sortLabel = resolveInfinityBuilderTierSortLabel(tierSortDirection);
+      infinityBuilderCurrentSortElement.textContent = sortLabel;
+      infinityBuilderCurrentSortElement.setAttribute('aria-label', `${sortLabel}. Tap to toggle.`);
+      infinityBuilderCurrentSortElement.setAttribute(
+        'aria-pressed',
+        tierSortDirection === 'desc' ? 'true' : 'false',
+      );
+    }
+    const tierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(infinityBuilderPanelMode);
+    const sortedTiers = Array.isArray(snapshot?.tiers)
+      ? snapshot.tiers.slice().sort((leftTier, rightTier) => {
+        const leftTierNumber = Math.max(0, Math.floor(safeNumber(leftTier?.tierNumber, 0)));
+        const rightTierNumber = Math.max(0, Math.floor(safeNumber(rightTier?.tierNumber, 0)));
+        return tierSortDirection === 'desc'
+          ? (rightTierNumber - leftTierNumber)
+          : (leftTierNumber - rightTierNumber);
+      })
+      : [];
+    infinityBuilderCurrentListElement.innerHTML = '';
+    const listFragment = document.createDocumentFragment();
+    for (const tier of sortedTiers) {
+      const rowButton = document.createElement('button');
+      rowButton.type = 'button';
+      rowButton.className = 'tree-next-infinity-builder-current-item';
+      if (tier.tierNumber === infinityBuilderSelectedTierNumber) {
+        rowButton.classList.add('is-active');
+      }
+      rowButton.dataset.infinityBuilderTier = String(tier.tierNumber);
+      rowButton.setAttribute('aria-pressed', tier.tierNumber === infinityBuilderSelectedTierNumber ? 'true' : 'false');
+      rowButton.setAttribute('aria-label', `${modeConfig.currentAriaLabelPrefix} ${tier.tierNumber}`);
+
+      const row = document.createElement('div');
+      row.className = 'tree-next-infinity-builder-current-row';
+
+      const tierLabel = document.createElement('p');
+      tierLabel.className = 'tree-next-infinity-builder-current-tier';
+      tierLabel.textContent = `Tier ${tier.tierNumber}`;
+
+      const seedList = document.createElement('div');
+      seedList.className = 'tree-next-infinity-builder-current-seeds';
+      for (const seedSnapshot of tier.seedSnapshots) {
+        const seedEntry = document.createElement('span');
+        seedEntry.className = 'tree-next-infinity-builder-current-seed-entry';
+        const seedDot = document.createElement('span');
+        seedDot.className = 'tree-next-infinity-builder-current-seed';
+        const seedInitials = resolveInfinityBuilderNodeInitials(seedSnapshot.initials || '');
+        if (!seedSnapshot?.node) {
+          seedDot.classList.add('is-empty');
+          seedDot.textContent = '';
+        } else if (!seedSnapshot.isActive) {
+          seedDot.classList.add('is-inactive');
+          seedDot.textContent = seedInitials;
+        } else {
+          seedDot.textContent = seedInitials;
+        }
+        seedDot.style.backgroundImage = safeText(seedSnapshot.backgroundImage);
+        if (seedSnapshot?.node) {
+          const seedNodeId = resolveInfinityBuilderFocusNodeId(seedSnapshot.node, {
+            nodeId: seedSnapshot.nodeId,
+            username: seedSnapshot.username,
+          });
+          if (seedNodeId) {
+            seedDot.dataset.infinityBuilderFocusNodeId = seedNodeId;
+            seedDot.classList.add('is-focusable');
+            seedEntry.dataset.infinityBuilderFocusNodeId = seedNodeId;
+            seedEntry.classList.add('is-focusable');
+          }
+          const seedLabel = safeText(seedSnapshot.username || seedSnapshot.displayName || '');
+          if (seedLabel) {
+            seedDot.title = seedLabel;
+          }
+        }
+        if (isLegacyMode) {
+          seedEntry.append(seedDot);
+        } else {
+          const seedHandle = document.createElement('span');
+          seedHandle.className = 'tree-next-infinity-builder-current-seed-handle';
+          seedHandle.textContent = seedSnapshot?.node ? safeText(seedSnapshot.username || '') : '';
+          if (!seedHandle.textContent) {
+            seedHandle.hidden = true;
+          }
+          seedEntry.append(seedDot, seedHandle);
+        }
+        seedList.append(seedEntry);
+      }
+
+      if (isLegacyMode) {
+        const rowProgress = document.createElement('p');
+        rowProgress.className = 'tree-next-infinity-builder-current-progress';
+        const rowRequirementCount = Math.max(
+          1,
+          Math.floor(safeNumber(tier?.totalNodeRequirement, modeConfig.totalNodesPerTier)),
+        );
+        const rowMappedCount = Math.max(
+          0,
+          Math.floor(safeNumber(
+            tier?.tierProgressCount,
+            safeNumber(tier?.litNodeCount, tier?.seedCount),
+          )),
+        );
+        rowProgress.textContent = `${Math.min(rowMappedCount, rowRequirementCount)}/${rowRequirementCount}`;
+        row.classList.add('has-progress');
+        row.append(tierLabel, seedList, rowProgress);
+      } else {
+        row.append(tierLabel, seedList);
+      }
+      rowButton.append(row);
+      listFragment.append(rowButton);
+    }
+    infinityBuilderCurrentListElement.append(listFragment);
+  }
+
+  if (infinityBuilderCurrentEmptyElement instanceof HTMLElement) {
+    infinityBuilderCurrentEmptyElement.hidden = snapshot.directSeedCount > 0;
+    if (snapshot.directSeedCount === 0) {
+      infinityBuilderCurrentEmptyElement.textContent = modeConfig.currentEmptyText;
+    }
+  }
+}
+
+function syncInfinityBuilderPanelVisibility() {
+  if (!isInfinityBuilderPanelAvailable()) {
+    return;
+  }
+  const isVisible = Boolean(state.ui?.infinityBuilderVisible);
+  infinityBuilderPanelElement.classList.toggle('is-hidden', !isVisible);
+  infinityBuilderPanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+}
+
+function setInfinityBuilderPanelVisible(isVisible) {
+  const nextVisible = Boolean(isVisible);
+  state.ui.infinityBuilderVisible = nextVisible;
+  if (nextVisible) {
+    if (infinityBuilderPanelElement instanceof HTMLElement) {
+      infinityBuilderPanelElement.classList.remove('is-positioning');
+    }
+    state.ui.accountOverviewVisible = false;
+    state.ui.rankAdvancementVisible = false;
+    state.ui.preferredAccountsVisible = false;
+    state.ui.myStoreVisible = false;
+    syncAccountOverviewPanelVisibility();
+    syncRankAdvancementPanelVisibility();
+    syncPreferredAccountsPanelVisibility();
+    syncMyStorePanelVisibility();
+    infinityBuilderLastRenderSignature = '';
+    infinityBuilderClaimFeedbackTierNumber = 0;
+    setInfinityBuilderClaimFeedback('');
+    const overviewContext = resolveAccountOverviewPanelContext();
+    const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+    void refreshAccountOverviewRemoteSnapshot({
+      force: true,
+      homeNode,
+      scope: overviewContext?.scope,
+      preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+    });
+    syncInfinityBuilderViewTreeButtonState({
+      isLegacyMode: isLegacyLeadershipPanelMode(),
+      tierNumber: infinityBuilderSelectedTierNumber,
+    });
+    syncInfinityBuilderPanelVisuals();
+  } else {
+    infinityBuilderLastPanelSnapshot = null;
+  }
+  syncInfinityBuilderPanelVisibility();
+}
+
+function initInfinityBuilderPanel() {
+  if (!isInfinityBuilderPanelAvailable()) {
+    return;
+  }
+  syncInfinityBuilderPanelPosition();
+  syncInfinityBuilderPanelVisibility();
+  if (infinityBuilderCloseButtonElement instanceof HTMLButtonElement) {
+    infinityBuilderCloseButtonElement.addEventListener('click', () => {
+      setInfinityBuilderPanelVisible(false);
+    });
+  }
+  if (infinityBuilderBackButtonElement instanceof HTMLButtonElement) {
+    infinityBuilderBackButtonElement.addEventListener('click', () => {
+      setInfinityBuilderPanelVisible(false);
+      setAccountOverviewPanelVisible(true);
+    });
+  }
+  if (infinityBuilderClaimButtonElement instanceof HTMLButtonElement) {
+    infinityBuilderClaimButtonElement.addEventListener('click', () => {
+      void claimInfinityBuilderTierReward();
+    });
+  }
+  if (infinityBuilderCurrentSortElement instanceof HTMLButtonElement) {
+    infinityBuilderCurrentSortElement.addEventListener('click', (event) => {
+      event.preventDefault();
+      toggleInfinityBuilderTierSortDirection();
+      infinityBuilderLastRenderSignature = '';
+      syncInfinityBuilderPanelVisuals();
+    });
+  }
+  if (infinityBuilderViewTreeButtonElement instanceof HTMLButtonElement) {
+    infinityBuilderViewTreeButtonElement.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!viewLegacyTierCanvasTree()) {
+        syncInfinityBuilderPanelVisuals();
+      }
+    });
+  }
+  if (infinityBuilderPanelElement instanceof HTMLElement) {
+    infinityBuilderPanelElement.addEventListener('click', (event) => {
+      const targetElement = resolveInfinityBuilderEventTargetElement(event);
+      const focusElement = targetElement?.closest('[data-infinity-builder-focus-node-id]');
+      if (!(focusElement instanceof HTMLElement)) {
+        return;
+      }
+      const focusNodeId = safeText(focusElement.dataset.infinityBuilderFocusNodeId);
+      if (!focusNodeId) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      focusInfinityBuilderPanelNode(focusNodeId);
+    });
+    infinityBuilderPanelElement.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+      const targetElement = resolveInfinityBuilderEventTargetElement(event);
+      const focusElement = targetElement?.closest('[data-infinity-builder-focus-node-id]');
+      if (!(focusElement instanceof HTMLElement)) {
+        return;
+      }
+      const focusNodeId = safeText(focusElement.dataset.infinityBuilderFocusNodeId);
+      if (!focusNodeId) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      focusInfinityBuilderPanelNode(focusNodeId);
+    });
+  }
+  if (infinityBuilderCurrentListElement instanceof HTMLElement) {
+    infinityBuilderCurrentListElement.addEventListener('click', (event) => {
+      const targetElement = resolveInfinityBuilderEventTargetElement(event);
+      const focusElement = targetElement?.closest('[data-infinity-builder-focus-node-id]');
+      if (focusElement instanceof HTMLElement) {
+        return;
+      }
+      const rowButton = targetElement?.closest('[data-infinity-builder-tier]');
+      if (!(rowButton instanceof HTMLElement)) {
+        return;
+      }
+      const tierNumber = Math.floor(safeNumber(rowButton.dataset.infinityBuilderTier, 0));
+      if (!Number.isFinite(tierNumber) || tierNumber <= 0 || tierNumber === infinityBuilderSelectedTierNumber) {
+        return;
+      }
+      infinityBuilderSelectedTierNumber = tierNumber;
+      infinityBuilderClaimFeedbackTierNumber = 0;
+      infinityBuilderLastRenderSignature = '';
+      syncInfinityBuilderPanelVisuals();
+    });
+  }
+}
+
+const RANK_ADVANCEMENT_FALLBACK_MILESTONES = Object.freeze([
+  Object.freeze({
+    id: 'rank-ruby',
+    title: 'Ruby',
+    requiredRank: 'Ruby',
+    requiredDirectSponsorsPerSide: 1,
+    requiredPersonalPvBv: 50,
+    requiredCycles: 5,
+    rewardUsd: 62.5,
+    iconPath: '/brand_assets/Icons/Achievements/ruby.svg',
+  }),
+  Object.freeze({
+    id: 'rank-emerald',
+    title: 'Emerald',
+    requiredRank: 'Emerald',
+    requiredDirectSponsorsPerSide: 1,
+    requiredPersonalPvBv: 50,
+    requiredCycles: 10,
+    rewardUsd: 125,
+    iconPath: '/brand_assets/Icons/Achievements/emerald.svg',
+  }),
+  Object.freeze({
+    id: 'rank-sapphire',
+    title: 'Sapphire',
+    requiredRank: 'Sapphire',
+    requiredDirectSponsorsPerSide: 1,
+    requiredPersonalPvBv: 50,
+    requiredCycles: 20,
+    rewardUsd: 250,
+    iconPath: '/brand_assets/Icons/Achievements/sapphire.svg',
+  }),
+  Object.freeze({
+    id: 'rank-diamond',
+    title: 'Diamond',
+    requiredRank: 'Diamond',
+    requiredDirectSponsorsPerSide: 2,
+    requiredPersonalPvBv: 100,
+    requiredCycles: 40,
+    rewardUsd: 500,
+    iconPath: '/brand_assets/Icons/Achievements/diamond.svg',
+  }),
+  Object.freeze({
+    id: 'rank-blue-diamond',
+    title: 'Blue Diamond',
+    requiredRank: 'Blue Diamond',
+    requiredDirectSponsorsPerSide: 2,
+    requiredPersonalPvBv: 100,
+    requiredCycles: 80,
+    rewardUsd: 1000,
+    iconPath: '/brand_assets/Icons/Achievements/blue-diamond.svg',
+  }),
+  Object.freeze({
+    id: 'rank-black-diamond',
+    title: 'Black Diamond',
+    requiredRank: 'Black Diamond',
+    requiredDirectSponsorsPerSide: 2,
+    requiredPersonalPvBv: 100,
+    requiredCycles: 160,
+    rewardUsd: 2000,
+    iconPath: '/brand_assets/Icons/Achievements/black-diamond.svg',
+  }),
+  Object.freeze({
+    id: 'rank-crown',
+    title: 'Crown',
+    requiredRank: 'Crown',
+    requiredDirectSponsorsPerSide: 3,
+    requiredPersonalPvBv: 200,
+    requiredCycles: 320,
+    rewardUsd: 4000,
+    iconPath: '/brand_assets/Icons/Achievements/crown.svg',
+  }),
+  Object.freeze({
+    id: 'rank-double-crown',
+    title: 'Double Crown',
+    requiredRank: 'Double Crown',
+    requiredDirectSponsorsPerSide: 3,
+    requiredPersonalPvBv: 200,
+    requiredCycles: 640,
+    rewardUsd: 8000,
+    iconPath: '/brand_assets/Icons/Achievements/double-crown.svg',
+  }),
+  Object.freeze({
+    id: 'rank-royal-crown',
+    title: 'Royal Crown',
+    requiredRank: 'Royal Crown',
+    requiredDirectSponsorsPerSide: 3,
+    requiredPersonalPvBv: 200,
+    requiredCycles: 1000,
+    rewardUsd: 12500,
+    iconPath: '/brand_assets/Icons/Achievements/royal-crown.svg',
+  }),
+]);
+
+const RANK_ADVANCEMENT_GOOD_LIFE_MILESTONE_REWARD_BY_RANK_KEY = Object.freeze({
+  diamond: 500,
+  'blue diamond': 1000,
+  'black diamond': 2000,
+  crown: 4000,
+  'double crown': 8000,
+  'royal crown': 12500,
+});
+
+const RANK_ADVANCEMENT_MEMBER_REQUIREMENT_BY_RANK_KEY = Object.freeze({
+  emerald: '1 Ruby Member',
+  sapphire: '1 Emerald Member',
+  diamond: '1 Sapphire Member',
+  'blue diamond': '1 Diamond Member',
+  'black diamond': '1 Blue Diamond Member',
+  crown: '2 Black Diamond Members',
+  'double crown': '2 Crown Members',
+  'royal crown': '2 Double Crown Members',
+});
+
+const RANK_ADVANCEMENT_MEMBER_REQUIREMENT_RULE_BY_RANK_KEY = Object.freeze({
+  emerald: Object.freeze({ requiredRank: 'Ruby', requiredCount: 1 }),
+  sapphire: Object.freeze({ requiredRank: 'Emerald', requiredCount: 1 }),
+  diamond: Object.freeze({ requiredRank: 'Sapphire', requiredCount: 1 }),
+  'blue diamond': Object.freeze({ requiredRank: 'Diamond', requiredCount: 1 }),
+  'black diamond': Object.freeze({ requiredRank: 'Blue Diamond', requiredCount: 1 }),
+  crown: Object.freeze({ requiredRank: 'Black Diamond', requiredCount: 2 }),
+  'double crown': Object.freeze({ requiredRank: 'Crown', requiredCount: 2 }),
+  'royal crown': Object.freeze({ requiredRank: 'Double Crown', requiredCount: 2 }),
+});
+
+const RANK_ADVANCEMENT_NODE_BACKGROUND_BY_RANK_KEY = Object.freeze({
+  ruby: 'linear-gradient(135deg, #6A0A35 0%, #2C0820 100%)',
+  emerald: 'linear-gradient(135deg, #0D4E36 0%, #072719 100%)',
+  sapphire: 'linear-gradient(135deg, #1A3F90 0%, #0E244F 100%)',
+  diamond: 'linear-gradient(135deg, #124E68 0%, #0A2430 100%)',
+  'blue diamond': 'linear-gradient(135deg, #153D7A 0%, #0A1E45 100%)',
+  'black diamond': 'linear-gradient(135deg, #2A3448 0%, #111A2A 100%)',
+  crown: 'linear-gradient(135deg, #4A3A0C 0%, #241B05 100%)',
+  'double crown': 'linear-gradient(135deg, #4B2E08 0%, #231503 100%)',
+  'royal crown': 'linear-gradient(135deg, #3D2B70 0%, #1A1038 100%)',
+});
+
+function clearRankAdvancementFeedbackTimer() {
+  if (rankAdvancementFeedbackTimerId) {
+    window.clearTimeout(rankAdvancementFeedbackTimerId);
+    rankAdvancementFeedbackTimerId = 0;
+  }
+}
+
+function setRankAdvancementFeedback(message, options = {}) {
+  if (!(rankAdvancementFeedbackElement instanceof HTMLElement)) {
+    return;
+  }
+  const safeMessage = safeText(message);
+  const {
+    isError = false,
+    isSuccess = false,
+    persist = false,
+  } = options;
+  clearRankAdvancementFeedbackTimer();
+  rankAdvancementFeedbackElement.textContent = safeMessage;
+  rankAdvancementFeedbackElement.classList.toggle('is-error', Boolean(isError && safeMessage));
+  rankAdvancementFeedbackElement.classList.toggle('is-success', Boolean(isSuccess && safeMessage));
+  if (safeMessage && !persist) {
+    rankAdvancementFeedbackTimerId = window.setTimeout(() => {
+      if (!(rankAdvancementFeedbackElement instanceof HTMLElement)) {
+        return;
+      }
+      rankAdvancementFeedbackElement.textContent = '';
+      rankAdvancementFeedbackElement.classList.remove('is-error', 'is-success');
+      rankAdvancementFeedbackTimerId = 0;
+    }, 3400);
+  }
+}
+
+function formatRankAdvancementRewardCurrency(value) {
+  const amount = Math.max(0, safeNumber(value, 0));
+  return `${amount.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} USD`;
+}
+
+function formatRankAdvancementAcquiredSinceDate(value, options = {}) {
+  const safeValue = safeText(value);
+  let timestampMs = Date.parse(safeValue);
+  if (!Number.isFinite(timestampMs)) {
+    const periodKey = safeText(options?.periodKey);
+    const match = periodKey.match(/^(\d{4})-(\d{2})$/);
+    if (match) {
+      const year = Number.parseInt(match[1], 10);
+      const month = Number.parseInt(match[2], 10) - 1;
+      if (Number.isFinite(year) && Number.isFinite(month) && month >= 0 && month <= 11) {
+        timestampMs = Date.UTC(year, month, 1);
+      }
+    }
+  }
+  if (!Number.isFinite(timestampMs)) {
+    return '';
+  }
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date(timestampMs));
+  } catch {
+    return '';
+  }
+}
+
+function normalizeRankAdvancementRankKey(value) {
+  return normalizeCredentialValue(safeText(value).replace(/^rank-/, '').replace(/[_-]+/g, ' '));
+}
+
+function resolveRankAdvancementMemberRequirementRule(rankLabel = '') {
+  const rankKey = normalizeRankAdvancementRankKey(rankLabel);
+  return RANK_ADVANCEMENT_MEMBER_REQUIREMENT_RULE_BY_RANK_KEY[rankKey] || null;
+}
+
+function resolveRankAdvancementNodeRankLabel(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  return safeText(
+    node?.rank
+    || node?.accountRank
+    || node?.account_rank
+    || node?.profileRank
+    || node?.profile_rank
+    || '',
+  );
+}
+
+function resolveRankAdvancementDescendantRankCounts(homeNode = null) {
+  const counts = new Map();
+  const rootNodeId = safeText(
+    homeNode?.id
+    || resolvePreferredGlobalHomeNodeId()
+    || 'root',
+  ) || 'root';
+  if (!rootNodeId) {
+    return counts;
+  }
+
+  const nodeById = new Map();
+  const childrenByParent = new Map();
+  const appendChild = (parentIdInput, childIdInput) => {
+    const parentId = safeText(parentIdInput);
+    const childId = safeText(childIdInput);
+    if (!parentId || !childId || parentId === childId) {
+      return;
+    }
+    let childSet = childrenByParent.get(parentId);
+    if (!childSet) {
+      childSet = new Set();
+      childrenByParent.set(parentId, childSet);
+    }
+    childSet.add(childId);
+  };
+
+  for (let index = 0; index < state.nodes.length; index += 1) {
+    const rawNode = state.nodes[index];
+    const node = rawNode && typeof rawNode === 'object' ? rawNode : null;
+    if (!node) {
+      continue;
+    }
+    const nodeId = safeText(node.id);
+    if (!nodeId) {
+      continue;
+    }
+    nodeById.set(nodeId, node);
+    appendChild(node.parent || node.parentId || node.parent_id, nodeId);
+  }
+
+  for (let index = 0; index < state.nodes.length; index += 1) {
+    const rawNode = state.nodes[index];
+    const node = rawNode && typeof rawNode === 'object' ? rawNode : null;
+    if (!node) {
+      continue;
+    }
+    const nodeId = safeText(node.id);
+    if (!nodeId) {
+      continue;
+    }
+    appendChild(nodeId, node.leftChildId || node.left_child_id);
+    appendChild(nodeId, node.rightChildId || node.right_child_id);
+  }
+
+  const visited = new Set([rootNodeId]);
+  const queue = [rootNodeId];
+  while (queue.length > 0) {
+    const parentId = queue.shift();
+    const childIds = childrenByParent.get(parentId);
+    if (!(childIds instanceof Set) || childIds.size === 0) {
+      continue;
+    }
+    childIds.forEach((childId) => {
+      if (!childId || visited.has(childId)) {
+        return;
+      }
+      visited.add(childId);
+      queue.push(childId);
+      const childNode = nodeById.get(childId) || resolveNodeById(childId);
+      const rankKey = normalizeRankAdvancementRankKey(resolveRankAdvancementNodeRankLabel(childNode));
+      if (!rankKey) {
+        return;
+      }
+      counts.set(rankKey, Math.max(0, safeNumber(counts.get(rankKey), 0)) + 1);
+    });
+  }
+
+  return counts;
+}
+
+function resolveRankAdvancementMilestoneBackground(rankLabel = '') {
+  const key = normalizeRankAdvancementRankKey(rankLabel);
+  return RANK_ADVANCEMENT_NODE_BACKGROUND_BY_RANK_KEY[key]
+    || 'linear-gradient(135deg, #273750 0%, #111B29 100%)';
+}
+
+function resolveRankAdvancementMilestoneIconPath(item = {}) {
+  const explicitPath = safeText(item?.iconPath);
+  if (explicitPath && explicitPath.startsWith('/brand_assets/')) {
+    return explicitPath;
+  }
+  const rankLabel = safeText(item?.title || item?.requiredRank || '');
+  if (rankLabel) {
+    const iconKey = resolveAchievementIconKeyFromLabel(rankLabel);
+    if (iconKey && iconKey !== 'placeholder') {
+      return `/brand_assets/Icons/Achievements/${iconKey}.svg`;
+    }
+  }
+  return '/brand_assets/Icons/Achievements/diamond.svg';
+}
+
+function sortRankAdvancementMilestones(itemsInput = []) {
+  const safeItems = Array.isArray(itemsInput) ? itemsInput : [];
+  return safeItems
+    .filter((item) => item && typeof item === 'object')
+    .slice()
+    .sort((left, right) => {
+      const leftCycles = Math.max(0, Math.floor(safeNumber(left?.requiredCycles, 0)));
+      const rightCycles = Math.max(0, Math.floor(safeNumber(right?.requiredCycles, 0)));
+      if (leftCycles !== rightCycles) {
+        return leftCycles - rightCycles;
+      }
+      const leftDirect = Math.max(0, Math.floor(safeNumber(left?.requiredDirectSponsorsPerSide, 0)));
+      const rightDirect = Math.max(0, Math.floor(safeNumber(right?.requiredDirectSponsorsPerSide, 0)));
+      if (leftDirect !== rightDirect) {
+        return leftDirect - rightDirect;
+      }
+      return safeText(left?.title || '').localeCompare(safeText(right?.title || ''));
+    });
+}
+
+function resolveRankAdvancementSyncIntervalMs(options = {}) {
+  const {
+    forRetry = false,
+  } = options;
+  const panelVisible = Boolean(state.ui?.rankAdvancementVisible);
+  const hiddenSyncMode = document.visibilityState === 'hidden' || !panelVisible;
+  const baseIntervalMs = hiddenSyncMode
+    ? RANK_ADVANCEMENT_REMOTE_SYNC_HIDDEN_INTERVAL_MS
+    : RANK_ADVANCEMENT_REMOTE_SYNC_VISIBLE_INTERVAL_MS;
+  if (!forRetry) {
+    return baseIntervalMs;
+  }
+  return Math.min(baseIntervalMs, RANK_ADVANCEMENT_REMOTE_SYNC_RETRY_INTERVAL_MS);
+}
+
+function buildRankAdvancementRequestHeaders(baseHeaders = {}) {
+  const headers = {
+    ...baseHeaders,
+  };
+  if (state.source !== 'member') {
+    return headers;
+  }
+  const authToken = safeText(state.session?.authToken);
+  if (!authToken) {
+    return headers;
+  }
+  return {
+    ...headers,
+    Authorization: `Bearer ${authToken}`,
+  };
+}
+
+function isRankAdvancementPanelAvailable() {
+  return rankAdvancementPanelElement instanceof HTMLElement;
+}
+
+function resetRankAdvancementSnapshot() {
+  rankAdvancementSnapshot = null;
+  rankAdvancementDataVersion = 0;
+  rankAdvancementSyncPromise = null;
+  rankAdvancementSyncInFlight = false;
+  rankAdvancementLastRequestAtMs = 0;
+  rankAdvancementLastSyncedAtMs = 0;
+  rankAdvancementIdentityKey = '';
+  rankAdvancementLoading = false;
+  rankAdvancementClaimInFlight = false;
+  rankAdvancementCachedAchievementsPayload = null;
+  rankAdvancementCachedGoodLifePayload = null;
+  rankAdvancementLastRenderSignature = '';
+  rankAdvancementSelectedMilestoneId = '';
+  setRankAdvancementFeedback('', { persist: true });
+}
+
+function resolveRankAdvancementMemberRequirementLabel(rankLabel = '') {
+  const rankKey = normalizeRankAdvancementRankKey(rankLabel);
+  return RANK_ADVANCEMENT_MEMBER_REQUIREMENT_BY_RANK_KEY[rankKey] || 'No member rank requirement';
+}
+
+function resolveRankAdvancementGoodLifeFallbackReward(rankLabel = '') {
+  const rankKey = normalizeRankAdvancementRankKey(rankLabel);
+  return Math.max(0, safeNumber(RANK_ADVANCEMENT_GOOD_LIFE_MILESTONE_REWARD_BY_RANK_KEY[rankKey], 0));
+}
+
+function resolveRankAdvancementMilestonesFromPayload(achievementsPayload = null) {
+  const sourceAchievements = Array.isArray(achievementsPayload?.achievements)
+    ? achievementsPayload.achievements
+    : [];
+  const mappedRankAchievements = sourceAchievements
+    .filter((achievement) => normalizeCredentialValue(achievement?.tabId) === 'rank')
+    .map((achievement) => {
+      const title = safeText(achievement?.title || achievement?.requiredRank || 'Rank');
+      const requiredRank = safeText(achievement?.requiredRank || title || 'Rank');
+      return {
+        id: safeText(achievement?.id || `rank-${normalizeRankAdvancementRankKey(requiredRank).replace(/\s+/g, '-')}`),
+        title: title || requiredRank,
+        requiredRank,
+        requiredDirectSponsorsPerSide: Math.max(
+          0,
+          Math.floor(safeNumber(achievement?.requiredDirectSponsorsPerSide, 0)),
+        ),
+        requiredPersonalPvBv: Math.max(
+          0,
+          Math.floor(safeNumber(achievement?.requiredPersonalPvBv, 0)),
+        ),
+        requiredLegPersonalPvBv: Math.max(
+          0,
+          Math.floor(safeNumber(achievement?.requiredLegPersonalPvBv, 0)),
+        ),
+        requiredCycles: Math.max(0, Math.floor(safeNumber(achievement?.requiredCycles, 0))),
+        currentLeftDirectSponsors: Math.max(0, Math.floor(safeNumber(achievement?.currentLeftDirectSponsors, 0))),
+        currentRightDirectSponsors: Math.max(0, Math.floor(safeNumber(achievement?.currentRightDirectSponsors, 0))),
+        currentDirectSponsorsTotal: Math.max(0, Math.floor(safeNumber(achievement?.currentDirectSponsorsTotal, 0))),
+        currentPersonalPvBv: Math.max(0, Math.floor(safeNumber(achievement?.currentPersonalPvBv, 0))),
+        currentLeftQualifiedPersonalPvSponsors: Math.max(
+          0,
+          Math.floor(safeNumber(achievement?.currentLeftQualifiedPersonalPvSponsors, 0)),
+        ),
+        currentRightQualifiedPersonalPvSponsors: Math.max(
+          0,
+          Math.floor(safeNumber(achievement?.currentRightQualifiedPersonalPvSponsors, 0)),
+        ),
+        requiresActive: Boolean(achievement?.requiresActive),
+        lockReason: safeText(achievement?.lockReason),
+        rewardUsd: Math.max(0, safeNumber(achievement?.rewardUsd, 0)),
+        status: normalizeCredentialValue(achievement?.status),
+        eligible: Boolean(achievement?.eligible),
+        claimId: safeText(achievement?.claimId),
+        claimedAt: safeText(achievement?.claimedAt),
+        iconPath: resolveRankAdvancementMilestoneIconPath(achievement),
+      };
+    });
+
+  const sortedMilestones = sortRankAdvancementMilestones(mappedRankAchievements);
+  if (sortedMilestones.length > 0) {
+    return sortedMilestones;
+  }
+  return sortRankAdvancementMilestones(RANK_ADVANCEMENT_FALLBACK_MILESTONES);
+}
+
+function resolveRankAdvancementMilestoneProgressState(milestone = {}, context = {}) {
+  const requiredRankLabel = safeText(milestone?.title || milestone?.requiredRank);
+  const memberRequirementRule = resolveRankAdvancementMemberRequirementRule(requiredRankLabel);
+  const requiredMemberRankLabel = safeText(memberRequirementRule?.requiredRank);
+  const requiredMemberCount = Math.max(0, Math.floor(safeNumber(memberRequirementRule?.requiredCount, 0)));
+  const requiredMemberRankKey = normalizeRankAdvancementRankKey(requiredMemberRankLabel);
+  const descendantRankCounts = context?.descendantRankCounts instanceof Map
+    ? context.descendantRankCounts
+    : new Map();
+  const currentQualifiedMemberCount = requiredMemberRankKey
+    ? Math.max(0, Math.floor(safeNumber(descendantRankCounts.get(requiredMemberRankKey), 0)))
+    : 0;
+  const requiredCycles = Math.max(0, Math.floor(safeNumber(milestone?.requiredCycles, 0)));
+  const requiredPersonalBv = Math.max(0, Math.floor(safeNumber(milestone?.requiredPersonalPvBv, 0)));
+  const requiredDirectPerSide = Math.max(0, Math.floor(safeNumber(milestone?.requiredDirectSponsorsPerSide, 0)));
+  const requiredLegPersonalBv = Math.max(0, Math.floor(safeNumber(milestone?.requiredLegPersonalPvBv, 0)));
+  const currentCycles = Math.max(0, Math.floor(safeNumber(context?.currentCycles, 0)));
+  const currentPersonalBv = Math.max(
+    0,
+    Math.floor(safeNumber(milestone?.currentPersonalPvBv, context?.currentPersonalBv)),
+  );
+  const currentLeftDirectSponsors = Math.max(
+    0,
+    Math.floor(safeNumber(milestone?.currentLeftDirectSponsors, context?.leftDirectSponsors)),
+  );
+  const currentRightDirectSponsors = Math.max(
+    0,
+    Math.floor(safeNumber(milestone?.currentRightDirectSponsors, context?.rightDirectSponsors)),
+  );
+  const currentLeftQualifiedPersonalPvSponsors = Math.max(
+    0,
+    Math.floor(
+      safeNumber(
+        milestone?.currentLeftQualifiedPersonalPvSponsors,
+        currentLeftDirectSponsors,
+      ),
+    ),
+  );
+  const currentRightQualifiedPersonalPvSponsors = Math.max(
+    0,
+    Math.floor(
+      safeNumber(
+        milestone?.currentRightQualifiedPersonalPvSponsors,
+        currentRightDirectSponsors,
+      ),
+    ),
+  );
+  const requiresActive = Boolean(milestone?.requiresActive);
+  const accountIsActive = context?.isActive !== false;
+
+  const cycleMet = requiredCycles <= 0 || currentCycles >= requiredCycles;
+  const personalMet = requiredPersonalBv <= 0 || currentPersonalBv >= requiredPersonalBv;
+  const directMet = requiredDirectPerSide <= 0 || (
+    currentLeftDirectSponsors >= requiredDirectPerSide
+    && currentRightDirectSponsors >= requiredDirectPerSide
+  );
+  const legPersonalMet = requiredLegPersonalBv <= 0 || (
+    currentLeftQualifiedPersonalPvSponsors >= requiredDirectPerSide
+    && currentRightQualifiedPersonalPvSponsors >= requiredDirectPerSide
+  );
+  const memberMet = requiredMemberCount <= 0 || currentQualifiedMemberCount >= requiredMemberCount;
+  const activeMet = !requiresActive || accountIsActive;
+  const statusKey = normalizeCredentialValue(milestone?.status);
+  const claimedByStatus = statusKey === 'claimed' || Boolean(milestone?.claimId || milestone?.claimedAt || milestone?.claimed);
+  const metByStatus = (
+    statusKey === 'eligible'
+    || statusKey === 'claimable'
+    || statusKey === 'claimed'
+    || Boolean(milestone?.eligible)
+    || claimedByStatus
+  );
+  const metByValues = cycleMet && personalMet && directMet && legPersonalMet && memberMet && activeMet;
+  const met = metByValues || (claimedByStatus ? true : (metByStatus && memberMet));
+
+  return {
+    met,
+    cycleMet,
+    personalMet,
+    directMet,
+    legPersonalMet,
+    memberMet,
+    activeMet,
+    currentCycles,
+    currentPersonalBv,
+    currentLeftDirectSponsors,
+    currentRightDirectSponsors,
+    currentQualifiedMemberCount,
+    requiredCycles,
+    requiredPersonalBv,
+    requiredDirectPerSide,
+    requiredLegPersonalBv,
+    requiredMemberRankLabel,
+    requiredMemberCount,
+    cycleShortfall: Math.max(0, requiredCycles - currentCycles),
+    personalBvShortfall: Math.max(0, requiredPersonalBv - currentPersonalBv),
+    leftDirectShortfall: Math.max(0, requiredDirectPerSide - currentLeftDirectSponsors),
+    rightDirectShortfall: Math.max(0, requiredDirectPerSide - currentRightDirectSponsors),
+    memberShortfall: Math.max(0, requiredMemberCount - currentQualifiedMemberCount),
+  };
+}
+
+function resolveRankAdvancementProgressPercent(
+  milestonesInput = [],
+  milestoneProgressStatesInput = [],
+  currentCyclesInput = 0,
+) {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  if (milestones.length <= 1) {
+    return 0;
+  }
+  const milestoneProgressStates = Array.isArray(milestoneProgressStatesInput)
+    ? milestoneProgressStatesInput
+    : [];
+  const cycleThresholds = milestones.map((milestone) => Math.max(0, Math.floor(safeNumber(milestone?.requiredCycles, 0))));
+  const lastIndex = cycleThresholds.length - 1;
+  let highestMetIndex = -1;
+  for (let index = 0; index < milestones.length; index += 1) {
+    if (milestoneProgressStates[index]?.met) {
+      highestMetIndex = index;
+    }
+  }
+
+  if (highestMetIndex >= lastIndex) {
+    return 100;
+  }
+
+  const currentCycles = Math.max(0, Math.floor(safeNumber(currentCyclesInput, 0)));
+  const segmentStartIndex = highestMetIndex;
+  const nextIndex = Math.min(lastIndex, segmentStartIndex + 1);
+  const startThreshold = segmentStartIndex >= 0
+    ? cycleThresholds[segmentStartIndex]
+    : 0;
+  const endThreshold = Math.max(startThreshold + 1, cycleThresholds[nextIndex]);
+  const segmentRange = Math.max(1, endThreshold - startThreshold);
+  let segmentProgress = clamp((currentCycles - startThreshold) / segmentRange, 0, 1);
+  if (nextIndex < milestoneProgressStates.length && !milestoneProgressStates[nextIndex]?.met) {
+    segmentProgress = Math.min(segmentProgress, 0.92);
+  }
+  const progressNumerator = segmentStartIndex >= 0
+    ? segmentStartIndex + segmentProgress
+    : segmentProgress;
+  let progressRatio = clamp(progressNumerator / Math.max(1, lastIndex), 0, 1);
+  if (segmentStartIndex >= 0 && segmentStartIndex < lastIndex) {
+    const minimumPastThresholdRatio = clamp((segmentStartIndex + 0.08) / Math.max(1, lastIndex), 0, 1);
+    progressRatio = Math.max(progressRatio, minimumPastThresholdRatio);
+  }
+  return Math.max(0, Math.min(100, progressRatio * 100));
+}
+
+function resolveRankAdvancementEarnedMilestoneIndex(milestonesInput = [], achievementsPayload = null) {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  if (!milestones.length) {
+    return -1;
+  }
+  const explicitEarnedIds = [
+    achievementsPayload?.rankClaimedAchievementId,
+    achievementsPayload?.highestEligibleRankAchievementId,
+    achievementsPayload?.runRankAchievementId,
+    achievementsPayload?.rankRunAchievementId,
+    achievementsPayload?.highestRecordedRankAchievementId,
+  ].map((value) => safeText(value)).filter(Boolean);
+  for (let index = 0; index < explicitEarnedIds.length; index += 1) {
+    const matchedIndex = resolveRankAdvancementMilestoneIndexById(milestones, explicitEarnedIds[index]);
+    if (matchedIndex >= 0) {
+      return matchedIndex;
+    }
+  }
+
+  let statusDrivenIndex = -1;
+  for (let index = 0; index < milestones.length; index += 1) {
+    const milestone = milestones[index];
+    const statusKey = normalizeCredentialValue(milestone?.status);
+    if (
+      statusKey === 'claimed'
+      || statusKey === 'eligible'
+      || statusKey === 'claimable'
+      || Boolean(milestone?.claimId || milestone?.claimedAt || milestone?.eligible || milestone?.claimed)
+    ) {
+      statusDrivenIndex = index;
+    }
+  }
+  return statusDrivenIndex;
+}
+
+function resolveRankAdvancementSelectedMilestoneIndex(milestonesInput = [], defaultMilestoneIndex = 0) {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  if (!milestones.length) {
+    rankAdvancementSelectedMilestoneId = '';
+    return -1;
+  }
+
+  const selectedIndex = resolveRankAdvancementMilestoneIndexById(milestones, rankAdvancementSelectedMilestoneId);
+  if (selectedIndex >= 0) {
+    return selectedIndex;
+  }
+
+  const clampedDefaultIndex = clamp(
+    Math.floor(safeNumber(defaultMilestoneIndex, 0)),
+    0,
+    milestones.length - 1,
+  );
+  const fallbackMilestone = milestones[clampedDefaultIndex] || milestones[0];
+  rankAdvancementSelectedMilestoneId = safeText(fallbackMilestone?.id);
+  return resolveRankAdvancementMilestoneIndexById(milestones, rankAdvancementSelectedMilestoneId);
+}
+
+function resolveRankAdvancementMilestoneIndexById(milestonesInput = [], achievementId = '') {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  const safeAchievementId = safeText(achievementId);
+  if (!safeAchievementId) {
+    return -1;
+  }
+  for (let index = 0; index < milestones.length; index += 1) {
+    if (safeText(milestones[index]?.id) === safeAchievementId) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function resolveRankAdvancementMilestoneIndexByRankLabel(milestonesInput = [], rankLabel = '') {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  const targetRankKey = normalizeRankAdvancementRankKey(rankLabel);
+  if (!targetRankKey) {
+    return -1;
+  }
+  for (let index = 0; index < milestones.length; index += 1) {
+    const milestoneRankKey = normalizeRankAdvancementRankKey(
+      safeText(milestones[index]?.title || milestones[index]?.requiredRank),
+    );
+    if (milestoneRankKey === targetRankKey) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function resolveRankAdvancementRunMilestoneIndex(milestonesInput = [], currentCyclesInput = 0, achievementsPayload = null) {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  if (!milestones.length) {
+    return -1;
+  }
+
+  const currentCycles = Math.max(0, Math.floor(safeNumber(currentCyclesInput, 0)));
+  let reachedIndex = -1;
+  for (let index = 0; index < milestones.length; index += 1) {
+    const requiredCycles = Math.max(0, Math.floor(safeNumber(milestones[index]?.requiredCycles, 0)));
+    if (currentCycles >= requiredCycles) {
+      reachedIndex = index;
+    }
+  }
+  const clampRunIndexByCycles = (resolvedIndex) => {
+    if (resolvedIndex < 0) {
+      return resolvedIndex;
+    }
+    if (reachedIndex < 0) {
+      return resolvedIndex;
+    }
+    return Math.min(resolvedIndex, reachedIndex);
+  };
+
+  const explicitRunAchievementId = safeText(
+    achievementsPayload?.runRankAchievementId
+    || achievementsPayload?.rankRunAchievementId
+    || achievementsPayload?.highestEligibleRankAchievementId
+    || achievementsPayload?.rankClaimedAchievementId,
+  );
+  const explicitRunIndex = resolveRankAdvancementMilestoneIndexById(milestones, explicitRunAchievementId);
+  if (explicitRunIndex >= 0) {
+    return clampRunIndexByCycles(explicitRunIndex);
+  }
+
+  let eligibleIndex = -1;
+  for (let index = 0; index < milestones.length; index += 1) {
+    const statusKey = normalizeCredentialValue(milestones[index]?.status);
+    if (
+      statusKey === 'eligible'
+      || statusKey === 'claimable'
+      || statusKey === 'claimed'
+      || Boolean(milestones[index]?.eligible)
+    ) {
+      eligibleIndex = index;
+    }
+  }
+  if (eligibleIndex >= 0) {
+    return clampRunIndexByCycles(eligibleIndex);
+  }
+  if (reachedIndex >= 0) {
+    return reachedIndex;
+  }
+
+  return 0;
+}
+
+function resolveRankAdvancementClaimableMilestone(milestonesInput = []) {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  let claimableMilestone = null;
+  for (let index = 0; index < milestones.length; index += 1) {
+    const milestone = milestones[index];
+    const statusKey = normalizeCredentialValue(milestone?.status);
+    const claimed = statusKey === 'claimed' || Boolean(milestone?.claimId || milestone?.claimedAt);
+    const eligible = statusKey === 'eligible' || statusKey === 'claimable' || Boolean(milestone?.eligible);
+    if (!claimed && eligible) {
+      claimableMilestone = milestone;
+    }
+  }
+  return claimableMilestone;
+}
+
+function buildRankAdvancementSnapshotFromPayloads(achievementsPayload = null, goodLifePayload = null, homeNode = null) {
+  const milestones = resolveRankAdvancementMilestonesFromPayload(achievementsPayload).map((milestone) => {
+    const statusKey = normalizeCredentialValue(milestone?.status);
+    const claimed = statusKey === 'claimed' || Boolean(milestone?.claimId || milestone?.claimedAt);
+    const eligible = statusKey === 'eligible' || statusKey === 'claimable' || Boolean(milestone?.eligible);
+    return {
+      ...milestone,
+      status: statusKey || (claimed ? 'claimed' : (eligible ? 'eligible' : 'locked')),
+      claimed,
+      eligible,
+      iconPath: resolveRankAdvancementMilestoneIconPath(milestone),
+    };
+  });
+
+  const accountOverviewContext = resolveAccountOverviewPanelContext();
+  const resolvedHomeNode = homeNode
+    || accountOverviewContext?.homeNode
+    || resolveNodeById(resolvePreferredGlobalHomeNodeId())
+    || resolveNodeById('root')
+    || null;
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const currentCycles = Math.max(
+    0,
+    Math.floor(
+      safeNumber(
+        achievementsPayload?.currentCycles,
+        safeNumber(
+          remoteMetrics?.totalCycles,
+          resolveAccountOverviewCycleCapMetrics(resolvedHomeNode).cappedCycles,
+        ),
+      ),
+    ),
+  );
+  const totalBv = Math.max(0, Math.floor(resolveAccountOverviewTotalOrganizationBv(resolvedHomeNode)));
+  const personalBv = Math.max(
+    0,
+    Math.floor(safeNumber(achievementsPayload?.currentPersonalPvBv, resolveAccountOverviewPersonalBv(resolvedHomeNode))),
+  );
+  const leftDirectSponsors = Math.max(0, Math.floor(safeNumber(achievementsPayload?.leftDirectSponsors, 0)));
+  const rightDirectSponsors = Math.max(0, Math.floor(safeNumber(achievementsPayload?.rightDirectSponsors, 0)));
+  const totalDirectSponsors = Math.max(
+    0,
+    Math.floor(safeNumber(achievementsPayload?.totalDirectSponsors, leftDirectSponsors + rightDirectSponsors)),
+  );
+  const descendantRankCounts = resolveRankAdvancementDescendantRankCounts(resolvedHomeNode);
+  const isActive = Boolean(achievementsPayload?.isActive);
+  const milestoneProgressStates = milestones.map((milestone) => resolveRankAdvancementMilestoneProgressState(
+    milestone,
+    {
+      currentCycles,
+      currentPersonalBv: personalBv,
+      leftDirectSponsors,
+      rightDirectSponsors,
+      descendantRankCounts,
+      isActive,
+    },
+  ));
+  let highestMetMilestoneIndex = -1;
+  for (let index = 0; index < milestoneProgressStates.length; index += 1) {
+    if (milestoneProgressStates[index]?.met) {
+      highestMetMilestoneIndex = index;
+    }
+  }
+
+  const claimedMilestoneIndex = resolveRankAdvancementMilestoneIndexById(
+    milestones,
+    safeText(achievementsPayload?.rankClaimedAchievementId),
+  );
+  const serverEarnedMilestoneIndex = resolveRankAdvancementEarnedMilestoneIndex(milestones, achievementsPayload);
+  let earnedMilestoneIndex = highestMetMilestoneIndex;
+  if (claimedMilestoneIndex >= 0) {
+    earnedMilestoneIndex = claimedMilestoneIndex;
+  } else if (serverEarnedMilestoneIndex >= 0) {
+    earnedMilestoneIndex = highestMetMilestoneIndex >= 0
+      ? Math.min(serverEarnedMilestoneIndex, highestMetMilestoneIndex)
+      : -1;
+  }
+  const earnedMilestone = earnedMilestoneIndex >= 0
+    ? (milestones[earnedMilestoneIndex] || null)
+    : null;
+  const defaultTargetMilestoneIndex = milestones.length > 0
+    ? clamp(
+      earnedMilestoneIndex >= 0
+        ? earnedMilestoneIndex + 1
+        : 0,
+      0,
+      milestones.length - 1,
+    )
+    : -1;
+  const targetMilestoneIndex = resolveRankAdvancementSelectedMilestoneIndex(milestones, defaultTargetMilestoneIndex);
+  const targetMilestone = targetMilestoneIndex >= 0
+    ? (milestones[targetMilestoneIndex] || null)
+    : null;
+  const targetProgress = targetMilestoneIndex >= 0
+    ? (milestoneProgressStates[targetMilestoneIndex] || null)
+    : null;
+  const claimableMilestone = resolveRankAdvancementClaimableMilestone(milestones);
+  const claimableMilestoneIndex = resolveRankAdvancementMilestoneIndexById(
+    milestones,
+    safeText(claimableMilestone?.id),
+  );
+  const claimableMilestoneMet = (
+    claimableMilestoneIndex >= 0
+    && claimableMilestoneIndex < milestoneProgressStates.length
+    && Boolean(milestoneProgressStates[claimableMilestoneIndex]?.met)
+  );
+  const claimedRankThisPeriod = Boolean(
+    safeText(achievementsPayload?.rankClaimedAchievementId)
+    || safeText(achievementsPayload?.rankClaimedAchievementTitle)
+    || milestones.some((milestone) => Boolean(milestone?.claimed)),
+  );
+  const canClaimRankReward = Boolean(claimableMilestone && claimableMilestoneMet && !claimedRankThisPeriod);
+  const claimAchievementId = canClaimRankReward ? safeText(claimableMilestone?.id) : '';
+  const progressPercent = resolveRankAdvancementProgressPercent(
+    milestones,
+    milestoneProgressStates,
+    currentCycles,
+  );
+
+  const hasMonthlyRankReward = Boolean(earnedMilestone);
+  const rewardMilestone = hasMonthlyRankReward ? earnedMilestone : null;
+  const runRankLabel = hasMonthlyRankReward
+    ? safeText(rewardMilestone?.title || rewardMilestone?.requiredRank || 'Unranked')
+    : 'Wait next month for details';
+  const targetRankLabel = safeText(targetMilestone?.title || targetMilestone?.requiredRank || 'Rank') || 'Rank';
+  const targetRequiredCycles = Math.max(0, Math.floor(safeNumber(targetMilestone?.requiredCycles, currentCycles)));
+  const targetRequiredPersonalBv = Math.max(
+    0,
+    Math.floor(safeNumber(targetMilestone?.requiredPersonalPvBv, 0)),
+  );
+  const targetRequiredDirectPerSide = Math.max(
+    0,
+    Math.floor(safeNumber(targetMilestone?.requiredDirectSponsorsPerSide, 0)),
+  );
+  const targetCurrentLeftDirect = Math.max(
+    0,
+    Math.floor(safeNumber(targetProgress?.currentLeftDirectSponsors, leftDirectSponsors)),
+  );
+  const targetCurrentRightDirect = Math.max(
+    0,
+    Math.floor(safeNumber(targetProgress?.currentRightDirectSponsors, rightDirectSponsors)),
+  );
+  const targetCurrentPersonalBv = Math.max(
+    0,
+    Math.floor(safeNumber(targetProgress?.currentPersonalBv, personalBv)),
+  );
+  const targetRequiresLegPersonalBv = Math.max(
+    0,
+    Math.floor(safeNumber(targetMilestone?.requiredLegPersonalPvBv, 0)),
+  );
+  const targetPersonalMet = Boolean(targetProgress?.personalMet || targetRequiredPersonalBv <= 0);
+  const targetDirectMet = Boolean(
+    targetRequiredDirectPerSide <= 0
+    || (
+      Boolean(targetProgress?.directMet)
+      && (targetRequiresLegPersonalBv <= 0 || Boolean(targetProgress?.legPersonalMet))
+    ),
+  );
+  const targetCyclesMet = Boolean(targetProgress?.cycleMet || targetRequiredCycles <= 0);
+  const targetMemberMet = Boolean(
+    safeText(targetProgress?.requiredMemberRankLabel)
+    && Math.max(0, Math.floor(safeNumber(targetProgress?.requiredMemberCount, 0))) > 0
+    && targetProgress?.memberMet,
+  );
+  const targetCyclesRemaining = Math.max(0, targetRequiredCycles - currentCycles);
+  const targetPersonalBvRemaining = Math.max(0, targetRequiredPersonalBv - targetCurrentPersonalBv);
+  const targetLeftDirectRemaining = Math.max(0, targetRequiredDirectPerSide - targetCurrentLeftDirect);
+  const targetRightDirectRemaining = Math.max(0, targetRequiredDirectPerSide - targetCurrentRightDirect);
+  const rankRunPeriod = safeText(achievementsPayload?.rankRunPeriod);
+  const targetMilestoneClaimedAt = safeText(targetMilestone?.claimedAt);
+  const targetAcquiredSinceDateLabel = formatRankAdvancementAcquiredSinceDate(targetMilestoneClaimedAt, {
+    periodKey: rankRunPeriod,
+  });
+  const targetRewardUsd = Math.max(0, safeNumber(targetMilestone?.rewardUsd, 0));
+  const targetGoodLifePreviewUsd = Math.max(0, safeNumber(
+    resolveRankAdvancementGoodLifeFallbackReward(targetRankLabel),
+    0,
+  ));
+  const showTargetGoodLifePreview = targetGoodLifePreviewUsd > 0;
+  const currentAccountRankTitle = safeText(
+    achievementsPayload?.currentRank
+    || resolvedHomeNode?.accountRank
+    || resolvedHomeNode?.rank,
+  );
+  const currentAccountRankMilestoneIndex = resolveRankAdvancementMilestoneIndexByRankLabel(
+    milestones,
+    currentAccountRankTitle,
+  );
+
+  const goodLifeRewardAmount = hasMonthlyRankReward
+    ? resolveRankAdvancementGoodLifeFallbackReward(runRankLabel)
+    : 0;
+  const showGoodLifeBonus = hasMonthlyRankReward && goodLifeRewardAmount > 0;
+  const rewardUsd = Math.max(0, safeNumber(rewardMilestone?.rewardUsd, 0));
+  const rewardIconPath = hasMonthlyRankReward
+    ? resolveRankAdvancementMilestoneIconPath(rewardMilestone || {})
+    : '/brand_assets/Icons/Achievements/ruby.svg';
+  const rankClaimedTitle = safeText(achievementsPayload?.rankClaimedAchievementTitle);
+
+  return {
+    updatedAtMs: Date.now(),
+    milestones,
+    runMilestoneIndex: earnedMilestoneIndex,
+    runMilestoneId: safeText(rewardMilestone?.id),
+    runRankTitle: runRankLabel,
+    defaultTargetMilestoneIndex: defaultTargetMilestoneIndex >= 0 ? defaultTargetMilestoneIndex : 0,
+    defaultTargetAchievementId: defaultTargetMilestoneIndex >= 0
+      ? safeText(milestones[defaultTargetMilestoneIndex]?.id)
+      : '',
+    targetMilestoneIndex,
+    targetAchievementId: safeText(targetMilestone?.id),
+    targetRankTitle: targetRankLabel,
+    targetRequiredCycles,
+    targetRequiredPersonalBv,
+    targetRequiredDirectPerSide,
+    targetCurrentPersonalBv,
+    targetCurrentLeftDirect,
+    targetCurrentRightDirect,
+    targetPersonalMet,
+    targetDirectMet,
+    targetCyclesMet,
+    targetMemberMet,
+    targetCyclesRemaining,
+    targetPersonalBvRemaining,
+    targetLeftDirectRemaining,
+    targetRightDirectRemaining,
+    targetMilestoneClaimedAt,
+    targetAcquiredSinceDateLabel,
+    targetRewardUsd,
+    targetGoodLifePreviewUsd,
+    showTargetGoodLifePreview,
+    currentAccountRankTitle,
+    currentAccountRankMilestoneIndex,
+    targetMembersRequirementLabel: resolveRankAdvancementMemberRequirementLabel(targetRankLabel),
+    currentCycles,
+    currentPersonalBv: personalBv,
+    totalBv,
+    leftDirectSponsors,
+    rightDirectSponsors,
+    totalDirectSponsors,
+    highestMetMilestoneIndex,
+    hasMonthlyRankReward,
+    rankRewardUsd: rewardUsd,
+    rewardIconPath,
+    goodLifeRewardUsd: goodLifeRewardAmount,
+    showGoodLifeBonus,
+    progressPercent: Math.max(0, Math.min(100, progressPercent)),
+    claimAchievementId,
+    claimAchievementTitle: safeText(claimableMilestone?.title || claimableMilestone?.requiredRank),
+    canClaimRankReward,
+    rankClaimed: claimedRankThisPeriod,
+    rankClaimedTitle,
+    hasGoodLifeClaimedThisPeriod: Boolean(safeText(goodLifePayload?.claimedAt)),
+    rankRunPeriod,
+    rankRunPeriodLabel: safeText(achievementsPayload?.rankRunPeriodLabel),
+    periodLabel: safeText(
+      goodLifePayload?.periodLabel
+      || achievementsPayload?.rankClaimPeriodLabel
+      || 'This Month',
+    ) || 'This Month',
+  };
+}
+
+function resolveRankAdvancementRenderSignature(snapshot = null) {
+  if (!snapshot || typeof snapshot !== 'object') {
+    return 'empty';
+  }
+  return [
+    safeText(snapshot.targetAchievementId),
+    safeText(snapshot.defaultTargetAchievementId),
+    safeText(snapshot.runMilestoneId),
+    safeText(snapshot.claimAchievementId),
+    safeText(snapshot.rankClaimedTitle),
+    safeText(snapshot.runRankTitle),
+    String(Boolean(snapshot.hasMonthlyRankReward)),
+    String(Boolean(snapshot.showGoodLifeBonus)),
+    Math.round(safeNumber(snapshot.progressPercent, 0)),
+    Math.floor(safeNumber(snapshot.currentCycles, 0)),
+    Math.floor(safeNumber(snapshot.targetCyclesRemaining, 0)),
+    Math.floor(safeNumber(snapshot.targetPersonalBvRemaining, 0)),
+    Math.floor(safeNumber(snapshot.targetLeftDirectRemaining, 0)),
+    Math.floor(safeNumber(snapshot.targetRightDirectRemaining, 0)),
+    safeText(snapshot.targetMilestoneClaimedAt),
+    safeText(snapshot.targetAcquiredSinceDateLabel),
+    Math.round(safeNumber(snapshot.targetRewardUsd, 0) * 100),
+    Math.round(safeNumber(snapshot.targetGoodLifePreviewUsd, 0) * 100),
+    String(Boolean(snapshot.showTargetGoodLifePreview)),
+    safeText(snapshot.currentAccountRankTitle),
+    Math.floor(safeNumber(snapshot.currentAccountRankMilestoneIndex, -1)),
+    String(Boolean(snapshot.targetPersonalMet)),
+    String(Boolean(snapshot.targetDirectMet)),
+    String(Boolean(snapshot.targetCyclesMet)),
+    String(Boolean(snapshot.targetMemberMet)),
+    Math.floor(safeNumber(snapshot.highestMetMilestoneIndex, -1)),
+    Math.floor(safeNumber(snapshot.totalBv, 0)),
+    Math.floor(safeNumber(snapshot.currentPersonalBv, 0)),
+    Math.round(safeNumber(snapshot.rankRewardUsd, 0) * 100),
+    Math.round(safeNumber(snapshot.goodLifeRewardUsd, 0) * 100),
+    safeText(snapshot.periodLabel),
+  ].join('::');
+}
+
+function renderRankAdvancementMilestones(snapshot = null) {
+  if (!(rankAdvancementMilestonesElement instanceof HTMLElement)) {
+    return;
+  }
+  const milestones = Array.isArray(snapshot?.milestones) ? snapshot.milestones : [];
+  rankAdvancementMilestonesElement.innerHTML = '';
+  if (!milestones.length) {
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  const safeRunIndex = Math.floor(safeNumber(snapshot?.runMilestoneIndex, -1));
+  const highestMetMilestoneIndex = Math.floor(safeNumber(snapshot?.highestMetMilestoneIndex, -1));
+  const safeCurrentRankMilestoneIndex = Math.floor(safeNumber(snapshot?.currentAccountRankMilestoneIndex, -1));
+  const targetAchievementId = safeText(snapshot?.targetAchievementId);
+  milestones.forEach((milestone, index) => {
+    const milestoneId = safeText(milestone?.id);
+    const item = document.createElement('li');
+    item.className = 'tree-next-rank-advancement-milestone';
+    if (milestoneId === targetAchievementId) {
+      item.classList.add('is-target', 'is-selected');
+    }
+    if (index === safeCurrentRankMilestoneIndex) {
+      item.classList.add('is-current-rank');
+    }
+    if (index <= highestMetMilestoneIndex || index <= safeRunIndex) {
+      item.classList.add('is-passed');
+    } else {
+      item.classList.add('is-upcoming');
+    }
+    const risePx = Math.round(index * 7);
+    item.style.setProperty('--rank-node-rise', `${risePx}px`);
+
+    const nodeElement = document.createElement('button');
+    nodeElement.type = 'button';
+    nodeElement.className = 'tree-next-rank-advancement-milestone-node tree-next-rank-advancement-milestone-button';
+    nodeElement.style.setProperty(
+      '--rank-node-bg',
+      resolveRankAdvancementMilestoneBackground(milestone?.title || milestone?.requiredRank),
+    );
+    nodeElement.setAttribute(
+      'data-selected-label',
+      safeText(milestone?.title || milestone?.requiredRank || 'Rank'),
+    );
+    nodeElement.setAttribute('aria-label', `View ${safeText(milestone?.title || 'Rank')} requirements`);
+    nodeElement.setAttribute('aria-pressed', milestoneId === targetAchievementId ? 'true' : 'false');
+    if (milestoneId) {
+      nodeElement.dataset.rankAdvancementSelectId = milestoneId;
+      nodeElement.addEventListener('click', () => {
+        if (!milestoneId || milestoneId === rankAdvancementSelectedMilestoneId) {
+          return;
+        }
+        rankAdvancementSelectedMilestoneId = milestoneId;
+        const overviewContext = resolveAccountOverviewPanelContext();
+        const homeNode = overviewContext?.homeNode
+          || resolveNodeById(resolvePreferredGlobalHomeNodeId())
+          || resolveNodeById('root');
+        rankAdvancementSnapshot = buildRankAdvancementSnapshotFromPayloads(
+          rankAdvancementCachedAchievementsPayload,
+          rankAdvancementCachedGoodLifePayload,
+          homeNode,
+        );
+        rankAdvancementLastRenderSignature = '';
+        syncRankAdvancementPanelVisuals();
+      });
+    } else {
+      nodeElement.disabled = true;
+    }
+
+    const iconElement = document.createElement('img');
+    iconElement.className = 'tree-next-rank-advancement-milestone-icon';
+    iconElement.src = resolveRankAdvancementMilestoneIconPath(milestone);
+    iconElement.alt = `${safeText(milestone?.title || 'Rank')} icon`;
+    iconElement.loading = 'lazy';
+    iconElement.decoding = 'async';
+
+    const stemElement = document.createElement('span');
+    stemElement.className = 'tree-next-rank-advancement-milestone-stem';
+
+    nodeElement.append(iconElement);
+    item.append(nodeElement, stemElement);
+    fragment.append(item);
+  });
+  rankAdvancementMilestonesElement.append(fragment);
+}
+
+function syncRankAdvancementPanelPosition(layoutInput = state.layout) {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const sideNav = layout?.sideNav || null;
+  const sideNavToggle = layout?.sideNavToggle || null;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
+  );
+  const panelHorizontalGap = 18;
+  const panelEdgePadding = 18;
+  const rightDockReservedWidth = 72;
+  const panelTop = sideNav
+    ? Math.round(sideNav.y)
+    : panelEdgePadding;
+  const panelHeight = sideNav
+    ? Math.round(sideNav.height)
+    : Math.max(320, viewportHeight - (panelEdgePadding * 2));
+
+  let anchorLeft = Math.round((viewportWidth - 640) / 2);
+  if (sideNavOpen && sideNav) {
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
+  } else if (sideNavToggle) {
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
+  }
+
+  const maxUsableWidth = Math.max(
+    360,
+    Math.floor(viewportWidth - anchorLeft - rightDockReservedWidth),
+  );
+  const panelWidth = clamp(Math.round(Math.min(760, maxUsableWidth)), 360, maxUsableWidth);
+  const clampedLeft = clamp(
+    anchorLeft,
+    panelEdgePadding,
+    Math.max(
+      panelEdgePadding,
+      viewportWidth - panelWidth - rightDockReservedWidth,
+    ),
+  );
+  const clampedTop = clamp(
+    panelTop,
+    panelEdgePadding,
+    Math.max(panelEdgePadding, viewportHeight - panelHeight - panelEdgePadding),
+  );
+  const clampedHeight = clamp(
+    panelHeight,
+    320,
+    Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+  );
+
+  rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-left', `${clampedLeft}px`);
+  rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-top', `${clampedTop}px`);
+  rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-width', `${panelWidth}px`);
+  rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-height', `${clampedHeight}px`);
+  rankAdvancementPanelElement.classList.remove('is-positioning');
+}
+
+function syncRankAdvancementPanelVisibility() {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+  const isVisible = Boolean(state.ui?.rankAdvancementVisible);
+  rankAdvancementPanelElement.classList.toggle('is-hidden', !isVisible);
+  rankAdvancementPanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+}
+
+function syncRankAdvancementPanelVisuals() {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+  if (Boolean(state.ui?.rankAdvancementVisible)) {
+    maybeRefreshRankAdvancementSnapshot({ homeNode });
+  }
+
+  const snapshot = rankAdvancementSnapshot && typeof rankAdvancementSnapshot === 'object'
+    ? rankAdvancementSnapshot
+    : buildRankAdvancementSnapshotFromPayloads(null, null, homeNode);
+  const renderSignature = resolveRankAdvancementRenderSignature(snapshot);
+  if (renderSignature === rankAdvancementLastRenderSignature) {
+    return;
+  }
+  rankAdvancementLastRenderSignature = renderSignature;
+
+  const targetIsCurrentRun = (
+    Boolean(snapshot?.hasMonthlyRankReward)
+    && safeText(snapshot?.targetAchievementId) === safeText(snapshot?.runMilestoneId)
+  );
+  const isInspectingCustomRank = (
+    safeText(snapshot?.targetAchievementId)
+    && safeText(snapshot?.targetAchievementId) !== safeText(snapshot?.defaultTargetAchievementId)
+  );
+  const targetMilestoneIndex = Math.floor(safeNumber(snapshot?.targetMilestoneIndex, -1));
+  const highestMetMilestoneIndex = Math.floor(safeNumber(snapshot?.highestMetMilestoneIndex, -1));
+  const runMilestoneIndex = Math.floor(safeNumber(snapshot?.runMilestoneIndex, -1));
+  const isInspectingPassedRank = Boolean(
+    isInspectingCustomRank
+    && targetMilestoneIndex >= 0
+    && (
+      targetMilestoneIndex <= highestMetMilestoneIndex
+      || targetMilestoneIndex <= runMilestoneIndex
+    )
+  );
+  setAccountOverviewText(
+    rankAdvancementTargetPrefixElement,
+    isInspectingCustomRank
+      ? 'Rank Preview'
+      : (targetIsCurrentRun ? 'Current highest monthly run' : 'Keep it going! Running for'),
+  );
+  setAccountOverviewText(rankAdvancementTargetRankElement, snapshot?.targetRankTitle || 'Rank');
+  if (rankAdvancementAcquiredSinceElement instanceof HTMLElement) {
+    const acquiredSinceDateLabel = safeText(snapshot?.targetAcquiredSinceDateLabel);
+    const showAcquiredSince = Boolean(isInspectingCustomRank && isInspectingPassedRank && acquiredSinceDateLabel);
+    rankAdvancementAcquiredSinceElement.hidden = !showAcquiredSince;
+    rankAdvancementAcquiredSinceElement.textContent = showAcquiredSince
+      ? `Acquired since ${acquiredSinceDateLabel}`
+      : '';
+  }
+  if (rankAdvancementRewardPreviewElement instanceof HTMLElement) {
+    rankAdvancementRewardPreviewElement.textContent = `Rank Bonus: $${formatRankAdvancementRewardCurrency(snapshot?.targetRewardUsd)}`;
+  }
+  if (rankAdvancementGoodLifePreviewElement instanceof HTMLElement) {
+    const showGoodLifePreview = Boolean(snapshot?.showTargetGoodLifePreview);
+    rankAdvancementGoodLifePreviewElement.hidden = !showGoodLifePreview;
+    rankAdvancementGoodLifePreviewElement.textContent = showGoodLifePreview
+      ? `Good life Bonus: $${formatRankAdvancementRewardCurrency(snapshot?.targetGoodLifePreviewUsd)}`
+      : '';
+  }
+  const targetRequiredPersonalBv = Math.max(0, Math.floor(safeNumber(snapshot?.targetRequiredPersonalBv, 0)));
+  const targetRequiredDirectPerSide = Math.max(0, Math.floor(safeNumber(snapshot?.targetRequiredDirectPerSide, 0)));
+  const targetRequiredCycles = Math.max(0, Math.floor(safeNumber(snapshot?.targetRequiredCycles, 0)));
+  const targetPersonalMet = Boolean(snapshot?.targetPersonalMet);
+  const targetDirectMet = Boolean(snapshot?.targetDirectMet);
+  const targetCyclesMet = Boolean(snapshot?.targetCyclesMet);
+  setAccountOverviewText(
+    rankAdvancementPersonalRequirementElement,
+    targetRequiredPersonalBv > 0
+      ? `Minimum ${formatInteger(targetRequiredPersonalBv, 0)} Personal BV`
+      : 'No personal BV requirement',
+  );
+  setAccountOverviewText(
+    rankAdvancementDirectRequirementElement,
+    targetRequiredDirectPerSide > 0
+      ? (
+        `${formatInteger(targetRequiredDirectPerSide, 0)}:${formatInteger(targetRequiredDirectPerSide, 0)} `
+        + 'Active Direct Sponsors (50 Personal BV each)'
+      )
+      : 'No direct sponsor requirement',
+  );
+  setAccountOverviewText(
+    rankAdvancementCyclesRequirementElement,
+    targetRequiredCycles > 0
+      ? `${formatInteger(snapshot?.currentCycles, 0)} / ${formatInteger(targetRequiredCycles, 0)} Cycles`
+      : `${formatInteger(snapshot?.currentCycles, 0)} Cycles`,
+  );
+  setAccountOverviewText(
+    rankAdvancementMembersRequirementElement,
+    snapshot?.targetMembersRequirementLabel || 'No member rank requirement',
+  );
+
+  if (isInspectingCustomRank && !isInspectingPassedRank) {
+    if (rankAdvancementPersonalRequirementElement instanceof HTMLElement) {
+      rankAdvancementPersonalRequirementElement.classList.remove('is-met');
+      rankAdvancementPersonalRequirementElement.classList.add('is-neutral');
+    }
+    if (rankAdvancementDirectRequirementElement instanceof HTMLElement) {
+      rankAdvancementDirectRequirementElement.classList.remove('is-met');
+      rankAdvancementDirectRequirementElement.classList.add('is-neutral');
+    }
+    if (rankAdvancementCyclesRequirementElement instanceof HTMLElement) {
+      rankAdvancementCyclesRequirementElement.classList.remove('is-met');
+      rankAdvancementCyclesRequirementElement.classList.add('is-neutral');
+    }
+    if (rankAdvancementMembersRequirementElement instanceof HTMLElement) {
+      rankAdvancementMembersRequirementElement.classList.remove('is-met');
+      rankAdvancementMembersRequirementElement.classList.add('is-neutral');
+    }
+  } else {
+    const forceMetForPassedPreview = Boolean(isInspectingPassedRank);
+    const targetMemberMet = Boolean(snapshot?.targetMemberMet);
+    const renderPersonalMet = forceMetForPassedPreview || targetPersonalMet;
+    const renderDirectMet = forceMetForPassedPreview || targetDirectMet;
+    const renderCyclesMet = forceMetForPassedPreview || targetCyclesMet;
+    const renderMembersMet = forceMetForPassedPreview || targetMemberMet;
+    if (rankAdvancementPersonalRequirementElement instanceof HTMLElement) {
+      rankAdvancementPersonalRequirementElement.classList.toggle('is-met', renderPersonalMet);
+      rankAdvancementPersonalRequirementElement.classList.toggle('is-neutral', !renderPersonalMet);
+    }
+    if (rankAdvancementDirectRequirementElement instanceof HTMLElement) {
+      rankAdvancementDirectRequirementElement.classList.toggle('is-met', renderDirectMet);
+      rankAdvancementDirectRequirementElement.classList.toggle('is-neutral', !renderDirectMet);
+    }
+    if (rankAdvancementCyclesRequirementElement instanceof HTMLElement) {
+      rankAdvancementCyclesRequirementElement.classList.toggle('is-met', renderCyclesMet);
+      rankAdvancementCyclesRequirementElement.classList.toggle('is-neutral', !renderCyclesMet);
+    }
+    if (rankAdvancementMembersRequirementElement instanceof HTMLElement) {
+      rankAdvancementMembersRequirementElement.classList.toggle('is-met', renderMembersMet);
+      rankAdvancementMembersRequirementElement.classList.toggle('is-neutral', !renderMembersMet);
+    }
+  }
+
+  if (rankAdvancementProgressFillElement instanceof HTMLElement) {
+    rankAdvancementProgressFillElement.style.width = `${Math.max(0, Math.min(100, safeNumber(snapshot?.progressPercent, 0))).toFixed(2)}%`;
+  }
+  renderRankAdvancementMilestones(snapshot);
+
+  const hasMonthlyRankReward = Boolean(snapshot?.hasMonthlyRankReward);
+  if (rankAdvancementRewardIconElement instanceof HTMLImageElement) {
+    rankAdvancementRewardIconElement.src = safeText(snapshot?.rewardIconPath || '/brand_assets/Icons/Achievements/diamond.svg');
+    rankAdvancementRewardIconElement.alt = hasMonthlyRankReward
+      ? `${safeText(snapshot?.runRankTitle || 'Rank')} reward icon`
+      : 'Rank reward pending';
+  }
+  setAccountOverviewText(
+    rankAdvancementRewardRankElement,
+    hasMonthlyRankReward ? (snapshot?.runRankTitle || 'Rank') : 'Wait next month for details',
+  );
+  setAccountOverviewText(
+    rankAdvancementRewardAmountElement,
+    hasMonthlyRankReward
+      ? `$${formatRankAdvancementRewardCurrency(snapshot?.rankRewardUsd)}`
+      : '$0.00 USD',
+  );
+  if (rankAdvancementGoodLifeCopyElement instanceof HTMLElement) {
+    rankAdvancementGoodLifeCopyElement.hidden = !Boolean(snapshot?.showGoodLifeBonus);
+  }
+  if (Boolean(snapshot?.showGoodLifeBonus)) {
+    setAccountOverviewText(rankAdvancementGoodLifeRankElement, 'Good life Bonus');
+    setAccountOverviewText(
+      rankAdvancementGoodLifeAmountElement,
+      `$${formatRankAdvancementRewardCurrency(snapshot?.goodLifeRewardUsd)}`,
+    );
+  }
+  setAccountOverviewText(rankAdvancementAnalysisTotalBvElement, formatVolumeValue(snapshot?.totalBv));
+  setAccountOverviewText(rankAdvancementAnalysisPersonalBvElement, formatVolumeValue(snapshot?.currentPersonalBv));
+  setAccountOverviewText(rankAdvancementAnalysisCyclesElement, formatInteger(snapshot?.currentCycles, 0));
+
+  if (rankAdvancementClaimButtonElement instanceof HTMLButtonElement) {
+    const hasClaimed = Boolean(snapshot?.rankClaimed);
+    const canClaim = Boolean(snapshot?.canClaimRankReward);
+    rankAdvancementClaimButtonElement.classList.toggle('is-claimed', hasClaimed);
+    if (rankAdvancementClaimInFlight) {
+      rankAdvancementClaimButtonElement.disabled = true;
+      rankAdvancementClaimButtonElement.textContent = 'Claiming...';
+    } else if (hasClaimed) {
+      rankAdvancementClaimButtonElement.disabled = true;
+      rankAdvancementClaimButtonElement.textContent = 'Claimed for this month';
+    } else if (canClaim) {
+      rankAdvancementClaimButtonElement.disabled = false;
+      rankAdvancementClaimButtonElement.textContent = 'Claim now';
+    } else if (!hasMonthlyRankReward) {
+      rankAdvancementClaimButtonElement.disabled = true;
+      rankAdvancementClaimButtonElement.textContent = 'Wait next month for details';
+    } else {
+      rankAdvancementClaimButtonElement.disabled = true;
+      rankAdvancementClaimButtonElement.textContent = 'Claim at the end of the month';
+    }
+  }
+}
+
+async function fetchRankAdvancementEndpoint(endpoint, options = {}) {
+  const {
+    method = 'GET',
+    headers = {},
+    body,
+  } = options;
+  try {
+    const response = await fetch(endpoint, {
+      method,
+      cache: 'no-store',
+      credentials: 'same-origin',
+      headers,
+      ...(typeof body === 'undefined' ? {} : { body }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    return {
+      ok: response.ok,
+      status: response.status,
+      payload: payload && typeof payload === 'object' ? payload : {},
+    };
+  } catch {
+    return {
+      ok: false,
+      status: 0,
+      payload: {},
+    };
+  }
+}
+
+async function refreshRankAdvancementSnapshot(options = {}) {
+  if (!isRankAdvancementPanelAvailable()) {
+    return null;
+  }
+  if (rankAdvancementSyncInFlight && rankAdvancementSyncPromise) {
+    return rankAdvancementSyncPromise;
+  }
+
+  const force = options?.force === true;
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = options?.homeNode
+    || overviewContext?.homeNode
+    || resolveNodeById(resolvePreferredGlobalHomeNodeId())
+    || resolveNodeById('root')
+    || null;
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode, {
+    preferHomeNode: true,
+    allowAnonymous: state.source !== 'member',
+  });
+  const hasIdentity = Boolean(
+    safeText(identityPayload?.userId)
+    || safeText(identityPayload?.username)
+    || safeText(identityPayload?.email),
+  );
+  if (state.source === 'member' && !hasIdentity) {
+    rankAdvancementSnapshot = buildRankAdvancementSnapshotFromPayloads(null, null, homeNode);
+    rankAdvancementDataVersion += 1;
+    rankAdvancementLastRenderSignature = '';
+    syncRankAdvancementPanelVisuals();
+    return rankAdvancementSnapshot;
+  }
+
+  const identityKey = resolveAccountOverviewIdentityKey(identityPayload);
+  const identityChanged = identityKey !== rankAdvancementIdentityKey;
+  const nowMs = Date.now();
+  const hasSuccessfulSync = rankAdvancementLastSyncedAtMs > 0;
+  const minimumIntervalMs = hasSuccessfulSync
+    ? resolveRankAdvancementSyncIntervalMs()
+    : resolveRankAdvancementSyncIntervalMs({ forRetry: true });
+  if (
+    !force
+    && !identityChanged
+    && rankAdvancementLastRequestAtMs > 0
+    && (nowMs - rankAdvancementLastRequestAtMs) < minimumIntervalMs
+  ) {
+    return rankAdvancementSnapshot;
+  }
+
+  rankAdvancementIdentityKey = identityKey;
+  rankAdvancementLastRequestAtMs = nowMs;
+  rankAdvancementSyncInFlight = true;
+  rankAdvancementLoading = true;
+  syncRankAdvancementPanelVisuals();
+  rankAdvancementSyncPromise = (async () => {
+    const requestHeaders = buildRankAdvancementRequestHeaders();
+    const [achievementsResponse, goodLifeResponse] = await Promise.all([
+      fetchRankAdvancementEndpoint(MEMBER_ACHIEVEMENTS_API, {
+        method: 'GET',
+        headers: requestHeaders,
+      }),
+      fetchRankAdvancementEndpoint(MEMBER_GOOD_LIFE_MONTHLY_API, {
+        method: 'GET',
+        headers: requestHeaders,
+      }),
+    ]);
+
+    if (achievementsResponse.ok && achievementsResponse.payload && typeof achievementsResponse.payload === 'object') {
+      rankAdvancementCachedAchievementsPayload = achievementsResponse.payload;
+    }
+    if (goodLifeResponse.ok && goodLifeResponse.payload && typeof goodLifeResponse.payload === 'object') {
+      rankAdvancementCachedGoodLifePayload = goodLifeResponse.payload;
+    }
+
+    const nextSnapshot = buildRankAdvancementSnapshotFromPayloads(
+      rankAdvancementCachedAchievementsPayload,
+      rankAdvancementCachedGoodLifePayload,
+      homeNode,
+    );
+    rankAdvancementSnapshot = nextSnapshot;
+    rankAdvancementDataVersion += 1;
+    rankAdvancementLastRenderSignature = '';
+    if (achievementsResponse.ok || goodLifeResponse.ok) {
+      rankAdvancementLastSyncedAtMs = Date.now();
+    }
+    return rankAdvancementSnapshot;
+  })().catch((error) => {
+    console.warn('[TreeNext] Rank advancement sync failed:', error);
+    if (!rankAdvancementSnapshot) {
+      rankAdvancementSnapshot = buildRankAdvancementSnapshotFromPayloads(null, null, homeNode);
+      rankAdvancementDataVersion += 1;
+      rankAdvancementLastRenderSignature = '';
+    }
+    return rankAdvancementSnapshot;
+  }).finally(() => {
+    rankAdvancementSyncPromise = null;
+    rankAdvancementSyncInFlight = false;
+    rankAdvancementLoading = false;
+    syncRankAdvancementPanelVisuals();
+  });
+
+  return rankAdvancementSyncPromise;
+}
+
+function maybeRefreshRankAdvancementSnapshot(options = {}) {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+  if (!Boolean(state.ui?.rankAdvancementVisible) && options?.force !== true) {
+    return;
+  }
+  void refreshRankAdvancementSnapshot(options);
+}
+
+async function claimRankAdvancementMonthlyReward() {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+  if (rankAdvancementClaimInFlight || rankAdvancementSyncInFlight) {
+    return;
+  }
+  const snapshot = rankAdvancementSnapshot && typeof rankAdvancementSnapshot === 'object'
+    ? rankAdvancementSnapshot
+    : buildRankAdvancementSnapshotFromPayloads();
+  const claimAchievementId = safeText(snapshot?.claimAchievementId);
+  if (!claimAchievementId) {
+    setRankAdvancementFeedback('No rank reward is claimable yet for this month.', { isError: true });
+    return;
+  }
+  if (state.source !== 'member') {
+    setRankAdvancementFeedback('Rank reward claims are available only for member sessions.', { isError: true });
+    return;
+  }
+  const authToken = safeText(state.session?.authToken);
+  if (!authToken) {
+    setRankAdvancementFeedback('Sign in again before claiming rank rewards.', { isError: true });
+    return;
+  }
+
+  rankAdvancementClaimInFlight = true;
+  rankAdvancementLastRenderSignature = '';
+  setRankAdvancementFeedback('Claiming monthly rank reward...', { persist: true });
+  syncRankAdvancementPanelVisuals();
+
+  try {
+    const claimResponse = await fetchRankAdvancementEndpoint(
+      `${MEMBER_ACHIEVEMENTS_API}/${encodeURIComponent(claimAchievementId)}/claim`,
+      {
+        method: 'POST',
+        headers: buildRankAdvancementRequestHeaders(),
+      },
+    );
+    if (!claimResponse.ok) {
+      const errorMessage = safeText(claimResponse.payload?.error)
+        || `Unable to claim rank reward (${claimResponse.status}).`;
+      throw new Error(errorMessage);
+    }
+
+    const goodLifeResponse = await fetchRankAdvancementEndpoint(MEMBER_GOOD_LIFE_MONTHLY_API, {
+      method: 'GET',
+      headers: buildRankAdvancementRequestHeaders(),
+    });
+    if (claimResponse.payload && typeof claimResponse.payload === 'object') {
+      rankAdvancementCachedAchievementsPayload = claimResponse.payload;
+    }
+    if (goodLifeResponse.ok && goodLifeResponse.payload && typeof goodLifeResponse.payload === 'object') {
+      rankAdvancementCachedGoodLifePayload = goodLifeResponse.payload;
+    }
+    const overviewContext = resolveAccountOverviewPanelContext();
+    const homeNode = overviewContext?.homeNode || resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+    rankAdvancementSnapshot = buildRankAdvancementSnapshotFromPayloads(
+      rankAdvancementCachedAchievementsPayload,
+      rankAdvancementCachedGoodLifePayload,
+      homeNode,
+    );
+    rankAdvancementDataVersion += 1;
+    rankAdvancementLastRenderSignature = '';
+    rankAdvancementLastSyncedAtMs = Date.now();
+    const claimedLabel = safeText(rankAdvancementSnapshot?.rankClaimedTitle || snapshot?.claimAchievementTitle || 'Rank reward');
+    setRankAdvancementFeedback(`${claimedLabel} claimed successfully.`, { isSuccess: true });
+  } catch (error) {
+    const message = error instanceof Error && error.message
+      ? error.message
+      : 'Unable to claim monthly rank reward.';
+    setRankAdvancementFeedback(message, { isError: true, persist: true });
+  } finally {
+    rankAdvancementClaimInFlight = false;
+    rankAdvancementLastRenderSignature = '';
+    syncRankAdvancementPanelVisuals();
+  }
+}
+
+function setRankAdvancementPanelVisible(isVisible) {
+  const nextVisible = Boolean(isVisible);
+  state.ui.rankAdvancementVisible = nextVisible;
+  if (nextVisible) {
+    state.ui.accountOverviewVisible = false;
+    state.ui.infinityBuilderVisible = false;
+    state.ui.preferredAccountsVisible = false;
+    state.ui.myStoreVisible = false;
+    syncAccountOverviewPanelVisibility();
+    syncInfinityBuilderPanelVisibility();
+    syncPreferredAccountsPanelVisibility();
+    syncMyStorePanelVisibility();
+    rankAdvancementLastRenderSignature = '';
+    rankAdvancementSelectedMilestoneId = '';
+    setRankAdvancementFeedback('');
+    const overviewContext = resolveAccountOverviewPanelContext();
+    const homeNode = overviewContext?.homeNode || resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+    void refreshRankAdvancementSnapshot({ force: true, homeNode });
+  }
+  syncRankAdvancementPanelVisibility();
+}
+
+function initRankAdvancementPanel() {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+  syncRankAdvancementPanelPosition();
+  syncRankAdvancementPanelVisuals();
+  syncRankAdvancementPanelVisibility();
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+  void refreshRankAdvancementSnapshot({ force: true, homeNode });
+  setRankAdvancementFeedback('');
+
+  if (rankAdvancementCloseButtonElement instanceof HTMLButtonElement) {
+    rankAdvancementCloseButtonElement.addEventListener('click', () => {
+      setRankAdvancementPanelVisible(false);
+    });
+  }
+  if (rankAdvancementClaimButtonElement instanceof HTMLButtonElement) {
+    rankAdvancementClaimButtonElement.addEventListener('click', () => {
+      void claimRankAdvancementMonthlyReward();
     });
   }
 }
@@ -5595,8 +10345,12 @@ function setPreferredAccountsPanelVisible(isVisible) {
   if (nextVisible) {
     state.ui.preferredAccountsSaving = false;
     state.ui.accountOverviewVisible = false;
+    state.ui.infinityBuilderVisible = false;
+    state.ui.rankAdvancementVisible = false;
     state.ui.myStoreVisible = false;
     syncAccountOverviewPanelVisibility();
+    syncInfinityBuilderPanelVisibility();
+    syncRankAdvancementPanelVisibility();
     syncMyStorePanelVisibility();
     preferredAccountsLastRenderSignature = '';
     setPreferredAccountsFeedback('');
@@ -6336,6 +11090,7 @@ async function refreshMyStorePostCheckoutUpgrade(accountUpgradeInput = null) {
   await syncTreeNextLiveNodes({ force: true, silent: true, reason: 'my-store-upgrade' });
 
   resetAccountOverviewRemoteSnapshot();
+  resetRankAdvancementSnapshot();
   const overviewContext = resolveAccountOverviewPanelContext();
   const homeNode = overviewContext?.homeNode || resolveNodeById('root');
   await refreshAccountOverviewRemoteSnapshot({
@@ -6344,8 +11099,13 @@ async function refreshMyStorePostCheckoutUpgrade(accountUpgradeInput = null) {
     scope: overviewContext?.scope,
     preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
   });
+  await refreshRankAdvancementSnapshot({
+    force: true,
+    homeNode,
+  });
   await refreshPreferredAccountsSnapshot({ force: true });
   syncAccountOverviewPanelVisuals();
+  syncRankAdvancementPanelVisuals();
   syncPreferredAccountsPanelVisuals();
   syncMyStorePanelVisuals();
 }
@@ -7183,8 +11943,12 @@ function setMyStorePanelVisible(isVisible) {
   state.ui.myStoreVisible = nextVisible;
   if (nextVisible) {
     state.ui.accountOverviewVisible = false;
+    state.ui.infinityBuilderVisible = false;
+    state.ui.rankAdvancementVisible = false;
     state.ui.preferredAccountsVisible = false;
     syncAccountOverviewPanelVisibility();
+    syncInfinityBuilderPanelVisibility();
+    syncRankAdvancementPanelVisibility();
     syncPreferredAccountsPanelVisibility();
     state.ui.myStoreStep = MY_STORE_STEP_CATALOG;
     state.ui.myStoreCheckoutCompletion = null;
@@ -7772,6 +12536,7 @@ async function finalizeTreeNextEnrollmentCheckoutSessionFromStripeReturn(session
           await refreshAuthenticatedMemberSessionSnapshot({ skipAccountOverviewReset: true });
         }
         resetAccountOverviewRemoteSnapshot();
+        resetRankAdvancementSnapshot();
         const overviewContext = resolveAccountOverviewPanelContext();
         const homeNode = overviewContext?.homeNode || resolveNodeById('root');
         await refreshAccountOverviewRemoteSnapshot({
@@ -7780,7 +12545,12 @@ async function finalizeTreeNextEnrollmentCheckoutSessionFromStripeReturn(session
           scope: overviewContext?.scope,
           preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
         });
+        await refreshRankAdvancementSnapshot({
+          force: true,
+          homeNode,
+        });
         syncAccountOverviewPanelVisuals();
+        syncRankAdvancementPanelVisuals();
       } catch {
         // Enrollment success should not fail when account-overview refresh has transient network issues.
       }
@@ -9779,6 +14549,82 @@ function enterNodeUniverseWithZoomHint(nodeId = state.selectedId) {
   return true;
 }
 
+function resolveLegacyTierCanvasSelectedBinaryNodeId(nodeIdInput = state.selectedId) {
+  if (!isLegacyTierCanvasViewActive()) {
+    return '';
+  }
+  const selectedId = safeText(nodeIdInput);
+  if (!selectedId) {
+    return '';
+  }
+  const projectedNodes = Array.isArray(state.frameResult?.projectedNodes)
+    ? state.frameResult.projectedNodes
+    : [];
+  const selectedProjectedNode = projectedNodes.find((node) => safeText(node?.id) === selectedId) || null;
+  const selectedNodeRecord = selectedProjectedNode?.node && typeof selectedProjectedNode.node === 'object'
+    ? selectedProjectedNode.node
+    : null;
+  const isEmptySlot = Boolean(
+    selectedProjectedNode?.isLegacyTierEmptySlot
+    || selectedNodeRecord?.isLegacyTierEmptySlot
+    || selectedNodeRecord?.isLegacyTierViewPlaceholder,
+  );
+  if (isEmptySlot) {
+    return '';
+  }
+
+  const candidates = [];
+  const pushCandidate = (candidateInput = '') => {
+    const candidate = safeText(candidateInput);
+    if (!candidate) {
+      return;
+    }
+    candidates.push(candidate);
+    const duplicateIndex = candidate.indexOf('::');
+    if (duplicateIndex > 0) {
+      const baseCandidate = safeText(candidate.slice(0, duplicateIndex));
+      if (baseCandidate) {
+        candidates.push(baseCandidate);
+      }
+    }
+  };
+  pushCandidate(selectedProjectedNode?.avatarSeedId);
+  pushCandidate(selectedNodeRecord?.avatarSeedId);
+  pushCandidate(selectedNodeRecord?.avatarSeed);
+  pushCandidate(selectedNodeRecord?.id);
+  pushCandidate(selectedId);
+
+  for (const candidateId of candidates) {
+    if (resolveNodeById(candidateId)) {
+      return candidateId;
+    }
+  }
+
+  const username = safeText(
+    selectedNodeRecord?.username
+    || selectedNodeRecord?.memberCode
+    || selectedNodeRecord?.member_code
+    || '',
+  ).replace(/^@+/, '');
+  if (!username) {
+    return '';
+  }
+  return safeText(resolveNodeIdByUsername(username));
+}
+
+function enterSelectedUniverseNodeFromCurrentView() {
+  if (isLegacyTierCanvasViewActive()) {
+    const targetNodeId = resolveLegacyTierCanvasSelectedBinaryNodeId(state.selectedId);
+    if (!targetNodeId) {
+      return false;
+    }
+    closeLegacyTierCanvasView({ preserveSelection: false });
+    setSelectedNode(targetNodeId, { animate: false });
+    return enterNodeUniverseWithZoomHint(targetNodeId);
+  }
+  return enterNodeUniverseWithZoomHint(state.selectedId);
+}
+
 function gotoUniverseFromBreadcrumb(targetRootId, animated = true) {
   const safeTargetRootId = safeText(targetRootId);
   if (!safeTargetRootId) {
@@ -10181,6 +15027,7 @@ async function refreshAuthenticatedMemberSessionSnapshot(options = {}) {
     persistCurrentSourceSessionSnapshot(nextSession);
     if (options?.skipAccountOverviewReset !== true) {
       resetAccountOverviewRemoteSnapshot();
+      resetRankAdvancementSnapshot();
     }
     return {
       ok: true,
@@ -10335,6 +15182,9 @@ function createDefaultLaunchState(overrides = {}) {
     lastOpenedAt: '',
     pinnedNodeIds: [],
     pinnedNodeIdsUpdatedAt: '',
+    infinityBuilderTierSortDirection: 'asc',
+    legacyLeadershipTierSortDirection: 'asc',
+    tierSortDirectionsUpdatedAt: '',
     checkedAt: new Date().toISOString(),
     source: 'fallback',
     ...overrides,
@@ -10348,6 +15198,13 @@ function normalizeMemberBinaryTreeLaunchStatePayload(payload = {}, source = 'ser
     lastOpenedAt: safeText(payload?.lastOpenedAt),
     pinnedNodeIds: normalizePinnedNodeIdsFromLaunchStatePayload(payload?.pinnedNodeIds),
     pinnedNodeIdsUpdatedAt: safeText(payload?.pinnedNodeIdsUpdatedAt),
+    infinityBuilderTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+      payload?.infinityBuilderTierSortDirection,
+    ),
+    legacyLeadershipTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+      payload?.legacyLeadershipTierSortDirection,
+    ),
+    tierSortDirectionsUpdatedAt: safeText(payload?.tierSortDirectionsUpdatedAt),
     checkedAt: safeText(payload?.checkedAt) || new Date().toISOString(),
     source,
   });
@@ -10390,6 +15247,204 @@ function clearPinnedNodeIdsServerSyncTimer() {
 
 function canSyncPinnedNodeIdsToServer() {
   return state.source === 'member' && Boolean(safeText(state.session?.authToken));
+}
+
+function canSyncInfinityBuilderTierSortDirectionsToServer() {
+  return state.source === 'member' && Boolean(safeText(state.session?.authToken));
+}
+
+function resolveInfinityBuilderTierSortDirectionsPayloadFromState() {
+  return {
+    infinityBuilderTierSortDirection: resolveInfinityBuilderTierSortDirectionForMode(
+      INFINITY_BUILDER_PANEL_MODE_INFINITY,
+    ),
+    legacyLeadershipTierSortDirection: resolveInfinityBuilderTierSortDirectionForMode(
+      INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP,
+    ),
+  };
+}
+
+async function fetchMemberBinaryTreeTierSortDirections(memberSession = state.session) {
+  const authToken = safeText(memberSession?.authToken);
+  if (!authToken) {
+    return {
+      success: false,
+      status: 401,
+      reason: 'missing-auth-token',
+    };
+  }
+
+  try {
+    const response = await fetch(MEMBER_BINARY_TREE_TIER_SORT_DIRECTIONS_API, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      return {
+        success: false,
+        status: response.status,
+        reason: `http-${response.status}`,
+      };
+    }
+    const payload = await response.json().catch(() => ({}));
+    return {
+      success: true,
+      status: 200,
+      infinityBuilderTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+        payload?.infinityBuilderTierSortDirection,
+      ),
+      legacyLeadershipTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+        payload?.legacyLeadershipTierSortDirection,
+      ),
+      tierSortDirectionsUpdatedAt: safeText(payload?.tierSortDirectionsUpdatedAt),
+      checkedAt: safeText(payload?.checkedAt),
+    };
+  } catch {
+    return {
+      success: false,
+      status: 0,
+      reason: 'network-fallback',
+    };
+  }
+}
+
+async function flushInfinityBuilderTierSortDirectionsServerSync() {
+  if (!canSyncInfinityBuilderTierSortDirectionsToServer()) {
+    return;
+  }
+
+  if (infinityBuilderTierSortDirectionsSyncInFlight) {
+    infinityBuilderTierSortDirectionsSyncQueued = true;
+    return;
+  }
+
+  const authToken = safeText(state.session?.authToken);
+  if (!authToken) {
+    return;
+  }
+
+  const currentDirections = resolveInfinityBuilderTierSortDirectionsPayloadFromState();
+  const currentSyncKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+  if (currentSyncKey === infinityBuilderTierSortDirectionsLastSyncedKey) {
+    infinityBuilderTierSortDirectionsLocalDirty = false;
+    return;
+  }
+
+  infinityBuilderTierSortDirectionsSyncInFlight = true;
+  try {
+    const response = await fetch(MEMBER_BINARY_TREE_TIER_SORT_DIRECTIONS_API, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(currentDirections),
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    const serverDirections = {
+      infinityBuilderTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+        payload?.infinityBuilderTierSortDirection,
+      ),
+      legacyLeadershipTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+        payload?.legacyLeadershipTierSortDirection,
+      ),
+      tierSortDirectionsUpdatedAt: safeText(payload?.tierSortDirectionsUpdatedAt),
+    };
+    applyInfinityBuilderTierSortDirections(serverDirections, {
+      syncServer: false,
+    });
+    infinityBuilderTierSortDirectionsLocalDirty = false;
+    infinityBuilderTierSortDirectionsLastSyncedKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+    infinityBuilderTierSortDirectionsUpdatedAt = safeText(
+      payload?.tierSortDirectionsUpdatedAt || infinityBuilderTierSortDirectionsUpdatedAt,
+    );
+    if (state.launchState && typeof state.launchState === 'object') {
+      state.launchState.infinityBuilderTierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(
+        INFINITY_BUILDER_PANEL_MODE_INFINITY,
+      );
+      state.launchState.legacyLeadershipTierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(
+        INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP,
+      );
+      state.launchState.tierSortDirectionsUpdatedAt = infinityBuilderTierSortDirectionsUpdatedAt;
+    }
+  } catch {
+    // Ignore network errors; the next interaction can retry sync.
+  } finally {
+    infinityBuilderTierSortDirectionsSyncInFlight = false;
+    if (infinityBuilderTierSortDirectionsSyncQueued) {
+      infinityBuilderTierSortDirectionsSyncQueued = false;
+      void flushInfinityBuilderTierSortDirectionsServerSync();
+    }
+  }
+}
+
+function requestInfinityBuilderTierSortDirectionsServerSync() {
+  if (!canSyncInfinityBuilderTierSortDirectionsToServer()) {
+    return;
+  }
+  void flushInfinityBuilderTierSortDirectionsServerSync();
+}
+
+async function syncInfinityBuilderTierSortDirectionsFromServer(reason = 'manual') {
+  if (state.source !== 'member') {
+    return { success: false, skipped: true, reason: 'non-member-source' };
+  }
+  if (!canSyncInfinityBuilderTierSortDirectionsToServer()) {
+    return { success: false, skipped: true, reason: 'missing-auth-token' };
+  }
+  if (infinityBuilderTierSortDirectionsLocalDirty) {
+    requestInfinityBuilderTierSortDirectionsServerSync();
+    return { success: false, skipped: true, reason: 'local-sync-pending' };
+  }
+  if (infinityBuilderTierSortDirectionsSyncInFlight) {
+    return { success: false, skipped: true, reason: 'local-sync-pending' };
+  }
+
+  const remoteState = await fetchMemberBinaryTreeTierSortDirections(state.session);
+  if (!remoteState.success) {
+    return {
+      success: false,
+      skipped: false,
+      reason: remoteState.reason || 'remote-fetch-failed',
+    };
+  }
+
+  applyInfinityBuilderTierSortDirections({
+    infinityBuilderTierSortDirection: remoteState.infinityBuilderTierSortDirection,
+    legacyLeadershipTierSortDirection: remoteState.legacyLeadershipTierSortDirection,
+    tierSortDirectionsUpdatedAt: remoteState.tierSortDirectionsUpdatedAt,
+  }, {
+    syncServer: false,
+  });
+  infinityBuilderTierSortDirectionsLastSyncedKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+  infinityBuilderTierSortDirectionsLocalDirty = false;
+  infinityBuilderTierSortDirectionsUpdatedAt = safeText(
+    remoteState.tierSortDirectionsUpdatedAt || infinityBuilderTierSortDirectionsUpdatedAt,
+  );
+  if (state.launchState && typeof state.launchState === 'object') {
+    state.launchState.infinityBuilderTierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(
+      INFINITY_BUILDER_PANEL_MODE_INFINITY,
+    );
+    state.launchState.legacyLeadershipTierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(
+      INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP,
+    );
+    state.launchState.tierSortDirectionsUpdatedAt = infinityBuilderTierSortDirectionsUpdatedAt;
+  }
+
+  return {
+    success: true,
+    skipped: false,
+    reason,
+  };
 }
 
 function resolvePinnedNodeIdsSyncKey(idsInput = state.pinnedNodeIds) {
@@ -10703,6 +15758,35 @@ function resolveAppSource() {
   return source === 'admin' ? 'admin' : 'member';
 }
 
+function resolveInitialPanelKeyFromQuery() {
+  const params = new URLSearchParams(window.location.search || '');
+  const panelKey = normalizeCredentialValue(safeText(params.get('panel') || params.get('openPanel')));
+  if (panelKey === 'account-overview' || panelKey === 'accountoverview') {
+    return 'account-overview';
+  }
+  if (panelKey === 'infinity-builder' || panelKey === 'infinitybuilder') {
+    return 'infinity-builder';
+  }
+  if (
+    panelKey === 'legacy-leadership'
+    || panelKey === 'legacyleadership'
+    || panelKey === 'legacy-builder'
+    || panelKey === 'legacybuilder'
+  ) {
+    return 'legacy-leadership';
+  }
+  if (panelKey === 'rank-advancement' || panelKey === 'rankadvancement') {
+    return 'rank-advancement';
+  }
+  if (panelKey === 'preferred-accounts' || panelKey === 'preferredaccounts') {
+    return 'preferred-accounts';
+  }
+  if (panelKey === 'my-store' || panelKey === 'mystore') {
+    return 'my-store';
+  }
+  return '';
+}
+
 function redirectTo(pathname) {
   if (pathname) {
     window.location.replace(pathname);
@@ -10796,6 +15880,10 @@ async function bootstrapSession() {
   }
   state.session = validation.session;
   state.launchState = await fetchMemberBinaryTreeLaunchState(validation.session);
+  applyInfinityBuilderTierSortDirectionsFromLaunchState(state.launchState, {
+    syncServer: false,
+    markSynced: true,
+  });
   return true;
 }
 
@@ -11840,6 +16928,7 @@ function applyTreeNextLiveNodes(nextNodes, options = {}) {
     scope: overviewContext?.scope,
     preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
   });
+  maybeRefreshRankAdvancementSnapshot({ homeNode });
 
   if (previousSelectedId) {
     const selectedStillExists = state.nodes.some((node) => safeText(node?.id) === previousSelectedId);
@@ -11948,6 +17037,7 @@ function onTreeNextLiveSyncVisibilityChange() {
       preserveCurrentStep: true,
       consumeSignal: true,
     });
+    void syncInfinityBuilderTierSortDirectionsFromServer('visibility');
     void syncTreeNextLiveNodes({ force: true, silent: true, reason: 'visibility' });
   }
   scheduleTreeNextLiveSync(resolveTreeNextLiveSyncIntervalMs());
@@ -11961,6 +17051,7 @@ function onTreeNextLiveSyncWindowFocus() {
     preserveCurrentStep: true,
     consumeSignal: true,
   });
+  void syncInfinityBuilderTierSortDirectionsFromServer('focus');
   void syncTreeNextLiveNodes({ force: true, silent: true, reason: 'focus' });
   scheduleTreeNextLiveSync(resolveTreeNextLiveSyncIntervalMs());
 }
@@ -14678,10 +19769,22 @@ function drawBottomToolBar(layout) {
       action: 'panel:account-overview:toggle',
     },
     {
+      id: 'profile-left-dock-rank-advancement',
+      iconGlyph: String.fromCodePoint(0xE8D0),
+      iconLigature: 'workspace_premium',
+      action: 'panel:rank-advancement:toggle',
+    },
+    {
       id: 'profile-left-dock-preferred-accounts',
       iconGlyph: String.fromCodePoint(0xE7FD),
       iconLigature: 'person_add',
       action: 'panel:preferred-accounts:toggle',
+    },
+    {
+      id: 'profile-left-dock-legacy-trinary',
+      iconGlyph: 'T',
+      iconLigature: 'hub',
+      action: 'legacy-tier:view:toggle',
     },
   ];
   const profileLeftDockButtonSize = 40;
@@ -14691,10 +19794,14 @@ function drawBottomToolBar(layout) {
     const button = profileLeftDockButtons[index];
     const hovered = state.hoveredButtonId === button.id;
     const isAccountOverviewToggle = button.action === 'panel:account-overview:toggle';
+    const isRankAdvancementToggle = button.action === 'panel:rank-advancement:toggle';
     const isPreferredAccountsToggle = button.action === 'panel:preferred-accounts:toggle';
+    const isLegacyTierViewButton = button.action === 'legacy-tier:view:toggle';
     const active = (
       (isAccountOverviewToggle && Boolean(state.ui?.accountOverviewVisible))
+      || (isRankAdvancementToggle && Boolean(state.ui?.rankAdvancementVisible))
       || (isPreferredAccountsToggle && Boolean(state.ui?.preferredAccountsVisible))
+      || (isLegacyTierViewButton && isLegacyTierCanvasViewActive())
     );
     const x = profileLeftDockCursorRight - profileLeftDockButtonSize;
     const y = profileY + Math.round((floatingProfileSize - profileLeftDockButtonSize) / 2);
@@ -14798,9 +19905,11 @@ function drawBottomToolBar(layout) {
     const button = dockButtons[index];
     const hovered = state.hoveredButtonId === button.id;
     const isAccountOverviewToggle = button.action === 'panel:account-overview:toggle';
+    const isRankAdvancementToggle = button.action === 'panel:rank-advancement:toggle';
     const isPreferredAccountsToggle = button.action === 'panel:preferred-accounts:toggle';
     const active = (
       (isAccountOverviewToggle && Boolean(state.ui?.accountOverviewVisible))
+      || (isRankAdvancementToggle && Boolean(state.ui?.rankAdvancementVisible))
       || (isPreferredAccountsToggle && Boolean(state.ui?.preferredAccountsVisible))
     );
     const x = railX;
@@ -15386,13 +20495,32 @@ function drawNode(node) {
   const nodeId = safeText(node.id);
   const sourceNode = node?.node && typeof node.node === 'object' ? node.node : null;
   const nodeRecord = sourceNode || node;
-  const isActiveAccount = resolveNodeActivityState(nodeRecord);
-  const isPersonallyEnrolledNode = isNodePersonallyEnrolledBySession(nodeRecord);
-  const baseNodeVariant = isSessionAvatarNodeId(nodeId)
+  const isLegacyTierEmptySlot = Boolean(
+    node?.isLegacyTierEmptySlot
+    || sourceNode?.isLegacyTierEmptySlot
+    || sourceNode?.isLegacyTierViewPlaceholder,
+  );
+  const avatarSeedId = safeText(
+    node?.avatarSeedId
+    || sourceNode?.avatarSeedId
+    || sourceNode?.avatarSeed
+    || nodeId,
+  ) || nodeId;
+  const isActiveAccount = isLegacyTierEmptySlot ? false : resolveNodeActivityState(nodeRecord);
+  const isPersonallyEnrolledNode = isLegacyTierEmptySlot ? false : isNodePersonallyEnrolledBySession(nodeRecord);
+  const baseNodeVariant = isSessionAvatarNodeId(avatarSeedId)
     ? 'auto'
-    : (nodeId.toLowerCase() === 'root' ? 'root' : 'auto');
-  const nodeVariant = isPersonallyEnrolledNode ? 'direct' : baseNodeVariant;
-  const avatarRenderOptions = isActiveAccount
+    : (avatarSeedId.toLowerCase() === 'root' ? 'root' : 'auto');
+  const nodeVariant = isLegacyTierEmptySlot
+    ? 'inactive'
+    : (isPersonallyEnrolledNode ? 'direct' : baseNodeVariant);
+  const avatarRenderOptions = isLegacyTierEmptySlot
+    ? {
+      variant: 'inactive',
+      disablePhoto: true,
+      ignoreSourcePalette: true,
+    }
+    : isActiveAccount
     ? (isPersonallyEnrolledNode
       ? {
         variant: nodeVariant,
@@ -15422,7 +20550,7 @@ function drawNode(node) {
         : 'rgba(174,184,198,0.9)';
       context.fill();
 
-      drawResolvedAvatarCircle(node.x, node.y, innerR, nodeId, {
+      drawResolvedAvatarCircle(node.x, node.y, innerR, avatarSeedId, {
         node: sourceNode,
         variant: nodeVariant,
         alpha: 0.98,
@@ -15432,7 +20560,7 @@ function drawNode(node) {
       return;
     }
 
-    drawResolvedAvatarCircle(node.x, node.y, r, nodeId, {
+    drawResolvedAvatarCircle(node.x, node.y, r, avatarSeedId, {
       node: sourceNode,
       variant: nodeVariant,
       alpha: 0.96,
@@ -15465,7 +20593,7 @@ function drawNode(node) {
     context.stroke();
   }
 
-  const baseAvatarRender = drawResolvedAvatarCircle(node.x, node.y, innerR, nodeId, {
+  const baseAvatarRender = drawResolvedAvatarCircle(node.x, node.y, innerR, avatarSeedId, {
     node: sourceNode,
     variant: nodeVariant,
     alpha: 0.98,
@@ -15486,11 +20614,11 @@ function drawNode(node) {
     && renderedRadius < 16
     && !isSelected
   );
-  if (hideDeepLevelLabel || renderedRadius < 9 || usedPhotoAvatar) {
+  if (hideDeepLevelLabel || renderedRadius < 9 || usedPhotoAvatar || isLegacyTierEmptySlot) {
     return;
   }
 
-  drawText(resolveInitials(node.node.name), node.x, node.y + 0.5, {
+  drawText(resolveInitials(node.node?.name), node.x, node.y + 0.5, {
     size: Math.max(7, Math.floor(innerR * 0.56)),
     weight: 700,
     color: '#f8fbff',
@@ -15503,41 +20631,858 @@ function drawNode(node) {
   }
 }
 
+function resolveUniverseBreadcrumbChipNode(crumbId = '') {
+  const safeCrumbId = safeText(crumbId);
+  if (!safeCrumbId) {
+    return null;
+  }
+  const globalMeta = state.adapter.resolveNodeMetrics(safeCrumbId, getGlobalUniverseOptions());
+  const nodeFromMeta = globalMeta?.node && typeof globalMeta.node === 'object'
+    ? globalMeta.node
+    : null;
+  const nodeFromState = resolveNodeById(safeCrumbId);
+  const nodeRecord = nodeFromMeta || nodeFromState || null;
+  if (!nodeRecord) {
+    return {
+      id: safeCrumbId,
+      node: { id: safeCrumbId, name: safeCrumbId, username: '' },
+      username: '',
+      usernameLabel: truncateText(safeCrumbId, 12),
+      initials: resolveInitials(safeCrumbId),
+    };
+  }
+  const usernameRaw = safeText(
+    nodeRecord?.username
+    || nodeRecord?.memberCode
+    || nodeRecord?.member_code
+    || '',
+  ).replace(/^@+/, '');
+  const fallbackName = safeText(
+    nodeRecord?.name
+    || nodeRecord?.username
+    || nodeRecord?.memberCode
+    || nodeRecord?.member_code
+    || nodeRecord?.id
+    || safeCrumbId,
+  );
+  const usernameLabel = usernameRaw
+    ? `@${truncateText(usernameRaw, 14)}`
+    : truncateText(fallbackName, 14);
+  return {
+    id: safeCrumbId,
+    node: nodeRecord,
+    username: usernameRaw,
+    usernameLabel,
+    initials: resolveInitials(fallbackName),
+  };
+}
+
+function drawUniverseBreadcrumbNodeChips(startX, startY, maxWidth, containerHeightInput = 0) {
+  const historyTrail = resolveUniverseHistoryTrailNodeIds();
+  if (!historyTrail.length || maxWidth <= 0) {
+    return;
+  }
+
+  const avatarRadius = 13;
+  const arrowGap = 11;
+  const chipColumnMinWidth = 42;
+  const chipColumnMaxWidth = 84;
+  const labelGap = 5;
+  const labelFontSize = 10;
+  const contentHeight = (avatarRadius * 2) + labelGap + labelFontSize;
+  const containerHeight = Math.max(
+    contentHeight,
+    Math.floor(safeNumber(containerHeightInput, contentHeight)),
+  );
+  const contentTopY = startY + Math.floor((containerHeight - contentHeight) * 0.5);
+  const circleCenterY = contentTopY + avatarRadius;
+  const labelY = contentTopY + (avatarRadius * 2) + labelGap;
+  const chipHeight = containerHeight;
+
+  const chips = historyTrail.map((crumbIdInput, index) => {
+    const crumbId = safeText(crumbIdInput);
+    const crumbNode = resolveUniverseBreadcrumbChipNode(crumbId);
+    const usernameLabel = safeText(crumbNode?.usernameLabel || resolveUniverseCrumbLabel(crumbId));
+    const columnWidth = clamp(
+      Math.round(Math.max((avatarRadius * 2) + 8, (usernameLabel.length * 5.2) + 8)),
+      chipColumnMinWidth,
+      chipColumnMaxWidth,
+    );
+    return {
+      crumbId,
+      crumbNode,
+      usernameLabel,
+      index,
+      active: index === (historyTrail.length - 1),
+      columnWidth,
+    };
+  });
+
+  const computeTotalWidth = (entries) => (
+    entries.reduce((sum, item) => sum + item.columnWidth, 0)
+    + (Math.max(0, entries.length - 1) * arrowGap)
+  );
+
+  let visibleChips = chips.slice();
+  while (visibleChips.length > 1 && computeTotalWidth(visibleChips) > maxWidth) {
+    visibleChips = visibleChips.slice(1);
+  }
+  if (!visibleChips.length) {
+    return;
+  }
+
+  const totalVisibleWidth = computeTotalWidth(visibleChips);
+  let cursorX = Math.round(startX + ((maxWidth - totalVisibleWidth) * 0.5));
+  cursorX = clamp(cursorX, startX, startX + Math.max(0, maxWidth - totalVisibleWidth));
+  const endX = startX + maxWidth;
+
+  for (let localIndex = 0; localIndex < visibleChips.length; localIndex += 1) {
+    const chip = visibleChips[localIndex];
+    const {
+      crumbId,
+      crumbNode,
+      usernameLabel,
+      index,
+      active,
+      columnWidth,
+    } = chip;
+    if (cursorX + columnWidth > endX) {
+      break;
+    }
+
+    const buttonId = `top-universe-crumb-${index}-${crumbId}`;
+    const hovered = safeText(state.hoveredButtonId) === buttonId;
+
+    const centerX = cursorX + (columnWidth * 0.5);
+    const nodeRecord = crumbNode?.node && typeof crumbNode.node === 'object'
+      ? crumbNode.node
+      : null;
+    const isActiveAccount = resolveNodeActivityState(nodeRecord);
+    const isDirectNode = isNodePersonallyEnrolledBySession(nodeRecord);
+    const variant = safeText(crumbId).toLowerCase() === 'root'
+      ? 'root'
+      : (!isActiveAccount
+        ? (isDirectNode ? 'directInactive' : 'inactive')
+        : (isDirectNode ? 'direct' : 'auto'));
+    drawResolvedAvatarCircle(centerX, circleCenterY, avatarRadius, crumbId, {
+      node: nodeRecord,
+      variant,
+      disablePhoto: true,
+      ignoreSourcePalette: (!isActiveAccount || isDirectNode),
+      alpha: 0.98,
+      sheenAlpha: 0.15,
+    });
+    context.beginPath();
+    context.arc(centerX, circleCenterY, avatarRadius, 0, Math.PI * 2);
+    context.lineWidth = active ? 1.2 : (hovered ? 1.05 : 0.9);
+    context.strokeStyle = active
+      ? 'rgba(36, 49, 70, 0.48)'
+      : (hovered ? 'rgba(53, 72, 102, 0.35)' : 'rgba(56, 73, 101, 0.18)');
+    context.stroke();
+    drawText(safeText(crumbNode?.initials || ''), centerX, circleCenterY + 0.5, {
+      size: 9,
+      weight: 700,
+      color: '#FFFFFF',
+      align: 'center',
+      baseline: 'middle',
+      maxWidth: Math.max(10, (avatarRadius * 1.5)),
+    });
+    drawText(usernameLabel, centerX, labelY, {
+      size: labelFontSize,
+      weight: active ? 700 : 600,
+      color: active ? '#1B2434' : '#303849',
+      align: 'center',
+      baseline: 'top',
+      maxWidth: columnWidth - 6,
+    });
+
+    if (!active) {
+      registerButton({
+        id: buttonId,
+        x: cursorX,
+        y: startY,
+        width: columnWidth,
+        height: chipHeight,
+        action: `universe:history:goto:${index}`,
+      });
+    }
+
+    cursorX += columnWidth;
+    if (localIndex < visibleChips.length - 1) {
+      if (cursorX + arrowGap > endX) {
+        break;
+      }
+      drawText('>', cursorX + (arrowGap * 0.5), circleCenterY, {
+        size: 10,
+        weight: 600,
+        color: '#2E3542',
+        align: 'center',
+        baseline: 'middle',
+      });
+      cursorX += arrowGap;
+    }
+  }
+}
+
+function resolveLegacyTierCanvasFrame(layout) {
+  if (!isLegacyTierCanvasViewActive()) {
+    return null;
+  }
+  const model = legacyTierCanvasViewState.model && typeof legacyTierCanvasViewState.model === 'object'
+    ? legacyTierCanvasViewState.model
+    : null;
+  const workspace = layout?.workspace || null;
+  const viewport = layout?.viewport || null;
+  if (!model || !workspace || !viewport) {
+    return null;
+  }
+  const anchorView = legacyTierCanvasViewState.anchorView && typeof legacyTierCanvasViewState.anchorView === 'object'
+    ? legacyTierCanvasViewState.anchorView
+    : captureLegacyTierCanvasAnchorView({ preferTarget: true });
+  const anchorScale = clamp(safeNumber(anchorView.scale, DEFAULT_HOME_SCALE), MIN_SCALE, MAX_SCALE);
+  const anchorProjectionScale = Math.max(0.0001, resolveProjectionScale(anchorScale));
+  const cameraView = state.camera?.view && typeof state.camera.view === 'object'
+    ? state.camera.view
+    : anchorView;
+  const currentScale = clamp(safeNumber(cameraView.scale, anchorScale), MIN_SCALE, MAX_SCALE);
+  const currentProjectionScale = Math.max(0.0001, resolveProjectionScale(currentScale));
+  const currentViewX = safeNumber(cameraView.x, safeNumber(anchorView.x, 0));
+  const currentViewY = safeNumber(cameraView.y, safeNumber(anchorView.y, 0));
+
+  const sidePadding = Math.max(30, Math.round(workspace.width * 0.035));
+  const topPadding = Math.max(66, Math.round(workspace.height * 0.11));
+  const bottomPadding = Math.max(40, Math.round(workspace.height * 0.10));
+  const minX = workspace.x + sidePadding;
+  const maxX = (workspace.x + workspace.width) - sidePadding;
+  const minY = workspace.y + topPadding;
+  const maxY = (workspace.y + workspace.height) - bottomPadding;
+  const usableWidth = Math.max(140, maxX - minX);
+  const levelCount = LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH.length;
+  const availableHeight = Math.max(180, maxY - minY);
+  const depthYRatioTemplate = [0.04, 0.20, 0.33, 0.45];
+  const depthYRatioByLevel = Array.from(
+    { length: levelCount },
+    (_, depthIndex) => {
+      if (Number.isFinite(depthYRatioTemplate[depthIndex])) {
+        return clamp(depthYRatioTemplate[depthIndex], 0, 1);
+      }
+      const depthProgress = levelCount <= 1 ? 0 : (depthIndex / Math.max(1, levelCount - 1));
+      return clamp(0.04 + (depthProgress * 0.69), 0, 1);
+    },
+  );
+  const trinaryBranchFanout = Math.max(2, INFINITY_BUILDER_TIER_NODE_REQUIREMENT);
+  const trinaryStepDecay = 1 / trinaryBranchFanout;
+  const trinaryDepthTransitions = Math.max(1, levelCount - 1);
+  let trinarySeriesTotal = 0;
+  for (let depthOffset = 0; depthOffset < trinaryDepthTransitions; depthOffset += 1) {
+    trinarySeriesTotal += Math.pow(trinaryStepDecay, depthOffset);
+  }
+  const trinaryBaseStep = (usableWidth * 0.92) / Math.max(0.0001, 2 * trinarySeriesTotal);
+  const centerX = minX + (usableWidth * 0.5);
+  const descriptorPathById = new Map();
+  const rootId = safeText(model.rootId);
+  if (rootId) {
+    descriptorPathById.set(rootId, '');
+  }
+  const resolveTrinaryPathOffset = (pathInput = '') => {
+    const safePath = safeText(pathInput);
+    if (!safePath) {
+      return 0;
+    }
+    let offset = 0;
+    for (let index = 0; index < safePath.length; index += 1) {
+      const branchKey = safePath.charAt(index);
+      const branchDirection = branchKey === '0'
+        ? -1
+        : (branchKey === '2' ? 1 : 0);
+      const branchStep = trinaryBaseStep * Math.pow(trinaryStepDecay, index);
+      offset += branchDirection * branchStep;
+    }
+    return offset;
+  };
+  const radiusByDepth = Array.from(
+    { length: levelCount },
+    (_, depthIndex) => {
+      const safeDepth = Math.max(0, Math.floor(safeNumber(depthIndex, 0)));
+      const binaryDepthRadius = Math.max(
+        LEGACY_TIER_CANVAS_WORLD_RADIUS_MIN,
+        NODE_RADIUS_BASE * Math.pow(LEGACY_TIER_CANVAS_RADIUS_DEPTH_DECAY, safeDepth),
+      );
+      const slotCountAtDepth = LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH[safeDepth] || 1;
+      const slotStepAtDepth = usableWidth / Math.max(1, slotCountAtDepth + 1);
+      const depthRadiusLimit = safeDepth === 0
+        ? Math.max(18, usableWidth * 0.14)
+        : Math.max(2.8, slotStepAtDepth * 0.38);
+      return Math.max(2.2, Math.min(binaryDepthRadius, depthRadiusLimit));
+    },
+  );
+
+  const projectedNodes = [];
+  for (let depthIndex = 0; depthIndex < LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH.length; depthIndex += 1) {
+    const slotCount = LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH[depthIndex];
+    const slotStep = usableWidth / Math.max(1, slotCount + 1);
+    const depthY = minY + (availableHeight * depthYRatioByLevel[depthIndex]);
+    const depthRadius = radiusByDepth[depthIndex] || radiusByDepth[radiusByDepth.length - 1] || 2.2;
+    const depthDescriptors = Array.isArray(model.nodesByDepth?.[depthIndex])
+      ? model.nodesByDepth[depthIndex]
+      : [];
+    const siblingCursorByParent = new Map();
+    for (let slotIndex = 0; slotIndex < slotCount; slotIndex += 1) {
+      const descriptor = depthDescriptors[slotIndex] && typeof depthDescriptors[slotIndex] === 'object'
+        ? depthDescriptors[slotIndex]
+        : null;
+      const fallbackNodeId = `${LEGACY_TIER_CANVAS_PLACEHOLDER_ID_PREFIX}:tier-${model.tierNumber}:depth-${depthIndex}:slot-${slotIndex}`;
+      const descriptorNode = descriptor?.node && typeof descriptor.node === 'object'
+        ? descriptor.node
+        : null;
+      const nodeId = safeText(descriptor?.id || descriptorNode?.id || fallbackNodeId) || fallbackNodeId;
+      const parentId = safeText(descriptor?.parentId || descriptorNode?.parent || '');
+      const isEmpty = Boolean(descriptor?.isEmpty || descriptorNode?.isLegacyTierEmptySlot);
+      const avatarSeedId = safeText(
+        descriptor?.avatarSeedId
+        || descriptorNode?.avatarSeedId
+        || descriptorNode?.avatarSeed
+        || nodeId,
+      ) || nodeId;
+      const nodeRecord = descriptorNode
+        ? {
+          ...descriptorNode,
+          id: nodeId,
+          parent: parentId,
+          depth: depthIndex,
+          path: safeText(descriptorNode?.path),
+          isLegacyTierEmptySlot: isEmpty,
+          avatarSeedId,
+        }
+        : createLegacyTierCanvasPlaceholderNode(
+          nodeId,
+          parentId,
+          model.tierNumber,
+          depthIndex,
+          slotIndex,
+        );
+      let trinaryPath = '';
+      if (depthIndex > 0) {
+        const parentPath = descriptorPathById.get(parentId) || '';
+        const siblingCursor = Math.max(
+          0,
+          Math.floor(safeNumber(siblingCursorByParent.get(parentId), 0)),
+        );
+        siblingCursorByParent.set(parentId, siblingCursor + 1);
+        const siblingSlot = Math.min(trinaryBranchFanout - 1, siblingCursor);
+        const branchDigit = siblingSlot <= 0
+          ? '0'
+          : (siblingSlot >= trinaryBranchFanout - 1 ? '2' : '1');
+        trinaryPath = `${parentPath}${branchDigit}`;
+      }
+      descriptorPathById.set(nodeId, trinaryPath);
+      const baseX = clamp(
+        centerX + resolveTrinaryPathOffset(trinaryPath),
+        minX,
+        maxX,
+      );
+      const baseY = depthY;
+      const worldX = (baseX - viewport.centerX - safeNumber(anchorView.x, 0)) / anchorProjectionScale;
+      const worldY = (baseY - viewport.baseY - safeNumber(anchorView.y, 0)) / anchorProjectionScale;
+      const worldRadius = depthRadius / anchorProjectionScale;
+      const projectedX = viewport.centerX + currentViewX + (worldX * currentProjectionScale);
+      const projectedY = viewport.baseY + currentViewY + (worldY * currentProjectionScale);
+      const projectedRadius = Math.max(0.2, worldRadius * currentProjectionScale);
+      const lodTier = projectedRadius >= 14
+        ? 'full'
+        : (projectedRadius >= 6.5 ? 'medium' : 'dot');
+      projectedNodes.push({
+        id: nodeId,
+        node: nodeRecord,
+        worldX,
+        worldY,
+        worldRadius,
+        localDepth: depthIndex,
+        localPath: trinaryPath || `T${model.tierNumber}-D${depthIndex}-S${slotIndex}`,
+        globalDepth: depthIndex,
+        globalPath: `legacy-tier-${model.tierNumber}-depth-${depthIndex}-slot-${slotIndex}`,
+        x: projectedX,
+        y: projectedY,
+        r: projectedRadius,
+        lodTier,
+        isSelected: false,
+        isFocusPathNode: false,
+        isLegacyTierEmptySlot: isEmpty,
+        avatarSeedId,
+      });
+    }
+  }
+
+  const projectedById = new Map();
+  for (const projectedNode of projectedNodes) {
+    projectedById.set(projectedNode.id, projectedNode);
+  }
+  const selectedId = safeText(state.selectedId);
+  let selectedProjected = selectedId ? projectedById.get(selectedId) || null : null;
+  if (!selectedProjected && model.rootId && projectedById.has(model.rootId)) {
+    selectedProjected = projectedById.get(model.rootId);
+  }
+
+  if (selectedProjected) {
+    let cursorId = selectedProjected.id;
+    let safety = 0;
+    while (cursorId && safety < projectedNodes.length + 4) {
+      safety += 1;
+      const projectedNode = projectedById.get(cursorId);
+      if (!projectedNode) {
+        break;
+      }
+      projectedNode.isFocusPathNode = true;
+      cursorId = safeText(projectedNode?.node?.parent);
+    }
+  }
+
+  const lodCounts = {
+    full: 0,
+    medium: 0,
+    dot: 0,
+    hidden: 0,
+    culled: 0,
+    total: projectedNodes.length,
+  };
+  for (const projectedNode of projectedNodes) {
+    if (projectedNode.lodTier === 'full') {
+      lodCounts.full += 1;
+    } else if (projectedNode.lodTier === 'medium') {
+      lodCounts.medium += 1;
+    } else if (projectedNode.lodTier === 'dot') {
+      lodCounts.dot += 1;
+    }
+  }
+  const connectorCount = projectedNodes.reduce((count, projectedNode) => {
+    const parentId = safeText(projectedNode?.node?.parent);
+    if (parentId && projectedById.has(parentId)) {
+      return count + 1;
+    }
+    return count;
+  }, 0);
+
+  return {
+    visibleNodes: projectedNodes.map((projectedNode) => projectedNode.node),
+    projectedNodes,
+    connectors: [],
+    stats: {
+      ...lodCounts,
+      visible: projectedNodes.length,
+      connectors: connectorCount,
+      fullDepthMax: null,
+      visibleDepthMax: null,
+      universeRootId: model.rootId,
+      universeDepthCap: LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH.length - 1,
+    },
+    selectedProjected,
+  };
+}
+
+function drawLegacyTierCanvasViewHeader(layout, frameInput = null) {
+  if (!isLegacyTierCanvasViewActive()) {
+    return;
+  }
+  const model = legacyTierCanvasViewState.model && typeof legacyTierCanvasViewState.model === 'object'
+    ? legacyTierCanvasViewState.model
+    : null;
+  const workspace = layout?.workspace || null;
+  if (!model || !workspace) {
+    return;
+  }
+  const cardWidth = clamp(Math.round(workspace.width * 0.40), 300, 500);
+  const cardHeight = 72;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+  const sideNav = layout?.sideNav && typeof layout.sideNav === 'object'
+    ? layout.sideNav
+    : null;
+  const layoutLeftBound = sideNavOpen && sideNav
+    ? Math.round(sideNav.x + sideNav.width + 12)
+    : workspace.x;
+  const layoutRightBound = Math.round(workspace.x + workspace.width);
+  const availableCenterX = sideNavOpen
+    ? (layoutLeftBound + layoutRightBound) * 0.5
+    : (workspace.x + (workspace.width * 0.5));
+  const cardX = clamp(
+    Math.round(availableCenterX - (cardWidth * 0.5)),
+    workspace.x + 10,
+    (workspace.x + workspace.width) - cardWidth - 10,
+  );
+  const cardY = workspace.y + 14;
+  const headerButtonId = 'legacy-tier-canvas-header-toggle-panel';
+  const dropdownButtonId = 'legacy-tier-canvas-header-tier-dropdown-toggle';
+  const panelVisible = Boolean(state.ui?.infinityBuilderVisible);
+  const hoveredButtonId = safeText(state.hoveredButtonId);
+  const isHovered = hoveredButtonId === headerButtonId;
+  const tierEntriesInput = Array.isArray(legacyTierCanvasViewState.tierEntries)
+    ? legacyTierCanvasViewState.tierEntries
+    : [];
+  const selectedTierNumber = Math.max(
+    1,
+    Math.floor(safeNumber(
+      infinityBuilderSelectedTierNumber,
+      safeNumber(model?.tierNumber, 1),
+    )),
+  );
+  const tierEntries = tierEntriesInput.length
+    ? tierEntriesInput
+    : [{
+      tierNumber: selectedTierNumber,
+      label: `Legacy Tier ${selectedTierNumber}`,
+      isSelected: true,
+    }];
+  const dropdownEnabled = tierEntries.length > 1;
+  const dropdownOpen = dropdownEnabled && Boolean(legacyTierCanvasViewState.dropdownOpen);
+  const fillColor = panelVisible
+    ? (isHovered ? 'rgba(25, 39, 58, 0.90)' : 'rgba(22, 35, 53, 0.86)')
+    : (isHovered ? 'rgba(27, 43, 63, 0.84)' : 'rgba(19, 28, 41, 0.74)');
+  registerButton({
+    id: headerButtonId,
+    x: cardX,
+    y: cardY,
+    width: cardWidth,
+    height: cardHeight,
+    action: 'legacy-tier:panel:toggle',
+    rounded: true,
+  });
+  fillRoundedRect(
+    context,
+    cardX,
+    cardY,
+    cardWidth,
+    cardHeight,
+    16,
+    fillColor,
+  );
+  strokeRoundedRect(
+    context,
+    cardX,
+    cardY,
+    cardWidth,
+    cardHeight,
+    16,
+    panelVisible
+      ? (isHovered ? 'rgba(186, 209, 244, 0.72)' : 'rgba(162, 192, 234, 0.62)')
+      : (isHovered ? 'rgba(165, 196, 236, 0.62)' : 'rgba(139, 171, 214, 0.44)'),
+    isHovered ? 1.35 : 1,
+  );
+  const headerTitle = `Legacy Tier ${selectedTierNumber} Tree View`;
+  drawText(headerTitle, cardX + (cardWidth * 0.5), cardY + 14, {
+    size: 11,
+    weight: 700,
+    color: '#EEF6FF',
+    align: 'center',
+    baseline: 'middle',
+    maxWidth: cardWidth - 18,
+  });
+  const panelHint = panelVisible
+    ? 'Tap to hide Legacy Leadership panel'
+    : 'Tap to show Legacy Leadership panel';
+  drawText(panelHint, cardX + (cardWidth * 0.5), cardY + 28, {
+    size: 9,
+    weight: 600,
+    color: 'rgba(187, 210, 238, 0.92)',
+    align: 'center',
+    baseline: 'middle',
+    maxWidth: cardWidth - 18,
+  });
+  const dropdownWidth = clamp(Math.round(cardWidth * 0.43), 130, 210);
+  const dropdownHeight = 22;
+  const dropdownX = Math.round(cardX + ((cardWidth - dropdownWidth) * 0.5));
+  const dropdownY = cardY + cardHeight - dropdownHeight - 7;
+  const dropdownHovered = hoveredButtonId === dropdownButtonId;
+
+  registerButton({
+    id: dropdownButtonId,
+    x: dropdownX,
+    y: dropdownY,
+    width: dropdownWidth,
+    height: dropdownHeight,
+    action: dropdownEnabled ? 'legacy-tier:dropdown:toggle' : 'noop',
+    rounded: true,
+  });
+
+  fillRoundedRect(
+    context,
+    dropdownX,
+    dropdownY,
+    dropdownWidth,
+    dropdownHeight,
+    11,
+    dropdownHovered
+      ? 'rgba(240, 247, 255, 0.24)'
+      : 'rgba(229, 239, 252, 0.16)',
+  );
+  strokeRoundedRect(
+    context,
+    dropdownX + 0.5,
+    dropdownY + 0.5,
+    dropdownWidth - 1,
+    dropdownHeight - 1,
+    11,
+    dropdownHovered
+      ? 'rgba(198, 217, 242, 0.74)'
+      : 'rgba(180, 203, 235, 0.56)',
+    dropdownHovered ? 1.2 : 1,
+  );
+  const selectedTierLabel = `Legacy Tier ${selectedTierNumber}`;
+  drawText(selectedTierLabel, dropdownX + 12, dropdownY + (dropdownHeight * 0.5), {
+    size: 9,
+    weight: 700,
+    color: '#EAF4FF',
+    align: 'left',
+    baseline: 'middle',
+    maxWidth: dropdownWidth - 36,
+  });
+  drawText(
+    dropdownEnabled
+      ? (dropdownOpen ? '^' : 'v')
+      : '-',
+    dropdownX + dropdownWidth - 12,
+    dropdownY + (dropdownHeight * 0.5),
+    {
+      size: 9,
+      weight: 700,
+      color: 'rgba(218, 232, 249, 0.96)',
+      align: 'center',
+      baseline: 'middle',
+    },
+  );
+
+  if (dropdownOpen) {
+    const menuPadding = 4;
+    const optionHeight = 20;
+    const menuWidth = dropdownWidth;
+    const menuHeight = (menuPadding * 2) + (optionHeight * tierEntries.length);
+    const menuX = dropdownX;
+    const menuY = dropdownY + dropdownHeight + 6;
+
+    fillRoundedRect(
+      context,
+      menuX,
+      menuY,
+      menuWidth,
+      menuHeight,
+      10,
+      'rgba(17, 26, 39, 0.94)',
+    );
+    strokeRoundedRect(
+      context,
+      menuX + 0.5,
+      menuY + 0.5,
+      menuWidth - 1,
+      menuHeight - 1,
+      10,
+      'rgba(157, 186, 223, 0.52)',
+      1,
+    );
+
+    for (let index = 0; index < tierEntries.length; index += 1) {
+      const entry = tierEntries[index];
+      const tierNumber = Math.max(1, Math.floor(safeNumber(entry?.tierNumber, 0)));
+      const optionY = menuY + menuPadding + (index * optionHeight);
+      const optionButtonId = `legacy-tier-canvas-header-tier-option-${tierNumber}`;
+      const optionHovered = hoveredButtonId === optionButtonId;
+      const optionActive = tierNumber === selectedTierNumber;
+      registerButton({
+        id: optionButtonId,
+        x: menuX + 4,
+        y: optionY,
+        width: menuWidth - 8,
+        height: optionHeight,
+        action: `legacy-tier:select:${tierNumber}`,
+        rounded: true,
+      });
+
+      if (optionHovered || optionActive) {
+        fillRoundedRect(
+          context,
+          menuX + 4,
+          optionY + 1,
+          menuWidth - 8,
+          optionHeight - 2,
+          8,
+          optionActive
+            ? 'rgba(104, 142, 188, 0.36)'
+            : 'rgba(86, 116, 157, 0.26)',
+        );
+      }
+
+      drawText(`Legacy Tier ${tierNumber}`, menuX + 14, optionY + (optionHeight * 0.5), {
+        size: 9,
+        weight: optionActive ? 700 : 600,
+        color: optionActive ? '#EEF6FF' : 'rgba(207, 221, 241, 0.96)',
+        align: 'left',
+        baseline: 'middle',
+        maxWidth: menuWidth - 34,
+      });
+      if (optionActive) {
+        drawText('*', menuX + menuWidth - 14, optionY + (optionHeight * 0.5), {
+          size: 9,
+          weight: 700,
+          color: '#EAF4FF',
+          align: 'center',
+          baseline: 'middle',
+        });
+      }
+    }
+  }
+
+}
+
+function shouldDrawUniverseLocalBreadcrumbHeader() {
+  if (isLegacyTierCanvasViewActive()) {
+    return false;
+  }
+  const historyTrail = resolveUniverseHistoryTrailNodeIds();
+  if (historyTrail.length <= 1) {
+    return false;
+  }
+  const currentRootId = normalizeCredentialValue(getUniverseRootId());
+  const preferredHomeId = normalizeCredentialValue(resolvePreferredGlobalHomeNodeId() || 'root');
+  return Boolean(currentRootId && currentRootId !== preferredHomeId);
+}
+
+function resolveUniverseHistoryTrailNodeIds() {
+  const safeHistory = Array.isArray(state.universe?.history)
+    ? state.universe.history
+    : [];
+  const trail = [];
+  for (const snapshot of safeHistory) {
+    const rootId = safeText(snapshot?.rootId);
+    if (rootId) {
+      trail.push(rootId);
+    }
+  }
+  const currentRootId = safeText(getUniverseRootId()) || 'root';
+  trail.push(currentRootId);
+  return trail.length ? trail : ['root'];
+}
+
+function gotoUniverseFromHistoryIndex(targetIndexInput, animated = true) {
+  const targetIndex = Math.floor(safeNumber(targetIndexInput, NaN));
+  const trail = resolveUniverseHistoryTrailNodeIds();
+  if (!Number.isFinite(targetIndex) || targetIndex < 0 || targetIndex >= trail.length) {
+    return false;
+  }
+  const currentIndex = trail.length - 1;
+  if (targetIndex === currentIndex) {
+    return focusUniverseRoot(animated);
+  }
+  const targetRootId = safeText(trail[targetIndex]);
+  if (!targetRootId) {
+    return false;
+  }
+
+  const currentRootId = getUniverseRootId();
+  if (targetRootId === currentRootId) {
+    return focusUniverseRoot(animated);
+  }
+
+  const safeHistory = Array.isArray(state.universe.history)
+    ? state.universe.history
+    : [];
+  const targetSnapshot = safeHistory[targetIndex] || null;
+
+  rememberUniverseCamera(currentRootId);
+  state.universe.history = safeHistory.slice(0, targetIndex);
+  state.universe.rootId = targetRootId;
+  refreshUniverseBreadcrumb(targetRootId);
+  state.query = safeText(targetSnapshot?.query || '');
+  state.depthFilter = safeText(targetSnapshot?.depthFilter || 'all') || 'all';
+  setSelectedNode(safeText(targetSnapshot?.selectedId || targetRootId), { animate: false });
+
+  if (restoreUniverseCamera(targetRootId, animated)) {
+    return true;
+  }
+
+  if (focusNode(state.selectedId || targetRootId, 30, animated)) {
+    return true;
+  }
+  return focusUniverseRoot(animated);
+}
+
+function drawUniverseLocalBreadcrumbHeader(layout) {
+  if (!shouldDrawUniverseLocalBreadcrumbHeader()) {
+    return;
+  }
+  const workspace = layout?.workspace || null;
+  if (!workspace) {
+    return;
+  }
+
+  const cardWidth = clamp(Math.round(workspace.width * 0.34), 260, 480);
+  const cardHeight = 58;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+  const sideNav = layout?.sideNav && typeof layout.sideNav === 'object'
+    ? layout.sideNav
+    : null;
+  const layoutLeftBound = sideNavOpen && sideNav
+    ? Math.round(sideNav.x + sideNav.width + 12)
+    : workspace.x;
+  const layoutRightBound = Math.round(workspace.x + workspace.width);
+  const availableCenterX = sideNavOpen
+    ? (layoutLeftBound + layoutRightBound) * 0.5
+    : (workspace.x + (workspace.width * 0.5));
+  const cardX = clamp(
+    Math.round(availableCenterX - (cardWidth * 0.5)),
+    workspace.x + 10,
+    (workspace.x + workspace.width) - cardWidth - 10,
+  );
+  const cardY = workspace.y + 14;
+
+  fillRoundedRect(
+    context,
+    cardX,
+    cardY,
+    cardWidth,
+    cardHeight,
+    26,
+    '#FFFFFF',
+  );
+  drawUniverseBreadcrumbNodeChips(cardX + 12, cardY, cardWidth - 24, cardHeight);
+}
+
 function drawTreeViewport(layout) {
   const viewport = layout.viewport;
-  const projectionScale = resolveProjectionScale(state.camera.view.scale);
-
-  const frameOptions = {
-    ...getUniverseOptions(),
-    depth: state.depthFilter,
-    selectedId: state.selectedId,
-    showConnectors: state.showConnectors,
-    view: {
-      x: state.camera.view.x,
-      y: state.camera.view.y,
-      scale: projectionScale,
-    },
-    viewport,
-    nodeRadiusBase: NODE_RADIUS_BASE,
-    lodThresholds: {
-      full: 14,
-      medium: 6.5,
-      dot: 1.4,
-      min: 0.3,
-    },
-    semanticDepth: {
-      enabled: true,
-      baseScale: PROJECTION_BASE_SCALE,
-      baseFullDepth: 5,
-      baseVisibleDepth: 5,
-      fullDepthPerOctave: 1,
-      visibleDepthPerOctave: 3,
-    },
-    cullMargin: Math.max(220, Math.round(Math.min(viewport.width, viewport.height) * 0.34)),
-    devicePixelRatio: 1,
-  };
-  const frame = state.adapter.computeFrame(frameOptions);
-  const anticipationSlots = resolveAnticipationSlots(frame, frameOptions);
+  const legacyTierFrame = resolveLegacyTierCanvasFrame(layout);
+  const legacyViewActive = Boolean(legacyTierFrame);
+  let frame = legacyTierFrame;
+  let anticipationSlots = [];
+  if (!legacyViewActive) {
+    const projectionScale = resolveProjectionScale(state.camera.view.scale);
+    const frameOptions = {
+      ...getUniverseOptions(),
+      depth: state.depthFilter,
+      selectedId: state.selectedId,
+      showConnectors: state.showConnectors,
+      view: {
+        x: state.camera.view.x,
+        y: state.camera.view.y,
+        scale: projectionScale,
+      },
+      viewport,
+      nodeRadiusBase: NODE_RADIUS_BASE,
+      lodThresholds: {
+        full: 14,
+        medium: 6.5,
+        dot: 1.4,
+        min: 0.3,
+      },
+      semanticDepth: {
+        enabled: true,
+        baseScale: PROJECTION_BASE_SCALE,
+        baseFullDepth: 5,
+        baseVisibleDepth: 5,
+        fullDepthPerOctave: 1,
+        visibleDepthPerOctave: 3,
+      },
+      cullMargin: Math.max(220, Math.round(Math.min(viewport.width, viewport.height) * 0.34)),
+      devicePixelRatio: 1,
+    };
+    frame = state.adapter.computeFrame(frameOptions);
+    anticipationSlots = resolveAnticipationSlots(frame, frameOptions);
+  }
 
   state.frameResult = frame;
   state.anticipationSlots = anticipationSlots;
@@ -15558,8 +21503,11 @@ function drawTreeViewport(layout) {
   }
 
   drawConnectors(projectedNodes);
-  drawAnticipationConnectors(anticipationSlots, projectedNodes);
-  const selectedNode = projectedNodes.find((node) => node.id === state.selectedId) || null;
+  if (!legacyViewActive) {
+    drawAnticipationConnectors(anticipationSlots, projectedNodes);
+  }
+  const selectedNode = projectedNodes.find((node) => node.id === state.selectedId)
+    || (frame?.selectedProjected || null);
 
   for (const node of projectedNodes) {
     if (selectedNode && node.id === selectedNode.id) {
@@ -15570,7 +21518,12 @@ function drawTreeViewport(layout) {
   if (selectedNode) {
     drawNode(selectedNode);
   }
-  drawAnticipationSlots(anticipationSlots);
+  if (legacyViewActive) {
+    drawLegacyTierCanvasViewHeader(layout, frame);
+  } else {
+    drawAnticipationSlots(anticipationSlots);
+    drawUniverseLocalBreadcrumbHeader(layout);
+  }
 
   context.restore();
 }
@@ -15594,6 +21547,12 @@ function renderFrame() {
   syncAccountOverviewPanelPosition(state.layout);
   syncAccountOverviewPanelVisuals();
   syncAccountOverviewPanelVisibility();
+  syncInfinityBuilderPanelPosition(state.layout);
+  syncInfinityBuilderPanelVisuals();
+  syncInfinityBuilderPanelVisibility();
+  syncRankAdvancementPanelPosition(state.layout);
+  syncRankAdvancementPanelVisuals();
+  syncRankAdvancementPanelVisibility();
   try {
     syncPreferredAccountsPanelPosition(state.layout);
     syncPreferredAccountsPanelVisuals();
@@ -16042,8 +22001,42 @@ function triggerAction(action) {
     setAccountOverviewPanelVisible(!Boolean(state.ui?.accountOverviewVisible));
     return;
   }
+  if (safeAction === 'panel:rank-advancement:toggle') {
+    setRankAdvancementPanelVisible(!Boolean(state.ui?.rankAdvancementVisible));
+    return;
+  }
   if (safeAction === 'panel:preferred-accounts:toggle') {
     setPreferredAccountsPanelVisible(!Boolean(state.ui?.preferredAccountsVisible));
+    return;
+  }
+  if (safeAction === 'legacy-tier:panel:toggle') {
+    toggleLegacyTierCanvasPanelVisibility();
+    return;
+  }
+  if (safeAction === 'legacy-tier:view:toggle' || safeAction === 'legacy-tier:view:tier-1') {
+    toggleLegacyTierQuickAccessView();
+    return;
+  }
+  if (safeAction === 'legacy-tier:dropdown:toggle') {
+    if (!isLegacyTierCanvasViewActive()) {
+      return;
+    }
+    const tierEntries = Array.isArray(legacyTierCanvasViewState.tierEntries)
+      ? legacyTierCanvasViewState.tierEntries
+      : [];
+    if (tierEntries.length <= 1) {
+      legacyTierCanvasViewState.dropdownOpen = false;
+      return;
+    }
+    legacyTierCanvasViewState.dropdownOpen = !Boolean(legacyTierCanvasViewState.dropdownOpen);
+    return;
+  }
+  if (safeAction.startsWith('legacy-tier:select:')) {
+    const tierNumber = Math.floor(safeNumber(
+      safeAction.slice('legacy-tier:select:'.length),
+      NaN,
+    ));
+    selectLegacyTierCanvasTier(tierNumber);
     return;
   }
   if (safeAction.startsWith('brand-menu:page:')) {
@@ -16066,6 +22059,9 @@ function triggerAction(action) {
     return;
   }
   if (safeAction === 'camera:home') {
+    if (exitLegacyTierCanvasToBinaryDefault(true)) {
+      return;
+    }
     goToGlobalHome(true);
     return;
   }
@@ -16086,11 +22082,24 @@ function triggerAction(action) {
     gotoUniverseFromBreadcrumb(targetRootId, true);
     return;
   }
+  if (safeAction.startsWith('universe:history:goto:')) {
+    const targetIndex = Math.floor(safeNumber(
+      safeAction.slice('universe:history:goto:'.length),
+      NaN,
+    ));
+    if (Number.isFinite(targetIndex)) {
+      gotoUniverseFromHistoryIndex(targetIndex, true);
+    }
+    return;
+  }
   if (safeAction === 'universe:enter') {
-    enterNodeUniverseWithZoomHint(state.selectedId);
+    enterSelectedUniverseNodeFromCurrentView();
     return;
   }
   if (safeAction === 'universe:back') {
+    if (exitLegacyTierCanvasToBinaryDefault(true)) {
+      return;
+    }
     exitNodeUniverseWithZoomHint(true);
     return;
   }
@@ -16153,7 +22162,7 @@ function triggerAction(action) {
     return;
   }
   if (safeAction === 'panel:rank-advancement:placeholder') {
-    // Placeholder action intentionally kept inert until Rank Advancement panel is implemented.
+    setRankAdvancementPanelVisible(!Boolean(state.ui?.rankAdvancementVisible));
     return;
   }
   if (safeAction.startsWith('depth:')) {
@@ -16193,6 +22202,14 @@ function onPointerDown(event) {
   const pointerInsideFavorites = pointInsideFavoritesCarousel(pointerX, pointerY);
   const brandMenuOpen = Boolean(state.ui.sideNavBrandMenuOpen);
   const button = buttonUnderPointer(pointerX, pointerY);
+  const buttonAction = safeText(button?.action);
+  const interactingWithLegacyTierDropdown = (
+    buttonAction === 'legacy-tier:dropdown:toggle'
+    || buttonAction.startsWith('legacy-tier:select:')
+  );
+  if (legacyTierCanvasViewState.dropdownOpen && !interactingWithLegacyTierDropdown) {
+    legacyTierCanvasViewState.dropdownOpen = false;
+  }
   if (button) {
     const isBrandButton = (
       safeText(button.action) === 'brand-menu:toggle'
@@ -16249,7 +22266,6 @@ function onPointerDown(event) {
     setSelectedNode(hitNode.id, { animate: true, toggleIfSame: true });
     return;
   }
-
   state.drag.active = true;
   state.drag.pointerId = event.pointerId;
   state.drag.lastX = pointerX;
@@ -16337,7 +22353,6 @@ function onWheel(event) {
   if (pointInsideActiveSideNav(event.clientX, event.clientY)) {
     return;
   }
-
   const isTrackpadEvent = isLikelyTrackpadWheelEvent(event);
   const isTrackpadPinchZoom = isTrackpadEvent && event.ctrlKey && !event.metaKey;
   const isManualZoom = isManualWheelZoomModifierPressed(event);
@@ -16477,7 +22492,7 @@ function onKeyDown(event) {
     return;
   }
   if (key === 'u') {
-    enterNodeUniverseWithZoomHint(state.selectedId);
+    enterSelectedUniverseNodeFromCurrentView();
     event.preventDefault();
     return;
   }
@@ -16525,16 +22540,35 @@ function onSessionStorageChange(event) {
   }
   state.session = nextSession;
   resetAccountOverviewRemoteSnapshot();
+  resetRankAdvancementSnapshot();
+  resetInfinityBuilderPanelState();
   pinnedNodeIdsLastSyncedKey = '';
   pinnedNodeIdsLocalDirty = false;
   const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || null;
   void refreshAccountOverviewRemoteSnapshot({
     force: true,
-    homeNode: overviewContext?.homeNode || null,
+    homeNode,
     scope: overviewContext?.scope,
     preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
   });
+  void refreshRankAdvancementSnapshot({
+    force: true,
+    homeNode,
+  });
   if (state.source === 'member') {
+    void fetchMemberBinaryTreeLaunchState(nextSession)
+      .then((launchState) => {
+        if (!launchState || typeof launchState !== 'object') {
+          return;
+        }
+        state.launchState = launchState;
+        applyInfinityBuilderTierSortDirectionsFromLaunchState(launchState, {
+          syncServer: false,
+          markSynced: true,
+        });
+      })
+      .catch(() => {});
     schedulePinnedNodeIdsServerSync({ immediate: true });
   }
 }
@@ -16665,8 +22699,26 @@ async function bootstrap() {
   bindEvents();
   initTreeNextEnrollModal();
   initAccountOverviewPanel();
+  initInfinityBuilderPanel();
+  initRankAdvancementPanel();
   initPreferredAccountsPanel();
   initMyStorePanel();
+  const initialPanelKey = resolveInitialPanelKeyFromQuery();
+  if (initialPanelKey === 'account-overview') {
+    setAccountOverviewPanelVisible(true);
+  } else if (initialPanelKey === 'infinity-builder') {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_INFINITY);
+    setInfinityBuilderPanelVisible(true);
+  } else if (initialPanelKey === 'legacy-leadership') {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+    setInfinityBuilderPanelVisible(true);
+  } else if (initialPanelKey === 'rank-advancement') {
+    setRankAdvancementPanelVisible(true);
+  } else if (initialPanelKey === 'preferred-accounts') {
+    setPreferredAccountsPanelVisible(true);
+  } else if (initialPanelKey === 'my-store') {
+    setMyStorePanelVisible(true);
+  }
   await processTreeNextStripeCheckoutReturn();
   await processTreeNextStripeReturnSignalFromStorage({
     preserveCurrentStep: true,
@@ -16691,4 +22743,6 @@ bootstrap().catch((error) => {
   hideFirstOpenSplashImmediately();
   showBootError(error instanceof Error ? error.message : String(error));
 });
+
+
 

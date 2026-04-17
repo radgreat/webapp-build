@@ -143,17 +143,22 @@ Commission is calculated on the **weaker leg**.
 # 5️⃣ Rank Advancement Bonus
 
 
-| Cycles | Rank          | Income (US$) |
-| ------ | ------------- | ------------ |
-| 5      | Ruby          | 62.5         |
-| 10     | Emerald       | 125          |
-| 20     | Sapphire      | 250          |
-| 40     | Diamond       | 500          |
-| 80     | Blue Diamond  | 1000         |
-| 160    | Black Diamond | 2000         |
-| 320    | Crown         | 4000         |
-| 640    | Double Crown  | 8000         |
-| 1000   | Royal Crown   | 12500        |
+Rank Advancement
+
+Ruby = 5 Cycles, 1:1 Active Direct Sponsors that has 50 Personal BV each = $62.5
+Emerald = 10 Cycles, 1:1 Active Direct Sponsors that has 50 Personal BV each, 1 Ruby Member = $125
+Sapphire = 20 Cycles, 1:1 Active Direct Sponsors that has 50 Personal BV each, 1 Emerald Member = $250
+
+Diamond = 40 Cycles, 2:2 Active Active Direct Sponsors that has 50 Personal BV each, 1 Sapphire Member = $500
+Blue Diamond = 80 Cycles, 2:2 Active Direct Sponsors that has 50 Personal BV each, 1 Diamond Member = $1,000
+Black Diamond = 160 Cycles, 2:2 Active Direct Sponsors that has 50 Personal BV each, 1 Blue Diamond Member = $2,000
+
+
+Crown = 320 Cycles, 3:3 Active Direct Sponsors that has 50 Personal BV each, 2 Black Diamond Member = $4,000
+
+Double Crown= 640 Cycles, 3:3 Active Direct Sponsors that has 50 Personal BV each, 2 Crown Member = $8,000
+
+Royal Crown = 1000 Cycles, 3:3 Active Direct Sponsors that has 50 Personal BV each, 2 Double Crown Member = $12,500
 
 ## Updated Rank Advancement Rules
 

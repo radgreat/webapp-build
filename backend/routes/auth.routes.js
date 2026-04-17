@@ -8,6 +8,8 @@ import {
   getMemberBinaryTreeLaunchState,
   getMemberBinaryTreePinnedNodes,
   putMemberBinaryTreePinnedNodes,
+  getMemberBinaryTreeTierSortDirections,
+  putMemberBinaryTreeTierSortDirections,
   deleteMemberBinaryTreeLaunchState,
   postMemberBinaryTreeLaunchStateReset,
   postMemberEmailVerificationRequest,
@@ -25,6 +27,8 @@ router.get('/email-verification-status', requireMemberAuthSession, getMemberEmai
 router.get('/binary-tree-next/launch-state', requireMemberAuthSession, getMemberBinaryTreeLaunchState);
 router.get('/binary-tree-next/pinned-nodes', requireMemberAuthSession, getMemberBinaryTreePinnedNodes);
 router.put('/binary-tree-next/pinned-nodes', requireMemberAuthSession, putMemberBinaryTreePinnedNodes);
+router.get('/binary-tree-next/tier-sort-directions', requireMemberAuthSession, getMemberBinaryTreeTierSortDirections);
+router.put('/binary-tree-next/tier-sort-directions', requireMemberAuthSession, putMemberBinaryTreeTierSortDirections);
 router.delete('/binary-tree-next/launch-state', requireMemberAuthSession, deleteMemberBinaryTreeLaunchState);
 router.post('/binary-tree-next/launch-state/reset', requireMemberAuthSession, postMemberBinaryTreeLaunchStateReset);
 router.post('/email-verification/request', requireMemberAuthSession, postMemberEmailVerificationRequest);

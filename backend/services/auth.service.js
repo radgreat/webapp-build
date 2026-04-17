@@ -31,6 +31,7 @@ import {
   touchMemberBinaryTreeIntroStateByUserId,
   deleteMemberBinaryTreeIntroStateByUserId,
   updateMemberBinaryTreePinnedNodeIdsByUserId,
+  updateMemberBinaryTreeTierSortDirectionsByUserId,
 } from '../stores/member-binary-tree-intro.store.js';
 
 import {
@@ -49,6 +50,8 @@ import { resolveMemberAccountStatusByPersonalBv } from '../utils/member-activity
 
 const EMAIL_VERIFICATION_TOKEN_TTL_MS = 48 * 60 * 60 * 1000;
 const PINNED_NODE_IDS_LIMIT = 10;
+const TIER_SORT_DIRECTION_ASC = 'asc';
+const TIER_SORT_DIRECTION_DESC = 'desc';
 
 function isValidEmailAddress(emailInput) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(emailInput || '').trim());
@@ -95,6 +98,33 @@ function normalizePinnedNodeIdsForBinaryTree(value) {
   }
 
   return deduped;
+}
+
+function normalizeMemberBinaryTreeTierSortDirection(value) {
+  const normalized = normalizeText(value).toLowerCase();
+  return normalized === TIER_SORT_DIRECTION_DESC
+    ? TIER_SORT_DIRECTION_DESC
+    : TIER_SORT_DIRECTION_ASC;
+}
+
+function normalizeMemberBinaryTreeTierSortDirectionsPayload(payload = {}) {
+  const source = payload && typeof payload === 'object' ? payload : {};
+  return {
+    infinityBuilderTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+      source.infinityBuilderTierSortDirection
+        || source.infinityBuilder
+        || source.infinity_builder_tier_sort_direction
+        || source.infinity_builder
+        || '',
+    ),
+    legacyLeadershipTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+      source.legacyLeadershipTierSortDirection
+        || source.legacyLeadership
+        || source.legacy_leadership_tier_sort_direction
+        || source.legacy_leadership
+        || '',
+    ),
+  };
 }
 
 function isEmailVerificationOutboxRecord(record = {}, targetEmailInput = '') {
@@ -633,6 +663,13 @@ export async function resolveMemberBinaryTreeLaunchState(memberUserInput = {}) {
       lastOpenedAt: normalizeText(launchState?.lastOpenedAt),
       pinnedNodeIds: normalizePinnedNodeIdsForBinaryTree(launchState?.pinnedNodeIds),
       pinnedNodeIdsUpdatedAt: normalizeText(launchState?.pinnedNodeIdsUpdatedAt),
+      infinityBuilderTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        launchState?.infinityBuilderTierSortDirection,
+      ),
+      legacyLeadershipTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        launchState?.legacyLeadershipTierSortDirection,
+      ),
+      tierSortDirectionsUpdatedAt: normalizeText(launchState?.tierSortDirectionsUpdatedAt),
       checkedAt: new Date().toISOString(),
     },
   };
@@ -691,6 +728,100 @@ export async function resolveMemberBinaryTreePinnedNodes(memberUserInput = {}) {
       userId,
       pinnedNodeIds: normalizePinnedNodeIdsForBinaryTree(currentState?.pinnedNodeIds),
       pinnedNodeIdsUpdatedAt: normalizeText(currentState?.pinnedNodeIdsUpdatedAt),
+      checkedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export async function updateMemberBinaryTreeTierSortDirections(memberUserInput = {}, payload = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const source = payload && typeof payload === 'object' ? payload : {};
+  const hasInfinityDirection = (
+    Object.prototype.hasOwnProperty.call(source, 'infinityBuilderTierSortDirection')
+    || Object.prototype.hasOwnProperty.call(source, 'infinityBuilder')
+    || Object.prototype.hasOwnProperty.call(source, 'infinity_builder_tier_sort_direction')
+    || Object.prototype.hasOwnProperty.call(source, 'infinity_builder')
+  );
+  const hasLegacyDirection = (
+    Object.prototype.hasOwnProperty.call(source, 'legacyLeadershipTierSortDirection')
+    || Object.prototype.hasOwnProperty.call(source, 'legacyLeadership')
+    || Object.prototype.hasOwnProperty.call(source, 'legacy_leadership_tier_sort_direction')
+    || Object.prototype.hasOwnProperty.call(source, 'legacy_leadership')
+  );
+  if (!hasInfinityDirection && !hasLegacyDirection) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Expected infinityBuilderTierSortDirection or legacyLeadershipTierSortDirection.',
+    };
+  }
+
+  const currentState = await readMemberBinaryTreeIntroStateByUserId(userId);
+  const currentDirections = normalizeMemberBinaryTreeTierSortDirectionsPayload({
+    infinityBuilderTierSortDirection: currentState?.infinityBuilderTierSortDirection,
+    legacyLeadershipTierSortDirection: currentState?.legacyLeadershipTierSortDirection,
+  });
+  const requestedDirections = normalizeMemberBinaryTreeTierSortDirectionsPayload(source);
+  const nextDirections = {
+    infinityBuilderTierSortDirection: hasInfinityDirection
+      ? requestedDirections.infinityBuilderTierSortDirection
+      : currentDirections.infinityBuilderTierSortDirection,
+    legacyLeadershipTierSortDirection: hasLegacyDirection
+      ? requestedDirections.legacyLeadershipTierSortDirection
+      : currentDirections.legacyLeadershipTierSortDirection,
+  };
+
+  const nextState = await updateMemberBinaryTreeTierSortDirectionsByUserId(userId, nextDirections);
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      userId,
+      infinityBuilderTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        nextState?.infinityBuilderTierSortDirection,
+      ),
+      legacyLeadershipTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        nextState?.legacyLeadershipTierSortDirection,
+      ),
+      tierSortDirectionsUpdatedAt: normalizeText(nextState?.tierSortDirectionsUpdatedAt),
+      checkedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export async function resolveMemberBinaryTreeTierSortDirections(memberUserInput = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const currentState = await readMemberBinaryTreeIntroStateByUserId(userId);
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      userId,
+      infinityBuilderTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        currentState?.infinityBuilderTierSortDirection,
+      ),
+      legacyLeadershipTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        currentState?.legacyLeadershipTierSortDirection,
+      ),
+      tierSortDirectionsUpdatedAt: normalizeText(currentState?.tierSortDirectionsUpdatedAt),
       checkedAt: new Date().toISOString(),
     },
   };

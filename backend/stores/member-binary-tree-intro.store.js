@@ -2,6 +2,8 @@ import pool from '../db/db.js';
 import adminPool, { isAdminDbConfigured } from '../db/admin-db.js';
 
 const PINNED_NODE_IDS_LIMIT = 10;
+const TIER_SORT_DIRECTION_ASC = 'asc';
+const TIER_SORT_DIRECTION_DESC = 'desc';
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -42,6 +44,33 @@ function normalizePinnedNodeIds(value) {
   return deduped;
 }
 
+function normalizeTierSortDirection(value) {
+  const normalized = normalizeText(value).toLowerCase();
+  return normalized === TIER_SORT_DIRECTION_DESC
+    ? TIER_SORT_DIRECTION_DESC
+    : TIER_SORT_DIRECTION_ASC;
+}
+
+function normalizeTierSortDirections(value = {}) {
+  const source = value && typeof value === 'object' ? value : {};
+  return {
+    infinityBuilderTierSortDirection: normalizeTierSortDirection(
+      source.infinityBuilderTierSortDirection
+        || source.infinityBuilder
+        || source.infinity_builder_tier_sort_direction
+        || source.infinity_builder
+        || '',
+    ),
+    legacyLeadershipTierSortDirection: normalizeTierSortDirection(
+      source.legacyLeadershipTierSortDirection
+        || source.legacyLeadership
+        || source.legacy_leadership_tier_sort_direction
+        || source.legacy_leadership
+        || '',
+    ),
+  };
+}
+
 function mapDbIntroStateToApp(row) {
   if (!row) {
     return null;
@@ -52,6 +81,9 @@ function mapDbIntroStateToApp(row) {
     lastOpenedAt: toIsoStringOrEmpty(row.last_opened_at),
     pinnedNodeIds: normalizePinnedNodeIds(row.pinned_node_ids),
     pinnedNodeIdsUpdatedAt: toIsoStringOrEmpty(row.pinned_node_ids_updated_at),
+    infinityBuilderTierSortDirection: normalizeTierSortDirection(row.infinity_builder_tier_sort_direction),
+    legacyLeadershipTierSortDirection: normalizeTierSortDirection(row.legacy_leadership_tier_sort_direction),
+    tierSortDirectionsUpdatedAt: toIsoStringOrEmpty(row.tier_sort_directions_updated_at),
     updatedAt: toIsoStringOrEmpty(row.updated_at),
   };
 }
@@ -72,6 +104,9 @@ async function installIntroTableViaAdmin() {
         last_opened_at timestamptz NOT NULL DEFAULT NOW(),
         pinned_node_ids text[] NOT NULL DEFAULT ARRAY[]::text[],
         pinned_node_ids_updated_at timestamptz,
+        infinity_builder_tier_sort_direction text NOT NULL DEFAULT 'asc',
+        legacy_leadership_tier_sort_direction text NOT NULL DEFAULT 'asc',
+        tier_sort_directions_updated_at timestamptz,
         updated_at timestamptz NOT NULL DEFAULT NOW()
       )
     `);
@@ -82,6 +117,18 @@ async function installIntroTableViaAdmin() {
     await client.query(`
       ALTER TABLE charge.member_binary_tree_intro_state
       ADD COLUMN IF NOT EXISTS pinned_node_ids_updated_at timestamptz
+    `);
+    await client.query(`
+      ALTER TABLE charge.member_binary_tree_intro_state
+      ADD COLUMN IF NOT EXISTS infinity_builder_tier_sort_direction text NOT NULL DEFAULT 'asc'
+    `);
+    await client.query(`
+      ALTER TABLE charge.member_binary_tree_intro_state
+      ADD COLUMN IF NOT EXISTS legacy_leadership_tier_sort_direction text NOT NULL DEFAULT 'asc'
+    `);
+    await client.query(`
+      ALTER TABLE charge.member_binary_tree_intro_state
+      ADD COLUMN IF NOT EXISTS tier_sort_directions_updated_at timestamptz
     `);
     await client.query(`
       CREATE INDEX IF NOT EXISTS member_binary_tree_intro_state_last_opened_at_idx
@@ -125,6 +172,9 @@ async function installIntroTableViaServiceRole() {
         last_opened_at timestamptz NOT NULL DEFAULT NOW(),
         pinned_node_ids text[] NOT NULL DEFAULT ARRAY[]::text[],
         pinned_node_ids_updated_at timestamptz,
+        infinity_builder_tier_sort_direction text NOT NULL DEFAULT 'asc',
+        legacy_leadership_tier_sort_direction text NOT NULL DEFAULT 'asc',
+        tier_sort_directions_updated_at timestamptz,
         updated_at timestamptz NOT NULL DEFAULT NOW()
       )
     `);
@@ -135,6 +185,18 @@ async function installIntroTableViaServiceRole() {
     await client.query(`
       ALTER TABLE charge.member_binary_tree_intro_state
       ADD COLUMN IF NOT EXISTS pinned_node_ids_updated_at timestamptz
+    `);
+    await client.query(`
+      ALTER TABLE charge.member_binary_tree_intro_state
+      ADD COLUMN IF NOT EXISTS infinity_builder_tier_sort_direction text NOT NULL DEFAULT 'asc'
+    `);
+    await client.query(`
+      ALTER TABLE charge.member_binary_tree_intro_state
+      ADD COLUMN IF NOT EXISTS legacy_leadership_tier_sort_direction text NOT NULL DEFAULT 'asc'
+    `);
+    await client.query(`
+      ALTER TABLE charge.member_binary_tree_intro_state
+      ADD COLUMN IF NOT EXISTS tier_sort_directions_updated_at timestamptz
     `);
     await client.query(`
       CREATE INDEX IF NOT EXISTS member_binary_tree_intro_state_last_opened_at_idx
@@ -161,6 +223,18 @@ async function ensureIntroTableColumns(executor) {
   await executor.query(`
     ALTER TABLE charge.member_binary_tree_intro_state
     ADD COLUMN IF NOT EXISTS pinned_node_ids_updated_at timestamptz
+  `);
+  await executor.query(`
+    ALTER TABLE charge.member_binary_tree_intro_state
+    ADD COLUMN IF NOT EXISTS infinity_builder_tier_sort_direction text NOT NULL DEFAULT 'asc'
+  `);
+  await executor.query(`
+    ALTER TABLE charge.member_binary_tree_intro_state
+    ADD COLUMN IF NOT EXISTS legacy_leadership_tier_sort_direction text NOT NULL DEFAULT 'asc'
+  `);
+  await executor.query(`
+    ALTER TABLE charge.member_binary_tree_intro_state
+    ADD COLUMN IF NOT EXISTS tier_sort_directions_updated_at timestamptz
   `);
 }
 
@@ -245,6 +319,9 @@ export async function readMemberBinaryTreeIntroStateByUserId(userIdInput, execut
       last_opened_at,
       pinned_node_ids,
       pinned_node_ids_updated_at,
+      infinity_builder_tier_sort_direction,
+      legacy_leadership_tier_sort_direction,
+      tier_sort_directions_updated_at,
       updated_at
     FROM charge.member_binary_tree_intro_state
     WHERE user_id = $1
@@ -276,6 +353,9 @@ export async function touchMemberBinaryTreeIntroStateByUserId(userIdInput, execu
         last_opened_at,
         pinned_node_ids,
         pinned_node_ids_updated_at,
+        infinity_builder_tier_sort_direction,
+        legacy_leadership_tier_sort_direction,
+        tier_sort_directions_updated_at,
         updated_at
     `, [userId]);
     return {
@@ -292,15 +372,21 @@ export async function touchMemberBinaryTreeIntroStateByUserId(userIdInput, execu
         last_opened_at,
         pinned_node_ids,
         pinned_node_ids_updated_at,
+        infinity_builder_tier_sort_direction,
+        legacy_leadership_tier_sort_direction,
+        tier_sort_directions_updated_at,
         updated_at
       )
-      VALUES ($1, NOW(), NOW(), ARRAY[]::text[], NULL, NOW())
+      VALUES ($1, NOW(), NOW(), ARRAY[]::text[], NULL, 'asc', 'asc', NULL, NOW())
       RETURNING
         user_id,
         first_opened_at,
         last_opened_at,
         pinned_node_ids,
         pinned_node_ids_updated_at,
+        infinity_builder_tier_sort_direction,
+        legacy_leadership_tier_sort_direction,
+        tier_sort_directions_updated_at,
         updated_at
     `, [userId]);
 
@@ -324,6 +410,9 @@ export async function touchMemberBinaryTreeIntroStateByUserId(userIdInput, execu
         last_opened_at,
         pinned_node_ids,
         pinned_node_ids_updated_at,
+        infinity_builder_tier_sort_direction,
+        legacy_leadership_tier_sort_direction,
+        tier_sort_directions_updated_at,
         updated_at
     `, [userId]);
     return {
@@ -376,9 +465,12 @@ export async function updateMemberBinaryTreePinnedNodeIdsByUserId(
       last_opened_at,
       pinned_node_ids,
       pinned_node_ids_updated_at,
+      infinity_builder_tier_sort_direction,
+      legacy_leadership_tier_sort_direction,
+      tier_sort_directions_updated_at,
       updated_at
     )
-    VALUES ($1, NOW(), NOW(), $2::text[], NOW(), NOW())
+    VALUES ($1, NOW(), NOW(), $2::text[], NOW(), 'asc', 'asc', NULL, NOW())
     ON CONFLICT (user_id)
     DO UPDATE SET
       pinned_node_ids = EXCLUDED.pinned_node_ids,
@@ -390,8 +482,62 @@ export async function updateMemberBinaryTreePinnedNodeIdsByUserId(
       last_opened_at,
       pinned_node_ids,
       pinned_node_ids_updated_at,
+      infinity_builder_tier_sort_direction,
+      legacy_leadership_tier_sort_direction,
+      tier_sort_directions_updated_at,
       updated_at
   `, [userId, pinnedNodeIds]);
+
+  return mapDbIntroStateToApp(result.rows[0] || null);
+}
+
+export async function updateMemberBinaryTreeTierSortDirectionsByUserId(
+  userIdInput,
+  tierSortDirectionsInput = {},
+  executor = pool,
+) {
+  await ensureMemberBinaryTreeIntroTable();
+
+  const userId = normalizeText(userIdInput);
+  if (!userId) {
+    return null;
+  }
+
+  const nextDirections = normalizeTierSortDirections(tierSortDirectionsInput);
+  const result = await executor.query(`
+    INSERT INTO charge.member_binary_tree_intro_state (
+      user_id,
+      first_opened_at,
+      last_opened_at,
+      pinned_node_ids,
+      pinned_node_ids_updated_at,
+      infinity_builder_tier_sort_direction,
+      legacy_leadership_tier_sort_direction,
+      tier_sort_directions_updated_at,
+      updated_at
+    )
+    VALUES ($1, NOW(), NOW(), ARRAY[]::text[], NULL, $2::text, $3::text, NOW(), NOW())
+    ON CONFLICT (user_id)
+    DO UPDATE SET
+      infinity_builder_tier_sort_direction = EXCLUDED.infinity_builder_tier_sort_direction,
+      legacy_leadership_tier_sort_direction = EXCLUDED.legacy_leadership_tier_sort_direction,
+      tier_sort_directions_updated_at = NOW(),
+      updated_at = NOW()
+    RETURNING
+      user_id,
+      first_opened_at,
+      last_opened_at,
+      pinned_node_ids,
+      pinned_node_ids_updated_at,
+      infinity_builder_tier_sort_direction,
+      legacy_leadership_tier_sort_direction,
+      tier_sort_directions_updated_at,
+      updated_at
+  `, [
+    userId,
+    nextDirections.infinityBuilderTierSortDirection,
+    nextDirections.legacyLeadershipTierSortDirection,
+  ]);
 
   return mapDbIntroStateToApp(result.rows[0] || null);
 }

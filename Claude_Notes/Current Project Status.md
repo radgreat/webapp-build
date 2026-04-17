@@ -15316,3 +15316,1032 @@ Last Updated: 2026-04-16
   - `Claude_Notes/member-dashboard-page.md`
 - Validation:
   - inline script parse check passed (`index.html`: `3` blocks).
+
+## Recent Update (2026-04-16) - Binary Tree Next Rank Advancement Panel (Rank + Good Life Unified)
+
+- Completed:
+  - implemented full Rank Advancement panel UI in `binary-tree-next.html`
+  - merged Rank Advancement and Good Life data rendering into one Binary Tree Next panel module
+  - wired live fetch from `member-auth/achievements` and `member-auth/good-life/monthly`
+  - added rank claim action wiring
+  - added panel toggle in profile-left dock (`panel:rank-advancement:toggle`)
+  - added panel interop/exclusivity with Account Overview, Preferred Accounts, and My Store
+  - added refresh/reset hooks for session change, live tree updates, enrollment completion, and post-upgrade refresh.
+
+- Current outcome:
+  - panel now shows monthly loop target, milestone icon track, current reward summary, Good Life bonus amount, monthly analysis values, and claim-state handling.
+
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+- Remaining follow-up:
+  - visual screenshot comparison pass intentionally skipped per latest user direction.
+
+## Recent Update (2026-04-16) - Rank Advancement Follow-up Corrections
+
+- Completed:
+  - fixed Claim button flicker by decoupling claim-in-flight UI state from passive sync refresh state
+  - aligned reward summary rank resolution with reached cycle progression to prevent over-advancing display rank
+  - corrected rank requirement mapping (`Black Diamond` now requires `1 Blue Diamond Member`)
+  - updated direct sponsor requirement copy to include `50 Personal BV each`
+  - removed extra black container behind the center reward icon and kept enlarged icon-only presentation
+  - enforced Good Life bonus visibility logic for Diamond and above only.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+- Addendum:
+  - persisted successful claim payloads into Rank Advancement cache to prevent post-claim UI regressions during partial sync failures.
+
+## Recent Update (2026-04-16) - Rank Advancement Monthly Reward + Icon Selection Fixes
+
+- Completed:
+  - corrected Rank Advancement Monthly Rewards to reflect highest reached rank **this month** (earned state), not next target rank
+  - added no-earned fallback state: `Wait next month for details`
+  - made rank ladder icons selectable to inspect rank-specific requirements/work remaining
+  - updated requirement rows to show current vs required + remaining values
+  - adjusted progress-fill threshold behavior so it clears dashed milestones only when requirements are met
+  - hid Good Life block for Ruby/Emerald/Sapphire; display starts at Diamond+.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+- Addendum:
+  - enforced member-rank prerequisite gating in Rank Advancement progression and earned-state display
+  - removed verbose requirement suffix text and switched to green + checkmark met indicators
+  - fixed milestone click latency by rebuilding snapshot instantly on rank icon click.
+
+- Addendum:
+  - renamed selected-rank heading to `Rank Preview`
+  - preview mode now forces neutral gray requirement rows with no checkmarks
+  - non-preview passed-rank visual behavior remains unchanged.
+
+## Recent Update (2026-04-16) - Rank Preview Passed-Rank Indicators (Green + Identifier)
+
+- Completed:
+  - updated Rank Preview requirement rendering so ranks already passed now show met-state identifiers
+  - passed-rank preview rows now use green text with checkmark markers
+  - unpassed preview ranks remain neutral gray with no checkmarks.
+- Outcome:
+  - Rank Preview now visually distinguishes already-achieved ranks from future targets more clearly.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-16) - Rank Ladder Selection Clarity + Passed-Rank Acquired-Since
+
+- Completed:
+  - improved rank-icon selection visibility with a stronger yellow selector state and selected badge
+  - added `Acquired since <date>` line in Rank Preview when selected rank is already passed.
+- Outcome:
+  - selected rank is now clearly identifiable at a glance
+  - passed-rank previews now communicate acquisition timing directly.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check backend/services/member-achievement.service.js` passed.
+
+### Addendum (2026-04-16)
+
+- Rank Advancement selected-icon label now shows the rank name instead of generic `Selected`.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-16)
+
+- Rank Advancement now shows `You are here` on the current rank icon while keeping selected preview rank highlighting separate.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-16)
+
+- Added per-rank payout preview in Rank Advancement icon selection:
+  - Reward Preview
+  - Good Life Bonus Preview (Diamond+)
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-16)
+
+- Rank Preview payout label renamed to `Rank Bonus`.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-16)
+
+- Rank Advancement Good Life label text updated to `Good life Bonus`.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-16) - Binary Tree Next Infinity Builder Bonus Panel (Account Overview Style + Trinary View)
+
+- Completed:
+  - implemented a new `Infinity Builder Bonus` panel in Binary Tree Next (`binary-tree-next.html`)
+  - added full panel runtime wiring (`binary-tree-next-app.mjs`): positioning, visibility, rendering, init, and close behavior
+  - connected Account Overview `Infinity Builder Bonus` commission card to open the new panel
+  - added panel exclusivity with Account Overview / Rank Advancement / Preferred Accounts / My Store
+  - added query-open support (`?panel=infinity-builder`) for direct panel QA access.
+
+- Data/UI behavior delivered:
+  - real-data Infinity seed node extraction from live tree data (Infinity/Legacy package gate)
+  - `Current` section tier rows sorted oldest to new and selectable
+  - selected-tier trinary visual (3 seed nodes, each with 3 child nodes)
+  - initials displayed on user profile nodes
+  - active/inactive node coloring tied to existing Binary Tree Next activity gate logic
+  - per-seed 1% node override estimate (from node organization BV)
+  - tier completion state + `$150` tier reward presentation
+  - commission claim-map read support for tier claimed state.
+
+- Outcome:
+  - Binary Tree Next now has a dedicated Infinity Builder UI panel that follows Account Overview visual language while reflecting the requested Infinity tier/trinary workflow.
+
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - visual QA captures:
+    - `temporary screenshots/screenshot-201-infinity-auth-pass1.png`
+    - `temporary screenshots/screenshot-202-infinity-auth-pass2.png`
+
+### Addendum (2026-04-16)
+
+- Infinity Builder panel refinement completed:
+  - UI scale reduced (headings, node cards, tier rows, seed avatars)
+  - connector lines standardized for consistent trinary branch visuals
+  - payout text updated to monthly
+  - payout scope clarified to each seed's personal organization BV only.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot round skipped per user instruction.
+
+### Addendum (2026-04-16)
+
+- Infinity Builder tier logic corrected to match business rule:
+  - tier completion = 3 direct Infinity/Legacy seed enrollments
+  - next tier unlock depends on prior tier seed completion
+  - 1% monthly payout remains per-seed and requires that seed to duplicate to 3 active direct children.
+- UI wording aligned to remove previous-tier ambiguity and to clarify personal-organization-BV payout basis.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-16)
+
+- Infinity Builder panel UX refinement shipped:
+  - user-facing copy cleaned up (removed developer terms)
+  - breadcrumb-style back control added to return to Account Overview
+  - tier reward claim button + feedback added and wired
+  - `Current` list is now the scroll container instead of full panel.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot pass skipped per user instruction.
+
+### Addendum (2026-04-16)
+
+- Infinity panel breadcrumb now uses requested format:
+  - `Account Overview > Infinity Builder Bonus`
+- `Account Overview` breadcrumb control still navigates back to Account Overview.
+
+Files updated:
+- `binary-tree-next.html`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17)
+
+- Infinity Builder panel now supports the requested node behavior polish:
+  - member-specific node color sync for active/inactive state
+  - connected trinary line geometry (parent/branch/child contact)
+  - click node avatar to focus the same member in Binary Tree view
+  - visible usernames on node visuals (tier + current list).
+- Interaction refinement:
+  - avatar clicks in Current no longer accidentally switch tiers before focus
+  - tier-grid avatars are keyboard-focusable for accessibility.
+
+Files updated:
+- binary-tree-next-app.mjs
+- binary-tree-next.html
+
+Validation:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17)
+
+- Infinity Builder small child-node usernames were removed from visible labels to reduce visual crowding.
+- Child-node focus interaction remains active.
+
+Files updated:
+- binary-tree-next-app.mjs
+
+Validation:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17)
+
+- Infinity panel connector lines were cleaned up:
+  - removed extra branch overhang around small nodes
+  - adjusted small-node stem length for cleaner visual joins.
+
+Files updated:
+- binary-tree-next.html
+
+### Addendum (2026-04-17)
+
+- Improved Infinity node click hit-area so users can click the profile area reliably, not just initials.
+- Wrapper-level focus dataset mapping and cursor affordance added.
+- Focus resolution now supports username fallback when node id is absent.
+
+Files updated:
+- binary-tree-next-app.mjs
+- binary-tree-next.html
+
+Validation:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Legacy Leadership Bonus Panel (Binary Tree Next)
+
+Current scope update:
+- Legacy Leadership panel behavior is now implemented in Binary Tree Next using the Infinity panel shell with mode-aware logic.
+
+Progress made:
+- Added panel mode switching from Account Overview commission tiles:
+  - Infinity tile -> Infinity mode
+  - Legacy tile -> Legacy Leadership mode
+- Added Legacy-only tier snapshot modeling:
+  - seed qualification locked to `legacy-builder-pack`
+  - 3 seeds per tier
+  - depth mapping support through level 3 (0-3 model)
+  - 40-node tier target and one-time claim behavior
+- Added Legacy claim-map storage compatibility with commission containers (`legacyleadership` + fallback read support).
+- Added Legacy descendant dot rendering rows (depth-2 and depth-3) while preserving click-to-focus.
+- Added initial query routing support for `panel=legacy-leadership`.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot verification intentionally skipped per user instruction.
+
+Active priorities / next checks:
+- Run authenticated in-app visual pass with real session data to confirm final Legacy panel spacing/content against design reference.
+- Confirm backend claim persistence behavior in live flow for multiple Legacy tiers.
+
+### Addendum (2026-04-17) - Legacy Leadership Reward + Node Presentation Sync (Binary Tree Next)
+
+- Legacy panel reward handling updated in `binary-tree-next-app.mjs`:
+  - Legacy mode no longer uses Infinity's fixed `$150` fallback.
+  - Legacy tier fallback reward now uses one-time `$2,000`.
+  - Tier reward totals now aggregate per-tier values directly.
+- Legacy node presentation updated to match reference intent:
+  - removed text labels under Legacy node cards in the tier visual area
+  - removed visible seed handles in Legacy `Current` row node chips
+  - removed synthetic fallback initials when node identity text is missing.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot pass skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy Node Lines / Structure Alignment (Binary Tree Next)
+
+- Legacy panel now preserves and renders mapped structure per depth group:
+  - depth 2: 3 parent groups x 3 nodes
+  - depth 3: 9 parent groups x 3 nodes
+- Replaced flat descendant-row rendering with grouped branch-grid rendering and connector lines.
+- Added Legacy-only CSS hooks for structured branch visuals and mobile-safe layout overrides.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot pass skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy Depth-3 Clickable Initials + More Space
+
+- Legacy tier visual spacing increased so mapped depth structure has more horizontal room.
+- 4th-level nodes (depth 3) now render initials and remain clickable/focusable.
+- Depth-3 group arrangement changed to a less compressed grouped matrix for readability.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Legacy Layout Restore + Compact Depth-3 Initials
+
+Current scope update:
+- Restored the Legacy Leadership panel to the prior mapped-node layout after the expanded spacing pass shifted composition.
+
+Progress made:
+- Reverted Legacy branch and depth-grid widths to previous values (desktop/mobile).
+- Restored depth-3 mapped strip to compact 9-column structure.
+- Kept depth-3 node initials + click/focus support, now compact to preserve layout.
+- Added minimal breathing room only (small depth-3 spacing tune) without moving the whole panel.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy 1st-to-4th Level Spacing Pass
+
+Current scope update:
+- Applied a direct spacing expansion across Legacy levels 1-4 to address cramped 4th-level nodes.
+
+Progress made:
+- Increased Legacy branch/children/depth-grid widths (desktop + compact breakpoint).
+- Increased depth-2/depth-3 connector spacing and node-item breathing room.
+- Enlarged depth-3 node sizing slightly so initials remain legible while clickable.
+
+Files touched this pass:
+- `binary-tree-next.html`
+
+Validation state:
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy Spacing Pass (Stronger)
+
+Current scope update:
+- Applied a significantly stronger spacing expansion from Legacy level 1 to level 4 after prior pass remained too tight.
+
+Progress made:
+- Expanded desktop width envelope to `172px` for branch, child row, and mapped depth grids.
+- Expanded compact breakpoint width envelope to `132px`.
+- Increased depth spacing, connector stem length, and node size for clearer mapped hierarchy.
+
+Files touched this pass:
+- `binary-tree-next.html`
+
+Validation state:
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy Spacing + Size Hierarchy Stabilization
+
+Current scope update:
+- Locked Legacy mapped tree into explicit level-based sizing (L1 > L2 > lower levels) with stronger spacing control.
+
+Progress made:
+- Seed/root node increased.
+- Child nodes set to medium size.
+- Lower mapped nodes reduced to maintain hierarchy clarity.
+- Branch + mapped depth grids widened and vertically spaced for clearer legibility.
+- Depth-3 group rendering switched to a roomier mapped-grid arrangement.
+
+Files touched this pass:
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy/Infinity Panel Logic Sync Pass
+
+Current scope update:
+- Implemented requested panel behavior changes for Legacy and Infinity in Binary Tree Next bonus panel.
+
+Progress made:
+- Removed Legacy tier-card depth grid visuals.
+- Added visible initials on tier-card node circles and Current-row node chips.
+- Added right-side Current-row progress totals (`x/40` Legacy, `x/3` Infinity).
+- Enforced no-spillover counting for both modes so only own-organization nodes qualify.
+- Synced gradient sourcing to Binary Tree palette resolver path used for node backgrounds.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Corrective UI Pass (Current List + Infinity Revert)
+
+Current scope update:
+- Applied corrective pass after list stretching and unintended Infinity-side behavior changes.
+
+Progress made:
+- Prevented single-row Current list cards from stretching to fill remaining container height.
+- Reverted Infinity qualification behavior to previous logic (no Legacy-only spillover rule leaking into Infinity).
+- Kept right-side row counters only for Legacy mode.
+- Reduced Legacy tier-card/node sizing back to compact baseline.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Binary Tree Next Legacy/Infinity Direct-Ownership Fix
+
+Current scope update:
+- Clarified and enforced direct qualification rule for bonus panels: qualification follows personal sponsorship, not placement location alone.
+
+Progress made:
+- Removed blanket Legacy spillover exclusion from panel qualification helpers.
+- Added package-key fallback normalization in qualification checks.
+- Updated direct-seed ownership detection to prioritize original sourceSponsorId so external spillovers are not counted as personal directs.
+- Preserved qualification for personally sponsored enrollments even if they were placed via spillover.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Node Color Consistency Pass (Bonus Panels)
+
+Current scope update:
+- Applied requested consistency pass so node colors stay synchronized across Binary Tree Next and bonus panel surfaces.
+
+Progress made:
+- Reworked bonus-panel node color resolver to use the same per-user/direct/inactive palette logic as Binary Tree Next nodes.
+- Forced empty tier slots (new tiers / no node assigned) to gray placeholders.
+- Updated CSS empty-state fallbacks for core nodes, child nodes, descendants, and current-list seed chips.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+- binary-tree-next.html
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+### Addendum (2026-04-17) - Panel Line Geometry Fix (Connector Cleanup)
+
+Current scope update:
+- Applied a focused connector-line cleanup pass for the bonus panel node tree.
+
+Progress made:
+- Replaced fixed horizontal connector offsets with proportional (1/6 width) alignment.
+- Tightened branch-to-child stem join by shifting child stem start up by 1px.
+- Preserved existing node sizing and hierarchy; only connector geometry changed.
+
+Files touched this pass:
+- binary-tree-next.html
+
+Validation state:
+- Visual screenshot validation pending (screenshot execution requires elevated permission, not granted).
+### Addendum (2026-04-17) - Legacy Panel Header Copy Cleanup
+
+Current scope update:
+- Removed requested mapped-node subtitle text from above the Legacy tier panel.
+
+Progress made:
+- Cleared Legacy subtitle output branch for the direct-requirement-met, not-yet-complete state.
+- Left other states/messages unchanged.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+### Addendum (2026-04-17) - Legacy Tier Canvas View (40 Nodes)
+
+Current scope alignment:
+- Implemented approved scope only: Legacy Leadership per-tier canvas view with fixed 40-node trinary structure.
+
+Completed this pass:
+- Added `View Tree` / `Hide Tree` button flow in Legacy panel.
+- Added selected-tier canvas render mode (`1 + 3 + 9 + 27`).
+- Added gray placeholder nodes for all empty slots.
+- Synced non-empty node color identity to existing Binary Tree node identity rules.
+- Added in-canvas tier header badge for operator clarity.
+- Disabled blank-canvas drag/wheel movement during tier-map mode to preserve fixed map readability.
+
+Files touched:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Visual screenshot validation blocked in sandbox (`spawn EPERM`).
+
+Active follow-up priority:
+- User visual QA on node spacing/placement in the new tier canvas view.
+
+### Addendum (2026-04-17) - Legacy Tree Action Follow-Up
+
+Current scope update:
+- Applied user-requested correction: `View Tree` is now action-only (not toggle) and opens via the animated entry path.
+
+Progress made:
+- Updated panel sync text/state to keep button label fixed at `View Tree`.
+- Corrected click handler wiring to use `viewLegacyTierCanvasTree()`.
+- Retained per-tier 40-node trinary render behavior after the transition.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Legacy View Tree Activation Stabilization
+
+Current scope update:
+- Stabilized Legacy panel `View Tree` behavior for immediate usability and visible canvas transition.
+
+Progress made:
+- Added immediate Legacy `View Tree` button-state sync on panel mode/visibility updates.
+- Added resilient selected-tier context resolution for tree-open action.
+- Hardened tree-open callback path with safety handling and forced post-open render refresh.
+- Removed potential temporary pointer lock by clearing Infinity panel `is-positioning` state on open.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Legacy View Switch Interactivity Restored
+
+Current scope update:
+- Restored Legacy `View Tree` click-through reliability by fixing hidden-panel overlay interception.
+
+Progress made:
+- Added descendant-level pointer-event suppression for hidden/positioning panel states.
+- Verified that `View Tree` pointer hit-testing now targets the intended button.
+- Verified that clicking `View Tree` now triggers canvas switch to Legacy trinary mapping view.
+
+Files touched this pass:
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Logged-in browser repro validated click-target and render-switch behavior.
+
+### Addendum (2026-04-17) - Legacy Map UX Continuity Update
+
+Current scope update:
+- Legacy tier map now persists as the active Binary Tree canvas view when Legacy panel is closed.
+
+Progress made:
+- Preserved Legacy map state on panel close.
+- Re-enabled standard canvas navigation behavior (pan/zoom) in Legacy map mode.
+- Moved the Legacy map badge to top-right safe area for visibility.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Logged-in repro validated Legacy map persistence after panel close.
+
+### Addendum (2026-04-17) - Legacy Trinary Render Parity Pass (Depth Sizing)
+
+Current scope update:
+- Applied Binary-style depth sizing to Legacy trinary canvas nodes so the tier map no longer renders with generic near-uniform circle sizes.
+
+Progress made:
+- Added Legacy trinary depth-decay constants aligned to Binary radius scaling behavior.
+- Replaced fixed trinary radius ladder in `resolveLegacyTierCanvasFrame(...)` with depth-decay projection sizing.
+- Added viewport-aware per-depth radius caps so 1-3-9-27 map stays readable on smaller canvases while keeping depth hierarchy clear.
+- Preserved existing world-space camera projection path (pan/zoom continuity remains intact).
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Interactive visual QA pending (non-approved elevated Puppeteer interaction needed for automated click/drag flow).
+
+### Addendum (2026-04-17) - Legacy Trinary Line-Centering Correction
+
+Current scope update:
+- Corrected Legacy trinary connector alignment so left/right branches anchor to the true parent center.
+
+Progress made:
+- Replaced row-slot X mapping with parent-centered trinary branch positioning in `resolveLegacyTierCanvasFrame(...)`.
+- Added deterministic local trinary path generation per node from sibling order under each parent.
+- Added geometric branch-step decay so depth groups stay symmetrical while fitting workspace width.
+- Tightened depth Y distribution to reduce overlong connector segments.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Awaiting user visual QA for final preference tuning on connector length.
+
+### Addendum (2026-04-17) - Legacy Trinary UX Control Pass (Shorter Lines + Header Toggle + Exit Controls)
+
+Current scope update:
+- Completed requested UX adjustments for Legacy trinary mode controls and connector compactness.
+
+Progress made:
+- Compressed trinary vertical depth layout further (`[0.04, 0.20, 0.33, 0.45]`) to shorten connectors by roughly 40% from previous pass.
+- Moved Legacy Tier header to centered top placement and centered all header text lines.
+- Added canvas-header click interaction to toggle Legacy Leadership panel visibility while staying in trinary view.
+- Updated Home/Back control actions so pressing either while in trinary view exits to default Binary home view.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Pending user visual confirmation for exact preferred line-length tightness.
+
+### Addendum (2026-04-17) - Header Placement Balance Fix (Left Panel Aware)
+
+Current scope update:
+- Adjusted Legacy top header placement to avoid off-center feel when left panel UI is open.
+
+Progress made:
+- Added dual-center behavior for Legacy header:
+  - true center when side panel is hidden,
+  - shifted-right visual center when side panel is shown (center of usable tree region).
+- Preserved centered typography and existing toggle interaction.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Legacy Header Breadcrumb Scope Refinement
+
+Current scope update:
+- Refined top Legacy header so breadcrumb text appears only when entering deeper nodes.
+
+Progress made:
+- Removed the static `40 nodes (1-3-9-27)` subtitle from the header.
+- Added depth-gated breadcrumb behavior:
+  - root selection (`depth 0`) shows panel hint,
+  - entered node path (`depth > 0`) shows breadcrumb chain (`Root > ... > Selected`).
+- Updated header styling radius to better match existing rounded theme surfaces.
+- Wired header renderer to consume active legacy frame context for breadcrumb path resolution.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Clarified Header UX Contract Implemented
+
+Current scope update:
+- Implemented explicit split behavior for top header by active view context.
+
+Progress made:
+- Trinary view header remains panel-toggle control only.
+- Binary local/universe mode now renders top breadcrumb panel with clickable links for universe root hops.
+- Breadcrumb header only appears when actually in local/universe scope (`root != global root`), avoiding clutter in default global binary view.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Binary Breadcrumb History Model + Node-Chip Visuals
+
+Current scope update:
+- Shifted Binary local breadcrumb behavior from ancestor/depth chain rendering to entered-navigation history rendering.
+
+Progress made:
+- Added history trail resolver from `state.universe.history` + current root.
+- Added history-index navigation handler for chip clicks (`universe:history:goto:<index>`).
+- Converted top breadcrumb from text links to node chips:
+  - node-colored avatar circles,
+  - initials overlays,
+  - username captions below each chip.
+- Expanded local breadcrumb header height and updated label to `Navigation History`.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Breadcrumb Visual Spec Pass (White Mock)
+
+Current scope update:
+- Applied user-provided breadcrumb visual direction to Binary local/universe breadcrumb panel.
+
+Progress made:
+- Replaced dark header card with a white pill container and removed header title text.
+- Updated chip layout to match reference structure: circular node -> > -> circular node, with usernames below each node.
+- Retained history-index navigation behavior for backtracking to prior entered views.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+
+
+### Addendum (2026-04-17) - Breadcrumb Compact Sizing + Centered Chip Start
+
+Current scope update:
+- Refined Binary breadcrumb header sizing and alignment after overlap feedback.
+
+Progress made:
+- Shrunk the breadcrumb panel and internal chip visuals.
+- Centered the breadcrumb chip sequence inside the panel instead of left-starting the row.
+- Preserved history-driven breadcrumb click behavior.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Breadcrumb Size Reduction Follow-up
+
+Current scope update:
+- Completed a second compact sizing pass for the Binary breadcrumb header.
+
+Progress made:
+- Shrunk container and internal chip/text sizing further.
+- Kept centered history-row behavior and history click navigation.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Breadcrumb Content Y-Center Alignment
+
+Current scope update:
+- Adjusted Binary breadcrumb internals for vertical centering and balanced spacing.
+
+Progress made:
+- Breadcrumb chip stack now centers on Y-axis inside the panel.
+- Username spacing under nodes tightened to remove excess bottom gap.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Breadcrumb Typography Readability Pass
+
+Current scope update:
+- Improved readability of compact Binary breadcrumb text.
+
+Progress made:
+- Increased username/initial/separator text sizes.
+- Adjusted chip width budget to avoid over-truncation after typography increase.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Trinary Enter Flow Fixed
+
+Current scope update:
+- Legacy Trinary Enter action now transitions to Local Binary for the selected real node.
+
+Progress made:
+- Added Trinary-selected-node id resolver for real binary node targets.
+- Wired both dock Enter and keyboard `U` to shared enter helper.
+- Empty Trinary placeholders are safely ignored (no invalid enter attempt).
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Trinary Header Quick Tier Switching
+
+Current scope update:
+- Added quick tier switching dropdown to Legacy Trinary top header while keeping panel toggle behavior.
+
+Progress made:
+- Header now supports two interactions:
+  - panel show/hide toggle,
+  - Legacy tier selection dropdown.
+- Dropdown options are sourced from available Legacy tier entries and update current Trinary map view.
+- Dropdown auto-closes when interacting outside dropdown controls.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Compact Trinary Header + Animated Tier Switching
+
+Current scope update:
+- Refined Legacy Trinary top header to be less tall and added tier-switch transitions.
+
+Progress made:
+- Reduced Trinary header vertical footprint and dropdown/menu sizing.
+- Implemented fade transition between Legacy tiers when switching from header dropdown.
+- Added in-flight guard so panel refresh does not cancel/skip the transition.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Transition Reset Safety
+
+Current scope update:
+- Hardened Legacy tier transition cancellation paths.
+
+Progress made:
+- Ensured pending tier-switch fade is reset on close/non-animated cancel paths.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Tier Transition Speed Tuning
+
+Current scope update:
+- Reduced transition speed for Legacy tier switching in Trinary view.
+
+Progress made:
+- Increased fade-out and fade-in durations for calmer motion.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Trinary Shortcut Button + Slower Tier Fade
+
+Current scope update:
+- Added direct Trinary Tier 1 entry button near top-right Preferred Customer controls.
+- Further slowed tier-switch animation pacing.
+
+Progress made:
+- New top-right button now jumps to Legacy Tier 1 Trinary view immediately.
+- Legacy tier fade transition duration increased for smoother perception.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Trinary Quick-Access Toggle UX
+
+Current scope update:
+- Updated Trinary quick-access button behavior to toggle on/off between Trinary and Binary default views.
+
+Progress made:
+- Top-right quick-access now behaves as a state toggle (not one-way open).
+- Updated icon to network-style visual (`hub`) for better user mental model.
+- Slowed tier switch fade timing further.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Legacy Tier Counter Alignment (Canvas vs Panel)
+
+Current scope update:
+- Corrected Legacy tier progress counter to align with Trinary map node counting.
+
+Progress made:
+- Updated `x/40` computation to include the root/home node.
+- Resolved off-by-one mismatch (example: 7 shown vs 8 counted including self).
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Infinity/Legacy Sort Direction Control
+
+Current scope update:
+- Activated the tier sort control in both Infinity Builder Bonus and Legacy Leadership Bonus panel modes.
+
+Progress made:
+- Sort now toggles between `Ascending` and `Descending` only.
+- Tier rows in the Current list re-order immediately when sort is pressed.
+- Added sort state reset to `Ascending` during panel state reset.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Tier Sort Preferences Are Now Account-Persistent
+
+Current scope update:
+- Infinity Builder and Legacy Leadership sort direction is now persisted per authenticated user account.
+
+Progress made:
+- Added backend storage + API for mode-specific tier sort directions (`asc` / `desc`).
+- Launch-state payload now includes persisted sort directions.
+- Frontend now maintains independent sort direction per panel mode and syncs changes to server.
+- Session bootstrap and session-change flows now rehydrate sort preferences from server state.
+
+Files touched this pass:
+- backend/stores/member-binary-tree-intro.store.js
+- backend/services/auth.service.js
+- backend/controllers/auth.controller.js
+- backend/routes/auth.routes.js
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check backend/stores/member-binary-tree-intro.store.js passed.
+- node --check backend/services/auth.service.js passed.
+- node --check backend/controllers/auth.controller.js passed.
+- node --check backend/routes/auth.routes.js passed.
+- node --check binary-tree-next-app.mjs passed.

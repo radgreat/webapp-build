@@ -7,6 +7,8 @@ import {
   resolveMemberBinaryTreeLaunchState,
   updateMemberBinaryTreePinnedNodes,
   resolveMemberBinaryTreePinnedNodes,
+  updateMemberBinaryTreeTierSortDirections,
+  resolveMemberBinaryTreeTierSortDirections,
   resetMemberBinaryTreeLaunchState,
   requestMemberEmailVerification,
   verifyMemberEmailByToken,
@@ -195,6 +197,45 @@ export async function getMemberBinaryTreePinnedNodes(req, res) {
     console.error(error);
     return res.status(500).json({
       error: 'Unable to load Binary Tree pinned nodes.',
+    });
+  }
+}
+
+export async function putMemberBinaryTreeTierSortDirections(req, res) {
+  try {
+    const result = await updateMemberBinaryTreeTierSortDirections(
+      req.authenticatedMember || {},
+      req.body || {},
+    );
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to update Binary Tree tier sort directions.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to update Binary Tree tier sort directions.',
+    });
+  }
+}
+
+export async function getMemberBinaryTreeTierSortDirections(req, res) {
+  try {
+    const result = await resolveMemberBinaryTreeTierSortDirections(req.authenticatedMember || {});
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to load Binary Tree tier sort directions.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to load Binary Tree tier sort directions.',
     });
   }
 }
