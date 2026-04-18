@@ -33,6 +33,18 @@ Last Updated: 2026-04-18
 - Updated bootstrap release point to mark auth boot ready only after validation pass.
 - Validation: inline script parse check passed for index.html (3 blocks).
 
+### Addendum (2026-04-18) - Login Text Field Intro Animation Restored
+
+- Updated login intro flow by removing early input autofocus that was interfering with text field reveal visuals.
+- Kept intro scheduler + BFCache replay behavior unchanged.
+- Outcome: login text fields now present with the expected intro animation appearance.
+- Files updated:
+  - login.html
+  - Claude_Notes/member-login-page.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Validation: visual screenshot checks captured on localhost login route.
+
 ## Recent Update (2026-04-16) - Setup Password Pages Updated to Store/Register Theme
 
 - Completed:

@@ -1,11 +1,31 @@
 # Member Login Page Notes
 
-Last Updated: 2026-04-16
+Last Updated: 2026-04-18
 
 ## Scope
 
 - Page: `login.html`
 - Purpose: Unified authentication entry page (`/api/member-auth/login`) for both paid members and free/preferred customers, with a ColorBends background and glass-style panel.
+
+## Recent Update (2026-04-18) - Text Field Intro Animation Stability (Autofocus Interference Fix)
+
+- Removed immediate/auto-delayed focus handoff that was colliding with login intro reveal motion.
+- Kept intro scheduler and BFCache replay behavior intact.
+- Result:
+  - username/password fields now preserve their intended reveal presentation
+  - login panel no longer shows a premature focus state while intro animation is still resolving.
+
+### Files Affected
+
+- `login.html`
+- `Claude_Notes/member-login-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Visual check captured from `http://localhost:3000/login.html` after intro timing:
+  - fields render in neutral state without premature focus styling.
 
 ## Recent Update (2026-04-16) - ColorBends Background Race Fix After Intro Timing Change
 

@@ -1174,8 +1174,6 @@
       ).trim();
       showLoginError(`Currently signed in as ${accountLabel}. Sign in below to switch accounts.`);
     }
-    loginIdentifierInput.focus();
-
     [loginIdentifierInput, loginPasswordInput].forEach((input) => {
       input.addEventListener('input', hideLoginError);
     });
