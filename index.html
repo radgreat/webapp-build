@@ -18,6 +18,75 @@
   <script src="https://js.stripe.com/v3/"></script>
   <script src="/vendor/pixi.min.js"></script>
   <script>
+    (function runDashboardAuthPreflight() {
+      const AUTH_STORAGE_KEY = 'vault-auth-user';
+      const AUTH_COOKIE_KEY = 'vault-auth-user-cookie';
+      const AUTH_BOOT_ATTRIBUTE = 'data-auth-boot';
+      document.documentElement.setAttribute(AUTH_BOOT_ATTRIBUTE, 'pending');
+
+      function safeStorageGet(storage, key) {
+        try {
+          if (!storage) {
+            return null;
+          }
+          return storage.getItem(key);
+        } catch {
+          return null;
+        }
+      }
+
+      function parseSessionPayload(raw) {
+        if (!raw) {
+          return null;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== 'object') {
+            return null;
+          }
+          return parsed;
+        } catch {
+          return null;
+        }
+      }
+
+      function readCookieValue(key) {
+        const source = document.cookie || '';
+        const encodedKey = `${encodeURIComponent(key)}=`;
+        const pairs = source.split(';');
+
+        for (const pair of pairs) {
+          const trimmed = pair.trim();
+          if (!trimmed.startsWith(encodedKey)) {
+            continue;
+          }
+          return decodeURIComponent(trimmed.slice(encodedKey.length));
+        }
+
+        return null;
+      }
+
+      const localSession = parseSessionPayload(safeStorageGet(window.localStorage, AUTH_STORAGE_KEY));
+      const tabSession = parseSessionPayload(safeStorageGet(window.sessionStorage, AUTH_STORAGE_KEY));
+      const cookieSession = parseSessionPayload(readCookieValue(AUTH_COOKIE_KEY));
+      const currentSessionUser = localSession || tabSession || cookieSession;
+      const authToken = String(currentSessionUser?.authToken || '').trim();
+
+      const rawTokenExpiry = String(currentSessionUser?.authTokenExpiresAt || '').trim();
+      const parsedTokenExpiryMs = rawTokenExpiry ? Date.parse(rawTokenExpiry) : Number.NaN;
+      const tokenExpired = Number.isFinite(parsedTokenExpiryMs) && parsedTokenExpiryMs <= Date.now();
+
+      if (!authToken || tokenExpired) {
+        window.location.replace('./login.html');
+      }
+    })();
+  </script>
+  <style>
+    html:not([data-auth-boot='ready']) body {
+      visibility: hidden;
+    }
+  </style>
+  <script>
     tailwind.config = {
       theme: {
         extend: {
@@ -25290,6 +25359,7 @@
           return;
         }
 
+        document.documentElement.setAttribute('data-auth-boot', 'ready');
         beginDashboardSkeletonLoading();
         initializeServerCutoffCard();
         initializeThemeFromSettings();

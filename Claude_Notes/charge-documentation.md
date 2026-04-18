@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 317
+**Times Updated:** 318
 
 ## Overview
 
@@ -14,6 +14,38 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Update (2026-04-18) - Dashboard Prepaint Flash Removed on Invalid Sessions
+
+### What Was Changed
+
+- Added a head-level auth boot visibility gate in index.html:
+  - set html auth boot state to pending during preflight
+  - hide body while auth boot is pending.
+- Extended preflight auth check to reject expired local snapshots using authTokenExpiresAt before dashboard render.
+- Updated async startup bootstrap to set auth boot ready only after server session validation succeeds.
+- Invalid sessions now redirect to login without visible dashboard skeleton prepaint.
+
+### Files Affected
+
+- index.html
+- Claude_Notes/member-dashboard-page.md
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Design Decisions
+
+- Kept page hidden until server auth validation passes to prevent dashboard flicker during redirect.
+- Used existing auth bootstrap path so no new backend route was required.
+
+### Known Limitations
+
+- With JavaScript disabled, the auth boot gate will keep this member dashboard page hidden by design.
+
+### Validation
+
+- Inline script parse check passed:
+  - index.html (3 blocks)
 
 ## Update (2026-04-18) - Member Dashboard Startup Session Gate Hardening
 
