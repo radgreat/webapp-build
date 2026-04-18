@@ -2849,3 +2849,102 @@ Files updated:
 - backend/controllers/auth.controller.js
 - backend/routes/auth.routes.js
 - binary-tree-next-app.mjs
+
+### Addendum (2026-04-17) - Left Panel Member Status Card (Server Time Removed)
+
+What changed:
+- Replaced the left panel bottom Server Timer card with a new Member Status card.
+- Added a cached member-status resolver scoped to the current home organization that reports:
+  - total organization members
+  - active members on left and right
+  - direct sponsors on left and right
+  - total active members and total direct sponsors.
+- Removed server-time rendering from the left panel after follow-up direction.
+
+Files updated:
+- binary-tree-next-app.mjs
+
+Known limitations:
+- Member counts reflect the currently applied global tree snapshot and update when live-sync snapshots refresh.
+
+### Addendum (2026-04-17) - Member Status Card Follow-up (Selected Node Live Data + White Surface)
+
+What changed:
+- Removed the Member Status heading text from the bottom-left card.
+- Updated the card container fill to #FFFFFF.
+- Bound member-status metrics to the currently selected node context (with home/root fallback when no node is selected).
+
+Behavior:
+- Clicking a node now updates the card values using that node's left/right organization branches, matching the contextual behavior of the Details card above.
+
+Files updated:
+- binary-tree-next-app.mjs
+### Addendum (2026-04-17) - Member Status Root Scope Fix (Self Node Zero Data)
+
+What changed:
+- Fixed member-status resolver behavior when selected node is the root/self scope.
+- Root path (`globalPath = ''`) is now treated as valid context instead of invalid fallback.
+
+Impact:
+- Clicking your own node (for example, username `zeroone`) now resolves real organization metrics instead of showing zeros.
+
+Files updated:
+- binary-tree-next-app.mjs
+### Addendum (2026-04-17) - Binary Tree Next Spillover Anonymous Gate (Legacy Privacy Parity)
+
+What changed:
+- Added shared Binary Tree Next privacy helpers to detect anonymized identities and spillover privacy conditions.
+- Enforced spillover privacy mask on left-panel detail identity fields:
+  - name now shows `Anonymous`
+  - handle now shows `Hidden`
+  - rank/title icon row is suppressed for masked nodes.
+- Enforced privacy-safe relation buttons in Details card:
+  - parent/sponsor labels render `Anonymous` when masked
+  - masked relation buttons do not expose focus actions.
+- Enforced privacy-safe rendering in favorites/search/breadcrumb surfaces:
+  - favorites labels/initials now anonymize masked spillover nodes
+  - search result labels/subtitles now anonymize masked spillover nodes and block name-based discovery for masked identities
+  - breadcrumb labels/chips now anonymize masked spillover nodes.
+- Enforced avatar privacy for masked spillover nodes:
+  - photo avatars are disabled in canvas/detail/favorites/search avatar paths
+  - initials are derived from anonymous identity for masked nodes.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+### Addendum (2026-04-17) - Spillover Privacy Logic Reverted to Legacy Rule
+
+What changed:
+- Replaced the Binary Tree Next spillover privacy gate with the same legacy rule used in `binary-tree.mjs`.
+- `isTreeNextOutsideOrganizationSpilloverNode(...)` now follows the legacy condition:
+  - spillover node
+  - has placement parent context
+  - has no resolvable `sponsorId`.
+- Removed the newer viewer-context spillover masking helpers that were over-masking viewer-sponsored nodes.
+- Updated scoped live-tree sponsor mapping so outside-source spillovers intentionally lose mapped `sponsorId` (empty), matching legacy privacy semantics.
+- Preserved spillover identity when sponsor is intentionally out-of-scope so masking still applies correctly.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+
+### Addendum (2026-04-17) - Spillover Ownership Gate Parity (Root-Owned Sponsor Branches Visible)
+
+What changed:
+- Ported the ownership-aware spillover anonymization flow from the old tree builder logic.
+- Added sponsor-graph ownership resolution (`viewerSponsoredOrganizationNodeIds`) in live scoped-tree construction.
+- Added outside-source spillover detection based on original source sponsor context before scoped remap.
+- Added scoped-node flag `isViewerOwnedSponsorBranchNode` to preserve visibility for owner-sponsored branches.
+- Applied anonymized labels only to true outside-source branches (`Spillover Direct N` / `Spillover Network N`).
+- Updated outside-organization privacy check to skip viewer-owned sponsor branches even when mapped sponsor id is unresolved.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.

@@ -49,6 +49,8 @@ const SPILLOVER_PLACEMENT_KEY_SET = new Set([
   'spillover_left',
   'spillover left',
 ]);
+const TREE_NEXT_PRIVACY_ANONYMOUS_LABEL = 'Anonymous';
+const TREE_NEXT_PRIVACY_HIDDEN_LABEL = 'Hidden';
 const EXTREME_PLACEMENT_KEY_SET = new Set([
   'extreme-left',
   'extreme_left',
@@ -717,6 +719,8 @@ let accountOverviewRemoteIdentityKey = '';
 let accountOverviewRemoteRequestSequence = 0;
 let accountOverviewCachedLegVolumeSignature = '';
 let accountOverviewCachedLegVolumeMetrics = null;
+let sideNavMemberStatusCachedSignature = '';
+let sideNavMemberStatusCachedSnapshot = null;
 let rankAdvancementLastRenderSignature = '';
 let rankAdvancementSnapshot = null;
 let rankAdvancementDataVersion = 0;
@@ -6144,6 +6148,112 @@ function isInfinityBuilderSpilloverNode(nodeInput = null) {
     safeText(node?.sponsorId || node?.globalSponsorId || node?.sourceSponsorId || ''),
   );
   return Boolean(parentKey && sponsorKey && sponsorKey !== parentKey);
+}
+
+function isTreeNextNodeAnonymized(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return false;
+  }
+  const normalizedName = normalizeCredentialValue(safeText(node?.name || ''));
+  const normalizedMemberCode = normalizeCredentialValue(
+    safeText(node?.memberCode || node?.member_code || node?.username || '').replace(/^@+/, ''),
+  );
+
+  if (
+    normalizedName.includes('anonymous')
+    || normalizedName.includes('annonymous')
+    || normalizedName.startsWith('spillover direct')
+    || normalizedName.startsWith('spillover network')
+    || normalizedName.startsWith('direct sponsor')
+    || normalizedName.startsWith('network member')
+  ) {
+    return true;
+  }
+
+  if (
+    normalizedMemberCode.startsWith('spillover-')
+    || normalizedMemberCode.startsWith('spillover-network-')
+    || normalizedMemberCode.startsWith('anonymous-')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function isTreeNextOutsideOrganizationSpilloverNode(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  // In scoped user trees, outside-source spillovers typically lose a resolvable sponsor id.
+  const outsideSpillover = Boolean(
+    node
+    && Boolean(node?.isSpillover)
+    && safeText(node?.placementParentId || node?.placement_parent_id || node?.parent || '')
+    && !safeText(node?.sponsorId || ''),
+  );
+  const isViewerOwnedSponsorBranchNode = Boolean(
+    node?.isViewerOwnedSponsorBranchNode
+    || node?.is_viewer_owned_sponsor_branch_node,
+  );
+  // Keep viewer-owned sponsor branches visible even when sponsor placement is out-of-scope.
+  return outsideSpillover && !isViewerOwnedSponsorBranchNode;
+}
+
+function resolveTreeNextSpilloverOutsideScopedOrganizationSource(nodeInput = null, viewerNodeId, includedNodeIds = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const sponsorNodeId = safeText(node?.sponsorId || '');
+  const normalizedViewerNodeId = safeText(viewerNodeId || '');
+  const included = includedNodeIds instanceof Set ? includedNodeIds : new Set();
+  const sourceWasSpillover = Boolean(
+    node?.isSpillover
+    || node?.is_spillover
+    || node?.placementLeg === 'spillover'
+    || node?.placement_leg === 'spillover'
+    || node?.sponsorLeg === 'spillover'
+    || node?.sponsor_leg === 'spillover',
+  );
+  return Boolean(
+    sourceWasSpillover
+    && sponsorNodeId
+    && sponsorNodeId !== normalizedViewerNodeId
+    && !included.has(sponsorNodeId),
+  );
+}
+
+function shouldApplyTreeNextNodePrivacyMask(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return false;
+  }
+  return (
+    isTreeNextNodeAnonymized(node)
+    || isTreeNextOutsideOrganizationSpilloverNode(node)
+  );
+}
+
+function resolveTreeNextNodePublicIdentity(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const fallbackName = safeText(options?.fallbackName || options?.fallback || node?.id || 'Member') || 'Member';
+  const isMasked = shouldApplyTreeNextNodePrivacyMask(node);
+  if (isMasked) {
+    return {
+      isMasked: true,
+      name: TREE_NEXT_PRIVACY_ANONYMOUS_LABEL,
+      username: '',
+      usernameLabel: TREE_NEXT_PRIVACY_HIDDEN_LABEL,
+      initials: resolveInitials(TREE_NEXT_PRIVACY_ANONYMOUS_LABEL),
+    };
+  }
+
+  const name = safeText(node?.name || node?.id || fallbackName) || fallbackName;
+  const username = safeText(node?.username || node?.memberCode || node?.member_code || '').replace(/^@+/, '');
+  return {
+    isMasked: false,
+    name,
+    username,
+    usernameLabel: username ? `@${username}` : '',
+    initials: resolveInitials(name),
+  };
 }
 
 function resolveInfinityBuilderNodeAddedAtMs(nodeInput = null) {
@@ -13466,9 +13576,10 @@ function resolveNodeReferenceLabel(nodeId, fallback = '-') {
   if (!node) {
     return fallback;
   }
-  const name = safeText(node.name || node.id) || fallback;
-  const username = safeText(node.username || '');
-  if (username) {
+  const identity = resolveTreeNextNodePublicIdentity(node, { fallbackName: fallback });
+  const name = safeText(identity.name || node.name || node.id) || fallback;
+  if (!identity.isMasked && identity.username) {
+    const username = safeText(identity.username || '');
     return `${name} (@${username})`;
   }
   return name;
@@ -13514,6 +13625,165 @@ function resolveNodeLegVolumes(nodeId) {
   };
 }
 
+function resolveSideNavMemberStatusSnapshot(targetNodeInput = null) {
+  const targetNode = targetNodeInput && typeof targetNodeInput === 'object'
+    ? targetNodeInput
+    : (resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root') || null);
+  const targetNodeId = safeText(targetNode?.id || resolvePreferredGlobalHomeNodeId() || 'root') || 'root';
+  const snapshotHash = safeText(state.liveSync?.lastAppliedHash || '');
+  const cacheSignature = `${targetNodeId}::${snapshotHash}`;
+
+  if (
+    cacheSignature
+    && cacheSignature === sideNavMemberStatusCachedSignature
+    && sideNavMemberStatusCachedSnapshot
+  ) {
+    return sideNavMemberStatusCachedSnapshot;
+  }
+
+  const fallbackSnapshot = {
+    targetNodeId,
+    totalMembers: 0,
+    totalActiveMembers: 0,
+    leftActiveMembers: 0,
+    rightActiveMembers: 0,
+    leftDirectSponsors: 0,
+    rightDirectSponsors: 0,
+    totalDirectSponsors: 0,
+  };
+  let nextSnapshot = fallbackSnapshot;
+
+  try {
+    const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+    if (!safeNodes.length) {
+      sideNavMemberStatusCachedSignature = cacheSignature;
+      sideNavMemberStatusCachedSnapshot = fallbackSnapshot;
+      return fallbackSnapshot;
+    }
+
+    const targetGlobalMeta = resolveGlobalNodeMetrics(targetNodeId);
+    const targetNodeIdKey = normalizeCredentialValue(targetNodeId);
+    const targetPath = safeText(targetGlobalMeta?.globalPath).toUpperCase();
+    const targetIsRootScope = (
+      targetNodeIdKey === 'root'
+      || targetNodeIdKey === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+      || targetNodeIdKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    );
+    if (!targetGlobalMeta || (!targetPath && !targetIsRootScope)) {
+      sideNavMemberStatusCachedSignature = cacheSignature;
+      sideNavMemberStatusCachedSnapshot = fallbackSnapshot;
+      return fallbackSnapshot;
+    }
+
+    const leftPrefix = `${targetPath}L`;
+    const rightPrefix = `${targetPath}R`;
+    const rootKey = normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID);
+    const adminKey = normalizeCredentialValue(ADMIN_ROOT_USERNAME);
+    const targetUsernameKey = normalizeCredentialValue(
+      safeText(targetNode?.username || targetNode?.memberCode || '').replace(/^@+/, ''),
+    );
+    const resolvedGlobalNodes = state.adapter.resolveVisibleNodes(getGlobalUniverseOptions());
+    const globalNodes = Array.isArray(resolvedGlobalNodes) ? resolvedGlobalNodes : [];
+    const nodePathById = new Map();
+    for (const globalNode of globalNodes) {
+      const nodeId = safeText(globalNode?.id);
+      if (!nodeId) {
+        continue;
+      }
+      const nodePath = safeText(globalNode?.path).toUpperCase();
+      if (nodePath) {
+        nodePathById.set(nodeId, nodePath);
+      }
+    }
+
+    let totalMembers = 0;
+    let totalActiveMembers = 0;
+    let leftActiveMembers = 0;
+    let rightActiveMembers = 0;
+    let leftDirectSponsors = 0;
+    let rightDirectSponsors = 0;
+    let totalDirectSponsors = 0;
+
+    for (const nodeInput of safeNodes) {
+      const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+      if (!node || isInfinityBuilderPlaceholderNode(node)) {
+        continue;
+      }
+      const nodeId = safeText(node?.id);
+      const nodeIdKey = normalizeCredentialValue(nodeId);
+      if (
+        !nodeIdKey
+        || nodeIdKey === 'root'
+        || nodeIdKey === rootKey
+        || nodeIdKey === adminKey
+        || (targetNodeIdKey && nodeIdKey === targetNodeIdKey)
+      ) {
+        continue;
+      }
+
+      const nodePath = safeText(nodePathById.get(nodeId)).toUpperCase();
+      const isLeftMember = Boolean(leftPrefix && nodePath.startsWith(leftPrefix));
+      const isRightMember = Boolean(rightPrefix && nodePath.startsWith(rightPrefix));
+      if (!isLeftMember && !isRightMember) {
+        continue;
+      }
+
+      totalMembers += 1;
+      if (resolveNodeActivityState(node)) {
+        totalActiveMembers += 1;
+        if (isLeftMember) {
+          leftActiveMembers += 1;
+        } else if (isRightMember) {
+          rightActiveMembers += 1;
+        }
+      }
+
+      const sponsorNodeIdKey = normalizeCredentialValue(
+        safeText(node?.sponsorId || node?.globalSponsorId || node?.sourceSponsorId || node?.source_sponsor_id || ''),
+      );
+      const sponsorUsernameKey = normalizeCredentialValue(
+        safeText(node?.sponsorUsername || node?.sponsor_username || '').replace(/^@+/, ''),
+      );
+      const isDirectBySponsorId = Boolean(
+        targetNodeIdKey
+        && sponsorNodeIdKey
+        && sponsorNodeIdKey === targetNodeIdKey,
+      );
+      const isDirectBySponsorUsername = Boolean(
+        targetUsernameKey
+        && sponsorUsernameKey
+        && sponsorUsernameKey === targetUsernameKey,
+      );
+      if (!isDirectBySponsorId && !isDirectBySponsorUsername) {
+        continue;
+      }
+      totalDirectSponsors += 1;
+      if (isLeftMember) {
+        leftDirectSponsors += 1;
+      } else if (isRightMember) {
+        rightDirectSponsors += 1;
+      }
+    }
+
+    nextSnapshot = {
+      targetNodeId,
+      totalMembers,
+      totalActiveMembers,
+      leftActiveMembers,
+      rightActiveMembers,
+      leftDirectSponsors,
+      rightDirectSponsors,
+      totalDirectSponsors,
+    };
+  } catch {
+    nextSnapshot = fallbackSnapshot;
+  }
+
+  sideNavMemberStatusCachedSignature = cacheSignature;
+  sideNavMemberStatusCachedSnapshot = nextSnapshot;
+  return nextSnapshot;
+}
+
 function resolvePinnedPlaces(limit = 8) {
   const safeLimit = Math.max(1, Math.floor(safeNumber(limit, 8)));
   const favoritesState = getSideNavFavoritesState();
@@ -13531,12 +13801,13 @@ function resolvePinnedPlaces(limit = 8) {
 
   const places = pinnedIds.map((nodeId) => {
     const node = resolveNodeById(nodeId);
+    const identity = resolveTreeNextNodePublicIdentity(node, { fallbackName: nodeId });
     const volumes = resolveNodeLegVolumes(nodeId);
     return {
       key: nodeId,
       nodeId,
-      label: truncateText(safeText(node?.name || nodeId), 18),
-      initials: resolveInitials(safeText(node?.name || nodeId)),
+      label: truncateText(safeText(identity.name || node?.name || nodeId), 18),
+      initials: safeText(identity.initials || resolveInitials(safeText(node?.name || nodeId))),
       subtitle: formatCompactVolumeValue(volumes.totalVolume),
     };
   });
@@ -14236,8 +14507,10 @@ function drawResolvedAvatarCircle(cx, cy, radius, nodeId, options = {}) {
   const nodeRecord = options?.node && typeof options.node === 'object'
     ? options.node
     : resolveNodeById(safeNodeId);
+  const shouldMaskIdentity = shouldApplyTreeNextNodePrivacyMask(nodeRecord);
+  const shouldDisablePhoto = disablePhoto || shouldMaskIdentity;
   const photoUrl = resolveNodeAvatarPhotoUrl(nodeRecord);
-  if (!disablePhoto && photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
+  if (!shouldDisablePhoto && photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
     const sheen = createNodeAvatarSheen(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), options);
     context.beginPath();
     context.arc(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), 0, Math.PI * 2);
@@ -14249,6 +14522,9 @@ function drawResolvedAvatarCircle(cx, cy, radius, nodeId, options = {}) {
   fillNodeAvatarCircle(cx, cy, radius, safeNodeId, {
     ...options,
     node: nodeRecord,
+    disablePhoto: shouldDisablePhoto,
+    ignoreSourcePalette: shouldMaskIdentity ? true : options?.ignoreSourcePalette,
+    variant: shouldMaskIdentity ? 'inactive' : options?.variant,
   });
   return { usedPhoto: false };
 }
@@ -16696,8 +16972,47 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     }
   }
 
+  // Track sponsor-graph ownership (direct + downline by sponsor), independent from placement subtree.
+  const sponsoredChildrenBySponsorId = new Map();
+  for (const [candidateNodeId, candidateNodeInput] of nodeById.entries()) {
+    const candidateNode = candidateNodeInput && typeof candidateNodeInput === 'object'
+      ? candidateNodeInput
+      : null;
+    if (!candidateNode) {
+      continue;
+    }
+    const candidateSponsorId = safeText(candidateNode?.sponsorId);
+    if (!candidateSponsorId || candidateSponsorId === candidateNodeId || !nodeById.has(candidateSponsorId)) {
+      continue;
+    }
+    if (!sponsoredChildrenBySponsorId.has(candidateSponsorId)) {
+      sponsoredChildrenBySponsorId.set(candidateSponsorId, []);
+    }
+    sponsoredChildrenBySponsorId.get(candidateSponsorId).push(candidateNodeId);
+  }
+
+  const viewerSponsoredOrganizationNodeIds = new Set();
+  const sponsorQueue = [viewerNodeId];
+  while (sponsorQueue.length > 0) {
+    const nextSponsorId = safeText(sponsorQueue.shift());
+    if (!nextSponsorId) {
+      continue;
+    }
+    const sponsoredChildIds = sponsoredChildrenBySponsorId.get(nextSponsorId) || [];
+    for (const sponsoredChildIdInput of sponsoredChildIds) {
+      const sponsoredChildId = safeText(sponsoredChildIdInput);
+      if (!sponsoredChildId || viewerSponsoredOrganizationNodeIds.has(sponsoredChildId) || !nodeById.has(sponsoredChildId)) {
+        continue;
+      }
+      viewerSponsoredOrganizationNodeIds.add(sponsoredChildId);
+      sponsorQueue.push(sponsoredChildId);
+    }
+  }
+
   const sourceRootNode = nodeById.get(viewerNodeId) || nodeById.get(LIVE_TREE_GLOBAL_ROOT_ID) || null;
-  const scopedNodes = [createTreeNextLiveScopedRootNode(sourceRootNode)];
+  const scopedNodeById = new Map();
+  scopedNodeById.set('root', createTreeNextLiveScopedRootNode(sourceRootNode));
+  const externalSpilloverSourceNodeIds = new Set();
 
   for (const includedNodeId of includedNodeIds) {
     if (includedNodeId === viewerNodeId || !nodeById.has(includedNodeId)) {
@@ -16709,13 +17024,22 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
       ? 'root'
       : (includedNodeIds.has(sourceParentId) ? sourceParentId : 'root');
     const sourceSponsorId = safeText(sourceNode?.sponsorId);
+    const sourceWasSpillover = Boolean(
+      sourceNode?.isSpillover
+      || sourceNode?.is_spillover
+      || sourceNode?.placementLeg === 'spillover'
+      || sourceNode?.placement_leg === 'spillover'
+      || sourceNode?.sponsorLeg === 'spillover'
+      || sourceNode?.sponsor_leg === 'spillover',
+    );
+    const isViewerOwnedSponsorBranchNode = viewerSponsoredOrganizationNodeIds.has(includedNodeId);
     let mappedSponsorId = '';
     if (sourceSponsorId === viewerNodeId) {
       mappedSponsorId = 'root';
     } else if (sourceSponsorId && includedNodeIds.has(sourceSponsorId)) {
       mappedSponsorId = sourceSponsorId;
-    } else if (sourceNode?.isSpillover) {
-      mappedSponsorId = 'root';
+    } else if (sourceWasSpillover) {
+      mappedSponsorId = '';
     } else {
       mappedSponsorId = mappedParentId || 'root';
     }
@@ -16723,21 +17047,90 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     const scopedNode = {
       ...sourceNode,
       parent: mappedParentId,
+      placementParentId: mappedParentId,
+      placementSide: normalizeBinarySide(sourceNode?.side || sourceNode?.placementSide),
       sponsorId: mappedSponsorId,
+      globalSponsorId: mappedSponsorId,
       sourceSponsorId,
+      isViewerOwnedSponsorBranchNode,
     };
     scopedNode.sponsorLeg = scopedNode.sponsorId === scopedNode.parent
       ? normalizeBinarySide(scopedNode.side)
       : '';
-    scopedNode.isSpillover = Boolean(
+    scopedNode.isSpillover = sourceWasSpillover || Boolean(
       scopedNode.sponsorId
       && scopedNode.parent
       && scopedNode.sponsorId !== scopedNode.parent,
     );
-    scopedNodes.push(scopedNode);
+    if (
+      resolveTreeNextSpilloverOutsideScopedOrganizationSource(sourceNode, viewerNodeId, includedNodeIds)
+      && !isViewerOwnedSponsorBranchNode
+    ) {
+      externalSpilloverSourceNodeIds.add(includedNodeId);
+    }
+    scopedNodeById.set(includedNodeId, scopedNode);
   }
 
-  const normalizedScopedNodes = rebuildTreeNextLiveChildReferences(scopedNodes);
+  const spilloverRootNodeIds = Array.from(externalSpilloverSourceNodeIds)
+    .filter((nodeId) => {
+      const node = scopedNodeById.get(nodeId);
+      if (!node) {
+        return false;
+      }
+      const parentId = safeText(node?.placementParentId || node?.parent || '');
+      return !parentId || !externalSpilloverSourceNodeIds.has(parentId);
+    });
+  const anonymizedNodeIdSet = new Set();
+  const anonymizedQueue = spilloverRootNodeIds.slice();
+  while (anonymizedQueue.length > 0) {
+    const nextNodeId = safeText(anonymizedQueue.shift());
+    if (!nextNodeId || anonymizedNodeIdSet.has(nextNodeId) || !scopedNodeById.has(nextNodeId)) {
+      continue;
+    }
+    const nextNode = scopedNodeById.get(nextNodeId);
+    if (!Boolean(nextNode?.isViewerOwnedSponsorBranchNode)) {
+      anonymizedNodeIdSet.add(nextNodeId);
+    }
+    const leftChildId = safeText(nextNode?.leftChildId);
+    const rightChildId = safeText(nextNode?.rightChildId);
+    if (leftChildId && scopedNodeById.has(leftChildId)) {
+      anonymizedQueue.push(leftChildId);
+    }
+    if (rightChildId && scopedNodeById.has(rightChildId)) {
+      anonymizedQueue.push(rightChildId);
+    }
+  }
+
+  const anonymizedNodeIds = Array.from(anonymizedNodeIdSet)
+    .sort((leftNodeId, rightNodeId) => {
+      const leftAddedAt = resolveInfinityBuilderNodeAddedAtMs(scopedNodeById.get(leftNodeId));
+      const rightAddedAt = resolveInfinityBuilderNodeAddedAtMs(scopedNodeById.get(rightNodeId));
+      if (leftAddedAt !== rightAddedAt) {
+        return leftAddedAt - rightAddedAt;
+      }
+      return leftNodeId.localeCompare(rightNodeId);
+    });
+  let spilloverDirectCount = 0;
+  let spilloverNetworkCount = 0;
+  for (const anonymizedNodeId of anonymizedNodeIds) {
+    const anonymizedNode = scopedNodeById.get(anonymizedNodeId);
+    if (!anonymizedNode) {
+      continue;
+    }
+    const isDirectPlacement = safeText(anonymizedNode?.placementParentId || anonymizedNode?.parent || '') === 'root';
+    if (isDirectPlacement) {
+      spilloverDirectCount += 1;
+      anonymizedNode.name = `Spillover Direct ${spilloverDirectCount}`;
+      anonymizedNode.memberCode = `spillover-${String(spilloverDirectCount).padStart(3, '0')}`;
+    } else {
+      spilloverNetworkCount += 1;
+      anonymizedNode.name = `Spillover Network ${spilloverNetworkCount}`;
+      anonymizedNode.memberCode = `spillover-network-${String(spilloverNetworkCount).padStart(3, '0')}`;
+    }
+    anonymizedNode.countryFlag = '';
+  }
+
+  const normalizedScopedNodes = rebuildTreeNextLiveChildReferences(Array.from(scopedNodeById.values()));
   if (normalizedScopedNodes.length > 0) {
     return normalizedScopedNodes;
   }
@@ -17477,16 +17870,20 @@ function drawFavoriteNodeAvatar(cx, cy, radius, nodeId, initials, hovered = fals
   const iconRadius = hovered ? (safeRadius * 1.03) : safeRadius;
   const safeNodeId = safeText(nodeId);
   const nodeRecord = resolveNodeById(safeNodeId);
+  const identity = resolveTreeNextNodePublicIdentity(nodeRecord, { fallbackName: safeNodeId || 'Member' });
 
   const avatarRender = drawResolvedAvatarCircle(cx, cy, iconRadius, safeNodeId, {
     node: nodeRecord,
     variant: 'auto',
+    disablePhoto: identity.isMasked,
+    ignoreSourcePalette: identity.isMasked,
     alpha: 0.98,
     sheenAlpha: hovered ? 0.22 : 0.18,
   });
 
   if (!avatarRender.usedPhoto) {
-    drawText(initials, cx, cy + 0.5, {
+    const displayInitials = safeText(identity.initials || initials || '?');
+    drawText(displayInitials, cx, cy + 0.5, {
       size: Math.max(11, Math.floor(iconRadius * 0.54)),
       weight: 700,
       color: '#F7FAFF',
@@ -17924,6 +18321,12 @@ function resolveAvatarCssBackgroundForNode(nodeId) {
     return resolveSessionAvatarCssBackground();
   }
   const nodeRecord = resolveNodeById(safeNodeId);
+  if (shouldApplyTreeNextNodePrivacyMask(nodeRecord)) {
+    return {
+      image: resolveNodeAvatarCssGradient(`masked-${safeNodeId || 'member'}`),
+      isPhoto: false,
+    };
+  }
   const photoUrl = resolveNodeAvatarPhotoUrl(nodeRecord);
   if (photoUrl) {
     return {
@@ -17970,10 +18373,18 @@ function resolveSearchResultsForQuery(query, limit = SIDE_NAV_SEARCH_RESULT_MAX)
     if (!nodeId) {
       continue;
     }
-    const name = safeText(candidate?.name || nodeId) || nodeId;
-    const username = safeText(candidate?.username);
-    const rank = safeText(candidate?.rank);
-    const title = safeText(candidate?.title);
+    const identity = resolveTreeNextNodePublicIdentity(candidate, { fallbackName: nodeId });
+    if (identity.isMasked) {
+      const maskedNodeSearchKey = normalizeCredentialValue(nodeId);
+      const maskedVisibleKey = normalizeCredentialValue(TREE_NEXT_PRIVACY_ANONYMOUS_LABEL);
+      if (!maskedNodeSearchKey.includes(queryLower) && !maskedVisibleKey.includes(queryLower)) {
+        continue;
+      }
+    }
+    const name = safeText(identity.name || candidate?.name || nodeId) || nodeId;
+    const username = identity.isMasked ? '' : safeText(identity.username || candidate?.username || '');
+    const rank = identity.isMasked ? '' : safeText(candidate?.rank);
+    const title = identity.isMasked ? '' : safeText(candidate?.title);
     const subtitleParts = [];
     if (username) {
       subtitleParts.push(`@${username}`);
@@ -17985,15 +18396,16 @@ function resolveSearchResultsForQuery(query, limit = SIDE_NAV_SEARCH_RESULT_MAX)
       subtitleParts.push(title);
     }
     if (!subtitleParts.length) {
-      subtitleParts.push(`ID: ${nodeId}`);
+      subtitleParts.push(identity.isMasked ? 'Spillover node (private)' : `ID: ${nodeId}`);
     }
     ranked.push({
       id: nodeId,
       name,
-      initials: resolveInitials(name),
+      initials: safeText(identity.initials || resolveInitials(name)),
       username,
       rank,
       title,
+      isMasked: identity.isMasked,
       subtitle: subtitleParts.join(' · '),
       depth: Math.max(0, Math.floor(safeNumber(candidate?.depth, 0))),
       score: resolveSearchResultScore(candidate, queryLower),
@@ -18559,7 +18971,12 @@ function renderSearchDropdown(dropdown) {
     avatarCore.style.height = '28px';
     avatarCore.style.borderRadius = '999px';
     avatarCore.style.boxSizing = 'border-box';
-    const avatarBackground = resolveAvatarCssBackgroundForNode(entry.id);
+    const avatarBackground = entry.isMasked
+      ? {
+        image: resolveNodeAvatarCssGradient(`masked-${safeText(entry.id) || 'member'}`),
+        isPhoto: false,
+      }
+      : resolveAvatarCssBackgroundForNode(entry.id);
     avatarCore.style.backgroundImage = avatarBackground.image;
     avatarCore.style.backgroundSize = 'cover';
     avatarCore.style.backgroundPosition = 'center';
@@ -18592,9 +19009,11 @@ function renderSearchDropdown(dropdown) {
     content.style.flex = '1 1 auto';
 
     const title = document.createElement('div');
-    const titleText = entry.username
-      ? `${truncateText(entry.name, 22)} (@${truncateText(entry.username, 18)})`
-      : truncateText(entry.name, 28);
+    const titleText = entry.isMasked
+      ? TREE_NEXT_PRIVACY_ANONYMOUS_LABEL
+      : (entry.username
+        ? `${truncateText(entry.name, 22)} (@${truncateText(entry.username, 18)})`
+        : truncateText(entry.name, 28));
     title.textContent = titleText;
     title.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
     title.style.fontSize = '12px';
@@ -18811,7 +19230,8 @@ function resolveUniverseCrumbLabel(nodeId) {
     return `Node ${nodeMatch[1]}`;
   }
   const globalMeta = state.adapter.resolveNodeMetrics(safeNodeId, getGlobalUniverseOptions());
-  const resolvedName = safeText(globalMeta?.node?.name);
+  const identity = resolveTreeNextNodePublicIdentity(globalMeta?.node, { fallbackName: safeNodeId });
+  const resolvedName = safeText(identity.name || globalMeta?.node?.name);
   if (resolvedName) {
     return truncateText(resolvedName, 12);
   }
@@ -18918,7 +19338,7 @@ function drawSideNav(layout) {
     const panelHeightScale = clamp((panel.height - 620) / 240, 0, 1);
     const favoritesCardHeight = Math.round(136 + (32 * panelHeightScale));
     const favoritesToDetailsGap = Math.round(4 + (8 * panelHeightScale));
-    const timerCardHeight = 124;
+    const memberStatusCardHeight = 124;
 
     let y = panel.y + topPadding;
     const topControlButtonSize = 36;
@@ -19171,8 +19591,8 @@ function drawSideNav(layout) {
     context.restore();
 
     y += favoritesCardHeight + favoritesToDetailsGap;
-    const timerCardY = panel.y + panel.height - topPadding - timerCardHeight;
-    const detailsCardHeight = Math.max(120, timerCardY - y - gap);
+    const memberStatusCardY = panel.y + panel.height - topPadding - memberStatusCardHeight;
+    const detailsCardHeight = Math.max(120, memberStatusCardY - y - gap);
     const detailsBottomY = y + detailsCardHeight;
     const detailInsetX = slotX + 16;
     const detailContentWidth = slotWidth - 32;
@@ -19211,16 +19631,37 @@ function drawSideNav(layout) {
       });
     } else {
       const volumeMetrics = resolveNodeLegVolumes(selectedNodeId);
-      const displayName = truncateText(safeText(selectedNode.name || selectedNode.id), 24);
-      const username = truncateText(safeText(selectedNode.username || selectedNode.id), 24);
-      const nodeInitials = resolveInitials(safeText(selectedNode.name || selectedNode.id));
+      const selectedIdentity = resolveTreeNextNodePublicIdentity(selectedNode, {
+        fallbackName: safeText(selectedNode.id || selectedNodeId || 'Member'),
+      });
+      const shouldMaskSelectedNodeDetails = selectedIdentity.isMasked;
+      const displayName = truncateText(
+        safeText(selectedIdentity.name || selectedNode.name || selectedNode.id),
+        24,
+      );
+      const usernameHandle = truncateText(
+        safeText(
+          shouldMaskSelectedNodeDetails
+            ? TREE_NEXT_PRIVACY_HIDDEN_LABEL
+            : (selectedIdentity.username || selectedNode.username || selectedNode.id),
+        ),
+        24,
+      );
+      const usernameLine = shouldMaskSelectedNodeDetails
+        ? TREE_NEXT_PRIVACY_HIDDEN_LABEL
+        : `@${usernameHandle}`;
+      const nodeInitials = safeText(
+        selectedIdentity.initials || resolveInitials(safeText(selectedNode.name || selectedNode.id)),
+      );
       const selectedAvatarNodeId = safeText(selectedNode.id || selectedNodeId);
       const selectedBaseAvatarVariant = isSessionAvatarNodeId(selectedAvatarNodeId)
         ? 'auto'
         : (selectedAvatarNodeId.toLowerCase() === 'root' ? 'root' : 'auto');
       const isDirectSponsorNode = isNodePersonallyEnrolledBySession(selectedNode);
       const selectedAvatarVariant = isDirectSponsorNode ? 'direct' : selectedBaseAvatarVariant;
-      const rankValue = truncateText(safeText(selectedNode.rank || '-'), 16) || '-';
+      const rankValue = shouldMaskSelectedNodeDetails
+        ? '-'
+        : (truncateText(safeText(selectedNode.rank || '-'), 16) || '-');
       const isActiveAccount = resolveNodeActivityState(selectedNode);
       const activityDotColor = isActiveAccount ? '#30C655' : '#B5B5B5';
       const selectedAvatarRenderOptions = isActiveAccount
@@ -19238,7 +19679,9 @@ function drawSideNav(layout) {
           disablePhoto: true,
           ignoreSourcePalette: true,
         };
-      const rankAndTitleIconPaths = resolveNodeDetailRankAndTitleIcons(selectedNode).slice(0, 2);
+      const rankAndTitleIconPaths = shouldMaskSelectedNodeDetails
+        ? []
+        : resolveNodeDetailRankAndTitleIcons(selectedNode).slice(0, 2);
 
       const avatarRadius = Math.round(34 + (20 * detailVerticalScale));
       // Keep head space under "Details", but compress aggressively on shorter laptop heights.
@@ -19249,7 +19692,7 @@ function drawSideNav(layout) {
         + ((preferredHeaderToAvatarTopGap - compactHeaderToAvatarTopGap) * detailVerticalScale),
       );
       const avatarCenterY = detailsHeadingY + headerToAvatarTopGap + avatarRadius;
-      const nodePhotoUrl = selectedAvatarRenderOptions.disablePhoto === true
+      const nodePhotoUrl = (selectedAvatarRenderOptions.disablePhoto === true || shouldMaskSelectedNodeDetails)
         ? ''
         : resolveNodeAvatarPhotoUrl(selectedNode);
       let usedPhotoAvatar = false;
@@ -19304,7 +19747,7 @@ function drawSideNav(layout) {
         align: 'center',
         maxWidth: detailContentWidth,
       });
-      drawText(`@${username}`, detailCenterX, usernameY, {
+      drawText(usernameLine, detailCenterX, usernameY, {
         size: detailSecondaryTextSize,
         weight: 500,
         family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
@@ -19440,11 +19883,15 @@ function drawSideNav(layout) {
         const isOutlineButton = safeText(entry.style).toLowerCase() === 'outline';
         const nodeId = safeText(entry.nodeId);
         const relationNode = resolveNodeById(nodeId);
-        const buttonEnabled = Boolean(nodeId);
+        const relationIdentity = resolveTreeNextNodePublicIdentity(relationNode, { fallbackName: nodeId || '-' });
+        const relationLabelMasked = shouldMaskSelectedNodeDetails || relationIdentity.isMasked;
+        const buttonEnabled = Boolean(nodeId) && !relationLabelMasked;
         const customLabel = safeText(entry.label);
-        const buttonLabel = customLabel || (buttonEnabled
-          ? truncateText(safeText(relationNode?.name || relationNode?.id || nodeId), 24)
-          : '-');
+        const buttonLabel = relationLabelMasked
+          ? (nodeId ? TREE_NEXT_PRIVACY_ANONYMOUS_LABEL : '-')
+          : (customLabel || (buttonEnabled
+            ? truncateText(safeText(relationIdentity.name || relationNode?.name || relationNode?.id || nodeId), 24)
+            : '-'));
         const buttonFill = isOutlineButton
           ? '#FFFFFF'
           : (buttonEnabled ? '#D0E6FF' : '#E1EBF8');
@@ -19495,7 +19942,9 @@ function drawSideNav(layout) {
           align: 'center',
           maxWidth: detailContentWidth - 84,
         });
-        const buttonAction = safeText(entry.action) || (nodeId ? `node:focus:${nodeId}` : '');
+        const buttonAction = buttonEnabled
+          ? (safeText(entry.action) || (nodeId ? `node:focus:${nodeId}` : ''))
+          : '';
         if (buttonEnabled && buttonAction) {
           registerButton({
             id: `side-nav-relation-${entry.id}`,
@@ -19509,36 +19958,95 @@ function drawSideNav(layout) {
       });
     }
 
-    fillRoundedRect(context, slotX, timerCardY, slotWidth, timerCardHeight, 18, '#F6F7FA');
-    strokeRoundedRect(context, slotX + 0.5, timerCardY + 0.5, slotWidth - 1, timerCardHeight - 1, 18, '#E4E7ED');
-    const cutoffSnapshot = resolveServerCutoffSnapshot();
-    drawText('Server Timer', slotX + 14, timerCardY + 16, {
-      size: 10,
-      weight: 700,
-      color: '#656C7D',
-    });
-    drawText(cutoffSnapshot.serverTimeLabel, slotX + 14, timerCardY + 34, {
-      size: 11,
-      weight: 500,
-      color: '#3E4658',
-      maxWidth: slotWidth - 28,
-    });
-    drawText(cutoffSnapshot.cutoffLabel, slotX + 14, timerCardY + 50, {
-      size: 10,
-      weight: 600,
-      color: '#70798B',
-      maxWidth: slotWidth - 28,
-    });
-    drawText('Next cut-off in', slotX + 14, timerCardY + 74, {
+    fillRoundedRect(context, slotX, memberStatusCardY, slotWidth, memberStatusCardHeight, 18, '#FFFFFF');
+    strokeRoundedRect(context, slotX + 0.5, memberStatusCardY + 0.5, slotWidth - 1, memberStatusCardHeight - 1, 18, '#E4E7ED');
+    const selectedNodeForStatus = selectedNode && typeof selectedNode === 'object'
+      ? selectedNode
+      : null;
+    const defaultNodeForStatus = resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root') || null;
+    const statusNode = selectedNodeForStatus || defaultNodeForStatus;
+    const memberStatusSnapshot = resolveSideNavMemberStatusSnapshot(statusNode);
+    const memberStatusLabelX = slotX + 14;
+    const memberStatusValueX = slotX + slotWidth - 14;
+
+    drawText('Organization Members', memberStatusLabelX, memberStatusCardY + 24, {
       size: 10,
       weight: 600,
       color: '#70798B',
     });
-    drawText(cutoffSnapshot.countdownLabel, slotX + 14, timerCardY + 94, {
-      size: 16,
+    drawText(formatInteger(memberStatusSnapshot.totalMembers, 0), memberStatusValueX, memberStatusCardY + 24, {
+      size: 12,
       weight: 700,
       color: '#2F3645',
+      align: 'right',
     });
+    line(
+      context,
+      memberStatusLabelX,
+      memberStatusCardY + 32,
+      slotX + slotWidth - 14,
+      memberStatusCardY + 32,
+      '#E1E4EA',
+      1,
+    );
+
+    drawText('Active Members', memberStatusLabelX, memberStatusCardY + 51, {
+      size: 10,
+      weight: 600,
+      color: '#70798B',
+    });
+    drawText(
+      `L ${formatInteger(memberStatusSnapshot.leftActiveMembers, 0)} | R ${formatInteger(memberStatusSnapshot.rightActiveMembers, 0)}`,
+      memberStatusValueX,
+      memberStatusCardY + 51,
+      {
+        size: 11,
+        weight: 600,
+        color: '#3E4658',
+        align: 'right',
+      },
+    );
+
+    drawText('Direct Sponsors', memberStatusLabelX, memberStatusCardY + 74, {
+      size: 10,
+      weight: 600,
+      color: '#70798B',
+    });
+    drawText(
+      `L ${formatInteger(memberStatusSnapshot.leftDirectSponsors, 0)} | R ${formatInteger(memberStatusSnapshot.rightDirectSponsors, 0)}`,
+      memberStatusValueX,
+      memberStatusCardY + 74,
+      {
+        size: 11,
+        weight: 600,
+        color: '#3E4658',
+        align: 'right',
+      },
+    );
+
+    drawText(
+      `Total Direct Sponsors: ${formatInteger(memberStatusSnapshot.totalDirectSponsors, 0)}`,
+      memberStatusLabelX,
+      memberStatusCardY + 97,
+      {
+        size: 10,
+        weight: 600,
+        color: '#70798B',
+        maxWidth: slotWidth - 28,
+      },
+    );
+    drawText(
+      `Total Active Members: ${formatInteger(memberStatusSnapshot.totalActiveMembers, 0)}`,
+      memberStatusValueX,
+      memberStatusCardY + 97,
+      {
+        size: 10,
+        weight: 600,
+        color: '#70798B',
+        align: 'right',
+        maxWidth: slotWidth - 28,
+      },
+    );
 
   } finally {
     if (applyPanelReveal) {
@@ -20495,6 +21003,10 @@ function drawNode(node) {
   const nodeId = safeText(node.id);
   const sourceNode = node?.node && typeof node.node === 'object' ? node.node : null;
   const nodeRecord = sourceNode || node;
+  const nodeIdentity = resolveTreeNextNodePublicIdentity(nodeRecord, {
+    fallbackName: safeText(node?.id || sourceNode?.id || 'Member'),
+  });
+  const shouldMaskNodeIdentity = nodeIdentity.isMasked;
   const isLegacyTierEmptySlot = Boolean(
     node?.isLegacyTierEmptySlot
     || sourceNode?.isLegacyTierEmptySlot
@@ -20514,7 +21026,7 @@ function drawNode(node) {
   const nodeVariant = isLegacyTierEmptySlot
     ? 'inactive'
     : (isPersonallyEnrolledNode ? 'direct' : baseNodeVariant);
-  const avatarRenderOptions = isLegacyTierEmptySlot
+  const avatarRenderOptions = (isLegacyTierEmptySlot || shouldMaskNodeIdentity)
     ? {
       variant: 'inactive',
       disablePhoto: true,
@@ -20618,7 +21130,7 @@ function drawNode(node) {
     return;
   }
 
-  drawText(resolveInitials(node.node?.name), node.x, node.y + 0.5, {
+  drawText(safeText(nodeIdentity.initials || resolveInitials(node.node?.name)), node.x, node.y + 0.5, {
     size: Math.max(7, Math.floor(innerR * 0.56)),
     weight: 700,
     color: '#f8fbff',
@@ -20651,29 +21163,20 @@ function resolveUniverseBreadcrumbChipNode(crumbId = '') {
       initials: resolveInitials(safeCrumbId),
     };
   }
-  const usernameRaw = safeText(
-    nodeRecord?.username
-    || nodeRecord?.memberCode
-    || nodeRecord?.member_code
-    || '',
-  ).replace(/^@+/, '');
-  const fallbackName = safeText(
-    nodeRecord?.name
-    || nodeRecord?.username
-    || nodeRecord?.memberCode
-    || nodeRecord?.member_code
-    || nodeRecord?.id
-    || safeCrumbId,
-  );
-  const usernameLabel = usernameRaw
-    ? `@${truncateText(usernameRaw, 14)}`
-    : truncateText(fallbackName, 14);
+  const identity = resolveTreeNextNodePublicIdentity(nodeRecord, { fallbackName: safeCrumbId });
+  const usernameRaw = safeText(identity.username || '').replace(/^@+/, '');
+  const fallbackName = safeText(identity.name || safeCrumbId);
+  const usernameLabel = identity.isMasked
+    ? TREE_NEXT_PRIVACY_ANONYMOUS_LABEL
+    : (usernameRaw
+      ? `@${truncateText(usernameRaw, 14)}`
+      : truncateText(fallbackName, 14));
   return {
     id: safeCrumbId,
     node: nodeRecord,
     username: usernameRaw,
     usernameLabel,
-    initials: resolveInitials(fallbackName),
+    initials: safeText(identity.initials || resolveInitials(fallbackName)),
   };
 }
 

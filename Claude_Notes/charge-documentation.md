@@ -29072,3 +29072,117 @@ Validation:
 - node --check backend/controllers/auth.controller.js passed.
 - node --check backend/routes/auth.routes.js passed.
 - node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Binary Tree Next Left Panel Member Status Card + Server Time Removal
+
+Summary:
+- Repurposed the previous left-panel Server Timer card into a Member Status card.
+- Applied follow-up direction to remove server-time text from the left panel entirely.
+
+Technical details:
+- Added cache-backed helper `resolveSideNavMemberStatusSnapshot(...)` in `binary-tree-next-app.mjs`.
+- Snapshot resolver computes per-home-organization metrics from the current global tree snapshot:
+  - `totalMembers`
+  - `leftActiveMembers` / `rightActiveMembers`
+  - `leftDirectSponsors` / `rightDirectSponsors`
+  - `totalActiveMembers` / `totalDirectSponsors`.
+- Replaced the left panel bottom card rendering block to show Member Status values instead of cutoff/server-time values.
+- Removed compact server-time text that was temporarily moved above Favorites, keeping the left panel focused on Member Status only.
+
+Files updated:
+- binary-tree-next-app.mjs
+
+Validation:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Member Status Card Follow-up (Remove Title + White Surface + Node-Context Data)
+
+Summary:
+- Completed follow-up refinements to the Binary Tree Next left-panel member-status card.
+
+Technical details:
+- Removed the Member Status title text line from card rendering.
+- Changed member-status card background fill from #F6F7FA to #FFFFFF.
+- Updated resolver usage so the card computes from selected node first, then falls back to preferred home/root node.
+- Existing metric resolver continues to compute real snapshot-backed values:
+  - organization members
+  - active members left/right
+  - direct sponsors left/right
+  - total active and total direct sponsor counts.
+
+Files updated:
+- binary-tree-next-app.mjs
+
+Validation:
+- node --check binary-tree-next-app.mjs passed.
+### Addendum (2026-04-17) - Member Status Self-Node Bugfix (Root Path Handling)
+
+Summary:
+- Fixed an edge case where member-status values returned 0 when selecting the viewer/home node.
+
+Root cause:
+- Resolver treated empty `globalPath` (root scope) as invalid and returned fallback snapshot.
+
+Technical details:
+- Updated `resolveSideNavMemberStatusSnapshot(...)` to allow empty path when target scope is root/admin-root/global-root context.
+- Added root-scope guard (`targetIsRootScope`) and adjusted fallback condition to preserve valid root-context computation.
+
+Files updated:
+- binary-tree-next-app.mjs
+
+Validation:
+- node --check binary-tree-next-app.mjs passed.
+## Follow-up Update (2026-04-17) - Binary Tree Next Spillover Anonymous Privacy Gate
+
+- Completed:
+  - ported legacy-style spillover anonymity gate into Binary Tree Next identity rendering flow.
+  - added shared privacy helpers for spillover/anonymous identity detection.
+  - masked selected-node Details card identity for spillover nodes (`Anonymous` + `Hidden` handle + hidden rank/title icons).
+  - masked parent/sponsor relation labels and disabled masked relation focus actions.
+  - masked spillover identity in favorites, search dropdown, breadcrumb links/chips, and avatar initials.
+  - disabled photo-avatar rendering for masked spillover identities across left-panel/detail/search/canvas avatar paths.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Known limitations:
+  - spillover node metrics (BV/cycle values) remain visible in Details card; this pass specifically masks identity fields.
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+### Addendum (2026-04-17) - Binary Tree Next Spillover Gate Aligned to Legacy Logic
+
+Summary:
+- Adjusted Binary Tree Next anonymous/spillover behavior to use the original legacy privacy rule from `binary-tree.mjs`.
+
+Technical details:
+- Replaced current outside-spillover detection with the legacy condition (`isSpillover && placementParentId && !sponsorId`).
+- Removed viewer-context sponsor masking helpers introduced in the prior pass.
+- Updated scoped-tree mapping to clear mapped `sponsorId` for outside-source spillovers and keep spillover flag identity intact.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+
+### Addendum (2026-04-17) - Binary Tree Next Spillover Ownership Logic Applied
+
+Summary:
+- Implemented old-tree ownership-aware spillover privacy behavior in Binary Tree Next.
+
+Technical details:
+- Built sponsor-graph ownership traversal for viewer-sponsored organization nodes.
+- Marked external spillover sources using original sponsor-id vs scoped inclusion checks.
+- Added scoped node ownership marker (`isViewerOwnedSponsorBranchNode`) and used it to avoid masking owner-sponsored branches.
+- Added legacy-style anonymized branch relabeling for true external spillover trees.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.

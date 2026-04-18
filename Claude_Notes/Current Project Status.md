@@ -16345,3 +16345,105 @@ Validation state:
 - node --check backend/controllers/auth.controller.js passed.
 - node --check backend/routes/auth.routes.js passed.
 - node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Left Panel Member Status Swap (Server Time Removed)
+
+Current scope update:
+- Left panel bottom card is now dedicated to Member Status metrics for the organization.
+
+Progress made:
+- Replaced Server Timer card content with Member Status rows.
+- Added organization-side metric resolver for:
+  - total members
+  - active members on left/right
+  - direct sponsors on left/right
+  - total active/direct counts.
+- Removed server-time display from the left panel per follow-up request.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Member Status Card UX Follow-up Applied
+
+Current scope update:
+- Left-panel member-status card now follows selected-node context and visual updates requested.
+
+Progress made:
+- Removed card title text (Member Status).
+- Changed card container to #FFFFFF.
+- Wired card data context to selected node so values refresh on node click, aligned with Details panel behavior.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+### Addendum (2026-04-17) - Selected Self Node Member Status Zero-Fix
+
+Current scope update:
+- Resolved member-status card returning all zeros when clicking the viewer/self node.
+
+Progress made:
+- Root-scope path is now accepted as valid in resolver logic.
+- Fallback-to-zero now only triggers for truly invalid node metrics, not root context.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+### Addendum (2026-04-17) - Spillover Identity Privacy Gate Applied (Binary Tree Next)
+
+Current scope update:
+- Applied legacy spillover anonymity behavior to Binary Tree Next so spillover nodes no longer expose identity details in left-panel and navigation surfaces.
+
+Progress made:
+- Added shared privacy helper layer for spillover/anonymized node masking.
+- Updated Details card identity fields to anonymize masked nodes (`Anonymous` / `Hidden`).
+- Updated relation labels (Parent/Sponsor) to anonymize masked nodes and suppress masked relation jump actions.
+- Updated favorites/search/breadcrumb identity labels and initials to anonymized outputs for masked spillover nodes.
+- Disabled photo-avatar exposure for masked spillover nodes in canvas/detail/favorites/search rendering paths.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+### Addendum (2026-04-17) - Spillover Privacy Rule Correction (Use Legacy Logic)
+
+Current scope update:
+- Spillover anonymous gate in Binary Tree Next now follows the exact legacy rule behavior.
+
+Progress made:
+- Reverted privacy detection to legacy outside-source spillover condition.
+- Adjusted scoped sponsor mapping so out-of-scope spillovers have unresolved mapped sponsor id (required by legacy gate).
+- Kept spillover status preserved even when sponsor is out-of-scope.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+
+### Addendum (2026-04-17) - Spillover Privacy Ownership Correction (Root View)
+
+Current scope update:
+- Binary Tree Next privacy gate now respects root/owner-sponsored branch visibility.
+
+Progress made:
+- Added ownership traversal by sponsor graph to distinguish viewer-owned vs outside-source spillovers.
+- Limited anonymization to outside-source spillover branches only.
+- Preserved details for viewer-owned spillover branches, while retaining privacy for member-scoped outside-source branches.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
