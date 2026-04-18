@@ -5757,8 +5757,39 @@
         return false;
       }
     }
+    function hasSessionTokenExpired(user) {
+      const rawExpiry = String(user?.authTokenExpiresAt || '').trim();
+      if (!rawExpiry) {
+        return false;
+      }
+
+      const parsedExpiryMs = Date.parse(rawExpiry);
+      if (!Number.isFinite(parsedExpiryMs)) {
+        return false;
+      }
+
+      return parsedExpiryMs <= Date.now();
+    }
+
+    function isSessionSnapshotUsable(user) {
+      if (!user || typeof user !== 'object') {
+        return false;
+      }
+
+      const authToken = String(user?.authToken || '').trim();
+      if (!authToken) {
+        return false;
+      }
+
+      if (hasSessionTokenExpired(user)) {
+        return false;
+      }
+
+      return true;
+    }
     const currentSessionUser = readUserSession();
-    if (!currentSessionUser) {
+    if (!isSessionSnapshotUsable(currentSessionUser)) {
+      clearUserSession();
       window.location.replace('./login.html');
     } else {
       window.__vaultAuthUser = currentSessionUser;
@@ -10329,6 +10360,59 @@
 
       function resolveMemberAuthToken() {
         return String(currentSessionUser?.authToken || '').trim();
+      }
+
+      async function validateMemberAuthSessionWithServer() {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          return {
+            valid: false,
+            status: 401,
+            error: 'Member auth token is missing.',
+          };
+        }
+
+        try {
+          const response = await fetch(MEMBER_EMAIL_VERIFICATION_STATUS_API, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+
+          if (response.status === 401 || response.status === 403) {
+            const payload = await response.json().catch(() => ({}));
+            const message = typeof payload?.error === 'string'
+              ? payload.error
+              : 'Session is invalid, expired, or revoked.';
+            return {
+              valid: false,
+              status: response.status,
+              error: message,
+            };
+          }
+
+          if (!response.ok) {
+            return {
+              valid: true,
+              degraded: true,
+              status: response.status,
+            };
+          }
+
+          return {
+            valid: true,
+            status: response.status,
+          };
+        } catch (error) {
+          console.warn('Unable to validate member auth session at startup:', error);
+          return {
+            valid: true,
+            degraded: true,
+            status: 0,
+          };
+        }
       }
 
       function clearBusinessCenterActivationFeedback() {
@@ -25197,49 +25281,61 @@
         syncSettingsPageAccountOverview();
       });
 
-      beginDashboardSkeletonLoading();
-      initializeServerCutoffCard();
-      initializeThemeFromSettings();
-      loadRuntimeSettings().catch((error) => {
-        console.warn('Unable to initialize runtime settings:', error);
-      });
-      loadCommissionPayoutRequestsForCurrentUser().catch((error) => {
-        console.warn('Unable to initialize wallet commission offsets:', error);
-      });
-      loadCommissionContainerSnapshotForCurrentUser({ rerender: true }).catch((error) => {
-        commissionContainersHydrated = true;
-        console.warn('Unable to initialize commission containers:', error);
-      });
-      window.addEventListener('storage', (event) => {
-        if (event.key !== RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY) {
+      async function bootstrapMemberDashboardApp() {
+        const sessionValidationResult = await validateMemberAuthSessionWithServer();
+        if (!sessionValidationResult.valid) {
+          console.warn('Member session bootstrap validation failed:', sessionValidationResult.error || 'Invalid member session.');
+          clearUserSession();
+          window.location.replace('./login.html');
           return;
         }
-        applyRuntimeSettings(readRuntimeSettingsFallback());
-      });
-      ensureBinaryTreeSummaryReady().catch((error) => {
-        markDashboardSkeletonStepComplete('summary');
-        console.error('Unable to preload Binary Tree summary:', error);
-      });
-      void initMyStore();
-      initCommissionPayoutButtons();
-      initializeEWalletModule();
-      loadEWalletSnapshotForCurrentUser({ silent: true }).catch((error) => {
-        console.warn('Unable to preload E-Wallet snapshot:', error);
-      });
-      initializeFastTrackPanelHeightSync();
-      initializeRecentActivityPanelHeightSync();
-      initializeRecentActivityPanelControls();
-      initializeProfileModule();
-      bindBusinessCenterActivationControls();
-      initEnrollMemberModule();
-      initPreferredCustomerModule();
-      renderFastTrackCommissionAuditFeed();
-      renderRecentActivityFeed();
-      renderNotificationCenter();
-      void loadMemberNotificationCenter({ silent: true });
-      void loadBusinessCenterStatus({ silent: true });
-      setDesktopSidebarCollapsed(initialDesktopSidebarCollapsed, { persist: false });
-      setPage(activePage, { routeMode: 'replace' });
+
+        beginDashboardSkeletonLoading();
+        initializeServerCutoffCard();
+        initializeThemeFromSettings();
+        loadRuntimeSettings().catch((error) => {
+          console.warn('Unable to initialize runtime settings:', error);
+        });
+        loadCommissionPayoutRequestsForCurrentUser().catch((error) => {
+          console.warn('Unable to initialize wallet commission offsets:', error);
+        });
+        loadCommissionContainerSnapshotForCurrentUser({ rerender: true }).catch((error) => {
+          commissionContainersHydrated = true;
+          console.warn('Unable to initialize commission containers:', error);
+        });
+        window.addEventListener('storage', (event) => {
+          if (event.key !== RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY) {
+            return;
+          }
+          applyRuntimeSettings(readRuntimeSettingsFallback());
+        });
+        ensureBinaryTreeSummaryReady().catch((error) => {
+          markDashboardSkeletonStepComplete('summary');
+          console.error('Unable to preload Binary Tree summary:', error);
+        });
+        void initMyStore();
+        initCommissionPayoutButtons();
+        initializeEWalletModule();
+        loadEWalletSnapshotForCurrentUser({ silent: true }).catch((error) => {
+          console.warn('Unable to preload E-Wallet snapshot:', error);
+        });
+        initializeFastTrackPanelHeightSync();
+        initializeRecentActivityPanelHeightSync();
+        initializeRecentActivityPanelControls();
+        initializeProfileModule();
+        bindBusinessCenterActivationControls();
+        initEnrollMemberModule();
+        initPreferredCustomerModule();
+        renderFastTrackCommissionAuditFeed();
+        renderRecentActivityFeed();
+        renderNotificationCenter();
+        void loadMemberNotificationCenter({ silent: true });
+        void loadBusinessCenterStatus({ silent: true });
+        setDesktopSidebarCollapsed(initialDesktopSidebarCollapsed, { persist: false });
+        setPage(activePage, { routeMode: 'replace' });
+      }
+
+      void bootstrapMemberDashboardApp();
     }
   </script>
 

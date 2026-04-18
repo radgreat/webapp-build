@@ -1,11 +1,43 @@
 # Member Dashboard Page Notes
 
-Last Updated: 2026-04-16
+Last Updated: 2026-04-18
 
 ## Scope
 
 - Page: `index.html`
 - Purpose: Primary authenticated member dashboard shell and module host.
+
+## Recent Update (2026-04-18) - Strict Session Validation Before Dashboard Boot
+
+### What Was Changed
+
+- Added a local session usability gate in `index.html` so dashboard boot now requires:
+  - a persisted session object
+  - a non-empty `authToken`
+  - a non-expired `authTokenExpiresAt` value (when provided).
+- Added startup server-session validation (`validateMemberAuthSessionWithServer`) before member dashboard module initialization.
+- Updated startup flow to clear browser session storage and redirect to `login.html` when server responds unauthorized (`401`/`403`) for the session token.
+- Moved dashboard boot initialization calls under async bootstrap (`bootstrapMemberDashboardApp`) so protected modules load only after session validation.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Reused an existing authenticated endpoint (`/api/member-auth/email-verification-status`) as startup session validator to avoid introducing a new API route for this pass.
+- Kept non-auth server failures non-blocking so temporary backend outages do not force unnecessary sign-outs.
+
+### Known Limitations
+
+- If server validation endpoint is temporarily unavailable (non-auth failure), dashboard still boots from local session snapshot in this pass.
+
+### Validation
+
+- Inline script parse check passed for `index.html` (`2` blocks).
 
 ## Recent Update (2026-04-16) - Startup Boot Stabilization
 

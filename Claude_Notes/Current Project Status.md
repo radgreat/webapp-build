@@ -1,11 +1,29 @@
 # Current Project Status
 
-Last Updated: 2026-04-16
+Last Updated: 2026-04-18
 
 ## Purpose
 
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
+
+## Recent Update (2026-04-18) - Member Dashboard Session Validation Gate Tightened
+
+- Completed:
+  - added local session usability checks in index.html (requires session payload + authToken, and rejects locally expired token snapshots)
+  - added startup server session preflight (validateMemberAuthSessionWithServer) before dashboard module initialization
+  - wrapped dashboard startup sequence in bootstrapMemberDashboardApp so core member modules only boot after validation
+  - added invalid-session redirect behavior (clearUserSession() + window.location.replace('./login.html')) for explicit auth-denied responses (401/403).
+- Outcome:
+  - stale browser sessions no longer keep users on member dashboard after backend session invalidation/flush
+  - root/member entry now falls back to login when there is no valid server-backed member session.
+- Files updated:
+  - index.html
+  - Claude_Notes/member-dashboard-page.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Validation:
+  - inline script parse check passed for index.html (2 blocks).
 
 ## Recent Update (2026-04-16) - Setup Password Pages Updated to Store/Register Theme
 
