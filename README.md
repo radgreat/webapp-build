@@ -21,7 +21,7 @@ This repository currently runs as:
 
 Active compensation systems in this phase:
 - `2. Fast Track Bonus`
-- `3. Infinity Builder Bonus`
+- `3. Infinity Tier Commission`
 - `4. Sales Team Commission`
 
 All compensation systems after section 4 of `brand_assets/MLM Business Logic.md` remain gated until owner approval.

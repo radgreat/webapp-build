@@ -250,6 +250,10 @@ const ENROLL_PAID_PACKAGE_KEY_SET = new Set([
 const INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER = 3;
 const INFINITY_BUILDER_TIER_NODE_REQUIREMENT = 3;
 const INFINITY_BUILDER_TIER_BONUS_USD = 150;
+const INFINITY_BUILDER_TIER_REWARD_BY_PACKAGE_USD = Object.freeze({
+  'infinity-builder-pack': 50,
+  'legacy-builder-pack': 75,
+});
 const LEGACY_LEADERSHIP_TIER_BONUS_USD = 2000;
 const INFINITY_BUILDER_TIER_OVERRIDE_RATE = 0.01;
 const INFINITY_BUILDER_MIN_VISIBLE_TIERS = 6;
@@ -5242,11 +5246,12 @@ function resolveInfinityBuilderPanelModeConfig(modeInput = infinityBuilderPanelM
   }
   return {
     mode,
-    panelTitle: 'Infinity Builder Bonus',
+    panelTitle: 'Infinity Tier Commission',
     panelCopyHtml: (
-      'The <strong>Infinity Builder Bonus</strong> rewards members who build strong foundations.'
-      + ' Each tier is completed after 3 direct Infinity/Legacy enrollments. Then each member'
-      + ' unlocks 1% monthly only after duplicating to 3 active direct enrollments.'
+      'The <strong>Infinity Tier Commission</strong> rewards members who build strong foundations.'
+      + ' Each tier has 3 direct Infinity/Legacy nodes. Infinity nodes reward $50 and Legacy'
+      + ' nodes reward $75. Tier 1 is strict: all 3 nodes must complete before 1% activates.'
+      + ' Tier 2+ activates 1% per node once it has 3 active directs (50 BV each).'
     ),
     tierLabelPrefix: 'Infinity Tier',
     claimMapPrimaryKey: 'infinitybuilder',
@@ -6333,6 +6338,30 @@ function isInfinityBuilderQualifyingChildNode(nodeInput = null, options = {}) {
   return ENROLL_PAID_PACKAGE_KEY_SET.has(packageKey);
 }
 
+function resolveInfinityBuilderSeedTierRewardUsd(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node || isInfinityBuilderPlaceholderNode(node)) {
+    return 0;
+  }
+  const packageKey = normalizeCredentialValue(
+    node?.enrollmentPackage
+    || node?.enrollment_package
+    || node?.packageKey
+    || node?.package_key,
+  );
+  const packageRewardUsd = safeNumber(
+    INFINITY_BUILDER_TIER_REWARD_BY_PACKAGE_USD[packageKey],
+    Number.NaN,
+  );
+  if (Number.isFinite(packageRewardUsd)) {
+    return Math.max(0, Math.round(packageRewardUsd * 100) / 100);
+  }
+  return Math.max(
+    0,
+    Math.round((INFINITY_BUILDER_TIER_BONUS_USD / INFINITY_BUILDER_TIER_NODE_REQUIREMENT) * 100) / 100,
+  );
+}
+
 function resolveInfinityBuilderNodeUsername(nodeInput = null) {
   const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
   if (!node) {
@@ -6480,10 +6509,14 @@ function buildInfinityBuilderEmptySeedSnapshot(slotIndex = 0, tierNumber = 1) {
     initials: '',
     isActive: false,
     isCompletedNode: false,
+    isMonthlyOverrideQualified: false,
+    directEnrollmentCount: 0,
+    activeDirectEnrollmentCount: 0,
     completedChildCount: 0,
     totalOrganizationBv: 0,
     monthlyOverrideUsd: 0,
     weeklyOverrideUsd: 0,
+    nodeTierRewardUsd: 0,
     backgroundImage: resolveInfinityBuilderNodeBackgroundImage(null, {
       active: true,
       fallbackSeed: `seed-empty:tier-${tierNumber}:slot-${slotIndex}`,
@@ -6656,6 +6689,7 @@ async function claimInfinityBuilderTierReward() {
       completedNodeCount: Math.max(
         0,
         Math.floor(safeNumber(
+          selectedTier?.completedSeedNodeCount,
           selectedTier?.tierProgressCount,
           safeNumber(selectedTier?.litNodeCount, selectedTier.seedCount),
         )),
@@ -6878,6 +6912,7 @@ function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
     );
     const seedSnapshots = [];
     let completedSeedNodeCount = 0;
+    let tierRewardUsd = 0;
     for (let slotIndex = 0; slotIndex < INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER; slotIndex += 1) {
       const seedNode = tierSeedNodes[slotIndex] || null;
       if (!seedNode) {
@@ -6904,7 +6939,14 @@ function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
         : [];
       const childNodes = childCandidates.slice(0, INFINITY_BUILDER_TIER_NODE_REQUIREMENT);
       const childSnapshots = [];
-      let completedChildCount = 0;
+      const totalActiveDirectChildCount = childCandidates.reduce(
+        (count, childNode) => count + (resolveNodeActivityState(childNode) ? 1 : 0),
+        0,
+      );
+      const qualifiedActiveDirectChildCount = Math.min(
+        INFINITY_BUILDER_TIER_NODE_REQUIREMENT,
+        Math.max(0, totalActiveDirectChildCount),
+      );
       for (let childIndex = 0; childIndex < INFINITY_BUILDER_TIER_NODE_REQUIREMENT; childIndex += 1) {
         const childNode = childNodes[childIndex] || null;
         if (!childNode) {
@@ -6921,9 +6963,6 @@ function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
         const childUsername = resolveInfinityBuilderNodeUsername(childNode);
         const childNodeId = safeText(childNode?.id);
         const childActive = resolveNodeActivityState(childNode);
-        if (childActive) {
-          completedChildCount += 1;
-        }
         childSnapshots.push({
           node: childNode,
           nodeId: childNodeId,
@@ -6945,7 +6984,7 @@ function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
       ) || 'Member';
       const seedUsername = resolveInfinityBuilderNodeUsername(seedNode);
       const seedActive = resolveNodeActivityState(seedNode);
-      const isCompletedNode = seedActive && completedChildCount >= INFINITY_BUILDER_TIER_NODE_REQUIREMENT;
+      const isCompletedNode = seedActive && totalActiveDirectChildCount >= INFINITY_BUILDER_TIER_NODE_REQUIREMENT;
       if (isCompletedNode) {
         completedSeedNodeCount += 1;
       }
@@ -6954,6 +6993,8 @@ function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
       const monthlyOverrideUsd = isCompletedNode
         ? Math.max(0, Math.round(totalOrganizationBv * INFINITY_BUILDER_TIER_OVERRIDE_RATE * 100) / 100)
         : 0;
+      const nodeTierRewardUsd = resolveInfinityBuilderSeedTierRewardUsd(seedNode);
+      tierRewardUsd += nodeTierRewardUsd;
       seedSnapshots.push({
         slotIndex,
         node: seedNode,
@@ -6963,10 +7004,14 @@ function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
         initials: resolveInitials(seedDisplayName),
         isActive: seedActive,
         isCompletedNode,
-        completedChildCount,
+        isMonthlyOverrideQualified: isCompletedNode,
+        directEnrollmentCount: childCandidates.length,
+        activeDirectEnrollmentCount: totalActiveDirectChildCount,
+        completedChildCount: qualifiedActiveDirectChildCount,
         totalOrganizationBv,
         monthlyOverrideUsd,
         weeklyOverrideUsd: monthlyOverrideUsd,
+        nodeTierRewardUsd,
         backgroundImage: resolveInfinityBuilderNodeBackgroundImage(seedNode, {
           active: seedActive,
           fallbackSeed: `tier-${tierNumber}:slot-${slotIndex}`,
@@ -6975,9 +7020,14 @@ function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
       });
     }
     const directRequirementMet = tierSeedNodes.length >= INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER;
-    const tierCompleted = directRequirementMet;
+    const tierCompleted = directRequirementMet
+      && completedSeedNodeCount >= INFINITY_BUILDER_TIER_NODE_REQUIREMENT;
     const claimRecord = claimRecordMap.get(tierNumber) || null;
     const isClaimed = Boolean(safeText(claimRecord?.claimedAt));
+    const computedTierRewardUsd = Math.round(Math.max(0, tierRewardUsd) * 100) / 100;
+    const tierBonusUsd = isClaimed
+      ? Math.max(0, safeNumber(claimRecord?.amount, computedTierRewardUsd))
+      : computedTierRewardUsd;
     tiers.push({
       tierNumber,
       seedCount: tierSeedNodes.length,
@@ -6987,7 +7037,7 @@ function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
       isUnlocked: false,
       isClaimed,
       claimRecord,
-      tierBonusUsd: INFINITY_BUILDER_TIER_BONUS_USD,
+      tierBonusUsd,
       seedSnapshots,
     });
   }
@@ -7001,9 +7051,42 @@ function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
     tiers[tierIndex].isUnlocked = Boolean(previousTier?.isUnlocked && previousTier?.isCompleted);
   }
 
+  const firstTier = tiers.find((tier) => tier.tierNumber === 1) || null;
+  const firstTierStrictOverrideUnlocked = Boolean(firstTier?.isCompleted);
+  for (const tier of tiers) {
+    const applyStrictTierOneGate = tier?.tierNumber === 1;
+    for (const seedSnapshot of tier.seedSnapshots) {
+      const hasNode = Boolean(seedSnapshot?.node);
+      const meetsNodeRequirement = Boolean(seedSnapshot?.isCompletedNode);
+      const meetsMonthlyRequirement = hasNode
+        && meetsNodeRequirement
+        && Boolean(tier?.isUnlocked)
+        && (!applyStrictTierOneGate || firstTierStrictOverrideUnlocked);
+      seedSnapshot.isMonthlyOverrideQualified = meetsMonthlyRequirement;
+      const totalOrganizationBv = Math.max(0, Math.floor(safeNumber(seedSnapshot?.totalOrganizationBv, 0)));
+      const monthlyOverrideUsd = meetsMonthlyRequirement
+        ? Math.max(0, Math.round(totalOrganizationBv * INFINITY_BUILDER_TIER_OVERRIDE_RATE * 100) / 100)
+        : 0;
+      seedSnapshot.monthlyOverrideUsd = monthlyOverrideUsd;
+      seedSnapshot.weeklyOverrideUsd = monthlyOverrideUsd;
+    }
+  }
+
   const completedTierCount = tiers.reduce((count, tier) => count + (tier.isCompleted ? 1 : 0), 0);
   const claimedTierCount = tiers.reduce((count, tier) => count + (tier.isClaimed ? 1 : 0), 0);
   const unlockedTierCount = tiers.reduce((count, tier) => count + (tier.isUnlocked ? 1 : 0), 0);
+  const totalTierRewardUsd = tiers.reduce(
+    (sum, tier) => sum + (tier?.isCompleted ? Math.max(0, safeNumber(tier?.tierBonusUsd, 0)) : 0),
+    0,
+  );
+  const claimableTierRewardUsd = tiers.reduce(
+    (sum, tier) => sum + (
+      tier?.isCompleted && !tier?.isClaimed
+        ? Math.max(0, safeNumber(tier?.tierBonusUsd, 0))
+        : 0
+    ),
+    0,
+  );
   const totalMonthlyOverrideUsd = tiers.reduce((sum, tier) => (
     sum + tier.seedSnapshots.reduce(
       (seedSum, seedSnapshot) => seedSum + Math.max(0, safeNumber(
@@ -7025,8 +7108,8 @@ function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
     completedTierCount,
     claimedTierCount,
     unlockedTierCount,
-    totalTierRewardUsd: completedTierCount * INFINITY_BUILDER_TIER_BONUS_USD,
-    claimableTierRewardUsd: Math.max(0, (completedTierCount - claimedTierCount) * INFINITY_BUILDER_TIER_BONUS_USD),
+    totalTierRewardUsd: Math.max(0, Math.round(totalTierRewardUsd * 100) / 100),
+    claimableTierRewardUsd: Math.max(0, Math.round(claimableTierRewardUsd * 100) / 100),
     totalMonthlyOverrideUsd: Math.max(0, Math.round(totalMonthlyOverrideUsd * 100) / 100),
     totalWeeklyOverrideUsd: Math.max(0, Math.round(totalMonthlyOverrideUsd * 100) / 100),
     currentBalanceUsd,
@@ -7601,12 +7684,26 @@ function syncInfinityBuilderPanelVisuals() {
   });
   const snapshot = buildInfinityBuilderPanelSnapshot(homeNode);
   if (!Array.isArray(snapshot?.tiers) || snapshot.tiers.length === 0) {
+    if (infinityBuilderTierBonusElement instanceof HTMLElement) {
+      infinityBuilderTierBonusElement.textContent = 'Tier reward is calculated from Infinity/Legacy node mix.';
+    }
+    if (infinityBuilderClaimButtonElement instanceof HTMLButtonElement) {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = 'Claim Tier Reward';
+    }
     syncInfinityBuilderViewTreeButtonState({ isLegacyMode });
     return;
   }
   infinityBuilderLastPanelSnapshot = snapshot;
   const selectedTier = resolveInfinityBuilderSelectedTierFromSnapshot(snapshot);
   if (!selectedTier) {
+    if (infinityBuilderTierBonusElement instanceof HTMLElement) {
+      infinityBuilderTierBonusElement.textContent = 'Tier reward is calculated from Infinity/Legacy node mix.';
+    }
+    if (infinityBuilderClaimButtonElement instanceof HTMLButtonElement) {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = 'Claim Tier Reward';
+    }
     syncInfinityBuilderViewTreeButtonState({ isLegacyMode });
     return;
   }
@@ -7694,10 +7791,17 @@ function syncInfinityBuilderPanelVisuals() {
       )),
     );
     if (!selectedTier.isUnlocked) {
-      infinityBuilderTierSubtitleElement.textContent = (
-        `Tier ${selectedTier.tierNumber} unlocks after Tier ${previousTierNumber} reaches `
-        + `${INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER} ${modeConfig.directSeedLabel}.`
-      );
+      if (isLegacyMode) {
+        infinityBuilderTierSubtitleElement.textContent = (
+          `Tier ${selectedTier.tierNumber} unlocks after Tier ${previousTierNumber} reaches `
+          + `${INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER} ${modeConfig.directSeedLabel}.`
+        );
+      } else {
+        infinityBuilderTierSubtitleElement.textContent = (
+          `Tier ${selectedTier.tierNumber} unlocks after Tier ${previousTierNumber}`
+          + ' completes all 3 nodes.'
+        );
+      }
     } else if (selectedTier.isCompleted) {
       if (isLegacyMode) {
         infinityBuilderTierSubtitleElement.textContent = selectedTier.isClaimed
@@ -7722,12 +7826,31 @@ function syncInfinityBuilderPanelVisuals() {
         infinityBuilderTierSubtitleElement.textContent = '';
       }
     } else {
-      infinityBuilderTierSubtitleElement.textContent = (
-        `${selectedTier.seedCount}/${INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER} Infinity/Legacy enrollments completed. `
-        + (remainingSeeds > 0
-          ? `Enroll ${remainingSeeds} more to complete this tier.`
-          : 'Tier enrollment requirement met.')
-      );
+      if (!selectedTier.directRequirementMet) {
+        infinityBuilderTierSubtitleElement.textContent = (
+          `${selectedTier.seedCount}/${INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER} Infinity/Legacy nodes enrolled. `
+          + (remainingSeeds > 0
+            ? `Enroll ${remainingSeeds} more to start node completion.`
+            : 'Tier enrollment requirement met.')
+        );
+      } else {
+        const completedNodes = Math.max(
+          0,
+          Math.floor(safeNumber(selectedTier?.completedSeedNodeCount, 0)),
+        );
+        const remainingCompletedNodes = Math.max(
+          0,
+          INFINITY_BUILDER_TIER_NODE_REQUIREMENT - completedNodes,
+        );
+        infinityBuilderTierSubtitleElement.textContent = (
+          `${completedNodes}/${INFINITY_BUILDER_TIER_NODE_REQUIREMENT} nodes completed. `
+          + (
+            remainingCompletedNodes > 0
+              ? `Complete ${remainingCompletedNodes} more node${remainingCompletedNodes === 1 ? '' : 's'} (3 active directs each).`
+              : 'All nodes are completed.'
+          )
+        );
+      }
     }
   }
   const selectedTierRewardUsd = Math.max(
@@ -7746,7 +7869,9 @@ function syncInfinityBuilderPanelVisuals() {
       0,
     );
     if (!selectedTier.isUnlocked) {
-      infinityBuilderTierBonusElement.textContent = `Tier reward: ${formatEnrollCurrency(selectedTierRewardUsd)} (locked)`;
+      infinityBuilderTierBonusElement.textContent = isLegacyMode
+        ? 'Tier reward is locked until the previous tier is completed.'
+        : 'Tier reward is locked until the previous tier is completed.';
     } else if (selectedTier.isClaimed) {
       infinityBuilderTierBonusElement.textContent = `Tier reward claimed: ${formatEnrollCurrency(selectedTierRewardUsd)} USD`;
     } else if (selectedTier.isCompleted) {
@@ -7777,7 +7902,11 @@ function syncInfinityBuilderPanelVisuals() {
       );
       infinityBuilderTierBonusElement.textContent = isLegacyMode
         ? `Tier progress: ${tierProgressCount}/${totalNodeRequirement} mapped Legacy nodes`
-        : `Tier reward: ${formatEnrollCurrency(selectedTierRewardUsd)} USD`;
+        : (
+          selectedTierMonthlyOverrideUsd > 0
+            ? `Tier reward: ${formatEnrollCurrency(selectedTierRewardUsd)} USD | Active monthly 1% total: ${formatEnrollCurrency(selectedTierMonthlyOverrideUsd)}`
+            : `Tier reward: ${formatEnrollCurrency(selectedTierRewardUsd)} USD`
+        );
     }
   }
   if (infinityBuilderClaimButtonElement instanceof HTMLButtonElement) {
@@ -7787,7 +7916,7 @@ function syncInfinityBuilderPanelVisuals() {
       infinityBuilderClaimButtonElement.textContent = 'Claiming...';
     } else if (!selectedTier.isUnlocked) {
       infinityBuilderClaimButtonElement.disabled = true;
-      infinityBuilderClaimButtonElement.textContent = `Claim ${claimAmountLabel} Tier Reward`;
+      infinityBuilderClaimButtonElement.textContent = 'Claim Tier Reward';
     } else if (selectedTier.isClaimed) {
       infinityBuilderClaimButtonElement.disabled = true;
       infinityBuilderClaimButtonElement.textContent = 'Tier Reward Claimed';
@@ -7796,7 +7925,7 @@ function syncInfinityBuilderPanelVisuals() {
       infinityBuilderClaimButtonElement.textContent = `Claim ${claimAmountLabel} Tier Reward`;
     } else {
       infinityBuilderClaimButtonElement.disabled = true;
-      infinityBuilderClaimButtonElement.textContent = `Claim ${claimAmountLabel} Tier Reward`;
+      infinityBuilderClaimButtonElement.textContent = 'Claim Tier Reward';
     }
   }
   syncInfinityBuilderViewTreeButtonState({
@@ -7914,18 +8043,33 @@ function syncInfinityBuilderPanelVisuals() {
         statusElement.className = 'tree-next-infinity-builder-node-status';
         if (!seedSnapshot.node) {
           statusElement.textContent = '';
-        } else if (!selectedTier.directRequirementMet) {
-          const tierSeedsNeeded = Math.max(0, INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER - selectedTier.seedCount);
-          statusElement.textContent = tierSeedsNeeded > 0
-            ? `Need ${tierSeedsNeeded} more enrollment${tierSeedsNeeded === 1 ? '' : 's'}`
-            : 'Waiting for enrollment completion';
         } else if (!seedSnapshot.isActive) {
           statusElement.textContent = 'Account inactive';
-        } else if (seedSnapshot.isCompletedNode) {
+        } else if (!selectedTier.isUnlocked) {
+          const previousTierNumber = Math.max(1, selectedTier.tierNumber - 1);
+          statusElement.textContent = `Tier locked until Tier ${previousTierNumber} is completed`;
+        } else if (seedSnapshot.isMonthlyOverrideQualified) {
           statusElement.textContent = '1% monthly active';
         } else {
-          const remainingChildren = Math.max(0, INFINITY_BUILDER_TIER_NODE_REQUIREMENT - seedSnapshot.completedChildCount);
-          statusElement.textContent = `Need ${remainingChildren} active enrollment${remainingChildren === 1 ? '' : 's'} for 1%`;
+          const isTierOneStrictBlocked = selectedTier.tierNumber === 1
+            && seedSnapshot.isCompletedNode
+            && !selectedTier.isCompleted;
+          if (isTierOneStrictBlocked) {
+            statusElement.textContent = 'Tier 1 strict: complete all 3 nodes to activate 1%';
+          } else {
+            const activeDirectEnrollments = Math.max(
+              0,
+              Math.floor(safeNumber(
+                seedSnapshot.activeDirectEnrollmentCount,
+                seedSnapshot.completedChildCount,
+              )),
+            );
+            const remainingChildren = Math.max(
+              0,
+              INFINITY_BUILDER_TIER_NODE_REQUIREMENT - activeDirectEnrollments,
+            );
+            statusElement.textContent = `Need ${remainingChildren} active enrollment${remainingChildren === 1 ? '' : 's'} for 1%`;
+          }
         }
       }
 

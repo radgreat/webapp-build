@@ -2375,7 +2375,7 @@ Last Updated: 2026-04-16
 - Reordered Dashboard Row 2 layout in `index.html` to match latest composition request.
 - Left lane (`lg:col-span-2`):
   - `Weekly Total Organization BV` at top
-  - `Infinity Builders Bonus` + `Legacy Leadership Bonus` directly below.
+  - `Infinity Tier Commission` + `Legacy Leadership Bonus` directly below.
 - Right lane (`lg:col-span-1`):
   - `Server Cut-Off` (top)
   - `Fast Track Bonus` (above Recent Activity)
@@ -2815,7 +2815,7 @@ Last Updated: 2026-04-16
   - retained rank/status/upgrade controls and all metric/trend IDs (`total BV`, `new members`, `direct sponsors`)
 - Logic-sensitive sections intentionally left intact:
   - Fast Track Bonus
-  - Infinity Builder Bonus
+  - Infinity Tier Commission
   - Legacy Leadership Bonus
 - Files updated:
   - `index.html`
@@ -4836,7 +4836,7 @@ Last Updated: 2026-04-16
 ## Owner Scope Gate (Priority Rule)
 
 - **Priority instruction from owner (2026-02-22):** Do not get ahead of approved scope when implementing MLM earning systems.
-- **Current active systems:** `2. Fast Track Bonus`, `3. Infinity Builder Bonus`, and `4. Sales Team Commission`.
+- **Current active systems:** `2. Fast Track Bonus`, `3. Infinity Tier Commission`, and `4. Sales Team Commission`.
 - **Do not start yet:** any compensation systems after section `4` of `brand_assets/MLM Business Logic.md` unless explicitly approved by owner in chat.
 - **Execution policy:** implement only owner-approved compensation sections and keep all other sections gated until explicit go-ahead.
 - **Context allowance:** Work on previous systems/tasks is allowed when needed for context, dependencies, or validation of current work.
@@ -5678,10 +5678,10 @@ Last Updated: 2026-04-16
   - Inline script parse for `index.html` passed.
   - Authenticated UI screenshot: `temporary screenshots/screenshot-41-legacy-leadership-bonus-dashboard.png`.
 
-## Infinity Builder Bonus Naming Correction (2026-02-22)
+## Infinity Tier Commission Naming Correction (2026-02-22)
 
 - Final naming correction applied:
-  - `Legacy Leadership Bonus` -> `Infinity Builder Bonus`
+  - `Legacy Leadership Bonus` -> `Infinity Tier Commission`
 - Updated dashboard copy:
   - section title
   - locked-state title
@@ -5691,7 +5691,7 @@ Last Updated: 2026-04-16
 - Validation:
   - Inline script parse for `index.html` passed.
 
-## Infinity Builder Bonus Anticipation Card (Locked Tier Preview) (2026-02-22)
+## Infinity Tier Commission Anticipation Card (Locked Tier Preview) (2026-02-22)
 
 - Added a default locked preview card for the next tier (anticipation state).
 - Tier list now shows one additional future tier card by default:
@@ -5708,7 +5708,7 @@ Last Updated: 2026-04-16
   - Inline script parse for `index.html` passed.
   - Authenticated screenshot captured: `temporary screenshots/screenshot-43-tier3-anticipation-visible.png`.
 
-## Infinity Builder Bonus 10-Tier Server Mockup (2026-02-22)
+## Infinity Tier Commission 10-Tier Server Mockup (2026-02-22)
 
 - Applied a temporary live mockup so owner can inspect high-card-count behavior directly on server.
 - Mock mode is currently enabled and renders 10 cards:
@@ -5724,7 +5724,7 @@ Last Updated: 2026-04-16
   - Inline script parse for `index.html` passed.
   - Authenticated screenshot: `temporary screenshots/screenshot-48-tier10-server-mockup-live.png`.
 
-## Infinity Builder Bonus Claim + Archive + Paging (2026-02-22)
+## Infinity Tier Commission Claim + Archive + Paging (2026-02-22)
 
 - Added component-level workflow controls:
   - `View` dropdown with `Active` and `Completed`
@@ -5781,7 +5781,7 @@ Last Updated: 2026-04-16
 
 ## Infinity Builder Active Page Height Stabilization (2026-02-22)
 
-- Resolved pagination UX issue where Infinity Builder Bonus card area shrank on page 2 when fewer than 6 active tiers were rendered.
+- Resolved pagination UX issue where Infinity Tier Commission card area shrank on page 2 when fewer than 6 active tiers were rendered.
 - Active-view pagination now pads short pages with invisible non-interactive filler cards so the component keeps page-1 height.
 - Completed/archive view remains unchanged (no filler padding).
 - Applied file:
@@ -5844,7 +5844,7 @@ Last Updated: 2026-04-16
 
 ## Infinity Builder Mobile Stretch Fix (2026-02-22)
 
-- Fixed mobile stretch behavior in Infinity Builder Bonus component.
+- Fixed mobile stretch behavior in Infinity Tier Commission component.
 - Root adjustments:
   - hidden filler cards are now desktop-only (`hidden sm:block`) to avoid oversized empty vertical space on small screens.
   - sponsor/tag text now truncates with max widths to prevent layout expansion on narrow devices.
@@ -5870,9 +5870,9 @@ Last Updated: 2026-04-16
 - Validation:
   - Inline script parse for `index.html` passed (`Parsed 1 inline script block(s) successfully.`).
 
-## Infinity Builders Bonus Summary Card Inside Component (2026-02-22)
+## Infinity Tier Commission Summary Card Inside Component (2026-02-22)
 
-- Added a Fast Track-style summary card directly inside the Infinity Builder Bonus component (below component header).
+- Added a Fast Track-style summary card directly inside the Infinity Tier Commission component (below component header).
 - Card now displays Infinity Builder commission balance/state using the existing unclaimed commission computation.
 - Status behavior:
   - `Locked` when not eligible
@@ -5885,13 +5885,13 @@ Last Updated: 2026-04-16
   - Authenticated screenshot:
     - `temporary screenshots/screenshot-61-infinity-component-copied-card.png`
 
-## Infinity Builders Bonus Claim-Transfer Logic Fix (2026-02-22)
+## Infinity Tier Commission Claim-Transfer Logic Fix (2026-02-22)
 
 - Adjusted summary card commission source to match expected flow:
-  - claiming a completed tier now transfers value into `Infinity Builders Bonus` card balance.
+  - claiming a completed tier now transfers value into `Infinity Tier Commission` card balance.
 - Current split:
   - `Unclaimed Commission` (component header): still tracks completed but unclaimed tiers.
-  - `Infinity Builders Bonus` summary card: now tracks claimed commission balance.
+  - `Infinity Tier Commission` summary card: now tracks claimed commission balance.
 - Applied file:
   - `index.html`
 - Validation:
@@ -5979,7 +5979,7 @@ Last Updated: 2026-04-16
 
 ## User Dashboard: Legacy Leadership Bonus UI Duplicate Added (2026-02-22)
 
-- User-side dashboard now includes a second bonus component directly under Infinity Builder Bonus.
+- User-side dashboard now includes a second bonus component directly under Infinity Tier Commission.
 - The new component is labeled:
   - `Legacy Leadership Bonus`
 - Layout/sizing was matched to the Infinity Builder component by reusing the same card structure/classes.
@@ -5992,7 +5992,7 @@ Last Updated: 2026-04-16
 
 ## User Dashboard: Legacy Leadership Bonus Logic Wiring + Package Gate (2026-02-22)
 
-- Legacy Leadership Bonus is now fully wired with the same runtime behavior model as Infinity Builder Bonus:
+- Legacy Leadership Bonus is now fully wired with the same runtime behavior model as Infinity Tier Commission:
   - Building/Completed mode switching
   - pagination
   - claim/archive records
@@ -6013,7 +6013,7 @@ Last Updated: 2026-04-16
 ## User Dashboard: Bonus Container Size Trim (2026-02-22)
 
 - Addressed oversized stacked height on:
-  - `Infinity Builder Bonus`
+  - `Infinity Tier Commission`
   - `Legacy Leadership Bonus`
 - Removed hidden filler-card padding from both component render paths (empty and paginated states).
 - Both containers are now content-height driven and no longer force a large fixed card footprint.
@@ -6302,7 +6302,7 @@ Last Updated: 2026-04-16
 - User-requested Infinity Builder card customization implemented on user dashboard (`index.html`):
   - removed fixed tier amount display (`$150.00`) from claimed-tier cards
   - removed `Completed Nodes` section
-  - relabeled sponsor section title to `Infinity Builder Bonus`
+  - relabeled sponsor section title to `Infinity Tier Commission`
   - added per-seeded-direct-sponsor mini snippets showing running organization BV and projected `1%` by cutoff.
 - Added cutoff-aware per-direct helper for override projections:
   - `resolveInfinityBuilderDirectMemberRunningOverrideBreakdown(...)`
@@ -7196,7 +7196,7 @@ Last Updated: 2026-04-16
 - Frontend updated:
   - `index.html` now hydrates commission containers from API on startup and when returning to live mode.
   - Live mode claim-map access now uses server snapshot for:
-    - Infinity Builder Bonus
+    - Infinity Tier Commission
     - Legacy Leadership Bonus
   - Added debounced server sync for commission container balances and claim maps.
   - Added immediate (awaited) server persistence after tier-claim clicks to avoid rapid-refresh race conditions.
@@ -14832,7 +14832,7 @@ Last Updated: 2026-04-16
 - File updated: `store-dashboard.html`
 ## Recent Update (2026-04-15) - Infinity Unlock Icon Revision
 
-- Updated `Infinity Builder Bonus Unlocked` to use a cleaner dedicated infinity icon.
+- Updated `Infinity Tier Commission Unlocked` to use a cleaner dedicated infinity icon.
 - Preserved separate icon semantics between locked, generic unlocked, and infinity-unlocked rows.
 - File updated: `store-dashboard.html`
 ## Recent Update (2026-04-15) - Legacy Unlock Dedicated Icon
@@ -15488,12 +15488,12 @@ Files updated:
 Validation:
 - `node --check binary-tree-next-app.mjs` passed.
 
-## Recent Update (2026-04-16) - Binary Tree Next Infinity Builder Bonus Panel (Account Overview Style + Trinary View)
+## Recent Update (2026-04-16) - Binary Tree Next Infinity Tier Commission Panel (Account Overview Style + Trinary View)
 
 - Completed:
-  - implemented a new `Infinity Builder Bonus` panel in Binary Tree Next (`binary-tree-next.html`)
+  - implemented a new `Infinity Tier Commission` panel in Binary Tree Next (`binary-tree-next.html`)
   - added full panel runtime wiring (`binary-tree-next-app.mjs`): positioning, visibility, rendering, init, and close behavior
-  - connected Account Overview `Infinity Builder Bonus` commission card to open the new panel
+  - connected Account Overview `Infinity Tier Commission` commission card to open the new panel
   - added panel exclusivity with Account Overview / Rank Advancement / Preferred Accounts / My Store
   - added query-open support (`?panel=infinity-builder`) for direct panel QA access.
 
@@ -15573,7 +15573,7 @@ Validation:
 ### Addendum (2026-04-16)
 
 - Infinity panel breadcrumb now uses requested format:
-  - `Account Overview > Infinity Builder Bonus`
+  - `Account Overview > Infinity Tier Commission`
 - `Account Overview` breadcrumb control still navigates back to Account Overview.
 
 Files updated:
@@ -16308,7 +16308,7 @@ Validation state:
 ### Addendum (2026-04-17) - Infinity/Legacy Sort Direction Control
 
 Current scope update:
-- Activated the tier sort control in both Infinity Builder Bonus and Legacy Leadership Bonus panel modes.
+- Activated the tier sort control in both Infinity Tier Commission and Legacy Leadership Bonus panel modes.
 
 Progress made:
 - Sort now toggles between `Ascending` and `Descending` only.
@@ -16447,3 +16447,71 @@ Files touched this pass:
 
 Validation state:
 - `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Builder Tier Logic Update (Per-Node Rewards + Qualification Gates)
+
+- Implemented requested Infinity Builder rule set in runtime logic:
+- Tier completion now requires all 3 nodes completed.
+- Completed node rule uses active seed + 3 active directs.
+- Direct activity qualification now checks all qualifying directs under each node.
+- Tier 1 strict monthly rule added: monthly 1% only activates after full Tier 1 completion.
+- Tier 2+ relaxed monthly rule added: per-node 1% can activate before full tier completion.
+- Locked tiers no longer activate monthly 1%.
+- Infinity tier rewards are now package-dependent per node:
+- Infinity node = 50 USD
+- Legacy node = 75 USD
+- Mixed tier totals are computed dynamically.
+- Infinity total/claimable tier reward totals now aggregate per-tier computed amounts.
+- Updated Infinity panel copy/subtitle/node status text to reflect the new rules.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Claim Button Hardcoded 150 Fallback Removed
+
+- Resolved residual static 150 USD claim label in Infinity panel defaults.
+- Updated HTML default claim and bonus copy to non-fixed fallback text.
+- Added runtime guard for empty/unresolved tier snapshots so stale hardcoded values are never shown.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Locked Tier Amount Display Adjustment
+
+- Removed dollar amount from locked/incomplete Infinity claim-state labels to avoid fixed-looking `150.00` display before claim eligibility.
+- Locked tier bonus line now uses lock guidance text.
+- Claim CTA only includes amount when tier is completed and claimable.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Tier Commission Rename Applied
+
+- Standardized user-facing naming from `Infinity Builder Bonus` to `Infinity Tier Commission` across member/admin surfaces.
+- Kept internal payout map keys unchanged to avoid regressions in existing claim/history data.
+- Updated Binary Tree Next panel labels/copy, account overview labels, payout source labels, and upgrade unlock wording.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `index.html`
+- `admin.html`
+- `store-dashboard.html`
+- `backend/services/wallet.service.js`
+- `backend/stores/payout.store.js`
+
+Validation:
+- repo-wide text scan shows no remaining `Infinity Builder Bonus` user-facing label entries.

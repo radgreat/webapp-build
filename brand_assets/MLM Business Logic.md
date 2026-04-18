@@ -82,7 +82,7 @@ Fast Track Commission Bonus is not applied when upgrading an account. There will
 
 ---
 
-# 3️⃣ Infinity Builder Bonus
+# 3️⃣ Infinity Tier Commission
 
 *(Array | Deduction: 0.96 USD per bottle)*
 

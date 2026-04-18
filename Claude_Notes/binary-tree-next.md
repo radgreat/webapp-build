@@ -437,7 +437,7 @@
     - retail profit
     - fast track commission
     - sales team commission
-    - infinity builder bonus
+    - infinity tier commission
     - legacy builder bonus
 - Added cached leg-volume fallback metrics for total-organization BV when remote metrics are unavailable.
 
@@ -2026,18 +2026,18 @@ Files updated:
 Validation:
 - `node --check binary-tree-next-app.mjs` passed.
 
-## Update (2026-04-16) - Infinity Builder Bonus Panel Added to Binary Tree Next
+## Update (2026-04-16) - Infinity Tier Commission Panel Added to Binary Tree Next
 
 ### What Changed
 
-- Added a new Infinity Builder Bonus panel in `binary-tree-next.html`.
+- Added a new Infinity Tier Commission panel in `binary-tree-next.html`.
 - Added panel runtime wiring in `binary-tree-next-app.mjs`:
   - DOM refs
   - state integration (`infinityBuilderVisible`)
   - panel position + visibility + visual sync
   - initialization and close behavior.
 - Connected Account Overview Track Commissions action:
-  - clicking `Infinity Builder Bonus` card opens the new Infinity panel.
+  - clicking `Infinity Tier Commission` card opens the new Infinity panel.
 - Added panel interop/exclusivity:
   - opening Infinity panel closes Account Overview, Rank Advancement, Preferred Accounts, and My Store
   - opening those panels closes Infinity panel.
@@ -2137,7 +2137,7 @@ Validation:
 ### Addendum (2026-04-16) - Breadcrumb Formatting Update
 
 - Replaced Infinity header back label with explicit breadcrumb presentation:
-  - `Account Overview > Infinity Builder Bonus`
+  - `Account Overview > Infinity Tier Commission`
 - Preserved clickable back behavior on `Account Overview` crumb.
 
 Files updated:
@@ -2948,3 +2948,75 @@ Files updated:
 
 Validation:
 - `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Builder Logic Update (Per-Node Reward + Tier Qualification)
+
+What changed:
+- Updated Infinity tier completion logic to require all 3 tier nodes to be completed (not just enrolled).
+- A completed Infinity node now means the seed account is active and has at least 3 active direct enrollments.
+- Updated monthly 1% qualification to evaluate all qualifying directs under a node (not only the first 3 rendered slots).
+- Added Tier 1 strict gate for monthly 1%:
+  - Tier 1 monthly 1% only activates after Tier 1 itself is fully completed (all 3 nodes completed).
+- Added Tier 2+ relaxed gate for monthly 1%:
+  - Tier 2 and higher can activate 1% per qualified node even before the tier card is fully completed.
+- Locked-tier protection:
+  - Monthly 1% does not activate on locked tiers.
+- Updated Infinity tier reward calculation to be package-based per node:
+  - Infinity node = 50 USD
+  - Legacy node = 75 USD
+  - Tier reward now sums the 3 node rewards (mixed tiers supported, e.g., 150/175/200/225).
+- Updated Infinity total/claimable reward aggregation to sum actual per-tier reward values instead of fixed 150 USD multiples.
+- Updated Infinity panel copy/subtitle/status messaging to match the new rules.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+Known limitations:
+- Tier completion is still computed from live node state; if node activity drops below requirements later, completion state can recalculate based on current data.
+
+### Addendum (2026-04-17) - Removed Hardcoded 150 USD Infinity Claim Fallback
+
+What changed:
+- Removed static hardcoded `Claim $150.00 Tier Reward` default text in Infinity panel HTML.
+- Replaced static tier bonus placeholder copy that referenced a fixed amount.
+- Added runtime fallback behavior when tier data is unavailable:
+- claim button is disabled and shows generic `Claim Tier Reward`
+- tier bonus line shows dynamic-rule guidance text.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Locked/Incomplete Infinity Claim Labels No Longer Show Dollar Amount
+
+What changed:
+- Updated Infinity panel locked/incomplete render behavior so fixed-looking amount text is not shown before a tier is claimable.
+- Tier bonus line for locked Infinity/Legacy tiers now shows lock-state guidance text (no dollar amount).
+- Claim button now shows generic `Claim Tier Reward` when tier is locked or incomplete.
+- Claim button only shows dollar amount when tier is completed and claimable.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Panel Naming Standardized to Infinity Tier Commission
+
+What changed:
+- Updated Binary Tree Next Infinity panel user-facing label/copy from `Infinity Builder Bonus` to `Infinity Tier Commission`.
+- Updated panel breadcrumb/title, account overview commission card label, and descriptive paragraph text.
+- Kept claim behavior unchanged (tier reward label remains dynamic at runtime when claimable).
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- repo text scan confirms legacy display label removed from Binary Tree Next files.

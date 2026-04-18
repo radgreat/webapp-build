@@ -18,7 +18,7 @@ const EWALLET_PAYOUT_SOURCE_KEY = 'ewallet';
 const EWALLET_PAYOUT_SOURCE_LABEL = 'E-Wallet';
 const COMMISSION_SOURCE_META = Object.freeze({
   fasttrack: { key: 'fasttrack', label: 'Fast Track Bonus' },
-  infinitybuilder: { key: 'infinitybuilder', label: 'Infinity Builder Bonus' },
+  infinitybuilder: { key: 'infinitybuilder', label: 'Infinity Tier Commission' },
   legacyleadership: { key: 'legacyleadership', label: 'Legacy Leadership Bonus' },
   salesteam: { key: 'salesteam', label: 'Sales Team Commissions' },
 });

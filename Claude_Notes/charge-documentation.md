@@ -6062,7 +6062,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 - Implemented Fast Track audit data rendering from live dashboard state:
   - enrollment-based Fast Track commission credits from direct sponsored member records
   - Fast Track transfer-out/payout records sourced from persisted commission payout activity entries.
-- Added desktop height synchronization so Fast Track panel matches `Infinity Builder Bonus` panel height:
+- Added desktop height synchronization so Fast Track panel matches `Infinity Tier Commission` panel height:
   - panel IDs:
     - `#fast-track-bonus-panel`
     - `#infinity-builder-bonus-panel`
@@ -6126,7 +6126,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 ### What Was Changed
 
 - Reflowed Row 2 dashboard component placement in `index.html`:
-  - `Infinity Builders Bonus` and `Legacy Leadership Bonus` remain in the left two-column lane directly below `Weekly Total Organization BV`.
+  - `Infinity Tier Commission` and `Legacy Leadership Bonus` remain in the left two-column lane directly below `Weekly Total Organization BV`.
   - `Fast Track Bonus` was moved from under Account Overview to the right lane.
   - Right lane now stacks:
     1. `Server Cut-Off`
@@ -7760,7 +7760,7 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - right pane: simplified metric rows for weekly BV, new members, and direct sponsors
 - Kept logic-sensitive bonus modules untouched (structure and JS hooks preserved):
   - Fast Track Bonus
-  - Infinity Builder Bonus
+  - Infinity Tier Commission
   - Legacy Leadership Bonus
 
 ### Files Affected
@@ -26828,7 +26828,7 @@ Updated `binary-tree-next-app.mjs`:
 
 ### What Changed
 - Replaced the prior Infinity unlock icon with a cleaner, minimal infinity-loop glyph.
-- Kept the dedicated `infinity-unlock` icon key mapping for `Infinity Builder Bonus Unlocked` rows.
+- Kept the dedicated `infinity-unlock` icon key mapping for `Infinity Tier Commission Unlocked` rows.
 
 ### File
 - `store-dashboard.html`
@@ -27990,18 +27990,18 @@ Files updated:
 Validation:
 - `node --check binary-tree-next-app.mjs` passed.
 
-## Update (2026-04-16) - Binary Tree Next Infinity Builder Bonus Panel UI (New)
+## Update (2026-04-16) - Binary Tree Next Infinity Tier Commission Panel UI (New)
 
 ### What Was Changed
 
-- Implemented a new Infinity Builder Bonus panel in `binary-tree-next.html` and `binary-tree-next-app.mjs`.
+- Implemented a new Infinity Tier Commission panel in `binary-tree-next.html` and `binary-tree-next-app.mjs`.
 - Added complete panel lifecycle wiring:
   - DOM references
   - state flag (`infinityBuilderVisible`)
   - position/visibility/render sync
   - close + initialization behavior.
 - Connected Account Overview commission tile action:
-  - clicking `Infinity Builder Bonus` now opens the Infinity panel.
+  - clicking `Infinity Tier Commission` now opens the Infinity panel.
 - Added panel exclusivity interop so Infinity panel closes when opening:
   - Account Overview
   - Rank Advancement
@@ -28053,7 +28053,7 @@ Validation:
 
 ### Addendum (2026-04-16)
 
-- Refined the new Infinity Builder Bonus panel scale for better visual balance:
+- Refined the new Infinity Tier Commission panel scale for better visual balance:
   - reduced large heading scale (`Infinity Tier` and `Current`)
   - reduced tier-node card core sizes, BV/payout typography, and current-row seed sizes
   - tightened card/list padding while preserving breathing room.
@@ -28122,7 +28122,7 @@ Validation:
 ### Addendum (2026-04-16) - Infinity Header Breadcrumb Format
 
 - Updated Infinity panel top navigation to explicit breadcrumb format:
-  - `Account Overview > Infinity Builder Bonus`
+  - `Account Overview > Infinity Tier Commission`
 - `Account Overview` breadcrumb item remains clickable and returns users to Account Overview panel.
 - Kept panel title structure intact while matching requested breadcrumb UX.
 
@@ -29186,3 +29186,101 @@ Files updated:
 
 Validation:
 - `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Tier Commission Rule Migration (Requested Logic)
+
+Summary:
+- Migrated Infinity Builder tier and monthly 1% logic to the requested behavior.
+
+Implementation details:
+- Added package-based Infinity tier node reward table:
+- `infinity-builder-pack` -> 50 USD per node
+- `legacy-builder-pack` -> 75 USD per node
+- Added `resolveInfinityBuilderSeedTierRewardUsd(...)` for per-seed reward resolution.
+- Updated Infinity tier assembly in `buildInfinityBuilderBonusPanelSnapshot(...)`:
+- Node completion now requires active seed and >= 3 active direct enrollments.
+- Active direct count now evaluates all qualifying direct children (not only first 3 displayed slots).
+- Tier completion now requires all 3 nodes completed.
+- Tier reward amount is now computed from enrolled node package mix.
+- Added Tier 1 strict monthly gate:
+- Tier 1 monthly override is enabled only after Tier 1 full completion.
+- Added Tier 2+ relaxed monthly gate:
+- Tier 2+ node monthly override activates once that node meets the 3-active-direct rule, even if tier is partially complete.
+- Added locked-tier guard so monthly override does not activate when tier is locked.
+- Updated claim metadata `completedNodeCount` to prefer Infinity completed-node count.
+- Updated Infinity UI copy/subtitles/statuses to align with the new rule language.
+- Updated Infinity aggregate totals:
+- `totalTierRewardUsd` and `claimableTierRewardUsd` now sum actual tier values, not fixed 150 USD multiples.
+
+Files affected:
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Panel Static 150 USD Placeholder Removal
+
+Summary:
+- Removed remaining static 150 USD fallback labels from Infinity Builder panel boot state.
+
+Implementation details:
+- In `binary-tree-next.html`:
+- changed initial claim CTA text from fixed `Claim $150.00 Tier Reward` to generic `Claim Tier Reward` and default-disabled state.
+- changed initial bonus helper line from fixed 150 USD wording to dynamic-rule wording.
+- In `syncInfinityBuilderPanelVisuals(...)`:
+- added early-return fallback UI state when tiers are empty or selected tier is unavailable:
+- claim button forced disabled + generic label
+- bonus line forced to dynamic-rule guidance text.
+
+Files affected:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Claim Amount Visibility Gate
+
+Summary:
+- Tightened Infinity panel amount visibility so locked/incomplete tiers do not render fixed-looking reward amount labels.
+
+Implementation details:
+- In `syncInfinityBuilderPanelVisuals(...)`:
+- changed `!selectedTier.isUnlocked` tier-bonus branch to show lock guidance text instead of amount.
+- changed claim-button label for locked and incomplete states to generic `Claim Tier Reward`.
+- retained dynamic dollar claim text only in `selectedTier.isCompleted` branch.
+
+Files affected:
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Tier Commission Naming Update
+
+Summary:
+- Renamed user-facing `Infinity Builder Bonus` labels to `Infinity Tier Commission`.
+- Preserved existing internal payout keying (`infinitybuilder`) so stored data compatibility remains unchanged.
+
+Implementation details:
+- Updated Binary Tree Next Infinity panel title, breadcrumb, account overview commission label, and supporting copy.
+- Updated dashboard/admin/source labels where this bonus name is displayed.
+- Updated store upgrade unlock copy and icon-label matching text for the new wording.
+
+Files affected:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `index.html`
+- `admin.html`
+- `store-dashboard.html`
+- `backend/services/wallet.service.js`
+- `backend/stores/payout.store.js`
+
+Validation:
+- repo-wide search confirms no remaining `Infinity Builder Bonus` / `Infinity Builders Bonus` display labels.

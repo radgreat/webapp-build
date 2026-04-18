@@ -267,7 +267,7 @@
 
 ### Changes
 - Replaced the previous Infinity unlock icon variant with a cleaner infinity-loop glyph.
-- Kept `Infinity Builder Bonus Unlocked` mapped to `data-icon="infinity-unlock"`.
+- Kept `Infinity Tier Commission Unlocked` mapped to `data-icon="infinity-unlock"`.
 
 ### Result
 - Infinity unlocked benefits now read more clearly and feel more consistent with the icon set.

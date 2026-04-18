@@ -30,7 +30,7 @@ function normalizeCommissionPayoutSourceKey(value) {
 function resolveCommissionPayoutSourceLabel(sourceKey) {
   const normalized = normalizeCommissionPayoutSourceKey(sourceKey);
   if (normalized === 'fasttrack') return 'Fast Track Bonus';
-  if (normalized === 'infinitybuilder') return 'Infinity Builder Bonus';
+  if (normalized === 'infinitybuilder') return 'Infinity Tier Commission';
   if (normalized === 'legacyleadership') return 'Legacy Leadership Bonus';
   if (normalized === 'salesteam') return 'Sales Team Commissions';
   if (normalized === 'ewallet') return 'E-Wallet';
