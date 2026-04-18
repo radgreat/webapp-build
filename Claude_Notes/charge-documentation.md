@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 316
+**Times Updated:** 317
 
 ## Overview
 
@@ -14,6 +14,41 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Update (2026-04-18) - Member Dashboard Startup Session Gate Hardening
+
+### What Was Changed
+
+- Hardened dashboard entry in index.html so member dashboard boot now requires a usable local auth snapshot:
+  - session payload exists
+  - authToken is present
+  - token is not locally expired when authTokenExpiresAt is provided.
+- Added startup server validation (validateMemberAuthSessionWithServer) prior to module initialization.
+- Added async dashboard bootstrap wrapper (bootstrapMemberDashboardApp) to defer heavy startup initializers until session validation passes.
+- Added invalid-session failure behavior:
+  - clear local/session/cookie session snapshot
+  - redirect to login.html.
+
+### Files Affected
+
+- index.html
+- Claude_Notes/member-dashboard-page.md
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Design Decisions
+
+- Used existing protected endpoint (/api/member-auth/email-verification-status) for session preflight to avoid API-surface expansion in this pass.
+- Preserved resilience for temporary backend failures by forcing logout only on explicit auth-denied responses (401/403).
+
+### Known Limitations
+
+- Non-auth server failures during startup preflight currently allow dashboard continuation from local snapshot.
+
+### Validation
+
+- Inline script parse check passed:
+  - index.html (2 blocks)
 
 ## Update (2026-04-16) - Setup Password UI Redesigned for Member + Preferred Flows
 

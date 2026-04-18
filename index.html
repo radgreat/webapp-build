@@ -6117,6 +6117,37 @@
       }
     }
 
+    function hasSessionTokenExpired(user) {
+      const rawExpiry = String(user?.authTokenExpiresAt || '').trim();
+      if (!rawExpiry) {
+        return false;
+      }
+
+      const parsedExpiryMs = Date.parse(rawExpiry);
+      if (!Number.isFinite(parsedExpiryMs)) {
+        return false;
+      }
+
+      return parsedExpiryMs <= Date.now();
+    }
+
+    function isSessionSnapshotUsable(user) {
+      if (!user || typeof user !== 'object') {
+        return false;
+      }
+
+      const authToken = String(user?.authToken || '').trim();
+      if (!authToken) {
+        return false;
+      }
+
+      if (hasSessionTokenExpired(user)) {
+        return false;
+      }
+
+      return true;
+    }
+
     let loginRedirectInFlight = false;
     function redirectToLogin() {
       if (loginRedirectInFlight) {
@@ -6184,21 +6215,17 @@
     }
 
     function hydrateCurrentSessionUserFromServerSync(user) {
-      if (!user || typeof user !== 'object') {
-        return false;
-      }
-
-      const authToken = String(user?.authToken || '').trim();
-      if (!authToken) {
+      if (!isSessionSnapshotUsable(user)) {
         clearUserSession();
         redirectToLogin();
         return false;
       }
-      void hydrateCurrentSessionUserFromServer(user, authToken);
+
       return true;
     }
     const currentSessionUser = readUserSession();
-    if (!currentSessionUser) {
+    if (!isSessionSnapshotUsable(currentSessionUser)) {
+      clearUserSession();
       redirectToLogin();
     } else {
       const sessionHydratedFromServer = hydrateCurrentSessionUserFromServerSync(currentSessionUser);
@@ -10893,6 +10920,69 @@
 
       function resolveMemberAuthToken() {
         return String(currentSessionUser?.authToken || '').trim();
+      }
+
+      async function validateMemberAuthSessionWithServer() {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          return {
+            valid: false,
+            status: 401,
+            error: 'Member auth token is missing.',
+          };
+        }
+
+        try {
+          const response = await fetch('/api/member-auth/session', {
+            method: 'GET',
+            cache: 'no-store',
+            credentials: 'same-origin',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+              Accept: 'application/json',
+            },
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (response.status === 401 || response.status === 403) {
+            const message = typeof payload?.error === 'string'
+              ? payload.error
+              : 'Session is invalid, expired, or revoked.';
+            return {
+              valid: false,
+              status: response.status,
+              error: message,
+            };
+          }
+
+          if (!response.ok) {
+            return {
+              valid: true,
+              degraded: true,
+              status: response.status,
+            };
+          }
+
+          const serverUser = payload?.user;
+          if (serverUser && typeof serverUser === 'object') {
+            Object.assign(currentSessionUser, serverUser);
+            currentSessionUser.authToken = authToken;
+            persistUserSessionSnapshot(currentSessionUser);
+            window.__vaultAuthUser = currentSessionUser;
+          }
+
+          return {
+            valid: true,
+            status: response.status,
+          };
+        } catch (error) {
+          console.warn('Unable to validate member auth session at startup:', error);
+          return {
+            valid: true,
+            degraded: true,
+            status: 0,
+          };
+        }
       }
 
       function clearBusinessCenterActivationFeedback() {
@@ -26224,49 +26314,66 @@
         syncSettingsPageAccountOverview();
       });
 
-      beginDashboardSkeletonLoading();
-      initializeServerCutoffCard();
-      initializeThemeFromSettings();
-      void initMyStore();
-      loadRuntimeSettings().catch((error) => {
-        console.warn('Unable to initialize runtime settings:', error);
-      });
-      loadCommissionPayoutRequestsForCurrentUser().catch((error) => {
-        console.warn('Unable to initialize wallet commission offsets:', error);
-      });
-      loadCommissionContainerSnapshotForCurrentUser({ rerender: true }).catch((error) => {
-        commissionContainersHydrated = true;
-        console.warn('Unable to initialize commission containers:', error);
-      });
-      window.addEventListener('storage', (event) => {
-        if (event.key !== RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY) {
+      async function bootstrapMemberDashboardApp() {
+        const sessionValidationResult = await validateMemberAuthSessionWithServer();
+        if (!sessionValidationResult.valid) {
+          console.warn('Member session bootstrap validation failed:', sessionValidationResult.error || 'Invalid member session.');
+          clearUserSession();
+          redirectToLogin();
           return;
         }
-        applyRuntimeSettings(readRuntimeSettingsFallback());
-      });
-      ensureBinaryTreeSummaryReady().catch((error) => {
-        markDashboardSkeletonStepComplete('summary');
-        console.error('Unable to preload Binary Tree summary:', error);
-      });
-      initCommissionPayoutButtons();
-      initializeEWalletModule();
-      loadEWalletSnapshotForCurrentUser({ silent: true }).catch((error) => {
-        console.warn('Unable to preload E-Wallet snapshot:', error);
-      });
-      initializeFastTrackPanelHeightSync();
-      initializeRecentActivityPanelHeightSync();
-      initializeRecentActivityPanelControls();
-      initializeProfileModule();
-      bindBusinessCenterActivationControls();
-      initEnrollMemberModule();
-      initPreferredCustomerModule();
-      renderFastTrackCommissionAuditFeed();
-      renderRecentActivityFeed();
-      renderNotificationCenter();
-      void loadMemberNotificationCenter({ silent: true });
-      void loadBusinessCenterStatus({ silent: true });
-      setDesktopSidebarCollapsed(initialDesktopSidebarCollapsed, { persist: false });
-      setPage(activePage, { routeMode: 'replace' });
+
+        const authToken = resolveMemberAuthToken();
+        if (authToken) {
+          void hydrateCurrentSessionUserFromServer(currentSessionUser, authToken);
+        }
+
+        beginDashboardSkeletonLoading();
+        initializeServerCutoffCard();
+        initializeThemeFromSettings();
+        void initMyStore();
+        loadRuntimeSettings().catch((error) => {
+          console.warn('Unable to initialize runtime settings:', error);
+        });
+        loadCommissionPayoutRequestsForCurrentUser().catch((error) => {
+          console.warn('Unable to initialize wallet commission offsets:', error);
+        });
+        loadCommissionContainerSnapshotForCurrentUser({ rerender: true }).catch((error) => {
+          commissionContainersHydrated = true;
+          console.warn('Unable to initialize commission containers:', error);
+        });
+        window.addEventListener('storage', (event) => {
+          if (event.key !== RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY) {
+            return;
+          }
+          applyRuntimeSettings(readRuntimeSettingsFallback());
+        });
+        ensureBinaryTreeSummaryReady().catch((error) => {
+          markDashboardSkeletonStepComplete('summary');
+          console.error('Unable to preload Binary Tree summary:', error);
+        });
+        initCommissionPayoutButtons();
+        initializeEWalletModule();
+        loadEWalletSnapshotForCurrentUser({ silent: true }).catch((error) => {
+          console.warn('Unable to preload E-Wallet snapshot:', error);
+        });
+        initializeFastTrackPanelHeightSync();
+        initializeRecentActivityPanelHeightSync();
+        initializeRecentActivityPanelControls();
+        initializeProfileModule();
+        bindBusinessCenterActivationControls();
+        initEnrollMemberModule();
+        initPreferredCustomerModule();
+        renderFastTrackCommissionAuditFeed();
+        renderRecentActivityFeed();
+        renderNotificationCenter();
+        void loadMemberNotificationCenter({ silent: true });
+        void loadBusinessCenterStatus({ silent: true });
+        setDesktopSidebarCollapsed(initialDesktopSidebarCollapsed, { persist: false });
+        setPage(activePage, { routeMode: 'replace' });
+      }
+
+      void bootstrapMemberDashboardApp();
       }
     }
   </script>
