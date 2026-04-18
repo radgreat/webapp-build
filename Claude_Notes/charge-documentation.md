@@ -29481,3 +29481,83 @@ Files affected:
 Validation:
 - line-by-line CSS parity check against `index.html` completed for logo shell/logo selectors.
 - screenshot-based visual verification remains blocked in-session by browser-launch restrictions.
+
+### Addendum (2026-04-17) - Remove Binary Tree (Old) from Admin + Member Sidebar Nav
+
+Summary:
+- Removed the `Binary Tree (Old)` sidebar navigation item from both admin and member dashboards.
+- Kept `Binary Tree (Next Gen)` as the visible binary-tree navigation path.
+
+Implementation details:
+- In `admin.html`: removed `/admin/BinaryTree` sidebar nav entry under Build.
+- In `index.html`: removed `/BinaryTree` sidebar nav entry under Build.
+- No backend/service logic changes in this pass.
+
+Files affected:
+- `admin.html`
+- `index.html`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation:
+- Text scan confirms no remaining `Binary Tree (Old)` label in `admin.html` or `index.html`.
+
+Known limitations:
+- Legacy binary-tree routes still exist internally; this pass removes only sidebar visibility.
+
+### Addendum (2026-04-17) - Retired Legacy Binary Tree Routes + Renamed Next-Gen Label to Official Binary Tree
+
+Summary:
+- Retired legacy dashboard route mappings for old binary-tree entry points.
+- Renamed `Binary Tree (Next Gen)` sidebar labels to `Binary Tree` for official naming.
+
+Implementation details:
+- In `admin.html`:
+- renamed Build nav item label to `Binary Tree`.
+- removed `/admin/BinaryTree` from `pagePathByPage` route map.
+- removed `binary-tree` entry from `pageMeta` route-title map.
+- added legacy route guards in `resolvePageFromPath(...)` to redirect old typed patterns to dashboard.
+- In `index.html`:
+- renamed Build nav item label to `Binary Tree`.
+- removed `/BinaryTree` from `pagePathByPage` route map.
+- removed `binary-tree` entry from `pageMeta` route-title map.
+- added legacy route guards in `resolvePageFromPath(...)` for old typed patterns.
+
+Files affected:
+- `admin.html`
+- `index.html`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation:
+- Text scan confirms no remaining `Binary Tree (Old)` or `Binary Tree (Next Gen)` labels in dashboard HTML files.
+- Text scan confirms no remaining `/BinaryTree` or `/admin/BinaryTree` entries in dashboard route maps.
+
+Known limitations:
+- Legacy binary-tree page sections still exist in markup for now, but are no longer reachable via sidebar/route maps.
+
+### Addendum (2026-04-17) - Binary Tree Boot Loading Copy Updated to Motivational Language
+
+Summary:
+- Replaced technical loading subtitle wording in Binary Tree Next with motivational copy.
+- Removed the prior `Preparing nodes and camera state...` message.
+
+Implementation details:
+- In `binary-tree-next.html`, updated `.binary-tree-loading-subtitle` text to:
+- `Building your future one connection at a time...`
+
+Files affected:
+- `binary-tree-next.html`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation:
+- Text scan confirms old technical subtitle phrase no longer exists in `binary-tree-next.html`.
+
+Known limitations:
+- This is a copy-only change; no loading-state logic, animation, or boot flow behavior was modified.

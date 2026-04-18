@@ -186,3 +186,41 @@ Last Updated: 2026-04-16
 ### Validation
 
 - Inline script parse check passed (`index.html`: `3` blocks).
+
+## Recent Update (2026-04-17) - Removed Legacy Binary Tree Nav Entry
+
+### What Was Changed
+
+- Removed the `Binary Tree (Old)` sidebar link from the member dashboard Build section.
+- Kept `Binary Tree (Next Gen)` in place as the single visible Binary Tree nav option.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Verified no `Binary Tree (Old)` string remains in `index.html` or `admin.html`.
+
+## Recent Update (2026-04-17) - Legacy Binary Tree Route Retirement + Official Naming
+
+### What Was Changed
+
+- Renamed member sidebar label from `Binary Tree (Next Gen)` to `Binary Tree`.
+- Removed legacy `/BinaryTree` page mapping from member dashboard route map.
+- Added explicit fallback handling for retired binary-tree route patterns so legacy typed paths resolve to dashboard.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Verified no remaining `/BinaryTree` or `/admin/BinaryTree` route-map entries in `index.html`/`admin.html`.
+- Verified no remaining `Binary Tree (Next Gen)` labels in dashboard HTML files.

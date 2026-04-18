@@ -3038,3 +3038,19 @@ Files updated:
 
 Validation:
 - `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Binary Tree Boot Loading Copy (Motivational)
+
+What changed:
+- Updated the Binary Tree boot loading subtitle to remove technical wording about node/camera state.
+- Replaced subtitle copy with motivational text:
+- `Building your future one connection at a time...`
+
+Files updated:
+- `binary-tree-next.html`
+
+Validation:
+- In-file copy check confirms `Preparing nodes and camera state...` no longer exists in Binary Tree Next loading markup.
+
+Known limitations:
+- Copy-only update; loading sequence timing, animations, and boot logic are unchanged.

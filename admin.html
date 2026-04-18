@@ -2647,14 +2647,9 @@
 
         <p class="sidebar-nav-section-label mt-3">Build</p>
 
-        <a href="/admin/BinaryTree" data-nav-link data-page="binary-tree" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
-          Binary Tree (Old)
-        </a>
-
         <a href="/binary-tree-next.html?source=admin" data-nav-static class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
           <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
-          Binary Tree (Next Gen)
+          Binary Tree
         </a>
 
         <a href="/admin/EnrollMember" data-nav-link data-page="enroll-member" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
@@ -5450,10 +5445,6 @@
           title: 'Preferred Customer Details',
           searchPlaceholder: 'Search preferred customer details...',
         },
-        'binary-tree': {
-          title: 'Binary Tree',
-          searchPlaceholder: 'Search binary tree members...',
-        },
         commissions: {
           title: 'Commissions',
           searchPlaceholder: 'Search commissions...',
@@ -5474,7 +5465,6 @@
         'enroll-member': '/admin/EnrollMember',
         'preferred-customers': '/admin/PreferredCustomers',
         'preferred-customer-detail': '/admin/PreferredCustomers/Detail',
-        'binary-tree': '/admin/BinaryTree',
         commissions: '/admin/Commissions',
         'commission-order': '/admin/Commissions/Order',
         settings: '/admin/Settings',
@@ -5494,6 +5484,14 @@
         const normalizedPath = normalizeRoutePath(pathname).toLowerCase();
 
         if (normalizedPath === '/' || normalizedPath === '/index.html' || normalizedPath === '/admin' || normalizedPath === '/admin.html') {
+          return 'dashboard';
+        }
+        if (
+          normalizedPath === '/admin/binarytree'
+          || normalizedPath === '/admin/binary-tree'
+          || normalizedPath === '/binarytree'
+          || normalizedPath === '/binary-tree'
+        ) {
           return 'dashboard';
         }
 

@@ -16667,3 +16667,61 @@ Files touched this pass:
 Validation state:
 - direct selector/value comparison completed against `index.html`.
 - screenshot validation still pending due local browser-launch restrictions.
+
+### Addendum (2026-04-17) - Sidebar Nav Cleanup: Binary Tree (Old) Removed
+
+Current scope update:
+- Both Admin and Member sidebars now show only `Binary Tree (Next Gen)` under Build.
+
+Progress made:
+- Removed legacy Binary Tree sidebar links from `admin.html` and `index.html`.
+- Kept existing route/state mappings untouched to avoid functional regressions outside nav visibility.
+
+Files touched this pass:
+- `admin.html`
+- `index.html`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- Confirmed no `Binary Tree (Old)` string remains in admin/member dashboard HTML files.
+
+### Addendum (2026-04-17) - Route Cleanup: Legacy Binary Tree Paths Retired
+
+Current scope update:
+- Legacy old-tree dashboard routes are retired from both Admin and Member SPA route maps.
+- `Binary Tree (Next Gen)` is now labeled `Binary Tree` in both sidebars.
+
+Progress made:
+- Removed `/admin/BinaryTree` and `/BinaryTree` from dashboard route-map objects.
+- Removed `binary-tree` entries from page metadata maps to prevent legacy page-state activation through persisted route state.
+- Added explicit route guards for `/binarytree`, `/binary-tree`, `/admin/binarytree`, `/admin/binary-tree` to route users to dashboard.
+
+Files touched this pass:
+- `admin.html`
+- `index.html`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- Verified no legacy old-tree route-map entries remain in admin/member dashboard HTML.
+- Verified official sidebar label now reads `Binary Tree`.
+
+### Addendum (2026-04-17) - Binary Tree Boot Loading Copy Refresh
+
+Current scope update:
+- Binary Tree Next boot loading text now uses motivational language instead of technical camera/node-state wording.
+
+Progress made:
+- Updated loading subtitle copy in `binary-tree-next.html`.
+- Removed `Preparing nodes and camera state...` from the boot overlay.
+
+Files touched this pass:
+- `binary-tree-next.html`
+- `Claude_Notes/binary-tree-next.md`
+
+Validation state:
+- In-file text verification complete for loading subtitle replacement.
+
+Known limitations:
+- Copy-only update; loading behavior, transitions, and timing remain unchanged.

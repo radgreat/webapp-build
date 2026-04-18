@@ -68,3 +68,30 @@
 
 #### Files Updated This Pass
 - `admin.html`
+
+### 2026-04-17 - Removed Legacy Binary Tree Nav Entry
+
+| Area | Change |
+|---|---|
+| Build Navigation | Removed the `Binary Tree (Old)` link from the admin sidebar Build group. |
+| Next-Gen Path | Kept `Binary Tree (Next Gen)` as the only Binary Tree navigation entry in admin sidebar. |
+
+#### Files Updated This Pass
+- `admin.html`
+
+#### Notes
+- Legacy route mappings were not removed; this pass only updates what appears in the sidebar nav.
+
+### 2026-04-17 - Legacy Binary Tree Route Retirement + Official Naming
+
+| Area | Change |
+|---|---|
+| Build Navigation | Renamed sidebar label from `Binary Tree (Next Gen)` to `Binary Tree`. |
+| Legacy Route Access | Removed legacy `/admin/BinaryTree` page mapping from admin dashboard router state map. |
+| Route Guard | Added explicit legacy route fallback guard (`/admin/binarytree`, `/admin/binary-tree`, `/binarytree`, `/binary-tree`) to force dashboard instead of loading legacy tree view state. |
+
+#### Files Updated This Pass
+- `admin.html`
+
+#### Notes
+- Legacy admin binary tree panel markup remains in file, but route/nav access is now retired from admin dashboard routing and sidebar navigation.
