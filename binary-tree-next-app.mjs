@@ -3476,9 +3476,15 @@ function syncTreeNextEnrollLegPositionField() {
   if (!(treeNextEnrollLegPositionInput instanceof HTMLInputElement)) {
     return;
   }
+  const spilloverMode = resolveTreeNextEnrollSpilloverModeValue();
+  if (isTreeNextEnrollAdminPlacementMode()) {
+    treeNextEnrollLegPositionInput.value = spilloverMode === ENROLL_SPILLOVER_MODE_SPILLOVER
+      ? 'Spillover Auto Placement'
+      : 'Auto Placement';
+    return;
+  }
   const placementSide = resolveTreeNextEnrollPlacementSideFromLock(state.enroll?.placementLock);
   const sideLabel = placementSide === 'right' ? 'Right' : 'Left';
-  const spilloverMode = resolveTreeNextEnrollSpilloverModeValue();
   treeNextEnrollLegPositionInput.value = spilloverMode === ENROLL_SPILLOVER_MODE_SPILLOVER
     ? `Spillover ${sideLabel} Leg`
     : `${sideLabel} Leg`;
@@ -20767,6 +20773,82 @@ function resolveAnticipationSlots(frame, frameOptions) {
     Math.floor(safeNumber(selectedProjected.globalDepth, safeNumber(selectedProjected.node?.depth, 0))),
   );
   const pendingReservation = resolvePendingPlacementRevealReservation();
+  if (state.source === 'admin') {
+    const candidateSides = ['left', 'right'];
+    let placementSide = '';
+    for (const side of candidateSides) {
+      if (childLegs[side]) {
+        continue;
+      }
+      if (
+        pendingReservation
+        && pendingReservation.parentId === selectedNodeId
+        && pendingReservation.placementLeg === side
+      ) {
+        continue;
+      }
+      placementSide = side;
+      break;
+    }
+    if (!placementSide) {
+      return [];
+    }
+
+    const slotGlobalDepth = selectedGlobalDepth + 1;
+    const leftSlotLocalPath = `${baseLocalPath}L`;
+    const rightSlotLocalPath = `${baseLocalPath}R`;
+    const leftProjectedSlot = leftSlotLocalPath.length <= universeDepthCap
+      ? state.adapter.projectLocalPath(leftSlotLocalPath, frameOptions)
+      : null;
+    const rightProjectedSlot = rightSlotLocalPath.length <= universeDepthCap
+      ? state.adapter.projectLocalPath(rightSlotLocalPath, frameOptions)
+      : null;
+    const anchorProjectedSlot = placementSide === 'right'
+      ? (rightProjectedSlot || leftProjectedSlot)
+      : (leftProjectedSlot || rightProjectedSlot);
+    if (!anchorProjectedSlot) {
+      return [];
+    }
+
+    const radius = clamp(safeNumber(anchorProjectedSlot.r, 0) * 0.88, 6.5, 32);
+    if (radius <= 0.2) {
+      return [];
+    }
+
+    const hasBothProjectedSlots = Boolean(leftProjectedSlot && rightProjectedSlot);
+    const centerX = hasBothProjectedSlots
+      ? (
+        safeNumber(leftProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
+        + safeNumber(rightProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
+      ) / 2
+      : safeNumber(selectedProjected.x, safeNumber(anchorProjectedSlot.x, 0));
+    const centerY = hasBothProjectedSlots
+      ? (
+        safeNumber(leftProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
+        + safeNumber(rightProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
+      ) / 2
+      : safeNumber(anchorProjectedSlot.y, 0);
+    const slotLocalDepth = Math.max(
+      0,
+      Math.floor(safeNumber(anchorProjectedSlot.localDepth, baseLocalPath.length + 1)),
+    );
+    const encodedParentId = encodeURIComponent(selectedNodeId);
+    return [
+      {
+        key: `${selectedNodeId}:center:${placementSide}`,
+        buttonId: `${ANTICIPATION_BUTTON_ID_PREFIX}${encodedParentId}-center`,
+        action: `anticipation:${encodedParentId}|${placementSide}`,
+        parentNodeId: selectedNodeId,
+        side: placementSide,
+        hideSideLabel: true,
+        x: centerX,
+        y: centerY,
+        r: radius,
+        localDepth: slotLocalDepth,
+        globalDepth: slotGlobalDepth,
+      },
+    ];
+  }
   const sides = ['left', 'right'];
   const slots = [];
 
@@ -20911,7 +20993,9 @@ function drawAnticipationSlots(anticipationSlots) {
     try {
       const radius = Math.max(3.5, safeNumber(slot.r, 8));
       const hover = state.hoveredButtonId === slot.buttonId;
-      const sideLabel = slot.side === 'right' ? 'RIGHT' : 'LEFT';
+      const defaultSideLabel = slot.side === 'right' ? 'RIGHT' : 'LEFT';
+      const sideLabel = safeText(slot.sideLabel || defaultSideLabel);
+      const hideSideLabel = Boolean(slot.hideSideLabel);
 
       registerButton({
         id: slot.buttonId,
@@ -20949,13 +21033,15 @@ function drawAnticipationSlots(anticipationSlots) {
         align: 'center',
       });
 
-      drawText(sideLabel, slot.x, slot.y + radius + 10, {
-        size: 9,
-        weight: 600,
-        color: hover ? '#6A7E97' : '#7A8BA2',
-        align: 'center',
-        baseline: 'top',
-      });
+      if (!hideSideLabel && sideLabel) {
+        drawText(sideLabel, slot.x, slot.y + radius + 10, {
+          size: 9,
+          weight: 600,
+          color: hover ? '#6A7E97' : '#7A8BA2',
+          align: 'center',
+          baseline: 'top',
+        });
+      }
     } finally {
       if (applyReveal) {
         context.restore();

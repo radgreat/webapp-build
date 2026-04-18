@@ -29284,3 +29284,200 @@ Files affected:
 
 Validation:
 - repo-wide search confirms no remaining `Infinity Builder Bonus` / `Infinity Builders Bonus` display labels.
+
+### Addendum (2026-04-17) - Admin Data Flush Coverage Expansion (Products Preserved)
+
+Summary:
+- Expanded server-side admin flush to clear newly introduced member/session/customization tables so test resets do not leave stale user-linked records.
+- Kept `store_products` (and product assets) intact per request, while still preserving `admin_users`.
+
+Implementation details:
+- Updated `resetAllMockData(...)` in `backend/services/admin.service.js`:
+- added table-by-table existence probing via `to_regclass(...)` so flush does not fail when optional/new tables are not installed yet.
+- expanded truncation scope to include: member auth sessions, email verification tokens, binary-tree intro state, commission containers, good-life monthly progress, notifications/read state, rank monthly progress, achievement claims, title awards/catalog, preferred attribution claims/locks, and e-wallet accounts/transfers.
+- reset `charge.runtime_settings` to baseline defaults (dashboard/tier mock toggles off, legal/custom text cleared, fallback sponsor cleared) while keeping a canonical `id=1` row.
+- response payload now includes:
+- `cleared` counts for the expanded scope.
+- `missingTables` list for non-installed tables skipped during reset.
+- Updated `admin.html` Settings flush UX:
+- confirmation copy now reflects broader reset scope.
+- success feedback now renders a broader table-count summary.
+- explicitly states admin account and store products are preserved.
+- surfaces skipped/missing table names returned by backend.
+
+Files updated:
+- `backend/services/admin.service.js`
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation:
+- `node --check backend/services/admin.service.js` passed.
+
+Known limitations:
+- Flush intentionally does not clear `store_products` or uploaded product images (per request to preserve products).
+- If a table has not been installed in the current environment yet, it is skipped and reported under `missingTables`.
+
+### Addendum (2026-04-17) - Flush Button 500 Fix (Admin Auth Fallback)
+
+Summary:
+- Root-caused `POST /api/admin/reset-all-data` 500 failures to admin DB credential authentication (`charge_app_admin`) during flush client connect.
+- Added runtime fallback so flush can proceed with service-role DB credentials when admin-role auth fails.
+
+Implementation details:
+- In `backend/services/admin.service.js`:
+- removed hard-blocking dependency on `isAdminDbConfigured()` for reset path.
+- added `connectResetClientWithFallback()`:
+- tries `adminPool.connect()` first.
+- on PostgreSQL auth failures (`28P01`/`28000` or password-auth message), falls back to `servicePool.connect()`.
+- includes response metadata:
+- `warnings[]` (e.g., admin auth failed, service fallback used)
+- `connectionRole` (`admin` or `service`).
+- In `admin.html`:
+- flush success feedback now appends backend warnings so operators can see fallback context.
+
+Validation:
+- `node --check backend/services/admin.service.js` passed.
+- direct service invocation of `resetAllMockData(...)` returned `success: true` with full cleared counts and warning indicating service fallback.
+
+Operational note:
+- If an already-running backend process predates this patch, it must be restarted before the admin button uses the new logic.
+
+### Addendum (2026-04-17) - Admin Binary Tree Next Centered Anticipation Structure
+
+Summary:
+- Updated Admin Binary Tree Next anticipation visuals from dual `LEFT`/`RIGHT` slot indicators to a single centered anticipation node.
+- Preserved existing binary placement logic and acting-root behavior (no root-model changes).
+
+Implementation details:
+- In `binary-tree-next-app.mjs`, `resolveAnticipationSlots(...)` now has an admin-only centered-slot branch:
+- resolves one available placement leg internally (`left` first, then `right`, while respecting pending reservation locks).
+- projects both child positions when available and renders the anticipation slot at the center line for admin UI.
+- emits one admin anticipation action while still sending the concrete binary leg to enrollment flow.
+- In `drawAnticipationSlots(...)`:
+- added support for hidden slot-side labels (`hideSideLabel`) so admin centered anticipation no longer displays `LEFT`/`RIGHT` text.
+- In `syncTreeNextEnrollLegPositionField(...)`:
+- admin enrollment modal leg-position copy now reads `Auto Placement` / `Spillover Auto Placement` to match centered anticipation UX.
+
+Files affected:
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/charge-documentation.md`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+Known limitations:
+- Centered anticipation is a visual/admin-UX change only; final persisted placement still uses left/right legs internally for binary-tree integrity.
+- Acting-root model intentionally unchanged in this pass.
+
+### Addendum (2026-04-17) - Admin Dashboard Theme/System Refresh to Match User Dashboard Direction
+
+Summary:
+- Updated Admin dashboard shell/theme system to match the newer User dashboard token architecture and visual direction.
+- Kept admin data behavior intact while modernizing global theme variables, shell spacing, and top KPI card structure.
+
+Implementation details:
+- In `admin.html`:
+- switched document root to `data-theme="light"` and updated color-scheme metadata to `light dark`.
+- migrated Tailwind extended color/shadow config to CSS-variable-driven tokens (brand/surface/text/semantic + variable-based depth shadows).
+- added full root theme token set and light-theme overrides for parity with user dashboard theming model.
+- updated scrollbar styles to use theme variables instead of fixed dark palette values.
+- refreshed top shell spacing (`header` and `main`) to align with user dashboard proportions.
+- modernized first dashboard KPI row card containers to current card primitives (rounded-2xl, min-height, layered raised surfaces).
+- preserved all existing admin IDs and JS wiring for dashboard metrics/settings interactions.
+
+Files affected:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/charge-documentation.md`
+
+Validation:
+- structural/code diff review completed.
+- visual screenshot automation attempted via `node screenshot.mjs`, but blocked by sandboxed browser launch (`spawn EPERM`) and escalated run was declined.
+
+Known limitations:
+- This pass modernizes theme system and core dashboard shell/cards; full module-level one-to-one dashboard parity transplant from `index.html` remains available as a follow-up if needed.
+
+### Addendum (2026-04-17) - Admin Sidebar Upgrade + Dashboard Card Repair
+
+Summary:
+- Updated admin sidebar to the new grouped navigation layout and refreshed branding treatment.
+- Repaired admin dashboard KPI cards after prior style changes caused card rendering issues.
+
+Implementation details:
+- In `admin.html`:
+- upgraded Material Symbols font import to full icon set for modern sidebar icons.
+- added `sidebar-nav-section-label` utility style for sectioned navigation labels.
+- replaced old sidebar markup with grouped sections (`General`, `Build`, `Records`) while preserving existing admin route targets and `data-nav-link` attributes.
+- kept sidebar toggle and routing hooks unchanged to preserve behavior.
+- restored first dashboard row card wrappers to stable card class set to fix card breakage.
+
+Files affected:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/charge-documentation.md`
+
+Validation:
+- reviewed updated sidebar + card markup in-file for structure consistency.
+- screenshot automation remains blocked in-session due sandboxed browser launch restrictions.
+
+Known limitations:
+- Full screenshot-based visual verification still pending if elevated screenshot execution is granted.
+
+### Addendum (2026-04-17) - Admin Sidebar Brand Parity + Commissions-Only Nav
+
+Summary:
+- Removed the extra `Commission Order` sidebar item and kept admin nav focused on `Commissions`.
+- Updated admin sidebar top branding to match user-dashboard sidebar logo treatment.
+
+Implementation details:
+- In `admin.html`:
+- removed the sidebar `Commission Order` nav link (`data-page=\"commission-order\"`).
+- rebuilt top sidebar brand block using user-dashboard pattern:
+- `sidebar-brand-row` + `sidebar-brand-button`
+- dual logo assets (`L&D Logo_Cropped` + `L&D Logo_Cropped_White`)
+- brand dropdown shell + quick links/actions.
+- added supporting sidebar brand CSS primitives (button, chevron, dropdown menu, profile row, menu items, collapse button).
+- added JS wiring for:
+- brand menu toggle + outside click close.
+- brand quick-link page routing and brand-menu logout action.
+- desktop sidebar collapse/re-open support via `data-sidebar-collapsed`.
+- updated user-facing label copy to reduce `Commission Order` phrasing in key headings/context.
+
+Files affected:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation:
+- in-file structure and selector/hook validation completed (sidebar IDs/data attributes, nav mapping, and menu event hooks).
+- screenshot automation remains blocked by environment browser-launch restrictions in-session.
+
+Known limitations:
+- detailed commission request workflow view still exists as an internal subview for fulfillment operations, but primary navigation now exposes only `Commissions`.
+
+### Addendum (2026-04-17) - Admin Sidebar Logo Size Corrected to Exact User Sidebar Values
+
+Summary:
+- Corrected admin sidebar logo sizing mismatch; logo now uses the exact same shell/image sizing values as `index.html` user sidebar.
+
+Implementation details:
+- In `admin.html`:
+- set `.sidebar-brand-logo-shell` to user values (`max-width: 7.6rem`, `min-height: 1.9rem`, `display: flex`).
+- set `.sidebar-brand-logo` to user values (`max-height: 1.92rem`, added `transform: translateY(0)`).
+- aligned top brand dropdown menu entries to the same baseline labels/order used in user sidebar.
+
+Files affected:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation:
+- line-by-line CSS parity check against `index.html` completed for logo shell/logo selectors.
+- screenshot-based visual verification remains blocked in-session by browser-launch restrictions.

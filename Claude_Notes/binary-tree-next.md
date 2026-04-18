@@ -3020,3 +3020,21 @@ Files updated:
 
 Validation:
 - repo text scan confirms legacy display label removed from Binary Tree Next files.
+
+### Addendum (2026-04-17) - Admin Anticipation Structure (Single Center Slot)
+
+What changed:
+- Reworked admin anticipation rendering so only one centered anticipation node is shown for enrollment.
+- Removed admin-facing left/right anticipation label split for slot visuals.
+- Kept binary placement and acting-root logic unchanged.
+
+Implementation details:
+- `resolveAnticipationSlots(...)` now branches for admin source and returns one centered slot with internal leg resolution.
+- `drawAnticipationSlots(...)` now supports `hideSideLabel` for slot metadata.
+- `syncTreeNextEnrollLegPositionField(...)` now shows admin-friendly auto-placement copy.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.

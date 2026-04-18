@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="en" class="antialiased">
+<html lang="en" class="antialiased" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <meta name="color-scheme" content="dark"/>
+  <meta name="color-scheme" content="light dark"/>
   <title>Premiere Life Admin</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=face,face_retouching_off,settings" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
   <link rel="stylesheet" href="/node_modules/flag-icons/css/flag-icons.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css">
 
@@ -24,41 +24,41 @@
         extend: {
           colors: {
             brand: {
-              50:  '#E6FFF6',
-              100: '#B3FFE6',
-              200: '#80FFD6',
-              300: '#4DFFC6',
-              400: '#1AFFB6',
-              500: '#0FD4A4',
-              600: '#0CB88E',
-              700: '#099C78',
-              800: '#068062',
-              900: '#03644C',
-              950: '#014832',
+              50:  'rgb(var(--brand-50) / <alpha-value>)',
+              100: 'rgb(var(--brand-100) / <alpha-value>)',
+              200: 'rgb(var(--brand-200) / <alpha-value>)',
+              300: 'rgb(var(--brand-300) / <alpha-value>)',
+              400: 'rgb(var(--brand-400) / <alpha-value>)',
+              500: 'rgb(var(--brand-500) / <alpha-value>)',
+              600: 'rgb(var(--brand-600) / <alpha-value>)',
+              700: 'rgb(var(--brand-700) / <alpha-value>)',
+              800: 'rgb(var(--brand-800) / <alpha-value>)',
+              900: 'rgb(var(--brand-900) / <alpha-value>)',
+              950: 'rgb(var(--brand-950) / <alpha-value>)',
             },
             surface: {
-              base:     '#0A0F14',
-              raised:   '#111920',
-              elevated: '#1A2530',
-              floating: '#243240',
-              border:   '#2A3A4A',
-              'border-light': '#3A4E62',
+              base:     'rgb(var(--surface-base) / <alpha-value>)',
+              raised:   'rgb(var(--surface-raised) / <alpha-value>)',
+              elevated: 'rgb(var(--surface-elevated) / <alpha-value>)',
+              floating: 'rgb(var(--surface-floating) / <alpha-value>)',
+              border:   'rgb(var(--surface-border) / <alpha-value>)',
+              'border-light': 'rgb(var(--surface-border-light) / <alpha-value>)',
             },
             text: {
-              primary:   '#F0F4F8',
-              secondary: '#A0B4C8',
-              tertiary:  '#6B8299',
-              inverse:   '#0A0F14',
+              primary: 'rgb(var(--text-primary) / <alpha-value>)',
+              secondary: 'rgb(var(--text-secondary) / <alpha-value>)',
+              tertiary: 'rgb(var(--text-tertiary) / <alpha-value>)',
+              inverse: 'rgb(var(--text-inverse) / <alpha-value>)',
             },
             semantic: {
-              success:      '#10E4A0',
-              'success-bg': 'rgba(16,228,160,0.1)',
-              warning:      '#F5B731',
-              'warning-bg': 'rgba(245,183,49,0.1)',
-              danger:       '#F45B69',
-              'danger-bg':  'rgba(244,91,105,0.1)',
-              info:         '#5BB8F4',
-              'info-bg':    'rgba(91,184,244,0.1)',
+              success:      'rgb(var(--semantic-success) / <alpha-value>)',
+              'success-bg': 'rgb(var(--semantic-success-rgb) / 0.12)',
+              warning:      'rgb(var(--semantic-warning) / <alpha-value>)',
+              'warning-bg': 'rgb(var(--semantic-warning-rgb) / 0.12)',
+              danger:       'rgb(var(--semantic-danger) / <alpha-value>)',
+              'danger-bg':  'rgb(var(--semantic-danger-rgb) / 0.12)',
+              info:         'rgb(var(--semantic-info) / <alpha-value>)',
+              'info-bg':    'rgb(var(--semantic-info-rgb) / 0.12)',
             },
           },
           fontFamily: {
@@ -77,10 +77,10 @@
             'mono-data':  ['1.5rem',    { lineHeight: '1.2', letterSpacing: '-0.02em' }],
           },
           boxShadow: {
-            'depth-1': '0 1px 2px rgba(15,212,164,0.04), 0 2px 8px rgba(0,0,0,0.25)',
-            'depth-2': '0 2px 4px rgba(15,212,164,0.06), 0 8px 24px rgba(0,0,0,0.35), 0 1px 0 rgba(15,212,164,0.08) inset',
-            'depth-3': '0 4px 8px rgba(15,212,164,0.08), 0 16px 48px rgba(0,0,0,0.45), 0 1px 0 rgba(15,212,164,0.1) inset',
-            'glow':    '0 0 20px rgba(15,212,164,0.15), 0 0 60px rgba(15,212,164,0.05)',
+            'depth-1': 'var(--shadow-depth-1)',
+            'depth-2': 'var(--shadow-depth-2)',
+            'depth-3': 'var(--shadow-depth-3)',
+            'glow':    'var(--shadow-glow)',
           },
           transitionTimingFunction: {
             'spring':       'cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -110,15 +110,111 @@
       font-size: 16px;
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
+      --brand-50: 236 239 249;
+      --brand-100: 217 223 241;
+      --brand-200: 189 198 226;
+      --brand-300: 149 164 204;
+      --brand-400: 108 129 179;
+      --brand-500: 79 102 156;
+      --brand-600: 63 82 128;
+      --brand-700: 50 65 102;
+      --brand-800: 38 49 79;
+      --brand-900: 27 35 58;
+      --brand-950: 17 22 39;
+      --surface-base: 7 8 11;
+      --surface-raised: 11 13 18;
+      --surface-elevated: 14 17 23;
+      --surface-floating: 18 22 30;
+      --surface-border: 31 37 48;
+      --surface-border-light: 45 53 67;
+      --text-primary: 236 239 244;
+      --text-secondary: 151 160 176;
+      --text-tertiary: 106 116 133;
+      --text-inverse: 10 12 16;
+      --semantic-success: 54 197 137;
+      --semantic-success-rgb: 54 197 137;
+      --semantic-warning: 239 179 82;
+      --semantic-warning-rgb: 239 179 82;
+      --semantic-danger: 236 94 109;
+      --semantic-danger-rgb: 236 94 109;
+      --semantic-info: 98 127 197;
+      --semantic-info-rgb: 98 127 197;
+      --shadow-depth-1: 0 1px 2px rgb(0 0 0 / 28%), 0 8px 20px rgb(0 0 0 / 24%);
+      --shadow-depth-2: 0 2px 6px rgb(0 0 0 / 30%), 0 12px 30px rgb(0 0 0 / 34%), 0 1px 0 rgb(255 255 255 / 5%) inset;
+      --shadow-depth-3: 0 5px 14px rgb(0 0 0 / 34%), 0 18px 42px rgb(0 0 0 / 40%), 0 1px 0 rgb(255 255 255 / 6%) inset;
+      --shadow-glow: 0 0 14px rgb(79 102 156 / 11%), 0 0 34px rgb(79 102 156 / 5%);
+      --theme-page-gradient: radial-gradient(ellipse 60% 36% at 50% -6%, rgb(var(--brand-500) / 0.1), transparent 70%);
+      --theme-surface-gradient-top: 13 16 22;
+      --theme-surface-gradient-bottom: 11 13 18;
+      --theme-overlay: 7 9 12;
+      --theme-overlay-strength: 0.56;
+      --theme-minimap-panel: linear-gradient(160deg, rgb(13 16 22 / 0.92) 0%, rgb(10 12 17 / 0.9) 100%), radial-gradient(120% 120% at 0% 0%, rgb(var(--brand-500) / 0.07) 0%, rgb(var(--brand-500) / 0) 58%);
+      --theme-minimap-panel-shadow: 0 14px 32px rgb(0 0 0 / 48%), inset 0 1px 0 rgb(255 255 255 / 8%);
+      --theme-minimap-toggle: rgb(13 16 22 / 0.9);
+      --scrollbar-thumb: var(--surface-border);
+      --scrollbar-thumb-hover: var(--surface-border-light);
+      --selection-bg: 79 102 156;
+      --selection-bg-alpha: 0.34;
+      --selection-text: 243 247 255;
       --safe-area-top: env(safe-area-inset-top, 0px);
       --safe-area-right: env(safe-area-inset-right, 0px);
       --safe-area-bottom: env(safe-area-inset-bottom, 0px);
       --safe-area-left: env(safe-area-inset-left, 0px);
     }
 
+    html[data-theme='light'] {
+      --brand-50: 242 248 255;
+      --brand-100: 228 240 255;
+      --brand-200: 204 226 255;
+      --brand-300: 159 199 255;
+      --brand-400: 103 167 245;
+      --brand-500: 0 113 227;
+      --brand-600: 0 98 197;
+      --brand-700: 0 83 166;
+      --brand-800: 0 63 128;
+      --brand-900: 0 44 89;
+      --brand-950: 0 27 54;
+      --surface-base: 245 245 247;
+      --surface-raised: 255 255 255;
+      --surface-elevated: 251 251 253;
+      --surface-floating: 255 255 255;
+      --surface-border: 210 210 215;
+      --surface-border-light: 199 199 204;
+      --text-primary: 29 29 31;
+      --text-secondary: 110 110 115;
+      --text-tertiary: 125 125 130;
+      --text-inverse: 255 255 255;
+      --semantic-success: 31 122 53;
+      --semantic-success-rgb: 31 122 53;
+      --semantic-warning: 154 101 0;
+      --semantic-warning-rgb: 154 101 0;
+      --semantic-danger: 181 52 45;
+      --semantic-danger-rgb: 181 52 45;
+      --semantic-info: 0 102 204;
+      --semantic-info-rgb: 0 102 204;
+      --shadow-depth-1: 0 1px 2px rgb(15 23 42 / 5%), 0 6px 16px rgb(15 23 42 / 6%);
+      --shadow-depth-2: 0 2px 6px rgb(15 23 42 / 6%), 0 12px 26px rgb(15 23 42 / 10%), 0 1px 0 rgb(255 255 255 / 84%) inset;
+      --shadow-depth-3: 0 6px 14px rgb(15 23 42 / 8%), 0 18px 36px rgb(15 23 42 / 14%), 0 1px 0 rgb(255 255 255 / 88%) inset;
+      --shadow-glow: none;
+      --theme-page-gradient: radial-gradient(ellipse 70% 44% at 50% 0%, rgb(var(--brand-500) / 0.09), transparent 64%);
+      --theme-surface-gradient-top: 255 255 255;
+      --theme-surface-gradient-bottom: 248 248 250;
+      --theme-overlay: 228 230 235;
+      --theme-overlay-strength: 0.56;
+      --theme-minimap-panel: rgb(252 252 253 / 0.97);
+      --theme-minimap-panel-shadow: 0 12px 26px rgb(15 23 42 / 12%), inset 0 1px 0 rgb(255 255 255 / 94%);
+      --theme-minimap-toggle: rgb(252 252 253 / 0.95);
+      --scrollbar-thumb: 187 191 198;
+      --scrollbar-thumb-hover: 155 161 170;
+      --selection-bg: 0 113 227;
+      --selection-bg-alpha: 0.26;
+      --selection-text: 255 255 255;
+    }
+
     html {
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      scrollbar-gutter: stable;
     }
 
     body {
@@ -128,12 +224,397 @@
       font-synthesis: none;
     }
 
-    /* Custom scrollbar for dark theme */
+    /* Theme-aware custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #2A3A4A; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #3A4E62; }
-    * { scrollbar-width: thin; scrollbar-color: #2A3A4A transparent; }
+    ::-webkit-scrollbar-thumb { background: rgb(var(--scrollbar-thumb) / 1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgb(var(--scrollbar-thumb-hover) / 1); }
+    * { scrollbar-width: thin; scrollbar-color: rgb(var(--scrollbar-thumb) / 1) transparent; }
+
+    .sidebar-brand-row {
+      height: 65px;
+      padding: 0 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.35rem;
+      border-bottom: 1px solid rgb(var(--surface-border));
+    }
+
+    .sidebar-brand-dropdown {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+    }
+
+    #sidebar-collapse-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 0.56rem;
+      border: 1px solid transparent;
+      background: transparent;
+      color: rgb(var(--text-tertiary));
+      line-height: 1;
+      transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1), border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+    }
+
+    #sidebar-collapse-button .material-symbols-outlined {
+      font-size: 1rem;
+      line-height: 1;
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 500,
+        'GRAD' 0,
+        'opsz' 24;
+    }
+
+    #sidebar-collapse-button:hover {
+      border-color: rgb(var(--surface-border));
+      background: rgb(var(--surface-elevated));
+      color: rgb(var(--text-primary));
+    }
+
+    #sidebar-collapse-button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgb(var(--brand-500) / 0.35);
+    }
+
+    #sidebar-brand-button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.38rem 0.56rem;
+      border-radius: 0.68rem;
+      border: 1px solid transparent;
+      background: transparent;
+      transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1), border-color 150ms ease, background-color 150ms ease;
+    }
+
+    #sidebar-brand-button:hover {
+      border-color: rgb(var(--surface-border));
+      background: rgb(var(--surface-elevated));
+    }
+
+    #sidebar-brand-button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgb(var(--brand-500) / 0.35);
+    }
+
+    #sidebar-brand-button[aria-expanded='true'] {
+      border-color: rgb(var(--surface-border));
+      background: rgb(var(--surface-elevated));
+    }
+
+    #sidebar-brand-button .sidebar-brand-chevron {
+      font-size: 1.05rem;
+      color: rgb(var(--text-tertiary));
+      transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), color 150ms ease;
+    }
+
+    #sidebar-brand-button[aria-expanded='true'] .sidebar-brand-chevron {
+      transform: rotate(180deg);
+      color: rgb(var(--text-secondary));
+    }
+
+    .sidebar-brand-logo-shell {
+      width: 100%;
+      max-width: 7.6rem;
+      min-height: 1.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: visible;
+      line-height: 0;
+      flex-shrink: 0;
+    }
+
+    .sidebar-brand-logo {
+      display: block;
+      width: auto;
+      max-width: 100%;
+      max-height: 1.92rem;
+      height: auto;
+      object-fit: contain;
+      object-position: left center;
+      transform: translateY(0);
+    }
+
+    .sidebar-brand-logo-light {
+      display: none;
+    }
+
+    .sidebar-brand-logo-dark {
+      display: block;
+    }
+
+    html[data-theme='light'] .sidebar-brand-logo-light,
+    html[data-theme='apple'] .sidebar-brand-logo-light {
+      display: block;
+    }
+
+    html[data-theme='light'] .sidebar-brand-logo-dark,
+    html[data-theme='apple'] .sidebar-brand-logo-dark {
+      display: none;
+    }
+
+    #sidebar-brand-menu {
+      position: absolute;
+      left: 0;
+      top: calc(100% + 0.45rem);
+      width: 13.4rem;
+      max-width: calc(100vw - 2rem);
+      border: 1px solid rgb(255 255 255 / 0.14);
+      border-radius: 0.78rem;
+      background: rgb(20 22 28 / 0.96);
+      box-shadow: 0 14px 30px rgb(0 0 0 / 0.45);
+      padding: 0.5rem;
+      z-index: 70;
+      backdrop-filter: blur(10px);
+    }
+
+    .sidebar-brand-menu-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.08rem 0.12rem 0.42rem;
+      margin-bottom: 0.3rem;
+      border-bottom: 1px solid rgb(255 255 255 / 0.12);
+    }
+
+    .sidebar-brand-menu-profile-avatar {
+      width: 1.9rem;
+      height: 1.9rem;
+      border-radius: 0.5rem;
+      object-fit: cover;
+      border: 1px solid rgb(255 255 255 / 0.12);
+      flex-shrink: 0;
+      background: rgb(8 9 12 / 0.85);
+    }
+
+    .sidebar-brand-menu-profile-name {
+      margin: 0;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      color: rgb(255 255 255 / 0.95);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .sidebar-brand-menu-profile-email {
+      margin: 0.1rem 0 0;
+      max-width: 9.25rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.7rem;
+      line-height: 1.12;
+      color: rgb(255 255 255 / 0.62);
+    }
+
+    .sidebar-brand-menu-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.44rem;
+      border: 1px solid transparent;
+      border-radius: 0.6rem;
+      padding: 0.46rem 0.54rem;
+      background: transparent;
+      color: rgb(255 255 255 / 0.92);
+      font-size: 0.9rem;
+      line-height: 1.04rem;
+      text-align: left;
+      transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1), border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+    }
+
+    .sidebar-brand-menu-item:hover {
+      border-color: rgb(255 255 255 / 0.18);
+      background: rgb(255 255 255 / 0.1);
+      color: rgb(255 255 255 / 0.98);
+    }
+
+    .sidebar-brand-menu-item:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgb(var(--brand-500) / 0.35);
+    }
+
+    .sidebar-brand-menu-item:active {
+      transform: scale(0.98);
+    }
+
+    .sidebar-brand-menu-item .material-symbols-outlined {
+      font-size: 0.9rem;
+      line-height: 1;
+      color: currentColor;
+    }
+
+    .sidebar-brand-menu-item-leading {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.46rem;
+    }
+
+    .sidebar-brand-menu-divider {
+      height: 1px;
+      margin: 0.34rem 0;
+      background: rgb(255 255 255 / 0.14);
+    }
+
+    #sidebar {
+      width: 15rem;
+      backdrop-filter: blur(10px);
+    }
+
+    html:not([data-theme]) #sidebar,
+    html[data-theme='default'] #sidebar,
+    html[data-theme='dark'] #sidebar,
+    html[data-theme='shopify'] #sidebar {
+      background: rgb(8 10 14 / 0.96);
+    }
+
+    html[data-theme='light'] #sidebar,
+    html[data-theme='apple'] #sidebar {
+      background: rgb(var(--surface-raised) / 0.98);
+    }
+
+    @media (min-width: 1024px) {
+      .lg\:ml-64 {
+        margin-left: 15rem;
+        transition-property: margin-left;
+        transition-duration: 380ms;
+        transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: margin-left;
+      }
+
+      #sidebar {
+        transition-property: transform;
+        transition-duration: 380ms;
+        transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: transform;
+      }
+
+      #menu-toggle {
+        display: none;
+      }
+
+      html[data-sidebar-collapsed='true'] #menu-toggle {
+        display: inline-flex;
+      }
+
+      html[data-sidebar-collapsed='true'] #sidebar {
+        transform: translateX(-100%);
+      }
+
+      html[data-sidebar-collapsed='true'] .lg\:ml-64 {
+        margin-left: 0;
+      }
+    }
+
+    .sidebar-nav-section-label {
+      margin: 0.2rem 0.5rem 0.2rem;
+      color: rgb(var(--text-tertiary));
+      font-size: 0.72rem;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      font-weight: 500;
+      text-transform: none;
+      padding: 0;
+    }
+
+    #sidebar nav [data-nav-link] .material-symbols-outlined,
+    #sidebar nav [data-nav-static] .material-symbols-outlined,
+    #sidebar #sidebar-settings-link .material-symbols-outlined {
+      font-size: 1rem;
+      line-height: 1;
+      color: currentColor;
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 500,
+        'GRAD' 0,
+        'opsz' 24;
+    }
+
+    #sidebar nav [data-nav-link],
+    #sidebar nav [data-nav-static],
+    #sidebar #sidebar-settings-link {
+      border: 1px solid transparent;
+      border-radius: 0.62rem;
+      font-size: 0.88rem;
+      line-height: 1.15rem;
+      padding-top: 0.52rem;
+      padding-bottom: 0.52rem;
+    }
+
+    #sidebar nav [data-nav-link]:hover,
+    #sidebar nav [data-nav-static]:hover,
+    #sidebar #sidebar-settings-link:hover {
+      border-color: rgb(var(--surface-border));
+    }
+
+    #sidebar nav [data-nav-link]:active,
+    #sidebar nav [data-nav-static]:active,
+    #sidebar #sidebar-settings-link:active {
+      transform: none;
+    }
+
+    #sidebar nav .bg-brand-500\/10 {
+      background-color: rgb(var(--surface-elevated)) !important;
+    }
+
+    #sidebar nav .text-brand-400 {
+      color: rgb(var(--text-primary)) !important;
+    }
+
+    #sidebar nav .border-brand-500\/20 {
+      border-color: rgb(var(--surface-border)) !important;
+    }
+
+    #sidebar nav .hover\:bg-brand-500\/15:hover {
+      background-color: rgb(var(--surface-floating)) !important;
+    }
+
+    @media (min-width: 640px) {
+      header > div {
+        position: relative;
+      }
+
+      #page-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.82rem;
+        line-height: 1;
+        color: rgb(var(--text-secondary));
+        letter-spacing: -0.01em;
+        text-transform: none;
+      }
+    }
+
+    #page-dashboard .rounded-xl {
+      border-radius: 0.72rem;
+    }
+
+    #page-dashboard .rounded-2xl {
+      border-radius: 0.84rem;
+    }
+
+    #page-dashboard [class*='shadow-glow'] {
+      box-shadow: var(--shadow-depth-1) !important;
+    }
+
+    #page-dashboard [class*='bg-gradient-to-br'] {
+      background-image: linear-gradient(180deg, rgb(var(--surface-raised)), rgb(var(--surface-elevated))) !important;
+    }
+
+    #page-dashboard [class*='hover:-translate-y-0.5']:hover {
+      transform: translateY(-1px);
+    }
 
     .material-symbols-outlined {
       font-family: 'Material Symbols Outlined';
@@ -2084,77 +2565,133 @@
 
     <!-- ========== SIDEBAR ========== -->
     <aside id="sidebar" class="fixed top-0 left-0 z-50 h-full w-64 bg-surface-raised border-r border-surface-border shadow-depth-1 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out-expo flex flex-col">
+      <div class="sidebar-brand-row">
+        <div class="sidebar-brand-dropdown">
+          <button
+            id="sidebar-brand-button"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            aria-controls="sidebar-brand-menu"
+          >
+            <span class="sidebar-brand-logo-shell">
+              <img src="/brand_assets/Logos/L%26D%20Logo_Cropped.png" alt="Premiere Life" class="sidebar-brand-logo sidebar-brand-logo-light" />
+              <img src="/brand_assets/Logos/L%26D%20Logo_Cropped_White.png" alt="Premiere Life" class="sidebar-brand-logo sidebar-brand-logo-dark" />
+            </span>
+            <span class="material-symbols-outlined sidebar-brand-chevron" aria-hidden="true">expand_more</span>
+          </button>
 
-      <!-- Logo -->
-      <div class="p-6 border-b border-surface-border">
-        <div class="flex items-center gap-3">
-          <svg class="w-8 h-8 text-brand-500" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 3L5.5 8.2v7.3c0 6.8 4.2 13.1 10.5 15.2 6.3-2.1 10.5-8.4 10.5-15.2V8.2L16 3z"/>
-            <path d="M17.3 10.5L12.3 17h4.2l-1.7 4.5 5-6.6h-4.1l1.6-4.4z"/>
-          </svg>
-          <span class="font-body font-medium text-display-sm text-text-primary">Premiere Life</span>
+          <div id="sidebar-brand-menu" class="hidden" role="menu" aria-label="Sidebar quick switch">
+            <div class="sidebar-brand-menu-profile" role="presentation">
+              <img id="sidebar-brand-profile-avatar" src="https://placehold.co/38x38" alt="" class="sidebar-brand-menu-profile-avatar" />
+              <div>
+                <p id="sidebar-brand-profile-name" class="sidebar-brand-menu-profile-name">Member</p>
+                <p id="sidebar-brand-profile-email" class="sidebar-brand-menu-profile-email">member@example.com</p>
+              </div>
+            </div>
+            <button type="button" role="menuitem" data-sidebar-brand-page="profile" class="sidebar-brand-menu-item">
+              <span class="sidebar-brand-menu-item-leading">
+                <span class="material-symbols-outlined" aria-hidden="true">person</span>
+                Profile
+              </span>
+            </button>
+            <button type="button" role="menuitem" data-sidebar-brand-page="dashboard" class="sidebar-brand-menu-item">
+              <span class="sidebar-brand-menu-item-leading">
+                <span class="material-symbols-outlined" aria-hidden="true">home</span>
+                Home
+              </span>
+            </button>
+            <button type="button" role="menuitem" data-sidebar-brand-page="my-store" class="sidebar-brand-menu-item">
+              <span class="sidebar-brand-menu-item-leading">
+                <span class="material-symbols-outlined" aria-hidden="true">storefront</span>
+                My Store
+              </span>
+            </button>
+            <button type="button" role="menuitem" data-sidebar-brand-page="settings" class="sidebar-brand-menu-item">
+              <span class="sidebar-brand-menu-item-leading">
+                <span class="material-symbols-outlined" aria-hidden="true">settings</span>
+                Settings
+              </span>
+            </button>
+            <div class="sidebar-brand-menu-divider" aria-hidden="true"></div>
+            <button type="button" role="menuitem" data-sidebar-brand-action="logout" class="sidebar-brand-menu-item">
+              <span class="sidebar-brand-menu-item-leading">
+                <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                Log out
+              </span>
+            </button>
+          </div>
         </div>
+        <button id="sidebar-collapse-button" type="button" aria-label="Hide sidebar" title="Hide sidebar" class="hidden lg:inline-flex">
+          <span class="material-symbols-outlined" aria-hidden="true">keyboard_double_arrow_left</span>
+        </button>
       </div>
 
-      <!-- Navigation -->
-      <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-        <!-- Active: Dashboard -->
+      <nav class="flex-1 p-3 space-y-1.5 overflow-y-auto">
+        <p class="sidebar-nav-section-label">General</p>
+
         <a href="/admin/dashboard" data-nav-link data-page="dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-brand-500/10 text-brand-400 border border-brand-500/20 font-medium text-body-sm transition-transform duration-150 ease-spring hover:bg-brand-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+          <span class="material-symbols-outlined" aria-hidden="true">home</span>
           Dashboard
         </a>
 
-        <!-- Inactive nav items -->
         <a href="/admin/MyStore" data-nav-link data-page="my-store" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.75h16.5m-15 0l1.02 8.16a2.25 2.25 0 002.232 1.965h6.996a2.25 2.25 0 002.232-1.966l1.02-8.159M8.25 9.75V6.75a3.75 3.75 0 117.5 0v3"/></svg>
+          <span class="material-symbols-outlined" aria-hidden="true">storefront</span>
           My Store
         </a>
 
+        <a href="/admin/Commissions" data-nav-link data-page="commissions" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+          <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+          Commissions
+        </a>
+
+        <p class="sidebar-nav-section-label mt-3">Build</p>
+
         <a href="/admin/BinaryTree" data-nav-link data-page="binary-tree" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v5.25m0 0L7.5 13.5m4.5-4.5 4.5 4.5M7.5 13.5v6.75m9-6.75v6.75M5.25 20.25h4.5m4.5 0h4.5"/></svg>
+          <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
           Binary Tree (Old)
         </a>
 
-                                <a href="/binary-tree-next.html?source=admin" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v5.25m0 0L7.5 13.5m4.5-4.5 4.5 4.5M7.5 13.5v6.75m9-6.75v6.75M5.25 20.25h4.5m4.5 0h4.5"/></svg>
+        <a href="/binary-tree-next.html?source=admin" data-nav-static class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+          <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
           Binary Tree (Next Gen)
         </a>
 
         <a href="/admin/EnrollMember" data-nav-link data-page="enroll-member" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a7.5 7.5 0 0115 0M18 8.25v4.5m2.25-2.25h-4.5"/></svg>
+          <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
           Enroll Member
         </a>
 
         <a href="/admin/PreferredCustomers" data-nav-link data-page="preferred-customers" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 6a3 3 0 11-6 0 3 3 0 016 0zM2.25 19.5a8.25 8.25 0 0119.5 0M19.5 7.5a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zM22.5 19.5a6 6 0 00-3.938-5.625"/></svg>
+          <span class="material-symbols-outlined" aria-hidden="true">groups_2</span>
           Preferred Customers
         </a>
 
-        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h9A2.25 2.25 0 0118.75 6v12A2.25 2.25 0 0116.5 20.25h-9A2.25 2.25 0 015.25 18V6A2.25 2.25 0 017.5 3.75zM8.25 8.25h7.5M8.25 12h7.5M8.25 15.75h4.5"/></svg>
+        <p class="sidebar-nav-section-label mt-3">Records</p>
+
+        <a href="#" data-nav-static class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+          <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>
           Purchases
         </a>
 
-        <a href="/admin/Commissions" data-nav-link data-page="commissions" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m2.25-9.75a3 3 0 00-2.25-.938c-1.243 0-2.25.756-2.25 1.688 0 .932 1.007 1.687 2.25 1.687s2.25.756 2.25 1.688c0 .931-1.007 1.687-2.25 1.687a3 3 0 01-2.25-.937M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Commissions
-        </a>
-
-        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 7.5A2.25 2.25 0 014.5 5.25h15A2.25 2.25 0 0121.75 7.5v9A2.25 2.25 0 0119.5 18.75h-15A2.25 2.25 0 012.25 16.5v-9zM2.25 9.75h19.5M16.5 12.75a.75.75 0 100 1.5.75.75 0 000-1.5z"/></svg>
+        <a href="#" data-nav-static class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+          <span class="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span>
           E-Wallet
         </a>
 
-        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.483 9.246 5 7.5 5c-1.745 0-3.332.483-4.5 1.253v13C4.168 18.483 5.755 18 7.5 18c1.746 0 3.332.483 4.5 1.253m0-13C13.168 5.483 14.754 5 16.5 5c1.745 0 3.332.483 4.5 1.253v13C19.832 18.483 18.245 18 16.5 18c-1.746 0-3.332.483-4.5 1.253"/></svg>
+        <a href="#" data-nav-static class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+          <span class="material-symbols-outlined" aria-hidden="true">menu_book</span>
           Library
         </a>
       </nav>
 
-      <!-- Bottom: Settings -->
-      <div class="p-4 border-t border-surface-border">
-        <a href="/admin/Settings" data-nav-link data-page="settings" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <div class="p-3 border-t border-surface-border space-y-3">
+        <section class="rounded-lg border border-surface-border bg-surface-base px-3 py-2.5">
+          <p class="text-[11px] font-medium text-text-primary">Need quick access?</p>
+          <p class="mt-1 text-[11px] leading-4 text-text-tertiary">Use Settings for runtime controls, mock mode, and system flush tools.</p>
+        </section>
+        <a id="sidebar-settings-link" href="/admin/Settings" data-nav-link data-page="settings" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+          <span class="material-symbols-outlined" aria-hidden="true">settings</span>
           Settings
         </a>
       </div>
@@ -2164,12 +2701,12 @@
     <div class="lg:ml-64">
 
       <!-- ========== TOP BAR ========== -->
-      <header class="sticky top-0 z-30 bg-surface-raised/80 backdrop-blur-xl border-b border-surface-border px-4 sm:px-6 lg:px-8 py-3">
-        <div class="flex items-center justify-between gap-4">
+      <header class="sticky top-0 z-30 h-[65px] bg-surface-raised/92 backdrop-blur-sm border-b border-surface-border px-4 sm:px-6 lg:px-6">
+        <div class="flex h-full items-center justify-between gap-4">
 
           <!-- Left: Hamburger + Title -->
           <div class="flex items-center gap-3">
-            <button id="menu-toggle" class="lg:hidden p-2 rounded-lg text-text-secondary hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.95] transition-transform duration-150 ease-spring">
+            <button id="menu-toggle" class="lg:hidden p-2 rounded-lg text-text-secondary hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.95] transition-transform duration-150 ease-spring" aria-label="Open navigation">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
             </button>
             <h2 id="page-title" class="font-body font-medium text-display-sm text-text-primary hidden sm:block">Dashboard</h2>
@@ -2201,99 +2738,92 @@
       </header>
 
       <!-- ========== MAIN CONTENT ========== -->
-      <main class="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <section id="page-dashboard" data-page-view="dashboard" class="space-y-6">
+      <main class="px-4 sm:px-5 lg:px-6 py-5 space-y-5">
+        <section id="page-dashboard" data-page-view="dashboard" class="space-y-6" data-dashboard-loading="false">
 
         <!-- ===== ROW 1: OVERVIEW CARDS ===== -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div class="grid items-stretch grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
 
           <!-- Card: Total Balance -->
-          <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1 hover:shadow-depth-2 hover:bg-surface-elevated hover:border-surface-border-light hover:-translate-y-0.5 transition-transform duration-150 ease-spring cursor-default group">
-            <div class="flex items-start justify-between mb-4">
-              <div class="w-10 h-10 rounded-lg bg-brand-500/10 flex items-center justify-center">
-                <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3"/></svg>
+          <article class="group relative flex h-full min-h-[220px] overflow-hidden rounded-2xl border border-surface-border bg-surface-raised/90 p-5 shadow-depth-1 hover:border-surface-border-light hover:shadow-depth-2 hover:-translate-y-0.5 transition-transform duration-150 ease-spring">
+            <div class="pointer-events-none absolute -top-16 right-0 h-32 w-32 rounded-full bg-brand-500/20 blur-2xl"></div>
+            <div class="relative flex h-full w-full flex-col">
+              <div class="flex items-center justify-between gap-3">
+                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Total Balance</p>
+                <span class="inline-flex items-center gap-1 rounded-full border border-semantic-success/20 bg-semantic-success-bg px-2 py-0.5 text-caption font-medium text-semantic-success">
+                  <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+                  +4.3%
+                </span>
               </div>
-              <span class="inline-flex items-center gap-1 text-caption font-medium px-2 py-0.5 rounded-full bg-semantic-success-bg text-semantic-success">
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
-                +4.3%
-              </span>
+              <p id="dashboard-total-balance-value" class="mt-3 font-body font-semibold text-[2rem] leading-[1.1] tracking-[-0.02em] text-text-primary">$0.00</p>
+              <p class="mt-1 text-caption text-text-secondary">Combined wallet and payout reserves</p>
+              <div class="mt-auto pt-3">
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-border">
+                  <div class="h-full rounded-full bg-brand-400" style="width: 64%"></div>
+                </div>
+              </div>
             </div>
-            <p class="text-body-sm text-text-secondary mb-1">Total Balance</p>
-            <p id="dashboard-total-balance-value" class="font-body font-semibold text-mono-data text-text-primary">$0.00</p>
-            <div class="mt-3">
-              <svg class="w-full h-8" viewBox="0 0 120 32" fill="none" preserveAspectRatio="none">
-                <defs><linearGradient id="sg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0FD4A4" stop-opacity="0.4"/><stop offset="100%" stop-color="#0FD4A4" stop-opacity="0"/></linearGradient></defs>
-                <path d="M0,28 L15,24 L30,26 L45,20 L60,22 L75,16 L90,12 L105,8 L120,4 L120,32 L0,32Z" fill="url(#sg1)"/>
-                <polyline points="0,28 15,24 30,26 45,20 60,22 75,16 90,12 105,8 120,4" stroke="#0FD4A4" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-          </div>
+          </article>
 
           <!-- Card: Personal Volume -->
-          <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1 hover:shadow-depth-2 hover:bg-surface-elevated hover:border-surface-border-light hover:-translate-y-0.5 transition-transform duration-150 ease-spring cursor-default group">
-            <div class="flex items-start justify-between mb-4">
-              <div class="w-10 h-10 rounded-lg bg-brand-500/10 flex items-center justify-center">
-                <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+          <article class="group relative flex h-full min-h-[220px] overflow-hidden rounded-2xl border border-surface-border bg-surface-raised/90 p-5 shadow-depth-1 hover:border-surface-border-light hover:shadow-depth-2 hover:-translate-y-0.5 transition-transform duration-150 ease-spring">
+            <div class="pointer-events-none absolute -top-20 right-0 h-36 w-36 rounded-full bg-brand-500/14 blur-3xl"></div>
+            <div class="relative flex h-full w-full flex-col">
+              <div class="flex items-center justify-between gap-3">
+                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Personal Volume</p>
+                <span class="inline-flex items-center gap-1 rounded-full border border-semantic-success/20 bg-semantic-success-bg px-2 py-0.5 text-caption font-medium text-semantic-success">
+                  <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+                  +2.1%
+                </span>
               </div>
-              <span class="inline-flex items-center gap-1 text-caption font-medium px-2 py-0.5 rounded-full bg-semantic-success-bg text-semantic-success">
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
-                +2.1%
-              </span>
+              <p id="dashboard-personal-volume-value" class="mt-3 font-body font-semibold text-[2rem] leading-[1.1] tracking-[-0.02em] text-text-primary">500 PV</p>
+              <p class="mt-1 text-caption text-text-secondary">Current personal volume in this cycle</p>
+              <div class="mt-auto pt-3">
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-border">
+                  <div class="h-full rounded-full bg-brand-400" style="width: 52%"></div>
+                </div>
+              </div>
             </div>
-            <p class="text-body-sm text-text-secondary mb-1">Personal Volume</p>
-            <p id="dashboard-personal-volume-value" class="font-body font-semibold text-mono-data text-text-primary">500 PV</p>
-            <div class="mt-3">
-              <svg class="w-full h-8" viewBox="0 0 120 32" fill="none" preserveAspectRatio="none">
-                <defs><linearGradient id="sg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10E4A0" stop-opacity="0.4"/><stop offset="100%" stop-color="#10E4A0" stop-opacity="0"/></linearGradient></defs>
-                <path d="M0,24 L15,22 L30,25 L45,18 L60,20 L75,14 L90,16 L105,10 L120,8 L120,32 L0,32Z" fill="url(#sg2)"/>
-                <polyline points="0,24 15,22 30,25 45,18 60,20 75,14 90,16 105,10 120,8" stroke="#10E4A0" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-          </div>
+          </article>
 
           <!-- Card: Cycles -->
-          <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1 hover:shadow-depth-2 hover:bg-surface-elevated hover:border-surface-border-light hover:-translate-y-0.5 transition-transform duration-150 ease-spring cursor-default group">
-            <div class="flex items-start justify-between mb-4">
-              <div class="w-10 h-10 rounded-lg bg-semantic-info-bg flex items-center justify-center">
-                <svg class="w-5 h-5 text-semantic-info" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992V4.356m0 0L18.84 6.53a8.25 8.25 0 00-13.803 3.7M3.977 14.652H8.97v4.992m0 0l-2.174-2.174a8.25 8.25 0 0013.803-3.7"/></svg>
+          <article class="group relative flex h-full min-h-[220px] overflow-hidden rounded-2xl border border-surface-border bg-surface-raised/90 p-5 shadow-depth-1 hover:border-surface-border-light hover:shadow-depth-2 hover:-translate-y-0.5 transition-transform duration-150 ease-spring">
+            <div class="pointer-events-none absolute -top-20 right-0 h-36 w-36 rounded-full bg-semantic-info-bg blur-3xl"></div>
+            <div class="relative flex h-full w-full flex-col">
+              <div class="flex items-center justify-between gap-3">
+                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Cycles</p>
+                <span class="inline-flex items-center gap-1 rounded-full border border-semantic-info/25 bg-semantic-info-bg px-2 py-0.5 text-caption font-medium text-semantic-info">
+                  <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+                  +2
+                </span>
               </div>
-              <span class="inline-flex items-center gap-1 text-caption font-medium px-2 py-0.5 rounded-full bg-semantic-info-bg text-semantic-info">
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
-                +2
-              </span>
+              <p id="dashboard-total-cycles-value" class="mt-3 font-body font-semibold text-[2rem] leading-[1.1] tracking-[-0.02em] text-text-primary">14</p>
+              <p class="mt-1 text-caption text-text-secondary">Completed cycles since last cutoff</p>
+              <div class="mt-auto pt-3">
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-border">
+                  <div class="h-full rounded-full bg-semantic-info" style="width: 48%"></div>
+                </div>
+              </div>
             </div>
-            <p class="text-body-sm text-text-secondary mb-1">Cycles</p>
-            <p id="dashboard-total-cycles-value" class="font-body font-semibold text-mono-data text-text-primary">14</p>
-            <div class="mt-3">
-              <svg class="w-full h-8" viewBox="0 0 120 32" fill="none" preserveAspectRatio="none">
-                <defs><linearGradient id="sg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5BB8F4" stop-opacity="0.4"/><stop offset="100%" stop-color="#5BB8F4" stop-opacity="0"/></linearGradient></defs>
-                <path d="M0,28 L15,26 L30,24 L45,22 L60,18 L75,14 L90,10 L105,8 L120,4 L120,32 L0,32Z" fill="url(#sg3)"/>
-                <polyline points="0,28 15,26 30,24 45,22 60,18 75,14 90,10 105,8 120,4" stroke="#5BB8F4" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-          </div>
+          </article>
 
           <!-- Card: Account Status -->
-          <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1 hover:shadow-depth-2 hover:bg-surface-elevated hover:border-surface-border-light hover:-translate-y-0.5 transition-transform duration-150 ease-spring cursor-default group">
-            <div class="flex items-start justify-between mb-4">
-              <div class="w-10 h-10 rounded-lg bg-brand-500/10 flex items-center justify-center">
-                <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg>
+          <article class="group relative flex h-full min-h-[220px] overflow-hidden rounded-2xl border border-surface-border bg-surface-raised/90 p-5 shadow-depth-1 hover:border-surface-border-light hover:shadow-depth-2 hover:-translate-y-0.5 transition-transform duration-150 ease-spring">
+            <div class="pointer-events-none absolute -top-20 right-0 h-36 w-36 rounded-full bg-semantic-success-bg blur-3xl"></div>
+            <div class="relative flex h-full w-full flex-col">
+              <div class="flex items-center justify-between gap-3">
+                <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Account Status</p>
+                <span class="inline-flex items-center gap-1 rounded-full border border-semantic-success/20 bg-semantic-success-bg px-2 py-0.5 text-caption font-medium text-semantic-success">Active</span>
               </div>
-              <span class="inline-flex items-center gap-1 text-caption font-medium px-2 py-0.5 rounded-full bg-semantic-success-bg text-semantic-success">
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
-                +1.2%
-              </span>
+              <p class="mt-3 font-body font-semibold text-[2rem] leading-[1.1] tracking-[-0.02em] text-semantic-success">Active</p>
+              <p class="mt-1 text-caption text-text-secondary">Admin account is fully operational</p>
+              <div class="mt-auto pt-3">
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-border">
+                  <div class="h-full rounded-full bg-semantic-success" style="width: 100%"></div>
+                </div>
+              </div>
             </div>
-            <p class="text-body-sm text-text-secondary mb-1">Account Status</p>
-            <p class="font-body font-semibold text-mono-data text-semantic-success">Active</p>
-            <div class="mt-3">
-              <svg class="w-full h-8" viewBox="0 0 120 32" fill="none" preserveAspectRatio="none">
-                <defs><linearGradient id="sg4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0FD4A4" stop-opacity="0.4"/><stop offset="100%" stop-color="#0FD4A4" stop-opacity="0"/></linearGradient></defs>
-                <path d="M0,22 L15,20 L30,24 L45,18 L60,16 L75,20 L90,14 L105,12 L120,10 L120,32 L0,32Z" fill="url(#sg4)"/>
-                <polyline points="0,22 15,20 30,24 45,18 60,16 75,20 90,14 105,12 120,10" stroke="#0FD4A4" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-          </div>
+          </article>
         </div>
 
         <!-- ===== ROW 2: BUDGET + ACTIONS + ANALYTICS ===== -->
@@ -2661,7 +3191,7 @@
             <div class="space-y-5">
               <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
-                  <h3 class="font-body font-medium text-display-sm text-text-primary">Commission Order</h3>
+                  <h3 class="font-body font-medium text-display-sm text-text-primary">Commissions</h3>
                   <p class="text-body-sm text-text-secondary mt-1">Shopify-style order management view for commission payout fulfillment.</p>
                 </div>
                 <span class="inline-flex items-center gap-1 rounded-full border border-brand-500/25 bg-brand-500/10 px-2.5 py-1 text-caption text-brand-300">
@@ -2735,7 +3265,7 @@
                     </table>
                   </div>
                   <div id="commission-orders-empty-state" class="hidden border-t border-surface-border px-4 py-4 text-body-sm text-text-secondary">
-                    No commission orders yet.
+                    No commission requests yet.
                   </div>
                 </div>
               </div>
@@ -2748,18 +3278,18 @@
             <div class="space-y-5">
               <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                 <div>
-                  <h3 class="font-body font-medium text-display-sm text-text-primary">Commission Order Details</h3>
+                  <h3 class="font-body font-medium text-display-sm text-text-primary">Commissions</h3>
                   <p class="text-body-sm text-text-secondary mt-1">Review the selected payout request and complete fulfillment on this page.</p>
                 </div>
                 <button id="commission-order-back-button" type="button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                  Back to Commission Orders
+                  Back to Commissions
                 </button>
               </div>
 
               <p id="commission-order-detail-feedback" class="hidden text-body-sm"></p>
 
               <div id="commission-order-detail-empty" class="rounded-lg border border-dashed border-surface-border bg-surface-base/50 px-4 py-6 text-body-sm text-text-secondary">
-                No commission order selected. Return to the list and open an order.
+                No commission request selected. Return to the list and open one.
               </div>
               <div id="commission-order-detail-content" class="hidden"></div>
             </div>
@@ -4161,7 +4691,7 @@
 
               <div class="rounded-xl border border-surface-border bg-surface-base/25 p-5">
                 <h4 class="font-body font-medium text-body text-text-primary">Commission Fulfillment Workspace</h4>
-                <p class="text-caption text-text-secondary mt-1">Use the <span class="text-text-primary">Commissions</span> sidebar page and manage orders inside <span class="text-text-primary">Commission Order</span>.</p>
+                <p class="text-caption text-text-secondary mt-1">Use the <span class="text-text-primary">Commissions</span> sidebar page to review and fulfill payout requests.</p>
               </div>
 
               <div class="rounded-xl border border-brand-500/30 bg-brand-500/5 p-5 space-y-4">
@@ -4657,6 +5187,14 @@
       const menuToggle = document.getElementById('menu-toggle');
       const pageTitle = document.getElementById('page-title');
       const headerSearchInput = document.getElementById('header-search-input');
+      const sidebarBrandButton = document.getElementById('sidebar-brand-button');
+      const sidebarBrandMenu = document.getElementById('sidebar-brand-menu');
+      const sidebarCollapseButton = document.getElementById('sidebar-collapse-button');
+      const sidebarBrandPageButtons = Array.from(document.querySelectorAll('[data-sidebar-brand-page]'));
+      const sidebarBrandActionButtons = Array.from(document.querySelectorAll('[data-sidebar-brand-action]'));
+      const sidebarBrandProfileAvatar = document.getElementById('sidebar-brand-profile-avatar');
+      const sidebarBrandProfileName = document.getElementById('sidebar-brand-profile-name');
+      const sidebarBrandProfileEmail = document.getElementById('sidebar-brand-profile-email');
       const navLinks = Array.from(document.querySelectorAll('[data-nav-link]'));
       const pageViews = Array.from(document.querySelectorAll('[data-page-view]'));
       const logoutButton = document.getElementById('logout-button');
@@ -4875,8 +5413,20 @@
         : parseCurrencyAmount(fastTrackBonusValueElement?.textContent, 0);
       let fastTrackBonusBalance = fastTrackBaseBalance;
 
+      const sessionDisplayName = currentSessionUser.name || currentSessionUser.username || 'User';
+      const sessionEmail = currentSessionUser.email || currentSessionUser.identifier || 'admin@premierelife.com';
       if (currentUserName) {
-        currentUserName.textContent = currentSessionUser.name || currentSessionUser.username || 'User';
+        currentUserName.textContent = sessionDisplayName;
+      }
+      if (sidebarBrandProfileName) {
+        sidebarBrandProfileName.textContent = sessionDisplayName;
+      }
+      if (sidebarBrandProfileEmail) {
+        sidebarBrandProfileEmail.textContent = sessionEmail;
+      }
+      if (sidebarBrandProfileAvatar) {
+        const avatarSource = currentSessionUser.avatarUrl || currentSessionUser.profileImage || 'https://placehold.co/38x38';
+        sidebarBrandProfileAvatar.src = avatarSource;
       }
 
       const pageMeta = {
@@ -4906,11 +5456,11 @@
         },
         commissions: {
           title: 'Commissions',
-          searchPlaceholder: 'Search commission orders...',
+          searchPlaceholder: 'Search commissions...',
         },
         'commission-order': {
-          title: 'Commission Order',
-          searchPlaceholder: 'Search commission order details...',
+          title: 'Commissions',
+          searchPlaceholder: 'Search commission request details...',
         },
         settings: {
           title: 'Settings',
@@ -7941,8 +8491,8 @@
           commissionOrderDetailContent.classList.add('hidden');
           commissionOrderDetailEmptyState.classList.remove('hidden');
           commissionOrderDetailEmptyState.textContent = selectedCommissionOrderId
-            ? 'This commission order is no longer available. Return to the list and pick another order.'
-            : 'No commission order selected. Return to the list and open an order.';
+            ? 'This commission request is no longer available. Return to the list and pick another one.'
+            : 'No commission request selected. Return to the list and open one.';
           return;
         }
 
@@ -8113,8 +8663,8 @@
         if (filteredOrders.length === 0) {
           commissionOrdersTableBody.innerHTML = '';
           commissionOrdersEmptyState.textContent = adminPayoutRequests.length === 0
-            ? 'No commission orders yet.'
-            : 'No commission orders match your current filters.';
+            ? 'No commission requests yet.'
+            : 'No commission requests match your current filters.';
           commissionOrdersEmptyState.classList.remove('hidden');
           return;
         }
@@ -8183,7 +8733,7 @@
           if (!response.ok) {
             const message = typeof payload?.error === 'string'
               ? payload.error
-              : 'Unable to load commission orders.';
+              : 'Unable to load commissions.';
             throw new Error(message);
           }
 
@@ -8196,7 +8746,7 @@
           renderCommissionOrdersFeed();
           renderCommissionOrderDetailPanel();
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Unable to load commission orders.';
+          const message = error instanceof Error ? error.message : 'Unable to load commissions.';
           setCommissionOrdersFeedback(message, false);
         } finally {
           if (commissionOrdersRefreshButton) {
@@ -8234,21 +8784,21 @@
           if (!response.ok) {
             const message = typeof payload?.error === 'string'
               ? payload.error
-              : 'Unable to fulfill commission order.';
+              : 'Unable to fulfill commission request.';
             throw new Error(message);
           }
 
           const updatedRequest = sanitizeAdminPayoutRequestRecord(payload?.request);
           if (!updatedRequest) {
-            throw new Error('Unable to fulfill commission order. API response payload was invalid.');
+            throw new Error('Unable to fulfill commission request. API response payload was invalid.');
           }
 
           upsertCommissionOrderRecord(updatedRequest);
           renderCommissionOrdersFeed();
           renderCommissionOrderDetailPanel();
-          setCommissionOrdersFeedback(`Commission order ${safeRequestId} marked as fulfilled.`, true);
+          setCommissionOrdersFeedback(`Commission request ${safeRequestId} marked as fulfilled.`, true);
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Unable to fulfill commission order.';
+          const message = error instanceof Error ? error.message : 'Unable to fulfill commission request.';
           setCommissionOrdersFeedback(message, false);
         }
       }
@@ -8287,13 +8837,13 @@
           if (!response.ok) {
             const message = typeof payload?.error === 'string'
               ? payload.error
-              : 'Unable to update commission order status.';
+              : 'Unable to update commission request status.';
             throw new Error(message);
           }
 
           const updatedRequest = sanitizeAdminPayoutRequestRecord(payload?.request);
           if (!updatedRequest) {
-            throw new Error('Unable to update commission order status. API response payload was invalid.');
+            throw new Error('Unable to update commission request status. API response payload was invalid.');
           }
 
           upsertCommissionOrderRecord(updatedRequest);
@@ -8304,12 +8854,12 @@
           const statusChanged = Boolean(payload?.statusChanged);
           setCommissionOrdersFeedback(
             statusChanged
-              ? `Commission order ${safeRequestId} status updated to ${statusLabel}.`
-              : `Commission order ${safeRequestId} is already ${statusLabel}.`,
+              ? `Commission request ${safeRequestId} status updated to ${statusLabel}.`
+              : `Commission request ${safeRequestId} is already ${statusLabel}.`,
             true,
           );
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Unable to update commission order status.';
+          const message = error instanceof Error ? error.message : 'Unable to update commission request status.';
           setCommissionOrdersFeedback(message, false);
         }
       }
@@ -8872,7 +9422,7 @@
       }
 
       async function flushAllAdminData() {
-        const confirmationMessage = 'Flush all mock data now? This deletes members, users, setup tokens, emails, invoices, payout requests, binary tree snapshots, and sales-team commission snapshots.';
+        const confirmationMessage = 'Flush all user/test data now? This keeps admin and store products, and clears members/users, sessions, tokens, payouts, metrics, attribution locks, notifications, title/achievement records, and runtime customizations.';
         if (!window.confirm(confirmationMessage)) {
           return;
         }
@@ -8926,18 +9476,55 @@
           clearEnrollMemberFeedback();
 
           const cleared = payload?.cleared && typeof payload.cleared === 'object' ? payload.cleared : {};
-          const clearedMembers = toWholeNumber(cleared.members, 0);
-          const clearedUsers = toWholeNumber(cleared.users, 0);
-          const clearedTokens = toWholeNumber(cleared.tokens, 0);
-          const clearedEmails = toWholeNumber(cleared.emails, 0);
-          const clearedInvoices = toWholeNumber(cleared.invoices, 0);
-          const clearedPayoutRequests = toWholeNumber(cleared.payoutRequests, 0);
-          const clearedBinaryTreeSnapshots = toWholeNumber(cleared.binaryTreeSnapshots, 0);
-          const clearedSalesTeamCommissions = toWholeNumber(cleared.salesTeamCommissions, 0);
-          const clearedForceCutoffHistory = toWholeNumber(cleared.forceServerCutoffHistory, 0);
-          const clearedMemberServerCutoffStates = toWholeNumber(cleared.memberServerCutoffStates, 0);
+          const flushSummaryItems = [
+            ['members', 'Members'],
+            ['users', 'Users'],
+            ['memberAuthSessions', 'Member Sessions'],
+            ['tokens', 'Password Setup Tokens'],
+            ['memberEmailVerificationTokens', 'Email Verification Tokens'],
+            ['emails', 'Emails'],
+            ['invoices', 'Invoices'],
+            ['payoutRequests', 'Payout Requests'],
+            ['ewalletAccounts', 'E-Wallet Accounts'],
+            ['ewalletPeerTransfers', 'E-Wallet Transfers'],
+            ['memberCommissionContainers', 'Commission Containers'],
+            ['binaryTreeSnapshots', 'Binary Tree Snapshots'],
+            ['salesTeamCommissions', 'Sales-Team Commissions'],
+            ['memberGoodLifeMonthlyProgress', 'Good Life Monthly Progress'],
+            ['memberRankAdvancementMonthlyProgress', 'Rank Monthly Progress'],
+            ['memberAchievementClaims', 'Achievement Claims'],
+            ['memberTitleAwards', 'Title Awards'],
+            ['memberTitleCatalog', 'Title Catalog Entries'],
+            ['preferredAttributionClaims', 'Preferred Attribution Claims'],
+            ['preferredAttributionLocks', 'Preferred Attribution Locks'],
+            ['memberNotifications', 'Notifications'],
+            ['memberNotificationReads', 'Notification Reads'],
+            ['memberBinaryTreeIntroState', 'Binary Tree Intro States'],
+            ['forceServerCutoffHistory', 'Force Cut-Off History'],
+            ['memberServerCutoffStates', 'Member Cut-Off States'],
+            ['runtimeSettings', 'Runtime Settings Rows Reset'],
+          ];
+          const flushSummary = flushSummaryItems
+            .map(([key, label]) => `${label} ${toWholeNumber(cleared[key], 0)}`)
+            .join(', ');
+          const missingTables = Array.isArray(payload?.missingTables)
+            ? payload.missingTables
+              .map((tableName) => (typeof tableName === 'string' ? tableName.trim() : ''))
+              .filter(Boolean)
+            : [];
+          const missingTableNote = missingTables.length > 0
+            ? ` Skipped missing tables: ${missingTables.join(', ')}.`
+            : '';
+          const warnings = Array.isArray(payload?.warnings)
+            ? payload.warnings
+              .map((warning) => (typeof warning === 'string' ? warning.trim() : ''))
+              .filter(Boolean)
+            : [];
+          const warningNote = warnings.length > 0
+            ? ` Warnings: ${warnings.join(' ')}`
+            : '';
           setSettingsFlushAllDataFeedback(
-            `All data flushed. Members ${clearedMembers}, Users ${clearedUsers}, Tokens ${clearedTokens}, Emails ${clearedEmails}, Invoices ${clearedInvoices}, Payout Requests ${clearedPayoutRequests}, Binary Tree Snapshots ${clearedBinaryTreeSnapshots}, Sales-Team Commissions ${clearedSalesTeamCommissions}, Force Cut-Off History ${clearedForceCutoffHistory}, Member Cut-Off States ${clearedMemberServerCutoffStates}. User-side browser cache/session was also cleared on this device.`,
+            `All data flushed. ${flushSummary}. Admin account and store products were preserved. User-side browser cache/session was also cleared on this device.${missingTableNote}${warningNote}`,
             true,
           );
         } catch (error) {
@@ -9021,7 +9608,7 @@
         if (commissionOrdersRefreshButton) {
           commissionOrdersRefreshButton.addEventListener('click', () => {
             loadCommissionOrders().catch((error) => {
-              const message = error instanceof Error ? error.message : 'Unable to load commission orders.';
+              const message = error instanceof Error ? error.message : 'Unable to load commissions.';
               setCommissionOrdersFeedback(message, false);
             });
           });
@@ -9125,7 +9712,7 @@
                 transferReference,
                 generalInfo,
               }).catch((error) => {
-                const message = error instanceof Error ? error.message : 'Unable to update commission order status.';
+                const message = error instanceof Error ? error.message : 'Unable to update commission request status.';
                 setCommissionOrdersFeedback(message, false);
               }).finally(() => {
                 if (submitButton) {
@@ -9163,7 +9750,7 @@
               transferReference: String(formData.get('transferReference') || '').trim(),
               generalInfo: String(formData.get('generalInfo') || '').trim(),
             }).catch((error) => {
-              const message = error instanceof Error ? error.message : 'Unable to fulfill commission order.';
+              const message = error instanceof Error ? error.message : 'Unable to fulfill commission request.';
               setCommissionOrdersFeedback(message, false);
             }).finally(() => {
               if (submitButton) {
@@ -9174,7 +9761,7 @@
         }
 
         loadCommissionOrders().catch((error) => {
-          const message = error instanceof Error ? error.message : 'Unable to load commission orders.';
+          const message = error instanceof Error ? error.message : 'Unable to load commissions.';
           setCommissionOrdersFeedback(message, false);
         });
       }
@@ -10323,7 +10910,7 @@
           quickActionRequestPayoutButton.addEventListener('click', () => {
             setPage('commissions', { routeMode: 'push' });
             loadCommissionOrders().catch((error) => {
-              const message = error instanceof Error ? error.message : 'Unable to load commission orders.';
+              const message = error instanceof Error ? error.message : 'Unable to load commissions.';
               setCommissionOrdersFeedback(message, false);
             });
           });
@@ -12438,6 +13025,38 @@
         overlay.classList.toggle('hidden');
       }
 
+      function closeSidebarBrandMenu() {
+        if (!sidebarBrandButton || !sidebarBrandMenu) {
+          return;
+        }
+        sidebarBrandButton.setAttribute('aria-expanded', 'false');
+        sidebarBrandMenu.classList.add('hidden');
+      }
+
+      function toggleSidebarBrandMenu() {
+        if (!sidebarBrandButton || !sidebarBrandMenu) {
+          return;
+        }
+        const isOpen = sidebarBrandButton.getAttribute('aria-expanded') === 'true';
+        if (isOpen) {
+          closeSidebarBrandMenu();
+          return;
+        }
+        sidebarBrandButton.setAttribute('aria-expanded', 'true');
+        sidebarBrandMenu.classList.remove('hidden');
+      }
+
+      function setDesktopSidebarCollapsed(shouldCollapse) {
+        if (window.innerWidth < 1024) {
+          return;
+        }
+        if (shouldCollapse) {
+          document.documentElement.setAttribute('data-sidebar-collapsed', 'true');
+          return;
+        }
+        document.documentElement.removeAttribute('data-sidebar-collapsed');
+      }
+
       function setNavState(activePage) {
         const navActivePage = activePage === 'commission-order'
           ? 'commissions'
@@ -12526,7 +13145,7 @@
 
         if (nextPage === 'commissions' || nextPage === 'commission-order') {
           loadCommissionOrders().catch((error) => {
-            const message = error instanceof Error ? error.message : 'Unable to load commission orders.';
+            const message = error instanceof Error ? error.message : 'Unable to load commissions.';
             setCommissionOrdersFeedback(message, false);
           });
         }
@@ -12554,6 +13173,7 @@
             });
         }
 
+        closeSidebarBrandMenu();
         setNavState(nextPage);
         if (shouldUpdateRoute) {
           syncBrowserRoute(nextPage, { mode: routeMode });
@@ -12577,6 +13197,63 @@
           }
         });
       });
+
+      if (sidebarBrandButton && sidebarBrandMenu) {
+        sidebarBrandButton.addEventListener('click', (event) => {
+          event.preventDefault();
+          toggleSidebarBrandMenu();
+        });
+
+        document.addEventListener('click', (event) => {
+          if (!sidebarBrandMenu || !sidebarBrandButton) {
+            return;
+          }
+          const target = event.target;
+          if (!(target instanceof Element)) {
+            return;
+          }
+          if (sidebarBrandMenu.contains(target) || sidebarBrandButton.contains(target)) {
+            return;
+          }
+          closeSidebarBrandMenu();
+        });
+      }
+
+      sidebarBrandPageButtons.forEach((button) => {
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          const targetPage = String(button.dataset.sidebarBrandPage || '').trim();
+          if (!targetPage || !pageMeta[targetPage]) {
+            closeSidebarBrandMenu();
+            return;
+          }
+          setPage(targetPage, { routeMode: 'push' });
+          if (window.innerWidth < 1024) {
+            closeSidebar();
+          }
+        });
+      });
+
+      sidebarBrandActionButtons.forEach((button) => {
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          const action = String(button.dataset.sidebarBrandAction || '').trim();
+          if (action !== 'logout') {
+            closeSidebarBrandMenu();
+            return;
+          }
+          clearUserSession();
+          window.history.replaceState({}, '', ADMIN_PAGE_URL);
+          window.location.reload();
+        });
+      });
+
+      if (sidebarCollapseButton) {
+        sidebarCollapseButton.addEventListener('click', () => {
+          setDesktopSidebarCollapsed(true);
+          closeSidebarBrandMenu();
+        });
+      }
 
       if (preferredCustomersRefreshButtonElement) {
         preferredCustomersRefreshButtonElement.addEventListener('click', () => {
@@ -12720,7 +13397,15 @@
       });
 
       if (menuToggle) {
-        menuToggle.addEventListener('click', toggleSidebar);
+        menuToggle.addEventListener('click', () => {
+          const isDesktop = window.innerWidth >= 1024;
+          const isCollapsed = document.documentElement.getAttribute('data-sidebar-collapsed') === 'true';
+          if (isDesktop && isCollapsed) {
+            setDesktopSidebarCollapsed(false);
+            return;
+          }
+          toggleSidebar();
+        });
       }
 
       if (overlay) {
@@ -12763,3 +13448,4 @@
 
 </body>
 </html>
+

@@ -16515,3 +16515,155 @@ Files updated:
 
 Validation:
 - repo-wide text scan shows no remaining `Infinity Builder Bonus` user-facing label entries.
+
+### Addendum (2026-04-17) - Admin Flush Hardening for Clean Test Resets
+
+Current scope update:
+- Admin flush now clears expanded user-linked backend data while preserving admin and store-product catalog data.
+
+Progress made:
+- Extended reset coverage in `backend/services/admin.service.js` to include newer tables (sessions, verification tokens, intro state, commission containers, notifications, rank progress, achievements/titles, preferred attribution, and e-wallet records).
+- Added missing-table detection so reset remains resilient across partially migrated environments.
+- Added runtime settings baseline reset in flush flow to remove prior system customization state.
+- Updated `admin.html` flush confirmation/feedback copy to match new scope and to explicitly state store products are preserved.
+
+Files touched this pass:
+- `backend/services/admin.service.js`
+- `admin.html`
+
+Validation state:
+- `node --check backend/services/admin.service.js` passed.
+
+Known limitations:
+- `store_products` and uploaded product images are intentionally preserved by flush.
+- Missing tables are skipped and returned in the API payload as `missingTables`.
+
+### Addendum (2026-04-17) - Flush Endpoint Recovery (Admin Credential Failure Path)
+
+Current scope update:
+- Resolved admin flush 500 failure path caused by admin DB credential authentication rejection.
+
+Progress made:
+- Added reset-client connection fallback in `backend/services/admin.service.js` from admin pool -> service pool on Postgres auth errors.
+- Removed strict early exit requiring admin-credential config for reset operation.
+- Added API response warning metadata (`warnings`, `connectionRole`) to surface fallback usage.
+- Updated `admin.html` flush success message to include warning text returned by backend.
+- Verified reset succeeds through direct invocation and returns cleared counts.
+
+Files touched this pass:
+- `backend/services/admin.service.js`
+- `admin.html`
+
+Validation state:
+- `node --check backend/services/admin.service.js` passed.
+- direct reset invocation succeeded and returned `connectionRole: service` when admin auth failed.
+
+Known limitations:
+- Running server process must be restarted after this patch for the UI button to pick up changes.
+
+### Addendum (2026-04-17) - Admin Tree Next Centered Anticipation Slot
+
+Current scope update:
+- Admin Binary Tree Next anticipation structure now renders as a single centered add slot instead of separate left/right anticipation markers.
+
+Progress made:
+- Added admin-only centered anticipation slot generation in `resolveAnticipationSlots(...)`.
+- Preserved placement integrity by still resolving and passing concrete binary leg (`left`/`right`) under the hood.
+- Updated admin enrollment modal leg-position text to `Auto Placement` / `Spillover Auto Placement`.
+- Added slot-label suppression support in anticipation rendering so admin no longer sees left/right slot labels.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+Known limitations:
+- Centered anticipation is a visual structure update only; backend placement model remains binary.
+- Acting-root behavior intentionally unchanged in this pass.
+
+### Addendum (2026-04-17) - Admin Dashboard Modernization (User Dashboard Theme Parity Pass)
+
+Current scope update:
+- Admin dashboard is now aligned with the updated user-dashboard theming system and shell spacing baseline.
+
+Progress made:
+- Migrated admin Tailwind color/shadow config to CSS variable tokens.
+- Added dark/light-capable root token sets with active light theme override.
+- Updated admin shell top bar/main spacing to match current dashboard rhythm.
+- Updated first-row admin KPI card containers to the newer dashboard card treatment.
+- Preserved existing admin metric IDs and data-binding behavior.
+
+Files touched this pass:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+
+Validation state:
+- Code diff verification complete.
+- Puppeteer screenshot validation blocked by sandbox browser-launch permission limits in this session.
+
+Known limitations:
+- Full section-by-section dashboard module transplant from user dashboard was not completed in this pass.
+- Visual verification screenshot pass is pending if browser-launch permission is granted in a follow-up run.
+
+### Addendum (2026-04-17) - Admin Sidebar Updated + Dashboard Cards Stabilized
+
+Current scope update:
+- Admin sidebar now reflects updated grouped navigation styling, and dashboard KPI cards are restored from broken state.
+
+Progress made:
+- Replaced old sidebar nav with sectioned modern layout while keeping admin route wiring intact.
+- Updated icon font import to support the full sidebar icon set.
+- Added sidebar section label utility style.
+- Reverted first-row dashboard card wrappers to stable classes to resolve visual breakage.
+
+Files touched this pass:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+
+Validation state:
+- In-file structure validation complete.
+- Screenshot automation remains pending due sandbox launch restrictions.
+
+Known limitations:
+- Visual screenshot comparison pass not completed in-session.
+
+### Addendum (2026-04-17) - Admin Sidebar Branding Match + Commissions Nav Cleanup
+
+Current scope update:
+- Admin sidebar now uses user-dashboard brand-logo treatment at the top and no longer shows a separate `Commission Order` nav item.
+
+Progress made:
+- Swapped admin sidebar top branding block to the same logo-shell structure and interaction model as user sidebar.
+- Added brand dropdown/collapse supporting CSS + JS hooks in admin.
+- Removed `Commission Order` from sidebar nav so only `Commissions` is presented.
+- Updated key visible headings/text to align around `Commissions` naming.
+
+Files touched this pass:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+
+Validation state:
+- selector/hook verification complete for sidebar/nav (`#sidebar-brand-button`, `#sidebar-brand-menu`, `#sidebar-collapse-button`, `[data-nav-link]`).
+- visual screenshot validation still pending due browser-launch restrictions in this environment.
+
+Known limitations:
+- commission request detail subview remains in code for operational fulfillment; navigation entry is now unified under `Commissions`.
+
+### Addendum (2026-04-17) - Logo Parity Hotfix (Admin Sidebar)
+
+Current scope update:
+- Admin sidebar top logo now matches user dashboard sidebar logo dimensions exactly.
+
+Progress made:
+- Replaced reduced admin logo-shell sizing with exact user-sidebar values.
+- Synced logo image max-height/transform values to user-sidebar baseline.
+- Aligned top brand dropdown labels/options to user-sidebar structure.
+
+Files touched this pass:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+
+Validation state:
+- direct selector/value comparison completed against `index.html`.
+- screenshot validation still pending due local browser-launch restrictions.

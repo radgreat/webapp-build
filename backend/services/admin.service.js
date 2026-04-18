@@ -4,6 +4,7 @@ import { readPasswordSetupTokensStore, writePasswordSetupTokensStore } from '../
 import { readMockEmailOutboxStore, writeMockEmailOutboxStore } from '../stores/email.store.js';
 import { readMockStoreInvoicesStore, writeMockStoreInvoicesStore } from '../stores/invoice.store.js';
 import { readMockPayoutRequestsStore, writeMockPayoutRequestsStore } from '../stores/payout.store.js';
+import servicePool from '../db/db.js';
 import {
   readMockBinaryTreeMetricsStore,
   writeMockBinaryTreeMetricsStore,
@@ -16,7 +17,38 @@ import {
   readMemberServerCutoffStateStore,
   writeMemberServerCutoffStateStore,
 } from '../stores/cutoff.store.js';
-import adminPool, { isAdminDbConfigured } from '../db/admin-db.js';
+import adminPool from '../db/admin-db.js';
+
+const RUNTIME_SETTINGS_TABLE_NAME = 'runtime_settings';
+const SQL_IDENTIFIER_PATTERN = /^[a-z_][a-z0-9_]*$/i;
+
+const FLUSH_TRUNCATE_TABLES_BY_KEY = Object.freeze({
+  members: 'registered_members',
+  users: 'member_users',
+  tokens: 'password_setup_tokens',
+  emails: 'email_outbox',
+  invoices: 'store_invoices',
+  payoutRequests: 'payout_requests',
+  binaryTreeSnapshots: 'binary_tree_metrics_snapshots',
+  salesTeamCommissions: 'sales_team_commission_snapshots',
+  forceServerCutoffHistory: 'force_server_cutoff_history',
+  memberServerCutoffStates: 'member_server_cutoff_states',
+  memberAuthSessions: 'member_auth_sessions',
+  memberEmailVerificationTokens: 'member_email_verification_tokens',
+  memberBinaryTreeIntroState: 'member_binary_tree_intro_state',
+  memberCommissionContainers: 'member_commission_containers',
+  memberGoodLifeMonthlyProgress: 'member_good_life_monthly_progress',
+  memberNotifications: 'member_notifications',
+  memberNotificationReads: 'member_notification_reads',
+  memberRankAdvancementMonthlyProgress: 'member_rank_advancement_monthly_progress',
+  memberAchievementClaims: 'member_achievement_claims',
+  memberTitleAwards: 'member_title_awards',
+  memberTitleCatalog: 'member_title_catalog',
+  preferredAttributionClaims: 'preferred_attribution_claims',
+  preferredAttributionLocks: 'preferred_account_attribution_locks',
+  ewalletAccounts: 'ewallet_accounts',
+  ewalletPeerTransfers: 'ewallet_peer_transfers',
+});
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -36,6 +68,72 @@ function toWholeNumber(value, fallback = 0) {
 
 function roundCurrencyAmount(value) {
   return Math.round((Math.max(0, Number(value) || 0)) * 100) / 100;
+}
+
+function assertSafeTableIdentifier(tableName) {
+  const normalizedTableName = normalizeText(tableName);
+  if (!SQL_IDENTIFIER_PATTERN.test(normalizedTableName)) {
+    throw new Error(`Unsafe table identifier: ${normalizedTableName || '(empty)'}`);
+  }
+
+  return normalizedTableName;
+}
+
+function buildQualifiedChargeTableName(tableName) {
+  return `charge.${assertSafeTableIdentifier(tableName)}`;
+}
+
+async function doesChargeTableExist(client, tableName) {
+  const qualifiedName = buildQualifiedChargeTableName(tableName);
+  const result = await client.query(`
+    SELECT to_regclass($1) AS table_name
+  `, [qualifiedName]);
+
+  return Boolean(result.rows?.[0]?.table_name);
+}
+
+async function countRowsInChargeTable(client, tableName) {
+  const qualifiedTableName = buildQualifiedChargeTableName(tableName);
+  const countResult = await client.query(`
+    SELECT COUNT(*)::int AS count
+    FROM ${qualifiedTableName}
+  `);
+
+  return Number(countResult.rows?.[0]?.count || 0);
+}
+
+function resolvePgErrorCode(error) {
+  return normalizeText(error?.code).toUpperCase();
+}
+
+function isPgAuthenticationFailure(error) {
+  const errorCode = resolvePgErrorCode(error);
+  const errorMessage = normalizeText(error?.message).toLowerCase();
+  return errorCode === '28P01'
+    || errorCode === '28000'
+    || errorMessage.includes('password authentication failed');
+}
+
+async function connectResetClientWithFallback() {
+  try {
+    const adminClient = await adminPool.connect();
+    return {
+      client: adminClient,
+      warning: '',
+      connectionRole: 'admin',
+    };
+  } catch (adminError) {
+    if (!isPgAuthenticationFailure(adminError)) {
+      throw adminError;
+    }
+
+    const serviceClient = await servicePool.connect();
+    return {
+      client: serviceClient,
+      warning: 'Admin DB credentials failed authentication. Flush ran using service DB credentials.',
+      connectionRole: 'service',
+    };
+  }
 }
 
 const SALES_TEAM_CYCLE_COMMISSION_PLAN = Object.freeze({
@@ -172,61 +270,95 @@ function resolveSalesTeamPayoutOffsetAmount(identityKeys, payoutRequests) {
 }
 
 export async function resetAllMockData(payload = {}) {
-  if (!isAdminDbConfigured()) {
-    return {
-      success: false,
-      status: 500,
-      data: {
-        success: false,
-        error: 'Admin database credentials are not configured. Set DB_ADMIN_USER and DB_ADMIN_PASSWORD.',
-      },
-    };
+  const clearedBy = normalizeText(payload.updatedBy || payload.clearedBy || 'admin');
+  const cleared = Object.keys(FLUSH_TRUNCATE_TABLES_BY_KEY).reduce((accumulator, key) => {
+    accumulator[key] = 0;
+    return accumulator;
+  }, {
+    runtimeSettings: 0,
+  });
+  const missingTables = [];
+  const warnings = [];
+  const { client, warning: connectionWarning, connectionRole } = await connectResetClientWithFallback();
+  if (connectionWarning) {
+    warnings.push(connectionWarning);
   }
-
-  const tablesByKey = {
-    members: 'registered_members',
-    users: 'member_users',
-    tokens: 'password_setup_tokens',
-    emails: 'email_outbox',
-    invoices: 'store_invoices',
-    payoutRequests: 'payout_requests',
-    binaryTreeSnapshots: 'binary_tree_metrics_snapshots',
-    salesTeamCommissions: 'sales_team_commission_snapshots',
-    forceServerCutoffHistory: 'force_server_cutoff_history',
-    memberServerCutoffStates: 'member_server_cutoff_states',
-  };
-
-  const tableNames = Object.values(tablesByKey);
-  const qualifiedTableList = tableNames.map((name) => `charge.${name}`).join(', ');
-  const client = await adminPool.connect();
-
-  let cleared = {
-    members: 0,
-    users: 0,
-    tokens: 0,
-    emails: 0,
-    invoices: 0,
-    payoutRequests: 0,
-    binaryTreeSnapshots: 0,
-    salesTeamCommissions: 0,
-    forceServerCutoffHistory: 0,
-    memberServerCutoffStates: 0,
-  };
 
   try {
     await client.query('BEGIN');
 
-    const countEntries = [];
-    for (const [key, tableName] of Object.entries(tablesByKey)) {
-      const countResult = await client.query(
-        `SELECT COUNT(*)::int AS count FROM charge.${tableName}`
-      );
-      countEntries.push([key, Number(countResult.rows[0]?.count || 0)]);
+    const truncationTableNames = [];
+    for (const [key, tableName] of Object.entries(FLUSH_TRUNCATE_TABLES_BY_KEY)) {
+      const tableExists = await doesChargeTableExist(client, tableName);
+      if (!tableExists) {
+        missingTables.push(tableName);
+        continue;
+      }
+
+      truncationTableNames.push(tableName);
+      cleared[key] = await countRowsInChargeTable(client, tableName);
     }
 
-    cleared = Object.fromEntries(countEntries);
+    if (truncationTableNames.length > 0) {
+      const qualifiedTableList = truncationTableNames
+        .map((tableName) => buildQualifiedChargeTableName(tableName))
+        .join(', ');
+      await client.query(`TRUNCATE TABLE ${qualifiedTableList}`);
+    }
 
-    await client.query(`TRUNCATE TABLE ${qualifiedTableList}`);
+    const runtimeSettingsExists = await doesChargeTableExist(client, RUNTIME_SETTINGS_TABLE_NAME);
+    if (runtimeSettingsExists) {
+      await client.query(`
+        ALTER TABLE charge.runtime_settings
+          ADD COLUMN IF NOT EXISTS dashboard_mockup_mode_enabled boolean NOT NULL DEFAULT FALSE,
+          ADD COLUMN IF NOT EXISTS tier_claim_mock_mode_enabled boolean NOT NULL DEFAULT FALSE,
+          ADD COLUMN IF NOT EXISTS legal_terms_of_service TEXT,
+          ADD COLUMN IF NOT EXISTS legal_agreement TEXT,
+          ADD COLUMN IF NOT EXISTS legal_shipping_policy TEXT,
+          ADD COLUMN IF NOT EXISTS legal_refund_policy TEXT,
+          ADD COLUMN IF NOT EXISTS unattributed_free_account_fallback_sponsor_username TEXT,
+          ADD COLUMN IF NOT EXISTS updated_by TEXT,
+          ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT NOW()
+      `);
+
+      cleared.runtimeSettings = await countRowsInChargeTable(client, RUNTIME_SETTINGS_TABLE_NAME);
+
+      await client.query(`
+        DELETE FROM charge.runtime_settings
+        WHERE id <> 1
+      `);
+
+      await client.query(`
+        INSERT INTO charge.runtime_settings (
+          id,
+          dashboard_mockup_mode_enabled,
+          tier_claim_mock_mode_enabled,
+          legal_terms_of_service,
+          legal_agreement,
+          legal_shipping_policy,
+          legal_refund_policy,
+          unattributed_free_account_fallback_sponsor_username,
+          updated_by,
+          updated_at
+        )
+        VALUES (1, FALSE, FALSE, '', '', '', '', '', $1, NOW())
+        ON CONFLICT (id)
+        DO UPDATE
+        SET
+          dashboard_mockup_mode_enabled = EXCLUDED.dashboard_mockup_mode_enabled,
+          tier_claim_mock_mode_enabled = EXCLUDED.tier_claim_mock_mode_enabled,
+          legal_terms_of_service = EXCLUDED.legal_terms_of_service,
+          legal_agreement = EXCLUDED.legal_agreement,
+          legal_shipping_policy = EXCLUDED.legal_shipping_policy,
+          legal_refund_policy = EXCLUDED.legal_refund_policy,
+          unattributed_free_account_fallback_sponsor_username = EXCLUDED.unattributed_free_account_fallback_sponsor_username,
+          updated_by = EXCLUDED.updated_by,
+          updated_at = NOW()
+      `, [clearedBy]);
+    } else {
+      missingTables.push(RUNTIME_SETTINGS_TABLE_NAME);
+    }
+
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
@@ -241,8 +373,11 @@ export async function resetAllMockData(payload = {}) {
     data: {
       success: true,
       clearedAt: new Date().toISOString(),
-      clearedBy: normalizeText(payload.updatedBy || payload.clearedBy || 'admin'),
+      clearedBy,
       cleared,
+      missingTables: Array.from(new Set(missingTables)).sort(),
+      warnings,
+      connectionRole,
     },
   };
 }
