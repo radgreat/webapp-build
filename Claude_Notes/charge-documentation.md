@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 318
+**Times Updated:** 319
 
 ## Overview
 
@@ -14,6 +14,25 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Update (2026-04-18) - Login Text Field Animation Consistency Fix
+
+### What Was Changed
+
+- Updated login intro behavior in login.html to remove autofocus timing that was interfering with text-field reveal presentation.
+- Preserved existing intro scheduler/BFCache replay flow while removing premature input focus state.
+- Result: username/password field visuals now appear consistently during intro without early focus ring drift.
+
+### Files Affected
+
+- login.html
+- Claude_Notes/member-login-page.md
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Validation
+
+- Visual screenshot checks captured on localhost login route after intro timing pass.
 
 ## Update (2026-04-18) - Dashboard Prepaint Flash Removed on Invalid Sessions
 
