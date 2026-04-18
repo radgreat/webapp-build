@@ -1,11 +1,400 @@
 # Current Project Status
 
-Last Updated: 2026-04-13
+Last Updated: 2026-04-16
 
 ## Purpose
 
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
+
+## Recent Update (2026-04-16) - Setup Password Pages Updated to Store/Register Theme
+
+- Completed:
+  - redesigned member setup page (`password-setup.html`) to match new white store/register visual direction
+  - redesigned preferred setup page (`store-password-setup.html`) to the same style system
+  - retained existing setup logic (token validation, audience redirect, preferred email recovery, store-scoped links).
+- Outcome:
+  - both new-member and preferred-account password setup flows now feel consistent with current storefront design language.
+- Files updated:
+  - `password-setup.html`
+  - `store-password-setup.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/preferred-customer-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script parse checks passed:
+    - `password-setup.html` (`1` block)
+    - `store-password-setup.html` (`1` block)
+
+## Recent Update (2026-04-16) - Default Theme Set to Light Across Member App + New Registrations
+
+- Completed:
+  - changed member dashboard document boot theme from dark to light (`index.html`)
+  - changed runtime `appTheme` boot default and unknown-theme fallback normalization to light
+  - changed theme switcher and Stripe appearance fallback branches to light-safe defaults
+  - added registration-success theme seed in `store-register.html` to persist `appTheme: 'light'` for newly created accounts.
+- Outcome:
+  - app now boots in Light mode by default
+  - newly registered accounts are explicitly seeded to Light mode in browser runtime settings
+  - existing explicit dark-mode user choices remain supported through normal theme toggles.
+- Files updated:
+  - `index.html`
+  - `store-register.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - inline script parse checks passed:
+    - `index.html` (`2` blocks)
+    - `store-register.html` (`1` block)
+
+## Recent Update (2026-04-16) - Preferred Unattributed Fallback Sponsor Now Configurable
+
+- Completed:
+  - added backend runtime setting `unattributedFreeAccountFallbackSponsorUsername` for unattributed Preferred routing
+  - wired checkout Preferred identity flow to read runtime fallback first, then env fallback, then `admin`
+  - added admin runtime settings GET compatibility route (`GET /api/admin/runtime-settings`)
+  - added Admin Settings UI card to choose/save fallback sponsor from current member/admin identities
+  - updated preferred-customer parked-state logic to respect configured fallback sponsor (not only admin).
+- Outcome:
+  - unattributed Preferred registrations/upgrades can now be parked under an admin-selected holding sponsor and transferred later without changing Binary Tree Next checkout behavior.
+- Files updated:
+  - `backend/stores/runtime.store.js`
+  - `backend/services/runtime.service.js`
+  - `backend/services/store-checkout.service.js`
+  - `backend/routes/runtime.routes.js`
+  - `admin.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - `node --check backend/stores/runtime.store.js` passed.
+  - `node --check backend/services/runtime.service.js` passed.
+  - `node --check backend/services/store-checkout.service.js` passed.
+  - `node --check backend/routes/runtime.routes.js` passed.
+
+## Recent Update (2026-04-14) - Hero Badge Colors Tuned (Legacy Teal/Navy + Founder Amber/Gold)
+
+- Completed:
+  - set legacy rank circle to dark teal/navy gradient colors
+  - set title-1/legacy-founder circle to dark amber/gold gradient colors
+  - kept gradients on the existing shared formula path used by account overview visuals
+  - restored icon-only drop shadow for badge icons while keeping circle container shadows disabled.
+- Outcome:
+  - hero badge colors now match requested rank/title tone targets while preserving Binary Tree Next gradient logic consistency.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Hero Glow Effects Removed
+
+- Completed:
+  - removed remaining hero glow/shadow from badge circles, avatar, and status dot
+  - removed runtime sheen overlay logic and runtime badge shadow assignments
+  - enforced icon filter reset with `filter: none !important`.
+- Outcome:
+  - hero circles now render flatter/cleaner without glow effects.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Hero Top Section Center-Anchored, Icon Shadows Removed
+
+- Completed:
+  - centered Account Overview hero trio layout in the panel
+  - removed drop shadow from rank/title icons inside the badge circles.
+  - cleaned duplicate hero mobile CSS declaration (`justify-items`) from the media block.
+- Outcome:
+  - top hero row now sits anchored in the middle of the panel and icon shadows no longer compete with the gradient circles.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Direct Sponsors Card Added to Account Overview
+
+- Completed:
+  - added missing `Direct Sponsors` card to Sales and Business Volumes section
+  - updated arrangement to requested 6-card sequence
+  - wired Direct Sponsors value to live direct-enrollment count from tree/session data.
+- Outcome:
+  - Sales and Business Volumes now includes the direct enrollment KPI and matches requested order.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Sales and Business Volumes Arrangement Matched to Requested Order
+
+- Completed:
+  - reordered Sales and Business Volumes cards to exact requested sequence
+  - changed Weekly Cycle Cap card presentation to:
+    - value: `1 / 1,000`
+    - label: `Weekly Cycle Cap`.
+- Outcome:
+  - section card flow now mirrors the requested dashboard structure.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Account Overview Cards Set to Borderless
+
+- Completed:
+  - removed outline borders from both card groups in Account Overview panel
+  - removed commission hover border color override to keep cards visually identical and borderless.
+- Outcome:
+  - Sales/Business cards and Track Commissions cards now share the same borderless card surface style.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Account Overview Card Radius Tightened
+
+- Completed:
+  - reduced both dashboard card groups from `24px` to `18px` corner radius.
+- Outcome:
+  - cards now feel less rounded while preserving consistent styling across Sales/Business and Track Commissions sections.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Track Commissions Cards Unified with Volume Card Style
+
+- Completed:
+  - matched Track Commissions card geometry/spacing to Sales and Business Volumes cards
+  - removed extra-bold typography emphasis from KPI values
+  - aligned commission label typography with volume label styling.
+- Outcome:
+  - both dashboard card groups now render with one consistent visual token system and lighter text weight.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Account Overview Volume Cards Adjusted to 5-Item Set
+
+- Completed:
+  - set Account Overview card background token to `#F2F2F6`
+  - reduced card radius to `24px` so cards remain slightly less curved than outer panel (`36px`)
+  - removed Sales Team Commission tile from Sales and Business Volumes
+  - set Sales and Business Volumes to requested 5-card list
+  - updated default cycle label to `Weekly Cycle Cap | 1 / 1,000`.
+- Outcome:
+  - card geometry and tone now align with requested panel token refinements
+  - Sales and Business Volumes section now matches requested structure without extra KPI cards.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+## Recent Update (2026-04-14) - Binary Tree Next Account Overview Visual Language Alignment
+
+- Completed:
+  - tuned Account Overview shell geometry to match Binary Tree Next left panel style language:
+    - `36px` outer radius
+    - shell-border tones aligned to existing panel chrome
+    - white main background retained by design request
+  - updated internal tile/button radii to follow existing rounded-card geometry (`28px`)
+  - added hero badge wrapper hooks and wired node-formula gradient rendering for hero circles
+  - added visual sync routine so profile avatar, status dot, rank/title labels, and badge/icon skin stay tied to current session/home node data.
+- Outcome:
+  - Account Overview panel now reads as part of the same BT-Next UI family while preserving requested white dashboard surface.
+  - gradient circles now follow the same palette/math family used by tree node avatars instead of static one-off gradients.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - screenshot comparison skipped per user instruction.
+
+## Recent Update (2026-04-14) - Binary Tree Next Account Overview Panel Toggle Wiring
+
+- Completed:
+  - added right-rail canvas dock action to show/hide Account Overview panel (`panel:account-overview:toggle`)
+  - added `accountOverviewVisible` state flag to Binary Tree Next UI state
+  - wired panel position and visibility sync helpers to align panel with current side-nav layout behavior
+  - connected Account Overview header close button to hide panel behavior.
+- Outcome:
+  - Account Overview panel can now be hidden/shown from the right-side button rail while preserving Binary Tree Nextâ€™s hybrid rendering pattern (canvas shell + DOM panel).
+  - panel positioning now tracks current layout calculations instead of remaining static.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - screenshot validation skipped per user instruction.
+
+## Recent Update (2026-04-14) - Preferred Customer Page Runtime Render Fix
+
+- Completed:
+  - fixed `ReferenceError: normalizeText is not defined` in `index.html` Preferred Customer invoice classifier (`isEnrollmentGeneratedInvoice`).
+  - replaced undefined helper call with inline safe normalization for invoice IDs.
+- Outcome:
+  - Preferred Customer page now renders sponsor-linked preferred members and guest-attributed invoice cards again for `zeroone`.
+  - validated render state:
+    - `2 customers`
+    - `3 guest invoices`
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - browser automation snapshot on `/PreferredCustomer` confirmed:
+    - planner cards: `2`
+    - guest cards: `3`
+
+## Recent Update (2026-04-13) - Duplicate-Key Write Crash Fix + Guest Identity Server Guard
+
+- Completed:
+  - hardened snapshot writers in `backend/stores/metrics.store.js` and `backend/stores/member.store.js` with row dedupe + transactional table locks
+  - added `ON CONFLICT (id) DO UPDATE` protection for metrics snapshot inserts
+  - added source-aware server guard in `backend/services/store-checkout.service.js` so public `guest/free-account` checkout metadata no longer persists session-linked buyer identity fields.
+  - added store-product migration fallback in `backend/stores/store-product.store.js` so admin-pool auth failures fall back to service-pool schema migration path.
+- Outcome:
+  - backend no longer throws repeated `23505` duplicate-key errors for:
+    - `binary_tree_metrics_snapshots_pkey`
+    - `sales_team_commission_snapshots_pkey`
+    - `registered_members_pkey`
+  - guest checkout capture is now enforced server-side even with stale frontend payload behavior.
+- Files updated:
+  - `backend/stores/metrics.store.js`
+  - `backend/stores/member.store.js`
+  - `backend/services/store-checkout.service.js`
+  - `backend/stores/store-product.store.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/stores/metrics.store.js` passed.
+  - `node --check backend/stores/member.store.js` passed.
+  - `node --check backend/services/store-checkout.service.js` passed.
+  - `node --check backend/stores/store-product.store.js` passed.
+  - parallel/concurrent write smoke tests completed without duplicate-key failures.
+
+## Recent Update (2026-04-13) - Preferred Customer Invoice Visibility + Guest Checkout Capture Hardening
+
+- Completed:
+  - patched preferred-customer planner invoice matching in `index.html` so preferred-member invoices are counted when member identity matches, even for legacy/default-attributed records
+  - expanded owner attribution-code resolver to include `attributionStoreCode` and internal/public code aliases (`M-*` <-> `CHG-*`)
+  - updated public checkout payload builder in `storefront-shared.js` so `guest` / `free-account` modes no longer attach session `buyerUserId` / `buyerUsername`.
+- Outcome:
+  - preferred-member invoice rows no longer disappear when invoice attribution fell back to legacy/default code paths
+  - guest checkout invoices are less likely to be misclassified as linked-member purchases due to residual browser session identity.
+- Files updated:
+  - `index.html`
+  - `storefront-shared.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation:
+  - `node --check storefront-shared.js` passed.
+  - inline script parse checks passed:
+    - `Parsed inline scripts in index.html: 1`
+    - `Parsed inline scripts in store-checkout.html: 1`.
+
+## Recent Update (2026-04-13) - Active Status and Dashboard PV Source Aligned
+
+- Completed:
+  - investigated inactive-state mismatch where dashboard displayed a large PV value but activity status remained inactive
+  - removed stale legacy inactive-string hard override behavior in shared backend activity helper
+  - aligned dashboard Personal Volume KPI to monthly `currentPersonalPvBv` (same metric used by active/inactive gate)
+  - updated dashboard fallback/update paths to stop using `currentWeekPersonalPv` for account-activity PV display
+  - preserved weekly cutoff/cycle metrics for cutoff views only.
+- Outcome:
+  - account activity status and Personal Volume card now use the same monthly Personal BV source of truth, preventing false high-PV/inactive mismatches caused by legacy weekly baseline values.
+- Files updated:
+  - `backend/utils/member-activity.helpers.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/utils/member-activity.helpers.js` passed.
+  - inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 5`.
+
+## Recent Update (2026-04-13) - Binary Tree Next Favorites Live Cross-Session Sync
+
+- Completed:
+  - added authenticated read endpoint for pinned favorites:
+    - `GET /api/member-auth/binary-tree-next/pinned-nodes`
+  - wired pinned-favorites pull sync into the existing Binary Tree Next live-sync loop so active sessions poll and apply remote favorite changes without reload
+  - added merge/guard logic to avoid overwriting local pending pin changes while a local write sync is in-flight or queued
+  - added write-retry behavior for transient pinned-favorites sync failures (excluding auth-denied statuses).
+- Outcome:
+  - when the same account is open in multiple browsers/devices, pinning/unpinning a node in one session now propagates to the other active session automatically on live-sync intervals/focus refresh.
+- Files updated:
+  - `backend/services/auth.service.js`
+  - `backend/controllers/auth.controller.js`
+  - `backend/routes/auth.routes.js`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/services/auth.service.js` passed.
+  - `node --check backend/controllers/auth.controller.js` passed.
+  - `node --check backend/routes/auth.routes.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - Binary Tree Next Favorites Persisted Server-Side Across Devices
+
+- Completed:
+  - added authenticated member API endpoint to save pinned favorites:
+    - `PUT /api/member-auth/binary-tree-next/pinned-nodes`
+  - extended Binary Tree launch-state response to include:
+    - `pinnedNodeIds`
+    - `pinnedNodeIdsUpdatedAt`
+  - extended `charge.member_binary_tree_intro_state` persistence to include pinned favorites storage:
+    - `pinned_node_ids text[]`
+    - `pinned_node_ids_updated_at timestamptz`
+  - updated `binary-tree-next-app.mjs` bootstrap to hydrate pinned favorites from server launch-state payload
+  - added debounced member-session sync so pin/unpin actions write server-side immediately after local cache update
+  - added safe backfill behavior for legacy local-only favorites when server has never recorded pinned favorites yet.
+- Outcome:
+  - pinned favorites in Binary Tree Next now persist by authenticated member account, so users can sign in on a different device/session and see the same favorites.
+- Files updated:
+  - `backend/stores/member-binary-tree-intro.store.js`
+  - `backend/services/auth.service.js`
+  - `backend/controllers/auth.controller.js`
+  - `backend/routes/auth.routes.js`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/stores/member-binary-tree-intro.store.js` passed.
+  - `node --check backend/services/auth.service.js` passed.
+  - `node --check backend/controllers/auth.controller.js` passed.
+  - `node --check backend/routes/auth.routes.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
 
 ## Recent Update (2026-04-13) - MLM Rule Refresh (Packages, Fast Track, Upgrades, Rank BV Gates)
 
@@ -1986,7 +2375,7 @@ Last Updated: 2026-04-13
 - Reordered Dashboard Row 2 layout in `index.html` to match latest composition request.
 - Left lane (`lg:col-span-2`):
   - `Weekly Total Organization BV` at top
-  - `Infinity Builders Bonus` + `Legacy Leadership Bonus` directly below.
+  - `Infinity Tier Commission` + `Legacy Leadership Bonus` directly below.
 - Right lane (`lg:col-span-1`):
   - `Server Cut-Off` (top)
   - `Fast Track Bonus` (above Recent Activity)
@@ -2426,7 +2815,7 @@ Last Updated: 2026-04-13
   - retained rank/status/upgrade controls and all metric/trend IDs (`total BV`, `new members`, `direct sponsors`)
 - Logic-sensitive sections intentionally left intact:
   - Fast Track Bonus
-  - Infinity Builder Bonus
+  - Infinity Tier Commission
   - Legacy Leadership Bonus
 - Files updated:
   - `index.html`
@@ -4447,7 +4836,7 @@ Last Updated: 2026-04-13
 ## Owner Scope Gate (Priority Rule)
 
 - **Priority instruction from owner (2026-02-22):** Do not get ahead of approved scope when implementing MLM earning systems.
-- **Current active systems:** `2. Fast Track Bonus`, `3. Infinity Builder Bonus`, and `4. Sales Team Commission`.
+- **Current active systems:** `2. Fast Track Bonus`, `3. Infinity Tier Commission`, and `4. Sales Team Commission`.
 - **Do not start yet:** any compensation systems after section `4` of `brand_assets/MLM Business Logic.md` unless explicitly approved by owner in chat.
 - **Execution policy:** implement only owner-approved compensation sections and keep all other sections gated until explicit go-ahead.
 - **Context allowance:** Work on previous systems/tasks is allowed when needed for context, dependencies, or validation of current work.
@@ -5289,10 +5678,10 @@ Last Updated: 2026-04-13
   - Inline script parse for `index.html` passed.
   - Authenticated UI screenshot: `temporary screenshots/screenshot-41-legacy-leadership-bonus-dashboard.png`.
 
-## Infinity Builder Bonus Naming Correction (2026-02-22)
+## Infinity Tier Commission Naming Correction (2026-02-22)
 
 - Final naming correction applied:
-  - `Legacy Leadership Bonus` -> `Infinity Builder Bonus`
+  - `Legacy Leadership Bonus` -> `Infinity Tier Commission`
 - Updated dashboard copy:
   - section title
   - locked-state title
@@ -5302,7 +5691,7 @@ Last Updated: 2026-04-13
 - Validation:
   - Inline script parse for `index.html` passed.
 
-## Infinity Builder Bonus Anticipation Card (Locked Tier Preview) (2026-02-22)
+## Infinity Tier Commission Anticipation Card (Locked Tier Preview) (2026-02-22)
 
 - Added a default locked preview card for the next tier (anticipation state).
 - Tier list now shows one additional future tier card by default:
@@ -5319,7 +5708,7 @@ Last Updated: 2026-04-13
   - Inline script parse for `index.html` passed.
   - Authenticated screenshot captured: `temporary screenshots/screenshot-43-tier3-anticipation-visible.png`.
 
-## Infinity Builder Bonus 10-Tier Server Mockup (2026-02-22)
+## Infinity Tier Commission 10-Tier Server Mockup (2026-02-22)
 
 - Applied a temporary live mockup so owner can inspect high-card-count behavior directly on server.
 - Mock mode is currently enabled and renders 10 cards:
@@ -5335,7 +5724,7 @@ Last Updated: 2026-04-13
   - Inline script parse for `index.html` passed.
   - Authenticated screenshot: `temporary screenshots/screenshot-48-tier10-server-mockup-live.png`.
 
-## Infinity Builder Bonus Claim + Archive + Paging (2026-02-22)
+## Infinity Tier Commission Claim + Archive + Paging (2026-02-22)
 
 - Added component-level workflow controls:
   - `View` dropdown with `Active` and `Completed`
@@ -5392,7 +5781,7 @@ Last Updated: 2026-04-13
 
 ## Infinity Builder Active Page Height Stabilization (2026-02-22)
 
-- Resolved pagination UX issue where Infinity Builder Bonus card area shrank on page 2 when fewer than 6 active tiers were rendered.
+- Resolved pagination UX issue where Infinity Tier Commission card area shrank on page 2 when fewer than 6 active tiers were rendered.
 - Active-view pagination now pads short pages with invisible non-interactive filler cards so the component keeps page-1 height.
 - Completed/archive view remains unchanged (no filler padding).
 - Applied file:
@@ -5455,7 +5844,7 @@ Last Updated: 2026-04-13
 
 ## Infinity Builder Mobile Stretch Fix (2026-02-22)
 
-- Fixed mobile stretch behavior in Infinity Builder Bonus component.
+- Fixed mobile stretch behavior in Infinity Tier Commission component.
 - Root adjustments:
   - hidden filler cards are now desktop-only (`hidden sm:block`) to avoid oversized empty vertical space on small screens.
   - sponsor/tag text now truncates with max widths to prevent layout expansion on narrow devices.
@@ -5481,9 +5870,9 @@ Last Updated: 2026-04-13
 - Validation:
   - Inline script parse for `index.html` passed (`Parsed 1 inline script block(s) successfully.`).
 
-## Infinity Builders Bonus Summary Card Inside Component (2026-02-22)
+## Infinity Tier Commission Summary Card Inside Component (2026-02-22)
 
-- Added a Fast Track-style summary card directly inside the Infinity Builder Bonus component (below component header).
+- Added a Fast Track-style summary card directly inside the Infinity Tier Commission component (below component header).
 - Card now displays Infinity Builder commission balance/state using the existing unclaimed commission computation.
 - Status behavior:
   - `Locked` when not eligible
@@ -5496,13 +5885,13 @@ Last Updated: 2026-04-13
   - Authenticated screenshot:
     - `temporary screenshots/screenshot-61-infinity-component-copied-card.png`
 
-## Infinity Builders Bonus Claim-Transfer Logic Fix (2026-02-22)
+## Infinity Tier Commission Claim-Transfer Logic Fix (2026-02-22)
 
 - Adjusted summary card commission source to match expected flow:
-  - claiming a completed tier now transfers value into `Infinity Builders Bonus` card balance.
+  - claiming a completed tier now transfers value into `Infinity Tier Commission` card balance.
 - Current split:
   - `Unclaimed Commission` (component header): still tracks completed but unclaimed tiers.
-  - `Infinity Builders Bonus` summary card: now tracks claimed commission balance.
+  - `Infinity Tier Commission` summary card: now tracks claimed commission balance.
 - Applied file:
   - `index.html`
 - Validation:
@@ -5590,7 +5979,7 @@ Last Updated: 2026-04-13
 
 ## User Dashboard: Legacy Leadership Bonus UI Duplicate Added (2026-02-22)
 
-- User-side dashboard now includes a second bonus component directly under Infinity Builder Bonus.
+- User-side dashboard now includes a second bonus component directly under Infinity Tier Commission.
 - The new component is labeled:
   - `Legacy Leadership Bonus`
 - Layout/sizing was matched to the Infinity Builder component by reusing the same card structure/classes.
@@ -5603,7 +5992,7 @@ Last Updated: 2026-04-13
 
 ## User Dashboard: Legacy Leadership Bonus Logic Wiring + Package Gate (2026-02-22)
 
-- Legacy Leadership Bonus is now fully wired with the same runtime behavior model as Infinity Builder Bonus:
+- Legacy Leadership Bonus is now fully wired with the same runtime behavior model as Infinity Tier Commission:
   - Building/Completed mode switching
   - pagination
   - claim/archive records
@@ -5624,7 +6013,7 @@ Last Updated: 2026-04-13
 ## User Dashboard: Bonus Container Size Trim (2026-02-22)
 
 - Addressed oversized stacked height on:
-  - `Infinity Builder Bonus`
+  - `Infinity Tier Commission`
   - `Legacy Leadership Bonus`
 - Removed hidden filler-card padding from both component render paths (empty and paginated states).
 - Both containers are now content-height driven and no longer force a large fixed card footprint.
@@ -5913,7 +6302,7 @@ Last Updated: 2026-04-13
 - User-requested Infinity Builder card customization implemented on user dashboard (`index.html`):
   - removed fixed tier amount display (`$150.00`) from claimed-tier cards
   - removed `Completed Nodes` section
-  - relabeled sponsor section title to `Infinity Builder Bonus`
+  - relabeled sponsor section title to `Infinity Tier Commission`
   - added per-seeded-direct-sponsor mini snippets showing running organization BV and projected `1%` by cutoff.
 - Added cutoff-aware per-direct helper for override projections:
   - `resolveInfinityBuilderDirectMemberRunningOverrideBreakdown(...)`
@@ -6807,7 +7196,7 @@ Last Updated: 2026-04-13
 - Frontend updated:
   - `index.html` now hydrates commission containers from API on startup and when returning to live mode.
   - Live mode claim-map access now uses server snapshot for:
-    - Infinity Builder Bonus
+    - Infinity Tier Commission
     - Legacy Leadership Bonus
   - Added debounced server sync for commission container balances and claim maps.
   - Added immediate (awaited) server persistence after tier-claim clicks to avoid rapid-refresh race conditions.
@@ -12360,3 +12749,3979 @@ Last Updated: 2026-04-13
   - `node --check backend/services/member.service.js` passed.
   - `node --check backend/services/store-checkout.service.js` passed.
   - `node --check backend/services/invoice.service.js` passed.
+
+## Recent Update (2026-04-13) - Direct Sponsor Indicator Switched To Purple Gradient Nodes
+
+- Completed:
+  - removed purple direct-sponsor mini badge rendering from Binary Tree canvas nodes
+  - added dedicated `direct` node avatar palette (purple gradient family)
+  - updated draw pipeline so direct-sponsor nodes use the purple gradient treatment
+  - preserved inactive-node override to neutral gray
+  - kept left-panel icon activity dot behavior unchanged.
+- Outcome:
+  - direct sponsors are now identified by node fill style (purple gradient) instead of a separate badge, reducing indicator overlap on-node.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - Backend-Wide Active Rule Standardized (50 Personal BV) + Dashboard Synced
+
+- Completed:
+  - added shared backend activity helper for canonical active-state resolution:
+    - active only when current monthly Personal BV is `>= 50`
+  - wired helper into backend mapping/response paths:
+    - `user.store` mapped users now derive `accountStatus`/`isActive` from Personal BV
+    - `member.store` mapped registered members now derive `accountStatus`/`isActive` from Personal BV
+    - auth sanitizer now returns `accountStatus`, `isActive`, and monthly/current Personal BV fields
+    - password setup completion now persists status derived from the same rule
+    - achievements activity requirement path now uses Personal BV-based active state (not active-until window).
+  - updated member dashboard (`index.html`) activity display logic:
+    - replaced active-window time gating with Personal BV threshold gating
+    - changed account-status tooltip/copy to the `50 Personal BV/month` rule
+    - account-status KPI now shows monthly progress as `current / 50 BV`.
+- Outcome:
+  - backend and user dashboard now use the same active/inactive rule, eliminating mismatch between node rendering and dashboard status behavior.
+- Files updated:
+  - `backend/utils/member-activity.helpers.js`
+  - `backend/stores/user.store.js`
+  - `backend/stores/member.store.js`
+  - `backend/utils/auth.helpers.js`
+  - `backend/services/auth.service.js`
+  - `backend/services/member-achievement.service.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/utils/member-activity.helpers.js` passed.
+  - `node --check backend/stores/user.store.js` passed.
+  - `node --check backend/stores/member.store.js` passed.
+  - `node --check backend/utils/auth.helpers.js` passed.
+  - `node --check backend/services/auth.service.js` passed.
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 2`.
+
+## Recent Update (2026-04-13) - Active/Inactive Node Rule Aligned To 50 Personal BV
+
+- Completed:
+  - switched Binary Tree activity gating from status-text-only checks to Personal BV threshold checks
+  - enforced `50` Personal BV minimum for active state resolution in Binary Tree rendering
+  - added current-period personal BV normalization with cutoff-baseline support (`serverCutoffBaselineStarterPersonalPv`)
+  - propagated personal-volume snapshot fields through:
+    - live member -> node mapping
+    - scoped root node projection
+    - new enrollment in-session node insertion path.
+- Outcome:
+  - active/inactive node visuals now align with the stated rule: members below 50 Personal BV resolve as inactive for node rendering.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - Inactive Direct Nodes Now Use Darker Gray
+
+- Completed:
+  - added `directInactive` Binary Tree avatar palette (deeper gray)
+  - updated node rendering logic so direct + inactive nodes use `directInactive`
+  - retained existing behavior for:
+    - active directs (`direct` purple gradient)
+    - inactive non-directs (`neutral` gray)
+    - left panel activity-dot UI.
+- Outcome:
+  - inactive direct sponsors are visually distinct from other inactive nodes via a darker gray node treatment.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-13) - Personal BV Anchored Monthly Cutoff Model Implemented
+
+- Completed:
+  - replaced rolling activity-window behavior with join-day anchored monthly cutoff logic in shared helper layer
+  - updated enrollment/purchase/upgrade backend writes to keep `currentPersonalPvBv` as the current-window BV balance
+  - made `member_users.current_personal_pv_bv` a persisted/guarded field across read/write/upsert/update paths
+  - updated registered-member linked hydration to read linked current personal BV + timing metadata
+  - removed `pending` as hard inactive override for tree/dashboard activity checks
+  - added cutoff-expiry zeroing on frontend activity BV resolvers (dashboard + binary tree).
+- Outcome:
+  - activity now reflects the required rule shape: Personal BV resets by anchored monthly window instead of rolling extension, and password-setup state no longer suppresses BV-based activity by itself.
+- Files updated:
+  - `backend/utils/member-activity.helpers.js`
+  - `backend/services/member.service.js`
+  - `backend/stores/user.store.js`
+  - `backend/stores/member.store.js`
+  - `backend/utils/auth.helpers.js`
+  - `backend/services/member-achievement.service.js`
+  - `binary-tree-next-app.mjs`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/utils/member-activity.helpers.js` passed.
+  - `node --check backend/stores/user.store.js` passed.
+  - `node --check backend/stores/member.store.js` passed.
+  - `node --check backend/services/member.service.js` passed.
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - `node --check backend/utils/auth.helpers.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 5`.
+
+## Recent Update (2026-04-13) - Account Status Timer UI Restored
+
+- Completed:
+  - reverted Account Status card label to `Account Active Until`
+  - replaced BV counter display in account status card with timer countdown display
+  - preserved Personal Volume card behavior unchanged.
+- Outcome:
+  - dashboard now shows the expected monthly timer in Account Status while keeping PV/BV information in its own card.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 5`.
+
+## Recent Update (2026-04-13) - Account Timer Corrected (No Multi-Month Drift)
+
+- Completed:
+  - fixed account status timer source to compute next cutoff from join-date monthly anchor
+  - retained fallback to stored `activityActiveUntilAt` only when anchor date is missing.
+- Outcome:
+  - account timer no longer shows inflated multi-month durations from stale legacy activity timestamps.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 5`.
+
+## Recent Update (2026-04-13) - Session Fields Now Strictly Server-Hydrated On Dashboard Boot
+
+- Completed:
+  - added authenticated `GET /api/member-auth/session` endpoint
+  - added strict frontend bootstrap hydration using bearer token session
+  - app boot now fails closed to login if server hydration fails.
+- Outcome:
+  - session-critical fields (including account activity timer inputs) are now server-authoritative at startup, not stale cache-driven.
+- Files updated:
+  - `backend/services/auth.service.js`
+  - `backend/controllers/auth.controller.js`
+  - `backend/routes/auth.routes.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/services/auth.service.js` passed.
+  - `node --check backend/controllers/auth.controller.js` passed.
+  - `node --check backend/routes/auth.routes.js` passed.
+  - Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 5`.
+
+
+## Recent Update (2026-04-13) - Package-Specific Product BV + Retail Commission Applied End-to-End
+
+- Completed:
+  - upgraded product model from single BV field to package-earnings model (retail + BV by package)
+  - implemented server-side buyer package resolution at checkout intent/session creation
+  - enforced server-side buyer BV + retail commission metadata and invoice persistence
+  - updated invoice storage with `buyer_package_key` and `retail_commission` columns (auto-ensured)
+  - switched member dashboard stripe flow to finalize orders via `/api/store-checkout/intent/complete` (server-authoritative invoice/BV/retail)
+  - updated Admin Product Management UI to edit package-specific retail/BV values
+  - updated store owner revenue metrics/feed to use retail commission values.
+- Outcome:
+  - Legacy buyer scenario now resolves correctly under package rules (e.g., Legacy package buyer -> `38 BV`, upline retail -> `$20`) using server-side checkout calculations.
+- Files updated:
+  - `backend/utils/store-product-earnings.helpers.js`
+  - `backend/stores/store-product.store.js`
+  - `backend/services/store-product.service.js`
+  - `backend/services/store-checkout.service.js`
+  - `backend/stores/invoice.store.js`
+  - `backend/services/invoice.service.js`
+  - `storefront-shared.js`
+  - `admin.html`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/utils/store-product-earnings.helpers.js` passed.
+  - `node --check backend/stores/store-product.store.js` passed.
+  - `node --check backend/services/store-product.service.js` passed.
+  - `node --check backend/services/store-checkout.service.js` passed.
+  - `node --check backend/stores/invoice.store.js` passed.
+  - `node --check backend/services/invoice.service.js` passed.
+  - `node --check storefront-shared.js` passed.
+
+## Recent Update (2026-04-13) - One-Time Invoice Backfill Completed (Zeroone / INV-240934)
+
+- Completed:
+  - manually backfilled `charge.store_invoices` row `INV-240934` buyer identity to `zeroone` only.
+  - no batch logic and no recurring backfill task added.
+- Outcome:
+  - invoice now resolves to `zeroone` personal identity in dashboard identity matching paths.
+- Scope:
+  - single-row DB update only (`affectedRows = 1`).
+- Validation:
+  - before/after row snapshot confirmed.
+  - store-layer read confirms:
+    - `buyerUserId = usr_1775181494655_698b390a`
+    - `buyerUsername = zeroone`
+    - `buyerEmail = sethfozzaguilar@gmail.com`.
+
+## Recent Update (2026-04-13) - Admin Product Loader Resilience (MetaCharge Visibility)
+
+- Completed:
+  - confirmed `MetaChargeâ„¢` exists and is active in `charge.store_products`.
+  - patched store product storage layer to avoid hard failure when admin migration credentials fail.
+  - enabled dynamic read/write fallback when optional columns (`image_urls`, `package_earnings`) are absent.
+- Outcome:
+  - admin product list APIs now return products (including `MetaChargeâ„¢`) instead of failing on admin migration auth.
+- Files updated:
+  - `backend/stores/store-product.store.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/stores/store-product.store.js` passed.
+  - `getStoreProducts({ includeArchived: true })` returned `MetaChargeâ„¢` successfully.
+
+## Recent Update (2026-04-13) - Dashboard Store Discount Copy Clarified
+
+- Completed:
+  - changed discount wording to audience-aware labels.
+  - preferred-customer sessions now show `Preferred Customer Discount`.
+  - member sessions now show `Member Discount`.
+- Outcome:
+  - avoids confusion where member accounts (0%) were shown under â€œPreferredâ€ wording.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script parse check for `index.html` passed.
+
+## Recent Update (2026-04-13) - Owner Feed Reroute for Guest Attributed Sales
+
+- Completed:
+  - added a new `Guest Attributed Purchases` block on the Preferred Customer page.
+  - rerouted attributed guest/unlinked checkout records away from owner-side invoice and recent activity feeds.
+  - kept matched preferred-member invoices in the existing preferred planner cards, and prevented duplicate guest-card display when already matched.
+- Outcome:
+  - owner-side operational invoice widgets focus on linked/member attribution.
+  - guest-attributed sales remain visible in Preferred Customer view for follow-up.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script parse check for `index.html` passed (`Parsed inline scripts in index.html: 2`).
+
+## Recent Update (2026-04-13) - Guest Attribution Visibility Follow-Up Fix
+
+- Completed:
+  - validated missing-entry report against DB and confirmed newest guest invoice existed with `CHG-*` attribution.
+  - patched owner attribution-code resolution to support `M-*` and `CHG-*` code variants.
+  - updated public store code resolver to derive `CHG-*` from `M-*` when session `publicStoreCode` is absent.
+- Outcome:
+  - preferred guest-attributed purchase list can resolve attributed guest invoices even when session store-code payload arrives in internal-code form.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script parse check for `index.html` passed (`Parsed inline scripts in index.html: 2`).
+
+## Recent Update (2026-04-13) - Guest Identity Matching Rule Tightened
+
+- Completed:
+  - updated preferred planner invoice identity matching to stop using `buyerEmail` as member-link identity.
+  - retained only `buyerUserId` and `buyerUsername` for member-linked invoice matching.
+- Outcome:
+  - guest checkouts that submit only full name + email remain in `Guest Attributed Purchases` and are not auto-classified as member-linked planner invoices.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script parse check for `index.html` passed (`Parsed inline scripts in index.html: 2`).
+
+## Recent Update (2026-04-13) - Code Alias Normalization Hardening
+
+- Completed:
+  - extended owner attribution code alias handling to support compact and dashed formats (`MZERO`/`M-ZERO`, `CHGZERO`/`CHG-ZERO`).
+  - updated public code derivation from internal code to support no-dash internal format.
+- Outcome:
+  - guest-attributed invoice ownership matching is more resilient across legacy stored/session code formats.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script parse check for `index.html` passed (`Parsed inline scripts in index.html: 2`).
+
+## Recent Update (2026-04-13) - Preferred Guest Sales Fallback Added
+
+- Completed:
+  - added fallback guest-invoice rendering path in Preferred Customer planner when owner-attribution match path returns empty.
+  - fallback includes only guest-identity rows with non-default attribution and excludes preferred-member matched invoices.
+- Outcome:
+  - prevents silent empty Guest Attributed Purchases section for valid guest checkout invoices under runtime code-variant/session mismatch cases.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script parse check for `index.html` passed (`Parsed inline scripts in index.html: 2`).
+
+## Recent Update (2026-04-14) - Binary Tree Next Account Overview Full Data Wiring
+
+- Completed:
+  - wired Account Overview panel field values to live/runtime data from top-to-bottom (rank/title/user/status through commissions).
+  - added API snapshot hydration for:
+    - binary tree metrics
+    - sales team commissions
+    - commission containers
+    - e-wallet
+  - added polling guardrails (interval + retry cadence) and session-change reset/refetch behavior for panel data.
+  - added fallback resolvers for active window, BV totals, cycle cap, wallet, and commission values.
+- Outcome:
+  - Account Overview panel now reflects live app data instead of static placeholders for the requested KPI/commission cards.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Account Overview Hero Alignment Centered
+
+- Completed:
+  - adjusted Account Overview hero row alignment from bottom-anchored to center-aligned.
+- Outcome:
+  - left rank badge, center avatar/user block, and right title badge now align on center as requested.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - CSS-only layout update.
+
+## Recent Update (2026-04-14) - Binary Tree Next Title Sync With Actual Profile Titles
+
+- Completed:
+  - patched Account Overview title resolution to prioritize profile-aware title fields over stale fallback labels.
+  - for member mode, set non-fallback session profile title as top priority so panel/root title follows the userâ€™s actual selected title.
+  - added shared title/icon resolver helpers and applied them to panel visuals + tree node icon resolution.
+  - updated root/member live node builders so normalized title + icon metadata is preserved across tree refreshes.
+- Outcome:
+  - BT Next titles now stay aligned with actual selected profile titles instead of drifting to `"{rank} Builder"` fallbacks.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Legacy Founder Icon Corrected in Binary Tree Next
+
+- Completed:
+  - fixed title-icon fallback mapping so `Legacy Founder` resolves to Title-Icons assets, not the generic legacy rank icon.
+  - added title-event icon routing for legacy founder/director/ambassador/presidential-circle keys and achievement ids.
+- Outcome:
+  - Account Overview title badge now displays the proper Legacy Founder icon.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Legacy Founder Icon Forced to `legacy-founder-star-light`
+
+- Completed:
+  - added forced title-icon resolution from title labels before fallback icon-path fields.
+  - wired `Legacy Founder` to always resolve to `/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg`.
+- Outcome:
+  - Account Overview title icon now consistently shows the requested Legacy Founder icon even when older title-icon fields are stale.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Right-Side Profile-Left Buttons Added
+
+- Completed:
+  - moved `Account Overview` toggle to a new top-right button group positioned left of the profile avatar.
+  - added `Rank Advancement` button as placeholder in the same profile-left group.
+  - left existing vertical rail navigation controls in place.
+  - added explicit placeholder action handler (`panel:rank-advancement:placeholder`) with inert behavior until panel build.
+- Outcome:
+  - right-side controls now match the requested layout direction, with primary panel actions grouped beside the profile avatar.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Account Overview No Longer Opens on Boot
+
+- Completed:
+  - changed Binary Tree Next boot UI default so `Account Overview` starts hidden.
+- Outcome:
+  - panel stays closed on startup and only opens when the new profile-left `Account Overview` button is pressed.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Account Overview Live Data (No Reload Needed)
+
+- Completed:
+  - aligned Account Overview remote sync intervals with Binary Tree Next live sync cadence.
+  - added dynamic polling interval resolver based on panel visibility + page visibility.
+  - connected Account Overview refresh to tree live apply pipeline so panel updates with incoming live node synces.
+  - forced immediate remote refresh when opening Account Overview from the button.
+- Outcome:
+  - Account Overview now updates live in-session without page reload, following the same real-time behavior pattern as Binary Tree Next.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Binary Tree Next My Store Panel Added
+
+- Completed:
+  - added a new `My Store` right-side panel in `binary-tree-next.html` with Account Overview-aligned shell styling.
+  - implemented panel lifecycle in `binary-tree-next-app.mjs` (init, position sync, visibility sync, close/copy interactions).
+  - wired `brand-menu:page:my-store` to open the new panel.
+  - added package-based upgrade rendering rules:
+    - Preferred -> Personal / Business / Infinity / Legacy
+    - Personal -> Business / Infinity / Legacy
+    - Business -> Infinity / Legacy
+    - Infinity -> Legacy
+    - Legacy -> no upgrade cards
+  - enforced panel exclusivity so `My Store` and `Account Overview` do not stay open together.
+- Outcome:
+  - Binary Tree Next now includes an in-context My Store panel with dynamic upgrade visibility based on member package level.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+- QA note:
+  - screenshot pass skipped this session per explicit user instruction.
+
+## Recent Update (2026-04-14) - My Store Uses New Transparent `NOBG` Bottle Image
+
+- Completed:
+  - switched My Store image source to `brand_assets/Product Images/MetaCharge Blue Bottle - NOBG.png`.
+  - applied update in both JS runtime source constant and HTML fallback image `src`.
+- Outcome:
+  - featured and upgrade-card product visuals now use the new transparent bottle image.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - My Store Featured Cards Refined (Clickable + Centered Image)
+
+- Completed:
+  - increased product-card shell size in featured and upgrade sections.
+  - split typography sizing so `Featured` heading and product title are visibly different.
+  - converted featured and upgrade cards to clickable product buttons.
+  - added My Store product click routing for featured and package-upgrade cards.
+  - centered transparent bottle art inside gray cards with explicit image-shell centering and contain-fit rules.
+- Outcome:
+  - My Store now has larger, clearer product cards that behave as store actions and keep bottle placement centered in card surfaces.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - My Store Gray Product Shell Enlarged With Corner Gap
+
+- Completed:
+  - enlarged featured gray product shell and raised corner radius.
+  - enlarged upgrade gray product shells and increased minimum shell height.
+  - increased inner shell padding.
+  - added per-shell image max-size caps to preserve stronger gap from shell corners.
+  - adjusted mobile featured-shell width to keep the same spacing intent on smaller viewports.
+- Outcome:
+  - product art now sits with clearer breathing room inside gray cards, closer to the requested reference spacing.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - My Store Checkout Flow Stays Inside Binary Tree
+
+- Completed:
+  - replaced external My Store product redirects with an internal multi-step panel flow.
+  - added breadcrumb navigation states:
+    - `My Store`
+    - `My Store < Review Purchase`
+    - `My Store < Review Purchase < Checkout`
+  - added a new in-panel review-purchase layout with product image/title, quantity, price, BV, remove action, and checkout CTA.
+  - added a new in-panel checkout layout with large summary card + billing/payment fields + previous/pay actions.
+  - wired step navigation and state rendering in `binary-tree-next-app.mjs`.
+  - added checkout field validation + in-panel success/error feedback (no page redirect).
+- Outcome:
+  - users can begin purchase, review, and proceed to checkout entirely within Binary Tree Next panel UI.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - My Store Review Text Scaled Down
+
+- Completed:
+  - reduced breadcrumb heading size in My Store review/checkout flow.
+  - reduced Review Purchase text sizes for product title, quantity, price, and BV.
+  - reduced checkout-button label size inside Review Purchase.
+  - tightened mobile clamp ranges to prevent text crowding.
+- Outcome:
+  - Review Purchase content now fits cleanly without scrambled-looking oversized text.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - CSS-only typography update.
+
+## Recent Update (2026-04-14) - My Store Font Scale Synced to Account Overview
+
+- Completed:
+  - aligned My Store breadcrumb typography to Account Overview sizing style.
+  - aligned Review Purchase text proportions (name/quantity/price/BV/remove/checkout CTA) to Account Overview-like scale.
+  - aligned Checkout heading/summary/input/action typography to same baseline.
+  - tuned responsive typography overrides to preserve those ratios on tablet/mobile.
+- Outcome:
+  - My Store review/checkout text now follows the same sizing language as Account Overview and avoids oversized, scrambled presentation.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - CSS-only typography update.
+
+## Recent Update (2026-04-14) - My Store Checkout Rewired to Enroll Step-3 Component Classes
+
+- Completed:
+  - replaced My Store checkout card/form/button internals with Enroll step-3 checkout classes.
+  - preserved My Store runtime IDs so existing JS data/interaction wiring remains intact.
+  - enabled class-based reuse of enroll summary-card container styles.
+- Outcome:
+  - My Store checkout now uses the same checkout component family as Enroll Member step 3, reducing style drift and oversized custom variants.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - My Store Checkout Now Includes Stripe + Country Customization
+
+- Completed:
+  - replaced My Store plain card inputs with Stripe Elements (number/expiry/CVC) like Enroll step 3.
+  - added My Store Stripe lifecycle (init, completeness tracking, reset, card-error handling).
+  - replaced My Store country text field with Enroll-style custom country select UI.
+  - expanded billing-country hydration/apply logic to update both Enroll and My Store country selects from same catalog.
+  - updated My Store submit validation for complete Stripe fields and valid billing country selection.
+- Outcome:
+  - My Store checkout now contains the same advanced internals expected from Enroll step-3 checkout, not just a visual approximation.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - My Store Checkout Scroll Length Reduced
+
+- Completed:
+  - added checkout-step-specific compact spacing rules so My Store checkout no longer feels overly tall.
+  - reduced vertical spacing in checkout mode for:
+    - panel scroll padding
+    - header bottom spacing
+    - checkout section top padding
+    - summary card margin/padding
+    - form top margin and field stack gaps
+    - checkout action stack spacing
+  - compacted Enroll-reused checkout internals within My Store checkout:
+    - summary heading/row/total sizing
+    - card + billing field min-heights and corner radii
+    - billing/card row gaps
+    - action button min-heights
+  - added extra compact behavior for shorter viewports (`max-height: 1065px` and `max-height: 820px`) to further prevent excessive scrolling.
+- Outcome:
+  - checkout now uses a tighter vertical rhythm and significantly shorter scroll distance while preserving Enroll step-3 internals/custom UI.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - CSS-only layout/spacing update.
+
+## Recent Update (2026-04-14) - My Store Checkout Empty Bottom Space Tightened Further
+
+- Completed:
+  - applied a second checkout-only spacing pass focused on removing excessive lower empty space.
+  - reduced checkout scroll bottom padding and overall vertical rhythm in default checkout mode.
+  - tightened summary, form, billing row, and action-stack spacing.
+  - reduced field/button min-heights for checkout mode only.
+  - strengthened compact behavior in both `max-height: 1065px` and `max-height: 820px` ranges.
+- Outcome:
+  - checkout now has noticeably less dead space under the form/actions and a shorter overall scroll path.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - CSS-only spacing refinement.
+
+## Recent Update (2026-04-14) - My Store Review Quantity Selector + MLM BV/Upgrade Delta Logic
+
+- Completed:
+  - converted Review Purchase `1x` from static text to an interactive quantity selector (`- / +`) for product purchases.
+  - added quantity control behaviors:
+    - minimum `1`, maximum `99`
+    - live subtotal/tax/total/BV recalculation on each quantity change
+    - auto-readonly quantity display for package-upgrade selections (no multi-qty upgrades)
+  - aligned package-upgrade pricing/BV with MLM upgrade-delta logic:
+    - `priceDue` computed from product-count delta between current and target package
+    - `bvGain` computed as target-package BV minus current-package BV
+    - removed Preferred Customer retail discount from package upgrades (discount stays for product purchase path)
+  - aligned My Store tax math with Enroll checkout style (cent-rounded tax + total calculations).
+- Outcome:
+  - Review Purchase now supports real quantity interaction and checkout totals/BV reflect correct business logic per account package and upgrade path.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - duplicate-ID check on `binary-tree-next.html` passed.
+
+## Recent Update (2026-04-14) - Checkout Step Scroll Investigation + Space Collapse Fix
+
+- Investigation findings:
+  - checkout was reserving vertical space even when no message existed via:
+    - `#tree-next-my-store-card-error` min-height
+    - `#tree-next-my-store-checkout-feedback` min-height
+  - checkout layout also had cumulative vertical padding/gaps (scroll padding, section top spacing, form/action spacing) causing extra scroll depth.
+- Fix applied:
+  - added checkout-step-scoped empty-state collapse rules so both card-error and checkout-feedback rows are removed from layout when empty.
+  - tightened checkout-only spacing further:
+    - reduced checkout scroll bottom padding
+    - reduced checkout section top spacing
+    - reduced summary/form/action vertical spacing and row gaps
+    - reduced checkout action button min-height
+  - kept catalog/review/store-list scrolling behavior intact.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - CSS-only patch; no runtime logic change.
+
+## Recent Update (2026-04-14) - Checkout Layout Decramped + Dynamic Step Height (Scroll Tail Fix)
+
+- Completed:
+  - adjusted checkout-only typography/spacing upward slightly to avoid over-cramped appearance (summary rows, field height, action button height, section/form/action spacing).
+  - lowered aggressive compact-mode breakpoint from `max-height: 1065px` to `max-height: 920px` so normal desktop/laptop heights keep readable sizing.
+  - implemented dynamic My Store panel height behavior for checkout step in runtime:
+    - when step is `checkout`, panel height now targets actual checkout content height (+padding/header buffer) instead of always inheriting full side-nav height.
+  - preserved existing behavior for `catalog` and `review` steps (full-height side panel remains intact).
+- Outcome:
+  - checkout no longer appears overly cramped, and the large empty area/tail under checkout content is removed on normal screens.
+  - unnecessary checkout scroll caused by oversized panel height context is significantly reduced.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - Real Checkout Space Fix (Auto-Height Panel in Checkout Step)
+
+- Completed:
+  - implemented structural checkout-step sizing fix in CSS:
+    - `#tree-next-my-store-panel[data-my-store-step="checkout"] { height: auto; max-height: ... }`
+  - desktop max-height: `calc(100vh - 36px)`
+  - tablet/mobile max-height: `calc(100vh - 96px)`
+- Why this is the real fix:
+  - checkout no longer forcibly inherits full side-panel height, which was creating large blank space under the form.
+  - panel now shrink-wraps checkout content and only scrolls when content exceeds viewport cap.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - CSS-only layout fix.
+
+## Recent Update (2026-04-14) - Checkout Decramped + Scroll Disabled (Checkout Step)
+
+- Completed:
+  - increased checkout readability/spacing so fields and text are no longer overly compressed.
+  - reverted overly aggressive tightness in checkout-only base sizing:
+    - larger summary text/total
+    - larger field and action button heights
+    - increased vertical gaps around form/actions
+  - disabled checkout-step scrolling explicitly:
+    - `#tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-scroll { overflow-y: hidden; }`
+  - pushed compact-height breakpoints down so aggressive compact rules only apply on very short viewports:
+    - `max-height: 760px`
+    - `max-height: 680px`
+- Outcome:
+  - checkout now has breathing room again and does not scroll in normal viewport heights.
+- Files updated:
+  - `binary-tree-next.html`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - CSS-only checkout layout refinement.
+
+## Recent Update (2026-04-14) - Store Checkout Now Matches Enroll Step 3 Layout + Real Height Fix
+
+- Completed:
+  - fixed a misplaced runtime patch: checkout auto-height logic had been applied inside syncAccountOverviewPanelPosition(...) and is now correctly applied in syncMyStorePanelPosition(...).
+  - My Store checkout panel height now shrink-wraps checkout content (header + content + padding buffer) during checkout step, eliminating the large empty white tail.
+  - kept checkout-step scrolling disabled while ensuring content gets proper breathing room.
+  - aligned Store checkout spacing/layout with Enroll step-3 checkout rhythm:
+    - summary card spacing/typography
+    - field stack and billing/card row gaps
+    - input/select/card-shell sizing
+    - action stack/button spacing and sizing
+  - updated My Store checkout markup to mirror Enroll step-3 billing structure by wrapping billing controls in .tree-next-enroll-billing-fields and adding matching screen-reader labels.
+- Outcome:
+  - Checkout is no longer overly cramped and no longer leaves a large blank area under the form.
+  - Store checkout now follows the same clean/tight layout behavior expected from Enroll step 3.
+- Files updated:
+  - binary-tree-next.html
+  - binary-tree-next-app.mjs
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+
+
+## Recent Update (2026-04-14) - My Store Checkout Height Increased + Spacing Expanded
+
+- Completed:
+  - increased checkout panel runtime height allowance in syncMyStorePanelPosition(...) by raising the checkout padding buffer and using a taller minimum target for checkout mode.
+  - expanded checkout internal spacing so content feels less cramped:
+    - larger scroll padding
+    - larger header-to-content spacing
+    - larger summary card margin/padding
+    - larger field stack gaps and billing/card row gaps
+    - slightly taller inputs and action buttons
+    - increased action stack spacing
+  - applied matching relaxed spacing adjustments in compact-height checkout media rules so the denser layouts still keep breathing room.
+- Outcome:
+  - My Store checkout panel is visibly taller, and form/summary/action elements are spread more evenly.
+  - checkout remains non-scroll in checkout mode while avoiding the cramped look.
+- Files updated:
+  - binary-tree-next.html
+  - binary-tree-next-app.mjs
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## Recent Update (2026-04-14) - My Store Checkout Made Taller + Extra Bottom Button Gap
+
+- Completed:
+  - increased checkout panel target height again in `syncMyStorePanelPosition(...)`:
+    - checkout extra height buffer increased to `+96`
+    - checkout minimum target height increased to `460`
+  - increased checkout vertical spacing in My Store checkout mode:
+    - larger scroll top/bottom padding
+    - larger header-to-body spacing
+    - larger section bottom padding to create visible space below action buttons
+    - slightly larger action stack spacing and button height
+  - propagated bottom-spacing/taller feel into compact-height checkout media rules so the button area still has breathing room on shorter screens.
+- Outcome:
+  - checkout panel renders taller overall.
+  - there is now intentional space below the checkout buttons before the container ends.
+- Files updated:
+  - binary-tree-next.html
+  - binary-tree-next-app.mjs
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## Recent Update (2026-04-14) - My Store Checkout/Review Spacing + Breadcrumb Direction + Button Glow Cleanup
+
+- Completed:
+  - checkout typography spacing refinements:
+    - increased top spacing above `Complete Checkout`
+    - increased gap between checkout caption text and subtotal summary card
+  - removed glow-style shadows from My Store action buttons:
+    - review checkout button
+    - checkout action buttons (`Previous` / `Pay Now`) within My Store panel
+    - `Copy Store Link` button
+  - fixed breadcrumb separator direction from `<` to `>` in review and checkout breadcrumb states.
+  - lowered `Share and Earn` on review page with step-specific spacing so it sits lower/closer to mid-panel.
+  - review typography alignment tweaks requested:
+    - product name weight aligned to match price presentation
+    - quantity selector value weight aligned with BV field emphasis
+    - small-screen review name size aligned with price size
+- Outcome:
+  - checkout spacing reads cleaner at the top and between caption/summary.
+  - button glow is removed across My Store actions.
+  - breadcrumbs now flow left-to-right (`>`).
+  - review panel balance is improved with lower Share and Earn placement.
+  - product/price and quantity/BV visual hierarchy now match more closely.
+- Files updated:
+  - binary-tree-next.html
+  - binary-tree-next-app.mjs
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## Recent Update (2026-04-14) - Review Row Pairing Fix (Name?Price, Qty Selector?BV)
+
+- Completed:
+  - reworked My Store review details layout from inline-flex wrapping to a 2-row grid so left-side content pairs correctly with right-side pricing rows:
+    - row 1: Product Name aligns with Price
+    - row 2: Quantity Selector aligns with BV
+  - reduced quantity selector control height and internal button size so its visual height better matches the BV row.
+  - kept responsive behavior centered on tablet/mobile while preserving the same row pairing intent.
+- Outcome:
+  - product name and price now match row hierarchy more closely.
+  - quantity selector no longer looks oversized versus the BV line.
+- Files updated:
+  - binary-tree-next.html
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Validation:
+  - CSS-only review-layout refinement.
+
+## Recent Update (2026-04-14) - Review Row Height Alignment Tightened Again
+
+- Completed:
+  - adjusted review details block upward to align row heights with right-side pricing block on desktop.
+  - tightened quantity selector vertical size and button size further so selector height visually matches BV row height.
+  - increased row-gap consistency between left/right review stacks.
+  - maintained centered mobile/tablet behavior by resetting desktop offset in compact layout.
+- Outcome:
+  - product name row is now aligned closer to price row.
+  - quantity selector row now aligns closer to BV row with less height mismatch.
+- Files updated:
+  - binary-tree-next.html
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Validation:
+  - CSS-only review-layout adjustment.
+
+## Recent Update (2026-04-14) - My Store Review Name/Price Vertical Anchor Fix
+
+- Completed:
+  - removed the desktop offset on .tree-next-my-store-review-details (margin-top: -34px -> margin-top: 0).
+  - changed review layout alignment from centered to top-anchored:
+    - .tree-next-my-store-review-card { align-items: start; }
+    - .tree-next-my-store-review-main { align-items: start; }
+    - .tree-next-my-store-review-details { align-content: start; }
+- Outcome:
+  - product name and price now share the same vertical anchor in My Store > Review Purchase.
+  - quantity selector and BV rows keep their current pairing while removing the previous row-offset mismatch.
+- Files updated:
+  - binary-tree-next.html
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Design decision:
+  - replaced pixel-offset balancing with structural top anchoring so alignment remains stable as copy/values change.
+- Known limitations:
+  - CSS-only layout adjustment; no runtime logic, data flow, or checkout calculations were changed.
+- Validation:
+  - CSS-only review alignment fix.
+
+## Recent Update (2026-04-14) - My Store Review Panel Bottom Space Reduced (Dynamic Review Height)
+
+- Completed:
+  - added review-step runtime panel sizing in syncMyStorePanelPosition(...) for MY_STORE_STEP_REVIEW.
+  - introduced review/share view references for height measurement:
+    - myStoreReviewViewElement
+    - myStoreShareViewElement
+  - for review step, panel height now derives from actual visible content instead of full side-nav height:
+    - header height
+    - scroll padding
+    - review section content height
+    - share section height when visible
+    - small fixed buffer
+  - retained viewport clamping so larger future carts can still scroll instead of overflowing.
+- Outcome:
+  - the Review Purchase container no longer leaves an oversized empty bottom area for short carts.
+  - behavior still scales for longer/multi-item cart content by respecting viewport max height.
+- Files updated:
+  - binary-tree-next-app.mjs
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Design decision:
+  - used content-driven runtime sizing for review step (instead of hardcoded static height) to keep layout balanced across variable cart content sizes.
+- Known limitations:
+  - sizing is recalculated on render frames; minor 1-frame settling may occur immediately after rapid content changes.
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## Recent Update (2026-04-14) - My Store Catalog Uses Compact Height When No Upgrades Exist
+
+- Completed:
+  - extended syncMyStorePanelPosition(...) to apply content-driven panel sizing in MY_STORE_STEP_CATALOG when no account packages are upgradeable.
+  - added catalog-view DOM reference for measurement:
+    - myStoreCatalogViewElement
+  - for catalog step with zero upgrade keys, panel height now uses measured visible content (matching the compact pattern used for Review):
+    - header height
+    - scroll padding
+    - catalog content height
+    - share block height (when visible)
+    - fixed buffer
+  - kept viewport clamping so larger content can still scroll safely.
+- Outcome:
+  - My Store no longer shows an oversized bottom tail on catalog view when the member has no upgradeable account packages.
+  - catalog height behavior now matches the tighter review-style sizing in that no-upgrade state.
+- Files updated:
+  - binary-tree-next-app.mjs
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Design decision:
+  - conditioned compact catalog sizing on upgrade availability (upgradeKeys.length === 0) so accounts with upgrade cards keep the full panel canvas.
+- Known limitations:
+  - compact catalog sizing is not applied when upgrade cards exist, by design.
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## Recent Update (2026-04-14) - My Store Checkout Field Spacing Polish Pass
+
+- Completed:
+  - rebalanced My Store checkout spacing tokens in inary-tree-next.html for cleaner, more polished form rhythm.
+  - increased desktop checkout breathing room:
+    - larger checkout scroll padding and section spacing
+    - larger summary card margin/padding and row rhythm
+    - increased form stack/row gaps
+    - increased input/card/select control heights and internal horizontal padding
+    - increased billing label/help text sizing for readability
+    - increased action-row spacing and button height
+  - relaxed compact-height rules (both max-height: 760px and max-height: 680px) so they remain compact but no longer feel cramped.
+- Outcome:
+  - checkout fields now have clear separation and more comfortable visual spacing.
+  - overall checkout panel reads cleaner and more intentional while preserving existing structure and flow.
+- Files updated:
+  - binary-tree-next.html
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Design decision:
+  - used a consistent spacing scale across desktop and compact-height states instead of ad-hoc tight values.
+- Known limitations:
+  - checkout step still uses existing no-scroll behavior by design (overflow-y: hidden) and relies on runtime panel sizing.
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## Recent Update (2026-04-14) - Upgrade Product Choice + MLM-Aligned BV Logic in My Store
+
+- Completed:
+  - implemented upgrade-product selection flow in My Store Review for account upgrades:
+    - after choosing an upgrade package, review now shows Select your product options (MetaCharge™, MetaRoast™)
+    - selection is interactive and persisted in state.ui.myStoreSelection
+  - aligned upgrade BV logic to MLM product-count rule:
+    - BV now derives from upgrade product count x per-product upgrade BV (50 BV each)
+    - example path now resolves correctly: 17 products => 850 BV
+  - aligned upgrade price logic to product-count rule:
+    - upgrade subtotal remains product-count delta x unit price ($64)
+  - corrected package meta mismatch impacting upgrade delta math:
+    - personal-builder-pack BV corrected from 192 to 150 in ENROLL_PACKAGE_META
+  - updated review/checkpoint display behavior for upgrades:
+    - breadcrumb label switches to Review Upgrade when selection is an upgrade
+    - review row shows selected product + computed upgrade quantity (e.g., MetaCharge™ 17x)
+    - checkout summary line includes upgrade product selection context
+- Outcome:
+  - upgrade users now explicitly choose which product to receive for their package-delta products.
+  - BV and amount calculations now match MLM account-upgrade rules based on product deltas.
+  - Personal -> Legacy upgrade now computes expected 17 products and 850 BV.
+- Files updated:
+  - binary-tree-next-app.mjs
+  - binary-tree-next.html
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Design decisions:
+  - upgrade calculations were anchored to product-count deltas (selectableProducts) and fixed per-upgrade product BV (50) to enforce "BV follows products".
+  - product choice is currently single-selection per upgrade transaction (all delta products assigned to one chosen product type).
+- Known limitations:
+  - MetaRoast™ currently reuses the available MetaCharge product image asset until a dedicated MetaRoast asset is added in rand_assets/Product Images/.
+  - split-product allocation (e.g., mix of MetaCharge + MetaRoast counts in one upgrade) is not yet implemented.
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## Recent Update (2026-04-14) - Review Upgrade Selector Moved Below Product Row
+
+- Completed:
+  - moved the Select your product upgrade selector block in My Store > Review Upgrade to render below the product row content (after the quantity/product line), instead of above it.
+- Outcome:
+  - review layout now follows requested order with selector positioned below product information.
+- Files updated:
+  - binary-tree-next.html
+  - Claude_Notes/binary-tree-next.md
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## Recent Update (2026-04-14) - My Store Stripe Checkout Completion + Thank-You Step
+
+- Completed:
+  - replaced the My Store placeholder submit message with a real Stripe payment flow in `binary-tree-next-app.mjs`.
+  - My Store now performs full intent flow:
+    - `POST /api/store-checkout/intent`
+    - `confirmCardPayment(...)`
+    - `POST /api/store-checkout/intent/complete` with retry polling.
+  - added My Store success state and UI:
+    - new `thank-you` panel step (`MY_STORE_STEP_THANK_YOU`)
+    - success card now shows invoice, status, amount paid, BV, and date
+    - `Done` button returns user to catalog flow.
+  - improved checkout submit UX:
+    - added submit/confirm/finalizing button states
+    - disabled previous/pay actions while checkout is in-flight
+    - upgraded feedback messaging for Stripe/init/finalization failures.
+  - aligned My Store checkout totals with backend storefront-intent pricing by setting My Store tax to `0` in local checkout amount calculation so displayed total matches Stripe/invoice settlement.
+- Outcome:
+  - checkout in Binary Tree My Store is now actually processed through Stripe instead of stopping at a static "processing" message.
+  - successful payments land on a clean confirmation page similar to Enroll Member completion flow.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Design decisions:
+  - reused existing store-checkout backend intent endpoints to keep invoice attribution/BV settlement logic centralized.
+  - kept My Store in-panel (non-redirect) payment UX using Stripe Elements already mounted in Binary Tree.
+- Known limitations:
+  - checkout requires a valid member session email; if missing/invalid, submission is blocked with guidance.
+  - no automated browser e2e was run in this pass; syntax validation was completed.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-14) - My Store Upgrade Checkout Now Applies Package and Rank + UI Sync
+
+- Completed:
+  - Added upgrade metadata propagation from Binary Tree My Store checkout to Stripe intent payload (`accountUpgradeTargetPackage`) for upgrade selections.
+  - Updated checkout completion parsing in `binary-tree-next-app.mjs` to consume backend `accountUpgrade` results.
+  - Added member session persistence/refresh helpers in Binary Tree:
+    - safe storage/cookie writers
+    - member session refresh via `/api/member-auth/session`
+    - local node/session patching for immediate package/rank reflection.
+  - Added post-upgrade refresh routine in Binary Tree:
+    - forces tree live sync
+    - refreshes account overview remote snapshot
+    - re-syncs Account Overview + My Store UI panels.
+  - Updated backend `store-checkout.service.js` finalization pipeline:
+    - detects account-upgrade checkouts via metadata
+    - skips generic buyer BV credit on upgrade checkouts (prevents duplicate PV credit path)
+    - applies `upgradeMemberAccount(...)` during checkout finalization
+    - returns `accountUpgrade` object in completion responses (including already-processed invoice paths).
+  - Updated hosted checkout session metadata to also carry upgrade fields for parity.
+- Outcome:
+  - Successful paid account-upgrade checkouts now apply package/rank server-side and feed a deterministic upgrade result back to Binary Tree.
+  - Left panel/account overview rank now updates immediately after paid upgrade completion (no manual relog/reload required in normal flow).
+- Current focus impact:
+  - resolves the active blocker where upgraded members (example: `demosf`) did not see rank/package reflected in Binary Tree side panels after checkout completion.
+- Known limitations:
+  - Previously processed historical upgrade payments (before this fix) may still need manual reconciliation if package/rank was not applied at the time.
+  - No browser e2e/Stripe live flow replay was executed in this pass; syntax and data-path checks were performed.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check backend/services/store-checkout.service.js` passed.
+
+## Recent Update (2026-04-14) - Hosted Stripe Checkout Migration (Binary Tree + Storefront)
+
+- Completed:
+  - Migrated Binary Tree enrollment checkout from Stripe PaymentIntent + in-page card confirmation to hosted Stripe Checkout Session flow.
+  - Migrated Binary Tree My Store checkout from PaymentIntent + `confirmCardPayment(...)` to hosted Stripe Checkout Session redirect flow.
+  - Added Stripe return handling in Binary Tree:
+    - detects `checkout=success|cancel`, `session_id`, and `bt_checkout_flow` query params
+    - finalizes the correct flow (`/registered-members/session/complete` for enroll, `/store-checkout/complete` for My Store)
+    - opens the appropriate UI state (enroll modal or My Store panel), shows result messaging, and clears return query params.
+  - Added backend enrollment hosted-session endpoints:
+    - `POST /api/registered-members/session`
+    - `POST /api/registered-members/session/complete`
+    - admin variants under `/api/admin/...`
+    - retains existing intent endpoints for compatibility.
+  - Added enrollment Stripe session services in backend:
+    - `createRegisteredMemberCheckoutSession(...)`
+    - `completeRegisteredMemberCheckoutSession(...)` (delegates finalization to existing PaymentIntent completion path after resolving session payment intent).
+  - Migrated public `store-checkout.html` page to hosted session flow:
+    - now uses `StorefrontShared.submitCheckout(...)`
+    - finalizes return via `StorefrontShared.completeCheckoutSession(...)` with retry polling
+    - removed in-page card confirmation dependency for submit path.
+  - Migrated member dashboard store checkout in `index.html` to hosted session redirect:
+    - added session create/complete helpers
+    - added return finalization handler on load
+    - checkout button no longer blocks on Stripe card element readiness.
+
+- Files updated:
+  - backend/controllers/member.controller.js
+  - backend/routes/member.routes.js
+  - backend/services/member.service.js
+  - binary-tree-next-app.mjs
+  - store-checkout.html
+  - index.html
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/binary-tree-next.md
+
+- Design decisions:
+  - Kept final order/enrollment reconciliation in backend completion endpoints so business rules remain centralized and consistent.
+  - Used flow query tagging (`bt_checkout_flow`) in Binary Tree return URLs to disambiguate My Store vs Enroll completion after Stripe redirect.
+  - Preserved existing intent endpoints during migration for backward compatibility and lower risk rollout.
+
+- Known limitations:
+  - Legacy Stripe card-element initialization code remains in some places (mostly unused after migration) and can be removed in a cleanup pass.
+  - No full browser E2E replay against live Stripe was executed in this pass; syntax and flow wiring were validated locally.
+
+- Validation:
+  - node --check backend/services/member.service.js passed.
+  - node --check backend/controllers/member.controller.js passed.
+  - node --check backend/routes/member.routes.js passed.
+  - node --check binary-tree-next-app.mjs passed.
+  - inline script syntax checks for index.html and store-checkout.html passed via extracted-script `node --check`.
+
+## Recent Update (2026-04-14) - Binary Tree Popup Checkout (No Page Reload) + Step-3 Bypass
+
+- Completed:
+  - Updated Binary Tree Enroll Member flow so step 2 (package selection) now launches Stripe hosted checkout in a new popup window instead of advancing to step 3 card/billing entry.
+  - Updated Binary Tree My Store flow so review checkout opens Stripe hosted checkout in a popup window (no full-page redirect/reload).
+  - Added popup-aware completion polling in Binary Tree for both flows:
+    - continuously calls completion endpoints using `sessionId`
+    - closes popup automatically on successful payment
+    - shows in-panel thank-you states after successful finalization.
+  - Kept Binary Tree session/tree context in-place (no browser navigation reload in parent window).
+  - Fixed Stripe `{CHECKOUT_SESSION_ID}` placeholder handling in backend return URL builders by ensuring the placeholder is emitted unescaped (`%7B...%7D` -> `{...}`), resolving `No such checkout.session: {CHECKOUT_SESSION_ID}` issues.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `backend/services/member.service.js`
+  - `backend/services/store-checkout.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Design decisions:
+  - Popup window + server-side session polling was chosen to avoid parent-page reload while preserving secure Stripe-hosted collection.
+  - Enrollment step-3 UI was bypassed behaviorally (not required to proceed) to avoid duplicate billing/card entry before Stripe.
+
+- Known limitations:
+  - If popup blockers are enabled, checkout will not open until popups are allowed.
+  - Legacy step-3 markup still exists in HTML, but checkout no longer depends on it in normal path.
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check backend/services/member.service.js` passed.
+  - `node --check backend/services/store-checkout.service.js` passed.
+
+## Recent Update (2026-04-14) - Stripe Popup Return Page + Original Tab Thank-You Sync
+
+- Completed:
+  - Added dedicated Stripe popup return page: `stripe-checkout-return.html`.
+  - Updated Binary Tree Stripe return-path builder to send Stripe back to the new return page instead of `binary-tree-next.html`.
+  - Added return payload target path query support so the popup page can provide a direct "Back to Binary Tree" action.
+  - Added cross-tab return signaling from popup return page to Binary Tree app using:
+    - `localStorage` signal key: `binary-tree-next-stripe-return-signal-v1`
+    - `postMessage` signal type: `binary-tree-next-stripe-return`
+  - Added Binary Tree listeners to consume Stripe success/cancel signals and immediately apply the correct UI state in the original tab:
+    - My Store: finalizes checkout + shows Thank You panel
+    - Enroll: finalizes enrollment + shows Thank You modal
+  - Added in-flight finalization guards for both My Store and Enroll session finalization to avoid duplicate finalize races.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `stripe-checkout-return.html`
+
+- Design decisions:
+  - Kept Stripe redirect destination lightweight and purpose-built (status + return guidance) to avoid spawning a second full Binary Tree runtime in the popup.
+  - Used both storage and postMessage signaling for resilient cross-tab sync.
+  - Preserved existing query-based return handling in Binary Tree for backward compatibility.
+
+- Known limitations:
+  - Popup blockers still prevent checkout popup launch.
+  - If browser storage is disabled, popup signal propagation may fall back to postMessage only.
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-14) - Immediate Thank-You on Old Tab After Stripe Success
+
+- Completed:
+  - Removed long blocking finalization wait from My Store submit path after popup launch.
+  - On Stripe success signal, old tab now immediately switches to a Thank You state (`Processing`) before backend completion finishes.
+  - Kept backend finalization running in background with extended retries (up to ~63s) so invoice details can hydrate once available.
+  - Added pending My Store checkout state persistence for the launched hosted-session id.
+  - Added auto-close attempt on popup return page after broadcasting success/cancel back to opener.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `stripe-checkout-return.html`
+
+- Known limitations:
+  - If Stripe/session finalization is delayed, Thank You appears immediately but detailed invoice values may populate a bit later.
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - inline script syntax check for `stripe-checkout-return.html` passed via extracted script and `node --check`.
+
+## Follow-up Update (2026-04-14) - Failed-to-Fetch Recovery for Stripe Return Finalization
+
+- Completed:
+  - Added transient network failure detection for My Store Stripe completion (`Failed to fetch`, network/load failures).
+  - Added auto-retry scheduler for My Store checkout finalization (up to 12 retries, 1.8s interval) instead of hard-failing immediately.
+  - Preserved immediate Thank You state while retries run in background.
+  - Added retry tracking cleanup when completion succeeds.
+  - Added stripe-return-signal re-check on window focus and visibility restoration to handle missed storage events.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+
+- Known limitations:
+  - If backend is unreachable for an extended period, invoice details may remain in processing state until connectivity is restored.
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-14) - Instant Paid Amount/BV on Thank-You (No Waiting UX)
+
+- Completed:
+  - Persisted My Store checkout snapshot at session creation (`amountPaid`, `bv`, `productLabel`, `quantity`, `dateLabel`).
+  - On Stripe success signal, Thank You now renders instantly with paid amount + BV from the snapshot.
+  - Thank You pending state now defaults to "Paid" and "Generating..." receipt id instead of generic processing placeholders.
+  - Kept backend finalization running in background so authoritative invoice metadata can replace placeholders when ready.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+
+- Known limitations:
+  - Invoice id/date/status details may still hydrate a few seconds later depending on backend/Stripe consistency timing.
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-14) - Immediate Thank-You Status Set to Pending
+
+- Completed:
+  - Updated instant My Store thank-you shell status from `Paid` to `Pending`.
+  - Applied the same `Pending` label in Stripe-success signal handling before backend invoice hydration completes.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-14) - Thank-You Breadcrumb Simplification
+
+- Completed:
+  - Removed `> Checkout >` from My Store Thank-You breadcrumb trail.
+  - Thank-You path now reads: `My Store > Review Purchase > Thank You` (or `Review Upgrade` variant).
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-15) - Enrollment Parent-Jump Hotfix (Auto-Spillover Pending Placement + Parent Reference Stability)
+
+- Completed:
+  - Added `parentUsername` to the anticipation-node enrollment request payload so lock metadata keeps a stable identity key.
+  - Updated enrollment modal parent-reference resolution to prefer username over display/member-code text.
+  - Extended live tree lookup hydration with compatibility keys (`memberCode`, `fullName`, `name`) using preserve-existing semantics for weaker identity keys.
+  - Added `shouldSkipTreeNextPendingPlacementApply(...)` and skip handling so auto-spillover enrollments without a manual parent reference are no longer optimistically forced onto the selected lock parent.
+  - Added Done-button fallback forced sync when pending placement apply is skipped.
+  - Updated success copy for auto-spillover enrollments to avoid asserting a fixed receiving parent before live sync resolves final placement.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Design decisions:
+  - Preserved the existing member-side policy split (member flow auto-spillover; admin keeps manual parent controls).
+  - Removed speculative local placement only for auto-spillover/no-manual-parent cases to prevent perceived re-parenting after sync.
+  - Added backward-compatible lookup expansion so historic/manual references that used member labels can still resolve when possible.
+
+- Known limitations:
+  - Auto-spillover enrollments still resolve final receiving parent via live tree reconstruction rules and may differ from the initially selected anticipation parent by design.
+  - Name-based fallback lookups can be ambiguous if duplicate member names exist; username/id references remain the authoritative path.
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-15) - Server-Enforced Binary Enrollment Placement + Authenticated Member Writes
+
+- Completed:
+  - Enforced member write routes with `requireMemberAuthSession` for:
+    - `POST /api/registered-members`
+    - `POST /api/registered-members/session`
+    - `POST /api/registered-members/session/complete`
+    - `POST /api/registered-members/intent`
+    - `POST /api/registered-members/intent/complete`
+    - `PATCH /api/registered-members/:memberId/placement`
+  - Wired controller layer to pass `authenticatedMember` into enrollment/session/payment/placement service calls.
+  - Fully wired server-side placement policy resolution via `resolveServerEnforcedEnrollmentPlacement(...)` in:
+    - `createRegisteredMember(...)`
+    - `createRegisteredMemberPaymentIntent(...)`
+    - `createRegisteredMemberCheckoutSession(...)`
+  - Updated completion flows to preserve authenticated identity:
+    - `completeRegisteredMemberPaymentIntent(...)` now forwards `authenticatedMember` into final registration and uses created-member sponsor for invoice attribution fallback.
+    - `completeRegisteredMemberCheckoutSession(...)` now forwards `authenticatedMember` into payment-intent completion.
+  - Updated non-admin placement-update guardrails in `updateRegisteredMemberPlacement(...)`:
+    - Requires authenticated member identity.
+    - Blocks sponsor reassignment attempts by member users.
+    - Blocks updates outside the authenticated sponsor line.
+  - Added bearer token headers to member-side write calls in frontend:
+    - `binary-tree-next-app.mjs` enrollment register/session/session-complete calls.
+    - `index.html` registered-member create and placement-plan patch calls.
+
+- Files updated:
+  - `backend/routes/member.routes.js`
+  - `backend/controllers/member.controller.js`
+  - `backend/services/member.service.js`
+  - `binary-tree-next-app.mjs`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Design decisions:
+  - Member enrollment placement is now server-authoritative and derived from authenticated actor identity.
+  - For member context, direct sponsor stays the authenticated member; spillover only activates after first-level left and right are occupied.
+  - Admin endpoints keep existing flexibility for manual sponsor/placement control.
+
+- Known limitations:
+  - Existing legacy records with missing/ambiguous sponsor identities may still require manual admin cleanup.
+  - Client-side prechecks still run for UX, but final placement truth now comes from server policy.
+
+- Validation:
+  - `node --check backend/services/member.service.js` passed.
+  - `node --check backend/controllers/member.controller.js` passed.
+  - `node --check backend/routes/member.routes.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-15) - Spillover Anchor Lock For Member Enrollment (Anticipation Parent Preservation)
+
+- Completed:
+  - Updated member-side Binary Tree enrollment submit payload to always send spillover anchor parent from anticipation lock when spillover is active.
+  - Updated server spillover policy to preserve requested spillover parent reference for member enrollments when spillover is enabled.
+  - Kept sponsor inheritance rule unchanged: member enrollments still resolve sponsor to authenticated member.
+
+- Why:
+  - Without a spillover parent reference, live tree rebuild used sponsor-root spillover queue and could reassign receiving parent (for example to older nodes like Perf Test entries) after pressing Done.
+  - With anchor lock, receiving parent stays aligned with anticipation-node context while sponsor remains direct.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `backend/services/member.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check backend/services/member.service.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-15) - Always Forward Anticipation Parent As Spillover Anchor
+
+- Completed:
+  - Hardened Tree Next enrollment submit payload so `spilloverParentReference` is always sent from anticipation lock (`parentReference` / `parentId`).
+  - Set `spilloverParentMode` from anchor presence (`manual` when anchor exists, otherwise `auto`) regardless of UI spillover toggle state.
+
+- Why:
+  - Prevents server/client timing mismatches from dropping the selected anticipation parent when server enforces spillover after first-level occupancy checks.
+  - Keeps member sponsor behavior unchanged (`direct sponsor = authenticated enroller`) while preserving selected receiving parent context.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-15) - Enrollment Timing Guard (Place-On-Done + Idempotent Done)
+
+- Completed:
+  - Adjusted hosted-checkout finalize flow to avoid forced live-tree sync when `state.enroll.pendingPlacement` exists.
+  - Added idempotent pending-placement resolution on `Done`: if the member node is already present in tree (via live sync), treat it as success instead of throwing slot-filled errors.
+
+- Why:
+  - The previous forced sync could pre-place the new node before user confirmation, so pressing `Done` attempted a second placement and failed with `Left slot is already filled for this parent`.
+  - New guard preserves the UX contract: placement confirmation remains tied to `Done`, and race conditions no longer produce duplicate-placement errors.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-15) - Account Overview Fast Track Live Sync (Server-Side Credit on Enrollment)
+
+- Completed:
+  - Added server-side Fast Track crediting for sponsor during successful member enrollment.
+  - Enrollment transaction now increments sponsor `member_commission_containers.fasttrack_balance` using the same DB client transaction scope.
+  - Added non-blocking Account Overview forced refresh after enrollment finalize in Binary Tree Next so commission cards reflect newest backend values faster.
+
+- Why:
+  - Account Overview Fast Track card reads from commission containers, but enrollments previously did not write Fast Track earnings into that source.
+  - Result: enrolling nodes increased member records but Fast Track commission card stayed stale.
+
+- Files updated:
+  - `backend/services/member.service.js`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Design decisions:
+  - Kept source of truth server-side by writing sponsor Fast Track credits at enrollment time.
+  - Wrapped commission-container credit in safe error handling so enrollment does not fail if commission container storage is temporarily unavailable.
+  - Triggered account-overview refresh as best-effort (non-blocking) to avoid impacting enrollment completion UX.
+
+- Validation:
+  - `node --check backend/services/member.service.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-15) - Admin Binary Tree Root Fix + Administrator Labeling
+
+- Completed:
+  - Forced admin tree viewer root resolution to global admin root (`LIVE_TREE_GLOBAL_ROOT_ID`) so admin mode cannot scope into a member node by session identity collision.
+  - Forced admin global home node resolution to scoped `root` in admin mode.
+  - Updated admin/global root node labels in live tree mapping to `Administrator` (name, username, title, role, rank badge).
+  - Updated scoped root node generation for admin mode to always render admin identity as `Administrator`.
+  - Updated session display name helper to return `Administrator` for admin source, preventing legacy `Charge Admin` naming from leaking into tree UI labels.
+
+- Why:
+  - Admin tree could appear broken when viewer identity resolved to a regular member node instead of admin root.
+  - Label mismatch required the admin root identity to display as `Administrator` consistently.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-15) - Admin Binary Tree Mode Routing + Root Ownership
+
+- Completed:
+  - Updated admin dashboard navigation link to open Binary Tree with explicit admin source context: `/binary-tree-next.html?source=admin`.
+  - Hardened Binary Tree Next admin source handling so admin mode always resolves to admin root and cannot bind viewer root to member identity fields.
+  - Standardized admin root identity naming in tree UI to `Administrator`.
+
+- Why:
+  - Admin link previously omitted `source=admin`, which could boot member-mode logic and produce wrong root scoping and node identity.
+  - Explicit routing + forced admin root resolution ensures admin node is always shown as top/root.
+
+- Files updated:
+  - `admin.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Follow-up Update (2026-04-15) - Administrator Account Overview Modes (Selected Member vs System Totals)
+
+- Completed:
+  - Admin Account Overview now switches modes correctly:
+    - Selected member node => show selected member account overview.
+    - No selection or admin/root selection => show system totals overview.
+  - Administrator is treated as activity-exempt in Account Overview mode.
+  - System-mode labels now reflect company-wide monitoring intent (revenue/members/commission generated).
+  - Remote account-overview sync now supports scoped fetch behavior (`identity` and `system`) with selected-node identity precedence for admin member inspection.
+
+- Impact:
+  - Fixes mismatch where admin panel stayed bound to admin identity instead of selected member.
+  - Aligns panel behavior with business rule: admin does not earn commissions and serves as a system monitor.
+
+- Files touched:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+- Remaining follow-up option:
+  - Add dedicated backend consolidated system-financial summary endpoint for exact all-source commission/wallet rollups.
+
+## Recent Update (2026-04-14) - Preferred Customer Store Aligned to Binary Tree Next My Store Flow
+
+- Completed:
+  - rebuilt `store.html` into a full-page Binary Tree Next My Store-style flow (`catalog -> review -> checkout -> thank-you`)
+  - added Preferred-account-only checkout gating and removed guest checkout path from the storefront page UI
+  - preserved hosted Stripe checkout session start + return finalization
+  - converted `store-checkout.html` into a compatibility redirect to `store.html`.
+- Outcome:
+  - Preferred Customer store now uses one consistent full-page flow that matches Binary Tree Next interaction model while enforcing preferred-only purchase access.
+- Files updated:
+  - `store.html`
+  - `store-checkout.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation:
+  - inline script parse checks passed for `store.html` and `store-checkout.html`.
+- Note:
+  - screenshot comparison intentionally skipped per user direction.
+
+## Recent Update (2026-04-15) - Preferred Accounts Shopify-Link Backend Plan Added
+
+- Completed:
+  - created a dedicated implementation plan note: `Claude_Notes/Preferred Accounts - Shopify Link.md`
+  - documented agreed preferred-account routing logic:
+    - attribution-link -> member-tied preferred account
+    - no-attribution -> admin parking flow
+  - documented backend-first delivery phases for claims, registration lock, checkout enforcement, settlement snapshots, and admin reassignment controls.
+- Outcome:
+  - project now has a concrete shared blueprint for replacing public storefront traffic with Shopify CTA entry while preserving internal attribution integrity.
+- Files updated:
+  - `Claude_Notes/Preferred Accounts - Shopify Link.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - documentation-only update (no runtime code modified).
+
+## Recent Update (2026-04-15) - Preferred Attribution Phase 1 Backend Completed
+
+- Completed:
+  - added Phase 1 attribution persistence foundation (`preferred_attribution_claims` + `preferred_account_attribution_locks`) via new store module
+  - wired startup schema warmup for preferred attribution tables
+  - extended store invoice schema support with immutable attribution and settlement snapshot JSON fields
+  - updated invoice creation paths to include attribution/settlement snapshot payloads.
+- Outcome:
+  - backend now has the required data model foundation for Shopify-to-registration attribution lock flow.
+- Files updated:
+  - `backend/stores/preferred-attribution.store.js`
+  - `backend/stores/invoice.store.js`
+  - `backend/services/invoice.service.js`
+  - `backend/services/store-checkout.service.js`
+  - `backend/app.js`
+  - `Claude_Notes/Preferred Accounts - Shopify Link.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check` passed for all modified backend JS files.
+
+## Recent Update (2026-04-15) - Preferred Attribution Phase 2 Endpoints Implemented
+
+- Completed:
+  - added Phase 2 preferred attribution route stack (`service/controller/routes`) and mounted in `backend/app.js`
+  - implemented `GET /go/preferred-register` for signed token validation -> claim creation -> cookie set -> register redirect
+  - implemented `GET /api/preferred/claim` for sanitized claim summary retrieval from signed cookie
+  - implemented `GET /api/member-auth/preferred/attribution-link` for authenticated member signed share-link generation.
+- Link generation/domain notes:
+  - added env-driven host support for signed links via `PREFERRED_ATTRIBUTION_LINK_ORIGIN`
+  - production target domain should be set to `https://ldpremiere.com`.
+- Outcome:
+  - backend now supports secure attribution ingest from external/public entrypoints (Shopify-compatible redirect model)
+  - member share links can now be generated as signed redirect links instead of plain store-code URLs.
+- Files updated:
+  - `backend/services/preferred-attribution.service.js`
+  - `backend/controllers/preferred-attribution.controller.js`
+  - `backend/routes/preferred-attribution.routes.js`
+  - `backend/app.js`
+  - `Claude_Notes/Preferred Accounts - Shopify Link.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/services/preferred-attribution.service.js` passed
+  - `node --check backend/controllers/preferred-attribution.controller.js` passed
+  - `node --check backend/routes/preferred-attribution.routes.js` passed
+  - `node --check backend/app.js` passed
+
+## Recent Update (2026-04-15) - Env Setup for Shopify -> App Attribution Links
+
+- Completed:
+  - set `PUBLIC_APP_ORIGIN` to `https://ldpremiere.com`
+  - added `PREFERRED_ATTRIBUTION_LINK_ORIGIN=https://ldpremiere.com`
+  - added `PREFERRED_ATTRIBUTION_SIGNING_SECRET` (generated secret) in `.env`.
+- Outcome:
+  - generated preferred attribution links now target the production domain host configuration.
+- Note:
+  - backend process restart required to apply new environment values.
+
+## Recent Update (2026-04-15) - One-CTA Backend Fallback Enabled
+
+- Completed:
+  - enabled unattributed fallback on `GET /go/preferred-register` when `at` is missing.
+- Outcome:
+  - Shopify can use one static CTA URL (`/go/preferred-register`) for both attributed and direct flows.
+- Validation:
+  - `node --check backend/services/preferred-attribution.service.js` passed.
+
+## Recent Update (2026-04-15) - Testing Host Config Applied
+
+- Completed:
+  - switched attribution/app origin env values to `https://test.ldpremiere.com` for current testing.
+- Outcome:
+  - generated preferred links and redirects now align with testing domain host.
+- Note:
+  - restart backend process to load updated env values.
+
+## Recent Update (2026-04-15) - Permanent/Re-Usable Member Attribution Links Enabled
+
+- Completed:
+  - made preferred attribution member links reusable (removed one-time token rejection behavior).
+  - switched member link generation to long-lived default TTL and set env to 10 years (`315360000`).
+- Outcome:
+  - shared member links can be used repeatedly by many visitors without link rotation.
+- Files updated:
+  - `backend/services/preferred-attribution.service.js`
+  - `.env`
+  - notes files.
+- Validation:
+  - `node --check` passed for preferred attribution service/controller/routes and app.
+
+## Recent Update (2026-04-15) - Store Link Refresh Completed (Random Codes, Legacy Prefix Removed)
+
+- Completed:
+  - switched backend store-code generation to random alphanumeric output (no `CHG-*` or `M-*` format)
+  - updated store-link backfill script to support full rotation mode and dry-run mode
+  - executed full refresh on current dataset via:
+    - `node backend/scripts/backfill-user-store-links.mjs --refresh-all`.
+- Outcome:
+  - all member link codes now use random letters/numbers only
+  - legacy-prefixed store/public/attribution codes were rotated and replaced
+  - preferred attribution links generated moving forward no longer expose old naming.
+- Files updated:
+  - `backend/services/member.service.js`
+  - `backend/scripts/backfill-user-store-links.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/Preferred Accounts - Shopify Link.md`
+- Validation:
+  - `node --check backend/services/member.service.js` passed
+  - `node --check backend/scripts/backfill-user-store-links.mjs` passed
+  - dry-run refresh command passed
+  - post-refresh verification showed `0` legacy-prefixed codes across store/public/attribution fields.
+
+## Recent Update (2026-04-15) - Preferred Registration Page Refreshed
+
+- Completed:
+  - rebuilt `store-register.html` into a full-page Preferred registration layout that visually matches the updated store frontend style
+  - wired registration page attribution status to `GET /api/preferred/claim` (claim-aware display)
+  - removed old legacy naming from page copy/flow and used a neutral draft key (`ldp-preferred-registration-draft-v1`)
+  - kept next-step routing to checkout entry path with preferred mode query params.
+- Outcome:
+  - registration page now clearly communicates attribution state (member-linked vs direct/admin parking)
+  - page now provides a cleaner handoff into purchase flow while preserving registration draft data
+  - aligns registration UX with current Preferred storefront design direction.
+- Files updated:
+  - `store-register.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - inline script parse check passed for `store-register.html`
+  - legacy naming scan in `store-register.html` for `Charge` / `CHG-` returned no matches.
+
+## Recent Update (2026-04-15) - Registration Page Replaced with Reference-Matched Minimal Flow
+
+- Completed:
+  - replaced `store-register.html` layout to match provided reference images exactly:
+    - black top nav with logo + `Store`, `About Us`, `Support`, `Login`
+    - centered registration view (`You made it!`) with four rounded gray inputs and blue `Join Now` button
+    - centered thank-you confirmation view (`Thank you for Joining!`) shown after successful submit.
+- Outcome:
+  - previous complex registration design was fully removed
+  - page now follows the requested minimalist visual style and two-step screen behavior.
+- Files updated:
+  - `store-register.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - inline script parse check passed for `store-register.html`.
+
+## Recent Update (2026-04-15) - Registration Visual Polish (Apple-Style Spec Pass)
+
+- Completed:
+  - revised `store-register.html` styling to match updated direction:
+    - page background `#FFFFFF`
+    - typography set to Inter medium (`500`)
+    - input background `#E2E2E2`
+    - placeholder color `#444444`
+    - CTA color `#077AFF`
+  - improved spacing rhythm and typographic scale for cleaner Apple-style layout.
+- Outcome:
+  - registration view now feels lighter and less dense
+  - thank-you state remains in-page after successful submit
+  - existing draft persistence behavior remains intact.
+- Files updated:
+  - `store-register.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - inline script parse check passed for `store-register.html`
+  - selector scan confirmed target visual tokens are present.
+
+## Recent Update (2026-04-15) - Registration Input Typography Tuning
+
+- Completed:
+  - reduced registration input text sizes across breakpoints for better readability balance.
+- Outcome:
+  - form fields now feel less oversized while keeping the same layout and spacing structure.
+- Files updated:
+  - `store-register.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - inline script parse check passed for `store-register.html`.
+
+## Recent Update (2026-04-15) - Input Text Weight Adjusted to Regular
+
+- Completed:
+  - changed registration input and placeholder text weights from medium to regular.
+- Outcome:
+  - typed values and placeholder copy now appear lighter and cleaner in-field.
+- Files updated:
+  - `store-register.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - inline script parse check passed for `store-register.html`.
+
+## Recent Update (2026-04-15) - Store Page Restyled to Match Registration Look & Feel
+
+- Completed:
+  - rebuilt `store.html` visual system to match the refined registration style:
+    - white canvas (`#FFFFFF`)
+    - Inter typography
+    - soft border surfaces
+    - shared input tokens (`#E2E2E2` fields / `#444444` placeholders)
+    - primary action color `#077AFF`
+  - retained functional store flow:
+    - product loading from storefront API
+    - add/remove/quantity cart behavior
+    - preferred-only checkout gating
+    - Stripe checkout session handoff
+    - checkout return finalization (`?checkout=success&session_id=`).
+- Outcome:
+  - store and registration pages now feel part of one design language
+  - checkout behavior remains operational while using the new visual direction.
+- Files updated:
+  - `store.html`
+  - `Claude_Notes/public-store-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script parse check passed for `store.html`
+  - CSS token scan confirmed required color/typography tokens.
+
+## Recent Update (2026-04-15) - Preferred Store Gate Tightening + Dashboard Refresh
+
+- Completed:
+  - converted `store.html` to products + cart flow only with one CTA to Stripe (`Continue to Stripe`)
+  - removed embedded checkout form from store page
+  - enforced hard preferred-account gating for add/edit cart and Stripe handoff
+  - rebuilt `store-dashboard.html` in the same visual system as updated store/register pages while retaining existing account logic.
+- Outcome:
+  - anonymous visitors can browse but cannot purchase
+  - preferred users get cleaner cart-to-Stripe flow
+  - dashboard now visually aligns with storefront experience.
+- Files updated:
+  - `store.html`
+  - `store-dashboard.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+  - `Claude_Notes/preferred-dashboard-page.md`
+- Validation:
+  - inline script parse check passed for `store.html`
+  - inline script parse check passed for `store-dashboard.html`.
+
+## Recent Update (2026-04-15) - BV Hidden from Preferred Store + Dashboard + Checkout Surfaces
+
+- Completed:
+  - removed BV labels from preferred `store.html` product cards, cart summary, and checkout success metadata
+  - removed BV metric and per-order BV row from `store-dashboard.html` purchase activity
+  - verified `store-checkout.html` and `stripe-checkout-return.html` do not display BV labels.
+- Outcome:
+  - preferred account shopping UI and checkout-facing surfaces no longer expose BV values.
+- Files updated:
+  - `store.html`
+  - `store-dashboard.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+  - `Claude_Notes/preferred-dashboard-page.md`
+- Validation:
+  - inline script parse checks passed for store/dashboard/checkout return pages.
+
+## Recent Update (2026-04-15) - Registration Password Setup Link (No Email Sender Fallback)
+
+- Completed:
+  - added a direct `Set Password Now` CTA on registration thank-you screen
+  - wired fallback setup URL and tokenized setup-link fetch attempt by email.
+- Outcome:
+  - users can continue password setup immediately even while email sender is not implemented.
+- Files updated:
+  - `store-register.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - inline script parse check passed for `store-register.html`.
+
+## Recent Update (2026-04-15) - Password Setup Missing-Token Recovery Added
+
+- Completed:
+  - patched preferred setup page to auto-recover tokenized setup links by email when token is missing.
+  - preserved `store` attribution query during setup-link redirect.
+- Outcome:
+  - direct setup links are now more resilient while email sender is not yet implemented.
+- Files updated:
+  - `store-password-setup.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - inline script parse check passed for `store-password-setup.html`.
+
+## Recent Update (2026-04-15) - Preferred Registration Now Creates Account Immediately
+
+- Completed:
+  - added backend registration endpoint for preferred storefront flow (`/api/store-checkout/preferred-register`)
+  - updated `store-register.html` to register account server-side on submit and show immediate setup password link.
+- Outcome:
+  - removed waiting/retry dependency for setup token on registration thank-you flow
+  - registration now follows normal account-setup pattern (account created first, setup link returned instantly).
+- Files updated:
+  - `backend/services/store-checkout.service.js`
+  - `backend/controllers/store-checkout.controller.js`
+  - `backend/routes/store-checkout.routes.js`
+  - `store-register.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+- Validation:
+  - backend `node --check` passed for updated files
+  - inline script parse check passed for `store-register.html`.
+
+## Recent Update (2026-04-15) - Preferred Store Is Now Login-First with Account-Scoped Purchase
+
+- Completed:
+  - `store.html` now shows a preferred login/join gate for guest visitors.
+  - store/cart purchase UI now renders only for authenticated preferred users.
+  - logged-in header pattern standardized to `Dashboard | Store | Support` with `Logout` on the right.
+  - dashboard and support pages aligned to the same auth header behavior.
+- Outcome:
+  - public storefront no longer acts like open shopping; purchase is account-gated.
+  - navigation is consistent across preferred authenticated pages.
+- Files updated:
+  - `store.html`
+  - `store-dashboard.html`
+  - `store-support.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation:
+  - inline script parse check passed for updated HTML files.
+
+## Recent Update (2026-04-15) - Preferred Label Cleanup + One-Account Browser Session Enforcement
+
+- Completed:
+  - removed preferred-facing username/email/store-link chips and logged-in store attribution pills.
+  - replaced logout handling with shared session clear utility that removes auth state across storage + domain cookie scopes.
+  - login now honors `?logout=1` and clears prior auth state before new sign-in persistence.
+  - added storage-event sync so tabs refresh when auth changes.
+- Outcome:
+  - preferred pages are cleaner with less account/debug metadata.
+  - logout and account switching are now more reliable (single active account state per browser origin).
+- Files updated:
+  - `store.html`
+  - `store-dashboard.html`
+  - `store-support.html`
+  - `storefront-shared.js`
+  - `login.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation:
+  - `node --check storefront-shared.js` passed.
+  - inline non-module script parse check passed for updated pages.
+
+## Recent Update (2026-04-15) - MetaCharge NOBG Product Image Enforcement
+
+- Completed:
+  - implemented backend product-image override for MetaCharge so storefront uses the NOBG bottle asset.
+  - mapped on both product read and write normalization paths.
+- Outcome:
+  - older uploaded JPG bottle images no longer win for MetaCharge rendering.
+  - preferred/public store product cards now consistently show transparent NOBG artwork.
+- Files updated:
+  - `backend/stores/store-product.store.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation:
+  - `node --check backend/stores/store-product.store.js` passed.
+
+## Recent Update (2026-04-15) - Store Image Hotfix (MetaCharge NOBG)
+
+- Added cache-busted shared script reference on `store.html` (`/storefront-shared.js?v=20260415a`).
+- Added page-level MetaCharge image override in `store.html` renderer to force brand NOBG asset.
+- This ensures storefront product cards do not continue showing legacy uploaded JPG bottle images when client cache/API payload is stale.
+
+## Recent Update (2026-04-15) - Preferred Dashboard Package Selector Redesign
+
+- Replaced Upgrade Account dropdown with a dedicated package-list card UI.
+- Removed "Target Package" field from dashboard.
+- Added explanatory package details/benefits so Preferred users understand value before upgrading.
+- Kept backend upgrade API contract (`targetPackage`) unchanged; only selector UX/JS changed.
+
+## Recent Update (2026-04-15) - Upgrade Packages Carousel + Images
+
+- Converted Preferred Dashboard Upgrade Account area to a carousel selector.
+- Added package visuals from `brand_assets/Icons/Achievements` for each package tier.
+- Added prev/next controls and dot indicators.
+- Selected carousel slide now drives `targetPackage` used by account upgrade API.
+
+## Recent Update (2026-04-15) - Upgrade Carousel Visual/Interaction Overhaul
+
+- Rebuilt upgrade package selector into a polished transform-based carousel.
+- Added product-image-driven cards with package icon overlays and per-tier accent colors.
+- Added touch swipe + clickable dot navigation + improved arrow controls.
+- Kept backend upgrade behavior stable (`targetPackage` unchanged).
+
+## Recent Update (2026-04-15) - Upgrade Pricing Cards (No Carousel)
+
+- Replaced upgrade carousel UI with reference-style pricing card grid.
+- Added exact builder package pricing/logic + benefit details supplied by product owner.
+- Kept account-upgrade backend behavior unchanged (`targetPackage` selection + submit).
+- Removed all carousel navigation/touch/dot logic from dashboard script.
+
+## Recent Update (2026-04-15) - Upgrade Cards Visual Cleanup
+
+- Removed price-logic text rows from upgrade cards per request.
+- Cleaned spacing/typography to reduce crowding and overlap in card content.
+- Fixed malformed benefit bullets by switching to stable dot markers.
+
+## Recent Update (2026-04-15) - Upgrade Card Labels Simplified
+
+- Removed one-time label from package prices.
+- Added BV line directly below each price.
+- Removed 20% Discount badges from package cards.
+
+## Recent Update (2026-04-15) - Upgrade Card Selected-State Polish
+
+- Fixed selected card footer artifact at the bottom edge.
+- Improved selected footer bar styling and spacing.
+- Added dynamic CTA label swap (`Selected Plan` vs `Select Plan`) per selected card.
+
+## Recent Update (2026-04-15) - Upgrade Card Header Simplification
+
+- Removed starter badge chip.
+- Reordered values so BV is displayed above package price on all cards.
+
+## Recent Update (2026-04-15) - BV/Price Visual Hierarchy Swap
+
+- Upgrade card header now emphasizes BV as the dominant value.
+- Price is now secondary and smaller below BV.
+
+## Recent Update (2026-04-15) - Selectable Product Count Added
+
+- Added package-level `Selectable Products` line under price on all upgrade cards.
+- Kept BV primary, price secondary, product-count tertiary hierarchy.
+
+## Recent Update (2026-04-15) - Business Builder Fast Track Value
+
+- Changed Business Builder package Fast Track Bonus display to `Earn up to $75`.
+
+## Recent Update (2026-04-15) - Contextual Benefit Icons Hardcoded
+
+- Benefit list items now carry explicit contextual icon keys (`cap`, `money`, `lock`, `unlock`).
+- This prevents fallback generic markers and keeps icon meaning consistent by benefit type.
+
+## Recent Update (2026-04-15) - Locked Benefit Rows Gray Styling
+
+- Styled locked benefit descriptions in Preferred dashboard upgrade cards with a light gray tone.
+- Updated lock icon stroke color to the same gray so locked rows read as disabled at a glance.
+- File updated:
+  - `store-dashboard.html`
+## Recent Update (2026-04-15) - Fast Track Bonus Final Adjustment
+
+- Business Builder Pack Fast Track set to `Earn up to $100`.
+- Infinity Builder Pack Fast Track updated to `Earn up to $125`.
+- File updated: `store-dashboard.html`
+## Recent Update (2026-04-15) - Infinity Unlock Icon Revision
+
+- Updated `Infinity Tier Commission Unlocked` to use a cleaner dedicated infinity icon.
+- Preserved separate icon semantics between locked, generic unlocked, and infinity-unlocked rows.
+- File updated: `store-dashboard.html`
+## Recent Update (2026-04-15) - Legacy Unlock Dedicated Icon
+
+- Added dedicated `legacy-unlock` icon rendering for `Legacy Leadership Bonus Unlocked` rows.
+- Added logic mapping for legacy unlocked text to avoid generic unlock icon fallback.
+- File updated: `store-dashboard.html`
+## Recent Update (2026-04-15) - Removed Selected Package Label
+
+- Removed `Selected package: ...` text from Preferred dashboard upgrade actions.
+- Kept only `Upgrade Account` CTA and aligned it to the right.
+- Removed now-unused JS label binding/update logic.
+- File updated: `store-dashboard.html`
+## Recent Update (2026-04-15) - Upgrade Section Hidden Behind Invitation Modal
+
+- Replaced visible upgrade pricing section with a business-invitation teaser card.
+- Added `Explore Builder Packages` modal flow so Preferred users only see business packages on intent.
+- Kept package selection + upgrade API submission behavior intact (`targetPackage` unchanged).
+- Added modal UX controls (open/close, backdrop close, Esc close, body scroll lock, focus restore).
+- Added post-upgrade modal auto-close before redirect to `/index.html`.
+- File updated: `store-dashboard.html`
+## Recent Update (2026-04-15) - Upgrade Flow Gated by Stripe Checkout
+
+- Removed direct non-payment account-upgrade path from Preferred dashboard.
+- Upgrade modal now includes product selection (`MetaCharge/MetaRoast`) and checkout summary.
+- `Continue to Stripe` now creates hosted checkout session with `accountUpgradeTargetPackage` metadata.
+- Added Stripe return finalization handling on dashboard (`checkout` + `session_id`).
+- Successful paid upgrade now redirects user to member dashboard (`/index.html`).
+- File updated: `store-dashboard.html`
+## Recent Update (2026-04-15) - Removed Upgrade Summary Lines
+
+- Removed `Product / Quantity / Total` summary UI from upgrade modal.
+- Kept package selection, product selection, and Stripe checkout CTA behavior unchanged.
+- File updated: `store-dashboard.html`
+
+## Recent Update (2026-04-15) - Upgrade Selector Spacing + Product Copy
+
+- Added more vertical spacing after builder package cards in the upgrade modal.
+- Added heading + caption above product options in the selector area.
+- Kept product selector and `Upgrade Account` CTA centered for a cleaner checkout action flow.
+- Updated file: `store-dashboard.html`
+
+## Recent Update (2026-04-15) - Stripe Return UX Performance (Preferred Upgrade)
+
+- Preferred upgrade checkout now shows immediate thank-you success state after Stripe return.
+- Removed user-facing wait-before-success behavior from return handler.
+- Checkout completion + account-upgrade finalization now continue in background with retries.
+- Added pending checkout snapshot persistence to support instant contextual messaging.
+- Updated file: `store-dashboard.html`
+
+## Recent Update (2026-04-15) - Preferred Upgrade Thank-You Modal
+
+- Added a dedicated post-payment thank-you modal for Preferred upgrade return from Stripe.
+- Modal now owns upgrade status messaging instead of inline dashboard feedback text.
+- Added gated `Go To Member Dashboard` button enabled only after upgrade finalization confirms.
+- Made backend finalization checks more aggressive/faster on return and on retries.
+- Updated file: `store-dashboard.html`
+
+## Recent Update (2026-04-15) - Preferred Upgrade Backend Fast Path (Scoped)
+
+- Added Preferred-only checkout client marker: `preferred-dashboard-upgrade`.
+- Backend now routes only that marker to `upsert` persistence mode during checkout finalization.
+- `recordMemberPurchase` / `upgradeMemberAccount` gained scoped upsert mode to avoid full-table rewrite for this flow.
+- Binary Tree Next checkout path remains on existing rewrite mode (untouched behavior path).
+- Updated files:
+  - `store-dashboard.html`
+  - `backend/services/store-checkout.service.js`
+  - `backend/services/member.service.js`
+
+## Recent Update (2026-04-15) - Upgrade In-Progress Loading + Exit Warning
+
+- Added an in-modal loading spinner during Preferred account upgrade finalization after Stripe return.
+- Added explicit warning text telling users not to close or exit browser while finalization is in progress.
+- Added `beforeunload` guard only while upgrade finalization is active.
+- File updated: `store-dashboard.html`
+
+## Recent Update (2026-04-15) - No-Attribution URL Cleanup
+
+- Implemented frontend guard so `REGISTRATIONLOCKED` / `REGISTRATION-LOCKED` are treated as no-attribution codes.
+- Store URL builders now omit `?store=` when this default no-attribution token appears.
+- No-attribution flow continues to work with plain links (no `?store=` query).
+- Updated files:
+  - `storefront-shared.js`
+  - `login.html`
+  - `store-register.html`
+  - `store-password-setup.html`
+  - `store-login.html`
+
+
+
+
+
+
+
+
+
+
+## Recent Update (2026-04-16) - Login Page Added Preferred Account Registration Link
+
+- Completed:
+  - added a new CTA below the login panel in `login.html`:
+    - `Don't have an account? Register as a Preferred Account`
+    - target route: `/store-register.html`
+  - added runtime link sync to pass normalized `?store=` attribution from login to registration when available.
+- Outcome:
+  - users who do not yet have an account now have a clear preferred-registration path directly on the login screen
+  - existing store attribution continuity is maintained into registration flow.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - parsed plain inline scripts in `login.html` (`2` blocks).
+
+## Recent Update (2026-04-16) - Preferred Upgrade Fast Track Rule Applied
+
+- Completed:
+  - scoped Fast Track sponsor credit to Preferred -> paid upgrades only
+  - kept paid-to-paid upgrades at no sponsor Fast Track (BV/PV only to upgrading account)
+  - added sponsor-credit metadata in upgrade response payload for visibility.
+- Outcome:
+  - store-link and fallback-sponsored Preferred upgrades now can credit Fast Track to the current sponsor,
+    while existing paid member upgrades stay commission-neutral for sponsor Fast Track.
+- Files updated:
+  - backend/services/member.service.js
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/preferred-dashboard-page.md
+- Validation:
+  - node --check backend/services/member.service.js passed.
+
+
+## Recent Update (2026-04-16) - Store Header Simplification
+
+- Completed:
+  - removed `About Us` from the guest navigation in `store.html`.
+- Outcome:
+  - guest header now follows the simplified store flow navigation only.
+- Files updated:
+  - store.html
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/public-store-page.md
+
+## Recent Update (2026-04-16) - Store Header Cleanup Applied to Register + Support
+
+- Completed:
+  - removed `About Us` from `store-register.html` guest header.
+  - removed `About Us` from `store-support.html` guest header.
+- Outcome:
+  - guest store pages now consistently use `Store`, `Support`, and `Login` only.
+- Files updated:
+  - store-register.html
+  - store-support.html
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/preferred-customer-page.md
+  - Claude_Notes/public-store-page.md
+
+## Recent Update (2026-04-16) - Dashboard Startup Hiccup/Reload Cleanup
+
+- Completed:
+  - added early auth preflight in `index.html` head so no-session visits redirect before dashboard paint
+  - removed synchronous auth hydration request from dashboard boot path
+  - switched to async background session sync via `fetch`
+  - kept login redirect only for explicit unauthorized status (`401`/`403`)
+  - added one-shot redirect guard to avoid duplicate redirect triggers during startup.
+- Outcome:
+  - reduced first-load dashboard flash and startup hitching
+  - eliminated intermittent fast bounce behavior caused by transient sync-check failures at boot.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - parsed plain inline scripts in `index.html` (`3` blocks).
+
+
+## Recent Update (2026-04-16) - Login Redirect Animation Hiccup Removed
+
+- Completed:
+  - stabilized `login.html` intro trigger flow for store-to-login navigation
+  - removed delayed kickoff that allowed pre-intro panel flash
+  - added one-shot intro scheduler to prevent duplicate first-load execution
+  - gated `pageshow` reruns to BFCache restore events only.
+- Outcome:
+  - login panel no longer flashes then restarts intro animation on normal redirect
+  - transition now plays once and appears smoother.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - parsed plain inline scripts in `login.html` (`2` blocks).
+
+
+## Recent Update (2026-04-16) - Login Background Animation Restored
+
+- Completed:
+  - fixed module/classic script startup race affecting login ColorBends intro
+  - added pending intro flag handoff so shader intro still starts when module registers slightly after page intro trigger.
+- Outcome:
+  - login background animation now initializes reliably again without reintroducing the panel intro hiccup.
+- Files updated:
+  - `login.html`
+  - `Claude_Notes/member-login-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - parsed plain inline scripts in `login.html` (`2` blocks).
+
+
+## Recent Update (2026-04-16) - Preferred Customer Side Page Cleanup (No Guest Checkout)
+
+- Completed:
+  - removed `Guest Attributed Purchases` panel from the Preferred Customer dashboard view.
+  - removed related guest-attribution render logic and element hooks in `index.html`.
+  - updated stale helper copy to align with linked preferred-customer purchase flow only.
+- Outcome:
+  - Preferred Customer page now matches the current no-guest-checkout direction.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/preferred-customer-page.md`
+
+
+
+## Recent Update (2026-04-16) - Binary Tree Next Personal BV Added Under Total Organizational BV (Live)
+
+- Completed:
+  - added Personal BV row below Total Organizational BV in the Binary Tree Next side metrics list
+  - switched side-metric Personal BV source to activity-aware current personal BV resolution
+  - updated live-node signature hashing to include personal BV fields so server-side Personal BV changes apply immediately during live sync
+  - corrected Account Overview total-BV default label copy to Total Organization BV.
+- Outcome:
+  - Personal BV now appears in the requested position and updates in step with live server sync behavior.
+- Files updated:
+  - binary-tree-next-app.mjs
+  - binary-tree-next.html
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/binary-tree-next.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+
+## Recent Update (2026-04-16) - Binary Tree Node Color Rules Hardened (Inactive Gray Reserved)
+
+- Completed:
+  - enforced inactive account nodes to gray-only palette
+  - enforced inactive direct-sponsor nodes to darker gray palette
+  - preserved direct-sponsor active purple theming
+  - treated stabilizing status as inactive for node color policy
+  - filtered gray source profile palettes/colors from active avatar palette resolution
+  - removed gray from auto-generated active profile color rotation
+  - aligned selected-node details avatar with the same inactive/direct color rules.
+- Outcome:
+  - inactive accounts no longer inherit normal colorful profile palettes in Binary Tree node rendering.
+  - gray theme now behaves as reserved visual state for inactive nodes.
+- Files updated:
+  - binary-tree-next-app.mjs
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/binary-tree-next.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## [2026-04-16 01:49:19] Active Workstream Update - Binary Tree Next Preferred Accounts
+
+### Scope
+- Implemented Preferred Accounts planner panel in Binary Tree Next, replacing placeholder dock behavior with real panel functionality.
+
+### Progress
+- UI shell: complete.
+- Data binding from DB-backed endpoints: complete.
+- Placement save action: complete.
+- Real-time refresh behavior: complete.
+- Notes synchronization: complete.
+
+### Current priorities
+- Validate with live account data for sponsor-specific preferred customer populations.
+- Confirm origin labeling against any future backend explicit-origin fields.
+### Documentation Correction
+- Previous note had escaped-character artifacts; this update confirms the Preferred Accounts workstream summary is valid and complete.
+
+## Recent Update (2026-04-16) - Preferred Customers UI Polish Pass
+
+- Completed:
+  - aligned Preferred Customers typography with Account Overview sizing/feel
+  - reduced selected header text scale and subtitle prominence
+  - improved field spacing for cleaner breathing room
+  - converted Current list avatars to gradient + initials
+  - removed Current list meta/subtext so list is name-only
+  - removed selected-profile icon artifact above initials
+  - centered Save Profile Plan button and kept centered action layout
+  - adjusted Current row hover/active treatment to mirror left search dropdown interaction style.
+- Outcome:
+  - Preferred Customers panel now feels visually consistent with Account Overview and less cramped.
+- Files updated:
+  - binary-tree-next.html
+  - binary-tree-next-app.mjs
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/binary-tree-next.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+
+## Recent Update (2026-04-16) - Preferred Panel Resize Crash Guard
+
+- Completed:
+  - wrapped Preferred panel render-sync path in a guarded `try/catch` block
+  - added throttled error logging to avoid log spam while preserving diagnostics.
+- Outcome:
+  - resize-related Preferred panel sync exceptions no longer halt the Binary Tree canvas render loop.
+- Files updated:
+  - binary-tree-next-app.mjs
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/binary-tree-next.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## Recent Update (2026-04-16) - Preferred Panel Open/Close Drag Freeze Resolved
+
+- Completed:
+  - fixed undefined `options` reference in account-overview visual sync path triggered only while Preferred panel is visible
+  - added RAF render-loop recovery wrapper so frame errors no longer permanently stop canvas rendering.
+- Outcome:
+  - opening/closing Preferred panel no longer disables canvas drag due render-loop termination.
+- Files updated:
+  - binary-tree-next-app.mjs
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/binary-tree-next.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## Recent Update (2026-04-16) - Preferred Placement Save Faster Feedback + Loading Animation
+
+- Completed:
+  - switched post-save Preferred refresh to background (non-blocking)
+  - added in-flight save note: `Saving profile plan...`
+  - added save-button loading spinner animation
+  - added explicit success note: `Profile plan saved successfully.`
+  - added dedicated success feedback styling.
+- Outcome:
+  - placement save now feels faster and provides clearer user feedback through loading and success states.
+- Files updated:
+  - binary-tree-next-app.mjs
+  - binary-tree-next.html
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/binary-tree-next.md
+- Validation:
+  - node --check binary-tree-next-app.mjs passed.
+
+## Recent Update (2026-04-16) - User Dashboard My Store Now Reuses Latest `store.html`
+
+- Completed:
+  - replaced the visible legacy `My Store` storefront panel in `index.html` with an embedded latest-store shell
+  - added iframe integration to load `/store.html?embedded=1`
+  - added iframe source sync so active store code is forwarded via `store=...` query
+  - kept legacy dashboard storefront markup hidden for rollback safety.
+- Outcome:
+  - dashboard `My Store` now follows the newest public store flow without duplicating UI logic
+  - active user store code stays aligned between dashboard embed and full store page.
+- Files updated:
+  - `index.html`
+  - `store.html`
+  - `Claude_Notes/member-dashboard-page.md`
+  - `Claude_Notes/public-store-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script parse checks passed:
+    - `index.html` (`3` blocks)
+    - `store.html` (`2` blocks)
+
+## Recent Update (2026-04-16) - My Store Sidebar Uses Native Store+Cart Components (No Embed)
+
+- Completed:
+  - removed dashboard My Store iframe/embed approach
+  - replaced storefront content with native Store panel + Cart panel + Continue to Stripe CTA
+  - styled product and cart components to match latest store component direction
+  - wired Continue to Stripe from storefront cart CTA using hosted checkout path
+  - removed temporary embedded-mode behavior from `store.html`.
+- Outcome:
+  - My Store sidebar now uses the requested direct components instead of embedding `store.html`
+  - existing PV/BV credit and attribution checkout logic remains intact.
+- Files updated:
+  - `index.html`
+  - `store.html`
+  - `Claude_Notes/member-dashboard-page.md`
+  - `Claude_Notes/public-store-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script parse checks passed:
+    - `index.html` (`3` blocks)
+    - `store.html` (`1` block)
+
+## Recent Update (2026-04-16) - My Store Containers Reduced + Share and Earn Moved to Bottom
+
+- Completed:
+  - removed My Store top wrapper/share-link cards
+  - kept only Store + Cart in main storefront area
+  - added bottom Share and Earn section with Copy Store Link action only
+  - resized storefront components to match store-page sizing proportions.
+- Outcome:
+  - My Store now follows requested minimal structure with less visual container nesting.
+  - copy-link workflow moved to Share and Earn section while preserving logic.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/member-dashboard-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - inline script parse check passed: `index.html` (`3` blocks).
+
+## Recent Update (2026-04-16) - My Store Initial Render Jitter Reduced
+
+- Completed:
+  - stabilized root scrollbar gutter to reduce first-open width shifts
+  - changed storefront responsive collapse threshold to `1040px` (aligned to store page behavior)
+  - fixed discount badge minimum width to reduce post-hydration header text reflow.
+- Outcome:
+  - reduced first-load “stretch then settle” effect in My Store storefront view.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`index.html`: `3` blocks).
+
+## Recent Update (2026-04-16) - Warm-Loaded My Store While on Home Page
+
+- Completed:
+  - started My Store initialization earlier in app startup to warm-load while user is still on Home
+  - added storefront image warm-preload routine with bounded wait for first-open stability
+  - added fixed initial Store grid loading placeholder + minimum height to reduce first-render stretch.
+- Outcome:
+  - reduced visible first-open “stretch then settle” effect in My Store product panel.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`index.html`: `3` blocks).
+
+## Recent Update (2026-04-16) - My Store Image Stretch Follow-Up (Deeper Warmload)
+
+- Completed:
+  - switched My Store background warmload to full completion while user is on non-My-Store pages
+  - added per-image timeout-safe preload resolution
+  - added explicit image attributes + stability CSS for first paint.
+- Outcome:
+  - further reduced first-open image stretch/snap behavior in Store product cards.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`index.html`: `3` blocks).
+
+## Recent Update (2026-04-16) - My Store Product Image Decode Reveal Guard
+
+- Completed:
+  - added image-ready reveal guard so Store card images fade in only after load/settle
+  - prevents visible stretch/snap during first decode.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`index.html`: `3` blocks).
+
+## Recent Update (2026-04-16) - Binary Tree Next Rank Advancement Panel (Rank + Good Life Unified)
+
+- Completed:
+  - implemented full Rank Advancement panel UI in `binary-tree-next.html`
+  - merged Rank Advancement and Good Life data rendering into one Binary Tree Next panel module
+  - wired live fetch from `member-auth/achievements` and `member-auth/good-life/monthly`
+  - added rank claim action wiring
+  - added panel toggle in profile-left dock (`panel:rank-advancement:toggle`)
+  - added panel interop/exclusivity with Account Overview, Preferred Accounts, and My Store
+  - added refresh/reset hooks for session change, live tree updates, enrollment completion, and post-upgrade refresh.
+
+- Current outcome:
+  - panel now shows monthly loop target, milestone icon track, current reward summary, Good Life bonus amount, monthly analysis values, and claim-state handling.
+
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+- Remaining follow-up:
+  - visual screenshot comparison pass intentionally skipped per latest user direction.
+
+## Recent Update (2026-04-16) - Rank Advancement Follow-up Corrections
+
+- Completed:
+  - fixed Claim button flicker by decoupling claim-in-flight UI state from passive sync refresh state
+  - aligned reward summary rank resolution with reached cycle progression to prevent over-advancing display rank
+  - corrected rank requirement mapping (`Black Diamond` now requires `1 Blue Diamond Member`)
+  - updated direct sponsor requirement copy to include `50 Personal BV each`
+  - removed extra black container behind the center reward icon and kept enlarged icon-only presentation
+  - enforced Good Life bonus visibility logic for Diamond and above only.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+- Addendum:
+  - persisted successful claim payloads into Rank Advancement cache to prevent post-claim UI regressions during partial sync failures.
+
+## Recent Update (2026-04-16) - Rank Advancement Monthly Reward + Icon Selection Fixes
+
+- Completed:
+  - corrected Rank Advancement Monthly Rewards to reflect highest reached rank **this month** (earned state), not next target rank
+  - added no-earned fallback state: `Wait next month for details`
+  - made rank ladder icons selectable to inspect rank-specific requirements/work remaining
+  - updated requirement rows to show current vs required + remaining values
+  - adjusted progress-fill threshold behavior so it clears dashed milestones only when requirements are met
+  - hid Good Life block for Ruby/Emerald/Sapphire; display starts at Diamond+.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+- Addendum:
+  - enforced member-rank prerequisite gating in Rank Advancement progression and earned-state display
+  - removed verbose requirement suffix text and switched to green + checkmark met indicators
+  - fixed milestone click latency by rebuilding snapshot instantly on rank icon click.
+
+- Addendum:
+  - renamed selected-rank heading to `Rank Preview`
+  - preview mode now forces neutral gray requirement rows with no checkmarks
+  - non-preview passed-rank visual behavior remains unchanged.
+
+## Recent Update (2026-04-16) - Rank Preview Passed-Rank Indicators (Green + Identifier)
+
+- Completed:
+  - updated Rank Preview requirement rendering so ranks already passed now show met-state identifiers
+  - passed-rank preview rows now use green text with checkmark markers
+  - unpassed preview ranks remain neutral gray with no checkmarks.
+- Outcome:
+  - Rank Preview now visually distinguishes already-achieved ranks from future targets more clearly.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-16) - Rank Ladder Selection Clarity + Passed-Rank Acquired-Since
+
+- Completed:
+  - improved rank-icon selection visibility with a stronger yellow selector state and selected badge
+  - added `Acquired since <date>` line in Rank Preview when selected rank is already passed.
+- Outcome:
+  - selected rank is now clearly identifiable at a glance
+  - passed-rank previews now communicate acquisition timing directly.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - `node --check backend/services/member-achievement.service.js` passed.
+
+### Addendum (2026-04-16)
+
+- Rank Advancement selected-icon label now shows the rank name instead of generic `Selected`.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-16)
+
+- Rank Advancement now shows `You are here` on the current rank icon while keeping selected preview rank highlighting separate.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-16)
+
+- Added per-rank payout preview in Rank Advancement icon selection:
+  - Reward Preview
+  - Good Life Bonus Preview (Diamond+)
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-16)
+
+- Rank Preview payout label renamed to `Rank Bonus`.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-16)
+
+- Rank Advancement Good Life label text updated to `Good life Bonus`.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-16) - Binary Tree Next Infinity Tier Commission Panel (Account Overview Style + Trinary View)
+
+- Completed:
+  - implemented a new `Infinity Tier Commission` panel in Binary Tree Next (`binary-tree-next.html`)
+  - added full panel runtime wiring (`binary-tree-next-app.mjs`): positioning, visibility, rendering, init, and close behavior
+  - connected Account Overview `Infinity Tier Commission` commission card to open the new panel
+  - added panel exclusivity with Account Overview / Rank Advancement / Preferred Accounts / My Store
+  - added query-open support (`?panel=infinity-builder`) for direct panel QA access.
+
+- Data/UI behavior delivered:
+  - real-data Infinity seed node extraction from live tree data (Infinity/Legacy package gate)
+  - `Current` section tier rows sorted oldest to new and selectable
+  - selected-tier trinary visual (3 seed nodes, each with 3 child nodes)
+  - initials displayed on user profile nodes
+  - active/inactive node coloring tied to existing Binary Tree Next activity gate logic
+  - per-seed 1% node override estimate (from node organization BV)
+  - tier completion state + `$150` tier reward presentation
+  - commission claim-map read support for tier claimed state.
+
+- Outcome:
+  - Binary Tree Next now has a dedicated Infinity Builder UI panel that follows Account Overview visual language while reflecting the requested Infinity tier/trinary workflow.
+
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - visual QA captures:
+    - `temporary screenshots/screenshot-201-infinity-auth-pass1.png`
+    - `temporary screenshots/screenshot-202-infinity-auth-pass2.png`
+
+### Addendum (2026-04-16)
+
+- Infinity Builder panel refinement completed:
+  - UI scale reduced (headings, node cards, tier rows, seed avatars)
+  - connector lines standardized for consistent trinary branch visuals
+  - payout text updated to monthly
+  - payout scope clarified to each seed's personal organization BV only.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot round skipped per user instruction.
+
+### Addendum (2026-04-16)
+
+- Infinity Builder tier logic corrected to match business rule:
+  - tier completion = 3 direct Infinity/Legacy seed enrollments
+  - next tier unlock depends on prior tier seed completion
+  - 1% monthly payout remains per-seed and requires that seed to duplicate to 3 active direct children.
+- UI wording aligned to remove previous-tier ambiguity and to clarify personal-organization-BV payout basis.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-16)
+
+- Infinity Builder panel UX refinement shipped:
+  - user-facing copy cleaned up (removed developer terms)
+  - breadcrumb-style back control added to return to Account Overview
+  - tier reward claim button + feedback added and wired
+  - `Current` list is now the scroll container instead of full panel.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot pass skipped per user instruction.
+
+### Addendum (2026-04-16)
+
+- Infinity panel breadcrumb now uses requested format:
+  - `Account Overview > Infinity Tier Commission`
+- `Account Overview` breadcrumb control still navigates back to Account Overview.
+
+Files updated:
+- `binary-tree-next.html`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17)
+
+- Infinity Builder panel now supports the requested node behavior polish:
+  - member-specific node color sync for active/inactive state
+  - connected trinary line geometry (parent/branch/child contact)
+  - click node avatar to focus the same member in Binary Tree view
+  - visible usernames on node visuals (tier + current list).
+- Interaction refinement:
+  - avatar clicks in Current no longer accidentally switch tiers before focus
+  - tier-grid avatars are keyboard-focusable for accessibility.
+
+Files updated:
+- binary-tree-next-app.mjs
+- binary-tree-next.html
+
+Validation:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17)
+
+- Infinity Builder small child-node usernames were removed from visible labels to reduce visual crowding.
+- Child-node focus interaction remains active.
+
+Files updated:
+- binary-tree-next-app.mjs
+
+Validation:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17)
+
+- Infinity panel connector lines were cleaned up:
+  - removed extra branch overhang around small nodes
+  - adjusted small-node stem length for cleaner visual joins.
+
+Files updated:
+- binary-tree-next.html
+
+### Addendum (2026-04-17)
+
+- Improved Infinity node click hit-area so users can click the profile area reliably, not just initials.
+- Wrapper-level focus dataset mapping and cursor affordance added.
+- Focus resolution now supports username fallback when node id is absent.
+
+Files updated:
+- binary-tree-next-app.mjs
+- binary-tree-next.html
+
+Validation:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Legacy Leadership Bonus Panel (Binary Tree Next)
+
+Current scope update:
+- Legacy Leadership panel behavior is now implemented in Binary Tree Next using the Infinity panel shell with mode-aware logic.
+
+Progress made:
+- Added panel mode switching from Account Overview commission tiles:
+  - Infinity tile -> Infinity mode
+  - Legacy tile -> Legacy Leadership mode
+- Added Legacy-only tier snapshot modeling:
+  - seed qualification locked to `legacy-builder-pack`
+  - 3 seeds per tier
+  - depth mapping support through level 3 (0-3 model)
+  - 40-node tier target and one-time claim behavior
+- Added Legacy claim-map storage compatibility with commission containers (`legacyleadership` + fallback read support).
+- Added Legacy descendant dot rendering rows (depth-2 and depth-3) while preserving click-to-focus.
+- Added initial query routing support for `panel=legacy-leadership`.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot verification intentionally skipped per user instruction.
+
+Active priorities / next checks:
+- Run authenticated in-app visual pass with real session data to confirm final Legacy panel spacing/content against design reference.
+- Confirm backend claim persistence behavior in live flow for multiple Legacy tiers.
+
+### Addendum (2026-04-17) - Legacy Leadership Reward + Node Presentation Sync (Binary Tree Next)
+
+- Legacy panel reward handling updated in `binary-tree-next-app.mjs`:
+  - Legacy mode no longer uses Infinity's fixed `$150` fallback.
+  - Legacy tier fallback reward now uses one-time `$2,000`.
+  - Tier reward totals now aggregate per-tier values directly.
+- Legacy node presentation updated to match reference intent:
+  - removed text labels under Legacy node cards in the tier visual area
+  - removed visible seed handles in Legacy `Current` row node chips
+  - removed synthetic fallback initials when node identity text is missing.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot pass skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy Node Lines / Structure Alignment (Binary Tree Next)
+
+- Legacy panel now preserves and renders mapped structure per depth group:
+  - depth 2: 3 parent groups x 3 nodes
+  - depth 3: 9 parent groups x 3 nodes
+- Replaced flat descendant-row rendering with grouped branch-grid rendering and connector lines.
+- Added Legacy-only CSS hooks for structured branch visuals and mobile-safe layout overrides.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot pass skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy Depth-3 Clickable Initials + More Space
+
+- Legacy tier visual spacing increased so mapped depth structure has more horizontal room.
+- 4th-level nodes (depth 3) now render initials and remain clickable/focusable.
+- Depth-3 group arrangement changed to a less compressed grouped matrix for readability.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Legacy Layout Restore + Compact Depth-3 Initials
+
+Current scope update:
+- Restored the Legacy Leadership panel to the prior mapped-node layout after the expanded spacing pass shifted composition.
+
+Progress made:
+- Reverted Legacy branch and depth-grid widths to previous values (desktop/mobile).
+- Restored depth-3 mapped strip to compact 9-column structure.
+- Kept depth-3 node initials + click/focus support, now compact to preserve layout.
+- Added minimal breathing room only (small depth-3 spacing tune) without moving the whole panel.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy 1st-to-4th Level Spacing Pass
+
+Current scope update:
+- Applied a direct spacing expansion across Legacy levels 1-4 to address cramped 4th-level nodes.
+
+Progress made:
+- Increased Legacy branch/children/depth-grid widths (desktop + compact breakpoint).
+- Increased depth-2/depth-3 connector spacing and node-item breathing room.
+- Enlarged depth-3 node sizing slightly so initials remain legible while clickable.
+
+Files touched this pass:
+- `binary-tree-next.html`
+
+Validation state:
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy Spacing Pass (Stronger)
+
+Current scope update:
+- Applied a significantly stronger spacing expansion from Legacy level 1 to level 4 after prior pass remained too tight.
+
+Progress made:
+- Expanded desktop width envelope to `172px` for branch, child row, and mapped depth grids.
+- Expanded compact breakpoint width envelope to `132px`.
+- Increased depth spacing, connector stem length, and node size for clearer mapped hierarchy.
+
+Files touched this pass:
+- `binary-tree-next.html`
+
+Validation state:
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy Spacing + Size Hierarchy Stabilization
+
+Current scope update:
+- Locked Legacy mapped tree into explicit level-based sizing (L1 > L2 > lower levels) with stronger spacing control.
+
+Progress made:
+- Seed/root node increased.
+- Child nodes set to medium size.
+- Lower mapped nodes reduced to maintain hierarchy clarity.
+- Branch + mapped depth grids widened and vertically spaced for clearer legibility.
+- Depth-3 group rendering switched to a roomier mapped-grid arrangement.
+
+Files touched this pass:
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Legacy/Infinity Panel Logic Sync Pass
+
+Current scope update:
+- Implemented requested panel behavior changes for Legacy and Infinity in Binary Tree Next bonus panel.
+
+Progress made:
+- Removed Legacy tier-card depth grid visuals.
+- Added visible initials on tier-card node circles and Current-row node chips.
+- Added right-side Current-row progress totals (`x/40` Legacy, `x/3` Infinity).
+- Enforced no-spillover counting for both modes so only own-organization nodes qualify.
+- Synced gradient sourcing to Binary Tree palette resolver path used for node backgrounds.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Corrective UI Pass (Current List + Infinity Revert)
+
+Current scope update:
+- Applied corrective pass after list stretching and unintended Infinity-side behavior changes.
+
+Progress made:
+- Prevented single-row Current list cards from stretching to fill remaining container height.
+- Reverted Infinity qualification behavior to previous logic (no Legacy-only spillover rule leaking into Infinity).
+- Kept right-side row counters only for Legacy mode.
+- Reduced Legacy tier-card/node sizing back to compact baseline.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Screenshot verification skipped per user instruction.
+
+### Addendum (2026-04-17) - Binary Tree Next Legacy/Infinity Direct-Ownership Fix
+
+Current scope update:
+- Clarified and enforced direct qualification rule for bonus panels: qualification follows personal sponsorship, not placement location alone.
+
+Progress made:
+- Removed blanket Legacy spillover exclusion from panel qualification helpers.
+- Added package-key fallback normalization in qualification checks.
+- Updated direct-seed ownership detection to prioritize original sourceSponsorId so external spillovers are not counted as personal directs.
+- Preserved qualification for personally sponsored enrollments even if they were placed via spillover.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Node Color Consistency Pass (Bonus Panels)
+
+Current scope update:
+- Applied requested consistency pass so node colors stay synchronized across Binary Tree Next and bonus panel surfaces.
+
+Progress made:
+- Reworked bonus-panel node color resolver to use the same per-user/direct/inactive palette logic as Binary Tree Next nodes.
+- Forced empty tier slots (new tiers / no node assigned) to gray placeholders.
+- Updated CSS empty-state fallbacks for core nodes, child nodes, descendants, and current-list seed chips.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+- binary-tree-next.html
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+### Addendum (2026-04-17) - Panel Line Geometry Fix (Connector Cleanup)
+
+Current scope update:
+- Applied a focused connector-line cleanup pass for the bonus panel node tree.
+
+Progress made:
+- Replaced fixed horizontal connector offsets with proportional (1/6 width) alignment.
+- Tightened branch-to-child stem join by shifting child stem start up by 1px.
+- Preserved existing node sizing and hierarchy; only connector geometry changed.
+
+Files touched this pass:
+- binary-tree-next.html
+
+Validation state:
+- Visual screenshot validation pending (screenshot execution requires elevated permission, not granted).
+### Addendum (2026-04-17) - Legacy Panel Header Copy Cleanup
+
+Current scope update:
+- Removed requested mapped-node subtitle text from above the Legacy tier panel.
+
+Progress made:
+- Cleared Legacy subtitle output branch for the direct-requirement-met, not-yet-complete state.
+- Left other states/messages unchanged.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+### Addendum (2026-04-17) - Legacy Tier Canvas View (40 Nodes)
+
+Current scope alignment:
+- Implemented approved scope only: Legacy Leadership per-tier canvas view with fixed 40-node trinary structure.
+
+Completed this pass:
+- Added `View Tree` / `Hide Tree` button flow in Legacy panel.
+- Added selected-tier canvas render mode (`1 + 3 + 9 + 27`).
+- Added gray placeholder nodes for all empty slots.
+- Synced non-empty node color identity to existing Binary Tree node identity rules.
+- Added in-canvas tier header badge for operator clarity.
+- Disabled blank-canvas drag/wheel movement during tier-map mode to preserve fixed map readability.
+
+Files touched:
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Visual screenshot validation blocked in sandbox (`spawn EPERM`).
+
+Active follow-up priority:
+- User visual QA on node spacing/placement in the new tier canvas view.
+
+### Addendum (2026-04-17) - Legacy Tree Action Follow-Up
+
+Current scope update:
+- Applied user-requested correction: `View Tree` is now action-only (not toggle) and opens via the animated entry path.
+
+Progress made:
+- Updated panel sync text/state to keep button label fixed at `View Tree`.
+- Corrected click handler wiring to use `viewLegacyTierCanvasTree()`.
+- Retained per-tier 40-node trinary render behavior after the transition.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Legacy View Tree Activation Stabilization
+
+Current scope update:
+- Stabilized Legacy panel `View Tree` behavior for immediate usability and visible canvas transition.
+
+Progress made:
+- Added immediate Legacy `View Tree` button-state sync on panel mode/visibility updates.
+- Added resilient selected-tier context resolution for tree-open action.
+- Hardened tree-open callback path with safety handling and forced post-open render refresh.
+- Removed potential temporary pointer lock by clearing Infinity panel `is-positioning` state on open.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Legacy View Switch Interactivity Restored
+
+Current scope update:
+- Restored Legacy `View Tree` click-through reliability by fixing hidden-panel overlay interception.
+
+Progress made:
+- Added descendant-level pointer-event suppression for hidden/positioning panel states.
+- Verified that `View Tree` pointer hit-testing now targets the intended button.
+- Verified that clicking `View Tree` now triggers canvas switch to Legacy trinary mapping view.
+
+Files touched this pass:
+- `binary-tree-next.html`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Logged-in browser repro validated click-target and render-switch behavior.
+
+### Addendum (2026-04-17) - Legacy Map UX Continuity Update
+
+Current scope update:
+- Legacy tier map now persists as the active Binary Tree canvas view when Legacy panel is closed.
+
+Progress made:
+- Preserved Legacy map state on panel close.
+- Re-enabled standard canvas navigation behavior (pan/zoom) in Legacy map mode.
+- Moved the Legacy map badge to top-right safe area for visibility.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Logged-in repro validated Legacy map persistence after panel close.
+
+### Addendum (2026-04-17) - Legacy Trinary Render Parity Pass (Depth Sizing)
+
+Current scope update:
+- Applied Binary-style depth sizing to Legacy trinary canvas nodes so the tier map no longer renders with generic near-uniform circle sizes.
+
+Progress made:
+- Added Legacy trinary depth-decay constants aligned to Binary radius scaling behavior.
+- Replaced fixed trinary radius ladder in `resolveLegacyTierCanvasFrame(...)` with depth-decay projection sizing.
+- Added viewport-aware per-depth radius caps so 1-3-9-27 map stays readable on smaller canvases while keeping depth hierarchy clear.
+- Preserved existing world-space camera projection path (pan/zoom continuity remains intact).
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Interactive visual QA pending (non-approved elevated Puppeteer interaction needed for automated click/drag flow).
+
+### Addendum (2026-04-17) - Legacy Trinary Line-Centering Correction
+
+Current scope update:
+- Corrected Legacy trinary connector alignment so left/right branches anchor to the true parent center.
+
+Progress made:
+- Replaced row-slot X mapping with parent-centered trinary branch positioning in `resolveLegacyTierCanvasFrame(...)`.
+- Added deterministic local trinary path generation per node from sibling order under each parent.
+- Added geometric branch-step decay so depth groups stay symmetrical while fitting workspace width.
+- Tightened depth Y distribution to reduce overlong connector segments.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Awaiting user visual QA for final preference tuning on connector length.
+
+### Addendum (2026-04-17) - Legacy Trinary UX Control Pass (Shorter Lines + Header Toggle + Exit Controls)
+
+Current scope update:
+- Completed requested UX adjustments for Legacy trinary mode controls and connector compactness.
+
+Progress made:
+- Compressed trinary vertical depth layout further (`[0.04, 0.20, 0.33, 0.45]`) to shorten connectors by roughly 40% from previous pass.
+- Moved Legacy Tier header to centered top placement and centered all header text lines.
+- Added canvas-header click interaction to toggle Legacy Leadership panel visibility while staying in trinary view.
+- Updated Home/Back control actions so pressing either while in trinary view exits to default Binary home view.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+- Pending user visual confirmation for exact preferred line-length tightness.
+
+### Addendum (2026-04-17) - Header Placement Balance Fix (Left Panel Aware)
+
+Current scope update:
+- Adjusted Legacy top header placement to avoid off-center feel when left panel UI is open.
+
+Progress made:
+- Added dual-center behavior for Legacy header:
+  - true center when side panel is hidden,
+  - shifted-right visual center when side panel is shown (center of usable tree region).
+- Preserved centered typography and existing toggle interaction.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Legacy Header Breadcrumb Scope Refinement
+
+Current scope update:
+- Refined top Legacy header so breadcrumb text appears only when entering deeper nodes.
+
+Progress made:
+- Removed the static `40 nodes (1-3-9-27)` subtitle from the header.
+- Added depth-gated breadcrumb behavior:
+  - root selection (`depth 0`) shows panel hint,
+  - entered node path (`depth > 0`) shows breadcrumb chain (`Root > ... > Selected`).
+- Updated header styling radius to better match existing rounded theme surfaces.
+- Wired header renderer to consume active legacy frame context for breadcrumb path resolution.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Clarified Header UX Contract Implemented
+
+Current scope update:
+- Implemented explicit split behavior for top header by active view context.
+
+Progress made:
+- Trinary view header remains panel-toggle control only.
+- Binary local/universe mode now renders top breadcrumb panel with clickable links for universe root hops.
+- Breadcrumb header only appears when actually in local/universe scope (`root != global root`), avoiding clutter in default global binary view.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Binary Breadcrumb History Model + Node-Chip Visuals
+
+Current scope update:
+- Shifted Binary local breadcrumb behavior from ancestor/depth chain rendering to entered-navigation history rendering.
+
+Progress made:
+- Added history trail resolver from `state.universe.history` + current root.
+- Added history-index navigation handler for chip clicks (`universe:history:goto:<index>`).
+- Converted top breadcrumb from text links to node chips:
+  - node-colored avatar circles,
+  - initials overlays,
+  - username captions below each chip.
+- Expanded local breadcrumb header height and updated label to `Navigation History`.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Breadcrumb Visual Spec Pass (White Mock)
+
+Current scope update:
+- Applied user-provided breadcrumb visual direction to Binary local/universe breadcrumb panel.
+
+Progress made:
+- Replaced dark header card with a white pill container and removed header title text.
+- Updated chip layout to match reference structure: circular node -> > -> circular node, with usernames below each node.
+- Retained history-index navigation behavior for backtracking to prior entered views.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+
+
+### Addendum (2026-04-17) - Breadcrumb Compact Sizing + Centered Chip Start
+
+Current scope update:
+- Refined Binary breadcrumb header sizing and alignment after overlap feedback.
+
+Progress made:
+- Shrunk the breadcrumb panel and internal chip visuals.
+- Centered the breadcrumb chip sequence inside the panel instead of left-starting the row.
+- Preserved history-driven breadcrumb click behavior.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Breadcrumb Size Reduction Follow-up
+
+Current scope update:
+- Completed a second compact sizing pass for the Binary breadcrumb header.
+
+Progress made:
+- Shrunk container and internal chip/text sizing further.
+- Kept centered history-row behavior and history click navigation.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Breadcrumb Content Y-Center Alignment
+
+Current scope update:
+- Adjusted Binary breadcrumb internals for vertical centering and balanced spacing.
+
+Progress made:
+- Breadcrumb chip stack now centers on Y-axis inside the panel.
+- Username spacing under nodes tightened to remove excess bottom gap.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Breadcrumb Typography Readability Pass
+
+Current scope update:
+- Improved readability of compact Binary breadcrumb text.
+
+Progress made:
+- Increased username/initial/separator text sizes.
+- Adjusted chip width budget to avoid over-truncation after typography increase.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Trinary Enter Flow Fixed
+
+Current scope update:
+- Legacy Trinary Enter action now transitions to Local Binary for the selected real node.
+
+Progress made:
+- Added Trinary-selected-node id resolver for real binary node targets.
+- Wired both dock Enter and keyboard `U` to shared enter helper.
+- Empty Trinary placeholders are safely ignored (no invalid enter attempt).
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Trinary Header Quick Tier Switching
+
+Current scope update:
+- Added quick tier switching dropdown to Legacy Trinary top header while keeping panel toggle behavior.
+
+Progress made:
+- Header now supports two interactions:
+  - panel show/hide toggle,
+  - Legacy tier selection dropdown.
+- Dropdown options are sourced from available Legacy tier entries and update current Trinary map view.
+- Dropdown auto-closes when interacting outside dropdown controls.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Compact Trinary Header + Animated Tier Switching
+
+Current scope update:
+- Refined Legacy Trinary top header to be less tall and added tier-switch transitions.
+
+Progress made:
+- Reduced Trinary header vertical footprint and dropdown/menu sizing.
+- Implemented fade transition between Legacy tiers when switching from header dropdown.
+- Added in-flight guard so panel refresh does not cancel/skip the transition.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Transition Reset Safety
+
+Current scope update:
+- Hardened Legacy tier transition cancellation paths.
+
+Progress made:
+- Ensured pending tier-switch fade is reset on close/non-animated cancel paths.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Tier Transition Speed Tuning
+
+Current scope update:
+- Reduced transition speed for Legacy tier switching in Trinary view.
+
+Progress made:
+- Increased fade-out and fade-in durations for calmer motion.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Trinary Shortcut Button + Slower Tier Fade
+
+Current scope update:
+- Added direct Trinary Tier 1 entry button near top-right Preferred Customer controls.
+- Further slowed tier-switch animation pacing.
+
+Progress made:
+- New top-right button now jumps to Legacy Tier 1 Trinary view immediately.
+- Legacy tier fade transition duration increased for smoother perception.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Trinary Quick-Access Toggle UX
+
+Current scope update:
+- Updated Trinary quick-access button behavior to toggle on/off between Trinary and Binary default views.
+
+Progress made:
+- Top-right quick-access now behaves as a state toggle (not one-way open).
+- Updated icon to network-style visual (`hub`) for better user mental model.
+- Slowed tier switch fade timing further.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Legacy Tier Counter Alignment (Canvas vs Panel)
+
+Current scope update:
+- Corrected Legacy tier progress counter to align with Trinary map node counting.
+
+Progress made:
+- Updated `x/40` computation to include the root/home node.
+- Resolved off-by-one mismatch (example: 7 shown vs 8 counted including self).
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Infinity/Legacy Sort Direction Control
+
+Current scope update:
+- Activated the tier sort control in both Infinity Tier Commission and Legacy Leadership Bonus panel modes.
+
+Progress made:
+- Sort now toggles between `Ascending` and `Descending` only.
+- Tier rows in the Current list re-order immediately when sort is pressed.
+- Added sort state reset to `Ascending` during panel state reset.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Tier Sort Preferences Are Now Account-Persistent
+
+Current scope update:
+- Infinity Builder and Legacy Leadership sort direction is now persisted per authenticated user account.
+
+Progress made:
+- Added backend storage + API for mode-specific tier sort directions (`asc` / `desc`).
+- Launch-state payload now includes persisted sort directions.
+- Frontend now maintains independent sort direction per panel mode and syncs changes to server.
+- Session bootstrap and session-change flows now rehydrate sort preferences from server state.
+
+Files touched this pass:
+- backend/stores/member-binary-tree-intro.store.js
+- backend/services/auth.service.js
+- backend/controllers/auth.controller.js
+- backend/routes/auth.routes.js
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check backend/stores/member-binary-tree-intro.store.js passed.
+- node --check backend/services/auth.service.js passed.
+- node --check backend/controllers/auth.controller.js passed.
+- node --check backend/routes/auth.routes.js passed.
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Left Panel Member Status Swap (Server Time Removed)
+
+Current scope update:
+- Left panel bottom card is now dedicated to Member Status metrics for the organization.
+
+Progress made:
+- Replaced Server Timer card content with Member Status rows.
+- Added organization-side metric resolver for:
+  - total members
+  - active members on left/right
+  - direct sponsors on left/right
+  - total active/direct counts.
+- Removed server-time display from the left panel per follow-up request.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+
+### Addendum (2026-04-17) - Member Status Card UX Follow-up Applied
+
+Current scope update:
+- Left-panel member-status card now follows selected-node context and visual updates requested.
+
+Progress made:
+- Removed card title text (Member Status).
+- Changed card container to #FFFFFF.
+- Wired card data context to selected node so values refresh on node click, aligned with Details panel behavior.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+### Addendum (2026-04-17) - Selected Self Node Member Status Zero-Fix
+
+Current scope update:
+- Resolved member-status card returning all zeros when clicking the viewer/self node.
+
+Progress made:
+- Root-scope path is now accepted as valid in resolver logic.
+- Fallback-to-zero now only triggers for truly invalid node metrics, not root context.
+
+Files touched this pass:
+- binary-tree-next-app.mjs
+
+Validation state:
+- node --check binary-tree-next-app.mjs passed.
+### Addendum (2026-04-17) - Spillover Identity Privacy Gate Applied (Binary Tree Next)
+
+Current scope update:
+- Applied legacy spillover anonymity behavior to Binary Tree Next so spillover nodes no longer expose identity details in left-panel and navigation surfaces.
+
+Progress made:
+- Added shared privacy helper layer for spillover/anonymized node masking.
+- Updated Details card identity fields to anonymize masked nodes (`Anonymous` / `Hidden`).
+- Updated relation labels (Parent/Sponsor) to anonymize masked nodes and suppress masked relation jump actions.
+- Updated favorites/search/breadcrumb identity labels and initials to anonymized outputs for masked spillover nodes.
+- Disabled photo-avatar exposure for masked spillover nodes in canvas/detail/favorites/search rendering paths.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+### Addendum (2026-04-17) - Spillover Privacy Rule Correction (Use Legacy Logic)
+
+Current scope update:
+- Spillover anonymous gate in Binary Tree Next now follows the exact legacy rule behavior.
+
+Progress made:
+- Reverted privacy detection to legacy outside-source spillover condition.
+- Adjusted scoped sponsor mapping so out-of-scope spillovers have unresolved mapped sponsor id (required by legacy gate).
+- Kept spillover status preserved even when sponsor is out-of-scope.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+
+### Addendum (2026-04-17) - Spillover Privacy Ownership Correction (Root View)
+
+Current scope update:
+- Binary Tree Next privacy gate now respects root/owner-sponsored branch visibility.
+
+Progress made:
+- Added ownership traversal by sponsor graph to distinguish viewer-owned vs outside-source spillovers.
+- Limited anonymization to outside-source spillover branches only.
+- Preserved details for viewer-owned spillover branches, while retaining privacy for member-scoped outside-source branches.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Builder Tier Logic Update (Per-Node Rewards + Qualification Gates)
+
+- Implemented requested Infinity Builder rule set in runtime logic:
+- Tier completion now requires all 3 nodes completed.
+- Completed node rule uses active seed + 3 active directs.
+- Direct activity qualification now checks all qualifying directs under each node.
+- Tier 1 strict monthly rule added: monthly 1% only activates after full Tier 1 completion.
+- Tier 2+ relaxed monthly rule added: per-node 1% can activate before full tier completion.
+- Locked tiers no longer activate monthly 1%.
+- Infinity tier rewards are now package-dependent per node:
+- Infinity node = 50 USD
+- Legacy node = 75 USD
+- Mixed tier totals are computed dynamically.
+- Infinity total/claimable tier reward totals now aggregate per-tier computed amounts.
+- Updated Infinity panel copy/subtitle/node status text to reflect the new rules.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Claim Button Hardcoded 150 Fallback Removed
+
+- Resolved residual static 150 USD claim label in Infinity panel defaults.
+- Updated HTML default claim and bonus copy to non-fixed fallback text.
+- Added runtime guard for empty/unresolved tier snapshots so stale hardcoded values are never shown.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Locked Tier Amount Display Adjustment
+
+- Removed dollar amount from locked/incomplete Infinity claim-state labels to avoid fixed-looking `150.00` display before claim eligibility.
+- Locked tier bonus line now uses lock guidance text.
+- Claim CTA only includes amount when tier is completed and claimable.
+
+Files updated:
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/binary-tree-next.md`
+
+Validation:
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-17) - Infinity Tier Commission Rename Applied
+
+- Standardized user-facing naming from `Infinity Builder Bonus` to `Infinity Tier Commission` across member/admin surfaces.
+- Kept internal payout map keys unchanged to avoid regressions in existing claim/history data.
+- Updated Binary Tree Next panel labels/copy, account overview labels, payout source labels, and upgrade unlock wording.
+
+Files updated:
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `index.html`
+- `admin.html`
+- `store-dashboard.html`
+- `backend/services/wallet.service.js`
+- `backend/stores/payout.store.js`
+
+Validation:
+- repo-wide text scan shows no remaining `Infinity Builder Bonus` user-facing label entries.
+
+### Addendum (2026-04-17) - Admin Flush Hardening for Clean Test Resets
+
+Current scope update:
+- Admin flush now clears expanded user-linked backend data while preserving admin and store-product catalog data.
+
+Progress made:
+- Extended reset coverage in `backend/services/admin.service.js` to include newer tables (sessions, verification tokens, intro state, commission containers, notifications, rank progress, achievements/titles, preferred attribution, and e-wallet records).
+- Added missing-table detection so reset remains resilient across partially migrated environments.
+- Added runtime settings baseline reset in flush flow to remove prior system customization state.
+- Updated `admin.html` flush confirmation/feedback copy to match new scope and to explicitly state store products are preserved.
+
+Files touched this pass:
+- `backend/services/admin.service.js`
+- `admin.html`
+
+Validation state:
+- `node --check backend/services/admin.service.js` passed.
+
+Known limitations:
+- `store_products` and uploaded product images are intentionally preserved by flush.
+- Missing tables are skipped and returned in the API payload as `missingTables`.
+
+### Addendum (2026-04-17) - Flush Endpoint Recovery (Admin Credential Failure Path)
+
+Current scope update:
+- Resolved admin flush 500 failure path caused by admin DB credential authentication rejection.
+
+Progress made:
+- Added reset-client connection fallback in `backend/services/admin.service.js` from admin pool -> service pool on Postgres auth errors.
+- Removed strict early exit requiring admin-credential config for reset operation.
+- Added API response warning metadata (`warnings`, `connectionRole`) to surface fallback usage.
+- Updated `admin.html` flush success message to include warning text returned by backend.
+- Verified reset succeeds through direct invocation and returns cleared counts.
+
+Files touched this pass:
+- `backend/services/admin.service.js`
+- `admin.html`
+
+Validation state:
+- `node --check backend/services/admin.service.js` passed.
+- direct reset invocation succeeded and returned `connectionRole: service` when admin auth failed.
+
+Known limitations:
+- Running server process must be restarted after this patch for the UI button to pick up changes.
+
+### Addendum (2026-04-17) - Admin Tree Next Centered Anticipation Slot
+
+Current scope update:
+- Admin Binary Tree Next anticipation structure now renders as a single centered add slot instead of separate left/right anticipation markers.
+
+Progress made:
+- Added admin-only centered anticipation slot generation in `resolveAnticipationSlots(...)`.
+- Preserved placement integrity by still resolving and passing concrete binary leg (`left`/`right`) under the hood.
+- Updated admin enrollment modal leg-position text to `Auto Placement` / `Spillover Auto Placement`.
+- Added slot-label suppression support in anticipation rendering so admin no longer sees left/right slot labels.
+
+Files touched this pass:
+- `binary-tree-next-app.mjs`
+
+Validation state:
+- `node --check binary-tree-next-app.mjs` passed.
+
+Known limitations:
+- Centered anticipation is a visual structure update only; backend placement model remains binary.
+- Acting-root behavior intentionally unchanged in this pass.
+
+### Addendum (2026-04-17) - Admin Dashboard Modernization (User Dashboard Theme Parity Pass)
+
+Current scope update:
+- Admin dashboard is now aligned with the updated user-dashboard theming system and shell spacing baseline.
+
+Progress made:
+- Migrated admin Tailwind color/shadow config to CSS variable tokens.
+- Added dark/light-capable root token sets with active light theme override.
+- Updated admin shell top bar/main spacing to match current dashboard rhythm.
+- Updated first-row admin KPI card containers to the newer dashboard card treatment.
+- Preserved existing admin metric IDs and data-binding behavior.
+
+Files touched this pass:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+
+Validation state:
+- Code diff verification complete.
+- Puppeteer screenshot validation blocked by sandbox browser-launch permission limits in this session.
+
+Known limitations:
+- Full section-by-section dashboard module transplant from user dashboard was not completed in this pass.
+- Visual verification screenshot pass is pending if browser-launch permission is granted in a follow-up run.
+
+### Addendum (2026-04-17) - Admin Sidebar Updated + Dashboard Cards Stabilized
+
+Current scope update:
+- Admin sidebar now reflects updated grouped navigation styling, and dashboard KPI cards are restored from broken state.
+
+Progress made:
+- Replaced old sidebar nav with sectioned modern layout while keeping admin route wiring intact.
+- Updated icon font import to support the full sidebar icon set.
+- Added sidebar section label utility style.
+- Reverted first-row dashboard card wrappers to stable classes to resolve visual breakage.
+
+Files touched this pass:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+
+Validation state:
+- In-file structure validation complete.
+- Screenshot automation remains pending due sandbox launch restrictions.
+
+Known limitations:
+- Visual screenshot comparison pass not completed in-session.
+
+### Addendum (2026-04-17) - Admin Sidebar Branding Match + Commissions Nav Cleanup
+
+Current scope update:
+- Admin sidebar now uses user-dashboard brand-logo treatment at the top and no longer shows a separate `Commission Order` nav item.
+
+Progress made:
+- Swapped admin sidebar top branding block to the same logo-shell structure and interaction model as user sidebar.
+- Added brand dropdown/collapse supporting CSS + JS hooks in admin.
+- Removed `Commission Order` from sidebar nav so only `Commissions` is presented.
+- Updated key visible headings/text to align around `Commissions` naming.
+
+Files touched this pass:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+
+Validation state:
+- selector/hook verification complete for sidebar/nav (`#sidebar-brand-button`, `#sidebar-brand-menu`, `#sidebar-collapse-button`, `[data-nav-link]`).
+- visual screenshot validation still pending due browser-launch restrictions in this environment.
+
+Known limitations:
+- commission request detail subview remains in code for operational fulfillment; navigation entry is now unified under `Commissions`.
+
+### Addendum (2026-04-17) - Logo Parity Hotfix (Admin Sidebar)
+
+Current scope update:
+- Admin sidebar top logo now matches user dashboard sidebar logo dimensions exactly.
+
+Progress made:
+- Replaced reduced admin logo-shell sizing with exact user-sidebar values.
+- Synced logo image max-height/transform values to user-sidebar baseline.
+- Aligned top brand dropdown labels/options to user-sidebar structure.
+
+Files touched this pass:
+- `admin.html`
+- `Claude_Notes/admin-dashboard-page.md`
+
+Validation state:
+- direct selector/value comparison completed against `index.html`.
+- screenshot validation still pending due local browser-launch restrictions.
+
+### Addendum (2026-04-17) - Sidebar Nav Cleanup: Binary Tree (Old) Removed
+
+Current scope update:
+- Both Admin and Member sidebars now show only `Binary Tree (Next Gen)` under Build.
+
+Progress made:
+- Removed legacy Binary Tree sidebar links from `admin.html` and `index.html`.
+- Kept existing route/state mappings untouched to avoid functional regressions outside nav visibility.
+
+Files touched this pass:
+- `admin.html`
+- `index.html`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- Confirmed no `Binary Tree (Old)` string remains in admin/member dashboard HTML files.
+
+### Addendum (2026-04-17) - Route Cleanup: Legacy Binary Tree Paths Retired
+
+Current scope update:
+- Legacy old-tree dashboard routes are retired from both Admin and Member SPA route maps.
+- `Binary Tree (Next Gen)` is now labeled `Binary Tree` in both sidebars.
+
+Progress made:
+- Removed `/admin/BinaryTree` and `/BinaryTree` from dashboard route-map objects.
+- Removed `binary-tree` entries from page metadata maps to prevent legacy page-state activation through persisted route state.
+- Added explicit route guards for `/binarytree`, `/binary-tree`, `/admin/binarytree`, `/admin/binary-tree` to route users to dashboard.
+
+Files touched this pass:
+- `admin.html`
+- `index.html`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- Verified no legacy old-tree route-map entries remain in admin/member dashboard HTML.
+- Verified official sidebar label now reads `Binary Tree`.
+
+### Addendum (2026-04-17) - Binary Tree Boot Loading Copy Refresh
+
+Current scope update:
+- Binary Tree Next boot loading text now uses motivational language instead of technical camera/node-state wording.
+
+Progress made:
+- Updated loading subtitle copy in `binary-tree-next.html`.
+- Removed `Preparing nodes and camera state...` from the boot overlay.
+
+Files touched this pass:
+- `binary-tree-next.html`
+- `Claude_Notes/binary-tree-next.md`
+
+Validation state:
+- In-file text verification complete for loading subtitle replacement.
+
+Known limitations:
+- Copy-only update; loading behavior, transitions, and timing remain unchanged.

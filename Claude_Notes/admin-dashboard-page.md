@@ -1,0 +1,97 @@
+﻿# Admin Dashboard Page
+
+## Update Log
+
+### 2026-04-17 - Admin Dashboard Modernization to User-Dashboard Theme System
+
+| Area | Change |
+|---|---|
+| Theme Model | Migrated admin Tailwind token sources from fixed hex palette to CSS-variable tokens (same pattern used by `index.html`). |
+| Color Modes | Enabled `light dark` color-scheme metadata and set `data-theme="light"` at document root for parity with user dashboard defaults. |
+| Surface/Brand Tokens | Added full root token map for brand, surfaces, text, semantic colors, shadows, overlay gradients, minimap styling, and scrollbar tokens. |
+| Light Theme Overrides | Added `html[data-theme='light']` variable overrides to mirror modern user-dashboard visual language. |
+| Shell Layout | Updated top bar and content spacing to align with current user dashboard shell rhythm (`h-[65px]`, updated paddings). |
+| Dashboard Cards | Updated first-row dashboard card containers to modern card primitives (rounded-2xl, elevated depth, consistent min height and surface layering). |
+
+## Files Affected
+- `admin.html`
+
+## Design Decisions
+- Preserved all existing admin data IDs and behavior hooks to avoid breaking existing dashboard logic and settings workflows.
+- Focused this pass on structural/theme parity first, then visual-card modernization for critical dashboard KPI row.
+- Kept admin-specific content (placement controls, server cut-off, admin-only payout messaging) intact.
+
+## Known Limitations
+- Puppeteer screenshot validation could not run in-session due sandbox launch restrictions (`spawn EPERM`) and escalated screenshot permission was not granted.
+- Additional deeper dashboard-module parity (full skeleton/live-content architecture transplant from user dashboard) can be done in a follow-up pass if requested.
+
+### 2026-04-17 - Sidebar Refresh + Card Stability Fix
+
+| Area | Change |
+|---|---|
+| Sidebar Structure | Rebuilt admin sidebar into the updated grouped format (`General`, `Build`, `Records`) with modern spacing and icon alignment. |
+| Branding Block | Replaced legacy emblem-only header with brand logo + `Admin Console` descriptor for parity with updated nav presentation. |
+| Nav Coverage | Preserved admin routes and `data-nav-link` wiring for Dashboard, My Store, Commissions, Commission Order, Binary Tree, Enroll Member, Preferred Customers, and Settings. |
+| Icon System | Updated Material Symbols import to full icon set (removed restrictive `icon_names` subset) so new sidebar icons render correctly. |
+| Card Repair | Reverted first-row KPI card containers to stable legacy card wrappers after the prior styling pass caused visual breakage. |
+
+#### Files Updated This Fix
+- `admin.html`
+
+#### Notes
+- Sidebar update intentionally kept existing JS toggle/routing IDs unchanged (`#sidebar`, `#menu-toggle`, `[data-nav-link]`, `#page-title`) to avoid regressions.
+- Full visual screenshot validation remains pending due Puppeteer sandbox restrictions in-session.
+
+### 2026-04-17 - Sidebar Brand Parity + Commissions Nav Simplification
+
+| Area | Change |
+|---|---|
+| Sidebar Branding | Replaced the admin sidebar top block with the same brand-logo shell pattern used in the user dashboard sidebar (`sidebar-brand-button`, dual light/dark logo assets, chevron, dropdown shell). |
+| Sidebar Controls | Added admin wiring for brand dropdown open/close behavior and desktop collapse/re-open behavior (`data-sidebar-collapsed`). |
+| Commissions Navigation | Removed the standalone `Commission Order` sidebar link so only `Commissions` is used in admin navigation. |
+| Copy Consistency | Updated key admin UI labels from `Commission Order` wording to `Commissions` where user-facing page headers/context text needed alignment. |
+
+#### Files Updated This Pass
+- `admin.html`
+
+#### Notes
+- Commission detail view structure remains in place for order-level fulfillment flow, but entry navigation is now centered on `Commissions` only.
+- Brand dropdown profile values now hydrate from current admin session (`name`/`email` fallbacks included).
+
+### 2026-04-17 - Sidebar Logo Exact Parity Adjustment
+
+| Area | Change |
+|---|---|
+| Logo Sizing | Updated admin sidebar logo shell and logo image dimensions to exactly match `index.html` (`max-width: 7.6rem`, `min-height: 1.9rem`, logo `max-height: 1.92rem`). |
+| Logo Rendering | Added matching `transform: translateY(0)` and shell display behavior from user sidebar. |
+| Top Brand Menu | Aligned top brand dropdown item structure/text to user sidebar baseline (`Profile`, `Home`, `My Store`, `Settings`, `Log out`). |
+
+#### Files Updated This Pass
+- `admin.html`
+
+### 2026-04-17 - Removed Legacy Binary Tree Nav Entry
+
+| Area | Change |
+|---|---|
+| Build Navigation | Removed the `Binary Tree (Old)` link from the admin sidebar Build group. |
+| Next-Gen Path | Kept `Binary Tree (Next Gen)` as the only Binary Tree navigation entry in admin sidebar. |
+
+#### Files Updated This Pass
+- `admin.html`
+
+#### Notes
+- Legacy route mappings were not removed; this pass only updates what appears in the sidebar nav.
+
+### 2026-04-17 - Legacy Binary Tree Route Retirement + Official Naming
+
+| Area | Change |
+|---|---|
+| Build Navigation | Renamed sidebar label from `Binary Tree (Next Gen)` to `Binary Tree`. |
+| Legacy Route Access | Removed legacy `/admin/BinaryTree` page mapping from admin dashboard router state map. |
+| Route Guard | Added explicit legacy route fallback guard (`/admin/binarytree`, `/admin/binary-tree`, `/binarytree`, `/binary-tree`) to force dashboard instead of loading legacy tree view state. |
+
+#### Files Updated This Pass
+- `admin.html`
+
+#### Notes
+- Legacy admin binary tree panel markup remains in file, but route/nav access is now retired from admin dashboard routing and sidebar navigation.

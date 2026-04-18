@@ -2844,14 +2844,9 @@
 
         <p class="sidebar-nav-section-label mt-3">Build</p>
 
-        <a href="/BinaryTree" data-nav-link data-page="binary-tree" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
-          Binary Tree (Old)
-        </a>
-
         <a href="/binary-tree-next.html" data-nav-static class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
           <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
-          Binary Tree (Next Gen)
+          Binary Tree
         </a>
 
         <a href="/EnrollMember" data-nav-link data-page="enroll-member" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
@@ -7332,10 +7327,6 @@
           title: 'Preferred Customers',
           searchPlaceholder: 'Search pending preferred customers...',
         },
-        'binary-tree': {
-          title: 'Binary Tree',
-          searchPlaceholder: 'Search binary tree members...',
-        },
         settings: {
           title: 'Settings',
           searchPlaceholder: 'Search account, payment, security, and appearance settings...',
@@ -7349,7 +7340,6 @@
         'e-wallet': '/EWallet',
         'enroll-member': '/EnrollMember',
         'preferred-customer': '/PreferredCustomer',
-        'binary-tree': '/BinaryTree',
         settings: '/Settings',
       };
 
@@ -7367,6 +7357,14 @@
         const normalizedPath = normalizeRoutePath(pathname).toLowerCase();
 
         if (normalizedPath === '/' || normalizedPath === '/index.html') {
+          return 'dashboard';
+        }
+        if (
+          normalizedPath === '/binarytree'
+          || normalizedPath === '/binary-tree'
+          || normalizedPath === '/admin/binarytree'
+          || normalizedPath === '/admin/binary-tree'
+        ) {
           return 'dashboard';
         }
 
