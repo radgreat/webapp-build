@@ -7,6 +7,39 @@ Last Updated: 2026-04-18
 - Page: `index.html`
 - Purpose: Primary authenticated member dashboard shell and module host.
 
+## Recent Update (2026-04-18) - No Dashboard Flash Before Login Redirect
+
+### What Was Changed
+
+- Added a head-level auth boot visibility gate in `index.html`:
+  - set `data-auth-boot='pending'` immediately during auth preflight
+  - hide page body while auth boot is pending.
+- Extended preflight check to reject expired local auth snapshots (`authTokenExpiresAt`) before render.
+- Updated async startup bootstrap to set `data-auth-boot='ready'` only after server session validation succeeds.
+- Resulting flow:
+  - invalid/missing/expired session -> redirect to `login.html` without dashboard paint
+  - valid session -> reveal page and continue dashboard bootstrap.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept the page hidden until server auth validation resolves to prevent any visible dashboard skeleton flash for invalid sessions.
+- Used the existing boot script path to avoid introducing another auth bootstrap endpoint.
+
+### Known Limitations
+
+- If JavaScript is disabled, the member dashboard page stays hidden by design because auth boot gating is JS-driven.
+
+### Validation
+
+- Inline script parse check passed for `index.html` (`3` blocks).
+
 ## Recent Update (2026-04-18) - Strict Session Validation Before Dashboard Boot
 
 ### What Was Changed

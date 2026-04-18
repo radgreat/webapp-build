@@ -25,6 +25,14 @@ Last Updated: 2026-04-18
 - Validation:
   - inline script parse check passed for index.html (2 blocks).
 
+### Addendum (2026-04-18) - No Dashboard Prepaint Before Invalid-Session Redirect
+
+- Applied head-level auth boot visibility gate on member dashboard page.
+- Body stays hidden until server session validation confirms auth state.
+- Invalid/expired sessions now redirect to login without visible dashboard skeleton flash.
+- Updated bootstrap release point to mark auth boot ready only after validation pass.
+- Validation: inline script parse check passed for index.html (3 blocks).
+
 ## Recent Update (2026-04-16) - Setup Password Pages Updated to Store/Register Theme
 
 - Completed:

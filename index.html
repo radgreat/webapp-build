@@ -21,6 +21,8 @@
     (function runDashboardAuthPreflight() {
       const AUTH_STORAGE_KEY = 'vault-auth-user';
       const AUTH_COOKIE_KEY = 'vault-auth-user-cookie';
+      const AUTH_BOOT_ATTRIBUTE = 'data-auth-boot';
+      document.documentElement.setAttribute(AUTH_BOOT_ATTRIBUTE, 'pending');
 
       function safeStorageGet(storage, key) {
         try {
@@ -69,11 +71,21 @@
       const cookieSession = parseSessionPayload(readCookieValue(AUTH_COOKIE_KEY));
       const currentSessionUser = localSession || tabSession || cookieSession;
       const authToken = String(currentSessionUser?.authToken || '').trim();
-      if (!authToken) {
+
+      const rawTokenExpiry = String(currentSessionUser?.authTokenExpiresAt || '').trim();
+      const parsedTokenExpiryMs = rawTokenExpiry ? Date.parse(rawTokenExpiry) : Number.NaN;
+      const tokenExpired = Number.isFinite(parsedTokenExpiryMs) && parsedTokenExpiryMs <= Date.now();
+
+      if (!authToken || tokenExpired) {
         window.location.replace('./login.html');
       }
     })();
   </script>
+  <style>
+    html:not([data-auth-boot='ready']) body {
+      visibility: hidden;
+    }
+  </style>
   <script>
     tailwind.config = {
       theme: {
@@ -26322,6 +26334,8 @@
           redirectToLogin();
           return;
         }
+
+        document.documentElement.setAttribute('data-auth-boot', 'ready');
 
         const authToken = resolveMemberAuthToken();
         if (authToken) {
