@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 319
+**Times Updated:** 322
 
 ## Overview
 
@@ -14,6 +14,101 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ?????????????????????????????????????? high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Update (2026-04-23) - Business Center Redesign (Earning Nodes + Single Wallet Attribution)
+
+### What Was Changed
+
+- Replaced legacy Business Center placeholder assumptions with a production-safe owner-node model:
+  - Main Center + Business Center #1/#2/#3 are independent earning nodes.
+  - One owner user identity controls all centers.
+  - Earnings are tracked per source node/center and credited to a single owner wallet.
+- Rebuilt backend Business Center service (`backend/services/member-business-center.service.js`) to include:
+  - configurable unlock rules (tier -> center index)
+  - owner progress state (unlocked/activated/pending indexes and counts)
+  - manual one-by-one activation flow with owner advisory lock + idempotency handling
+  - activation audit records
+  - immutable commission event records with center attribution
+  - wallet ledger entries with source center attribution and owner-level balance crediting
+  - per-center earnings summary and owner wallet summary APIs.
+- Extended member Business Center APIs:
+  - `GET /api/member-auth/business-centers/earnings`
+  - `GET /api/member-auth/business-centers/wallet-summary`
+- Updated Business Center UI (`index.html`):
+  - new unified wallet summary card
+  - per-center earnings breakdown card
+  - activation panel now reflects unlock/activated/pending model (max 3)
+  - activation requests now send idempotency keys.
+- Updated KPI filtering logic (`index.html`, `binary-tree.mjs`) so non-qualifying tree nodes are excluded where applicable:
+  - legacy placeholders
+  - business-center auxiliary nodes
+  - staff/admin nodes.
+- Updated member store schema default mapping (`backend/stores/member.store.js`) to use `main_center` as default node type.
+
+### Files Affected
+
+- backend/services/member-business-center.service.js
+- backend/controllers/member-business-center.controller.js
+- backend/routes/member-business-center.routes.js
+- backend/stores/member.store.js
+- index.html
+- binary-tree.mjs
+- Claude_Notes/binary-tree-business-center.md
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+
+### Design Decisions
+
+- Kept server-side source of truth for unlock/activation/progress state and financial records.
+- Preserved a single owner wallet while allowing center-level earning attribution for reporting/audit.
+- Added immutable financial event + ledger layers before wallet balance mutation to reduce payout integrity risk.
+- Used activation idempotency key flow to avoid duplicate center activation on retries.
+
+### Known Limitations
+
+- Existing `index.html` script architecture remains monolithic; Business Center panel logic is integrated but not yet split into a dedicated module.
+- Full end-to-end integration tests are still needed for large historical backfill datasets.
+
+### Validation
+
+- `node --check backend/services/member-business-center.service.js` passed.
+- `node --check backend/controllers/member-business-center.controller.js` passed.
+- `node --check backend/routes/member-business-center.routes.js` passed.
+- `node --check backend/stores/member.store.js` passed.
+- `node --check binary-tree.mjs` passed.
+- `index.html` inline script syntax parse passed (last inline script block).
+
+### Addendum (2026-04-23) - Left-Only Activation + Standalone Business Center Panel
+
+- Enforced server-side LEFT-only activation in `activateBusinessCenterForMember`:
+  - requests that explicitly send `right` now return a validation error
+  - activation side is fixed to `left` at the service layer.
+- Updated member dashboard UI:
+  - removed side picker from Business Center activation controls
+  - Business Center panel moved out of Legacy Leadership panel and rendered as a standalone card component.
+- Files updated:
+  - `backend/services/member-business-center.service.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `node --check backend/services/member-business-center.service.js` passed
+  - `index.html` inline script syntax parse passed (last inline script block).
+
+### Addendum (2026-04-23) - Removed Infinity + Legacy Cards From Member Dashboard
+
+- Updated member dashboard layout in `index.html` to remove:
+  - `Infinity Tier Commission` dashboard panel (`#infinity-builder-bonus-panel`)
+  - `Legacy Leadership Bonus` dashboard panel (`#legacy-leadership-bonus-panel`)
+- Kept Business Center controls as a standalone dashboard component (`#business-center-panel`) so BC activation/earnings remains visible while Infinity/Legacy tier cards stay in Binary Tree contexts.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `index.html` inline script syntax parse passed (all inline script blocks).
 
 ## Update (2026-04-18) - Login Text Field Animation Consistency Fix
 

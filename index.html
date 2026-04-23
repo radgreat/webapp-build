@@ -3851,125 +3851,20 @@
             </div>
           </div>
 
-          <!-- Infinity Tier Commission (bottom-left, budget-card style) -->
+          <!-- Business Center (standalone dashboard panel) -->
           <div class="lg:col-span-2 space-y-6 self-start">
-            <div id="infinity-builder-bonus-panel" class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-              <div id="infinity-builder-top-bonus-card" class="rounded-2xl border border-brand-500/25 bg-gradient-to-br from-brand-500/10 via-surface-base/70 to-surface-base/40 p-5 shadow-depth-1 mb-4">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-brand-500/15 border border-brand-500/25 flex items-center justify-center">
-                      <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.5h16.5M6 8.25h12v11.25a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 016 19.5V8.25zm3.75 3.75h4.5m-4.5 3h4.5"/></svg>
-                    </div>
-                    <div>
-                      <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Infinity Tier Commission</p>
-                      <p id="infinity-builder-top-bonus-subtitle" class="text-caption text-text-tertiary mt-1">Tier completion commission</p>
-                    </div>
-                  </div>
-                  <span id="infinity-builder-top-bonus-status" class="inline-flex items-center gap-1 text-caption px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
-                    Building
-                  </span>
-                </div>
-
-                <div class="mt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-                  <div>
-                    <p id="infinity-builder-top-bonus-value" class="font-body font-semibold text-[2rem] leading-none text-text-primary">$0.00</p>
-                    <p class="text-caption text-text-tertiary mt-2">Current Infinity Tier Commission balance</p>
-                  </div>
-                  <button id="infinity-builder-top-request-payout-button" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500 text-text-inverse font-medium text-body-sm shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised active:scale-[0.97] transition-transform duration-150 ease-spring disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Transfer infinity tier commission to E-Wallet">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5v7.5H2.25v-7.5zM5.25 10.875h3m7.5 0h3M6 13.125h4.5"/></svg>
-                    Transfer to Wallet
-                  </button>
-                </div>
-
-                <p id="infinity-builder-top-bonus-footnote" class="text-caption text-text-tertiary mt-4">
-                  Accumulates from active tiers in Infinity Tier Commission. Balance increases when tier commissions are claimed.
-                </p>
-              </div>
-
-              <div class="mb-4 flex justify-end">
-                <fieldset class="inline-flex items-center gap-1 rounded-lg border border-surface-border-light bg-surface-elevated/70 p-1 shadow-depth-1" role="radiogroup" aria-label="Infinity Builder view mode">
-                  <legend class="sr-only">Infinity Builder view mode</legend>
-                  <label class="cursor-pointer">
-                    <input type="radio" name="infinity-builder-view-mode" value="active" class="peer sr-only" checked>
-                    <span class="inline-flex items-center rounded-md border border-transparent px-3 py-1.5 text-caption font-medium text-text-secondary transition-colors duration-150 hover:text-text-primary peer-checked:border-brand-500/30 peer-checked:bg-brand-500/15 peer-checked:text-brand-300">Building</span>
-                  </label>
-                  <label class="cursor-pointer">
-                    <input type="radio" name="infinity-builder-view-mode" value="completed" class="peer sr-only">
-                    <span class="inline-flex items-center rounded-md border border-transparent px-3 py-1.5 text-caption font-medium text-text-secondary transition-colors duration-150 hover:text-text-primary peer-checked:border-brand-500/30 peer-checked:bg-brand-500/15 peer-checked:text-brand-300">Active</span>
-                  </label>
-                </fieldset>
-              </div>
-
-              <div id="infinity-builder-tier-group-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <p class="text-caption text-text-tertiary">Loading tier groups...</p>
-              </div>
-
-              <div class="mt-4 flex items-center justify-between gap-3">
-                <p id="infinity-builder-page-summary" class="text-caption text-text-tertiary">Page 1 of 1</p>
-                <div class="inline-flex items-center rounded-md border border-surface-border bg-surface-elevated/70 overflow-hidden">
-                  <button id="infinity-builder-page-prev" type="button" class="px-2.5 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-floating focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring" aria-label="Previous tier page">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/></svg>
-                  </button>
-                  <span id="infinity-builder-page-label" class="px-3 py-1.5 text-caption text-text-secondary border-x border-surface-border">1 / 1</span>
-                  <button id="infinity-builder-page-next" type="button" class="px-2.5 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-floating focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring" aria-label="Next tier page">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div id="legacy-leadership-bonus-panel" class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-              <div id="legacy-leadership-top-bonus-card" class="rounded-2xl border border-brand-500/25 bg-gradient-to-br from-brand-500/10 via-surface-base/70 to-surface-base/40 p-5 shadow-depth-1 mb-4">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-brand-500/15 border border-brand-500/25 flex items-center justify-center">
-                      <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.5h16.5M6 8.25h12v11.25a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 016 19.5V8.25zm3.75 3.75h4.5m-4.5 3h4.5"/></svg>
-                    </div>
-                    <div>
-                      <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Legacy Leadership Bonus</p>
-                      <p id="legacy-leadership-top-bonus-subtitle" class="text-caption text-text-tertiary mt-1">Tier completion commission</p>
-                    </div>
-                  </div>
-                  <span id="legacy-leadership-top-bonus-status" class="inline-flex items-center gap-1 text-caption px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
-                    Building
-                  </span>
-                </div>
-
-                <div class="mt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-                  <div>
-                    <p id="legacy-leadership-top-bonus-value" class="font-body font-semibold text-[2rem] leading-none text-text-primary">$0.00</p>
-                    <p class="text-caption text-text-tertiary mt-2">Current Legacy Leadership bonus balance</p>
-                  </div>
-                  <button id="legacy-leadership-top-request-payout-button" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500 text-text-inverse font-medium text-body-sm shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised active:scale-[0.97] transition-transform duration-150 ease-spring disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Transfer legacy leadership bonus to E-Wallet">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5v7.5H2.25v-7.5zM5.25 10.875h3m7.5 0h3M6 13.125h4.5"/></svg>
-                    Transfer to Wallet
-                  </button>
-                </div>
-
-                <p id="legacy-leadership-top-bonus-footnote" class="text-caption text-text-tertiary mt-4">
-                  Accumulates from completed tiers in Legacy Leadership Bonus. Balance increases when tier commissions are claimed.
-                </p>
-              </div>
-
-              <section id="business-center-activation-panel" class="mb-4 rounded-2xl border border-surface-border bg-surface-elevated px-4 py-4 shadow-depth-1">
+            <div id="business-center-panel" class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
+              <section id="business-center-activation-panel" class="rounded-2xl border border-surface-border bg-surface-elevated px-4 py-4 shadow-depth-1">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Business Centers</p>
                     <p id="business-center-summary-value" class="mt-1 text-body-sm font-medium text-text-primary">Loading Business Center status...</p>
-                    <p id="business-center-summary-detail" class="mt-1 text-caption text-text-tertiary">Business Center placeholders stay visible in tree and are excluded from member KPIs.</p>
+                    <p id="business-center-summary-detail" class="mt-1 text-caption text-text-tertiary">Main Center and Business Centers #1-#3 are independent earning nodes under one wallet owner.</p>
                   </div>
                   <span id="business-center-activation-status-chip" class="inline-flex w-fit items-center gap-1 rounded-full border border-surface-border bg-surface-base px-2 py-0.5 text-caption text-text-secondary">Syncing</span>
                 </div>
-                <div class="mt-3 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3">
-                  <label class="inline-flex items-center gap-2 text-caption text-text-secondary">
-                    <span>Pin legacy network side</span>
-                    <select id="business-center-activation-side" class="rounded-lg border border-surface-border bg-surface-base px-2 py-1 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated">
-                      <option value="left">Left</option>
-                      <option value="right">Right</option>
-                    </select>
-                  </label>
+                <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <p class="text-caption text-text-secondary">Pinned legacy network side: <span class="font-medium text-text-primary">LEFT</span> (fixed)</p>
                   <button
                     id="business-center-activate-button"
                     type="button"
@@ -3979,39 +3874,22 @@
                   </button>
                 </div>
                 <p id="business-center-activation-feedback" class="mt-2 hidden text-caption"></p>
-              </section>
-
-              <div class="mb-4 flex justify-end">
-                <fieldset class="inline-flex items-center gap-1 rounded-lg border border-surface-border-light bg-surface-elevated/70 p-1 shadow-depth-1" role="radiogroup" aria-label="Legacy Leadership view mode">
-                  <legend class="sr-only">Legacy Leadership view mode</legend>
-                  <label class="cursor-pointer">
-                    <input type="radio" name="legacy-leadership-view-mode" value="active" class="peer sr-only" checked>
-                    <span class="inline-flex items-center rounded-md border border-transparent px-3 py-1.5 text-caption font-medium text-text-secondary transition-colors duration-150 hover:text-text-primary peer-checked:border-brand-500/30 peer-checked:bg-brand-500/15 peer-checked:text-brand-300">Building</span>
-                  </label>
-                  <label class="cursor-pointer">
-                    <input type="radio" name="legacy-leadership-view-mode" value="completed" class="peer sr-only">
-                    <span class="inline-flex items-center rounded-md border border-transparent px-3 py-1.5 text-caption font-medium text-text-secondary transition-colors duration-150 hover:text-text-primary peer-checked:border-brand-500/30 peer-checked:bg-brand-500/15 peer-checked:text-brand-300">Completed</span>
-                  </label>
-                </fieldset>
-              </div>
-
-              <div id="legacy-leadership-tier-group-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <p class="text-caption text-text-tertiary">Loading tier groups...</p>
-              </div>
-
-              <div class="mt-4 flex items-center justify-between gap-3">
-                <p id="legacy-leadership-page-summary" class="text-caption text-text-tertiary">Page 1 of 1</p>
-                <div class="inline-flex items-center rounded-md border border-surface-border bg-surface-elevated/70 overflow-hidden">
-                  <button id="legacy-leadership-page-prev" type="button" class="px-2.5 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-floating focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring" aria-label="Previous tier page">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/></svg>
-                  </button>
-                  <span id="legacy-leadership-page-label" class="px-3 py-1.5 text-caption text-text-secondary border-x border-surface-border">1 / 1</span>
-                  <button id="legacy-leadership-page-next" type="button" class="px-2.5 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-floating focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring" aria-label="Next tier page">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></svg>
-                  </button>
+                <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="rounded-lg border border-surface-border bg-surface-base px-3 py-2">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Unified Wallet</p>
+                    <p id="business-center-wallet-summary-value" class="mt-1 text-body-sm font-medium text-text-primary">$0.00</p>
+                    <p id="business-center-wallet-summary-detail" class="mt-1 text-caption text-text-tertiary">All center commissions credit this single wallet.</p>
+                  </div>
+                  <div class="rounded-lg border border-surface-border bg-surface-base px-3 py-2">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Per-Center Earnings</p>
+                    <div id="business-center-earnings-list" class="mt-1 space-y-1 text-caption text-text-secondary">
+                      <p>Loading earnings breakdown...</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </section>
             </div>
+
           </div>
 
           <!-- Right Column: Fast Track + Recent Activity -->
@@ -6554,6 +6432,8 @@
       const MEMBER_NOTIFICATION_CENTER_API = '/api/member-auth/notifications';
       const MEMBER_NOTIFICATION_MARK_ALL_READ_API = '/api/member-auth/notifications/mark-all-read';
       const MEMBER_BUSINESS_CENTERS_API = '/api/member-auth/business-centers';
+      const MEMBER_BUSINESS_CENTER_EARNINGS_API = '/api/member-auth/business-centers/earnings';
+      const MEMBER_BUSINESS_CENTER_WALLET_SUMMARY_API = '/api/member-auth/business-centers/wallet-summary';
       const MEMBER_BUSINESS_CENTER_PROGRESS_API = '/api/member-auth/business-centers/progress';
       const MEMBER_BUSINESS_CENTER_ACTIVATE_API = '/api/member-auth/business-centers/activate';
       const PROFILE_ACHIEVEMENT_ICON_PATHS_BY_ID = Object.freeze({
@@ -8159,6 +8039,9 @@
       const businessCenterActivationSideInput = document.getElementById('business-center-activation-side');
       const businessCenterActivateButtonElement = document.getElementById('business-center-activate-button');
       const businessCenterActivationFeedbackElement = document.getElementById('business-center-activation-feedback');
+      const businessCenterWalletSummaryValueElement = document.getElementById('business-center-wallet-summary-value');
+      const businessCenterWalletSummaryDetailElement = document.getElementById('business-center-wallet-summary-detail');
+      const businessCenterEarningsListElement = document.getElementById('business-center-earnings-list');
       const accountOverviewCardElement = document.getElementById('account-overview-card');
       const accountRankActivityBadgeElement = document.getElementById('account-rank-activity-badge');
       const accountRankIconElement = document.getElementById('account-rank-icon');
@@ -8250,23 +8133,23 @@
       const ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN = 50;
       const DEFAULT_COUNTRY_FLAG = 'un';
       const COUNTRY_FLAG_CODE_BY_EMOJI = Object.freeze({
-        '🇺🇸': 'us',
-        '🇵🇭': 'ph',
-        '🇨🇦': 'ca',
-        '🇲🇽': 'mx',
-        '🇬🇧': 'gb',
-        '🇦🇺': 'au',
-        '🇳🇿': 'nz',
-        '🇸🇬': 'sg',
-        '🇲🇾': 'my',
-        '🇮🇩': 'id',
-        '🇹🇭': 'th',
-        '🇻🇳': 'vn',
-        '🇯🇵': 'jp',
-        '🇰🇷': 'kr',
-        '🇦🇪': 'ae',
-        '🏳️': 'un',
-        '🏳': 'un',
+        '\u{1F1FA}\u{1F1F8}': 'us',
+        '\u{1F1F5}\u{1F1ED}': 'ph',
+        '\u{1F1E8}\u{1F1E6}': 'ca',
+        '\u{1F1F2}\u{1F1FD}': 'mx',
+        '\u{1F1EC}\u{1F1E7}': 'gb',
+        '\u{1F1E6}\u{1F1FA}': 'au',
+        '\u{1F1F3}\u{1F1FF}': 'nz',
+        '\u{1F1F8}\u{1F1EC}': 'sg',
+        '\u{1F1F2}\u{1F1FE}': 'my',
+        '\u{1F1EE}\u{1F1E9}': 'id',
+        '\u{1F1F9}\u{1F1ED}': 'th',
+        '\u{1F1FB}\u{1F1F3}': 'vn',
+        '\u{1F1EF}\u{1F1F5}': 'jp',
+        '\u{1F1F0}\u{1F1F7}': 'kr',
+        '\u{1F1E6}\u{1F1EA}': 'ae',
+        '\u{1F3F3}\u{FE0F}': 'un',
+        '\u{1F3F3}': 'un',
       });
       const COUNTRY_NAME_BY_CODE = Object.freeze({
         us: 'United States',
@@ -8427,6 +8310,10 @@
       let businessCenterProgressSyncInFlight = false;
       let pendingBusinessCenterProgressSyncCount = null;
       let lastSyncedBusinessCenterProgressCount = null;
+      let businessCenterEarningsSnapshot = null;
+      let businessCenterWalletSummarySnapshot = null;
+      let businessCenterEarningsLoading = false;
+      let businessCenterWalletSummaryLoading = false;
       let commissionPayoutMockResetApplied = false;
       let eWalletSnapshot = null;
       let eWalletTransferHistory = [];
@@ -9288,7 +9175,7 @@
             ? ''
             : '<span class="mt-1 inline-flex h-2 w-2 rounded-full bg-brand-400"></span>';
           const metadataLabel = escapeHtml(
-            `${timestampLabel}${entry?.pinned ? ' · Pinned' : ''}${isRead ? ' · Read' : ' · Unread'}`,
+            `${timestampLabel}${entry?.pinned ? ' \u00B7 Pinned' : ''}${isRead ? ' \u00B7 Read' : ' \u00B7 Unread'}`,
           );
           const markReadAction = isRead
             ? ''
@@ -11094,6 +10981,170 @@
         businessCenterActivationFeedbackElement.classList.add(isSuccess ? 'text-semantic-success' : 'text-semantic-danger');
       }
 
+      function createBusinessCenterActivationIdempotencyKey() {
+        const ownerSeed = normalizeMemberKey(
+          currentSessionUser?.id
+          || currentSessionUser?.username
+          || currentSessionUser?.email
+          || currentSponsorUsername
+          || 'member',
+        ) || 'member';
+        const timeSeed = Date.now().toString(36);
+        const randomSeed = Math.random().toString(36).slice(2, 10);
+        return `bc_activate_${ownerSeed}_${timeSeed}_${randomSeed}`.slice(0, 120);
+      }
+
+      function renderBusinessCenterWalletSummarySection() {
+        if (!businessCenterWalletSummaryValueElement || !businessCenterWalletSummaryDetailElement) {
+          return;
+        }
+
+        const walletSummary = (
+          businessCenterWalletSummarySnapshot
+          && typeof businessCenterWalletSummarySnapshot === 'object'
+        )
+          ? businessCenterWalletSummarySnapshot
+          : (
+            businessCenterStatus?.walletSummary
+            && typeof businessCenterStatus.walletSummary === 'object'
+            ? businessCenterStatus.walletSummary
+            : null
+          );
+
+        if (businessCenterWalletSummaryLoading && !walletSummary) {
+          businessCenterWalletSummaryValueElement.textContent = 'Loading wallet summary...';
+          businessCenterWalletSummaryDetailElement.textContent = 'Syncing owner wallet ledger attribution...';
+          return;
+        }
+
+        if (!walletSummary) {
+          businessCenterWalletSummaryValueElement.textContent = formatCurrency(0);
+          businessCenterWalletSummaryDetailElement.textContent = 'All center commissions credit this single wallet.';
+          return;
+        }
+
+        const walletBalance = Number(walletSummary?.wallet?.balance ?? 0);
+        const totalCreditedAmount = Number(walletSummary?.totalCreditedAmount ?? 0);
+        const ledgerEntryCount = toWholeNumber(walletSummary?.ledgerEntryCount, 0);
+        const centerBreakdown = Array.isArray(walletSummary?.centerBreakdown)
+          ? walletSummary.centerBreakdown
+          : [];
+
+        let topSourceCenter = null;
+        centerBreakdown.forEach((entry) => {
+          if (!entry || typeof entry !== 'object') {
+            return;
+          }
+          if (!topSourceCenter || Number(entry?.totalAmount ?? 0) > Number(topSourceCenter?.totalAmount ?? 0)) {
+            topSourceCenter = entry;
+          }
+        });
+
+        businessCenterWalletSummaryValueElement.textContent = formatCurrency(walletBalance);
+        const detailParts = [];
+        detailParts.push(`Credited ${formatCurrency(totalCreditedAmount)} across ${ledgerEntryCount.toLocaleString()} entries.`);
+        if (topSourceCenter && Number(topSourceCenter?.totalAmount ?? 0) > 0) {
+          const sourceIndex = toWholeNumber(topSourceCenter?.sourceCenterIndex, 0);
+          const sourceLabel = String(
+            topSourceCenter?.sourceCenterLabel
+            || (sourceIndex > 0 ? `Business Center #${sourceIndex}` : 'Main Center'),
+          ).trim() || 'Main Center';
+          detailParts.push(`Top source: ${sourceLabel} (${formatCurrency(Number(topSourceCenter.totalAmount))}).`);
+        } else {
+          detailParts.push('All center commissions credit this single wallet.');
+        }
+        businessCenterWalletSummaryDetailElement.textContent = detailParts.join(' ');
+      }
+
+      function renderBusinessCenterEarningsSection() {
+        if (!businessCenterEarningsListElement) {
+          return;
+        }
+
+        const earningsSummary = (
+          businessCenterEarningsSnapshot
+          && typeof businessCenterEarningsSnapshot === 'object'
+        )
+          ? businessCenterEarningsSnapshot
+          : (
+            businessCenterStatus?.earningsSummary
+            && typeof businessCenterStatus.earningsSummary === 'object'
+            ? businessCenterStatus.earningsSummary
+            : null
+          );
+
+        businessCenterEarningsListElement.innerHTML = '';
+
+        if (businessCenterEarningsLoading && !earningsSummary) {
+          const loadingLine = document.createElement('p');
+          loadingLine.textContent = 'Loading earnings breakdown...';
+          businessCenterEarningsListElement.appendChild(loadingLine);
+          return;
+        }
+
+        const baseCenters = [
+          { centerIndex: 0, centerType: 'main_center', centerLabel: 'Main Center', eventCount: 0, totalAmount: 0 },
+          { centerIndex: 1, centerType: 'business_center', centerLabel: 'Business Center #1', eventCount: 0, totalAmount: 0 },
+          { centerIndex: 2, centerType: 'business_center', centerLabel: 'Business Center #2', eventCount: 0, totalAmount: 0 },
+          { centerIndex: 3, centerType: 'business_center', centerLabel: 'Business Center #3', eventCount: 0, totalAmount: 0 },
+        ];
+
+        const centerEntryByIndex = new Map();
+        const sourceCenters = Array.isArray(earningsSummary?.centers) ? earningsSummary.centers : [];
+        sourceCenters.forEach((entry) => {
+          const centerIndex = Math.max(0, Math.min(3, toWholeNumber(entry?.centerIndex, 0)));
+          centerEntryByIndex.set(centerIndex, {
+            centerIndex,
+            centerType: String(entry?.centerType || (centerIndex > 0 ? 'business_center' : 'main_center')),
+            centerLabel: String(entry?.centerLabel || (centerIndex > 0 ? `Business Center #${centerIndex}` : 'Main Center')).trim(),
+            eventCount: toWholeNumber(entry?.eventCount, 0),
+            totalAmount: Number(entry?.totalAmount ?? 0),
+          });
+        });
+
+        const mergedCenters = baseCenters
+          .map((baseCenter) => ({
+            ...baseCenter,
+            ...(centerEntryByIndex.get(baseCenter.centerIndex) || {}),
+          }))
+          .sort((left, right) => left.centerIndex - right.centerIndex);
+
+        const totalAmount = Number(
+          earningsSummary?.totalAmount
+          ?? mergedCenters.reduce((sum, center) => sum + Number(center?.totalAmount ?? 0), 0),
+        );
+        const eventCount = toWholeNumber(
+          earningsSummary?.eventCount,
+          mergedCenters.reduce((sum, center) => sum + toWholeNumber(center?.eventCount, 0), 0),
+        );
+
+        const summaryLine = document.createElement('p');
+        summaryLine.className = 'text-text-tertiary';
+        summaryLine.textContent = `Total: ${formatCurrency(totalAmount)} from ${eventCount.toLocaleString()} commission events.`;
+        businessCenterEarningsListElement.appendChild(summaryLine);
+
+        mergedCenters.forEach((center) => {
+          const centerLabel = String(center?.centerLabel || (center.centerIndex > 0 ? `Business Center #${center.centerIndex}` : 'Main Center')).trim();
+          const amount = Number(center?.totalAmount ?? 0);
+          const centerEventCount = toWholeNumber(center?.eventCount, 0);
+
+          const row = document.createElement('p');
+          row.className = 'flex items-center justify-between gap-2';
+
+          const labelElement = document.createElement('span');
+          labelElement.className = 'truncate text-text-secondary';
+          labelElement.textContent = `${centerLabel} (${centerEventCount.toLocaleString()})`;
+
+          const amountElement = document.createElement('span');
+          amountElement.className = 'font-medium text-text-primary';
+          amountElement.textContent = formatCurrency(amount);
+
+          row.appendChild(labelElement);
+          row.appendChild(amountElement);
+          businessCenterEarningsListElement.appendChild(row);
+        });
+      }
+
       function renderBusinessCenterActivationPanel() {
         if (!businessCenterActivationPanelElement) {
           return;
@@ -11107,13 +11158,33 @@
         }
 
         const businessCenters = businessCenterStatus?.businessCenters;
-        const cap = Math.max(1, toWholeNumber(businessCenters?.cap, 5));
-        const activated = toWholeNumber(businessCenters?.activated, 0);
-        const pendingTotal = toWholeNumber(businessCenters?.pendingTotal, 0);
-        const activatablePending = toWholeNumber(businessCenters?.activatablePending, 0);
-        const overflowPending = toWholeNumber(businessCenters?.overflowPending, 0);
+        const maxCenters = Math.max(1, toWholeNumber(businessCenters?.maxCenters ?? businessCenters?.cap, 3));
+        const unlockedCount = toWholeNumber(businessCenters?.unlockedCount ?? businessCenters?.earnedLifetime, 0);
+        const activatedCount = toWholeNumber(businessCenters?.activatedCount ?? businessCenters?.activated ?? businessCenters?.count, 0);
+        const pendingCount = toWholeNumber(
+          businessCenters?.pendingCount ?? businessCenters?.activatablePending ?? businessCenters?.pendingTotal,
+          0,
+        );
         const completedLegacyTierCount = toWholeNumber(businessCenters?.completedLegacyTierCount, 0);
-        const isAtCap = Boolean(businessCenters?.isAtCap);
+        const sourceQualificationTier = toWholeNumber(businessCenters?.sourceQualificationTier, 0);
+        const nextUnlockTier = toWholeNumber(businessCenters?.nextUnlockTier, 0);
+        const nextBusinessCenterIndex = toWholeNumber(businessCenters?.nextBusinessCenterIndex, 0);
+        const pendingCenterIndexes = Array.isArray(businessCenters?.pendingCenterIndexes)
+          ? businessCenters.pendingCenterIndexes
+            .map((value) => toWholeNumber(value, 0))
+            .filter((value) => value > 0 && value <= maxCenters)
+            .sort((left, right) => left - right)
+          : [];
+        const unlockRules = Array.isArray(businessCenters?.unlockRules)
+          ? businessCenters.unlockRules
+            .map((rule) => ({
+              businessCenterIndex: toWholeNumber(rule?.businessCenterIndex, 0),
+              requiredTier: toWholeNumber(rule?.requiredTier, 0),
+            }))
+            .filter((rule) => rule.businessCenterIndex > 0 && rule.requiredTier > 0)
+            .sort((left, right) => left.businessCenterIndex - right.businessCenterIndex)
+          : [];
+        const isAtCap = Boolean(businessCenters?.isAtCap) || activatedCount >= maxCenters;
         const isStaffTreeAccount = Boolean(businessCenters?.isStaffTreeAccount);
 
         const statusChipBaseClassName = 'inline-flex w-fit items-center gap-1 rounded-full border px-2 py-0.5 text-caption';
@@ -11129,16 +11200,16 @@
         } else if (isStaffTreeAccount) {
           statusChipClassName = `${statusChipBaseClassName} border-surface-border bg-surface-base text-text-tertiary`;
           statusChipText = 'Staff Locked';
-        } else if (activatablePending > 0) {
+        } else if (pendingCount > 0) {
           statusChipClassName = `${statusChipBaseClassName} border-semantic-success/35 bg-semantic-success-bg text-semantic-success`;
           statusChipText = 'Ready';
           canActivate = true;
         } else if (isAtCap) {
           statusChipClassName = `${statusChipBaseClassName} border-semantic-warning/35 bg-semantic-warning-bg text-semantic-warning`;
-          statusChipText = 'At Cap';
+          statusChipText = 'Max Active';
         } else {
           statusChipClassName = `${statusChipBaseClassName} border-surface-border bg-surface-base text-text-tertiary`;
-          statusChipText = 'Not Eligible';
+          statusChipText = 'Locked';
         }
 
         if (businessCenterActivationStatusChipElement) {
@@ -11150,7 +11221,7 @@
           if (!businessCenters && !businessCenterStatusLoading) {
             businessCenterSummaryValueElement.textContent = 'Unable to load Business Center status.';
           } else {
-            businessCenterSummaryValueElement.textContent = `Active ${activated.toLocaleString()} / ${cap.toLocaleString()} · Pending ${pendingTotal.toLocaleString()}`;
+            businessCenterSummaryValueElement.textContent = `Activated ${activatedCount.toLocaleString()} / ${maxCenters.toLocaleString()} | Unlocked ${unlockedCount.toLocaleString()} | Pending ${pendingCount.toLocaleString()}`;
           }
         }
 
@@ -11160,10 +11231,21 @@
           } else if (isStaffTreeAccount) {
             businessCenterSummaryDetailElement.textContent = 'This account is flagged as staff/admin and cannot activate Business Centers.';
           } else {
-            const overflowLabel = overflowPending > 0
-              ? ` Overflow queued: ${overflowPending.toLocaleString()}.`
+            const unlockRuleText = unlockRules.length > 0
+              ? unlockRules
+                .map((rule) => `Tier ${rule.requiredTier} -> BC #${rule.businessCenterIndex}`)
+                .join(', ')
+              : 'Tier unlock rules are not available.';
+            const pendingText = pendingCenterIndexes.length > 0
+              ? `Pending activations: ${pendingCenterIndexes.map((value) => `BC #${value}`).join(', ')}.`
+              : 'No pending activations.';
+            const nextUnlockText = (nextUnlockTier > 0 && nextBusinessCenterIndex > 0)
+              ? `Next unlock: Tier ${nextUnlockTier} for BC #${nextBusinessCenterIndex}.`
+              : 'All configured Business Centers are unlocked.';
+            const sourceTierText = sourceQualificationTier > 0
+              ? `Highest qualifying tier: ${sourceQualificationTier}.`
               : '';
-            businessCenterSummaryDetailElement.textContent = `Completed legacy tiers: ${completedLegacyTierCount.toLocaleString()} (1 Business Center per 5 completions).${overflowLabel}`;
+            businessCenterSummaryDetailElement.textContent = `Completed Legacy tiers: ${completedLegacyTierCount.toLocaleString()}. Unlock rules: ${unlockRuleText}. ${nextUnlockText} ${pendingText} ${sourceTierText}`.trim();
           }
         }
 
@@ -11181,6 +11263,165 @@
             ? 'Activating...'
             : 'Activate Business Center';
         }
+
+        renderBusinessCenterWalletSummarySection();
+        renderBusinessCenterEarningsSection();
+      }
+
+      async function loadBusinessCenterEarningsSummary(options = {}) {
+        if (!businessCenterActivationPanelElement) {
+          return null;
+        }
+
+        const silent = options?.silent === true;
+        const force = options?.force === true;
+        const shouldRender = options?.render !== false;
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          businessCenterEarningsSnapshot = null;
+          if (shouldRender) {
+            renderBusinessCenterActivationPanel();
+          }
+          return null;
+        }
+
+        if (
+          !force
+          && !businessCenterEarningsSnapshot
+          && businessCenterStatus?.earningsSummary
+          && typeof businessCenterStatus.earningsSummary === 'object'
+        ) {
+          businessCenterEarningsSnapshot = businessCenterStatus.earningsSummary;
+        }
+
+        if (!force && businessCenterEarningsSnapshot && !businessCenterEarningsLoading) {
+          if (shouldRender) {
+            renderBusinessCenterActivationPanel();
+          }
+          return businessCenterEarningsSnapshot;
+        }
+
+        if (businessCenterEarningsLoading) {
+          return businessCenterEarningsSnapshot;
+        }
+
+        businessCenterEarningsLoading = true;
+        if (shouldRender) {
+          renderBusinessCenterActivationPanel();
+        }
+        try {
+          const response = await fetch(MEMBER_BUSINESS_CENTER_EARNINGS_API, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+          const payload = await response.json().catch(() => null);
+          if (!response.ok) {
+            const message = payload?.error
+              ? String(payload.error)
+              : `Unable to load Business Center earnings (${response.status}).`;
+            throw new Error(message);
+          }
+
+          const earningsSummary = payload?.earnings && typeof payload.earnings === 'object'
+            ? payload.earnings
+            : null;
+          businessCenterEarningsSnapshot = earningsSummary;
+          return earningsSummary;
+        } catch (error) {
+          if (!silent) {
+            setBusinessCenterActivationFeedback(
+              error instanceof Error ? error.message : 'Unable to load Business Center earnings.',
+              false,
+            );
+          }
+          return null;
+        } finally {
+          businessCenterEarningsLoading = false;
+          if (shouldRender) {
+            renderBusinessCenterActivationPanel();
+          }
+        }
+      }
+
+      async function loadBusinessCenterWalletSummary(options = {}) {
+        if (!businessCenterActivationPanelElement) {
+          return null;
+        }
+
+        const silent = options?.silent === true;
+        const force = options?.force === true;
+        const shouldRender = options?.render !== false;
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          businessCenterWalletSummarySnapshot = null;
+          if (shouldRender) {
+            renderBusinessCenterActivationPanel();
+          }
+          return null;
+        }
+
+        if (
+          !force
+          && !businessCenterWalletSummarySnapshot
+          && businessCenterStatus?.walletSummary
+          && typeof businessCenterStatus.walletSummary === 'object'
+        ) {
+          businessCenterWalletSummarySnapshot = businessCenterStatus.walletSummary;
+        }
+
+        if (!force && businessCenterWalletSummarySnapshot && !businessCenterWalletSummaryLoading) {
+          if (shouldRender) {
+            renderBusinessCenterActivationPanel();
+          }
+          return businessCenterWalletSummarySnapshot;
+        }
+
+        if (businessCenterWalletSummaryLoading) {
+          return businessCenterWalletSummarySnapshot;
+        }
+
+        businessCenterWalletSummaryLoading = true;
+        if (shouldRender) {
+          renderBusinessCenterActivationPanel();
+        }
+        try {
+          const response = await fetch(MEMBER_BUSINESS_CENTER_WALLET_SUMMARY_API, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+          const payload = await response.json().catch(() => null);
+          if (!response.ok) {
+            const message = payload?.error
+              ? String(payload.error)
+              : `Unable to load Business Center wallet summary (${response.status}).`;
+            throw new Error(message);
+          }
+
+          const walletSummary = payload?.walletSummary && typeof payload.walletSummary === 'object'
+            ? payload.walletSummary
+            : null;
+          businessCenterWalletSummarySnapshot = walletSummary;
+          return walletSummary;
+        } catch (error) {
+          if (!silent) {
+            setBusinessCenterActivationFeedback(
+              error instanceof Error ? error.message : 'Unable to load Business Center wallet summary.',
+              false,
+            );
+          }
+          return null;
+        } finally {
+          businessCenterWalletSummaryLoading = false;
+          if (shouldRender) {
+            renderBusinessCenterActivationPanel();
+          }
+        }
       }
 
       async function loadBusinessCenterStatus(options = {}) {
@@ -11189,10 +11430,15 @@
         }
 
         const silent = options?.silent === true;
+        const refreshFinancialSnapshots = options?.refreshFinancialSnapshots === true;
         const authToken = resolveMemberAuthToken();
         if (!authToken) {
           businessCenterStatus = null;
           businessCenterStatusHydrated = false;
+          businessCenterEarningsSnapshot = null;
+          businessCenterWalletSummarySnapshot = null;
+          businessCenterEarningsLoading = false;
+          businessCenterWalletSummaryLoading = false;
           renderBusinessCenterActivationPanel();
           return null;
         }
@@ -11222,6 +11468,12 @@
 
           businessCenterStatus = payload && typeof payload === 'object' ? payload : null;
           businessCenterStatusHydrated = Boolean(businessCenterStatus);
+          if (businessCenterStatus?.earningsSummary && typeof businessCenterStatus.earningsSummary === 'object') {
+            businessCenterEarningsSnapshot = businessCenterStatus.earningsSummary;
+          }
+          if (businessCenterStatus?.walletSummary && typeof businessCenterStatus.walletSummary === 'object') {
+            businessCenterWalletSummarySnapshot = businessCenterStatus.walletSummary;
+          }
           const completedLegacyTierCount = toWholeNumber(
             businessCenterStatus?.businessCenters?.completedLegacyTierCount,
             0,
@@ -11229,6 +11481,19 @@
           lastSyncedBusinessCenterProgressCount = completedLegacyTierCount;
           if (!silent) {
             clearBusinessCenterActivationFeedback();
+          }
+
+          const shouldRefreshEarnings = refreshFinancialSnapshots || !businessCenterEarningsSnapshot;
+          const shouldRefreshWallet = refreshFinancialSnapshots || !businessCenterWalletSummarySnapshot;
+          if (shouldRefreshEarnings || shouldRefreshWallet) {
+            await Promise.all([
+              shouldRefreshEarnings
+                ? loadBusinessCenterEarningsSummary({ silent: true, force: refreshFinancialSnapshots, render: false })
+                : Promise.resolve(businessCenterEarningsSnapshot),
+              shouldRefreshWallet
+                ? loadBusinessCenterWalletSummary({ silent: true, force: refreshFinancialSnapshots, render: false })
+                : Promise.resolve(businessCenterWalletSummarySnapshot),
+            ]);
           }
 
           return businessCenterStatus;
@@ -11279,6 +11544,12 @@
 
         businessCenterStatus = payload && typeof payload === 'object' ? payload : null;
         businessCenterStatusHydrated = Boolean(businessCenterStatus);
+        if (businessCenterStatus?.earningsSummary && typeof businessCenterStatus.earningsSummary === 'object') {
+          businessCenterEarningsSnapshot = businessCenterStatus.earningsSummary;
+        }
+        if (businessCenterStatus?.walletSummary && typeof businessCenterStatus.walletSummary === 'object') {
+          businessCenterWalletSummarySnapshot = businessCenterStatus.walletSummary;
+        }
         lastSyncedBusinessCenterProgressCount = safeCompletedTierCount;
         if (!silent) {
           clearBusinessCenterActivationFeedback();
@@ -11326,9 +11597,8 @@
           return;
         }
 
-        const preferredSide = normalizeMemberKey(businessCenterActivationSideInput?.value) === 'right'
-          ? 'right'
-          : 'left';
+        const preferredSide = 'left';
+        const idempotencyKey = createBusinessCenterActivationIdempotencyKey();
 
         businessCenterActivationInFlight = true;
         clearBusinessCenterActivationFeedback();
@@ -11340,9 +11610,11 @@
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${authToken}`,
+              'Idempotency-Key': idempotencyKey,
             },
             body: JSON.stringify({
               side: preferredSide,
+              idempotencyKey,
             }),
           });
           const payload = await response.json().catch(() => null);
@@ -11359,6 +11631,12 @@
 
           businessCenterStatus = payload && typeof payload === 'object' ? payload : null;
           businessCenterStatusHydrated = Boolean(businessCenterStatus);
+          if (businessCenterStatus?.earningsSummary && typeof businessCenterStatus.earningsSummary === 'object') {
+            businessCenterEarningsSnapshot = businessCenterStatus.earningsSummary;
+          }
+          if (businessCenterStatus?.walletSummary && typeof businessCenterStatus.walletSummary === 'object') {
+            businessCenterWalletSummarySnapshot = businessCenterStatus.walletSummary;
+          }
           const completedLegacyTierCount = toWholeNumber(
             businessCenterStatus?.businessCenters?.completedLegacyTierCount,
             0,
@@ -16332,18 +16610,62 @@
       }
 
       function normalizeBusinessCenterNodeType(value) {
-        return normalizeMemberKey(value) === 'placeholder'
-          ? 'placeholder'
-          : 'primary';
+        const normalizedNodeType = normalizeMemberKey(value);
+        if (normalizedNodeType === 'business_center' || normalizedNodeType === 'business-center') {
+          return 'business_center';
+        }
+        if (normalizedNodeType === 'staff_admin' || normalizedNodeType === 'staff-admin') {
+          return 'staff_admin';
+        }
+        if (
+          normalizedNodeType === 'legacy_placeholder'
+          || normalizedNodeType === 'legacy-placeholder'
+          || normalizedNodeType === 'placeholder'
+        ) {
+          return 'legacy_placeholder';
+        }
+        return 'main_center';
       }
 
       function isBusinessCenterPlaceholderMember(member = {}) {
-        return normalizeBusinessCenterNodeType(member?.businessCenterNodeType) === 'placeholder';
+        return normalizeBusinessCenterNodeType(member?.businessCenterNodeType) === 'legacy_placeholder';
+      }
+
+      function isBusinessCenterAuxiliaryMember(member = {}) {
+        const nodeType = normalizeBusinessCenterNodeType(member?.businessCenterNodeType);
+        const centerIndex = toWholeNumber(member?.businessCenterIndex, 0);
+        return nodeType === 'business_center' || centerIndex > 0;
+      }
+
+      function isBusinessCenterStaffAdminMember(member = {}) {
+        return normalizeBusinessCenterNodeType(member?.businessCenterNodeType) === 'staff_admin';
+      }
+
+      function isBusinessCenterKpiExcludedMember(member = {}) {
+        return isBusinessCenterStaffAdminMember(member)
+          || isBusinessCenterPlaceholderMember(member)
+          || isBusinessCenterAuxiliaryMember(member);
       }
 
       function isBusinessCenterPlaceholderNode(node = {}) {
         return Boolean(node?.isBusinessCenterPlaceholder)
-          || normalizeBusinessCenterNodeType(node?.businessCenterNodeType) === 'placeholder';
+          || normalizeBusinessCenterNodeType(node?.businessCenterNodeType) === 'legacy_placeholder';
+      }
+
+      function isBusinessCenterAuxiliaryNode(node = {}) {
+        const nodeType = normalizeBusinessCenterNodeType(node?.businessCenterNodeType);
+        const centerIndex = toWholeNumber(node?.businessCenterIndex, 0);
+        return nodeType === 'business_center' || centerIndex > 0;
+      }
+
+      function isBusinessCenterStaffAdminNode(node = {}) {
+        return normalizeBusinessCenterNodeType(node?.businessCenterNodeType) === 'staff_admin';
+      }
+
+      function isBusinessCenterKpiExcludedNode(node = {}) {
+        return isBusinessCenterStaffAdminNode(node)
+          || isBusinessCenterPlaceholderNode(node)
+          || isBusinessCenterAuxiliaryNode(node);
       }
 
       function findRegisteredMemberByHandle(handleOrUsername) {
@@ -16366,15 +16688,18 @@
           return [];
         }
 
-        const includeBusinessCenterPlaceholders = options?.includeBusinessCenterPlaceholders === true;
+        const includeBusinessCenterAuxiliary = (
+          options?.includeBusinessCenterAuxiliary === true
+          || options?.includeBusinessCenterPlaceholders === true
+        );
         return registeredMembers.filter((member) => {
           if (normalizeMemberKey(member?.sponsorUsername) !== normalizedSponsorIdentity) {
             return false;
           }
-          if (includeBusinessCenterPlaceholders) {
+          if (includeBusinessCenterAuxiliary) {
             return true;
           }
-          return !isBusinessCenterPlaceholderMember(member);
+          return !isBusinessCenterKpiExcludedMember(member);
         });
       }
 
@@ -16388,7 +16713,10 @@
           return [];
         }
 
-        const includeBusinessCenterPlaceholders = options?.includeBusinessCenterPlaceholders === true;
+        const includeBusinessCenterAuxiliary = (
+          options?.includeBusinessCenterAuxiliary === true
+          || options?.includeBusinessCenterPlaceholders === true
+        );
         const membersBySponsor = new Map();
         for (const member of registeredMembers) {
           const memberSponsorKey = normalizeMemberKey(member?.sponsorUsername);
@@ -16411,7 +16739,7 @@
             const memberIdentityKey = normalizeMemberKey(
               resolveMemberIdentityKey(member) || `${member?.createdAt || ''}-${organizationMembers.length}`,
             );
-            const shouldCountMember = includeBusinessCenterPlaceholders || !isBusinessCenterPlaceholderMember(member);
+            const shouldCountMember = includeBusinessCenterAuxiliary || !isBusinessCenterKpiExcludedMember(member);
             if (shouldCountMember && !seenMemberKeys.has(memberIdentityKey)) {
               seenMemberKeys.add(memberIdentityKey);
               organizationMembers.push(member);
@@ -16442,7 +16770,7 @@
         return nodeValues.filter((node) => {
           return node
             && normalizeMemberKey(node.id) !== rootId
-            && !isBusinessCenterPlaceholderNode(node)
+            && !isBusinessCenterKpiExcludedNode(node)
             && normalizeMemberKey(node.sponsorId) === rootId;
         });
       }
@@ -16608,7 +16936,7 @@
         const directSponsorNodeIds = (nodeIdsBySponsorId.get(rootNodeId) || [])
           .filter((nodeId) => {
             const node = nodeById.get(nodeId);
-            return !isBusinessCenterPlaceholderNode(node) && seedNodeQualifier(node, nodeId);
+            return !isBusinessCenterKpiExcludedNode(node) && seedNodeQualifier(node, nodeId);
           })
           .slice()
           .sort(sortNodeIdsByAddedAt);
@@ -16635,7 +16963,7 @@
 
             visitedNodeIds.add(nextNodeId);
             const nextNode = nodeById.get(nextNodeId);
-            if (!isBusinessCenterPlaceholderNode(nextNode)) {
+            if (!isBusinessCenterKpiExcludedNode(nextNode)) {
               qualifyingNodeCount += 1;
             }
             const childNodeIds = nodeIdsBySponsorId.get(nextNodeId) || [];
@@ -17856,7 +18184,7 @@
           rank: 'Legacy',
           countryFlag: DEFAULT_COUNTRY_FLAG,
           addedAt: now,
-          businessCenterNodeType: 'primary',
+          businessCenterNodeType: 'main_center',
           isBusinessCenterPlaceholder: false,
         };
 
@@ -17874,12 +18202,14 @@
             ? createdAtMsRaw
             : (now - (sortedMembers.length - index) * 60000);
           const businessCenterNodeType = normalizeBusinessCenterNodeType(member?.businessCenterNodeType);
-          const isBusinessCenterPlaceholder = businessCenterNodeType === 'placeholder';
-          const memberDisplayName = isBusinessCenterPlaceholder
+          const businessCenterIndex = toWholeNumber(member?.businessCenterIndex, 0);
+          const isBusinessCenterPlaceholder = businessCenterNodeType === 'legacy_placeholder';
+          const isBusinessCenterAuxiliary = businessCenterNodeType === 'business_center' || businessCenterIndex > 0;
+          const memberDisplayName = (isBusinessCenterPlaceholder || isBusinessCenterAuxiliary)
             ? String(
               member?.businessCenterLabel
               || member?.fullName
-              || `Business Center #${Math.max(1, toWholeNumber(member?.businessCenterIndex, 1))}`,
+              || `Business Center #${Math.max(1, businessCenterIndex || 1)}`,
             )
             : String(member?.fullName || member?.memberUsername || member?.email || `Member ${index + 1}`);
           const memberProfileBadgeVisibility = member?.profileBadgeVisibility && typeof member.profileBadgeVisibility === 'object'
@@ -17916,6 +18246,8 @@
             addedAt: createdAtMs,
             businessCenterNodeType,
             isBusinessCenterPlaceholder,
+            businessCenterIndex,
+            businessCenterLabel: String(member?.businessCenterLabel || '').trim(),
             businessCentersCount: toWholeNumber(member?.businessCentersCount, 0),
           };
 
@@ -18125,7 +18457,7 @@
           profileBadgeTitleSubtitle: String(rootTitleBadgeEntry?.cardSubtitle || '').trim(),
           profileBadgeExtraSubtitle: String(rootExtraBadgeEntry?.cardSubtitle || '').trim(),
           addedAt: Number.isFinite(sourceRootAddedAt) ? sourceRootAddedAt : now,
-          businessCenterNodeType: 'primary',
+          businessCenterNodeType: 'main_center',
           isBusinessCenterPlaceholder: false,
         };
 
@@ -18556,7 +18888,7 @@
           return {
             id: `fast-track-credit-${resolveMemberIdentityKey(member) || memberHandle || index + 1}-${occurredAtMs}`,
             title: memberLabel,
-            detail: `${packageLabel} • ${tierLabel}${memberHandle ? ` • @${memberHandle}` : ''}`,
+            detail: `${packageLabel} \u00B7 ${tierLabel}${memberHandle ? ` \u00B7 @${memberHandle}` : ''}`,
             kindLabel: 'Credit',
             statusLabel: 'Credited',
             statusTone: 'success',
@@ -18989,7 +19321,7 @@
             categoryLabel: 'Enrollment',
             iconLabel: 'EN',
             title: `${memberLabel} enrolled`,
-            detail: `${packageLabel} • ${tierLabel}${memberHandle ? ` • @${memberHandle}` : ''}`,
+            detail: `${packageLabel} \u00B7 ${tierLabel}${memberHandle ? ` \u00B7 @${memberHandle}` : ''}`,
             statusLabel: 'Completed',
             statusTone: 'success',
             amountValue: bonusAmountValue,
@@ -19043,7 +19375,7 @@
             categoryLabel: 'Purchase',
             iconLabel: 'PU',
             title: `${invoiceId} ${invoiceStatus.toLowerCase()}`,
-            detail: `${buyerLabel} • Sponsor line applied`,
+            detail: `${buyerLabel} \u00B7 Sponsor line applied`,
             statusLabel: invoiceStatus,
             statusTone: invoiceStatus.toLowerCase() === 'posted' ? 'success' : 'warning',
             amountValue: Math.max(0, Number(invoice?.amount) || 0),
@@ -19795,7 +20127,7 @@
           const gatewayReference = String(request?.gatewayReference || '').trim();
           const gatewayMessage = String(request?.gatewayMessage || '').trim();
           const metadataLine = gatewayLabel || gatewayReference
-            ? `${gatewayLabel || 'Gateway'}${gatewayReference ? ` · ${gatewayReference}` : ''}`
+            ? `${gatewayLabel || 'Gateway'}${gatewayReference ? ` \u00B7 ${gatewayReference}` : ''}`
             : '';
           const metadataMarkup = metadataLine
             ? `<p class="text-caption text-text-tertiary mt-1">${escapeHtml(metadataLine)}</p>`
@@ -19809,7 +20141,7 @@
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <p class="text-body-sm font-medium text-text-primary">${escapeHtml(request.sourceLabel || 'E-Wallet Payout')}</p>
-                  <p class="text-caption text-text-tertiary mt-0.5">Requested by ${escapeHtml(requestLabel)} · ${escapeHtml(createdLabel)}</p>
+                  <p class="text-caption text-text-tertiary mt-0.5">Requested by ${escapeHtml(requestLabel)} \u00B7 ${escapeHtml(createdLabel)}</p>
                   ${metadataMarkup}
                   ${messageMarkup}
                 </div>
@@ -20207,7 +20539,7 @@
                 <div class="min-w-0">
                   <p class="text-caption ${directionClass}">${escapeHtml(directionLabel)}</p>
                   <p class="text-body-sm font-medium text-text-primary truncate mt-0.5">${escapeHtml(entry.counterpartyLabel)}</p>
-                  <p class="text-caption text-text-tertiary mt-0.5">${escapeHtml(timeLabel)} · ${escapeHtml(entry.status)}</p>
+                  <p class="text-caption text-text-tertiary mt-0.5">${escapeHtml(timeLabel)} \u00B7 ${escapeHtml(entry.status)}</p>
                   ${noteMarkup}
                   ${referenceMarkup}
                 </div>
@@ -22394,7 +22726,7 @@
           hasRegisteredMembersHydrated = true;
           syncBinaryTreeFromRegisteredMembers();
           recalculateEnrollDerivedMetrics();
-          void loadBusinessCenterStatus({ silent: true });
+          await loadBusinessCenterStatus({ silent: true, refreshFinancialSnapshots: true });
         } catch (error) {
           console.error('Failed to load registered members:', error);
           registeredMembers = [];
@@ -27048,7 +27380,7 @@
         renderRecentActivityFeed();
         renderNotificationCenter();
         void loadMemberNotificationCenter({ silent: true });
-        void loadBusinessCenterStatus({ silent: true });
+        void loadBusinessCenterStatus({ silent: true, refreshFinancialSnapshots: true });
         setDesktopSidebarCollapsed(initialDesktopSidebarCollapsed, { persist: false });
         setPage(activePage, { routeMode: 'replace' });
       }

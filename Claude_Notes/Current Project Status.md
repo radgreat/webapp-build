@@ -1,11 +1,74 @@
 # Current Project Status
 
-Last Updated: 2026-04-18
+Last Updated: 2026-04-23
 
 ## Purpose
 
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
+
+## Recent Update (2026-04-23) - Business Center Production Redesign In Progress
+
+- Completed:
+  - replaced legacy Business Center backend logic with owner-node architecture and max 3 center model
+  - added configurable tier unlock rules + owner progress tracking (unlocked/activated/pending)
+  - added manual activation idempotency flow and activation audit records
+  - added source-attributed commission events + owner wallet ledger entries (single-wallet credit model)
+  - added member endpoints for per-center earnings and wallet summary
+  - updated member dashboard Business Center panel to show:
+    - unlock/activation status
+    - unified wallet summary
+    - per-center earnings breakdown
+  - updated tree/KPI filtering to exclude placeholder, auxiliary center, and staff/admin nodes where applicable.
+- Outcome:
+  - Business Centers are now modeled as independent earning positions with owner-level wallet aggregation and audit-safe source attribution.
+- Files updated:
+  - `backend/services/member-business-center.service.js`
+  - `backend/controllers/member-business-center.controller.js`
+  - `backend/routes/member-business-center.routes.js`
+  - `backend/stores/member.store.js`
+  - `index.html`
+  - `binary-tree.mjs`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/services/member-business-center.service.js` passed.
+  - `node --check backend/controllers/member-business-center.controller.js` passed.
+  - `node --check backend/routes/member-business-center.routes.js` passed.
+  - `node --check backend/stores/member.store.js` passed.
+  - `node --check binary-tree.mjs` passed.
+  - inline script syntax parse for `index.html` last script block passed.
+
+### Addendum (2026-04-23) - Left-Only Activation + Standalone Panel Layout
+
+- Completed:
+  - locked Business Center activation to LEFT side in backend service validation/normalization path
+  - removed side selector from dashboard activation controls
+  - moved Business Center activation/earnings UI out of Legacy Leadership panel into a standalone panel card.
+- Outcome:
+  - activation behavior now matches strict business rule (Business Centers always pinned left)
+  - Business Center controls are visually isolated from Legacy Leadership tier UI for clearer ownership and maintenance.
+- Validation:
+  - `node --check backend/services/member-business-center.service.js` passed
+  - `index.html` inline script syntax parse passed (last script block).
+
+### Addendum (2026-04-23) - Infinity/Legacy Dashboard Panels Removed
+
+- Completed:
+  - removed Infinity Tier Commission dashboard panel from member dashboard layout
+  - removed Legacy Leadership Bonus dashboard panel from member dashboard layout
+  - retained standalone Business Center panel as the dashboard-facing activation/earnings surface.
+- Outcome:
+  - user dashboard no longer duplicates Infinity/Legacy tier-card UI that is already represented in Binary Tree views
+  - Business Center panel remains isolated and visible as its own component.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-business-center.md`
+- Validation:
+  - `index.html` inline script syntax parse passed (2 inline script blocks).
 
 ## Recent Update (2026-04-18) - Member Dashboard Session Validation Gate Tightened
 

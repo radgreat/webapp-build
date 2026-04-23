@@ -61,8 +61,10 @@ const PLACEMENT_LEG_RIGHT = 'right';
 const PLACEMENT_LEG_SPILLOVER = 'spillover';
 const PLACEMENT_LEG_EXTREME_LEFT = 'extreme-left';
 const PLACEMENT_LEG_EXTREME_RIGHT = 'extreme-right';
-const BUSINESS_CENTER_NODE_TYPE_PRIMARY = 'primary';
-const BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER = 'placeholder';
+const BUSINESS_CENTER_NODE_TYPE_MAIN_CENTER = 'main_center';
+const BUSINESS_CENTER_NODE_TYPE_BUSINESS_CENTER = 'business_center';
+const BUSINESS_CENTER_NODE_TYPE_STAFF_ADMIN = 'staff_admin';
+const BUSINESS_CENTER_NODE_TYPE_LEGACY_PLACEHOLDER = 'legacy_placeholder';
 
 const FAST_TRACK_PACKAGE_META = {
   [FREE_ACCOUNT_PACKAGE_KEY]: { label: 'Free Account', price: 0, bv: 0 },
@@ -126,13 +128,31 @@ function toWholeNumber(value, fallback = 0) {
 }
 
 function normalizeBusinessCenterNodeType(value) {
-  return normalizeCredential(value) === BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER
-    ? BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER
-    : BUSINESS_CENTER_NODE_TYPE_PRIMARY;
+  const normalized = normalizeCredential(value);
+  if (normalized === BUSINESS_CENTER_NODE_TYPE_BUSINESS_CENTER || normalized === 'business-center') {
+    return BUSINESS_CENTER_NODE_TYPE_BUSINESS_CENTER;
+  }
+  if (normalized === BUSINESS_CENTER_NODE_TYPE_STAFF_ADMIN || normalized === 'staff-admin') {
+    return BUSINESS_CENTER_NODE_TYPE_STAFF_ADMIN;
+  }
+  if (
+    normalized === BUSINESS_CENTER_NODE_TYPE_LEGACY_PLACEHOLDER
+    || normalized === 'legacy-placeholder'
+    || normalized === 'placeholder'
+  ) {
+    return BUSINESS_CENTER_NODE_TYPE_LEGACY_PLACEHOLDER;
+  }
+  return BUSINESS_CENTER_NODE_TYPE_MAIN_CENTER;
 }
 
 function isBusinessCenterPlaceholderMember(member = {}) {
-  return normalizeBusinessCenterNodeType(member?.businessCenterNodeType) === BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER;
+  return normalizeBusinessCenterNodeType(member?.businessCenterNodeType) === BUSINESS_CENTER_NODE_TYPE_LEGACY_PLACEHOLDER;
+}
+
+function isBusinessCenterAuxiliaryNode(member = {}) {
+  const nodeType = normalizeBusinessCenterNodeType(member?.businessCenterNodeType);
+  const businessCenterIndex = toWholeNumber(member?.businessCenterIndex, 0);
+  return nodeType === BUSINESS_CENTER_NODE_TYPE_BUSINESS_CENTER || businessCenterIndex > 0;
 }
 
 function doesMemberMatchIdentity(member = {}, identity = {}) {
@@ -158,6 +178,21 @@ function resolvePrimaryMemberIndexForIdentity(members = [], identity = {}) {
 
   if (!matchingMemberIndexes.length) {
     return -1;
+  }
+
+  const mainCenterMatches = matchingMemberIndexes
+    .filter(({ member }) => normalizeBusinessCenterNodeType(member?.businessCenterNodeType) === BUSINESS_CENTER_NODE_TYPE_MAIN_CENTER);
+  if (mainCenterMatches.length > 0) {
+    const usernameKey = normalizeCredential(identity?.username);
+    if (usernameKey) {
+      const strictUsernameMainMatch = mainCenterMatches.find(({ member }) => (
+        normalizeCredential(member?.memberUsername || member?.username) === usernameKey
+      ));
+      if (strictUsernameMainMatch) {
+        return strictUsernameMainMatch.index;
+      }
+    }
+    return mainCenterMatches[0].index;
   }
 
   const nonPlaceholderMatches = matchingMemberIndexes
@@ -423,7 +458,7 @@ function resolvePlacementSideFromLeg(placementLegInput, spilloverPlacementSideIn
 }
 
 function isBinaryTreePlacementEligibleMember(member = {}) {
-  if (isBusinessCenterPlaceholderMember(member)) {
+  if (isBusinessCenterPlaceholderMember(member) || isBusinessCenterAuxiliaryNode(member)) {
     return false;
   }
 
@@ -1913,11 +1948,16 @@ export async function createRegisteredMember(payload) {
       businessCenterOwnerUserId: userId,
       businessCenterOwnerUsername: memberUsername,
       businessCenterOwnerEmail: email,
-      businessCenterNodeType: BUSINESS_CENTER_NODE_TYPE_PRIMARY,
+      businessCenterNodeType: isStaffTreeAccount
+        ? BUSINESS_CENTER_NODE_TYPE_STAFF_ADMIN
+        : BUSINESS_CENTER_NODE_TYPE_MAIN_CENTER,
       businessCenterIndex: 0,
-      businessCenterLabel: '',
+      businessCenterLabel: 'Main Center',
       businessCenterActivatedAt: '',
       businessCenterPinnedSide: '',
+      isEarningEligible: !isStaffTreeAccount,
+      activationStatus: 'active',
+      sourceQualificationTier: 0,
       legacyLeadershipCompletedTierCount: 0,
       businessCentersEarnedLifetime: 0,
       businessCentersActivated: 0,
