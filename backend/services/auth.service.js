@@ -33,6 +33,12 @@ import {
   updateMemberBinaryTreePinnedNodeIdsByUserId,
   updateMemberBinaryTreeTierSortDirectionsByUserId,
 } from '../stores/member-binary-tree-intro.store.js';
+import {
+  createStripeBillingPortalSessionForUserIdentity,
+  createStripeConnectDashboardLoginLinkForUserIdentity,
+  createStripeConnectOnboardingLinkForUserIdentity,
+  resolveStripeConnectStatusForUserIdentity,
+} from './stripe-client.service.js';
 
 import {
   normalizeText,
@@ -78,6 +84,60 @@ function buildEmailVerificationLink(rawTokenInput) {
 
 function normalizeEmailAddress(value) {
   return normalizeCredential(value || '');
+}
+
+function resolveBillingPortalFallbackOrigin(context = {}) {
+  const contextOrigin = normalizeText(context?.origin);
+  if (contextOrigin) {
+    try {
+      const parsed = new URL(contextOrigin);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.origin;
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  const envOrigin = normalizeText(process.env.PUBLIC_APP_ORIGIN);
+  if (envOrigin) {
+    try {
+      const parsed = new URL(envOrigin);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.origin;
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  const fallbackPort = Number.parseInt(process.env.PORT || '3000', 10) || 3000;
+  return `http://localhost:${fallbackPort}`;
+}
+
+function normalizeStripePayoutAccountStatusPayload(payload = {}) {
+  const source = payload && typeof payload === 'object' ? payload : {};
+  const status = source.status && typeof source.status === 'object'
+    ? source.status
+    : {};
+  const connectAccountId = normalizeText(source.connectAccountId || status.connectAccountId);
+  const detailsSubmitted = status.detailsSubmitted === true;
+  const payoutsEnabled = status.payoutsEnabled === true;
+  const chargesEnabled = status.chargesEnabled === true;
+  const onboardingComplete = status.onboardingComplete === true;
+  const requiresOnboarding = !onboardingComplete;
+
+  return {
+    connectAccountId,
+    hasConnectedAccount: Boolean(connectAccountId),
+    detailsSubmitted,
+    payoutsEnabled,
+    chargesEnabled,
+    onboardingComplete,
+    requiresOnboarding,
+    lastSyncedAt: normalizeText(status.lastSyncedAt),
+    onboardingCompletedAt: normalizeText(status.onboardingCompletedAt),
+  };
 }
 
 function normalizePinnedNodeIdsForBinaryTree(value) {
@@ -275,6 +335,248 @@ export async function resolveAuthenticatedMemberSession(memberUserInput = {}) {
       checkedAt: new Date().toISOString(),
     },
   };
+}
+
+export async function createMemberStripeBillingPortalSession(memberUserInput = {}, payload = {}, context = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const matchedUser = await findUserById(userId);
+  if (!matchedUser) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Member account was not found for billing portal access.',
+    };
+  }
+
+  try {
+    const portalResult = await createStripeBillingPortalSessionForUserIdentity({
+      userId: matchedUser.id,
+      username: matchedUser.username,
+      email: matchedUser.email,
+      name: matchedUser.name,
+    }, {
+      returnUrl: normalizeText(payload?.returnUrl || payload?.return_url),
+      fallbackOrigin: resolveBillingPortalFallbackOrigin(context),
+      metadata: {
+        source: 'member-auth',
+      },
+    });
+    const portalUrl = normalizeText(portalResult?.session?.url);
+    if (!portalUrl) {
+      return {
+        success: false,
+        status: 502,
+        error: 'Stripe billing portal did not return a redirect URL.',
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      data: {
+        success: true,
+        portalUrl,
+        customerId: normalizeText(portalResult?.customerId),
+        checkedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 502,
+      error: error instanceof Error
+        ? error.message
+        : 'Unable to start Stripe billing portal session.',
+    };
+  }
+}
+
+export async function resolveMemberStripePayoutAccountStatus(memberUserInput = {}, options = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const matchedUser = await findUserById(userId);
+  if (!matchedUser) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Member account was not found for payout account status.',
+    };
+  }
+
+  try {
+    const payoutAccountStatus = await resolveStripeConnectStatusForUserIdentity({
+      userId: matchedUser.id,
+      username: matchedUser.username,
+      email: matchedUser.email,
+      name: matchedUser.name,
+    }, {
+      allowCreate: false,
+      fetchRemote: options?.fetchRemote !== false,
+      metadata: {
+        source: 'member-auth',
+      },
+    });
+
+    return {
+      success: true,
+      status: 200,
+      data: {
+        success: true,
+        ...normalizeStripePayoutAccountStatusPayload(payoutAccountStatus),
+        checkedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 502,
+      error: error instanceof Error
+        ? error.message
+        : 'Unable to resolve Stripe payout account status.',
+    };
+  }
+}
+
+export async function createMemberStripePayoutOnboardingLink(memberUserInput = {}, payload = {}, context = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const matchedUser = await findUserById(userId);
+  if (!matchedUser) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Member account was not found for payout account onboarding.',
+    };
+  }
+
+  try {
+    const onboardingLinkResult = await createStripeConnectOnboardingLinkForUserIdentity({
+      userId: matchedUser.id,
+      username: matchedUser.username,
+      email: matchedUser.email,
+      name: matchedUser.name,
+    }, {
+      returnUrl: normalizeText(payload?.returnUrl || payload?.return_url),
+      refreshUrl: normalizeText(payload?.refreshUrl || payload?.refresh_url),
+      fallbackOrigin: resolveBillingPortalFallbackOrigin(context),
+      fallbackPath: '/index.html',
+      metadata: {
+        source: 'member-auth',
+      },
+    });
+    const onboardingUrl = normalizeText(onboardingLinkResult?.onboardingUrl);
+    if (!onboardingUrl) {
+      return {
+        success: false,
+        status: 502,
+        error: 'Stripe payout onboarding did not return a redirect URL.',
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      data: {
+        success: true,
+        onboardingUrl,
+        expiresAt: normalizeText(onboardingLinkResult?.expiresAt),
+        ...normalizeStripePayoutAccountStatusPayload(onboardingLinkResult),
+        checkedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 502,
+      error: error instanceof Error
+        ? error.message
+        : 'Unable to start Stripe payout onboarding.',
+    };
+  }
+}
+
+export async function createMemberStripePayoutDashboardLink(memberUserInput = {}, payload = {}, context = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const matchedUser = await findUserById(userId);
+  if (!matchedUser) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Member account was not found for Stripe dashboard access.',
+    };
+  }
+
+  try {
+    const dashboardLinkResult = await createStripeConnectDashboardLoginLinkForUserIdentity({
+      userId: matchedUser.id,
+      username: matchedUser.username,
+      email: matchedUser.email,
+      name: matchedUser.name,
+    }, {
+      fallbackOrigin: resolveBillingPortalFallbackOrigin(context),
+      metadata: {
+        source: 'member-auth',
+      },
+      returnUrl: normalizeText(payload?.returnUrl || payload?.return_url),
+    });
+    const dashboardUrl = normalizeText(dashboardLinkResult?.dashboardUrl);
+    if (!dashboardUrl) {
+      return {
+        success: false,
+        status: 502,
+        error: 'Stripe dashboard did not return a redirect URL.',
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      data: {
+        success: true,
+        dashboardUrl,
+        ...normalizeStripePayoutAccountStatusPayload(dashboardLinkResult),
+        checkedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 502,
+      error: error instanceof Error
+        ? error.message
+        : 'Unable to open Stripe dashboard.',
+    };
+  }
 }
 
 export async function validatePasswordSetupToken(tokenInput, emailInput = '') {

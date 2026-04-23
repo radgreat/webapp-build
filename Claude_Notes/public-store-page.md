@@ -1103,3 +1103,82 @@
 - Inline script parse checks passed:
   - `store.html` (`1` block)
   - `index.html` (`3` blocks)
+
+## Update (2026-04-22) - Storefront Checkout Tax Source Set to Stripe Tax
+
+### What Changed
+
+- Enabled `automatic_tax` on store Checkout Session creation in backend checkout service.
+- Updated storefront cart summary copy to show total as pre-tax estimate before redirecting to Stripe.
+- Updated member dashboard storefront cart summary copy to the same estimate language.
+
+### Files Affected
+
+- `backend/services/store-checkout.service.js`
+- `store.html`
+- `index.html`
+
+### Notes
+
+- Stripe now computes final tax at checkout using customer location/address details.
+- In-app totals before redirect are estimates and can differ from Stripe final totals.
+
+## Update (2026-04-22) - Preferred Customer Owner Settlement Routing Fix
+
+### What Changed
+
+- Fixed storefront owner resolution so checkout settlement targets actual store owner identity first.
+- Resolver now matches in this order:
+  1. `storeCode`
+  2. `publicStoreCode`
+  3. `attributionStoreCode` (only when uniquely matched)
+- Applied same resolver behavior in both:
+  - `backend/services/store-checkout.service.js`
+  - `backend/services/invoice.service.js`
+
+### Why
+
+- Shared attribution codes on downline/preferred accounts could hijack owner mapping, causing:
+  - wrong settlement package key
+  - wrong owner BV math
+  - missing effective owner BV credit.
+
+### Recovery
+
+- Corrected impacted preferred purchase invoice `INV-240937` to owner BV `38`.
+- Applied one-time missing owner BV credit to `zeroone`.
+
+### Files Affected
+
+- `backend/services/store-checkout.service.js`
+- `backend/services/invoice.service.js`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+## Update (2026-04-22) - Preferred Dashboard Checkout Attribution Fallback
+
+### What Changed
+
+- Added backend fallback owner attribution for Preferred-buyer checkouts when direct store link code is missing.
+- Resolution now can infer owner from buyer-linked store codes (`attributionStoreCode` first, then `storeCode/publicStoreCode`) for Preferred flows.
+- My Store dashboard checkout now includes routed `storeCode` in payload to avoid ambiguous attribution.
+
+### Why
+
+- Preferred checkout discount could apply, but owner BV/retail settlement depended on attribution context.
+- Missing `storeCode` made owner routing brittle in dashboard-origin purchases.
+
+### Files Affected
+
+- `backend/services/store-checkout.service.js`
+- `index.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check backend/services/store-checkout.service.js` passed.
+- `index.html` inline script parsing passed.

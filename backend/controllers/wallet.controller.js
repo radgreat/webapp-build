@@ -76,7 +76,16 @@ export async function postEWalletCommissionTransfer(req, res) {
 
 export async function postEWalletPayoutRequest(req, res) {
   try {
-    const result = await createEWalletPayoutRequest(req.body || {});
+    const authenticatedMember = req.authenticatedMember && typeof req.authenticatedMember === 'object'
+      ? req.authenticatedMember
+      : {};
+    const payload = {
+      ...(req.body || {}),
+      userId: String(authenticatedMember.id || '').trim() || String(req.body?.userId || '').trim(),
+      username: String(authenticatedMember.username || '').trim() || String(req.body?.username || '').trim(),
+      email: String(authenticatedMember.email || '').trim() || String(req.body?.email || '').trim(),
+    };
+    const result = await createEWalletPayoutRequest(payload);
 
     if (!result.success) {
       return res.status(result.status).json({ error: result.error });

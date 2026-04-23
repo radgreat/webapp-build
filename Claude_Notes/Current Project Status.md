@@ -280,7 +280,7 @@ Last Updated: 2026-04-18
   - wired panel position and visibility sync helpers to align panel with current side-nav layout behavior
   - connected Account Overview header close button to hide panel behavior.
 - Outcome:
-  - Account Overview panel can now be hidden/shown from the right-side button rail while preserving Binary Tree Next’s hybrid rendering pattern (canvas shell + DOM panel).
+  - Account Overview panel can now be hidden/shown from the right-side button rail while preserving Binary Tree Next???s hybrid rendering pattern (canvas shell + DOM panel).
   - panel positioning now tracks current layout calculations instead of remaining static.
 - Files updated:
   - `binary-tree-next-app.mjs`
@@ -1060,7 +1060,7 @@ Last Updated: 2026-04-18
   - exposed ring radius/width/color controls as top-level constants
   - refined ring rendering to subtle dual-stroke style for clean readability
 - Outcome:
-  - the “selected comes from this node” thin outline is now isolated and easy to iterate without affecting selected-node styling.
+  - the ???selected comes from this node??? thin outline is now isolated and easy to iterate without affecting selected-node styling.
 - Files updated:
   - `binary-tree-next-app.mjs`
   - `Claude_Notes/charge-documentation.md`
@@ -1109,7 +1109,7 @@ Last Updated: 2026-04-18
   - added subtle ancestor waypoint markers for path readability
   - integrated trail layering between base connectors and node icon pass
 - Outcome:
-  - selected node now has clear “where it came from” context without blue active selector behavior.
+  - selected node now has clear ???where it came from??? context without blue active selector behavior.
 - Files updated:
   - `binary-tree-next-app.mjs`
   - `Claude_Notes/charge-documentation.md`
@@ -1330,7 +1330,7 @@ Last Updated: 2026-04-18
 ## Recent Update (2026-04-08) - Popup Cover Clipping Fix (Locally Reproduced)
 
 - Completed:
-  - reproduced the Ã¢â‚¬Å“cover removedÃ¢â‚¬Â behavior on local branch with scripted Binary Tree popup interactions.
+  - reproduced the ????????????????cover removed??????????????? behavior on local branch with scripted Binary Tree popup interactions.
   - traced root cause to popup placement: top cover section was being clipped when popup tried to stay above near-top nodes.
   - updated popup placement logic in `binary-tree.mjs` to support below-node fallback when above placement cannot fit.
   - added bidirectional pointer rendering for selected-node popup so anchoring remains visually correct in both placements.
@@ -2250,7 +2250,7 @@ Last Updated: 2026-04-18
 
 ## Recent Update (2026-04-07) - Login Background Stack Simplified
 
-- Cleaned up extra background layers in `login.html` that were causing a visible Ã¢â‚¬Å“second background behindÃ¢â‚¬Â effect.
+- Cleaned up extra background layers in `login.html` that were causing a visible ????????????????second background behind??????????????? effect.
 - Removed additional fallback gradient stack and extra radial overlay behind the Color Bends canvas.
 - Retained only the single base black fallback plus live shader background render.
 - Files updated:
@@ -2472,7 +2472,7 @@ Last Updated: 2026-04-18
 - Timer area cleanup:
   - removed `#cutoff-next-target` line
   - label now reads `Cut-Off Timer`
-  - countdown output now shows time-only shorthand (`Xd Xh Xm` style), no Ã¢â‚¬Å“remainingÃ¢â‚¬Â copy.
+  - countdown output now shows time-only shorthand (`Xd Xh Xm` style), no ????????????????remaining??????????????? copy.
 - Files updated:
   - `index.html`
   - `Claude_Notes/charge-documentation.md`
@@ -2564,7 +2564,7 @@ Last Updated: 2026-04-18
     - `New Members`
     - `Direct Sponsors`
     - `Cycles`
-- This removes the prior Ã¢â‚¬Å“uniform railÃ¢â‚¬Â feel and creates a stronger visual hierarchy.
+- This removes the prior ????????????????uniform rail??????????????? feel and creates a stronger visual hierarchy.
 - Preserved all existing IDs and trend/value bindings.
 - `Fast Track Bonus` stays as a separate container below.
 - Files updated:
@@ -2891,7 +2891,7 @@ Last Updated: 2026-04-18
 - Restyled dashboard shell in `index.html` to match the visual feel of `https://21st.dev/home`.
 - Core updates delivered:
   - dark token system switched to near-black neutrals + subtle borders + muted cool-blue accents
-  - sidebar navigation restructured with search row (`Ã¢Å’Ëœ K`), section labels, tighter spacing, and neutral active-state treatment
+  - sidebar navigation restructured with search row (`????????????? K`), section labels, tighter spacing, and neutral active-state treatment
   - dashboard nav label changed from `Dashboard` to `Home` (also reflected in page meta title)
   - top header density simplified and centered-title behavior tuned
   - top search hidden for cleaner 21st-style top-bar composition
@@ -3801,7 +3801,7 @@ Last Updated: 2026-04-18
 
 ## Recent Update (2026-04-03) - Rank Advancement Rules Wired into Profile Achievement Component
 
-- Implemented rank advancement milestones from `brand_assets/MLM Business Logic.md` section `# 5Ã¯Â¸ÂÃ¢Æ’Â£ Rank Advancement Bonus`.
+- Implemented rank advancement milestones from `brand_assets/MLM Business Logic.md` section `# 5????????????????????????? Rank Advancement Bonus`.
 - Added profile achievement entries for Ruby through Royal Crown with cycle thresholds and payout values.
 - Added server-side prerequisite checks for rank advancement claims:
   - cycle requirement
@@ -4213,7 +4213,7 @@ Last Updated: 2026-04-18
   - branded workspace header
   - status chips (`Live Catalog`, `Attribution Locked`)
   - elevated tab cards for `Product Management`, `Analytics`, `Store Setup`
-  - live Ã¢â‚¬Å“Current WorkspaceÃ¢â‚¬Â context panel that updates as tabs change
+  - live ????????????????Current Workspace??????????????? context panel that updates as tabs change
 - Enhanced tab interaction behavior:
   - clearer active state (ring + border + shadow treatment)
   - inline active badge on selected tab card
@@ -4609,10 +4609,10 @@ Last Updated: 2026-04-18
   - sponsor tier `Infinity` enrolling `Legacy Builder Pack` must credit `120.00` (`12.5% of 960`).
 - Backend updates:
   - `backend/services/member.service.js` now computes Fast Track bonus as:
-    - sponsor-tier rate (`7.5% | 10% | 12.5% | 20%`) Ãƒâ€” enrolled package price
+    - sponsor-tier rate (`7.5% | 10% | 12.5% | 20%`) ???????????? enrolled package price
   - sponsor tier is now derived from sponsor account package/rank when available (fallback to payload tier).
 - Frontend parity updates:
-  - `index.html` and `admin.html` `getFastTrackBonusAmount(...)` now use the same sponsor-tier-rate Ãƒâ€” package-price calculation for preview/fallback messaging.
+  - `index.html` and `admin.html` `getFastTrackBonusAmount(...)` now use the same sponsor-tier-rate ???????????? package-price calculation for preview/fallback messaging.
 - Data repair executed:
   - recalculated historical non-admin rows to the corrected orientation.
   - corrected rows included:
@@ -4631,7 +4631,7 @@ Last Updated: 2026-04-18
   - `sethfozz` computed left/right leg BV aligns with saved snapshot (`1920 / 2880`)
 - Added cutoff stale-state protection in `serve.mjs`:
   - `/api/member/server-cutoff-metrics` now invalidates per-account cutoff baselines when account `createdAt` is newer than `lastAppliedCutoffUtcMs`.
-  - prevents Ã¢â‚¬Å“instant reset to 0Ã¢â‚¬Â behavior caused by stale inherited state.
+  - prevents ????????????????instant reset to 0??????????????? behavior caused by stale inherited state.
 - Added stale-baseline protection for session bootstrap:
   - `serve.mjs` auth response sanitizer
   - `index.html` starter dashboard metric resolver
@@ -5120,7 +5120,7 @@ Last Updated: 2026-04-18
 
 - User-side binary tree now rebuilds from `registered-members` records instead of remaining on root-only mock seed.
 - Added user-shell tree sync path in `index.html`:
-  - build binary node graph from current sponsorÃ¢â‚¬â„¢s enrolled members
+  - build binary node graph from current sponsor??????????????????s enrolled members
   - apply controller `setData(...)` when tree is initialized
   - refresh summary/fallback when tree module is not yet mounted
 - Sync triggers now run:
@@ -5325,7 +5325,7 @@ Last Updated: 2026-04-18
 ## Selected Node Country Code Field (2026-02-22)
 
 - Added `Country Code` field in the Selected Node panel on both user and admin tree views.
-- Field is dynamically populated from the selected nodeÃ¢â‚¬â„¢s country value and displayed as uppercase ISO code (example: `US`, `PH`).
+- Field is dynamically populated from the selected node??????????????????s country value and displayed as uppercase ISO code (example: `US`, `PH`).
 
 ## Node L/R Label Format + Gap Tuning (2026-02-22)
 
@@ -6089,9 +6089,9 @@ Last Updated: 2026-04-18
   - cycle timing = weekly cutoff (server cutoff config)
   - payout mode = auto-added (no manual claim)
   - retroactive historical closed-cycle volumes included.
-- Legacy Leadership card **no longer shares** Infinity Builder eligibility Ã¢â‚¬â€ has its own independent eligibility system:
-  - `LEGACY_LEADERSHIP_ELIGIBLE_RANKS = new Set(['legacy'])` Ã¢â‚¬â€ only Legacy rank qualifies (not Infinity)
-  - `LEGACY_LEADERSHIP_DIRECT_ENROLLMENT_REQUIREMENT = 3` Ã¢â‚¬â€ counts Legacy Package enrollments only
+- Legacy Leadership card **no longer shares** Infinity Builder eligibility ?????????????????? has its own independent eligibility system:
+  - `LEGACY_LEADERSHIP_ELIGIBLE_RANKS = new Set(['legacy'])` ?????????????????? only Legacy rank qualifies (not Infinity)
+  - `LEGACY_LEADERSHIP_DIRECT_ENROLLMENT_REQUIREMENT = 3` ?????????????????? counts Legacy Package enrollments only
   - Separate functions: `resolveLegacyLeadershipEligibility()`, `getLegacyLeadershipQualifiedDirectEnrollmentsForSponsor()`, `buildLegacyLeadershipEligibilityRequirementMessage()`
   - Infinity Pack users now correctly see Legacy Leadership as **Locked**
 - Screenshot validation:
@@ -6101,14 +6101,14 @@ Last Updated: 2026-04-18
 - Validation:
   - Inline script parse for `index.html` passed (`Parsed 2 inline script block(s) successfully.`).
 
-## User Dashboard: Infinity Builder Active Tier Card Ã¢â‚¬â€ Per-Node Eligibility Indicators (2026-02-22)
+## User Dashboard: Infinity Builder Active Tier Card ?????????????????? Per-Node Eligibility Indicators (2026-02-22)
 
 - Active (claimed) tier cards now show per-sponsor eligibility indicators:
   - **Green/lit** sponsor chip = sponsor has met their 3-enrollment requirement = user is earning 1% weekly override from them
   - **Gray/dim** sponsor chip = sponsor hasn't met requirement = not earning 1%
 - New utility: `findRegisteredMemberByHandle()` looks up member objects from handle strings
 - New constants: `SPONSOR_NODE_ELIGIBLE_PALETTE` (green), `SPONSOR_NODE_INELIGIBLE_PALETTE` (gray)
-- Hover tooltip on each chip shows status: "Active Ã¢â‚¬â€ earning 1%" or "Inactive Ã¢â‚¬â€ not earning 1%"
+- Hover tooltip on each chip shows status: "Active ?????????????????? earning 1%" or "Inactive ?????????????????? not earning 1%"
 - Small legend row below sponsor chips for at-a-glance reference
 - **Legacy Leadership Bonus:** excluded from this change per owner instruction
 - Applied file: `index.html`
@@ -6563,7 +6563,7 @@ Last Updated: 2026-04-18
 - User dashboard behavior now under one mockup switch:
   - KPI cards (`Total Balance`, `Personal Volume`, `Cycles`) switch between seeded mock preview and live JSON-backed values.
   - Infinity/Legacy tier preview mode follows dashboard mockup state.
-  - Recent Activity no longer shows seeded Ã¢â‚¬Å“before-stateÃ¢â‚¬Â store activity when mockup mode is OFF.
+  - Recent Activity no longer shows seeded ????????????????before-state??????????????? store activity when mockup mode is OFF.
   - Mock-seeded store invoices are added in mock mode and removed in live mode.
 - Security alignment retained:
   - Personal Volume purchase sync remains server-authoritative only.
@@ -6820,7 +6820,7 @@ Last Updated: 2026-04-18
   - search + filters + refresh toolbar
   - order table as primary browsing surface
   - dedicated right/secondary detail panel pattern (rendered below table in current layout)
-- Fulfillment action now happens from the selected orderÃ¢â‚¬â„¢s detail panel form.
+- Fulfillment action now happens from the selected order??????????????????s detail panel form.
 
 ### Current impact
 
@@ -8382,7 +8382,7 @@ Last Updated: 2026-04-18
 ## Recent Update (2026-04-03) - User Dashboard Account Rank Card Uses Rank Icon
 
 - Completed:
-  - replaced the Account Overview -> Account Rank cardÃ¢â‚¬â„¢s static star icon with a rank badge image element.
+  - replaced the Account Overview -> Account Rank card??????????????????s static star icon with a rank badge image element.
   - added `renderAccountRankIcon()` so the icon tracks the current account rank dynamically.
   - hooked icon refresh into:
     - initial load
@@ -9281,7 +9281,7 @@ Last Updated: 2026-04-18
 
 - Outcome:
   - KPI badge hover content no longer renders inside/clips within the Account Status card bounds.
-  - interaction now matches the profile page Ã¢â‚¬Å“hover windowÃ¢â‚¬Â behavior.
+  - interaction now matches the profile page ????????????????hover window??????????????? behavior.
 
 - Files updated:
   - `index.html`
@@ -9488,7 +9488,7 @@ Last Updated: 2026-04-18
 - Completed:
   - added bottom-center footer legal text on the login page.
   - added underlined hyperlinks for `Terms of Service` and `Privacy Policy`.
-  - kept copyright line as `Ã‚Â© 2026 LD Premiere`.
+  - kept copyright line as `????????? 2026 LD Premiere`.
 
 - Outcome:
   - login page now includes required legal footer copy in the requested location.
@@ -13014,18 +13014,18 @@ Last Updated: 2026-04-18
 ## Recent Update (2026-04-13) - Admin Product Loader Resilience (MetaCharge Visibility)
 
 - Completed:
-  - confirmed `MetaCharge™` exists and is active in `charge.store_products`.
+  - confirmed `MetaCharge???` exists and is active in `charge.store_products`.
   - patched store product storage layer to avoid hard failure when admin migration credentials fail.
   - enabled dynamic read/write fallback when optional columns (`image_urls`, `package_earnings`) are absent.
 - Outcome:
-  - admin product list APIs now return products (including `MetaCharge™`) instead of failing on admin migration auth.
+  - admin product list APIs now return products (including `MetaCharge???`) instead of failing on admin migration auth.
 - Files updated:
   - `backend/stores/store-product.store.js`
   - `Claude_Notes/charge-documentation.md`
   - `Claude_Notes/Current Project Status.md`
 - Validation:
   - `node --check backend/stores/store-product.store.js` passed.
-  - `getStoreProducts({ includeArchived: true })` returned `MetaCharge™` successfully.
+  - `getStoreProducts({ includeArchived: true })` returned `MetaCharge???` successfully.
 
 ## Recent Update (2026-04-13) - Dashboard Store Discount Copy Clarified
 
@@ -13034,7 +13034,7 @@ Last Updated: 2026-04-18
   - preferred-customer sessions now show `Preferred Customer Discount`.
   - member sessions now show `Member Discount`.
 - Outcome:
-  - avoids confusion where member accounts (0%) were shown under “Preferred” wording.
+  - avoids confusion where member accounts (0%) were shown under ???Preferred??? wording.
 - Files updated:
   - `index.html`
   - `Claude_Notes/charge-documentation.md`
@@ -13154,7 +13154,7 @@ Last Updated: 2026-04-18
 
 - Completed:
   - patched Account Overview title resolution to prioritize profile-aware title fields over stale fallback labels.
-  - for member mode, set non-fallback session profile title as top priority so panel/root title follows the user’s actual selected title.
+  - for member mode, set non-fallback session profile title as top priority so panel/root title follows the user???s actual selected title.
   - added shared title/icon resolver helpers and applied them to panel visuals + tree node icon resolution.
   - updated root/member live node builders so normalized title + icon metadata is preserved across tree refreshes.
 - Outcome:
@@ -13823,7 +13823,7 @@ Last Updated: 2026-04-18
 
 - Completed:
   - implemented upgrade-product selection flow in My Store Review for account upgrades:
-    - after choosing an upgrade package, review now shows Select your product options (MetaCharge�, MetaRoast�)
+    - after choosing an upgrade package, review now shows Select your product options (MetaCharge?, MetaRoast?)
     - selection is interactive and persisted in state.ui.myStoreSelection
   - aligned upgrade BV logic to MLM product-count rule:
     - BV now derives from upgrade product count x per-product upgrade BV (50 BV each)
@@ -13834,7 +13834,7 @@ Last Updated: 2026-04-18
     - personal-builder-pack BV corrected from 192 to 150 in ENROLL_PACKAGE_META
   - updated review/checkpoint display behavior for upgrades:
     - breadcrumb label switches to Review Upgrade when selection is an upgrade
-    - review row shows selected product + computed upgrade quantity (e.g., MetaCharge� 17x)
+    - review row shows selected product + computed upgrade quantity (e.g., MetaCharge? 17x)
     - checkout summary line includes upgrade product selection context
 - Outcome:
   - upgrade users now explicitly choose which product to receive for their package-delta products.
@@ -13850,7 +13850,7 @@ Last Updated: 2026-04-18
   - upgrade calculations were anchored to product-count deltas (selectableProducts) and fixed per-upgrade product BV (50) to enforce "BV follows products".
   - product choice is currently single-selection per upgrade transaction (all delta products assigned to one chosen product type).
 - Known limitations:
-  - MetaRoast� currently reuses the available MetaCharge product image asset until a dedicated MetaRoast asset is added in rand_assets/Product Images/.
+  - MetaRoast? currently reuses the available MetaCharge product image asset until a dedicated MetaRoast asset is added in rand_assets/Product Images/.
   - split-product allocation (e.g., mix of MetaCharge + MetaRoast counts in one upgrade) is not yet implemented.
 - Validation:
   - node --check binary-tree-next-app.mjs passed.
@@ -15301,7 +15301,7 @@ Last Updated: 2026-04-18
   - changed storefront responsive collapse threshold to `1040px` (aligned to store page behavior)
   - fixed discount badge minimum width to reduce post-hydration header text reflow.
 - Outcome:
-  - reduced first-load �stretch then settle� effect in My Store storefront view.
+  - reduced first-load ?stretch then settle? effect in My Store storefront view.
 - Files updated:
   - `index.html`
   - `Claude_Notes/charge-documentation.md`
@@ -15317,7 +15317,7 @@ Last Updated: 2026-04-18
   - added storefront image warm-preload routine with bounded wait for first-open stability
   - added fixed initial Store grid loading placeholder + minimum height to reduce first-render stretch.
 - Outcome:
-  - reduced visible first-open �stretch then settle� effect in My Store product panel.
+  - reduced visible first-open ?stretch then settle? effect in My Store product panel.
 - Files updated:
   - `index.html`
   - `Claude_Notes/charge-documentation.md`
@@ -16763,3 +16763,527 @@ Validation state:
 
 Known limitations:
 - Copy-only update; loading behavior, transitions, and timing remain unchanged.
+
+### Addendum (2026-04-21) - Billing System Migration Progress: Stripe-Hosted Portal + Invoice Sync
+
+Current scope update:
+- Billing architecture is now in hybrid state by design:
+- Internal DB invoice/activity history remains first-party in app.
+- Stripe now handles hosted billing management, payment methods, and hosted invoice artifacts (invoice pages/PDF links).
+
+Progress made this pass:
+- Completed audit-first implementation pass across billing/order/invoice/Stripe stack.
+- Added reliable user->Stripe customer mapping persistence in `charge.member_users` (runtime schema extension + lookup/update helpers).
+- Added Stripe billing portal API for authenticated members and wired settings UI launch action.
+- Enabled Checkout Session invoice creation in both:
+- storefront checkout
+- member enrollment checkout
+- Added Stripe webhook endpoint with signature verification and event sync delegation.
+- Added invoice Stripe-reference synchronization pipeline to keep internal activity/order records up to date from Stripe lifecycle events.
+- Refactored existing completion logic incrementally (did not discard existing invoice creation/activity credit flows).
+
+Files touched this pass:
+- `backend/app.js`
+- `backend/controllers/auth.controller.js`
+- `backend/controllers/stripe-webhook.controller.js`
+- `backend/routes/auth.routes.js`
+- `backend/routes/stripe-webhook.routes.js`
+- `backend/services/auth.service.js`
+- `backend/services/invoice.service.js`
+- `backend/services/member.service.js`
+- `backend/services/store-checkout.service.js`
+- `backend/services/stripe-client.service.js`
+- `backend/services/stripe-webhook.service.js`
+- `backend/stores/invoice.store.js`
+- `backend/stores/user.store.js`
+- `index.html`
+
+Validation state:
+- `node --check` passed for all modified backend JS files.
+- Internal invoice table reuse preserved; no new billing table added.
+- Existing app-side Recent Activity and invoice feed paths remain intact and continue to read internal DB invoice records.
+
+Operational notes:
+- New required env: `STRIPE_WEBHOOK_SECRET`.
+- Webhook route is mounted before JSON middleware to preserve raw body for Stripe signature verification.
+
+Known limitations:
+- No separate processed-webhook-event ledger table yet; idempotency is currently enforced via existing invoice/session/payment-intent identifiers and update semantics.
+- Final production behavior of portal features depends on Stripe Dashboard billing portal configuration.
+
+### Addendum (2026-04-21) - Member Sidebar Billing Access Move (Invoice)
+
+Current scope update:
+- Member dashboard billing-portal entry now lives in left sidebar Records section as `Invoice` (replacing the empty `Purchases` nav item).
+
+Progress made:
+- Replaced sidebar label/icon and added dedicated click target id (`sidebar-invoice-portal-link`).
+- Removed duplicate Settings Payment portal-launch button.
+- Rebound Stripe portal launch listener to the new sidebar entry using existing billing portal API helper.
+
+Files touched this pass:
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- Confirmed no remaining `settings-billing-portal-button` DOM id or JS listener references in `index.html`.
+- Confirmed sidebar nav now shows `Invoice` with `open_in_new` icon.
+
+## Update (2026-04-21) - Stripe Connect Payout Pipeline Added (App-Owned Ledger + $20 Rule)
+
+- Completed:
+  - extended payout backend from legacy `Pending/Fulfilled` to app-owned states (`Requested`, `Processing`, `Paid`, `Failed`, `Cancelled`) while preserving legacy compatibility.
+  - enforced centralized backend payout validation:
+    - minimum request amount = `$20` (configurable via env)
+    - request amount cannot exceed requestable balance (`wallet - open requests`)
+    - Stripe Connect onboarding + payouts-enabled checks required before request creation.
+  - refactored E-Wallet payout request flow to use centralized payout service logic.
+  - integrated Stripe Connect transfer execution for payout fulfillment and mode route compatibility (`/api/admin/payout-requests/fulfill/:mode`).
+  - extended Stripe webhook sync with `account.updated` and `transfer.reversed` handling.
+  - added E-Wallet member UI for payout account status, onboarding action, requestable-balance visibility, payout request history, and `$20` request messaging.
+- Outcome:
+  - app/database remains source-of-truth for earnings, request lifecycle, and payout history.
+  - Stripe is used for recipient onboarding/account infrastructure and payout transfer execution.
+- Files updated:
+  - `backend/services/payout.service.js`
+  - `backend/services/wallet.service.js`
+  - `backend/services/stripe-client.service.js`
+  - `backend/services/stripe-webhook.service.js`
+  - `backend/controllers/payout.controller.js`
+  - `backend/routes/payout.routes.js`
+  - `backend/services/admin.service.js`
+  - `index.html`
+  - `admin.html`
+  - `Claude_Notes/member-dashboard-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check` passed for updated backend modules/routes/controllers.
+  - inline script parse checks passed for `index.html` and `admin.html`.
+
+### Addendum (2026-04-21) - Payout Stripe Availability Error-Handling Hardening
+
+Current scope update:
+- Payout validation now handles Stripe unavailability/configuration failures with explicit service responses rather than generic server errors.
+
+Progress made:
+- Added guard in `backend/services/payout.service.js` around Stripe Connect status resolution for payout eligibility checks.
+- Failure path now returns structured `503` payout response with explicit error message.
+
+Files touched this pass:
+- `backend/services/payout.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- `node --check backend/services/payout.service.js` passed.
+
+### Addendum (2026-04-21) - Payout Request Endpoint Auth Hardening
+
+Current scope update:
+- Payout submission endpoint now enforces authenticated member identity server-side.
+
+Progress made:
+- Added `requireMemberAuthSession` on `POST /api/e-wallet/request-payout`.
+- Updated payout-request controller to bind identity fields from `req.authenticatedMember`.
+
+Files touched this pass:
+- `backend/routes/wallet.routes.js`
+- `backend/controllers/wallet.controller.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- `node --check` passed for modified wallet route/controller files.
+
+### Addendum (2026-04-21) - Payout History Endpoint Auth Binding
+
+Current scope update:
+- Payout-history read path now enforces authenticated member scope.
+
+Progress made:
+- Added `requireMemberAuthSession` on `GET /api/payout-requests`.
+- Updated payout controller read logic to prioritize authenticated member identity over query identity fields.
+- Updated member dashboard payout-history fetch to send bearer token.
+
+Files touched this pass:
+- `backend/routes/payout.routes.js`
+- `backend/controllers/payout.controller.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- `node --check` passed for updated payout route/controller.
+- `index.html` inline script parse check passed.
+
+### Addendum (2026-04-21) - Direct Payout Create Route Auth Binding
+
+Current scope update:
+- Direct payout-request creation endpoint now enforces member auth scope.
+
+Progress made:
+- Added `requireMemberAuthSession` on `POST /api/payout-requests`.
+- Updated payout-create controller to derive identity fields from authenticated member context.
+
+Files touched this pass:
+- `backend/routes/payout.routes.js`
+- `backend/controllers/payout.controller.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- `node --check` passed for updated payout route/controller.
+
+### Addendum (2026-04-21) - Instant Stripe Payout Fulfillment Enabled
+
+Current scope update:
+- Stripe payout requests now process in instant mode by default after backend validation.
+
+Progress made:
+- Added immediate auto-fulfillment call in payout-request creation service path.
+- Added config gate `PAYOUT_AUTO_FULFILL_ENABLED` (default ON).
+- Removed required bank-details validation blocker in admin fulfillment form for Stripe workflows.
+- Updated member payout success/activity UX to display paid/processed state when instant Stripe fulfillment succeeds.
+
+Files touched this pass:
+- `backend/services/payout.service.js`
+- `admin.html`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- `node --check backend/services/payout.service.js` passed.
+- Inline script parse checks passed (`index.html`, `admin.html`).
+
+### Addendum (2026-04-21) - Stripe Payout Auto-Retry Activation
+
+Current scope update:
+- Stripe-mode payout fulfillments now auto-retry on temporary insufficient-funds failures, without backend restarts.
+
+Progress made:
+- Added retry sweep service in backend/services/payout.service.js with capped attempts, exponential backoff, and retry metadata in payout status history.
+- Added startup interval worker in backend/app.js using resolvePayoutAutoRetryIntervalMs() and retryEligibleFailedStripePayoutRequests().
+- Added webhook acceleration path in backend/services/stripe-webhook.service.js so balance.available triggers an immediate forced retry sweep.
+
+Files touched this pass:
+- backend/services/payout.service.js
+- backend/app.js
+- backend/services/stripe-webhook.service.js
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+- Claude_Notes/member-dashboard-page.md
+
+Validation state:
+- node --check backend/services/payout.service.js passed.
+- node --check backend/app.js passed.
+- node --check backend/services/stripe-webhook.service.js passed.
+### Addendum (2026-04-21) - Stripe Dashboard Access from E-Wallet
+
+Current scope update:
+- Added direct Stripe Express dashboard access from the member E-Wallet payout account panel.
+
+Progress made:
+- Added backend member-auth endpoint for Stripe dashboard login-link issuance.
+- Added Stripe Connect dashboard login-link service path using Express `createLoginLink`.
+- Added E-Wallet `Stripe Dashboard` button with authenticated API call and status-aware enable/disable behavior.
+- Kept existing onboarding action and payout-account status flow intact.
+
+Files touched this pass:
+- `backend/services/stripe-client.service.js`
+- `backend/services/auth.service.js`
+- `backend/controllers/auth.controller.js`
+- `backend/routes/auth.routes.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- `node --check backend/services/stripe-client.service.js` passed.
+- `node --check backend/services/auth.service.js` passed.
+- `node --check backend/controllers/auth.controller.js` passed.
+- `node --check backend/routes/auth.routes.js` passed.
+- `index.html` inline script parse checks passed.
+### Addendum (2026-04-21) - Stripe Dashboard Open Path UX Correction
+
+Current scope update:
+- Corrected E-Wallet Stripe management action so connected/ready accounts open Stripe dashboard directly.
+
+Progress made:
+- Changed ready-state payout-account action label to `Manage Stripe`.
+- Updated ready-state primary action handler to open Stripe dashboard instead of status refresh.
+- Removed silent status refresh on dashboard-open failure to avoid misleading `checking status` behavior.
+
+Files touched this pass:
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- `index.html` inline script parse checks passed.
+### Addendum (2026-04-21) - Stripe Transfer + Payout Fulfillment Path
+
+Current scope update:
+- Stripe-mode admin/auto fulfillment now creates a connected-account payout after transfer creation to better align payout request amounts with bank payout records.
+
+Progress made:
+- Added connected-account payout creation helper in Stripe client service.
+- Updated payout execution flow to support configurable payout creation and payout method (`instant` default).
+- Added payout webhook synchronization (`payout.paid`, `payout.failed`, `payout.canceled`) and wallet restoration on failed paid requests.
+- Added payout-request lookup by transfer reference for stronger Stripe event correlation.
+
+Files touched this pass:
+- `backend/services/stripe-client.service.js`
+- `backend/services/payout.service.js`
+- `backend/stores/payout.store.js`
+- `backend/services/stripe-webhook.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- `node --check backend/services/stripe-client.service.js` passed.
+- `node --check backend/services/payout.service.js` passed.
+- `node --check backend/stores/payout.store.js` passed.
+- `node --check backend/services/stripe-webhook.service.js` passed.
+
+### Addendum (2026-04-21) - Member Payout Method Picker Enabled
+
+Current scope update:
+- Members can now choose payout speed (`Instant` or `Standard`) directly in the E-Wallet payout request modal.
+
+Progress made:
+- Added payout method selector to the modal UI without introducing fee arithmetic.
+- Wired selected `payoutMethod` from frontend payload to backend E-Wallet payout request handling.
+- Passed selected method into payout auto-fulfillment so Stripe payout execution honors member selection.
+
+Files touched this pass:
+- `index.html`
+- `backend/services/wallet.service.js`
+- `backend/services/payout.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+Validation state:
+- `node --check backend/services/wallet.service.js` passed.
+- `node --check backend/services/payout.service.js` passed.
+- `index.html` inline script parse check passed.
+
+## Recent Update (2026-04-22) - Stripe Tax Manager Cutover for Checkout Flows
+
+- Completed:
+  - removed hardcoded enrollment tax-rate logic from backend and Binary Tree enrollment preview.
+  - enabled Stripe automatic tax on hosted Checkout Sessions for:
+    - member enrollment checkout
+    - storefront/public checkout.
+  - upgraded enrollment PaymentIntent flow to use Stripe Tax Calculations + PaymentIntent tax hooks.
+  - updated checkout/cart UI labels to present pre-tax totals as estimates and tax as Stripe-calculated at checkout.
+- Outcome:
+  - tax collection source moved from app hardcode to Stripe Tax manager for active checkout paths.
+  - final tax/total is now determined by Stripe using customer billing/shipping context.
+- Files updated:
+  - `backend/services/member.service.js`
+  - `backend/services/store-checkout.service.js`
+  - `binary-tree-next-app.mjs`
+  - `binary-tree-next.html`
+  - `store.html`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation:
+  - `node --check backend/services/member.service.js` passed.
+  - `node --check backend/services/store-checkout.service.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-22) - Member Store BV Credit Regression Fixed
+
+- Completed:
+  - fixed known-member guest checkout settlement classification in `backend/services/store-checkout.service.js` by wiring `hasKnownBuyerIdentity` into settlement profile resolution.
+  - added checkout-finalization fallback to recover buyer BV from `invoice_bv` when legacy metadata carries `buyer_bv=0` despite known buyer identity.
+  - executed one-time recovery completion for paid session of `zeroone`.
+- Outcome:
+  - Personal BV credit now applies for member-dashboard store purchases in guest checkout mode when buyer identity is known.
+  - `zeroone` corrected from `1000` to `1038` Personal BV and missing invoice `INV-240930` is recorded.
+- Files updated:
+  - `backend/services/store-checkout.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - `node --check backend/services/store-checkout.service.js` passed.
+  - DB and checkout completion verification passed for recovered session.
+
+## Recent Update (2026-04-22) - Store Checkout Return Finalization Race Fixed
+
+- Completed:
+  - fixed checkout-return timing race in `index.html` by invoking hosted checkout return finalization at the start of `initMyStore()`.
+  - removed delayed duplicate return handling that ran after multiple async store initialization calls.
+  - backfilled latest missed paid session for `zeroone` (`INV-240931`) to restore BV credit.
+- Outcome:
+  - checkout return params are now consumed before route-sync replace removes URL query data.
+  - paid My Store checkouts reliably finalize and apply BV.
+  - `zeroone` Personal BV now `1076` (includes two recovered +38 store purchases).
+- Files updated:
+  - `index.html`
+  - `backend/services/store-checkout.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - completion API path returned successful buyer credit for session `cs_test_a1SrK24VGJdlzv9ziDE7TPPQFUTkFSXWT4yo1XhvAU60mdodWcpSIbozOW`.
+  - DB verification passed for updated BV and invoice rows.
+
+## Recent Update (2026-04-22) - Duplicate Store BV Credit Race Fixed
+
+- Completed:
+  - added DB advisory lock in `backend/services/store-checkout.service.js` for per-invoice checkout settlement (`store-checkout:${invoiceId}`).
+  - serialized concurrent webhook/return completion paths to prevent duplicate `recordMemberPurchase` crediting.
+  - corrected overcredited `zeroone` PV/BV by reverting one extra `+38` from `INV-240932`.
+- Outcome:
+  - one paid checkout now applies BV once even when multiple completion triggers fire.
+  - `zeroone` corrected to expected `1114` Personal BV.
+- Files updated:
+  - `backend/services/store-checkout.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - `node --check backend/services/store-checkout.service.js` passed.
+  - DB verification confirmed corrected `zeroone` BV state.
+
+## Recent Update (2026-04-22) - Residual BV Reconciliation Completed
+
+- Completed:
+  - audited posted invoice BV totals for `zeroone` after new paid checkout `INV-240933`.
+  - reconciled residual historical over-credit (`+38`) so account totals match posted invoices.
+  - updated both member records to synchronized BV values.
+- Outcome:
+  - `zeroone` now matches posted invoice sum exactly at `1152` Personal BV.
+  - current settlement path remains protected by per-invoice advisory lock and no new profile-based double-credit was found.
+- Files/records updated:
+  - `charge.member_users` (`current_personal_pv_bv`, `starter_personal_pv`)
+  - `charge.registered_members` (`starter_personal_pv`)
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - posted `store_invoices.bp` total for `zeroone`: `1152`
+  - verified:
+    - `member_users.current_personal_pv_bv=1152`
+    - `member_users.starter_personal_pv=1152`
+    - `registered_members.starter_personal_pv=1152`
+
+## Recent Update (2026-04-22) - My Store Client PV Reconcile Path Disabled
+
+- Completed:
+  - traced new `+76` jump (`1152 -> 1228`) to client-side reconciliation logic in `index.html`.
+  - removed `initMyStore()` invocation of `reconcileExistingStorePurchasePv()` that was issuing `/api/member-auth/record-purchase` after invoice load.
+  - reconciled `zeroone` BV values back to posted-invoice truth.
+- Outcome:
+  - My Store checkout BV credits are now backend-settlement-only (single authority).
+  - stale frontend session snapshots can no longer trigger an extra PV top-up after Stripe return.
+  - `zeroone` is now aligned with posted invoices at `1190` Personal BV.
+- Files/records updated:
+  - `index.html`
+  - `charge.member_users`
+  - `charge.registered_members`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - latest posted invoice: `INV-240934` (`bp=38`, paid)
+  - posted invoice BV sum for `zeroone`: `1190`
+  - verified:
+    - `member_users.current_personal_pv_bv=1190`
+    - `member_users.starter_personal_pv=1190`
+    - `registered_members.starter_personal_pv=1190`
+
+## Recent Update (2026-04-22) - Personal BV Card Live Refresh Fixed
+
+- Completed:
+  - added post-checkout session sync in `index.html` via `syncSessionAfterStoreCheckoutCompletion(...)`.
+  - wired hosted checkout success flow to refresh session from `/api/member-auth/session` and reapply UI patching.
+- Outcome:
+  - Personal BV card updates immediately after successful store checkout return.
+  - manual page reload is no longer required to see the updated value.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - checkout return handler now executes session sync and `applySessionUserPatch(...)` after invoice refresh.
+
+## Recent Update (2026-04-22) - Preferred Account Owner BV Credit Routing Fixed
+
+- Completed:
+  - patched store owner resolver to prioritize `storeCode/publicStoreCode` over shared `attributionStoreCode`.
+  - applied same owner-resolution rules in:
+    - `backend/services/store-checkout.service.js`
+    - `backend/services/invoice.service.js`
+  - corrected miscomputed preferred-purchase invoice `INV-240937` and applied missing owner BV recovery.
+- Outcome:
+  - preferred customer purchases now settle using the actual store owner package (legacy owner now gets `38 BV`, not `50` from wrong package mapping).
+  - owner BV credit is applied to the correct account instead of being absorbed by a preferred/downline attribution match.
+  - `zeroone` updated to `1304` Personal BV after one-time recovery.
+- Files/records updated:
+  - `backend/services/store-checkout.service.js`
+  - `backend/services/invoice.service.js`
+  - `charge.store_invoices` (`INV-240937`)
+  - `charge.member_users` / `charge.registered_members` (owner recovery credit)
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation:
+  - simulated preferred checkout now returns `ownerBv=38` and `settlementPackageKey=legacy-builder-pack`.
+  - `node --check` passed for both patched backend services.
+
+## Recent Update (2026-04-22) - Preferred Customer Dashboard Data Linkage Fixed
+
+- Completed:
+  - patched preferred planner invoice matcher in `index.html` to include email-based identity linkage for preferred guest checkouts.
+  - retained stable ID/username matching while gating email fallback to preferred-buyer invoices.
+- Outcome:
+  - Preferred Customer planner now surfaces valid preferred purchase invoices that were previously omitted.
+  - corrected invoice `INV-240937` now links to preferred member `usertesting` in planner data.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script syntax checks passed for `index.html`.
+  - live-data match simulation confirms `usertesting -> INV-240937`.
+
+## Recent Update (2026-04-22) - Retail Attribution + Checkout Refresh Finalization
+
+- Completed:
+  - hardened checkout attribution for Preferred-buyer dashboard purchases when `storeCode` is omitted.
+  - updated My Store checkout payload to always send routed attribution store code.
+  - extended post-checkout sync to reload registered members so dashboard/tree cards refresh immediately.
+- Outcome:
+  - Preferred discounted purchases now consistently resolve owner settlement context (BV/retail routing).
+  - checkout success updates session + member-tree dependent cards without manual reload.
+- Files updated:
+  - `backend/services/store-checkout.service.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+  - `Claude_Notes/public-store-page.md`
+- Validation:
+  - `node --check backend/services/store-checkout.service.js` passed.
+  - inline script parse check passed for `index.html`.

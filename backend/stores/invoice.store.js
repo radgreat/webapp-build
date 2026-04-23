@@ -50,6 +50,19 @@ function normalizeStoreInvoiceStatus(value) {
   return normalized === 'posted' ? 'Posted' : 'Pending';
 }
 
+function normalizeStripeUrl(value) {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return '';
+  }
+
+  if (!normalized.startsWith('https://') && !normalized.startsWith('http://')) {
+    return '';
+  }
+
+  return normalized;
+}
+
 function mapDbInvoiceToAppInvoice(row) {
   if (!row) {
     return null;
@@ -69,6 +82,14 @@ function mapDbInvoiceToAppInvoice(row) {
     discount: Number(row.discount || 0),
     attributionSnapshot: normalizeJsonObject(row.attribution_snapshot_json),
     settlementProfile: normalizeJsonObject(row.settlement_profile_json),
+    stripeCustomerId: normalizeText(row.stripe_customer_id),
+    stripeCheckoutSessionId: normalizeText(row.stripe_checkout_session_id),
+    stripePaymentIntentId: normalizeText(row.stripe_payment_intent_id),
+    stripeInvoiceId: normalizeText(row.stripe_invoice_id),
+    stripeInvoiceNumber: normalizeText(row.stripe_invoice_number),
+    stripeInvoiceHostedUrl: normalizeStripeUrl(row.stripe_invoice_hosted_url),
+    stripeInvoicePdfUrl: normalizeStripeUrl(row.stripe_invoice_pdf_url),
+    stripePaymentStatus: normalizeText(row.stripe_payment_status),
     status: normalizeStoreInvoiceStatus(row.status),
     createdAt: toIsoStringOrEmpty(row.created_at),
     updatedAt: toIsoStringOrEmpty(row.updated_at),
@@ -92,6 +113,14 @@ function mapAppInvoiceToDbInvoice(invoice) {
     discount: Number(invoice?.discount || 0),
     attribution_snapshot_json: normalizeJsonObject(invoice?.attributionSnapshot),
     settlement_profile_json: normalizeJsonObject(invoice?.settlementProfile),
+    stripe_customer_id: normalizeText(invoice?.stripeCustomerId),
+    stripe_checkout_session_id: normalizeText(invoice?.stripeCheckoutSessionId),
+    stripe_payment_intent_id: normalizeText(invoice?.stripePaymentIntentId),
+    stripe_invoice_id: normalizeText(invoice?.stripeInvoiceId),
+    stripe_invoice_number: normalizeText(invoice?.stripeInvoiceNumber),
+    stripe_invoice_hosted_url: normalizeStripeUrl(invoice?.stripeInvoiceHostedUrl),
+    stripe_invoice_pdf_url: normalizeStripeUrl(invoice?.stripeInvoicePdfUrl),
+    stripe_payment_status: normalizeText(invoice?.stripePaymentStatus),
     status: normalizeStoreInvoiceStatus(invoice?.status),
     created_at: invoice?.createdAt || new Date().toISOString(),
   };
@@ -124,6 +153,38 @@ async function ensureStoreInvoiceColumns() {
     await pool.query(`
       ALTER TABLE charge.store_invoices
       ADD COLUMN IF NOT EXISTS settlement_profile_json jsonb NOT NULL DEFAULT '{}'::jsonb
+    `);
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS stripe_customer_id text NOT NULL DEFAULT ''
+    `);
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS stripe_checkout_session_id text NOT NULL DEFAULT ''
+    `);
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS stripe_payment_intent_id text NOT NULL DEFAULT ''
+    `);
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS stripe_invoice_id text NOT NULL DEFAULT ''
+    `);
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS stripe_invoice_number text NOT NULL DEFAULT ''
+    `);
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS stripe_invoice_hosted_url text NOT NULL DEFAULT ''
+    `);
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS stripe_invoice_pdf_url text NOT NULL DEFAULT ''
+    `);
+    await pool.query(`
+      ALTER TABLE charge.store_invoices
+      ADD COLUMN IF NOT EXISTS stripe_payment_status text NOT NULL DEFAULT ''
     `);
     storeInvoiceColumnsReady = true;
   })().catch((error) => {
@@ -182,6 +243,14 @@ export function sanitizeStoreInvoiceRecord(invoice, fallbackId = '') {
     discount: Number.isFinite(discountRaw) ? Math.max(0, discountRaw) : 0,
     attributionSnapshot: normalizeJsonObject(invoice.attributionSnapshot),
     settlementProfile: normalizeJsonObject(invoice.settlementProfile),
+    stripeCustomerId: normalizeText(invoice.stripeCustomerId),
+    stripeCheckoutSessionId: normalizeText(invoice.stripeCheckoutSessionId),
+    stripePaymentIntentId: normalizeText(invoice.stripePaymentIntentId),
+    stripeInvoiceId: normalizeText(invoice.stripeInvoiceId),
+    stripeInvoiceNumber: normalizeText(invoice.stripeInvoiceNumber),
+    stripeInvoiceHostedUrl: normalizeStripeUrl(invoice.stripeInvoiceHostedUrl),
+    stripeInvoicePdfUrl: normalizeStripeUrl(invoice.stripeInvoicePdfUrl),
+    stripePaymentStatus: normalizeText(invoice.stripePaymentStatus),
     status: normalizeStoreInvoiceStatus(invoice.status),
     createdAt: Number.isFinite(createdAtMs) ? new Date(createdAtMs).toISOString() : new Date().toISOString(),
   };
@@ -205,6 +274,14 @@ export async function readMockStoreInvoicesStore() {
       discount,
       attribution_snapshot_json,
       settlement_profile_json,
+      stripe_customer_id,
+      stripe_checkout_session_id,
+      stripe_payment_intent_id,
+      stripe_invoice_id,
+      stripe_invoice_number,
+      stripe_invoice_hosted_url,
+      stripe_invoice_pdf_url,
+      stripe_payment_status,
       status,
       created_at,
       updated_at
@@ -242,10 +319,21 @@ export async function writeMockStoreInvoicesStore(invoices) {
           discount,
           attribution_snapshot_json,
           settlement_profile_json,
+          stripe_customer_id,
+          stripe_checkout_session_id,
+          stripe_payment_intent_id,
+          stripe_invoice_id,
+          stripe_invoice_number,
+          stripe_invoice_hosted_url,
+          stripe_invoice_pdf_url,
+          stripe_payment_status,
           status,
           created_at
         )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+        VALUES (
+          $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
+          $16,$17,$18,$19,$20,$21,$22,$23
+        )
       `, [
         row.id,
         row.buyer,
@@ -260,6 +348,14 @@ export async function writeMockStoreInvoicesStore(invoices) {
         row.discount,
         row.attribution_snapshot_json,
         row.settlement_profile_json,
+        row.stripe_customer_id,
+        row.stripe_checkout_session_id,
+        row.stripe_payment_intent_id,
+        row.stripe_invoice_id,
+        row.stripe_invoice_number,
+        row.stripe_invoice_hosted_url,
+        row.stripe_invoice_pdf_url,
+        row.stripe_payment_status,
         row.status,
         row.created_at,
       ]);

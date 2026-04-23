@@ -2,6 +2,10 @@ import { Router } from 'express';
 import {
   loginMember,
   getMemberSession,
+  postMemberBillingPortalSession,
+  getMemberPayoutAccountStatus,
+  postMemberPayoutAccountOnboardingLink,
+  postMemberPayoutAccountDashboardLink,
   getSetupPassword,
   postSetupPassword,
   getMemberEmailVerificationStatus,
@@ -21,6 +25,10 @@ const router = Router();
 
 router.post('/login', loginMember);
 router.get('/session', requireMemberAuthSession, getMemberSession);
+router.post('/billing/portal', requireMemberAuthSession, postMemberBillingPortalSession);
+router.get('/payout-account', requireMemberAuthSession, getMemberPayoutAccountStatus);
+router.post('/payout-account/onboarding-link', requireMemberAuthSession, postMemberPayoutAccountOnboardingLink);
+router.post('/payout-account/dashboard-link', requireMemberAuthSession, postMemberPayoutAccountDashboardLink);
 router.get('/setup-password', getSetupPassword);
 router.post('/setup-password', postSetupPassword);
 router.get('/email-verification-status', requireMemberAuthSession, getMemberEmailVerificationStatus);

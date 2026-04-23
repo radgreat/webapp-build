@@ -3054,3 +3054,22 @@ Validation:
 
 Known limitations:
 - Copy-only update; loading sequence timing, animations, and boot logic are unchanged.
+## Update (2026-04-22) - Enrollment Tax Source Migrated to Stripe Tax
+
+### What Changed
+
+- Removed fixed enrollment tax-rate preview math from the Binary Tree enrollment checkout preview.
+- Enrollment summary tax row now shows Stripe-calculated behavior (`Calculated at Stripe checkout`) instead of fixed local currency tax.
+- Enrollment checkout label changed to estimated due wording to reflect Stripe-finalized tax.
+- Backend enrollment checkout now enables Stripe automatic tax for hosted sessions and links Stripe Tax calculations for PaymentIntent enrollment flow.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `backend/services/member.service.js`
+
+### Notes
+
+- Enrollment subtotal/discount previews remain in-app estimates.
+- Final tax and charged total come from Stripe-confirmed checkout/payment intent lifecycle.

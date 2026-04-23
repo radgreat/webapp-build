@@ -1,4 +1,3 @@
-import Stripe from 'stripe';
 import { randomInt, randomUUID } from 'crypto';
 import pool from '../db/db.js';
 import {
@@ -21,7 +20,13 @@ import {
 } from '../stores/user.store.js';
 import { upsertPasswordSetupTokenRecord } from '../stores/token.store.js';
 import { insertMockEmailOutboxRecord } from '../stores/email.store.js';
-import { createStoreInvoice } from './invoice.service.js';
+import { createStoreInvoice, syncStoreInvoiceStripeDetails } from './invoice.service.js';
+import {
+  linkStripeCustomerToUserIdentity,
+  resolveOrCreateStripeCustomerForUserIdentity,
+  resolveStripeClient,
+  resolveStripeCustomerId,
+} from './stripe-client.service.js';
 import {
   normalizeText,
   normalizeCredential,
@@ -43,7 +48,6 @@ import {
 
 const DEFAULT_ATTRIBUTION_STORE_CODE = 'REGISTRATION_LOCKED';
 const DEFAULT_ENROLLMENT_RETURN_PATH = '/binary-tree-next.html';
-const ENROLL_CHECKOUT_TAX_RATE = 0.0975;
 const STRIPE_METADATA_VALUE_LIMIT = 500;
 const ENROLLMENT_PAYMENT_FLOW = 'member-enrollment';
 const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
@@ -112,9 +116,6 @@ const FREE_ACCOUNT_RANK_KEY_SET = new Set([
   'free account',
   'free',
 ]);
-
-let cachedStripeClient = null;
-let cachedStripeApiKey = '';
 
 function toWholeNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -626,6 +627,14 @@ function resolveCurrencyMinorAmount(amount) {
   return Math.max(0, Math.round((Number(amount) || 0) * 100));
 }
 
+function resolveCheckoutTaxFromTotal(totalAmount, subtotalAmount, discountAmount = 0) {
+  const safeTotal = roundCurrencyAmount(totalAmount);
+  const safeSubtotal = roundCurrencyAmount(subtotalAmount);
+  const safeDiscount = roundCurrencyAmount(discountAmount);
+  const taxableAmount = roundCurrencyAmount(Math.max(0, safeSubtotal - safeDiscount));
+  return roundCurrencyAmount(Math.max(0, safeTotal - taxableAmount));
+}
+
 function sanitizeStripeMetadataValue(value, fallbackValue = '') {
   const normalizedValue = normalizeText(value || fallbackValue);
   if (!normalizedValue) {
@@ -634,18 +643,33 @@ function sanitizeStripeMetadataValue(value, fallbackValue = '') {
   return normalizedValue.slice(0, STRIPE_METADATA_VALUE_LIMIT);
 }
 
-function resolveStripeClient() {
-  const stripeSecretKey = normalizeText(process.env.STRIPE_SECRET_KEY);
-  if (!stripeSecretKey) {
-    throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY to continue.');
+function normalizeStripeUrl(value) {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return '';
   }
-
-  if (!cachedStripeClient || cachedStripeApiKey !== stripeSecretKey) {
-    cachedStripeApiKey = stripeSecretKey;
-    cachedStripeClient = new Stripe(stripeSecretKey);
+  if (!normalized.startsWith('https://') && !normalized.startsWith('http://')) {
+    return '';
   }
+  return normalized;
+}
 
-  return cachedStripeClient;
+function resolveEnrollmentStripeReferenceData(reference = {}) {
+  const safeReference = reference && typeof reference === 'object' ? reference : {};
+  const invoiceObject = safeReference.invoice && typeof safeReference.invoice === 'object'
+    ? safeReference.invoice
+    : null;
+
+  return {
+    stripeCustomerId: normalizeText(safeReference.customerId || safeReference.stripeCustomerId),
+    stripePaymentIntentId: normalizeText(safeReference.paymentIntentId || safeReference.stripePaymentIntentId),
+    stripeCheckoutSessionId: normalizeText(safeReference.checkoutSessionId || safeReference.stripeCheckoutSessionId),
+    stripeInvoiceId: normalizeText(safeReference.invoiceId || invoiceObject?.id),
+    stripeInvoiceNumber: normalizeText(safeReference.invoiceNumber || invoiceObject?.number),
+    stripeInvoiceHostedUrl: normalizeStripeUrl(safeReference.invoiceHostedUrl || invoiceObject?.hosted_invoice_url),
+    stripeInvoicePdfUrl: normalizeStripeUrl(safeReference.invoicePdfUrl || invoiceObject?.invoice_pdf),
+    stripePaymentStatus: normalizeText(safeReference.paymentStatus || invoiceObject?.status),
+  };
 }
 
 function normalizePathname(pathname, fallbackPath = '/') {
@@ -737,9 +761,9 @@ function resolveEnrollmentCheckoutSummary(enrollmentPackage) {
   const packagePrice = roundCurrencyAmount(Number(packageMeta.price) || 0);
   const packageBv = toWholeNumber(packageMeta.bv, 0);
   const discount = 0;
-  const taxableAmount = Math.max(0, packagePrice - discount);
-  const tax = roundCurrencyAmount(taxableAmount * ENROLL_CHECKOUT_TAX_RATE);
-  const total = roundCurrencyAmount(taxableAmount + tax);
+  const taxableAmount = roundCurrencyAmount(Math.max(0, packagePrice - discount));
+  const tax = 0;
+  const total = taxableAmount;
 
   return {
     packageLabel: normalizeText(packageMeta.label),
@@ -1063,6 +1087,14 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
   const invoiceIdSeed = resolveNextStoreInvoiceId(existingInvoices);
   const invoiceId = `${invoiceIdSeed}-${String(randomInt(100, 1000))}`;
   const packageBv = toWholeNumber(checkoutSummary.packageBv, 0);
+  const taxableAmountMinor = resolveCurrencyMinorAmount(checkoutSummary.total);
+  if (taxableAmountMinor <= 0) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Enrollment subtotal must be greater than zero.',
+    };
+  }
 
   const paymentIntentMetadata = {
     flow: sanitizeStripeMetadataValue(ENROLLMENT_PAYMENT_FLOW),
@@ -1091,21 +1123,115 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
     package_bv: String(packageBv),
     subtotal: String(checkoutSummary.subtotal),
     discount_amount: String(checkoutSummary.discount),
-    tax_amount: String(checkoutSummary.tax),
-    tax_rate: String(ENROLL_CHECKOUT_TAX_RATE),
+    tax_amount: '0',
     total_amount: String(checkoutSummary.total),
   };
+  let stripeCustomerId = '';
+  try {
+    const customerResolution = await resolveOrCreateStripeCustomerForUserIdentity({
+      email,
+      name: fullName,
+    }, {
+      stripe,
+      allowCreate: true,
+      metadata: {
+        checkout_type: 'member-enrollment',
+      },
+    });
+    stripeCustomerId = normalizeText(customerResolution?.customerId);
+  } catch {
+    stripeCustomerId = '';
+  }
+
+  if (stripeCustomerId) {
+    paymentIntentMetadata.stripe_customer_id = sanitizeStripeMetadataValue(stripeCustomerId);
+  }
+
+  if (!/^[A-Z]{2}$/.test(billingCountryCode)) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Billing country code is required for Stripe Tax calculation.',
+    };
+  }
+
+  const taxCode = normalizeText(process.env.STRIPE_ENROLLMENT_TAX_CODE);
+  let taxCalculationId = '';
+  let totalAmountMinor = taxableAmountMinor;
+  let taxAmount = 0;
+  try {
+    const taxCalculation = await stripe.tax.calculations.create({
+      currency: 'usd',
+      line_items: [
+        {
+          amount: taxableAmountMinor,
+          quantity: 1,
+          reference: sanitizeStripeMetadataValue(
+            `${enrollmentPackage || 'member-enrollment'}-checkout`,
+            'member-enrollment-checkout',
+          ),
+          tax_code: taxCode || undefined,
+        },
+      ],
+      customer_details: {
+        address: {
+          line1: billingAddress || undefined,
+          city: billingCity || undefined,
+          state: billingState || undefined,
+          postal_code: billingPostalCode || undefined,
+          country: billingCountryCode,
+        },
+        address_source: 'billing',
+      },
+    });
+    taxCalculationId = normalizeText(taxCalculation?.id);
+    totalAmountMinor = Math.max(
+      taxableAmountMinor,
+      Math.round(Number(taxCalculation?.amount_total || taxableAmountMinor)),
+    );
+    taxAmount = roundCurrencyAmount((totalAmountMinor - taxableAmountMinor) / 100);
+  } catch (error) {
+    const message = error instanceof Error && error.message
+      ? error.message
+      : 'Unable to calculate Stripe Tax for enrollment payment.';
+    const statusCode = Number(error?.statusCode);
+    const status = Number.isFinite(statusCode) && statusCode >= 400 && statusCode < 600
+      ? statusCode
+      : 502;
+    return {
+      success: false,
+      status,
+      error: message,
+    };
+  }
+
+  paymentIntentMetadata.tax_amount = String(taxAmount);
+  paymentIntentMetadata.total_amount = String(roundCurrencyAmount(totalAmountMinor / 100));
+  if (taxCalculationId) {
+    paymentIntentMetadata.tax_calculation_id = sanitizeStripeMetadataValue(taxCalculationId);
+  }
 
   try {
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: resolveCurrencyMinorAmount(checkoutSummary.total),
+    const paymentIntentCreatePayload = {
+      amount: totalAmountMinor,
       currency: 'usd',
       automatic_payment_methods: {
         enabled: true,
       },
       receipt_email: email || undefined,
+      customer: stripeCustomerId || undefined,
       metadata: paymentIntentMetadata,
-    });
+    };
+    if (taxCalculationId) {
+      paymentIntentCreatePayload.hooks = {
+        inputs: {
+          tax: {
+            calculation: taxCalculationId,
+          },
+        },
+      };
+    }
+    const paymentIntent = await stripe.paymentIntents.create(paymentIntentCreatePayload);
 
     if (!paymentIntent?.id || !paymentIntent?.client_secret) {
       return {
@@ -1128,8 +1254,8 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
           packageBv: packageBv,
           subtotal: checkoutSummary.subtotal,
           discount: checkoutSummary.discount,
-          tax: checkoutSummary.tax,
-          total: checkoutSummary.total,
+          tax: taxAmount,
+          total: roundCurrencyAmount(totalAmountMinor / 100),
         },
       },
     };
@@ -1169,7 +1295,9 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
 
   let paymentIntent = null;
   try {
-    paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId, {
+      expand: ['latest_charge.invoice'],
+    });
   } catch (error) {
     const message = error instanceof Error && error.message
       ? error.message
@@ -1202,6 +1330,13 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
   const metadata = paymentIntent?.metadata && typeof paymentIntent.metadata === 'object'
     ? paymentIntent.metadata
     : {};
+  const stripeReference = resolveEnrollmentStripeReferenceData({
+    customerId: payload?.checkoutSessionCustomerId || resolveStripeCustomerId(paymentIntent?.customer),
+    paymentIntentId: paymentIntent?.id || paymentIntentId,
+    checkoutSessionId: payload?.checkoutSessionId || '',
+    paymentStatus: paymentIntent?.status || '',
+    invoice: paymentIntent?.latest_charge?.invoice || null,
+  });
 
   const flowTag = normalizeCredential(metadata.flow || metadata.payment_flow);
   if (flowTag !== ENROLLMENT_PAYMENT_FLOW) {
@@ -1347,15 +1482,26 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
     };
   }
 
+  if (stripeReference.stripeCustomerId) {
+    await linkStripeCustomerToUserIdentity({
+      customerId: stripeReference.stripeCustomerId,
+      userId: normalizeText(createdMember?.userId),
+      username: normalizeText(createdMember?.memberUsername || memberUsernameInput),
+      email: normalizeText(createdMember?.email || email),
+    }).catch(() => {});
+  }
+
   const invoiceId = normalizeText(metadata.invoice_id).toUpperCase() || `INV-${Date.now()}`;
   const packageBv = toWholeNumber(metadata.package_bv, checkoutSummary.packageBv);
   const discountAmount = roundCurrencyAmount(metadata.discount_amount);
+  const subtotalAmount = roundCurrencyAmount(metadata.subtotal || checkoutSummary.subtotal);
   const capturedAmount = roundCurrencyAmount(
     (Number(paymentIntent?.amount_received) || Number(paymentIntent?.amount) || 0) / 100
   );
   const totalAmount = capturedAmount > 0
     ? capturedAmount
     : roundCurrencyAmount(metadata.total_amount || checkoutSummary.total);
+  const resolvedTaxAmount = resolveCheckoutTaxFromTotal(totalAmount, subtotalAmount, discountAmount);
 
   let invoiceRecord = null;
   let invoiceWarning = '';
@@ -1363,6 +1509,23 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
   invoiceRecord = (Array.isArray(existingInvoices) ? existingInvoices : []).find((invoice) => {
     return normalizeText(invoice?.id).toUpperCase() === invoiceId;
   }) || null;
+
+  if (invoiceRecord) {
+    const syncResult = await syncStoreInvoiceStripeDetails({
+      invoiceId,
+      stripeCustomerId: stripeReference.stripeCustomerId,
+      stripePaymentIntentId: stripeReference.stripePaymentIntentId,
+      stripeCheckoutSessionId: stripeReference.stripeCheckoutSessionId,
+      stripeInvoiceId: stripeReference.stripeInvoiceId,
+      stripeInvoiceNumber: stripeReference.stripeInvoiceNumber,
+      stripeInvoiceHostedUrl: stripeReference.stripeInvoiceHostedUrl,
+      stripeInvoicePdfUrl: stripeReference.stripeInvoicePdfUrl,
+      stripePaymentStatus: stripeReference.stripePaymentStatus,
+    });
+    if (syncResult.success) {
+      invoiceRecord = syncResult.data?.invoice || invoiceRecord;
+    }
+  }
 
   if (!invoiceRecord) {
     let attributionKey = DEFAULT_ATTRIBUTION_STORE_CODE;
@@ -1386,6 +1549,14 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
       amount: totalAmount,
       bp: packageBv,
       discount: discountAmount,
+      stripeCustomerId: stripeReference.stripeCustomerId,
+      stripePaymentIntentId: stripeReference.stripePaymentIntentId,
+      stripeCheckoutSessionId: stripeReference.stripeCheckoutSessionId,
+      stripeInvoiceId: stripeReference.stripeInvoiceId,
+      stripeInvoiceNumber: stripeReference.stripeInvoiceNumber,
+      stripeInvoiceHostedUrl: stripeReference.stripeInvoiceHostedUrl,
+      stripeInvoicePdfUrl: stripeReference.stripeInvoicePdfUrl,
+      stripePaymentStatus: stripeReference.stripePaymentStatus,
       status: 'Posted',
     });
 
@@ -1396,6 +1567,22 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
       invoiceRecord = (Array.isArray(invoicesAfterConflict) ? invoicesAfterConflict : []).find((invoice) => {
         return normalizeText(invoice?.id).toUpperCase() === invoiceId;
       }) || null;
+      if (invoiceRecord) {
+        const syncResult = await syncStoreInvoiceStripeDetails({
+          invoiceId,
+          stripeCustomerId: stripeReference.stripeCustomerId,
+          stripePaymentIntentId: stripeReference.stripePaymentIntentId,
+          stripeCheckoutSessionId: stripeReference.stripeCheckoutSessionId,
+          stripeInvoiceId: stripeReference.stripeInvoiceId,
+          stripeInvoiceNumber: stripeReference.stripeInvoiceNumber,
+          stripeInvoiceHostedUrl: stripeReference.stripeInvoiceHostedUrl,
+          stripeInvoicePdfUrl: stripeReference.stripeInvoicePdfUrl,
+          stripePaymentStatus: stripeReference.stripePaymentStatus,
+        });
+        if (syncResult.success) {
+          invoiceRecord = syncResult.data?.invoice || invoiceRecord;
+        }
+      }
     } else {
       invoiceWarning = normalizeText(invoiceResult.error || 'Invoice could not be created.');
     }
@@ -1420,9 +1607,9 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
         invoiceId,
         packageLabel: checkoutSummary.packageLabel,
         packageBv,
-        subtotal: roundCurrencyAmount(metadata.subtotal || checkoutSummary.subtotal),
+        subtotal: subtotalAmount,
         discount: discountAmount,
-        tax: roundCurrencyAmount(metadata.tax_amount || checkoutSummary.tax),
+        tax: resolvedTaxAmount,
         total: totalAmount,
       },
     },
@@ -2355,7 +2542,6 @@ export async function createRegisteredMemberCheckoutSession(payload = {}, contex
     subtotal: String(checkoutSummary.subtotal),
     discount_amount: String(checkoutSummary.discount),
     tax_amount: String(checkoutSummary.tax),
-    tax_rate: String(ENROLL_CHECKOUT_TAX_RATE),
     total_amount: String(checkoutSummary.total),
   };
 
@@ -2371,25 +2557,68 @@ export async function createRegisteredMemberCheckoutSession(payload = {}, contex
     total_amount: paymentIntentMetadata.total_amount,
     source: paymentIntentMetadata.source,
   };
+  let stripeCustomerId = '';
+  try {
+    const customerResolution = await resolveOrCreateStripeCustomerForUserIdentity({
+      email,
+      name: fullName,
+    }, {
+      stripe,
+      allowCreate: true,
+      metadata: {
+        checkout_type: 'member-enrollment',
+      },
+    });
+    stripeCustomerId = normalizeText(customerResolution?.customerId);
+  } catch {
+    stripeCustomerId = '';
+  }
+
+  if (stripeCustomerId) {
+    paymentIntentMetadata.stripe_customer_id = sanitizeStripeMetadataValue(stripeCustomerId);
+    sessionMetadata.stripe_customer_id = sanitizeStripeMetadataValue(stripeCustomerId);
+  }
 
   const packageLabel = checkoutSummary.packageLabel || 'Enrollment Package';
   const lineItemName = `${packageLabel} Enrollment`;
   const lineItemDescription = packageBv > 0
     ? `${packageBv} BV`
     : '';
+  const taxableAmountMinor = resolveCurrencyMinorAmount(checkoutSummary.total);
 
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       success_url: returnUrls.successUrl,
       cancel_url: returnUrls.cancelUrl,
-      customer_email: email || undefined,
+      automatic_tax: {
+        enabled: true,
+      },
+      customer: stripeCustomerId || undefined,
+      customer_email: stripeCustomerId ? undefined : (email || undefined),
+      customer_creation: stripeCustomerId ? undefined : 'always',
+      customer_update: stripeCustomerId
+        ? {
+          address: 'auto',
+          name: 'auto',
+        }
+        : undefined,
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          metadata: {
+            invoice_id: sessionMetadata.invoice_id,
+            checkout_type: sessionMetadata.checkout_type,
+            source: sessionMetadata.source,
+          },
+        },
+      },
       billing_address_collection: 'required',
       line_items: [
         {
           price_data: {
             currency: 'usd',
-            unit_amount: resolveCurrencyMinorAmount(checkoutSummary.total),
+            unit_amount: taxableAmountMinor,
             product_data: {
               name: lineItemName,
               description: lineItemDescription || undefined,
@@ -2519,6 +2748,9 @@ export async function completeRegisteredMemberCheckoutSession(payload = {}) {
     paymentIntentId,
     isAdminPlacement: Boolean(payload?.isAdminPlacement),
     authenticatedMember: payload?.authenticatedMember || null,
+    checkoutSessionId: session?.id || sessionId,
+    checkoutSessionCustomerId: resolveStripeCustomerId(session?.customer),
+    checkoutSessionPaymentStatus: session?.payment_status || '',
   });
   if (!completionResult.success) {
     return completionResult;

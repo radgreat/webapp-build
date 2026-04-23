@@ -3370,9 +3370,9 @@
 
         <p class="sidebar-nav-section-label mt-3">Records</p>
 
-        <a href="#" data-nav-static class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>
-          Purchases
+        <a id="sidebar-invoice-portal-link" href="#" data-nav-static class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+          <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
+          Invoice
         </a>
 
         <a href="#" data-nav-static class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
@@ -4426,6 +4426,33 @@
                     Request Payout
                   </button>
                 </div>
+
+                <div id="ewallet-payout-account-panel" class="rounded-2xl border border-surface-border bg-surface-base/55 px-4 py-3.5 sm:px-5">
+                  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="space-y-1">
+                      <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Stripe Payout Account</p>
+                      <p id="ewallet-payout-account-status" class="text-body-sm font-medium text-semantic-warning">Checking payout account...</p>
+                      <p id="ewallet-payout-account-caption" class="text-caption text-text-tertiary">Connect your Stripe payout account before requesting withdrawals.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <button
+                        id="ewallet-payout-account-action"
+                        type="button"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-light bg-surface-elevated px-3.5 py-2 text-body-sm font-medium text-text-primary shadow-depth-1 transition-transform duration-150 ease-spring hover:-translate-y-0.5 hover:bg-surface-floating focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]"
+                      >
+                        Connect Stripe
+                      </button>
+                      <button
+                        id="ewallet-payout-account-dashboard"
+                        type="button"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-light bg-surface-base px-3.5 py-2 text-body-sm font-medium text-text-primary shadow-depth-1 transition-transform duration-150 ease-spring hover:-translate-y-0.5 hover:bg-surface-floating focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-45"
+                        disabled
+                      >
+                        Stripe Dashboard
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <aside class="rounded-2xl border border-surface-border bg-surface-base/55 p-5 backdrop-blur-sm sm:p-6">
@@ -4481,6 +4508,17 @@
                   No E-Wallet transfers yet.
                 </div>
                 <div id="ewallet-transfer-history-list" class="mt-4 space-y-4 border-l border-surface-border/70 pl-5"></div>
+
+                <section class="mt-6 border-t border-surface-border pt-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <h5 class="font-body font-medium text-body text-text-primary">Payout Requests</h5>
+                    <p id="ewallet-payout-history-summary" class="text-caption text-text-tertiary">Open: $0.00</p>
+                  </div>
+                  <div id="ewallet-payout-history-empty" class="mt-3 rounded-xl border border-dashed border-surface-border bg-surface-base/50 px-4 py-4 text-body-sm text-text-secondary">
+                    No payout requests yet.
+                  </div>
+                  <div id="ewallet-payout-history-list" class="mt-3 space-y-3"></div>
+                </section>
               </div>
             </article>
           </div>
@@ -4574,13 +4612,27 @@
                       id="ewallet-payout-amount"
                       name="amount"
                       type="number"
-                      min="0.01"
+                      min="20.00"
                       step="0.01"
                       required
                       class="mt-1 w-full rounded-xl border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150"
                       placeholder="0.00"
                     />
                   </label>
+
+                  <label class="block">
+                    <span class="text-caption text-text-tertiary">Payout Speed</span>
+                    <select
+                      id="ewallet-payout-method"
+                      name="payoutMethod"
+                      class="mt-1 w-full rounded-xl border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150"
+                      required
+                    >
+                      <option value="instant" selected>Instant</option>
+                      <option value="standard">Standard</option>
+                    </select>
+                  </label>
+                  <p class="text-caption text-text-tertiary">Payout speed affects processing time. Fees depend on your Stripe account settings.</p>
 
                   <label class="block">
                     <span class="text-caption text-text-tertiary">Note (Optional)</span>
@@ -4595,6 +4647,7 @@
                   </label>
 
                   <p id="ewallet-payout-available" class="text-caption text-text-tertiary">Available: $0.00</p>
+                  <p id="ewallet-payout-minimum" class="text-caption text-text-tertiary">Minimum payout: $20.00</p>
 
                   <button
                     id="ewallet-payout-submit"
@@ -5736,7 +5789,7 @@
                       <span id="store-cart-discount" class="text-semantic-success">-$0.00</span>
                     </div>
                     <div class="storefront-v2-summary-row storefront-v2-summary-row-total">
-                      <span>Total</span>
+                      <span>Estimated total (before tax)</span>
                       <strong id="store-cart-total">$0.00</strong>
                     </div>
                     <div class="storefront-v2-summary-row">
@@ -6263,6 +6316,7 @@
       const dashboardInitialSkeletonElement = document.getElementById('dashboard-initial-skeleton');
       const dashboardLiveContentElement = document.getElementById('dashboard-live-content');
       const sidebarSettingsLink = document.getElementById('sidebar-settings-link');
+      const sidebarInvoicePortalLink = document.getElementById('sidebar-invoice-portal-link');
       const sidebarThemeToggleButton = document.getElementById('sidebar-theme-toggle');
       const sidebarThemeToggleIcon = document.getElementById('sidebar-theme-toggle-icon');
       const themeSwitcher = document.getElementById('theme-switcher');
@@ -6348,6 +6402,10 @@
       const eWalletLastUpdatedValueElement = document.getElementById('ewallet-last-updated-value');
       const eWalletOpenTransferModalButtonElement = document.getElementById('ewallet-open-transfer-modal');
       const eWalletOpenPayoutModalButtonElement = document.getElementById('ewallet-open-payout-modal');
+      const eWalletPayoutAccountStatusElement = document.getElementById('ewallet-payout-account-status');
+      const eWalletPayoutAccountCaptionElement = document.getElementById('ewallet-payout-account-caption');
+      const eWalletPayoutAccountActionButtonElement = document.getElementById('ewallet-payout-account-action');
+      const eWalletPayoutAccountDashboardButtonElement = document.getElementById('ewallet-payout-account-dashboard');
       const eWalletTransferModalOverlayElement = document.getElementById('ewallet-transfer-modal-overlay');
       const eWalletTransferModalCloseButtonElement = document.getElementById('ewallet-transfer-modal-close');
       const eWalletPayoutModalOverlayElement = document.getElementById('ewallet-payout-modal-overlay');
@@ -6361,14 +6419,19 @@
       const eWalletTransferFeedbackElement = document.getElementById('ewallet-transfer-feedback');
       const eWalletPayoutFormElement = document.getElementById('ewallet-payout-form');
       const eWalletPayoutAmountInputElement = document.getElementById('ewallet-payout-amount');
+      const eWalletPayoutMethodInputElement = document.getElementById('ewallet-payout-method');
       const eWalletPayoutNoteInputElement = document.getElementById('ewallet-payout-note');
       const eWalletPayoutSubmitButtonElement = document.getElementById('ewallet-payout-submit');
       const eWalletPayoutAvailableValueElement = document.getElementById('ewallet-payout-available');
+      const eWalletPayoutMinimumValueElement = document.getElementById('ewallet-payout-minimum');
       const eWalletPayoutFeedbackElement = document.getElementById('ewallet-payout-feedback');
       const eWalletRefreshButtonElement = document.getElementById('ewallet-refresh-button');
       const eWalletHistoryFeedbackElement = document.getElementById('ewallet-history-feedback');
       const eWalletTransferHistoryEmptyElement = document.getElementById('ewallet-transfer-history-empty');
       const eWalletTransferHistoryListElement = document.getElementById('ewallet-transfer-history-list');
+      const eWalletPayoutHistorySummaryElement = document.getElementById('ewallet-payout-history-summary');
+      const eWalletPayoutHistoryEmptyElement = document.getElementById('ewallet-payout-history-empty');
+      const eWalletPayoutHistoryListElement = document.getElementById('ewallet-payout-history-list');
       const profileNameHeadingElement = document.getElementById('profile-name-heading');
       const profileHandleHeadingElement = document.getElementById('profile-handle-heading');
       const profileHandleBadgeStripElement = document.getElementById('profile-handle-badge-strip');
@@ -6484,6 +6547,10 @@
       const MEMBER_GOOD_LIFE_MONTHLY_API = '/api/member-auth/good-life/monthly';
       const MEMBER_EMAIL_VERIFICATION_STATUS_API = '/api/member-auth/email-verification-status';
       const MEMBER_EMAIL_VERIFICATION_REQUEST_API = '/api/member-auth/email-verification/request';
+      const MEMBER_BILLING_PORTAL_API = '/api/member-auth/billing/portal';
+      const MEMBER_PAYOUT_ACCOUNT_STATUS_API = '/api/member-auth/payout-account';
+      const MEMBER_PAYOUT_ACCOUNT_ONBOARDING_API = '/api/member-auth/payout-account/onboarding-link';
+      const MEMBER_PAYOUT_ACCOUNT_DASHBOARD_LINK_API = '/api/member-auth/payout-account/dashboard-link';
       const MEMBER_NOTIFICATION_CENTER_API = '/api/member-auth/notifications';
       const MEMBER_NOTIFICATION_MARK_ALL_READ_API = '/api/member-auth/notifications/mark-all-read';
       const MEMBER_BUSINESS_CENTERS_API = '/api/member-auth/business-centers';
@@ -6651,6 +6718,7 @@
       const E_WALLET_COMMISSION_TRANSFER_API = '/api/e-wallet/commission-transfer';
       const E_WALLET_REQUEST_PAYOUT_API = '/api/e-wallet/request-payout';
       const E_WALLET_COMMISSION_OFFSETS_API = '/api/e-wallet/commission-offsets';
+      const PAYOUT_REQUESTS_API = '/api/payout-requests';
       const COMMISSION_CONTAINERS_API = '/api/commission-containers';
       const BINARY_TREE_METRICS_API = '/api/binary-tree-metrics';
       const SALES_TEAM_COMMISSIONS_API = '/api/sales-team-commissions';
@@ -6753,7 +6821,8 @@
       let profileRankLadderSlideIndex = 0;
       let activeProfileAchievementTabId = 'time-limited-event';
       const activeProfileAchievementCategoryByTab = {};
-      const MINIMUM_PAYOUT_REQUEST_USD = 0.01;
+      const MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD = 0.01;
+      const MINIMUM_PAYOUT_REQUEST_USD = 20;
       const MAX_RECENT_ACTIVITY_ITEMS = 12;
       const recentActivityRuntimeEntries = [];
       let recentActivityFeedExpanded = false;
@@ -8361,6 +8430,8 @@
       let commissionPayoutMockResetApplied = false;
       let eWalletSnapshot = null;
       let eWalletTransferHistory = [];
+      let eWalletPayoutRequests = [];
+      let eWalletPayoutAccountStatus = null;
       let eWalletRefreshInFlight = false;
       let eWalletTransferModalLastTriggerElement = null;
       let eWalletPayoutModalLastTriggerElement = null;
@@ -8429,7 +8500,7 @@
         }
 
         const safeAvailableAmount = Math.max(0, Number(availableAmount) || 0);
-        const canRequestPayout = safeAvailableAmount >= MINIMUM_PAYOUT_REQUEST_USD;
+        const canRequestPayout = safeAvailableAmount >= MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD;
         const isBusy = buttonElement.dataset.requestBusy === 'true';
         const isDisabled = !canRequestPayout || isBusy;
         buttonElement.disabled = isDisabled;
@@ -8440,7 +8511,7 @@
           ? 'Transferring to E-Wallet...'
           : (canRequestPayout
           ? `Transfer to Wallet (${formatCurrency(safeAvailableAmount)})`
-          : `${sourceLabel} requires at least ${formatCurrency(MINIMUM_PAYOUT_REQUEST_USD)} to transfer.`);
+          : `${sourceLabel} requires at least ${formatCurrency(MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD)} to transfer.`);
       }
 
       function refreshCommissionPayoutButtonStates() {
@@ -13616,18 +13687,36 @@
 
       function normalizeCommissionPayoutStatusLabel(statusValue) {
         const normalizedValue = normalizeMemberKey(statusValue);
-        if (normalizedValue === 'fulfilled') {
-          return 'Fulfilled';
+        if (normalizedValue === 'fulfilled' || normalizedValue === 'paid') {
+          return 'Paid';
         }
-        return 'Pending';
+        if (normalizedValue === 'processing') {
+          return 'Processing';
+        }
+        if (normalizedValue === 'failed') {
+          return 'Failed';
+        }
+        if (normalizedValue === 'cancelled' || normalizedValue === 'canceled') {
+          return 'Cancelled';
+        }
+        if (normalizedValue === 'requested' || normalizedValue === 'pending') {
+          return 'Requested';
+        }
+        return 'Requested';
       }
 
       function resolveCommissionPayoutStatusTone(statusLabel) {
         const normalizedLabel = normalizeMemberKey(statusLabel);
-        if (normalizedLabel === 'fulfilled') {
+        if (normalizedLabel === 'paid' || normalizedLabel === 'fulfilled') {
           return 'success';
         }
+        if (normalizedLabel === 'processing' || normalizedLabel === 'requested' || normalizedLabel === 'pending') {
+          return 'warning';
+        }
         if (normalizedLabel === 'rejected' || normalizedLabel === 'failed') {
+          return 'danger';
+        }
+        if (normalizedLabel === 'cancelled' || normalizedLabel === 'canceled') {
           return 'danger';
         }
         return 'warning';
@@ -13652,7 +13741,7 @@
         const statusLabel = normalizeCommissionPayoutStatusLabel(entry.statusLabel);
         const statusTone = resolveCommissionPayoutStatusTone(statusLabel);
         const title = String(entry.title || `${resolvedSourceMeta.label} payout requested`).trim();
-        const fallbackDetail = statusLabel === 'Fulfilled'
+        const fallbackDetail = statusLabel === 'Paid'
           ? `Request for ${formatCurrency(amountValue)} was fulfilled.`
           : `Request submitted for ${formatCurrency(amountValue)}.`;
         return {
@@ -13688,7 +13777,7 @@
         const statusTone = resolveCommissionPayoutStatusTone(statusLabel);
         const occurredAtMs = resolveRecentActivityTimestampMs(request.createdAt, Date.now());
         const fulfilledBy = String(request.fulfilledBy || '').trim();
-        const detail = statusLabel === 'Fulfilled'
+        const detail = statusLabel === 'Paid'
           ? `Request for ${formatCurrency(amountValue)} fulfilled${fulfilledBy ? ` by ${fulfilledBy}` : ''}.`
           : `Request submitted for ${formatCurrency(amountValue)}.`;
 
@@ -14207,7 +14296,6 @@
         if (dashboardMockupModeEnabled) {
           resetRuntimeCommissionPayoutOffsets();
           commissionOffsetsHydrated = true;
-          setPersistedCommissionPayoutRequestEntries([]);
           if (!options.silent) {
             renderRecentActivityFeed();
           }
@@ -14228,7 +14316,6 @@
         if (!query.toString()) {
           resetRuntimeCommissionPayoutOffsets();
           commissionOffsetsHydrated = true;
-          setPersistedCommissionPayoutRequestEntries([]);
           if (!options.silent) {
             renderRecentActivityFeed();
           }
@@ -14249,7 +14336,6 @@
 
         Object.assign(commissionPayoutOffsetBySource, sanitizeCommissionPayoutOffsetMap(payload?.offsets));
         commissionOffsetsHydrated = true;
-        setPersistedCommissionPayoutRequestEntries([]);
         if (!options.deferRender) {
           recalculateEnrollDerivedMetrics();
           renderSalesTeamCommissionsCard(currentDashboardTotalCycles, currentSessionUser);
@@ -19266,7 +19352,7 @@
         }
 
         const availableAmount = resolveCommissionSourceAvailableAmount(sourceMeta.key);
-        if (availableAmount < MINIMUM_PAYOUT_REQUEST_USD) {
+        if (availableAmount < MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD) {
           refreshCommissionPayoutButtonStates();
           return;
         }
@@ -19389,8 +19475,15 @@
       }
 
       function openEWalletPayoutModal(triggerElement = null) {
+        if (!isEWalletPayoutAccountReady()) {
+          setEWalletPayoutFeedback('Complete Stripe payout onboarding before requesting a payout.', 'error');
+          return;
+        }
         closeEWalletTransferModal({ restoreFocus: false });
         eWalletPayoutModalLastTriggerElement = triggerElement || document.activeElement || null;
+        if (eWalletPayoutMethodInputElement) {
+          eWalletPayoutMethodInputElement.value = normalizeEWalletPayoutMethod(eWalletPayoutMethodInputElement.value, 'instant');
+        }
         setEWalletPayoutFeedback('');
         setEWalletPayoutModalOpen(true);
         window.requestAnimationFrame(() => {
@@ -19459,6 +19552,26 @@
         eWalletPayoutFeedbackElement.textContent = safeMessage;
       }
 
+      function normalizeEWalletPayoutMethod(valueInput, fallback = 'instant') {
+        const normalized = String(valueInput || '').trim().toLowerCase();
+        if (normalized === 'instant') {
+          return 'instant';
+        }
+        if (normalized === 'standard') {
+          return 'standard';
+        }
+        return fallback === 'standard' ? 'standard' : 'instant';
+      }
+
+      function resolveEWalletPayoutMethodSelection() {
+        const fallback = 'instant';
+        const selected = normalizeEWalletPayoutMethod(eWalletPayoutMethodInputElement?.value, fallback);
+        if (eWalletPayoutMethodInputElement) {
+          eWalletPayoutMethodInputElement.value = selected;
+        }
+        return selected;
+      }
+
       function setEWalletHistoryFeedback(message, tone = 'info') {
         if (!eWalletHistoryFeedbackElement) {
           return;
@@ -19523,6 +19636,426 @@
         };
       }
 
+      function sanitizeEWalletPayoutRequestRecord(record) {
+        if (!record || typeof record !== 'object') {
+          return null;
+        }
+
+        const amount = Math.max(0, Number(record.amount) || 0);
+        if (amount <= 0) {
+          return null;
+        }
+
+        const createdAtMs = resolveRecentActivityTimestampMs(record.createdAt || record.requestedAt, Date.now());
+        const statusLabel = normalizeCommissionPayoutStatusLabel(record.status);
+        return {
+          id: String(record.id || `ewallet-payout-${createdAtMs}`),
+          sourceKey: normalizeMemberKey(record.sourceKey || 'ewallet') || 'ewallet',
+          sourceLabel: String(record.sourceLabel || 'E-Wallet').trim() || 'E-Wallet',
+          amount,
+          paidAmount: Math.max(0, Number(record.paidAmount) || 0),
+          status: statusLabel,
+          requestedByName: String(record.requestedByName || '').trim(),
+          requestedByUsername: String(record.requestedByUsername || '').trim(),
+          gatewayLabel: String(record.gatewayLabel || '').trim(),
+          gatewayReference: String(record.gatewayReference || '').trim(),
+          gatewayMessage: String(record.gatewayMessage || '').trim(),
+          createdAt: String(record.createdAt || record.requestedAt || '').trim(),
+          fulfilledAt: String(record.fulfilledAt || '').trim(),
+          createdAtMs,
+        };
+      }
+
+      function resolveEWalletPayoutOpenAmount() {
+        return (Array.isArray(eWalletPayoutRequests) ? eWalletPayoutRequests : []).reduce((sum, request) => {
+          const status = normalizeMemberKey(request?.status);
+          if (status !== 'requested' && status !== 'processing' && status !== 'pending') {
+            return sum;
+          }
+          return sum + Math.max(0, Number(request?.amount) || 0);
+        }, 0);
+      }
+
+      function resolveEWalletRequestableBalance() {
+        const walletBalance = Math.max(0, Number(eWalletSnapshot?.balance) || 0);
+        const openAmount = Math.max(0, Number(resolveEWalletPayoutOpenAmount()) || 0);
+        return Math.max(0, walletBalance - openAmount);
+      }
+
+      function isEWalletPayoutAccountReady() {
+        return Boolean(
+          eWalletPayoutAccountStatus
+          && eWalletPayoutAccountStatus.onboardingComplete === true
+          && eWalletPayoutAccountStatus.payoutsEnabled === true
+        );
+      }
+
+      function normalizeEWalletPayoutAccountStatusPayload(payload = {}) {
+        const source = payload && typeof payload === 'object' ? payload : {};
+        return {
+          hasConnectedAccount: source.hasConnectedAccount === true,
+          connectAccountId: String(source.connectAccountId || '').trim(),
+          detailsSubmitted: source.detailsSubmitted === true,
+          payoutsEnabled: source.payoutsEnabled === true,
+          chargesEnabled: source.chargesEnabled === true,
+          onboardingComplete: source.onboardingComplete === true,
+          requiresOnboarding: source.requiresOnboarding !== false,
+          onboardingUrl: String(source.onboardingUrl || '').trim(),
+          dashboardUrl: String(source.dashboardUrl || '').trim(),
+          checkedAt: String(source.checkedAt || '').trim(),
+          loading: source.loading === true,
+          error: String(source.error || '').trim(),
+        };
+      }
+
+      function renderEWalletPayoutAccountStatus() {
+        if (!eWalletPayoutAccountStatusElement || !eWalletPayoutAccountActionButtonElement || !eWalletPayoutAccountCaptionElement) {
+          return;
+        }
+
+        const status = normalizeEWalletPayoutAccountStatusPayload(eWalletPayoutAccountStatus || {});
+        eWalletPayoutAccountStatusElement.classList.remove('text-semantic-success', 'text-semantic-warning', 'text-semantic-danger', 'text-text-secondary');
+        if (eWalletPayoutAccountDashboardButtonElement) {
+          const canOpenDashboard = status.hasConnectedAccount && !status.loading;
+          eWalletPayoutAccountDashboardButtonElement.disabled = !canOpenDashboard;
+          eWalletPayoutAccountDashboardButtonElement.textContent = 'Stripe Dashboard';
+          eWalletPayoutAccountDashboardButtonElement.title = canOpenDashboard
+            ? 'Open your Stripe Express dashboard.'
+            : 'Connect your Stripe payout account first.';
+        }
+
+        if (status.loading) {
+          eWalletPayoutAccountStatusElement.textContent = 'Checking payout account...';
+          eWalletPayoutAccountStatusElement.classList.add('text-text-secondary');
+          eWalletPayoutAccountCaptionElement.textContent = 'Syncing Stripe Connect status.';
+          eWalletPayoutAccountActionButtonElement.disabled = true;
+          eWalletPayoutAccountActionButtonElement.textContent = 'Checking...';
+          return;
+        }
+
+        if (status.error) {
+          eWalletPayoutAccountStatusElement.textContent = 'Unable to verify payout account';
+          eWalletPayoutAccountStatusElement.classList.add('text-semantic-danger');
+          eWalletPayoutAccountCaptionElement.textContent = status.error;
+          eWalletPayoutAccountActionButtonElement.disabled = false;
+          eWalletPayoutAccountActionButtonElement.textContent = 'Retry';
+          return;
+        }
+
+        if (status.onboardingComplete && status.payoutsEnabled) {
+          eWalletPayoutAccountStatusElement.textContent = 'Ready for payouts';
+          eWalletPayoutAccountStatusElement.classList.add('text-semantic-success');
+          eWalletPayoutAccountCaptionElement.textContent = 'Stripe Connect onboarding is complete. You can request withdrawals.';
+          eWalletPayoutAccountActionButtonElement.disabled = false;
+          eWalletPayoutAccountActionButtonElement.textContent = 'Manage Stripe';
+          return;
+        }
+
+        if (status.hasConnectedAccount) {
+          eWalletPayoutAccountStatusElement.textContent = 'Onboarding required';
+          eWalletPayoutAccountStatusElement.classList.add('text-semantic-warning');
+          eWalletPayoutAccountCaptionElement.textContent = 'Complete Stripe onboarding to enable withdrawals.';
+          eWalletPayoutAccountActionButtonElement.disabled = false;
+          eWalletPayoutAccountActionButtonElement.textContent = 'Complete Onboarding';
+          return;
+        }
+
+        eWalletPayoutAccountStatusElement.textContent = 'Not connected';
+        eWalletPayoutAccountStatusElement.classList.add('text-semantic-warning');
+        eWalletPayoutAccountCaptionElement.textContent = 'Connect a Stripe payout account before requesting withdrawals.';
+        eWalletPayoutAccountActionButtonElement.disabled = false;
+        eWalletPayoutAccountActionButtonElement.textContent = 'Connect Stripe';
+      }
+
+      function renderEWalletPayoutHistory() {
+        if (!eWalletPayoutHistoryListElement || !eWalletPayoutHistoryEmptyElement || !eWalletPayoutHistorySummaryElement) {
+          return;
+        }
+
+        const requests = Array.isArray(eWalletPayoutRequests) ? eWalletPayoutRequests : [];
+        const openAmount = resolveEWalletPayoutOpenAmount();
+        eWalletPayoutHistorySummaryElement.textContent = `Open: ${formatCurrency(openAmount)}`;
+
+        if (!requests.length) {
+          eWalletPayoutHistoryListElement.innerHTML = '';
+          eWalletPayoutHistoryEmptyElement.classList.remove('hidden');
+          return;
+        }
+
+        eWalletPayoutHistoryEmptyElement.classList.add('hidden');
+        eWalletPayoutHistoryListElement.innerHTML = requests.map((request) => {
+          const statusLabel = normalizeCommissionPayoutStatusLabel(request?.status);
+          const statusTone = resolveCommissionPayoutStatusTone(statusLabel);
+          const statusClass = statusTone === 'success'
+            ? 'text-semantic-success'
+            : (statusTone === 'danger' ? 'text-semantic-danger' : 'text-semantic-warning');
+          const createdLabel = formatRecentActivityTimestamp(resolveRecentActivityTimestampMs(request?.createdAt, Date.now()));
+          const requestLabel = request?.requestedByName || request?.requestedByUsername || 'Member';
+          const gatewayLabel = String(request?.gatewayLabel || '').trim();
+          const gatewayReference = String(request?.gatewayReference || '').trim();
+          const gatewayMessage = String(request?.gatewayMessage || '').trim();
+          const metadataLine = gatewayLabel || gatewayReference
+            ? `${gatewayLabel || 'Gateway'}${gatewayReference ? ` · ${gatewayReference}` : ''}`
+            : '';
+          const metadataMarkup = metadataLine
+            ? `<p class="text-caption text-text-tertiary mt-1">${escapeHtml(metadataLine)}</p>`
+            : '';
+          const messageMarkup = gatewayMessage
+            ? `<p class="text-caption text-text-tertiary mt-1">${escapeHtml(gatewayMessage)}</p>`
+            : '';
+
+          return `
+            <article class="rounded-xl border border-surface-border bg-surface-base/55 px-3.5 py-3">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="text-body-sm font-medium text-text-primary">${escapeHtml(request.sourceLabel || 'E-Wallet Payout')}</p>
+                  <p class="text-caption text-text-tertiary mt-0.5">Requested by ${escapeHtml(requestLabel)} · ${escapeHtml(createdLabel)}</p>
+                  ${metadataMarkup}
+                  ${messageMarkup}
+                </div>
+                <div class="text-right">
+                  <p class="text-body-sm font-semibold text-text-primary">${escapeHtml(formatCurrency(request.amount))}</p>
+                  <p class="text-caption ${statusClass} mt-0.5">${escapeHtml(statusLabel)}</p>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      async function loadMemberPayoutAccountStatus(options = {}) {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          eWalletPayoutAccountStatus = normalizeEWalletPayoutAccountStatusPayload({
+            error: 'Member auth token is missing. Sign in again to manage payouts.',
+          });
+          renderEWalletPayoutAccountStatus();
+          return eWalletPayoutAccountStatus;
+        }
+
+        eWalletPayoutAccountStatus = normalizeEWalletPayoutAccountStatusPayload({
+          ...(eWalletPayoutAccountStatus || {}),
+          loading: true,
+          error: '',
+        });
+        renderEWalletPayoutAccountStatus();
+
+        try {
+          const response = await fetch(MEMBER_PAYOUT_ACCOUNT_STATUS_API, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+              Accept: 'application/json',
+            },
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const errorMessage = typeof payload?.error === 'string'
+              ? payload.error
+              : `Unable to load payout account status (${response.status}).`;
+            throw new Error(errorMessage);
+          }
+
+          eWalletPayoutAccountStatus = normalizeEWalletPayoutAccountStatusPayload(payload);
+          renderEWalletPayoutAccountStatus();
+          if (!options.silent) {
+            const message = isEWalletPayoutAccountReady()
+              ? 'Stripe payout account is ready.'
+              : 'Complete Stripe onboarding to enable payout requests.';
+            setEWalletPayoutFeedback(message, isEWalletPayoutAccountReady() ? 'success' : 'info');
+          }
+          return eWalletPayoutAccountStatus;
+        } catch (error) {
+          eWalletPayoutAccountStatus = normalizeEWalletPayoutAccountStatusPayload({
+            ...(eWalletPayoutAccountStatus || {}),
+            loading: false,
+            error: error instanceof Error ? error.message : 'Unable to load payout account status.',
+          });
+          renderEWalletPayoutAccountStatus();
+          if (!options.silent) {
+            setEWalletPayoutFeedback(eWalletPayoutAccountStatus.error, 'error');
+          }
+          return eWalletPayoutAccountStatus;
+        } finally {
+          eWalletPayoutAccountStatus = normalizeEWalletPayoutAccountStatusPayload({
+            ...(eWalletPayoutAccountStatus || {}),
+            loading: false,
+          });
+          renderEWalletPayoutAccountStatus();
+          renderEWalletSummary();
+        }
+      }
+
+      async function loadEWalletPayoutRequestsForCurrentUser(options = {}) {
+        const identity = resolveEWalletIdentityPayload();
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          throw new Error('Member auth token is missing. Sign in again to load payout requests.');
+        }
+        const query = new URLSearchParams();
+        if (identity.userId) {
+          query.set('userId', identity.userId);
+        }
+        if (identity.username) {
+          query.set('username', identity.username);
+        }
+        if (identity.email) {
+          query.set('email', identity.email);
+        }
+
+        if (!query.toString()) {
+          eWalletPayoutRequests = [];
+          renderEWalletPayoutHistory();
+          renderEWalletSummary();
+          return [];
+        }
+
+        const response = await fetch(`${PAYOUT_REQUESTS_API}?${query.toString()}`, {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof payload?.error === 'string'
+            ? payload.error
+            : `Unable to load payout requests (${response.status}).`;
+          throw new Error(message);
+        }
+
+        const requests = Array.isArray(payload?.requests)
+          ? payload.requests.map((entry) => sanitizeEWalletPayoutRequestRecord(entry)).filter(Boolean)
+          : [];
+        eWalletPayoutRequests = requests.sort((left, right) => {
+          return (Number(right?.createdAtMs) || 0) - (Number(left?.createdAtMs) || 0);
+        });
+
+        const payoutActivityEntries = eWalletPayoutRequests
+          .map((request) => sanitizeCommissionPayoutRequestRecord(request))
+          .filter(Boolean);
+        setPersistedCommissionPayoutRequestEntries(payoutActivityEntries);
+
+        if (!options.deferRender) {
+          renderEWalletPayoutHistory();
+          renderEWalletSummary();
+          renderRecentActivityFeed();
+        }
+
+        return eWalletPayoutRequests;
+      }
+
+      async function startMemberPayoutOnboarding() {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          setEWalletPayoutFeedback('Member auth token is missing. Sign in again to continue.', 'error');
+          return;
+        }
+
+        if (eWalletPayoutAccountActionButtonElement) {
+          eWalletPayoutAccountActionButtonElement.disabled = true;
+        }
+
+        try {
+          if (isEWalletPayoutAccountReady()) {
+            await openMemberStripePayoutDashboard();
+            return;
+          }
+
+          setEWalletPayoutFeedback('Opening Stripe onboarding...', 'info');
+          const response = await fetch(MEMBER_PAYOUT_ACCOUNT_ONBOARDING_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+              returnUrl: window.location.href,
+              refreshUrl: window.location.href,
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const errorMessage = typeof payload?.error === 'string'
+              ? payload.error
+              : `Unable to start payout onboarding (${response.status}).`;
+            throw new Error(errorMessage);
+          }
+
+          const onboardingUrl = String(payload?.onboardingUrl || '').trim();
+          if (!onboardingUrl) {
+            throw new Error('Stripe onboarding URL was not returned.');
+          }
+
+          window.location.assign(onboardingUrl);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to start payout onboarding.';
+          setEWalletPayoutFeedback(message, 'error');
+          await loadMemberPayoutAccountStatus({ silent: true }).catch(() => {});
+        } finally {
+          if (eWalletPayoutAccountActionButtonElement) {
+            eWalletPayoutAccountActionButtonElement.disabled = false;
+          }
+          renderEWalletPayoutAccountStatus();
+        }
+      }
+
+      async function openMemberStripePayoutDashboard() {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          setEWalletPayoutFeedback('Member auth token is missing. Sign in again to continue.', 'error');
+          return;
+        }
+
+        const accountStatus = normalizeEWalletPayoutAccountStatusPayload(eWalletPayoutAccountStatus || {});
+        if (!accountStatus.hasConnectedAccount) {
+          setEWalletPayoutFeedback('Connect your Stripe payout account before opening Stripe Dashboard.', 'error');
+          return;
+        }
+
+        if (eWalletPayoutAccountDashboardButtonElement) {
+          eWalletPayoutAccountDashboardButtonElement.disabled = true;
+        }
+
+        try {
+          setEWalletPayoutFeedback('Opening Stripe Dashboard...', 'info');
+          const response = await fetch(MEMBER_PAYOUT_ACCOUNT_DASHBOARD_LINK_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+              returnUrl: window.location.href,
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const errorMessage = typeof payload?.error === 'string'
+              ? payload.error
+              : `Unable to open Stripe dashboard (${response.status}).`;
+            throw new Error(errorMessage);
+          }
+
+          const dashboardUrl = String(payload?.dashboardUrl || '').trim();
+          if (!dashboardUrl) {
+            throw new Error('Stripe dashboard URL was not returned.');
+          }
+
+          window.location.assign(dashboardUrl);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to open Stripe dashboard.';
+          setEWalletPayoutFeedback(message, 'error');
+        } finally {
+          if (eWalletPayoutAccountDashboardButtonElement) {
+            eWalletPayoutAccountDashboardButtonElement.disabled = false;
+          }
+          renderEWalletPayoutAccountStatus();
+        }
+      }
+
       function syncSessionWalletBalanceFromSnapshot(nextBalance) {
         const safeBalance = Math.max(0, Number(nextBalance) || 0);
         walletBalanceOverrideValue = safeBalance;
@@ -19563,6 +20096,9 @@
 
       function renderEWalletSummary() {
         const availableBalance = Math.max(0, Number(eWalletSnapshot?.balance) || 0);
+        const openPayoutAmount = Math.max(0, Number(resolveEWalletPayoutOpenAmount()) || 0);
+        const requestableBalance = Math.max(0, Number(resolveEWalletRequestableBalance()) || 0);
+        const payoutAccountReady = isEWalletPayoutAccountReady();
         const totalSent = Math.max(0, Number(eWalletSnapshot?.totalSent) || 0);
         const totalReceived = Math.max(0, Number(eWalletSnapshot?.totalReceived) || 0);
         const transferCount = Math.max(
@@ -19588,7 +20124,10 @@
           eWalletTransferAvailableValueElement.textContent = `Available: ${formatCurrency(availableBalance)}`;
         }
         if (eWalletPayoutAvailableValueElement) {
-          eWalletPayoutAvailableValueElement.textContent = `Available: ${formatCurrency(availableBalance)}`;
+          eWalletPayoutAvailableValueElement.textContent = `Available to request: ${formatCurrency(requestableBalance)} (Open requests: ${formatCurrency(openPayoutAmount)})`;
+        }
+        if (eWalletPayoutMinimumValueElement) {
+          eWalletPayoutMinimumValueElement.textContent = `Minimum payout: ${formatCurrency(MINIMUM_PAYOUT_REQUEST_USD)}`;
         }
         if (eWalletLastUpdatedValueElement) {
           const updatedAtMs = resolveRecentActivityTimestampMs(eWalletSnapshot?.updatedAt, 0);
@@ -19616,9 +20155,20 @@
         if (eWalletPayoutSubmitButtonElement) {
           const payoutAmount = Math.max(0, parseCurrencyAmount(eWalletPayoutAmountInputElement?.value, 0));
           const canRequestPayout = !eWalletRefreshInFlight
+            && payoutAccountReady
             && payoutAmount >= MINIMUM_PAYOUT_REQUEST_USD
-            && payoutAmount <= availableBalance;
+            && payoutAmount <= requestableBalance;
           eWalletPayoutSubmitButtonElement.disabled = !canRequestPayout;
+        }
+
+        if (eWalletOpenPayoutModalButtonElement) {
+          const canOpenPayout = !eWalletRefreshInFlight && payoutAccountReady;
+          eWalletOpenPayoutModalButtonElement.disabled = !canOpenPayout;
+          eWalletOpenPayoutModalButtonElement.classList.toggle('opacity-40', !canOpenPayout);
+          eWalletOpenPayoutModalButtonElement.classList.toggle('cursor-not-allowed', !canOpenPayout);
+          eWalletOpenPayoutModalButtonElement.title = payoutAccountReady
+            ? `Request payout (${formatCurrency(requestableBalance)} available)`
+            : 'Complete Stripe payout onboarding first.';
         }
       }
 
@@ -19725,6 +20275,25 @@
           applyEWalletSnapshot(payload);
           renderEWalletSummary();
           renderEWalletTransferHistory();
+          const settlementResults = await Promise.allSettled([
+            loadEWalletPayoutRequestsForCurrentUser({ deferRender: true }),
+            loadMemberPayoutAccountStatus({ silent: true }),
+          ]);
+          const payoutHistoryFailure = settlementResults[0]?.status === 'rejected'
+            ? settlementResults[0].reason
+            : null;
+          const payoutAccountFailure = settlementResults[1]?.status === 'rejected'
+            ? settlementResults[1].reason
+            : null;
+          if (payoutHistoryFailure) {
+            console.warn('Unable to load payout history:', payoutHistoryFailure);
+          }
+          if (payoutAccountFailure) {
+            console.warn('Unable to load payout account status:', payoutAccountFailure);
+          }
+          renderEWalletPayoutHistory();
+          renderEWalletPayoutAccountStatus();
+          renderRecentActivityFeed();
           setEWalletHistoryFeedback('');
         } finally {
           eWalletRefreshInFlight = false;
@@ -19841,16 +20410,24 @@
 
         const identity = resolveEWalletIdentityPayload();
         const amount = Math.max(0, parseCurrencyAmount(eWalletPayoutAmountInputElement?.value, 0));
+        const payoutMethod = resolveEWalletPayoutMethodSelection();
+        const payoutMethodLabel = payoutMethod === 'standard' ? 'Standard' : 'Instant';
         const note = String(eWalletPayoutNoteInputElement?.value || '').trim();
-        const availableBalance = Math.max(0, Number(eWalletSnapshot?.balance) || 0);
+        const requestableBalance = resolveEWalletRequestableBalance();
+        const authToken = resolveMemberAuthToken();
+
+        if (!isEWalletPayoutAccountReady()) {
+          setEWalletPayoutFeedback('Complete Stripe payout onboarding before requesting a payout.', 'error');
+          return;
+        }
 
         if (!Number.isFinite(amount) || amount < MINIMUM_PAYOUT_REQUEST_USD) {
           setEWalletPayoutFeedback(`Enter a payout amount of at least ${formatCurrency(MINIMUM_PAYOUT_REQUEST_USD)}.`, 'error');
           return;
         }
 
-        if (amount > availableBalance) {
-          setEWalletPayoutFeedback(`Amount exceeds your available balance of ${formatCurrency(availableBalance)}.`, 'error');
+        if (amount > requestableBalance) {
+          setEWalletPayoutFeedback(`Amount exceeds your requestable balance of ${formatCurrency(requestableBalance)}.`, 'error');
           return;
         }
 
@@ -19861,20 +20438,26 @@
 
         eWalletRefreshInFlight = true;
         renderEWalletSummary();
-        setEWalletPayoutFeedback('Submitting payout request...', 'info');
+        setEWalletPayoutFeedback(`Submitting ${payoutMethodLabel.toLowerCase()} payout request...`, 'info');
 
         try {
+          const requestHeaders = {
+            'Content-Type': 'application/json',
+          };
+          if (authToken) {
+            requestHeaders.Authorization = `Bearer ${authToken}`;
+          }
+
           const response = await fetch(E_WALLET_REQUEST_PAYOUT_API, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: requestHeaders,
             body: JSON.stringify({
               userId: identity.userId,
               username: identity.username,
               email: identity.email,
               requestedByName: identity.name,
               amount,
+              payoutMethod,
               note,
               senderSeedBalance: Math.max(0, Number(resolveDashboardTotalBalanceValue()) || 0),
               limit: 50,
@@ -19891,19 +20474,29 @@
           applyEWalletSnapshot(payload);
           renderEWalletSummary();
           renderEWalletTransferHistory();
+          const refreshedRequests = await loadEWalletPayoutRequestsForCurrentUser({ deferRender: true }).catch(() => []);
+          if (Array.isArray(refreshedRequests)) {
+            renderEWalletPayoutHistory();
+          }
+          renderRecentActivityFeed();
 
           const request = payload?.request && typeof payload.request === 'object' ? payload.request : null;
           const occurredAtMs = resolveRecentActivityTimestampMs(request?.createdAt, Date.now());
+          const requestStatusLabel = normalizeCommissionPayoutStatusLabel(String(request?.status || 'Requested').trim() || 'Requested');
+          const requestStatusTone = resolveCommissionPayoutStatusTone(requestStatusLabel);
+          const isRequestPaid = normalizeMemberKey(requestStatusLabel) === 'paid';
           appendRecentActivityRuntimeEntry({
             id: `ewallet-payout-${String(request?.id || occurredAtMs)}`,
             kind: 'payout',
             badgeLabel: 'Payout',
             categoryLabel: 'Payout',
             iconLabel: 'PO',
-            title: 'E-Wallet payout requested',
-            detail: note || `Request submitted for ${formatCurrency(amount)}.`,
-            statusLabel: String(request?.status || 'Pending').trim() || 'Pending',
-            statusTone: 'warning',
+            title: isRequestPaid ? 'E-Wallet payout processed' : 'E-Wallet payout requested',
+            detail: note || (isRequestPaid
+              ? `${payoutMethodLabel} payout processed for ${formatCurrency(amount)}.`
+              : `${payoutMethodLabel} request submitted for ${formatCurrency(amount)}.`),
+            statusLabel: requestStatusLabel,
+            statusTone: requestStatusTone,
             amountValue: amount,
             amountDirection: 'debit',
             occurredAtMs,
@@ -19916,8 +20509,11 @@
             eWalletPayoutNoteInputElement.value = '';
           }
 
-          setEWalletPayoutFeedback('Payout request submitted successfully.', 'success');
-          setEWalletHistoryFeedback('Payout request submitted successfully.', 'success');
+          const successMessage = isRequestPaid
+            ? `${payoutMethodLabel} payout processed successfully through Stripe.`
+            : `${payoutMethodLabel} payout request submitted successfully.`;
+          setEWalletPayoutFeedback(successMessage, 'success');
+          setEWalletHistoryFeedback(successMessage, 'success');
           closeEWalletPayoutModal({ restoreFocus: false });
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unable to submit payout request.';
@@ -19931,6 +20527,8 @@
       function initializeEWalletModule() {
         renderEWalletSummary();
         renderEWalletTransferHistory();
+        renderEWalletPayoutHistory();
+        renderEWalletPayoutAccountStatus();
         setEWalletTransferModalOpen(false);
         setEWalletPayoutModalOpen(false);
 
@@ -19947,6 +20545,22 @@
           eWalletOpenPayoutModalButtonElement.addEventListener('click', (event) => {
             event.preventDefault();
             openEWalletPayoutModal(eWalletOpenPayoutModalButtonElement);
+          });
+        }
+
+        if (eWalletPayoutAccountActionButtonElement && eWalletPayoutAccountActionButtonElement.dataset.bound !== 'true') {
+          eWalletPayoutAccountActionButtonElement.dataset.bound = 'true';
+          eWalletPayoutAccountActionButtonElement.addEventListener('click', (event) => {
+            event.preventDefault();
+            void startMemberPayoutOnboarding();
+          });
+        }
+
+        if (eWalletPayoutAccountDashboardButtonElement && eWalletPayoutAccountDashboardButtonElement.dataset.bound !== 'true') {
+          eWalletPayoutAccountDashboardButtonElement.dataset.bound = 'true';
+          eWalletPayoutAccountDashboardButtonElement.addEventListener('click', (event) => {
+            event.preventDefault();
+            void openMemberStripePayoutDashboard();
           });
         }
 
@@ -20135,12 +20749,26 @@
       }
 
       function collectPreferredCustomerInvoiceIdentityKeys(invoice) {
-        // Guest checkout can include name/email only. We only treat invoices as member-linked
-        // when a stable member identity is present (user id or username).
-        return [
+        const stableIdentityKeys = [
           normalizeMemberKey(invoice?.buyerUserId),
           normalizeMemberKey(invoice?.buyerUsername),
         ].filter(Boolean);
+
+        const buyerEmailKey = normalizeMemberKey(invoice?.buyerEmail);
+        const buyerPackageKey = normalizeMemberKey(
+          invoice?.buyerPackageKey
+          || invoice?.settlementProfile?.buyerPackageKey,
+        );
+        const isPreferredBuyerCheckout = (
+          invoice?.settlementProfile?.isPreferredBuyerCheckout === true
+          || buyerPackageKey === normalizeMemberKey(FREE_ACCOUNT_PACKAGE_KEY)
+        );
+
+        if (buyerEmailKey && (stableIdentityKeys.length > 0 || isPreferredBuyerCheckout)) {
+          stableIdentityKeys.push(buyerEmailKey);
+        }
+
+        return Array.from(new Set(stableIdentityKeys));
       }
 
       function doesInvoiceMatchPreferredCustomerMember(invoice, member) {
@@ -21441,6 +22069,59 @@
         }
       }
 
+      async function requestSettingsBillingPortalSession() {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          return {
+            success: false,
+            error: 'Server authentication token is missing. Sign in again to open billing.',
+          };
+        }
+
+        try {
+          const response = await fetch(MEMBER_BILLING_PORTAL_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+              returnUrl: window.location.href,
+            }),
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            return {
+              success: false,
+              error: typeof payload?.error === 'string'
+                ? payload.error
+                : 'Unable to open Stripe billing portal.',
+            };
+          }
+
+          const portalUrl = String(payload?.portalUrl || '').trim();
+          if (!portalUrl) {
+            return {
+              success: false,
+              error: 'Stripe billing portal did not return a redirect URL.',
+            };
+          }
+
+          return {
+            success: true,
+            portalUrl,
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error && error.message
+              ? error.message
+              : 'Unable to open Stripe billing portal.',
+          };
+        }
+      }
+
       function setActiveSettingsCategory(categoryKeyInput = 'account') {
         const safeCategoryKey = ['account', 'payment', 'security', 'appearance'].includes(String(categoryKeyInput || '').trim())
           ? String(categoryKeyInput || '').trim()
@@ -22710,8 +23391,6 @@
       let storeRankDiscountRate = 0;
       let storeInvoiceSeed = 240930;
       let storeInvoices = [];
-      let hasReconciledExistingStorePurchasePv = false;
-      let pendingStorePurchasePvReconcilePromise = null;
       let selectedStoreProductId = '';
       let activeStoreFlowStep = 'grid';
       let storeStripeClient = null;
@@ -23006,61 +23685,6 @@
 
       function resolveStoreInvoicesForCurrentOwnerDashboardView() {
         return resolveStoreInvoicesForCurrentOwnerView().filter((invoice) => !isInvoiceAttributedGuestCheckout(invoice));
-      }
-
-      function resolveCurrentUserStoreInvoiceBpTotal() {
-        if (!Array.isArray(storeInvoices) || storeInvoices.length === 0) {
-          return 0;
-        }
-
-        return storeInvoices.reduce((sum, invoice) => {
-          if (isEnrollmentGeneratedInvoice(invoice)) {
-            return sum;
-          }
-          if (!isInvoiceOwnedByCurrentUser(invoice)) {
-            return sum;
-          }
-          return sum + Math.max(0, toWholeNumber(invoice?.bp, 0));
-        }, 0);
-      }
-
-      function resolveCurrentCreditedStorePurchasePv(user = currentSessionUser) {
-        const enrollmentPackageBv = toWholeNumber(user?.enrollmentPackageBv, 0);
-        const starterPersonalPv = toWholeNumber(user?.starterPersonalPv, enrollmentPackageBv);
-        return Math.max(0, starterPersonalPv - enrollmentPackageBv);
-      }
-
-      async function reconcileExistingStorePurchasePv() {
-        if (hasReconciledExistingStorePurchasePv) {
-          return;
-        }
-
-        if (pendingStorePurchasePvReconcilePromise) {
-          await pendingStorePurchasePvReconcilePromise;
-          return;
-        }
-
-        pendingStorePurchasePvReconcilePromise = (async () => {
-          const invoiceBpTotal = resolveCurrentUserStoreInvoiceBpTotal();
-          if (invoiceBpTotal <= 0) {
-            return;
-          }
-
-          const creditedPurchasePv = resolveCurrentCreditedStorePurchasePv(currentSessionUser);
-          const missingPv = Math.max(0, invoiceBpTotal - creditedPurchasePv);
-          if (missingPv <= 0) {
-            return;
-          }
-
-          await syncMemberPurchaseActivityWindow(missingPv);
-        })().catch((error) => {
-          console.warn('Unable to reconcile existing store purchase PV:', error);
-        }).finally(() => {
-          pendingStorePurchasePvReconcilePromise = null;
-          hasReconciledExistingStorePurchasePv = true;
-        });
-
-        await pendingStorePurchasePvReconcilePromise;
       }
 
       function resolveRegisteredAttributionCode() {
@@ -23448,6 +24072,34 @@
         window.history.replaceState(window.history.state || {}, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
       }
 
+      async function syncSessionAfterStoreCheckoutCompletion(completionPayload = null) {
+        const safePayload = completionPayload && typeof completionPayload === 'object'
+          ? completionPayload
+          : {};
+        const buyerCreditUser = safePayload?.buyerCredit?.user && typeof safePayload.buyerCredit.user === 'object'
+          ? safePayload.buyerCredit.user
+          : null;
+        const ownerCreditUser = safePayload?.ownerCredit?.user && typeof safePayload.ownerCredit.user === 'object'
+          ? safePayload.ownerCredit.user
+          : null;
+
+        if (buyerCreditUser) {
+          applySessionUserPatch(buyerCreditUser);
+        }
+
+        if (ownerCreditUser && doesIdentityBelongToCurrentSessionUser(ownerCreditUser)) {
+          applySessionUserPatch(ownerCreditUser);
+        }
+
+        const authToken = resolveMemberAuthToken();
+        if (authToken) {
+          await hydrateCurrentSessionUserFromServer(currentSessionUser, authToken);
+          applySessionUserPatch(currentSessionUser);
+        }
+
+        await loadRegisteredMembers();
+      }
+
       async function handleStoreHostedCheckoutReturn() {
         const returnDetails = resolveStoreHostedCheckoutReturnDetails();
         if (!returnDetails.checkoutStatus) {
@@ -23508,6 +24160,7 @@
         renderInvoiceFeed();
         syncStoreMetrics();
         renderRecentActivityFeed();
+        await syncSessionAfterStoreCheckoutCompletion(completionResult.payload);
 
         storeCart = [];
         if (storeCheckoutFormElement) {
@@ -24924,17 +25577,18 @@
           productId: String(line?.productId || '').trim(),
           quantity: Math.max(1, toWholeNumber(line?.quantity, 1)),
         })).filter((line) => line.productId);
+        const checkoutStoreRouting = resolveCheckoutStoreRouting();
 
         const checkoutSessionPayload = {
           cartLines: checkoutLinesSnapshot,
-          storeCode: '',
+          storeCode: checkoutStoreRouting.attributionKey,
           buyerName,
           buyerEmail,
           shippingAddress,
           shippingMode,
           source: 'member-dashboard',
           returnPath: '/index.html',
-          memberStoreLink: buildPublicStoreLink(storePublicCode),
+          memberStoreLink: checkoutStoreRouting.storeLink || buildPublicStoreLink(storePublicCode),
           discountPercent: storeRankDiscountPercent,
           checkoutMode: 'guest',
           buyerUserId: String(currentSessionUser?.id || '').trim(),
@@ -24969,6 +25623,7 @@
       }
 
       async function initMyStore() {
+        await handleStoreHostedCheckoutReturn();
         storeAppliedUplineCode = resolveRegisteredAttributionCode();
         storePublicCode = resolvePublicStoreCode();
         syncStoreRankDiscountState();
@@ -25001,11 +25656,6 @@
         renderInvoiceFeed();
         syncStoreMetrics();
         renderRecentActivityFeed();
-        await handleStoreHostedCheckoutReturn();
-        if (shouldBuyerReceiveStorePurchaseBv(currentSessionUser)) {
-          void reconcileExistingStorePurchasePv();
-        }
-
         if (storeProductGrid) {
           storeProductGrid.addEventListener('click', (event) => {
             const actionButton = event.target.closest('[data-product-action]');
@@ -26282,6 +26932,22 @@
           persistUserSessionSnapshot(currentSessionUser);
           syncSettingsPageAccountOverview();
           setSettingsBillingFeedback('Billing details saved.', 'success');
+        });
+      }
+      if (sidebarInvoicePortalLink) {
+        sidebarInvoicePortalLink.addEventListener('click', async (event) => {
+          event.preventDefault();
+          setSettingsBillingFeedback('Opening Stripe billing portal...', 'info');
+
+          const portalResult = await requestSettingsBillingPortalSession();
+          if (!portalResult.success || !portalResult.portalUrl) {
+            const errorMessage = String(portalResult.error || 'Unable to open Stripe billing portal.');
+            setSettingsBillingFeedback(errorMessage, 'error');
+            window.alert(errorMessage);
+            return;
+          }
+
+          window.location.assign(portalResult.portalUrl);
         });
       }
       if (settingsSecurityForgotPasswordButton) {

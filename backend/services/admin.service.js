@@ -262,6 +262,10 @@ function resolveSalesTeamPayoutOffsetAmount(identityKeys, payoutRequests) {
     if (normalizeCredential(request?.sourceKey) !== 'salesteam') {
       return sum;
     }
+    const normalizedStatus = normalizeCredential(request?.status);
+    if (normalizedStatus === 'failed' || normalizedStatus === 'cancelled' || normalizedStatus === 'canceled') {
+      return sum;
+    }
     if (!doesPayoutRequestBelongToIdentity(request, identityKeys)) {
       return sum;
     }

@@ -195,7 +195,7 @@ const ENROLL_BILLING_COUNTRY_FALLBACK_OPTIONS = Object.freeze([
   Object.freeze({ code: 'US', label: 'United States' }),
 ]);
 const ENROLL_DEFAULT_PACKAGE_KEY = 'legacy-builder-pack';
-const ENROLL_CHECKOUT_TAX_RATE = 0.0975;
+const STRIPE_TAX_CALCULATED_LABEL = 'Calculated at Stripe checkout';
 const ACCOUNT_OVERVIEW_SALES_TEAM_CYCLE_COMMISSION_PLAN = Object.freeze({
   [FREE_ACCOUNT_PACKAGE_KEY]: { perCycle: 0, weeklyCapCycles: 0 },
   'personal-builder-pack': { perCycle: 25, weeklyCapCycles: 50 },
@@ -3348,8 +3348,7 @@ function syncTreeNextEnrollPackagePreview() {
   const subtotalAmount = Math.max(0, safeNumber(packagePrice, 0));
   const discountAmount = 0;
   const taxableAmount = Math.max(0, subtotalAmount - discountAmount);
-  const taxAmount = Math.round((taxableAmount * ENROLL_CHECKOUT_TAX_RATE) * 100) / 100;
-  const totalAmount = Math.round((taxableAmount + taxAmount) * 100) / 100;
+  const totalAmount = Math.round(taxableAmount * 100) / 100;
 
   if (treeNextEnrollPackageBvElement instanceof HTMLElement) {
     treeNextEnrollPackageBvElement.textContent = `${formatInteger(packageBv)} BV`;
@@ -3370,7 +3369,7 @@ function syncTreeNextEnrollPackagePreview() {
     treeNextEnrollSummaryDiscountElement.textContent = formatEnrollCurrency(discountAmount);
   }
   if (treeNextEnrollSummaryTaxElement instanceof HTMLElement) {
-    treeNextEnrollSummaryTaxElement.textContent = formatEnrollCurrency(taxAmount);
+    treeNextEnrollSummaryTaxElement.textContent = STRIPE_TAX_CALCULATED_LABEL;
   }
   if (treeNextEnrollSummaryTotalElement instanceof HTMLElement) {
     treeNextEnrollSummaryTotalElement.textContent = formatEnrollCurrency(totalAmount);
@@ -12148,7 +12147,7 @@ function syncMyStorePanelVisuals() {
     myStoreCheckoutDiscountElement.textContent = formatEnrollCurrency(checkoutAmounts.discount);
   }
   if (myStoreCheckoutTaxElement instanceof HTMLElement) {
-    myStoreCheckoutTaxElement.textContent = formatEnrollCurrency(checkoutAmounts.tax);
+    myStoreCheckoutTaxElement.textContent = STRIPE_TAX_CALCULATED_LABEL;
   }
   if (myStoreCheckoutTotalElement instanceof HTMLElement) {
     myStoreCheckoutTotalElement.textContent = formatEnrollCurrency(checkoutAmounts.total);

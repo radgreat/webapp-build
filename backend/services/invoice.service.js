@@ -15,6 +15,17 @@ function normalizeText(value) {
   return String(value || '').trim();
 }
 
+function normalizeStripeUrl(value) {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return '';
+  }
+  if (!normalized.startsWith('https://') && !normalized.startsWith('http://')) {
+    return '';
+  }
+  return normalized;
+}
+
 function normalizeStoreInvoiceStatus(value) {
   const normalized = normalizeText(value).toLowerCase();
   return normalized === 'posted' ? 'Posted' : 'Pending';
@@ -62,15 +73,24 @@ function resolveStoreOwnerByAttributionCode(users, storeCode) {
     return null;
   }
 
-  return (Array.isArray(users) ? users : []).find((user) => {
-    const candidateCodes = [
-      user?.storeCode,
-      user?.publicStoreCode,
-      user?.attributionStoreCode,
-    ].map((candidate) => normalizeStoreCode(candidate));
+  const safeUsers = Array.isArray(users) ? users : [];
+  const directStoreOwner = safeUsers.find((user) => {
+    const ownerStoreCode = normalizeStoreCode(user?.storeCode);
+    const ownerPublicStoreCode = normalizeStoreCode(user?.publicStoreCode);
+    return ownerStoreCode === normalizedStoreCode || ownerPublicStoreCode === normalizedStoreCode;
+  });
+  if (directStoreOwner) {
+    return directStoreOwner;
+  }
 
-    return candidateCodes.includes(normalizedStoreCode);
-  }) || null;
+  const attributionMatches = safeUsers.filter((user) => (
+    normalizeStoreCode(user?.attributionStoreCode) === normalizedStoreCode
+  ));
+  if (attributionMatches.length === 1) {
+    return attributionMatches[0];
+  }
+
+  return null;
 }
 
 export async function getStoreInvoices() {
@@ -116,6 +136,14 @@ export async function createStoreInvoice(payload = {}) {
   const discount = Number(payload.discount);
   const attributionSnapshot = normalizeJsonObject(payload.attributionSnapshot);
   const settlementProfile = normalizeJsonObject(payload.settlementProfile);
+  const stripeCustomerId = normalizeText(payload.stripeCustomerId);
+  const stripeCheckoutSessionId = normalizeText(payload.stripeCheckoutSessionId);
+  const stripePaymentIntentId = normalizeText(payload.stripePaymentIntentId);
+  const stripeInvoiceId = normalizeText(payload.stripeInvoiceId);
+  const stripeInvoiceNumber = normalizeText(payload.stripeInvoiceNumber);
+  const stripeInvoiceHostedUrl = normalizeStripeUrl(payload.stripeInvoiceHostedUrl);
+  const stripeInvoicePdfUrl = normalizeStripeUrl(payload.stripeInvoicePdfUrl);
+  const stripePaymentStatus = normalizeText(payload.stripePaymentStatus);
   const status = normalizeStoreInvoiceStatus(payload.status);
 
   if (!buyer) {
@@ -176,6 +204,14 @@ export async function createStoreInvoice(payload = {}) {
     discount: Number.isFinite(discount) ? discount : 0,
     attributionSnapshot,
     settlementProfile,
+    stripeCustomerId,
+    stripeCheckoutSessionId,
+    stripePaymentIntentId,
+    stripeInvoiceId,
+    stripeInvoiceNumber,
+    stripeInvoiceHostedUrl,
+    stripeInvoicePdfUrl,
+    stripePaymentStatus,
     status,
     createdAt,
   }, invoiceId);
@@ -207,6 +243,94 @@ export async function createStoreInvoice(payload = {}) {
             publicStoreCode: attributionOwner.publicStoreCode || '',
           }
         : null,
+    },
+  };
+}
+
+export async function syncStoreInvoiceStripeDetails(payload = {}) {
+  const invoiceId = normalizeText(payload.invoiceId).toUpperCase();
+  const stripeCheckoutSessionId = normalizeText(payload.stripeCheckoutSessionId);
+  const stripePaymentIntentId = normalizeText(payload.stripePaymentIntentId);
+  const stripeInvoiceId = normalizeText(payload.stripeInvoiceId);
+
+  const hasLookupKey = Boolean(invoiceId || stripeCheckoutSessionId || stripePaymentIntentId || stripeInvoiceId);
+  if (!hasLookupKey) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Invoice sync requires invoiceId or Stripe reference identifiers.',
+    };
+  }
+
+  const invoices = await readMockStoreInvoicesStore();
+  const invoiceIndex = invoices.findIndex((invoice) => {
+    if (!invoice || typeof invoice !== 'object') {
+      return false;
+    }
+
+    if (invoiceId && normalizeText(invoice.id).toUpperCase() === invoiceId) {
+      return true;
+    }
+
+    if (
+      stripeCheckoutSessionId
+      && normalizeText(invoice.stripeCheckoutSessionId) === stripeCheckoutSessionId
+    ) {
+      return true;
+    }
+
+    if (
+      stripePaymentIntentId
+      && normalizeText(invoice.stripePaymentIntentId) === stripePaymentIntentId
+    ) {
+      return true;
+    }
+
+    if (stripeInvoiceId && normalizeText(invoice.stripeInvoiceId) === stripeInvoiceId) {
+      return true;
+    }
+
+    return false;
+  });
+
+  if (invoiceIndex < 0) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Store invoice was not found for Stripe synchronization.',
+    };
+  }
+
+  const existingInvoice = invoices[invoiceIndex];
+  const mergedInvoice = sanitizeStoreInvoiceRecord({
+    ...existingInvoice,
+    stripeCustomerId: normalizeText(payload.stripeCustomerId) || normalizeText(existingInvoice?.stripeCustomerId),
+    stripeCheckoutSessionId: stripeCheckoutSessionId || normalizeText(existingInvoice?.stripeCheckoutSessionId),
+    stripePaymentIntentId: stripePaymentIntentId || normalizeText(existingInvoice?.stripePaymentIntentId),
+    stripeInvoiceId: stripeInvoiceId || normalizeText(existingInvoice?.stripeInvoiceId),
+    stripeInvoiceNumber: normalizeText(payload.stripeInvoiceNumber) || normalizeText(existingInvoice?.stripeInvoiceNumber),
+    stripeInvoiceHostedUrl: normalizeStripeUrl(payload.stripeInvoiceHostedUrl) || normalizeStripeUrl(existingInvoice?.stripeInvoiceHostedUrl),
+    stripeInvoicePdfUrl: normalizeStripeUrl(payload.stripeInvoicePdfUrl) || normalizeStripeUrl(existingInvoice?.stripeInvoicePdfUrl),
+    stripePaymentStatus: normalizeText(payload.stripePaymentStatus) || normalizeText(existingInvoice?.stripePaymentStatus),
+  }, normalizeText(existingInvoice?.id));
+
+  if (!mergedInvoice) {
+    return {
+      success: false,
+      status: 500,
+      error: 'Unable to build synced store invoice payload.',
+    };
+  }
+
+  invoices[invoiceIndex] = mergedInvoice;
+  await writeMockStoreInvoicesStore(invoices);
+
+  return {
+    success: true,
+    status: 200,
+    data: {
+      success: true,
+      invoice: mergedInvoice,
     },
   };
 }

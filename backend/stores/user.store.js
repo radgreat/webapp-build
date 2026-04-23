@@ -143,6 +143,10 @@ function resolveQueryClient(candidateClient) {
 
 let memberUsersPersonalVolumeColumnsReady = false;
 let memberUsersPersonalVolumeColumnsPromise = null;
+let memberUsersStripeCustomerColumnReady = false;
+let memberUsersStripeCustomerColumnPromise = null;
+let memberUsersStripePayoutColumnsReady = false;
+let memberUsersStripePayoutColumnsPromise = null;
 let memberUsersEmailVerificationColumnsCache = null;
 let memberUserLookupIndexesReady = false;
 let memberUserLookupIndexesPromise = null;
@@ -173,11 +177,72 @@ async function ensureMemberUsersPersonalVolumeColumns() {
   return memberUsersPersonalVolumeColumnsPromise;
 }
 
+async function ensureMemberUsersStripeCustomerColumn() {
+  if (memberUsersStripeCustomerColumnReady) {
+    return;
+  }
+  if (memberUsersStripeCustomerColumnPromise) {
+    return memberUsersStripeCustomerColumnPromise;
+  }
+
+  memberUsersStripeCustomerColumnPromise = (async () => {
+    await pool.query(`
+      ALTER TABLE charge.member_users
+        ADD COLUMN IF NOT EXISTS stripe_customer_id text NOT NULL DEFAULT ''
+    `);
+    memberUsersStripeCustomerColumnReady = true;
+  })().catch((error) => {
+    memberUsersStripeCustomerColumnReady = false;
+    throw error;
+  }).finally(() => {
+    if (!memberUsersStripeCustomerColumnReady) {
+      memberUsersStripeCustomerColumnPromise = null;
+    }
+  });
+
+  return memberUsersStripeCustomerColumnPromise;
+}
+
+async function ensureMemberUsersStripePayoutColumns() {
+  if (memberUsersStripePayoutColumnsReady) {
+    return;
+  }
+  if (memberUsersStripePayoutColumnsPromise) {
+    return memberUsersStripePayoutColumnsPromise;
+  }
+
+  memberUsersStripePayoutColumnsPromise = (async () => {
+    await pool.query(`
+      ALTER TABLE charge.member_users
+        ADD COLUMN IF NOT EXISTS stripe_connect_account_id text NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS stripe_connect_details_submitted boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS stripe_connect_payouts_enabled boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS stripe_connect_charges_enabled boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS stripe_connect_onboarding_complete boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS stripe_connect_last_synced_at timestamptz,
+        ADD COLUMN IF NOT EXISTS stripe_connect_onboarding_completed_at timestamptz
+    `);
+    memberUsersStripePayoutColumnsReady = true;
+  })().catch((error) => {
+    memberUsersStripePayoutColumnsReady = false;
+    throw error;
+  }).finally(() => {
+    if (!memberUsersStripePayoutColumnsReady) {
+      memberUsersStripePayoutColumnsPromise = null;
+    }
+  });
+
+  return memberUsersStripePayoutColumnsPromise;
+}
+
 export function invalidateMemberUsersEmailVerificationColumnsCache() {
   memberUsersEmailVerificationColumnsCache = null;
 }
 
 export async function ensureMemberUserLookupIndexes() {
+  await ensureMemberUsersStripeCustomerColumn();
+  await ensureMemberUsersStripePayoutColumns();
+
   if (memberUserLookupIndexesReady) {
     return;
   }
@@ -205,6 +270,16 @@ export async function ensureMemberUserLookupIndexes() {
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_member_users_upper_attribution_store_code
       ON charge.member_users (UPPER(attribution_store_code))
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_member_users_stripe_customer_id
+      ON charge.member_users (stripe_customer_id)
+      WHERE stripe_customer_id <> ''
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_member_users_stripe_connect_account_id
+      ON charge.member_users (stripe_connect_account_id)
+      WHERE stripe_connect_account_id <> ''
     `);
     memberUserLookupIndexesReady = true;
   })().catch((error) => {
@@ -1056,4 +1131,282 @@ export async function updateUserEmailVerificationStateById(userIdInput, options 
   }
 
   return findUserById(userId);
+}
+
+function mapStripeProfileRowToUser(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: String(row.id || '').trim(),
+    name: String(row.name || '').trim(),
+    username: String(row.username || '').trim(),
+    email: String(row.email || '').trim(),
+    stripeCustomerId: String(row.stripe_customer_id || '').trim(),
+    stripeConnectAccountId: String(row.stripe_connect_account_id || '').trim(),
+    stripeConnectDetailsSubmitted: row.stripe_connect_details_submitted === true,
+    stripeConnectPayoutsEnabled: row.stripe_connect_payouts_enabled === true,
+    stripeConnectChargesEnabled: row.stripe_connect_charges_enabled === true,
+    stripeConnectOnboardingComplete: row.stripe_connect_onboarding_complete === true,
+    stripeConnectLastSyncedAt: toIsoStringOrEmpty(row.stripe_connect_last_synced_at),
+    stripeConnectOnboardingCompletedAt: toIsoStringOrEmpty(row.stripe_connect_onboarding_completed_at),
+  };
+}
+
+export async function findUserStripeProfileById(userIdInput, options = {}) {
+  await ensureMemberUsersStripeCustomerColumn();
+  await ensureMemberUsersStripePayoutColumns();
+
+  const userId = String(userIdInput || '').trim();
+  if (!userId) {
+    return null;
+  }
+
+  const client = resolveQueryClient(options?.client);
+  const result = await client.query(`
+    SELECT
+      id,
+      name,
+      username,
+      email,
+      stripe_customer_id,
+      stripe_connect_account_id,
+      stripe_connect_details_submitted,
+      stripe_connect_payouts_enabled,
+      stripe_connect_charges_enabled,
+      stripe_connect_onboarding_complete,
+      stripe_connect_last_synced_at,
+      stripe_connect_onboarding_completed_at
+    FROM charge.member_users
+    WHERE id = $1
+    LIMIT 1
+  `, [userId]);
+
+  return mapStripeProfileRowToUser(result.rows[0] || null);
+}
+
+export async function findUserStripeProfileByUsername(usernameInput, options = {}) {
+  await ensureMemberUsersStripeCustomerColumn();
+  await ensureMemberUsersStripePayoutColumns();
+
+  const username = normalizeCredential(usernameInput);
+  if (!username) {
+    return null;
+  }
+
+  const client = resolveQueryClient(options?.client);
+  const result = await client.query(`
+    SELECT
+      id,
+      name,
+      username,
+      email,
+      stripe_customer_id,
+      stripe_connect_account_id,
+      stripe_connect_details_submitted,
+      stripe_connect_payouts_enabled,
+      stripe_connect_charges_enabled,
+      stripe_connect_onboarding_complete,
+      stripe_connect_last_synced_at,
+      stripe_connect_onboarding_completed_at
+    FROM charge.member_users
+    WHERE LOWER(username) = $1
+    LIMIT 1
+  `, [username]);
+
+  return mapStripeProfileRowToUser(result.rows[0] || null);
+}
+
+export async function findUserStripeProfileByEmail(emailInput, options = {}) {
+  await ensureMemberUsersStripeCustomerColumn();
+  await ensureMemberUsersStripePayoutColumns();
+
+  const email = normalizeCredential(emailInput);
+  if (!email) {
+    return null;
+  }
+
+  const client = resolveQueryClient(options?.client);
+  const result = await client.query(`
+    SELECT
+      id,
+      name,
+      username,
+      email,
+      stripe_customer_id,
+      stripe_connect_account_id,
+      stripe_connect_details_submitted,
+      stripe_connect_payouts_enabled,
+      stripe_connect_charges_enabled,
+      stripe_connect_onboarding_complete,
+      stripe_connect_last_synced_at,
+      stripe_connect_onboarding_completed_at
+    FROM charge.member_users
+    WHERE LOWER(email) = $1
+    LIMIT 1
+  `, [email]);
+
+  return mapStripeProfileRowToUser(result.rows[0] || null);
+}
+
+export async function findUserStripeProfileByCustomerId(customerIdInput, options = {}) {
+  await ensureMemberUsersStripeCustomerColumn();
+  await ensureMemberUsersStripePayoutColumns();
+
+  const customerId = String(customerIdInput || '').trim();
+  if (!customerId) {
+    return null;
+  }
+
+  const client = resolveQueryClient(options?.client);
+  const result = await client.query(`
+    SELECT
+      id,
+      name,
+      username,
+      email,
+      stripe_customer_id,
+      stripe_connect_account_id,
+      stripe_connect_details_submitted,
+      stripe_connect_payouts_enabled,
+      stripe_connect_charges_enabled,
+      stripe_connect_onboarding_complete,
+      stripe_connect_last_synced_at,
+      stripe_connect_onboarding_completed_at
+    FROM charge.member_users
+    WHERE stripe_customer_id = $1
+    LIMIT 1
+  `, [customerId]);
+
+  return mapStripeProfileRowToUser(result.rows[0] || null);
+}
+
+export async function updateUserStripeCustomerIdById(userIdInput, stripeCustomerIdInput, options = {}) {
+  await ensureMemberUsersStripeCustomerColumn();
+  await ensureMemberUsersStripePayoutColumns();
+
+  const userId = String(userIdInput || '').trim();
+  const stripeCustomerId = String(stripeCustomerIdInput || '').trim();
+  if (!userId) {
+    return null;
+  }
+
+  const client = resolveQueryClient(options?.client);
+  const result = await client.query(`
+    UPDATE charge.member_users
+    SET
+      stripe_customer_id = $2,
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING
+      id,
+      name,
+      username,
+      email,
+      stripe_customer_id,
+      stripe_connect_account_id,
+      stripe_connect_details_submitted,
+      stripe_connect_payouts_enabled,
+      stripe_connect_charges_enabled,
+      stripe_connect_onboarding_complete,
+      stripe_connect_last_synced_at,
+      stripe_connect_onboarding_completed_at
+  `, [userId, stripeCustomerId]);
+
+  return mapStripeProfileRowToUser(result.rows[0] || null);
+}
+
+export async function findUserStripeProfileByConnectAccountId(connectAccountIdInput, options = {}) {
+  await ensureMemberUsersStripeCustomerColumn();
+  await ensureMemberUsersStripePayoutColumns();
+
+  const connectAccountId = String(connectAccountIdInput || '').trim();
+  if (!connectAccountId) {
+    return null;
+  }
+
+  const client = resolveQueryClient(options?.client);
+  const result = await client.query(`
+    SELECT
+      id,
+      name,
+      username,
+      email,
+      stripe_customer_id,
+      stripe_connect_account_id,
+      stripe_connect_details_submitted,
+      stripe_connect_payouts_enabled,
+      stripe_connect_charges_enabled,
+      stripe_connect_onboarding_complete,
+      stripe_connect_last_synced_at,
+      stripe_connect_onboarding_completed_at
+    FROM charge.member_users
+    WHERE stripe_connect_account_id = $1
+    LIMIT 1
+  `, [connectAccountId]);
+
+  return mapStripeProfileRowToUser(result.rows[0] || null);
+}
+
+export async function updateUserStripeConnectProfileById(userIdInput, payload = {}, options = {}) {
+  await ensureMemberUsersStripeCustomerColumn();
+  await ensureMemberUsersStripePayoutColumns();
+
+  const userId = String(userIdInput || '').trim();
+  if (!userId) {
+    return null;
+  }
+
+  const connectAccountId = String(payload?.stripeConnectAccountId || '').trim();
+  const detailsSubmitted = payload?.stripeConnectDetailsSubmitted === true;
+  const payoutsEnabled = payload?.stripeConnectPayoutsEnabled === true;
+  const chargesEnabled = payload?.stripeConnectChargesEnabled === true;
+  const onboardingComplete = payload?.stripeConnectOnboardingComplete === true;
+  const lastSyncedAt = String(payload?.stripeConnectLastSyncedAt || '').trim() || new Date().toISOString();
+  const onboardingCompletedAt = onboardingComplete
+    ? (String(payload?.stripeConnectOnboardingCompletedAt || '').trim() || new Date().toISOString())
+    : null;
+
+  const client = resolveQueryClient(options?.client);
+  const result = await client.query(`
+    UPDATE charge.member_users
+    SET
+      stripe_connect_account_id = $2,
+      stripe_connect_details_submitted = $3,
+      stripe_connect_payouts_enabled = $4,
+      stripe_connect_charges_enabled = $5,
+      stripe_connect_onboarding_complete = $6,
+      stripe_connect_last_synced_at = $7::timestamptz,
+      stripe_connect_onboarding_completed_at = CASE
+        WHEN $6 THEN COALESCE(stripe_connect_onboarding_completed_at, $8::timestamptz)
+        ELSE NULL
+      END,
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING
+      id,
+      name,
+      username,
+      email,
+      stripe_customer_id,
+      stripe_connect_account_id,
+      stripe_connect_details_submitted,
+      stripe_connect_payouts_enabled,
+      stripe_connect_charges_enabled,
+      stripe_connect_onboarding_complete,
+      stripe_connect_last_synced_at,
+      stripe_connect_onboarding_completed_at
+  `, [
+    userId,
+    connectAccountId,
+    detailsSubmitted,
+    payoutsEnabled,
+    chargesEnabled,
+    onboardingComplete,
+    lastSyncedAt,
+    onboardingCompletedAt,
+  ]);
+
+  return mapStripeProfileRowToUser(result.rows[0] || null);
 }
