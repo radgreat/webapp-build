@@ -152,6 +152,57 @@ const SIDE_NAV_SEARCH_INPUT_ID = 'binary-tree-next-side-nav-search';
 const SIDE_NAV_SEARCH_DROPDOWN_ID = 'binary-tree-next-side-nav-search-dropdown';
 const SIDE_NAV_PROFILE_MENU_ID = 'binary-tree-next-side-nav-profile-menu';
 const SIDE_NAV_SEARCH_RESULT_MAX = 18;
+const SIDE_NAV_SEARCH_INPUT_STYLE_ID = 'binary-tree-next-side-nav-search-style';
+const SIDE_NAV_SEARCH_TEXT_COLOR = '#626B7B';
+const TREE_NEXT_MOBILE_BREAKPOINT_PX = 980;
+const TREE_NEXT_MOBILE_COARSE_BREAKPOINT_PX = 1280;
+const TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED = 'closed';
+const TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF = 'half';
+const TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL = 'full';
+const TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_SET = new Set([
+  TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED,
+  TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+  TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+]);
+const TREE_NEXT_MOBILE_SIDE_PANEL_HANDLE_ID = 'side-nav-mobile-sheet-handle';
+const TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL = 0;
+const TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF = 0.5;
+const TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_CLOSED = 0.92;
+const TREE_NEXT_MOBILE_SIDE_PANEL_CLOSED_MIN_VISIBLE_PX = 124;
+const TREE_NEXT_MOBILE_SIDE_PANEL_CLOSED_MIN_VISIBLE_RATIO = 0.16;
+const TREE_NEXT_MOBILE_SIDE_PANEL_DRAG_THRESHOLD_PX = 56;
+const TREE_NEXT_MOBILE_SIDE_PANEL_TAP_THRESHOLD_PX = 10;
+const TREE_NEXT_MOBILE_SIDE_PANEL_TOP_SAFE_INSET_PX = 0;
+const TREE_NEXT_MOBILE_SIDE_PANEL_BOTTOM_SAFE_INSET_PX = 0;
+const TREE_NEXT_MOBILE_SIDE_PANEL_WIDTH_INSET_PX = 0;
+const TREE_NEXT_MOBILE_SIDE_PANEL_SNAP_PROJECTION_MS = 230;
+const TREE_NEXT_MOBILE_SIDE_PANEL_FLICK_VELOCITY_PX_PER_MS = 0.48;
+const TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_STIFFNESS = 640;
+const TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_DAMPING = 56;
+const TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_MIN_VELOCITY = 0.0001;
+const TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_MIN_DISPLACEMENT = 0.0008;
+const TREE_NEXT_MOBILE_SEARCH_FOCUS_EXPAND_DELAY_MS = 170;
+const TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX = 8;
+const TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_BIAS_PX = 3;
+const TREE_NEXT_MOBILE_SIDE_PANEL_FULL_STAGE_SURFACE_DRAG_REGION_PX = 120;
+const TREE_NEXT_MOBILE_OVERLAY_PANEL_EDGE_INSET_PX = 8;
+const TREE_NEXT_MOBILE_OVERLAY_PANEL_HALF_TOP_INSET_PX = 56;
+const TREE_NEXT_MOBILE_OVERLAY_PANEL_FULL_TOP_INSET_PX = 8;
+const TREE_NEXT_MOBILE_OVERLAY_PANEL_CLOSED_TOP_INSET_PX = 72;
+const MOBILE_PERF_TARGET_FPS = 90;
+const MOBILE_PERF_DPR_FLOOR = 1.22;
+const MOBILE_PERF_DPR_MIN_DEVICE_RATIO = 0.72;
+const MOBILE_PERF_DPR_CEILING = 1.65;
+const MOBILE_PERF_DPR_INITIAL = 1.45;
+const MOBILE_PERF_DPR_STEP_DOWN = 0.05;
+const MOBILE_PERF_DPR_STEP_UP = 0.06;
+const MOBILE_PERF_DPR_FPS_LOWER = MOBILE_PERF_TARGET_FPS - 12;
+const MOBILE_PERF_DPR_FPS_UPPER = MOBILE_PERF_TARGET_FPS + 8;
+const MOBILE_PERF_DPR_ADJUST_COOLDOWN_MS = 560;
+const TOUCH_PAN_INERTIA_MIN_START_SPEED_PX_PER_MS = 0.012;
+const TOUCH_PAN_INERTIA_STOP_SPEED_PX_PER_MS = 0.0018;
+const TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS = 3.5;
+const TOUCH_PAN_INERTIA_DAMPING = 3.2;
 const PINNED_NODE_IDS_STORAGE_KEY = 'binary-tree-next-pinned-node-ids-v1';
 const PINNED_NODE_IDS_SERVER_SYNC_DEBOUNCE_MS = 280;
 const MOCK_FIRST_TIME_OVERRIDE_STORAGE_KEY = 'binary-tree-next-mock-first-time-override-v1';
@@ -816,6 +867,11 @@ const enrollCheckoutFinalizationInFlightSessionIds = new Set();
 const myStoreCheckoutRetryAttemptBySession = new Map();
 const myStoreCheckoutRetryTimeoutBySession = new Map();
 const avatarImageAssetCache = new Map();
+const mobileSearchViewportLock = {
+  active: false,
+  width: 0,
+  height: 0,
+};
 
 const state = {
   source: 'member',
@@ -863,11 +919,36 @@ const state = {
     sideNavBrandMenuOpen: false,
     sideNavBrandMenuAnchorRect: null,
     sideNavSearchInputRect: null,
+    sideNavSearchInputClipRect: null,
     sideNavSearchInputOpacity: 0,
     sideNavSearchDropdownRect: null,
     sideNavSearchResults: [],
     sideNavSearchDropdownOpen: false,
     sideNavSearchActiveIndex: -1,
+    mobileSidePanelStage: TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+    mobileSidePanelStageInitialized: false,
+    mobileTopControlsHidden: false,
+    mobileTopControlsReveal: 1,
+    mobileTopControlsAutoHideContextToken: '',
+    mobileSidePanelSpring: {
+      active: false,
+      currentProgress: TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF,
+      targetProgress: TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF,
+      velocity: 0,
+      dragging: false,
+    },
+    mobileSidePanelDrag: {
+      active: false,
+      pointerId: null,
+      source: 'handle',
+      startMs: 0,
+      startY: 0,
+      startProgress: TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF,
+      lastY: 0,
+      lastMoveMs: 0,
+      velocityY: 0,
+      startStage: TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+    },
     sideNavFavorites: {
       viewportRect: null,
       contentWidth: 0,
@@ -877,11 +958,22 @@ const state = {
       dragStartX: 0,
       dragStartScrollX: 0,
       dragStartY: 0,
+      dragAxis: '',
       dragMoved: false,
       tapAction: '',
       placesCacheKey: '',
       placesCacheLimit: 0,
       placesCache: [],
+    },
+    sideNavContentScroll: {
+      viewportRect: null,
+      scrollY: 0,
+      maxScrollY: 0,
+      dragActive: false,
+      dragPointerId: null,
+      dragStartY: 0,
+      dragStartScrollY: 0,
+      dragMoved: false,
     },
   },
   enroll: {
@@ -909,6 +1001,18 @@ const state = {
     pointerId: null,
     lastX: 0,
     lastY: 0,
+    pointerType: '',
+    velocityX: 0,
+    velocityY: 0,
+    lastInstantVelocityX: 0,
+    lastInstantVelocityY: 0,
+    lastMoveAtMs: 0,
+    moved: false,
+  },
+  touchPanInertia: {
+    active: false,
+    velocityX: 0,
+    velocityY: 0,
   },
   reverseTrackpadMovement: false,
   trackpadZoomSensitivity: DEFAULT_TRACKPAD_ZOOM_SENSITIVITY,
@@ -924,6 +1028,8 @@ const state = {
   perf: {
     fps: 0,
     frameMs: 0,
+    mobileRuntimeDpr: 0,
+    mobileDprLastAdjustAtMs: 0,
   },
   intro: {
     startedAtMs: null,
@@ -976,6 +1082,21 @@ const state = {
   },
 };
 
+const touchGestureState = {
+  activePointers: new Map(),
+  pinchActive: false,
+  pinchStartDistance: 0,
+  pinchStartScale: DEFAULT_HOME_SCALE,
+  lastCenterX: 0,
+  lastCenterY: 0,
+};
+
+let touchNavigationGuardBound = false;
+const mobileSheetInteractionState = {
+  isMobile: false,
+  stage: '',
+};
+
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
@@ -994,6 +1115,514 @@ function easeOutBack(value) {
 
 function getNowMs() {
   return Number.isFinite(state.timeMs) ? state.timeMs : performance.now();
+}
+
+function hasCoarsePointerInput() {
+  if (typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  return (
+    window.matchMedia('(pointer: coarse)').matches
+    || window.matchMedia('(any-pointer: coarse)').matches
+  );
+}
+
+function isTreeNextMobileViewport(widthInput = state.renderSize?.width, heightInput = state.renderSize?.height) {
+  const width = Math.max(1, Math.floor(safeNumber(widthInput, window.innerWidth || 1)));
+  const height = Math.max(1, Math.floor(safeNumber(heightInput, window.innerHeight || 1)));
+  if (width <= TREE_NEXT_MOBILE_BREAKPOINT_PX) {
+    return true;
+  }
+  return hasCoarsePointerInput() && width <= TREE_NEXT_MOBILE_COARSE_BREAKPOINT_PX && height <= 1400;
+}
+
+function normalizeTreeNextMobileSidePanelStage(stageInput = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF) {
+  const safeStage = safeText(stageInput).trim().toLowerCase();
+  return TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_SET.has(safeStage)
+    ? safeStage
+    : TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF;
+}
+
+function resolveTreeNextMobileBottomViewportOcclusionPx() {
+  if (typeof window !== 'object' || !window || !window.visualViewport) {
+    return 0;
+  }
+  const layoutViewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(window.innerHeight, state.renderSize?.height || 1)),
+  );
+  const visualViewportHeight = Math.max(
+    1,
+    safeNumber(window.visualViewport.height, layoutViewportHeight),
+  );
+  const visualViewportTop = safeNumber(window.visualViewport.offsetTop, 0);
+  return Math.max(
+    0,
+    Math.round(layoutViewportHeight - (visualViewportHeight + visualViewportTop)),
+  );
+}
+
+function resolveTreeNextMobileSidePanelClosedProgress(options = {}) {
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(options.height, state.renderSize?.height || window.innerHeight || 1)),
+  );
+  const topInset = TREE_NEXT_MOBILE_SIDE_PANEL_TOP_SAFE_INSET_PX;
+  const bottomInset = TREE_NEXT_MOBILE_SIDE_PANEL_BOTTOM_SAFE_INSET_PX;
+  const maxHeight = Math.max(280, viewportHeight - topInset - bottomInset);
+  const baseMinimumVisibleHeight = Math.max(
+    TREE_NEXT_MOBILE_SIDE_PANEL_CLOSED_MIN_VISIBLE_PX,
+    Math.round(maxHeight * TREE_NEXT_MOBILE_SIDE_PANEL_CLOSED_MIN_VISIBLE_RATIO),
+  );
+  const bottomOcclusionPx = Math.max(
+    0,
+    Math.floor(safeNumber(options.bottomOcclusionPx, resolveTreeNextMobileBottomViewportOcclusionPx())),
+  );
+  const minimumVisibleHeight = baseMinimumVisibleHeight + bottomOcclusionPx;
+  const maximumClosedProgressByVisibleHeight = 1 - (minimumVisibleHeight / Math.max(1, maxHeight));
+  return clamp(
+    Math.min(TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_CLOSED, maximumClosedProgressByVisibleHeight),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_CLOSED,
+  );
+}
+
+function resolveTreeNextMobileSidePanelSnapProgress(stageInput = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF, options = {}) {
+  const stage = normalizeTreeNextMobileSidePanelStage(stageInput);
+  if (stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL) {
+    return TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL;
+  }
+  if (stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED) {
+    return resolveTreeNextMobileSidePanelClosedProgress(options);
+  }
+  return TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF;
+}
+
+function resolveTreeNextMobileSidePanelStageFromProgress(progressInput, options = {}) {
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress(options);
+  const safeProgress = clamp(
+    safeNumber(progressInput, TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const stages = [
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED,
+  ];
+  let closestStage = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF;
+  let closestDistance = Number.POSITIVE_INFINITY;
+  for (const stage of stages) {
+    const distance = Math.abs(resolveTreeNextMobileSidePanelSnapProgress(stage, options) - safeProgress);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestStage = stage;
+    }
+  }
+  return closestStage;
+}
+
+function resolveTreeNextMobileAdjacentSidePanelStage(
+  stageInput = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+  directionInput = 'up',
+) {
+  const order = [
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED,
+  ];
+  const stage = normalizeTreeNextMobileSidePanelStage(stageInput);
+  const direction = safeText(directionInput).trim().toLowerCase() === 'down' ? 'down' : 'up';
+  const currentIndex = Math.max(0, order.indexOf(stage));
+  if (direction === 'up') {
+    return order[Math.max(0, currentIndex - 1)];
+  }
+  return order[Math.min(order.length - 1, currentIndex + 1)];
+}
+
+function getTreeNextMobileSidePanelSpringState() {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  if (!state.ui.mobileSidePanelSpring || typeof state.ui.mobileSidePanelSpring !== 'object') {
+    const initialStage = normalizeTreeNextMobileSidePanelStage(state.ui.mobileSidePanelStage);
+    const initialProgress = resolveTreeNextMobileSidePanelSnapProgress(initialStage);
+    state.ui.mobileSidePanelSpring = {
+      active: false,
+      currentProgress: initialProgress,
+      targetProgress: initialProgress,
+      velocity: 0,
+      dragging: false,
+    };
+  }
+  return state.ui.mobileSidePanelSpring;
+}
+
+function getTreeNextMobileSidePanelDragState() {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  if (!state.ui.mobileSidePanelDrag || typeof state.ui.mobileSidePanelDrag !== 'object') {
+    state.ui.mobileSidePanelDrag = {
+      active: false,
+      pointerId: null,
+      source: 'handle',
+      startMs: 0,
+      startY: 0,
+      startProgress: TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF,
+      lastY: 0,
+      lastMoveMs: 0,
+      velocityY: 0,
+      startStage: TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+    };
+  }
+  return state.ui.mobileSidePanelDrag;
+}
+
+function clearTreeNextMobileSidePanelDrag(pointerId = null) {
+  const dragState = getTreeNextMobileSidePanelDragState();
+  if (
+    pointerId !== null
+    && pointerId !== undefined
+    && dragState.active
+    && pointerId !== dragState.pointerId
+  ) {
+    return false;
+  }
+  dragState.active = false;
+  dragState.pointerId = null;
+  dragState.source = 'handle';
+  dragState.startMs = 0;
+  dragState.startY = 0;
+  dragState.startProgress = TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF;
+  dragState.lastY = 0;
+  dragState.lastMoveMs = 0;
+  dragState.velocityY = 0;
+  dragState.startStage = normalizeTreeNextMobileSidePanelStage(state.ui?.mobileSidePanelStage);
+  const springState = getTreeNextMobileSidePanelSpringState();
+  springState.dragging = false;
+  springState.velocity = 0;
+  return true;
+}
+
+function resolveTreeNextMobileSidePanelStage(options = {}) {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(options.width, state.renderSize?.width || window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(options.height, state.renderSize?.height || window.innerHeight || 1)),
+  );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  const springState = getTreeNextMobileSidePanelSpringState();
+  if (!isMobileViewport) {
+    state.ui.mobileSidePanelStage = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL;
+    state.ui.mobileSidePanelStageInitialized = false;
+    springState.active = false;
+    springState.currentProgress = TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL;
+    springState.targetProgress = TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL;
+    springState.velocity = 0;
+    springState.dragging = false;
+    clearTreeNextMobileSidePanelDrag();
+    return TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL;
+  }
+
+  if (state.ui.mobileSidePanelStageInitialized !== true) {
+    state.ui.mobileSidePanelStage = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF;
+    state.ui.mobileSidePanelStageInitialized = true;
+  } else {
+    state.ui.mobileSidePanelStage = normalizeTreeNextMobileSidePanelStage(state.ui.mobileSidePanelStage);
+  }
+  const stage = normalizeTreeNextMobileSidePanelStage(state.ui.mobileSidePanelStage);
+  const targetProgress = resolveTreeNextMobileSidePanelSnapProgress(stage, { height: viewportHeight });
+  if (!springState.active) {
+    springState.active = true;
+    springState.currentProgress = targetProgress;
+    springState.targetProgress = targetProgress;
+    springState.velocity = 0;
+  } else if (!springState.dragging) {
+    springState.targetProgress = targetProgress;
+  }
+  return stage;
+}
+
+function setTreeNextMobileSidePanelStage(nextStageInput, options = {}) {
+  const viewportWidth = Math.max(1, Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)));
+  const viewportHeight = Math.max(1, Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)));
+  const animate = options?.animate !== false && !prefersReducedMotion();
+  if (!isTreeNextMobileViewport(viewportWidth, viewportHeight)) {
+    state.ui.mobileSidePanelStage = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL;
+    state.ui.mobileSidePanelStageInitialized = false;
+    clearTreeNextMobileSidePanelDrag();
+    const desktopSpringState = getTreeNextMobileSidePanelSpringState();
+    desktopSpringState.active = false;
+    desktopSpringState.currentProgress = TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL;
+    desktopSpringState.targetProgress = TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL;
+    desktopSpringState.velocity = 0;
+    desktopSpringState.dragging = false;
+    return TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL;
+  }
+  const nextStage = normalizeTreeNextMobileSidePanelStage(nextStageInput);
+  state.ui.mobileSidePanelStage = nextStage;
+  state.ui.mobileSidePanelStageInitialized = true;
+  if (nextStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED) {
+    state.ui.sideNavBrandMenuOpen = false;
+    closeSearchDropdown();
+    const searchInput = ensureSideNavSearchInput();
+    if (document.activeElement === searchInput) {
+      searchInput.blur();
+    }
+  }
+  const springState = getTreeNextMobileSidePanelSpringState();
+  const targetProgress = resolveTreeNextMobileSidePanelSnapProgress(nextStage, { height: viewportHeight });
+  springState.active = true;
+  springState.targetProgress = targetProgress;
+  if (!animate) {
+    springState.currentProgress = targetProgress;
+    springState.velocity = 0;
+  }
+  return nextStage;
+}
+
+function restoreTreeNextMobileCenterPanelHalfStage(options = {}) {
+  if (!isTreeNextMobileViewport()) {
+    return false;
+  }
+  const animate = options?.animate !== false;
+  const currentStage = resolveTreeNextMobileSidePanelStage();
+  if (currentStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF) {
+    return true;
+  }
+  state.ui.sideNavOpen = true;
+  setTreeNextMobileSidePanelStage(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF, { animate });
+  return true;
+}
+
+function resolveTreeNextMobileSidePanelProgress(options = {}) {
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(options.height, state.renderSize?.height || window.innerHeight || 1)),
+  );
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height: viewportHeight });
+  const stage = resolveTreeNextMobileSidePanelStage(options);
+  const springState = getTreeNextMobileSidePanelSpringState();
+  const fallbackProgress = resolveTreeNextMobileSidePanelSnapProgress(stage, { height: viewportHeight });
+  const currentProgress = clamp(
+    safeNumber(springState.currentProgress, fallbackProgress),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const targetProgress = clamp(
+    safeNumber(springState.targetProgress, fallbackProgress),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  springState.currentProgress = currentProgress;
+  springState.targetProgress = targetProgress;
+  return currentProgress;
+}
+
+// Spring motion keeps snap transitions responsive and iOS-like without linear easing.
+function updateTreeNextMobileSidePanelSpring(deltaSecondsInput = 0.016) {
+  const viewportWidth = Math.max(1, Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)));
+  const viewportHeight = Math.max(1, Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)));
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height: viewportHeight });
+  if (!isTreeNextMobileViewport(viewportWidth, viewportHeight)) {
+    return;
+  }
+  resolveTreeNextMobileSidePanelStage({ width: viewportWidth, height: viewportHeight });
+  const springState = getTreeNextMobileSidePanelSpringState();
+  if (!springState.active || springState.dragging) {
+    return;
+  }
+  if (prefersReducedMotion()) {
+    springState.currentProgress = springState.targetProgress;
+    springState.velocity = 0;
+    state.ui.mobileSidePanelStage = resolveTreeNextMobileSidePanelStageFromProgress(springState.targetProgress, {
+      height: viewportHeight,
+    });
+    return;
+  }
+  const deltaSeconds = clamp(safeNumber(deltaSecondsInput, 0.016), 0.0001, 0.05);
+  const current = clamp(
+    safeNumber(springState.currentProgress, TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const target = clamp(
+    safeNumber(springState.targetProgress, current),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const displacement = target - current;
+  const velocity = safeNumber(springState.velocity, 0);
+  if (
+    Math.abs(displacement) <= TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_MIN_DISPLACEMENT
+    && Math.abs(velocity) <= TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_MIN_VELOCITY
+  ) {
+    springState.currentProgress = target;
+    springState.velocity = 0;
+    state.ui.mobileSidePanelStage = resolveTreeNextMobileSidePanelStageFromProgress(target, {
+      height: viewportHeight,
+    });
+    return;
+  }
+  const acceleration = (
+    displacement * TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_STIFFNESS
+    - velocity * TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_DAMPING
+  );
+  const nextVelocity = velocity + (acceleration * deltaSeconds);
+  const nextProgress = clamp(
+    current + (nextVelocity * deltaSeconds),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  springState.velocity = nextVelocity;
+  springState.currentProgress = nextProgress;
+}
+
+function resolveTreeNextMobileSidePanelFrame(
+  widthInput,
+  heightInput,
+  stageInput = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+  progressInput = null,
+) {
+  const width = Math.max(1, Math.floor(safeNumber(widthInput, window.innerWidth || 1)));
+  const height = Math.max(1, Math.floor(safeNumber(heightInput, window.innerHeight || 1)));
+  const stage = normalizeTreeNextMobileSidePanelStage(stageInput);
+  const panelWidth = Math.max(280, width - (TREE_NEXT_MOBILE_SIDE_PANEL_WIDTH_INSET_PX * 2));
+  const topInset = TREE_NEXT_MOBILE_SIDE_PANEL_TOP_SAFE_INSET_PX;
+  const bottomInset = TREE_NEXT_MOBILE_SIDE_PANEL_BOTTOM_SAFE_INSET_PX;
+  const maxHeight = Math.max(280, height - topInset - bottomInset);
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height });
+  const translateProgress = clamp(
+    safeNumber(progressInput, resolveTreeNextMobileSidePanelSnapProgress(stage, { height })),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const panelX = Math.round((width - panelWidth) / 2);
+  const panelY = Math.round(topInset + (maxHeight * translateProgress));
+  const visibleHeight = Math.max(0, (height - bottomInset) - panelY);
+  return {
+    x: panelX,
+    y: panelY,
+    width: panelWidth,
+    height: maxHeight,
+    visibleHeight,
+    translateProgress,
+    expansionProgress: clamp(1 - translateProgress, 0, 1),
+    stage,
+    isClosed: stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED,
+    isFull: stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+  };
+}
+
+function resolveTreeNextMobileOverlayPanelFrame(viewportWidthInput, viewportHeightInput, options = {}) {
+  const viewportWidth = Math.max(1, Math.floor(safeNumber(viewportWidthInput, window.innerWidth || 1)));
+  const viewportHeight = Math.max(1, Math.floor(safeNumber(viewportHeightInput, window.innerHeight || 1)));
+  const stage = resolveTreeNextMobileSidePanelStage({
+    width: viewportWidth,
+    height: viewportHeight,
+  });
+  const stageForOverlay = stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED
+    ? TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF
+    : stage;
+  const fullScreenInFullStage = options?.fullScreenInFullStage === true;
+  if (
+    fullScreenInFullStage
+    && stageForOverlay === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+  ) {
+    return {
+      x: 0,
+      y: 0,
+      width: viewportWidth,
+      height: viewportHeight,
+      stage,
+      isFull: true,
+    };
+  }
+  const edgeInset = Math.max(0, Math.floor(safeNumber(options.edgeInset, TREE_NEXT_MOBILE_OVERLAY_PANEL_EDGE_INSET_PX)));
+  const maxWidthInput = Math.max(240, Math.floor(safeNumber(options.maxWidth, viewportWidth - (edgeInset * 2))));
+  const availableWidth = Math.max(240, viewportWidth - (edgeInset * 2));
+  const panelWidth = clamp(
+    Math.min(maxWidthInput, availableWidth),
+    Math.min(Math.max(220, Math.floor(safeNumber(options.minWidth, 320))), availableWidth),
+    availableWidth,
+  );
+  let topInset = TREE_NEXT_MOBILE_OVERLAY_PANEL_HALF_TOP_INSET_PX;
+  if (stageForOverlay === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL) {
+    topInset = TREE_NEXT_MOBILE_OVERLAY_PANEL_FULL_TOP_INSET_PX;
+  } else if (stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED) {
+    topInset = TREE_NEXT_MOBILE_OVERLAY_PANEL_CLOSED_TOP_INSET_PX;
+  }
+  const maxHeight = Math.max(
+    240,
+    viewportHeight - topInset - Math.max(0, Math.floor(safeNumber(options.bottomInset, edgeInset))),
+  );
+  const minimumHeight = Math.min(
+    maxHeight,
+    Math.max(220, Math.floor(safeNumber(options.minHeight, 320))),
+  );
+  const halfHeightRatio = clamp(safeNumber(options.halfHeightRatio, 0.82), 0.55, 0.95);
+  const panelHeight = stageForOverlay === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+    ? maxHeight
+    : clamp(Math.round(viewportHeight * halfHeightRatio), minimumHeight, maxHeight);
+  const panelLeft = Math.round((viewportWidth - panelWidth) / 2);
+  const panelTop = stageForOverlay === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+    ? topInset
+    : Math.round((viewportHeight - panelHeight) / 2);
+  return {
+    x: panelLeft,
+    y: panelTop,
+    width: panelWidth,
+    height: panelHeight,
+    stage,
+    isFull: stageForOverlay === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+  };
+}
+
+function applyTreeNextMobileOverlayPanelStyle(panelElement, frame) {
+  if (!(panelElement instanceof HTMLElement) || !frame) {
+    return;
+  }
+  panelElement.style.left = `${Math.round(frame.x)}px`;
+  panelElement.style.top = `${Math.round(frame.y)}px`;
+  panelElement.style.width = `${Math.max(220, Math.round(frame.width))}px`;
+  panelElement.style.height = `${Math.max(220, Math.round(frame.height))}px`;
+}
+
+function clearTreeNextMobileOverlayPanelStyle(panelElement) {
+  if (!(panelElement instanceof HTMLElement)) {
+    return;
+  }
+  panelElement.style.left = '';
+  panelElement.style.top = '';
+  panelElement.style.width = '';
+  panelElement.style.height = '';
+}
+
+function resolveMobileSideNavHandleRect(layoutInput = state.layout) {
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const workspace = layout?.workspace || null;
+  const sideNav = layout?.sideNav || null;
+  if (!workspace || !sideNav) {
+    return null;
+  }
+  if (!state.ui?.sideNavOpen || !isTreeNextMobileViewport(workspace.width, workspace.height)) {
+    return null;
+  }
+  const width = clamp(Math.round(sideNav.width * 0.32), 120, 170);
+  const height = 28;
+  return {
+    x: Math.round(sideNav.x + ((sideNav.width - width) / 2)),
+    y: Math.round(sideNav.y + 4),
+    width,
+    height,
+  };
 }
 
 function prefersReducedMotion() {
@@ -3639,6 +4268,25 @@ function syncTreeNextEnrollPanelPosition(layoutInput = state.layout) {
     1,
     Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
   );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: viewportWidth - (TREE_NEXT_MOBILE_OVERLAY_PANEL_EDGE_INSET_PX * 2),
+      minWidth: 300,
+      minHeight: 360,
+      halfHeightRatio: 0.82,
+    });
+    const panelCenterY = Math.round(mobileFrame.y + (mobileFrame.height / 2));
+    const panelWidth = Math.max(280, Math.round(mobileFrame.width));
+    const panelHeight = Math.max(320, Math.round(mobileFrame.height));
+    treeNextEnrollModalElement.style.width = `${panelWidth}px`;
+    treeNextEnrollModalElement.style.left = `${Math.round(mobileFrame.x)}px`;
+    treeNextEnrollModalElement.style.top = `${panelCenterY}px`;
+    treeNextEnrollModalElement.style.height = `${panelHeight}px`;
+    treeNextEnrollModalElement.style.maxHeight = `${panelHeight}px`;
+    return;
+  }
+
   const isCompactPanelViewport = viewportHeight <= 1065 || viewportWidth <= 1366;
   const isStepThreeActive = resolveTreeNextEnrollStep() === 3;
   const compactPanelMaxWidth = viewportHeight <= 820
@@ -3683,6 +4331,7 @@ function syncTreeNextEnrollPanelPosition(layoutInput = state.layout) {
   treeNextEnrollModalElement.style.width = `${panelWidth}px`;
   treeNextEnrollModalElement.style.left = `${clampedLeft}px`;
   treeNextEnrollModalElement.style.top = `${centerTop}px`;
+  treeNextEnrollModalElement.style.height = '';
   treeNextEnrollModalElement.style.maxHeight = `${maxHeight}px`;
 }
 
@@ -4833,6 +5482,23 @@ function syncAccountOverviewPanelPosition(layoutInput = state.layout) {
     1,
     Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
   );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: 820,
+      minWidth: 320,
+      minHeight: 320,
+      halfHeightRatio: 0.84,
+      fullScreenInFullStage: true,
+    });
+    accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-left-mobile', `${mobileFrame.x}px`);
+    accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-top-mobile', `${mobileFrame.y}px`);
+    applyTreeNextMobileOverlayPanelStyle(accountOverviewPanelElement, mobileFrame);
+    accountOverviewPanelElement.classList.remove('is-positioning');
+    return;
+  }
+
+  clearTreeNextMobileOverlayPanelStyle(accountOverviewPanelElement);
 
   const panelHorizontalGap = 18;
   const panelEdgePadding = 18;
@@ -5130,8 +5796,10 @@ function syncAccountOverviewPanelVisibility() {
 }
 
 function setAccountOverviewPanelVisible(isVisible) {
-  state.ui.accountOverviewVisible = Boolean(isVisible);
-  if (state.ui.accountOverviewVisible) {
+  const wasVisible = Boolean(state.ui.accountOverviewVisible);
+  const nextVisible = Boolean(isVisible);
+  state.ui.accountOverviewVisible = nextVisible;
+  if (nextVisible) {
     state.ui.infinityBuilderVisible = false;
     state.ui.rankAdvancementVisible = false;
     state.ui.preferredAccountsVisible = false;
@@ -5142,7 +5810,7 @@ function setAccountOverviewPanelVisible(isVisible) {
     syncMyStorePanelVisibility();
   }
   syncAccountOverviewPanelVisibility();
-  if (state.ui.accountOverviewVisible) {
+  if (nextVisible) {
     const overviewContext = resolveAccountOverviewPanelContext();
     const homeNode = overviewContext?.homeNode || resolveNodeById('root');
     void refreshAccountOverviewRemoteSnapshot({
@@ -5151,6 +5819,10 @@ function setAccountOverviewPanelVisible(isVisible) {
       scope: overviewContext?.scope,
       preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
     });
+    return;
+  }
+  if (wasVisible) {
+    restoreTreeNextMobileCenterPanelHalfStage({ animate: true });
   }
 }
 
@@ -7627,6 +8299,23 @@ function syncInfinityBuilderPanelPosition(layoutInput = state.layout) {
     1,
     Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
   );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: 820,
+      minWidth: 320,
+      minHeight: 320,
+      halfHeightRatio: 0.84,
+    });
+    infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-left-mobile', `${mobileFrame.x}px`);
+    infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-top-mobile', `${mobileFrame.y}px`);
+    applyTreeNextMobileOverlayPanelStyle(infinityBuilderPanelElement, mobileFrame);
+    infinityBuilderPanelElement.classList.remove('is-positioning');
+    return;
+  }
+
+  clearTreeNextMobileOverlayPanelStyle(infinityBuilderPanelElement);
+
   const panelHorizontalGap = 18;
   const panelEdgePadding = 18;
   const rightDockReservedWidth = 72;
@@ -9532,6 +10221,24 @@ function syncRankAdvancementPanelPosition(layoutInput = state.layout) {
     1,
     Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
   );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: 820,
+      minWidth: 320,
+      minHeight: 320,
+      halfHeightRatio: 0.84,
+      fullScreenInFullStage: true,
+    });
+    rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-left-mobile', `${mobileFrame.x}px`);
+    rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-top-mobile', `${mobileFrame.y}px`);
+    applyTreeNextMobileOverlayPanelStyle(rankAdvancementPanelElement, mobileFrame);
+    rankAdvancementPanelElement.classList.remove('is-positioning');
+    return;
+  }
+
+  clearTreeNextMobileOverlayPanelStyle(rankAdvancementPanelElement);
+
   const panelHorizontalGap = 18;
   const panelEdgePadding = 18;
   const rightDockReservedWidth = 72;
@@ -10007,6 +10714,7 @@ async function claimRankAdvancementMonthlyReward() {
 }
 
 function setRankAdvancementPanelVisible(isVisible) {
+  const wasVisible = Boolean(state.ui.rankAdvancementVisible);
   const nextVisible = Boolean(isVisible);
   state.ui.rankAdvancementVisible = nextVisible;
   if (nextVisible) {
@@ -10026,6 +10734,9 @@ function setRankAdvancementPanelVisible(isVisible) {
     void refreshRankAdvancementSnapshot({ force: true, homeNode });
   }
   syncRankAdvancementPanelVisibility();
+  if (wasVisible && !nextVisible) {
+    restoreTreeNextMobileCenterPanelHalfStage({ animate: true });
+  }
 }
 
 function initRankAdvancementPanel() {
@@ -10415,6 +11126,23 @@ function syncPreferredAccountsPanelPosition(layoutInput = state.layout) {
     1,
     Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
   );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: 820,
+      minWidth: 320,
+      minHeight: 320,
+      halfHeightRatio: 0.84,
+      fullScreenInFullStage: true,
+    });
+    preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-left-mobile', `${mobileFrame.x}px`);
+    preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-top-mobile', `${mobileFrame.y}px`);
+    applyTreeNextMobileOverlayPanelStyle(preferredAccountsPanelElement, mobileFrame);
+    preferredAccountsPanelElement.classList.remove('is-positioning');
+    return;
+  }
+
+  clearTreeNextMobileOverlayPanelStyle(preferredAccountsPanelElement);
 
   const panelHorizontalGap = 18;
   const panelEdgePadding = 18;
@@ -10599,6 +11327,7 @@ function syncPreferredAccountsPanelVisibility() {
 }
 
 function setPreferredAccountsPanelVisible(isVisible) {
+  const wasVisible = Boolean(state.ui.preferredAccountsVisible);
   const nextVisible = Boolean(isVisible);
   state.ui.preferredAccountsVisible = nextVisible;
   if (nextVisible) {
@@ -10616,6 +11345,9 @@ function setPreferredAccountsPanelVisible(isVisible) {
     void refreshPreferredAccountsSnapshot({ force: true });
   }
   syncPreferredAccountsPanelVisibility();
+  if (wasVisible && !nextVisible) {
+    restoreTreeNextMobileCenterPanelHalfStage({ animate: true });
+  }
 }
 
 async function refreshPreferredAccountsSnapshot(options = {}) {
@@ -11848,6 +12580,22 @@ function syncMyStorePanelPosition(layoutInput = state.layout) {
     1,
     Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
   );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: 860,
+      minWidth: 320,
+      minHeight: 360,
+      halfHeightRatio: 0.88,
+    });
+    myStorePanelElement.style.setProperty('--tree-next-my-store-left-mobile', `${mobileFrame.x}px`);
+    myStorePanelElement.style.setProperty('--tree-next-my-store-top-mobile', `${mobileFrame.y}px`);
+    applyTreeNextMobileOverlayPanelStyle(myStorePanelElement, mobileFrame);
+    myStorePanelElement.classList.remove('is-positioning');
+    return;
+  }
+
+  clearTreeNextMobileOverlayPanelStyle(myStorePanelElement);
 
   const panelHorizontalGap = 18;
   const panelEdgePadding = 18;
@@ -12407,6 +13155,7 @@ function closeTreeNextEnrollModal(options = {}) {
   if (clearPendingPlacement) {
     state.enroll.pendingPlacement = null;
   }
+  restoreTreeNextMobileCenterPanelHalfStage({ animate: true });
 
   if (
     restoreFocus
@@ -12441,6 +13190,11 @@ function openTreeNextEnrollModal(requestDetail = {}) {
     || requestDetail?.parentMemberCode
     || parentId,
   ) || parentId;
+
+  if (isTreeNextMobileViewport()) {
+    state.ui.sideNavOpen = true;
+    setTreeNextMobileSidePanelStage(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL, { animate: false });
+  }
 
   state.enroll.lastTriggerElement = document.activeElement instanceof HTMLElement
     ? document.activeElement
@@ -17598,10 +18352,114 @@ function onTreeNextLiveSyncWindowFocus() {
   scheduleTreeNextLiveSync(resolveTreeNextLiveSyncIntervalMs());
 }
 
+function setMobileSearchViewportLockActive(active = false) {
+  if (active) {
+    const width = Math.max(1, Math.floor(window.innerWidth || state.renderSize?.width || 1));
+    const height = Math.max(1, Math.floor(window.innerHeight || state.renderSize?.height || 1));
+    if (!isTreeNextMobileViewport(width, height)) {
+      mobileSearchViewportLock.active = false;
+      mobileSearchViewportLock.width = 0;
+      mobileSearchViewportLock.height = 0;
+      return;
+    }
+    mobileSearchViewportLock.active = true;
+    mobileSearchViewportLock.width = width;
+    mobileSearchViewportLock.height = height;
+    return;
+  }
+  mobileSearchViewportLock.active = false;
+  mobileSearchViewportLock.width = 0;
+  mobileSearchViewportLock.height = 0;
+}
+
+function resolveCanvasViewportSizeWithMobileSearchLock() {
+  const rawWidth = Math.max(1, Math.floor(window.innerWidth || 1));
+  const rawHeight = Math.max(1, Math.floor(window.innerHeight || 1));
+  if (!mobileSearchViewportLock.active) {
+    return {
+      width: rawWidth,
+      height: rawHeight,
+    };
+  }
+  const lockWidth = Math.max(1, Math.floor(safeNumber(mobileSearchViewportLock.width, rawWidth)));
+  const lockHeight = Math.max(1, Math.floor(safeNumber(mobileSearchViewportLock.height, rawHeight)));
+  const widthDelta = Math.abs(rawWidth - lockWidth);
+  const sameWidth = widthDelta <= 4;
+  if (!sameWidth) {
+    mobileSearchViewportLock.width = rawWidth;
+    mobileSearchViewportLock.height = rawHeight;
+    return {
+      width: rawWidth,
+      height: rawHeight,
+    };
+  }
+  if (rawHeight < lockHeight) {
+    return {
+      width: lockWidth,
+      height: lockHeight,
+    };
+  }
+  if (rawHeight > (lockHeight + 8)) {
+    mobileSearchViewportLock.height = rawHeight;
+  }
+  return {
+    width: rawWidth,
+    height: rawHeight,
+  };
+}
+
+function resolveMobileRuntimeDprBounds(deviceDprInput = window.devicePixelRatio || 1) {
+  const deviceDpr = clamp(safeNumber(deviceDprInput, 1), 1, 3.5);
+  const maxMobileDpr = clamp(
+    Math.min(deviceDpr, MOBILE_PERF_DPR_CEILING),
+    1,
+    MOBILE_PERF_DPR_CEILING,
+  );
+  const qualityFloor = Math.max(
+    MOBILE_PERF_DPR_FLOOR,
+    (deviceDpr * MOBILE_PERF_DPR_MIN_DEVICE_RATIO),
+  );
+  const minMobileDpr = clamp(
+    Math.min(qualityFloor, maxMobileDpr),
+    1,
+    maxMobileDpr,
+  );
+  return {
+    minMobileDpr,
+    maxMobileDpr,
+  };
+}
+
+function resolveCanvasDprForViewport(widthInput, heightInput) {
+  const width = Math.max(1, Math.floor(safeNumber(widthInput, window.innerWidth || 1)));
+  const height = Math.max(1, Math.floor(safeNumber(heightInput, window.innerHeight || 1)));
+  const deviceDpr = clamp(window.devicePixelRatio || 1, 1, 3.5);
+  if (!isTreeNextMobileViewport(width, height)) {
+    state.perf.mobileRuntimeDpr = 0;
+    return clamp(deviceDpr, 1, 2.5);
+  }
+  const {
+    minMobileDpr,
+    maxMobileDpr,
+  } = resolveMobileRuntimeDprBounds(deviceDpr);
+  const seededRuntimeDpr = clamp(
+    Math.min(
+      safeNumber(state.perf.mobileRuntimeDpr, MOBILE_PERF_DPR_INITIAL),
+      maxMobileDpr,
+      MOBILE_PERF_DPR_INITIAL,
+    ),
+    minMobileDpr,
+    maxMobileDpr,
+  );
+  state.perf.mobileRuntimeDpr = seededRuntimeDpr;
+  return seededRuntimeDpr;
+}
+
 function updateCanvasSize() {
-  const width = Math.max(1, Math.floor(window.innerWidth || 1));
-  const height = Math.max(1, Math.floor(window.innerHeight || 1));
-  const dpr = clamp(window.devicePixelRatio || 1, 1, 2.5);
+  const viewportSize = resolveCanvasViewportSizeWithMobileSearchLock();
+  const width = viewportSize.width;
+  const height = viewportSize.height;
+  const dpr = resolveCanvasDprForViewport(width, height);
 
   state.renderSize.width = width;
   state.renderSize.height = height;
@@ -17619,51 +18477,148 @@ function updateCanvasSize() {
   glassBackdropContext.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
+function updateMobileRuntimeDprForPerf(nowMsInput = getNowMs()) {
+  const width = Math.max(1, Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)));
+  const height = Math.max(1, Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)));
+  if (!isTreeNextMobileViewport(width, height)) {
+    state.perf.mobileRuntimeDpr = 0;
+    state.perf.mobileDprLastAdjustAtMs = 0;
+    return;
+  }
+  const nowMs = safeNumber(nowMsInput, getNowMs());
+  const lastAdjustAtMs = safeNumber(state.perf.mobileDprLastAdjustAtMs, 0);
+  if ((nowMs - lastAdjustAtMs) < MOBILE_PERF_DPR_ADJUST_COOLDOWN_MS) {
+    return;
+  }
+  const fps = safeNumber(state.perf.fps, 0);
+  if (!Number.isFinite(fps) || fps <= 1) {
+    return;
+  }
+  const deviceDpr = clamp(window.devicePixelRatio || 1, 1, 3.5);
+  const {
+    minMobileDpr,
+    maxMobileDpr,
+  } = resolveMobileRuntimeDprBounds(deviceDpr);
+  const currentMobileDpr = clamp(
+    safeNumber(state.perf.mobileRuntimeDpr, Math.min(MOBILE_PERF_DPR_INITIAL, maxMobileDpr)),
+    minMobileDpr,
+    maxMobileDpr,
+  );
+  let nextMobileDpr = currentMobileDpr;
+  if (fps < MOBILE_PERF_DPR_FPS_LOWER && currentMobileDpr > minMobileDpr) {
+    nextMobileDpr = Math.max(minMobileDpr, currentMobileDpr - MOBILE_PERF_DPR_STEP_DOWN);
+  } else if (fps > MOBILE_PERF_DPR_FPS_UPPER && currentMobileDpr < maxMobileDpr) {
+    nextMobileDpr = Math.min(maxMobileDpr, currentMobileDpr + MOBILE_PERF_DPR_STEP_UP);
+  }
+  const roundedNextMobileDpr = Math.round(nextMobileDpr * 100) / 100;
+  if (Math.abs(roundedNextMobileDpr - currentMobileDpr) < 0.01) {
+    return;
+  }
+  state.perf.mobileRuntimeDpr = roundedNextMobileDpr;
+  state.perf.mobileDprLastAdjustAtMs = nowMs;
+  updateCanvasSize();
+}
+
 function resolveLayout(width, height) {
-  const edgePad = clamp(Math.round(Math.min(width, height) * 0.022), 20, 28);
-  const sideNavMaxWidth = Math.max(320, width - (edgePad * 2) - 24);
-  const sideNavWidth = clamp(390, 320, sideNavMaxWidth);
-  const sideNavVerticalInset = clamp(edgePad - 10, 10, edgePad);
+  const safeWidth = Math.max(1, Math.floor(safeNumber(width, window.innerWidth || 1)));
+  const safeHeight = Math.max(1, Math.floor(safeNumber(height, window.innerHeight || 1)));
+  const isMobileViewport = isTreeNextMobileViewport(safeWidth, safeHeight);
+  const edgePad = clamp(Math.round(Math.min(safeWidth, safeHeight) * 0.022), 20, 28);
+
+  if (isMobileViewport && !state.ui.sideNavOpen) {
+    state.ui.sideNavOpen = true;
+  }
+
+  const mobilePanelStage = resolveTreeNextMobileSidePanelStage({
+    width: safeWidth,
+    height: safeHeight,
+  });
+  const mobilePanelProgress = resolveTreeNextMobileSidePanelProgress({
+    width: safeWidth,
+    height: safeHeight,
+  });
 
   const workspace = {
     x: 0,
     y: 0,
-    width,
-    height,
+    width: safeWidth,
+    height: safeHeight,
   };
-  const sideNav = {
-    x: edgePad,
-    y: sideNavVerticalInset,
-    width: sideNavWidth,
-    height: height - (sideNavVerticalInset * 2),
-  };
-  const sideNavToggle = {
-    x: edgePad,
-    y: sideNavVerticalInset,
-    width: 124,
-    height: 30,
-  };
+
+  let sideNav;
+  let sideNavToggle;
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileSidePanelFrame(
+      safeWidth,
+      safeHeight,
+      mobilePanelStage,
+      mobilePanelProgress,
+    );
+    sideNav = {
+      x: mobileFrame.x,
+      y: mobileFrame.y,
+      width: mobileFrame.width,
+      height: mobileFrame.height,
+      visibleHeight: mobileFrame.visibleHeight,
+      translateProgress: mobileFrame.translateProgress,
+      expansionProgress: mobileFrame.expansionProgress,
+      stage: mobileFrame.stage,
+    };
+    sideNavToggle = {
+      x: Math.round(sideNav.x + sideNav.width - 44),
+      y: Math.round(sideNav.y + 10),
+      width: 36,
+      height: 36,
+    };
+  } else {
+    const sideNavMaxWidth = Math.max(320, safeWidth - (edgePad * 2) - 24);
+    const sideNavWidth = clamp(390, 320, sideNavMaxWidth);
+    const sideNavVerticalInset = clamp(edgePad - 10, 10, edgePad);
+    sideNav = {
+      x: edgePad,
+      y: sideNavVerticalInset,
+      width: sideNavWidth,
+      height: safeHeight - (sideNavVerticalInset * 2),
+    };
+    sideNavToggle = {
+      x: edgePad,
+      y: sideNavVerticalInset,
+      width: 124,
+      height: 30,
+    };
+  }
+
   const topBar = {
     width: 0,
     height: 0,
   };
-  topBar.x = Math.round((width - topBar.width) / 2);
+  topBar.x = Math.round((safeWidth - topBar.width) / 2);
   topBar.y = edgePad;
 
   const bottomBar = {
-    width: clamp(Math.round(width * 0.29), 320, 430),
+    width: clamp(Math.round(safeWidth * 0.29), 320, 430),
     height: 92,
   };
-  bottomBar.x = Math.round((width - bottomBar.width) / 2);
-  bottomBar.y = height - edgePad - bottomBar.height - 10;
+  bottomBar.x = Math.round((safeWidth - bottomBar.width) / 2);
+  if (isMobileViewport && state.ui.sideNavOpen) {
+    bottomBar.y = Math.max(edgePad, Math.round(sideNav.y - bottomBar.height - 10));
+  } else {
+    bottomBar.y = safeHeight - edgePad - bottomBar.height - 10;
+  }
 
+  const occludedBottomHeight = (isMobileViewport && state.ui.sideNavOpen)
+    ? Math.max(0, safeHeight - sideNav.y)
+    : 0;
+  const usableViewportHeight = Math.max(120, safeHeight - occludedBottomHeight);
   const viewport = {
     x: 0,
     y: 0,
-    width,
-    height,
-    centerX: width / 2,
-    baseY: Math.max(78, Math.round(height * 0.12)),
+    width: safeWidth,
+    height: safeHeight,
+    centerX: safeWidth / 2,
+    baseY: isMobileViewport
+      ? Math.max(54, Math.round(usableViewportHeight * 0.18))
+      : Math.max(78, Math.round(safeHeight * 0.12)),
   };
 
   return {
@@ -17688,6 +18643,19 @@ function roundedRectPath(ctx, x, y, width, height, radius) {
   ctx.quadraticCurveTo(x, y + height, x, y + height - clampedRadius);
   ctx.lineTo(x, y + clampedRadius);
   ctx.quadraticCurveTo(x, y, x + clampedRadius, y);
+  ctx.closePath();
+}
+
+function roundedTopRectPath(ctx, x, y, width, height, leftRadius, rightRadiusInput = leftRadius) {
+  const clampedLeftRadius = clamp(leftRadius, 0, Math.min(width / 2, height));
+  const clampedRightRadius = clamp(rightRadiusInput, 0, Math.min(width / 2, height));
+  ctx.beginPath();
+  ctx.moveTo(x, y + height);
+  ctx.lineTo(x, y + clampedLeftRadius);
+  ctx.quadraticCurveTo(x, y, x + clampedLeftRadius, y);
+  ctx.lineTo(x + width - clampedRightRadius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + clampedRightRadius);
+  ctx.lineTo(x + width, y + height);
   ctx.closePath();
 }
 
@@ -17763,7 +18731,7 @@ function drawChevronGlyph(centerX, centerY, options = {}) {
 
 function drawSearchGlyph(centerX, centerY, options = {}) {
   const {
-    color = '#404652',
+    color = SIDE_NAV_SEARCH_TEXT_COLOR,
     size = 20,
     weight = 400,
   } = options;
@@ -18081,11 +19049,368 @@ function pointInsideRect(pointX, pointY, rect) {
   );
 }
 
+function resolveSideNavSearchInputInteractiveRect() {
+  const inputRect = state.ui?.sideNavSearchInputRect;
+  if (!inputRect) {
+    return null;
+  }
+  const clipRect = state.ui?.sideNavSearchInputClipRect;
+  if (!clipRect) {
+    return inputRect;
+  }
+  const x = Math.max(safeNumber(inputRect.x, 0), safeNumber(clipRect.x, 0));
+  const y = Math.max(safeNumber(inputRect.y, 0), safeNumber(clipRect.y, 0));
+  const right = Math.min(
+    safeNumber(inputRect.x, 0) + safeNumber(inputRect.width, 0),
+    safeNumber(clipRect.x, 0) + safeNumber(clipRect.width, 0),
+  );
+  const bottom = Math.min(
+    safeNumber(inputRect.y, 0) + safeNumber(inputRect.height, 0),
+    safeNumber(clipRect.y, 0) + safeNumber(clipRect.height, 0),
+  );
+  const width = Math.max(0, right - x);
+  const height = Math.max(0, bottom - y);
+  if (width <= 0.5 || height <= 0.5) {
+    return null;
+  }
+  return {
+    x,
+    y,
+    width,
+    height,
+  };
+}
+
 function pointInsideActiveSideNav(pointX, pointY) {
   if (!state.ui.sideNavOpen) {
     return false;
   }
   return pointInsideRect(pointX, pointY, state.layout?.sideNav);
+}
+
+function pointInsideMobileSideNavHandle(pointX, pointY, layoutInput = state.layout) {
+  const handleRect = resolveMobileSideNavHandleRect(layoutInput);
+  return pointInsideRect(pointX, pointY, handleRect);
+}
+
+function maybeBeginMobileSideNavStageDrag(pointerId, pointerX, pointerY, options = {}) {
+  if (!state.ui?.sideNavOpen || !isTreeNextMobileViewport()) {
+    return false;
+  }
+  const ignoreFavoritesRegion = options?.ignoreFavoritesRegion === true;
+  const ignoreButtonGuard = options?.ignoreButtonGuard === true;
+  const startedFromHandle = pointInsideMobileSideNavHandle(pointerX, pointerY, state.layout);
+  let dragSource = 'handle';
+  if (!startedFromHandle) {
+    const allowSurfaceDrag = options?.allowSurfaceDrag === true;
+    const forceSurfaceDrag = options?.forceSurfaceDrag === true;
+    if (!allowSurfaceDrag) {
+      return false;
+    }
+    if (!pointInsideActiveSideNav(pointerX, pointerY)) {
+      return false;
+    }
+    if (!ignoreFavoritesRegion && pointInsideFavoritesCarousel(pointerX, pointerY)) {
+      return false;
+    }
+    if (pointInsideRect(pointerX, pointerY, resolveSideNavSearchInputInteractiveRect())) {
+      return false;
+    }
+    const buttonHint = options?.buttonHint;
+    const button = buttonHint && typeof buttonHint === 'object'
+      ? buttonHint
+      : buttonUnderPointer(pointerX, pointerY);
+    if (!ignoreButtonGuard && button && safeText(button.id) !== TREE_NEXT_MOBILE_SIDE_PANEL_HANDLE_ID) {
+      return false;
+    }
+    const currentStage = resolveTreeNextMobileSidePanelStage();
+    if (currentStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL && !forceSurfaceDrag) {
+      const sideNavRect = state.layout?.sideNav || null;
+      if (!sideNavRect) {
+        return false;
+      }
+      const surfaceDragBottomY = sideNavRect.y + TREE_NEXT_MOBILE_SIDE_PANEL_FULL_STAGE_SURFACE_DRAG_REGION_PX;
+      if (pointerY > surfaceDragBottomY) {
+        return false;
+      }
+    }
+    dragSource = 'surface';
+  }
+  const dragState = getTreeNextMobileSidePanelDragState();
+  const nowMs = getNowMs();
+  const startProgress = resolveTreeNextMobileSidePanelProgress({
+    width: state.renderSize?.width,
+    height: state.renderSize?.height,
+  });
+  dragState.active = true;
+  dragState.pointerId = pointerId;
+  dragState.source = dragSource;
+  dragState.startMs = nowMs;
+  dragState.startY = safeNumber(pointerY, 0);
+  dragState.startProgress = startProgress;
+  dragState.lastY = dragState.startY;
+  dragState.lastMoveMs = nowMs;
+  dragState.velocityY = 0;
+  dragState.startStage = resolveTreeNextMobileSidePanelStage();
+  const springState = getTreeNextMobileSidePanelSpringState();
+  springState.active = true;
+  springState.dragging = true;
+  springState.velocity = 0;
+  springState.currentProgress = startProgress;
+  springState.targetProgress = startProgress;
+  state.ui.sideNavBrandMenuOpen = false;
+  closeSearchDropdown();
+  return true;
+}
+
+function updateMobileSideNavStageDrag(pointerId, pointerY) {
+  const dragState = getTreeNextMobileSidePanelDragState();
+  if (!dragState.active || pointerId !== dragState.pointerId) {
+    return false;
+  }
+  const nowMs = getNowMs();
+  const currentY = safeNumber(pointerY, dragState.startY);
+  const viewportHeight = Math.max(1, Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)));
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height: viewportHeight });
+  const panelTravelDistance = Math.max(
+    1,
+    viewportHeight - TREE_NEXT_MOBILE_SIDE_PANEL_TOP_SAFE_INSET_PX - TREE_NEXT_MOBILE_SIDE_PANEL_BOTTOM_SAFE_INSET_PX,
+  );
+  // Drag distance is normalized into sheet translate progress:
+  // 0 = full, 0.5 = half, ~0.92 = closed.
+  const deltaY = currentY - safeNumber(dragState.startY, currentY);
+  const nextProgress = clamp(
+    safeNumber(dragState.startProgress, TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF) + (deltaY / panelTravelDistance),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const springState = getTreeNextMobileSidePanelSpringState();
+  springState.active = true;
+  springState.dragging = true;
+  springState.currentProgress = nextProgress;
+  springState.targetProgress = nextProgress;
+  springState.velocity = 0;
+
+  const deltaMs = Math.max(1, nowMs - safeNumber(dragState.lastMoveMs, nowMs));
+  const instantaneousVelocityY = (currentY - safeNumber(dragState.lastY, currentY)) / deltaMs;
+  dragState.velocityY = (safeNumber(dragState.velocityY, 0) * 0.65) + (instantaneousVelocityY * 0.35);
+  dragState.lastMoveMs = nowMs;
+  dragState.lastY = currentY;
+  state.ui.mobileSidePanelStage = resolveTreeNextMobileSidePanelStageFromProgress(nextProgress, {
+    height: viewportHeight,
+  });
+  state.ui.mobileSidePanelStageInitialized = true;
+  return true;
+}
+
+function finalizeMobileSideNavStageDrag(pointerId) {
+  const dragState = getTreeNextMobileSidePanelDragState();
+  if (!dragState.active || pointerId !== dragState.pointerId) {
+    return {
+      consumed: false,
+      stageChanged: false,
+    };
+  }
+
+  const nowMs = getNowMs();
+  const springState = getTreeNextMobileSidePanelSpringState();
+  const startY = safeNumber(dragState.startY, 0);
+  const lastY = safeNumber(dragState.lastY, startY);
+  const totalDeltaY = lastY - startY;
+  const elapsedMs = Math.max(1, nowMs - safeNumber(dragState.startMs, nowMs));
+  const fallbackVelocityY = totalDeltaY / elapsedMs;
+  const releaseVelocityY = safeNumber(
+    dragState.velocityY,
+    fallbackVelocityY,
+  );
+  const viewportHeight = Math.max(1, Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)));
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height: viewportHeight });
+  const panelTravelDistance = Math.max(
+    1,
+    viewportHeight - TREE_NEXT_MOBILE_SIDE_PANEL_TOP_SAFE_INSET_PX - TREE_NEXT_MOBILE_SIDE_PANEL_BOTTOM_SAFE_INSET_PX,
+  );
+  const releaseProgress = clamp(
+    safeNumber(springState.currentProgress, resolveTreeNextMobileSidePanelProgress()),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const projectedProgress = clamp(
+    releaseProgress + ((releaseVelocityY * TREE_NEXT_MOBILE_SIDE_PANEL_SNAP_PROJECTION_MS) / panelTravelDistance),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  // Apple Maps-like snap: use release velocity and projected resting point.
+  const startStage = normalizeTreeNextMobileSidePanelStage(dragState.startStage);
+  const releaseStage = resolveTreeNextMobileSidePanelStageFromProgress(releaseProgress, {
+    height: viewportHeight,
+  });
+  const isTapGesture = (
+    Math.abs(totalDeltaY) <= TREE_NEXT_MOBILE_SIDE_PANEL_TAP_THRESHOLD_PX
+    && Math.abs(releaseVelocityY) <= 0.12
+  );
+  const dragSource = safeText(dragState.source || 'handle');
+  let nextStage = resolveTreeNextMobileSidePanelStageFromProgress(projectedProgress, {
+    height: viewportHeight,
+  });
+  if (isTapGesture) {
+    nextStage = dragSource === 'handle'
+      ? (startStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+        ? TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF
+        : resolveTreeNextMobileAdjacentSidePanelStage(startStage, 'up'))
+      : releaseStage;
+  } else if (Math.abs(releaseVelocityY) >= TREE_NEXT_MOBILE_SIDE_PANEL_FLICK_VELOCITY_PX_PER_MS) {
+    nextStage = releaseVelocityY < 0
+      ? resolveTreeNextMobileAdjacentSidePanelStage(releaseStage, 'up')
+      : resolveTreeNextMobileAdjacentSidePanelStage(releaseStage, 'down');
+  }
+
+  const stageChanged = nextStage !== normalizeTreeNextMobileSidePanelStage(state.ui?.mobileSidePanelStage);
+  setTreeNextMobileSidePanelStage(nextStage, { animate: true });
+  const springVelocityProgressPerSecond = clamp(
+    (releaseVelocityY * 1000) / panelTravelDistance,
+    -8,
+    8,
+  );
+  clearTreeNextMobileSidePanelDrag(pointerId);
+  const settledSpringState = getTreeNextMobileSidePanelSpringState();
+  settledSpringState.dragging = false;
+  settledSpringState.velocity = springVelocityProgressPerSecond;
+  return {
+    consumed: true,
+    stageChanged,
+  };
+}
+
+function getSideNavContentScrollState() {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  if (!state.ui.sideNavContentScroll || typeof state.ui.sideNavContentScroll !== 'object') {
+    state.ui.sideNavContentScroll = {
+      viewportRect: null,
+      scrollY: 0,
+      maxScrollY: 0,
+      dragActive: false,
+      dragPointerId: null,
+      dragStartY: 0,
+      dragStartScrollY: 0,
+      dragMoved: false,
+    };
+  }
+  return state.ui.sideNavContentScroll;
+}
+
+function clearSideNavContentScrollDrag(pointerId = null) {
+  const scrollState = getSideNavContentScrollState();
+  if (
+    pointerId !== null
+    && pointerId !== undefined
+    && scrollState.dragActive
+    && pointerId !== scrollState.dragPointerId
+  ) {
+    return false;
+  }
+  scrollState.dragActive = false;
+  scrollState.dragPointerId = null;
+  scrollState.dragStartY = 0;
+  scrollState.dragStartScrollY = clamp(safeNumber(scrollState.scrollY, 0), 0, Math.max(0, safeNumber(scrollState.maxScrollY, 0)));
+  scrollState.dragMoved = false;
+  return true;
+}
+
+function maybeBeginMobileSideNavContentScroll(pointerId, pointerX, pointerY, pointerType = 'mouse', options = {}) {
+  if (pointerType !== 'touch') {
+    return false;
+  }
+  if (!state.ui?.sideNavOpen || !isTreeNextMobileViewport()) {
+    return false;
+  }
+  if (resolveTreeNextMobileSidePanelStage() !== TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL) {
+    return false;
+  }
+  const scrollState = getSideNavContentScrollState();
+  const viewportRect = scrollState.viewportRect;
+  const maxScrollY = Math.max(0, safeNumber(scrollState.maxScrollY, 0));
+  if (!viewportRect || maxScrollY <= 0) {
+    return false;
+  }
+  if (!pointInsideRect(pointerX, pointerY, viewportRect)) {
+    return false;
+  }
+  const ignoreFavoritesRegion = options?.ignoreFavoritesRegion === true;
+  const ignoreButtonGuard = options?.ignoreButtonGuard === true;
+  if (!ignoreFavoritesRegion && pointInsideFavoritesCarousel(pointerX, pointerY)) {
+    return false;
+  }
+  if (pointInsideRect(pointerX, pointerY, resolveSideNavSearchInputInteractiveRect())) {
+    return false;
+  }
+  const button = buttonUnderPointer(pointerX, pointerY);
+  if (!ignoreButtonGuard && button && safeText(button.id) !== TREE_NEXT_MOBILE_SIDE_PANEL_HANDLE_ID) {
+    return false;
+  }
+  scrollState.dragActive = true;
+  scrollState.dragPointerId = pointerId;
+  scrollState.dragStartY = safeNumber(pointerY, 0);
+  scrollState.dragStartScrollY = clamp(safeNumber(scrollState.scrollY, 0), 0, maxScrollY);
+  scrollState.dragMoved = false;
+  return true;
+}
+
+function updateMobileSideNavContentScrollDrag(pointerId, pointerY) {
+  const scrollState = getSideNavContentScrollState();
+  if (!scrollState.dragActive || pointerId !== scrollState.dragPointerId) {
+    return false;
+  }
+  const maxScrollY = Math.max(0, safeNumber(scrollState.maxScrollY, 0));
+  if (maxScrollY <= 0) {
+    clearSideNavContentScrollDrag(pointerId);
+    return false;
+  }
+  const currentY = safeNumber(pointerY, safeNumber(scrollState.dragStartY, 0));
+  const deltaY = currentY - safeNumber(scrollState.dragStartY, currentY);
+  const startedAtTop = safeNumber(scrollState.dragStartScrollY, 0) <= 0.5;
+  if (
+    resolveTreeNextMobileSidePanelStage() === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+    && startedAtTop
+    && deltaY > 8
+  ) {
+    const pointerX = safeNumber(state.pointer.x, safeNumber(state.layout?.sideNav?.x, 0));
+    clearSideNavContentScrollDrag(pointerId);
+    if (maybeBeginMobileSideNavStageDrag(pointerId, pointerX, currentY, {
+      allowSurfaceDrag: true,
+      forceSurfaceDrag: true,
+    })) {
+      return updateMobileSideNavStageDrag(pointerId, currentY);
+    }
+    return false;
+  }
+  const nextScrollY = clamp(
+    safeNumber(scrollState.dragStartScrollY, 0) - deltaY,
+    0,
+    maxScrollY,
+  );
+  if (Math.abs(nextScrollY - safeNumber(scrollState.scrollY, 0)) >= 0.1) {
+    scrollState.dragMoved = true;
+  }
+  scrollState.scrollY = nextScrollY;
+  return true;
+}
+
+function finalizeMobileSideNavContentScrollDrag(pointerId) {
+  const scrollState = getSideNavContentScrollState();
+  if (!scrollState.dragActive || pointerId !== scrollState.dragPointerId) {
+    return {
+      consumed: false,
+      moved: false,
+    };
+  }
+  const moved = Boolean(scrollState.dragMoved);
+  clearSideNavContentScrollDrag(pointerId);
+  return {
+    consumed: true,
+    moved,
+  };
 }
 
 function getSideNavFavoritesState() {
@@ -18102,6 +19427,7 @@ function getSideNavFavoritesState() {
       dragStartX: 0,
       dragStartScrollX: 0,
       dragStartY: 0,
+      dragAxis: '',
       dragMoved: false,
       tapAction: '',
       placesCacheKey: '',
@@ -18143,19 +19469,79 @@ function beginFavoritesCarouselDrag(pointerId, pointerX, pointerY = 0, tapAction
   favorites.dragStartX = safeNumber(pointerX, 0);
   favorites.dragStartY = safeNumber(pointerY, 0);
   favorites.dragStartScrollX = safeNumber(favorites.scrollX, 0);
+  favorites.dragAxis = 'pending';
   favorites.dragMoved = false;
   favorites.tapAction = safeText(tapAction);
 }
 
-function updateFavoritesCarouselDrag(pointerId, pointerX, pointerY = 0) {
+function updateFavoritesCarouselDrag(pointerId, pointerX, pointerY = 0, pointerType = 'mouse') {
   const favorites = getSideNavFavoritesState();
   if (!favorites.dragActive || pointerId !== favorites.dragPointerId) {
     return false;
   }
-  const deltaX = safeNumber(pointerX, 0) - safeNumber(favorites.dragStartX, 0);
-  const deltaY = safeNumber(pointerY, 0) - safeNumber(favorites.dragStartY, 0);
+  const currentX = safeNumber(pointerX, safeNumber(favorites.dragStartX, 0));
+  const currentY = safeNumber(pointerY, safeNumber(favorites.dragStartY, 0));
+  const deltaX = currentX - safeNumber(favorites.dragStartX, 0);
+  const deltaY = currentY - safeNumber(favorites.dragStartY, 0);
+  const absDeltaX = Math.abs(deltaX);
+  const absDeltaY = Math.abs(deltaY);
+  const currentAxis = safeText(favorites.dragAxis || 'pending').toLowerCase();
+
+  if (currentAxis !== 'horizontal') {
+    if (
+      absDeltaX < TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaY < TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX
+    ) {
+      return true;
+    }
+    const horizontalIntent = (
+      absDeltaX >= TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaX > (absDeltaY + TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_BIAS_PX)
+    );
+    const verticalIntent = (
+      absDeltaY >= TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaY > (absDeltaX + TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_BIAS_PX)
+    );
+    if (horizontalIntent) {
+      favorites.dragAxis = 'horizontal';
+      favorites.dragMoved = true;
+    } else if (verticalIntent && pointerType === 'touch') {
+      stopFavoritesCarouselDrag(pointerId);
+      const handedOffToContentScroll = maybeBeginMobileSideNavContentScroll(
+        pointerId,
+        currentX,
+        currentY,
+        pointerType,
+        {
+          ignoreFavoritesRegion: true,
+          ignoreButtonGuard: true,
+        },
+      );
+      if (handedOffToContentScroll) {
+        canvas.classList.add('dragging');
+        return updateMobileSideNavContentScrollDrag(pointerId, currentY);
+      }
+      const handedOffToPanelDrag = maybeBeginMobileSideNavStageDrag(pointerId, currentX, currentY, {
+        allowSurfaceDrag: true,
+        forceSurfaceDrag: true,
+        ignoreFavoritesRegion: true,
+        ignoreButtonGuard: true,
+      });
+      if (handedOffToPanelDrag) {
+        canvas.classList.add('dragging');
+        return updateMobileSideNavStageDrag(pointerId, currentY);
+      }
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  if (safeText(favorites.dragAxis).toLowerCase() !== 'horizontal') {
+    return false;
+  }
   setFavoritesScroll(safeNumber(favorites.dragStartScrollX, 0) - deltaX);
-  if (!favorites.dragMoved && (Math.abs(deltaX) >= 6 || Math.abs(deltaY) >= 6)) {
+  if (!favorites.dragMoved && (absDeltaX >= 6 || absDeltaY >= 6)) {
     favorites.dragMoved = true;
   }
   return true;
@@ -18172,6 +19558,7 @@ function stopFavoritesCarouselDrag(pointerId = null) {
   favorites.dragActive = false;
   favorites.dragPointerId = null;
   favorites.dragStartY = 0;
+  favorites.dragAxis = '';
   favorites.dragMoved = false;
   favorites.tapAction = '';
   if (!state.drag.active) {
@@ -18235,6 +19622,80 @@ function drawBackground(width, height) {
 
 function drawWorkspaceBackdrop(workspace) {
   // Intentionally blank: plain Apple-gray background, no grid overlay.
+}
+
+function syncTreeNextMobileSheetInteractionState(layoutInput = state.layout) {
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const workspace = layout?.workspace || null;
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(workspace?.width, state.renderSize?.width || window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(workspace?.height, state.renderSize?.height || window.innerHeight || 1)),
+  );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  const stage = isMobileViewport
+    ? resolveTreeNextMobileSidePanelStage({ width: viewportWidth, height: viewportHeight })
+    : 'desktop';
+  if (
+    mobileSheetInteractionState.isMobile === isMobileViewport
+    && mobileSheetInteractionState.stage === stage
+  ) {
+    return;
+  }
+  mobileSheetInteractionState.isMobile = isMobileViewport;
+  mobileSheetInteractionState.stage = stage;
+
+  const htmlElement = document.documentElement;
+  if (htmlElement instanceof HTMLElement) {
+    if (isMobileViewport) {
+      htmlElement.setAttribute('data-tree-next-sheet-stage', stage);
+    } else {
+      htmlElement.removeAttribute('data-tree-next-sheet-stage');
+    }
+  }
+  const bodyElement = document.body;
+  if (bodyElement instanceof HTMLElement) {
+    if (isMobileViewport) {
+      bodyElement.setAttribute('data-tree-next-sheet-stage', stage);
+    } else {
+      bodyElement.removeAttribute('data-tree-next-sheet-stage');
+    }
+  }
+}
+
+function drawTreeNextMobileSheetBackdrop(layoutInput = state.layout) {
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const workspace = layout?.workspace || null;
+  const sideNav = layout?.sideNav || null;
+  if (!workspace || !sideNav) {
+    return;
+  }
+  if (!isTreeNextMobileViewport(workspace.width, workspace.height)) {
+    return;
+  }
+  const sheetExpansion = clamp(
+    safeNumber(sideNav.expansionProgress, 1 - safeNumber(sideNav.translateProgress, 1)),
+    0,
+    1,
+  );
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height: workspace.height });
+  // Keep the map nearly untouched in the closed state; increase dim as the sheet expands.
+  const dimProgress = clamp(
+    (sheetExpansion - (1 - closedProgress))
+      / Math.max(0.0001, closedProgress),
+    0,
+    1,
+  );
+  if (dimProgress <= 0.001) {
+    return;
+  }
+  context.save();
+  context.fillStyle = `rgba(16, 22, 32, ${(0.03 + (dimProgress * 0.20)).toFixed(3)})`;
+  context.fillRect(workspace.x, workspace.y, workspace.width, workspace.height);
+  context.restore();
 }
 
 function drawBackdropBlurRegion(rect, radius = 20, blurPx = 16) {
@@ -18332,7 +19793,45 @@ function drawGlassCard(rect, options = {}) {
 }
 
 function drawPanelChrome(panel, tone = 'left') {
-  void tone;
+  const workspace = state.layout?.workspace || null;
+  const isMobileSidePanel = (
+    tone === 'left'
+    && workspace
+    && isTreeNextMobileViewport(workspace.width, workspace.height)
+  );
+  if (isMobileSidePanel) {
+    const sheetExpansionProgress = clamp(
+      safeNumber(panel.expansionProgress, 1 - safeNumber(panel.translateProgress, 1)),
+      0,
+      1,
+    );
+    const radiusCollapseProgress = clamp(
+      (sheetExpansionProgress - TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF)
+        / Math.max(0.0001, 1 - TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF),
+      0,
+      1,
+    );
+    const topCornerRadius = Math.round(30 * (1 - easeOutCubic(radiusCollapseProgress)));
+    const extensionHeight = 56;
+    const drawHeight = panel.height + extensionHeight;
+    roundedTopRectPath(context, panel.x, panel.y, panel.width, drawHeight, topCornerRadius, topCornerRadius);
+    context.fillStyle = SHELL_PANEL_COLOR;
+    context.fill();
+    roundedTopRectPath(
+      context,
+      panel.x + 0.5,
+      panel.y + 0.5,
+      panel.width - 1,
+      drawHeight,
+      Math.max(0, topCornerRadius - 0.5),
+      Math.max(0, topCornerRadius - 0.5),
+    );
+    context.lineWidth = 1;
+    context.strokeStyle = SHELL_PANEL_BORDER_COLOR;
+    context.stroke();
+    return;
+  }
+
   fillRoundedRect(context, panel.x, panel.y, panel.width, panel.height, 36, SHELL_PANEL_COLOR);
   strokeRoundedRect(
     context,
@@ -18725,6 +20224,31 @@ function ensureSideNavSearchDropdown() {
 
   document.body.appendChild(dropdown);
   return dropdown;
+}
+
+function ensureSideNavSearchInputStyle() {
+  let styleElement = document.getElementById(SIDE_NAV_SEARCH_INPUT_STYLE_ID);
+  if (styleElement instanceof HTMLStyleElement) {
+    return styleElement;
+  }
+  styleElement = document.createElement('style');
+  styleElement.id = SIDE_NAV_SEARCH_INPUT_STYLE_ID;
+  styleElement.textContent = `
+    #${SIDE_NAV_SEARCH_INPUT_ID}::placeholder {
+      color: ${SIDE_NAV_SEARCH_TEXT_COLOR};
+      font-weight: 400;
+      opacity: 1;
+    }
+    #${SIDE_NAV_SEARCH_INPUT_ID}::-webkit-search-decoration,
+    #${SIDE_NAV_SEARCH_INPUT_ID}::-webkit-search-cancel-button,
+    #${SIDE_NAV_SEARCH_INPUT_ID}::-webkit-search-results-button,
+    #${SIDE_NAV_SEARCH_INPUT_ID}::-webkit-search-results-decoration {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+  `;
+  document.head.appendChild(styleElement);
+  return styleElement;
 }
 
 function resolveSideNavProfileMenuIconSpec(itemId) {
@@ -19215,7 +20739,19 @@ function applySearchQuery(nextQuery, options = {}) {
   });
 }
 
+function isTreeNextOverlayPanelVisible() {
+  return Boolean(
+    state.enroll?.open
+    || state.ui?.accountOverviewVisible
+    || state.ui?.infinityBuilderVisible
+    || state.ui?.rankAdvancementVisible
+    || state.ui?.preferredAccountsVisible
+    || state.ui?.myStoreVisible,
+  );
+}
+
 function ensureSideNavSearchInput() {
+  ensureSideNavSearchInputStyle();
   let input = document.getElementById(SIDE_NAV_SEARCH_INPUT_ID);
   if (input instanceof HTMLInputElement) {
     return input;
@@ -19226,6 +20762,10 @@ function ensureSideNavSearchInput() {
   input.type = 'search';
   input.placeholder = 'Search username or name';
   input.autocomplete = 'off';
+  input.autocorrect = 'off';
+  input.autocapitalize = 'off';
+  input.setAttribute('inputmode', 'search');
+  input.setAttribute('enterkeyhint', 'search');
   input.spellcheck = false;
   input.style.position = 'fixed';
   input.style.left = '0px';
@@ -19240,17 +20780,70 @@ function ensureSideNavSearchInput() {
   input.style.webkitAppearance = 'none';
   input.style.boxSizing = 'border-box';
   input.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
-  input.style.fontSize = '13px';
-  input.style.fontWeight = '600';
-  input.style.color = '#4A505C';
-  input.style.caretColor = '#4A505C';
+  input.style.fontSize = '16px';
+  input.style.lineHeight = '20px';
+  input.style.fontWeight = '400';
+  input.style.color = SIDE_NAV_SEARCH_TEXT_COLOR;
+  input.style.caretColor = SIDE_NAV_SEARCH_TEXT_COLOR;
+  input.style.webkitTextFillColor = SIDE_NAV_SEARCH_TEXT_COLOR;
   input.style.zIndex = '22';
   input.style.outline = 'none';
   input.style.display = 'none';
   input.style.boxShadow = 'none';
   input.style.transition = 'opacity 140ms ease';
 
+  let deferredSearchFocusTimerId = 0;
+  const clearDeferredSearchFocusTimer = () => {
+    const timerId = Math.floor(safeNumber(deferredSearchFocusTimerId, 0));
+    if (timerId > 0) {
+      window.clearTimeout(timerId);
+    }
+    deferredSearchFocusTimerId = 0;
+  };
+  const maybeExpandMobilePanelForSearchFocus = (options = {}) => {
+    if (!isTreeNextMobileViewport()) {
+      return false;
+    }
+    const currentMobileStage = resolveTreeNextMobileSidePanelStage();
+    if (currentMobileStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL) {
+      return false;
+    }
+    state.ui.sideNavOpen = true;
+    const animate = options?.animate !== false;
+    setTreeNextMobileSidePanelStage(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL, { animate });
+    return true;
+  };
+
+  input.addEventListener('pointerdown', (event) => {
+    setMobileSearchViewportLockActive(true);
+    clearDeferredSearchFocusTimer();
+    if (isTreeNextMobileViewport()) {
+      const currentMobileStage = resolveTreeNextMobileSidePanelStage();
+      if (currentMobileStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED) {
+        if (typeof event.preventDefault === 'function') {
+          event.preventDefault();
+        }
+        maybeExpandMobilePanelForSearchFocus({ animate: true });
+        deferredSearchFocusTimerId = window.setTimeout(() => {
+          deferredSearchFocusTimerId = 0;
+          if (document.activeElement === input) {
+            return;
+          }
+          try {
+            input.focus({ preventScroll: true });
+          } catch {
+            input.focus();
+          }
+        }, TREE_NEXT_MOBILE_SEARCH_FOCUS_EXPAND_DELAY_MS);
+        return;
+      }
+    }
+    maybeExpandMobilePanelForSearchFocus({ animate: true });
+  });
   input.addEventListener('focus', () => {
+    clearDeferredSearchFocusTimer();
+    setMobileSearchViewportLockActive(true);
+    maybeExpandMobilePanelForSearchFocus({ animate: true });
     state.ui.sideNavBrandMenuOpen = false;
     input.style.opacity = '1';
     refreshSearchResults({
@@ -19259,6 +20852,11 @@ function ensureSideNavSearchInput() {
     });
   });
   input.addEventListener('blur', () => {
+    clearDeferredSearchFocusTimer();
+    setMobileSearchViewportLockActive(false);
+    window.setTimeout(() => {
+      updateCanvasSize();
+    }, 0);
     input.style.opacity = '1';
     window.setTimeout(() => {
       if (document.activeElement === input) {
@@ -19326,9 +20924,27 @@ function syncSideNavSearchInput() {
   const input = ensureSideNavSearchInput();
   const dropdown = ensureSideNavSearchDropdown();
   const rect = state.ui.sideNavSearchInputRect;
+  const clipRect = state.ui.sideNavSearchInputClipRect;
   const dropdownRect = state.ui.sideNavSearchDropdownRect;
   const opacity = clamp(safeNumber(state.ui.sideNavSearchInputOpacity, 1), 0, 1);
-  if (!state.ui.sideNavOpen || !rect || !dropdownRect || opacity <= 0.001) {
+  const mobileViewport = isTreeNextMobileViewport();
+  input.style.fontSize = mobileViewport ? '16px' : '13px';
+  input.style.lineHeight = mobileViewport ? '20px' : '18px';
+  const clearSearchInputClip = () => {
+    input.style.clipPath = 'none';
+    input.style.webkitClipPath = 'none';
+  };
+
+  const overlayPanelVisible = isTreeNextOverlayPanelVisible();
+  if (overlayPanelVisible) {
+    if (document.activeElement === input) {
+      input.blur();
+    }
+    closeSearchDropdown();
+  }
+
+  if (overlayPanelVisible || !state.ui.sideNavOpen || !rect || !dropdownRect || opacity <= 0.001) {
+    clearSearchInputClip();
     input.style.display = 'none';
     dropdown.style.display = 'none';
     dropdown.style.opacity = '0';
@@ -19342,6 +20958,45 @@ function syncSideNavSearchInput() {
   input.style.top = `${Math.round(rect.y)}px`;
   input.style.width = `${Math.max(32, Math.round(rect.width))}px`;
   input.style.height = `${Math.max(24, Math.round(rect.height))}px`;
+  let searchInputFullyVisible = true;
+  if (clipRect && safeNumber(clipRect.width, 0) > 0 && safeNumber(clipRect.height, 0) > 0) {
+    const rectRight = safeNumber(rect.x, 0) + safeNumber(rect.width, 0);
+    const rectBottom = safeNumber(rect.y, 0) + safeNumber(rect.height, 0);
+    const clipRight = safeNumber(clipRect.x, 0) + safeNumber(clipRect.width, 0);
+    const clipBottom = safeNumber(clipRect.y, 0) + safeNumber(clipRect.height, 0);
+    const clipTopInset = clamp(safeNumber(clipRect.y, 0) - safeNumber(rect.y, 0), 0, safeNumber(rect.height, 0));
+    const clipBottomInset = clamp(rectBottom - clipBottom, 0, safeNumber(rect.height, 0));
+    const clipLeftInset = clamp(safeNumber(clipRect.x, 0) - safeNumber(rect.x, 0), 0, safeNumber(rect.width, 0));
+    const clipRightInset = clamp(rectRight - clipRight, 0, safeNumber(rect.width, 0));
+    const overlapWidth = Math.max(0, safeNumber(rect.width, 0) - clipLeftInset - clipRightInset);
+    const overlapHeight = Math.max(0, safeNumber(rect.height, 0) - clipTopInset - clipBottomInset);
+    if (overlapWidth <= 0.5 || overlapHeight <= 0.5) {
+      if (document.activeElement === input) {
+        input.blur();
+      }
+      closeSearchDropdown();
+      input.style.display = 'none';
+      dropdown.style.display = 'none';
+      dropdown.style.opacity = '0';
+      dropdown.dataset.renderKey = '';
+      return;
+    }
+    searchInputFullyVisible = (
+      clipTopInset <= 0.5
+      && clipBottomInset <= 0.5
+      && clipLeftInset <= 0.5
+      && clipRightInset <= 0.5
+    );
+    if (!searchInputFullyVisible) {
+      const clipPath = `inset(${clipTopInset.toFixed(2)}px ${clipRightInset.toFixed(2)}px ${clipBottomInset.toFixed(2)}px ${clipLeftInset.toFixed(2)}px)`;
+      input.style.clipPath = clipPath;
+      input.style.webkitClipPath = clipPath;
+    } else {
+      clearSearchInputClip();
+    }
+  } else {
+    clearSearchInputClip();
+  }
   if (document.activeElement !== input && input.value !== state.query) {
     input.value = state.query;
   }
@@ -19349,6 +21004,7 @@ function syncSideNavSearchInput() {
   const hasResults = Array.isArray(state.ui.sideNavSearchResults) && state.ui.sideNavSearchResults.length > 0;
   const showDropdown = (
     hasResults
+    && searchInputFullyVisible
     && state.ui.sideNavSearchDropdownOpen
     && !state.ui.sideNavBrandMenuOpen
     && safeText(state.query).trim().length > 0
@@ -19459,6 +21115,7 @@ function drawSideNav(layout) {
   const panelReveal = resolveStartupRevealForPanel(STARTUP_SIDE_PANEL_DELAY_MS);
   if (panelReveal.progress <= 0) {
     state.ui.sideNavSearchInputRect = null;
+    state.ui.sideNavSearchInputClipRect = null;
     state.ui.sideNavSearchInputOpacity = 0;
     state.ui.sideNavSearchDropdownRect = null;
     state.ui.sideNavBrandMenuAnchorRect = null;
@@ -19467,6 +21124,11 @@ function drawSideNav(layout) {
     const favorites = getSideNavFavoritesState();
     favorites.viewportRect = null;
     stopFavoritesCarouselDrag(null);
+    const contentScroll = getSideNavContentScrollState();
+    contentScroll.viewportRect = null;
+    contentScroll.maxScrollY = 0;
+    contentScroll.scrollY = 0;
+    clearSideNavContentScrollDrag(null);
     return;
   }
   const applyPanelReveal = beginStartupReveal(panelReveal);
@@ -19478,75 +21140,97 @@ function drawSideNav(layout) {
       ? clamp(safeNumber(panelReveal.alpha, 1), 0, 1)
       : 1;
 
+    const isMobileSideNav = isTreeNextMobileViewport(layout.workspace?.width, layout.workspace?.height);
+    const mobilePanelStage = isMobileSideNav
+      ? resolveTreeNextMobileSidePanelStage({
+        width: layout.workspace?.width,
+        height: layout.workspace?.height,
+      })
+      : TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL;
+    const isMobileFullStage = (
+      isMobileSideNav
+      && mobilePanelStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+    );
+    const isMobileClosed = (
+      isMobileSideNav
+      && mobilePanelStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED
+    );
+    const mobileSheetExpansionProgress = clamp(
+      safeNumber(panel.expansionProgress, 1 - safeNumber(panel.translateProgress, 1)),
+      0,
+      1,
+    );
+    const closedStageProgress = isMobileSideNav
+      ? resolveTreeNextMobileSidePanelSnapProgress(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED, {
+        height: layout.workspace?.height,
+      })
+      : TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_CLOSED;
+    const halfStageProgress = isMobileSideNav
+      ? resolveTreeNextMobileSidePanelSnapProgress(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF, {
+        height: layout.workspace?.height,
+      })
+      : TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF;
+    const closedStageExpansion = clamp(1 - closedStageProgress, 0, 1);
+    const halfStageExpansion = clamp(1 - halfStageProgress, 0, 1);
+    const expandedContentRevealRaw = isMobileSideNav
+      ? clamp(
+        (mobileSheetExpansionProgress - closedStageExpansion)
+          / Math.max(0.0001, halfStageExpansion - closedStageExpansion),
+        0,
+        1,
+      )
+      : 1;
+    const expandedContentReveal = isMobileSideNav ? easeOutCubic(expandedContentRevealRaw) : 1;
+    const collapsedContentReveal = isMobileSideNav ? clamp(1 - expandedContentReveal, 0, 1) : 0;
+    const isMobileExpandedStage = (
+      isMobileSideNav
+      && (
+        mobilePanelStage !== TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED
+        || expandedContentReveal > 0.001
+      )
+    );
+    let contentSizingPanelHeight = panel.height;
+    if (isMobileExpandedStage) {
+      const workspaceWidth = Math.max(
+        1,
+        Math.floor(safeNumber(layout.workspace?.width, state.renderSize?.width || panel.width || 1)),
+      );
+      const workspaceHeight = Math.max(
+        1,
+        Math.floor(safeNumber(layout.workspace?.height, state.renderSize?.height || panel.height || 1)),
+      );
+      const fullProgress = resolveTreeNextMobileSidePanelSnapProgress(
+        TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+        { height: workspaceHeight },
+      );
+      const fullStageFrame = resolveTreeNextMobileSidePanelFrame(
+        workspaceWidth,
+        workspaceHeight,
+        TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+        fullProgress,
+      );
+      contentSizingPanelHeight = Math.max(
+        panel.height,
+        Math.floor(safeNumber(fullStageFrame?.height, panel.height)),
+      );
+    }
+    const mobileHandleRect = resolveMobileSideNavHandleRect(layout);
+    const hasMobileHandle = Boolean(mobileHandleRect);
     const insetX = 18;
     const slotX = panel.x + insetX;
     const slotWidth = panel.width - (insetX * 2);
-    const topPadding = 18;
+    const topPadding = isMobileSideNav ? 24 : 18;
     const gap = 16;
-    const searchRowHeight = 42;
-    const panelHeightScale = clamp((panel.height - 620) / 240, 0, 1);
-    const favoritesCardHeight = Math.round(136 + (32 * panelHeightScale));
+    const panelHeightScale = clamp((contentSizingPanelHeight - 620) / 240, 0, 1);
+    const favoritesCardBaseHeight = isMobileSideNav ? 104 : 136;
+    const favoritesCardHeight = Math.round(favoritesCardBaseHeight + ((isMobileSideNav ? 18 : 32) * panelHeightScale));
     const favoritesToDetailsGap = Math.round(4 + (8 * panelHeightScale));
     const memberStatusCardHeight = 124;
 
     let y = panel.y + topPadding;
-    const topControlButtonSize = 36;
-    const floatingProfileSize = 44;
-    const searchAvatarGap = 8;
-    const searchPillHeight = 36;
-    const topControlY = y + ((searchRowHeight - searchPillHeight) / 2);
-
-    const profileButtonId = 'side-nav-floating-profile';
-    const profileX = Math.max(
-      8,
-      Math.round((layout.workspace.x + layout.workspace.width) - floatingProfileSize - 8),
-    );
-    // Align to side-nav shell top instead of the search row height.
-    const profileY = panel.y;
-    const profileCenterX = profileX + (floatingProfileSize / 2);
-    const profileCenterY = profileY + (floatingProfileSize / 2);
-    const profileName = resolveSessionDisplayName();
-    const profileInitials = resolveInitials(profileName);
-    const profileRingRadius = (floatingProfileSize / 2);
-    const profileInnerRadius = profileRingRadius;
-
-    context.save();
-    context.shadowColor = 'rgba(25, 36, 52, 0.16)';
-    context.shadowBlur = 8;
-    context.shadowOffsetY = 2;
-    const sessionAvatarRender = drawResolvedAvatarCircle(
-      profileCenterX,
-      profileCenterY,
-      profileInnerRadius,
-      resolveSessionUserId(),
-      {
-        alpha: 0.98,
-        sheenAlpha: 0.2,
-      },
-    );
-    context.restore();
-    if (!sessionAvatarRender.usedPhoto) {
-      drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
-        size: Math.round(clamp(floatingProfileSize * 0.32, 12, 16)),
-        weight: 700,
-        color: '#F5F9FF',
-        align: 'center',
-      });
+    if (hasMobileHandle) {
+      y += 18;
     }
-    registerButton({
-      id: profileButtonId,
-      x: profileX,
-      y: profileY + buttonYOffset,
-      width: floatingProfileSize,
-      height: floatingProfileSize,
-      action: 'brand-menu:toggle',
-    });
-    state.ui.sideNavBrandMenuAnchorRect = {
-      x: profileX,
-      y: profileY + buttonYOffset,
-      width: floatingProfileSize,
-      height: floatingProfileSize,
-    };
 
     const sideNavToggleButtonId = 'side-nav-panel-toggle';
     const drawSideNavToggleButton = (buttonX, buttonY, size, action = 'side-nav:toggle') => {
@@ -19554,8 +21238,9 @@ function drawSideNav(layout) {
       const buttonFill = hovered ? '#E8EAF0' : SHELL_PANEL_COLOR;
       const buttonStroke = hovered ? '#DFE2EA' : SHELL_PANEL_COLOR;
       const iconColor = hovered ? '#444444' : '#888888';
-      fillRoundedRect(context, buttonX, buttonY, size, size, Math.round(size / 2), buttonFill);
-      strokeRoundedRect(context, buttonX + 0.5, buttonY + 0.5, size - 1, size - 1, Math.round(size / 2), buttonStroke, 1);
+      const cornerRadius = isMobileFullStage ? 0 : Math.round(size / 2);
+      fillRoundedRect(context, buttonX, buttonY, size, size, cornerRadius, buttonFill);
+      strokeRoundedRect(context, buttonX + 0.5, buttonY + 0.5, size - 1, size - 1, cornerRadius, buttonStroke, 1);
       drawMaterialButtonIcon('side_navigation', buttonX + (size / 2), buttonY + (size / 2) + 0.5, {
         size: Math.round(size * 0.58),
         weight: 500,
@@ -19574,25 +21259,274 @@ function drawSideNav(layout) {
 
     if (!state.ui.sideNavOpen) {
       state.ui.sideNavSearchInputRect = null;
+      state.ui.sideNavSearchInputClipRect = null;
       state.ui.sideNavSearchDropdownRect = null;
       closeSearchDropdown();
+      state.ui.sideNavBrandMenuAnchorRect = null;
+      state.ui.sideNavBrandMenuOpen = false;
       const favorites = getSideNavFavoritesState();
       favorites.viewportRect = null;
       stopFavoritesCarouselDrag(null);
+      const contentScroll = getSideNavContentScrollState();
+      contentScroll.viewportRect = null;
+      contentScroll.maxScrollY = 0;
+      contentScroll.scrollY = 0;
+      clearSideNavContentScrollDrag(null);
 
       const collapsedToggleX = panel.x + insetX;
-      drawSideNavToggleButton(collapsedToggleX, topControlY, topControlButtonSize);
+      drawSideNavToggleButton(collapsedToggleX, y + 3, 36);
       return;
     }
 
     drawPanelChrome(panel, 'left');
 
-    const searchPillWidth = slotWidth - topControlButtonSize - searchAvatarGap;
+    if (hasMobileHandle) {
+      const grabWidth = 42;
+      const grabHeight = 5;
+      const grabX = Math.round(mobileHandleRect.x + ((mobileHandleRect.width - grabWidth) / 2));
+      const grabY = Math.round(mobileHandleRect.y + 10);
+      fillRoundedRect(context, grabX, grabY, grabWidth, grabHeight, Math.round(grabHeight / 2), '#C8CDD8');
+      registerButton({
+        id: TREE_NEXT_MOBILE_SIDE_PANEL_HANDLE_ID,
+        x: mobileHandleRect.x,
+        y: mobileHandleRect.y + buttonYOffset,
+        width: mobileHandleRect.width,
+        height: mobileHandleRect.height,
+        action: 'noop',
+        rounded: false,
+      });
+    }
+
+    if (isMobileClosed) {
+      const shouldDrawCollapsedContent = collapsedContentReveal > 0.001;
+      const applyCollapsedContentFade = shouldDrawCollapsedContent && collapsedContentReveal < 0.999;
+      const collapsedContentInteractive = expandedContentReveal <= 0.001;
+      if (applyCollapsedContentFade) {
+        context.save();
+        context.globalAlpha *= collapsedContentReveal;
+      }
+      const collapsedSearchPillHeight = 36;
+      const collapsedSearchRowHeight = 42;
+      const collapsedAvatarGap = 8;
+      const collapsedSearchY = y + Math.round((collapsedSearchRowHeight - collapsedSearchPillHeight) / 2);
+      const collapsedPillX = slotX;
+      const collapsedProfileButtonSize = collapsedSearchPillHeight;
+      const collapsedProfileX = slotX + slotWidth - collapsedProfileButtonSize;
+      const collapsedProfileY = collapsedSearchY;
+      const collapsedProfileCenterX = collapsedProfileX + (collapsedProfileButtonSize / 2);
+      const collapsedProfileCenterY = collapsedProfileY + (collapsedProfileButtonSize / 2);
+      const collapsedProfileInitials = resolveInitials(resolveSessionDisplayName());
+      const collapsedAvatarRender = drawResolvedAvatarCircle(
+        collapsedProfileCenterX,
+        collapsedProfileCenterY,
+        collapsedProfileButtonSize / 2,
+        resolveSessionUserId(),
+        {
+          alpha: 0.98,
+          sheenAlpha: 0.2,
+        },
+      );
+      if (!collapsedAvatarRender.usedPhoto) {
+        drawText(collapsedProfileInitials, collapsedProfileCenterX, collapsedProfileCenterY + 0.5, {
+          size: Math.round(clamp(collapsedProfileButtonSize * 0.33, 11, 14)),
+          weight: 700,
+          color: '#F5F9FF',
+          align: 'center',
+        });
+      }
+      if (collapsedContentInteractive) {
+        registerButton({
+          id: 'side-nav-search-profile',
+          x: collapsedProfileX,
+          y: collapsedProfileY + buttonYOffset,
+          width: collapsedProfileButtonSize,
+          height: collapsedProfileButtonSize,
+          action: 'brand-menu:toggle',
+        });
+      }
+      state.ui.sideNavBrandMenuAnchorRect = {
+        x: collapsedProfileX,
+        y: collapsedProfileY + buttonYOffset,
+        width: collapsedProfileButtonSize,
+        height: collapsedProfileButtonSize,
+      };
+
+      const collapsedSearchPillWidth = Math.max(
+        150,
+        Math.round((collapsedProfileX - collapsedAvatarGap) - collapsedPillX),
+      );
+      fillRoundedRect(
+        context,
+        collapsedPillX,
+        collapsedSearchY,
+        collapsedSearchPillWidth,
+        collapsedSearchPillHeight,
+        18,
+        '#FFFFFF',
+      );
+      drawSearchGlyph(collapsedPillX + 18, collapsedSearchY + (collapsedSearchPillHeight / 2) + 0.5, {
+        color: SIDE_NAV_SEARCH_TEXT_COLOR,
+        size: 21,
+        weight: 450,
+      });
+      state.ui.sideNavSearchInputRect = {
+        x: collapsedPillX + 36,
+        y: collapsedSearchY + 2 + buttonYOffset,
+        width: collapsedSearchPillWidth - 42,
+        height: collapsedSearchPillHeight - 4,
+      };
+      state.ui.sideNavSearchInputClipRect = { ...state.ui.sideNavSearchInputRect };
+      state.ui.sideNavSearchDropdownRect = {
+        x: collapsedPillX,
+        y: collapsedSearchY + buttonYOffset,
+        width: collapsedSearchPillWidth,
+        height: collapsedSearchPillHeight,
+      };
+      const favorites = getSideNavFavoritesState();
+      favorites.viewportRect = null;
+      stopFavoritesCarouselDrag(null);
+      const contentScroll = getSideNavContentScrollState();
+      contentScroll.viewportRect = null;
+      contentScroll.maxScrollY = 0;
+      contentScroll.scrollY = 0;
+      clearSideNavContentScrollDrag(null);
+      if (applyCollapsedContentFade) {
+        context.restore();
+      }
+      if (expandedContentReveal <= 0.001) {
+        return;
+      }
+    }
+
+    const applyExpandedContentFade = isMobileSideNav && expandedContentReveal < 0.999;
+    if (applyExpandedContentFade) {
+      context.save();
+      context.globalAlpha *= expandedContentReveal;
+    }
+
+    const searchRowHeight = 42;
+    const topControlButtonSize = 36;
+    const searchAvatarGap = 8;
+    const searchPillHeight = 36;
+    const topControlY = y + ((searchRowHeight - searchPillHeight) / 2);
     const searchPillX = slotX;
-    const searchPillY = topControlY;
+    const showSideNavToggleInSearchRow = !isMobileSideNav;
+
+    const contentStartY = topControlY;
+    const contentViewportRect = {
+      x: slotX,
+      y: contentStartY,
+      width: slotWidth,
+      height: Math.max(0, (panel.y + panel.height - topPadding) - contentStartY),
+    };
+    const sideNavContentScrollState = getSideNavContentScrollState();
+    const contentScrollEnabled = (
+      isMobileSideNav
+      && mobilePanelStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+      && contentViewportRect.height > 0
+    );
+    const favoritesStartYBase = topControlY + searchRowHeight + gap;
+    const detailsStartYBase = favoritesStartYBase + favoritesCardHeight + favoritesToDetailsGap;
+    const detailsBottomLimitY = panel.y + panel.height - topPadding - memberStatusCardHeight - gap;
+    const fittedDetailsHeight = Math.max(isMobileSideNav ? 260 : 120, detailsBottomLimitY - detailsStartYBase);
+    const detailsCardHeightBase = isMobileExpandedStage
+      ? Math.max(fittedDetailsHeight, Math.round(contentSizingPanelHeight * 0.66))
+      : (contentScrollEnabled
+        ? Math.max(fittedDetailsHeight, Math.round(panel.height * 0.66))
+        : fittedDetailsHeight);
+    const totalScrollableContentHeight = (
+      (detailsStartYBase - contentStartY)
+      + detailsCardHeightBase
+      + gap
+      + memberStatusCardHeight
+    );
+    const contentScrollMaxY = contentScrollEnabled
+      ? Math.max(0, totalScrollableContentHeight - contentViewportRect.height)
+      : 0;
+    sideNavContentScrollState.viewportRect = { ...contentViewportRect };
+    sideNavContentScrollState.maxScrollY = contentScrollMaxY;
+    if (!contentScrollEnabled) {
+      sideNavContentScrollState.scrollY = 0;
+      clearSideNavContentScrollDrag(null);
+    } else {
+      sideNavContentScrollState.scrollY = clamp(
+        safeNumber(sideNavContentScrollState.scrollY, 0),
+        0,
+        contentScrollMaxY,
+      );
+    }
+    const contentScrollOffsetY = contentScrollEnabled
+      ? clamp(safeNumber(sideNavContentScrollState.scrollY, 0), 0, contentScrollMaxY)
+      : 0;
+    const shouldClipContentViewport = (
+      (isMobileSideNav && contentViewportRect.height > 0)
+      || (contentScrollEnabled && contentScrollMaxY > 0)
+    );
+    if (shouldClipContentViewport) {
+      context.save();
+      context.beginPath();
+      context.rect(
+        contentViewportRect.x - 2,
+        contentViewportRect.y,
+        contentViewportRect.width + 4,
+        contentViewportRect.height,
+      );
+      context.clip();
+    }
+
+    const searchPillY = topControlY - contentScrollOffsetY;
+    let controlCursorX = slotX + slotWidth;
+    if (showSideNavToggleInSearchRow) {
+      const sideNavToggleX = controlCursorX - topControlButtonSize;
+      drawSideNavToggleButton(sideNavToggleX, searchPillY, topControlButtonSize);
+      controlCursorX = sideNavToggleX - searchAvatarGap;
+    }
+
+    const profileButtonId = 'side-nav-search-profile';
+    const profileButtonSize = searchPillHeight;
+    const profileX = Math.round(controlCursorX - profileButtonSize);
+    const profileY = searchPillY;
+    const profileCenterX = profileX + (profileButtonSize / 2);
+    const profileCenterY = profileY + (profileButtonSize / 2);
+    const profileInitials = resolveInitials(resolveSessionDisplayName());
+    const sessionAvatarRender = drawResolvedAvatarCircle(
+      profileCenterX,
+      profileCenterY,
+      profileButtonSize / 2,
+      resolveSessionUserId(),
+      {
+        alpha: 0.98,
+        sheenAlpha: 0.2,
+      },
+    );
+    if (!sessionAvatarRender.usedPhoto) {
+      drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
+        size: Math.round(clamp(profileButtonSize * 0.33, 11, 14)),
+        weight: 700,
+        color: '#F5F9FF',
+        align: 'center',
+      });
+    }
+    registerButton({
+      id: profileButtonId,
+      x: profileX,
+      y: profileY + buttonYOffset,
+      width: profileButtonSize,
+      height: profileButtonSize,
+      action: 'brand-menu:toggle',
+    });
+    state.ui.sideNavBrandMenuAnchorRect = {
+      x: profileX,
+      y: profileY + buttonYOffset,
+      width: profileButtonSize,
+      height: profileButtonSize,
+    };
+
+    controlCursorX = profileX - searchAvatarGap;
+    const searchPillWidth = Math.max(150, Math.round(controlCursorX - searchPillX));
     fillRoundedRect(context, searchPillX, searchPillY, searchPillWidth, searchPillHeight, 18, '#FFFFFF');
     drawSearchGlyph(searchPillX + 18, searchPillY + (searchPillHeight / 2) + 0.5, {
-      color: '#353B47',
+      color: SIDE_NAV_SEARCH_TEXT_COLOR,
       size: 21,
       weight: 450,
     });
@@ -19604,16 +21538,20 @@ function drawSideNav(layout) {
       height: searchPillHeight - 4,
     };
     state.ui.sideNavSearchInputRect = searchInputRect;
+    state.ui.sideNavSearchInputClipRect = {
+      x: contentViewportRect.x,
+      y: contentViewportRect.y + buttonYOffset,
+      width: contentViewportRect.width,
+      height: contentViewportRect.height,
+    };
     state.ui.sideNavSearchDropdownRect = {
       x: searchPillX,
       y: searchPillY + buttonYOffset,
       width: searchPillWidth,
       height: searchPillHeight,
     };
-    const sideNavToggleX = searchPillX + searchPillWidth + searchAvatarGap;
-    drawSideNavToggleButton(sideNavToggleX, searchPillY, topControlButtonSize);
 
-    y += searchRowHeight + gap;
+    y = favoritesStartYBase - contentScrollOffsetY;
     drawText('Favorites', slotX + 4, y + 15, {
       size: 15,
       weight: 700,
@@ -19627,13 +21565,14 @@ function drawSideNav(layout) {
     const pinToggleX = slotX + slotWidth - pinToggleWidth - 4;
     const pinToggleY = y + 4;
     const canPinSelected = Boolean(safeText(state.selectedId));
+    const pinToggleRadius = 11;
     fillRoundedRect(
       context,
       pinToggleX,
       pinToggleY,
       pinToggleWidth,
       pinToggleHeight,
-      11,
+      pinToggleRadius,
       canPinSelected ? '#ECEFF5' : '#F1F2F6',
     );
     strokeRoundedRect(
@@ -19642,7 +21581,7 @@ function drawSideNav(layout) {
       pinToggleY + 0.5,
       pinToggleWidth - 1,
       pinToggleHeight - 1,
-      11,
+      pinToggleRadius,
       canPinSelected ? '#DCE1EB' : '#E6E8EF',
     );
     drawText(pinToggleLabel, pinToggleX + (pinToggleWidth / 2), pinToggleY + (pinToggleHeight / 2) + 0.5, {
@@ -19663,19 +21602,31 @@ function drawSideNav(layout) {
     }
 
     const favorites = resolvePinnedPlaces(12);
-    const favoritesViewportTopInset = Math.round(20 + (6 * panelHeightScale));
-    const favoritesViewportBottomInset = Math.round(8 + (10 * panelHeightScale));
+    const compactMobileFavoritesLayout = isMobileSideNav;
+    const favoritesViewportTopInset = compactMobileFavoritesLayout
+      ? Math.round(18 + (4 * panelHeightScale))
+      : Math.round(20 + (6 * panelHeightScale));
+    const favoritesViewportBottomInset = compactMobileFavoritesLayout
+      ? Math.round(6 + (8 * panelHeightScale))
+      : Math.round(8 + (10 * panelHeightScale));
+    const favoritesViewportMinHeight = compactMobileFavoritesLayout ? 90 : 84;
     const favoritesViewport = {
       x: slotX + 2,
       y: y + favoritesViewportTopInset,
       width: slotWidth - 4,
-      height: Math.max(84, favoritesCardHeight - favoritesViewportTopInset - favoritesViewportBottomInset),
+      height: Math.max(
+        favoritesViewportMinHeight,
+        favoritesCardHeight - favoritesViewportTopInset - favoritesViewportBottomInset,
+      ),
     };
     const favoritesState = getSideNavFavoritesState();
     favoritesState.viewportRect = { ...favoritesViewport };
-    const itemRadius = 30;
-    const itemSlotWidth = 84;
-    const itemGap = 8;
+    const itemRadius = compactMobileFavoritesLayout ? 22 : 30;
+    const itemSlotWidth = compactMobileFavoritesLayout ? 72 : 84;
+    const itemGap = compactMobileFavoritesLayout ? 10 : 8;
+    const itemAvatarTopInset = compactMobileFavoritesLayout ? 4 : 6;
+    const favoriteLabelOffsetY = compactMobileFavoritesLayout ? 14 : 17;
+    const favoriteSubtitleOffsetY = compactMobileFavoritesLayout ? 28 : 33;
     const contentWidth = favorites.length
       ? ((favorites.length * itemSlotWidth) + (Math.max(0, favorites.length - 1) * itemGap) + 12)
       : favoritesViewport.width;
@@ -19698,29 +21649,31 @@ function drawSideNav(layout) {
       const favorite = favorites[index];
       const itemX = favoritesViewport.x + 6 + (index * (itemSlotWidth + itemGap)) - safeNumber(favoritesState.scrollX, 0);
       const centerX = itemX + (itemSlotWidth / 2);
-      const centerY = favoritesViewport.y + itemRadius + 6;
+      const centerY = favoritesViewport.y + itemRadius + itemAvatarTopInset;
       const buttonId = `side-nav-favorite-${favorite.key}`;
       const hovered = state.hoveredButtonId === buttonId;
-      const favoriteTextMaxWidth = Math.max(40, itemSlotWidth - 10);
+      const favoriteTextMaxWidth = Math.max(40, itemSlotWidth - (compactMobileFavoritesLayout ? 8 : 10));
+      const favoriteLabelFontSize = compactMobileFavoritesLayout ? 11 : 12;
+      const favoriteSubtitleFontSize = compactMobileFavoritesLayout ? 9 : 10;
       const favoriteLabel = truncateTextToWidth(favorite.label, favoriteTextMaxWidth, {
-        size: 12,
+        size: favoriteLabelFontSize,
         weight: 600,
       });
       const favoriteSubtitle = truncateTextToWidth(favorite.subtitle, favoriteTextMaxWidth, {
-        size: 10,
+        size: favoriteSubtitleFontSize,
         weight: 500,
       });
 
       drawFavoriteNodeAvatar(centerX, centerY, itemRadius, favorite.nodeId, favorite.initials, hovered);
-      drawText(favoriteLabel, centerX, centerY + itemRadius + 17, {
-        size: 12,
+      drawText(favoriteLabel, centerX, centerY + itemRadius + favoriteLabelOffsetY, {
+        size: favoriteLabelFontSize,
         weight: 600,
         color: '#1B1F27',
         align: 'center',
         maxWidth: favoriteTextMaxWidth,
       });
-      drawText(favoriteSubtitle, centerX, centerY + itemRadius + 33, {
-        size: 10,
+      drawText(favoriteSubtitle, centerX, centerY + itemRadius + favoriteSubtitleOffsetY, {
+        size: favoriteSubtitleFontSize,
         weight: 500,
         color: '#7A8292',
         align: 'center',
@@ -19732,7 +21685,7 @@ function drawSideNav(layout) {
         x: itemX,
         y: (centerY - itemRadius) + buttonYOffset,
         width: itemSlotWidth,
-        height: (itemRadius * 2) + 40,
+        height: (itemRadius * 2) + (compactMobileFavoritesLayout ? 34 : 40),
         action: `pin:focus:${favorite.nodeId}`,
       });
     }
@@ -19740,9 +21693,9 @@ function drawSideNav(layout) {
     context.restore();
 
     y += favoritesCardHeight + favoritesToDetailsGap;
-    const memberStatusCardY = panel.y + panel.height - topPadding - memberStatusCardHeight;
-    const detailsCardHeight = Math.max(120, memberStatusCardY - y - gap);
+    const detailsCardHeight = detailsCardHeightBase;
     const detailsBottomY = y + detailsCardHeight;
+    const memberStatusCardY = detailsBottomY + gap;
     const detailInsetX = slotX + 16;
     const detailContentWidth = slotWidth - 32;
     const detailCenterX = slotX + (slotWidth / 2);
@@ -20107,95 +22060,104 @@ function drawSideNav(layout) {
       });
     }
 
-    fillRoundedRect(context, slotX, memberStatusCardY, slotWidth, memberStatusCardHeight, 18, '#FFFFFF');
-    strokeRoundedRect(context, slotX + 0.5, memberStatusCardY + 0.5, slotWidth - 1, memberStatusCardHeight - 1, 18, '#E4E7ED');
-    const selectedNodeForStatus = selectedNode && typeof selectedNode === 'object'
-      ? selectedNode
-      : null;
-    const defaultNodeForStatus = resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root') || null;
-    const statusNode = selectedNodeForStatus || defaultNodeForStatus;
-    const memberStatusSnapshot = resolveSideNavMemberStatusSnapshot(statusNode);
-    const memberStatusLabelX = slotX + 14;
-    const memberStatusValueX = slotX + slotWidth - 14;
+    if (memberStatusCardHeight > 0) {
+      fillRoundedRect(context, slotX, memberStatusCardY, slotWidth, memberStatusCardHeight, 18, '#FFFFFF');
+      strokeRoundedRect(context, slotX + 0.5, memberStatusCardY + 0.5, slotWidth - 1, memberStatusCardHeight - 1, 18, '#E4E7ED');
+      const selectedNodeForStatus = selectedNode && typeof selectedNode === 'object'
+        ? selectedNode
+        : null;
+      const defaultNodeForStatus = resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root') || null;
+      const statusNode = selectedNodeForStatus || defaultNodeForStatus;
+      const memberStatusSnapshot = resolveSideNavMemberStatusSnapshot(statusNode);
+      const memberStatusLabelX = slotX + 14;
+      const memberStatusValueX = slotX + slotWidth - 14;
 
-    drawText('Organization Members', memberStatusLabelX, memberStatusCardY + 24, {
-      size: 10,
-      weight: 600,
-      color: '#70798B',
-    });
-    drawText(formatInteger(memberStatusSnapshot.totalMembers, 0), memberStatusValueX, memberStatusCardY + 24, {
-      size: 12,
-      weight: 700,
-      color: '#2F3645',
-      align: 'right',
-    });
-    line(
-      context,
-      memberStatusLabelX,
-      memberStatusCardY + 32,
-      slotX + slotWidth - 14,
-      memberStatusCardY + 32,
-      '#E1E4EA',
-      1,
-    );
-
-    drawText('Active Members', memberStatusLabelX, memberStatusCardY + 51, {
-      size: 10,
-      weight: 600,
-      color: '#70798B',
-    });
-    drawText(
-      `L ${formatInteger(memberStatusSnapshot.leftActiveMembers, 0)} | R ${formatInteger(memberStatusSnapshot.rightActiveMembers, 0)}`,
-      memberStatusValueX,
-      memberStatusCardY + 51,
-      {
-        size: 11,
-        weight: 600,
-        color: '#3E4658',
-        align: 'right',
-      },
-    );
-
-    drawText('Direct Sponsors', memberStatusLabelX, memberStatusCardY + 74, {
-      size: 10,
-      weight: 600,
-      color: '#70798B',
-    });
-    drawText(
-      `L ${formatInteger(memberStatusSnapshot.leftDirectSponsors, 0)} | R ${formatInteger(memberStatusSnapshot.rightDirectSponsors, 0)}`,
-      memberStatusValueX,
-      memberStatusCardY + 74,
-      {
-        size: 11,
-        weight: 600,
-        color: '#3E4658',
-        align: 'right',
-      },
-    );
-
-    drawText(
-      `Total Direct Sponsors: ${formatInteger(memberStatusSnapshot.totalDirectSponsors, 0)}`,
-      memberStatusLabelX,
-      memberStatusCardY + 97,
-      {
+      drawText('Organization Members', memberStatusLabelX, memberStatusCardY + 24, {
         size: 10,
         weight: 600,
         color: '#70798B',
-        maxWidth: slotWidth - 28,
-      },
-    );
-    drawText(
-      `Total Active Members: ${formatInteger(memberStatusSnapshot.totalActiveMembers, 0)}`,
-      memberStatusValueX,
-      memberStatusCardY + 97,
-      {
+      });
+      drawText(formatInteger(memberStatusSnapshot.totalMembers, 0), memberStatusValueX, memberStatusCardY + 24, {
+        size: 12,
+        weight: 700,
+        color: '#2F3645',
+        align: 'right',
+      });
+      line(
+        context,
+        memberStatusLabelX,
+        memberStatusCardY + 32,
+        slotX + slotWidth - 14,
+        memberStatusCardY + 32,
+        '#E1E4EA',
+        1,
+      );
+
+      drawText('Active Members', memberStatusLabelX, memberStatusCardY + 51, {
         size: 10,
         weight: 600,
         color: '#70798B',
-        align: 'right',
-        maxWidth: slotWidth - 28,
-      },
-    );
+      });
+      drawText(
+        `L ${formatInteger(memberStatusSnapshot.leftActiveMembers, 0)} | R ${formatInteger(memberStatusSnapshot.rightActiveMembers, 0)}`,
+        memberStatusValueX,
+        memberStatusCardY + 51,
+        {
+          size: 11,
+          weight: 600,
+          color: '#3E4658',
+          align: 'right',
+        },
+      );
+
+      drawText('Direct Sponsors', memberStatusLabelX, memberStatusCardY + 74, {
+        size: 10,
+        weight: 600,
+        color: '#70798B',
+      });
+      drawText(
+        `L ${formatInteger(memberStatusSnapshot.leftDirectSponsors, 0)} | R ${formatInteger(memberStatusSnapshot.rightDirectSponsors, 0)}`,
+        memberStatusValueX,
+        memberStatusCardY + 74,
+        {
+          size: 11,
+          weight: 600,
+          color: '#3E4658',
+          align: 'right',
+        },
+      );
+
+      drawText(
+        `Total Direct Sponsors: ${formatInteger(memberStatusSnapshot.totalDirectSponsors, 0)}`,
+        memberStatusLabelX,
+        memberStatusCardY + 97,
+        {
+          size: 10,
+          weight: 600,
+          color: '#70798B',
+          maxWidth: slotWidth - 28,
+        },
+      );
+      drawText(
+        `Total Active Members: ${formatInteger(memberStatusSnapshot.totalActiveMembers, 0)}`,
+        memberStatusValueX,
+        memberStatusCardY + 97,
+        {
+          size: 10,
+          weight: 600,
+          color: '#70798B',
+          align: 'right',
+          maxWidth: slotWidth - 28,
+        },
+      );
+    }
+
+    if (shouldClipContentViewport) {
+      context.restore();
+    }
+    if (applyExpandedContentFade) {
+      context.restore();
+    }
 
   } finally {
     if (applyPanelReveal) {
@@ -20403,10 +22365,320 @@ function drawBottomToolBar(layout) {
   }
   const applyPanelReveal = beginStartupReveal(panelReveal);
   const buttonYOffset = applyPanelReveal ? panelReveal.translateY : 0;
+  const workspace = layout.workspace;
+  if (isTreeNextMobileViewport(workspace?.width, workspace?.height)) {
+    const mobileStage = resolveTreeNextMobileSidePanelStage({
+      width: workspace?.width,
+      height: workspace?.height,
+    });
+    const sideNavPanel = layout?.sideNav && typeof layout.sideNav === 'object'
+      ? layout.sideNav
+      : null;
+    const mobileSheetExpansionProgress = clamp(
+      safeNumber(
+        sideNavPanel?.expansionProgress,
+        1 - safeNumber(
+          sideNavPanel?.translateProgress,
+          resolveTreeNextMobileSidePanelSnapProgress(mobileStage, {
+            height: workspace?.height,
+          }),
+        ),
+      ),
+      0,
+      1,
+    );
+    const halfStageExpansion = clamp(
+      1 - resolveTreeNextMobileSidePanelSnapProgress(
+        TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+        { height: workspace?.height },
+      ),
+      0,
+      1,
+    );
+    // Fade and tuck outside controls as the sheet transitions from half -> full.
+    const outsideControlsHideProgress = easeOutCubic(clamp(
+      (mobileSheetExpansionProgress - halfStageExpansion)
+        / Math.max(0.0001, 1 - halfStageExpansion),
+      0,
+      1,
+    ));
+    const outsideControlsReveal = clamp(1 - outsideControlsHideProgress, 0, 1);
+    const showPanelShortcutRow = outsideControlsReveal > 0.001;
+    const showExternalNavRow = outsideControlsReveal > 0.001;
+    const rightDockButtons = [
+      {
+        id: 'mobile-top-right-account-overview',
+        iconGlyph: String.fromCodePoint(0xE871),
+        iconLigature: 'dashboard',
+        action: 'panel:account-overview:toggle',
+      },
+      {
+        id: 'mobile-top-right-rank-advancement',
+        iconGlyph: String.fromCodePoint(0xE8D0),
+        iconLigature: 'workspace_premium',
+        action: 'panel:rank-advancement:toggle',
+      },
+      {
+        id: 'mobile-top-right-preferred-accounts',
+        iconGlyph: String.fromCodePoint(0xE7FD),
+        iconLigature: 'person_add',
+        action: 'panel:preferred-accounts:toggle',
+      },
+      {
+        id: 'mobile-top-right-legacy-view',
+        iconGlyph: 'T',
+        iconLigature: 'hub',
+        action: 'legacy-tier:view:toggle',
+      },
+    ];
+    const mobileExternalNavButtons = [
+      {
+        id: 'mobile-sheet-back',
+        iconGlyph: String.fromCodePoint(0xEF7D),
+        iconLigature: 'arrow_left_alt',
+        action: 'universe:back',
+      },
+      {
+        id: 'mobile-sheet-home',
+        iconGlyph: String.fromCodePoint(0xE9B2),
+        iconLigature: 'home',
+        action: 'camera:home',
+      },
+      {
+        id: 'mobile-sheet-enter',
+        iconGlyph: String.fromCodePoint(0xEA77),
+        iconLigature: 'send_money',
+        action: 'universe:enter',
+      },
+      {
+        id: 'mobile-sheet-deep',
+        iconGlyph: String.fromCodePoint(0xE16D),
+        iconLigature: 'low_priority',
+        action: 'camera:deep',
+      },
+    ];
+    syncMobileTopControlsVisibilityForContext();
+    const topRightButtonSize = 40;
+    const topRightButtonGap = 8;
+    const toggleButtonId = 'mobile-top-controls-toggle';
+    const toggleButtonSize = topRightButtonSize;
+    const topControlsHidden = Boolean(state.ui?.mobileTopControlsHidden);
+    state.ui.mobileTopControlsReveal = topControlsHidden ? 0 : 1;
+    const rightAnchorX = Math.max(
+      8,
+      Math.round(
+        sideNavPanel
+          ? (safeNumber(sideNavPanel.x, 0) + safeNumber(sideNavPanel.width, safeNumber(workspace?.width, 0)) - 12)
+          : ((safeNumber(workspace?.x, 0) + safeNumber(workspace?.width, state.renderSize?.width || 0)) - 12),
+      ),
+    );
+    const rowRightAnchorX = rightAnchorX - toggleButtonSize - topRightButtonGap;
+    const rowStartY = Math.max(10, Math.round(safeNumber(workspace?.y, 0) + 12));
+    const panelTopY = Math.round(safeNumber(sideNavPanel?.y, rowStartY));
+    const externalNavRowY = Math.max(8, panelTopY - topRightButtonSize - 8);
+    const topControlsButtonsVisible = !topControlsHidden;
+
+    const drawTopRightMobileButtonRow = (buttons, rowY, options = {}) => {
+      const rowAlpha = clamp(safeNumber(options.alpha, 1), 0, 1);
+      if (rowAlpha <= 0.001) {
+        return;
+      }
+      const rowOffsetY = safeNumber(options.offsetY, 0);
+      const registerAlphaThreshold = clamp(safeNumber(options.registerAlphaThreshold, 0.55), 0, 1);
+      const anchorRightX = safeNumber(options.anchorRightX, rowRightAnchorX);
+      const applyRowAlpha = rowAlpha < 0.999;
+      if (applyRowAlpha) {
+        context.save();
+        context.globalAlpha *= rowAlpha;
+      }
+      let cursorRight = anchorRightX;
+      const canRegisterButtons = options.registerButtons !== false;
+      for (let index = 0; index < buttons.length; index += 1) {
+        const button = buttons[index];
+        const hovered = state.hoveredButtonId === button.id;
+        const active = typeof options.resolveActive === 'function'
+          ? Boolean(options.resolveActive(button))
+          : false;
+        const fill = active
+          ? '#D7E7FF'
+          : (hovered ? '#E7E9EF' : SHELL_PANEL_COLOR);
+        const stroke = active
+          ? '#BDD5F8'
+          : (hovered ? '#D7DBE6' : SHELL_PANEL_COLOR);
+        const iconColor = active ? '#1F5EA3' : '#4A5262';
+        const cornerRadius = Math.round(topRightButtonSize / 2);
+        const baseX = cursorRight - topRightButtonSize;
+        const x = baseX;
+        const y = Math.round(rowY + rowOffsetY);
+        const centerX = x + (topRightButtonSize / 2);
+        const centerY = y + (topRightButtonSize / 2);
+
+        fillRoundedRect(context, x, y, topRightButtonSize, topRightButtonSize, cornerRadius, fill);
+        strokeRoundedRect(
+          context,
+          x + 0.5,
+          y + 0.5,
+          topRightButtonSize - 1,
+          topRightButtonSize - 1,
+          cornerRadius,
+          stroke,
+          1,
+        );
+
+        const iconLigature = safeText(button.iconLigature);
+        if (iconLigature) {
+          drawMaterialButtonIcon(iconLigature, centerX, centerY + 0.5, {
+            size: 18,
+            weight: 500,
+            color: iconColor,
+            fill: 0,
+            fallbackGlyph: () => {
+              drawText(button.iconGlyph, centerX, centerY + 0.5, {
+                size: 18,
+                weight: 500,
+                family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+                color: iconColor,
+                align: 'center',
+              });
+            },
+          });
+        } else {
+          drawText(button.iconGlyph, centerX, centerY + 0.5, {
+            size: 18,
+            weight: 500,
+            family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+            color: iconColor,
+            align: 'center',
+          });
+        }
+
+        if (canRegisterButtons && rowAlpha >= registerAlphaThreshold) {
+          registerButton({
+            id: button.id,
+            x,
+            y: y + buttonYOffset,
+            width: topRightButtonSize,
+            height: topRightButtonSize,
+            action: button.action,
+          });
+        }
+        cursorRight = baseX - topRightButtonGap;
+      }
+      if (applyRowAlpha) {
+        context.restore();
+      }
+    };
+
+    if (showPanelShortcutRow) {
+      if (topControlsButtonsVisible) {
+        drawTopRightMobileButtonRow(rightDockButtons, rowStartY, {
+          anchorRightX: rowRightAnchorX,
+          alpha: outsideControlsReveal,
+          offsetY: -6 * outsideControlsHideProgress,
+          registerButtons: true,
+          registerAlphaThreshold: 0.5,
+          resolveActive: (button) => (
+            (button.action === 'panel:account-overview:toggle' && Boolean(state.ui?.accountOverviewVisible))
+            || (button.action === 'panel:rank-advancement:toggle' && Boolean(state.ui?.rankAdvancementVisible))
+            || (button.action === 'panel:preferred-accounts:toggle' && Boolean(state.ui?.preferredAccountsVisible))
+            || (button.action === 'legacy-tier:view:toggle' && isLegacyTierCanvasViewActive())
+          ),
+        });
+      }
+    }
+    if (showExternalNavRow) {
+      drawTopRightMobileButtonRow(mobileExternalNavButtons, externalNavRowY, {
+        anchorRightX: rightAnchorX,
+        alpha: outsideControlsReveal,
+        offsetY: -6 * outsideControlsHideProgress,
+        registerAlphaThreshold: 0.5,
+      });
+    }
+    if (showPanelShortcutRow || showExternalNavRow) {
+      const toggleY = showPanelShortcutRow ? rowStartY : externalNavRowY;
+      const toggleX = Math.round(rightAnchorX - toggleButtonSize);
+      const toggleCenterX = toggleX + (toggleButtonSize / 2);
+      const hovered = state.hoveredButtonId === toggleButtonId;
+      const fill = topControlsHidden
+        ? '#D7E7FF'
+        : (hovered ? '#E7E9EF' : SHELL_PANEL_COLOR);
+      const stroke = topControlsHidden
+        ? '#BDD5F8'
+        : (hovered ? '#D7DBE6' : SHELL_PANEL_COLOR);
+      const iconColor = topControlsHidden ? '#1F5EA3' : '#4A5262';
+      const toggleAlpha = outsideControlsReveal;
+      const toggleOffsetY = -6 * outsideControlsHideProgress;
+      const drawToggleY = Math.round(toggleY + toggleOffsetY);
+      const toggleInteractive = toggleAlpha >= 0.5;
+      const applyToggleAlpha = toggleAlpha < 0.999;
+
+      if (applyToggleAlpha) {
+        context.save();
+        context.globalAlpha *= toggleAlpha;
+      }
+
+      fillRoundedRect(
+        context,
+        toggleX,
+        drawToggleY,
+        toggleButtonSize,
+        toggleButtonSize,
+        Math.round(toggleButtonSize / 2),
+        fill,
+      );
+      strokeRoundedRect(
+        context,
+        toggleX + 0.5,
+        drawToggleY + 0.5,
+        toggleButtonSize - 1,
+        toggleButtonSize - 1,
+        Math.round(toggleButtonSize / 2),
+        stroke,
+        1,
+      );
+      drawMaterialButtonIcon(
+        topControlsHidden ? 'chevron_left' : 'chevron_right',
+        toggleCenterX,
+        drawToggleY + (toggleButtonSize / 2) + 0.5,
+        {
+          size: 19,
+          weight: 500,
+          color: iconColor,
+          fill: 0,
+          fallbackGlyph: () => {
+            drawText(topControlsHidden ? '<' : '>', toggleCenterX, drawToggleY + (toggleButtonSize / 2) + 0.5, {
+              size: 16,
+              weight: 700,
+              family: '"Segoe UI Symbol", sans-serif',
+              color: iconColor,
+              align: 'center',
+            });
+          },
+        },
+      );
+      if (toggleInteractive) {
+        registerButton({
+          id: toggleButtonId,
+          x: toggleX,
+          y: drawToggleY + buttonYOffset,
+          width: toggleButtonSize,
+          height: toggleButtonSize,
+          action: 'mobile:top-controls:toggle',
+        });
+      }
+      if (applyToggleAlpha) {
+        context.restore();
+      }
+    }
+
+    if (applyPanelReveal) {
+      context.restore();
+    }
+    return;
+  }
 
   try {
   const panel = layout.sideNav;
-  const workspace = layout.workspace;
   const railButtonSize = 44;
   const railGap = 12;
   const railEdgeInset = 8;
@@ -21828,11 +24100,14 @@ function drawLegacyTierCanvasViewHeader(layout, frameInput = null) {
   const sideNav = layout?.sideNav && typeof layout.sideNav === 'object'
     ? layout.sideNav
     : null;
-  const layoutLeftBound = sideNavOpen && sideNav
+  const sideNavAffectsHorizontalLayout = sideNavOpen
+    && sideNav
+    && !isTreeNextMobileViewport(workspace.width, workspace.height);
+  const layoutLeftBound = sideNavAffectsHorizontalLayout
     ? Math.round(sideNav.x + sideNav.width + 12)
     : workspace.x;
   const layoutRightBound = Math.round(workspace.x + workspace.width);
-  const availableCenterX = sideNavOpen
+  const availableCenterX = sideNavAffectsHorizontalLayout
     ? (layoutLeftBound + layoutRightBound) * 0.5
     : (workspace.x + (workspace.width * 0.5));
   const cardX = clamp(
@@ -22149,11 +24424,14 @@ function drawUniverseLocalBreadcrumbHeader(layout) {
   const sideNav = layout?.sideNav && typeof layout.sideNav === 'object'
     ? layout.sideNav
     : null;
-  const layoutLeftBound = sideNavOpen && sideNav
+  const sideNavAffectsHorizontalLayout = sideNavOpen
+    && sideNav
+    && !isTreeNextMobileViewport(workspace.width, workspace.height);
+  const layoutLeftBound = sideNavAffectsHorizontalLayout
     ? Math.round(sideNav.x + sideNav.width + 12)
     : workspace.x;
   const layoutRightBound = Math.round(workspace.x + workspace.width);
-  const availableCenterX = sideNavOpen
+  const availableCenterX = sideNavAffectsHorizontalLayout
     ? (layoutLeftBound + layoutRightBound) * 0.5
     : (workspace.x + (workspace.width * 0.5));
   const cardX = clamp(
@@ -22265,6 +24543,7 @@ function renderFrame() {
   const height = state.renderSize.height;
 
   state.layout = resolveLayout(width, height);
+  syncTreeNextMobileSheetInteractionState(state.layout);
   state.buttons = [];
   if (isTreeNextEnrollModalOpen()) {
     syncTreeNextEnrollPanelPosition(state.layout);
@@ -22274,20 +24553,33 @@ function renderFrame() {
   drawBackground(width, height);
   drawWorkspaceBackdrop(state.layout.workspace);
   drawTreeViewport(state.layout);
+  drawTreeNextMobileSheetBackdrop(state.layout);
   drawSideNav(state.layout);
   drawBottomToolBar(state.layout);
-  syncAccountOverviewPanelPosition(state.layout);
-  syncAccountOverviewPanelVisuals();
+  const accountOverviewVisible = Boolean(state.ui?.accountOverviewVisible);
+  if (accountOverviewVisible) {
+    syncAccountOverviewPanelPosition(state.layout);
+    syncAccountOverviewPanelVisuals();
+  }
   syncAccountOverviewPanelVisibility();
-  syncInfinityBuilderPanelPosition(state.layout);
-  syncInfinityBuilderPanelVisuals();
+  const infinityBuilderVisible = Boolean(state.ui?.infinityBuilderVisible);
+  if (infinityBuilderVisible) {
+    syncInfinityBuilderPanelPosition(state.layout);
+    syncInfinityBuilderPanelVisuals();
+  }
   syncInfinityBuilderPanelVisibility();
-  syncRankAdvancementPanelPosition(state.layout);
-  syncRankAdvancementPanelVisuals();
+  const rankAdvancementVisible = Boolean(state.ui?.rankAdvancementVisible);
+  if (rankAdvancementVisible) {
+    syncRankAdvancementPanelPosition(state.layout);
+    syncRankAdvancementPanelVisuals();
+  }
   syncRankAdvancementPanelVisibility();
   try {
-    syncPreferredAccountsPanelPosition(state.layout);
-    syncPreferredAccountsPanelVisuals();
+    const preferredAccountsVisible = Boolean(state.ui?.preferredAccountsVisible);
+    if (preferredAccountsVisible) {
+      syncPreferredAccountsPanelPosition(state.layout);
+      syncPreferredAccountsPanelVisuals();
+    }
     syncPreferredAccountsPanelVisibility();
   } catch (error) {
     const nowMs = performance.now();
@@ -22296,8 +24588,11 @@ function renderFrame() {
       console.error('[TreeNext] Preferred accounts panel sync failed during render:', error);
     }
   }
-  syncMyStorePanelPosition(state.layout);
-  syncMyStorePanelVisuals();
+  const myStoreVisible = Boolean(state.ui?.myStoreVisible);
+  if (myStoreVisible) {
+    syncMyStorePanelPosition(state.layout);
+    syncMyStorePanelVisuals();
+  }
   syncMyStorePanelVisibility();
   syncSideNavSearchInput();
   syncSideNavProfileMenu();
@@ -22694,6 +24989,268 @@ function panCameraBy(deltaX, deltaY) {
   state.camera.view.y += safeDeltaY;
 }
 
+function clearTouchPanInertia() {
+  if (!state.touchPanInertia || typeof state.touchPanInertia !== 'object') {
+    state.touchPanInertia = {
+      active: false,
+      velocityX: 0,
+      velocityY: 0,
+    };
+    return;
+  }
+  state.touchPanInertia.active = false;
+  state.touchPanInertia.velocityX = 0;
+  state.touchPanInertia.velocityY = 0;
+}
+
+function maybeStartTouchPanInertia(pointerId, pointerTypeInput = '') {
+  if (!state.drag.active || pointerId !== state.drag.pointerId) {
+    return false;
+  }
+  if (!isTreeNextMobileViewport()) {
+    clearTouchPanInertia();
+    return false;
+  }
+  const pointerType = safeText(pointerTypeInput || state.drag.pointerType).toLowerCase();
+  if (pointerType !== 'touch' || !state.drag.moved) {
+    clearTouchPanInertia();
+    return false;
+  }
+  if (touchGestureState.pinchActive || touchGestureState.activePointers.size > 0) {
+    clearTouchPanInertia();
+    return false;
+  }
+  const smoothVelocityX = clamp(
+    safeNumber(state.drag.velocityX, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+  const smoothVelocityY = clamp(
+    safeNumber(state.drag.velocityY, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+  const instantVelocityX = clamp(
+    safeNumber(state.drag.lastInstantVelocityX, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+  const instantVelocityY = clamp(
+    safeNumber(state.drag.lastInstantVelocityY, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+  const smoothSpeed = Math.hypot(smoothVelocityX, smoothVelocityY);
+  const instantSpeed = Math.hypot(instantVelocityX, instantVelocityY);
+  const velocityX = instantSpeed >= smoothSpeed ? instantVelocityX : smoothVelocityX;
+  const velocityY = instantSpeed >= smoothSpeed ? instantVelocityY : smoothVelocityY;
+  const speed = Math.hypot(velocityX, velocityY);
+  if (!Number.isFinite(speed) || speed < TOUCH_PAN_INERTIA_MIN_START_SPEED_PX_PER_MS) {
+    clearTouchPanInertia();
+    return false;
+  }
+  if (!state.touchPanInertia || typeof state.touchPanInertia !== 'object') {
+    state.touchPanInertia = {
+      active: false,
+      velocityX: 0,
+      velocityY: 0,
+    };
+  }
+  state.touchPanInertia.active = true;
+  state.touchPanInertia.velocityX = velocityX;
+  state.touchPanInertia.velocityY = velocityY;
+  return true;
+}
+
+function updateTouchPanInertia(deltaSecondsInput = 0.016) {
+  const inertia = state.touchPanInertia;
+  if (!inertia || inertia.active !== true) {
+    return;
+  }
+  if (!isTreeNextMobileViewport()) {
+    clearTouchPanInertia();
+    return;
+  }
+  if (state.camera.target) {
+    clearTouchPanInertia();
+    return;
+  }
+  if (
+    state.drag.active
+    || getTreeNextMobileSidePanelDragState().active
+    || getSideNavFavoritesState().dragActive
+    || getSideNavContentScrollState().dragActive
+    || touchGestureState.pinchActive
+    || touchGestureState.activePointers.size > 0
+  ) {
+    clearTouchPanInertia();
+    return;
+  }
+
+  const deltaSeconds = clamp(safeNumber(deltaSecondsInput, 0.016), 0.0001, 0.05);
+  const deltaMs = deltaSeconds * 1000;
+  const velocityX = clamp(
+    safeNumber(inertia.velocityX, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+  const velocityY = clamp(
+    safeNumber(inertia.velocityY, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+
+  state.camera.view.x += velocityX * deltaMs;
+  state.camera.view.y += velocityY * deltaMs;
+
+  const damping = Math.exp(-TOUCH_PAN_INERTIA_DAMPING * deltaSeconds);
+  inertia.velocityX = velocityX * damping;
+  inertia.velocityY = velocityY * damping;
+  const speed = Math.hypot(inertia.velocityX, inertia.velocityY);
+  if (!Number.isFinite(speed) || speed <= TOUCH_PAN_INERTIA_STOP_SPEED_PX_PER_MS) {
+    clearTouchPanInertia();
+  }
+}
+
+function resetTouchPinchGesture() {
+  touchGestureState.activePointers.clear();
+  touchGestureState.pinchActive = false;
+  touchGestureState.pinchStartDistance = 0;
+  touchGestureState.pinchStartScale = clamp(state.camera.view.scale, MIN_SCALE, MAX_SCALE);
+  touchGestureState.lastCenterX = 0;
+  touchGestureState.lastCenterY = 0;
+}
+
+function trackTouchPointer(pointerId, pointX, pointY) {
+  touchGestureState.activePointers.set(pointerId, {
+    x: safeNumber(pointX, 0),
+    y: safeNumber(pointY, 0),
+  });
+}
+
+function untrackTouchPointer(pointerId) {
+  touchGestureState.activePointers.delete(pointerId);
+  if (touchGestureState.activePointers.size < 2) {
+    touchGestureState.pinchActive = false;
+    touchGestureState.pinchStartDistance = 0;
+    touchGestureState.pinchStartScale = clamp(state.camera.view.scale, MIN_SCALE, MAX_SCALE);
+  }
+}
+
+function beginTouchPinchGesture() {
+  if (touchGestureState.activePointers.size < 2) {
+    touchGestureState.pinchActive = false;
+    return false;
+  }
+  const points = Array.from(touchGestureState.activePointers.values());
+  const first = points[0];
+  const second = points[1];
+  const deltaX = second.x - first.x;
+  const deltaY = second.y - first.y;
+  const distance = Math.hypot(deltaX, deltaY);
+  if (!Number.isFinite(distance) || distance < 8) {
+    touchGestureState.pinchActive = false;
+    return false;
+  }
+  const centerX = (first.x + second.x) / 2;
+  const centerY = (first.y + second.y) / 2;
+  touchGestureState.pinchActive = true;
+  touchGestureState.pinchStartDistance = distance;
+  touchGestureState.pinchStartScale = clamp(state.camera.view.scale, MIN_SCALE, MAX_SCALE);
+  touchGestureState.lastCenterX = centerX;
+  touchGestureState.lastCenterY = centerY;
+  return true;
+}
+
+function updateTouchPinchGesture(pointerId, pointX, pointY) {
+  if (!touchGestureState.activePointers.has(pointerId)) {
+    return false;
+  }
+  trackTouchPointer(pointerId, pointX, pointY);
+  if (touchGestureState.activePointers.size < 2) {
+    return false;
+  }
+  if (!touchGestureState.pinchActive && !beginTouchPinchGesture()) {
+    return false;
+  }
+  const points = Array.from(touchGestureState.activePointers.values());
+  if (points.length < 2) {
+    return false;
+  }
+  const first = points[0];
+  const second = points[1];
+  const deltaX = second.x - first.x;
+  const deltaY = second.y - first.y;
+  const distance = Math.hypot(deltaX, deltaY);
+  if (!Number.isFinite(distance) || distance < 6) {
+    return true;
+  }
+  const centerX = (first.x + second.x) / 2;
+  const centerY = (first.y + second.y) / 2;
+  const startDistance = Math.max(6, safeNumber(touchGestureState.pinchStartDistance, distance));
+  const zoomFactor = distance / startDistance;
+  const nextScale = clamp(
+    safeNumber(touchGestureState.pinchStartScale, state.camera.view.scale) * zoomFactor,
+    MIN_SCALE,
+    MAX_SCALE,
+  );
+  const centerDeltaX = centerX - safeNumber(touchGestureState.lastCenterX, centerX);
+  const centerDeltaY = centerY - safeNumber(touchGestureState.lastCenterY, centerY);
+  if (Math.abs(centerDeltaX) > 0.001 || Math.abs(centerDeltaY) > 0.001) {
+    panCameraBy(centerDeltaX, centerDeltaY);
+  }
+  touchGestureState.lastCenterX = centerX;
+  touchGestureState.lastCenterY = centerY;
+  applyZoomAtPoint(centerX, centerY, nextScale);
+  return true;
+}
+
+function resolveMobileTopControlsAutoHideContextToken() {
+  if (!isTreeNextMobileViewport()) {
+    return '';
+  }
+  if (isLegacyTierCanvasViewActive()) {
+    return 'legacy-tier-view';
+  }
+  const universeRootId = normalizeCredentialValue(getUniverseRootId() || 'root');
+  if (universeRootId && universeRootId !== 'root') {
+    return `node-universe:${universeRootId}`;
+  }
+  return '';
+}
+
+function syncMobileTopControlsVisibilityForContext(options = {}) {
+  const uiState = state.ui && typeof state.ui === 'object'
+    ? state.ui
+    : null;
+  if (!uiState) {
+    return;
+  }
+  if (!isTreeNextMobileViewport()) {
+    uiState.mobileTopControlsAutoHideContextToken = '';
+    return;
+  }
+  const nextContextToken = resolveMobileTopControlsAutoHideContextToken();
+  const previousContextToken = safeText(uiState.mobileTopControlsAutoHideContextToken);
+  if (!nextContextToken) {
+    uiState.mobileTopControlsAutoHideContextToken = '';
+    return;
+  }
+  if (options?.force === true || nextContextToken !== previousContextToken) {
+    uiState.mobileTopControlsHidden = true;
+  }
+  uiState.mobileTopControlsAutoHideContextToken = nextContextToken;
+}
+
+function shouldForceMobilePanelFullForShortcutAction(actionInput) {
+  const safeAction = safeText(actionInput);
+  return (
+    safeAction === 'panel:account-overview:toggle'
+    || safeAction === 'panel:rank-advancement:toggle'
+    || safeAction === 'panel:preferred-accounts:toggle'
+  );
+}
+
 function triggerAction(action) {
   const safeAction = safeText(action);
   if (!safeAction || safeAction === 'noop') {
@@ -22708,7 +25265,26 @@ function triggerAction(action) {
     clearPendingUniverseBackPrep();
   }
 
+  if (shouldForceMobilePanelFullForShortcutAction(safeAction) && isTreeNextMobileViewport()) {
+    state.ui.sideNavOpen = true;
+    setTreeNextMobileSidePanelStage(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL, { animate: true });
+  }
+
   if (safeAction === 'brand-menu:toggle') {
+    if (isTreeNextMobileViewport()) {
+      const currentMobileStage = resolveTreeNextMobileSidePanelStage();
+      if (currentMobileStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED) {
+        state.ui.sideNavOpen = true;
+        setTreeNextMobileSidePanelStage(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL, { animate: false });
+        state.ui.sideNavBrandMenuOpen = true;
+        closeSearchDropdown();
+        const searchInput = ensureSideNavSearchInput();
+        if (document.activeElement === searchInput) {
+          searchInput.blur();
+        }
+        return;
+      }
+    }
     state.ui.sideNavBrandMenuOpen = !state.ui.sideNavBrandMenuOpen;
     if (state.ui.sideNavBrandMenuOpen) {
       closeSearchDropdown();
@@ -22720,6 +25296,17 @@ function triggerAction(action) {
     return;
   }
   if (safeAction === 'side-nav:toggle') {
+    if (isTreeNextMobileViewport()) {
+      const currentStage = resolveTreeNextMobileSidePanelStage();
+      const nextStage = currentStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+        ? TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF
+        : (currentStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF
+          ? TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED
+          : TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF);
+      setTreeNextMobileSidePanelStage(nextStage, { animate: true });
+      state.ui.sideNavOpen = true;
+      return;
+    }
     state.ui.sideNavOpen = !state.ui.sideNavOpen;
     state.ui.sideNavBrandMenuOpen = false;
     closeSearchDropdown();
@@ -22727,6 +25314,10 @@ function triggerAction(action) {
     if (document.activeElement === searchInput) {
       searchInput.blur();
     }
+    return;
+  }
+  if (safeAction === 'mobile:top-controls:toggle') {
+    state.ui.mobileTopControlsHidden = !Boolean(state.ui?.mobileTopControlsHidden);
     return;
   }
   if (safeAction === 'panel:account-overview:toggle') {
@@ -22924,10 +25515,31 @@ function updateHoverState(pointX, pointY) {
 function onPointerDown(event) {
   clearPendingUniverseEnterPrep();
   clearPendingUniverseBackPrep();
+  clearTouchPanInertia();
   const pointerX = event.clientX;
   const pointerY = event.clientY;
   state.pointer.x = pointerX;
   state.pointer.y = pointerY;
+
+  if (event.pointerType === 'touch') {
+    if (typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    trackTouchPointer(event.pointerId, pointerX, pointerY);
+    if (touchGestureState.activePointers.size >= 2) {
+      stopFavoritesCarouselDrag(null);
+      stopDragging(null);
+      clearTreeNextMobileSidePanelDrag();
+      beginTouchPinchGesture();
+      canvas.classList.add('dragging');
+      try {
+        canvas.setPointerCapture(event.pointerId);
+      } catch {
+        // Ignore pointer capture failures.
+      }
+      return;
+    }
+  }
 
   closeSearchDropdown();
   updateHoverState(pointerX, pointerY);
@@ -22941,6 +25553,27 @@ function onPointerDown(event) {
   );
   if (legacyTierCanvasViewState.dropdownOpen && !interactingWithLegacyTierDropdown) {
     legacyTierCanvasViewState.dropdownOpen = false;
+  }
+  if (maybeBeginMobileSideNavStageDrag(event.pointerId, pointerX, pointerY, {
+    allowSurfaceDrag: event.pointerType === 'touch',
+    buttonHint: button,
+  })) {
+    canvas.classList.add('dragging');
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore pointer capture failures.
+    }
+    return;
+  }
+  if (maybeBeginMobileSideNavContentScroll(event.pointerId, pointerX, pointerY, event.pointerType)) {
+    canvas.classList.add('dragging');
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore pointer capture failures.
+    }
+    return;
   }
   if (button) {
     const isBrandButton = (
@@ -23002,6 +25635,13 @@ function onPointerDown(event) {
   state.drag.pointerId = event.pointerId;
   state.drag.lastX = pointerX;
   state.drag.lastY = pointerY;
+  state.drag.pointerType = safeText(event.pointerType).toLowerCase();
+  state.drag.velocityX = 0;
+  state.drag.velocityY = 0;
+  state.drag.lastInstantVelocityX = 0;
+  state.drag.lastInstantVelocityY = 0;
+  state.drag.lastMoveAtMs = safeNumber(event.timeStamp, getNowMs());
+  state.drag.moved = false;
   state.camera.target = null;
   canvas.classList.add('dragging');
   try {
@@ -23016,17 +25656,64 @@ function onPointerMove(event) {
   state.pointer.y = event.clientY;
   state.pointer.inside = true;
 
-  if (updateFavoritesCarouselDrag(event.pointerId, event.clientX, event.clientY)) {
+  if (event.pointerType === 'touch' && touchGestureState.activePointers.has(event.pointerId)) {
+    if (updateTouchPinchGesture(event.pointerId, event.clientX, event.clientY)) {
+      if (typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      return;
+    }
+  }
+
+  if (updateMobileSideNavContentScrollDrag(event.pointerId, event.clientY)) {
+    if (typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    return;
+  }
+
+  if (updateMobileSideNavStageDrag(event.pointerId, event.clientY)) {
+    if (typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    return;
+  }
+
+  if (updateFavoritesCarouselDrag(event.pointerId, event.clientX, event.clientY, event.pointerType)) {
+    if (event.pointerType === 'touch' && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
     return;
   }
 
   if (state.drag.active && event.pointerId === state.drag.pointerId) {
     const deltaX = event.clientX - state.drag.lastX;
     const deltaY = event.clientY - state.drag.lastY;
+    const nowMs = safeNumber(event.timeStamp, getNowMs());
+    const lastMoveAtMs = safeNumber(state.drag.lastMoveAtMs, nowMs);
+    const rawDeltaMs = nowMs - lastMoveAtMs;
+    const deltaMs = clamp(
+      Number.isFinite(rawDeltaMs) && rawDeltaMs > 0 ? rawDeltaMs : 16,
+      1,
+      48,
+    );
+    const instantVelocityX = deltaX / deltaMs;
+    const instantVelocityY = deltaY / deltaMs;
+    state.drag.lastInstantVelocityX = instantVelocityX;
+    state.drag.lastInstantVelocityY = instantVelocityY;
+    state.drag.velocityX = (safeNumber(state.drag.velocityX, 0) * 0.55) + (instantVelocityX * 0.45);
+    state.drag.velocityY = (safeNumber(state.drag.velocityY, 0) * 0.55) + (instantVelocityY * 0.45);
+    state.drag.lastMoveAtMs = nowMs;
     state.drag.lastX = event.clientX;
     state.drag.lastY = event.clientY;
+    if (!state.drag.moved && (Math.abs(deltaX) >= 0.5 || Math.abs(deltaY) >= 0.5)) {
+      state.drag.moved = true;
+    }
     state.camera.view.x += deltaX;
     state.camera.view.y += deltaY;
+    if (event.pointerType === 'touch' && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
     return;
   }
 
@@ -23034,25 +25721,69 @@ function onPointerMove(event) {
 }
 
 function stopDragging(pointerId) {
-  if (!state.drag.active) {
-    return;
+  if (state.drag.active) {
+    if (pointerId !== null && pointerId !== undefined && pointerId !== state.drag.pointerId) {
+      return;
+    }
+    state.drag.active = false;
+    state.drag.pointerId = null;
+    state.drag.pointerType = '';
+    state.drag.velocityX = 0;
+    state.drag.velocityY = 0;
+    state.drag.lastInstantVelocityX = 0;
+    state.drag.lastInstantVelocityY = 0;
+    state.drag.lastMoveAtMs = 0;
+    state.drag.moved = false;
   }
-  if (pointerId !== null && pointerId !== undefined && pointerId !== state.drag.pointerId) {
-    return;
-  }
-  state.drag.active = false;
-  state.drag.pointerId = null;
-  if (!getSideNavFavoritesState().dragActive) {
+  const mobileDragActive = getTreeNextMobileSidePanelDragState().active;
+  const sideNavContentScrollActive = getSideNavContentScrollState().dragActive;
+  if (!getSideNavFavoritesState().dragActive && !mobileDragActive && !sideNavContentScrollActive) {
     canvas.classList.remove('dragging');
   }
 }
 
 function onPointerUp(event) {
+  const wasCanvasPanDrag = state.drag.active && event.pointerId === state.drag.pointerId;
+  const wasPinching = event.pointerType === 'touch'
+    && (touchGestureState.pinchActive || touchGestureState.activePointers.size > 1);
+  if (event.pointerType === 'touch') {
+    untrackTouchPointer(event.pointerId);
+  }
+
+  const mobileContentScrollResult = finalizeMobileSideNavContentScrollDrag(event.pointerId);
+  if (mobileContentScrollResult.consumed) {
+    stopFavoritesCarouselDrag(event.pointerId);
+    stopDragging(event.pointerId);
+    try {
+      canvas.releasePointerCapture(event.pointerId);
+    } catch {
+      // Ignore.
+    }
+    return;
+  }
+
+  const mobileDragResult = finalizeMobileSideNavStageDrag(event.pointerId);
+  if (mobileDragResult.consumed || wasPinching) {
+    stopFavoritesCarouselDrag(event.pointerId);
+    stopDragging(event.pointerId);
+    try {
+      canvas.releasePointerCapture(event.pointerId);
+    } catch {
+      // Ignore.
+    }
+    return;
+  }
+
   const releaseAction = resolveFavoritesCarouselReleaseAction(event.pointerId);
   if (releaseAction) {
     triggerAction(releaseAction);
   }
+  const shouldStartTouchPanInertia = (event.type === 'pointerup' || event.type === 'pointercancel')
+    && maybeStartTouchPanInertia(event.pointerId, event.pointerType);
   stopDragging(event.pointerId);
+  if (!shouldStartTouchPanInertia && wasCanvasPanDrag) {
+    clearTouchPanInertia();
+  }
   try {
     canvas.releasePointerCapture(event.pointerId);
   } catch {
@@ -23060,7 +25791,26 @@ function onPointerUp(event) {
   }
 }
 
-function onPointerLeave() {
+function onPointerLeave(event) {
+  if (event?.pointerType === 'touch') {
+    untrackTouchPointer(event.pointerId);
+  }
+  if (touchGestureState.activePointers.size === 0) {
+    resetTouchPinchGesture();
+  }
+  clearTreeNextMobileSidePanelDrag(event?.pointerId ?? null);
+  clearSideNavContentScrollDrag(event?.pointerId ?? null);
+  const shouldCancelTouchPanInertia = (
+    state.drag.active
+    || getTreeNextMobileSidePanelDragState().active
+    || getSideNavFavoritesState().dragActive
+    || getSideNavContentScrollState().dragActive
+    || touchGestureState.activePointers.size > 0
+    || touchGestureState.pinchActive
+  );
+  if (shouldCancelTouchPanInertia) {
+    clearTouchPanInertia();
+  }
   state.pointer.inside = false;
   state.hoveredButtonId = '';
   stopFavoritesCarouselDrag(null);
@@ -23070,6 +25820,7 @@ function onPointerLeave() {
 function onWheel(event) {
   clearPendingUniverseEnterPrep();
   clearPendingUniverseBackPrep();
+  clearTouchPanInertia();
   const layout = state.layout;
   if (!layout || !pointInsideRect(event.clientX, event.clientY, layout.workspace)) {
     return;
@@ -23127,6 +25878,7 @@ function onWheel(event) {
 function onKeyDown(event) {
   const key = safeText(event.key).toLowerCase();
   const panStep = 34;
+  clearTouchPanInertia();
 
   if (isTreeNextEnrollModalOpen()) {
     if (key === 'escape') {
@@ -23305,6 +26057,74 @@ function onSessionStorageChange(event) {
   }
 }
 
+function bindTouchNavigationGuard() {
+  if (touchNavigationGuardBound) {
+    return;
+  }
+  touchNavigationGuardBound = true;
+
+  let gestureTrackingActive = false;
+  let gestureStartX = 0;
+  let gestureStartY = 0;
+  const edgeThresholdPx = 28;
+  const horizontalThresholdPx = 14;
+  const verticalBiasPx = 6;
+
+  window.addEventListener('touchstart', (event) => {
+    const touch = event.touches && event.touches.length ? event.touches[0] : null;
+    if (!touch || event.touches.length !== 1) {
+      gestureTrackingActive = false;
+      return;
+    }
+    gestureTrackingActive = true;
+    gestureStartX = safeNumber(touch.clientX, 0);
+    gestureStartY = safeNumber(touch.clientY, 0);
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (event) => {
+    if (!gestureTrackingActive) {
+      return;
+    }
+    const touch = event.touches && event.touches.length ? event.touches[0] : null;
+    if (!touch || event.touches.length !== 1) {
+      gestureTrackingActive = false;
+      return;
+    }
+    const currentX = safeNumber(touch.clientX, gestureStartX);
+    const currentY = safeNumber(touch.clientY, gestureStartY);
+    const deltaX = currentX - gestureStartX;
+    const deltaY = currentY - gestureStartY;
+    const startsNearLeftEdge = gestureStartX <= edgeThresholdPx;
+    const startsNearRightEdge = gestureStartX >= (Math.max(0, window.innerWidth || 0) - edgeThresholdPx);
+    const horizontalDominant = Math.abs(deltaX) >= horizontalThresholdPx
+      && Math.abs(deltaX) >= (Math.abs(deltaY) + verticalBiasPx);
+    if ((startsNearLeftEdge || startsNearRightEdge) && horizontalDominant) {
+      event.preventDefault();
+    }
+  }, { passive: false });
+
+  // When the app is actively handling touch gestures, keep control in-app
+  // and avoid browser back/forward or page panning side effects.
+  window.addEventListener('touchmove', (event) => {
+    const canvasGestureActive = (
+      state.drag.active
+      || getSideNavFavoritesState().dragActive
+      || getSideNavContentScrollState().dragActive
+      || touchGestureState.activePointers.size > 0
+      || getTreeNextMobileSidePanelDragState().active
+    );
+    if (canvasGestureActive) {
+      event.preventDefault();
+    }
+  }, { passive: false });
+
+  const clearGestureTracking = () => {
+    gestureTrackingActive = false;
+  };
+  window.addEventListener('touchend', clearGestureTracking, { passive: true });
+  window.addEventListener('touchcancel', clearGestureTracking, { passive: true });
+}
+
 function bindEvents() {
   window.addEventListener('resize', updateCanvasSize);
   window.addEventListener('keydown', onKeyDown, { passive: false });
@@ -23312,6 +26132,7 @@ function bindEvents() {
   window.addEventListener('message', onTreeNextStripeReturnMessage);
   document.addEventListener('visibilitychange', onTreeNextLiveSyncVisibilityChange);
   window.addEventListener('focus', onTreeNextLiveSyncWindowFocus);
+  bindTouchNavigationGuard();
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerup', onPointerUp);
@@ -23332,6 +26153,8 @@ function tickFrame(timestamp) {
 
     adaptStartupRevealForFrameBudget(deltaSeconds * 1000);
     animateCamera(deltaSeconds);
+    updateTouchPanInertia(deltaSeconds);
+    updateTreeNextMobileSidePanelSpring(deltaSeconds);
     consumePendingPlacementReveal({ nowMs: timestamp });
     renderFrame();
 
@@ -23340,6 +26163,7 @@ function tickFrame(timestamp) {
       ? instantFps
       : ((state.perf.fps * 0.88) + (instantFps * 0.12));
     state.perf.frameMs = state.perf.fps > 0 ? (1000 / state.perf.fps) : 0;
+    updateMobileRuntimeDprForPerf(timestamp);
   } catch (error) {
     const nowMs = performance.now();
     if ((nowMs - renderLoopErrorLoggedAtMs) >= 1000) {

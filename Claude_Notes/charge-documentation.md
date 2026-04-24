@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 322
+**Times Updated:** 324
 
 ## Overview
 
@@ -14,6 +14,121 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ?????????????????????????????????????? high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Update (2026-04-24) - Mobile Outside Button Groups Smooth Half->Full Animation
+
+### What Was Changed
+
+- Updated mobile outside control rendering in `binary-tree-next-app.mjs` (`drawBottomToolBar`) so top-right button groups no longer hard-cut when entering full sheet mode.
+- Replaced stage-only visibility checks with a continuous reveal factor driven by side panel expansion progress:
+  - computes reveal from the `half -> full` expansion interval
+  - applies cubic ease for smoother iOS-style fade timing.
+- Added row-level animation controls for outside button groups:
+  - alpha fade
+  - subtle vertical offset while disappearing
+  - applied to:
+    - top-right shortcut group (Account Overview / Rank Advancement / Preferred Accounts / Legacy View)
+    - external navigation row (Back / Home / Enter / Deep)
+    - top-controls show/hide toggle button.
+- Removed the old full-stage shape morph on those outside top controls so border radius remains consistently rounded while fading.
+- Added interaction safety during fade:
+  - outside button hitboxes are only registered above an alpha threshold to avoid accidental taps on near-invisible controls.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Design Decisions
+
+- Kept motion lightweight and render-friendly by animating only opacity + position offset in the canvas-drawn controls.
+- Used the same `easeOutCubic` timing family already used in panel motion so outside controls feel consistent with the sheet animation language.
+- Preserved existing context-driven hide/show behavior (`mobileTopControlsHidden`) and layered animation on top rather than replacing that logic.
+
+### Known Limitations
+
+- This pass was validated with syntax checks; full visual verification on physical iOS hardware is still recommended for final motion tuning.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Addendum (2026-04-24) - Search Input Overlay Clipped to Panel Content Viewport
+
+- Fixed a mobile UX bug where the DOM-based search input text/placeholder could remain visible above the sheet handle while the canvas search bar was scrolling underneath.
+- Added `sideNavSearchInputClipRect` state plumbing and viewport-aware clipping in `syncSideNavSearchInput()`:
+  - input is now clipped against the current panel content viewport during scroll
+  - dropdown is suppressed unless the search field is fully visible
+  - input is hidden/blurred when fully outside the visible clip region.
+- Updated pointer-hit behavior to use the clipped interactive search-input bounds so hidden/offscreen search regions do not steal drag gestures.
+- Updated mobile side-nav draw flow to keep clip rect state synchronized for:
+  - panel hidden/not open
+  - closed state search row
+  - expanded scrollable content state.
+
+## Update (2026-04-24) - Binary Tree Next Mobile UX Pass (Apple Maps Style Sheet + Touch Controls)
+
+### What Was Changed
+
+- Reworked Binary Tree Next mobile side panel behavior in `binary-tree-next-app.mjs` to a three-stage Apple Maps style sheet model:
+  - `closed` stage (`translateY` ~92%; handle-visible state)
+  - `half` stage (`translateY` 50%)
+  - `full` stage (`translateY` 0%)
+- Implemented mobile sheet stage controls:
+  - draggable/tappable top handle on the left panel
+  - drag now follows touch movement continuously (not binary toggle-only)
+  - release now snaps using projected velocity + nearest snap stage
+  - spring-based settle animation for natural iOS-like snap motion
+  - mobile `side-nav:toggle` now collapses/expands across `closed/half/full` flow
+  - mobile side panel is kept open as the primary interaction surface.
+- Moved profile avatar action back beside the search bar inside the left panel search row (removed floating top-right profile-only placement).
+- Added touchscreen support improvements for Binary Tree canvas interaction:
+  - touch pointer tracking
+  - two-finger pinch zoom with center-aware pan
+  - drag lifecycle cleanup for touch/pointer cancel/leave paths.
+- Added browser touch-navigation suppression controls:
+  - global edge-swipe guard to reduce accidental browser back/forward navigation during horizontal swipes
+  - active-gesture `touchmove` prevent-default protection (`passive: false`) while canvas/sheet gestures are in progress
+  - `overscroll-behavior` hardening in `binary-tree-next.html`
+  - scroll containers now use stage-aware touch rules:
+    - `FULL`: vertical scrolling enabled (`touch-action: pan-y`)
+    - `HALF/CLOSED`: scrolling locked so drag controls panel state.
+- Updated mobile panel positioning so major Binary Tree overlays render centered and responsive on mobile:
+  - Enroll Member panel
+  - Account Overview
+  - Infinity Tier Commission
+  - Rank Advancement / Legacy panel surface
+  - Preferred Accounts
+  - My Store.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Design Decisions
+
+- Mobile behavior now treats the left panel as a bottom-sheet-first control hub to match the requested Apple Maps interaction pattern.
+- Desktop layout behavior was preserved; mobile logic is gated through viewport + coarse-pointer checks.
+- Overlay panels reuse one shared mobile frame resolver to keep sizing/centering consistent across Account/Enroll/Store/Bonus surfaces.
+- Added dynamic dim-backdrop intensity tied to sheet expansion progress (closed -> minimal, full -> strongest).
+
+### Known Limitations
+
+- Visual screenshot checks were captured on localhost, but the current environment opened an authentication/login gate, so fully authenticated in-flow panel visuals were not verifiable in this pass.
+- Touch navigation suppression targets edge-origin horizontal swipes; browser-specific gesture handling may still vary slightly across mobile browsers.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- Mobile screenshot sanity pass captured via:
+  - `node screenshot.mjs http://localhost:3000/binary-tree-next.html mobile-pass1`
+  - `node screenshot.mjs http://localhost:3000/binary-tree-next.html mobile-pass2`
 
 ## Update (2026-04-23) - Business Center Redesign (Earning Nodes + Single Wallet Attribution)
 
@@ -30568,3 +30683,1028 @@ Known limitation:
 - `node --check backend/services/store-checkout.service.js` passed.
 - Inline script parse checks passed for `index.html` script blocks.
 - Settlement metadata now carries attribution in member-dashboard Preferred flow and UI refresh path forces post-checkout tree/session sync.
+
+## Addendum (2026-04-24) - Binary Tree Next Mobile Panel Density + Bottom Edge Cleanup
+
+### Issue
+
+- Mobile left-sheet Details area felt cramped after adding mobile control rows.
+- Bottom border/corner artifacts were still visible along the screen edge in mobile sheet rendering.
+
+### Fix Implemented
+
+- Rebalanced mobile layout in `binary-tree-next-app.mjs`:
+  - reduced mobile favorites card baseline height
+  - removed mobile-only fixed member-status card reservation
+  - expanded Details card minimum space and bottom-limit allocation.
+- Updated mobile panel chrome rendering in `binary-tree-next-app.mjs`:
+  - introduced top-only rounded sheet path for mobile side panel
+  - pushed bottom chrome edge out of viewport to remove bottom border/corner artifacts.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Known Limitations
+
+- Left-sheet main content remains canvas-rendered and does not yet implement independent continuous internal scroll; stage expansion still controls effective view depth.
+
+## Addendum (2026-04-24) - Mobile Sheet Surface-Drag Gesture Support (Handle Behavior Parity)
+
+### Issue
+
+- On mobile, the side sheet only responded to drag gestures from the grab handle.
+- Vertical gestures on the main sheet surface felt unresponsive, so users could not expand/collapse the panel naturally from content area interactions.
+
+### Fix Implemented
+
+- Updated `maybeBeginMobileSideNavStageDrag(...)` in `binary-tree-next-app.mjs`:
+  - supports mobile touch drag start from panel surface (not only handle)
+  - preserves taps on actionable buttons by skipping surface-drag capture when a non-handle button is under pointer
+  - excludes favorites carousel region and search-input region from surface-drag capture.
+- Added drag-source tracking (`handle` vs `surface`) in mobile drag state:
+  - handle tap keeps tap-to-stage behavior
+  - surface tap no longer triggers accidental stage change (only actual drag/flick changes stage).
+- For FULL stage, limited surface drag-start area to top region to avoid conflicting with deep-content interactions while still allowing quick collapse gestures.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile Main Panel Vertical Content Scroll + Member Status Visibility
+
+### Issue
+
+- Member Status section under Details was not reachable on mobile.
+- Main panel content could not scroll vertically in FULL stage, so lower sections were inaccessible.
+
+### Fix Implemented
+
+- Restored Member Status section rendering beneath Details in `binary-tree-next-app.mjs`.
+- Added dedicated mobile side-panel content scroll state + touch drag handlers:
+  - `getSideNavContentScrollState(...)`
+  - `maybeBeginMobileSideNavContentScroll(...)`
+  - `updateMobileSideNavContentScrollDrag(...)`
+  - `finalizeMobileSideNavContentScrollDrag(...)`
+- Added clipped content viewport + scroll offset rendering for Favorites/Details/Member Status in FULL stage.
+- Added gesture handoff behavior from content drag to sheet-stage drag when content is at top and user drags down (collapse interaction parity).
+- Updated pointer and touch-guard flows to account for content-scroll drag activity.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile Scroll Region Shifted (Search Bar Included) + Full-Stage Top-Right Radius Removal
+
+### Issue
+
+- Vertical scrolling started below Favorites, not from Search row.
+- In FULL stage, top-right corner still rendered rounded.
+
+### Fix Implemented
+
+- Updated mobile side-panel scroll scope in `binary-tree-next-app.mjs` so scroll stack begins at Search row and includes all sections through Member Status.
+- Updated search/profile row render + DOM input sync positions to move with content-scroll offset.
+- Updated mobile panel chrome in FULL stage:
+  - top-right corner radius is now `0` (flush edge)
+  - half/closed stages keep rounded top-right appearance.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile Full Stack Scroll Includes Action Rows + Full Top Edge Squared
+
+### Issue
+
+- Mobile scroll still left top action rows fixed.
+- Full-stage top edge still appeared rounded.
+
+### Fix Implemented
+
+- In `binary-tree-next-app.mjs`, moved mobile action rows into the same scroll stack as search/favorites/details/member status:
+  - mobile nav action row and panel action row now render with content scroll offset
+  - content viewport scroll start shifted to action-row start on mobile full stage.
+- In `drawPanelChrome(...)`, FULL mobile stage now sets both top radii to `0` for a fully square top edge.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile Favorites Placement Fix + External Top-Right Panel Shortcut Cluster
+
+### Issue
+
+- Favorites section anchor/offset became inconsistent after previous scroll-stack changes.
+- Account Overview / Rank Advancement / Preferred Accounts / Legacy Leadership shortcut buttons were still in the center panel stack.
+
+### Fix Implemented
+
+- Corrected section anchor math in `drawSideNav(...)`:
+  - `favoritesStartYBase` now derives from Search row anchor (`topControlY + searchRowHeight + gap`)
+  - preserved full-stack scroll behavior for in-panel content sections.
+- Removed in-panel `panelButtons` row from mobile center sheet.
+- Added external top-right mobile shortcut cluster in `drawBottomToolBar(...)` for:
+  - Account Overview
+  - Rank Advancement
+  - Preferred Accounts
+  - Legacy Leadership
+- Full-stage behavior:
+  - external top-right shortcut cluster is not rendered when mobile sheet stage is `FULL` (effectively behind/hidden under primary panel surface).
+- Full-stage panel chrome:
+  - both top radii are `0` in `FULL` stage for square top edge.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile Shortcut Actions Now Force Center Panel FULL
+
+### Issue
+
+- When triggering top-right shortcut buttons on mobile (Account/Rank/Preferred/Legacy), users could land in non-full stage and lose access to vertical content scroll.
+
+### Fix Implemented
+
+- Added action gate in `binary-tree-next-app.mjs`:
+  - `shouldForceMobilePanelFullForShortcutAction(...)`
+- Updated `triggerAction(...)`:
+  - when action is one of:
+    - `panel:account-overview:toggle`
+    - `panel:rank-advancement:toggle`
+    - `panel:preferred-accounts:toggle`
+    - `legacy-tier:view:toggle`
+  - and viewport is mobile:
+    - force side panel open
+    - force mobile side panel stage to `FULL` (animated).
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Legacy Shortcut Exception + Full-Stage Square Button Styling
+
+### Issue
+
+- Legacy Leadership shortcut should remain behaviorally separate from other mobile shortcut buttons.
+- In mobile `FULL` stage, non-legacy action buttons should match the center panel full-surface style by removing rounded corners.
+
+### Fix Implemented
+
+- Updated `shouldForceMobilePanelFullForShortcutAction(...)` in `binary-tree-next-app.mjs`:
+  - removed `legacy-tier:view:toggle` from the force-`FULL` shortcut set
+  - retained auto-full behavior only for:
+    - `panel:account-overview:toggle`
+    - `panel:rank-advancement:toggle`
+    - `panel:preferred-accounts:toggle`
+- Updated mobile button rendering in `drawSideNav(...)`:
+  - side-nav toggle button now uses `cornerRadius = 0` in mobile `FULL`
+  - nav action buttons (back/home/enter/deep) now use square corners in mobile `FULL`
+  - pin toggle button now uses square corners in mobile `FULL`
+- Updated mobile top-right shortcut cluster renderer in `drawBottomToolBar(...)`:
+  - non-legacy shortcuts are configured to remove corner radius in `FULL`
+  - legacy shortcut remains distinct (rounded)
+  - cluster still stays hidden while panel is `FULL` per prior behavior.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Full-Stage Overlay Panel Radius Removal (Account/Rank/Preferred)
+
+### Issue
+
+- Mobile full-stage visuals for `Account Overview`, `Rank Advancement`, and `Preferred Accounts` still showed rounded panel corners.
+
+### Fix Implemented
+
+- Updated `binary-tree-next.html` with a stage-scoped override tied to mobile sheet state:
+  - `html[data-tree-next-sheet-stage="full"]` / `body[data-tree-next-sheet-stage="full"]`
+  - sets `border-radius: 0` for:
+    - `#tree-next-account-overview-panel`
+    - `#tree-next-rank-advancement-panel`
+    - `#tree-next-preferred-accounts-panel`
+- This keeps rounded corners in non-`FULL` stages while enforcing square corners in `FULL` mode.
+
+### Validation
+
+- CSS selector presence verified in `binary-tree-next.html`.
+
+## Addendum (2026-04-24) - Mobile FULL Stage Uses True Fullscreen Overlays (Account/Rank/Preferred)
+
+### Issue
+
+- Even with corner radius removed, overlay panels still appeared as floating cards above the center panel in mobile `FULL` stage.
+
+### Fix Implemented
+
+- Updated `resolveTreeNextMobileOverlayPanelFrame(...)` in `binary-tree-next-app.mjs`:
+  - added `fullScreenInFullStage` option
+  - when enabled and sheet stage is `FULL`, resolver now returns viewport-sized frame:
+    - `x: 0`
+    - `y: 0`
+    - `width: viewportWidth`
+    - `height: viewportHeight`
+- Enabled `fullScreenInFullStage: true` for:
+  - Account Overview panel position sync
+  - Rank Advancement panel position sync
+  - Preferred Accounts panel position sync.
+- Updated `binary-tree-next.html` full-stage style override for these three panels:
+  - `border-radius: 0`
+  - `border-width: 0`
+  - `box-shadow: none`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- Full-stage CSS override block verified in `binary-tree-next.html`.
+
+## Addendum (2026-04-24) - Mobile Nav Buttons Moved Outside Center Panel + Pin Radius Restored
+
+### Issue
+
+- Mobile center panel action row (`back/home/enter/deep`) still consumed space inside the sheet.
+- `Pin` button corner radius was flattened in full mode and needed to be restored.
+
+### Fix Implemented
+
+- Updated `drawSideNav(...)` in `binary-tree-next-app.mjs`:
+  - removed in-panel mobile nav action row rendering and reserved top spacing
+  - content stack now starts at search row anchor (`contentStartY = topControlY`).
+- Updated `drawBottomToolBar(...)` mobile branch:
+  - added external top-right horizontal row for:
+    - `mobile-sheet-back`
+    - `mobile-sheet-home`
+    - `mobile-sheet-enter`
+    - `mobile-sheet-deep`
+  - row is rendered outside center panel at top-right and remains horizontal.
+- Restored `Pin` rounded corners in side panel:
+  - `pinToggleRadius` is now fixed back to `11`.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile External Nav Row Anchored To Center Panel Top (Half/Closed)
+
+### Clarification Applied
+
+- Mobile nav actions (`Back/Home/Enter/Deep`) should not sit at the global top beside shortcut buttons.
+- They should appear at the top of the center panel when the sheet is lowered/hidden (non-full states).
+
+### Fix Implemented
+
+- Updated mobile branch of `drawBottomToolBar(...)` in `binary-tree-next-app.mjs`:
+  - nav row now anchors to `layout.sideNav.y` (center panel top)
+  - row position is computed as `panelTopY - buttonSize - 8`
+  - row visibility is limited to non-`FULL` stages.
+- Panel shortcut row (Account/Rank/Preferred/Legacy) remains in its own top-right group.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Closed Mobile Panel Now Shows Search Bar + Profile Icon
+
+### Request Applied
+
+- When the center panel is hidden (`closed` stage), show both:
+  - search bar
+  - user profile icon.
+
+### Fix Implemented
+
+- Updated mobile `drawBottomToolBar(...)` branch in `binary-tree-next-app.mjs`:
+  - added `showCollapsedSearchRow` for `TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED`
+  - renders collapsed search pill + profile avatar row anchored near panel-top controls
+  - registers profile button (`brand-menu:toggle`) and updates `sideNavBrandMenuAnchorRect`
+  - sets `sideNavSearchInputRect` and `sideNavSearchDropdownRect` so existing DOM search input is usable in closed stage.
+- Updated `drawSideNav(...)` closed-stage reset behavior:
+  - stopped forcing `closeSearchDropdown()` and `sideNavBrandMenuOpen = false` every frame
+  - prevents closed-stage external search/profile interactions from being immediately cancelled.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Closed-Stage Search/Profile Repositioned Inside Center Panel (Apple Maps Style)
+
+### Issue
+
+- Closed-stage search/profile controls were still rendering outside the center panel surface.
+
+### Fix Implemented
+
+- Moved closed-stage search/profile rendering from `drawBottomToolBar(...)` to `drawSideNav(...)` closed-state branch.
+- Closed-stage center panel now draws:
+  - search pill
+  - search icon
+  - profile avatar button (brand menu anchor)
+  directly inside the panel surface near the top.
+- Removed external closed-stage search/profile row from toolbar rendering path to avoid duplicate/outside placement.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Closed Sheet Position Raised Dynamically To Avoid Mobile Browser Control Clipping
+
+### Issue
+
+- In mobile `closed` stage, center panel could sit too low and get clipped by native browser controls.
+
+### Fix Implemented
+
+- Added dynamic closed-progress resolver in `binary-tree-next-app.mjs`:
+  - `resolveTreeNextMobileBottomViewportOcclusionPx()`
+  - `resolveTreeNextMobileSidePanelClosedProgress(options)`
+- New closed-progress logic now computes closed snap by viewport height + visual viewport bottom occlusion and enforces minimum visible sheet area.
+- Replaced fixed closed upper-bound usage across interaction systems:
+  - snap/stage mapping
+  - spring animation clamps
+  - drag clamps and release projection clamps
+  - frame layout clamp
+  - mobile backdrop dim curve normalization.
+
+### Outcome
+
+- Closed state now remains visibly higher and avoids clipping behind browser-native bottom controls on mobile browsers.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile Top Toolbar Buttons Now Support Show/Hide Dock + Context Auto-Hide
+
+### Request Applied
+
+- Added a mobile show/hide control for the top toolbar buttons.
+- Hidden state should push top buttons to the right side of the screen.
+- Trinary/Legacy view and Node Universe entry should default these top controls to hidden while still allowing users to show them.
+
+### Fix Implemented
+
+- Updated mobile toolbar rendering in `drawBottomToolBar(...)` (`binary-tree-next-app.mjs`):
+  - Added `mobile-top-controls-toggle` button (chevron toggle).
+  - Added horizontal slide behavior for top rows (`Account/Rank/Preferred/Legacy` and `Back/Home/Enter/Deep`) via computed row offset.
+  - Added lightweight reveal interpolation (`mobileTopControlsReveal`) for smoother show/hide transitions.
+  - Disabled row button hit targets while mostly hidden to avoid accidental taps on off-screen controls.
+- Added mobile UI state fields:
+  - `state.ui.mobileTopControlsHidden`
+  - `state.ui.mobileTopControlsReveal`
+  - `state.ui.mobileTopControlsAutoHideContextToken`
+- Added context-driven default hide logic:
+  - `resolveMobileTopControlsAutoHideContextToken()`
+  - `syncMobileTopControlsVisibilityForContext(...)`
+  - auto-hides on:
+    - Legacy/Trinary canvas view active
+    - Node Universe root not equal to `root`
+- Added action handling:
+  - `mobile:top-controls:toggle` in `triggerAction(...)`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Design Decisions
+
+- Auto-hide is triggered only when entering a new matching context token, so users can manually re-show controls without immediate re-hide loops.
+- Toggle button remains visible in mobile non-full stage, keeping recovery path obvious when controls are hidden.
+
+### Known Limitation
+
+- Leaving Legacy/Universe context does not forcibly re-show controls; the last user-visible hide/show state is preserved.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile Top Controls Toggle Scope/Alignment Fixes
+
+### Follow-up Fixes
+
+- Removed unintended right-side gap on the lower mobile nav row (`Back/Home/Enter/Deep`) by restoring its full right-edge anchor.
+- Updated show/hide behavior so it applies only to the top shortcut group (`Account/Rank/Preferred/Legacy`) and no longer affects the lower mobile nav row.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Top Mobile Shortcut Buttons Now Truly Hidden (Not Shifted)
+
+### Follow-up Fix
+
+- Updated mobile top-controls hide behavior so the top shortcut row is fully hidden (not visually shifted off-position).
+- Hidden mode now omits rendering and hit-target registration for:
+  - Account Overview
+  - Rank Advancement
+  - Preferred Accounts
+  - Legacy/Trinary toggle
+- Show/Hide toggle remains visible so users can restore the top row.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile Center Panel Favorites Clipping Fix
+
+### Issue
+
+- Favorites content in the mobile center panel was visually clipped due to carousel item stack height exceeding the viewport clip area.
+
+### Fix Implemented
+
+- Updated mobile favorites carousel layout in `drawSideNav(...)` (`binary-tree-next-app.mjs`):
+  - added compact mobile favorites layout mode for carousel metrics.
+  - reduced mobile avatar/item footprint and text offsets.
+  - adjusted mobile favorites viewport insets and minimum viewport height.
+  - kept desktop favorites layout unchanged.
+
+### Updated Mobile Metrics
+
+- `itemRadius`: `22` (was `30`)
+- `itemSlotWidth`: `72` (was `84`)
+- `itemGap`: `10` (was `8`)
+- label/subtitle offsets and font sizes reduced for mobile fit.
+- viewport insets/min-height now use mobile-specific values to prevent clipping.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Search Bar Text Weight/Color Tuning (Mobile Center Panel)
+
+### Request Applied
+
+- Reduced search text/placeholder visual weight to regular.
+- Matched search icon color with search text tone.
+
+### Fix Implemented
+
+- Updated `ensureSideNavSearchInput()` in `binary-tree-next-app.mjs`:
+  - `fontWeight` changed to `400`.
+  - input text/caret/webkit text fill now use `SIDE_NAV_SEARCH_TEXT_COLOR` (`#626B7B`).
+- Added dedicated search-input style injector:
+  - `ensureSideNavSearchInputStyle()` with placeholder styling (`font-weight: 400`, matching color).
+  - normalized WebKit search field decorations.
+- Updated search icon drawing color for both collapsed and expanded center-panel search pills to `SIDE_NAV_SEARCH_TEXT_COLOR`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Minor Follow-up
+
+- `ensureSideNavSearchInputStyle()` is now called before returning existing search input instances to guarantee placeholder styling is always present.
+
+## Addendum (2026-04-24) - Mobile Search Typing Now Expands Center Panel To FULL
+
+### Request Applied
+
+- When typing starts in the side-nav search bar on mobile, center panel should move to `FULL` stage.
+
+### Fix Implemented
+
+- Updated search input `input` listener in `ensureSideNavSearchInput()` (`binary-tree-next-app.mjs`):
+  - checks for non-empty typed query.
+  - on mobile viewport, if panel stage is not `FULL`, sets:
+    - `state.ui.sideNavOpen = true`
+    - `setTreeNextMobileSidePanelStage(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL, { animate: true })`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Search Tap/Focus Now Triggers Mobile FULL Stage Immediately
+
+### Request Applied
+
+- Changed behavior so mobile center panel expands to `FULL` as soon as user presses/focuses search input.
+- Removed delayed expansion tied to typing characters.
+
+### Fix Implemented
+
+- In `ensureSideNavSearchInput()` (`binary-tree-next-app.mjs`):
+  - added `maybeExpandMobilePanelForSearchFocus()` helper.
+  - hooked helper to `pointerdown` and `focus` on the search input.
+  - removed previous `input` listener logic that expanded only after non-empty typed text.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - iPhone Search Keyboard No Longer Reflows Panel Upward
+
+### Request Applied
+
+- On iPhone/mobile, focusing the center-panel search input should not keep pushing app content upward as keyboard appears.
+
+### Fix Implemented
+
+- Added mobile search viewport lock in `binary-tree-next-app.mjs`:
+  - `mobileSearchViewportLock` state object.
+  - `setMobileSearchViewportLockActive(active)` helper.
+  - `resolveCanvasViewportSizeWithMobileSearchLock()` helper.
+- Updated `updateCanvasSize()` to use locked viewport dimensions while lock is active.
+  - if keyboard shrinks `window.innerHeight` on same-width viewport, render/layout keeps pre-keyboard height.
+- Wired lock lifecycle to search input events in `ensureSideNavSearchInput()`:
+  - enable lock on `pointerdown` and `focus`.
+  - disable lock on `blur` and trigger `updateCanvasSize()` refresh.
+
+### Outcome
+
+- Mobile search focus keeps the panel/canvas layout stable while keyboard opens, so content does not jump further upward.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Closed-State Search/Profile Now Promote To FULL Before Interaction
+
+### Request Applied
+
+- In mobile `closed` stage:
+  - tapping search should push panel to `FULL` first, then allow typing.
+  - tapping user icon should push panel to `FULL` first, then show profile popup.
+
+### Fix Implemented
+
+- Updated search-focus expansion path in `ensureSideNavSearchInput()` (`binary-tree-next-app.mjs`):
+  - expansion now uses immediate stage change when starting from `CLOSED` (`animate: false`).
+  - non-closed stage expansion behavior remains animated.
+- Updated `triggerAction('brand-menu:toggle')`:
+  - if mobile stage is `CLOSED`, panel is promoted to `FULL` immediately and profile menu opens in the same flow.
+  - existing toggle behavior remains for non-closed stages.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Animated Closed->Full Search Expansion (Before Keyboard)
+
+### Request Applied
+
+- Added animation when pressing search from mobile `closed` state, instead of instant jump.
+
+### Fix Implemented
+
+- Added `TREE_NEXT_MOBILE_SEARCH_FOCUS_EXPAND_DELAY_MS = 170`.
+- Updated search input press/focus flow in `ensureSideNavSearchInput()`:
+  - on `pointerdown` while mobile stage is `CLOSED`:
+    - prevent immediate native focus,
+    - animate panel to `FULL`,
+    - delay input focus briefly so keyboard opens after expansion starts.
+  - added deferred-focus timer lifecycle guards (clear on focus/blur/new press).
+  - kept expansion animated for non-closed mobile stages as well.
+
+### Outcome
+
+- Search interaction now feels smoother: panel visibly animates up before keyboard engagement.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Half->Full Details Reflow Reduced + Top Radius Morph Animation
+
+### Request Applied
+
+- Reduce visual reflow/size jump in Details area when moving from mobile `HALF` to `FULL`.
+- Animate center panel top border radius from rounded to square during expansion.
+
+### Fix Implemented
+
+- Updated mobile center-panel content sizing in `drawSideNav(...)` (`binary-tree-next-app.mjs`):
+  - added `isMobileExpandedStage` and `contentSizingPanelHeight`.
+  - for mobile expanded stages (`HALF`/`FULL`), content sizing metrics now use full-stage panel-height reference (`resolveTreeNextMobileSidePanelFrame(...FULL...)`).
+  - `panelHeightScale` and `detailsCardHeightBase` now stay aligned with full-stage sizing baseline, reducing compact->full shift.
+- Added viewport clipping for mobile content region independent of full-stage scroll enable:
+  - introduced `shouldClipContentViewport` and matching save/restore.
+  - keeps overflow controlled while using fuller sizing baseline in `HALF`.
+- Updated center-panel chrome radius behavior in `drawPanelChrome(...)`:
+  - removed discrete stage-based radius toggle.
+  - new continuous interpolation from rounded to square using expansion progress and `easeOutCubic`.
+
+### Outcome
+
+- Details spacing/scale is significantly more stable between `HALF` and `FULL`.
+- Top corners now morph fluidly instead of snapping at full-stage threshold.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Closed <-> Half Content Fade Animation For Center Panel
+
+### Request Applied
+
+- Added fade-in/fade-out animation for center-panel inner content when transitioning between mobile `CLOSED` and `HALF`.
+- Removed instant content snap/render in that transition.
+
+### Fix Implemented
+
+- Updated `drawSideNav(...)` (`binary-tree-next-app.mjs`) to derive transition alpha from sheet expansion progress:
+  - computes `expandedContentReveal` via normalized expansion between closed and half snap expansions.
+  - computes `collapsedContentReveal = 1 - expandedContentReveal`.
+  - uses `easeOutCubic` for smoother visual interpolation.
+- Transition rendering behavior:
+  - closed-strip content is now drawn with fade (`collapsedContentReveal`) during overlap.
+  - expanded center-panel content (search/details/favorites/etc.) is drawn with fade (`expandedContentReveal`) during overlap.
+  - full closed mode still returns early when expanded reveal reaches ~0.
+- Interaction safety during overlap:
+  - collapsed profile button registration is disabled while expanded content is already revealing, avoiding duplicate hit targets.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Favorites Carousel Gesture Arbitration Fix (Mobile)
+
+### Issue
+
+- Favorites carousel was capturing touch too aggressively, blocking natural vertical panel grab/scroll gestures in that area.
+
+### Fix Implemented
+
+- Added axis-intent locking for favorites drag in `binary-tree-next-app.mjs`:
+  - new constants:
+    - `TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX = 8`
+    - `TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_BIAS_PX = 3`
+  - favorites drag now starts as `pending` intent and resolves direction after movement threshold.
+- Horizontal intent behavior:
+  - favorites keeps control and scrolls carousel normally.
+- Vertical intent behavior (touch):
+  - favorites immediately yields control,
+  - hands off to side-nav content scroll when available,
+  - otherwise hands off to side-nav stage drag,
+  - using force options to bypass favorites/button exclusion during handoff.
+- Added explicit bypass options for handoff in gesture starters:
+  - `maybeBeginMobileSideNavStageDrag(..., { ignoreFavoritesRegion, ignoreButtonGuard })`
+  - `maybeBeginMobileSideNavContentScroll(..., options)` with same bypass flags.
+- Added `dragAxis` to favorites state and reset lifecycle.
+
+### Outcome
+
+- You can still horizontally swipe favorites.
+- Vertical swipe/drag over favorites now reliably controls panel grab/scroll instead of feeling blocked.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile Enroll Panel Position Lock + Full-Stage Open
+
+### Request Applied
+
+- Make Enroll Member panel behavior stable/fixed in mobile view.
+
+### Fix Implemented
+
+- In `syncTreeNextEnrollPanelPosition(...)` (`binary-tree-next-app.mjs`):
+  - corrected mobile `left` anchoring to use frame left edge (not frame center).
+  - applied explicit mobile panel `height` plus matching `maxHeight` so modal frame stays fixed while open.
+- In `openTreeNextEnrollModal(...)`:
+  - when in mobile viewport, immediately promotes center sheet to `FULL` with `setTreeNextMobileSidePanelStage(..., { animate: false })` before opening the enroll modal.
+
+### Outcome
+
+- Enroll modal now opens with stable mobile framing and no center-panel stage drift during open.
+- Mobile flow starts from `FULL` stage for consistent enroll panel interaction space.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- Automated screenshot capture could not be completed due sandbox browser spawn restriction (`spawn EPERM`).
+
+## Addendum (2026-04-24) - Account/Preferred/Enroll Close Now Restores HALF Stage
+
+### Request Applied
+
+- After closing Account Overview, Preferred Accounts, or Enroll Member on mobile, return center/default panel state to `HALF`.
+
+### Fix Implemented
+
+- Added `restoreTreeNextMobileCenterPanelHalfStage(options)` in `binary-tree-next-app.mjs`.
+- Applied helper on close transitions in:
+  - `setAccountOverviewPanelVisible(isVisible)` when `wasVisible && !nextVisible`
+  - `setPreferredAccountsPanelVisible(isVisible)` when `wasVisible && !nextVisible`
+  - `closeTreeNextEnrollModal(options)`
+
+### Outcome
+
+- Closing those overlays now consistently returns the center sheet to `HALF` on mobile, matching the requested default-view behavior.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Canvas Touch Feel Improved With Momentum
+
+### Request Applied
+
+- Mobile canvas drag felt stiff; swipe stopped immediately on release.
+
+### Fix Implemented
+
+- In `binary-tree-next-app.mjs`:
+  - Added inertia constants:
+    - `TOUCH_PAN_INERTIA_MIN_START_SPEED_PX_PER_MS`
+    - `TOUCH_PAN_INERTIA_STOP_SPEED_PX_PER_MS`
+    - `TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS`
+    - `TOUCH_PAN_INERTIA_DAMPING`
+  - Extended `state.drag` with pointer type + velocity sampling fields.
+  - Added `state.touchPanInertia` runtime state.
+  - Added helpers:
+    - `clearTouchPanInertia()`
+    - `maybeStartTouchPanInertia(pointerId, pointerTypeInput)`
+    - `updateTouchPanInertia(deltaSecondsInput)`
+  - Updated pointer lifecycle:
+    - `onPointerDown(...)` clears inertia and initializes drag velocity sampling.
+    - `onPointerMove(...)` computes smoothed drag velocity while panning.
+    - `onPointerUp(...)` starts inertia on touch release when swipe speed threshold is met.
+    - `onPointerLeave(...)` clears inertia.
+  - Hooked per-frame decay in `tickFrame(...)` via `updateTouchPanInertia(deltaSeconds)`.
+  - Added inertia cancellation in `onWheel(...)` and `onKeyDown(...)`.
+
+### Outcome
+
+- Mobile canvas now glides after a swipe and decelerates naturally instead of hard-stopping.
+- Interaction feels closer to native touch map behavior.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Touch Momentum Felt Too Weak, Increased Glide
+
+### Request Applied
+
+- Reported no noticeable canvas glide after touch release.
+
+### Fix Implemented
+
+- Tuned inertia constants in `binary-tree-next-app.mjs`:
+  - lowered `TOUCH_PAN_INERTIA_MIN_START_SPEED_PX_PER_MS`
+  - lowered `TOUCH_PAN_INERTIA_STOP_SPEED_PX_PER_MS`
+  - increased `TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS`
+  - reduced `TOUCH_PAN_INERTIA_DAMPING`
+- Extended drag sampling with:
+  - `lastInstantVelocityX`
+  - `lastInstantVelocityY`
+- Updated release logic to choose stronger launch vector between smoothed velocity and most recent instant sample.
+- Expanded release-start condition to include `pointercancel` in addition to `pointerup`.
+
+### Outcome
+
+- Canvas release now produces clearly visible glide and more native-feeling deceleration on mobile touch.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Rank Advancement Close Path Included In HALF Restore
+
+### Request Applied
+
+- Rank Advancement was left out of overlay close-to-half behavior.
+
+### Fix Implemented
+
+- In `binary-tree-next-app.mjs`, `setRankAdvancementPanelVisible(isVisible)` now tracks `wasVisible` and restores mobile center sheet to `HALF` when closing (`wasVisible && !nextVisible`).
+
+### Outcome
+
+- Account Overview, Preferred Accounts, Enroll Member, and Rank Advancement now all return to `HALF` on close in mobile.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Inertia Not Triggering: Release/Leave Cancellation Fix
+
+### Issue
+
+- Glide could still appear absent because inertia was being canceled immediately after touch release in certain pointer event sequences.
+
+### Fix Implemented
+
+- Updated `onPointerUp(...)` to clear inertia only if the pointer event was ending an active canvas pan drag.
+- Updated `onPointerLeave(...)` to clear inertia only if an active touch/drag interaction is still in progress.
+
+### Outcome
+
+- Touch momentum survives normal release flow and now remains visible after swipe release.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile High-FPS Strategy Implemented In Runtime
+
+### Request Applied
+
+- Mobile FPS is much lower than desktop; target is smoother high-refresh behavior (90+ where hardware allows).
+
+### Fix Implemented
+
+- In `binary-tree-next-app.mjs`:
+  - Added adaptive DPR controller for mobile runtime:
+    - constants for target FPS, DPR bounds, adjustment steps, and cooldown.
+    - perf state fields: `mobileRuntimeDpr`, `mobileDprLastAdjustAtMs`.
+    - `resolveCanvasDprForViewport(width, height)` for mobile-specific render DPR selection.
+    - `updateMobileRuntimeDprForPerf(nowMs)` to dynamically lower/raise DPR by measured FPS.
+  - Updated `updateCanvasSize()` to use adaptive DPR resolver.
+  - Updated `tickFrame(...)` to invoke DPR governor after FPS calculation.
+  - Optimized `renderFrame()` by avoiding hidden-overlay visual/position sync calls each frame for:
+    - Account Overview
+    - Infinity Builder
+    - Rank Advancement
+    - Preferred Accounts
+    - My Store
+    while keeping visibility sync.
+
+### Outcome
+
+- Mobile frame workload is now actively controlled at runtime to favor high FPS.
+- Hidden panel DOM/sync work no longer runs every frame, reducing CPU overhead.
+- Effective FPS should materially improve on mobile and adapt to device capability.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile FPS Phase 2 Hardening (Targeting 90fps-Class UX)
+
+### Request Applied
+
+- Mobile experience still felt capped around ~30-40 FPS; target is much smoother high-refresh behavior.
+
+### Fix Implemented
+
+- In `binary-tree-next-app.mjs`:
+  - Added a mobile frame-performance profile resolver (`resolveMobileFramePerfProfile`) that evaluates:
+    - smoothed FPS
+    - runtime mobile DPR
+    - active gesture/camera motion state
+  - Applied dynamic frame options in `drawTreeViewport(...)`:
+    - adaptive LOD thresholds
+    - adaptive semantic-depth limits
+    - adaptive cull margin
+    - connector suppression only during aggressive mobile motion pressure
+  - Enabled low-latency canvas context hinting:
+    - `canvas.getContext('2d', { alpha: false, desynchronized: true })`
+    - offscreen glass context also uses `desynchronized: true`
+  - Reduced per-frame DOM churn for side-nav overlays:
+    - `syncSideNavSearchInput()` now avoids repeated no-op style/clip updates using layout+visibility keys.
+    - `syncSideNavProfileMenu()` now avoids repeated no-op style updates using layout+visibility keys.
+
+### Outcome
+
+- Mobile frame budget now adapts beyond DPR alone: geometry/detail/connectors can lighten during pressure.
+- Overlay/input DOM sync no longer writes identical styles every frame.
+- Combined with prior adaptive DPR governor, this is a stronger path toward stable high-refresh rendering on capable phones.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Revert Applied For Latest Phase 2 FPS Pass
+
+### Request Applied
+
+- User requested rollback to the earlier working state.
+
+### Revert Implemented
+
+- Reverted the Phase 2 mobile FPS changes in `binary-tree-next-app.mjs`:
+  - removed adaptive frame-profile tuning layer
+  - restored original `drawTreeViewport(...)` connector + anticipation behavior
+  - restored original side-nav search/profile sync implementations
+  - removed `desynchronized` canvas context hints
+- Preserved prior accepted work from earlier passes.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - Mobile Resolution Softness Fix
+
+### Request Applied
+
+- Reported that nodes/icons/buttons looked low-resolution after mobile FPS tuning.
+
+### Fix Implemented
+
+- In `binary-tree-next-app.mjs`:
+  - introduced `resolveMobileRuntimeDprBounds(...)` to enforce a quality-preserving minimum DPR on mobile.
+  - minimum DPR now uses both an absolute floor and a device-relative floor ratio.
+  - adjusted DPR adaptation dynamics to reduce over-aggressive drops in visual fidelity.
+
+### Outcome
+
+- Canvas rendering remains significantly sharper on mobile while still retaining adaptive behavior.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
