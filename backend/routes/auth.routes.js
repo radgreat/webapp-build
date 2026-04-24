@@ -1,10 +1,19 @@
 import { Router } from 'express';
 import {
   loginMember,
+  getMemberSession,
+  postMemberBillingPortalSession,
+  getMemberPayoutAccountStatus,
+  postMemberPayoutAccountOnboardingLink,
+  postMemberPayoutAccountDashboardLink,
   getSetupPassword,
   postSetupPassword,
   getMemberEmailVerificationStatus,
   getMemberBinaryTreeLaunchState,
+  getMemberBinaryTreePinnedNodes,
+  putMemberBinaryTreePinnedNodes,
+  getMemberBinaryTreeTierSortDirections,
+  putMemberBinaryTreeTierSortDirections,
   deleteMemberBinaryTreeLaunchState,
   postMemberBinaryTreeLaunchStateReset,
   postMemberEmailVerificationRequest,
@@ -15,10 +24,19 @@ import { requireMemberAuthSession } from '../middleware/member-auth.middleware.j
 const router = Router();
 
 router.post('/login', loginMember);
+router.get('/session', requireMemberAuthSession, getMemberSession);
+router.post('/billing/portal', requireMemberAuthSession, postMemberBillingPortalSession);
+router.get('/payout-account', requireMemberAuthSession, getMemberPayoutAccountStatus);
+router.post('/payout-account/onboarding-link', requireMemberAuthSession, postMemberPayoutAccountOnboardingLink);
+router.post('/payout-account/dashboard-link', requireMemberAuthSession, postMemberPayoutAccountDashboardLink);
 router.get('/setup-password', getSetupPassword);
 router.post('/setup-password', postSetupPassword);
 router.get('/email-verification-status', requireMemberAuthSession, getMemberEmailVerificationStatus);
 router.get('/binary-tree-next/launch-state', requireMemberAuthSession, getMemberBinaryTreeLaunchState);
+router.get('/binary-tree-next/pinned-nodes', requireMemberAuthSession, getMemberBinaryTreePinnedNodes);
+router.put('/binary-tree-next/pinned-nodes', requireMemberAuthSession, putMemberBinaryTreePinnedNodes);
+router.get('/binary-tree-next/tier-sort-directions', requireMemberAuthSession, getMemberBinaryTreeTierSortDirections);
+router.put('/binary-tree-next/tier-sort-directions', requireMemberAuthSession, putMemberBinaryTreeTierSortDirections);
 router.delete('/binary-tree-next/launch-state', requireMemberAuthSession, deleteMemberBinaryTreeLaunchState);
 router.post('/binary-tree-next/launch-state/reset', requireMemberAuthSession, postMemberBinaryTreeLaunchStateReset);
 router.post('/email-verification/request', requireMemberAuthSession, postMemberEmailVerificationRequest);

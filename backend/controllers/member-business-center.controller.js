@@ -2,6 +2,8 @@ import {
   listBusinessCentersForMember,
   syncBusinessCenterProgressForMember,
   activateBusinessCenterForMember,
+  getBusinessCenterEarningsForMember,
+  getBusinessCenterWalletSummaryForMember,
 } from '../services/member-business-center.service.js';
 
 export async function listMemberBusinessCenters(req, res) {
@@ -51,7 +53,13 @@ export async function activateMemberBusinessCenter(req, res) {
   try {
     const result = await activateBusinessCenterForMember(
       req.authenticatedMember || {},
-      req.body || {},
+      {
+        ...(req.body || {}),
+        idempotencyKey: req.body?.idempotencyKey
+          || req.headers?.['idempotency-key']
+          || req.headers?.['x-idempotency-key']
+          || '',
+      },
     );
 
     if (!result.success) {
@@ -66,6 +74,52 @@ export async function activateMemberBusinessCenter(req, res) {
     console.error(error);
     return res.status(500).json({
       error: 'Unable to activate Business Center.',
+    });
+  }
+}
+
+export async function listMemberBusinessCenterEarnings(req, res) {
+  try {
+    const result = await getBusinessCenterEarningsForMember(
+      req.authenticatedMember || {},
+      req.query || {},
+    );
+
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error,
+        ...(result.data ? result.data : {}),
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to load Business Center earnings.',
+    });
+  }
+}
+
+export async function listMemberBusinessCenterWalletSummary(req, res) {
+  try {
+    const result = await getBusinessCenterWalletSummaryForMember(
+      req.authenticatedMember || {},
+      req.query || {},
+    );
+
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error,
+        ...(result.data ? result.data : {}),
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to load Business Center wallet summary.',
     });
   }
 }

@@ -1,4 +1,3 @@
-import Stripe from 'stripe';
 import { randomInt, randomUUID } from 'crypto';
 import pool from '../db/db.js';
 import {
@@ -21,7 +20,13 @@ import {
 } from '../stores/user.store.js';
 import { upsertPasswordSetupTokenRecord } from '../stores/token.store.js';
 import { insertMockEmailOutboxRecord } from '../stores/email.store.js';
-import { createStoreInvoice } from './invoice.service.js';
+import { createStoreInvoice, syncStoreInvoiceStripeDetails } from './invoice.service.js';
+import {
+  linkStripeCustomerToUserIdentity,
+  resolveOrCreateStripeCustomerForUserIdentity,
+  resolveStripeClient,
+  resolveStripeCustomerId,
+} from './stripe-client.service.js';
 import {
   normalizeText,
   normalizeCredential,
@@ -32,21 +37,34 @@ import {
   buildPasswordSetupLink,
   resolveAuthAccountAudience,
 } from '../utils/auth.helpers.js';
+import {
+  resolveMemberAccountStatusByPersonalBv,
+  resolveMemberPersonalBvSnapshot,
+} from '../utils/member-activity.helpers.js';
+import {
+  readCommissionContainerByUserId,
+  upsertCommissionContainerByUserId,
+} from '../stores/commission-container.store.js';
 
-const ACCOUNT_ACTIVITY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 const DEFAULT_ATTRIBUTION_STORE_CODE = 'REGISTRATION_LOCKED';
-const ENROLL_CHECKOUT_TAX_RATE = 0.0975;
+const DEFAULT_ENROLLMENT_RETURN_PATH = '/binary-tree-next.html';
 const STRIPE_METADATA_VALUE_LIMIT = 500;
 const ENROLLMENT_PAYMENT_FLOW = 'member-enrollment';
 const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
 const FREE_ACCOUNT_RANK_LABEL = 'Preferred Customer';
+const STORE_LINK_CODE_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const DEFAULT_STORE_LINK_CODE_LENGTH = 10;
+const MIN_STORE_LINK_CODE_LENGTH = 6;
+const MAX_STORE_LINK_CODE_LENGTH = 24;
 const PLACEMENT_LEG_LEFT = 'left';
 const PLACEMENT_LEG_RIGHT = 'right';
 const PLACEMENT_LEG_SPILLOVER = 'spillover';
 const PLACEMENT_LEG_EXTREME_LEFT = 'extreme-left';
 const PLACEMENT_LEG_EXTREME_RIGHT = 'extreme-right';
-const BUSINESS_CENTER_NODE_TYPE_PRIMARY = 'primary';
-const BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER = 'placeholder';
+const BUSINESS_CENTER_NODE_TYPE_MAIN_CENTER = 'main_center';
+const BUSINESS_CENTER_NODE_TYPE_BUSINESS_CENTER = 'business_center';
+const BUSINESS_CENTER_NODE_TYPE_STAFF_ADMIN = 'staff_admin';
+const BUSINESS_CENTER_NODE_TYPE_LEGACY_PLACEHOLDER = 'legacy_placeholder';
 
 const FAST_TRACK_PACKAGE_META = {
   [FREE_ACCOUNT_PACKAGE_KEY]: { label: 'Free Account', price: 0, bv: 0 },
@@ -94,9 +112,12 @@ const FAST_TRACK_TIER_BY_PACKAGE = {
   'infinity-builder-pack': 'achievers-pack',
   'legacy-builder-pack': 'legacy-pack',
 };
-
-let cachedStripeClient = null;
-let cachedStripeApiKey = '';
+const FREE_ACCOUNT_RANK_KEY_SET = new Set([
+  'preferred customer',
+  'preferred',
+  'free account',
+  'free',
+]);
 
 function toWholeNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -107,13 +128,31 @@ function toWholeNumber(value, fallback = 0) {
 }
 
 function normalizeBusinessCenterNodeType(value) {
-  return normalizeCredential(value) === BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER
-    ? BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER
-    : BUSINESS_CENTER_NODE_TYPE_PRIMARY;
+  const normalized = normalizeCredential(value);
+  if (normalized === BUSINESS_CENTER_NODE_TYPE_BUSINESS_CENTER || normalized === 'business-center') {
+    return BUSINESS_CENTER_NODE_TYPE_BUSINESS_CENTER;
+  }
+  if (normalized === BUSINESS_CENTER_NODE_TYPE_STAFF_ADMIN || normalized === 'staff-admin') {
+    return BUSINESS_CENTER_NODE_TYPE_STAFF_ADMIN;
+  }
+  if (
+    normalized === BUSINESS_CENTER_NODE_TYPE_LEGACY_PLACEHOLDER
+    || normalized === 'legacy-placeholder'
+    || normalized === 'placeholder'
+  ) {
+    return BUSINESS_CENTER_NODE_TYPE_LEGACY_PLACEHOLDER;
+  }
+  return BUSINESS_CENTER_NODE_TYPE_MAIN_CENTER;
 }
 
 function isBusinessCenterPlaceholderMember(member = {}) {
-  return normalizeBusinessCenterNodeType(member?.businessCenterNodeType) === BUSINESS_CENTER_NODE_TYPE_PLACEHOLDER;
+  return normalizeBusinessCenterNodeType(member?.businessCenterNodeType) === BUSINESS_CENTER_NODE_TYPE_LEGACY_PLACEHOLDER;
+}
+
+function isBusinessCenterAuxiliaryNode(member = {}) {
+  const nodeType = normalizeBusinessCenterNodeType(member?.businessCenterNodeType);
+  const businessCenterIndex = toWholeNumber(member?.businessCenterIndex, 0);
+  return nodeType === BUSINESS_CENTER_NODE_TYPE_BUSINESS_CENTER || businessCenterIndex > 0;
 }
 
 function doesMemberMatchIdentity(member = {}, identity = {}) {
@@ -139,6 +178,21 @@ function resolvePrimaryMemberIndexForIdentity(members = [], identity = {}) {
 
   if (!matchingMemberIndexes.length) {
     return -1;
+  }
+
+  const mainCenterMatches = matchingMemberIndexes
+    .filter(({ member }) => normalizeBusinessCenterNodeType(member?.businessCenterNodeType) === BUSINESS_CENTER_NODE_TYPE_MAIN_CENTER);
+  if (mainCenterMatches.length > 0) {
+    const usernameKey = normalizeCredential(identity?.username);
+    if (usernameKey) {
+      const strictUsernameMainMatch = mainCenterMatches.find(({ member }) => (
+        normalizeCredential(member?.memberUsername || member?.username) === usernameKey
+      ));
+      if (strictUsernameMainMatch) {
+        return strictUsernameMainMatch.index;
+      }
+    }
+    return mainCenterMatches[0].index;
   }
 
   const nonPlaceholderMatches = matchingMemberIndexes
@@ -167,19 +221,22 @@ function normalizeStoreCode(value) {
     .replace(/[^A-Z0-9-]/g, '');
 }
 
-function createStoreCodeSuffix(seedValue, fallbackSuffix = '1000') {
-  const normalizedSeed = String(seedValue || '')
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '');
-  if (normalizedSeed.length >= 4) {
-    return normalizedSeed.slice(0, 4);
+function clampStoreLinkCodeLength(value, fallback = DEFAULT_STORE_LINK_CODE_LENGTH) {
+  const numeric = Number.parseInt(String(value || ''), 10);
+  if (!Number.isFinite(numeric)) {
+    return fallback;
   }
-  const fallback = String(fallbackSuffix || '1000')
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '') || '1000';
-  return `${normalizedSeed}${fallback}`.slice(0, 4);
+  return Math.min(MAX_STORE_LINK_CODE_LENGTH, Math.max(MIN_STORE_LINK_CODE_LENGTH, numeric));
+}
+
+function createRandomStoreLinkCode(length = DEFAULT_STORE_LINK_CODE_LENGTH) {
+  const resolvedLength = clampStoreLinkCodeLength(length, DEFAULT_STORE_LINK_CODE_LENGTH);
+  let generatedCode = '';
+  for (let index = 0; index < resolvedLength; index += 1) {
+    const nextCharacterIndex = randomInt(0, STORE_LINK_CODE_ALPHABET.length);
+    generatedCode += STORE_LINK_CODE_ALPHABET[nextCharacterIndex];
+  }
+  return generatedCode;
 }
 
 function composeUsernameCandidate(base, suffix) {
@@ -221,12 +278,11 @@ async function createUniqueUsernameWithLookup(requestedUsername, email, options 
   return fallbackTaken ? `member${Date.now()}` : fallback;
 }
 
-async function createUniqueStoreCode(prefix, preferredSuffix, options = {}) {
-  const normalizedPrefix = String(prefix || 'CHG')
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '') || 'CHG';
-  const normalizedPreferredSuffix = createStoreCodeSuffix(preferredSuffix);
+async function createUniqueStoreCode(options = {}) {
+  const configuredLength = clampStoreLinkCodeLength(
+    options?.length ?? process.env.STORE_LINK_CODE_LENGTH,
+    DEFAULT_STORE_LINK_CODE_LENGTH,
+  );
   const safeReservedCodes = options?.reservedStoreCodes instanceof Set
     ? options.reservedStoreCodes
     : new Set();
@@ -245,37 +301,29 @@ async function createUniqueStoreCode(prefix, preferredSuffix, options = {}) {
     return candidate;
   };
 
-  const preferredCode = `${normalizedPrefix}-${normalizedPreferredSuffix}`;
-  const reservedPreferred = await tryReserve(preferredCode);
-  if (reservedPreferred) {
-    return reservedPreferred;
-  }
-
-  for (let index = 0; index < 250; index += 1) {
-    const randomSuffix = String(randomInt(1000, 10000));
-    const candidate = `${normalizedPrefix}-${randomSuffix}`;
+  for (let index = 0; index < 700; index += 1) {
+    const candidate = createRandomStoreLinkCode(configuredLength);
     const reservedCandidate = await tryReserve(candidate);
     if (reservedCandidate) {
       return reservedCandidate;
     }
   }
 
-  const timestampSuffix = String(Date.now()).slice(-4);
-  const fallbackCode = `${normalizedPrefix}-${timestampSuffix}`;
+  const fallbackCode = normalizeStoreCode(randomUUID().replace(/-/g, '')).slice(0, configuredLength);
   const reservedFallbackCode = await tryReserve(fallbackCode);
   if (reservedFallbackCode) {
     return reservedFallbackCode;
   }
 
-  for (let attempt = 0; attempt < 120; attempt += 1) {
-    const candidate = `${normalizedPrefix}-${String(randomInt(1000, 10000))}`;
+  for (let attempt = 0; attempt < 300; attempt += 1) {
+    const candidate = createRandomStoreLinkCode(configuredLength);
     const reservedCandidate = await tryReserve(candidate);
     if (reservedCandidate) {
       return reservedCandidate;
     }
   }
 
-  return `${normalizedPrefix}-${Date.now()}`;
+  throw new Error('Unable to generate a unique random store code.');
 }
 
 function resolveSponsorAttributionStoreCode(sponsorUser) {
@@ -390,12 +438,236 @@ function normalizePlacementLeg(value, options = {}) {
   return fallback;
 }
 
+function resolvePlacementSideFromLeg(placementLegInput, spilloverPlacementSideInput = PLACEMENT_LEG_LEFT) {
+  const placementLeg = normalizePlacementLeg(placementLegInput, {
+    allowSpillover: true,
+    fallback: PLACEMENT_LEG_LEFT,
+  });
+  if (
+    placementLeg === PLACEMENT_LEG_RIGHT
+    || placementLeg === PLACEMENT_LEG_EXTREME_RIGHT
+  ) {
+    return PLACEMENT_LEG_RIGHT;
+  }
+  if (placementLeg === PLACEMENT_LEG_SPILLOVER) {
+    return normalizeCredential(spilloverPlacementSideInput) === PLACEMENT_LEG_RIGHT
+      ? PLACEMENT_LEG_RIGHT
+      : PLACEMENT_LEG_LEFT;
+  }
+  return PLACEMENT_LEG_LEFT;
+}
+
+function isBinaryTreePlacementEligibleMember(member = {}) {
+  if (isBusinessCenterPlaceholderMember(member) || isBusinessCenterAuxiliaryNode(member)) {
+    return false;
+  }
+
+  const packageKey = normalizeCredential(member?.enrollmentPackage);
+  if (packageKey === FREE_ACCOUNT_PACKAGE_KEY) {
+    return false;
+  }
+
+  const normalizedRank = normalizeCredential(
+    normalizeRankLabelForDisplay(member?.accountRank || member?.rank),
+  );
+  if (FREE_ACCOUNT_RANK_KEY_SET.has(normalizedRank)) {
+    return false;
+  }
+
+  return true;
+}
+
+function resolveSponsorFirstLevelLegOccupancy(members = [], sponsorUsernameInput = '') {
+  const sponsorUsername = normalizeCredential(sponsorUsernameInput);
+  if (!sponsorUsername) {
+    return {
+      left: false,
+      right: false,
+    };
+  }
+
+  let leftOccupied = false;
+  let rightOccupied = false;
+
+  for (const member of Array.isArray(members) ? members : []) {
+    const safeMember = member && typeof member === 'object' ? member : null;
+    if (!safeMember || !isBinaryTreePlacementEligibleMember(safeMember)) {
+      continue;
+    }
+
+    const memberSponsorUsername = normalizeCredential(safeMember?.sponsorUsername || safeMember?.sponsor_username);
+    if (!memberSponsorUsername || memberSponsorUsername !== sponsorUsername) {
+      continue;
+    }
+
+    const memberPlacementLeg = normalizePlacementLeg(safeMember?.placementLeg, {
+      allowSpillover: true,
+      fallback: PLACEMENT_LEG_LEFT,
+    });
+    if (memberPlacementLeg === PLACEMENT_LEG_SPILLOVER) {
+      continue;
+    }
+
+    const placementSide = resolvePlacementSideFromLeg(
+      memberPlacementLeg,
+      safeMember?.spilloverPlacementSide,
+    );
+    if (placementSide === PLACEMENT_LEG_RIGHT) {
+      rightOccupied = true;
+    } else {
+      leftOccupied = true;
+    }
+
+    if (leftOccupied && rightOccupied) {
+      break;
+    }
+  }
+
+  return {
+    left: leftOccupied,
+    right: rightOccupied,
+  };
+}
+
+async function resolveServerEnforcedEnrollmentPlacement(payload = {}) {
+  const isAdminPlacement = Boolean(payload?.isAdminPlacement);
+  const requestedSponsorUsername = normalizeCredential(payload?.sponsorUsername);
+  const requestedPlacementLeg = normalizePlacementLeg(payload?.placementLeg, {
+    allowSpillover: true,
+    fallback: PLACEMENT_LEG_LEFT,
+  });
+  const requestedSpilloverSide = (
+    normalizeCredential(payload?.spilloverPlacementSide) === PLACEMENT_LEG_RIGHT
+  )
+    ? PLACEMENT_LEG_RIGHT
+    : PLACEMENT_LEG_LEFT;
+  const requestedPlacementSide = resolvePlacementSideFromLeg(
+    requestedPlacementLeg,
+    requestedSpilloverSide,
+  );
+  const requestedSpilloverParentMode = normalizeCredential(payload?.spilloverParentMode || 'auto') === 'manual'
+    ? 'manual'
+    : 'auto';
+  const requestedSpilloverParentReference = normalizeText(payload?.spilloverParentReference);
+  const authenticatedMember = payload?.authenticatedMember && typeof payload.authenticatedMember === 'object'
+    ? payload.authenticatedMember
+    : null;
+  const memberActorUsername = normalizeCredential(
+    authenticatedMember?.username
+    || authenticatedMember?.memberUsername
+    || payload?.memberActorUsername
+    || payload?.enrollerUsername,
+  );
+
+  if (isAdminPlacement) {
+    const effectiveSponsorUsername = requestedSponsorUsername || memberActorUsername;
+    const effectivePlacementLeg = requestedPlacementLeg;
+    const effectiveSpilloverSide = effectivePlacementLeg === PLACEMENT_LEG_SPILLOVER
+      ? requestedSpilloverSide
+      : '';
+    const effectiveSpilloverParentMode = effectivePlacementLeg === PLACEMENT_LEG_SPILLOVER
+      ? requestedSpilloverParentMode
+      : 'auto';
+    const effectiveSpilloverParentReference = (
+      effectivePlacementLeg === PLACEMENT_LEG_SPILLOVER
+      && effectiveSpilloverParentMode === 'manual'
+    )
+      ? requestedSpilloverParentReference
+      : '';
+
+    return {
+      actorUsername: memberActorUsername,
+      sponsorUsername: effectiveSponsorUsername,
+      placementLeg: effectivePlacementLeg,
+      spilloverPlacementSide: effectiveSpilloverSide,
+      spilloverParentMode: effectiveSpilloverParentMode,
+      spilloverParentReference: effectiveSpilloverParentReference,
+      forcedByPolicy: false,
+      spilloverEnabled: true,
+      firstLevelLegs: {
+        left: false,
+        right: false,
+      },
+    };
+  }
+
+  const actorUsername = memberActorUsername || requestedSponsorUsername;
+  if (!actorUsername) {
+    return {
+      actorUsername: '',
+      sponsorUsername: requestedSponsorUsername,
+      placementLeg: requestedPlacementLeg,
+      spilloverPlacementSide: requestedPlacementLeg === PLACEMENT_LEG_SPILLOVER ? requestedSpilloverSide : '',
+      spilloverParentMode: 'auto',
+      spilloverParentReference: '',
+      forcedByPolicy: false,
+      spilloverEnabled: false,
+      firstLevelLegs: {
+        left: false,
+        right: false,
+      },
+    };
+  }
+
+  const members = await readRegisteredMembersStore();
+  const firstLevelLegs = resolveSponsorFirstLevelLegOccupancy(members, actorUsername);
+  const spilloverEnabled = Boolean(firstLevelLegs.left && firstLevelLegs.right);
+  if (spilloverEnabled) {
+    const effectiveSpilloverParentReference = requestedSpilloverParentReference;
+    const effectiveSpilloverParentMode = effectiveSpilloverParentReference
+      ? 'manual'
+      : 'auto';
+    return {
+      actorUsername,
+      sponsorUsername: actorUsername,
+      placementLeg: PLACEMENT_LEG_SPILLOVER,
+      spilloverPlacementSide: requestedPlacementSide,
+      spilloverParentMode: effectiveSpilloverParentMode,
+      spilloverParentReference: effectiveSpilloverParentReference,
+      forcedByPolicy: (
+        requestedPlacementLeg !== PLACEMENT_LEG_SPILLOVER
+        || requestedSponsorUsername !== actorUsername
+      ),
+      spilloverEnabled,
+      firstLevelLegs,
+    };
+  }
+
+  const directPlacementLeg = requestedPlacementSide === PLACEMENT_LEG_RIGHT
+    ? PLACEMENT_LEG_RIGHT
+    : PLACEMENT_LEG_LEFT;
+  const directSponsorUsername = actorUsername;
+
+  return {
+    actorUsername,
+    sponsorUsername: directSponsorUsername,
+    placementLeg: directPlacementLeg,
+    spilloverPlacementSide: '',
+    spilloverParentMode: 'auto',
+    spilloverParentReference: '',
+    forcedByPolicy: (
+      requestedPlacementLeg === PLACEMENT_LEG_SPILLOVER
+      || (requestedSponsorUsername && requestedSponsorUsername !== actorUsername)
+    ),
+    spilloverEnabled,
+    firstLevelLegs,
+  };
+}
+
 function roundCurrencyAmount(value) {
   return Math.round((Math.max(0, Number(value) || 0)) * 100) / 100;
 }
 
 function resolveCurrencyMinorAmount(amount) {
   return Math.max(0, Math.round((Number(amount) || 0) * 100));
+}
+
+function resolveCheckoutTaxFromTotal(totalAmount, subtotalAmount, discountAmount = 0) {
+  const safeTotal = roundCurrencyAmount(totalAmount);
+  const safeSubtotal = roundCurrencyAmount(subtotalAmount);
+  const safeDiscount = roundCurrencyAmount(discountAmount);
+  const taxableAmount = roundCurrencyAmount(Math.max(0, safeSubtotal - safeDiscount));
+  return roundCurrencyAmount(Math.max(0, safeTotal - taxableAmount));
 }
 
 function sanitizeStripeMetadataValue(value, fallbackValue = '') {
@@ -406,18 +678,105 @@ function sanitizeStripeMetadataValue(value, fallbackValue = '') {
   return normalizedValue.slice(0, STRIPE_METADATA_VALUE_LIMIT);
 }
 
-function resolveStripeClient() {
-  const stripeSecretKey = normalizeText(process.env.STRIPE_SECRET_KEY);
-  if (!stripeSecretKey) {
-    throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY to continue.');
+function normalizeStripeUrl(value) {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return '';
+  }
+  if (!normalized.startsWith('https://') && !normalized.startsWith('http://')) {
+    return '';
+  }
+  return normalized;
+}
+
+function resolveEnrollmentStripeReferenceData(reference = {}) {
+  const safeReference = reference && typeof reference === 'object' ? reference : {};
+  const invoiceObject = safeReference.invoice && typeof safeReference.invoice === 'object'
+    ? safeReference.invoice
+    : null;
+
+  return {
+    stripeCustomerId: normalizeText(safeReference.customerId || safeReference.stripeCustomerId),
+    stripePaymentIntentId: normalizeText(safeReference.paymentIntentId || safeReference.stripePaymentIntentId),
+    stripeCheckoutSessionId: normalizeText(safeReference.checkoutSessionId || safeReference.stripeCheckoutSessionId),
+    stripeInvoiceId: normalizeText(safeReference.invoiceId || invoiceObject?.id),
+    stripeInvoiceNumber: normalizeText(safeReference.invoiceNumber || invoiceObject?.number),
+    stripeInvoiceHostedUrl: normalizeStripeUrl(safeReference.invoiceHostedUrl || invoiceObject?.hosted_invoice_url),
+    stripeInvoicePdfUrl: normalizeStripeUrl(safeReference.invoicePdfUrl || invoiceObject?.invoice_pdf),
+    stripePaymentStatus: normalizeText(safeReference.paymentStatus || invoiceObject?.status),
+  };
+}
+
+function normalizePathname(pathname, fallbackPath = '/') {
+  const rawPath = normalizeText(pathname);
+  if (!rawPath) {
+    return fallbackPath;
   }
 
-  if (!cachedStripeClient || cachedStripeApiKey !== stripeSecretKey) {
-    cachedStripeApiKey = stripeSecretKey;
-    cachedStripeClient = new Stripe(stripeSecretKey);
+  try {
+    const parsed = new URL(rawPath, 'http://localhost');
+    const normalizedPathname = normalizeText(parsed.pathname) || fallbackPath;
+    const normalizedSearch = normalizeText(parsed.search);
+    return `${normalizedPathname}${normalizedSearch}`;
+  } catch {
+    return fallbackPath;
+  }
+}
+
+function resolveRequestOrigin(context = {}) {
+  const contextOrigin = normalizeText(context.origin);
+  if (contextOrigin) {
+    try {
+      const parsed = new URL(contextOrigin);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.origin;
+      }
+    } catch {
+      // Fall through to environment/default origins.
+    }
   }
 
-  return cachedStripeClient;
+  const envOrigin = normalizeText(process.env.PUBLIC_APP_ORIGIN);
+  if (envOrigin) {
+    try {
+      const parsed = new URL(envOrigin);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.origin;
+      }
+    } catch {
+      // Fall through to localhost fallback.
+    }
+  }
+
+  const fallbackPort = Number.parseInt(process.env.PORT || '3000', 10) || 3000;
+  return `http://localhost:${fallbackPort}`;
+}
+
+function resolveEnrollmentCheckoutReturnUrls(origin, returnPath) {
+  const safeOrigin = normalizeText(origin);
+  const defaultReturnUrl = new URL(DEFAULT_ENROLLMENT_RETURN_PATH, safeOrigin);
+
+  let baseReturnUrl = defaultReturnUrl;
+  const resolvedPath = normalizePathname(returnPath, DEFAULT_ENROLLMENT_RETURN_PATH);
+  try {
+    baseReturnUrl = new URL(resolvedPath, safeOrigin);
+  } catch {
+    baseReturnUrl = defaultReturnUrl;
+  }
+
+  const successUrl = new URL(baseReturnUrl.toString());
+  successUrl.searchParams.set('checkout', 'success');
+  successUrl.searchParams.set('session_id', '{CHECKOUT_SESSION_ID}');
+  const successUrlString = successUrl.toString().replace('%7BCHECKOUT_SESSION_ID%7D', '{CHECKOUT_SESSION_ID}');
+
+  const cancelUrl = new URL(baseReturnUrl.toString());
+  cancelUrl.searchParams.set('checkout', 'cancel');
+  cancelUrl.searchParams.delete('session_id');
+
+  return {
+    successUrl: successUrlString,
+    cancelUrl: cancelUrl.toString(),
+  };
 }
 
 function resolveEnrollmentCheckoutSummary(enrollmentPackage) {
@@ -437,9 +796,9 @@ function resolveEnrollmentCheckoutSummary(enrollmentPackage) {
   const packagePrice = roundCurrencyAmount(Number(packageMeta.price) || 0);
   const packageBv = toWholeNumber(packageMeta.bv, 0);
   const discount = 0;
-  const taxableAmount = Math.max(0, packagePrice - discount);
-  const tax = roundCurrencyAmount(taxableAmount * ENROLL_CHECKOUT_TAX_RATE);
-  const total = roundCurrencyAmount(taxableAmount + tax);
+  const taxableAmount = roundCurrencyAmount(Math.max(0, packagePrice - discount));
+  const tax = 0;
+  const total = taxableAmount;
 
   return {
     packageLabel: normalizeText(packageMeta.label),
@@ -523,6 +882,68 @@ function resolveFastTrackBonusAmount({ enrollmentPackage, sponsorFastTrackTier, 
   return roundCurrencyAmount(commissionableBv * sponsorRate);
 }
 
+function resolveCommissionContainerBalanceNumber(source = {}, ...keys) {
+  const safeSource = source && typeof source === 'object' ? source : {};
+  for (const key of keys) {
+    if (!key) {
+      continue;
+    }
+    const parsed = Number(safeSource[key]);
+    if (Number.isFinite(parsed)) {
+      return roundCurrencyAmount(parsed);
+    }
+  }
+  return 0;
+}
+
+async function creditSponsorFastTrackCommissionContainer({
+  sponsorUser = null,
+  fastTrackBonusAmount = 0,
+  client = null,
+  executor = null,
+} = {}) {
+  const safeBonusAmount = roundCurrencyAmount(fastTrackBonusAmount);
+  const sponsor = sponsorUser && typeof sponsorUser === 'object' ? sponsorUser : null;
+  const dbExecutor = executor || client || pool;
+  if (!sponsor || safeBonusAmount <= 0) {
+    return null;
+  }
+
+  const sponsorUserId = normalizeText(sponsor?.id || sponsor?.userId);
+  if (!sponsorUserId) {
+    return null;
+  }
+
+  try {
+    const existingSnapshot = await readCommissionContainerByUserId(sponsorUserId, dbExecutor);
+    const existingBalances = existingSnapshot?.balances && typeof existingSnapshot.balances === 'object'
+      ? existingSnapshot.balances
+      : {};
+    const nextFastTrackBalance = roundCurrencyAmount(
+      resolveCommissionContainerBalanceNumber(existingBalances, 'fasttrack', 'fastTrack')
+      + safeBonusAmount,
+    );
+
+    return upsertCommissionContainerByUserId({
+      userId: sponsorUserId,
+      username: normalizeText(sponsor?.username || existingSnapshot?.username),
+      email: normalizeText(sponsor?.email || existingSnapshot?.email),
+      currencyCode: normalizeText(existingSnapshot?.currencyCode || 'USD').toUpperCase() || 'USD',
+      balances: {
+        fasttrack: nextFastTrackBalance,
+        infinitybuilder: resolveCommissionContainerBalanceNumber(existingBalances, 'infinitybuilder', 'infinityBuilder'),
+        legacyleadership: resolveCommissionContainerBalanceNumber(existingBalances, 'legacyleadership', 'legacyLeadership'),
+        salesteam: resolveCommissionContainerBalanceNumber(existingBalances, 'salesteam', 'salesTeam'),
+      },
+      claimMaps: existingSnapshot?.claimMaps,
+    }, dbExecutor);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error || '');
+    console.warn(`[MemberEnrollment] Fast Track credit sync skipped for ${sponsorUserId}: ${errorMessage}`);
+    return null;
+  }
+}
+
 export async function createRegisteredMemberPaymentIntent(payload = {}) {
   let stripe = null;
   try {
@@ -539,37 +960,26 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
   const email = normalizeText(payload?.email);
   const memberUsernameInput = normalizeText(payload?.memberUsername);
   const countryFlag = normalizeCountryFlag(payload?.countryFlag);
-  const sponsorUsername = normalizeCredential(payload?.sponsorUsername);
-  const sponsorName = normalizeText(payload?.sponsorName);
+  const sponsorUsernameInput = normalizeCredential(payload?.sponsorUsername);
+  const sponsorNameInput = normalizeText(payload?.sponsorName);
   const isAdminPlacement = Boolean(payload?.isAdminPlacement);
   const enrollmentContext = isAdminPlacement ? 'admin' : 'member';
-  const placementLeg = normalizePlacementLeg(payload?.placementLeg, {
+  const placementLegInput = normalizePlacementLeg(payload?.placementLeg, {
     allowSpillover: true,
     fallback: PLACEMENT_LEG_LEFT,
   });
-  const placementLegRaw = normalizeCredential(payload?.placementLeg);
-  const spilloverPlacementSide = (
+  const placementLegInputRaw = normalizeCredential(payload?.placementLeg);
+  const spilloverPlacementSideInput = (
     normalizeCredential(payload?.spilloverPlacementSide) === PLACEMENT_LEG_RIGHT
-    || placementLegRaw === 'spillover-right'
-    || placementLegRaw === 'spillover_right'
-    || placementLegRaw === 'spillover right'
+    || placementLegInputRaw === 'spillover-right'
+    || placementLegInputRaw === 'spillover_right'
+    || placementLegInputRaw === 'spillover right'
   )
     ? PLACEMENT_LEG_RIGHT
     : PLACEMENT_LEG_LEFT;
   const requestedSpilloverParentMode = normalizeCredential(payload?.spilloverParentMode || 'auto');
-  const spilloverParentMode = (
-    placementLeg === PLACEMENT_LEG_SPILLOVER
-    && isAdminPlacement
-    && requestedSpilloverParentMode === 'manual'
-  )
-    ? 'manual'
-    : 'auto';
-  const spilloverParentReference = normalizeText(payload?.spilloverParentReference);
-  const effectiveSpilloverParentReference = (
-    placementLeg === PLACEMENT_LEG_SPILLOVER && spilloverParentMode === 'manual'
-  )
-    ? spilloverParentReference
-    : '';
+  const spilloverParentModeInput = requestedSpilloverParentMode === 'manual' ? 'manual' : 'auto';
+  const spilloverParentReferenceInput = normalizeText(payload?.spilloverParentReference);
   const enrollmentPackage = normalizeCredential(payload?.enrollmentPackage);
   const requestedFastTrackTier = normalizeCredential(
     payload?.fastTrackTier || FAST_TRACK_TIER_BY_PACKAGE[enrollmentPackage]
@@ -580,6 +990,15 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
   const billingPostalCode = normalizeText(payload?.billingPostalCode);
   const billingCountry = normalizeText(payload?.billingCountry);
   const billingCountryCode = normalizeText(payload?.billingCountryCode).toUpperCase();
+  const authenticatedMember = payload?.authenticatedMember && typeof payload.authenticatedMember === 'object'
+    ? payload.authenticatedMember
+    : null;
+  const authenticatedMemberDisplayName = normalizeText(
+    authenticatedMember?.name
+    || authenticatedMember?.fullName
+    || authenticatedMember?.username
+    || authenticatedMember?.memberUsername,
+  );
 
   if (!fullName || !email) {
     return {
@@ -589,6 +1008,26 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
     };
   }
 
+  const placementPolicy = await resolveServerEnforcedEnrollmentPlacement({
+    ...payload,
+    isAdminPlacement,
+    sponsorUsername: sponsorUsernameInput,
+    placementLeg: placementLegInput,
+    spilloverPlacementSide: spilloverPlacementSideInput,
+    spilloverParentMode: spilloverParentModeInput,
+    spilloverParentReference: spilloverParentReferenceInput,
+    authenticatedMember,
+  });
+  const actorUsername = normalizeCredential(placementPolicy?.actorUsername);
+  if (!isAdminPlacement && !actorUsername) {
+    return {
+      success: false,
+      status: 401,
+      error: 'Member authentication is required to submit enrollment.',
+    };
+  }
+
+  const sponsorUsername = normalizeCredential(placementPolicy?.sponsorUsername || sponsorUsernameInput);
   if (!sponsorUsername) {
     return {
       success: false,
@@ -596,6 +1035,29 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
       error: 'Sponsor username is required for member enrollment.',
     };
   }
+  const sponsorName = normalizeText(
+    sponsorNameInput
+    || (sponsorUsername === actorUsername ? authenticatedMemberDisplayName : '')
+    || sponsorUsername,
+  );
+  const placementLeg = normalizePlacementLeg(placementPolicy?.placementLeg, {
+    allowSpillover: true,
+    fallback: PLACEMENT_LEG_LEFT,
+  });
+  const spilloverPlacementSide = placementLeg === PLACEMENT_LEG_SPILLOVER
+    ? resolvePlacementSideFromLeg(placementLeg, placementPolicy?.spilloverPlacementSide)
+    : '';
+  const spilloverParentMode = (
+    placementLeg === PLACEMENT_LEG_SPILLOVER
+    && normalizeCredential(placementPolicy?.spilloverParentMode) === 'manual'
+  )
+    ? 'manual'
+    : 'auto';
+  const effectiveSpilloverParentReference = (
+    placementLeg === PLACEMENT_LEG_SPILLOVER && spilloverParentMode === 'manual'
+  )
+    ? normalizeText(placementPolicy?.spilloverParentReference)
+    : '';
 
   if (!FAST_TRACK_PACKAGE_META[enrollmentPackage]) {
     return {
@@ -622,7 +1084,11 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
     };
   }
 
-  if (placementLeg === PLACEMENT_LEG_SPILLOVER && spilloverParentMode === 'manual' && !effectiveSpilloverParentReference) {
+  if (
+    placementLeg === PLACEMENT_LEG_SPILLOVER
+    && spilloverParentMode === 'manual'
+    && !effectiveSpilloverParentReference
+  ) {
     return {
       success: false,
       status: 400,
@@ -656,6 +1122,14 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
   const invoiceIdSeed = resolveNextStoreInvoiceId(existingInvoices);
   const invoiceId = `${invoiceIdSeed}-${String(randomInt(100, 1000))}`;
   const packageBv = toWholeNumber(checkoutSummary.packageBv, 0);
+  const taxableAmountMinor = resolveCurrencyMinorAmount(checkoutSummary.total);
+  if (taxableAmountMinor <= 0) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Enrollment subtotal must be greater than zero.',
+    };
+  }
 
   const paymentIntentMetadata = {
     flow: sanitizeStripeMetadataValue(ENROLLMENT_PAYMENT_FLOW),
@@ -684,21 +1158,115 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
     package_bv: String(packageBv),
     subtotal: String(checkoutSummary.subtotal),
     discount_amount: String(checkoutSummary.discount),
-    tax_amount: String(checkoutSummary.tax),
-    tax_rate: String(ENROLL_CHECKOUT_TAX_RATE),
+    tax_amount: '0',
     total_amount: String(checkoutSummary.total),
   };
+  let stripeCustomerId = '';
+  try {
+    const customerResolution = await resolveOrCreateStripeCustomerForUserIdentity({
+      email,
+      name: fullName,
+    }, {
+      stripe,
+      allowCreate: true,
+      metadata: {
+        checkout_type: 'member-enrollment',
+      },
+    });
+    stripeCustomerId = normalizeText(customerResolution?.customerId);
+  } catch {
+    stripeCustomerId = '';
+  }
+
+  if (stripeCustomerId) {
+    paymentIntentMetadata.stripe_customer_id = sanitizeStripeMetadataValue(stripeCustomerId);
+  }
+
+  if (!/^[A-Z]{2}$/.test(billingCountryCode)) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Billing country code is required for Stripe Tax calculation.',
+    };
+  }
+
+  const taxCode = normalizeText(process.env.STRIPE_ENROLLMENT_TAX_CODE);
+  let taxCalculationId = '';
+  let totalAmountMinor = taxableAmountMinor;
+  let taxAmount = 0;
+  try {
+    const taxCalculation = await stripe.tax.calculations.create({
+      currency: 'usd',
+      line_items: [
+        {
+          amount: taxableAmountMinor,
+          quantity: 1,
+          reference: sanitizeStripeMetadataValue(
+            `${enrollmentPackage || 'member-enrollment'}-checkout`,
+            'member-enrollment-checkout',
+          ),
+          tax_code: taxCode || undefined,
+        },
+      ],
+      customer_details: {
+        address: {
+          line1: billingAddress || undefined,
+          city: billingCity || undefined,
+          state: billingState || undefined,
+          postal_code: billingPostalCode || undefined,
+          country: billingCountryCode,
+        },
+        address_source: 'billing',
+      },
+    });
+    taxCalculationId = normalizeText(taxCalculation?.id);
+    totalAmountMinor = Math.max(
+      taxableAmountMinor,
+      Math.round(Number(taxCalculation?.amount_total || taxableAmountMinor)),
+    );
+    taxAmount = roundCurrencyAmount((totalAmountMinor - taxableAmountMinor) / 100);
+  } catch (error) {
+    const message = error instanceof Error && error.message
+      ? error.message
+      : 'Unable to calculate Stripe Tax for enrollment payment.';
+    const statusCode = Number(error?.statusCode);
+    const status = Number.isFinite(statusCode) && statusCode >= 400 && statusCode < 600
+      ? statusCode
+      : 502;
+    return {
+      success: false,
+      status,
+      error: message,
+    };
+  }
+
+  paymentIntentMetadata.tax_amount = String(taxAmount);
+  paymentIntentMetadata.total_amount = String(roundCurrencyAmount(totalAmountMinor / 100));
+  if (taxCalculationId) {
+    paymentIntentMetadata.tax_calculation_id = sanitizeStripeMetadataValue(taxCalculationId);
+  }
 
   try {
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: resolveCurrencyMinorAmount(checkoutSummary.total),
+    const paymentIntentCreatePayload = {
+      amount: totalAmountMinor,
       currency: 'usd',
       automatic_payment_methods: {
         enabled: true,
       },
       receipt_email: email || undefined,
+      customer: stripeCustomerId || undefined,
       metadata: paymentIntentMetadata,
-    });
+    };
+    if (taxCalculationId) {
+      paymentIntentCreatePayload.hooks = {
+        inputs: {
+          tax: {
+            calculation: taxCalculationId,
+          },
+        },
+      };
+    }
+    const paymentIntent = await stripe.paymentIntents.create(paymentIntentCreatePayload);
 
     if (!paymentIntent?.id || !paymentIntent?.client_secret) {
       return {
@@ -721,8 +1289,8 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
           packageBv: packageBv,
           subtotal: checkoutSummary.subtotal,
           discount: checkoutSummary.discount,
-          tax: checkoutSummary.tax,
-          total: checkoutSummary.total,
+          tax: taxAmount,
+          total: roundCurrencyAmount(totalAmountMinor / 100),
         },
       },
     };
@@ -762,7 +1330,9 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
 
   let paymentIntent = null;
   try {
-    paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId, {
+      expand: ['latest_charge.invoice'],
+    });
   } catch (error) {
     const message = error instanceof Error && error.message
       ? error.message
@@ -795,6 +1365,13 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
   const metadata = paymentIntent?.metadata && typeof paymentIntent.metadata === 'object'
     ? paymentIntent.metadata
     : {};
+  const stripeReference = resolveEnrollmentStripeReferenceData({
+    customerId: payload?.checkoutSessionCustomerId || resolveStripeCustomerId(paymentIntent?.customer),
+    paymentIntentId: paymentIntent?.id || paymentIntentId,
+    checkoutSessionId: payload?.checkoutSessionId || '',
+    paymentStatus: paymentIntent?.status || '',
+    invoice: paymentIntent?.latest_charge?.invoice || null,
+  });
 
   const flowTag = normalizeCredential(metadata.flow || metadata.payment_flow);
   if (flowTag !== ENROLLMENT_PAYMENT_FLOW) {
@@ -811,8 +1388,8 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
   const email = normalizeText(metadata.email);
   const memberUsernameInput = normalizeText(metadata.member_username);
   const countryFlag = normalizeCountryFlag(metadata.country_flag);
-  const sponsorUsername = normalizeCredential(metadata.sponsor_username);
-  const sponsorName = normalizeText(metadata.sponsor_name);
+  const sponsorUsernameFromPaymentMetadata = normalizeCredential(metadata.sponsor_username);
+  const sponsorNameFromPaymentMetadata = normalizeText(metadata.sponsor_name);
   const placementLeg = normalizePlacementLeg(metadata.placement_leg, {
     allowSpillover: true,
     fallback: PLACEMENT_LEG_LEFT,
@@ -843,7 +1420,7 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
   const billingCountry = normalizeText(metadata.billing_country);
   const billingCountryCode = normalizeText(metadata.billing_country_code);
 
-  if (!fullName || !email || !sponsorUsername || !FAST_TRACK_PACKAGE_META[enrollmentPackage]) {
+  if (!fullName || !email || !FAST_TRACK_PACKAGE_META[enrollmentPackage]) {
     return {
       success: false,
       status: 400,
@@ -889,8 +1466,8 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
       spilloverParentReference: effectiveSpilloverParentReference,
       enrollmentPackage,
       fastTrackTier: requestedFastTrackTier,
-      sponsorUsername,
-      sponsorName: sponsorName || sponsorUsername,
+      sponsorUsername: sponsorUsernameFromPaymentMetadata,
+      sponsorName: sponsorNameFromPaymentMetadata || sponsorUsernameFromPaymentMetadata,
       billingAddress,
       billingCity,
       billingState,
@@ -899,6 +1476,7 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
       billingCountryCode,
       isAdminPlacement,
       enrollmentContext: isAdminPlacement ? 'admin' : 'member',
+      authenticatedMember: payload?.authenticatedMember || null,
     });
 
     if (!registrationResult.success) {
@@ -939,15 +1517,26 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
     };
   }
 
+  if (stripeReference.stripeCustomerId) {
+    await linkStripeCustomerToUserIdentity({
+      customerId: stripeReference.stripeCustomerId,
+      userId: normalizeText(createdMember?.userId),
+      username: normalizeText(createdMember?.memberUsername || memberUsernameInput),
+      email: normalizeText(createdMember?.email || email),
+    }).catch(() => {});
+  }
+
   const invoiceId = normalizeText(metadata.invoice_id).toUpperCase() || `INV-${Date.now()}`;
   const packageBv = toWholeNumber(metadata.package_bv, checkoutSummary.packageBv);
   const discountAmount = roundCurrencyAmount(metadata.discount_amount);
+  const subtotalAmount = roundCurrencyAmount(metadata.subtotal || checkoutSummary.subtotal);
   const capturedAmount = roundCurrencyAmount(
     (Number(paymentIntent?.amount_received) || Number(paymentIntent?.amount) || 0) / 100
   );
   const totalAmount = capturedAmount > 0
     ? capturedAmount
     : roundCurrencyAmount(metadata.total_amount || checkoutSummary.total);
+  const resolvedTaxAmount = resolveCheckoutTaxFromTotal(totalAmount, subtotalAmount, discountAmount);
 
   let invoiceRecord = null;
   let invoiceWarning = '';
@@ -956,10 +1545,30 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
     return normalizeText(invoice?.id).toUpperCase() === invoiceId;
   }) || null;
 
+  if (invoiceRecord) {
+    const syncResult = await syncStoreInvoiceStripeDetails({
+      invoiceId,
+      stripeCustomerId: stripeReference.stripeCustomerId,
+      stripePaymentIntentId: stripeReference.stripePaymentIntentId,
+      stripeCheckoutSessionId: stripeReference.stripeCheckoutSessionId,
+      stripeInvoiceId: stripeReference.stripeInvoiceId,
+      stripeInvoiceNumber: stripeReference.stripeInvoiceNumber,
+      stripeInvoiceHostedUrl: stripeReference.stripeInvoiceHostedUrl,
+      stripeInvoicePdfUrl: stripeReference.stripeInvoicePdfUrl,
+      stripePaymentStatus: stripeReference.stripePaymentStatus,
+    });
+    if (syncResult.success) {
+      invoiceRecord = syncResult.data?.invoice || invoiceRecord;
+    }
+  }
+
   if (!invoiceRecord) {
     let attributionKey = DEFAULT_ATTRIBUTION_STORE_CODE;
-    const matchedSponsorUser = sponsorUsername
-      ? await findUserByUsername(sponsorUsername)
+    const createdMemberSponsorUsername = normalizeCredential(
+      createdMember?.sponsorUsername || sponsorUsernameFromPaymentMetadata,
+    );
+    const matchedSponsorUser = createdMemberSponsorUsername
+      ? await findUserByUsername(createdMemberSponsorUsername)
       : null;
     if (matchedSponsorUser) {
       attributionKey = resolveSponsorAttributionStoreCode(matchedSponsorUser);
@@ -975,6 +1584,14 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
       amount: totalAmount,
       bp: packageBv,
       discount: discountAmount,
+      stripeCustomerId: stripeReference.stripeCustomerId,
+      stripePaymentIntentId: stripeReference.stripePaymentIntentId,
+      stripeCheckoutSessionId: stripeReference.stripeCheckoutSessionId,
+      stripeInvoiceId: stripeReference.stripeInvoiceId,
+      stripeInvoiceNumber: stripeReference.stripeInvoiceNumber,
+      stripeInvoiceHostedUrl: stripeReference.stripeInvoiceHostedUrl,
+      stripeInvoicePdfUrl: stripeReference.stripeInvoicePdfUrl,
+      stripePaymentStatus: stripeReference.stripePaymentStatus,
       status: 'Posted',
     });
 
@@ -985,6 +1602,22 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
       invoiceRecord = (Array.isArray(invoicesAfterConflict) ? invoicesAfterConflict : []).find((invoice) => {
         return normalizeText(invoice?.id).toUpperCase() === invoiceId;
       }) || null;
+      if (invoiceRecord) {
+        const syncResult = await syncStoreInvoiceStripeDetails({
+          invoiceId,
+          stripeCustomerId: stripeReference.stripeCustomerId,
+          stripePaymentIntentId: stripeReference.stripePaymentIntentId,
+          stripeCheckoutSessionId: stripeReference.stripeCheckoutSessionId,
+          stripeInvoiceId: stripeReference.stripeInvoiceId,
+          stripeInvoiceNumber: stripeReference.stripeInvoiceNumber,
+          stripeInvoiceHostedUrl: stripeReference.stripeInvoiceHostedUrl,
+          stripeInvoicePdfUrl: stripeReference.stripeInvoicePdfUrl,
+          stripePaymentStatus: stripeReference.stripePaymentStatus,
+        });
+        if (syncResult.success) {
+          invoiceRecord = syncResult.data?.invoice || invoiceRecord;
+        }
+      }
     } else {
       invoiceWarning = normalizeText(invoiceResult.error || 'Invoice could not be created.');
     }
@@ -1009,9 +1642,9 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
         invoiceId,
         packageLabel: checkoutSummary.packageLabel,
         packageBv,
-        subtotal: roundCurrencyAmount(metadata.subtotal || checkoutSummary.subtotal),
+        subtotal: subtotalAmount,
         discount: discountAmount,
-        tax: roundCurrencyAmount(metadata.tax_amount || checkoutSummary.tax),
+        tax: resolvedTaxAmount,
         total: totalAmount,
       },
     },
@@ -1030,40 +1663,38 @@ export async function createRegisteredMember(payload) {
   const phone = normalizeText(payload?.phone);
   const notes = normalizeText(payload?.notes);
   const countryFlag = normalizeCountryFlag(payload?.countryFlag);
-  const sponsorUsername = normalizeCredential(payload?.sponsorUsername);
-  const sponsorName = normalizeText(payload?.sponsorName);
+  const sponsorUsernameInput = normalizeCredential(payload?.sponsorUsername);
+  const sponsorNameInput = normalizeText(payload?.sponsorName);
   const isAdminPlacement = Boolean(payload?.isAdminPlacement);
   const enrollmentContext = isAdminPlacement ? 'admin' : 'member';
-  const placementLeg = normalizePlacementLeg(payload?.placementLeg, {
+  const placementLegInput = normalizePlacementLeg(payload?.placementLeg, {
     allowSpillover: true,
     fallback: PLACEMENT_LEG_LEFT,
   });
-  const placementLegRaw = normalizeCredential(payload?.placementLeg);
-  const spilloverPlacementSide = (
+  const placementLegInputRaw = normalizeCredential(payload?.placementLeg);
+  const spilloverPlacementSideInput = (
     normalizeCredential(payload?.spilloverPlacementSide) === PLACEMENT_LEG_RIGHT
-    || placementLegRaw === 'spillover-right'
-    || placementLegRaw === 'spillover_right'
-    || placementLegRaw === 'spillover right'
+    || placementLegInputRaw === 'spillover-right'
+    || placementLegInputRaw === 'spillover_right'
+    || placementLegInputRaw === 'spillover right'
   )
     ? PLACEMENT_LEG_RIGHT
     : PLACEMENT_LEG_LEFT;
   const requestedSpilloverParentMode = normalizeCredential(payload?.spilloverParentMode || 'auto');
-  const spilloverParentMode = (
-    placementLeg === PLACEMENT_LEG_SPILLOVER
-    && isAdminPlacement
-    && requestedSpilloverParentMode === 'manual'
-  )
-    ? 'manual'
-    : 'auto';
-  const spilloverParentReference = normalizeText(payload?.spilloverParentReference);
-  const effectiveSpilloverParentReference = (
-    placementLeg === PLACEMENT_LEG_SPILLOVER && spilloverParentMode === 'manual'
-  )
-    ? spilloverParentReference
-    : '';
+  const spilloverParentModeInput = requestedSpilloverParentMode === 'manual' ? 'manual' : 'auto';
+  const spilloverParentReferenceInput = normalizeText(payload?.spilloverParentReference);
   const enrollmentPackage = normalizeCredential(payload?.enrollmentPackage);
   const requestedFastTrackTier = normalizeCredential(payload?.fastTrackTier);
   const isStaffTreeAccount = Boolean(payload?.isStaffTreeAccount);
+  const authenticatedMember = payload?.authenticatedMember && typeof payload.authenticatedMember === 'object'
+    ? payload.authenticatedMember
+    : null;
+  const authenticatedMemberDisplayName = normalizeText(
+    authenticatedMember?.name
+    || authenticatedMember?.fullName
+    || authenticatedMember?.username
+    || authenticatedMember?.memberUsername,
+  );
 
   if (!fullName || !email) {
     return {
@@ -1073,6 +1704,26 @@ export async function createRegisteredMember(payload) {
     };
   }
 
+  const placementPolicy = await resolveServerEnforcedEnrollmentPlacement({
+    ...payload,
+    isAdminPlacement,
+    sponsorUsername: sponsorUsernameInput,
+    placementLeg: placementLegInput,
+    spilloverPlacementSide: spilloverPlacementSideInput,
+    spilloverParentMode: spilloverParentModeInput,
+    spilloverParentReference: spilloverParentReferenceInput,
+    authenticatedMember,
+  });
+  const actorUsername = normalizeCredential(placementPolicy?.actorUsername);
+  if (!isAdminPlacement && !actorUsername) {
+    return {
+      success: false,
+      status: 401,
+      error: 'Member authentication is required to submit enrollment.',
+    };
+  }
+
+  const sponsorUsername = normalizeCredential(placementPolicy?.sponsorUsername || sponsorUsernameInput);
   if (!sponsorUsername) {
     return {
       success: false,
@@ -1080,6 +1731,29 @@ export async function createRegisteredMember(payload) {
       error: 'Sponsor username is required for member enrollment.',
     };
   }
+  const sponsorName = normalizeText(
+    sponsorNameInput
+    || (sponsorUsername === actorUsername ? authenticatedMemberDisplayName : '')
+    || sponsorUsername,
+  );
+  const placementLeg = normalizePlacementLeg(placementPolicy?.placementLeg, {
+    allowSpillover: true,
+    fallback: PLACEMENT_LEG_LEFT,
+  });
+  const spilloverPlacementSide = placementLeg === PLACEMENT_LEG_SPILLOVER
+    ? resolvePlacementSideFromLeg(placementLeg, placementPolicy?.spilloverPlacementSide)
+    : '';
+  const spilloverParentMode = (
+    placementLeg === PLACEMENT_LEG_SPILLOVER
+    && normalizeCredential(placementPolicy?.spilloverParentMode) === 'manual'
+  )
+    ? 'manual'
+    : 'auto';
+  const effectiveSpilloverParentReference = (
+    placementLeg === PLACEMENT_LEG_SPILLOVER && spilloverParentMode === 'manual'
+  )
+    ? normalizeText(placementPolicy?.spilloverParentReference)
+    : '';
 
   if (!FAST_TRACK_PACKAGE_META[enrollmentPackage]) {
     return {
@@ -1089,7 +1763,11 @@ export async function createRegisteredMember(payload) {
     };
   }
 
-  if (placementLeg === PLACEMENT_LEG_SPILLOVER && spilloverParentMode === 'manual' && !effectiveSpilloverParentReference) {
+  if (
+    placementLeg === PLACEMENT_LEG_SPILLOVER
+    && spilloverParentMode === 'manual'
+    && !effectiveSpilloverParentReference
+  ) {
     return {
       success: false,
       status: 400,
@@ -1135,12 +1813,11 @@ export async function createRegisteredMember(payload) {
         reservedStoreCodes.add(sponsorPublicStoreCode);
       }
       if (!sponsorStoreCode || !sponsorPublicStoreCode) {
-        const sponsorStoreSeed = matchedSponsorUser?.username || sponsorUsername || `sponsor-${Date.now()}`;
-        const nextSponsorStoreCode = sponsorStoreCode || await createUniqueStoreCode('M', sponsorStoreSeed, {
+        const nextSponsorStoreCode = sponsorStoreCode || await createUniqueStoreCode({
           reservedStoreCodes,
           client,
         });
-        const nextSponsorPublicStoreCode = sponsorPublicStoreCode || await createUniqueStoreCode('CHG', sponsorStoreSeed, {
+        const nextSponsorPublicStoreCode = sponsorPublicStoreCode || await createUniqueStoreCode({
           reservedStoreCodes,
           client,
         });
@@ -1154,11 +1831,11 @@ export async function createRegisteredMember(payload) {
     }
 
     const sponsorAttributionStoreCode = resolveSponsorAttributionStoreCode(matchedSponsorUser);
-    const publicStoreCode = await createUniqueStoreCode('CHG', memberUsername, {
+    const publicStoreCode = await createUniqueStoreCode({
       reservedStoreCodes,
       client,
     });
-    const storeCode = await createUniqueStoreCode('M', memberUsername, {
+    const storeCode = await createUniqueStoreCode({
       reservedStoreCodes,
       client,
     });
@@ -1175,7 +1852,19 @@ export async function createRegisteredMember(payload) {
 
     const createdAtDate = new Date();
     const createdAt = createdAtDate.toISOString();
-    const activityActiveUntilAt = new Date(createdAtDate.getTime() + ACCOUNT_ACTIVITY_WINDOW_MS).toISOString();
+    const enrollmentPersonalBvSnapshot = resolveMemberPersonalBvSnapshot({
+      createdAt,
+      currentPersonalPvBv: packageBv,
+    }, {
+      referenceDate: createdAtDate,
+    });
+    const activityActiveUntilAt = enrollmentPersonalBvSnapshot.nextCutoffAt;
+    const currentPersonalPvBv = enrollmentPersonalBvSnapshot.currentPersonalPvBv;
+    const accountStatus = resolveMemberAccountStatusByPersonalBv({
+      passwordSetupRequired: true,
+      createdAt,
+      currentPersonalPvBv,
+    });
     const userId = `usr_${Date.now()}_${randomUUID().slice(0, 8)}`;
 
     const newUser = {
@@ -1186,7 +1875,7 @@ export async function createRegisteredMember(payload) {
       countryFlag,
       password: temporaryPassword,
       passwordSetupRequired: true,
-      accountStatus: 'pending-password-setup',
+      accountStatus,
       attributionStoreCode: sponsorAttributionStoreCode,
       publicStoreCode,
       storeCode,
@@ -1195,6 +1884,7 @@ export async function createRegisteredMember(payload) {
       enrollmentPackagePrice: packagePrice,
       enrollmentPackageBv: packageBv,
       starterPersonalPv: packageBv,
+      currentPersonalPvBv,
       starterTotalCycles: 0,
       rank: startingRank,
       accountRank: startingRank,
@@ -1244,6 +1934,7 @@ export async function createRegisteredMember(payload) {
       packagePrice,
       packageBv,
       starterPersonalPv: packageBv,
+      currentPersonalPvBv,
       rank: startingRank,
       accountRank: startingRank,
       activityActiveUntilAt,
@@ -1257,11 +1948,16 @@ export async function createRegisteredMember(payload) {
       businessCenterOwnerUserId: userId,
       businessCenterOwnerUsername: memberUsername,
       businessCenterOwnerEmail: email,
-      businessCenterNodeType: BUSINESS_CENTER_NODE_TYPE_PRIMARY,
+      businessCenterNodeType: isStaffTreeAccount
+        ? BUSINESS_CENTER_NODE_TYPE_STAFF_ADMIN
+        : BUSINESS_CENTER_NODE_TYPE_MAIN_CENTER,
       businessCenterIndex: 0,
-      businessCenterLabel: '',
+      businessCenterLabel: 'Main Center',
       businessCenterActivatedAt: '',
       businessCenterPinnedSide: '',
+      isEarningEligible: !isStaffTreeAccount,
+      activationStatus: 'active',
+      sourceQualificationTier: 0,
       legacyLeadershipCompletedTierCount: 0,
       businessCentersEarnedLifetime: 0,
       businessCentersActivated: 0,
@@ -1279,6 +1975,11 @@ export async function createRegisteredMember(payload) {
     }
     await upsertMockUserRecord(newUser, { client, preferInsert: true });
     await upsertRegisteredMemberRecord(createdMember, { client, preferInsert: true });
+    await creditSponsorFastTrackCommissionContainer({
+      sponsorUser: matchedSponsorUser,
+      fastTrackBonusAmount,
+      client,
+    });
     await upsertPasswordSetupTokenRecord(tokenRecord, { client, preferInsert: true });
     await insertMockEmailOutboxRecord(emailLogRecord, { client, preferInsert: true });
     await client.query('COMMIT');
@@ -1304,6 +2005,15 @@ export async function updateRegisteredMemberPlacement(payload = {}) {
   const sponsorUsername = normalizeCredential(payload?.sponsorUsername);
   const sponsorName = normalizeText(payload?.sponsorName);
   const isAdminPlacement = Boolean(payload?.isAdminPlacement);
+  const authenticatedMember = payload?.authenticatedMember && typeof payload.authenticatedMember === 'object'
+    ? payload.authenticatedMember
+    : null;
+  const memberActorUsername = normalizeCredential(
+    authenticatedMember?.username
+    || authenticatedMember?.memberUsername
+    || payload?.memberActorUsername
+    || payload?.enrollerUsername,
+  );
   const placementLegInput = normalizePlacementLeg(payload?.placementLeg, {
     allowSpillover: true,
     fallback: '',
@@ -1321,6 +2031,14 @@ export async function updateRegisteredMemberPlacement(payload = {}) {
     };
   }
 
+  if (!isAdminPlacement && !memberActorUsername) {
+    return {
+      success: false,
+      status: 401,
+      error: 'Member authentication is required to update placement.',
+    };
+  }
+
   const members = await readRegisteredMembersStore();
   const memberIndex = members.findIndex((member) => normalizeText(member?.id) === memberId);
 
@@ -1334,6 +2052,20 @@ export async function updateRegisteredMemberPlacement(payload = {}) {
 
   const existingMember = members[memberIndex];
   const memberSponsorUsername = normalizeCredential(existingMember?.sponsorUsername);
+  if (!isAdminPlacement && memberSponsorUsername && memberSponsorUsername !== memberActorUsername) {
+    return {
+      success: false,
+      status: 403,
+      error: 'You can only update placement for members under your sponsor line.',
+    };
+  }
+  if (!isAdminPlacement && sponsorUsername && sponsorUsername !== memberActorUsername) {
+    return {
+      success: false,
+      status: 403,
+      error: 'Sponsor reassignment is not available for member placement updates.',
+    };
+  }
   const shouldReassignSponsor = Boolean(
     sponsorUsername
     && sponsorUsername !== memberSponsorUsername
@@ -1490,11 +2222,13 @@ export async function getMemberRanks() {
 }
 
 
-export async function recordMemberPurchase(payload) {
+export async function recordMemberPurchase(payload, options = {}) {
   const userId = normalizeText(payload?.userId);
   const username = normalizeCredential(payload?.username);
   const email = normalizeCredential(payload?.email);
   const pvGain = Math.max(0, Math.floor(Number(payload?.pvGain) || 0));
+  const persistMode = normalizeCredential(options?.persistMode || 'rewrite');
+  const useTargetedPersistence = persistMode === 'upsert';
 
   if (!userId && !username && !email) {
     return {
@@ -1544,20 +2278,8 @@ export async function recordMemberPurchase(payload) {
   );
   const isFreeAccountUser = userPackageKey === FREE_ACCOUNT_PACKAGE_KEY || userRankKey === normalizeCredential(FREE_ACCOUNT_RANK_LABEL);
   const effectivePvGain = isFreeAccountUser ? 0 : pvGain;
-  const existingActivityActiveUntil = (
-    typeof existingUser?.activityActiveUntilAt === 'string' && existingUser.activityActiveUntilAt.trim()
-  )
-    ? existingUser.activityActiveUntilAt
-    : nowIso;
-
-  const existingActivityMs = Date.parse(existingActivityActiveUntil);
-  const baseMs = Number.isFinite(existingActivityMs) && existingActivityMs > now.getTime()
-    ? existingActivityMs
-    : now.getTime();
-
-  const nextActivityActiveUntilAt = new Date(
-    baseMs + ACCOUNT_ACTIVITY_WINDOW_MS
-  ).toISOString();
+  const personalBvSnapshot = resolveMemberPersonalBvSnapshot(existingUser, { referenceDate: now });
+  const nextActivityActiveUntilAt = personalBvSnapshot.nextCutoffAt;
 
   const enrollmentPackageBv = Math.max(0, Math.floor(Number(existingUser?.enrollmentPackageBv) || 0));
   const currentStarterPersonalPv = Math.max(
@@ -1565,16 +2287,34 @@ export async function recordMemberPurchase(payload) {
     Math.floor(Number(existingUser?.starterPersonalPv) || enrollmentPackageBv)
   );
   const nextStarterPersonalPvSafe = currentStarterPersonalPv + effectivePvGain;
+  const nextCurrentPersonalPvBv = Math.max(
+    0,
+    personalBvSnapshot.currentPersonalPvBv + effectivePvGain,
+  );
+  const nextAccountStatus = resolveMemberAccountStatusByPersonalBv({
+    ...existingUser,
+    starterPersonalPv: nextStarterPersonalPvSafe,
+    currentPersonalPvBv: nextCurrentPersonalPvBv,
+    activityActiveUntilAt: nextActivityActiveUntilAt,
+    lastProductPurchaseAt: nowIso,
+    lastPurchaseAt: nowIso,
+  });
 
   users[userIndex] = {
     ...existingUser,
     starterPersonalPv: nextStarterPersonalPvSafe,
+    currentPersonalPvBv: nextCurrentPersonalPvBv,
+    accountStatus: nextAccountStatus,
     activityActiveUntilAt: nextActivityActiveUntilAt,
     lastProductPurchaseAt: nowIso,
     lastPurchaseAt: nowIso,
   };
 
-  await writeMockUsersStore(users);
+  if (useTargetedPersistence) {
+    await upsertMockUserRecord(users[userIndex]);
+  } else {
+    await writeMockUsersStore(users);
+  }
 
   const matchedUser = users[userIndex];
   const identity = {
@@ -1592,13 +2332,25 @@ export async function recordMemberPurchase(payload) {
     return {
       ...member,
       starterPersonalPv: nextStarterPersonalPvSafe,
+      currentPersonalPvBv: nextCurrentPersonalPvBv,
+      accountStatus: nextAccountStatus,
+      status: nextAccountStatus,
       activityActiveUntilAt: nextActivityActiveUntilAt,
       lastProductPurchaseAt: nowIso,
       lastPurchaseAt: nowIso,
     };
   });
 
-  await writeRegisteredMembersStore(updatedMembers);
+  if (useTargetedPersistence) {
+    if (primaryMemberIndex >= 0 && !isBusinessCenterPlaceholderMember(members[primaryMemberIndex])) {
+      const nextPrimaryMember = updatedMembers[primaryMemberIndex];
+      if (nextPrimaryMember) {
+        await upsertRegisteredMemberRecord(nextPrimaryMember);
+      }
+    }
+  } else {
+    await writeRegisteredMembersStore(updatedMembers);
+  }
 
   return {
     success: true,
@@ -1608,6 +2360,7 @@ export async function recordMemberPurchase(payload) {
       username: users[userIndex]?.username || '',
       email: users[userIndex]?.email || '',
       starterPersonalPv: nextStarterPersonalPvSafe,
+      currentPersonalPvBv: nextCurrentPersonalPvBv,
       activityActiveUntilAt: nextActivityActiveUntilAt,
       lastProductPurchaseAt: nowIso,
       lastPurchaseAt: nowIso,
@@ -1615,15 +2368,459 @@ export async function recordMemberPurchase(payload) {
     purchase: {
       pvGain: effectivePvGain,
       starterPersonalPv: nextStarterPersonalPvSafe,
+      currentPersonalPvBv: nextCurrentPersonalPvBv,
     },
   };
 }
 
-export async function upgradeMemberAccount(payload) {
+export async function createRegisteredMemberCheckoutSession(payload = {}, context = {}) {
+  let stripe = null;
+  try {
+    stripe = resolveStripeClient();
+  } catch (error) {
+    return {
+      success: false,
+      status: 503,
+      error: error instanceof Error ? error.message : 'Stripe is unavailable.',
+    };
+  }
+
+  const fullName = normalizeText(payload?.fullName);
+  const email = normalizeText(payload?.email);
+  const memberUsernameInput = normalizeText(payload?.memberUsername);
+  const countryFlag = normalizeCountryFlag(payload?.countryFlag);
+  const sponsorUsernameInput = normalizeCredential(payload?.sponsorUsername);
+  const sponsorNameInput = normalizeText(payload?.sponsorName);
+  const isAdminPlacement = Boolean(payload?.isAdminPlacement);
+  const enrollmentContext = isAdminPlacement ? 'admin' : 'member';
+  const placementLegInput = normalizePlacementLeg(payload?.placementLeg, {
+    allowSpillover: true,
+    fallback: PLACEMENT_LEG_LEFT,
+  });
+  const placementLegInputRaw = normalizeCredential(payload?.placementLeg);
+  const spilloverPlacementSideInput = (
+    normalizeCredential(payload?.spilloverPlacementSide) === PLACEMENT_LEG_RIGHT
+    || placementLegInputRaw === 'spillover-right'
+    || placementLegInputRaw === 'spillover_right'
+    || placementLegInputRaw === 'spillover right'
+  )
+    ? PLACEMENT_LEG_RIGHT
+    : PLACEMENT_LEG_LEFT;
+  const requestedSpilloverParentMode = normalizeCredential(payload?.spilloverParentMode || 'auto');
+  const spilloverParentModeInput = requestedSpilloverParentMode === 'manual' ? 'manual' : 'auto';
+  const spilloverParentReferenceInput = normalizeText(payload?.spilloverParentReference);
+  const enrollmentPackage = normalizeCredential(payload?.enrollmentPackage);
+  const requestedFastTrackTier = normalizeCredential(
+    payload?.fastTrackTier || FAST_TRACK_TIER_BY_PACKAGE[enrollmentPackage]
+  );
+  const billingAddress = normalizeText(payload?.billingAddress);
+  const billingCity = normalizeText(payload?.billingCity);
+  const billingState = normalizeText(payload?.billingState);
+  const billingPostalCode = normalizeText(payload?.billingPostalCode);
+  const billingCountry = normalizeText(payload?.billingCountry);
+  const billingCountryCode = normalizeText(payload?.billingCountryCode).toUpperCase();
+  const authenticatedMember = payload?.authenticatedMember && typeof payload.authenticatedMember === 'object'
+    ? payload.authenticatedMember
+    : null;
+  const authenticatedMemberDisplayName = normalizeText(
+    authenticatedMember?.name
+    || authenticatedMember?.fullName
+    || authenticatedMember?.username
+    || authenticatedMember?.memberUsername,
+  );
+
+  if (!fullName || !email) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Full name and email are required.',
+    };
+  }
+
+  const placementPolicy = await resolveServerEnforcedEnrollmentPlacement({
+    ...payload,
+    isAdminPlacement,
+    sponsorUsername: sponsorUsernameInput,
+    placementLeg: placementLegInput,
+    spilloverPlacementSide: spilloverPlacementSideInput,
+    spilloverParentMode: spilloverParentModeInput,
+    spilloverParentReference: spilloverParentReferenceInput,
+    authenticatedMember,
+  });
+  const actorUsername = normalizeCredential(placementPolicy?.actorUsername);
+  if (!isAdminPlacement && !actorUsername) {
+    return {
+      success: false,
+      status: 401,
+      error: 'Member authentication is required to submit enrollment.',
+    };
+  }
+
+  const sponsorUsername = normalizeCredential(placementPolicy?.sponsorUsername || sponsorUsernameInput);
+  if (!sponsorUsername) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Sponsor username is required for member enrollment.',
+    };
+  }
+  const sponsorName = normalizeText(
+    sponsorNameInput
+    || (sponsorUsername === actorUsername ? authenticatedMemberDisplayName : '')
+    || sponsorUsername,
+  );
+  const placementLeg = normalizePlacementLeg(placementPolicy?.placementLeg, {
+    allowSpillover: true,
+    fallback: PLACEMENT_LEG_LEFT,
+  });
+  const spilloverPlacementSide = placementLeg === PLACEMENT_LEG_SPILLOVER
+    ? resolvePlacementSideFromLeg(placementLeg, placementPolicy?.spilloverPlacementSide)
+    : '';
+  const spilloverParentMode = (
+    placementLeg === PLACEMENT_LEG_SPILLOVER
+    && normalizeCredential(placementPolicy?.spilloverParentMode) === 'manual'
+  )
+    ? 'manual'
+    : 'auto';
+  const effectiveSpilloverParentReference = (
+    placementLeg === PLACEMENT_LEG_SPILLOVER && spilloverParentMode === 'manual'
+  )
+    ? normalizeText(placementPolicy?.spilloverParentReference)
+    : '';
+
+  if (!FAST_TRACK_PACKAGE_META[enrollmentPackage]) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Invalid enrollment package.',
+    };
+  }
+
+  const checkoutSummary = resolveEnrollmentCheckoutSummary(enrollmentPackage);
+  if (checkoutSummary.total <= 0) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Only paid enrollment packages are allowed in this panel.',
+    };
+  }
+
+  if (!FAST_TRACK_TIER_META[requestedFastTrackTier]) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Invalid Fast Track tier.',
+    };
+  }
+
+  if (
+    placementLeg === PLACEMENT_LEG_SPILLOVER
+    && spilloverParentMode === 'manual'
+    && !effectiveSpilloverParentReference
+  ) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Manual spillover placement requires a receiving parent reference.',
+    };
+  }
+
+  const existingUserByEmail = await findUserByEmail(email);
+  if (existingUserByEmail) {
+    return {
+      success: false,
+      status: 409,
+      error: 'A member with this email already exists.',
+    };
+  }
+
+  const members = await readRegisteredMembersStore();
+  const existingMember = resolveExistingRegisteredMemberByIdentity(members, {
+    email,
+    memberUsername: memberUsernameInput,
+  });
+  if (existingMember) {
+    return {
+      success: false,
+      status: 409,
+      error: 'A member with this email already exists.',
+    };
+  }
+
+  const existingInvoices = await readMockStoreInvoicesStore();
+  const invoiceIdSeed = resolveNextStoreInvoiceId(existingInvoices);
+  const invoiceId = `${invoiceIdSeed}-${String(randomInt(100, 1000))}`;
+  const packageBv = toWholeNumber(checkoutSummary.packageBv, 0);
+  const origin = resolveRequestOrigin(context);
+  const returnUrls = resolveEnrollmentCheckoutReturnUrls(origin, payload.returnPath);
+
+  const paymentIntentMetadata = {
+    flow: sanitizeStripeMetadataValue(ENROLLMENT_PAYMENT_FLOW),
+    source: sanitizeStripeMetadataValue('binary-tree-next'),
+    invoice_id: sanitizeStripeMetadataValue(invoiceId),
+    enrollment_context: sanitizeStripeMetadataValue(enrollmentContext),
+    full_name: sanitizeStripeMetadataValue(fullName),
+    email: sanitizeStripeMetadataValue(email),
+    member_username: sanitizeStripeMetadataValue(memberUsernameInput),
+    country_flag: sanitizeStripeMetadataValue(countryFlag),
+    placement_leg: sanitizeStripeMetadataValue(placementLeg),
+    spillover_placement_side: sanitizeStripeMetadataValue(spilloverPlacementSide),
+    spillover_parent_mode: sanitizeStripeMetadataValue(spilloverParentMode),
+    spillover_parent_reference: sanitizeStripeMetadataValue(effectiveSpilloverParentReference),
+    enrollment_package: sanitizeStripeMetadataValue(enrollmentPackage),
+    fast_track_tier: sanitizeStripeMetadataValue(requestedFastTrackTier),
+    sponsor_username: sanitizeStripeMetadataValue(sponsorUsername),
+    sponsor_name: sanitizeStripeMetadataValue(sponsorName || sponsorUsername),
+    billing_address: sanitizeStripeMetadataValue(billingAddress),
+    billing_city: sanitizeStripeMetadataValue(billingCity),
+    billing_state: sanitizeStripeMetadataValue(billingState),
+    billing_postal_code: sanitizeStripeMetadataValue(billingPostalCode),
+    billing_country: sanitizeStripeMetadataValue(billingCountry),
+    billing_country_code: sanitizeStripeMetadataValue(billingCountryCode),
+    package_label: sanitizeStripeMetadataValue(checkoutSummary.packageLabel),
+    package_bv: String(packageBv),
+    subtotal: String(checkoutSummary.subtotal),
+    discount_amount: String(checkoutSummary.discount),
+    tax_amount: String(checkoutSummary.tax),
+    total_amount: String(checkoutSummary.total),
+  };
+
+  const sessionMetadata = {
+    checkout_type: sanitizeStripeMetadataValue('member-enrollment'),
+    payment_flow: sanitizeStripeMetadataValue('hosted-session'),
+    invoice_id: paymentIntentMetadata.invoice_id,
+    enrollment_context: paymentIntentMetadata.enrollment_context,
+    sponsor_username: paymentIntentMetadata.sponsor_username,
+    enrollment_package: paymentIntentMetadata.enrollment_package,
+    package_label: paymentIntentMetadata.package_label,
+    package_bv: paymentIntentMetadata.package_bv,
+    total_amount: paymentIntentMetadata.total_amount,
+    source: paymentIntentMetadata.source,
+  };
+  let stripeCustomerId = '';
+  try {
+    const customerResolution = await resolveOrCreateStripeCustomerForUserIdentity({
+      email,
+      name: fullName,
+    }, {
+      stripe,
+      allowCreate: true,
+      metadata: {
+        checkout_type: 'member-enrollment',
+      },
+    });
+    stripeCustomerId = normalizeText(customerResolution?.customerId);
+  } catch {
+    stripeCustomerId = '';
+  }
+
+  if (stripeCustomerId) {
+    paymentIntentMetadata.stripe_customer_id = sanitizeStripeMetadataValue(stripeCustomerId);
+    sessionMetadata.stripe_customer_id = sanitizeStripeMetadataValue(stripeCustomerId);
+  }
+
+  const packageLabel = checkoutSummary.packageLabel || 'Enrollment Package';
+  const lineItemName = `${packageLabel} Enrollment`;
+  const lineItemDescription = packageBv > 0
+    ? `${packageBv} BV`
+    : '';
+  const taxableAmountMinor = resolveCurrencyMinorAmount(checkoutSummary.total);
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      success_url: returnUrls.successUrl,
+      cancel_url: returnUrls.cancelUrl,
+      automatic_tax: {
+        enabled: true,
+      },
+      customer: stripeCustomerId || undefined,
+      customer_email: stripeCustomerId ? undefined : (email || undefined),
+      customer_creation: stripeCustomerId ? undefined : 'always',
+      customer_update: stripeCustomerId
+        ? {
+          address: 'auto',
+          name: 'auto',
+        }
+        : undefined,
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          metadata: {
+            invoice_id: sessionMetadata.invoice_id,
+            checkout_type: sessionMetadata.checkout_type,
+            source: sessionMetadata.source,
+          },
+        },
+      },
+      billing_address_collection: 'required',
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            unit_amount: taxableAmountMinor,
+            product_data: {
+              name: lineItemName,
+              description: lineItemDescription || undefined,
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: sessionMetadata,
+      payment_intent_data: {
+        receipt_email: email || undefined,
+        metadata: paymentIntentMetadata,
+      },
+    });
+
+    if (!session?.id || !session?.url) {
+      return {
+        success: false,
+        status: 500,
+        error: 'Stripe checkout session was not created.',
+      };
+    }
+
+    return {
+      success: true,
+      status: 201,
+      data: {
+        success: true,
+        sessionId: session.id,
+        sessionUrl: session.url,
+        checkout: {
+          invoiceId,
+          packageLabel: checkoutSummary.packageLabel,
+          packageBv: packageBv,
+          subtotal: checkoutSummary.subtotal,
+          discount: checkoutSummary.discount,
+          tax: checkoutSummary.tax,
+          total: checkoutSummary.total,
+        },
+      },
+    };
+  } catch (error) {
+    const message = error instanceof Error && error.message
+      ? error.message
+      : 'Unable to create Stripe checkout session.';
+
+    return {
+      success: false,
+      status: 502,
+      error: message,
+    };
+  }
+}
+
+export async function completeRegisteredMemberCheckoutSession(payload = {}) {
+  let stripe = null;
+  try {
+    stripe = resolveStripeClient();
+  } catch (error) {
+    return {
+      success: false,
+      status: 503,
+      error: error instanceof Error ? error.message : 'Stripe is unavailable.',
+    };
+  }
+
+  const sessionId = normalizeText(payload?.sessionId);
+  if (!sessionId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Checkout session ID is required.',
+    };
+  }
+
+  let session = null;
+  try {
+    session = await stripe.checkout.sessions.retrieve(sessionId);
+  } catch (error) {
+    const message = error instanceof Error && error.message
+      ? error.message
+      : 'Unable to retrieve checkout session.';
+
+    return {
+      success: false,
+      status: 404,
+      error: message,
+    };
+  }
+
+  const paymentStatus = normalizeText(session?.payment_status).toLowerCase();
+  const checkoutStatus = normalizeText(session?.status).toLowerCase();
+  const isPaid = paymentStatus === 'paid';
+  const isComplete = checkoutStatus === 'complete';
+
+  if (!isPaid || !isComplete) {
+    return {
+      success: true,
+      status: 202,
+      data: {
+        success: true,
+        completed: false,
+        paid: isPaid,
+        checkoutSession: {
+          id: session?.id || sessionId,
+          paymentStatus: session?.payment_status || '',
+          status: session?.status || '',
+        },
+      },
+    };
+  }
+
+  const paymentIntentId = normalizeText(
+    typeof session?.payment_intent === 'string'
+      ? session.payment_intent
+      : session?.payment_intent?.id,
+  );
+  if (!paymentIntentId) {
+    return {
+      success: false,
+      status: 409,
+      error: 'Checkout session did not include a payment intent reference.',
+    };
+  }
+
+  const completionResult = await completeRegisteredMemberPaymentIntent({
+    paymentIntentId,
+    isAdminPlacement: Boolean(payload?.isAdminPlacement),
+    authenticatedMember: payload?.authenticatedMember || null,
+    checkoutSessionId: session?.id || sessionId,
+    checkoutSessionCustomerId: resolveStripeCustomerId(session?.customer),
+    checkoutSessionPaymentStatus: session?.payment_status || '',
+  });
+  if (!completionResult.success) {
+    return completionResult;
+  }
+
+  const safeCompletionData = completionResult.data && typeof completionResult.data === 'object'
+    ? completionResult.data
+    : {};
+
+  return {
+    success: true,
+    status: completionResult.status,
+    data: {
+      ...safeCompletionData,
+      checkoutSession: {
+        id: session?.id || sessionId,
+        paymentStatus: session?.payment_status || '',
+        status: session?.status || '',
+      },
+    },
+  };
+}
+
+export async function upgradeMemberAccount(payload, options = {}) {
   const userId = normalizeText(payload?.userId);
   const username = normalizeCredential(payload?.username);
   const email = normalizeCredential(payload?.email);
   const targetPackageInput = normalizeCredential(payload?.targetPackage);
+  const persistMode = normalizeCredential(options?.persistMode || 'rewrite');
+  const useTargetedPersistence = persistMode === 'upsert';
 
   const ACCOUNT_UPGRADE_PACKAGE_ORDER = [
     FREE_ACCOUNT_PACKAGE_KEY,
@@ -1766,20 +2963,25 @@ export async function upgradeMemberAccount(payload) {
     || normalizeRankLabelForDisplay(existingUser?.accountRank || existingUser?.rank)
     || 'Personal';
 
-  const existingActivityActiveUntil = (
-    typeof existingUser?.activityActiveUntilAt === 'string' && existingUser.activityActiveUntilAt.trim()
-  )
-    ? existingUser.activityActiveUntilAt
-    : nowIso;
-
-  const existingActivityMs = Date.parse(existingActivityActiveUntil);
-  const baseMs = Number.isFinite(existingActivityMs) && existingActivityMs > now.getTime()
-    ? existingActivityMs
-    : now.getTime();
-
-  const nextActivityActiveUntilAt = new Date(
-    baseMs + ACCOUNT_ACTIVITY_WINDOW_MS
-  ).toISOString();
+  const personalBvSnapshot = resolveMemberPersonalBvSnapshot(existingUser, { referenceDate: now });
+  const nextActivityActiveUntilAt = personalBvSnapshot.nextCutoffAt;
+  const nextCurrentPersonalPvBv = Math.max(
+    0,
+    personalBvSnapshot.currentPersonalPvBv + upgradeBvGain,
+  );
+  const nextAccountStatus = resolveMemberAccountStatusByPersonalBv({
+    ...existingUser,
+    enrollmentPackage: targetPackageKey,
+    enrollmentPackageBv: nextPackageBv,
+    starterPersonalPv: nextStarterPersonalPv,
+    currentPersonalPvBv: nextCurrentPersonalPvBv,
+    rank: nextRank,
+    accountRank: nextRank,
+    activityActiveUntilAt: nextActivityActiveUntilAt,
+    lastProductPurchaseAt: nowIso,
+    lastPurchaseAt: nowIso,
+    lastAccountUpgradeAt: nowIso,
+  });
 
   users[userIndex] = {
     ...existingUser,
@@ -1788,8 +2990,10 @@ export async function upgradeMemberAccount(payload) {
     enrollmentPackagePrice: nextPackagePrice,
     enrollmentPackageBv: nextPackageBv,
     starterPersonalPv: nextStarterPersonalPv,
+    currentPersonalPvBv: nextCurrentPersonalPvBv,
     rank: nextRank,
     accountRank: nextRank,
+    accountStatus: nextAccountStatus,
     activityActiveUntilAt: nextActivityActiveUntilAt,
     lastProductPurchaseAt: nowIso,
     lastPurchaseAt: nowIso,
@@ -1806,6 +3010,21 @@ export async function upgradeMemberAccount(payload) {
     email: normalizeCredential(matchedUser?.email),
   };
   const primaryMemberIndex = resolvePrimaryMemberIndexForIdentity(members, identity);
+  const sourceMemberRecord = primaryMemberIndex >= 0 ? members[primaryMemberIndex] : null;
+  const sponsorUsernameForFastTrackUpgrade = normalizeCredential(
+    sourceMemberRecord?.sponsorUsername || sourceMemberRecord?.sponsor_username,
+  );
+  const isPreferredToPaidUpgrade = (
+    currentPackageKey === FREE_ACCOUNT_PACKAGE_KEY
+    && targetPackageKey !== FREE_ACCOUNT_PACKAGE_KEY
+  );
+  let fastTrackUpgradeBonusAmount = 0;
+  let fastTrackUpgradeBonusApplied = false;
+  let fastTrackUpgradeSponsorUsername = '';
+  let fastTrackUpgradeSponsorTier = '';
+  let fastTrackUpgradeBonusMessage = isPreferredToPaidUpgrade
+    ? 'Preferred upgrade detected. Fast Track sponsor credit is pending.'
+    : 'Fast Track bonus is disabled for paid-to-paid upgrades.';
 
   let updatedMemberRecord = null;
 
@@ -1821,8 +3040,11 @@ export async function upgradeMemberAccount(payload) {
       packagePrice: nextPackagePrice,
       packageBv: nextPackageBv,
       starterPersonalPv: nextStarterPersonalPv,
+      currentPersonalPvBv: nextCurrentPersonalPvBv,
       rank: nextRank,
       accountRank: nextRank,
+      accountStatus: nextAccountStatus,
+      status: nextAccountStatus,
       activityActiveUntilAt: nextActivityActiveUntilAt,
       lastProductPurchaseAt: nowIso,
       lastPurchaseAt: nowIso,
@@ -1836,8 +3058,58 @@ export async function upgradeMemberAccount(payload) {
     return upgradedMember;
   });
 
-  await writeMockUsersStore(users);
-  await writeRegisteredMembersStore(updatedMembers);
+  if (useTargetedPersistence) {
+    await upsertMockUserRecord(users[userIndex]);
+    if (updatedMemberRecord) {
+      await upsertRegisteredMemberRecord(updatedMemberRecord);
+    }
+  } else {
+    await writeMockUsersStore(users);
+    await writeRegisteredMembersStore(updatedMembers);
+  }
+
+  if (isPreferredToPaidUpgrade) {
+    if (!sponsorUsernameForFastTrackUpgrade) {
+      fastTrackUpgradeBonusMessage = 'Preferred upgrade completed, but sponsor was missing so Fast Track was skipped.';
+    } else {
+      const matchedSponsorUser = users.find((user) => (
+        normalizeCredential(user?.username) === sponsorUsernameForFastTrackUpgrade
+      )) || await findUserByUsername(sponsorUsernameForFastTrackUpgrade);
+
+      if (!matchedSponsorUser) {
+        fastTrackUpgradeBonusMessage = 'Preferred upgrade completed, but sponsor account was not found so Fast Track was skipped.';
+      } else {
+        const resolvedSponsorFastTrackTier = resolveFastTrackTierFromSponsorUser(matchedSponsorUser);
+        fastTrackUpgradeSponsorUsername = normalizeText(
+          matchedSponsorUser?.username || sponsorUsernameForFastTrackUpgrade,
+        );
+        fastTrackUpgradeSponsorTier = resolvedSponsorFastTrackTier;
+
+        if (!FAST_TRACK_TIER_META[resolvedSponsorFastTrackTier]) {
+          fastTrackUpgradeBonusMessage = 'Preferred upgrade completed, but sponsor Fast Track tier was invalid.';
+        } else {
+          fastTrackUpgradeBonusAmount = resolveFastTrackBonusAmount({
+            enrollmentPackage: targetPackageKey,
+            sponsorFastTrackTier: resolvedSponsorFastTrackTier,
+            isAdminPlacement: false,
+          });
+
+          if (fastTrackUpgradeBonusAmount > 0) {
+            const fastTrackCreditResult = await creditSponsorFastTrackCommissionContainer({
+              sponsorUser: matchedSponsorUser,
+              fastTrackBonusAmount: fastTrackUpgradeBonusAmount,
+            });
+            fastTrackUpgradeBonusApplied = Boolean(fastTrackCreditResult);
+            fastTrackUpgradeBonusMessage = fastTrackUpgradeBonusApplied
+              ? 'Fast Track bonus credited to sponsor from Preferred upgrade.'
+              : 'Preferred upgrade completed, but Fast Track commission wallet write failed.';
+          } else {
+            fastTrackUpgradeBonusMessage = 'Preferred upgrade completed with zero Fast Track bonus amount.';
+          }
+        }
+      }
+    }
+  }
 
   return {
     success: true,
@@ -1851,6 +3123,7 @@ export async function upgradeMemberAccount(payload) {
       enrollmentPackagePrice: nextPackagePrice,
       enrollmentPackageBv: nextPackageBv,
       starterPersonalPv: nextStarterPersonalPv,
+      currentPersonalPvBv: nextCurrentPersonalPvBv,
       rank: nextRank,
       accountRank: nextRank,
       activityActiveUntilAt: nextActivityActiveUntilAt,
@@ -1874,7 +3147,11 @@ export async function upgradeMemberAccount(payload) {
       pvGain: upgradeBvGain,
       productCount: upgradeProductCount,
       productBv: upgradeProductCount * PACKAGE_PRODUCT_BV,
-      fastTrackBonusApplied: false,
+      fastTrackBonusApplied: fastTrackUpgradeBonusApplied,
+      fastTrackBonusAmount: fastTrackUpgradeBonusAmount,
+      fastTrackBonusSponsorUsername: fastTrackUpgradeSponsorUsername,
+      fastTrackBonusSponsorTier: fastTrackUpgradeSponsorTier,
+      fastTrackBonusMessage: fastTrackUpgradeBonusMessage,
     },
   };
 }

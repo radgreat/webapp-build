@@ -1,200 +1,49 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Support - Premiere Life</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Store Support - Premiere Life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--line:#eef0f3;--ink:#101113;--muted:#5d6168;--btn:#077aff}
+*{box-sizing:border-box}html,body{margin:0;padding:0}body{min-height:100vh;background:var(--bg);color:var(--ink);font:400 14px "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.hidden{display:none!important}
+.topbar{height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;background:#fff}
+.topbar-inner{width:min(1240px,calc(100vw - 54px));display:flex;align-items:center;justify-content:space-between;gap:16px}
+.top-left{display:flex;align-items:center;gap:18px;min-width:0}.brand-icon{width:29px;height:29px;object-fit:contain;flex:0 0 auto}
+.nav{display:flex;align-items:center;gap:18px}.nav-link{color:#111;text-decoration:none;font-size:15px;letter-spacing:-.015em;opacity:.92;transition:opacity .18s,transform .18s}.nav-link:hover{opacity:1;transform:translateY(-1px)}.nav-link.active{opacity:1}
+.actions{display:flex;align-items:center;gap:10px}.btn{height:40px;border:0;border-radius:12px;padding:0 14px;font:500 14px "Inter",sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;transition:filter .18s,transform .18s}.btn:hover{filter:brightness(1.03);transform:translateY(-1px)}.btn-secondary{background:#f5f7fa;color:#1e2126}
+.page{width:min(900px,calc(100vw - 54px));margin:0 auto;padding:36px 0 72px;display:grid;gap:16px}
+.card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:22px}.eyebrow{margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#4b6da4;font-weight:500}.card h1,.card h2{margin:8px 0 0;letter-spacing:-.03em;font-weight:500}.card h1{font-size:34px}.card h2{font-size:22px}.card p{margin:10px 0 0;font-size:15px;line-height:1.55;color:var(--muted)}
+.list{margin:0;padding-left:18px;display:grid;gap:8px;color:var(--muted)}.list li{line-height:1.5}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.link-btn{height:40px;border-radius:12px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font:500 14px "Inter",sans-serif}.link-primary{background:var(--btn);color:#fff}.link-secondary{background:#f5f7fa;color:#1e2126}
+@media (max-width:760px){.topbar{height:60px}.topbar-inner{width:calc(100vw - 18px)}.top-left{gap:10px}.brand-icon{width:24px;height:24px}.nav{gap:10px}.nav-link{font-size:13px}.page{width:calc(100vw - 18px);padding:22px 0 44px}.card{padding:16px}.card h1{font-size:28px}.card h2{font-size:20px}}
+</style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900">
-  <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-    <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-      <div class="flex items-center">
-        <a href="/store.html" class="inline-flex items-center"><img src="/brand_assets/Logos/L%26D%20Logo_Cropped.png" alt="L&D logo" class="h-10 w-auto"></a>
-      </div>
-
-      <nav class="mt-3 flex flex-wrap items-center gap-5 text-sm font-medium text-slate-700">
-        <a href="/" class="transition hover:text-emerald-600">Home</a>
-        <a id="nav-products-link" href="/store.html" class="transition hover:text-emerald-600">Products</a>
-        <a id="nav-support-link" href="/store-support.html" class="text-emerald-700">Support</a>
-        <div class="ml-auto flex items-center gap-2">
-          <a id="header-checkout-link" href="/store-checkout.html" aria-label="Cart and checkout" class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5">
-              <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2zM7.17 13h9.92c.75 0 1.41-.41 1.75-1.03L22 6.5a1 1 0 0 0-.87-1.5H6.21l-.94-2H2v2h2l3.6 7.59L6.25 15c-.16.28-.25.61-.25.95 0 1.1.9 2 2 2h12v-2H8.42c-.14 0-.25-.11-.25-.25l.03-.12L9.1 14h7.55c.75 0 1.41-.41 1.75-1.03L21 8H8.53l-.45-1H19l-1.91 3.5H9.53l-2.36-5H20.3L17.17 13H7.17z"/>
-            </svg>
-            <span id="header-cart-count" class="absolute -right-1 -top-1 min-w-4 rounded-full bg-emerald-600 px-1 text-center text-[10px] font-semibold leading-4 text-white">0</span>
-            <span class="sr-only">Cart / Checkout</span>
-          </a>
-          <button id="header-login-trigger" type="button" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500 sm:text-sm">Login</button>
-        </div>
-      </nav>
-    </div>
-  </header>
-
-  <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Store Support</p>
-      <h1 class="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">We are here to help</h1>
-      <p class="mt-3 text-sm leading-7 text-slate-600">
-        This page is a temporary support center for the storefront. We can edit this content later as your final support workflow is finalized.
-      </p>
-    </section>
-
-    <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 class="text-lg font-semibold text-slate-900">Current Support Details</h2>
-      <div class="mt-4 space-y-4 text-sm leading-7 text-slate-700">
-        <p>
-          For order assistance, include your invoice number, full name, and the email used during checkout.
-          This helps support locate your order quickly.
-        </p>
-        <p>
-          For shipping questions, include your shipping city and order date. We currently handle standard processing first,
-          and urgent shipment updates can be flagged by support after verification.
-        </p>
-        <p>
-          For product questions, include the product name and your preferred contact method.
-          We can provide ingredient, usage, and timing guidance in a follow-up response.
-        </p>
-      </div>
-    </section>
-
-    <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 class="text-lg font-semibold text-slate-900">Contact Window</h2>
-      <div class="mt-4 space-y-2 text-sm text-slate-700">
-        <p>Email: <a href="mailto:support@premierelife.com" class="font-medium text-emerald-700 hover:underline">support@premierelife.com</a></p>
-        <p>Phone: <a href="tel:+18005550199" class="font-medium text-emerald-700 hover:underline">+1 (800) 555-0199</a></p>
-        <p>Typical response time: within 1 business day.</p>
-      </div>
-      <div class="mt-5 flex flex-wrap gap-3">
-        <a id="back-to-products" href="/store.html" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Back to Products</a>
-        <a id="go-to-checkout" href="/store-checkout.html" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-emerald-300 hover:text-emerald-700">Go to Checkout</a>
-      </div>
-    </section>
-  </main>
-
-  <div id="header-login-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/60" data-login-modal-close></div>
-    <section class="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Account Access</p>
-          <h2 class="mt-1 text-xl font-bold text-slate-900">Choose Your Login</h2>
-          <p class="mt-1 text-sm text-slate-600">Select the account type you want to access.</p>
-        </div>
-        <button type="button" data-login-modal-close class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">Close</button>
-      </div>
-      <div class="mt-4 grid gap-3">
-        <a id="header-login-member-link" href="/login.html" class="rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">Member Login</a>
-        <a id="header-login-preferred-link" href="/login.html" class="rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">Customer Login</a>
-      </div>
-      <p class="mt-4 text-sm text-slate-600">
-        Don't have an account?
-        <a id="header-login-register-link" href="/store-register.html" class="font-semibold text-emerald-700 underline hover:text-emerald-600">Register now</a>
-        to get 15% discount on your checkout.
-      </p>
-    </section>
-  </div>
-
-  <script src="/storefront-shared.js"></script>
-  <script>
-    const shared = window.StorefrontShared;
-    const navProductsLinkElement = document.getElementById('nav-products-link');
-    const navSupportLinkElement = document.getElementById('nav-support-link');
-    const backToProductsElement = document.getElementById('back-to-products');
-    const goToCheckoutElement = document.getElementById('go-to-checkout');
-    const headerCheckoutLinkElement = document.getElementById('header-checkout-link');
-    const headerCartCountElement = document.getElementById('header-cart-count');
-    const headerLoginTriggerElement = document.getElementById('header-login-trigger');
-    const headerLoginModalElement = document.getElementById('header-login-modal');
-    const headerLoginMemberLinkElement = document.getElementById('header-login-member-link');
-    const headerLoginPreferredLinkElement = document.getElementById('header-login-preferred-link');
-    const headerLoginRegisterLinkElement = document.getElementById('header-login-register-link');
-    const headerLoginModalCloseElements = Array.from(document.querySelectorAll('[data-login-modal-close]'));
-
-    function syncAuthLinks(activeStoreCode) {
-      const sessionUser = shared.readUserSession();
-      const hasSession = Boolean(sessionUser && typeof sessionUser === 'object');
-      const isFreeSession = shared.isFreeAccountUser(sessionUser);
-
-      if (headerLoginPreferredLinkElement) {
-        headerLoginPreferredLinkElement.href = isFreeSession
-          ? shared.buildDashboardUrl(activeStoreCode)
-          : shared.buildFreeLoginUrl(activeStoreCode);
-        headerLoginPreferredLinkElement.textContent = isFreeSession ? 'My Dashboard' : 'Customer Login';
-      }
-
-      if (headerLoginMemberLinkElement) {
-        headerLoginMemberLinkElement.href = hasSession && !isFreeSession ? '/index.html' : '/login.html';
-        headerLoginMemberLinkElement.textContent = hasSession && !isFreeSession ? 'Member Dashboard' : 'Member Login';
-      }
-
-      if (headerLoginRegisterLinkElement) {
-        headerLoginRegisterLinkElement.href = shared.buildRegisterUrl(activeStoreCode);
-      }
-    }
-
-    function renderHeaderCartCount() {
-      const cartSummary = shared.resolveCartSummary(shared.getCart(), []);
-      if (headerCartCountElement) {
-        headerCartCountElement.textContent = shared.formatInteger(cartSummary.itemCount);
-      }
-    }
-
-    function hideHeaderLoginModal() {
-      if (!headerLoginModalElement) {
-        return;
-      }
-      headerLoginModalElement.classList.add('hidden');
-      headerLoginModalElement.classList.remove('flex');
-    }
-
-    function showHeaderLoginModal(activeStoreCode) {
-      if (!headerLoginModalElement) {
-        return;
-      }
-      syncAuthLinks(activeStoreCode);
-      headerLoginModalElement.classList.remove('hidden');
-      headerLoginModalElement.classList.add('flex');
-    }
-
-    function bindHeaderLoginModal(activeStoreCode) {
-      if (headerLoginTriggerElement) {
-        headerLoginTriggerElement.addEventListener('click', () => showHeaderLoginModal(activeStoreCode));
-      }
-
-      headerLoginModalCloseElements.forEach((closeElement) => {
-        closeElement.addEventListener('click', hideHeaderLoginModal);
-      });
-    }
-
-    function initSupportPage() {
-      const activeStoreCode = shared.getActiveStoreCode();
-      const productsUrl = shared.buildStorefrontUrl(activeStoreCode);
-      const supportUrl = shared.buildSupportUrl(activeStoreCode);
-      const checkoutUrl = shared.buildCheckoutUrl(activeStoreCode);
-
-      if (navProductsLinkElement) {
-        navProductsLinkElement.href = productsUrl;
-      }
-      if (navSupportLinkElement) {
-        navSupportLinkElement.href = supportUrl;
-      }
-      if (backToProductsElement) {
-        backToProductsElement.href = productsUrl;
-      }
-      if (goToCheckoutElement) {
-        goToCheckoutElement.href = checkoutUrl;
-      }
-      if (headerCheckoutLinkElement) {
-        headerCheckoutLinkElement.href = checkoutUrl;
-      }
-
-      syncAuthLinks(activeStoreCode);
-      bindHeaderLoginModal(activeStoreCode);
-      renderHeaderCartCount();
-    }
-
-    initSupportPage();
-  </script>
+<body>
+<header class="topbar"><div class="topbar-inner"><div class="top-left"><a id="brand-home-link" href="/store.html" aria-label="Store Home"><img class="brand-icon" src="/brand_assets/Logos/L&D Icon.svg" alt="L&D icon"></a><nav id="guest-nav" class="nav"><a id="guest-store-link" class="nav-link" href="/store.html">Store</a><a id="guest-support-link" class="nav-link active" href="/store-support.html">Support</a></nav><nav id="member-nav" class="nav hidden"><a id="member-dashboard-link" class="nav-link" href="/store-dashboard.html">Dashboard</a><a id="member-store-link" class="nav-link" href="/store.html">Store</a><a id="member-support-link" class="nav-link active" href="/store-support.html">Support</a></nav></div><div id="guest-actions" class="actions"><a id="guest-login-link" class="nav-link" href="/login.html">Login</a></div><div id="member-actions" class="actions hidden"><button id="logout-button" class="btn btn-secondary" type="button">Logout</button></div></div></header>
+<main class="page">
+<section class="card"><p class="eyebrow">Store Support</p><h1>We are here to help.</h1><p>Share your invoice number, full name, and account email for faster support handling.</p></section>
+<section class="card"><h2>Current Support Details</h2><ul class="list"><li>Order support: include invoice ID, account email, and order date.</li><li>Shipping support: include city, state, and expected delivery window.</li><li>Product support: include the product name and your preferred contact method.</li></ul></section>
+<section class="card"><h2>Contact Window</h2><p>Email: <a href="mailto:support@premierelife.com">support@premierelife.com</a></p><p>Phone: <a href="tel:+18005550199">+1 (800) 555-0199</a></p><p>Typical response time: within 1 business day.</p><div class="links"><a id="back-store-link" class="link-btn link-secondary" href="/store.html">Back to Store</a><a id="go-dashboard-link" class="link-btn link-primary" href="/store-dashboard.html">Go to Dashboard</a></div></section>
+</main>
+<script src="/storefront-shared.js"></script>
+<script>
+const shared=window.StorefrontShared;
+const el={brand:document.getElementById('brand-home-link'),guestNav:document.getElementById('guest-nav'),memberNav:document.getElementById('member-nav'),guestActions:document.getElementById('guest-actions'),memberActions:document.getElementById('member-actions'),guestStore:document.getElementById('guest-store-link'),guestSupport:document.getElementById('guest-support-link'),guestLogin:document.getElementById('guest-login-link'),memberDash:document.getElementById('member-dashboard-link'),memberStore:document.getElementById('member-store-link'),memberSupport:document.getElementById('member-support-link'),backStore:document.getElementById('back-store-link'),goDash:document.getElementById('go-dashboard-link'),logout:document.getElementById('logout-button')};
+const t=v=>String(v||'').trim();
+function resolveCode(session){const q=new URLSearchParams(window.location.search);return shared.normalizeStoreCode(t(q.get('store')||session?.attributionStoreCode||session?.publicStoreCode||session?.storeCode))}
+function init(){const session=shared.readUserSession(),preferred=shared.isFreeAccountUser(session),code=resolveCode(preferred?session:null);
+window.addEventListener('storage',e=>{if(e.key==='vault-auth-user'||e.key==='vault-auth-last-logout-at'){window.location.reload()}});
+const store=shared.buildStorefrontUrl(code),support=shared.buildSupportUrl(code),login=shared.buildFreeLoginUrl(code),dash=shared.buildDashboardUrl(code);
+if(el.guestStore)el.guestStore.href=store;if(el.guestSupport)el.guestSupport.href=support;if(el.guestLogin)el.guestLogin.href=login;if(el.memberDash)el.memberDash.href=dash;if(el.memberStore)el.memberStore.href=store;if(el.memberSupport)el.memberSupport.href=support;if(el.backStore)el.backStore.href=store;if(el.goDash)el.goDash.href=dash;if(el.brand)el.brand.href=preferred?dash:store;
+el.guestNav?.classList.toggle('hidden',preferred);el.guestActions?.classList.toggle('hidden',preferred);el.memberNav?.classList.toggle('hidden',!preferred);el.memberActions?.classList.toggle('hidden',!preferred);
+el.logout?.addEventListener('click',()=>{shared.clearUserSession({clearCart:true});const loginUrl=new URL(login,window.location.origin);loginUrl.searchParams.set('logout','1');loginUrl.searchParams.set('t',String(Date.now()));window.location.replace(`${loginUrl.pathname}${loginUrl.search}`)});
+}
+init();
+</script>
 </body>
 </html>

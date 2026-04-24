@@ -1,4 +1,5 @@
 import { randomUUID, randomInt } from 'crypto';
+import { resolveMemberActivityStateByPersonalBv } from './member-activity.helpers.js';
 
 export const PASSWORD_MIN_LENGTH = 8;
 export const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
@@ -73,13 +74,15 @@ export function resolveSetupToken(tokens, rawToken) {
 }
 
 export function sanitizeUserForAuthResponse(user) {
+  const activityState = resolveMemberActivityStateByPersonalBv(user);
   return {
     id: user?.id || null,
     name: user?.name || user?.username || 'User',
     username: user?.username || '',
     email: user?.email || '',
     countryFlag: user?.countryFlag || '',
-    accountStatus: typeof user?.accountStatus === 'string' ? user.accountStatus : '',
+    accountStatus: activityState.accountStatus,
+    isActive: activityState.isActive,
     attributionStoreCode: typeof user?.attributionStoreCode === 'string' ? user.attributionStoreCode : '',
     publicStoreCode: typeof user?.publicStoreCode === 'string' ? user.publicStoreCode : '',
     storeCode: typeof user?.storeCode === 'string' ? user.storeCode : '',
@@ -94,15 +97,15 @@ export function sanitizeUserForAuthResponse(user) {
     starterPersonalPv: Number.isFinite(Number(user?.starterPersonalPv))
       ? Number(user.starterPersonalPv)
       : 0,
+    currentPersonalPvBv: activityState.currentPersonalPvBv,
+    monthlyPersonalBv: activityState.currentPersonalPvBv,
     starterTotalCycles: Number.isFinite(Number(user?.starterTotalCycles))
       ? Number(user.starterTotalCycles)
       : 0,
     createdAt: typeof user?.createdAt === 'string' ? user.createdAt : '',
     rank: typeof user?.rank === 'string' ? user.rank : '',
     accountRank: typeof user?.accountRank === 'string' ? user.accountRank : '',
-    activityActiveUntilAt: typeof user?.activityActiveUntilAt === 'string'
-      ? user.activityActiveUntilAt
-      : '',
+    activityActiveUntilAt: activityState.activeUntilAt,
     lastProductPurchaseAt: typeof user?.lastProductPurchaseAt === 'string'
       ? user.lastProductPurchaseAt
       : '',

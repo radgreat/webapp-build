@@ -37,7 +37,8 @@
  * @property {string=} placementParentId
  * @property {'left' | 'right'=} placementSide
  * @property {boolean=} isSpillover
- * @property {'primary' | 'placeholder'=} businessCenterNodeType
+ * @property {'main_center' | 'business_center' | 'staff_admin' | 'legacy_placeholder'=} businessCenterNodeType
+ * @property {number=} businessCenterIndex
  * @property {boolean=} isBusinessCenterPlaceholder
  */
 
@@ -1059,6 +1060,24 @@ function normalizeSide(value) {
   return value === 'left' || value === 'right' ? value : undefined;
 }
 
+function normalizeBusinessCenterNodeType(value) {
+  const normalizedNodeType = String(value || '').trim().toLowerCase();
+  if (normalizedNodeType === 'business_center' || normalizedNodeType === 'business-center') {
+    return 'business_center';
+  }
+  if (normalizedNodeType === 'staff_admin' || normalizedNodeType === 'staff-admin') {
+    return 'staff_admin';
+  }
+  if (
+    normalizedNodeType === 'legacy_placeholder'
+    || normalizedNodeType === 'legacy-placeholder'
+    || normalizedNodeType === 'placeholder'
+  ) {
+    return 'legacy_placeholder';
+  }
+  return 'main_center';
+}
+
 function getNodePersonalBv(node) {
   if (!node || typeof node !== 'object') {
     return 0;
@@ -1145,12 +1164,10 @@ function normalizeNode(id, node) {
   const rightPersonalPv = sanitizeVolume(
     node?.rightPersonalPv ?? node?.rightPersonalVolume ?? node?.rightPv,
   );
-  const businessCenterNodeTypeRaw = String(node?.businessCenterNodeType || '').trim().toLowerCase();
-  const businessCenterNodeType = businessCenterNodeTypeRaw === 'placeholder'
-    ? 'placeholder'
-    : 'primary';
+  const businessCenterNodeType = normalizeBusinessCenterNodeType(node?.businessCenterNodeType);
+  const businessCenterIndex = sanitizeVolume(node?.businessCenterIndex);
   const isBusinessCenterPlaceholder = Boolean(node?.isBusinessCenterPlaceholder)
-    || businessCenterNodeType === 'placeholder';
+    || businessCenterNodeType === 'legacy_placeholder';
   const profileBadgeVisibility = node?.profileBadgeVisibility && typeof node.profileBadgeVisibility === 'object'
     ? sanitizeNodePopupBadgeVisibility(node.profileBadgeVisibility)
     : undefined;
@@ -1213,13 +1230,29 @@ function normalizeNode(id, node) {
     placementSide: normalizeSide(node?.placementSide),
     isSpillover: Boolean(node?.isSpillover),
     businessCenterNodeType,
+    businessCenterIndex,
     isBusinessCenterPlaceholder,
   };
 }
 
 function isBusinessCenterPlaceholderNode(node = {}) {
   return Boolean(node?.isBusinessCenterPlaceholder)
-    || String(node?.businessCenterNodeType || '').trim().toLowerCase() === 'placeholder';
+    || normalizeBusinessCenterNodeType(node?.businessCenterNodeType) === 'legacy_placeholder';
+}
+
+function isBusinessCenterAuxiliaryNode(node = {}) {
+  const nodeType = normalizeBusinessCenterNodeType(node?.businessCenterNodeType);
+  const centerIndex = sanitizeVolume(node?.businessCenterIndex);
+  return nodeType === 'business_center' || centerIndex > 0;
+}
+
+function isBusinessCenterKpiExcludedNode(node = {}) {
+  const nodeType = normalizeBusinessCenterNodeType(node?.businessCenterNodeType);
+  return (
+    nodeType === 'staff_admin'
+    || isBusinessCenterPlaceholderNode(node)
+    || isBusinessCenterAuxiliaryNode(node)
+  );
 }
 
 function resolveSponsorLeg(nodeId, sponsorId, nodes, placementByChild) {
@@ -1455,7 +1488,7 @@ function buildDashboardSummary(data) {
   }
 
   const nodeValues = Object.values(data.nodes);
-  const kpiNodeValues = nodeValues.filter((node) => !isBusinessCenterPlaceholderNode(node));
+  const kpiNodeValues = nodeValues.filter((node) => !isBusinessCenterKpiExcludedNode(node));
   const kpiDownlineNodeValues = kpiNodeValues.filter((node) => node.id !== data.rootId);
   const totalPersonalVolume = nodeValues.reduce(
     (sum, node) => sum + (node.leftPersonalPv + node.rightPersonalPv),

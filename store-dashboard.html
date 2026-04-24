@@ -1,819 +1,999 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - Premiere Life</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preferred Dashboard - Premiere Life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--line:#EEF0F3;--ink:#101113;--muted:#5D6168;--field:#E2E2E2;--btn:#077AFF;--danger:#9E1D1D;--ok:#1D6C3A}
+*{box-sizing:border-box}html,body{margin:0;padding:0}body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:500}
+.topbar{height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;background:#fff}.topbar-inner{width:min(1240px,calc(100vw - 54px));display:flex;align-items:center;justify-content:space-between;gap:16px}.top-left{display:flex;align-items:center;gap:18px}.brand-icon{width:29px;height:29px;object-fit:contain}.nav-link{color:#111;text-decoration:none;font-size:15px;letter-spacing:-.015em;opacity:.92;transition:opacity .18s,transform .18s}.nav-link:hover{opacity:1;transform:translateY(-1px)}
+.btn{height:40px;border:0;border-radius:12px;padding:0 14px;font:500 14px "Inter",sans-serif;letter-spacing:-.01em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;transition:filter .18s,transform .18s}.btn:hover{filter:brightness(1.03);transform:translateY(-1px)}.btn:focus-visible{outline:2px solid rgba(7,122,255,.4);outline-offset:2px}.btn-primary{background:var(--btn);color:#fff}.btn-secondary{background:#F5F7FA;color:#1E2126}.btn:disabled{opacity:.55;cursor:default;transform:none;filter:none}
+.page{width:min(1240px,calc(100vw - 54px));margin:0 auto;padding:34px 0 72px;display:grid;gap:18px}.panel{border:1px solid var(--line);border-radius:16px;background:#fff;padding:18px}.panel-title{margin:0;font-size:24px;line-height:1.12;letter-spacing:-.03em;font-weight:500}.panel-sub{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.4}
+.hero{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}.hero-copy{display:grid;gap:8px}.eyebrow{margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#4B6DA4}
+.grid-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.grid-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.metric{border:1px solid var(--line);border-radius:12px;padding:12px;background:#FAFBFD}.metric p{margin:0}.metric-label{font-size:12px;color:#5E636B}.metric-value{margin-top:4px!important;font-size:24px;letter-spacing:-.03em}
+.field{display:grid;gap:6px}.field label{font-size:12px;color:#4B5058;letter-spacing:-.01em}.input,.select{width:100%;height:44px;border:0;border-radius:12px;background:var(--field);padding:0 12px;font:400 14px "Inter",sans-serif;letter-spacing:-.01em;color:#171717;outline:none}.input::placeholder{color:#444}.input:focus,.select:focus{box-shadow:0 0 0 2px rgba(7,122,255,.22)}.input[readonly]{opacity:.7}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.form-grid{display:grid;gap:10px}.inline-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.inline-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.business-teaser{border-color:#E4E7EC;background:linear-gradient(180deg,#FCFCFD 0%,#F7F8FA 100%)}.business-teaser-copy{display:grid;gap:10px;max-width:760px}.business-teaser-kicker{margin:0;font-size:12px;line-height:1.2;letter-spacing:.09em;text-transform:uppercase;color:#6A7280}.business-teaser-title{margin:0;font-size:28px;line-height:1.15;letter-spacing:-.03em;font-weight:500;color:#0F1724}.business-teaser-sub{margin:0;font-size:14px;line-height:1.6;color:#5A6270}.business-teaser-points{margin:2px 0 0;padding:0;list-style:none;display:grid;gap:8px}.business-teaser-points li{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;color:#323843;font-weight:400}.business-teaser-points li::before{content:'';width:14px;height:14px;flex:0 0 14px;margin-top:.25em;background-repeat:no-repeat;background-size:14px 14px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Ccircle cx='10' cy='10' r='9' stroke='%23111722' stroke-width='1.5'/%3E%3Cpath d='M6 10.3l2.4 2.4L14 7.5' stroke='%23111722' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}.business-invite-feedback{margin:12px 0 0}.upgrade-checkout-flow{display:grid;gap:16px;margin-top:26px}.upgrade-product-picker{display:flex;align-items:center;justify-content:center;gap:8px;row-gap:10px;flex-wrap:wrap}.upgrade-product-picker-title{margin:0;width:100%;text-align:center;font-size:15px;font-weight:500;letter-spacing:-.02em;color:#111722;line-height:1.25}.upgrade-product-picker-caption{margin:0;width:100%;text-align:center;font-size:12px;color:#596273;line-height:1.45}.upgrade-product-option{height:34px;border:1px solid #D7DCE4;background:#fff;color:#151B25;border-radius:999px;padding:0 12px;font:400 13px "Inter",sans-serif;letter-spacing:-.01em;cursor:pointer;transition:border-color .18s,background .18s,color .18s}.upgrade-product-option:hover{border-color:#BBC6D5}.upgrade-product-option.is-selected{background:#10141B;color:#fff;border-color:#10141B}
+.upgrade-modal-backdrop{position:fixed;inset:0;background:rgba(10,15,24,.38);backdrop-filter:blur(2px);display:none;align-items:flex-start;justify-content:center;padding:34px 16px;z-index:1100}.upgrade-modal-backdrop.is-open{display:flex}.upgrade-modal{width:min(1280px,100%);max-height:calc(100vh - 68px);overflow:auto;background:#fff;border:1px solid #D9DDE4;border-radius:18px;box-shadow:0 32px 80px -54px rgba(0,0,0,.55);padding:14px}.upgrade-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:2px 4px 12px}.upgrade-modal-title{margin:0;font-size:22px;line-height:1.15;letter-spacing:-.03em;font-weight:500;color:#0F1724}.upgrade-modal-sub{margin:5px 0 0;font-size:13px;line-height:1.5;color:#5B6371}.upgrade-close{min-width:40px;width:40px;height:40px;padding:0;border-radius:12px;background:#F1F4F8;color:#141A24;border:0;cursor:pointer;transition:filter .18s,transform .18s}.upgrade-close:hover{filter:brightness(1.03);transform:translateY(-1px)}.upgrade-close:focus-visible{outline:2px solid rgba(7,122,255,.38);outline-offset:2px}
+.upgrade-thankyou-backdrop{position:fixed;inset:0;background:rgba(10,15,24,.42);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;padding:20px 12px;z-index:1200}.upgrade-thankyou-backdrop.is-open{display:flex}.upgrade-thankyou-modal{width:min(560px,100%);background:#fff;border:1px solid #D9DDE4;border-radius:18px;box-shadow:0 36px 84px -58px rgba(0,0,0,.55);padding:20px;display:grid;gap:12px}.upgrade-thankyou-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.upgrade-thankyou-kicker{margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5F6A7A}.upgrade-thankyou-title{margin:6px 0 0;font-size:34px;line-height:1.05;letter-spacing:-.04em;font-weight:500;color:#0E1522}.upgrade-thankyou-message{margin:0;font-size:14px;line-height:1.6;color:#4E5868}.upgrade-thankyou-status{margin:0;padding:9px 10px;border-radius:10px;border:1px solid #CFE2FF;background:#EEF4FF;color:#2A5DA3;font-size:12px;line-height:1.4;display:flex;align-items:center;gap:8px}.upgrade-thankyou-status-spinner{width:14px;height:14px;border-radius:999px;border:2px solid rgba(42,93,163,.28);border-top-color:#2A5DA3;display:none;flex:0 0 14px}.upgrade-thankyou-status.is-loading .upgrade-thankyou-status-spinner{display:inline-flex;animation:upgradeThankYouSpin .85s linear infinite}.upgrade-thankyou-status.is-success{border-color:#BFE5CB;background:#EAF7EF;color:#1D6C3A}.upgrade-thankyou-status.is-success .upgrade-thankyou-status-spinner,.upgrade-thankyou-status.is-error .upgrade-thankyou-status-spinner{display:none}.upgrade-thankyou-status.is-error{border-color:#F1C9C9;background:#FCECEC;color:#9E1D1D}.upgrade-thankyou-progress-note{margin:0;padding:8px 10px;border-radius:10px;border:1px solid #E2E5EA;background:#F7F8FA;color:#404753;font-size:12px;line-height:1.45}.upgrade-thankyou-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+@keyframes upgradeThankYouSpin{to{transform:rotate(360deg)}}
+.upgrade-panel{background:#F3F3F3;border-color:#E4E5E8}.upgrade-intro{text-align:center;max-width:650px;margin:4px auto 0;display:grid;gap:10px}.upgrade-intro-title{margin:0;font-size:54px;line-height:1.02;letter-spacing:-.04em;font-weight:500;color:#0B1220}.upgrade-intro-sub{margin:0;font-size:17px;line-height:1.55;color:#596170}
+.upgrade-packages{margin-top:24px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}.upgrade-option{width:100%;border:1px solid #D9DDE2;background:#fff;border-radius:14px;padding:0;text-align:left;cursor:pointer;display:flex;flex-direction:column;overflow:hidden;appearance:none;-webkit-appearance:none;line-height:normal;vertical-align:top;transition:border-color .18s,box-shadow .18s,transform .18s}.upgrade-option:hover{border-color:#C6CFDA;transform:translateY(-1px)}.upgrade-option:focus-visible{outline:2px solid rgba(7,122,255,.34);outline-offset:2px}.upgrade-option:disabled{opacity:.6;cursor:default;transform:none}.upgrade-option.is-selected{border-color:#151A22;box-shadow:0 14px 30px -26px rgba(0,0,0,.45)}
+.upgrade-card-top{padding:20px 20px 14px;display:grid;gap:12px}.upgrade-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.upgrade-name{margin:0;font-size:20px;line-height:1.16;letter-spacing:-.02em;font-weight:500;color:#0D121A}.upgrade-bv{margin:0;font-size:44px;line-height:1;letter-spacing:-.03em;font-weight:500;color:#0B1220}.upgrade-price{margin:0;font-size:18px;line-height:1.35;color:#5A6372;font-weight:500}.upgrade-products{margin:0;font-size:13px;line-height:1.45;color:#6A7383;font-weight:400}
+.upgrade-divider{height:1px;background:#E6E9EE}
+.upgrade-benefits{margin:0;padding:18px 20px 22px;list-style:none;display:grid;gap:12px;flex:1 1 auto}.upgrade-benefits li{display:flex;align-items:flex-start;gap:8px;padding-left:0;color:#232933;font-size:14px;line-height:1.55;font-weight:400}.upgrade-benefits li::before{content:'';width:14px;height:14px;flex:0 0 14px;margin-top:.3em;background-repeat:no-repeat;background-size:14px 14px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Ccircle cx='10' cy='10' r='9' stroke='%231b1f26' stroke-width='1.5'/%3E%3Cpath d='M6 10.3l2.4 2.4L14 7.5' stroke='%231b1f26' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}.upgrade-benefits li[data-icon='cap']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M4 15.5h12' stroke='%231b1f26' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M6.2 15.5V9.4M10 15.5V6.9M13.8 15.5V11.1' stroke='%231b1f26' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E")}.upgrade-benefits li[data-icon='money']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Crect x='3.2' y='5.2' width='13.6' height='9.6' rx='2' stroke='%231b1f26' stroke-width='1.5'/%3E%3Ccircle cx='12.6' cy='10' r='1.5' fill='%231b1f26'/%3E%3C/svg%3E")}.upgrade-benefits li[data-icon='lock']{color:#8B93A1}.upgrade-benefits li[data-icon='lock']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Crect x='4.1' y='9' width='11.8' height='7.5' rx='1.8' stroke='%238b93a1' stroke-width='1.5'/%3E%3Cpath d='M6.8 9V6.8a3.2 3.2 0 0 1 6.4 0V9' stroke='%238b93a1' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")}.upgrade-benefits li[data-icon='unlock']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Crect x='4.1' y='9' width='11.8' height='7.5' rx='1.8' stroke='%231b1f26' stroke-width='1.5'/%3E%3Cpath d='M12.9 6.8a3.2 3.2 0 0 0-6.1-1.3' stroke='%231b1f26' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M6.8 9V8.1' stroke='%231b1f26' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")}.upgrade-benefits li[data-icon='infinity-unlock']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5.8 13.1A3.1 3.1 0 1 1 5.8 6.9c1.9 0 2.8 2 4.2 3.6 1.4-1.6 2.3-3.6 4.2-3.6a3.1 3.1 0 1 1 0 6.2c-1.9 0-2.8-2-4.2-3.6-1.4 1.6-2.3 3.6-4.2 3.6Z' stroke='%231b1f26' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")} .upgrade-select{height:46px;border:0;border-top:1px solid #E6E9EE;background:#fff;border-radius:0 0 14px 14px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:#111722;letter-spacing:-.01em;flex-shrink:0;margin-top:auto}
+.upgrade-option.is-selected .upgrade-select{background:#111317;color:#fff;border-top-color:#111317}
+.upgrade-benefits li[data-icon='legacy-unlock']::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M3.5 14.6h13l-1.1-6.2-4 2.6L10 6.2 8.6 11 4.6 8.4l-1.1 6.2Z' stroke='%231b1f26' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M4.8 14.6h10.4' stroke='%231b1f26' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='5.1' r='1.2' fill='%231b1f26'/%3E%3C/svg%3E")}
+.upgrade-selected{margin:0;font-size:13px;color:#4B5058}
+.feedback{margin:0;font-size:12px;line-height:1.4;padding:9px 10px;border:1px solid transparent;border-radius:10px;display:none}.feedback.is-error{display:block;border-color:#F1C9C9;background:#FCECEC;color:var(--danger)}.feedback.is-success{display:block;border-color:#BFE5CB;background:#EAF7EF;color:var(--ok)}.feedback.is-info{display:block;border-color:#CFE2FF;background:#EEF4FF;color:#2A5DA3}
+.purchase-list{display:grid;gap:10px}.purchase-item{border:1px solid var(--line);border-radius:12px;padding:12px;background:#FAFBFD;display:grid;gap:8px}.purchase-item-top,.purchase-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.purchase-id{margin:0;font-size:14px}.purchase-date{margin:2px 0 0;font-size:12px;color:#666B73}.status{font-size:12px;padding:5px 8px;border-radius:999px;border:1px solid #DCE8FF;background:#F3F7FF;color:#3A5F91}.status.pending{border-color:#F3DCB3;background:#FFF7E8;color:#8A611D}.empty{border:1px dashed #CED4DC;border-radius:12px;padding:12px;font-size:14px;color:#666B73;background:#FBFCFE}
+@media (max-width:1040px){.topbar-inner,.page{width:min(1240px,calc(100vw - 26px))}.grid-two{grid-template-columns:1fr}.inline-grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}.business-teaser .row{align-items:flex-start}}
+@media (max-width:1040px){.upgrade-packages{grid-template-columns:repeat(2,minmax(0,1fr))}.upgrade-intro-title{font-size:46px}}
+@media (max-width:760px){.topbar{height:60px}.topbar-inner{width:calc(100vw - 18px)}.top-left{gap:10px}.brand-icon{width:24px;height:24px}.nav-link{font-size:13px}.page{width:calc(100vw - 18px);padding:24px 0 44px;gap:14px}.panel{padding:14px}.panel-title{font-size:21px}.grid-three,.inline-grid,.inline-grid-3{grid-template-columns:1fr}.btn{height:42px}.business-teaser-title{font-size:24px}.business-teaser-sub{font-size:13px}.business-teaser-points li{font-size:12px}.business-teaser .row{align-items:flex-start}.upgrade-modal-backdrop{padding:12px 8px}.upgrade-modal{max-height:calc(100vh - 24px);padding:10px}.upgrade-modal-title{font-size:20px}.upgrade-modal-sub{font-size:12px}.upgrade-product-picker{justify-content:center}.upgrade-product-picker-title,.upgrade-product-picker-caption{width:100%}.upgrade-packages{grid-template-columns:1fr}.upgrade-intro{margin-top:2px;gap:8px}.upgrade-intro-title{font-size:34px}.upgrade-intro-sub{font-size:15px}.upgrade-name{font-size:24px}.upgrade-bv{font-size:38px}.upgrade-price{font-size:16px}.upgrade-card-top{padding:18px 18px 12px}.upgrade-benefits{padding:16px 18px 18px;gap:10px}}
+@media (max-width:760px){.upgrade-thankyou-modal{padding:16px}.upgrade-thankyou-title{font-size:28px}.upgrade-thankyou-actions{justify-content:stretch}.upgrade-thankyou-actions .btn{flex:1 1 auto}}
+</style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900">
-  <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-    <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between gap-4">
-        <a id="brand-home-link" href="/store.html" class="inline-flex items-center"><img src="/brand_assets/Logos/L%26D%20Logo_Cropped.png" alt="L&D logo" class="h-10 w-auto"></a>
+<body>
+<header class="topbar"><div class="topbar-inner"><div class="top-left"><a id="brand-home-link" href="/store-dashboard.html" aria-label="Preferred Dashboard"><img class="brand-icon" src="/brand_assets/Logos/L&D Icon.svg" alt="L&D icon"></a><a id="nav-dashboard-link" class="nav-link" href="/store-dashboard.html">Dashboard</a><a id="nav-store-link" class="nav-link" href="/store.html">Store</a><a id="nav-support-link" class="nav-link" href="/store-support.html">Support</a></div><button id="logout-button" class="btn btn-secondary" type="button">Logout</button></div></header>
+<main class="page">
+<section class="panel hero"><div class="hero-copy"><p class="eyebrow">Preferred Dashboard</p><h1 id="welcome-heading" class="panel-title">Hi Preferred Member</h1><p id="welcome-subtitle" class="panel-sub">Manage your purchases, profile, address, and account upgrade in one place.</p></div><div class="row"><a id="shop-now-link" href="/store.html" class="btn btn-primary">Shop Store</a></div></section>
+<section class="panel business-teaser"><div class="row"><div class="business-teaser-copy"><p class="business-teaser-kicker">Business Invitation</p><h2 class="business-teaser-title">Curious about building a business with us?</h2><p class="business-teaser-sub">Preferred Customers can stay product-focused, or explore our builder side when ready. This preview gives a quick look at how earning opportunities scale by package.</p><ul class="business-teaser-points"><li>Retail commissions are based on your package level.</li><li>Fast Track bonus and cycle caps expand as you upgrade.</li><li>Infinity and Legacy bonuses unlock at higher builder tiers.</li></ul></div><button id="open-upgrade-modal-button" class="btn btn-primary" type="button">Explore Builder Packages</button></div><p id="business-invite-feedback" class="feedback business-invite-feedback" role="status"></p></section>
+<div id="upgrade-modal-backdrop" class="upgrade-modal-backdrop" aria-hidden="true"><div class="upgrade-modal" role="dialog" aria-modal="true" aria-labelledby="upgrade-modal-title"><div class="upgrade-modal-head"><div><h2 id="upgrade-modal-title" class="upgrade-modal-title">Builder Compensation Plan</h2><p class="upgrade-modal-sub">When you are ready to do business with L&amp;D Premiere, choose a package below. Your upgrade is processed securely and then continues in the member dashboard.</p></div><button id="close-upgrade-modal-button" class="upgrade-close" type="button" aria-label="Close upgrade modal">&times;</button></div><section class="panel upgrade-panel"><div class="upgrade-intro"><h2 class="upgrade-intro-title">Pricing that scales with your business</h2><p class="upgrade-intro-sub">Choose the right builder package for your growth goals, earnings potential, and leadership unlocks.</p></div><div id="upgrade-package-list" class="upgrade-packages"><button class="upgrade-option is-selected" type="button" data-package-key="personal-builder-pack" aria-pressed="true"><div class="upgrade-card-top"><div class="upgrade-head"><p class="upgrade-name">Personal Builder Pack</p></div><p class="upgrade-bv">150 BV</p><p class="upgrade-price">$192.00</p><p class="upgrade-products">3 Selectable Products</p></div><div class="upgrade-divider"></div><ul class="upgrade-benefits"><li data-icon="cap">50 Cycle Weekly Cap</li><li data-icon="money">Earn up to $4 on Retail Commission</li><li data-icon="money">Earn up to $75 on Fast Track Bonus</li><li data-icon="lock">Infinity Tier Commission Locked</li><li data-icon="lock">Legacy Leadership Bonus Locked</li></ul><div class="upgrade-select">Select Plan</div></button><button class="upgrade-option" type="button" data-package-key="business-builder-pack" aria-pressed="false"><div class="upgrade-card-top"><div class="upgrade-head"><p class="upgrade-name">Business Builder Pack</p></div><p class="upgrade-bv">300 BV</p><p class="upgrade-price">$384.00</p><p class="upgrade-products">6 Selectable Products</p></div><div class="upgrade-divider"></div><ul class="upgrade-benefits"><li data-icon="cap">250 Cycle Weekly Cap</li><li data-icon="money">Earn up to $8 on Retail Commission</li><li data-icon="money">Earn up to $100 on Fast Track Bonus</li><li data-icon="lock">Infinity Tier Commission Locked</li><li data-icon="lock">Legacy Leadership Bonus Locked</li></ul><div class="upgrade-select">Select Plan</div></button><button class="upgrade-option" type="button" data-package-key="infinity-builder-pack" aria-pressed="false"><div class="upgrade-card-top"><div class="upgrade-head"><p class="upgrade-name">Infinity Builder Pack</p></div><p class="upgrade-bv">500 BV</p><p class="upgrade-price">$640.00</p><p class="upgrade-products">10 Selectable Products</p></div><div class="upgrade-divider"></div><ul class="upgrade-benefits"><li data-icon="cap">500 Cycle Weekly Cap</li><li data-icon="money">Earn up to $12 on Retail Commission</li><li data-icon="money">Earn up to $125 on Fast Track Bonus</li><li data-icon="infinity-unlock">Infinity Tier Commission Unlocked</li><li data-icon="lock">Legacy Leadership Bonus Locked</li></ul><div class="upgrade-select">Select Plan</div></button><button class="upgrade-option" type="button" data-package-key="legacy-builder-pack" aria-pressed="false"><div class="upgrade-card-top"><div class="upgrade-head"><p class="upgrade-name">Legacy Builder Pack</p></div><p class="upgrade-bv">1000 BV</p><p class="upgrade-price">$1280.00</p><p class="upgrade-products">20 Selectable Products</p></div><div class="upgrade-divider"></div><ul class="upgrade-benefits"><li data-icon="cap">1000 Cycle Weekly Cap</li><li data-icon="money">Earn up to $20 on Retail Commission</li><li data-icon="money">Earn up to $200 on Fast Track Bonus</li><li data-icon="infinity-unlock">Infinity Tier Commission Unlocked</li><li data-icon="legacy-unlock">Legacy Leadership Bonus Unlocked</li></ul><div class="upgrade-select">Select Plan</div></button></div><div class="upgrade-checkout-flow"><div class="upgrade-product-picker" role="group" aria-label="Upgrade product selector"><p class="upgrade-product-picker-title">Select your product</p><p class="upgrade-product-picker-caption">Choose one product to pair with your selected builder package.</p><button class="upgrade-product-option is-selected" type="button" data-upgrade-product-key="metacharge" aria-pressed="true">MetaCharge&trade;</button><button class="upgrade-product-option" type="button" data-upgrade-product-key="metaroast" aria-pressed="false">MetaRoast&trade;</button></div><div class="row" style="justify-content:center"><button id="upgrade-account-button" class="btn btn-primary" type="button">Upgrade Account</button></div></div><p id="upgrade-feedback" class="feedback" role="status"></p></section></div></div>
+<div id="upgrade-thankyou-backdrop" class="upgrade-thankyou-backdrop" aria-hidden="true"><div class="upgrade-thankyou-modal" role="dialog" aria-modal="true" aria-labelledby="upgrade-thankyou-title"><div class="upgrade-thankyou-head"><div><p class="upgrade-thankyou-kicker">Payment received</p><h2 id="upgrade-thankyou-title" class="upgrade-thankyou-title">Thank you!</h2></div><button id="close-upgrade-thankyou-button" class="upgrade-close" type="button" aria-label="Close thank you modal">&times;</button></div><p id="upgrade-thankyou-message" class="upgrade-thankyou-message">Your payment was successful.</p><p id="upgrade-thankyou-status" class="upgrade-thankyou-status"><span id="upgrade-thankyou-status-spinner" class="upgrade-thankyou-status-spinner" aria-hidden="true"></span><span id="upgrade-thankyou-status-text">We are upgrading your account now...</span></p><p id="upgrade-thankyou-progress-note" class="upgrade-thankyou-progress-note" hidden>Do not close or exit this browser while your upgrade is in progress.</p><div class="upgrade-thankyou-actions"><button id="upgrade-thankyou-dismiss-button" class="btn btn-secondary" type="button">Close</button><button id="upgrade-thankyou-dashboard-button" class="btn btn-primary" type="button" disabled>Go To Member Dashboard</button></div></div></div>
+<section class="panel"><div class="row"><div><h2 class="panel-title">Purchase Activity</h2><p class="panel-sub">Recent purchases tied to your account.</p></div><button id="refresh-purchases-button" class="btn btn-secondary" type="button">Refresh</button></div><div class="grid-three" style="margin-top:12px"><article class="metric"><p class="metric-label">Orders</p><p id="purchase-order-count" class="metric-value">0</p></article><article class="metric"><p class="metric-label">Total Spent</p><p id="purchase-total-spent" class="metric-value">$0.00</p></article></div><p id="purchase-feedback" class="feedback" role="status"></p><div id="purchase-empty" class="empty" style="margin-top:12px">No purchases found yet. Shop products to generate your first order.</div><div id="purchase-list" class="purchase-list" style="margin-top:12px"></div></section>
+<div class="grid-two"><section class="panel"><h2 class="panel-title">Profile</h2><p class="panel-sub">Your account details used in storefront checkout.</p><form id="profile-form" class="form-grid" style="margin-top:12px" novalidate><div class="field"><label for="profile-display-name">Display Name</label><input id="profile-display-name" name="displayName" class="input" type="text" required></div><div class="field"><label for="profile-username">Username</label><input id="profile-username" name="username" class="input" type="text" readonly></div><div class="field"><label for="profile-email">Email</label><input id="profile-email" name="email" class="input" type="email" readonly></div><div class="inline-grid"><div class="field"><label for="profile-phone">Phone</label><input id="profile-phone" name="phone" class="input" type="text" placeholder="Phone"></div><div class="field"><label for="profile-country">Country Code</label><input id="profile-country" name="country" class="input" type="text" maxlength="2" placeholder="US"></div></div><p id="profile-feedback" class="feedback" role="status"></p><button class="btn btn-primary" type="submit">Save Profile</button></form></section>
+<section class="panel"><h2 class="panel-title">Saved Address</h2><p class="panel-sub">Store your default shipping address for faster checkout.</p><form id="address-form" class="form-grid" style="margin-top:12px" novalidate><div class="field"><label for="address-full-name">Full Name</label><input id="address-full-name" name="fullName" class="input" type="text"></div><div class="field"><label for="address-line-1">Address Line 1</label><input id="address-line-1" name="line1" class="input" type="text"></div><div class="field"><label for="address-line-2">Address Line 2</label><input id="address-line-2" name="line2" class="input" type="text"></div><div class="inline-grid-3"><div class="field"><label for="address-city">City</label><input id="address-city" name="city" class="input" type="text"></div><div class="field"><label for="address-state">State</label><input id="address-state" name="state" class="input" type="text"></div><div class="field"><label for="address-postal">Postal</label><input id="address-postal" name="postal" class="input" type="text"></div></div><div class="field"><label for="address-country">Country</label><input id="address-country" name="country" class="input" type="text"></div><p id="address-feedback" class="feedback" role="status"></p><button class="btn btn-primary" type="submit">Save Address</button></form></section></div>
+</main>
+<script src="/storefront-shared.js"></script>
+<script>
+const shared=window.StorefrontShared;
+const AUTH_STORAGE_KEY='vault-auth-user';
+const AUTH_COOKIE_KEY='vault-auth-user-cookie';
+const FREE_ACCOUNT_PACKAGE_KEY='preferred-customer-pack';
+const FREE_ACCOUNT_RANK_KEY_SET=new Set(['preferred customer','free account','free']);
+const UPGRADE_LABEL={"personal-builder-pack":"Personal Builder Pack","business-builder-pack":"Business Builder Pack","infinity-builder-pack":"Infinity Builder Pack","legacy-builder-pack":"Legacy Builder Pack"};
+const STORE_CHECKOUT_SESSION_API='/api/store-checkout/session';
+const UPGRADE_PENDING_CHECKOUT_STORAGE_KEY='preferred-dashboard-upgrade-pending-checkout-v1';
+const UPGRADE_CHECKOUT_NETWORK_RETRY_LIMIT=12;
+const UPGRADE_CHECKOUT_NETWORK_RETRY_DELAY_MS=1200;
+const UPGRADE_PACKAGE_PRODUCT_COUNT={"personal-builder-pack":3,"business-builder-pack":6,"infinity-builder-pack":10,"legacy-builder-pack":20};
+const UPGRADE_PRODUCT_META={metacharge:{label:'MetaCharge',fallbackId:'metacharge',unitPrice:64},metaroast:{label:'MetaRoast',fallbackId:'metaroast',unitPrice:64}};
 
-        <div class="flex items-center gap-2">
-          <a id="nav-products-link" href="/store.html" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700 sm:text-sm">Products</a>
-          <a id="nav-support-link" href="/store-support.html" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700 sm:text-sm">Support</a>
-          <button id="logout-button" type="button" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500 sm:text-sm">Log Out</button>
-        </div>
-      </div>
-    </div>
-  </header>
+const el={
+  orderCount:document.getElementById('purchase-order-count'),
+  totalSpent:document.getElementById('purchase-total-spent'),
+  
+  purchaseFeedback:document.getElementById('purchase-feedback'),
+  purchaseEmpty:document.getElementById('purchase-empty'),
+  purchaseList:document.getElementById('purchase-list'),
+  refresh:document.getElementById('refresh-purchases-button'),
+  profileForm:document.getElementById('profile-form'),
+  profileDisplay:document.getElementById('profile-display-name'),
+  profileUsername:document.getElementById('profile-username'),
+  profileEmail:document.getElementById('profile-email'),
+  profilePhone:document.getElementById('profile-phone'),
+  profileCountry:document.getElementById('profile-country'),
+  profileFeedback:document.getElementById('profile-feedback'),
+  addressForm:document.getElementById('address-form'),
+  addrName:document.getElementById('address-full-name'),
+  addr1:document.getElementById('address-line-1'),
+  addr2:document.getElementById('address-line-2'),
+  addrCity:document.getElementById('address-city'),
+  addrState:document.getElementById('address-state'),
+  addrPostal:document.getElementById('address-postal'),
+  addrCountry:document.getElementById('address-country'),
+  addrFeedback:document.getElementById('address-feedback'),
+  inviteFeedback:document.getElementById('business-invite-feedback'),
+  upgradeOptions:Array.from(document.querySelectorAll('[data-package-key]')),
+  upgradeProductOptions:Array.from(document.querySelectorAll('[data-upgrade-product-key]')),
+  upgradeBtn:document.getElementById('upgrade-account-button'),
+  upgradeFeedback:document.getElementById('upgrade-feedback'),
+  upgradeModalOpen:document.getElementById('open-upgrade-modal-button'),
+  upgradeModalClose:document.getElementById('close-upgrade-modal-button'),
+  upgradeModalBackdrop:document.getElementById('upgrade-modal-backdrop'),
+  upgradeModalDialog:document.querySelector('#upgrade-modal-backdrop .upgrade-modal'),
+  upgradeThankYouBackdrop:document.getElementById('upgrade-thankyou-backdrop'),
+  upgradeThankYouClose:document.getElementById('close-upgrade-thankyou-button'),
+  upgradeThankYouDismiss:document.getElementById('upgrade-thankyou-dismiss-button'),
+  upgradeThankYouMessage:document.getElementById('upgrade-thankyou-message'),
+  upgradeThankYouStatus:document.getElementById('upgrade-thankyou-status'),
+  upgradeThankYouStatusText:document.getElementById('upgrade-thankyou-status-text'),
+  upgradeThankYouStatusSpinner:document.getElementById('upgrade-thankyou-status-spinner'),
+  upgradeThankYouProgressNote:document.getElementById('upgrade-thankyou-progress-note'),
+  upgradeThankYouDashboard:document.getElementById('upgrade-thankyou-dashboard-button'),
+  welcomeHeading:document.getElementById('welcome-heading'),
+  welcomeSub:document.getElementById('welcome-subtitle'),
+  brandHome:document.getElementById('brand-home-link'),
+  navDashboard:document.getElementById('nav-dashboard-link'),
+  navStore:document.getElementById('nav-store-link'),
+  navSupport:document.getElementById('nav-support-link'),
+  shopNow:document.getElementById('shop-now-link'),
+  logout:document.getElementById('logout-button'),
+};
 
-  <main class="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Welcome Back</p>
-          <h1 id="welcome-heading" class="mt-1 text-2xl font-bold text-slate-900">Free Account</h1>
-          <p id="welcome-subtitle" class="mt-1 text-sm text-slate-600">Manage your purchases, profile, and saved address.</p>
-          <div class="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
-            <span id="welcome-username" class="rounded-md border border-slate-200 bg-slate-50 px-2 py-1">Username: --</span>
-            <span id="welcome-email" class="rounded-md border border-slate-200 bg-slate-50 px-2 py-1">Email: --</span>
-            <span class="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-emerald-700">Plan: Free Account</span>
-          </div>
-        </div>
+const qp=new URLSearchParams(window.location.search);
+let currentUser=null;
+let activeStoreCode='';
+let selectedUpgradePackage='personal-builder-pack';
+let selectedUpgradeProductKey='metacharge';
+const upgradeCheckoutCatalogByKey=new Map();
+const upgradeCheckoutFinalizationInFlightSessionIds=new Set();
+const upgradeCheckoutRetryAttemptBySession=new Map();
+const upgradeCheckoutRetryTimeoutBySession=new Map();
+let lastFocusBeforeUpgradeModal=null;
+let lastFocusBeforeUpgradeThankYouModal=null;
+let upgradeFinalizationReady=false;
+let upgradeFinalizationInProgress=false;
+const t=v=>String(v||'').trim();
+const low=v=>t(v).toLowerCase();
+const store=v=>shared.normalizeStoreCode(v);
 
-        <a id="shop-now-link" href="/store.html" class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500">Shop Products</a>
-      </div>
-    </section>
+function parse(raw){if(!raw)return null;try{const p=JSON.parse(raw);return p&&typeof p==='object'?p:null}catch{return null}}
+function safeGet(s,k){try{return s?s.getItem(k):null}catch{return null}}
+function safeSet(s,k,v){try{if(!s)return false;s.setItem(k,v);return true}catch{return false}}
+function safeRemove(s,k){try{s&&s.removeItem(k)}catch{}}
 
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 class="text-lg font-semibold text-slate-900">Upgrade Account</h2>
-          <p class="mt-1 text-sm text-slate-600">Move from Free Account to a paid builder package.</p>
-        </div>
-      </div>
+function readCookie(k){
+  const src=document.cookie||'';
+  const ek=`${encodeURIComponent(k)}=`;
+  for(const pair of src.split(';')){
+    const p=pair.trim();
+    if(p.startsWith(ek)) return decodeURIComponent(p.slice(ek.length));
+  }
+  return null;
+}
 
-      <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div class="sm:min-w-72">
-          <label for="upgrade-package-select" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Target Package</label>
-          <select id="upgrade-package-select" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
-            <option value="personal-builder-pack">Personal Builder Pack</option>
-            <option value="business-builder-pack">Business Builder Pack</option>
-            <option value="infinity-builder-pack">Infinity Builder Pack</option>
-            <option value="legacy-builder-pack">Legacy Builder Pack</option>
-          </select>
-        </div>
+function writeCookie(k,v){
+  try{document.cookie=`${encodeURIComponent(k)}=${encodeURIComponent(v)}; path=/; SameSite=Lax`;return true}catch{return false}
+}
 
-        <button id="upgrade-account-button" type="button" class="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50">
-          Upgrade Account
-        </button>
-      </div>
+function clearCookie(k){
+  try{document.cookie=`${encodeURIComponent(k)}=; Max-Age=0; path=/; SameSite=Lax`}catch{}
+}
 
-      <p id="upgrade-feedback" class="mt-3 hidden rounded-lg border px-3 py-2 text-sm" role="status"></p>
-    </section>
+function readSession(){
+  return parse(safeGet(window.localStorage,AUTH_STORAGE_KEY))
+    || parse(safeGet(window.sessionStorage,AUTH_STORAGE_KEY))
+    || parse(readCookie(AUTH_COOKIE_KEY));
+}
 
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div class="flex items-center justify-between gap-3">
-        <div>
-          <h2 class="text-lg font-semibold text-slate-900">Purchase Activity</h2>
-          <p class="text-sm text-slate-600">Recent purchases tied to your account identity.</p>
-        </div>
-        <button id="refresh-purchases-button" type="button" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700 sm:text-sm">Refresh</button>
-      </div>
+function persistSession(user){
+  const json=JSON.stringify(user||{});
+  const a=safeSet(window.localStorage,AUTH_STORAGE_KEY,json);
+  const b=safeSet(window.sessionStorage,AUTH_STORAGE_KEY,json);
+  const c=writeCookie(AUTH_COOKIE_KEY,json);
+  return a||b||c;
+}
 
-      <div class="mt-4 grid gap-3 sm:grid-cols-3">
-        <article class="rounded-xl border border-slate-200 bg-slate-50 p-3">
-          <p class="text-xs uppercase tracking-wide text-slate-500">Orders</p>
-          <p id="purchase-order-count" class="mt-1 text-xl font-semibold text-slate-900">0</p>
-        </article>
-        <article class="rounded-xl border border-slate-200 bg-slate-50 p-3">
-          <p class="text-xs uppercase tracking-wide text-slate-500">Total Spent</p>
-          <p id="purchase-total-spent" class="mt-1 text-xl font-semibold text-slate-900">$0.00</p>
-        </article>
-        <article class="rounded-xl border border-slate-200 bg-slate-50 p-3">
-          <p class="text-xs uppercase tracking-wide text-slate-500">Total BV</p>
-          <p id="purchase-total-bv" class="mt-1 text-xl font-semibold text-slate-900">0 BV</p>
-        </article>
-      </div>
+function clearSession(){
+  safeRemove(window.localStorage,AUTH_STORAGE_KEY);
+  safeRemove(window.sessionStorage,AUTH_STORAGE_KEY);
+  clearCookie(AUTH_COOKIE_KEY);
+}
 
-      <p id="purchase-feedback" class="mt-3 hidden rounded-lg border px-3 py-2 text-sm" role="status"></p>
+function isPreferredUser(user){
+  if(!user||typeof user!=='object') return false;
+  const pkg=low(user.enrollmentPackage);
+  if(pkg===FREE_ACCOUNT_PACKAGE_KEY) return true;
+  const rank=low(user.accountRank||user.rank);
+  return FREE_ACCOUNT_RANK_KEY_SET.has(rank)||shared.isFreeAccountUser(user);
+}
 
-      <div id="purchase-empty" class="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
-        No purchases found yet. Shop products to generate your first order.
-      </div>
-      <div id="purchase-list" class="mt-4 space-y-3"></div>
-    </section>
+function resolveStoreCode(user){
+  return store(qp.get('store')||user?.attributionStoreCode||user?.publicStoreCode||user?.storeCode);
+}
 
-    <div class="grid gap-6 lg:grid-cols-2">
-      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <h2 class="text-lg font-semibold text-slate-900">Profile</h2>
-        <p class="mt-1 text-sm text-slate-600">Your basic account details for storefront checkout and support.</p>
+function scoped(path){
+  const url=new URL(path,window.location.origin);
+  if(activeStoreCode) url.searchParams.set('store',activeStoreCode);
+  return `${url.pathname}${url.search}`;
+}
 
-        <form id="profile-form" class="mt-4 space-y-3" novalidate>
-          <div>
-            <label for="profile-display-name" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Display Name</label>
-            <input id="profile-display-name" name="displayName" type="text" required class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
-          </div>
+function bindLinks(){
+  const dashboardUrl=scoped('/store-dashboard.html');
+  const storeUrl=scoped('/store.html');
+  const supportUrl=scoped('/store-support.html');
+  if(el.brandHome) el.brandHome.href=dashboardUrl;
+  if(el.navDashboard) el.navDashboard.href=dashboardUrl;
+  if(el.navStore) el.navStore.href=storeUrl;
+  if(el.shopNow) el.shopNow.href=storeUrl;
+  if(el.navSupport) el.navSupport.href=supportUrl;
+}
 
-          <div>
-            <label for="profile-username" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Username</label>
-            <input id="profile-username" name="username" type="text" readonly class="mt-1 w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700">
-          </div>
+function isUpgradeModalOpen(){return Boolean(el.upgradeModalBackdrop?.classList.contains('is-open'))}
+function isUpgradeThankYouModalOpen(){return Boolean(el.upgradeThankYouBackdrop?.classList.contains('is-open'))}
+function syncModalBodyLock(){
+  document.body.style.overflow=(isUpgradeModalOpen()||isUpgradeThankYouModalOpen())?'hidden':'';
+}
+function openUpgradeModal(){
+  if(!el.upgradeModalBackdrop) return;
+  lastFocusBeforeUpgradeModal=document.activeElement instanceof HTMLElement?document.activeElement:null;
+  el.upgradeModalBackdrop.classList.add('is-open');
+  el.upgradeModalBackdrop.setAttribute('aria-hidden','false');
+  syncModalBodyLock();
+  window.setTimeout(()=>{el.upgradeModalClose?.focus()},0);
+}
+function closeUpgradeModal({restoreFocus=true}={}){
+  if(!el.upgradeModalBackdrop) return;
+  el.upgradeModalBackdrop.classList.remove('is-open');
+  el.upgradeModalBackdrop.setAttribute('aria-hidden','true');
+  syncModalBodyLock();
+  if(restoreFocus&&lastFocusBeforeUpgradeModal&&typeof lastFocusBeforeUpgradeModal.focus==='function'){
+    lastFocusBeforeUpgradeModal.focus();
+  }
+  lastFocusBeforeUpgradeModal=null;
+}
+function setUpgradeThankYouState({message='',status='',tone='info',dashboardReady=false}={}){
+  if(el.upgradeThankYouMessage) el.upgradeThankYouMessage.textContent=t(message||'Your payment was successful.');
+  const resolvedStatus=t(status||'We are upgrading your account now...');
+  const shouldShowLoading=tone!=='success'&&tone!=='error'&&!dashboardReady;
+  if(el.upgradeThankYouStatus){
+    if(el.upgradeThankYouStatusText){
+      el.upgradeThankYouStatusText.textContent=resolvedStatus;
+    }else{
+      el.upgradeThankYouStatus.textContent=resolvedStatus;
+    }
+    el.upgradeThankYouStatus.className='upgrade-thankyou-status';
+    if(shouldShowLoading) el.upgradeThankYouStatus.classList.add('is-loading');
+    if(tone==='success') el.upgradeThankYouStatus.classList.add('is-success');
+    else if(tone==='error') el.upgradeThankYouStatus.classList.add('is-error');
+  }
+  upgradeFinalizationReady=Boolean(dashboardReady);
+  upgradeFinalizationInProgress=shouldShowLoading;
+  if(el.upgradeThankYouProgressNote) el.upgradeThankYouProgressNote.hidden=!shouldShowLoading;
+  if(el.upgradeThankYouDashboard) el.upgradeThankYouDashboard.disabled=!upgradeFinalizationReady;
+}
+function openUpgradeThankYouModal({message='',status='',tone='info'}={}){
+  if(!el.upgradeThankYouBackdrop) return;
+  lastFocusBeforeUpgradeThankYouModal=document.activeElement instanceof HTMLElement?document.activeElement:null;
+  setUpgradeThankYouState({message,status,tone,dashboardReady:false});
+  el.upgradeThankYouBackdrop.classList.add('is-open');
+  el.upgradeThankYouBackdrop.setAttribute('aria-hidden','false');
+  syncModalBodyLock();
+  window.setTimeout(()=>{
+    const focusTarget=el.upgradeThankYouDismiss||el.upgradeThankYouClose||el.upgradeThankYouDashboard;
+    focusTarget?.focus();
+  },0);
+}
+function closeUpgradeThankYouModal({restoreFocus=true}={}){
+  if(!el.upgradeThankYouBackdrop) return;
+  el.upgradeThankYouBackdrop.classList.remove('is-open');
+  el.upgradeThankYouBackdrop.setAttribute('aria-hidden','true');
+  syncModalBodyLock();
+  if(restoreFocus&&lastFocusBeforeUpgradeThankYouModal&&typeof lastFocusBeforeUpgradeThankYouModal.focus==='function'){
+    lastFocusBeforeUpgradeThankYouModal.focus();
+  }
+  lastFocusBeforeUpgradeThankYouModal=null;
+}
+function setupUpgradeModal(){
+  el.upgradeModalOpen?.addEventListener('click',()=>openUpgradeModal());
+  el.upgradeModalClose?.addEventListener('click',()=>closeUpgradeModal());
+  el.upgradeModalBackdrop?.addEventListener('click',(event)=>{
+    if(event.target===el.upgradeModalBackdrop) closeUpgradeModal();
+  });
+  el.upgradeThankYouClose?.addEventListener('click',()=>closeUpgradeThankYouModal());
+  el.upgradeThankYouDismiss?.addEventListener('click',()=>closeUpgradeThankYouModal());
+  el.upgradeThankYouDashboard?.addEventListener('click',()=>{
+    if(!upgradeFinalizationReady) return;
+    window.location.replace('/index.html');
+  });
+  el.upgradeThankYouBackdrop?.addEventListener('click',(event)=>{
+    if(event.target===el.upgradeThankYouBackdrop) closeUpgradeThankYouModal();
+  });
+  document.addEventListener('keydown',(event)=>{
+    if(event.key!=='Escape') return;
+    if(isUpgradeThankYouModalOpen()){
+      event.preventDefault();
+      closeUpgradeThankYouModal();
+      return;
+    }
+    if(isUpgradeModalOpen()){
+      event.preventDefault();
+      closeUpgradeModal();
+    }
+  });
+  window.addEventListener('beforeunload',(event)=>{
+    if(!upgradeFinalizationInProgress) return;
+    event.preventDefault();
+    event.returnValue='';
+  });
+}
 
-          <div>
-            <label for="profile-email" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</label>
-            <input id="profile-email" name="email" type="email" readonly class="mt-1 w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700">
-          </div>
-
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label for="profile-phone" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Phone</label>
-              <input id="profile-phone" name="phone" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
-            </div>
-
-            <div>
-              <label for="profile-country" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Country Code</label>
-              <input id="profile-country" name="country" type="text" maxlength="2" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
-            </div>
-          </div>
-
-          <p id="profile-feedback" class="hidden rounded-lg border px-3 py-2 text-sm" role="status"></p>
-
-          <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500">Save Profile</button>
-        </form>
-      </section>
-
-      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <h2 class="text-lg font-semibold text-slate-900">Saved Address</h2>
-        <p class="mt-1 text-sm text-slate-600">Store your default shipping address for faster checkout.</p>
-
-        <form id="address-form" class="mt-4 space-y-3" novalidate>
-          <div>
-            <label for="address-full-name" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Full Name</label>
-            <input id="address-full-name" name="fullName" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
-          </div>
-
-          <div>
-            <label for="address-line-1" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Address Line 1</label>
-            <input id="address-line-1" name="line1" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
-          </div>
-
-          <div>
-            <label for="address-line-2" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Address Line 2</label>
-            <input id="address-line-2" name="line2" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
-          </div>
-
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div class="sm:col-span-1">
-              <label for="address-city" class="text-xs font-semibold uppercase tracking-wide text-slate-500">City</label>
-              <input id="address-city" name="city" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
-            </div>
-            <div class="sm:col-span-1">
-              <label for="address-state" class="text-xs font-semibold uppercase tracking-wide text-slate-500">State</label>
-              <input id="address-state" name="state" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
-            </div>
-            <div class="sm:col-span-1">
-              <label for="address-postal" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Postal</label>
-              <input id="address-postal" name="postal" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
-            </div>
-          </div>
-
-          <div>
-            <label for="address-country" class="text-xs font-semibold uppercase tracking-wide text-slate-500">Country</label>
-            <input id="address-country" name="country" type="text" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200">
-          </div>
-
-          <p id="address-feedback" class="hidden rounded-lg border px-3 py-2 text-sm" role="status"></p>
-
-          <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500">Save Address</button>
-        </form>
-      </section>
-    </div>
-  </main>
-
-  <script>
-    const AUTH_STORAGE_KEY = 'vault-auth-user';
-    const AUTH_COOKIE_KEY = 'vault-auth-user-cookie';
-    const MEMBER_ACCOUNT_UPGRADE_API = '/api/member-auth/upgrade-account';
-    const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
-    const FREE_ACCOUNT_RANK_KEY_SET = new Set(['preferred customer', 'free account', 'free']);
-    const UPGRADE_PACKAGE_LABEL_BY_KEY = Object.freeze({
-      'personal-builder-pack': 'Personal Builder Pack',
-      'business-builder-pack': 'Business Builder Pack',
-      'infinity-builder-pack': 'Infinity Builder Pack',
-      'legacy-builder-pack': 'Legacy Builder Pack',
+function wait(ms=0){return new Promise((resolve)=>window.setTimeout(resolve,Math.max(0,Number(ms)||0)))}
+function persistUpgradePendingCheckoutState(payload={}){
+  const sessionId=t(payload?.sessionId);
+  if(!sessionId) return;
+  const nextState={
+    sessionId,
+    packageKey:low(payload?.packageKey),
+    packageLabel:t(payload?.packageLabel),
+    productLabel:t(payload?.productLabel),
+    quantity:Math.max(1,Math.round(Number(payload?.quantity)||1)),
+    total:Math.max(0,Number(payload?.total)||0),
+    createdAt:new Date().toISOString(),
+  };
+  safeSet(window.localStorage,UPGRADE_PENDING_CHECKOUT_STORAGE_KEY,JSON.stringify(nextState));
+}
+function readUpgradePendingCheckoutState(sessionId=''){
+  const payload=parse(safeGet(window.localStorage,UPGRADE_PENDING_CHECKOUT_STORAGE_KEY));
+  if(!payload||typeof payload!=='object') return null;
+  const pendingSessionId=t(payload?.sessionId);
+  const targetSessionId=t(sessionId);
+  if(targetSessionId&&pendingSessionId&&pendingSessionId!==targetSessionId) return null;
+  return {
+    sessionId:pendingSessionId,
+    packageKey:low(payload?.packageKey),
+    packageLabel:t(payload?.packageLabel),
+    productLabel:t(payload?.productLabel),
+    quantity:Math.max(1,Math.round(Number(payload?.quantity)||1)),
+    total:Math.max(0,Number(payload?.total)||0),
+    createdAt:t(payload?.createdAt),
+  };
+}
+function clearUpgradePendingCheckoutState(){
+  safeRemove(window.localStorage,UPGRADE_PENDING_CHECKOUT_STORAGE_KEY);
+}
+function clearUpgradeCheckoutRetryTracking(sessionId=''){
+  const safeSessionId=t(sessionId);
+  if(!safeSessionId) return;
+  upgradeCheckoutRetryAttemptBySession.delete(safeSessionId);
+  const timeoutId=Number(upgradeCheckoutRetryTimeoutBySession.get(safeSessionId)||0);
+  if(timeoutId) window.clearTimeout(timeoutId);
+  upgradeCheckoutRetryTimeoutBySession.delete(safeSessionId);
+}
+function scheduleUpgradeCheckoutNetworkRetry(sessionId=''){
+  const safeSessionId=t(sessionId);
+  if(!safeSessionId) return false;
+  const existingTimeoutId=Number(upgradeCheckoutRetryTimeoutBySession.get(safeSessionId)||0);
+  if(existingTimeoutId){
+    window.clearTimeout(existingTimeoutId);
+    upgradeCheckoutRetryTimeoutBySession.delete(safeSessionId);
+  }
+  const currentAttempt=Math.max(0,Math.floor(Number(upgradeCheckoutRetryAttemptBySession.get(safeSessionId)||0)));
+  if(currentAttempt>=UPGRADE_CHECKOUT_NETWORK_RETRY_LIMIT){
+    return false;
+  }
+  const nextAttempt=currentAttempt+1;
+  upgradeCheckoutRetryAttemptBySession.set(safeSessionId,nextAttempt);
+  const timeoutId=window.setTimeout(()=>{
+    upgradeCheckoutRetryTimeoutBySession.delete(safeSessionId);
+    void finalizeUpgradeCheckoutInBackground(safeSessionId,{
+      triggeredByRetry:true,
+      maxAttempts:8,
+      pollDelayMs:500,
     });
-
-    const purchaseOrderCountElement = document.getElementById('purchase-order-count');
-    const purchaseTotalSpentElement = document.getElementById('purchase-total-spent');
-    const purchaseTotalBvElement = document.getElementById('purchase-total-bv');
-    const purchaseFeedbackElement = document.getElementById('purchase-feedback');
-    const purchaseEmptyElement = document.getElementById('purchase-empty');
-    const purchaseListElement = document.getElementById('purchase-list');
-    const refreshPurchasesButton = document.getElementById('refresh-purchases-button');
-
-    const profileForm = document.getElementById('profile-form');
-    const profileDisplayNameInput = document.getElementById('profile-display-name');
-    const profileUsernameInput = document.getElementById('profile-username');
-    const profileEmailInput = document.getElementById('profile-email');
-    const profilePhoneInput = document.getElementById('profile-phone');
-    const profileCountryInput = document.getElementById('profile-country');
-    const profileFeedbackElement = document.getElementById('profile-feedback');
-
-    const addressForm = document.getElementById('address-form');
-    const addressFullNameInput = document.getElementById('address-full-name');
-    const addressLine1Input = document.getElementById('address-line-1');
-    const addressLine2Input = document.getElementById('address-line-2');
-    const addressCityInput = document.getElementById('address-city');
-    const addressStateInput = document.getElementById('address-state');
-    const addressPostalInput = document.getElementById('address-postal');
-    const addressCountryInput = document.getElementById('address-country');
-    const addressFeedbackElement = document.getElementById('address-feedback');
-    const upgradePackageSelectElement = document.getElementById('upgrade-package-select');
-    const upgradeAccountButtonElement = document.getElementById('upgrade-account-button');
-    const upgradeFeedbackElement = document.getElementById('upgrade-feedback');
-
-    const welcomeHeadingElement = document.getElementById('welcome-heading');
-    const welcomeSubtitleElement = document.getElementById('welcome-subtitle');
-    const welcomeUsernameElement = document.getElementById('welcome-username');
-    const welcomeEmailElement = document.getElementById('welcome-email');
-
-    const brandHomeLinkElement = document.getElementById('brand-home-link');
-    const navProductsLinkElement = document.getElementById('nav-products-link');
-    const navSupportLinkElement = document.getElementById('nav-support-link');
-    const shopNowLinkElement = document.getElementById('shop-now-link');
-    const logoutButton = document.getElementById('logout-button');
-
-    const queryParams = new URLSearchParams(window.location.search);
-
-    let currentSessionUser = null;
-    let activeStoreCode = '';
-
-    function normalizeText(value) {
-      return String(value || '').trim();
+  },UPGRADE_CHECKOUT_NETWORK_RETRY_DELAY_MS);
+  upgradeCheckoutRetryTimeoutBySession.set(safeSessionId,timeoutId);
+  return true;
+}
+function resolveUpgradeRetryProgress(sessionId=''){
+  const attempt=Math.max(1,Math.floor(Number(upgradeCheckoutRetryAttemptBySession.get(t(sessionId))||1)));
+  return `${attempt}/${UPGRADE_CHECKOUT_NETWORK_RETRY_LIMIT}`;
+}
+function isLikelyFetchNetworkError(error){
+  const message=low(error instanceof Error?error.message:String(error||''));
+  if(!message) return false;
+  return (
+    message.includes('failed to fetch')
+    || message.includes('networkerror')
+    || message.includes('network request failed')
+    || message.includes('network error')
+    || message.includes('load failed')
+  );
+}
+async function finalizeUpgradeCheckoutInBackground(sessionId,options={}){
+  const safeSessionId=t(sessionId);
+  if(!safeSessionId) return;
+  if(upgradeCheckoutFinalizationInFlightSessionIds.has(safeSessionId)) return;
+  upgradeCheckoutFinalizationInFlightSessionIds.add(safeSessionId);
+  const requestedMaxAttempts=Math.floor(Number(options?.maxAttempts));
+  const requestedPollDelayMs=Math.floor(Number(options?.pollDelayMs));
+  const maxAttempts=Number.isFinite(requestedMaxAttempts)&&requestedMaxAttempts>0?requestedMaxAttempts:5;
+  const pollDelayMs=Number.isFinite(requestedPollDelayMs)&&requestedPollDelayMs>=250?requestedPollDelayMs:700;
+  try{
+    let completion=await shared.completeCheckoutSession(safeSessionId);
+    let attempts=0;
+    while(completion.ok&&!completion.completed&&attempts<maxAttempts){
+      await wait(pollDelayMs);
+      completion=await shared.completeCheckoutSession(safeSessionId);
+      attempts+=1;
     }
 
-    function normalizeCredential(value) {
-      return normalizeText(value).toLowerCase();
-    }
-
-    function normalizeStoreCode(value) {
-      return normalizeText(value).toUpperCase().replace(/[^A-Z0-9-]/g, '');
-    }
-
-    function normalizeMemberKey(value) {
-      return normalizeCredential(value);
-    }
-
-    function parseSessionPayload(raw) {
-      if (!raw) {
-        return null;
-      }
-
-      try {
-        const parsed = JSON.parse(raw);
-        return parsed && typeof parsed === 'object' ? parsed : null;
-      } catch {
-        return null;
-      }
-    }
-
-    function safeStorageGet(storage, key) {
-      try {
-        if (!storage) {
-          return null;
-        }
-        return storage.getItem(key);
-      } catch {
-        return null;
-      }
-    }
-
-    function safeStorageSet(storage, key, value) {
-      try {
-        if (!storage) {
-          return false;
-        }
-        storage.setItem(key, value);
-        return true;
-      } catch {
-        return false;
-      }
-    }
-
-    function safeStorageRemove(storage, key) {
-      try {
-        if (!storage) {
-          return;
-        }
-        storage.removeItem(key);
-      } catch {
-        // Ignore storage failures.
-      }
-    }
-
-    function readCookieValue(key) {
-      const source = document.cookie || '';
-      const encodedKey = `${encodeURIComponent(key)}=`;
-      const pairs = source.split(';');
-      for (const pair of pairs) {
-        const trimmedPair = pair.trim();
-        if (!trimmedPair.startsWith(encodedKey)) {
-          continue;
-        }
-        return decodeURIComponent(trimmedPair.slice(encodedKey.length));
-      }
-      return null;
-    }
-
-    function writeCookieValue(key, value) {
-      try {
-        document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(value)}; path=/; SameSite=Lax`;
-        return true;
-      } catch {
-        return false;
-      }
-    }
-
-    function clearCookieValue(key) {
-      try {
-        document.cookie = `${encodeURIComponent(key)}=; Max-Age=0; path=/; SameSite=Lax`;
-      } catch {
-        // Ignore cookie failures.
-      }
-    }
-
-    function readUserSession() {
-      const localSession = parseSessionPayload(safeStorageGet(window.localStorage, AUTH_STORAGE_KEY));
-      if (localSession) {
-        return localSession;
-      }
-
-      const tabSession = parseSessionPayload(safeStorageGet(window.sessionStorage, AUTH_STORAGE_KEY));
-      if (tabSession) {
-        return tabSession;
-      }
-
-      return parseSessionPayload(readCookieValue(AUTH_COOKIE_KEY));
-    }
-
-    function persistUserSession(user) {
-      const serialized = JSON.stringify(user || {});
-      const wroteLocal = safeStorageSet(window.localStorage, AUTH_STORAGE_KEY, serialized);
-      const wroteSession = safeStorageSet(window.sessionStorage, AUTH_STORAGE_KEY, serialized);
-      const wroteCookie = writeCookieValue(AUTH_COOKIE_KEY, serialized);
-      return wroteLocal || wroteSession || wroteCookie;
-    }
-
-    function clearUserSession() {
-      safeStorageRemove(window.localStorage, AUTH_STORAGE_KEY);
-      safeStorageRemove(window.sessionStorage, AUTH_STORAGE_KEY);
-      clearCookieValue(AUTH_COOKIE_KEY);
-    }
-
-    function isFreeAccountUser(user) {
-      if (!user || typeof user !== 'object') {
-        return false;
-      }
-
-      const packageKey = normalizeMemberKey(user?.enrollmentPackage);
-      if (packageKey === FREE_ACCOUNT_PACKAGE_KEY) {
-        return true;
-      }
-
-      const rankKey = normalizeMemberKey(user?.accountRank || user?.rank);
-      return FREE_ACCOUNT_RANK_KEY_SET.has(rankKey);
-    }
-
-    function resolveStoreCodeForSession(user) {
-      return normalizeStoreCode(
-        queryParams.get('store')
-        || user?.attributionStoreCode
-        || user?.publicStoreCode
-        || user?.storeCode,
-      );
-    }
-
-    function resolveStoreScopedUrl(pathname) {
-      const url = new URL(pathname, window.location.origin);
-      if (activeStoreCode) {
-        url.searchParams.set('store', activeStoreCode);
-      }
-      return `${url.pathname}${url.search}`;
-    }
-
-    function bindNavigationLinks() {
-      const storeUrl = resolveStoreScopedUrl('/store.html');
-      const supportUrl = resolveStoreScopedUrl('/store-support.html');
-      if (brandHomeLinkElement) {
-        brandHomeLinkElement.href = storeUrl;
-      }
-      if (navProductsLinkElement) {
-        navProductsLinkElement.href = storeUrl;
-      }
-      if (shopNowLinkElement) {
-        shopNowLinkElement.href = storeUrl;
-      }
-      if (navSupportLinkElement) {
-        navSupportLinkElement.href = supportUrl;
-      }
-    }
-
-    function formatCurrency(value) {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(Math.max(0, Number(value) || 0));
-    }
-
-    function formatInteger(value) {
-      return new Intl.NumberFormat('en-US').format(Math.max(0, Math.floor(Number(value) || 0)));
-    }
-
-    function formatDateTime(value) {
-      const parsedMs = Date.parse(String(value || ''));
-      if (!Number.isFinite(parsedMs)) {
-        return '--';
-      }
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }).format(new Date(parsedMs));
-    }
-
-    function setFeedback(element, message, isError = false) {
-      if (!element) {
-        return;
-      }
-
-      const normalizedMessage = normalizeText(message);
-      if (!normalizedMessage) {
-        element.classList.add('hidden');
-        element.textContent = '';
-        element.classList.remove('border-rose-300', 'bg-rose-50', 'text-rose-700', 'border-emerald-300', 'bg-emerald-50', 'text-emerald-700');
-        return;
-      }
-
-      element.textContent = normalizedMessage;
-      element.classList.remove('hidden', 'border-rose-300', 'bg-rose-50', 'text-rose-700', 'border-emerald-300', 'bg-emerald-50', 'text-emerald-700');
-      if (isError) {
-        element.classList.add('border-rose-300', 'bg-rose-50', 'text-rose-700');
-      } else {
-        element.classList.add('border-emerald-300', 'bg-emerald-50', 'text-emerald-700');
-      }
-    }
-
-    function setUpgradeBusy(isBusy) {
-      if (!upgradeAccountButtonElement || !upgradePackageSelectElement) {
-        return;
-      }
-      upgradeAccountButtonElement.disabled = isBusy;
-      upgradePackageSelectElement.disabled = isBusy;
-      upgradeAccountButtonElement.textContent = isBusy ? 'Upgrading...' : 'Upgrade Account';
-    }
-
-    function registerUpgradeHandler() {
-      if (!upgradeAccountButtonElement || !upgradePackageSelectElement) {
-        return;
-      }
-
-      upgradeAccountButtonElement.addEventListener('click', async () => {
-        const targetPackage = normalizeMemberKey(upgradePackageSelectElement.value);
-        if (!targetPackage || !UPGRADE_PACKAGE_LABEL_BY_KEY[targetPackage]) {
-          setFeedback(upgradeFeedbackElement, 'Select a valid package to upgrade.', true);
-          return;
-        }
-
-        setUpgradeBusy(true);
-        setFeedback(upgradeFeedbackElement, '');
-
-        try {
-          const response = await fetch(MEMBER_ACCOUNT_UPGRADE_API, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: String(currentSessionUser?.id || '').trim(),
-              username: String(currentSessionUser?.username || '').trim(),
-              email: String(currentSessionUser?.email || '').trim(),
-              targetPackage,
-            }),
-          });
-
-          const payload = await response.json().catch(() => ({}));
-          if (!response.ok) {
-            const errorMessage = typeof payload?.error === 'string'
-              ? payload.error
-              : `Upgrade failed (${response.status}).`;
-            throw new Error(errorMessage);
-          }
-
-          const upgradedUser = payload?.user && typeof payload.user === 'object'
-            ? payload.user
-            : {};
-          currentSessionUser = {
-            ...currentSessionUser,
-            ...upgradedUser,
-          };
-          persistUserSession(currentSessionUser);
-
-          const upgradedLabel = UPGRADE_PACKAGE_LABEL_BY_KEY[targetPackage] || 'selected package';
-          setFeedback(upgradeFeedbackElement, `Upgrade complete: ${upgradedLabel}. Redirecting to member dashboard...`);
-          window.setTimeout(() => {
-            window.location.replace('/index.html');
-          }, 1200);
-        } catch (error) {
-          setFeedback(
-            upgradeFeedbackElement,
-            error instanceof Error ? error.message : 'Unable to process account upgrade.',
-            true,
-          );
-        } finally {
-          setUpgradeBusy(false);
-        }
-      });
-    }
-
-    function resolveIdentityKey(user) {
-      return normalizeText(user?.id || user?.username || user?.email || 'free-account');
-    }
-
-    function profileStorageKey(user) {
-      return `charge-store-profile-v1:${resolveIdentityKey(user)}`;
-    }
-
-    function addressStorageKey(user) {
-      return `charge-store-address-v1:${resolveIdentityKey(user)}`;
-    }
-
-    function readJsonStorage(key) {
-      const raw = safeStorageGet(window.localStorage, key);
-      if (!raw) {
-        return null;
-      }
-
-      try {
-        const parsed = JSON.parse(raw);
-        return parsed && typeof parsed === 'object' ? parsed : null;
-      } catch {
-        return null;
-      }
-    }
-
-    function writeJsonStorage(key, value) {
-      return safeStorageSet(window.localStorage, key, JSON.stringify(value || {}));
-    }
-
-    function renderWelcome(user) {
-      const displayName = normalizeText(user?.name || user?.username || 'Free Account');
-      const username = normalizeText(user?.username || '--');
-      const email = normalizeText(user?.email || '--');
-
-      if (welcomeHeadingElement) {
-        welcomeHeadingElement.textContent = `Hi ${displayName}`;
-      }
-      if (welcomeSubtitleElement) {
-        welcomeSubtitleElement.textContent = 'Manage your purchases, profile, and saved address from one place.';
-      }
-      if (welcomeUsernameElement) {
-        welcomeUsernameElement.textContent = `Username: ${username}`;
-      }
-      if (welcomeEmailElement) {
-        welcomeEmailElement.textContent = `Email: ${email}`;
-      }
-    }
-
-    function invoiceBelongsToCurrentUser(invoice, user) {
-      const userId = normalizeMemberKey(user?.id);
-      const username = normalizeMemberKey(user?.username);
-      const email = normalizeMemberKey(user?.email);
-
-      const invoiceUserId = normalizeMemberKey(invoice?.buyerUserId);
-      const invoiceUsername = normalizeMemberKey(invoice?.buyerUsername);
-      const invoiceEmail = normalizeMemberKey(invoice?.buyerEmail);
-
-      return Boolean(
-        (userId && invoiceUserId && userId === invoiceUserId)
-        || (username && invoiceUsername && username === invoiceUsername)
-        || (email && invoiceEmail && email === invoiceEmail),
-      );
-    }
-
-    function renderPurchases(invoices) {
-      const safeInvoices = Array.isArray(invoices) ? invoices : [];
-
-      const totalOrders = safeInvoices.length;
-      const totalSpent = safeInvoices.reduce((sum, invoice) => sum + Math.max(0, Number(invoice?.amount) || 0), 0);
-      const totalBv = safeInvoices.reduce((sum, invoice) => sum + Math.max(0, Number(invoice?.bp) || 0), 0);
-
-      if (purchaseOrderCountElement) {
-        purchaseOrderCountElement.textContent = formatInteger(totalOrders);
-      }
-      if (purchaseTotalSpentElement) {
-        purchaseTotalSpentElement.textContent = formatCurrency(totalSpent);
-      }
-      if (purchaseTotalBvElement) {
-        purchaseTotalBvElement.textContent = `${formatInteger(totalBv)} BV`;
-      }
-
-      if (!purchaseListElement || !purchaseEmptyElement) {
-        return;
-      }
-
-      if (safeInvoices.length === 0) {
-        purchaseEmptyElement.classList.remove('hidden');
-        purchaseListElement.innerHTML = '';
-        return;
-      }
-
-      purchaseEmptyElement.classList.add('hidden');
-      purchaseListElement.innerHTML = safeInvoices.map((invoice) => {
-        const status = normalizeText(invoice?.status || 'Posted');
-        const statusClass = normalizeMemberKey(status) === 'pending'
-          ? 'border-amber-200 bg-amber-50 text-amber-700'
-          : 'border-emerald-200 bg-emerald-50 text-emerald-700';
-
-        return `
-          <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <div class="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p class="text-sm font-semibold text-slate-900">${normalizeText(invoice?.id || '--')}</p>
-                <p class="mt-1 text-xs text-slate-500">${formatDateTime(invoice?.createdAt)}</p>
-              </div>
-              <span class="rounded-md border px-2 py-1 text-xs font-semibold ${statusClass}">${status || 'Posted'}</span>
-            </div>
-            <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
-              <p class="text-slate-500">Amount</p>
-              <p class="text-right font-semibold text-slate-900">${formatCurrency(invoice?.amount)}</p>
-              <p class="text-slate-500">Discount</p>
-              <p class="text-right font-semibold text-slate-900">${formatCurrency(invoice?.discount)}</p>
-              <p class="text-slate-500">BV</p>
-              <p class="text-right font-semibold text-slate-900">${formatInteger(invoice?.bp)} BV</p>
-            </div>
-          </article>
-        `;
-      }).join('');
-    }
-
-    async function loadPurchaseActivity() {
-      setFeedback(purchaseFeedbackElement, 'Loading purchase activity...');
-
-      try {
-        const response = await fetch('/api/store-invoices', { cache: 'no-store' });
-        const payload = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          throw new Error(typeof payload?.error === 'string' ? payload.error : 'Unable to load purchases.');
-        }
-
-        const allInvoices = Array.isArray(payload?.invoices) ? payload.invoices : [];
-        const ownedInvoices = allInvoices
-          .filter((invoice) => invoiceBelongsToCurrentUser(invoice, currentSessionUser))
-          .sort((left, right) => Date.parse(String(right?.createdAt || '')) - Date.parse(String(left?.createdAt || '')))
-          .slice(0, 20);
-
-        renderPurchases(ownedInvoices);
-        setFeedback(purchaseFeedbackElement, 'Purchase activity is up to date.');
-      } catch (error) {
-        renderPurchases([]);
-        setFeedback(
-          purchaseFeedbackElement,
-          error instanceof Error ? error.message : 'Unable to load purchases right now.',
-          true,
-        );
-      }
-    }
-
-    function hydrateProfileForm(user) {
-      const storedProfile = readJsonStorage(profileStorageKey(user)) || {};
-      const displayName = normalizeText(storedProfile?.displayName || user?.name || user?.username || '');
-      const phone = normalizeText(storedProfile?.phone || user?.phone || '');
-      const country = normalizeText(storedProfile?.country || user?.countryFlag || 'us').slice(0, 2).toUpperCase();
-
-      profileDisplayNameInput.value = displayName;
-      profileUsernameInput.value = normalizeText(user?.username || '');
-      profileEmailInput.value = normalizeText(user?.email || '');
-      profilePhoneInput.value = phone;
-      profileCountryInput.value = country;
-    }
-
-    function hydrateAddressForm(user) {
-      const storedAddress = readJsonStorage(addressStorageKey(user)) || {};
-      addressFullNameInput.value = normalizeText(storedAddress?.fullName || user?.name || '');
-      addressLine1Input.value = normalizeText(storedAddress?.line1 || '');
-      addressLine2Input.value = normalizeText(storedAddress?.line2 || '');
-      addressCityInput.value = normalizeText(storedAddress?.city || '');
-      addressStateInput.value = normalizeText(storedAddress?.state || '');
-      addressPostalInput.value = normalizeText(storedAddress?.postal || '');
-      addressCountryInput.value = normalizeText(storedAddress?.country || '');
-    }
-
-    function registerProfileSaveHandler() {
-      profileForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-
-        const displayName = normalizeText(profileDisplayNameInput.value);
-        const phone = normalizeText(profilePhoneInput.value);
-        const country = normalizeText(profileCountryInput.value).slice(0, 2).toUpperCase();
-
-        if (!displayName) {
-          setFeedback(profileFeedbackElement, 'Display name is required.', true);
-          return;
-        }
-
-        const saved = writeJsonStorage(profileStorageKey(currentSessionUser), {
-          displayName,
-          phone,
-          country,
+    if(!completion.ok){
+      const isNetworkIssue=isLikelyFetchNetworkError(completion?.message);
+      const retryScheduled=isNetworkIssue
+        ? scheduleUpgradeCheckoutNetworkRetry(safeSessionId)
+        : false;
+      if(retryScheduled){
+        setUpgradeThankYouState({
+          status:`Finalizing your upgrade (retry ${resolveUpgradeRetryProgress(safeSessionId)})...`,
+          tone:'info',
         });
-
-        currentSessionUser = {
-          ...currentSessionUser,
-          name: displayName,
-          countryFlag: normalizeText(country || currentSessionUser?.countryFlag || 'us').toLowerCase(),
-        };
-        persistUserSession(currentSessionUser);
-        renderWelcome(currentSessionUser);
-
-        if (!saved) {
-          setFeedback(profileFeedbackElement, 'Profile save may be blocked by browser storage settings.', true);
-          return;
-        }
-
-        setFeedback(profileFeedbackElement, 'Profile saved.');
-      });
-    }
-
-    function registerAddressSaveHandler() {
-      addressForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-
-        const payload = {
-          fullName: normalizeText(addressFullNameInput.value),
-          line1: normalizeText(addressLine1Input.value),
-          line2: normalizeText(addressLine2Input.value),
-          city: normalizeText(addressCityInput.value),
-          state: normalizeText(addressStateInput.value),
-          postal: normalizeText(addressPostalInput.value),
-          country: normalizeText(addressCountryInput.value),
-        };
-
-        if (!payload.line1 || !payload.city || !payload.country) {
-          setFeedback(addressFeedbackElement, 'Address Line 1, City, and Country are required.', true);
-          return;
-        }
-
-        const saved = writeJsonStorage(addressStorageKey(currentSessionUser), payload);
-        if (!saved) {
-          setFeedback(addressFeedbackElement, 'Address save may be blocked by browser storage settings.', true);
-          return;
-        }
-
-        setFeedback(addressFeedbackElement, 'Saved address updated.');
-      });
-    }
-
-    function setupLogout() {
-      if (!logoutButton) {
-        return;
+        setUpgradeFlowFeedback('','');
+      }else{
+        const failureMessage=completion.message||'Payment was successful, but account-upgrade finalization failed. Please contact support.';
+        setUpgradeThankYouState({
+          status:failureMessage,
+          tone:'error',
+        });
+        setUpgradeFlowFeedback(failureMessage,'error');
       }
-
-      logoutButton.addEventListener('click', () => {
-        clearUserSession();
-        window.location.replace(resolveStoreScopedUrl('/login.html'));
-      });
+      return;
     }
 
-    function bootstrap() {
-      const sessionUser = readUserSession();
-      if (!sessionUser) {
-        window.location.replace(resolveStoreScopedUrl('/login.html'));
-        return;
+    if(!completion.completed){
+      const retryScheduled=scheduleUpgradeCheckoutNetworkRetry(safeSessionId);
+      if(retryScheduled){
+        setUpgradeThankYouState({
+          status:`Payment confirmed. Upgrading your account (retry ${resolveUpgradeRetryProgress(safeSessionId)})...`,
+          tone:'info',
+        });
+        setUpgradeFlowFeedback('','');
+      }else{
+        const pendingMessage=completion.message||'Payment is processing in the background. Please keep this tab open while we finish your upgrade.';
+        setUpgradeThankYouState({
+          status:pendingMessage,
+          tone:'info',
+        });
+        setUpgradeFlowFeedback('','');
       }
-
-      if (!isFreeAccountUser(sessionUser)) {
-        window.location.replace('/login.html');
-        return;
-      }
-
-      currentSessionUser = sessionUser;
-      activeStoreCode = resolveStoreCodeForSession(currentSessionUser);
-
-      bindNavigationLinks();
-      renderWelcome(currentSessionUser);
-      hydrateProfileForm(currentSessionUser);
-      hydrateAddressForm(currentSessionUser);
-      registerProfileSaveHandler();
-      registerAddressSaveHandler();
-      registerUpgradeHandler();
-      setupLogout();
-
-      refreshPurchasesButton?.addEventListener('click', () => {
-        loadPurchaseActivity();
-      });
-
-      loadPurchaseActivity();
+      return;
     }
 
-    bootstrap();
-  </script>
+    clearUpgradeCheckoutRetryTracking(safeSessionId);
+    clearUpgradePendingCheckoutState();
+    const payload=completion.payload&&typeof completion.payload==='object'?completion.payload:{};
+    const accountUpgrade=payload.accountUpgrade&&typeof payload.accountUpgrade==='object'?payload.accountUpgrade:null;
+    if(accountUpgrade&&accountUpgrade.ok===false){
+      const accountUpgradeError=accountUpgrade.message||'Payment completed, but account upgrade failed. Please contact support.';
+      setUpgradeThankYouState({
+        status:accountUpgradeError,
+        tone:'error',
+      });
+      setUpgradeFlowFeedback(accountUpgradeError,'error');
+      return;
+    }
+
+    if(accountUpgrade?.user&&typeof accountUpgrade.user==='object'){
+      currentUser={...currentUser,...accountUpgrade.user};
+      persistSession(currentUser);
+      renderWelcome(currentUser);
+      hydrateProfile(currentUser);
+    }
+
+    if(accountUpgrade?.attempted){
+      setUpgradeThankYouState({
+        message:'Your payment is confirmed and your account is now upgraded.',
+        status:'Upgrade complete. You can continue to your member dashboard.',
+        tone:'success',
+        dashboardReady:true,
+      });
+      setUpgradeFlowFeedback('','');
+      return;
+    }
+    const completionMessage=completion.message||'Payment confirmed successfully.';
+    setUpgradeThankYouState({
+      message:'Your payment is confirmed.',
+      status:completionMessage,
+      tone:'success',
+      dashboardReady:true,
+    });
+    setUpgradeFlowFeedback('','');
+  }catch(error){
+    const isNetworkError=isLikelyFetchNetworkError(error);
+    const retryScheduled=isNetworkError?scheduleUpgradeCheckoutNetworkRetry(safeSessionId):false;
+    if(retryScheduled){
+      setUpgradeThankYouState({
+        status:`Finalizing your upgrade (retry ${resolveUpgradeRetryProgress(safeSessionId)})...`,
+        tone:'info',
+      });
+      setUpgradeFlowFeedback('','');
+      return;
+    }
+    const finalizationError=error instanceof Error?error.message:'Unable to finalize checkout right now.';
+    setUpgradeThankYouState({
+      status:finalizationError,
+      tone:'error',
+    });
+    setUpgradeFlowFeedback(finalizationError,'error');
+  }finally{
+    upgradeCheckoutFinalizationInFlightSessionIds.delete(safeSessionId);
+  }
+}
+function normalizeUpgradeProductKey(value=''){
+  const normalized=low(value).replace(/[^a-z0-9]/g,'');
+  if(normalized.includes('roast')) return 'metaroast';
+  return 'metacharge';
+}
+function resolveUpgradePackageProductCount(packageKey=''){
+  return Math.max(1,Math.round(Number(UPGRADE_PACKAGE_PRODUCT_COUNT[low(packageKey)]||3)||3));
+}
+function setUpgradeFlowFeedback(message='',type=''){
+  setFeedback(el.upgradeFeedback,message,type);
+  setFeedback(el.inviteFeedback,message,type);
+}
+function resolveUpgradeCheckoutProduct(productKey=''){
+  const normalizedKey=normalizeUpgradeProductKey(productKey);
+  const productMeta=UPGRADE_PRODUCT_META[normalizedKey]||UPGRADE_PRODUCT_META.metacharge;
+  const productFromCatalog=upgradeCheckoutCatalogByKey.get(normalizedKey)
+    || upgradeCheckoutCatalogByKey.get('metacharge')
+    || null;
+  const productId=t(productFromCatalog?.id||UPGRADE_PRODUCT_META.metacharge.fallbackId||productMeta.fallbackId);
+  const unitPrice=Math.max(0,Number(productFromCatalog?.price||productMeta.unitPrice||0));
+  const label=t(productFromCatalog?.title||productMeta.label||'Product');
+  return {
+    key:normalizedKey,
+    id:productId,
+    label,
+    unitPrice,
+  };
+}
+async function hydrateUpgradeCheckoutCatalog(){
+  upgradeCheckoutCatalogByKey.clear();
+  try{
+    const products=await shared.fetchProducts();
+    (Array.isArray(products)?products:[]).forEach((product)=>{
+      const idKey=normalizeUpgradeProductKey(product?.id);
+      const titleKey=normalizeUpgradeProductKey(product?.title);
+      if(idKey==='metacharge'||titleKey==='metacharge'){
+        upgradeCheckoutCatalogByKey.set('metacharge',product);
+      }
+      if(idKey==='metaroast'||titleKey==='metaroast'){
+        upgradeCheckoutCatalogByKey.set('metaroast',product);
+      }
+    });
+  }catch{}
+}
+function resolveUpgradeCheckoutQuote(){
+  const packageKey=UPGRADE_LABEL[low(selectedUpgradePackage)]?low(selectedUpgradePackage):'personal-builder-pack';
+  const packageLabel=UPGRADE_LABEL[packageKey]||'Personal Builder Pack';
+  const quantity=resolveUpgradePackageProductCount(packageKey);
+  const product=resolveUpgradeCheckoutProduct(selectedUpgradeProductKey);
+  const total=Math.round((quantity*product.unitPrice+Number.EPSILON)*100)/100;
+  return {
+    packageKey,
+    packageLabel,
+    product,
+    quantity,
+    total,
+  };
+}
+function renderUpgradeCheckoutSummary(){
+  // Summary row intentionally removed from modal UI.
+}
+function setSelectedUpgradeProduct(nextProduct=''){
+  selectedUpgradeProductKey=normalizeUpgradeProductKey(nextProduct||selectedUpgradeProductKey||'metacharge');
+  (Array.isArray(el.upgradeProductOptions)?el.upgradeProductOptions:[]).forEach((optionNode)=>{
+    const nodeKey=normalizeUpgradeProductKey(optionNode?.dataset?.upgradeProductKey||'metacharge');
+    const isSelected=nodeKey===selectedUpgradeProductKey;
+    optionNode.classList.toggle('is-selected',isSelected);
+    optionNode.setAttribute('aria-pressed',isSelected?'true':'false');
+  });
+  renderUpgradeCheckoutSummary();
+}
+function buildUpgradeShippingAddress(){
+  const parts=[
+    t(el.addrName?.value),
+    t(el.addr1?.value),
+    t(el.addr2?.value),
+    t(el.addrCity?.value),
+    t(el.addrState?.value),
+    t(el.addrPostal?.value),
+    t(el.addrCountry?.value),
+  ].filter(Boolean);
+  if(parts.length===0){
+    const fallbackSavedAddress=readJson(addressKey(currentUser))||{};
+    const fallbackParts=[
+      t(fallbackSavedAddress.fullName),
+      t(fallbackSavedAddress.line1),
+      t(fallbackSavedAddress.line2),
+      t(fallbackSavedAddress.city),
+      t(fallbackSavedAddress.state),
+      t(fallbackSavedAddress.postal),
+      t(fallbackSavedAddress.country),
+    ].filter(Boolean);
+    if(fallbackParts.length>0) return fallbackParts.join(', ');
+  }
+  return parts.length>0?parts.join(', '):'Collected in Stripe Checkout';
+}
+async function createUpgradeCheckoutSession(payload={}){
+  const response=await fetch(STORE_CHECKOUT_SESSION_API,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    credentials:'same-origin',
+    body:JSON.stringify(payload),
+  });
+  const responsePayload=await response.json().catch(()=>null);
+  if(!response.ok){
+    throw new Error(typeof responsePayload?.error==='string'?responsePayload.error:'Unable to create Stripe checkout session.');
+  }
+  const sessionId=t(responsePayload?.sessionId);
+  const sessionUrl=t(responsePayload?.sessionUrl);
+  if(!sessionId||!sessionUrl){
+    throw new Error('Checkout session response is missing Stripe session details.');
+  }
+  return {sessionId,sessionUrl,checkout:responsePayload?.checkout&&typeof responsePayload.checkout==='object'?responsePayload.checkout:{}};
+}
+async function startUpgradeStripeCheckout(){
+  if(!currentUser||!isPreferredUser(currentUser)){
+    setUpgradeFlowFeedback('Please login as a Preferred account before upgrading.','error');
+    return;
+  }
+
+  const quote=resolveUpgradeCheckoutQuote();
+  if(!quote.product.id||quote.quantity<=0){
+    setUpgradeFlowFeedback('Unable to prepare checkout cart for this package.','error');
+    return;
+  }
+
+  const buyerEmail=t(currentUser?.email||el.profileEmail?.value);
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)){
+    setUpgradeFlowFeedback('A valid account email is required before checkout.','error');
+    return;
+  }
+
+  const buyerUserId=t(currentUser?.id||currentUser?.userId||'');
+  const buyerUsername=t(currentUser?.username||'').replace(/^@+/,'');
+  const buyerName=t(el.profileDisplay?.value||currentUser?.name||buyerUsername||'Preferred Member');
+  const payload={
+    cartLines:[{productId:quote.product.id,quantity:quote.quantity}],
+    storeCode:activeStoreCode,
+    buyerName,
+    buyerEmail,
+    shippingAddress:buildUpgradeShippingAddress(),
+    shippingMode:'Standard Shipping',
+    source:'member-dashboard',
+    memberStoreLink:`${window.location.origin}${scoped('/store.html')}`,
+    discountPercent:0,
+    checkoutMode:'guest',
+    buyerUserId,
+    buyerUsername,
+    checkoutClient:'preferred-dashboard-upgrade',
+    accountUpgradeTargetPackage:quote.packageKey,
+    returnPath:scoped('/store-dashboard.html'),
+  };
+
+  upgradeBusy(true);
+  setUpgradeFlowFeedback('Preparing secure Stripe checkout...','info');
+
+  try{
+    const checkoutSession=await createUpgradeCheckoutSession(payload);
+    persistUpgradePendingCheckoutState({
+      sessionId:checkoutSession.sessionId,
+      packageKey:quote.packageKey,
+      packageLabel:quote.packageLabel,
+      productLabel:quote.product.label,
+      quantity:quote.quantity,
+      total:quote.total,
+    });
+    setUpgradeFlowFeedback('Redirecting to secure Stripe checkout...','info');
+    window.location.assign(checkoutSession.sessionUrl);
+  }catch(error){
+    setUpgradeFlowFeedback(error instanceof Error?error.message:'Unable to start Stripe checkout.','error');
+    upgradeBusy(false);
+  }
+}
+function clearUpgradeReturnQueryParams(){
+  try{
+    const url=new URL(window.location.href);
+    url.searchParams.delete('checkout');
+    url.searchParams.delete('session_id');
+    window.history.replaceState({},'',`${url.pathname}${url.search}${url.hash}`);
+  }catch{}
+}
+async function handleUpgradeCheckoutReturn(){
+  const checkoutStatus=low(qp.get('checkout'));
+  const sessionId=t(qp.get('session_id'));
+  if(!checkoutStatus) return;
+  if(checkoutStatus==='cancel'){
+    if(sessionId) clearUpgradeCheckoutRetryTracking(sessionId);
+    clearUpgradePendingCheckoutState();
+    closeUpgradeThankYouModal({restoreFocus:false});
+    setUpgradeFlowFeedback('Checkout was canceled. You can review package and try again.','info');
+    clearUpgradeReturnQueryParams();
+    return;
+  }
+  if(checkoutStatus!=='success'||!sessionId){
+    if(sessionId) clearUpgradeCheckoutRetryTracking(sessionId);
+    clearUpgradeReturnQueryParams();
+    return;
+  }
+  clearUpgradeCheckoutRetryTracking(sessionId);
+  const pendingSummary=readUpgradePendingCheckoutState(sessionId);
+  closeUpgradeModal({restoreFocus:false});
+  const thanksMessage=pendingSummary?.packageLabel
+    ? `Your payment for ${pendingSummary.packageLabel} was successful.`
+    : 'Your upgrade payment was successful.';
+  openUpgradeThankYouModal({
+    message:thanksMessage,
+    status:'We are upgrading your account now...',
+    tone:'info',
+  });
+  setUpgradeFlowFeedback('','');
+  clearUpgradeReturnQueryParams();
+  void finalizeUpgradeCheckoutInBackground(sessionId,{
+    maxAttempts:14,
+    pollDelayMs:350,
+  });
+}
+
+function currency(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Math.max(0,Number(v)||0))}
+function integer(v){return new Intl.NumberFormat('en-US').format(Math.max(0,Math.floor(Number(v)||0)))}
+function dateTime(v){const ms=Date.parse(String(v||''));if(!Number.isFinite(ms))return'--';return new Intl.DateTimeFormat('en-US',{month:'short',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(ms))}
+
+function setFeedback(node,msg,type=''){
+  if(!node) return;
+  node.textContent=t(msg);
+  node.className='feedback';
+  if(!t(msg)) return;
+  if(type==='error') node.classList.add('is-error');
+  else if(type==='success') node.classList.add('is-success');
+  else node.classList.add('is-info');
+}
+
+function upgradeOptionNodes(){return Array.isArray(el.upgradeOptions)?el.upgradeOptions:[]}
+function resolveBenefitIconKey(label=''){
+  const normalized=low(label);
+  if(!normalized) return 'check';
+  if(normalized.includes('cycle weekly cap')) return 'cap';
+  if(normalized.includes('retail commission')||normalized.includes('fast track bonus')) return 'money';
+  if(normalized.includes('infinity tier commission unlocked')) return 'infinity-unlock';
+  if(normalized.includes('legacy leadership bonus unlocked')) return 'legacy-unlock';
+  if(normalized.includes('unlocked')) return 'unlock';
+  if(normalized.includes('locked')) return 'lock';
+  return 'check';
+}
+function applyUpgradeBenefitIcons(){
+  upgradeOptionNodes().forEach((optionNode)=>{
+    optionNode.querySelectorAll('.upgrade-benefits li').forEach((itemNode)=>{
+      const iconKey=resolveBenefitIconKey(itemNode.textContent||'');
+      itemNode.setAttribute('data-icon',iconKey);
+    });
+  });
+}
+function setSelectedUpgradePackage(nextPackage=''){
+  const requestedPackage=low(nextPackage);
+  const firstPackage=low(upgradeOptionNodes()[0]?.dataset?.packageKey||'personal-builder-pack');
+  selectedUpgradePackage=UPGRADE_LABEL[requestedPackage]?requestedPackage:firstPackage;
+  upgradeOptionNodes().forEach((optionNode)=>{
+    const nodePackage=low(optionNode?.dataset?.packageKey);
+    const isSelected=nodePackage===selectedUpgradePackage;
+    optionNode.classList.toggle('is-selected',isSelected);
+    optionNode.setAttribute('aria-pressed',isSelected?'true':'false');
+    const selectLabel=optionNode.querySelector('.upgrade-select');
+    if(selectLabel){
+      selectLabel.textContent=isSelected?'Selected Plan':'Select Plan';
+    }
+  });
+  renderUpgradeCheckoutSummary();
+}
+function upgradeBusy(on){
+  if(!el.upgradeBtn) return;
+  el.upgradeBtn.disabled=on;
+  upgradeOptionNodes().forEach((optionNode)=>{optionNode.disabled=Boolean(on)});
+  (Array.isArray(el.upgradeProductOptions)?el.upgradeProductOptions:[]).forEach((optionNode)=>{optionNode.disabled=Boolean(on)});
+  if(el.upgradeModalOpen instanceof HTMLButtonElement) el.upgradeModalOpen.disabled=Boolean(on);
+  el.upgradeBtn.textContent=on?'Preparing Stripe...':'Upgrade Account';
+}
+
+function identity(user){return t(user?.id||user?.username||user?.email||'preferred-account')}
+function profileKey(user){return `charge-store-profile-v1:${identity(user)}`}
+function addressKey(user){return `charge-store-address-v1:${identity(user)}`}
+
+function readJson(key){
+  const raw=safeGet(window.localStorage,key);
+  if(!raw) return null;
+  try{const p=JSON.parse(raw);return p&&typeof p==='object'?p:null}catch{return null}
+}
+
+function writeJson(key,val){return safeSet(window.localStorage,key,JSON.stringify(val||{}))}
+
+function renderWelcome(user){
+  const name=t(user?.name||user?.username||'Preferred Member');
+  if(el.welcomeHeading) el.welcomeHeading.textContent=`Hi ${name}`;
+  if(el.welcomeSub) el.welcomeSub.textContent='Manage your purchases, profile, and saved address from one place.';
+}
+
+function invoiceOwned(invoice,user){
+  const uid=low(user?.id),un=low(user?.username),em=low(user?.email);
+  const iuid=low(invoice?.buyerUserId),iun=low(invoice?.buyerUsername),iem=low(invoice?.buyerEmail);
+  return Boolean((uid&&iuid&&uid===iuid)||(un&&iun&&un===iun)||(em&&iem&&em===iem));
+}
+
+function renderPurchases(items){
+  const list=Array.isArray(items)?items:[];
+  const totalOrders=list.length;
+  const totalSpent=list.reduce((s,i)=>s+Math.max(0,Number(i?.amount)||0),0);
+  
+
+  if(el.orderCount) el.orderCount.textContent=integer(totalOrders);
+  if(el.totalSpent) el.totalSpent.textContent=currency(totalSpent);
+  
+
+  if(!el.purchaseList||!el.purchaseEmpty) return;
+  if(list.length===0){
+    el.purchaseEmpty.style.display='block';
+    el.purchaseList.innerHTML='';
+    return;
+  }
+
+  el.purchaseEmpty.style.display='none';
+  el.purchaseList.innerHTML=list.map(inv=>{
+    const status=t(inv?.status||'Posted');
+    const cls=low(status)==='pending'?'status pending':'status';
+    return `<article class="purchase-item"><div class="purchase-item-top"><div><p class="purchase-id">${t(inv?.id||'--')}</p><p class="purchase-date">${dateTime(inv?.createdAt)}</p></div><span class="${cls}">${status}</span></div><div class="purchase-row"><span>Amount</span><strong>${currency(inv?.amount)}</strong></div><div class="purchase-row"><span>Discount</span><strong>${currency(inv?.discount)}</strong></div></article>`;
+  }).join('');
+}
+
+async function loadPurchases(){
+  setFeedback(el.purchaseFeedback,'Loading purchase activity...','info');
+  try{
+    const res=await fetch('/api/store-invoices',{cache:'no-store'});
+    const payload=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(typeof payload?.error==='string'?payload.error:'Unable to load purchases.');
+    const all=Array.isArray(payload?.invoices)?payload.invoices:[];
+    const mine=all.filter(inv=>invoiceOwned(inv,currentUser)).sort((a,b)=>Date.parse(String(b?.createdAt||''))-Date.parse(String(a?.createdAt||''))).slice(0,20);
+    renderPurchases(mine);
+    setFeedback(el.purchaseFeedback,'Purchase activity is up to date.','success');
+  }catch(error){
+    renderPurchases([]);
+    setFeedback(el.purchaseFeedback,error instanceof Error?error.message:'Unable to load purchases right now.','error');
+  }
+}
+function hydrateProfile(user){
+  const saved=readJson(profileKey(user))||{};
+  el.profileDisplay.value=t(saved.displayName||user?.name||user?.username||'');
+  el.profileUsername.value=t(user?.username||'');
+  el.profileEmail.value=t(user?.email||'');
+  el.profilePhone.value=t(saved.phone||user?.phone||'');
+  el.profileCountry.value=t(saved.country||user?.countryFlag||'us').slice(0,2).toUpperCase();
+}
+
+function hydrateAddress(user){
+  const a=readJson(addressKey(user))||{};
+  el.addrName.value=t(a.fullName||user?.name||'');
+  el.addr1.value=t(a.line1||'');
+  el.addr2.value=t(a.line2||'');
+  el.addrCity.value=t(a.city||'');
+  el.addrState.value=t(a.state||'');
+  el.addrPostal.value=t(a.postal||'');
+  el.addrCountry.value=t(a.country||'');
+}
+
+function saveProfile(){
+  el.profileForm.addEventListener('submit',e=>{
+    e.preventDefault();
+    const displayName=t(el.profileDisplay.value);
+    const phone=t(el.profilePhone.value);
+    const country=t(el.profileCountry.value).slice(0,2).toUpperCase();
+
+    if(!displayName){
+      setFeedback(el.profileFeedback,'Display name is required.','error');
+      return;
+    }
+
+    const ok=writeJson(profileKey(currentUser),{displayName,phone,country});
+    currentUser={...currentUser,name:displayName,countryFlag:t(country||currentUser?.countryFlag||'us').toLowerCase()};
+    persistSession(currentUser);
+    renderWelcome(currentUser);
+    setFeedback(el.profileFeedback,ok?'Profile saved.':'Profile save may be blocked by browser storage settings.',ok?'success':'error');
+  });
+}
+
+function saveAddress(){
+  el.addressForm.addEventListener('submit',e=>{
+    e.preventDefault();
+    const payload={
+      fullName:t(el.addrName.value),
+      line1:t(el.addr1.value),
+      line2:t(el.addr2.value),
+      city:t(el.addrCity.value),
+      state:t(el.addrState.value),
+      postal:t(el.addrPostal.value),
+      country:t(el.addrCountry.value),
+    };
+
+    if(!payload.line1||!payload.city||!payload.country){
+      setFeedback(el.addrFeedback,'Address Line 1, City, and Country are required.','error');
+      return;
+    }
+
+    const ok=writeJson(addressKey(currentUser),payload);
+    setFeedback(el.addrFeedback,ok?'Saved address updated.':'Address save may be blocked by browser storage settings.',ok?'success':'error');
+  });
+}
+
+function setupUpgrade(){
+  applyUpgradeBenefitIcons();
+  void hydrateUpgradeCheckoutCatalog().then(()=>{renderUpgradeCheckoutSummary()});
+
+  upgradeOptionNodes().forEach((optionNode)=>{
+    optionNode.addEventListener('click',()=>{
+      const nextPackage=low(optionNode?.dataset?.packageKey);
+      if(!UPGRADE_LABEL[nextPackage]) return;
+      setSelectedUpgradePackage(nextPackage);
+      setUpgradeFlowFeedback('');
+    });
+  });
+
+  (Array.isArray(el.upgradeProductOptions)?el.upgradeProductOptions:[]).forEach((optionNode)=>{
+    optionNode.addEventListener('click',()=>{
+      const nextProduct=normalizeUpgradeProductKey(optionNode?.dataset?.upgradeProductKey);
+      setSelectedUpgradeProduct(nextProduct);
+      setUpgradeFlowFeedback('');
+    });
+  });
+
+  setSelectedUpgradePackage(selectedUpgradePackage);
+  setSelectedUpgradeProduct(selectedUpgradeProductKey);
+
+  el.upgradeBtn?.addEventListener('click',()=>{void startUpgradeStripeCheckout()});
+}
+
+function setupLogout(){
+  el.logout?.addEventListener('click',()=>{
+    shared.clearUserSession({clearCart:true});
+    const loginUrl=new URL(scoped('/login.html'),window.location.origin);
+    loginUrl.searchParams.set('logout','1');
+    loginUrl.searchParams.set('t',String(Date.now()));
+    window.location.replace(`${loginUrl.pathname}${loginUrl.search}`);
+  });
+}
+
+function bootstrap(){
+  const session=readSession();
+  if(!session){
+    window.location.replace(scoped('/login.html'));
+    return;
+  }
+
+  if(!isPreferredUser(session)){
+    window.location.replace('/login.html');
+    return;
+  }
+
+  currentUser=session;
+  activeStoreCode=resolveStoreCode(currentUser);
+  window.addEventListener('storage',e=>{
+    if(e.key==='vault-auth-user'||e.key==='vault-auth-last-logout-at'){
+      window.location.reload();
+    }
+  });
+
+  bindLinks();
+  renderWelcome(currentUser);
+  hydrateProfile(currentUser);
+  hydrateAddress(currentUser);
+  saveProfile();
+  saveAddress();
+  setupUpgradeModal();
+  setupUpgrade();
+  void handleUpgradeCheckoutReturn();
+  setupLogout();
+
+  el.refresh?.addEventListener('click',()=>{loadPurchases()});
+  loadPurchases();
+}
+
+bootstrap();
+</script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+

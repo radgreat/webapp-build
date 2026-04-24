@@ -1,14 +1,38 @@
 import {
   authenticateUser,
+  resolveAuthenticatedMemberSession,
+  createMemberStripeBillingPortalSession,
+  createMemberStripePayoutOnboardingLink,
+  createMemberStripePayoutDashboardLink,
+  resolveMemberStripePayoutAccountStatus,
   validatePasswordSetupToken,
   updatePasswordFromSetupToken,
   resolveMemberEmailVerificationStatus,
   resolveMemberBinaryTreeLaunchState,
+  updateMemberBinaryTreePinnedNodes,
+  resolveMemberBinaryTreePinnedNodes,
+  updateMemberBinaryTreeTierSortDirections,
+  resolveMemberBinaryTreeTierSortDirections,
   resetMemberBinaryTreeLaunchState,
   requestMemberEmailVerification,
   verifyMemberEmailByToken,
 } from '../services/auth.service.js';
 import { issueMemberAuthSessionForUser } from '../services/member-auth-session.service.js';
+
+function resolveRequestOrigin(req) {
+  const originHeader = String(req.get('origin') || '').trim();
+  if (originHeader) {
+    return originHeader;
+  }
+
+  const host = String(req.get('host') || '').trim();
+  if (!host) {
+    return '';
+  }
+
+  const protocol = req.protocol === 'https' ? 'https' : 'http';
+  return `${protocol}://${host}`;
+}
 
 export async function loginMember(req, res) {
   try {
@@ -135,6 +159,192 @@ export async function getMemberBinaryTreeLaunchState(req, res) {
     console.error(error);
     return res.status(500).json({
       error: 'Unable to load Binary Tree launch state.',
+    });
+  }
+}
+
+export async function getMemberSession(req, res) {
+  try {
+    const result = await resolveAuthenticatedMemberSession(req.authenticatedMember || {});
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to resolve member auth session.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to load authenticated member session.',
+    });
+  }
+}
+
+export async function postMemberBillingPortalSession(req, res) {
+  try {
+    const result = await createMemberStripeBillingPortalSession(
+      req.authenticatedMember || {},
+      req.body || {},
+      {
+        origin: resolveRequestOrigin(req),
+      },
+    );
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to create Stripe billing portal session.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to create Stripe billing portal session.',
+    });
+  }
+}
+
+export async function getMemberPayoutAccountStatus(req, res) {
+  try {
+    const result = await resolveMemberStripePayoutAccountStatus(req.authenticatedMember || {});
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to resolve Stripe payout account status.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to resolve Stripe payout account status.',
+    });
+  }
+}
+
+export async function postMemberPayoutAccountOnboardingLink(req, res) {
+  try {
+    const result = await createMemberStripePayoutOnboardingLink(
+      req.authenticatedMember || {},
+      req.body || {},
+      {
+        origin: resolveRequestOrigin(req),
+      },
+    );
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to start Stripe payout onboarding.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to start Stripe payout onboarding.',
+    });
+  }
+}
+
+export async function postMemberPayoutAccountDashboardLink(req, res) {
+  try {
+    const result = await createMemberStripePayoutDashboardLink(
+      req.authenticatedMember || {},
+      req.body || {},
+      {
+        origin: resolveRequestOrigin(req),
+      },
+    );
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to open Stripe dashboard.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to open Stripe dashboard.',
+    });
+  }
+}
+
+export async function putMemberBinaryTreePinnedNodes(req, res) {
+  try {
+    const result = await updateMemberBinaryTreePinnedNodes(
+      req.authenticatedMember || {},
+      req.body || {},
+    );
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to update Binary Tree pinned nodes.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to update Binary Tree pinned nodes.',
+    });
+  }
+}
+
+export async function getMemberBinaryTreePinnedNodes(req, res) {
+  try {
+    const result = await resolveMemberBinaryTreePinnedNodes(req.authenticatedMember || {});
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to load Binary Tree pinned nodes.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to load Binary Tree pinned nodes.',
+    });
+  }
+}
+
+export async function putMemberBinaryTreeTierSortDirections(req, res) {
+  try {
+    const result = await updateMemberBinaryTreeTierSortDirections(
+      req.authenticatedMember || {},
+      req.body || {},
+    );
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to update Binary Tree tier sort directions.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to update Binary Tree tier sort directions.',
+    });
+  }
+}
+
+export async function getMemberBinaryTreeTierSortDirections(req, res) {
+  try {
+    const result = await resolveMemberBinaryTreeTierSortDirections(req.authenticatedMember || {});
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error || 'Unable to load Binary Tree tier sort directions.',
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to load Binary Tree tier sort directions.',
     });
   }
 }

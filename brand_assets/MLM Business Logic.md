@@ -82,7 +82,7 @@ Fast Track Commission Bonus is not applied when upgrading an account. There will
 
 ---
 
-# 3️⃣ Infinity Builder Bonus
+# 3️⃣ Infinity Tier Commission
 
 *(Array | Deduction: 0.96 USD per bottle)*
 
@@ -143,17 +143,22 @@ Commission is calculated on the **weaker leg**.
 # 5️⃣ Rank Advancement Bonus
 
 
-| Cycles | Rank          | Income (US$) |
-| ------ | ------------- | ------------ |
-| 5      | Ruby          | 62.5         |
-| 10     | Emerald       | 125          |
-| 20     | Sapphire      | 250          |
-| 40     | Diamond       | 500          |
-| 80     | Blue Diamond  | 1000         |
-| 160    | Black Diamond | 2000         |
-| 320    | Crown         | 4000         |
-| 640    | Double Crown  | 8000         |
-| 1000   | Royal Crown   | 12500        |
+Rank Advancement
+
+Ruby = 5 Cycles, 1:1 Active Direct Sponsors that has 50 Personal BV each = $62.5
+Emerald = 10 Cycles, 1:1 Active Direct Sponsors that has 50 Personal BV each, 1 Ruby Member = $125
+Sapphire = 20 Cycles, 1:1 Active Direct Sponsors that has 50 Personal BV each, 1 Emerald Member = $250
+
+Diamond = 40 Cycles, 2:2 Active Active Direct Sponsors that has 50 Personal BV each, 1 Sapphire Member = $500
+Blue Diamond = 80 Cycles, 2:2 Active Direct Sponsors that has 50 Personal BV each, 1 Diamond Member = $1,000
+Black Diamond = 160 Cycles, 2:2 Active Direct Sponsors that has 50 Personal BV each, 1 Blue Diamond Member = $2,000
+
+
+Crown = 320 Cycles, 3:3 Active Direct Sponsors that has 50 Personal BV each, 2 Black Diamond Member = $4,000
+
+Double Crown= 640 Cycles, 3:3 Active Direct Sponsors that has 50 Personal BV each, 2 Crown Member = $8,000
+
+Royal Crown = 1000 Cycles, 3:3 Active Direct Sponsors that has 50 Personal BV each, 2 Double Crown Member = $12,500
 
 ## Updated Rank Advancement Rules
 
@@ -230,3 +235,13 @@ Matrix resets after completion.
 Lifestyle reward for any personal use.
 
 ---
+
+
+## Binary Tree Spill Over Logic
+
+1. Placement Left
+2. Placement Right
+3. Spill Over Left = meaning auto placement on your 1st level left child, this is auto placement that is available.
+3. Spill Over Right = eaning auto placement on your 1st level right child, this is auto placement that is available.
+4. Extreme Spill Over Left = meaning your Furthest Left child, it will be placed on its left leg.
+5. Extreme Spill Over Right = meaning your Furthest Right child, it will be placed on its right leg.

@@ -121,7 +121,7 @@
       class="color-bends-canvas fixed inset-0 z-0 pointer-events-none"
       style="background: #02010B; opacity: 0;"></div>
 
-    <main class="relative z-10 min-h-screen flex items-center justify-center px-4 pt-10 pb-28" style="min-height: 100dvh;">
+    <main class="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 pt-10 pb-28" style="min-height: 100dvh;">
       <section class="reveal-up relative w-full max-w-md overflow-hidden rounded-[28px] border border-white/30 bg-surface-raised/82 p-7 shadow-depth-3 backdrop-blur-[26px] sm:p-8" style="--reveal-delay: 520ms;">
         <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/24 via-white/10 to-transparent"></div>
         <div class="relative">
@@ -191,6 +191,14 @@
           </form>
         </div>
       </section>
+      <p class="reveal-up mt-5 text-center text-sm leading-relaxed text-white/82" style="--reveal-delay: 940ms;">
+        <span class="text-white/70">Don&apos;t have an account?</span>
+        <a
+          id="preferred-register-link"
+          href="/store-register.html"
+          class="ml-1 rounded-sm font-medium text-white underline decoration-white/80 underline-offset-[3px] transition-colors duration-150 ease-spring hover:text-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+        >Register as a Preferred Account</a>
+      </p>
     </main>
     <footer class="reveal-up fixed inset-x-0 bottom-5 z-20 px-4 text-center text-[0.76rem] leading-relaxed text-white/74 sm:bottom-6 sm:text-xs" style="--reveal-delay: 1040ms;">
       <p>
@@ -455,6 +463,10 @@
       window.startColorBendsIntro = () => {
         introState.startedAtMs = performance.now();
       };
+      if (window.__loginPendingColorBendsIntro === true) {
+        window.__loginPendingColorBendsIntro = false;
+        window.startColorBendsIntro();
+      }
 
       const handlePointerMove = event => {
         const { width, height } = getPointerViewportSize();
@@ -521,6 +533,10 @@
     const LEGACY_STORE_CODE_ALIASES = Object.freeze({
       'CHG-7X42': 'CHG-ZERO',
     });
+    const UNATTRIBUTED_STORE_CODE_SET = new Set([
+      'REGISTRATIONLOCKED',
+      'REGISTRATION-LOCKED',
+    ]);
 
     const loginForm = document.getElementById('login-form');
     const loginIdentifierInput = document.getElementById('login-identifier');
@@ -530,6 +546,7 @@
     const loginSubmitLabel = document.getElementById('login-submit-label');
     const loginError = document.getElementById('login-error');
     const loginInspirationHeading = document.getElementById('login-inspiration-heading');
+    const preferredRegisterLink = document.getElementById('preferred-register-link');
 
     const INSPIRATION_ROTATE_MS = 4200;
     const INSPIRATION_ENTRIES = [
@@ -584,7 +601,25 @@
         .trim()
         .toUpperCase()
         .replace(/[^A-Z0-9-]/g, '');
-      return LEGACY_STORE_CODE_ALIASES[normalizedValue] || normalizedValue;
+      const aliasedStoreCode = LEGACY_STORE_CODE_ALIASES[normalizedValue] || normalizedValue;
+      return UNATTRIBUTED_STORE_CODE_SET.has(aliasedStoreCode) ? '' : aliasedStoreCode;
+    }
+
+    function resolvePreferredRegisterHref() {
+      const destinationUrl = new URL('/store-register.html', window.location.origin);
+      const registerQueryParams = new URLSearchParams(window.location.search);
+      const candidateStoreCode = normalizeStoreCode(registerQueryParams.get('store'));
+      if (candidateStoreCode) {
+        destinationUrl.searchParams.set('store', candidateStoreCode);
+      }
+      return `${destinationUrl.pathname}${destinationUrl.search}`;
+    }
+
+    function syncPreferredRegisterLink() {
+      if (!preferredRegisterLink) {
+        return;
+      }
+      preferredRegisterLink.setAttribute('href', resolvePreferredRegisterHref());
     }
 
     function isFreeAccountUser(user) {
@@ -641,6 +676,18 @@
       }
     }
 
+    function safeStorageRemove(storage, key) {
+      try {
+        if (!storage) {
+          return false;
+        }
+        storage.removeItem(key);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
     function readCookieValue(key) {
       const source = document.cookie || '';
       const encodedKey = `${encodeURIComponent(key)}=`;
@@ -665,6 +712,63 @@
       } catch {
         return false;
       }
+    }
+
+    function clearCookieValueWithDomain(key, domainValue = '') {
+      const normalizedKey = String(key || '').trim();
+      if (!normalizedKey) {
+        return false;
+      }
+
+      try {
+        const segments = [
+          `${encodeURIComponent(normalizedKey)}=`,
+          'Max-Age=0',
+          'path=/',
+          'SameSite=Lax',
+        ];
+        if (domainValue) {
+          segments.push(`domain=${domainValue}`);
+        }
+        document.cookie = segments.join('; ');
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function buildCookieDomainCandidates(hostnameInput) {
+      const hostname = String(hostnameInput || '').trim().toLowerCase();
+      if (!hostname || hostname === 'localhost' || /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
+        return [];
+      }
+
+      const parts = hostname.split('.').filter(Boolean);
+      if (parts.length < 2) {
+        return [];
+      }
+
+      const candidates = [];
+      for (let index = 0; index <= parts.length - 2; index += 1) {
+        candidates.push(`.${parts.slice(index).join('.')}`);
+      }
+      return candidates;
+    }
+
+    function clearCookieValueEverywhere(key) {
+      let removed = clearCookieValueWithDomain(key);
+      const domainCandidates = buildCookieDomainCandidates(window.location.hostname);
+      domainCandidates.forEach((domainValue) => {
+        removed = clearCookieValueWithDomain(key, domainValue) || removed;
+      });
+      return removed;
+    }
+
+    function clearUserSession() {
+      safeStorageRemove(window.localStorage, AUTH_STORAGE_KEY);
+      safeStorageRemove(window.sessionStorage, AUTH_STORAGE_KEY);
+      clearCookieValueEverywhere(AUTH_COOKIE_KEY);
+      safeStorageSet(window.localStorage, 'vault-auth-last-logout-at', new Date().toISOString());
     }
 
     function parseSessionPayload(raw) {
@@ -736,6 +840,7 @@
         authTokenExpiresAt: typeof user?.authTokenExpiresAt === 'string' ? user.authTokenExpiresAt : '',
       };
 
+      clearUserSession();
       const serializedSession = JSON.stringify(sessionUser);
       const wroteLocal = safeStorageSet(window.localStorage, AUTH_STORAGE_KEY, serializedSession);
       const wroteSession = safeStorageSet(window.sessionStorage, AUTH_STORAGE_KEY, serializedSession);
@@ -946,7 +1051,10 @@
       }
 
       if (typeof window.startColorBendsIntro === 'function') {
+        window.__loginPendingColorBendsIntro = false;
         window.startColorBendsIntro();
+      } else {
+        window.__loginPendingColorBendsIntro = true;
       }
 
       const targets = [pageShell, ...revealItems];
@@ -1014,16 +1122,47 @@
       }
     }
 
-    window.requestAnimationFrame(() => {
-      window.setTimeout(runLoginIntroAnimation, 60);
-    });
-    window.addEventListener('pageshow', () => {
+    let loginIntroAnimationHasRun = false;
+    let loginIntroAnimationScheduled = false;
+
+    function scheduleLoginIntroAnimation({ force = false } = {}) {
+      if (loginIntroAnimationScheduled) {
+        return;
+      }
+      if (loginIntroAnimationHasRun && !force) {
+        return;
+      }
+
+      loginIntroAnimationScheduled = true;
       window.requestAnimationFrame(() => {
-        window.setTimeout(runLoginIntroAnimation, 60);
+        loginIntroAnimationScheduled = false;
+        runLoginIntroAnimation();
+        loginIntroAnimationHasRun = true;
       });
+    }
+
+    scheduleLoginIntroAnimation();
+    window.addEventListener('pageshow', (event) => {
+      if (!event.persisted) {
+        return;
+      }
+      loginIntroAnimationHasRun = false;
+      scheduleLoginIntroAnimation({ force: true });
     });
 
     startInspirationRotation();
+
+    const loginQueryParams = new URLSearchParams(window.location.search);
+    const logoutRequested = loginQueryParams.get('logout') === '1';
+    if (logoutRequested) {
+      clearUserSession();
+      loginQueryParams.delete('logout');
+      loginQueryParams.delete('t');
+      const nextSearch = loginQueryParams.toString();
+      const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash || ''}`;
+      window.history.replaceState({}, '', nextUrl);
+    }
+    syncPreferredRegisterLink();
 
     const existingSession = readUserSession();
     if (existingSession) {

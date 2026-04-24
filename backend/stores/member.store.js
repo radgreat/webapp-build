@@ -1,4 +1,5 @@
 import pool from '../db/db.js';
+import { resolveMemberActivityStateByPersonalBv } from '../utils/member-activity.helpers.js';
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -17,9 +18,35 @@ function toWholeNumber(value, fallback = 0) {
 }
 
 function normalizeBusinessCenterNodeType(value) {
-  return normalizeCredential(value) === 'placeholder'
-    ? 'placeholder'
-    : 'primary';
+  const normalized = normalizeCredential(value);
+  if (normalized === 'business_center' || normalized === 'business-center') {
+    return 'business_center';
+  }
+  if (normalized === 'staff_admin' || normalized === 'staff-admin') {
+    return 'staff_admin';
+  }
+  if (
+    normalized === 'legacy_placeholder'
+    || normalized === 'legacy-placeholder'
+    || normalized === 'placeholder'
+  ) {
+    return 'legacy_placeholder';
+  }
+  return 'main_center';
+}
+
+function normalizeBusinessCenterActivationStatus(value) {
+  const normalized = normalizeCredential(value);
+  if (normalized === 'frozen') {
+    return 'frozen';
+  }
+  if (normalized === 'inactive') {
+    return 'inactive';
+  }
+  if (normalized === 'deprecated') {
+    return 'deprecated';
+  }
+  return 'active';
 }
 
 function toIsoStringOrEmpty(value) {
@@ -53,6 +80,21 @@ function mapDbMemberToAppMember(row) {
     row.user_activity_active_until_at
     || row.activity_active_until_at
   );
+  const activityState = resolveMemberActivityStateByPersonalBv({
+    accountStatus: linkedAccountStatus,
+    passwordSetupRequired: effectivePasswordSetupRequired,
+    activityActiveUntilAt: effectiveActivityActiveUntilAt,
+    lastProductPurchaseAt: row.user_last_product_purchase_at || row.last_product_purchase_at,
+    lastPurchaseAt: row.user_last_purchase_at || row.last_purchase_at,
+    lastAccountUpgradeAt: row.user_last_account_upgrade_at || row.last_account_upgrade_at,
+    createdAt: row.user_created_at || row.created_at,
+    starterPersonalPv: row.starter_personal_pv,
+    packageBv: row.package_bv,
+    enrollmentPackageBv: row.enrollment_package_bv,
+    serverCutoffBaselineStarterPersonalPv: row.server_cutoff_baseline_starter_personal_pv,
+    currentPersonalPvBv: row.user_current_personal_pv_bv ?? row.current_personal_pv_bv,
+    currentWeekPersonalPv: row.current_week_personal_pv,
+  });
 
   return {
     id: row.id,
@@ -80,9 +122,12 @@ function mapDbMemberToAppMember(row) {
     rank: row.rank,
     accountRank: row.account_rank,
     starterPersonalPv: Number(row.starter_personal_pv || 0),
-    accountStatus: linkedAccountStatus,
-    status: linkedAccountStatus,
-    activityActiveUntilAt: toIsoStringOrEmpty(effectiveActivityActiveUntilAt),
+    accountStatus: activityState.accountStatus,
+    status: activityState.accountStatus,
+    isActive: activityState.isActive,
+    currentPersonalPvBv: activityState.currentPersonalPvBv,
+    monthlyPersonalBv: activityState.currentPersonalPvBv,
+    activityActiveUntilAt: activityState.activeUntilAt || toIsoStringOrEmpty(effectiveActivityActiveUntilAt),
     lastProductPurchaseAt: toIsoStringOrEmpty(row.last_product_purchase_at),
     lastPurchaseAt: toIsoStringOrEmpty(row.last_purchase_at),
     lastAccountUpgradeAt: toIsoStringOrEmpty(row.last_account_upgrade_at),
@@ -104,6 +149,11 @@ function mapDbMemberToAppMember(row) {
     businessCenterLabel: row.business_center_label,
     businessCenterActivatedAt: toIsoStringOrEmpty(row.business_center_activated_at),
     businessCenterPinnedSide: row.business_center_pinned_side,
+    isEarningEligible: typeof row.is_earning_eligible === 'boolean'
+      ? row.is_earning_eligible
+      : true,
+    activationStatus: normalizeBusinessCenterActivationStatus(row.activation_status),
+    sourceQualificationTier: toWholeNumber(row.source_qualification_tier, 0),
     legacyLeadershipCompletedTierCount: toWholeNumber(row.legacy_leadership_completed_tier_count, 0),
     businessCentersEarnedLifetime: toWholeNumber(row.business_centers_earned_lifetime, 0),
     businessCentersActivated: toWholeNumber(row.business_centers_activated, 0),
@@ -165,6 +215,11 @@ function mapAppMemberToDbMember(member) {
     business_center_label: member?.businessCenterLabel || '',
     business_center_activated_at: member?.businessCenterActivatedAt || null,
     business_center_pinned_side: member?.businessCenterPinnedSide || '',
+    is_earning_eligible: typeof member?.isEarningEligible === 'boolean'
+      ? member.isEarningEligible
+      : true,
+    activation_status: normalizeBusinessCenterActivationStatus(member?.activationStatus),
+    source_qualification_tier: toWholeNumber(member?.sourceQualificationTier, 0),
     legacy_leadership_completed_tier_count: toWholeNumber(member?.legacyLeadershipCompletedTierCount, 0),
     business_centers_earned_lifetime: toWholeNumber(member?.businessCentersEarnedLifetime, 0),
     business_centers_activated: toWholeNumber(member?.businessCentersActivated, 0),
@@ -182,6 +237,18 @@ function resolveQueryClient(candidateClient) {
     : pool;
 }
 
+function dedupeRowsById(rows = [], resolveId) {
+  const rowsById = new Map();
+  for (const row of Array.isArray(rows) ? rows : []) {
+    const resolvedId = normalizeText(typeof resolveId === 'function' ? resolveId(row) : '');
+    if (!resolvedId) {
+      continue;
+    }
+    rowsById.set(resolvedId, row);
+  }
+  return Array.from(rowsById.values());
+}
+
 let registeredMembersBusinessCenterColumnsReady = false;
 let registeredMembersBusinessCenterColumnsPromise = null;
 
@@ -196,15 +263,23 @@ async function ensureRegisteredMembersBusinessCenterColumns() {
 
   registeredMembersBusinessCenterColumnsPromise = (async () => {
     await pool.query(`
+      ALTER TABLE charge.member_users
+        ADD COLUMN IF NOT EXISTS current_personal_pv_bv integer NOT NULL DEFAULT 0
+    `);
+
+    await pool.query(`
       ALTER TABLE charge.registered_members
         ADD COLUMN IF NOT EXISTS business_center_owner_user_id text,
         ADD COLUMN IF NOT EXISTS business_center_owner_username text NOT NULL DEFAULT '',
         ADD COLUMN IF NOT EXISTS business_center_owner_email text NOT NULL DEFAULT '',
-        ADD COLUMN IF NOT EXISTS business_center_node_type text NOT NULL DEFAULT 'primary',
+        ADD COLUMN IF NOT EXISTS business_center_node_type text NOT NULL DEFAULT 'main_center',
         ADD COLUMN IF NOT EXISTS business_center_index integer NOT NULL DEFAULT 0,
         ADD COLUMN IF NOT EXISTS business_center_label text NOT NULL DEFAULT '',
         ADD COLUMN IF NOT EXISTS business_center_activated_at timestamptz,
         ADD COLUMN IF NOT EXISTS business_center_pinned_side text NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS is_earning_eligible boolean NOT NULL DEFAULT true,
+        ADD COLUMN IF NOT EXISTS activation_status text NOT NULL DEFAULT 'active',
+        ADD COLUMN IF NOT EXISTS source_qualification_tier integer NOT NULL DEFAULT 0,
         ADD COLUMN IF NOT EXISTS legacy_leadership_completed_tier_count integer NOT NULL DEFAULT 0,
         ADD COLUMN IF NOT EXISTS business_centers_earned_lifetime integer NOT NULL DEFAULT 0,
         ADD COLUMN IF NOT EXISTS business_centers_activated integer NOT NULL DEFAULT 0,
@@ -215,10 +290,47 @@ async function ensureRegisteredMembersBusinessCenterColumns() {
     `);
 
     await pool.query(`
+      ALTER TABLE charge.registered_members
+        ALTER COLUMN business_center_node_type SET DEFAULT 'main_center'
+    `);
+
+    await pool.query(`
       UPDATE charge.registered_members
-      SET business_center_node_type = 'primary'
+      SET business_center_node_type = 'main_center'
       WHERE business_center_node_type IS NULL
          OR BTRIM(business_center_node_type) = ''
+    `);
+
+    await pool.query(`
+      UPDATE charge.registered_members
+      SET business_center_node_type = 'legacy_placeholder'
+      WHERE LOWER(BTRIM(COALESCE(business_center_node_type, ''))) = 'placeholder'
+    `);
+
+    await pool.query(`
+      UPDATE charge.registered_members
+      SET business_center_node_type = 'main_center'
+      WHERE LOWER(BTRIM(COALESCE(business_center_node_type, ''))) IN ('primary', 'main')
+    `);
+
+    await pool.query(`
+      UPDATE charge.registered_members
+      SET activation_status = 'active'
+      WHERE activation_status IS NULL
+         OR BTRIM(activation_status) = ''
+    `);
+
+    await pool.query(`
+      UPDATE charge.registered_members
+      SET is_earning_eligible = false
+      WHERE LOWER(BTRIM(COALESCE(business_center_node_type, ''))) = 'legacy_placeholder'
+    `);
+
+    await pool.query(`
+      UPDATE charge.registered_members
+      SET business_center_owner_user_id = user_id
+      WHERE business_center_owner_user_id IS NULL
+        AND BTRIM(COALESCE(user_id, '')) <> ''
     `);
 
     registeredMembersBusinessCenterColumnsReady = true;
@@ -238,21 +350,31 @@ export async function warmRegisteredMembersStoreSchema() {
   await ensureRegisteredMembersBusinessCenterColumns();
 }
 
-export async function readRegisteredMembersStore() {
+export async function readRegisteredMembersStore(options = {}) {
   await ensureRegisteredMembersBusinessCenterColumns();
+  const executor = resolveQueryClient(options?.client);
 
-  const result = await pool.query(`
+  const result = await executor.query(`
     SELECT
       rm.*,
       linked_user.account_status AS user_account_status,
       linked_user.password_setup_required AS user_password_setup_required,
-      linked_user.activity_active_until_at AS user_activity_active_until_at
+      linked_user.activity_active_until_at AS user_activity_active_until_at,
+      linked_user.current_personal_pv_bv AS user_current_personal_pv_bv,
+      linked_user.last_product_purchase_at AS user_last_product_purchase_at,
+      linked_user.last_purchase_at AS user_last_purchase_at,
+      linked_user.last_account_upgrade_at AS user_last_account_upgrade_at,
+      linked_user.created_at AS user_created_at
     FROM charge.registered_members AS rm
     LEFT JOIN LATERAL (
       SELECT
         mu.account_status,
         mu.password_setup_required,
         mu.activity_active_until_at,
+        mu.current_personal_pv_bv,
+        mu.last_product_purchase_at,
+        mu.last_purchase_at,
+        mu.last_account_upgrade_at,
         mu.updated_at,
         mu.created_at
       FROM charge.member_users AS mu
@@ -289,15 +411,18 @@ export async function readRegisteredMembersStore() {
 export async function writeRegisteredMembersStore(members) {
   await ensureRegisteredMembersBusinessCenterColumns();
 
+  const memberRows = dedupeRowsById(
+    (Array.isArray(members) ? members : []).map(mapAppMemberToDbMember),
+    (row) => row?.id,
+  );
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
+    await client.query('LOCK TABLE charge.registered_members IN EXCLUSIVE MODE');
     await client.query('DELETE FROM charge.registered_members');
 
-    for (const member of Array.isArray(members) ? members : []) {
-      const row = mapAppMemberToDbMember(member);
-
+    for (const row of memberRows) {
       await client.query(`
         INSERT INTO charge.registered_members (
           id,
@@ -347,6 +472,9 @@ export async function writeRegisteredMembersStore(members) {
           business_center_label,
           business_center_activated_at,
           business_center_pinned_side,
+          is_earning_eligible,
+          activation_status,
+          source_qualification_tier,
           legacy_leadership_completed_tier_count,
           business_centers_earned_lifetime,
           business_centers_activated,
@@ -362,7 +490,7 @@ export async function writeRegisteredMembersStore(members) {
           $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,
           $31,$32,$33,$34,$35,$36,$37,$38,$39,$40,
           $41,$42,$43,$44,$45,$46,$47,$48,$49,$50,
-          $51,$52,$53,$54,$55
+          $51,$52,$53,$54,$55,$56,$57,$58
         )
       `, [
         row.id,
@@ -412,6 +540,9 @@ export async function writeRegisteredMembersStore(members) {
         row.business_center_label,
         row.business_center_activated_at,
         row.business_center_pinned_side,
+        row.is_earning_eligible,
+        row.activation_status,
+        row.source_qualification_tier,
         row.legacy_leadership_completed_tier_count,
         row.business_centers_earned_lifetime,
         row.business_centers_activated,
@@ -489,6 +620,9 @@ export async function upsertRegisteredMemberRecord(member, options = {}) {
     row.business_center_label,
     row.business_center_activated_at,
     row.business_center_pinned_side,
+    row.is_earning_eligible,
+    row.activation_status,
+    row.source_qualification_tier,
     row.legacy_leadership_completed_tier_count,
     row.business_centers_earned_lifetime,
     row.business_centers_activated,
@@ -547,6 +681,9 @@ export async function upsertRegisteredMemberRecord(member, options = {}) {
       business_center_label,
       business_center_activated_at,
       business_center_pinned_side,
+      is_earning_eligible,
+      activation_status,
+      source_qualification_tier,
       legacy_leadership_completed_tier_count,
       business_centers_earned_lifetime,
       business_centers_activated,
@@ -562,7 +699,7 @@ export async function upsertRegisteredMemberRecord(member, options = {}) {
       $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,
       $31,$32,$33,$34,$35,$36,$37,$38,$39,$40,
       $41,$42,$43,$44,$45,$46,$47,$48,$49,$50,
-      $51,$52,$53,$54,$55
+      $51,$52,$53,$54,$55,$56,$57,$58
     )
   `;
 
@@ -628,13 +765,16 @@ export async function upsertRegisteredMemberRecord(member, options = {}) {
       business_center_label = $45,
       business_center_activated_at = $46,
       business_center_pinned_side = $47,
-      legacy_leadership_completed_tier_count = $48,
-      business_centers_earned_lifetime = $49,
-      business_centers_activated = $50,
-      business_centers_pending = $51,
-      business_centers_overflow_pending = $52,
-      business_centers_count = $53,
-      is_staff_tree_account = $54,
+      is_earning_eligible = $48,
+      activation_status = $49,
+      source_qualification_tier = $50,
+      legacy_leadership_completed_tier_count = $51,
+      business_centers_earned_lifetime = $52,
+      business_centers_activated = $53,
+      business_centers_pending = $54,
+      business_centers_overflow_pending = $55,
+      business_centers_count = $56,
+      is_staff_tree_account = $57,
       updated_at = NOW()
     WHERE id = $1
   `, [
@@ -685,6 +825,9 @@ export async function upsertRegisteredMemberRecord(member, options = {}) {
     row.business_center_label,
     row.business_center_activated_at,
     row.business_center_pinned_side,
+    row.is_earning_eligible,
+    row.activation_status,
+    row.source_qualification_tier,
     row.legacy_leadership_completed_tier_count,
     row.business_centers_earned_lifetime,
     row.business_centers_activated,

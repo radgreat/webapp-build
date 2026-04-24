@@ -26,13 +26,29 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=arrow_left_alt,home,login,low_priority,asterisk,keyboard_double_arrow_left,keyboard_double_arrow_right,search,account_circle,local_mall,settings,logout,close_small,credit_card" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <style>
-    html, body {
+    html, body, #root {
       margin: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
+      touch-action: none;
+      overscroll-behavior: none;
+      overscroll-behavior-x: none;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
       background: #E9EAEE;
       font-family: "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    @media (max-width: 1024px) {
+      input,
+      textarea,
+      select,
+      [contenteditable="true"] {
+        font-size: 16px !important;
+      }
     }
 
     #figma-tree-canvas {
@@ -40,6 +56,11 @@
       height: 100vh;
       display: block;
       touch-action: none;
+      overscroll-behavior: none;
+      overscroll-behavior-x: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
       cursor: grab;
     }
 
@@ -61,6 +82,4139 @@
       letter-spacing: 0.01em;
       display: none;
       z-index: 10;
+    }
+
+    #tree-next-account-overview-panel {
+      position: fixed;
+      left: var(--tree-next-account-overview-left, 430px);
+      top: var(--tree-next-account-overview-top, 18px);
+      width: var(--tree-next-account-overview-width, 640px);
+      height: var(--tree-next-account-overview-height, calc(100vh - 36px));
+      z-index: 16;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #E7E7EA;
+      border-radius: 36px;
+      background: #FFFFFF;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 12px 24px rgba(104, 112, 130, 0.08);
+      color: #101216;
+      font-family: "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      pointer-events: auto;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-account-overview-panel,
+    #tree-next-account-overview-panel * {
+      box-sizing: border-box;
+    }
+
+    #tree-next-account-overview-panel.is-positioning {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(10px);
+    }
+
+    #tree-next-account-overview-panel.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(12px);
+    }
+
+    #tree-next-account-overview-panel.is-positioning *,
+    #tree-next-account-overview-panel.is-hidden *,
+    #tree-next-infinity-builder-panel.is-positioning *,
+    #tree-next-infinity-builder-panel.is-hidden *,
+    #tree-next-rank-advancement-panel.is-positioning *,
+    #tree-next-rank-advancement-panel.is-hidden *,
+    #tree-next-preferred-accounts-panel.is-positioning *,
+    #tree-next-preferred-accounts-panel.is-hidden *,
+    #tree-next-my-store-panel.is-positioning *,
+    #tree-next-my-store-panel.is-hidden * {
+      pointer-events: none !important;
+    }
+
+    .tree-next-account-overview-scroll,
+    .tree-next-infinity-builder-scroll,
+    .tree-next-rank-advancement-scroll,
+    .tree-next-preferred-accounts-scroll,
+    .tree-next-my-store-scroll,
+    #tree-next-enroll-modal-body {
+      touch-action: none;
+      overscroll-behavior-x: none;
+    }
+
+    html[data-tree-next-sheet-stage="full"] .tree-next-account-overview-scroll,
+    html[data-tree-next-sheet-stage="full"] .tree-next-infinity-builder-scroll,
+    html[data-tree-next-sheet-stage="full"] .tree-next-rank-advancement-scroll,
+    html[data-tree-next-sheet-stage="full"] .tree-next-preferred-accounts-scroll,
+    html[data-tree-next-sheet-stage="full"] .tree-next-my-store-scroll,
+    html[data-tree-next-sheet-stage="full"] #tree-next-enroll-modal-body,
+    body[data-tree-next-sheet-stage="full"] .tree-next-account-overview-scroll,
+    body[data-tree-next-sheet-stage="full"] .tree-next-infinity-builder-scroll,
+    body[data-tree-next-sheet-stage="full"] .tree-next-rank-advancement-scroll,
+    body[data-tree-next-sheet-stage="full"] .tree-next-preferred-accounts-scroll,
+    body[data-tree-next-sheet-stage="full"] .tree-next-my-store-scroll,
+    body[data-tree-next-sheet-stage="full"] #tree-next-enroll-modal-body {
+      touch-action: pan-y;
+      overflow-y: auto;
+    }
+
+    html[data-tree-next-sheet-stage="half"] .tree-next-account-overview-scroll,
+    html[data-tree-next-sheet-stage="half"] .tree-next-infinity-builder-scroll,
+    html[data-tree-next-sheet-stage="half"] .tree-next-rank-advancement-scroll,
+    html[data-tree-next-sheet-stage="half"] .tree-next-preferred-accounts-scroll,
+    html[data-tree-next-sheet-stage="half"] .tree-next-my-store-scroll,
+    html[data-tree-next-sheet-stage="half"] #tree-next-enroll-modal-body,
+    html[data-tree-next-sheet-stage="closed"] .tree-next-account-overview-scroll,
+    html[data-tree-next-sheet-stage="closed"] .tree-next-infinity-builder-scroll,
+    html[data-tree-next-sheet-stage="closed"] .tree-next-rank-advancement-scroll,
+    html[data-tree-next-sheet-stage="closed"] .tree-next-preferred-accounts-scroll,
+    html[data-tree-next-sheet-stage="closed"] .tree-next-my-store-scroll,
+    html[data-tree-next-sheet-stage="closed"] #tree-next-enroll-modal-body,
+    body[data-tree-next-sheet-stage="half"] .tree-next-account-overview-scroll,
+    body[data-tree-next-sheet-stage="half"] .tree-next-infinity-builder-scroll,
+    body[data-tree-next-sheet-stage="half"] .tree-next-rank-advancement-scroll,
+    body[data-tree-next-sheet-stage="half"] .tree-next-preferred-accounts-scroll,
+    body[data-tree-next-sheet-stage="half"] .tree-next-my-store-scroll,
+    body[data-tree-next-sheet-stage="half"] #tree-next-enroll-modal-body,
+    body[data-tree-next-sheet-stage="closed"] .tree-next-account-overview-scroll,
+    body[data-tree-next-sheet-stage="closed"] .tree-next-infinity-builder-scroll,
+    body[data-tree-next-sheet-stage="closed"] .tree-next-rank-advancement-scroll,
+    body[data-tree-next-sheet-stage="closed"] .tree-next-preferred-accounts-scroll,
+    body[data-tree-next-sheet-stage="closed"] .tree-next-my-store-scroll,
+    body[data-tree-next-sheet-stage="closed"] #tree-next-enroll-modal-body {
+      touch-action: none;
+      overflow-y: hidden;
+    }
+
+    .tree-next-account-overview-scroll {
+      min-height: 0;
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 30px 30px 36px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 151, 160, 0.7) transparent;
+    }
+
+    .tree-next-account-overview-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .tree-next-account-overview-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .tree-next-account-overview-scroll::-webkit-scrollbar-thumb {
+      border: 2px solid #FFFFFF;
+      border-radius: 8px;
+      background: rgba(148, 151, 160, 0.68);
+    }
+
+    .tree-next-account-overview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #E5E5E7;
+    }
+
+    .tree-next-account-overview-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #111318;
+    }
+
+    #tree-next-account-overview-refresh {
+      width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 10px;
+      background: #C9CCD4;
+      color: #FFFFFF;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-account-overview-refresh:hover {
+      background: #B9BEC8;
+      transform: translateY(-1px);
+    }
+
+    #tree-next-account-overview-refresh:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-account-overview-refresh:active {
+      transform: scale(0.94);
+      opacity: 0.82;
+    }
+
+    .tree-next-account-overview-hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(96px, 120px) minmax(220px, 280px) minmax(96px, 120px);
+      justify-content: center;
+      justify-items: center;
+      align-items: center;
+      gap: 34px;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 56px 16px 30px;
+      border-bottom: 1px solid #E5E5E7;
+      text-align: center;
+    }
+
+    .tree-next-account-overview-badge {
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .tree-next-account-overview-badge-icon {
+      width: 82px;
+      height: 82px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(140deg, #48809C 0%, #2C5673 58%, #18324A 100%);
+      box-shadow: none;
+    }
+
+    .tree-next-account-overview-badge.is-title .tree-next-account-overview-badge-icon {
+      background: linear-gradient(140deg, #D4A948 0%, #A47A22 58%, #765516 100%);
+    }
+
+    .tree-next-account-overview-badge-icon img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 7px rgba(11, 18, 30, 0.36)) !important;
+    }
+
+    .tree-next-account-overview-badge-label {
+      margin: 0;
+      max-width: 118px;
+      overflow: hidden;
+      color: #13161B;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tree-next-account-overview-user {
+      display: grid;
+      justify-items: center;
+      min-width: 0;
+    }
+
+    #tree-next-account-overview-avatar {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(140deg, #8FC1FF 0%, #68A9F6 56%, #4D89D0 100%);
+      background-position: center;
+      background-size: cover;
+      box-shadow: none;
+      color: #FFFFFF;
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    #tree-next-account-overview-avatar[data-avatar-photo="true"] .tree-next-account-overview-avatar-initials {
+      display: none;
+    }
+
+    #tree-next-account-overview-status-dot {
+      position: absolute;
+      right: 9px;
+      bottom: 10px;
+      width: 36px;
+      height: 36px;
+      border: 5px solid #FFFFFF;
+      border-radius: 50%;
+      background: #2FCF45;
+      box-shadow: none;
+    }
+
+    #tree-next-account-overview-status-dot.is-inactive {
+      background: #A5A7AD;
+      box-shadow: none;
+    }
+
+    #tree-next-account-overview-name {
+      margin: 24px 0 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #0E1116;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.22;
+    }
+
+    #tree-next-account-overview-handle,
+    #tree-next-account-overview-joined {
+      margin: 4px 0 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #777C86;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .tree-next-account-overview-section {
+      padding-top: 30px;
+    }
+
+    .tree-next-account-overview-section + .tree-next-account-overview-section {
+      margin-top: 32px;
+      border-top: 1px solid #E5E5E7;
+    }
+
+    .tree-next-account-overview-section-title {
+      margin: 0 0 28px;
+      color: #101216;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .tree-next-account-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .tree-next-account-overview-tile {
+      min-height: 152px;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 28px;
+      padding: 22px 16px;
+      border: 0;
+      border-radius: 18px;
+      background: #F2F2F6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      text-align: center;
+    }
+
+    .tree-next-account-overview-tile-value {
+      margin: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #101216;
+      font-size: 26px;
+      font-weight: 600;
+      line-height: 1.12;
+    }
+
+    .tree-next-account-overview-tile-label {
+      margin: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #555A64;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .tree-next-account-overview-commission {
+      width: 100%;
+      min-height: 152px;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 28px;
+      padding: 22px 16px;
+      border: 0;
+      border-radius: 18px;
+      background: #F2F2F6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      appearance: none;
+      -webkit-appearance: none;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      text-align: center;
+      transition: none;
+    }
+
+    .tree-next-account-overview-commission:hover {
+      background: #F2F2F6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      transform: none;
+    }
+
+    .tree-next-account-overview-commission:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    .tree-next-account-overview-commission:active {
+      transform: none;
+    }
+
+    .tree-next-account-overview-commission-value {
+      margin: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #101216;
+      font-size: 26px;
+      font-weight: 600;
+      line-height: 1.12;
+    }
+
+    .tree-next-account-overview-commission-label {
+      margin: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #555A64;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 980px) {
+      #tree-next-account-overview-panel {
+        left: var(--tree-next-account-overview-left-mobile, 18px);
+        top: var(--tree-next-account-overview-top-mobile, 78px);
+        width: calc(100vw - 36px);
+        height: calc(100vh - 96px);
+      }
+
+      #tree-next-account-overview-panel {
+        border-radius: 30px;
+      }
+
+      .tree-next-account-overview-scroll {
+        padding: 24px 20px 30px;
+      }
+
+      .tree-next-account-overview-hero {
+        grid-template-columns: 1fr;
+        justify-content: stretch;
+        justify-items: center;
+        max-width: none;
+        gap: 22px;
+        padding: 34px 10px 24px;
+      }
+
+      .tree-next-account-overview-user {
+        order: -1;
+      }
+
+      .tree-next-account-overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .tree-next-account-overview-tile {
+        min-height: 132px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .tree-next-account-overview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #tree-next-account-overview-avatar {
+        width: 124px;
+        height: 124px;
+      }
+
+      .tree-next-account-overview-tile-value {
+        font-size: 23px;
+      }
+    }
+
+    #tree-next-infinity-builder-panel {
+      position: fixed;
+      left: var(--tree-next-infinity-builder-left, 430px);
+      top: var(--tree-next-infinity-builder-top, 18px);
+      width: var(--tree-next-infinity-builder-width, 640px);
+      height: var(--tree-next-infinity-builder-height, calc(100vh - 36px));
+      z-index: 16;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #E7E7EA;
+      border-radius: 36px;
+      background: #FFFFFF;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 12px 24px rgba(104, 112, 130, 0.08);
+      color: #101216;
+      font-family: "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      pointer-events: auto;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-infinity-builder-panel,
+    #tree-next-infinity-builder-panel * {
+      box-sizing: border-box;
+    }
+
+    #tree-next-infinity-builder-panel.is-positioning {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(10px);
+    }
+
+    #tree-next-infinity-builder-panel.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(12px);
+    }
+
+    .tree-next-infinity-builder-scroll {
+      min-height: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      overscroll-behavior: contain;
+      padding: 28px 28px 34px;
+    }
+
+    .tree-next-infinity-builder-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #E5E5E7;
+    }
+
+    .tree-next-infinity-builder-header-main {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+    }
+
+    .tree-next-infinity-builder-breadcrumb {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      color: #6A707D;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    #tree-next-infinity-builder-back {
+      width: fit-content;
+      border: 0;
+      padding: 0;
+      margin: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      text-align: left;
+      transition:
+        color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-infinity-builder-back:hover {
+      color: #3F4652;
+      transform: translateX(-1px);
+    }
+
+    #tree-next-infinity-builder-back:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 4px;
+      border-radius: 6px;
+    }
+
+    #tree-next-infinity-builder-back:active {
+      opacity: 0.8;
+      transform: translateX(-1px) scale(0.985);
+    }
+
+    .tree-next-infinity-builder-breadcrumb-separator {
+      color: #8A909D;
+      user-select: none;
+    }
+
+    .tree-next-infinity-builder-breadcrumb-current {
+      color: #4D5461;
+      white-space: nowrap;
+    }
+
+    .tree-next-infinity-builder-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #111318;
+    }
+
+    #tree-next-infinity-builder-close {
+      width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 10px;
+      background: #C9CCD4;
+      color: #FFFFFF;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-infinity-builder-close:hover {
+      background: #B9BEC8;
+      transform: translateY(-1px);
+    }
+
+    #tree-next-infinity-builder-close:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-infinity-builder-close:active {
+      transform: scale(0.94);
+      opacity: 0.82;
+    }
+
+    .tree-next-infinity-builder-copy {
+      margin: 16px 0 0;
+      color: #1C2027;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    .tree-next-infinity-builder-tier-shell {
+      margin-top: 22px;
+      border-radius: 28px;
+      border: 0;
+      background: #F2F2F6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      padding: 20px 18px 18px;
+    }
+
+    .tree-next-infinity-builder-tier-head {
+      text-align: center;
+      display: grid;
+      gap: 4px;
+    }
+
+    #tree-next-infinity-builder-tier-title {
+      margin: 0;
+      color: #0F1218;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.06;
+      letter-spacing: -0.03em;
+    }
+
+    #tree-next-infinity-builder-tier-subtitle {
+      margin: 0;
+      color: #646A75;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .tree-next-infinity-builder-tier-grid {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .tree-next-infinity-builder-node-card {
+      border-radius: 0;
+      padding: 4px 4px 6px;
+      background: transparent;
+      text-align: center;
+    }
+
+    .tree-next-infinity-builder-node-core {
+      width: 98px;
+      height: 98px;
+      margin: 0 auto;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #FFFFFF;
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 0;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+      background: linear-gradient(145deg, #87B6E5 0%, #5B92D3 58%, #3B72B6 100%);
+    }
+
+    .tree-next-infinity-builder-node-core.is-inactive {
+      background: linear-gradient(145deg, #BEC4CE 0%, #9BA2AF 58%, #7D8592 100%);
+    }
+
+    .tree-next-infinity-builder-node-core.is-empty {
+      background: linear-gradient(145deg, #BEC4CE 0%, #9BA2AF 58%, #7D8592 100%);
+      color: rgba(255, 255, 255, 0.98);
+    }
+
+    .tree-next-infinity-builder-node-core.is-focusable {
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-infinity-builder-node-core.is-focusable:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.24),
+        0 8px 16px rgba(73, 93, 126, 0.2);
+    }
+
+    .tree-next-infinity-builder-node-branch {
+      position: relative;
+      height: 8px;
+      margin: 0 auto;
+      width: 90px;
+    }
+
+    .tree-next-infinity-builder-node-branch::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: -1px;
+      width: 1px;
+      height: 8px;
+      transform: translateX(-50%);
+      background: #A9ADB8;
+    }
+
+    .tree-next-infinity-builder-node-branch::after {
+      content: '';
+      position: absolute;
+      left: calc(100% / 6);
+      right: calc(100% / 6);
+      top: 100%;
+      transform: translateY(-1px);
+      height: 1px;
+      background: #A9ADB8;
+    }
+
+    .tree-next-infinity-builder-node-children {
+      width: 90px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: start;
+      justify-items: center;
+      column-gap: 0;
+    }
+
+    .tree-next-infinity-builder-node-child-item {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      row-gap: 3px;
+      padding-top: 7px;
+      min-width: 24px;
+    }
+
+    .tree-next-infinity-builder-node-child-item.is-focusable {
+      cursor: pointer;
+    }
+
+    .tree-next-infinity-builder-node-child-item::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: -1px;
+      width: 1px;
+      height: 7px;
+      transform: translateX(-50%);
+      background: #A9ADB8;
+    }
+
+    .tree-next-infinity-builder-node-child {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #FFFFFF;
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 1;
+      background: linear-gradient(145deg, #87B6E5 0%, #5B92D3 58%, #3B72B6 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .tree-next-infinity-builder-node-child.is-inactive {
+      background: linear-gradient(145deg, #BEC4CE 0%, #9BA2AF 58%, #7D8592 100%);
+    }
+
+    .tree-next-infinity-builder-node-child.is-empty {
+      background: linear-gradient(145deg, #BEC4CE 0%, #9BA2AF 58%, #7D8592 100%);
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .tree-next-infinity-builder-node-child.is-focusable {
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-infinity-builder-node-child.is-focusable:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 5px 10px rgba(70, 89, 120, 0.22);
+    }
+
+    .tree-next-infinity-builder-node-child-handle {
+      display: block;
+      max-width: 36px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #7A808C;
+      font-size: 8px;
+      font-weight: 600;
+      line-height: 1.1;
+      text-align: center;
+    }
+
+    .tree-next-infinity-builder-node-descendant-level {
+      width: 100%;
+      margin: 5px 0 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .tree-next-infinity-builder-node-descendant {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #FFFFFF;
+      font-size: 0;
+      font-weight: 700;
+      line-height: 1;
+      background: linear-gradient(145deg, #87B6E5 0%, #5B92D3 58%, #3B72B6 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    }
+
+    .tree-next-infinity-builder-node-descendant.is-depth-3 {
+      width: 8px;
+      height: 8px;
+    }
+
+    .tree-next-infinity-builder-node-descendant.is-inactive {
+      background: linear-gradient(145deg, #BEC4CE 0%, #9BA2AF 58%, #7D8592 100%);
+    }
+
+    .tree-next-infinity-builder-node-descendant.is-empty {
+      background: linear-gradient(145deg, #BEC4CE 0%, #9BA2AF 58%, #7D8592 100%);
+    }
+
+    .tree-next-infinity-builder-node-descendant.is-focusable {
+      cursor: pointer;
+      transition:
+        transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-infinity-builder-node-descendant.is-focusable:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 4px 8px rgba(70, 89, 120, 0.18);
+    }
+
+    .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-branch {
+      width: 112px;
+      height: 10px;
+    }
+
+    .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-branch::before {
+      height: 10px;
+    }
+
+    .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-core {
+      width: 98px;
+      height: 98px;
+      font-size: 24px;
+    }
+
+    .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-children {
+      width: 112px;
+      column-gap: 0;
+    }
+
+    .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-child {
+      width: 22px;
+      height: 22px;
+      font-size: 9px;
+    }
+
+    .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-child-item {
+      padding-top: 8px;
+      min-width: 24px;
+      row-gap: 3px;
+    }
+
+    .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-child-item::before {
+      height: 8px;
+    }
+
+    .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-child-handle {
+      display: none;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-grid {
+      width: 112px;
+      margin: 5px auto 0;
+      display: grid;
+      align-items: start;
+      justify-items: stretch;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-grid.is-depth-2 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 4px;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-grid.is-depth-3 {
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+      column-gap: 2px;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-group {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      padding-top: 7px;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-group::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 1px;
+      height: 7px;
+      transform: translateX(-50%);
+      background: #A9ADB8;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-group::after {
+      content: '';
+      position: absolute;
+      left: 1px;
+      right: 1px;
+      top: 7px;
+      height: 1px;
+      background: #A9ADB8;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-group.is-depth-3 {
+      padding-top: 5px;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-group.is-depth-3::before {
+      height: 5px;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-group.is-depth-3::after {
+      top: 5px;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-nodes {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: start;
+      justify-items: center;
+      column-gap: 0;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-node-item {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      padding-top: 5px;
+      min-width: 0;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-node-item::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 1px;
+      height: 5px;
+      transform: translateX(-50%);
+      background: #A9ADB8;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-node-item.is-depth-3 {
+      padding-top: 3px;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-node-item.is-depth-3::before {
+      height: 3px;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-grid.is-depth-2 .tree-next-infinity-builder-node-descendant.is-depth-2 {
+      width: 8px;
+      height: 8px;
+      font-size: 0;
+    }
+
+    .tree-next-infinity-builder-legacy-depth-grid.is-depth-3 .tree-next-infinity-builder-node-descendant.is-depth-3 {
+      width: 8px;
+      height: 8px;
+      font-size: 4.5px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .tree-next-infinity-builder-node-bv {
+      margin: 9px 0 0;
+      color: #101216;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .tree-next-infinity-builder-node-payout {
+      margin: 1px 0 0;
+      color: #2A2E36;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .tree-next-infinity-builder-node-username {
+      margin: 2px 0 0;
+      color: #6E7480;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tree-next-infinity-builder-node-status {
+      margin: 3px 0 0;
+      color: #727985;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.35;
+      min-height: 16px;
+    }
+
+    #tree-next-infinity-builder-tier-bonus {
+      margin: 12px 0 0;
+      color: #3D434F;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .tree-next-infinity-builder-tier-actions {
+      margin-top: 10px;
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+    }
+
+    #tree-next-infinity-builder-claim {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 16px;
+      min-height: 34px;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: 0;
+      color: #FFFFFF;
+      background: linear-gradient(145deg, #6AA6EA 0%, #4F8FD9 58%, #3977BF 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        0 8px 16px rgba(61, 108, 164, 0.14);
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-infinity-builder-claim:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        0 10px 18px rgba(61, 108, 164, 0.18);
+    }
+
+    #tree-next-infinity-builder-claim:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-infinity-builder-claim:active {
+      transform: scale(0.985);
+    }
+
+    #tree-next-infinity-builder-claim[disabled] {
+      cursor: not-allowed;
+      opacity: 0.62;
+      transform: none;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    #tree-next-infinity-builder-view-tree {
+      border: 1px solid rgba(127, 162, 208, 0.58);
+      border-radius: 999px;
+      padding: 7px 16px;
+      min-height: 33px;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: 0;
+      color: #22466E;
+      background: linear-gradient(150deg, rgba(241, 248, 255, 0.94) 0%, rgba(220, 235, 252, 0.9) 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.38),
+        0 8px 16px rgba(78, 124, 178, 0.16);
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-infinity-builder-view-tree:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.44),
+        0 10px 18px rgba(78, 124, 178, 0.18);
+    }
+
+    #tree-next-infinity-builder-view-tree:focus-visible {
+      outline: 2px solid rgba(84, 145, 221, 0.7);
+      outline-offset: 3px;
+    }
+
+    #tree-next-infinity-builder-view-tree:active {
+      transform: scale(0.986);
+    }
+
+    #tree-next-infinity-builder-view-tree[disabled] {
+      cursor: not-allowed;
+      opacity: 0.6;
+      transform: none;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    #tree-next-infinity-builder-view-tree[hidden] {
+      display: none;
+    }
+
+    #tree-next-infinity-builder-claim-feedback {
+      margin: 0;
+      min-height: 14px;
+      color: #656C79;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.3;
+      text-align: center;
+    }
+
+    #tree-next-infinity-builder-claim-feedback.is-error {
+      color: #B04A4A;
+    }
+
+    #tree-next-infinity-builder-claim-feedback.is-success {
+      color: #2F7B4C;
+    }
+
+    .tree-next-infinity-builder-current {
+      margin-top: 22px;
+      min-height: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tree-next-infinity-builder-current-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .tree-next-infinity-builder-current-title {
+      margin: 0;
+      color: #101216;
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    .tree-next-infinity-builder-current-sort {
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: #363B45;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.3;
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      font-family: inherit;
+      transition: color 160ms ease, transform 140ms ease;
+    }
+
+    .tree-next-infinity-builder-current-sort:hover {
+      color: #1F5EA3;
+    }
+
+    .tree-next-infinity-builder-current-sort:active {
+      transform: translateY(1px);
+    }
+
+    .tree-next-infinity-builder-current-sort:focus-visible {
+      outline: 2px solid rgba(31, 94, 163, 0.34);
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+
+    .tree-next-infinity-builder-current-list {
+      margin-top: 14px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      grid-auto-rows: max-content;
+      min-height: 0;
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 151, 160, 0.7) transparent;
+    }
+
+    .tree-next-infinity-builder-current-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .tree-next-infinity-builder-current-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .tree-next-infinity-builder-current-list::-webkit-scrollbar-thumb {
+      border: 2px solid #FFFFFF;
+      border-radius: 8px;
+      background: rgba(148, 151, 160, 0.68);
+    }
+
+    .tree-next-infinity-builder-current-item {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      background: #F2F2F6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      appearance: none;
+      -webkit-appearance: none;
+      font: inherit;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      padding: 13px 14px;
+      transition:
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-infinity-builder-current-item:hover {
+      background: #EDEEF2;
+      transform: translateY(-1px);
+    }
+
+    .tree-next-infinity-builder-current-item:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    .tree-next-infinity-builder-current-item:active {
+      transform: scale(0.992);
+    }
+
+    .tree-next-infinity-builder-current-item.is-active {
+      background: #E8EAF0;
+      box-shadow:
+        inset 0 0 0 1px rgba(130, 138, 153, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.78);
+    }
+
+    .tree-next-infinity-builder-current-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .tree-next-infinity-builder-current-row.has-progress {
+      grid-template-columns: auto 1fr auto;
+    }
+
+    .tree-next-infinity-builder-current-tier {
+      margin: 0;
+      color: #191C24;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .tree-next-infinity-builder-current-seeds {
+      min-width: 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .tree-next-infinity-builder-current-seed-entry {
+      display: grid;
+      justify-items: center;
+      row-gap: 3px;
+      min-width: 38px;
+    }
+
+    .tree-next-infinity-builder-current-seed-entry.is-focusable {
+      cursor: pointer;
+    }
+
+    .tree-next-infinity-builder-current-seed {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0;
+      background: linear-gradient(145deg, #87B6E5 0%, #5B92D3 58%, #3B72B6 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .tree-next-infinity-builder-current-seed.is-inactive {
+      background: linear-gradient(145deg, #BEC4CE 0%, #9BA2AF 58%, #7D8592 100%);
+    }
+
+    .tree-next-infinity-builder-current-seed.is-empty {
+      background: linear-gradient(145deg, #BEC4CE 0%, #9BA2AF 58%, #7D8592 100%);
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .tree-next-infinity-builder-current-seed.is-focusable {
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-infinity-builder-current-seed.is-focusable:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        0 5px 12px rgba(71, 89, 120, 0.2);
+    }
+
+    .tree-next-infinity-builder-current-seed.is-focusable:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 2px;
+    }
+
+    .tree-next-infinity-builder-current-seed-handle {
+      display: block;
+      max-width: 42px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #757C88;
+      font-size: 8px;
+      font-weight: 600;
+      line-height: 1.1;
+      text-align: center;
+    }
+
+    .tree-next-infinity-builder-current-progress {
+      margin: 0;
+      color: #111318;
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-legacy-depth-grid {
+      display: none !important;
+    }
+
+    #tree-next-infinity-builder-current-empty {
+      margin: 12px 0 0;
+      color: #5E6470;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    #tree-next-infinity-builder-current-empty[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 980px) {
+      #tree-next-infinity-builder-panel {
+        left: var(--tree-next-infinity-builder-left-mobile, 18px);
+        top: var(--tree-next-infinity-builder-top-mobile, 78px);
+        width: calc(100vw - 36px);
+        height: calc(100vh - 96px);
+        border-radius: 26px;
+      }
+
+      .tree-next-infinity-builder-scroll {
+        padding: 20px 18px 26px;
+      }
+
+      #tree-next-infinity-builder-back {
+        font-size: 10px;
+      }
+
+      .tree-next-infinity-builder-breadcrumb {
+        font-size: 10px;
+      }
+
+      #tree-next-infinity-builder-tier-title {
+        font-size: 24px;
+      }
+
+      .tree-next-infinity-builder-tier-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .tree-next-infinity-builder-node-card {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 10px;
+        text-align: left;
+      }
+
+      .tree-next-infinity-builder-node-core {
+        width: 72px;
+        height: 72px;
+        font-size: 18px;
+      }
+
+      .tree-next-infinity-builder-node-branch {
+        display: none;
+      }
+
+      .tree-next-infinity-builder-node-children {
+        width: auto;
+        grid-template-columns: repeat(3, minmax(22px, auto));
+        justify-content: flex-start;
+        justify-items: start;
+        column-gap: 10px;
+        margin-top: 4px;
+      }
+
+      .tree-next-infinity-builder-node-child-item {
+        row-gap: 2px;
+      }
+
+      .tree-next-infinity-builder-node-child-handle {
+        max-width: 34px;
+      }
+
+      .tree-next-infinity-builder-node-bv {
+        margin-top: 0;
+        font-size: 19px;
+      }
+
+      .tree-next-infinity-builder-node-username {
+        font-size: 9px;
+      }
+
+      .tree-next-infinity-builder-node-card.is-legacy-mode {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 0;
+      }
+
+      .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-core {
+        margin: 0 auto;
+      }
+
+      .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-branch {
+        display: block;
+        width: 104px;
+      }
+
+      .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-children {
+        width: 104px;
+        margin: 0 auto;
+        justify-content: center;
+        justify-items: center;
+        column-gap: 0;
+      }
+
+      .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-legacy-depth-grid {
+        width: 104px;
+      }
+
+      .tree-next-infinity-builder-legacy-depth-grid.is-depth-2 {
+        column-gap: 4px;
+      }
+
+      .tree-next-infinity-builder-legacy-depth-grid.is-depth-3 {
+        column-gap: 2px;
+        row-gap: 0;
+      }
+
+      .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-core {
+        width: 72px;
+        height: 72px;
+        font-size: 18px;
+      }
+
+      .tree-next-infinity-builder-node-card.is-legacy-mode .tree-next-infinity-builder-node-child {
+        width: 22px;
+        height: 22px;
+        font-size: 9px;
+      }
+
+      .tree-next-infinity-builder-legacy-depth-grid.is-depth-2 .tree-next-infinity-builder-node-descendant.is-depth-2 {
+        width: 8px;
+        height: 8px;
+      }
+
+      .tree-next-infinity-builder-legacy-depth-grid.is-depth-3 .tree-next-infinity-builder-node-descendant.is-depth-3 {
+        width: 8px;
+        height: 8px;
+        font-size: 4px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .tree-next-infinity-builder-current-head {
+        align-items: baseline;
+      }
+
+      .tree-next-infinity-builder-current-title {
+        font-size: 23px;
+      }
+
+      .tree-next-infinity-builder-current-sort {
+        font-size: 11px;
+      }
+
+      .tree-next-infinity-builder-current-row {
+        gap: 10px;
+      }
+
+      .tree-next-infinity-builder-current-seeds {
+        gap: 8px;
+      }
+
+      .tree-next-infinity-builder-current-seed-entry {
+        min-width: 30px;
+      }
+
+      .tree-next-infinity-builder-current-seed {
+        width: 30px;
+        height: 30px;
+        font-size: 10px;
+      }
+
+      .tree-next-infinity-builder-current-seed-handle {
+        max-width: 36px;
+        font-size: 7px;
+      }
+
+      .tree-next-infinity-builder-current-progress {
+        font-size: 16px;
+      }
+    }
+
+    #tree-next-rank-advancement-panel {
+      position: fixed;
+      left: var(--tree-next-rank-advancement-left, 430px);
+      top: var(--tree-next-rank-advancement-top, 18px);
+      width: var(--tree-next-rank-advancement-width, 640px);
+      height: var(--tree-next-rank-advancement-height, calc(100vh - 36px));
+      z-index: 16;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #E7E7EA;
+      border-radius: 36px;
+      background: #FFFFFF;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 12px 24px rgba(104, 112, 130, 0.08);
+      color: #101216;
+      font-family: "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      pointer-events: auto;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-rank-advancement-panel,
+    #tree-next-rank-advancement-panel * {
+      box-sizing: border-box;
+    }
+
+    #tree-next-rank-advancement-panel.is-positioning {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(10px);
+    }
+
+    #tree-next-rank-advancement-panel.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(12px);
+    }
+
+    .tree-next-rank-advancement-scroll {
+      min-height: 0;
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 30px 30px 36px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 151, 160, 0.7) transparent;
+    }
+
+    .tree-next-rank-advancement-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .tree-next-rank-advancement-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .tree-next-rank-advancement-scroll::-webkit-scrollbar-thumb {
+      border: 2px solid #FFFFFF;
+      border-radius: 8px;
+      background: rgba(148, 151, 160, 0.68);
+    }
+
+    .tree-next-rank-advancement-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #E5E5E7;
+    }
+
+    .tree-next-rank-advancement-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #111318;
+    }
+
+    #tree-next-rank-advancement-close {
+      width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 10px;
+      background: #C9CCD4;
+      color: #FFFFFF;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-rank-advancement-close:hover {
+      background: #B9BEC8;
+      transform: translateY(-1px);
+    }
+
+    #tree-next-rank-advancement-close:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-rank-advancement-close:active {
+      transform: scale(0.94);
+      opacity: 0.82;
+    }
+
+    .tree-next-rank-advancement-loop {
+      margin-top: 18px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #E5E5E7;
+    }
+
+    .tree-next-rank-advancement-loop-label {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #111318;
+    }
+
+    #tree-next-rank-advancement-target-rank {
+      margin: 8px 0 0;
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: #0C0F14;
+    }
+
+    #tree-next-rank-advancement-acquired-since {
+      margin: 8px 0 0;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #128A39;
+    }
+
+    #tree-next-rank-advancement-acquired-since[hidden] {
+      display: none;
+    }
+
+    #tree-next-rank-advancement-reward-preview,
+    #tree-next-rank-advancement-good-life-preview {
+      margin: 6px 0 0;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #111318;
+    }
+
+    #tree-next-rank-advancement-good-life-preview {
+      color: #2C3442;
+    }
+
+    #tree-next-rank-advancement-good-life-preview[hidden] {
+      display: none;
+    }
+
+    .tree-next-rank-advancement-requirements {
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 4px;
+    }
+
+    .tree-next-rank-advancement-requirement {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.3;
+      color: #2A2E36;
+    }
+
+    .tree-next-rank-advancement-requirement.is-met {
+      color: #128A39;
+      font-weight: 600;
+    }
+
+    .tree-next-rank-advancement-requirement.is-met::before {
+      content: '✓';
+      display: inline-block;
+      margin-right: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      vertical-align: 1px;
+    }
+
+    .tree-next-rank-advancement-requirement.is-neutral {
+      color: #2A2E36;
+      font-weight: 500;
+    }
+
+    .tree-next-rank-advancement-track-shell {
+      position: relative;
+      margin-top: 20px;
+      height: 218px;
+    }
+
+    .tree-next-rank-advancement-milestones {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 18px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .tree-next-rank-advancement-milestone {
+      position: relative;
+      flex: 1 1 0;
+      min-width: 34px;
+      height: 178px;
+    }
+
+    .tree-next-rank-advancement-milestone-node {
+      position: absolute;
+      left: 50%;
+      bottom: calc(40px + var(--rank-node-rise, 0px));
+      width: 54px;
+      height: 54px;
+      transform: translateX(-50%);
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--rank-node-bg, linear-gradient(135deg, #273750 0%, #111B29 100%));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 8px 18px rgba(22, 27, 38, 0.16);
+    }
+
+    .tree-next-rank-advancement-milestone-button {
+      margin: 0;
+      padding: 0;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-rank-advancement-milestone-button:hover {
+      transform: translateX(-50%) translateY(-2px);
+      filter: brightness(1.08);
+    }
+
+    .tree-next-rank-advancement-milestone-button:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.68);
+      outline-offset: 3px;
+    }
+
+    .tree-next-rank-advancement-milestone-button:active {
+      transform: translateX(-50%) scale(0.97);
+    }
+
+    .tree-next-rank-advancement-milestone.is-current-rank .tree-next-rank-advancement-milestone-node {
+      border-color: rgba(18, 138, 57, 0.82);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 0 0 3px rgba(18, 138, 57, 0.44),
+        0 10px 20px rgba(22, 27, 38, 0.2);
+    }
+
+    .tree-next-rank-advancement-milestone.is-current-rank .tree-next-rank-advancement-milestone-stem {
+      border-left-color: rgba(18, 138, 57, 0.86);
+    }
+
+    .tree-next-rank-advancement-milestone.is-current-rank .tree-next-rank-advancement-milestone-node::before {
+      content: 'You are here';
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 30px);
+      transform: translateX(-50%);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: 0;
+      color: #0A4C22;
+      background: #9CE1B5;
+      box-shadow: 0 5px 10px rgba(14, 79, 40, 0.2);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .tree-next-rank-advancement-milestone.is-target .tree-next-rank-advancement-milestone-node,
+    .tree-next-rank-advancement-milestone.is-selected .tree-next-rank-advancement-milestone-node {
+      border-color: rgba(246, 198, 16, 0.95);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 0 0 3px rgba(248, 203, 29, 0.78),
+        0 0 0 7px rgba(248, 203, 29, 0.26),
+        0 12px 22px rgba(22, 27, 38, 0.24);
+    }
+
+    .tree-next-rank-advancement-milestone.is-target .tree-next-rank-advancement-milestone-stem,
+    .tree-next-rank-advancement-milestone.is-selected .tree-next-rank-advancement-milestone-stem {
+      border-left-color: rgba(246, 198, 16, 0.92);
+      border-left-width: 2.5px;
+    }
+
+    .tree-next-rank-advancement-milestone.is-selected .tree-next-rank-advancement-milestone-node::after {
+      content: attr(data-selected-label);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: 0;
+      color: #3B2A00;
+      background: #F6CF33;
+      box-shadow: 0 5px 10px rgba(63, 49, 7, 0.26);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .tree-next-rank-advancement-milestone.is-upcoming .tree-next-rank-advancement-milestone-node {
+      opacity: 0.84;
+    }
+
+    .tree-next-rank-advancement-milestone.is-passed .tree-next-rank-advancement-milestone-stem {
+      border-left-color: rgba(76, 138, 230, 0.72);
+    }
+
+    .tree-next-rank-advancement-milestone-icon {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 7px rgba(11, 18, 30, 0.34)) !important;
+    }
+
+    .tree-next-rank-advancement-milestone-stem {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 0;
+      height: calc(26px + var(--rank-node-rise, 0px));
+      border-left: 2px dashed rgba(112, 117, 126, 0.9);
+      transform: translateX(-50%);
+    }
+
+    .tree-next-rank-advancement-track-base {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 14px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #D6D7DB;
+    }
+
+    #tree-next-rank-advancement-progress-fill {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #F4C900 0%, #F6D619 100%);
+      transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-rank-advancement-reward-section {
+      padding-top: 24px;
+    }
+
+    .tree-next-rank-advancement-section-title {
+      margin: 0;
+      color: #101216;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .tree-next-rank-advancement-reward-card {
+      margin-top: 18px;
+      border-radius: 24px;
+      border: 0;
+      background: #F2F2F6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      padding: 26px 22px;
+      text-align: center;
+    }
+
+    .tree-next-rank-advancement-reward-hero {
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      line-height: 0;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+    }
+
+    #tree-next-rank-advancement-reward-icon {
+      width: 176px;
+      height: 176px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 16px rgba(11, 18, 30, 0.34)) !important;
+    }
+
+    #tree-next-rank-advancement-reward-rank {
+      margin: 14px 0 0;
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.08;
+      color: #0F1218;
+      letter-spacing: -0.02em;
+    }
+
+    #tree-next-rank-advancement-reward-amount {
+      margin: 10px 0 0;
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      color: #0B0E13;
+    }
+
+    .tree-next-rank-advancement-good-life-copy {
+      margin-top: 20px;
+      display: grid;
+      gap: 4px;
+      justify-items: center;
+    }
+
+    #tree-next-rank-advancement-good-life-copy[hidden] {
+      display: none;
+    }
+
+    #tree-next-rank-advancement-good-life-rank {
+      margin: 0;
+      color: #3B404B;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    #tree-next-rank-advancement-good-life-amount {
+      margin: 0;
+      color: #111318;
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    .tree-next-rank-advancement-analysis {
+      margin-top: 24px;
+      text-align: left;
+    }
+
+    .tree-next-rank-advancement-analysis-title {
+      margin: 0 0 12px;
+      color: #1B1E25;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .tree-next-rank-advancement-analysis-grid {
+      border-top: 1px solid #D0D2D8;
+    }
+
+    .tree-next-rank-advancement-analysis-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid #D0D2D8;
+    }
+
+    .tree-next-rank-advancement-analysis-row:last-child {
+      border-bottom: 0;
+    }
+
+    .tree-next-rank-advancement-analysis-label {
+      margin: 0;
+      color: #4B505B;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    .tree-next-rank-advancement-analysis-value {
+      margin: 0;
+      color: #111318;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.3;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .tree-next-rank-advancement-actions {
+      margin-top: 24px;
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+    }
+
+    #tree-next-rank-advancement-claim {
+      min-width: 220px;
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      padding: 0 24px;
+      background: #1977F3;
+      color: #FFFFFF;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-rank-advancement-claim:hover {
+      background: #156CE2;
+      transform: translateY(-1px);
+    }
+
+    #tree-next-rank-advancement-claim:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-rank-advancement-claim:active {
+      transform: scale(0.97);
+      opacity: 0.92;
+    }
+
+    #tree-next-rank-advancement-claim[disabled] {
+      cursor: not-allowed;
+      background: #AAB1BC;
+      transform: none;
+      opacity: 0.82;
+    }
+
+    #tree-next-rank-advancement-claim.is-claimed {
+      background: #1EA14B;
+      cursor: default;
+    }
+
+    #tree-next-rank-advancement-claim-timer {
+      margin: 0;
+      min-height: 16px;
+      color: #6E7480;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.3;
+      text-align: center;
+    }
+
+    #tree-next-rank-advancement-claim-timer.is-warning {
+      color: #AF3547;
+    }
+
+    #tree-next-rank-advancement-feedback {
+      margin: 0;
+      min-height: 16px;
+      color: #6E7480;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    #tree-next-rank-advancement-feedback.is-error {
+      color: #AF3547;
+    }
+
+    #tree-next-rank-advancement-feedback.is-success {
+      color: #16843C;
+    }
+
+    @media (max-width: 980px) {
+      #tree-next-rank-advancement-panel {
+        left: var(--tree-next-rank-advancement-left-mobile, 18px);
+        top: var(--tree-next-rank-advancement-top-mobile, 78px);
+        width: calc(100vw - 36px);
+        height: calc(100vh - 96px);
+        border-radius: 30px;
+      }
+
+      .tree-next-rank-advancement-scroll {
+        padding: 24px 20px 30px;
+      }
+
+      #tree-next-rank-advancement-target-rank {
+        font-size: 36px;
+      }
+
+      .tree-next-rank-advancement-track-shell {
+        height: 198px;
+      }
+
+      .tree-next-rank-advancement-milestone-node {
+        width: 48px;
+        height: 48px;
+      }
+
+      .tree-next-rank-advancement-milestone-icon {
+        width: 27px;
+        height: 27px;
+      }
+
+      .tree-next-rank-advancement-reward-hero {
+        line-height: 0;
+      }
+
+      #tree-next-rank-advancement-reward-icon {
+        width: 156px;
+        height: 156px;
+      }
+
+      #tree-next-rank-advancement-reward-rank {
+        font-size: 30px;
+      }
+
+      #tree-next-rank-advancement-reward-amount {
+        font-size: 42px;
+      }
+
+      #tree-next-rank-advancement-good-life-amount {
+        font-size: 30px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .tree-next-rank-advancement-track-shell {
+        height: 182px;
+      }
+
+      .tree-next-rank-advancement-milestone {
+        min-width: 24px;
+      }
+
+      .tree-next-rank-advancement-milestone-node {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+      }
+
+      .tree-next-rank-advancement-milestone-icon {
+        width: 21px;
+        height: 21px;
+      }
+
+      .tree-next-rank-advancement-milestone-stem {
+        border-left-width: 1.5px;
+      }
+
+      #tree-next-rank-advancement-target-rank {
+        font-size: 32px;
+      }
+
+      #tree-next-rank-advancement-reward-rank {
+        font-size: 26px;
+      }
+
+      #tree-next-rank-advancement-reward-icon {
+        width: 128px;
+        height: 128px;
+      }
+
+      #tree-next-rank-advancement-reward-amount {
+        font-size: 36px;
+      }
+
+      #tree-next-rank-advancement-good-life-amount {
+        font-size: 26px;
+      }
+    }
+
+    #tree-next-preferred-accounts-panel {
+      position: fixed;
+      left: var(--tree-next-preferred-accounts-left, 430px);
+      top: var(--tree-next-preferred-accounts-top, 18px);
+      width: var(--tree-next-preferred-accounts-width, 640px);
+      height: var(--tree-next-preferred-accounts-height, calc(100vh - 36px));
+      z-index: 16;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #E7E7EA;
+      border-radius: 36px;
+      background: #FFFFFF;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 12px 24px rgba(104, 112, 130, 0.08);
+      color: #101216;
+      font-family: "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      pointer-events: auto;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-preferred-accounts-panel,
+    #tree-next-preferred-accounts-panel * {
+      box-sizing: border-box;
+    }
+
+    #tree-next-preferred-accounts-panel.is-positioning {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(10px);
+    }
+
+    #tree-next-preferred-accounts-panel.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(12px);
+    }
+
+    .tree-next-preferred-accounts-scroll {
+      min-height: 0;
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 30px 30px 36px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 151, 160, 0.7) transparent;
+    }
+
+    .tree-next-preferred-accounts-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .tree-next-preferred-accounts-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .tree-next-preferred-accounts-scroll::-webkit-scrollbar-thumb {
+      border: 2px solid #FFFFFF;
+      border-radius: 8px;
+      background: rgba(148, 151, 160, 0.68);
+    }
+
+    .tree-next-preferred-accounts-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #E5E5E7;
+    }
+
+    .tree-next-preferred-accounts-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #111318;
+    }
+
+    #tree-next-preferred-accounts-close {
+      width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 10px;
+      background: #C9CCD4;
+      color: #FFFFFF;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-preferred-accounts-close:hover {
+      background: #B9BEC8;
+      transform: translateY(-1px);
+    }
+
+    #tree-next-preferred-accounts-close:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-preferred-accounts-close:active {
+      transform: scale(0.94);
+      opacity: 0.82;
+    }
+
+    .tree-next-preferred-accounts-profile {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      margin-top: 20px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid #E5E5E7;
+      text-align: center;
+    }
+
+    #tree-next-preferred-accounts-avatar {
+      position: relative;
+      width: 136px;
+      height: 136px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: linear-gradient(140deg, #8FC1FF 0%, #68A9F6 56%, #4D89D0 100%);
+      color: #FFFFFF;
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1;
+      box-shadow: none;
+      overflow: hidden;
+    }
+
+    #tree-next-preferred-accounts-name {
+      margin: 16px 0 0;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.22;
+      color: #0E1116;
+      letter-spacing: 0;
+      text-wrap: balance;
+      word-break: break-word;
+    }
+
+    .tree-next-preferred-accounts-type {
+      margin: 2px 0 0;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.35;
+      color: #777C86;
+    }
+
+    .tree-next-preferred-accounts-fields {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .tree-next-preferred-accounts-field {
+      display: grid;
+      grid-template-columns: minmax(160px, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      min-height: 58px;
+      padding: 8px 0;
+      border-bottom: 1px solid #E5E5E7;
+    }
+
+    .tree-next-preferred-accounts-field-label {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.3;
+      color: #5A606C;
+    }
+
+    .tree-next-preferred-accounts-field-value {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.28;
+      color: #2C313A;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .tree-next-preferred-accounts-select-wrap {
+      position: relative;
+      min-width: 196px;
+      justify-self: end;
+    }
+
+    #tree-next-preferred-accounts-placement-plan {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid #D6D9E1;
+      border-radius: 14px;
+      background: #F9FAFC;
+      color: #2C313A;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.2;
+      padding: 0 38px 0 14px;
+      appearance: none;
+      transition:
+        border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-preferred-accounts-placement-plan:hover {
+      border-color: #B8C6DF;
+      background: #F4F7FD;
+    }
+
+    #tree-next-preferred-accounts-placement-plan:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 2px;
+      border-color: #6FA8F0;
+      background: #FFFFFF;
+    }
+
+    #tree-next-preferred-accounts-placement-plan:disabled {
+      opacity: 0.64;
+      cursor: not-allowed;
+      background: #F5F6F8;
+    }
+
+    .tree-next-preferred-accounts-select-icon {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      transform: translateY(-50%);
+      font-size: 17px;
+      color: #69707E;
+      pointer-events: none;
+    }
+
+    .tree-next-preferred-accounts-actions {
+      margin-top: 24px;
+      display: grid;
+      justify-items: center;
+    }
+
+    #tree-next-preferred-accounts-save {
+      width: min(320px, 100%);
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #3C9EFF 0%, #2684E9 100%);
+      color: #FFFFFF;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0;
+      cursor: pointer;
+      box-shadow: none;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-preferred-accounts-save.is-loading {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    #tree-next-preferred-accounts-save.is-loading::before {
+      content: '';
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.42);
+      border-top-color: #FFFFFF;
+      animation: tree-next-preferred-save-spin 720ms linear infinite;
+    }
+
+    @keyframes tree-next-preferred-save-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #tree-next-preferred-accounts-save:hover:not(:disabled) {
+      transform: translateY(-1px);
+      filter: brightness(1.04);
+    }
+
+    #tree-next-preferred-accounts-save:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-preferred-accounts-save:active:not(:disabled) {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
+    #tree-next-preferred-accounts-save:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    #tree-next-preferred-accounts-feedback {
+      margin: 10px 0 0;
+      min-height: 18px;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+      color: #2F7FE8;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-preferred-accounts-feedback.is-visible {
+      opacity: 1;
+    }
+
+    #tree-next-preferred-accounts-feedback.is-error {
+      color: #B23A4D;
+    }
+
+    #tree-next-preferred-accounts-feedback.is-success {
+      color: #1E8E4F;
+    }
+
+    .tree-next-preferred-accounts-current {
+      margin-top: 26px;
+      border-top: 1px solid #E5E5E7;
+      padding-top: 22px;
+    }
+
+    .tree-next-preferred-accounts-current-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.25;
+      color: #101216;
+    }
+
+    #tree-next-preferred-accounts-empty {
+      margin: 12px 0 0;
+      font-size: 13px;
+      line-height: 1.35;
+      color: #717580;
+    }
+
+    #tree-next-preferred-accounts-list {
+      display: grid;
+      margin-top: 10px;
+      gap: 0;
+    }
+
+    .tree-next-preferred-accounts-list-item {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      border-radius: 12px;
+      min-height: 54px;
+      padding: 8px 10px;
+      text-align: left;
+      cursor: pointer;
+      transition:
+        background-color 120ms ease,
+        opacity 120ms ease,
+        color 120ms ease;
+    }
+
+    .tree-next-preferred-accounts-list-item + .tree-next-preferred-accounts-list-item {
+      border-top: 1px solid #E8EDF5;
+    }
+
+    .tree-next-preferred-accounts-list-item:hover {
+      background: #EEF2F8;
+    }
+
+    .tree-next-preferred-accounts-list-item:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 2px;
+    }
+
+    .tree-next-preferred-accounts-list-item.is-active {
+      background: #EEF2F8;
+    }
+
+    .tree-next-preferred-accounts-list-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .tree-next-preferred-accounts-list-avatar {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: linear-gradient(140deg, #8FC1FF 0%, #68A9F6 56%, #4D89D0 100%);
+      color: #F7FAFF;
+      font-family: "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      line-height: 1;
+      box-shadow: 0 4px 10px rgba(53, 64, 84, 0.16);
+    }
+
+    .tree-next-preferred-accounts-list-copy {
+      min-width: 0;
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+    }
+
+    .tree-next-preferred-accounts-list-name {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #232938;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    @media (max-width: 980px) {
+      #tree-next-preferred-accounts-panel {
+        left: var(--tree-next-preferred-accounts-left-mobile, 18px);
+        top: var(--tree-next-preferred-accounts-top-mobile, 78px);
+        width: calc(100vw - 36px);
+        height: calc(100vh - 96px);
+        border-radius: 30px;
+      }
+
+      .tree-next-preferred-accounts-scroll {
+        padding: 24px 20px 30px;
+      }
+
+      #tree-next-preferred-accounts-avatar {
+        width: 118px;
+        height: 118px;
+        font-size: 30px;
+      }
+
+      #tree-next-preferred-accounts-name {
+        font-size: 17px;
+      }
+
+      .tree-next-preferred-accounts-type {
+        font-size: 11px;
+      }
+
+      .tree-next-preferred-accounts-field-label,
+      .tree-next-preferred-accounts-field-value {
+        font-size: 14px;
+      }
+
+      .tree-next-preferred-accounts-current-title {
+        font-size: 16px;
+      }
+
+      .tree-next-preferred-accounts-list-name {
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      #tree-next-preferred-accounts-name {
+        font-size: 16px;
+      }
+
+      .tree-next-preferred-accounts-type {
+        font-size: 11px;
+      }
+
+      .tree-next-preferred-accounts-field-label,
+      .tree-next-preferred-accounts-field-value {
+        font-size: 13px;
+      }
+
+      .tree-next-preferred-accounts-field {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        align-items: start;
+        padding: 12px 0;
+      }
+
+      .tree-next-preferred-accounts-field-value {
+        text-align: left;
+      }
+
+      .tree-next-preferred-accounts-select-wrap {
+        width: 100%;
+        justify-self: stretch;
+      }
+
+      #tree-next-preferred-accounts-save {
+        min-height: 42px;
+        font-size: 13px;
+      }
+    }
+
+    #tree-next-my-store-panel {
+      position: fixed;
+      left: var(--tree-next-my-store-left, 430px);
+      top: var(--tree-next-my-store-top, 18px);
+      width: var(--tree-next-my-store-width, 640px);
+      height: var(--tree-next-my-store-height, calc(100vh - 36px));
+      z-index: 16;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #E7E7EA;
+      border-radius: 36px;
+      background: #FFFFFF;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 12px 24px rgba(104, 112, 130, 0.08);
+      color: #101216;
+      font-family: "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      pointer-events: auto;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-my-store-panel,
+    #tree-next-my-store-panel * {
+      box-sizing: border-box;
+    }
+
+    #tree-next-my-store-panel.is-positioning {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(10px);
+    }
+
+    #tree-next-my-store-panel.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(12px);
+    }
+
+    .tree-next-my-store-scroll {
+      min-height: 0;
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 30px 30px 36px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 151, 160, 0.7) transparent;
+    }
+
+    .tree-next-my-store-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .tree-next-my-store-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .tree-next-my-store-scroll::-webkit-scrollbar-thumb {
+      border: 2px solid #FFFFFF;
+      border-radius: 8px;
+      background: rgba(148, 151, 160, 0.68);
+    }
+
+    .tree-next-my-store-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #E5E5E7;
+    }
+
+    .tree-next-my-store-title {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #111318;
+    }
+
+    #tree-next-my-store-close {
+      width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 10px;
+      background: #C9CCD4;
+      color: #FFFFFF;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      transition:
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-my-store-close:hover {
+      background: #B9BEC8;
+      transform: translateY(-1px);
+    }
+
+    #tree-next-my-store-close:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-my-store-close:active {
+      transform: scale(0.94);
+      opacity: 0.82;
+    }
+
+    .tree-next-my-store-breadcrumbs {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: #101216;
+    }
+
+    .tree-next-my-store-breadcrumb-link,
+    .tree-next-my-store-breadcrumb-current {
+      margin: 0;
+      color: #111318;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .tree-next-my-store-breadcrumb-link {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      transition:
+        color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-breadcrumb-link:hover {
+      color: #2B84EA;
+    }
+
+    .tree-next-my-store-breadcrumb-link:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+      border-radius: 8px;
+    }
+
+    .tree-next-my-store-breadcrumb-separator {
+      color: #2B84EA;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+      transform: translateY(-2px);
+      user-select: none;
+    }
+
+    #tree-next-my-store-panel [data-my-store-view] {
+      display: none;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="catalog"] [data-my-store-view="catalog"],
+    #tree-next-my-store-panel[data-my-store-step="review"] [data-my-store-view="review"],
+    #tree-next-my-store-panel[data-my-store-step="checkout"] [data-my-store-view="checkout"],
+    #tree-next-my-store-panel[data-my-store-step="thank-you"] [data-my-store-view="thank-you"] {
+      display: block;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] [data-my-store-share-block],
+    #tree-next-my-store-panel[data-my-store-step="thank-you"] [data-my-store-share-block] {
+      display: none;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"],
+    #tree-next-my-store-panel[data-my-store-step="thank-you"] {
+      height: auto;
+      max-height: calc(100vh - 36px);
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-card-error:empty,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-checkout-feedback:empty {
+      display: none;
+      margin: 0;
+      min-height: 0;
+      padding: 0;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-card-error:not(:empty),
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-checkout-feedback:not(:empty) {
+      display: block;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-scroll {
+      overflow-y: hidden;
+      padding: 28px 26px 28px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-header {
+      padding-bottom: 18px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-section.is-checkout {
+      padding-top: 30px;
+      padding-bottom: 32px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-summary {
+      margin: 24px auto 0;
+      padding: 24px 22px 22px;
+      border-radius: 24px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-heading {
+      margin-bottom: 12px;
+      font-size: 17px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-row {
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.28;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-divider {
+      margin: 14px 0 12px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-total {
+      font-size: 31px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-form {
+      margin-top: 18px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-field-stack {
+      gap: 14px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-form-input,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-stripe-card-shell,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-custom-select-trigger {
+      min-height: 52px;
+      border-radius: 20px;
+      padding: 0 18px;
+      font-size: 13.5px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-stripe-card-shell.is-card-number {
+      padding-right: 14px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-card-row,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-row,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-fields {
+      gap: 12px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-heading,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-field-label {
+      font-size: 12px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-card-error,
+    #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-checkout-feedback {
+      margin-top: 8px;
+      min-height: 16px;
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-actions.tree-next-enroll-actions {
+      margin-top: 16px;
+      padding-top: 18px;
+      gap: 12px;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-action-btn {
+      min-height: 48px;
+      font-size: 14px;
+    }
+
+    .tree-next-my-store-sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+      white-space: nowrap;
+    }
+
+    .tree-next-my-store-section {
+      padding-top: 30px;
+    }
+
+    .tree-next-my-store-section.is-featured {
+      padding-bottom: 22px;
+      border-bottom: 1px solid #E5E5E7;
+      text-align: center;
+    }
+
+    .tree-next-my-store-section.is-upgrades {
+      padding-top: 34px;
+    }
+
+    .tree-next-my-store-section.is-upgrades.is-empty {
+      display: none;
+    }
+
+    .tree-next-my-store-section.is-share {
+      padding-top: 50px;
+      text-align: center;
+    }
+
+    #tree-next-my-store-panel[data-my-store-step="review"] .tree-next-my-store-section.is-share {
+      padding-top: 86px;
+    }
+
+    .tree-next-my-store-section-title {
+      margin: 0;
+      color: #101216;
+      font-size: 33px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .tree-next-my-store-section.is-featured .tree-next-my-store-section-title {
+      font-size: 30px;
+    }
+
+    .tree-next-my-store-featured-product {
+      margin-top: 24px;
+    }
+
+    .tree-next-my-store-product-button {
+      width: 100%;
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      color: inherit;
+      font: inherit;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .tree-next-my-store-product-button .tree-next-my-store-product-image-shell {
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-product-button:hover .tree-next-my-store-product-image-shell {
+      transform: translateY(-2px);
+    }
+
+    .tree-next-my-store-product-button:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 4px;
+      border-radius: 16px;
+    }
+
+    .tree-next-my-store-product-button:active .tree-next-my-store-product-image-shell {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
+    .tree-next-my-store-product-image-shell {
+      width: 100%;
+      border-radius: 28px;
+      background: #F2F2F6;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .tree-next-my-store-product-image-shell.is-featured {
+      width: min(292px, 74vw);
+      aspect-ratio: 1 / 1;
+      padding: 30px;
+    }
+
+    .tree-next-my-store-product-image-shell.is-upgrade {
+      width: min(100%, 246px);
+      aspect-ratio: 1 / 1;
+      min-height: 192px;
+      padding: 22px;
+    }
+
+    .tree-next-my-store-product-image-shell img {
+      width: auto;
+      height: auto;
+      max-width: 86%;
+      max-height: 86%;
+      display: block;
+      margin: 0 auto;
+      object-fit: contain;
+      object-position: center;
+      justify-self: center;
+      align-self: center;
+    }
+
+    .tree-next-my-store-product-image-shell.is-featured img {
+      max-width: 78%;
+      max-height: 78%;
+    }
+
+    .tree-next-my-store-product-image-shell.is-upgrade img {
+      max-width: 82%;
+      max-height: 82%;
+    }
+
+    #tree-next-my-store-featured-label {
+      margin: 0;
+      color: #111318;
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.24;
+      text-align: center;
+    }
+
+    .tree-next-my-store-upgrades-grid {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(165px, 1fr));
+      gap: 20px;
+    }
+
+    .tree-next-my-store-upgrade-card {
+      min-width: 0;
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .tree-next-my-store-upgrade-label {
+      margin: 0;
+      color: #111318;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .tree-next-my-store-section.is-review {
+      padding-top: 28px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #E5E5E7;
+    }
+
+    .tree-next-my-store-review-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 20px;
+    }
+
+    .tree-next-my-store-review-main {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
+      gap: 18px;
+    }
+
+    .tree-next-my-store-product-image-shell.is-review {
+      width: min(250px, 42vw);
+      aspect-ratio: 1 / 1;
+      padding: 24px;
+    }
+
+    .tree-next-my-store-product-image-shell.is-review img {
+      max-width: 80%;
+      max-height: 80%;
+    }
+
+    .tree-next-my-store-review-details {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      align-content: start;
+      justify-items: start;
+      gap: 10px;
+      margin-top: 0;
+    }
+
+    .tree-next-my-store-review-name {
+      margin: 0;
+      color: #111318;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      word-break: break-word;
+    }
+
+    .tree-next-my-store-review-quantity {
+      margin: 0;
+      color: #111318;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .tree-next-my-store-review-quantity-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 22px;
+      border-radius: 999px;
+      background: #ECEEF2;
+      padding: 1px 7px;
+    }
+
+    .tree-next-my-store-review-quantity-control.is-readonly {
+      min-height: 0;
+      padding: 0;
+      background: transparent;
+    }
+
+    .tree-next-my-store-review-quantity-control.is-readonly .tree-next-my-store-review-qty-btn {
+      display: none;
+    }
+
+    .tree-next-my-store-upgrade-product-selector {
+      width: min(300px, 100%);
+      display: grid;
+      gap: 8px;
+    }
+
+    .tree-next-my-store-upgrade-product-selector.is-hidden {
+      display: none;
+    }
+
+    .tree-next-my-store-upgrade-product-title {
+      margin: 0;
+      color: #111318;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.24;
+      letter-spacing: -0.01em;
+    }
+
+    .tree-next-my-store-upgrade-product-options {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tree-next-my-store-upgrade-product-button {
+      width: 100%;
+      min-height: 36px;
+      border: 0;
+      border-radius: 11px;
+      padding: 0 14px;
+      text-align: left;
+      color: #FFFFFF;
+      background: #0B0F18;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-upgrade-product-button.is-selected {
+      background: linear-gradient(135deg, #1F7DE7 0%, #2F93EE 100%);
+    }
+
+    .tree-next-my-store-upgrade-product-button:hover {
+      filter: brightness(1.04);
+      transform: translateY(-1px);
+    }
+
+    .tree-next-my-store-upgrade-product-button:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    .tree-next-my-store-upgrade-product-button:active {
+      transform: scale(0.98);
+      opacity: 0.92;
+    }
+
+    .tree-next-my-store-review-qty-btn {
+      width: 16px;
+      height: 16px;
+      border: 0;
+      border-radius: 999px;
+      background: #FFFFFF;
+      color: #13161D;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-review-qty-btn:hover:not(:disabled) {
+      background: #F8FAFF;
+      transform: translateY(-1px);
+    }
+
+    .tree-next-my-store-review-qty-btn:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 2px;
+    }
+
+    .tree-next-my-store-review-qty-btn:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    .tree-next-my-store-review-qty-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .tree-next-my-store-review-side {
+      justify-self: end;
+      display: grid;
+      justify-items: end;
+      gap: 10px;
+    }
+
+    .tree-next-my-store-review-price {
+      margin: 0;
+      color: #101216;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .tree-next-my-store-review-bv {
+      margin: 0;
+      color: #111318;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .tree-next-my-store-review-remove {
+      margin: 8px 0 0;
+      border: 0;
+      background: transparent;
+      color: #2B84EA;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.2;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: none;
+      transition:
+        color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-review-remove:hover {
+      color: #1C6FD0;
+    }
+
+    .tree-next-my-store-review-remove:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+      border-radius: 8px;
+    }
+
+    .tree-next-my-store-review-checkout {
+      margin-top: 10px;
+      min-width: 220px;
+      min-height: 52px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #1F7DE7 0%, #2F93EE 100%);
+      box-shadow: none;
+      color: #FFFFFF;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-review-checkout:hover {
+      filter: brightness(1.03);
+      transform: translateY(-1px);
+    }
+
+    .tree-next-my-store-review-checkout:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    .tree-next-my-store-review-checkout:active {
+      transform: scale(0.98);
+      opacity: 0.92;
+    }
+
+    .tree-next-my-store-section.is-checkout {
+      padding-top: 28px;
+    }
+
+    .tree-next-my-store-checkout-title {
+      margin: 0;
+      color: #0F131A;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      text-align: center;
+    }
+
+    .tree-next-my-store-checkout-subtitle {
+      max-width: 640px;
+      margin: 12px auto 0;
+      color: #8C909A;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .tree-next-my-store-checkout-summary {
+      margin: 28px auto 0;
+      width: min(560px, 100%);
+      border-radius: 28px;
+      background: #EEEEEE;
+      padding: 24px 18px 20px;
+    }
+
+    .tree-next-my-store-checkout-summary-title {
+      margin: 0 0 10px;
+      color: #101216;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .tree-next-my-store-checkout-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 6px;
+      color: #111318;
+      font-size: 15px;
+      line-height: 1.22;
+    }
+
+    .tree-next-my-store-checkout-summary-divider {
+      margin: 14px 0 12px;
+      border: none;
+      border-top: 1px solid rgba(0, 0, 0, 0.24);
+    }
+
+    .tree-next-my-store-checkout-summary-row.is-total {
+      margin-top: 0;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .tree-next-my-store-checkout-summary-row.is-total strong {
+      font-size: 36px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .tree-next-my-store-checkout-form {
+      width: min(560px, 100%);
+      margin: 28px auto 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .tree-next-my-store-checkout-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .tree-next-my-store-checkout-input {
+      width: 100%;
+      min-height: 56px;
+      border: 0;
+      border-radius: 20px;
+      background: #E2E2E2;
+      color: #111318;
+      font: 500 13px/1.3 "Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      letter-spacing: -0.01em;
+      padding: 0 22px;
+      transition:
+        box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-checkout-input::placeholder {
+      color: #888888;
+    }
+
+    .tree-next-my-store-checkout-input:focus-visible {
+      outline: 2px solid rgba(7, 122, 255, 0.35);
+      outline-offset: 0;
+      background: #E6E6E6;
+      box-shadow:
+        0 0 0 3px rgba(7, 122, 255, 0.14);
+    }
+
+    .tree-next-my-store-checkout-billing-title {
+      margin: 22px 0 0;
+      color: #111318;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    .tree-next-my-store-checkout-feedback {
+      margin: 10px 0 0;
+      min-height: 16px;
+      color: #247CE0;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.25;
+      opacity: 0;
+      transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-checkout-feedback.is-visible {
+      opacity: 1;
+    }
+
+    .tree-next-my-store-checkout-feedback.is-error {
+      color: #B23A4D;
+    }
+
+    #tree-next-my-store-checkout-feedback:empty {
+      display: none;
+      margin: 0;
+      min-height: 0;
+    }
+
+    #tree-next-my-store-checkout-feedback:not(:empty) {
+      display: block;
+    }
+
+    .tree-next-my-store-checkout-actions {
+      width: min(560px, 100%);
+      margin: 22px auto 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .tree-next-my-store-checkout-action {
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-checkout-action.is-secondary {
+      background: #030303;
+    }
+
+    .tree-next-my-store-checkout-action.is-primary {
+      background: linear-gradient(135deg, #1F7DE7 0%, #2F93EE 100%);
+      box-shadow:
+        0 10px 20px rgba(45, 118, 212, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    }
+
+    .tree-next-my-store-checkout-action:hover {
+      filter: brightness(1.04);
+      transform: translateY(-1px);
+    }
+
+    .tree-next-my-store-checkout-action:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    .tree-next-my-store-checkout-action:active {
+      transform: scale(0.98);
+      opacity: 0.92;
+    }
+
+    .tree-next-my-store-section.is-thank-you {
+      padding-top: 28px;
+    }
+
+    #tree-next-my-store-thank-you-card {
+      width: min(560px, 100%);
+      margin: 0 auto;
+      border-radius: 28px;
+      background: #eeeeee;
+      padding: 28px 24px 24px;
+      color: #000000;
+    }
+
+    #tree-next-my-store-thank-you-card h3 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+
+    #tree-next-my-store-thank-you-card p {
+      margin: 0;
+      color: #70747d;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .tree-next-my-store-thank-you-actions.tree-next-enroll-actions {
+      width: min(560px, 100%);
+      margin: 18px auto 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .tree-next-my-store-share-copy {
+      margin: 12px auto 0;
+      max-width: 420px;
+      color: #333842;
+      font-size: 18px;
+      font-weight: 400;
+      line-height: 1.45;
+    }
+
+    #tree-next-my-store-copy-link {
+      margin-top: 20px;
+      min-width: 188px;
+      min-height: 42px;
+      padding: 0 24px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #2490F1 0%, #2F7FE8 100%);
+      box-shadow: none;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition:
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #tree-next-my-store-copy-link:hover {
+      filter: brightness(1.03);
+      transform: translateY(-1px);
+    }
+
+    #tree-next-my-store-copy-link:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 3px;
+    }
+
+    #tree-next-my-store-copy-link:active {
+      transform: scale(0.97);
+      opacity: 0.9;
+    }
+
+    #tree-next-my-store-panel .tree-next-enroll-action-btn.is-primary,
+    #tree-next-my-store-panel .tree-next-enroll-action-btn.is-secondary {
+      box-shadow: none;
+    }
+
+    #tree-next-my-store-panel .tree-next-enroll-action-btn.is-primary:hover:not(:disabled),
+    #tree-next-my-store-panel .tree-next-enroll-action-btn.is-secondary:hover,
+    #tree-next-my-store-panel .tree-next-my-store-review-checkout:hover,
+    #tree-next-my-store-panel #tree-next-my-store-copy-link:hover {
+      box-shadow: none;
+    }
+
+    .tree-next-my-store-copy-feedback {
+      margin: 10px 0 0;
+      min-height: 17px;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+      color: #2F7FE8;
+      opacity: 0;
+      transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-my-store-copy-feedback.is-visible {
+      opacity: 1;
+    }
+
+    .tree-next-my-store-copy-feedback.is-error {
+      color: #B23A4D;
+    }
+
+    @media (max-width: 980px) {
+      #tree-next-my-store-panel {
+        left: var(--tree-next-my-store-left-mobile, 18px);
+        top: var(--tree-next-my-store-top-mobile, 78px);
+        width: calc(100vw - 36px);
+        height: calc(100vh - 96px);
+        border-radius: 30px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] {
+        height: auto;
+        max-height: calc(100vh - 96px);
+      }
+
+      .tree-next-my-store-scroll {
+        padding: 24px 20px 30px;
+      }
+
+      .tree-next-my-store-title {
+        font-size: 27px;
+      }
+
+      .tree-next-my-store-section-title {
+        font-size: 29px;
+      }
+
+      .tree-next-my-store-section.is-featured .tree-next-my-store-section-title {
+        font-size: 27px;
+      }
+
+      #tree-next-my-store-featured-label {
+        font-size: 34px;
+      }
+
+      .tree-next-my-store-upgrades-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .tree-next-my-store-share-copy {
+        font-size: 16px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="review"] .tree-next-my-store-section.is-share {
+        padding-top: 70px;
+      }
+
+      .tree-next-my-store-review-card {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .tree-next-my-store-review-main {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .tree-next-my-store-review-details {
+        gap: 10px;
+        justify-items: center;
+        margin-top: 0;
+      }
+
+      .tree-next-my-store-upgrade-product-selector {
+        width: min(340px, 100%);
+        justify-items: center;
+      }
+
+      .tree-next-my-store-upgrade-product-options {
+        width: min(340px, 100%);
+      }
+
+      .tree-next-my-store-upgrade-product-button {
+        text-align: center;
+      }
+
+      .tree-next-my-store-review-side {
+        justify-self: stretch;
+        justify-items: center;
+      }
+
+      .tree-next-my-store-review-checkout {
+        min-width: 200px;
+        min-height: 54px;
+        font-size: 22px;
+      }
+
+      .tree-next-my-store-product-image-shell.is-review {
+        width: min(286px, 80vw);
+        padding: 26px;
+      }
+
+      .tree-next-my-store-checkout-summary {
+        border-radius: 24px;
+        padding: 20px 20px 18px;
+      }
+
+      .tree-next-my-store-checkout-summary-title {
+        font-size: 18px;
+      }
+
+      .tree-next-my-store-checkout-summary-row {
+        font-size: 20px;
+      }
+
+      .tree-next-my-store-checkout-summary-row.is-total {
+        font-size: 22px;
+      }
+
+      .tree-next-my-store-checkout-summary-row.is-total strong {
+        font-size: 28px;
+      }
+
+      .tree-next-my-store-checkout-input {
+        min-height: 50px;
+        border-radius: 15px;
+        font-size: 16px;
+      }
+
+      .tree-next-my-store-checkout-billing-title {
+        font-size: 16px;
+      }
+
+      .tree-next-my-store-checkout-action {
+        min-height: 54px;
+        font-size: 20px;
+      }
+
+      #tree-next-my-store-thank-you-card {
+        padding: 22px 18px 18px;
+      }
+
+      #tree-next-my-store-thank-you-card h3 {
+        font-size: 26px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .tree-next-my-store-upgrades-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tree-next-my-store-product-image-shell.is-featured {
+        width: min(270px, 82vw);
+      }
+
+      #tree-next-my-store-featured-label {
+        font-size: 30px;
+      }
+
+      .tree-next-my-store-section.is-share {
+        padding-top: 40px;
+      }
+
+      .tree-next-my-store-breadcrumb-link,
+      .tree-next-my-store-breadcrumb-current {
+        font-size: 15px;
+      }
+
+      .tree-next-my-store-breadcrumb-separator {
+        font-size: 13px;
+      }
+
+      .tree-next-my-store-review-name {
+        font-size: 20px;
+      }
+
+      .tree-next-my-store-review-quantity,
+      .tree-next-my-store-review-price,
+      .tree-next-my-store-review-bv {
+        font-size: 20px;
+      }
+
+      .tree-next-my-store-review-quantity-control {
+        min-height: 22px;
+        padding: 1px 7px;
+        gap: 5px;
+      }
+
+      .tree-next-my-store-upgrade-product-title {
+        font-size: 13px;
+      }
+
+      .tree-next-my-store-upgrade-product-button {
+        min-height: 34px;
+        font-size: 13px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="review"] .tree-next-my-store-section.is-share {
+        padding-top: 56px;
+      }
+
+      .tree-next-my-store-review-qty-btn {
+        width: 16px;
+        height: 16px;
+        font-size: 11px;
+      }
+
+      .tree-next-my-store-checkout-title {
+        font-size: 26px;
+      }
+
+      .tree-next-my-store-checkout-subtitle {
+        font-size: 13px;
+      }
+
+      .tree-next-my-store-checkout-summary {
+        margin-top: 20px;
+      }
+
+      .tree-next-my-store-checkout-summary-title {
+        font-size: 16px;
+      }
+
+      #tree-next-my-store-thank-you-card h3 {
+        font-size: 24px;
+      }
+
+      .tree-next-my-store-checkout-summary-row {
+        font-size: 15px;
+      }
+
+      .tree-next-my-store-checkout-summary-row.is-total {
+        font-size: 17px;
+      }
+
+      .tree-next-my-store-checkout-summary-row.is-total strong {
+        font-size: 24px;
+      }
+
+      .tree-next-my-store-checkout-input {
+        min-height: 46px;
+        font-size: 15px;
+        padding: 0 16px;
+      }
+
+      .tree-next-my-store-checkout-billing-title {
+        margin-top: 14px;
+        font-size: 15px;
+      }
+
+      .tree-next-my-store-checkout-feedback {
+        font-size: 12px;
+      }
+
+      .tree-next-my-store-checkout-action {
+        min-height: 48px;
+        font-size: 18px;
+      }
     }
 
     #binary-tree-loading {
@@ -969,7 +5123,8 @@
       white-space: nowrap;
     }
 
-    #tree-next-enroll-checkout-summary {
+    #tree-next-enroll-checkout-summary,
+    .tree-next-enroll-checkout-summary {
       border-radius: 28px;
       background: #eeeeee;
       padding: 24px 18px 20px;
@@ -1048,7 +5203,8 @@
       padding-right: 16px;
     }
 
-    #tree-next-enroll-card-number-element {
+    #tree-next-enroll-card-number-element,
+    #tree-next-my-store-card-number-element {
       flex: 1 1 auto;
       width: auto;
       min-width: 0;
@@ -1057,7 +5213,9 @@
     }
 
     #tree-next-enroll-card-expiry-element,
-    #tree-next-enroll-card-cvc-element {
+    #tree-next-enroll-card-cvc-element,
+    #tree-next-my-store-card-expiry-element,
+    #tree-next-my-store-card-cvc-element {
       flex: 1 1 auto;
       width: 100%;
       min-width: 0;
@@ -1065,12 +5223,25 @@
       color: #888888;
     }
 
-    #tree-next-enroll-card-error {
+    #tree-next-enroll-card-error,
+    #tree-next-my-store-card-error {
       margin: -4px 2px 0;
       min-height: 17px;
       color: #c04157;
       font-size: 12px;
       line-height: 1.4;
+    }
+
+    #tree-next-my-store-card-error:empty {
+      display: none;
+      margin: 0;
+      min-height: 0;
+    }
+
+    #tree-next-my-store-card-error:not(:empty) {
+      display: block;
+      margin: 2px 2px 0;
+      min-height: 15px;
     }
 
     #tree-next-enroll-thank-you-card {
@@ -1463,7 +5634,7 @@
       }
     }
 
-    @media (max-height: 1065px) {
+    @media (max-height: 760px) {
       #tree-next-enroll-modal[data-enroll-current-step="3"] .tree-next-enroll-step[data-enroll-step="3"].is-active {
         min-height: 0;
         display: flex;
@@ -1544,7 +5715,8 @@
         font-size: 11px;
       }
 
-      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-card-error {
+      #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-card-error,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-card-error {
         margin-top: -2px;
         min-height: 15px;
         font-size: 11px;
@@ -1574,9 +5746,111 @@
         font-size: 11px;
         line-height: 1.25;
       }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-scroll {
+        overflow-y: hidden;
+        padding: 21px 22px 18px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-header {
+        padding-bottom: 14px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-section.is-checkout {
+        padding-top: 20px;
+        padding-bottom: 26px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-title {
+        font-size: 21px;
+        line-height: 1.08;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-subtitle {
+        margin-top: 6px;
+        max-width: 420px;
+        font-size: 11.5px;
+        line-height: 1.3;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-summary {
+        margin: 18px auto 0;
+        padding: 18px 18px 16px;
+        border-radius: 22px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-heading {
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-row {
+        margin-top: 6px;
+        font-size: 13.5px;
+        line-height: 1.28;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-divider {
+        margin: 12px 0 10px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-total {
+        font-size: 29px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-form {
+        margin-top: 14px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-field-stack {
+        gap: 11px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-form-input,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-stripe-card-shell,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-custom-select-trigger {
+        min-height: 48px;
+        border-radius: 18px;
+        padding: 0 17px;
+        font-size: 13px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-stripe-card-shell.is-card-number {
+        padding-right: 13px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-card-row,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-row,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-fields {
+        gap: 10px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-billing-heading,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-field-label {
+        font-size: 11.5px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-card-error,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] #tree-next-my-store-checkout-feedback {
+        margin-top: 7px;
+        min-height: 15px;
+        font-size: 11.5px;
+        line-height: 1.3;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-actions.tree-next-enroll-actions {
+        margin-top: 13px;
+        padding-top: 14px;
+        gap: 10px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-action-btn {
+        min-height: 45px;
+        font-size: 13.5px;
+      }
     }
 
-    @media (max-height: 820px) {
+    @media (max-height: 680px) {
       #tree-next-enroll-modal[data-enroll-current-step="3"] #tree-next-enroll-modal-header {
         padding: 8px 42px 2px;
       }
@@ -1595,11 +5869,604 @@
         gap: 6px;
         padding-top: 8px;
       }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-scroll {
+        overflow-y: hidden;
+        padding: 16px 18px 14px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-header {
+        padding-bottom: 12px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-section.is-checkout {
+        padding-top: 15px;
+        padding-bottom: 22px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-title {
+        font-size: 20px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-subtitle {
+        margin-top: 4px;
+        font-size: 11px;
+        line-height: 1.28;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-summary {
+        margin-top: 14px;
+        padding: 16px 16px 14px;
+        border-radius: 20px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-heading {
+        font-size: 15px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-row {
+        font-size: 13px;
+        line-height: 1.26;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-checkout-total {
+        font-size: 28px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-form-input,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-stripe-card-shell,
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-custom-select-trigger {
+        min-height: 46px;
+        font-size: 12.5px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-my-store-checkout-actions.tree-next-enroll-actions {
+        gap: 8px;
+        padding-top: 12px;
+      }
+
+      #tree-next-my-store-panel[data-my-store-step="checkout"] .tree-next-enroll-action-btn {
+        min-height: 42px;
+        font-size: 13px;
+      }
+    }
+
+    html[data-tree-next-sheet-stage="full"] #tree-next-account-overview-panel,
+    html[data-tree-next-sheet-stage="full"] #tree-next-rank-advancement-panel,
+    html[data-tree-next-sheet-stage="full"] #tree-next-preferred-accounts-panel,
+    body[data-tree-next-sheet-stage="full"] #tree-next-account-overview-panel,
+    body[data-tree-next-sheet-stage="full"] #tree-next-rank-advancement-panel,
+    body[data-tree-next-sheet-stage="full"] #tree-next-preferred-accounts-panel {
+      border-radius: 0;
+      border-width: 0;
+      box-shadow: none;
     }
   </style>
 </head>
 <body>
   <canvas id="figma-tree-canvas"></canvas>
+  <aside id="tree-next-account-overview-panel" class="is-positioning" aria-label="Account Overview">
+    <div class="tree-next-account-overview-scroll">
+      <header class="tree-next-account-overview-header">
+        <h2 class="tree-next-account-overview-title">Account Overview</h2>
+        <button id="tree-next-account-overview-refresh" type="button" aria-label="Hide account overview">×</button>
+      </header>
+
+      <section class="tree-next-account-overview-hero" aria-label="Member profile summary">
+        <div class="tree-next-account-overview-badge is-rank">
+          <div id="tree-next-account-overview-rank-badge" class="tree-next-account-overview-badge-icon" aria-hidden="true">
+            <img id="tree-next-account-overview-rank-icon" src="/brand_assets/Icons/Achievements/legacy-light.svg" alt="" />
+          </div>
+          <p id="tree-next-account-overview-rank-label" class="tree-next-account-overview-badge-label">Legacy</p>
+        </div>
+
+        <div class="tree-next-account-overview-user">
+          <div id="tree-next-account-overview-avatar" aria-hidden="true">
+            <span id="tree-next-account-overview-avatar-initials" class="tree-next-account-overview-avatar-initials">SF</span>
+            <span id="tree-next-account-overview-status-dot"></span>
+          </div>
+          <p id="tree-next-account-overview-name">Member</p>
+          <p id="tree-next-account-overview-handle">@member</p>
+          <p id="tree-next-account-overview-joined">Joined</p>
+        </div>
+
+        <div class="tree-next-account-overview-badge is-title">
+          <div id="tree-next-account-overview-title-badge" class="tree-next-account-overview-badge-icon" aria-hidden="true">
+            <img id="tree-next-account-overview-title-icon" src="/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg" alt="" />
+          </div>
+          <p id="tree-next-account-overview-title-label" class="tree-next-account-overview-badge-label">Legacy Founder</p>
+        </div>
+      </section>
+
+      <section class="tree-next-account-overview-section" aria-labelledby="tree-next-account-overview-volume-title">
+        <h3 id="tree-next-account-overview-volume-title" class="tree-next-account-overview-section-title">Sales and Business Volumes</h3>
+        <div class="tree-next-account-overview-grid">
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-active-window-value" class="tree-next-account-overview-tile-value">--</p>
+            <p class="tree-next-account-overview-tile-label">Account Active Until</p>
+          </article>
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-total-bv-value" class="tree-next-account-overview-tile-value">0 BV</p>
+            <p class="tree-next-account-overview-tile-label">Total Organization BV</p>
+          </article>
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-personal-bv-value" class="tree-next-account-overview-tile-value">0 BV</p>
+            <p class="tree-next-account-overview-tile-label">Personal BV</p>
+          </article>
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-cycle-value" class="tree-next-account-overview-tile-value">1 / 1,000</p>
+            <p id="tree-next-account-overview-cycle-label" class="tree-next-account-overview-tile-label">Weekly Cycle Cap</p>
+          </article>
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-direct-sponsors-value" class="tree-next-account-overview-tile-value">0</p>
+            <p class="tree-next-account-overview-tile-label">Direct Sponsors</p>
+          </article>
+          <article class="tree-next-account-overview-tile">
+            <p id="tree-next-account-overview-ewallet-value" class="tree-next-account-overview-tile-value">$0.00</p>
+            <p class="tree-next-account-overview-tile-label">E-Wallet</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="tree-next-account-overview-section" aria-labelledby="tree-next-account-overview-commission-title">
+        <h3 id="tree-next-account-overview-commission-title" class="tree-next-account-overview-section-title">Track Commissions</h3>
+        <div class="tree-next-account-overview-grid">
+          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="retail-profit">
+            <p id="tree-next-account-overview-retail-profit-value" class="tree-next-account-overview-commission-value">$0.00</p>
+            <p class="tree-next-account-overview-commission-label">Retail Profit</p>
+          </button>
+          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="fast-track">
+            <p id="tree-next-account-overview-fast-track-value" class="tree-next-account-overview-commission-value">$0.00</p>
+            <p class="tree-next-account-overview-commission-label">Fast Track Commission</p>
+          </button>
+          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="sales-team">
+            <p id="tree-next-account-overview-track-sales-team-value" class="tree-next-account-overview-commission-value">$0.00</p>
+            <p class="tree-next-account-overview-commission-label">Sales Team Commission</p>
+          </button>
+          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="infinity-builder">
+            <p id="tree-next-account-overview-infinity-builder-value" class="tree-next-account-overview-commission-value">$0.00</p>
+            <p class="tree-next-account-overview-commission-label">Infinity Tier Commission</p>
+          </button>
+          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="legacy-builder">
+            <p id="tree-next-account-overview-legacy-builder-value" class="tree-next-account-overview-commission-value">$0.00</p>
+            <p class="tree-next-account-overview-commission-label">Legacy Builder Bonus</p>
+          </button>
+        </div>
+      </section>
+    </div>
+  </aside>
+  <aside
+    id="tree-next-infinity-builder-panel"
+    class="is-positioning is-hidden"
+    aria-label="Infinity Tier Commission"
+    aria-hidden="true"
+  >
+    <div class="tree-next-infinity-builder-scroll">
+      <header class="tree-next-infinity-builder-header">
+        <div class="tree-next-infinity-builder-header-main">
+          <nav class="tree-next-infinity-builder-breadcrumb" aria-label="Panel breadcrumb">
+            <button id="tree-next-infinity-builder-back" type="button" aria-label="Go to Account Overview">Account Overview</button>
+            <span class="tree-next-infinity-builder-breadcrumb-separator" aria-hidden="true">&gt;</span>
+            <span id="tree-next-infinity-builder-breadcrumb-current" class="tree-next-infinity-builder-breadcrumb-current">Infinity Tier Commission</span>
+          </nav>
+          <h2 id="tree-next-infinity-builder-title" class="tree-next-infinity-builder-title">Infinity Tier Commission</h2>
+        </div>
+        <button id="tree-next-infinity-builder-close" type="button" aria-label="Hide infinity builder panel">&times;</button>
+      </header>
+
+      <p id="tree-next-infinity-builder-copy" class="tree-next-infinity-builder-copy">
+        The <strong>Infinity Tier Commission</strong> rewards members who build strong foundations.
+        Each tier is completed after 3 direct Infinity/Legacy enrollments. Then each member unlocks 1% monthly only after duplicating to 3 active direct enrollments.
+      </p>
+
+      <section class="tree-next-infinity-builder-tier-shell" aria-labelledby="tree-next-infinity-builder-tier-title">
+        <div class="tree-next-infinity-builder-tier-head">
+          <h3 id="tree-next-infinity-builder-tier-title">Infinity Tier 1</h3>
+          <p id="tree-next-infinity-builder-tier-subtitle">Complete this tier with 3 Infinity/Legacy enrollments.</p>
+        </div>
+        <div id="tree-next-infinity-builder-tier-grid" class="tree-next-infinity-builder-tier-grid"></div>
+        <p id="tree-next-infinity-builder-tier-bonus">Tier reward is calculated from Infinity/Legacy node mix.</p>
+        <div class="tree-next-infinity-builder-tier-actions">
+          <button id="tree-next-infinity-builder-view-tree" type="button" aria-pressed="false" hidden>View Tree</button>
+          <button id="tree-next-infinity-builder-claim" type="button" disabled>Claim Tier Reward</button>
+          <p id="tree-next-infinity-builder-claim-feedback" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section class="tree-next-infinity-builder-current" aria-labelledby="tree-next-infinity-builder-current-title">
+        <div class="tree-next-infinity-builder-current-head">
+          <h3 id="tree-next-infinity-builder-current-title" class="tree-next-infinity-builder-current-title">Current</h3>
+          <button
+            id="tree-next-infinity-builder-current-sort"
+            class="tree-next-infinity-builder-current-sort"
+            type="button"
+            aria-label="Toggle tier sort direction"
+          >Sort: Ascending</button>
+        </div>
+        <div id="tree-next-infinity-builder-current-list" class="tree-next-infinity-builder-current-list"></div>
+        <p id="tree-next-infinity-builder-current-empty" hidden>No Infinity-qualified direct enrollments found yet.</p>
+      </section>
+    </div>
+  </aside>
+  <aside
+    id="tree-next-rank-advancement-panel"
+    class="is-positioning is-hidden"
+    aria-label="Rank Advancement"
+    aria-hidden="true"
+  >
+    <div class="tree-next-rank-advancement-scroll">
+      <header class="tree-next-rank-advancement-header">
+        <h2 class="tree-next-rank-advancement-title">Rank Advancement</h2>
+        <button id="tree-next-rank-advancement-close" type="button" aria-label="Hide rank advancement panel">&times;</button>
+      </header>
+
+      <section class="tree-next-rank-advancement-loop" aria-labelledby="tree-next-rank-advancement-target-rank">
+        <p id="tree-next-rank-advancement-target-prefix" class="tree-next-rank-advancement-loop-label">Keep it going! Running for</p>
+        <p id="tree-next-rank-advancement-target-rank">Crown</p>
+        <p id="tree-next-rank-advancement-acquired-since" hidden></p>
+        <p id="tree-next-rank-advancement-reward-preview">Rank Bonus: $0.00 USD</p>
+        <p id="tree-next-rank-advancement-good-life-preview" hidden>Good life Bonus: $0.00 USD</p>
+        <ul class="tree-next-rank-advancement-requirements">
+          <li id="tree-next-rank-advancement-personal-requirement" class="tree-next-rank-advancement-requirement">Minimum 200 Personal BV</li>
+          <li id="tree-next-rank-advancement-direct-requirement" class="tree-next-rank-advancement-requirement">3:3 Active Direct Sponsors</li>
+          <li id="tree-next-rank-advancement-cycles-requirement" class="tree-next-rank-advancement-requirement is-neutral">160 / 320 Cycles left</li>
+          <li id="tree-next-rank-advancement-members-requirement" class="tree-next-rank-advancement-requirement is-neutral">2 Black Diamond Members</li>
+        </ul>
+
+        <div class="tree-next-rank-advancement-track-shell">
+          <ol id="tree-next-rank-advancement-milestones" class="tree-next-rank-advancement-milestones" aria-label="Rank advancement milestones"></ol>
+          <div class="tree-next-rank-advancement-track-base">
+            <span id="tree-next-rank-advancement-progress-fill"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="tree-next-rank-advancement-reward-section" aria-labelledby="tree-next-rank-advancement-reward-title">
+        <h3 id="tree-next-rank-advancement-reward-title" class="tree-next-rank-advancement-section-title">Rank Advancement Monthly Rewards</h3>
+        <article class="tree-next-rank-advancement-reward-card" aria-label="Current monthly reward summary">
+          <div class="tree-next-rank-advancement-reward-hero">
+            <img id="tree-next-rank-advancement-reward-icon" src="/brand_assets/Icons/Achievements/black-diamond.svg" alt="Reward rank icon" />
+          </div>
+          <p id="tree-next-rank-advancement-reward-rank">Black Diamond</p>
+          <p id="tree-next-rank-advancement-reward-amount">$2,000.00 USD</p>
+
+          <div id="tree-next-rank-advancement-good-life-copy" class="tree-next-rank-advancement-good-life-copy">
+            <p id="tree-next-rank-advancement-good-life-rank">Good life Bonus</p>
+            <p id="tree-next-rank-advancement-good-life-amount">$2,000.00 USD</p>
+          </div>
+
+          <section class="tree-next-rank-advancement-analysis" aria-label="Rank monthly analysis">
+            <h4 class="tree-next-rank-advancement-analysis-title">Rank Monthly Analysis</h4>
+            <div class="tree-next-rank-advancement-analysis-grid">
+              <div class="tree-next-rank-advancement-analysis-row">
+                <p class="tree-next-rank-advancement-analysis-label">Accumulated Total BV</p>
+                <p id="tree-next-rank-advancement-analysis-total-bv" class="tree-next-rank-advancement-analysis-value">30,325 BV</p>
+              </div>
+              <div class="tree-next-rank-advancement-analysis-row">
+                <p class="tree-next-rank-advancement-analysis-label">Personal BV</p>
+                <p id="tree-next-rank-advancement-analysis-personal-bv" class="tree-next-rank-advancement-analysis-value">15,000 BV</p>
+              </div>
+              <div class="tree-next-rank-advancement-analysis-row">
+                <p class="tree-next-rank-advancement-analysis-label">Cycles</p>
+                <p id="tree-next-rank-advancement-analysis-cycles" class="tree-next-rank-advancement-analysis-value">232</p>
+              </div>
+            </div>
+          </section>
+
+          <div class="tree-next-rank-advancement-actions">
+            <button id="tree-next-rank-advancement-claim" type="button">Claim at the end of the month</button>
+            <p id="tree-next-rank-advancement-claim-timer"></p>
+            <p id="tree-next-rank-advancement-feedback"></p>
+          </div>
+        </article>
+      </section>
+    </div>
+  </aside>
+  <aside
+    id="tree-next-preferred-accounts-panel"
+    class="is-positioning is-hidden"
+    aria-label="Preferred Accounts"
+    aria-hidden="true"
+  >
+    <div class="tree-next-preferred-accounts-scroll">
+      <header class="tree-next-preferred-accounts-header">
+        <h2 class="tree-next-preferred-accounts-title">Preferred Customers</h2>
+        <button id="tree-next-preferred-accounts-close" type="button" aria-label="Hide preferred customers panel">&times;</button>
+      </header>
+
+      <section class="tree-next-preferred-accounts-profile" aria-label="Preferred customer profile">
+        <div id="tree-next-preferred-accounts-avatar" aria-hidden="true">
+          <span id="tree-next-preferred-accounts-initials">PA</span>
+        </div>
+        <p id="tree-next-preferred-accounts-name">No preferred customer selected</p>
+        <p class="tree-next-preferred-accounts-type">Preferred Customer</p>
+      </section>
+
+      <ul class="tree-next-preferred-accounts-fields" aria-label="Preferred customer profile fields">
+        <li class="tree-next-preferred-accounts-field">
+          <p class="tree-next-preferred-accounts-field-label">Total Spend</p>
+          <p id="tree-next-preferred-accounts-total-spend" class="tree-next-preferred-accounts-field-value">$0.00</p>
+        </li>
+        <li class="tree-next-preferred-accounts-field">
+          <p class="tree-next-preferred-accounts-field-label">Total BV Credited</p>
+          <p id="tree-next-preferred-accounts-total-bv" class="tree-next-preferred-accounts-field-value">0 BV</p>
+        </li>
+        <li class="tree-next-preferred-accounts-field">
+          <p class="tree-next-preferred-accounts-field-label">Preferred Subscriber Since</p>
+          <p id="tree-next-preferred-accounts-since" class="tree-next-preferred-accounts-field-value">--</p>
+        </li>
+        <li class="tree-next-preferred-accounts-field">
+          <p class="tree-next-preferred-accounts-field-label">From</p>
+          <p id="tree-next-preferred-accounts-origin" class="tree-next-preferred-accounts-field-value">--</p>
+        </li>
+        <li class="tree-next-preferred-accounts-field">
+          <p class="tree-next-preferred-accounts-field-label">Placement Plan</p>
+          <div class="tree-next-preferred-accounts-select-wrap">
+            <select id="tree-next-preferred-accounts-placement-plan" aria-label="Preferred customer placement plan">
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+              <option value="spillover-left">Spill Over Left</option>
+              <option value="spillover-right">Spill Over Right</option>
+              <option value="extreme-left">Extreme Left</option>
+              <option value="extreme-right">Extreme Right</option>
+            </select>
+            <span class="tree-next-preferred-accounts-select-icon material-symbols-outlined" aria-hidden="true">expand_more</span>
+          </div>
+        </li>
+      </ul>
+
+      <section class="tree-next-preferred-accounts-actions" aria-label="Save preferred customer profile plan">
+        <button id="tree-next-preferred-accounts-save" type="button">Save Profile Plan</button>
+        <p id="tree-next-preferred-accounts-feedback"></p>
+      </section>
+
+      <section class="tree-next-preferred-accounts-current" aria-labelledby="tree-next-preferred-accounts-current-title">
+        <h3 id="tree-next-preferred-accounts-current-title" class="tree-next-preferred-accounts-current-title">Current</h3>
+        <p id="tree-next-preferred-accounts-empty">No preferred customers assigned yet.</p>
+        <div id="tree-next-preferred-accounts-list"></div>
+      </section>
+    </div>
+  </aside>
+  <aside
+    id="tree-next-my-store-panel"
+    class="is-positioning is-hidden"
+    aria-label="My Store"
+    aria-hidden="true"
+    data-my-store-step="catalog"
+  >
+    <div class="tree-next-my-store-scroll">
+      <header class="tree-next-my-store-header">
+        <nav id="tree-next-my-store-breadcrumbs" class="tree-next-my-store-breadcrumbs" aria-label="Store checkout steps">
+          <span class="tree-next-my-store-breadcrumb-current">My Store</span>
+        </nav>
+        <button id="tree-next-my-store-close" type="button" aria-label="Hide my store panel">&times;</button>
+      </header>
+
+      <div data-my-store-view="catalog">
+        <section class="tree-next-my-store-section is-featured" aria-labelledby="tree-next-my-store-featured-title">
+          <h3 id="tree-next-my-store-featured-title" class="tree-next-my-store-section-title">Featured</h3>
+          <div class="tree-next-my-store-featured-product">
+            <button
+              id="tree-next-my-store-featured-button"
+              class="tree-next-my-store-product-button"
+              type="button"
+              data-my-store-product-action="featured"
+              data-my-store-product-key="metacharge"
+            >
+              <div class="tree-next-my-store-product-image-shell is-featured">
+                <img id="tree-next-my-store-featured-image" src="/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png" alt="MetaCharge bottle" />
+              </div>
+              <p id="tree-next-my-store-featured-label">MetaCharge&trade;</p>
+            </button>
+          </div>
+        </section>
+
+        <section id="tree-next-my-store-upgrades-section" class="tree-next-my-store-section is-upgrades" aria-labelledby="tree-next-my-store-upgrades-title">
+          <h3 id="tree-next-my-store-upgrades-title" class="tree-next-my-store-section-title">Account Upgrades</h3>
+          <div id="tree-next-my-store-upgrades-grid" class="tree-next-my-store-upgrades-grid"></div>
+        </section>
+      </div>
+
+      <section class="tree-next-my-store-section is-review" data-my-store-view="review" aria-labelledby="tree-next-my-store-review-title">
+        <h3 id="tree-next-my-store-review-title" class="tree-next-my-store-sr-only">Review Purchase</h3>
+        <article class="tree-next-my-store-review-card">
+          <div class="tree-next-my-store-review-main">
+            <div class="tree-next-my-store-product-image-shell is-review">
+              <img
+                id="tree-next-my-store-review-image"
+                src="/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png"
+                alt="MetaCharge bottle"
+              />
+            </div>
+            <div class="tree-next-my-store-review-details">
+              <p id="tree-next-my-store-review-name" class="tree-next-my-store-review-name">MetaCharge&trade;</p>
+              <div id="tree-next-my-store-review-quantity-control" class="tree-next-my-store-review-quantity-control" aria-label="Quantity selector">
+                <button
+                  id="tree-next-my-store-review-qty-decrease"
+                  class="tree-next-my-store-review-qty-btn"
+                  type="button"
+                  aria-label="Decrease quantity"
+                >-</button>
+                <span id="tree-next-my-store-review-quantity" class="tree-next-my-store-review-quantity" aria-live="polite">1x</span>
+                <button
+                  id="tree-next-my-store-review-qty-increase"
+                  class="tree-next-my-store-review-qty-btn"
+                  type="button"
+                  aria-label="Increase quantity"
+                >+</button>
+              </div>
+              <div
+                id="tree-next-my-store-upgrade-product-selector"
+                class="tree-next-my-store-upgrade-product-selector is-hidden"
+                aria-label="Upgrade product selector"
+              >
+                <p class="tree-next-my-store-upgrade-product-title">Select your product</p>
+                <div class="tree-next-my-store-upgrade-product-options" role="group" aria-label="Upgrade products">
+                  <button
+                    id="tree-next-my-store-upgrade-product-metacharge"
+                    class="tree-next-my-store-upgrade-product-button is-selected"
+                    type="button"
+                    data-my-store-upgrade-product-key="metacharge"
+                    aria-pressed="true"
+                  >MetaCharge&trade;</button>
+                  <button
+                    id="tree-next-my-store-upgrade-product-metaroast"
+                    class="tree-next-my-store-upgrade-product-button"
+                    type="button"
+                    data-my-store-upgrade-product-key="metaroast"
+                    aria-pressed="false"
+                  >MetaRoast&trade;</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tree-next-my-store-review-side">
+            <p id="tree-next-my-store-review-price" class="tree-next-my-store-review-price">$64.00</p>
+            <p id="tree-next-my-store-review-bv" class="tree-next-my-store-review-bv">38 BV</p>
+            <button id="tree-next-my-store-review-remove" class="tree-next-my-store-review-remove" type="button">Remove</button>
+            <button id="tree-next-my-store-review-checkout" class="tree-next-my-store-review-checkout" type="button">Checkout</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="tree-next-my-store-section is-checkout" data-my-store-view="checkout" aria-labelledby="tree-next-my-store-checkout-title">
+        <h3 id="tree-next-my-store-checkout-title" class="tree-next-my-store-checkout-title">Complete Checkout</h3>
+        <p class="tree-next-my-store-checkout-subtitle">
+          You're almost done! Please review all information entered and ensure the selected product is correct before proceeding.
+        </p>
+
+        <article class="tree-next-enroll-checkout-summary" aria-label="Checkout summary">
+          <p class="tree-next-enroll-checkout-heading">Sub total</p>
+          <div class="tree-next-enroll-checkout-row">
+            <span id="tree-next-my-store-checkout-product-label">MetaCharge&trade;</span>
+            <span id="tree-next-my-store-checkout-subtotal">$64.00</span>
+          </div>
+          <div class="tree-next-enroll-checkout-row">
+            <span>Discount</span>
+            <span id="tree-next-my-store-checkout-discount">$0.00</span>
+          </div>
+          <div class="tree-next-enroll-checkout-row">
+            <span>Tax</span>
+            <span id="tree-next-my-store-checkout-tax">Calculated at Stripe checkout</span>
+          </div>
+          <hr class="tree-next-enroll-checkout-divider" />
+          <div class="tree-next-enroll-checkout-row">
+            <span>Estimated due today</span>
+            <strong id="tree-next-my-store-checkout-total" class="tree-next-enroll-checkout-total">$64.00</strong>
+          </div>
+        </article>
+
+        <form id="tree-next-my-store-checkout-form" class="tree-next-my-store-checkout-form tree-next-enroll-field-stack" novalidate>
+          <input id="tree-next-my-store-checkout-name" class="tree-next-enroll-form-input" type="text" autocomplete="cc-name" placeholder="Name on Card" required />
+          <p class="tree-next-enroll-field-label">Secure Card (Stripe)</p>
+          <div class="tree-next-enroll-stripe-card-shell is-card-number" aria-label="Card Number Field">
+            <div id="tree-next-my-store-card-number-element"></div>
+          </div>
+          <div class="tree-next-enroll-card-row">
+            <div class="tree-next-enroll-stripe-card-shell" aria-label="Card Expiry Field">
+              <div id="tree-next-my-store-card-expiry-element"></div>
+            </div>
+            <div class="tree-next-enroll-stripe-card-shell" aria-label="Card CVC Field">
+              <div id="tree-next-my-store-card-cvc-element"></div>
+            </div>
+          </div>
+
+          <div class="tree-next-enroll-billing-fields">
+            <p class="tree-next-enroll-billing-heading">Billing Address</p>
+            <label class="tree-next-enroll-sr-only" for="tree-next-my-store-checkout-billing-address">Billing Address</label>
+            <input
+              id="tree-next-my-store-checkout-billing-address"
+              class="tree-next-enroll-form-input"
+              type="text"
+              autocomplete="address-line1"
+              placeholder="Billing Address"
+              required
+            />
+            <div class="tree-next-enroll-billing-row">
+              <label class="tree-next-enroll-sr-only" for="tree-next-my-store-checkout-billing-city">Billing City</label>
+              <input id="tree-next-my-store-checkout-billing-city" class="tree-next-enroll-form-input" type="text" autocomplete="address-level2" placeholder="City" required />
+              <label class="tree-next-enroll-sr-only" for="tree-next-my-store-checkout-billing-state">Billing State</label>
+              <input id="tree-next-my-store-checkout-billing-state" class="tree-next-enroll-form-input" type="text" autocomplete="address-level1" placeholder="State" required />
+            </div>
+            <div class="tree-next-enroll-billing-row">
+              <label class="tree-next-enroll-sr-only" for="tree-next-my-store-checkout-billing-postal">Billing Postal Code</label>
+              <input id="tree-next-my-store-checkout-billing-postal" class="tree-next-enroll-form-input" type="text" autocomplete="postal-code" placeholder="ZIP / Postal Code" required />
+              <label class="tree-next-enroll-sr-only" for="tree-next-my-store-checkout-billing-country">Billing Country</label>
+              <div class="tree-next-enroll-select-wrap" data-enroll-custom-select>
+                <button
+                  type="button"
+                  class="tree-next-enroll-custom-select-trigger"
+                  data-enroll-custom-select-trigger
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-controls="tree-next-my-store-billing-country-menu"
+                >
+                  <span class="tree-next-enroll-custom-select-value" data-enroll-custom-select-value>United States</span>
+                  <span class="material-symbols-outlined tree-next-enroll-custom-select-icon" aria-hidden="true">expand_more</span>
+                </button>
+                <div
+                  id="tree-next-my-store-billing-country-menu"
+                  class="tree-next-enroll-custom-select-menu"
+                  data-enroll-custom-select-menu
+                  role="listbox"
+                  aria-label="Billing Country"
+                ></div>
+                <select id="tree-next-my-store-checkout-billing-country" class="tree-next-enroll-form-select tree-next-enroll-native-select" name="myStoreBillingCountry" required>
+                  <option value="US">United States</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <p id="tree-next-my-store-card-error" class="tree-next-my-store-card-error" aria-live="polite"></p>
+          <p id="tree-next-my-store-checkout-feedback" class="tree-next-my-store-checkout-feedback" aria-live="polite"></p>
+        </form>
+
+        <div class="tree-next-my-store-checkout-actions tree-next-enroll-actions">
+          <button id="tree-next-my-store-checkout-previous" class="tree-next-enroll-action-btn is-secondary" type="button">Previous</button>
+          <button id="tree-next-my-store-checkout-pay" class="tree-next-enroll-action-btn is-primary" type="button">Pay Now</button>
+        </div>
+      </section>
+
+      <section class="tree-next-my-store-section is-thank-you" data-my-store-view="thank-you" aria-labelledby="tree-next-my-store-thank-you-title">
+        <article id="tree-next-my-store-thank-you-card">
+          <h3 id="tree-next-my-store-thank-you-title">Thank You!</h3>
+          <p id="tree-next-my-store-thank-you-message">Payment received and your order is now processing.</p>
+          <div class="tree-next-enroll-thank-you-details">
+            <div class="tree-next-enroll-thank-you-row">
+              <span>Invoice</span>
+              <span id="tree-next-my-store-thank-you-invoice">--</span>
+            </div>
+            <div class="tree-next-enroll-thank-you-row">
+              <span>Status</span>
+              <span id="tree-next-my-store-thank-you-status">Posted</span>
+            </div>
+            <div class="tree-next-enroll-thank-you-row">
+              <span>Amount Paid</span>
+              <strong id="tree-next-my-store-thank-you-amount">$0.00</strong>
+            </div>
+            <div class="tree-next-enroll-thank-you-row">
+              <span>Business Volume</span>
+              <span id="tree-next-my-store-thank-you-bv">0 BV</span>
+            </div>
+            <div class="tree-next-enroll-thank-you-row">
+              <span>Date</span>
+              <span id="tree-next-my-store-thank-you-date">--</span>
+            </div>
+          </div>
+        </article>
+        <div class="tree-next-my-store-thank-you-actions tree-next-enroll-actions">
+          <button id="tree-next-my-store-thank-you-done" class="tree-next-enroll-action-btn is-primary" type="button">Done</button>
+        </div>
+      </section>
+
+      <section class="tree-next-my-store-section is-share" data-my-store-share-block aria-labelledby="tree-next-my-store-share-title">
+        <h3 id="tree-next-my-store-share-title" class="tree-next-my-store-section-title">Share and Earn</h3>
+        <p class="tree-next-my-store-share-copy">Preferred customers receive 15% off. You earn Business Volume and Retail Bonuses on every completed sale.</p>
+        <button id="tree-next-my-store-copy-link" type="button">Copy Store Link</button>
+        <p id="tree-next-my-store-copy-feedback" class="tree-next-my-store-copy-feedback" aria-live="polite"></p>
+      </section>
+    </div>
+  </aside>
   <div id="binary-tree-loading" role="status" aria-live="polite">
     <div class="binary-tree-loading-card">
       <p class="binary-tree-loading-title">Loading Binary Tree</p>
@@ -1767,11 +6634,11 @@
               </div>
               <div class="tree-next-enroll-checkout-row">
                 <span>Tax</span>
-                <span id="tree-next-enroll-summary-tax">$0.00</span>
+                <span id="tree-next-enroll-summary-tax">Calculated at Stripe checkout</span>
               </div>
               <hr class="tree-next-enroll-checkout-divider" />
               <div class="tree-next-enroll-checkout-row">
-                <span>Pay today</span>
+                <span>Estimated due today</span>
                 <strong id="tree-next-enroll-summary-total" class="tree-next-enroll-checkout-total">$960.00</strong>
               </div>
             </div>

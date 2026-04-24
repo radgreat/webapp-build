@@ -7,6 +7,7 @@ import {
 } from '../stores/member-achievement.store.js';
 import {
   upsertMemberRankAdvancementMonthlyHighest,
+  readMemberRankAdvancementMonthlyProgress,
 } from '../stores/member-rank-advancement.store.js';
 import {
   listActiveMemberTitleAwardsByUserId,
@@ -19,9 +20,16 @@ import {
   upsertMemberTitleCatalogEntry,
 } from '../stores/member-title-catalog.store.js';
 import { getBinaryTreeMetrics } from './metrics.service.js';
-import { readRegisteredMembersStore } from '../stores/member.store.js';
+import {
+  readRegisteredMembersStore,
+  upsertRegisteredMemberRecord,
+} from '../stores/member.store.js';
+import { updateUserById } from '../stores/user.store.js';
+import {
+  resolveMemberActivityStateByPersonalBv,
+  resolveMemberCurrentPersonalBv,
+} from '../utils/member-activity.helpers.js';
 
-const ACCOUNT_ACTIVITY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 const LEGACY_BUILDER_EVENT_ID = 'legacy-builder-leadership-program-q2-2026';
 const LEGACY_BUILDER_EVENT_START_AT = '2026-04-01T00:00:00.000Z';
 const LEGACY_BUILDER_EVENT_END_AT = '2026-06-30T23:59:59.999Z';
@@ -448,6 +456,7 @@ const RANK_PROGRESSION = Object.freeze([
 const RANK_INDEX_BY_KEY = new Map(
   RANK_PROGRESSION.map((label, index) => [String(label).toLowerCase(), index]),
 );
+const RANK_CLAIM_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 let memberTitleCatalogSeedReady = false;
 let memberTitleCatalogSeedPromise = null;
 
@@ -684,6 +693,52 @@ function resolveClaimPeriodKeyFromDate(value = Date.now()) {
   return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}`;
 }
 
+function resolveClaimPeriodStartUtcMs(periodKeyInput = '') {
+  const periodKey = normalizeText(periodKeyInput);
+  const match = periodKey.match(/^(\d{4})-(\d{2})$/);
+  if (!match) {
+    return 0;
+  }
+
+  const year = Number.parseInt(match[1], 10);
+  const monthIndex = Number.parseInt(match[2], 10) - 1;
+  if (!Number.isFinite(year) || !Number.isFinite(monthIndex) || monthIndex < 0 || monthIndex > 11) {
+    return 0;
+  }
+
+  return Date.UTC(year, monthIndex, 1, 0, 0, 0, 0);
+}
+
+function resolveRankClaimWindowContext(nowInput = Date.now()) {
+  const parsedMs = typeof nowInput === 'number'
+    ? nowInput
+    : Date.parse(normalizeText(nowInput));
+  const nowMs = Number.isFinite(parsedMs) ? parsedMs : Date.now();
+  const currentRunPeriodKey = resolveClaimPeriodKeyFromDate(nowMs);
+  const currentRunPeriodStartMs = resolveClaimPeriodStartUtcMs(currentRunPeriodKey) || nowMs;
+  const claimPeriodKey = resolveClaimPeriodKeyFromDate(Math.max(0, currentRunPeriodStartMs - 1));
+  const claimWindowOpensAtMs = currentRunPeriodStartMs;
+  const claimWindowExpiresAtMs = claimWindowOpensAtMs + RANK_CLAIM_WINDOW_MS;
+  const claimWindowIsOpen = nowMs >= claimWindowOpensAtMs && nowMs < claimWindowExpiresAtMs;
+  const claimWindowExpired = nowMs >= claimWindowExpiresAtMs;
+  const claimWindowSecondsRemaining = claimWindowExpired
+    ? 0
+    : Math.max(0, Math.floor((claimWindowExpiresAtMs - nowMs) / 1000));
+
+  return {
+    nowMs,
+    currentRunPeriodKey,
+    currentRunPeriodLabel: formatClaimPeriodLabel(currentRunPeriodKey),
+    claimPeriodKey,
+    claimPeriodLabel: formatClaimPeriodLabel(claimPeriodKey),
+    claimWindowOpensAt: claimWindowOpensAtMs > 0 ? new Date(claimWindowOpensAtMs).toISOString() : '',
+    claimWindowExpiresAt: claimWindowExpiresAtMs > 0 ? new Date(claimWindowExpiresAtMs).toISOString() : '',
+    claimWindowIsOpen,
+    claimWindowExpired,
+    claimWindowSecondsRemaining,
+  };
+}
+
 function formatClaimPeriodLabel(periodKeyInput = '') {
   const periodKey = normalizeText(periodKeyInput);
   const match = periodKey.match(/^(\d{4})-(\d{2})$/);
@@ -823,43 +878,12 @@ function resolveCurrentMemberRank(member = {}) {
   return normalizeRankLabelForAchievement(rawRank) || 'Unranked';
 }
 
-function resolveAccountActiveUntilMs(member = {}) {
-  const explicitActiveUntilRaw = normalizeText(member?.activityActiveUntilAt || member?.activeUntilAt);
-  const explicitActiveUntilMs = Date.parse(explicitActiveUntilRaw);
-  if (Number.isFinite(explicitActiveUntilMs)) {
-    return explicitActiveUntilMs;
-  }
-
-  const enrollmentDateRaw = normalizeText(member?.createdAt || member?.enrolledAt);
-  const enrollmentDateMs = Date.parse(enrollmentDateRaw);
-  if (Number.isFinite(enrollmentDateMs)) {
-    return enrollmentDateMs + ACCOUNT_ACTIVITY_WINDOW_MS;
-  }
-
-  const purchaseDateRaw = normalizeText(member?.lastProductPurchaseAt || member?.lastPurchaseAt);
-  const purchaseDateMs = Date.parse(purchaseDateRaw);
-  if (Number.isFinite(purchaseDateMs)) {
-    return purchaseDateMs + ACCOUNT_ACTIVITY_WINDOW_MS;
-  }
-
-  return NaN;
-}
-
 function resolveMemberActivityState(member = {}) {
-  const activeUntilMs = resolveAccountActiveUntilMs(member);
-  if (!Number.isFinite(activeUntilMs)) {
-    return {
-      isActive: false,
-      label: 'Inactive',
-      activeUntilAt: '',
-    };
-  }
-
-  const isActive = Date.now() <= activeUntilMs;
+  const activityState = resolveMemberActivityStateByPersonalBv(member);
   return {
-    isActive,
-    label: isActive ? 'Active' : 'Inactive',
-    activeUntilAt: new Date(activeUntilMs).toISOString(),
+    isActive: Boolean(activityState?.isActive),
+    label: normalizeText(activityState?.label) || 'Inactive',
+    activeUntilAt: normalizeText(activityState?.activeUntilAt),
   };
 }
 
@@ -886,16 +910,7 @@ function normalizePlacementSideFromMember(member = {}) {
 }
 
 function resolveMemberPersonalVolumeBv(member = {}) {
-  const starterPersonalPv = Math.max(0, toWholeNumber(member?.starterPersonalPv, 0));
-  if (starterPersonalPv > 0) {
-    return starterPersonalPv;
-  }
-
-  const packageBv = Math.max(0, toWholeNumber(
-    member?.packageBv,
-    member?.enrollmentPackageBv,
-  ));
-  return packageBv;
+  return Math.max(0, toWholeNumber(resolveMemberCurrentPersonalBv(member), 0));
 }
 
 async function resolveCurrentMemberDirectSponsorSummary(member = {}) {
@@ -1229,6 +1244,144 @@ async function resolveRankMonthlyRunProgress(member = {}, progressContext = {}, 
   };
 }
 
+async function resolveRankClaimProgressForPeriod(userIdInput = '', rankClaimPeriod = '') {
+  const userId = normalizeText(userIdInput);
+  const safeRankClaimPeriod = normalizeText(rankClaimPeriod);
+  if (!userId || !safeRankClaimPeriod) {
+    return {
+      rankClaimPeriod: safeRankClaimPeriod,
+      highestRecordedRankAchievementId: '',
+      highestRecordedRankTitle: '',
+      highestRecordedRankIndex: -1,
+      highestRecordedRequiredCycles: 0,
+      highestRecordedAt: '',
+    };
+  }
+
+  let persistedProgress = null;
+  try {
+    persistedProgress = await readMemberRankAdvancementMonthlyProgress(userId, safeRankClaimPeriod);
+  } catch {
+    persistedProgress = null;
+  }
+
+  const persistedHighestRankIndex = Math.max(
+    -1,
+    toSignedWholeNumber(persistedProgress?.highestRankIndex, -1),
+  );
+  const persistedHighestAchievementId = normalizeText(persistedProgress?.highestRankAchievementId);
+  const persistedHighestRankLabel = normalizeRankLabelForAchievement(persistedProgress?.highestRank);
+
+  let highestRecordedRankAchievement = persistedHighestAchievementId
+    ? (RANK_TRACK_ACHIEVEMENT_BY_ID.get(persistedHighestAchievementId) || null)
+    : null;
+
+  if (!highestRecordedRankAchievement && persistedHighestRankLabel) {
+    highestRecordedRankAchievement = RANK_TRACK_ACHIEVEMENTS.find((achievement) => {
+      const achievementRankLabel = normalizeRankLabelForAchievement(
+        achievement?.title || achievement?.requiredRank,
+      );
+      return achievementRankLabel && achievementRankLabel === persistedHighestRankLabel;
+    }) || null;
+  }
+
+  if (!highestRecordedRankAchievement && persistedHighestRankIndex >= 0) {
+    highestRecordedRankAchievement = resolveHighestRankAchievementByRankIndex(persistedHighestRankIndex);
+  }
+
+  const highestRecordedRankIndex = highestRecordedRankAchievement
+    ? resolveRankIndex(highestRecordedRankAchievement?.title || highestRecordedRankAchievement?.requiredRank)
+    : persistedHighestRankIndex;
+
+  return {
+    rankClaimPeriod: safeRankClaimPeriod,
+    highestRecordedRankAchievementId: normalizeText(highestRecordedRankAchievement?.id),
+    highestRecordedRankTitle: normalizeText(
+      highestRecordedRankAchievement?.title || highestRecordedRankAchievement?.requiredRank,
+    ),
+    highestRecordedRankIndex,
+    highestRecordedRequiredCycles: toWholeNumber(highestRecordedRankAchievement?.requiredCycles, 0),
+    highestRecordedAt: formatDateIso(persistedProgress?.highestAchievedAt),
+  };
+}
+
+async function maybeApplyMonthlyRankPromotion(member = {}, options = {}) {
+  const userId = normalizeText(member?.id);
+  if (!userId) {
+    return member;
+  }
+
+  const rankClaimWindow = resolveRankClaimWindowContext(options?.nowMs ?? Date.now());
+  const promotionPeriodKey = normalizeText(rankClaimWindow?.claimPeriodKey);
+  if (!promotionPeriodKey) {
+    return member;
+  }
+
+  const promotionProgress = await resolveRankClaimProgressForPeriod(userId, promotionPeriodKey);
+  const promotedRank = normalizeRankLabelForAchievement(promotionProgress?.highestRecordedRankTitle);
+  const promotedRankIndex = resolveRankIndex(promotedRank);
+  if (promotedRankIndex < 0) {
+    return member;
+  }
+
+  const currentRank = resolveCurrentMemberRank(member);
+  const currentRankIndex = resolveRankIndex(currentRank);
+  if (currentRankIndex >= promotedRankIndex) {
+    return member;
+  }
+
+  let updatedMember = null;
+  try {
+    updatedMember = await updateUserById(userId, (existingUser = {}) => ({
+      ...existingUser,
+      rank: promotedRank,
+      accountRank: promotedRank,
+    }));
+  } catch {
+    updatedMember = null;
+  }
+
+  const effectiveMember = updatedMember && typeof updatedMember === 'object'
+    ? updatedMember
+    : {
+      ...member,
+      rank: promotedRank,
+      accountRank: promotedRank,
+    };
+  const identityUsername = normalizeCredential(effectiveMember?.username || member?.username);
+  const identityEmail = normalizeCredential(effectiveMember?.email || member?.email);
+
+  try {
+    const registeredMembers = await readRegisteredMembersStore();
+    const matchedMembers = registeredMembers.filter((entry) => {
+      const entryUserId = normalizeText(entry?.userId || entry?.id);
+      if (entryUserId && entryUserId === userId) {
+        return true;
+      }
+
+      const entryUsername = normalizeCredential(entry?.memberUsername || entry?.username);
+      if (identityUsername && entryUsername && entryUsername === identityUsername) {
+        return true;
+      }
+
+      const entryEmail = normalizeCredential(entry?.email);
+      return Boolean(identityEmail && entryEmail && entryEmail === identityEmail);
+    });
+
+    for (const matchedMember of matchedMembers) {
+      await upsertRegisteredMemberRecord({
+        ...matchedMember,
+        rank: promotedRank,
+        accountRank: promotedRank,
+      });
+    }
+  } catch {
+    // Keep rank promotion resilient even if tree mirror sync fails.
+  }
+
+  return effectiveMember;
+}
+
 function resolveRankMonthlyClaimContext(
   progressContext = {},
   claims = [],
@@ -1236,28 +1389,54 @@ function resolveRankMonthlyClaimContext(
   options = {},
 ) {
   const safeRankClaimPeriod = normalizeText(rankClaimPeriod);
-  const currentPeriodLabel = formatClaimPeriodLabel(safeRankClaimPeriod) || 'this month';
+  const currentPeriodLabel = formatClaimPeriodLabel(safeRankClaimPeriod) || 'the previous month';
   const claimedRankClaim = resolveCurrentPeriodRankClaim(claims, safeRankClaimPeriod);
+  const rankClaimProgress = options?.rankClaimProgress && typeof options.rankClaimProgress === 'object'
+    ? options.rankClaimProgress
+    : {};
+  const rankClaimWindow = options?.rankClaimWindow && typeof options.rankClaimWindow === 'object'
+    ? options.rankClaimWindow
+    : resolveRankClaimWindowContext(Date.now());
   const rankRunProgress = options?.rankRunProgress && typeof options.rankRunProgress === 'object'
     ? options.rankRunProgress
     : {};
-  const highestEligibleRankAchievement = resolveHighestEligibleRankAchievement(progressContext);
-  const highestRecordedRankAchievementId = normalizeText(rankRunProgress?.highestRecordedRankAchievementId);
-  const highestRecordedRankTitle = normalizeText(rankRunProgress?.highestRecordedRankTitle);
+  const highestRecordedRankAchievementId = normalizeText(
+    rankClaimProgress?.highestRecordedRankAchievementId
+    || rankRunProgress?.highestRecordedRankAchievementId,
+  );
+  const highestRecordedRankTitle = normalizeText(
+    rankClaimProgress?.highestRecordedRankTitle
+    || rankRunProgress?.highestRecordedRankTitle,
+  );
   const highestRecordedRankIndex = Math.max(
     -1,
-    toSignedWholeNumber(rankRunProgress?.highestRecordedRankIndex, -1),
+    toSignedWholeNumber(
+      rankClaimProgress?.highestRecordedRankIndex,
+      toSignedWholeNumber(rankRunProgress?.highestRecordedRankIndex, -1),
+    ),
   );
+  const claimWindowOpensAt = normalizeText(rankClaimWindow?.claimWindowOpensAt);
+  const claimWindowExpiresAt = normalizeText(rankClaimWindow?.claimWindowExpiresAt);
+  const claimWindowExpired = Boolean(rankClaimWindow?.claimWindowExpired);
+  const claimWindowIsOpen = Boolean(rankClaimWindow?.claimWindowIsOpen) && !claimWindowExpired;
+  const claimWindowSecondsRemaining = claimWindowExpired
+    ? 0
+    : Math.max(0, toWholeNumber(rankClaimWindow?.claimWindowSecondsRemaining, 0));
 
   return {
     rankClaimPeriod: safeRankClaimPeriod,
     currentPeriodLabel,
     claimedRankClaim,
-    highestEligibleRankAchievementId: highestRecordedRankAchievementId
-      || normalizeText(highestEligibleRankAchievement?.id),
-    highestEligibleRankTitle: highestRecordedRankTitle
-      || normalizeText(highestEligibleRankAchievement?.title),
+    highestEligibleRankAchievementId: highestRecordedRankAchievementId,
+    highestEligibleRankTitle: highestRecordedRankTitle,
     highestRecordedRankIndex,
+    claimWindowIsOpen,
+    claimWindowExpired,
+    claimWindowOpensAt,
+    claimWindowExpiresAt,
+    claimWindowSecondsRemaining,
+    claimWindowPeriodKey: normalizeText(rankClaimWindow?.claimPeriodKey),
+    claimWindowPeriodLabel: normalizeText(rankClaimWindow?.claimPeriodLabel),
   };
 }
 
@@ -1314,6 +1493,13 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   const claimedRankClaim = rankMonthlyContext?.claimedRankClaim && typeof rankMonthlyContext.claimedRankClaim === 'object'
     ? rankMonthlyContext.claimedRankClaim
     : null;
+  const claimWindowIsOpen = rankMonthlyContext?.claimWindowIsOpen !== false;
+  const claimWindowExpired = Boolean(rankMonthlyContext?.claimWindowExpired);
+  const claimWindowOpensAt = normalizeText(rankMonthlyContext?.claimWindowOpensAt);
+  const claimWindowExpiresAt = normalizeText(rankMonthlyContext?.claimWindowExpiresAt);
+  const claimWindowSecondsRemaining = claimWindowExpired
+    ? 0
+    : Math.max(0, toWholeNumber(rankMonthlyContext?.claimWindowSecondsRemaining, 0));
 
   const currentRank = normalizeRankLabelForAchievement(progressContext?.currentRank) || 'Unranked';
   const currentLeftDirectSponsors = toWholeNumber(progressContext?.leftDirectSponsors, 0);
@@ -1487,6 +1673,10 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   let status = alreadyClaimed
     ? 'claimed'
     : (eligible ? 'eligible' : 'locked');
+  if (!alreadyClaimed && isRankTrack && (!claimWindowIsOpen || claimWindowExpired)) {
+    eligible = false;
+    status = 'locked';
+  }
 
   const requirements = [];
   if (requiresRank) {
@@ -1630,11 +1820,25 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
       endsAt: eventWindowState.eventEndAt,
     });
   }
+  if (isRankTrack && claimWindowExpiresAt) {
+    prerequisites.push({
+      id: 'rank-claim-window',
+      label: 'Claim window (30 days after monthly cutoff)',
+      met: claimWindowIsOpen && !claimWindowExpired,
+      startsAt: claimWindowOpensAt,
+      endsAt: claimWindowExpiresAt,
+      remainingSeconds: claimWindowSecondsRemaining,
+    });
+  }
 
   let lockReason = '';
   const unmetPackageRequirement = packageEnrollmentSnapshot.find((entry) => !entry.met) || null;
   if (!alreadyClaimed && !eventWindowState.isOpen) {
     lockReason = eventWindowState.lockReason || 'This event is not currently open.';
+  } else if (!alreadyClaimed && isRankTrack && !claimWindowIsOpen) {
+    lockReason = 'Rank rewards can be claimed only after monthly cutoff.';
+  } else if (!alreadyClaimed && isRankTrack && claimWindowExpired) {
+    lockReason = `Rank reward claim window expired for ${currentPeriodLabel}.`;
   } else if (!alreadyClaimed && requiresRank && !meetsRankRequirement) {
     lockReason = `Reach ${requiredRank} rank to unlock this bonus.`;
   } else if (!alreadyClaimed && requiredDirectSponsorsTotal > 0 && !meetsDirectSponsorTotalRequirement) {
@@ -1679,7 +1883,15 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
       || claimedRankClaim?.requiredRank,
     ) || 'another rank';
 
-    if (claimedRankClaim) {
+    if (!claimWindowIsOpen) {
+      eligible = false;
+      status = 'locked';
+      lockReason = 'Rank rewards can be claimed only after monthly cutoff.';
+    } else if (claimWindowExpired) {
+      eligible = false;
+      status = 'locked';
+      lockReason = `Rank reward claim window expired for ${currentPeriodLabel}.`;
+    } else if (claimedRankClaim) {
       eligible = false;
       status = 'locked';
       lockReason = `Rank reward already claimed for ${currentPeriodLabel} (${claimedRankTitle}).`;
@@ -1690,7 +1902,7 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     ) {
       eligible = false;
       status = 'locked';
-      lockReason = `Only the highest eligible rank can be claimed this month (${highestEligibleRankTitle || 'top eligible rank'}).`;
+      lockReason = `Only the highest eligible rank can be claimed for ${currentPeriodLabel} (${highestEligibleRankTitle || 'top eligible rank'}).`;
     }
   }
 
@@ -1731,6 +1943,11 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     eventStartAt: eventWindowState.eventStartAt,
     eventEndAt: eventWindowState.eventEndAt,
     eventIsOpen: eventWindowState.isOpen,
+    claimWindowIsOpen,
+    claimWindowExpired,
+    claimWindowOpensAt,
+    claimWindowExpiresAt,
+    claimWindowSecondsRemaining,
     requirements,
     prerequisites,
   };
@@ -1742,6 +1959,12 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
   const rankRunProgress = options?.rankRunProgress && typeof options.rankRunProgress === 'object'
     ? options.rankRunProgress
     : {};
+  const rankClaimProgress = options?.rankClaimProgress && typeof options.rankClaimProgress === 'object'
+    ? options.rankClaimProgress
+    : {};
+  const rankClaimWindow = options?.rankClaimWindow && typeof options.rankClaimWindow === 'object'
+    ? options.rankClaimWindow
+    : resolveRankClaimWindowContext(Date.now());
   const titleAwards = Array.isArray(options?.titleAwards)
     ? options.titleAwards
     : [];
@@ -1793,7 +2016,11 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     leftDirectSponsorPersonalPvBv,
     rightDirectSponsorPersonalPvBv,
     activityState,
-  }, claims, rankClaimPeriod, { rankRunProgress });
+  }, claims, rankClaimPeriod, {
+    rankRunProgress,
+    rankClaimProgress,
+    rankClaimWindow,
+  });
   const claimMap = mapClaimsByAchievementId(claims, { rankClaimPeriod });
   const achievementProgressContext = {
     ...progressContext,
@@ -1899,6 +2126,16 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     claimableTitles: titleCatalog,
     rankClaimPeriod,
     rankClaimPeriodLabel: rankMonthlyContext.currentPeriodLabel,
+    rankRunPeriod: normalizeText(rankClaimWindow?.currentRunPeriodKey),
+    rankRunPeriodLabel: normalizeText(rankClaimWindow?.currentRunPeriodLabel),
+    rankClaimWindowOpensAt: normalizeText(rankMonthlyContext?.claimWindowOpensAt),
+    rankClaimWindowExpiresAt: normalizeText(rankMonthlyContext?.claimWindowExpiresAt),
+    rankClaimWindowIsOpen: Boolean(rankMonthlyContext?.claimWindowIsOpen),
+    rankClaimWindowExpired: Boolean(rankMonthlyContext?.claimWindowExpired),
+    rankClaimWindowSecondsRemaining: Math.max(
+      0,
+      toWholeNumber(rankMonthlyContext?.claimWindowSecondsRemaining, 0),
+    ),
     rankClaimedAchievementId: normalizeText(rankMonthlyContext?.claimedRankClaim?.achievementId),
     rankClaimedAchievementTitle: normalizeText(
       rankMonthlyContext?.claimedRankClaim?.title
@@ -1911,29 +2148,46 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
 }
 
 async function buildCatalogForMemberWithLatestState(member = {}, userId = '', options = {}) {
+  const nowMs = Number.isFinite(Number(options?.nowMs))
+    ? Math.floor(Number(options.nowMs))
+    : Date.now();
+  const effectiveMember = await maybeApplyMonthlyRankPromotion(member, { nowMs });
+  const rankClaimWindow = resolveRankClaimWindowContext(nowMs);
+  const rankRunPeriod = normalizeText(options?.rankRunPeriod)
+    || normalizeText(rankClaimWindow?.currentRunPeriodKey)
+    || resolveClaimPeriodKeyFromDate(nowMs);
   const rankClaimPeriod = normalizeText(options?.rankClaimPeriod)
-    || resolveClaimPeriodKeyFromDate(Date.now());
+    || normalizeText(rankClaimWindow?.claimPeriodKey);
   await ensureMemberTitleCatalogSeed();
   const [claims, progressContext, titleAwards, titleCatalog] = await Promise.all([
     listMemberAchievementClaimsByUserId(userId),
-    resolveCurrentMemberProgressContext(member),
+    resolveCurrentMemberProgressContext(effectiveMember),
     listActiveMemberTitleAwardsByUserId(userId),
     listActiveMemberTitleCatalogEntries(),
   ]);
-  const rankRunProgress = await resolveRankMonthlyRunProgress(member, progressContext, rankClaimPeriod);
+  const [rankRunProgress, rankClaimProgress] = await Promise.all([
+    resolveRankMonthlyRunProgress(effectiveMember, progressContext, rankRunPeriod),
+    resolveRankClaimProgressForPeriod(userId, rankClaimPeriod),
+  ]);
 
-  return buildAchievementCatalogForMember(member, claims, progressContext, {
+  return buildAchievementCatalogForMember(effectiveMember, claims, progressContext, {
     rankClaimPeriod,
     rankRunProgress,
+    rankClaimProgress,
+    rankClaimWindow,
     titleAwards,
     titleCatalog,
   });
 }
 
 export async function resolveRankAdvancementRunSnapshotForMember(member = {}) {
-  const progressContext = await resolveCurrentMemberProgressContext(member);
-  const rankClaimPeriod = resolveClaimPeriodKeyFromDate(Date.now());
-  const rankRunProgress = await resolveRankMonthlyRunProgress(member, progressContext, rankClaimPeriod);
+  const nowMs = Date.now();
+  const effectiveMember = await maybeApplyMonthlyRankPromotion(member, { nowMs });
+  const progressContext = await resolveCurrentMemberProgressContext(effectiveMember);
+  const rankClaimWindow = resolveRankClaimWindowContext(nowMs);
+  const rankRunPeriod = normalizeText(rankClaimWindow?.currentRunPeriodKey)
+    || resolveClaimPeriodKeyFromDate(nowMs);
+  const rankRunProgress = await resolveRankMonthlyRunProgress(effectiveMember, progressContext, rankRunPeriod);
   const leftDirectSponsors = toWholeNumber(progressContext?.leftDirectSponsors, 0);
   const rightDirectSponsors = toWholeNumber(progressContext?.rightDirectSponsors, 0);
   const totalDirectSponsors = toWholeNumber(
@@ -1942,8 +2196,8 @@ export async function resolveRankAdvancementRunSnapshotForMember(member = {}) {
   );
 
   return {
-    rankClaimPeriod,
-    rankClaimPeriodLabel: formatClaimPeriodLabel(rankClaimPeriod) || 'this month',
+    rankClaimPeriod: rankRunPeriod,
+    rankClaimPeriodLabel: formatClaimPeriodLabel(rankRunPeriod) || 'this month',
     currentRank: normalizeRankLabelForAchievement(progressContext?.currentRank) || 'Unranked',
     currentCycles: toWholeNumber(progressContext?.currentCycles, 0),
     currentPersonalPvBv: toWholeNumber(progressContext?.currentPersonalPvBv, 0),
@@ -2003,8 +2257,48 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
   await ensureMemberTitleCatalogSeed();
 
   const claimAttemptMs = Date.now();
-  const rankClaimPeriod = resolveClaimPeriodKeyFromDate(claimAttemptMs);
-  const claimPeriod = resolveAchievementClaimPeriod(achievement, claimAttemptMs);
+  const effectiveMember = await maybeApplyMonthlyRankPromotion(member, { nowMs: claimAttemptMs });
+  const rankClaimWindow = resolveRankClaimWindowContext(claimAttemptMs);
+  const rankRunPeriod = normalizeText(rankClaimWindow?.currentRunPeriodKey)
+    || resolveClaimPeriodKeyFromDate(claimAttemptMs);
+  const rankClaimPeriod = normalizeText(rankClaimWindow?.claimPeriodKey);
+  const claimPeriod = isRankAdvancementAchievement(achievement)
+    ? rankClaimPeriod
+    : resolveAchievementClaimPeriod(achievement, claimAttemptMs);
+
+  if (isRankAdvancementAchievement(achievement) && !rankClaimWindow.claimWindowIsOpen) {
+    const catalog = await buildCatalogForMemberWithLatestState(effectiveMember, userId, {
+      nowMs: claimAttemptMs,
+      rankRunPeriod,
+      rankClaimPeriod,
+    });
+    return {
+      success: false,
+      status: 403,
+      error: 'Rank rewards can be claimed only after monthly cutoff.',
+      data: {
+        success: false,
+        ...catalog,
+      },
+    };
+  }
+
+  if (isRankAdvancementAchievement(achievement) && rankClaimWindow.claimWindowExpired) {
+    const catalog = await buildCatalogForMemberWithLatestState(effectiveMember, userId, {
+      nowMs: claimAttemptMs,
+      rankRunPeriod,
+      rankClaimPeriod,
+    });
+    return {
+      success: false,
+      status: 403,
+      error: `Rank reward claim window expired for ${formatClaimPeriodLabel(rankClaimPeriod) || 'the previous month'}.`,
+      data: {
+        success: false,
+        ...catalog,
+      },
+    };
+  }
 
   let existingClaim = null;
   if (isRankAdvancementAchievement(achievement)) {
@@ -2020,9 +2314,13 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
   if (existingClaim) {
     const periodLabel = formatClaimPeriodLabel(claimPeriod);
     const duplicateMessage = isRankAdvancementAchievement(achievement)
-      ? `Rank reward has already been claimed for ${periodLabel || 'this month'}.`
+      ? `Rank reward has already been claimed for ${periodLabel || 'the previous month'}.`
       : 'Achievement has already been claimed.';
-    const catalog = await buildCatalogForMemberWithLatestState(member, userId, { rankClaimPeriod });
+    const catalog = await buildCatalogForMemberWithLatestState(effectiveMember, userId, {
+      nowMs: claimAttemptMs,
+      rankRunPeriod,
+      rankClaimPeriod,
+    });
     return {
       success: false,
       status: 409,
@@ -2037,16 +2335,36 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
 
   const [allClaims, progressContext, titleAwards, titleCatalog] = await Promise.all([
     listMemberAchievementClaimsByUserId(userId),
-    resolveCurrentMemberProgressContext(member),
+    resolveCurrentMemberProgressContext(effectiveMember),
     listActiveMemberTitleAwardsByUserId(userId),
     listActiveMemberTitleCatalogEntries(),
   ]);
-  const rankRunProgress = await resolveRankMonthlyRunProgress(member, progressContext, rankClaimPeriod);
+  const [rankRunProgress, rankClaimProgress] = await Promise.all([
+    resolveRankMonthlyRunProgress(effectiveMember, progressContext, rankRunPeriod),
+    resolveRankClaimProgressForPeriod(userId, rankClaimPeriod),
+  ]);
   const rankMonthlyContext = resolveRankMonthlyClaimContext(
     progressContext,
     allClaims,
     rankClaimPeriod,
-    { rankRunProgress },
+    {
+      rankRunProgress,
+      rankClaimProgress,
+      rankClaimWindow,
+    },
+  );
+  const buildLiveCatalog = () => buildAchievementCatalogForMember(
+    effectiveMember,
+    allClaims,
+    progressContext,
+    {
+      rankClaimPeriod,
+      rankRunProgress,
+      rankClaimProgress,
+      rankClaimWindow,
+      titleAwards,
+      titleCatalog,
+    },
   );
   const rewardTitleSlug = resolveAchievementRewardTitleSlug(achievement);
   const rewardTitleCatalogEntry = isTitleRewardAchievement(achievement)
@@ -2061,16 +2379,11 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
       rankMonthlyContext.claimedRankClaim?.title
       || rankMonthlyContext.claimedRankClaim?.requiredRank,
     ) || 'another rank';
-    const catalog = buildAchievementCatalogForMember(member, allClaims, progressContext, {
-      rankClaimPeriod,
-      rankRunProgress,
-      titleAwards,
-      titleCatalog,
-    });
+    const catalog = buildLiveCatalog();
     return {
       success: false,
       status: 409,
-      error: `Rank reward already claimed for ${rankMonthlyContext.currentPeriodLabel || 'this month'} (${claimedRankTitle}).`,
+      error: `Rank reward already claimed for ${rankMonthlyContext.currentPeriodLabel || 'the previous month'} (${claimedRankTitle}).`,
       data: {
         success: false,
         claim: rankMonthlyContext.claimedRankClaim,
@@ -2083,12 +2396,7 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
     rankMonthlyContext,
   });
   if (isTitleRewardAchievement(achievement) && !rewardTitleCatalogEntry) {
-    const catalog = buildAchievementCatalogForMember(member, allClaims, progressContext, {
-      rankClaimPeriod,
-      rankRunProgress,
-      titleAwards,
-      titleCatalog,
-    });
+    const catalog = buildLiveCatalog();
     return {
       success: false,
       status: 409,
@@ -2105,12 +2413,7 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
       rewardTitleSlug,
     );
     if (existingTitleAward) {
-      const catalog = buildAchievementCatalogForMember(member, allClaims, progressContext, {
-        rankClaimPeriod,
-        rankRunProgress,
-        titleAwards,
-        titleCatalog,
-      });
+      const catalog = buildLiveCatalog();
       return {
         success: false,
         status: 409,
@@ -2123,12 +2426,7 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
     }
   }
   if (!achievementEligibility.eligible) {
-    const catalog = buildAchievementCatalogForMember(member, allClaims, progressContext, {
-      rankClaimPeriod,
-      rankRunProgress,
-      titleAwards,
-      titleCatalog,
-    });
+    const catalog = buildLiveCatalog();
       return {
         success: false,
         status: 403,
@@ -2173,9 +2471,13 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
       }
 
       const conflictMessage = isRankAdvancementAchievement(achievement)
-        ? `Rank reward already claimed for ${formatClaimPeriodLabel(rankClaimPeriod) || 'this month'}.`
+        ? `Rank reward already claimed for ${formatClaimPeriodLabel(rankClaimPeriod) || 'the previous month'}.`
         : 'Achievement has already been claimed.';
-      const catalog = await buildCatalogForMemberWithLatestState(member, userId, { rankClaimPeriod });
+      const catalog = await buildCatalogForMemberWithLatestState(effectiveMember, userId, {
+        nowMs: claimAttemptMs,
+        rankRunPeriod,
+        rankClaimPeriod,
+      });
       return {
         success: false,
         status: 409,
@@ -2221,7 +2523,11 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
     }
   }
 
-  const catalog = await buildCatalogForMemberWithLatestState(member, userId, { rankClaimPeriod });
+  const catalog = await buildCatalogForMemberWithLatestState(effectiveMember, userId, {
+    nowMs: claimAttemptMs,
+    rankRunPeriod,
+    rankClaimPeriod,
+  });
 
   return {
     success: true,

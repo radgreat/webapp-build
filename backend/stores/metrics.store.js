@@ -4,6 +4,18 @@ function normalizeText(value) {
   return String(value || '').trim();
 }
 
+function dedupeRowsById(rows = [], resolveId) {
+  const rowsById = new Map();
+  for (const row of Array.isArray(rows) ? rows : []) {
+    const resolvedId = normalizeText(typeof resolveId === 'function' ? resolveId(row) : '');
+    if (!resolvedId) {
+      continue;
+    }
+    rowsById.set(resolvedId, row);
+  }
+  return Array.from(rowsById.values());
+}
+
 function toIsoStringOrEmpty(value) {
   if (!value) {
     return '';
@@ -127,15 +139,18 @@ export async function readMockBinaryTreeMetricsStore() {
 }
 
 export async function writeMockBinaryTreeMetricsStore(snapshots) {
+  const binaryRows = dedupeRowsById(
+    (Array.isArray(snapshots) ? snapshots : []).map(mapAppBinaryMetricToDb),
+    (row) => row?.id,
+  );
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
+    await client.query('LOCK TABLE charge.binary_tree_metrics_snapshots IN EXCLUSIVE MODE');
     await client.query('DELETE FROM charge.binary_tree_metrics_snapshots');
 
-    for (const snapshot of Array.isArray(snapshots) ? snapshots : []) {
-      const row = mapAppBinaryMetricToDb(snapshot);
-
+    for (const row of binaryRows) {
       await client.query(`
         INSERT INTO charge.binary_tree_metrics_snapshots (
           id, user_id, username, email, account_rank, account_personal_pv,
@@ -145,6 +160,21 @@ export async function writeMockBinaryTreeMetricsStore(snapshots) {
         VALUES (
           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14
         )
+        ON CONFLICT (id) DO UPDATE
+        SET
+          user_id = EXCLUDED.user_id,
+          username = EXCLUDED.username,
+          email = EXCLUDED.email,
+          account_rank = EXCLUDED.account_rank,
+          account_personal_pv = EXCLUDED.account_personal_pv,
+          left_leg_bv = EXCLUDED.left_leg_bv,
+          right_leg_bv = EXCLUDED.right_leg_bv,
+          total_accumulated_bv = EXCLUDED.total_accumulated_bv,
+          total_cycles = EXCLUDED.total_cycles,
+          cycle_lower_bv = EXCLUDED.cycle_lower_bv,
+          cycle_higher_bv = EXCLUDED.cycle_higher_bv,
+          created_at = EXCLUDED.created_at,
+          updated_at = EXCLUDED.updated_at
       `, [
         row.id,
         row.user_id,
@@ -187,15 +217,18 @@ export async function readMockSalesTeamCommissionsStore() {
 }
 
 export async function writeMockSalesTeamCommissionsStore(commissions) {
+  const commissionRows = dedupeRowsById(
+    (Array.isArray(commissions) ? commissions : []).map(mapAppSalesCommissionToDb),
+    (row) => row?.id,
+  );
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
+    await client.query('LOCK TABLE charge.sales_team_commission_snapshots IN EXCLUSIVE MODE');
     await client.query('DELETE FROM charge.sales_team_commission_snapshots');
 
-    for (const commission of Array.isArray(commissions) ? commissions : []) {
-      const row = mapAppSalesCommissionToDb(commission);
-
+    for (const row of commissionRows) {
       await client.query(`
         INSERT INTO charge.sales_team_commission_snapshots (
           id, user_id, username, email, account_package_key, cycle_multiplier,
@@ -206,6 +239,24 @@ export async function writeMockSalesTeamCommissionsStore(commissions) {
         VALUES (
           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17
         )
+        ON CONFLICT (id) DO UPDATE
+        SET
+          user_id = EXCLUDED.user_id,
+          username = EXCLUDED.username,
+          email = EXCLUDED.email,
+          account_package_key = EXCLUDED.account_package_key,
+          cycle_multiplier = EXCLUDED.cycle_multiplier,
+          per_cycle_amount = EXCLUDED.per_cycle_amount,
+          weekly_cap_cycles = EXCLUDED.weekly_cap_cycles,
+          total_cycles = EXCLUDED.total_cycles,
+          capped_cycles = EXCLUDED.capped_cycles,
+          overflow_cycles = EXCLUDED.overflow_cycles,
+          gross_commission_amount = EXCLUDED.gross_commission_amount,
+          payout_offset_amount = EXCLUDED.payout_offset_amount,
+          net_commission_amount = EXCLUDED.net_commission_amount,
+          currency_code = EXCLUDED.currency_code,
+          created_at = EXCLUDED.created_at,
+          updated_at = EXCLUDED.updated_at
       `, [
         row.id,
         row.user_id,

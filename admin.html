@@ -8288,7 +8288,10 @@
       }
 
       function normalizePayoutRequestStatusLabel(statusValue) {
-        return normalizeMemberKey(statusValue) === 'fulfilled' ? 'Fulfilled' : 'Pending';
+        const normalizedValue = normalizeMemberKey(statusValue);
+        return normalizedValue === 'fulfilled' || normalizedValue === 'paid'
+          ? 'Fulfilled'
+          : 'Pending';
       }
 
       function sanitizeAdminPayoutRequestRecord(record) {
@@ -8591,9 +8594,8 @@
                 <textarea
                   name="bankDetails"
                   rows="2"
-                  required
                   class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150"
-                  placeholder="Bank name, account name, account number, and branch details"
+                  placeholder="Optional for Stripe. For manual modes, include bank/account details."
                 ></textarea>
               </div>
               <div class="md:col-span-2">

@@ -10,15 +10,15 @@ import {
   listWalletTransfersForUserId,
   readWalletCommissionOffsetMapForUserId,
   resolveWalletCommissionTransferSenderId,
-  insertWalletPayoutRequest,
 } from '../stores/wallet.store.js';
+import { createPayoutRequest } from './payout.service.js';
 
 const DEFAULT_CURRENCY_CODE = 'USD';
 const EWALLET_PAYOUT_SOURCE_KEY = 'ewallet';
 const EWALLET_PAYOUT_SOURCE_LABEL = 'E-Wallet';
 const COMMISSION_SOURCE_META = Object.freeze({
   fasttrack: { key: 'fasttrack', label: 'Fast Track Bonus' },
-  infinitybuilder: { key: 'infinitybuilder', label: 'Infinity Builder Bonus' },
+  infinitybuilder: { key: 'infinitybuilder', label: 'Infinity Tier Commission' },
   legacyleadership: { key: 'legacyleadership', label: 'Legacy Leadership Bonus' },
   salesteam: { key: 'salesteam', label: 'Sales Team Commissions' },
 });
@@ -41,6 +41,17 @@ function normalizeTransferHistoryLimit(value) {
 
 function sanitizeTransferNote(value) {
   return normalizeText(value).slice(0, 280);
+}
+
+function normalizePayoutMethod(valueInput, fallback = 'instant') {
+  const normalized = normalizeText(valueInput).toLowerCase();
+  if (normalized === 'instant') {
+    return 'instant';
+  }
+  if (normalized === 'standard') {
+    return 'standard';
+  }
+  return fallback === 'standard' ? 'standard' : 'instant';
 }
 
 function buildTransferReferenceCode(prefix = 'P2P') {
@@ -583,122 +594,39 @@ export async function createEWalletPayoutRequest(payload = {}) {
     };
   }
 
-  const amountRaw = Number(payload?.amount);
-  if (!Number.isFinite(amountRaw) || amountRaw <= 0) {
-    return {
-      success: false,
-      status: 400,
-      error: 'Payout amount must be greater than 0.',
-    };
-  }
-
-  const amount = roundCurrencyAmount(amountRaw);
-  if (amount <= 0) {
-    return {
-      success: false,
-      status: 400,
-      error: 'Payout amount must be at least $0.01.',
-    };
-  }
-
-  const senderSeedBalance = roundCurrencyAmount(payload?.senderSeedBalance);
+  const amount = roundCurrencyAmount(payload?.amount);
   const note = sanitizeTransferNote(payload?.note || `E-Wallet payout request for ${amount.toFixed(2)} ${DEFAULT_CURRENCY_CODE}`);
-  const payoutRequestId = `payout_ewallet_${Date.now()}_${randomUUID().slice(0, 8)}`;
-  const nowIso = new Date().toISOString();
-
-  const client = await pool.connect();
-  let transactionClosed = false;
-
-  try {
-    await client.query('BEGIN');
-
-    await upsertWalletAccount({
-      userId: memberUser.id,
-      username: memberUser.username,
-      email: memberUser.email,
-      accountName: memberUser.name,
-      currencyCode: DEFAULT_CURRENCY_CODE,
-      startingBalance: senderSeedBalance,
-    }, client);
-
-    const lockedAccounts = await lockWalletAccountsByUserIds([memberUser.id], client);
-    const memberWalletAccount = lockedAccounts.find((account) => normalizeText(account?.userId) === normalizeText(memberUser.id));
-    if (!memberWalletAccount) {
-      await client.query('ROLLBACK');
-      transactionClosed = true;
-      return {
-        success: false,
-        status: 500,
-        error: 'Unable to lock your E-Wallet account for payout request.',
-      };
-    }
-
-    const currentBalance = roundCurrencyAmount(memberWalletAccount.balance);
-    if (currentBalance < amount) {
-      await client.query('ROLLBACK');
-      transactionClosed = true;
-      return {
-        success: false,
-        status: 400,
-        error: `Insufficient E-Wallet balance. Available: ${currentBalance.toFixed(2)} USD.`,
-      };
-    }
-
-    const payoutRequest = await insertWalletPayoutRequest({
-      id: payoutRequestId,
-      sourceKey: EWALLET_PAYOUT_SOURCE_KEY,
-      sourceLabel: EWALLET_PAYOUT_SOURCE_LABEL,
-      amount,
-      requestedByUserId: memberUser.id,
-      requestedByUsername: memberUser.username,
-      requestedByEmail: memberUser.email,
-      requestedByName: payload?.requestedByName || memberUser.name || memberUser.username,
-      generalInfo: note,
-      createdAt: nowIso,
-      updatedAt: nowIso,
-    }, client);
-
-    if (!payoutRequest) {
-      await client.query('ROLLBACK');
-      transactionClosed = true;
-      return {
-        success: false,
-        status: 500,
-        error: 'Unable to create E-Wallet payout request.',
-      };
-    }
-
-    await client.query('COMMIT');
-    transactionClosed = true;
-
-    const snapshot = await buildWalletSnapshotForUser(memberUser, {
-      limit: payload?.limit,
-    });
-
-    return {
-      success: true,
-      status: 201,
-      data: {
-        success: true,
-        request: {
-          id: payoutRequestId,
-          sourceKey: EWALLET_PAYOUT_SOURCE_KEY,
-          sourceLabel: EWALLET_PAYOUT_SOURCE_LABEL,
-          amount,
-          status: 'Pending',
-          createdAt: nowIso,
-        },
-        wallet: snapshot.wallet,
-        transfers: snapshot.transfers,
-        commissionOffsets: snapshot.commissionOffsets,
-      },
-    };
-  } catch (error) {
-    if (!transactionClosed) {
-      await client.query('ROLLBACK').catch(() => {});
-    }
-    throw error;
-  } finally {
-    client.release();
+  const payoutMethod = normalizePayoutMethod(payload?.payoutMethod);
+  const payoutResult = await createPayoutRequest({
+    userId: memberUser.id,
+    username: memberUser.username,
+    email: memberUser.email,
+    requestedByName: payload?.requestedByName || memberUser.name || memberUser.username,
+    sourceKey: EWALLET_PAYOUT_SOURCE_KEY,
+    sourceLabel: EWALLET_PAYOUT_SOURCE_LABEL,
+    amount,
+    note,
+    payoutMethod,
+    senderSeedBalance: roundCurrencyAmount(payload?.senderSeedBalance),
+  });
+  if (!payoutResult.success) {
+    return payoutResult;
   }
+
+  const snapshot = await buildWalletSnapshotForUser(memberUser, {
+    limit: payload?.limit,
+  });
+
+  return {
+    success: true,
+    status: payoutResult.status || 201,
+    data: {
+      success: true,
+      request: payoutResult?.data?.request || null,
+      payoutMethod,
+      wallet: snapshot.wallet,
+      transfers: snapshot.transfers,
+      commissionOffsets: snapshot.commissionOffsets,
+    },
+  };
 }

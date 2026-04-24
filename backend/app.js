@@ -20,8 +20,16 @@ import memberAchievementRoutes from './routes/member-achievement.routes.js';
 import memberGoodLifeRoutes from './routes/member-good-life.routes.js';
 import memberNotificationRoutes from './routes/member-notification.routes.js';
 import memberBusinessCenterRoutes from './routes/member-business-center.routes.js';
+import preferredAttributionRoutes from './routes/preferred-attribution.routes.js';
+import stripeWebhookRoutes from './routes/stripe-webhook.routes.js';
 import { warmRegisteredMembersStoreSchema } from './stores/member.store.js';
 import { ensureMemberUserLookupIndexes } from './stores/user.store.js';
+import { warmPreferredAttributionStoreSchema } from './stores/preferred-attribution.store.js';
+import {
+  resolvePayoutAutoRetryEnabled,
+  resolvePayoutAutoRetryIntervalMs,
+  retryEligibleFailedStripePayoutRequests,
+} from './services/payout.service.js';
 
 const app = express();
 const PORT = Number.parseInt(process.env.PORT || '3000', 10);
@@ -29,10 +37,13 @@ const PORT = Number.parseInt(process.env.PORT || '3000', 10);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.join(__dirname, '..');
+let payoutAutoRetryIntervalHandle = null;
 
 
+app.use('/api', stripeWebhookRoutes);
 app.use(express.json({ limit: '12mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(preferredAttributionRoutes);
 
 app.use('/api/member-auth', authRoutes);
 app.use('/api/member-auth', memberAchievementRoutes);
@@ -126,6 +137,10 @@ async function warmStartupStores() {
       run: warmRegisteredMembersStoreSchema,
     },
     {
+      label: 'preferred attribution schema',
+      run: warmPreferredAttributionStoreSchema,
+    },
+    {
       label: 'member_users lookup indexes',
       run: ensureMemberUserLookupIndexes,
     },
@@ -142,8 +157,57 @@ async function warmStartupStores() {
   });
 }
 
+function startPayoutAutoRetryWorker() {
+  if (payoutAutoRetryIntervalHandle) {
+    return;
+  }
+
+  if (!resolvePayoutAutoRetryEnabled()) {
+    console.log('[payout-auto-retry] disabled (PAYOUT_AUTO_RETRY_ENABLED=false).');
+    return;
+  }
+
+  const intervalMs = resolvePayoutAutoRetryIntervalMs();
+  const runRetrySweep = async (trigger = 'interval') => {
+    try {
+      const summary = await retryEligibleFailedStripePayoutRequests({
+        trigger,
+      });
+      const processedCount = Number(summary?.data?.processedCount || 0);
+      const paidCount = Number(summary?.data?.paidCount || 0);
+      const failedCount = Number(summary?.data?.failedCount || 0);
+      if (processedCount > 0 || failedCount > 0) {
+        console.log(
+          `[payout-auto-retry] trigger=${trigger} processed=${processedCount} paid=${paidCount} failed=${failedCount}`,
+        );
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error || 'Unknown retry error.');
+      console.warn(`[payout-auto-retry] trigger=${trigger} failed: ${message}`);
+    }
+  };
+
+  const startupDelayMs = Math.min(5_000, Math.max(750, Math.round(intervalMs / 2)));
+  const startupTimeout = setTimeout(() => {
+    void runRetrySweep('startup');
+  }, startupDelayMs);
+  if (typeof startupTimeout?.unref === 'function') {
+    startupTimeout.unref();
+  }
+
+  payoutAutoRetryIntervalHandle = setInterval(() => {
+    void runRetrySweep('interval');
+  }, intervalMs);
+  if (typeof payoutAutoRetryIntervalHandle?.unref === 'function') {
+    payoutAutoRetryIntervalHandle.unref();
+  }
+
+  console.log(`[payout-auto-retry] worker started; interval=${intervalMs}ms`);
+}
+
 async function startServer() {
   await warmStartupStores();
+  startPayoutAutoRetryWorker();
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Express server running at http://localhost:${PORT}`);
   });

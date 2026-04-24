@@ -27,9 +27,18 @@ import {
   writeMockEmailOutboxStore,
 } from '../stores/email.store.js';
 import {
+  readMemberBinaryTreeIntroStateByUserId,
   touchMemberBinaryTreeIntroStateByUserId,
   deleteMemberBinaryTreeIntroStateByUserId,
+  updateMemberBinaryTreePinnedNodeIdsByUserId,
+  updateMemberBinaryTreeTierSortDirectionsByUserId,
 } from '../stores/member-binary-tree-intro.store.js';
+import {
+  createStripeBillingPortalSessionForUserIdentity,
+  createStripeConnectDashboardLoginLinkForUserIdentity,
+  createStripeConnectOnboardingLinkForUserIdentity,
+  resolveStripeConnectStatusForUserIdentity,
+} from './stripe-client.service.js';
 
 import {
   normalizeText,
@@ -43,8 +52,12 @@ import {
   sanitizeUserForAuthResponse,
   PASSWORD_MIN_LENGTH,
 } from '../utils/auth.helpers.js';
+import { resolveMemberAccountStatusByPersonalBv } from '../utils/member-activity.helpers.js';
 
 const EMAIL_VERIFICATION_TOKEN_TTL_MS = 48 * 60 * 60 * 1000;
+const PINNED_NODE_IDS_LIMIT = 10;
+const TIER_SORT_DIRECTION_ASC = 'asc';
+const TIER_SORT_DIRECTION_DESC = 'desc';
 
 function isValidEmailAddress(emailInput) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(emailInput || '').trim());
@@ -71,6 +84,107 @@ function buildEmailVerificationLink(rawTokenInput) {
 
 function normalizeEmailAddress(value) {
   return normalizeCredential(value || '');
+}
+
+function resolveBillingPortalFallbackOrigin(context = {}) {
+  const contextOrigin = normalizeText(context?.origin);
+  if (contextOrigin) {
+    try {
+      const parsed = new URL(contextOrigin);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.origin;
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  const envOrigin = normalizeText(process.env.PUBLIC_APP_ORIGIN);
+  if (envOrigin) {
+    try {
+      const parsed = new URL(envOrigin);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.origin;
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  const fallbackPort = Number.parseInt(process.env.PORT || '3000', 10) || 3000;
+  return `http://localhost:${fallbackPort}`;
+}
+
+function normalizeStripePayoutAccountStatusPayload(payload = {}) {
+  const source = payload && typeof payload === 'object' ? payload : {};
+  const status = source.status && typeof source.status === 'object'
+    ? source.status
+    : {};
+  const connectAccountId = normalizeText(source.connectAccountId || status.connectAccountId);
+  const detailsSubmitted = status.detailsSubmitted === true;
+  const payoutsEnabled = status.payoutsEnabled === true;
+  const chargesEnabled = status.chargesEnabled === true;
+  const onboardingComplete = status.onboardingComplete === true;
+  const requiresOnboarding = !onboardingComplete;
+
+  return {
+    connectAccountId,
+    hasConnectedAccount: Boolean(connectAccountId),
+    detailsSubmitted,
+    payoutsEnabled,
+    chargesEnabled,
+    onboardingComplete,
+    requiresOnboarding,
+    lastSyncedAt: normalizeText(status.lastSyncedAt),
+    onboardingCompletedAt: normalizeText(status.onboardingCompletedAt),
+  };
+}
+
+function normalizePinnedNodeIdsForBinaryTree(value) {
+  const source = Array.isArray(value) ? value : [];
+  const deduped = [];
+  const seen = new Set();
+
+  for (const rawNodeId of source) {
+    const nodeId = normalizeText(rawNodeId);
+    if (!nodeId || seen.has(nodeId)) {
+      continue;
+    }
+    seen.add(nodeId);
+    deduped.push(nodeId);
+    if (deduped.length >= PINNED_NODE_IDS_LIMIT) {
+      break;
+    }
+  }
+
+  return deduped;
+}
+
+function normalizeMemberBinaryTreeTierSortDirection(value) {
+  const normalized = normalizeText(value).toLowerCase();
+  return normalized === TIER_SORT_DIRECTION_DESC
+    ? TIER_SORT_DIRECTION_DESC
+    : TIER_SORT_DIRECTION_ASC;
+}
+
+function normalizeMemberBinaryTreeTierSortDirectionsPayload(payload = {}) {
+  const source = payload && typeof payload === 'object' ? payload : {};
+  return {
+    infinityBuilderTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+      source.infinityBuilderTierSortDirection
+        || source.infinityBuilder
+        || source.infinity_builder_tier_sort_direction
+        || source.infinity_builder
+        || '',
+    ),
+    legacyLeadershipTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+      source.legacyLeadershipTierSortDirection
+        || source.legacyLeadership
+        || source.legacy_leadership_tier_sort_direction
+        || source.legacy_leadership
+        || '',
+    ),
+  };
 }
 
 function isEmailVerificationOutboxRecord(record = {}, targetEmailInput = '') {
@@ -193,6 +307,278 @@ export async function authenticateUser(identifierInput, passwordInput) {
   };
 }
 
+export async function resolveAuthenticatedMemberSession(memberUserInput = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const matchedUser = await findUserById(userId);
+  if (!matchedUser) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Member account was not found for this session.',
+    };
+  }
+
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      user: sanitizeUserForAuthResponse(matchedUser),
+      checkedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export async function createMemberStripeBillingPortalSession(memberUserInput = {}, payload = {}, context = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const matchedUser = await findUserById(userId);
+  if (!matchedUser) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Member account was not found for billing portal access.',
+    };
+  }
+
+  try {
+    const portalResult = await createStripeBillingPortalSessionForUserIdentity({
+      userId: matchedUser.id,
+      username: matchedUser.username,
+      email: matchedUser.email,
+      name: matchedUser.name,
+    }, {
+      returnUrl: normalizeText(payload?.returnUrl || payload?.return_url),
+      fallbackOrigin: resolveBillingPortalFallbackOrigin(context),
+      metadata: {
+        source: 'member-auth',
+      },
+    });
+    const portalUrl = normalizeText(portalResult?.session?.url);
+    if (!portalUrl) {
+      return {
+        success: false,
+        status: 502,
+        error: 'Stripe billing portal did not return a redirect URL.',
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      data: {
+        success: true,
+        portalUrl,
+        customerId: normalizeText(portalResult?.customerId),
+        checkedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 502,
+      error: error instanceof Error
+        ? error.message
+        : 'Unable to start Stripe billing portal session.',
+    };
+  }
+}
+
+export async function resolveMemberStripePayoutAccountStatus(memberUserInput = {}, options = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const matchedUser = await findUserById(userId);
+  if (!matchedUser) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Member account was not found for payout account status.',
+    };
+  }
+
+  try {
+    const payoutAccountStatus = await resolveStripeConnectStatusForUserIdentity({
+      userId: matchedUser.id,
+      username: matchedUser.username,
+      email: matchedUser.email,
+      name: matchedUser.name,
+    }, {
+      allowCreate: false,
+      fetchRemote: options?.fetchRemote !== false,
+      metadata: {
+        source: 'member-auth',
+      },
+    });
+
+    return {
+      success: true,
+      status: 200,
+      data: {
+        success: true,
+        ...normalizeStripePayoutAccountStatusPayload(payoutAccountStatus),
+        checkedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 502,
+      error: error instanceof Error
+        ? error.message
+        : 'Unable to resolve Stripe payout account status.',
+    };
+  }
+}
+
+export async function createMemberStripePayoutOnboardingLink(memberUserInput = {}, payload = {}, context = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const matchedUser = await findUserById(userId);
+  if (!matchedUser) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Member account was not found for payout account onboarding.',
+    };
+  }
+
+  try {
+    const onboardingLinkResult = await createStripeConnectOnboardingLinkForUserIdentity({
+      userId: matchedUser.id,
+      username: matchedUser.username,
+      email: matchedUser.email,
+      name: matchedUser.name,
+    }, {
+      returnUrl: normalizeText(payload?.returnUrl || payload?.return_url),
+      refreshUrl: normalizeText(payload?.refreshUrl || payload?.refresh_url),
+      fallbackOrigin: resolveBillingPortalFallbackOrigin(context),
+      fallbackPath: '/index.html',
+      metadata: {
+        source: 'member-auth',
+      },
+    });
+    const onboardingUrl = normalizeText(onboardingLinkResult?.onboardingUrl);
+    if (!onboardingUrl) {
+      return {
+        success: false,
+        status: 502,
+        error: 'Stripe payout onboarding did not return a redirect URL.',
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      data: {
+        success: true,
+        onboardingUrl,
+        expiresAt: normalizeText(onboardingLinkResult?.expiresAt),
+        ...normalizeStripePayoutAccountStatusPayload(onboardingLinkResult),
+        checkedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 502,
+      error: error instanceof Error
+        ? error.message
+        : 'Unable to start Stripe payout onboarding.',
+    };
+  }
+}
+
+export async function createMemberStripePayoutDashboardLink(memberUserInput = {}, payload = {}, context = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const matchedUser = await findUserById(userId);
+  if (!matchedUser) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Member account was not found for Stripe dashboard access.',
+    };
+  }
+
+  try {
+    const dashboardLinkResult = await createStripeConnectDashboardLoginLinkForUserIdentity({
+      userId: matchedUser.id,
+      username: matchedUser.username,
+      email: matchedUser.email,
+      name: matchedUser.name,
+    }, {
+      fallbackOrigin: resolveBillingPortalFallbackOrigin(context),
+      metadata: {
+        source: 'member-auth',
+      },
+      returnUrl: normalizeText(payload?.returnUrl || payload?.return_url),
+    });
+    const dashboardUrl = normalizeText(dashboardLinkResult?.dashboardUrl);
+    if (!dashboardUrl) {
+      return {
+        success: false,
+        status: 502,
+        error: 'Stripe dashboard did not return a redirect URL.',
+      };
+    }
+
+    return {
+      success: true,
+      status: 200,
+      data: {
+        success: true,
+        dashboardUrl,
+        ...normalizeStripePayoutAccountStatusPayload(dashboardLinkResult),
+        checkedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 502,
+      error: error instanceof Error
+        ? error.message
+        : 'Unable to open Stripe dashboard.',
+    };
+  }
+}
+
 export async function validatePasswordSetupToken(tokenInput, emailInput = '') {
   const token = normalizeText(tokenInput);
   const tokens = await readPasswordSetupTokensStore();
@@ -296,13 +682,18 @@ export async function updatePasswordFromSetupToken(tokenInput, newPasswordInput,
 
   const nowIso = new Date().toISOString();
 
-  await updateUserById(matchedUser.id, (existingUser) => ({
-    ...existingUser,
-    password: newPassword,
-    passwordSetupRequired: false,
-    accountStatus: 'active',
-    passwordUpdatedAt: nowIso,
-  }));
+  await updateUserById(matchedUser.id, (existingUser) => {
+    const nextUser = {
+      ...existingUser,
+      password: newPassword,
+      passwordSetupRequired: false,
+      passwordUpdatedAt: nowIso,
+    };
+    return {
+      ...nextUser,
+      accountStatus: resolveMemberAccountStatusByPersonalBv(nextUser),
+    };
+  });
 
   await markAllOpenTokensUsedByUserId(matchedUser.id, nowIso);
 
@@ -572,6 +963,167 @@ export async function resolveMemberBinaryTreeLaunchState(memberUserInput = {}) {
       firstTime: touchedState?.firstTime === true,
       firstOpenedAt: normalizeText(launchState?.firstOpenedAt),
       lastOpenedAt: normalizeText(launchState?.lastOpenedAt),
+      pinnedNodeIds: normalizePinnedNodeIdsForBinaryTree(launchState?.pinnedNodeIds),
+      pinnedNodeIdsUpdatedAt: normalizeText(launchState?.pinnedNodeIdsUpdatedAt),
+      infinityBuilderTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        launchState?.infinityBuilderTierSortDirection,
+      ),
+      legacyLeadershipTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        launchState?.legacyLeadershipTierSortDirection,
+      ),
+      tierSortDirectionsUpdatedAt: normalizeText(launchState?.tierSortDirectionsUpdatedAt),
+      checkedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export async function updateMemberBinaryTreePinnedNodes(memberUserInput = {}, payload = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  if (!Array.isArray(payload?.pinnedNodeIds)) {
+    return {
+      success: false,
+      status: 400,
+      error: 'pinnedNodeIds must be an array.',
+    };
+  }
+
+  const nextPinnedNodeIds = normalizePinnedNodeIdsForBinaryTree(payload.pinnedNodeIds);
+  const nextState = await updateMemberBinaryTreePinnedNodeIdsByUserId(userId, nextPinnedNodeIds);
+
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      userId,
+      pinnedNodeIds: normalizePinnedNodeIdsForBinaryTree(nextState?.pinnedNodeIds),
+      pinnedNodeIdsUpdatedAt: normalizeText(nextState?.pinnedNodeIdsUpdatedAt),
+      checkedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export async function resolveMemberBinaryTreePinnedNodes(memberUserInput = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const currentState = await readMemberBinaryTreeIntroStateByUserId(userId);
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      userId,
+      pinnedNodeIds: normalizePinnedNodeIdsForBinaryTree(currentState?.pinnedNodeIds),
+      pinnedNodeIdsUpdatedAt: normalizeText(currentState?.pinnedNodeIdsUpdatedAt),
+      checkedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export async function updateMemberBinaryTreeTierSortDirections(memberUserInput = {}, payload = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const source = payload && typeof payload === 'object' ? payload : {};
+  const hasInfinityDirection = (
+    Object.prototype.hasOwnProperty.call(source, 'infinityBuilderTierSortDirection')
+    || Object.prototype.hasOwnProperty.call(source, 'infinityBuilder')
+    || Object.prototype.hasOwnProperty.call(source, 'infinity_builder_tier_sort_direction')
+    || Object.prototype.hasOwnProperty.call(source, 'infinity_builder')
+  );
+  const hasLegacyDirection = (
+    Object.prototype.hasOwnProperty.call(source, 'legacyLeadershipTierSortDirection')
+    || Object.prototype.hasOwnProperty.call(source, 'legacyLeadership')
+    || Object.prototype.hasOwnProperty.call(source, 'legacy_leadership_tier_sort_direction')
+    || Object.prototype.hasOwnProperty.call(source, 'legacy_leadership')
+  );
+  if (!hasInfinityDirection && !hasLegacyDirection) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Expected infinityBuilderTierSortDirection or legacyLeadershipTierSortDirection.',
+    };
+  }
+
+  const currentState = await readMemberBinaryTreeIntroStateByUserId(userId);
+  const currentDirections = normalizeMemberBinaryTreeTierSortDirectionsPayload({
+    infinityBuilderTierSortDirection: currentState?.infinityBuilderTierSortDirection,
+    legacyLeadershipTierSortDirection: currentState?.legacyLeadershipTierSortDirection,
+  });
+  const requestedDirections = normalizeMemberBinaryTreeTierSortDirectionsPayload(source);
+  const nextDirections = {
+    infinityBuilderTierSortDirection: hasInfinityDirection
+      ? requestedDirections.infinityBuilderTierSortDirection
+      : currentDirections.infinityBuilderTierSortDirection,
+    legacyLeadershipTierSortDirection: hasLegacyDirection
+      ? requestedDirections.legacyLeadershipTierSortDirection
+      : currentDirections.legacyLeadershipTierSortDirection,
+  };
+
+  const nextState = await updateMemberBinaryTreeTierSortDirectionsByUserId(userId, nextDirections);
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      userId,
+      infinityBuilderTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        nextState?.infinityBuilderTierSortDirection,
+      ),
+      legacyLeadershipTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        nextState?.legacyLeadershipTierSortDirection,
+      ),
+      tierSortDirectionsUpdatedAt: normalizeText(nextState?.tierSortDirectionsUpdatedAt),
+      checkedAt: new Date().toISOString(),
+    },
+  };
+}
+
+export async function resolveMemberBinaryTreeTierSortDirections(memberUserInput = {}) {
+  const userId = normalizeText(memberUserInput?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Missing authenticated member id.',
+    };
+  }
+
+  const currentState = await readMemberBinaryTreeIntroStateByUserId(userId);
+  return {
+    success: true,
+    status: 200,
+    data: {
+      authenticated: true,
+      userId,
+      infinityBuilderTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        currentState?.infinityBuilderTierSortDirection,
+      ),
+      legacyLeadershipTierSortDirection: normalizeMemberBinaryTreeTierSortDirection(
+        currentState?.legacyLeadershipTierSortDirection,
+      ),
+      tierSortDirectionsUpdatedAt: normalizeText(currentState?.tierSortDirectionsUpdatedAt),
       checkedAt: new Date().toISOString(),
     },
   };

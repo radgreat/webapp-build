@@ -20,6 +20,10 @@ const DEFAULT_ROOT_FOCUS_RADIUS = 38;
 const UNIVERSE_DEPTH_CAP = 20;
 const ANTICIPATION_MAX_GLOBAL_DEPTH = 20;
 const LIVE_TREE_GLOBAL_ROOT_ID = '__global-root__';
+const ADMIN_ROOT_DISPLAY_NAME = 'Administrator';
+const ADMIN_ROOT_USERNAME = 'administrator';
+const ADMIN_ROOT_TITLE = 'Administrator';
+const ADMIN_ROOT_ROLE = 'Administrator';
 const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
 const FREE_ACCOUNT_RANK_KEY_SET = new Set([
   'preferred customer',
@@ -45,6 +49,8 @@ const SPILLOVER_PLACEMENT_KEY_SET = new Set([
   'spillover_left',
   'spillover left',
 ]);
+const TREE_NEXT_PRIVACY_ANONYMOUS_LABEL = 'Anonymous';
+const TREE_NEXT_PRIVACY_HIDDEN_LABEL = 'Hidden';
 const EXTREME_PLACEMENT_KEY_SET = new Set([
   'extreme-left',
   'extreme_left',
@@ -53,6 +59,28 @@ const EXTREME_PLACEMENT_KEY_SET = new Set([
   'extreme_right',
   'extreme right',
 ]);
+const PLACEMENT_OPTION_LEFT = 'left';
+const PLACEMENT_OPTION_RIGHT = 'right';
+const PLACEMENT_OPTION_SPILLOVER_LEFT = 'spillover-left';
+const PLACEMENT_OPTION_SPILLOVER_RIGHT = 'spillover-right';
+const PLACEMENT_OPTION_EXTREME_LEFT = 'extreme-left';
+const PLACEMENT_OPTION_EXTREME_RIGHT = 'extreme-right';
+const PREFERRED_ACCOUNTS_PLACEMENT_OPTIONS = Object.freeze([
+  PLACEMENT_OPTION_LEFT,
+  PLACEMENT_OPTION_RIGHT,
+  PLACEMENT_OPTION_SPILLOVER_LEFT,
+  PLACEMENT_OPTION_SPILLOVER_RIGHT,
+  PLACEMENT_OPTION_EXTREME_LEFT,
+  PLACEMENT_OPTION_EXTREME_RIGHT,
+]);
+const PREFERRED_ACCOUNTS_PLACEMENT_LABEL_BY_OPTION = Object.freeze({
+  [PLACEMENT_OPTION_LEFT]: 'Left',
+  [PLACEMENT_OPTION_RIGHT]: 'Right',
+  [PLACEMENT_OPTION_SPILLOVER_LEFT]: 'Spill Over Left',
+  [PLACEMENT_OPTION_SPILLOVER_RIGHT]: 'Spill Over Right',
+  [PLACEMENT_OPTION_EXTREME_LEFT]: 'Extreme Left',
+  [PLACEMENT_OPTION_EXTREME_RIGHT]: 'Extreme Right',
+});
 const SELECTION_POP_MS = 320;
 const SELECTION_RELEASE_MS = 220;
 const SELECTION_MAX_EMPHASIS = 1.22;
@@ -124,21 +152,92 @@ const SIDE_NAV_SEARCH_INPUT_ID = 'binary-tree-next-side-nav-search';
 const SIDE_NAV_SEARCH_DROPDOWN_ID = 'binary-tree-next-side-nav-search-dropdown';
 const SIDE_NAV_PROFILE_MENU_ID = 'binary-tree-next-side-nav-profile-menu';
 const SIDE_NAV_SEARCH_RESULT_MAX = 18;
+const SIDE_NAV_SEARCH_INPUT_STYLE_ID = 'binary-tree-next-side-nav-search-style';
+const SIDE_NAV_SEARCH_TEXT_COLOR = '#626B7B';
+const TREE_NEXT_MOBILE_BREAKPOINT_PX = 980;
+const TREE_NEXT_MOBILE_COARSE_BREAKPOINT_PX = 1280;
+const TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED = 'closed';
+const TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF = 'half';
+const TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL = 'full';
+const TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_SET = new Set([
+  TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED,
+  TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+  TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+]);
+const TREE_NEXT_MOBILE_SIDE_PANEL_HANDLE_ID = 'side-nav-mobile-sheet-handle';
+const TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL = 0;
+const TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF = 0.5;
+const TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_CLOSED = 0.92;
+const TREE_NEXT_MOBILE_SIDE_PANEL_CLOSED_MIN_VISIBLE_PX = 124;
+const TREE_NEXT_MOBILE_SIDE_PANEL_CLOSED_MIN_VISIBLE_RATIO = 0.16;
+const TREE_NEXT_MOBILE_SIDE_PANEL_DRAG_THRESHOLD_PX = 56;
+const TREE_NEXT_MOBILE_SIDE_PANEL_TAP_THRESHOLD_PX = 10;
+const TREE_NEXT_MOBILE_SIDE_PANEL_TOP_SAFE_INSET_PX = 0;
+const TREE_NEXT_MOBILE_SIDE_PANEL_BOTTOM_SAFE_INSET_PX = 0;
+const TREE_NEXT_MOBILE_SIDE_PANEL_WIDTH_INSET_PX = 0;
+const TREE_NEXT_MOBILE_SIDE_PANEL_SNAP_PROJECTION_MS = 230;
+const TREE_NEXT_MOBILE_SIDE_PANEL_FLICK_VELOCITY_PX_PER_MS = 0.48;
+const TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_STIFFNESS = 640;
+const TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_DAMPING = 56;
+const TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_MIN_VELOCITY = 0.0001;
+const TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_MIN_DISPLACEMENT = 0.0008;
+const TREE_NEXT_MOBILE_SEARCH_FOCUS_EXPAND_DELAY_MS = 170;
+const TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX = 8;
+const TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_BIAS_PX = 3;
+const TREE_NEXT_MOBILE_SIDE_PANEL_FULL_STAGE_SURFACE_DRAG_REGION_PX = 120;
+const TREE_NEXT_MOBILE_OVERLAY_PANEL_EDGE_INSET_PX = 8;
+const TREE_NEXT_MOBILE_OVERLAY_PANEL_HALF_TOP_INSET_PX = 56;
+const TREE_NEXT_MOBILE_OVERLAY_PANEL_FULL_TOP_INSET_PX = 8;
+const TREE_NEXT_MOBILE_OVERLAY_PANEL_CLOSED_TOP_INSET_PX = 72;
+const MOBILE_PERF_TARGET_FPS = 90;
+const MOBILE_PERF_DPR_FLOOR = 1.22;
+const MOBILE_PERF_DPR_MIN_DEVICE_RATIO = 0.72;
+const MOBILE_PERF_DPR_CEILING = 1.65;
+const MOBILE_PERF_DPR_INITIAL = 1.45;
+const MOBILE_PERF_DPR_STEP_DOWN = 0.05;
+const MOBILE_PERF_DPR_STEP_UP = 0.06;
+const MOBILE_PERF_DPR_FPS_LOWER = MOBILE_PERF_TARGET_FPS - 12;
+const MOBILE_PERF_DPR_FPS_UPPER = MOBILE_PERF_TARGET_FPS + 8;
+const MOBILE_PERF_DPR_ADJUST_COOLDOWN_MS = 560;
+const TOUCH_PAN_INERTIA_MIN_START_SPEED_PX_PER_MS = 0.012;
+const TOUCH_PAN_INERTIA_STOP_SPEED_PX_PER_MS = 0.0018;
+const TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS = 3.5;
+const TOUCH_PAN_INERTIA_DAMPING = 3.2;
 const PINNED_NODE_IDS_STORAGE_KEY = 'binary-tree-next-pinned-node-ids-v1';
+const PINNED_NODE_IDS_SERVER_SYNC_DEBOUNCE_MS = 280;
 const MOCK_FIRST_TIME_OVERRIDE_STORAGE_KEY = 'binary-tree-next-mock-first-time-override-v1';
+const ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN = 50;
 const SERVER_CUTOFF_TIMEZONE = 'America/Los_Angeles';
 const SERVER_CUTOFF_WEEKDAY = 6;
 const SERVER_CUTOFF_HOUR = 23;
 const SERVER_CUTOFF_MINUTE = 59;
+const MEMBER_AUTH_SESSION_API = '/api/member-auth/session';
 const MEMBER_REGISTERED_MEMBERS_API = '/api/registered-members';
+const MEMBER_BINARY_TREE_PINNED_NODES_API = '/api/member-auth/binary-tree-next/pinned-nodes';
+const MEMBER_BINARY_TREE_TIER_SORT_DIRECTIONS_API = '/api/member-auth/binary-tree-next/tier-sort-directions';
 const ADMIN_REGISTERED_MEMBERS_API = '/api/admin/registered-members';
-const MEMBER_REGISTERED_MEMBERS_INTENT_API = '/api/registered-members/intent';
-const ADMIN_REGISTERED_MEMBERS_INTENT_API = '/api/admin/registered-members/intent';
-const MEMBER_REGISTERED_MEMBERS_INTENT_COMPLETE_API = '/api/registered-members/intent/complete';
-const ADMIN_REGISTERED_MEMBERS_INTENT_COMPLETE_API = '/api/admin/registered-members/intent/complete';
+const ACCOUNT_OVERVIEW_BINARY_TREE_METRICS_API = '/api/binary-tree-metrics';
+const ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API = '/api/sales-team-commissions';
+const ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API = '/api/commission-containers';
+const ACCOUNT_OVERVIEW_E_WALLET_API = '/api/e-wallet';
+const MEMBER_ACHIEVEMENTS_API = '/api/member-auth/achievements';
+const MEMBER_GOOD_LIFE_MONTHLY_API = '/api/member-auth/good-life/monthly';
+const ACCOUNT_OVERVIEW_REMOTE_SYNC_VISIBLE_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
+const ACCOUNT_OVERVIEW_REMOTE_SYNC_HIDDEN_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS;
+const ACCOUNT_OVERVIEW_REMOTE_SYNC_RETRY_INTERVAL_MS = 2800;
+const RANK_ADVANCEMENT_REMOTE_SYNC_VISIBLE_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
+const RANK_ADVANCEMENT_REMOTE_SYNC_HIDDEN_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS;
+const RANK_ADVANCEMENT_REMOTE_SYNC_RETRY_INTERVAL_MS = 2800;
+const MEMBER_REGISTERED_MEMBERS_SESSION_API = '/api/registered-members/session';
+const ADMIN_REGISTERED_MEMBERS_SESSION_API = '/api/admin/registered-members/session';
+const MEMBER_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/registered-members/session/complete';
+const ADMIN_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/admin/registered-members/session/complete';
+const STORE_INVOICES_API = '/api/store-invoices';
 const MEMBER_DASHBOARD_HOME_PATH = '/index.html';
 const ADMIN_DASHBOARD_HOME_PATH = '/admin.html';
 const ENROLL_STRIPE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
+const MY_STORE_CHECKOUT_SESSION_API = '/api/store-checkout/session';
+const MY_STORE_CHECKOUT_SESSION_COMPLETE_API = '/api/store-checkout/complete';
 const ENROLL_STRIPE_SCRIPT_URL = 'https://js.stripe.com/v3/';
 const ENROLL_BILLING_COUNTRY_CATALOG_URL = '/node_modules/flag-icons/country.json';
 const ENROLL_DEFAULT_COUNTRY_FLAG = 'us';
@@ -147,7 +246,14 @@ const ENROLL_BILLING_COUNTRY_FALLBACK_OPTIONS = Object.freeze([
   Object.freeze({ code: 'US', label: 'United States' }),
 ]);
 const ENROLL_DEFAULT_PACKAGE_KEY = 'legacy-builder-pack';
-const ENROLL_CHECKOUT_TAX_RATE = 0.0975;
+const STRIPE_TAX_CALCULATED_LABEL = 'Calculated at Stripe checkout';
+const ACCOUNT_OVERVIEW_SALES_TEAM_CYCLE_COMMISSION_PLAN = Object.freeze({
+  [FREE_ACCOUNT_PACKAGE_KEY]: { perCycle: 0, weeklyCapCycles: 0 },
+  'personal-builder-pack': { perCycle: 25, weeklyCapCycles: 50 },
+  'business-builder-pack': { perCycle: 37.5, weeklyCapCycles: 250 },
+  'infinity-builder-pack': { perCycle: 50, weeklyCapCycles: 500 },
+  'legacy-builder-pack': { perCycle: 62.5, weeklyCapCycles: 1000 },
+});
 const ENROLL_SPILLOVER_MODE_DIRECT = 'direct';
 const ENROLL_SPILLOVER_MODE_SPILLOVER = 'spillover';
 const ENROLL_PANEL_MIN_WIDTH = 340;
@@ -163,7 +269,7 @@ const ENROLL_PACKAGE_META = Object.freeze({
   }),
   'personal-builder-pack': Object.freeze({
     label: 'Personal Builder Pack',
-    bv: 192,
+    bv: 150,
     price: 192,
     selectableProducts: 3,
   }),
@@ -192,6 +298,32 @@ const ENROLL_PAID_PACKAGE_KEY_SET = new Set([
   'infinity-builder-pack',
   'legacy-builder-pack',
 ]);
+const INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER = 3;
+const INFINITY_BUILDER_TIER_NODE_REQUIREMENT = 3;
+const INFINITY_BUILDER_TIER_BONUS_USD = 150;
+const INFINITY_BUILDER_TIER_REWARD_BY_PACKAGE_USD = Object.freeze({
+  'infinity-builder-pack': 50,
+  'legacy-builder-pack': 75,
+});
+const LEGACY_LEADERSHIP_TIER_BONUS_USD = 2000;
+const INFINITY_BUILDER_TIER_OVERRIDE_RATE = 0.01;
+const INFINITY_BUILDER_MIN_VISIBLE_TIERS = 6;
+const INFINITY_BUILDER_MAX_VISIBLE_TIERS = 18;
+const INFINITY_BUILDER_QUALIFYING_PACKAGE_KEY_SET = new Set([
+  'infinity-builder-pack',
+  'legacy-builder-pack',
+]);
+const LEGACY_LEADERSHIP_REQUIRED_PACKAGE_KEY = 'legacy-builder-pack';
+const LEGACY_LEADERSHIP_TOTAL_NODES_PER_TIER = 40;
+const LEGACY_LEADERSHIP_MAX_DEPTH = 3;
+const LEGACY_LEADERSHIP_BASE_VISIBLE_TIERS = 1;
+const LEGACY_LEADERSHIP_PREVIEW_LOCKED_TIERS = 0;
+const LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH = Object.freeze([1, 3, 9, 27]);
+const LEGACY_TIER_CANVAS_PLACEHOLDER_ID_PREFIX = 'legacy-tier-canvas-empty';
+const LEGACY_TIER_CANVAS_RADIUS_DEPTH_DECAY = 0.56;
+const LEGACY_TIER_CANVAS_WORLD_RADIUS_MIN = 0.0002;
+const INFINITY_BUILDER_PANEL_MODE_INFINITY = 'infinity';
+const INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP = 'legacy-leadership';
 const ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY = Object.freeze({
   'personal-pack': 'Personal Pack',
   'business-pack': 'Business Pack',
@@ -245,6 +377,21 @@ const APPLE_MAPS_NODE_PALETTES = Object.freeze({
     mid: [145, 154, 173],
     dark: [122, 131, 150],
   }),
+  inactive: Object.freeze({
+    light: [171, 176, 186],
+    mid: [141, 147, 158],
+    dark: [112, 119, 131],
+  }),
+  direct: Object.freeze({
+    light: [191, 130, 255],
+    mid: [158, 95, 236],
+    dark: [123, 66, 209],
+  }),
+  directInactive: Object.freeze({
+    light: [138, 144, 154],
+    mid: [107, 113, 124],
+    dark: [77, 84, 96],
+  }),
   ocean: Object.freeze({
     light: [122, 181, 226],
     mid: [94, 151, 205],
@@ -266,7 +413,104 @@ const APPLE_MAPS_NODE_PALETTES = Object.freeze({
     dark: [158, 99, 97],
   }),
 });
-const APPLE_MAPS_NODE_COLOR_ROTATION = Object.freeze(['neutral', 'ocean', 'mint', 'amber', 'rose']);
+const APPLE_MAPS_NODE_COLOR_ROTATION = Object.freeze(['ocean', 'mint', 'amber', 'rose']);
+const ACCOUNT_OVERVIEW_BADGE_PALETTES = Object.freeze({
+  legacyRank: Object.freeze({
+    light: [72, 128, 156],
+    mid: [43, 86, 115],
+    dark: [24, 50, 74],
+  }),
+  legacyFounder: Object.freeze({
+    light: [212, 169, 72],
+    mid: [164, 122, 34],
+    dark: [118, 85, 22],
+  }),
+});
+const MY_STORE_FEATURED_PRODUCT = Object.freeze({
+  productKey: 'metacharge',
+  label: 'MetaCharge™',
+  imageUrl: '/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png',
+  price: 64,
+  bv: 38,
+  quantity: 1,
+});
+const MY_STORE_UPGRADE_PRODUCT_UNIT_BV = 50;
+const MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY = 'metacharge';
+const MY_STORE_UPGRADE_PRODUCT_META = Object.freeze({
+  metacharge: Object.freeze({
+    productKey: 'metacharge',
+    label: 'MetaCharge™',
+    imageUrl: '/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png',
+    unitPrice: 64,
+    unitBv: MY_STORE_UPGRADE_PRODUCT_UNIT_BV,
+  }),
+  metaroast: Object.freeze({
+    productKey: 'metaroast',
+    label: 'MetaRoast™',
+    imageUrl: '/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png',
+    unitPrice: 64,
+    unitBv: MY_STORE_UPGRADE_PRODUCT_UNIT_BV,
+  }),
+});
+const MY_STORE_STEP_CATALOG = 'catalog';
+const MY_STORE_STEP_REVIEW = 'review';
+const MY_STORE_STEP_CHECKOUT = 'checkout';
+const MY_STORE_STEP_THANK_YOU = 'thank-you';
+const MY_STORE_VALID_STEPS = new Set([
+  MY_STORE_STEP_CATALOG,
+  MY_STORE_STEP_REVIEW,
+  MY_STORE_STEP_CHECKOUT,
+  MY_STORE_STEP_THANK_YOU,
+]);
+const TREE_NEXT_STRIPE_RETURN_FLOW_QUERY_KEY = 'bt_checkout_flow';
+const TREE_NEXT_STRIPE_RETURN_TARGET_QUERY_KEY = 'bt_return_target';
+const TREE_NEXT_STRIPE_RETURN_FLOW_MY_STORE = 'my-store';
+const TREE_NEXT_STRIPE_RETURN_FLOW_ENROLL = 'enroll-member';
+const TREE_NEXT_STRIPE_RETURN_SIGNAL_STORAGE_KEY = 'binary-tree-next-stripe-return-signal-v1';
+const TREE_NEXT_STRIPE_RETURN_SIGNAL_MAX_AGE_MS = 10 * 60 * 1000;
+const TREE_NEXT_STRIPE_RETURN_MESSAGE_TYPE = 'binary-tree-next-stripe-return';
+const MY_STORE_CHECKOUT_NETWORK_RETRY_LIMIT = 12;
+const MY_STORE_CHECKOUT_NETWORK_RETRY_DELAY_MS = 1800;
+const TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY = 'binary-tree-next-pending-checkout-my-store-v1';
+const TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY = 'binary-tree-next-pending-checkout-enroll-v1';
+const MY_STORE_PACKAGE_DISPLAY_META = Object.freeze({
+  'preferred-customer-pack': Object.freeze({
+    label: 'Preferred Customer Account',
+  }),
+  'personal-builder-pack': Object.freeze({
+    label: 'Personal Builder Package',
+  }),
+  'business-builder-pack': Object.freeze({
+    label: 'Business Builder Package',
+  }),
+  'infinity-builder-pack': Object.freeze({
+    label: 'Infinity Builder Package',
+  }),
+  'legacy-builder-pack': Object.freeze({
+    label: 'Legacy Builder Package',
+  }),
+});
+const MY_STORE_UPGRADE_PACKAGE_KEYS_BY_PACKAGE = Object.freeze({
+  'preferred-customer-pack': Object.freeze([
+    'personal-builder-pack',
+    'business-builder-pack',
+    'infinity-builder-pack',
+    'legacy-builder-pack',
+  ]),
+  'personal-builder-pack': Object.freeze([
+    'business-builder-pack',
+    'infinity-builder-pack',
+    'legacy-builder-pack',
+  ]),
+  'business-builder-pack': Object.freeze([
+    'infinity-builder-pack',
+    'legacy-builder-pack',
+  ]),
+  'infinity-builder-pack': Object.freeze([
+    'legacy-builder-pack',
+  ]),
+  'legacy-builder-pack': Object.freeze([]),
+});
 const SIDE_NAV_BRAND_MENU_ITEMS = [
   { id: 'profile', label: 'Profile', action: 'brand-menu:page:profile' },
   { id: 'dashboard', label: 'Home', action: 'brand-menu:page:dashboard' },
@@ -290,6 +534,159 @@ const canvas = document.getElementById('figma-tree-canvas');
 const bootErrorElement = document.getElementById('boot-error');
 const loadingScreenElement = document.getElementById('binary-tree-loading');
 const firstOpenSplashElement = document.getElementById('binary-tree-first-open-splash');
+const accountOverviewPanelElement = document.getElementById('tree-next-account-overview-panel');
+const accountOverviewRefreshButtonElement = document.getElementById('tree-next-account-overview-refresh');
+const accountOverviewRankBadgeElement = document.getElementById('tree-next-account-overview-rank-badge');
+const accountOverviewRankIconElement = document.getElementById('tree-next-account-overview-rank-icon');
+const accountOverviewRankLabelElement = document.getElementById('tree-next-account-overview-rank-label');
+const accountOverviewTitleBadgeElement = document.getElementById('tree-next-account-overview-title-badge');
+const accountOverviewTitleIconElement = document.getElementById('tree-next-account-overview-title-icon');
+const accountOverviewTitleLabelElement = document.getElementById('tree-next-account-overview-title-label');
+const accountOverviewAvatarElement = document.getElementById('tree-next-account-overview-avatar');
+const accountOverviewAvatarInitialsElement = document.getElementById('tree-next-account-overview-avatar-initials');
+const accountOverviewStatusDotElement = document.getElementById('tree-next-account-overview-status-dot');
+const accountOverviewNameElement = document.getElementById('tree-next-account-overview-name');
+const accountOverviewHandleElement = document.getElementById('tree-next-account-overview-handle');
+const accountOverviewJoinedElement = document.getElementById('tree-next-account-overview-joined');
+const accountOverviewSalesTeamValueElement = document.getElementById('tree-next-account-overview-sales-team-value');
+const accountOverviewTotalBvValueElement = document.getElementById('tree-next-account-overview-total-bv-value');
+const accountOverviewPersonalBvValueElement = document.getElementById('tree-next-account-overview-personal-bv-value');
+const accountOverviewActiveWindowValueElement = document.getElementById('tree-next-account-overview-active-window-value');
+const accountOverviewCycleValueElement = document.getElementById('tree-next-account-overview-cycle-value');
+const accountOverviewCycleLabelElement = document.getElementById('tree-next-account-overview-cycle-label');
+const accountOverviewDirectSponsorsValueElement = document.getElementById('tree-next-account-overview-direct-sponsors-value');
+const accountOverviewEwalletValueElement = document.getElementById('tree-next-account-overview-ewallet-value');
+const accountOverviewRetailProfitValueElement = document.getElementById('tree-next-account-overview-retail-profit-value');
+const accountOverviewFastTrackValueElement = document.getElementById('tree-next-account-overview-fast-track-value');
+const accountOverviewTrackSalesTeamValueElement = document.getElementById('tree-next-account-overview-track-sales-team-value');
+const accountOverviewInfinityBuilderValueElement = document.getElementById('tree-next-account-overview-infinity-builder-value');
+const accountOverviewLegacyBuilderValueElement = document.getElementById('tree-next-account-overview-legacy-builder-value');
+const accountOverviewActiveWindowLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewActiveWindowValueElement);
+const accountOverviewTotalBvLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewTotalBvValueElement);
+const accountOverviewPersonalBvLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewPersonalBvValueElement);
+const accountOverviewDirectSponsorsLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewDirectSponsorsValueElement);
+const accountOverviewEwalletLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewEwalletValueElement);
+const ACCOUNT_OVERVIEW_DEFAULT_LABELS = Object.freeze({
+  activeWindow: safeText(accountOverviewActiveWindowLabelElement?.textContent || 'Account Active Until') || 'Account Active Until',
+  totalBv: safeText(accountOverviewTotalBvLabelElement?.textContent || 'Total Organization BV') || 'Total Organization BV',
+  personalBv: safeText(accountOverviewPersonalBvLabelElement?.textContent || 'Personal BV') || 'Personal BV',
+  cycle: safeText(accountOverviewCycleLabelElement?.textContent || 'Weekly Cycle Cap') || 'Weekly Cycle Cap',
+  directSponsors: safeText(accountOverviewDirectSponsorsLabelElement?.textContent || 'Direct Sponsors') || 'Direct Sponsors',
+  eWallet: safeText(accountOverviewEwalletLabelElement?.textContent || 'E-Wallet') || 'E-Wallet',
+});
+const accountOverviewCommissionButtons = Array.from(document.querySelectorAll('[data-account-overview-commission]'));
+const infinityBuilderPanelElement = document.getElementById('tree-next-infinity-builder-panel');
+const infinityBuilderCloseButtonElement = document.getElementById('tree-next-infinity-builder-close');
+const infinityBuilderBackButtonElement = document.getElementById('tree-next-infinity-builder-back');
+const infinityBuilderBreadcrumbCurrentElement = document.getElementById('tree-next-infinity-builder-breadcrumb-current');
+const infinityBuilderTitleElement = document.getElementById('tree-next-infinity-builder-title');
+const infinityBuilderCopyElement = document.getElementById('tree-next-infinity-builder-copy');
+const infinityBuilderTierTitleElement = document.getElementById('tree-next-infinity-builder-tier-title');
+const infinityBuilderTierSubtitleElement = document.getElementById('tree-next-infinity-builder-tier-subtitle');
+const infinityBuilderTierGridElement = document.getElementById('tree-next-infinity-builder-tier-grid');
+const infinityBuilderTierBonusElement = document.getElementById('tree-next-infinity-builder-tier-bonus');
+const infinityBuilderClaimButtonElement = document.getElementById('tree-next-infinity-builder-claim');
+const infinityBuilderViewTreeButtonElement = document.getElementById('tree-next-infinity-builder-view-tree');
+const infinityBuilderClaimFeedbackElement = document.getElementById('tree-next-infinity-builder-claim-feedback');
+const infinityBuilderCurrentSortElement = document.getElementById('tree-next-infinity-builder-current-sort');
+const infinityBuilderCurrentListElement = document.getElementById('tree-next-infinity-builder-current-list');
+const infinityBuilderCurrentEmptyElement = document.getElementById('tree-next-infinity-builder-current-empty');
+const rankAdvancementPanelElement = document.getElementById('tree-next-rank-advancement-panel');
+const rankAdvancementCloseButtonElement = document.getElementById('tree-next-rank-advancement-close');
+const rankAdvancementTargetPrefixElement = document.getElementById('tree-next-rank-advancement-target-prefix');
+const rankAdvancementTargetRankElement = document.getElementById('tree-next-rank-advancement-target-rank');
+const rankAdvancementAcquiredSinceElement = document.getElementById('tree-next-rank-advancement-acquired-since');
+const rankAdvancementRewardPreviewElement = document.getElementById('tree-next-rank-advancement-reward-preview');
+const rankAdvancementGoodLifePreviewElement = document.getElementById('tree-next-rank-advancement-good-life-preview');
+const rankAdvancementPersonalRequirementElement = document.getElementById('tree-next-rank-advancement-personal-requirement');
+const rankAdvancementDirectRequirementElement = document.getElementById('tree-next-rank-advancement-direct-requirement');
+const rankAdvancementCyclesRequirementElement = document.getElementById('tree-next-rank-advancement-cycles-requirement');
+const rankAdvancementMembersRequirementElement = document.getElementById('tree-next-rank-advancement-members-requirement');
+const rankAdvancementMilestonesElement = document.getElementById('tree-next-rank-advancement-milestones');
+const rankAdvancementProgressFillElement = document.getElementById('tree-next-rank-advancement-progress-fill');
+const rankAdvancementRewardIconElement = document.getElementById('tree-next-rank-advancement-reward-icon');
+const rankAdvancementRewardRankElement = document.getElementById('tree-next-rank-advancement-reward-rank');
+const rankAdvancementRewardAmountElement = document.getElementById('tree-next-rank-advancement-reward-amount');
+const rankAdvancementGoodLifeCopyElement = document.getElementById('tree-next-rank-advancement-good-life-copy');
+const rankAdvancementGoodLifeRankElement = document.getElementById('tree-next-rank-advancement-good-life-rank');
+const rankAdvancementGoodLifeAmountElement = document.getElementById('tree-next-rank-advancement-good-life-amount');
+const rankAdvancementAnalysisTotalBvElement = document.getElementById('tree-next-rank-advancement-analysis-total-bv');
+const rankAdvancementAnalysisPersonalBvElement = document.getElementById('tree-next-rank-advancement-analysis-personal-bv');
+const rankAdvancementAnalysisCyclesElement = document.getElementById('tree-next-rank-advancement-analysis-cycles');
+const rankAdvancementClaimButtonElement = document.getElementById('tree-next-rank-advancement-claim');
+const rankAdvancementClaimTimerElement = document.getElementById('tree-next-rank-advancement-claim-timer');
+const rankAdvancementFeedbackElement = document.getElementById('tree-next-rank-advancement-feedback');
+const preferredAccountsPanelElement = document.getElementById('tree-next-preferred-accounts-panel');
+const preferredAccountsCloseButtonElement = document.getElementById('tree-next-preferred-accounts-close');
+const preferredAccountsAvatarElement = document.getElementById('tree-next-preferred-accounts-avatar');
+const preferredAccountsAvatarInitialsElement = document.getElementById('tree-next-preferred-accounts-initials');
+const preferredAccountsNameElement = document.getElementById('tree-next-preferred-accounts-name');
+const preferredAccountsTotalSpendElement = document.getElementById('tree-next-preferred-accounts-total-spend');
+const preferredAccountsTotalBvElement = document.getElementById('tree-next-preferred-accounts-total-bv');
+const preferredAccountsSinceElement = document.getElementById('tree-next-preferred-accounts-since');
+const preferredAccountsOriginElement = document.getElementById('tree-next-preferred-accounts-origin');
+const preferredAccountsPlacementPlanInput = document.getElementById('tree-next-preferred-accounts-placement-plan');
+const preferredAccountsSaveButtonElement = document.getElementById('tree-next-preferred-accounts-save');
+const preferredAccountsFeedbackElement = document.getElementById('tree-next-preferred-accounts-feedback');
+const preferredAccountsEmptyElement = document.getElementById('tree-next-preferred-accounts-empty');
+const preferredAccountsListElement = document.getElementById('tree-next-preferred-accounts-list');
+const myStorePanelElement = document.getElementById('tree-next-my-store-panel');
+const myStoreScrollElement = myStorePanelElement?.querySelector('.tree-next-my-store-scroll') || null;
+const myStoreHeaderElement = myStorePanelElement?.querySelector('.tree-next-my-store-header') || null;
+const myStoreCatalogViewElement = myStorePanelElement?.querySelector('[data-my-store-view="catalog"]') || null;
+const myStoreReviewViewElement = myStorePanelElement?.querySelector('[data-my-store-view="review"]') || null;
+const myStoreCheckoutViewElement = myStorePanelElement?.querySelector('[data-my-store-view="checkout"]') || null;
+const myStoreThankYouViewElement = myStorePanelElement?.querySelector('[data-my-store-view="thank-you"]') || null;
+const myStoreShareViewElement = myStorePanelElement?.querySelector('[data-my-store-share-block]') || null;
+const myStoreBreadcrumbsElement = document.getElementById('tree-next-my-store-breadcrumbs');
+const myStoreCloseButtonElement = document.getElementById('tree-next-my-store-close');
+const myStoreFeaturedImageElement = document.getElementById('tree-next-my-store-featured-image');
+const myStoreFeaturedLabelElement = document.getElementById('tree-next-my-store-featured-label');
+const myStoreUpgradesSectionElement = document.getElementById('tree-next-my-store-upgrades-section');
+const myStoreUpgradesGridElement = document.getElementById('tree-next-my-store-upgrades-grid');
+const myStoreReviewImageElement = document.getElementById('tree-next-my-store-review-image');
+const myStoreReviewTitleElement = document.getElementById('tree-next-my-store-review-title');
+const myStoreReviewNameElement = document.getElementById('tree-next-my-store-review-name');
+const myStoreReviewQuantityControlElement = document.getElementById('tree-next-my-store-review-quantity-control');
+const myStoreReviewQuantityDecreaseButtonElement = document.getElementById('tree-next-my-store-review-qty-decrease');
+const myStoreReviewQuantityIncreaseButtonElement = document.getElementById('tree-next-my-store-review-qty-increase');
+const myStoreReviewQuantityElement = document.getElementById('tree-next-my-store-review-quantity');
+const myStoreReviewUpgradeProductSelectorElement = document.getElementById('tree-next-my-store-upgrade-product-selector');
+const myStoreReviewUpgradeProductButtons = Array.from(
+  myStorePanelElement?.querySelectorAll('[data-my-store-upgrade-product-key]') || [],
+);
+const myStoreReviewPriceElement = document.getElementById('tree-next-my-store-review-price');
+const myStoreReviewBvElement = document.getElementById('tree-next-my-store-review-bv');
+const myStoreReviewRemoveButtonElement = document.getElementById('tree-next-my-store-review-remove');
+const myStoreReviewCheckoutButtonElement = document.getElementById('tree-next-my-store-review-checkout');
+const myStoreCheckoutFormElement = document.getElementById('tree-next-my-store-checkout-form');
+const myStoreCheckoutProductLabelElement = document.getElementById('tree-next-my-store-checkout-product-label');
+const myStoreCheckoutSubtotalElement = document.getElementById('tree-next-my-store-checkout-subtotal');
+const myStoreCheckoutDiscountElement = document.getElementById('tree-next-my-store-checkout-discount');
+const myStoreCheckoutTaxElement = document.getElementById('tree-next-my-store-checkout-tax');
+const myStoreCheckoutTotalElement = document.getElementById('tree-next-my-store-checkout-total');
+const myStoreCheckoutNameInputElement = document.getElementById('tree-next-my-store-checkout-name');
+const myStoreCardNumberElement = document.getElementById('tree-next-my-store-card-number-element');
+const myStoreCardExpiryElement = document.getElementById('tree-next-my-store-card-expiry-element');
+const myStoreCardCvcElement = document.getElementById('tree-next-my-store-card-cvc-element');
+const myStoreCheckoutBillingAddressInputElement = document.getElementById('tree-next-my-store-checkout-billing-address');
+const myStoreCheckoutBillingCityInputElement = document.getElementById('tree-next-my-store-checkout-billing-city');
+const myStoreCheckoutBillingStateInputElement = document.getElementById('tree-next-my-store-checkout-billing-state');
+const myStoreCheckoutBillingPostalInputElement = document.getElementById('tree-next-my-store-checkout-billing-postal');
+const myStoreCheckoutBillingCountrySelect = document.getElementById('tree-next-my-store-checkout-billing-country');
+const myStoreCheckoutCardErrorElement = document.getElementById('tree-next-my-store-card-error');
+const myStoreCheckoutPreviousButtonElement = document.getElementById('tree-next-my-store-checkout-previous');
+const myStoreCheckoutPayButtonElement = document.getElementById('tree-next-my-store-checkout-pay');
+const myStoreCheckoutFeedbackElement = document.getElementById('tree-next-my-store-checkout-feedback');
+const myStoreThankYouMessageElement = document.getElementById('tree-next-my-store-thank-you-message');
+const myStoreThankYouInvoiceElement = document.getElementById('tree-next-my-store-thank-you-invoice');
+const myStoreThankYouStatusElement = document.getElementById('tree-next-my-store-thank-you-status');
+const myStoreThankYouAmountElement = document.getElementById('tree-next-my-store-thank-you-amount');
+const myStoreThankYouBvElement = document.getElementById('tree-next-my-store-thank-you-bv');
+const myStoreThankYouDateElement = document.getElementById('tree-next-my-store-thank-you-date');
+const myStoreThankYouDoneButtonElement = document.getElementById('tree-next-my-store-thank-you-done');
+const myStoreCopyLinkButtonElement = document.getElementById('tree-next-my-store-copy-link');
+const myStoreCopyFeedbackElement = document.getElementById('tree-next-my-store-copy-feedback');
 const treeNextEnrollModalOverlayElement = document.getElementById('tree-next-enroll-modal-overlay');
 const treeNextEnrollModalElement = document.getElementById('tree-next-enroll-modal');
 const treeNextEnrollModalTitleElement = document.getElementById('tree-next-enroll-modal-title');
@@ -359,10 +756,91 @@ let treeNextEnrollStripeCardExpiry = null;
 let treeNextEnrollStripeCardCvc = null;
 let treeNextEnrollStripeInitPromise = null;
 let treeNextEnrollBillingCountryHydrationPromise = null;
+let myStoreStripeClient = null;
+let myStoreStripeElements = null;
+let myStoreStripeCardNumber = null;
+let myStoreStripeCardExpiry = null;
+let myStoreStripeCardCvc = null;
+let myStoreStripeInitPromise = null;
+let accountOverviewLastRenderSignature = '';
+let accountOverviewSelectedCommissionKey = '';
+let accountOverviewRemoteSnapshot = createEmptyAccountOverviewRemoteSnapshot();
+let accountOverviewRemoteDataVersion = 0;
+let accountOverviewRemoteSyncPromise = null;
+let accountOverviewRemoteSyncInFlight = false;
+let accountOverviewRemoteLastRequestAtMs = 0;
+let accountOverviewRemoteLastSyncedAtMs = 0;
+let accountOverviewRemoteIdentityKey = '';
+let accountOverviewRemoteRequestSequence = 0;
+let accountOverviewCachedLegVolumeSignature = '';
+let accountOverviewCachedLegVolumeMetrics = null;
+let sideNavMemberStatusCachedSignature = '';
+let sideNavMemberStatusCachedSnapshot = null;
+let rankAdvancementLastRenderSignature = '';
+let rankAdvancementSnapshot = null;
+let rankAdvancementDataVersion = 0;
+let rankAdvancementSyncPromise = null;
+let rankAdvancementSyncInFlight = false;
+let rankAdvancementLastRequestAtMs = 0;
+let rankAdvancementLastSyncedAtMs = 0;
+let rankAdvancementIdentityKey = '';
+let rankAdvancementLoading = false;
+let rankAdvancementClaimInFlight = false;
+let rankAdvancementCachedAchievementsPayload = null;
+let rankAdvancementCachedGoodLifePayload = null;
+let rankAdvancementFeedbackTimerId = 0;
+let rankAdvancementClaimTimerIntervalId = 0;
+let rankAdvancementSelectedMilestoneId = '';
+let infinityBuilderPanelMode = INFINITY_BUILDER_PANEL_MODE_INFINITY;
+let infinityBuilderLastRenderSignature = '';
+let infinityBuilderSelectedTierNumber = 1;
+let infinityBuilderClaimInFlight = false;
+let infinityBuilderClaimFeedbackTimerId = 0;
+let infinityBuilderClaimFeedbackTierNumber = 0;
+let infinityBuilderLastPanelSnapshot = null;
+let infinityBuilderTierSortDirectionInfinity = 'asc';
+let infinityBuilderTierSortDirectionLegacyLeadership = 'asc';
+let infinityBuilderTierSortDirectionsUpdatedAt = '';
+let infinityBuilderTierSortDirectionsSyncInFlight = false;
+let infinityBuilderTierSortDirectionsSyncQueued = false;
+let infinityBuilderTierSortDirectionsLastSyncedKey = '';
+let infinityBuilderTierSortDirectionsLocalDirty = false;
+let legacyTierCanvasOpenTimerId = 0;
+let legacyTierCanvasOpenToken = '';
+let legacyTierCanvasTierSwitchTimerId = 0;
+let legacyTierCanvasTierSwitchToken = '';
+const legacyTierCanvasViewState = {
+  active: false,
+  tierNumber: 0,
+  signature: '',
+  model: null,
+  anchorView: null,
+  tierEntries: [],
+  dropdownOpen: false,
+  tierSwitchInFlight: false,
+};
+let preferredAccountsLastRenderSignature = '';
+let preferredAccountsRows = [];
+let preferredAccountsRowsDataSignature = '';
+let preferredAccountsSelectedMemberId = '';
+let preferredAccountsInvoices = [];
+let preferredAccountsDataVersion = 0;
+let preferredAccountsSyncPromise = null;
+let preferredAccountsSyncInFlight = false;
+let preferredAccountsLastRequestAtMs = 0;
+let preferredAccountsLastSyncedAtMs = 0;
+let preferredAccountsFeedbackTimerId = 0;
+let preferredAccountsRenderErrorLoggedAtMs = 0;
+let renderLoopErrorLoggedAtMs = 0;
+let myStoreLastRenderSignature = '';
 let isTreeNextEnrollStripeReady = false;
 let isTreeNextEnrollStripeCardComplete = false;
 let isTreeNextEnrollStripeCardExpiryComplete = false;
 let isTreeNextEnrollStripeCardCvcComplete = false;
+let isMyStoreStripeReady = false;
+let isMyStoreStripeCardComplete = false;
+let isMyStoreStripeCardExpiryComplete = false;
+let isMyStoreStripeCardCvcComplete = false;
 
 if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error('Missing #figma-tree-canvas');
@@ -378,7 +856,22 @@ if (!glassBackdropContext) {
   throw new Error('Unable to initialize offscreen glass backdrop context.');
 }
 let launchStateResetInFlight = false;
+let pinnedNodeIdsServerSyncTimerId = 0;
+let pinnedNodeIdsServerSyncInFlight = false;
+let pinnedNodeIdsServerSyncQueued = false;
+let pinnedNodeIdsLastSyncedKey = '';
+let pinnedNodeIdsLocalDirty = false;
+const treeNextStripeReturnSignalHandledKeys = new Set();
+const myStoreCheckoutFinalizationInFlightSessionIds = new Set();
+const enrollCheckoutFinalizationInFlightSessionIds = new Set();
+const myStoreCheckoutRetryAttemptBySession = new Map();
+const myStoreCheckoutRetryTimeoutBySession = new Map();
 const avatarImageAssetCache = new Map();
+const mobileSearchViewportLock = {
+  active: false,
+  width: 0,
+  height: 0,
+};
 
 const state = {
   source: 'member',
@@ -413,14 +906,49 @@ const state = {
   },
   ui: {
     sideNavOpen: true,
+    accountOverviewVisible: false,
+    infinityBuilderVisible: false,
+    rankAdvancementVisible: false,
+    preferredAccountsVisible: false,
+    preferredAccountsSaving: false,
+    myStoreVisible: false,
+    myStoreStep: MY_STORE_STEP_CATALOG,
+    myStoreSelection: null,
+    myStoreCheckoutCompletion: null,
+    myStoreCheckoutSubmitting: false,
     sideNavBrandMenuOpen: false,
     sideNavBrandMenuAnchorRect: null,
     sideNavSearchInputRect: null,
+    sideNavSearchInputClipRect: null,
     sideNavSearchInputOpacity: 0,
     sideNavSearchDropdownRect: null,
     sideNavSearchResults: [],
     sideNavSearchDropdownOpen: false,
     sideNavSearchActiveIndex: -1,
+    mobileSidePanelStage: TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+    mobileSidePanelStageInitialized: false,
+    mobileTopControlsHidden: false,
+    mobileTopControlsReveal: 1,
+    mobileTopControlsAutoHideContextToken: '',
+    mobileSidePanelSpring: {
+      active: false,
+      currentProgress: TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF,
+      targetProgress: TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF,
+      velocity: 0,
+      dragging: false,
+    },
+    mobileSidePanelDrag: {
+      active: false,
+      pointerId: null,
+      source: 'handle',
+      startMs: 0,
+      startY: 0,
+      startProgress: TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF,
+      lastY: 0,
+      lastMoveMs: 0,
+      velocityY: 0,
+      startStage: TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+    },
     sideNavFavorites: {
       viewportRect: null,
       contentWidth: 0,
@@ -430,11 +958,22 @@ const state = {
       dragStartX: 0,
       dragStartScrollX: 0,
       dragStartY: 0,
+      dragAxis: '',
       dragMoved: false,
       tapAction: '',
       placesCacheKey: '',
       placesCacheLimit: 0,
       placesCache: [],
+    },
+    sideNavContentScroll: {
+      viewportRect: null,
+      scrollY: 0,
+      maxScrollY: 0,
+      dragActive: false,
+      dragPointerId: null,
+      dragStartY: 0,
+      dragStartScrollY: 0,
+      dragMoved: false,
     },
   },
   enroll: {
@@ -462,6 +1001,18 @@ const state = {
     pointerId: null,
     lastX: 0,
     lastY: 0,
+    pointerType: '',
+    velocityX: 0,
+    velocityY: 0,
+    lastInstantVelocityX: 0,
+    lastInstantVelocityY: 0,
+    lastMoveAtMs: 0,
+    moved: false,
+  },
+  touchPanInertia: {
+    active: false,
+    velocityX: 0,
+    velocityY: 0,
   },
   reverseTrackpadMovement: false,
   trackpadZoomSensitivity: DEFAULT_TRACKPAD_ZOOM_SENSITIVITY,
@@ -477,6 +1028,8 @@ const state = {
   perf: {
     fps: 0,
     frameMs: 0,
+    mobileRuntimeDpr: 0,
+    mobileDprLastAdjustAtMs: 0,
   },
   intro: {
     startedAtMs: null,
@@ -502,6 +1055,11 @@ const state = {
     firstTime: false,
     firstOpenedAt: '',
     lastOpenedAt: '',
+    pinnedNodeIds: [],
+    pinnedNodeIdsUpdatedAt: '',
+    infinityBuilderTierSortDirection: 'asc',
+    legacyLeadershipTierSortDirection: 'asc',
+    tierSortDirectionsUpdatedAt: '',
     checkedAt: '',
     source: 'uninitialized',
   },
@@ -524,6 +1082,21 @@ const state = {
   },
 };
 
+const touchGestureState = {
+  activePointers: new Map(),
+  pinchActive: false,
+  pinchStartDistance: 0,
+  pinchStartScale: DEFAULT_HOME_SCALE,
+  lastCenterX: 0,
+  lastCenterY: 0,
+};
+
+let touchNavigationGuardBound = false;
+const mobileSheetInteractionState = {
+  isMobile: false,
+  stage: '',
+};
+
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
@@ -542,6 +1115,514 @@ function easeOutBack(value) {
 
 function getNowMs() {
   return Number.isFinite(state.timeMs) ? state.timeMs : performance.now();
+}
+
+function hasCoarsePointerInput() {
+  if (typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  return (
+    window.matchMedia('(pointer: coarse)').matches
+    || window.matchMedia('(any-pointer: coarse)').matches
+  );
+}
+
+function isTreeNextMobileViewport(widthInput = state.renderSize?.width, heightInput = state.renderSize?.height) {
+  const width = Math.max(1, Math.floor(safeNumber(widthInput, window.innerWidth || 1)));
+  const height = Math.max(1, Math.floor(safeNumber(heightInput, window.innerHeight || 1)));
+  if (width <= TREE_NEXT_MOBILE_BREAKPOINT_PX) {
+    return true;
+  }
+  return hasCoarsePointerInput() && width <= TREE_NEXT_MOBILE_COARSE_BREAKPOINT_PX && height <= 1400;
+}
+
+function normalizeTreeNextMobileSidePanelStage(stageInput = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF) {
+  const safeStage = safeText(stageInput).trim().toLowerCase();
+  return TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_SET.has(safeStage)
+    ? safeStage
+    : TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF;
+}
+
+function resolveTreeNextMobileBottomViewportOcclusionPx() {
+  if (typeof window !== 'object' || !window || !window.visualViewport) {
+    return 0;
+  }
+  const layoutViewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(window.innerHeight, state.renderSize?.height || 1)),
+  );
+  const visualViewportHeight = Math.max(
+    1,
+    safeNumber(window.visualViewport.height, layoutViewportHeight),
+  );
+  const visualViewportTop = safeNumber(window.visualViewport.offsetTop, 0);
+  return Math.max(
+    0,
+    Math.round(layoutViewportHeight - (visualViewportHeight + visualViewportTop)),
+  );
+}
+
+function resolveTreeNextMobileSidePanelClosedProgress(options = {}) {
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(options.height, state.renderSize?.height || window.innerHeight || 1)),
+  );
+  const topInset = TREE_NEXT_MOBILE_SIDE_PANEL_TOP_SAFE_INSET_PX;
+  const bottomInset = TREE_NEXT_MOBILE_SIDE_PANEL_BOTTOM_SAFE_INSET_PX;
+  const maxHeight = Math.max(280, viewportHeight - topInset - bottomInset);
+  const baseMinimumVisibleHeight = Math.max(
+    TREE_NEXT_MOBILE_SIDE_PANEL_CLOSED_MIN_VISIBLE_PX,
+    Math.round(maxHeight * TREE_NEXT_MOBILE_SIDE_PANEL_CLOSED_MIN_VISIBLE_RATIO),
+  );
+  const bottomOcclusionPx = Math.max(
+    0,
+    Math.floor(safeNumber(options.bottomOcclusionPx, resolveTreeNextMobileBottomViewportOcclusionPx())),
+  );
+  const minimumVisibleHeight = baseMinimumVisibleHeight + bottomOcclusionPx;
+  const maximumClosedProgressByVisibleHeight = 1 - (minimumVisibleHeight / Math.max(1, maxHeight));
+  return clamp(
+    Math.min(TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_CLOSED, maximumClosedProgressByVisibleHeight),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_CLOSED,
+  );
+}
+
+function resolveTreeNextMobileSidePanelSnapProgress(stageInput = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF, options = {}) {
+  const stage = normalizeTreeNextMobileSidePanelStage(stageInput);
+  if (stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL) {
+    return TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL;
+  }
+  if (stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED) {
+    return resolveTreeNextMobileSidePanelClosedProgress(options);
+  }
+  return TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF;
+}
+
+function resolveTreeNextMobileSidePanelStageFromProgress(progressInput, options = {}) {
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress(options);
+  const safeProgress = clamp(
+    safeNumber(progressInput, TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const stages = [
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED,
+  ];
+  let closestStage = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF;
+  let closestDistance = Number.POSITIVE_INFINITY;
+  for (const stage of stages) {
+    const distance = Math.abs(resolveTreeNextMobileSidePanelSnapProgress(stage, options) - safeProgress);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestStage = stage;
+    }
+  }
+  return closestStage;
+}
+
+function resolveTreeNextMobileAdjacentSidePanelStage(
+  stageInput = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+  directionInput = 'up',
+) {
+  const order = [
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+    TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED,
+  ];
+  const stage = normalizeTreeNextMobileSidePanelStage(stageInput);
+  const direction = safeText(directionInput).trim().toLowerCase() === 'down' ? 'down' : 'up';
+  const currentIndex = Math.max(0, order.indexOf(stage));
+  if (direction === 'up') {
+    return order[Math.max(0, currentIndex - 1)];
+  }
+  return order[Math.min(order.length - 1, currentIndex + 1)];
+}
+
+function getTreeNextMobileSidePanelSpringState() {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  if (!state.ui.mobileSidePanelSpring || typeof state.ui.mobileSidePanelSpring !== 'object') {
+    const initialStage = normalizeTreeNextMobileSidePanelStage(state.ui.mobileSidePanelStage);
+    const initialProgress = resolveTreeNextMobileSidePanelSnapProgress(initialStage);
+    state.ui.mobileSidePanelSpring = {
+      active: false,
+      currentProgress: initialProgress,
+      targetProgress: initialProgress,
+      velocity: 0,
+      dragging: false,
+    };
+  }
+  return state.ui.mobileSidePanelSpring;
+}
+
+function getTreeNextMobileSidePanelDragState() {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  if (!state.ui.mobileSidePanelDrag || typeof state.ui.mobileSidePanelDrag !== 'object') {
+    state.ui.mobileSidePanelDrag = {
+      active: false,
+      pointerId: null,
+      source: 'handle',
+      startMs: 0,
+      startY: 0,
+      startProgress: TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF,
+      lastY: 0,
+      lastMoveMs: 0,
+      velocityY: 0,
+      startStage: TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+    };
+  }
+  return state.ui.mobileSidePanelDrag;
+}
+
+function clearTreeNextMobileSidePanelDrag(pointerId = null) {
+  const dragState = getTreeNextMobileSidePanelDragState();
+  if (
+    pointerId !== null
+    && pointerId !== undefined
+    && dragState.active
+    && pointerId !== dragState.pointerId
+  ) {
+    return false;
+  }
+  dragState.active = false;
+  dragState.pointerId = null;
+  dragState.source = 'handle';
+  dragState.startMs = 0;
+  dragState.startY = 0;
+  dragState.startProgress = TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF;
+  dragState.lastY = 0;
+  dragState.lastMoveMs = 0;
+  dragState.velocityY = 0;
+  dragState.startStage = normalizeTreeNextMobileSidePanelStage(state.ui?.mobileSidePanelStage);
+  const springState = getTreeNextMobileSidePanelSpringState();
+  springState.dragging = false;
+  springState.velocity = 0;
+  return true;
+}
+
+function resolveTreeNextMobileSidePanelStage(options = {}) {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(options.width, state.renderSize?.width || window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(options.height, state.renderSize?.height || window.innerHeight || 1)),
+  );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  const springState = getTreeNextMobileSidePanelSpringState();
+  if (!isMobileViewport) {
+    state.ui.mobileSidePanelStage = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL;
+    state.ui.mobileSidePanelStageInitialized = false;
+    springState.active = false;
+    springState.currentProgress = TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL;
+    springState.targetProgress = TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL;
+    springState.velocity = 0;
+    springState.dragging = false;
+    clearTreeNextMobileSidePanelDrag();
+    return TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL;
+  }
+
+  if (state.ui.mobileSidePanelStageInitialized !== true) {
+    state.ui.mobileSidePanelStage = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF;
+    state.ui.mobileSidePanelStageInitialized = true;
+  } else {
+    state.ui.mobileSidePanelStage = normalizeTreeNextMobileSidePanelStage(state.ui.mobileSidePanelStage);
+  }
+  const stage = normalizeTreeNextMobileSidePanelStage(state.ui.mobileSidePanelStage);
+  const targetProgress = resolveTreeNextMobileSidePanelSnapProgress(stage, { height: viewportHeight });
+  if (!springState.active) {
+    springState.active = true;
+    springState.currentProgress = targetProgress;
+    springState.targetProgress = targetProgress;
+    springState.velocity = 0;
+  } else if (!springState.dragging) {
+    springState.targetProgress = targetProgress;
+  }
+  return stage;
+}
+
+function setTreeNextMobileSidePanelStage(nextStageInput, options = {}) {
+  const viewportWidth = Math.max(1, Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)));
+  const viewportHeight = Math.max(1, Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)));
+  const animate = options?.animate !== false && !prefersReducedMotion();
+  if (!isTreeNextMobileViewport(viewportWidth, viewportHeight)) {
+    state.ui.mobileSidePanelStage = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL;
+    state.ui.mobileSidePanelStageInitialized = false;
+    clearTreeNextMobileSidePanelDrag();
+    const desktopSpringState = getTreeNextMobileSidePanelSpringState();
+    desktopSpringState.active = false;
+    desktopSpringState.currentProgress = TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL;
+    desktopSpringState.targetProgress = TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL;
+    desktopSpringState.velocity = 0;
+    desktopSpringState.dragging = false;
+    return TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL;
+  }
+  const nextStage = normalizeTreeNextMobileSidePanelStage(nextStageInput);
+  state.ui.mobileSidePanelStage = nextStage;
+  state.ui.mobileSidePanelStageInitialized = true;
+  if (nextStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED) {
+    state.ui.sideNavBrandMenuOpen = false;
+    closeSearchDropdown();
+    const searchInput = ensureSideNavSearchInput();
+    if (document.activeElement === searchInput) {
+      searchInput.blur();
+    }
+  }
+  const springState = getTreeNextMobileSidePanelSpringState();
+  const targetProgress = resolveTreeNextMobileSidePanelSnapProgress(nextStage, { height: viewportHeight });
+  springState.active = true;
+  springState.targetProgress = targetProgress;
+  if (!animate) {
+    springState.currentProgress = targetProgress;
+    springState.velocity = 0;
+  }
+  return nextStage;
+}
+
+function restoreTreeNextMobileCenterPanelHalfStage(options = {}) {
+  if (!isTreeNextMobileViewport()) {
+    return false;
+  }
+  const animate = options?.animate !== false;
+  const currentStage = resolveTreeNextMobileSidePanelStage();
+  if (currentStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF) {
+    return true;
+  }
+  state.ui.sideNavOpen = true;
+  setTreeNextMobileSidePanelStage(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF, { animate });
+  return true;
+}
+
+function resolveTreeNextMobileSidePanelProgress(options = {}) {
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(options.height, state.renderSize?.height || window.innerHeight || 1)),
+  );
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height: viewportHeight });
+  const stage = resolveTreeNextMobileSidePanelStage(options);
+  const springState = getTreeNextMobileSidePanelSpringState();
+  const fallbackProgress = resolveTreeNextMobileSidePanelSnapProgress(stage, { height: viewportHeight });
+  const currentProgress = clamp(
+    safeNumber(springState.currentProgress, fallbackProgress),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const targetProgress = clamp(
+    safeNumber(springState.targetProgress, fallbackProgress),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  springState.currentProgress = currentProgress;
+  springState.targetProgress = targetProgress;
+  return currentProgress;
+}
+
+// Spring motion keeps snap transitions responsive and iOS-like without linear easing.
+function updateTreeNextMobileSidePanelSpring(deltaSecondsInput = 0.016) {
+  const viewportWidth = Math.max(1, Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)));
+  const viewportHeight = Math.max(1, Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)));
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height: viewportHeight });
+  if (!isTreeNextMobileViewport(viewportWidth, viewportHeight)) {
+    return;
+  }
+  resolveTreeNextMobileSidePanelStage({ width: viewportWidth, height: viewportHeight });
+  const springState = getTreeNextMobileSidePanelSpringState();
+  if (!springState.active || springState.dragging) {
+    return;
+  }
+  if (prefersReducedMotion()) {
+    springState.currentProgress = springState.targetProgress;
+    springState.velocity = 0;
+    state.ui.mobileSidePanelStage = resolveTreeNextMobileSidePanelStageFromProgress(springState.targetProgress, {
+      height: viewportHeight,
+    });
+    return;
+  }
+  const deltaSeconds = clamp(safeNumber(deltaSecondsInput, 0.016), 0.0001, 0.05);
+  const current = clamp(
+    safeNumber(springState.currentProgress, TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const target = clamp(
+    safeNumber(springState.targetProgress, current),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const displacement = target - current;
+  const velocity = safeNumber(springState.velocity, 0);
+  if (
+    Math.abs(displacement) <= TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_MIN_DISPLACEMENT
+    && Math.abs(velocity) <= TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_MIN_VELOCITY
+  ) {
+    springState.currentProgress = target;
+    springState.velocity = 0;
+    state.ui.mobileSidePanelStage = resolveTreeNextMobileSidePanelStageFromProgress(target, {
+      height: viewportHeight,
+    });
+    return;
+  }
+  const acceleration = (
+    displacement * TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_STIFFNESS
+    - velocity * TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_DAMPING
+  );
+  const nextVelocity = velocity + (acceleration * deltaSeconds);
+  const nextProgress = clamp(
+    current + (nextVelocity * deltaSeconds),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  springState.velocity = nextVelocity;
+  springState.currentProgress = nextProgress;
+}
+
+function resolveTreeNextMobileSidePanelFrame(
+  widthInput,
+  heightInput,
+  stageInput = TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+  progressInput = null,
+) {
+  const width = Math.max(1, Math.floor(safeNumber(widthInput, window.innerWidth || 1)));
+  const height = Math.max(1, Math.floor(safeNumber(heightInput, window.innerHeight || 1)));
+  const stage = normalizeTreeNextMobileSidePanelStage(stageInput);
+  const panelWidth = Math.max(280, width - (TREE_NEXT_MOBILE_SIDE_PANEL_WIDTH_INSET_PX * 2));
+  const topInset = TREE_NEXT_MOBILE_SIDE_PANEL_TOP_SAFE_INSET_PX;
+  const bottomInset = TREE_NEXT_MOBILE_SIDE_PANEL_BOTTOM_SAFE_INSET_PX;
+  const maxHeight = Math.max(280, height - topInset - bottomInset);
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height });
+  const translateProgress = clamp(
+    safeNumber(progressInput, resolveTreeNextMobileSidePanelSnapProgress(stage, { height })),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const panelX = Math.round((width - panelWidth) / 2);
+  const panelY = Math.round(topInset + (maxHeight * translateProgress));
+  const visibleHeight = Math.max(0, (height - bottomInset) - panelY);
+  return {
+    x: panelX,
+    y: panelY,
+    width: panelWidth,
+    height: maxHeight,
+    visibleHeight,
+    translateProgress,
+    expansionProgress: clamp(1 - translateProgress, 0, 1),
+    stage,
+    isClosed: stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED,
+    isFull: stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+  };
+}
+
+function resolveTreeNextMobileOverlayPanelFrame(viewportWidthInput, viewportHeightInput, options = {}) {
+  const viewportWidth = Math.max(1, Math.floor(safeNumber(viewportWidthInput, window.innerWidth || 1)));
+  const viewportHeight = Math.max(1, Math.floor(safeNumber(viewportHeightInput, window.innerHeight || 1)));
+  const stage = resolveTreeNextMobileSidePanelStage({
+    width: viewportWidth,
+    height: viewportHeight,
+  });
+  const stageForOverlay = stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED
+    ? TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF
+    : stage;
+  const fullScreenInFullStage = options?.fullScreenInFullStage === true;
+  if (
+    fullScreenInFullStage
+    && stageForOverlay === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+  ) {
+    return {
+      x: 0,
+      y: 0,
+      width: viewportWidth,
+      height: viewportHeight,
+      stage,
+      isFull: true,
+    };
+  }
+  const edgeInset = Math.max(0, Math.floor(safeNumber(options.edgeInset, TREE_NEXT_MOBILE_OVERLAY_PANEL_EDGE_INSET_PX)));
+  const maxWidthInput = Math.max(240, Math.floor(safeNumber(options.maxWidth, viewportWidth - (edgeInset * 2))));
+  const availableWidth = Math.max(240, viewportWidth - (edgeInset * 2));
+  const panelWidth = clamp(
+    Math.min(maxWidthInput, availableWidth),
+    Math.min(Math.max(220, Math.floor(safeNumber(options.minWidth, 320))), availableWidth),
+    availableWidth,
+  );
+  let topInset = TREE_NEXT_MOBILE_OVERLAY_PANEL_HALF_TOP_INSET_PX;
+  if (stageForOverlay === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL) {
+    topInset = TREE_NEXT_MOBILE_OVERLAY_PANEL_FULL_TOP_INSET_PX;
+  } else if (stage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED) {
+    topInset = TREE_NEXT_MOBILE_OVERLAY_PANEL_CLOSED_TOP_INSET_PX;
+  }
+  const maxHeight = Math.max(
+    240,
+    viewportHeight - topInset - Math.max(0, Math.floor(safeNumber(options.bottomInset, edgeInset))),
+  );
+  const minimumHeight = Math.min(
+    maxHeight,
+    Math.max(220, Math.floor(safeNumber(options.minHeight, 320))),
+  );
+  const halfHeightRatio = clamp(safeNumber(options.halfHeightRatio, 0.82), 0.55, 0.95);
+  const panelHeight = stageForOverlay === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+    ? maxHeight
+    : clamp(Math.round(viewportHeight * halfHeightRatio), minimumHeight, maxHeight);
+  const panelLeft = Math.round((viewportWidth - panelWidth) / 2);
+  const panelTop = stageForOverlay === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+    ? topInset
+    : Math.round((viewportHeight - panelHeight) / 2);
+  return {
+    x: panelLeft,
+    y: panelTop,
+    width: panelWidth,
+    height: panelHeight,
+    stage,
+    isFull: stageForOverlay === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+  };
+}
+
+function applyTreeNextMobileOverlayPanelStyle(panelElement, frame) {
+  if (!(panelElement instanceof HTMLElement) || !frame) {
+    return;
+  }
+  panelElement.style.left = `${Math.round(frame.x)}px`;
+  panelElement.style.top = `${Math.round(frame.y)}px`;
+  panelElement.style.width = `${Math.max(220, Math.round(frame.width))}px`;
+  panelElement.style.height = `${Math.max(220, Math.round(frame.height))}px`;
+}
+
+function clearTreeNextMobileOverlayPanelStyle(panelElement) {
+  if (!(panelElement instanceof HTMLElement)) {
+    return;
+  }
+  panelElement.style.left = '';
+  panelElement.style.top = '';
+  panelElement.style.width = '';
+  panelElement.style.height = '';
+}
+
+function resolveMobileSideNavHandleRect(layoutInput = state.layout) {
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const workspace = layout?.workspace || null;
+  const sideNav = layout?.sideNav || null;
+  if (!workspace || !sideNav) {
+    return null;
+  }
+  if (!state.ui?.sideNavOpen || !isTreeNextMobileViewport(workspace.width, workspace.height)) {
+    return null;
+  }
+  const width = clamp(Math.round(sideNav.width * 0.32), 120, 170);
+  const height = 28;
+  return {
+    x: Math.round(sideNav.x + ((sideNav.width - width) / 2)),
+    y: Math.round(sideNav.y + 4),
+    width,
+    height,
+  };
 }
 
 function prefersReducedMotion() {
@@ -1044,6 +2125,18 @@ function resolveAchievementIconKeyFromLabel(label) {
   if (!normalized || normalized === 'private') {
     return 'placeholder';
   }
+  if (normalized.includes('legacy founder')) {
+    return 'legacy-founder-star';
+  }
+  if (normalized.includes('legacy director')) {
+    return 'legacy-director-star';
+  }
+  if (normalized.includes('legacy ambassador')) {
+    return 'legacy-ambassador-star';
+  }
+  if (normalized.includes('presidential circle')) {
+    return 'presidential-circle-star';
+  }
   if (normalized.includes('black diamond')) {
     return 'black-diamond';
   }
@@ -1090,39 +2183,208 @@ function resolveAchievementIconKeyFromLabel(label) {
   return 'placeholder';
 }
 
+const TITLE_ICON_BASE_NAME_BY_KEY = Object.freeze({
+  'legacy-founder-star': 'legacy-founder-star',
+  'legacy-director-star': 'legacy-director-star',
+  'legacy-ambassador-star': 'legacy-ambassador-star',
+  'presidential-circle-star': 'presidential-circle-star',
+  'time-limited-event-legacy-founder': 'legacy-founder-star',
+  'time-limited-event-legacy-director': 'legacy-director-star',
+  'time-limited-event-legacy-ambassador': 'legacy-ambassador-star',
+  'time-limited-event-presidential-circle': 'presidential-circle-star',
+});
+
+function resolveTitleIconBaseName(value) {
+  const normalized = safeText(value).toLowerCase();
+  if (!normalized) {
+    return '';
+  }
+  if (Object.prototype.hasOwnProperty.call(TITLE_ICON_BASE_NAME_BY_KEY, normalized)) {
+    return TITLE_ICON_BASE_NAME_BY_KEY[normalized];
+  }
+  if (
+    normalized === 'legacy-founder'
+    || normalized === 'legacy-director'
+    || normalized === 'legacy-ambassador'
+    || normalized === 'presidential-circle'
+  ) {
+    return `${normalized}-star`;
+  }
+  return '';
+}
+
+function resolveTitleIconPathFromValue(value, options = {}) {
+  const {
+    preserveExplicitSuffix = false,
+  } = options;
+  const safeValue = safeText(value);
+  const withoutSvgSuffix = safeValue.replace(/\.svg$/i, '');
+  const baseName = resolveTitleIconBaseName(withoutSvgSuffix);
+  if (!baseName) {
+    return '';
+  }
+  const fileName = preserveExplicitSuffix && /\.svg$/i.test(safeValue)
+    ? safeValue
+    : `${baseName}-light.svg`;
+  return `/brand_assets/Icons/Title-Icons/${fileName}`;
+}
+
 function resolveNodeDetailsIconPath(rawValue, fallbackLabel = '') {
   const safeValue = safeText(rawValue);
   if (!safeValue) {
     const fallbackKey = resolveAchievementIconKeyFromLabel(fallbackLabel);
+    const titleIconPath = resolveTitleIconPathFromValue(fallbackKey);
+    if (titleIconPath) {
+      return titleIconPath;
+    }
     return `/brand_assets/Icons/Achievements/${fallbackKey}-light.svg`;
   }
   if (/^(https?:)?\/\//i.test(safeValue) || safeValue.startsWith('/')) {
     return safeValue;
   }
   if (safeValue.toLowerCase().endsWith('.svg')) {
+    const titleIconPath = resolveTitleIconPathFromValue(safeValue, { preserveExplicitSuffix: true });
+    if (titleIconPath) {
+      return titleIconPath;
+    }
     return `/brand_assets/Icons/Achievements/${safeValue}`;
   }
+  const titleIconPath = resolveTitleIconPathFromValue(safeValue);
+  if (titleIconPath) {
+    return titleIconPath;
+  }
   return `/brand_assets/Icons/Achievements/${safeValue}-light.svg`;
+}
+
+function resolveNodePrimaryTitleLabel(nodeInput = null, fallbackLabel = '') {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const candidates = [
+    node?.profileAccountTitle,
+    node?.profile_account_title,
+    node?.accountTitle,
+    node?.account_title,
+    node?.title,
+    node?.profileTitle1,
+    node?.profile_title1,
+    node?.profile_title_1,
+  ];
+  for (const candidate of candidates) {
+    const label = safeText(candidate);
+    if (label) {
+      return label;
+    }
+  }
+  return safeText(fallbackLabel);
+}
+
+function resolveNodeSecondaryTitleLabel(nodeInput = null, fallbackLabel = '') {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const candidates = [
+    node?.profileAccountTitleSecondary,
+    node?.profile_account_title_secondary,
+    node?.accountTitleSecondary,
+    node?.account_title_secondary,
+    node?.profileTitle2,
+    node?.profile_title2,
+    node?.profile_title_2,
+  ];
+  for (const candidate of candidates) {
+    const label = safeText(candidate);
+    if (label) {
+      return label;
+    }
+  }
+  return safeText(fallbackLabel);
+}
+
+function resolveNodeRankIconPathValue(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  return safeText(
+    node?.profileBadgeRankIconPath
+    || node?.profile_badge_rank_icon_path
+    || node?.profileRankIconPath
+    || node?.profile_rank_icon_path
+    || node?.rankIconPath
+    || node?.rank_icon_path
+    || node?.accountRankIconPath
+    || node?.account_rank_icon_path
+    || '',
+  );
+}
+
+function resolveNodeTitleIconPathValue(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  return safeText(
+    node?.profileBadgeTitleIconPath
+    || node?.profile_badge_title_icon_path
+    || node?.profileTitleIconPath
+    || node?.profile_title_icon_path
+    || node?.profileTitle1IconPath
+    || node?.profile_title1_icon_path
+    || node?.profile_title_1_icon_path
+    || node?.titleIconPath
+    || node?.title_icon_path
+    || node?.accountTitleIconPath
+    || node?.account_title_icon_path
+    || node?.accountTitleSecondaryIconPath
+    || node?.account_title_secondary_icon_path
+    || '',
+  );
+}
+
+function isTreeNextRankBuilderFallbackTitle(titleLabel, rankLabel) {
+  const normalizedTitle = normalizeCredentialValue(titleLabel);
+  const normalizedRank = normalizeCredentialValue(rankLabel);
+  if (!normalizedTitle || !normalizedRank) {
+    return false;
+  }
+  return normalizedTitle === `${normalizedRank} builder`;
+}
+
+function resolveForcedTitleIconPathFromLabels(labelsInput = []) {
+  const labels = Array.isArray(labelsInput) ? labelsInput : [];
+  for (const rawLabel of labels) {
+    const label = safeText(rawLabel);
+    if (!label) {
+      continue;
+    }
+    const titleKey = resolveAchievementIconKeyFromLabel(label);
+    if (!titleKey) {
+      continue;
+    }
+    const titleIconPath = resolveTitleIconPathFromValue(titleKey);
+    if (titleIconPath) {
+      return titleIconPath;
+    }
+  }
+  return '';
 }
 
 function resolveNodeDetailRankAndTitleIcons(node) {
   const rankLabel = safeText(node?.rank || node?.accountRank || node?.account_rank || '');
   const rankIconPath = resolveNodeDetailsIconPath(
-    node?.rankIconPath
-      || node?.rank_icon_path
-      || node?.accountRankIconPath
-      || node?.account_rank_icon_path
-      || '',
+    resolveNodeRankIconPathValue(node),
     rankLabel,
   );
   const rankIconKey = resolveAchievementIconKeyFromLabel(rankLabel);
   const badges = Array.isArray(node?.badges) ? node.badges : [];
+  const primaryTitleLabel = resolveNodePrimaryTitleLabel(node);
+  const secondaryTitleLabel = resolveNodeSecondaryTitleLabel(node);
   const titleCandidates = [
-    safeText(node?.accountTitle || node?.account_title || ''),
+    primaryTitleLabel,
+    secondaryTitleLabel,
     safeText(node?.title || ''),
     ...badges.map((badge) => safeText(badge)),
     rankLabel,
   ].filter(Boolean);
+  const forcedTitleIconPath = resolveForcedTitleIconPathFromLabels([
+    primaryTitleLabel,
+    secondaryTitleLabel,
+    safeText(node?.title || ''),
+  ]);
+  if (forcedTitleIconPath) {
+    return [rankIconPath, forcedTitleIconPath].filter(Boolean);
+  }
   let fallbackTitleKey = 'placeholder';
   for (const candidate of titleCandidates) {
     const key = resolveAchievementIconKeyFromLabel(candidate);
@@ -1135,13 +2397,7 @@ function resolveNodeDetailRankAndTitleIcons(node) {
     fallbackTitleKey = rankIconKey;
   }
   const titleIconPath = resolveNodeDetailsIconPath(
-    node?.titleIconPath
-      || node?.title_icon_path
-      || node?.accountTitleIconPath
-      || node?.account_title_icon_path
-      || node?.accountTitleSecondaryIconPath
-      || node?.account_title_secondary_icon_path
-      || '',
+    resolveNodeTitleIconPathValue(node),
     fallbackTitleKey,
   );
   return [rankIconPath, titleIconPath].filter(Boolean);
@@ -1176,15 +2432,75 @@ function drawImageAssetRect(x, y, width, height, imageUrl) {
   return true;
 }
 
+function resolveNodeCurrentPersonalBvForActivity(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return 0;
+  }
+
+  const cutoffTimestampMs = Date.parse(safeText(
+    node?.activityActiveUntilAt
+    ?? node?.activity_active_until_at
+    ?? '',
+  ));
+  const hasExpiredCutoff = Number.isFinite(cutoffTimestampMs) && Date.now() >= cutoffTimestampMs;
+
+  const explicitCurrentPersonalBv = safeNumber(
+    node?.currentPersonalPvBv
+    ?? node?.current_personal_pv_bv
+    ?? node?.monthlyPersonalBv
+    ?? node?.monthly_personal_bv,
+    NaN,
+  );
+  if (Number.isFinite(explicitCurrentPersonalBv)) {
+    return hasExpiredCutoff ? 0 : Math.max(0, Math.floor(explicitCurrentPersonalBv));
+  }
+
+  const starterPersonalPv = Math.max(0, Math.floor(safeNumber(
+    node?.starterPersonalPv
+    ?? node?.starter_personal_pv
+    ?? node?.personalVolumeBv
+    ?? node?.personal_volume_bv
+    ?? node?.volume
+    ?? node?.packageBv
+    ?? node?.package_bv,
+    0,
+  )));
+  const baselinePersonalPv = safeNumber(
+    node?.serverCutoffBaselineStarterPersonalPv
+    ?? node?.server_cutoff_baseline_starter_personal_pv
+    ?? node?.personalVolumeBaselineBv
+    ?? node?.personal_volume_baseline_bv,
+    NaN,
+  );
+  if (Number.isFinite(baselinePersonalPv) && baselinePersonalPv > 0) {
+    return hasExpiredCutoff
+      ? 0
+      : Math.max(0, starterPersonalPv - Math.max(0, Math.floor(baselinePersonalPv)));
+  }
+  return hasExpiredCutoff ? 0 : starterPersonalPv;
+}
+
 function resolveNodeActivityState(node) {
-  const rawStatus = safeText(node?.accountStatus || node?.status || '').toLowerCase();
-  if (!rawStatus) {
-    return false;
+  const safeNode = node && typeof node === 'object' ? node : null;
+  const rawStatus = safeText(safeNode?.accountStatus || safeNode?.status || '').toLowerCase();
+  const nodeIdKey = normalizeCredentialValue(safeNode?.id);
+  const nodeUsernameKey = normalizeCredentialValue(
+    safeText(safeNode?.username || safeNode?.memberCode || ''),
+  );
+  if (
+    nodeIdKey === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+    || nodeIdKey === 'company-root'
+    || nodeIdKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    || nodeUsernameKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    || (state.source === 'admin' && nodeIdKey === 'root')
+  ) {
+    return true;
   }
   if (
     rawStatus.includes('inactive')
     || rawStatus.includes('dormant')
-    || rawStatus.includes('pending')
+    || rawStatus.includes('stabilizing')
     || rawStatus.includes('review')
     || rawStatus.includes('suspend')
     || rawStatus.includes('disable')
@@ -1192,12 +2508,48 @@ function resolveNodeActivityState(node) {
   ) {
     return false;
   }
-  return (
-    rawStatus.includes('active')
-    || rawStatus.includes('enable')
-    || rawStatus.includes('verified')
-    || rawStatus.includes('good standing')
+  if (typeof safeNode?.isActive === 'boolean') {
+    return safeNode.isActive;
+  }
+  if (typeof safeNode?.active === 'boolean') {
+    return safeNode.active;
+  }
+
+  const currentPersonalBv = resolveNodeCurrentPersonalBvForActivity(safeNode);
+  return currentPersonalBv >= ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN;
+}
+
+function resolveSessionSponsorUsernameKey(sessionInput = state.session) {
+  const session = sessionInput && typeof sessionInput === 'object' ? sessionInput : null;
+  return normalizeCredentialValue(
+    safeText(
+      session?.memberUsername
+      || session?.member_username
+      || session?.username
+      || session?.user_name
+      || '',
+    ).replace(/^@+/, ''),
   );
+}
+
+function isNodePersonallyEnrolledBySession(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return false;
+  }
+
+  const sessionSponsorUsernameKey = resolveSessionSponsorUsernameKey();
+  const sponsorUsernameKey = normalizeCredentialValue(
+    safeText(
+      node?.sponsorUsername
+      || node?.sponsor_username
+      || '',
+    ).replace(/^@+/, ''),
+  );
+  if (sessionSponsorUsernameKey && sponsorUsernameKey) {
+    return sponsorUsernameKey === sessionSponsorUsernameKey;
+  }
+  return false;
 }
 
 function resolveNodeAvatarPhotoUrl(nodeInput = null) {
@@ -1327,13 +2679,25 @@ function normalizePinnedNodeIds(idsInput = state.pinnedNodeIds) {
   return deduped;
 }
 
-function setPinnedNodeIds(nextIds) {
+function setPinnedNodeIds(nextIds, options = {}) {
+  const persistLocal = options?.persistLocal !== false;
+  const syncServer = options?.syncServer !== false;
   state.pinnedNodeIds = normalizePinnedNodeIds(nextIds);
   const favorites = getSideNavFavoritesState();
   favorites.placesCacheKey = '';
   favorites.placesCacheLimit = 0;
   favorites.placesCache = [];
-  persistPinnedNodeIdsToStorage();
+
+  if (persistLocal) {
+    persistPinnedNodeIdsToStorage();
+  }
+
+  if (syncServer) {
+    if (canSyncPinnedNodeIdsToServer()) {
+      pinnedNodeIdsLocalDirty = true;
+    }
+    schedulePinnedNodeIdsServerSync();
+  }
 }
 
 function isNodePinned(nodeId) {
@@ -1520,12 +2884,19 @@ function requestEnrollMemberFromTree(parentId, side) {
     || parentNode.id
     || safeParentId,
   );
+  const parentUsername = safeText(
+    parentNode.username
+    || parentNode.memberCode
+    || parentNode.id
+    || safeParentId,
+  ).replace(/^@+/, '');
 
   window.dispatchEvent(new CustomEvent('binary-tree-enroll-member-request', {
     detail: {
       parentId: safeParentId,
       parentName,
       parentMemberCode,
+      parentUsername,
       placementLeg,
     },
   }));
@@ -1537,16 +2908,16 @@ function resolveEnrollRegisteredMembersApi() {
     : MEMBER_REGISTERED_MEMBERS_API;
 }
 
-function resolveEnrollRegisteredMembersIntentApi() {
+function resolveEnrollRegisteredMembersSessionApi() {
   return state.source === 'admin'
-    ? ADMIN_REGISTERED_MEMBERS_INTENT_API
-    : MEMBER_REGISTERED_MEMBERS_INTENT_API;
+    ? ADMIN_REGISTERED_MEMBERS_SESSION_API
+    : MEMBER_REGISTERED_MEMBERS_SESSION_API;
 }
 
-function resolveEnrollRegisteredMembersIntentCompleteApi() {
+function resolveEnrollRegisteredMembersSessionCompleteApi() {
   return state.source === 'admin'
-    ? ADMIN_REGISTERED_MEMBERS_INTENT_COMPLETE_API
-    : MEMBER_REGISTERED_MEMBERS_INTENT_COMPLETE_API;
+    ? ADMIN_REGISTERED_MEMBERS_SESSION_COMPLETE_API
+    : MEMBER_REGISTERED_MEMBERS_SESSION_COMPLETE_API;
 }
 
 function resolveEnrollFastTrackTierFromPackage(packageKey) {
@@ -2119,17 +3490,28 @@ function initTreeNextEnrollCustomSelects() {
   });
 }
 
+function resolveTreeNextBillingCountrySelectElements() {
+  const countrySelectElements = [];
+  if (treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement) {
+    countrySelectElements.push(treeNextEnrollBillingCountrySelect);
+  }
+  if (
+    myStoreCheckoutBillingCountrySelect instanceof HTMLSelectElement
+    && !countrySelectElements.some((element) => element === myStoreCheckoutBillingCountrySelect)
+  ) {
+    countrySelectElements.push(myStoreCheckoutBillingCountrySelect);
+  }
+  return countrySelectElements;
+}
+
 function applyTreeNextEnrollBillingCountryOptions(countryOptions = [], options = {}) {
-  if (!(treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement)) {
+  const countrySelectElements = resolveTreeNextBillingCountrySelectElements();
+  if (!countrySelectElements.length) {
     return;
   }
   const {
     preserveSelection = true,
   } = options;
-  const previousValue = safeText(treeNextEnrollBillingCountrySelect.value).trim().toUpperCase();
-  const desiredValue = preserveSelection && previousValue
-    ? previousValue
-    : ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
   const seenCodes = new Set();
   const normalizedOptions = [];
   for (const entry of Array.isArray(countryOptions) ? countryOptions : []) {
@@ -2151,39 +3533,49 @@ function applyTreeNextEnrollBillingCountryOptions(countryOptions = [], options =
     });
   }
 
-  treeNextEnrollBillingCountrySelect.innerHTML = '';
-  for (const optionData of normalizedOptions) {
-    const optionElement = document.createElement('option');
-    optionElement.value = optionData.code;
-    optionElement.textContent = optionData.label;
-    treeNextEnrollBillingCountrySelect.appendChild(optionElement);
-  }
-  if (!treeNextEnrollBillingCountrySelect.value) {
-    treeNextEnrollBillingCountrySelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
-  }
-  const hasDesiredValue = Array.from(treeNextEnrollBillingCountrySelect.options).some(
-    (option) => safeText(option?.value).trim().toUpperCase() === desiredValue,
-  );
-  treeNextEnrollBillingCountrySelect.value = hasDesiredValue
-    ? desiredValue
-    : ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
-  if (!treeNextEnrollBillingCountrySelect.value && treeNextEnrollBillingCountrySelect.options.length > 0) {
-    treeNextEnrollBillingCountrySelect.value = safeText(treeNextEnrollBillingCountrySelect.options[0]?.value);
-  }
+  for (const nativeSelect of countrySelectElements) {
+    const previousValue = safeText(nativeSelect.value).trim().toUpperCase();
+    const desiredValue = preserveSelection && previousValue
+      ? previousValue
+      : ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+    nativeSelect.innerHTML = '';
+    for (const optionData of normalizedOptions) {
+      const optionElement = document.createElement('option');
+      optionElement.value = optionData.code;
+      optionElement.textContent = optionData.label;
+      nativeSelect.appendChild(optionElement);
+    }
+    if (!nativeSelect.value) {
+      nativeSelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+    }
+    const hasDesiredValue = Array.from(nativeSelect.options).some(
+      (option) => safeText(option?.value).trim().toUpperCase() === desiredValue,
+    );
+    nativeSelect.value = hasDesiredValue
+      ? desiredValue
+      : ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+    if (!nativeSelect.value && nativeSelect.options.length > 0) {
+      nativeSelect.value = safeText(nativeSelect.options[0]?.value);
+    }
 
-  const entry = treeNextEnrollCustomSelectByNativeId.get(treeNextEnrollBillingCountrySelect.id);
-  if (entry) {
-    buildTreeNextEnrollCustomSelectMenu(entry);
+    const entry = treeNextEnrollCustomSelectByNativeId.get(nativeSelect.id);
+    if (entry) {
+      buildTreeNextEnrollCustomSelectMenu(entry);
+    }
+    syncTreeNextEnrollCustomSelectById(nativeSelect.id);
   }
-  syncTreeNextEnrollCustomSelectById(treeNextEnrollBillingCountrySelect.id);
 }
 
 async function hydrateTreeNextEnrollBillingCountryOptions() {
-  if (!(treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement)) {
+  const countrySelectElements = resolveTreeNextBillingCountrySelectElements();
+  if (!countrySelectElements.length) {
     return;
   }
-  if (treeNextEnrollBillingCountrySelect.dataset.countriesHydrated === 'true') {
-    syncTreeNextEnrollCustomSelectById(treeNextEnrollBillingCountrySelect.id);
+  const areAllHydrated = countrySelectElements.every((nativeSelect) => nativeSelect.dataset.countriesHydrated === 'true');
+  if (areAllHydrated) {
+    for (const nativeSelect of countrySelectElements) {
+      syncTreeNextEnrollCustomSelectById(nativeSelect.id);
+    }
     return;
   }
   if (treeNextEnrollBillingCountryHydrationPromise) {
@@ -2224,7 +3616,9 @@ async function hydrateTreeNextEnrollBillingCountryOptions() {
         options.unshift(preferredOption);
       }
       applyTreeNextEnrollBillingCountryOptions(options, { preserveSelection: true });
-      treeNextEnrollBillingCountrySelect.dataset.countriesHydrated = 'true';
+      for (const nativeSelect of resolveTreeNextBillingCountrySelectElements()) {
+        nativeSelect.dataset.countriesHydrated = 'true';
+      }
     } catch (error) {
       console.warn('Unable to hydrate enrollment billing countries:', error);
       applyTreeNextEnrollBillingCountryOptions(ENROLL_BILLING_COUNTRY_FALLBACK_OPTIONS, { preserveSelection: true });
@@ -2414,6 +3808,138 @@ async function initializeTreeNextEnrollStripeCard(options = {}) {
   }
 }
 
+function setMyStoreCheckoutCardError(message = '') {
+  if (!(myStoreCheckoutCardErrorElement instanceof HTMLElement)) {
+    return;
+  }
+  myStoreCheckoutCardErrorElement.textContent = safeText(message);
+}
+
+function clearMyStoreCheckoutCardError() {
+  setMyStoreCheckoutCardError('');
+}
+
+function clearMyStoreStripeCardInput() {
+  isMyStoreStripeCardComplete = false;
+  isMyStoreStripeCardExpiryComplete = false;
+  isMyStoreStripeCardCvcComplete = false;
+  clearMyStoreCheckoutCardError();
+  if (myStoreStripeCardNumber && typeof myStoreStripeCardNumber.clear === 'function') {
+    try {
+      myStoreStripeCardNumber.clear();
+    } catch {
+      // no-op
+    }
+  }
+  if (myStoreStripeCardExpiry && typeof myStoreStripeCardExpiry.clear === 'function') {
+    try {
+      myStoreStripeCardExpiry.clear();
+    } catch {
+      // no-op
+    }
+  }
+  if (myStoreStripeCardCvc && typeof myStoreStripeCardCvc.clear === 'function') {
+    try {
+      myStoreStripeCardCvc.clear();
+    } catch {
+      // no-op
+    }
+  }
+}
+
+async function initializeMyStoreStripeCard(options = {}) {
+  if (
+    isMyStoreStripeReady
+    && myStoreStripeCardNumber
+    && myStoreStripeCardExpiry
+    && myStoreStripeCardCvc
+  ) {
+    return true;
+  }
+  if (
+    !(myStoreCardNumberElement instanceof HTMLElement)
+    || !(myStoreCardExpiryElement instanceof HTMLElement)
+    || !(myStoreCardCvcElement instanceof HTMLElement)
+  ) {
+    setMyStoreCheckoutCardError('Card payment fields are unavailable.');
+    return false;
+  }
+  if (myStoreStripeInitPromise) {
+    return myStoreStripeInitPromise;
+  }
+
+  myStoreStripeInitPromise = (async () => {
+    const stripeLoaded = await ensureTreeNextEnrollStripeScriptLoaded();
+    if (!stripeLoaded || typeof window.Stripe !== 'function') {
+      setMyStoreCheckoutCardError('Stripe checkout could not be loaded. Please refresh and try again.');
+      return false;
+    }
+
+    const configResult = await fetchTreeNextEnrollStripeCheckoutConfig();
+    if (!configResult.ok) {
+      setMyStoreCheckoutCardError(configResult.message || 'Unable to initialize Stripe checkout.');
+      return false;
+    }
+
+    try {
+      myStoreStripeClient = window.Stripe(configResult.publishableKey);
+      if (!myStoreStripeClient) {
+        throw new Error('Stripe client could not be initialized.');
+      }
+
+      myStoreStripeElements = myStoreStripeClient.elements();
+      myStoreStripeCardNumber = myStoreStripeElements.create('cardNumber', {
+        style: resolveTreeNextEnrollStripeCardStyle(),
+        placeholder: 'Card number',
+        showIcon: true,
+        iconStyle: 'solid',
+        disableLink: false,
+      });
+      myStoreStripeCardExpiry = myStoreStripeElements.create('cardExpiry', {
+        style: resolveTreeNextEnrollStripeCardStyle(),
+        placeholder: 'MM / YY',
+      });
+      myStoreStripeCardCvc = myStoreStripeElements.create('cardCvc', {
+        style: resolveTreeNextEnrollStripeCardStyle(),
+        placeholder: 'CVC',
+      });
+      myStoreStripeCardNumber.mount(myStoreCardNumberElement);
+      myStoreStripeCardExpiry.mount(myStoreCardExpiryElement);
+      myStoreStripeCardCvc.mount(myStoreCardCvcElement);
+      myStoreStripeCardNumber.on('change', (event) => {
+        isMyStoreStripeCardComplete = event?.complete === true;
+        setMyStoreCheckoutCardError(event?.error?.message || '');
+      });
+      myStoreStripeCardExpiry.on('change', (event) => {
+        isMyStoreStripeCardExpiryComplete = event?.complete === true;
+        setMyStoreCheckoutCardError(event?.error?.message || '');
+      });
+      myStoreStripeCardCvc.on('change', (event) => {
+        isMyStoreStripeCardCvcComplete = event?.complete === true;
+        setMyStoreCheckoutCardError(event?.error?.message || '');
+      });
+
+      isMyStoreStripeReady = true;
+      isMyStoreStripeCardComplete = false;
+      isMyStoreStripeCardExpiryComplete = false;
+      isMyStoreStripeCardCvcComplete = false;
+      if (options.silent !== true) {
+        clearMyStoreCheckoutCardError();
+      }
+      return true;
+    } catch (error) {
+      setMyStoreCheckoutCardError(error instanceof Error ? error.message : 'Unable to initialize Stripe card fields.');
+      return false;
+    }
+  })();
+
+  try {
+    return await myStoreStripeInitPromise;
+  } finally {
+    myStoreStripeInitPromise = null;
+  }
+}
+
 function syncTreeNextEnrollTierFromPackage() {
   const selectedPackage = resolveTreeNextEnrollPackageKey(
     treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY,
@@ -2451,8 +3977,7 @@ function syncTreeNextEnrollPackagePreview() {
   const subtotalAmount = Math.max(0, safeNumber(packagePrice, 0));
   const discountAmount = 0;
   const taxableAmount = Math.max(0, subtotalAmount - discountAmount);
-  const taxAmount = Math.round((taxableAmount * ENROLL_CHECKOUT_TAX_RATE) * 100) / 100;
-  const totalAmount = Math.round((taxableAmount + taxAmount) * 100) / 100;
+  const totalAmount = Math.round(taxableAmount * 100) / 100;
 
   if (treeNextEnrollPackageBvElement instanceof HTMLElement) {
     treeNextEnrollPackageBvElement.textContent = `${formatInteger(packageBv)} BV`;
@@ -2473,7 +3998,7 @@ function syncTreeNextEnrollPackagePreview() {
     treeNextEnrollSummaryDiscountElement.textContent = formatEnrollCurrency(discountAmount);
   }
   if (treeNextEnrollSummaryTaxElement instanceof HTMLElement) {
-    treeNextEnrollSummaryTaxElement.textContent = formatEnrollCurrency(taxAmount);
+    treeNextEnrollSummaryTaxElement.textContent = STRIPE_TAX_CALCULATED_LABEL;
   }
   if (treeNextEnrollSummaryTotalElement instanceof HTMLElement) {
     treeNextEnrollSummaryTotalElement.textContent = formatEnrollCurrency(totalAmount);
@@ -2579,9 +4104,15 @@ function syncTreeNextEnrollLegPositionField() {
   if (!(treeNextEnrollLegPositionInput instanceof HTMLInputElement)) {
     return;
   }
+  const spilloverMode = resolveTreeNextEnrollSpilloverModeValue();
+  if (isTreeNextEnrollAdminPlacementMode()) {
+    treeNextEnrollLegPositionInput.value = spilloverMode === ENROLL_SPILLOVER_MODE_SPILLOVER
+      ? 'Spillover Auto Placement'
+      : 'Auto Placement';
+    return;
+  }
   const placementSide = resolveTreeNextEnrollPlacementSideFromLock(state.enroll?.placementLock);
   const sideLabel = placementSide === 'right' ? 'Right' : 'Left';
-  const spilloverMode = resolveTreeNextEnrollSpilloverModeValue();
   treeNextEnrollLegPositionInput.value = spilloverMode === ENROLL_SPILLOVER_MODE_SPILLOVER
     ? `Spillover ${sideLabel} Leg`
     : `${sideLabel} Leg`;
@@ -2737,6 +4268,25 @@ function syncTreeNextEnrollPanelPosition(layoutInput = state.layout) {
     1,
     Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
   );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: viewportWidth - (TREE_NEXT_MOBILE_OVERLAY_PANEL_EDGE_INSET_PX * 2),
+      minWidth: 300,
+      minHeight: 360,
+      halfHeightRatio: 0.82,
+    });
+    const panelCenterY = Math.round(mobileFrame.y + (mobileFrame.height / 2));
+    const panelWidth = Math.max(280, Math.round(mobileFrame.width));
+    const panelHeight = Math.max(320, Math.round(mobileFrame.height));
+    treeNextEnrollModalElement.style.width = `${panelWidth}px`;
+    treeNextEnrollModalElement.style.left = `${Math.round(mobileFrame.x)}px`;
+    treeNextEnrollModalElement.style.top = `${panelCenterY}px`;
+    treeNextEnrollModalElement.style.height = `${panelHeight}px`;
+    treeNextEnrollModalElement.style.maxHeight = `${panelHeight}px`;
+    return;
+  }
+
   const isCompactPanelViewport = viewportHeight <= 1065 || viewportWidth <= 1366;
   const isStepThreeActive = resolveTreeNextEnrollStep() === 3;
   const compactPanelMaxWidth = viewportHeight <= 820
@@ -2781,7 +4331,8764 @@ function syncTreeNextEnrollPanelPosition(layoutInput = state.layout) {
   treeNextEnrollModalElement.style.width = `${panelWidth}px`;
   treeNextEnrollModalElement.style.left = `${clampedLeft}px`;
   treeNextEnrollModalElement.style.top = `${centerTop}px`;
+  treeNextEnrollModalElement.style.height = '';
   treeNextEnrollModalElement.style.maxHeight = `${maxHeight}px`;
+}
+
+function isAccountOverviewPanelAvailable() {
+  return accountOverviewPanelElement instanceof HTMLElement;
+}
+
+function resolveAccountOverviewTileLabelElement(valueElement) {
+  if (!(valueElement instanceof HTMLElement)) {
+    return null;
+  }
+  const tileElement = valueElement.closest('.tree-next-account-overview-tile');
+  if (!(tileElement instanceof HTMLElement)) {
+    return null;
+  }
+  const labelElement = tileElement.querySelector('.tree-next-account-overview-tile-label');
+  return labelElement instanceof HTMLElement ? labelElement : null;
+}
+
+function setAccountOverviewText(element, value) {
+  if (!(element instanceof HTMLElement)) {
+    return;
+  }
+  element.textContent = safeText(value);
+}
+
+function createEmptyAccountOverviewRemoteSnapshot() {
+  return {
+    binaryTreeMetrics: null,
+    salesTeamCommission: null,
+    commissionContainerSnapshot: null,
+    eWalletSnapshot: null,
+    walletCommissionOffsets: null,
+    retailProfitBalance: 0,
+    updatedAtMs: 0,
+  };
+}
+
+function resetAccountOverviewRemoteSnapshot() {
+  accountOverviewRemoteRequestSequence += 1;
+  accountOverviewRemoteSnapshot = createEmptyAccountOverviewRemoteSnapshot();
+  accountOverviewRemoteDataVersion = 0;
+  accountOverviewRemoteSyncPromise = null;
+  accountOverviewRemoteSyncInFlight = false;
+  accountOverviewRemoteLastRequestAtMs = 0;
+  accountOverviewRemoteLastSyncedAtMs = 0;
+  accountOverviewRemoteIdentityKey = '';
+  accountOverviewCachedLegVolumeSignature = '';
+  accountOverviewCachedLegVolumeMetrics = null;
+  accountOverviewLastRenderSignature = '';
+}
+
+function normalizeAccountOverviewScopeKey(scopeInput = 'identity') {
+  return normalizeCredentialValue(scopeInput) === 'system' ? 'system' : 'identity';
+}
+
+function isAccountOverviewSystemTotalsNodeSelection(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return true;
+  }
+  const nodeIdKey = normalizeCredentialValue(safeText(node.id));
+  const usernameKey = normalizeCredentialValue(
+    safeText(node.username || node.memberCode || ''),
+  );
+  return (
+    !nodeIdKey
+    || nodeIdKey === 'root'
+    || nodeIdKey === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+    || nodeIdKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    || usernameKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+  );
+}
+
+function resolveAccountOverviewPanelContext() {
+  const preferredHomeNodeId = resolvePreferredGlobalHomeNodeId();
+  const preferredHomeNode = resolveNodeById(preferredHomeNodeId) || resolveNodeById('root') || null;
+  if (state.source !== 'admin') {
+    return {
+      homeNode: preferredHomeNode,
+      selectedNode: null,
+      systemTotals: false,
+      scope: 'identity',
+      preferHomeNodeIdentity: false,
+    };
+  }
+
+  const selectedNodeId = safeText(state.selectedId);
+  const selectedNode = resolveNodeById(selectedNodeId);
+  if (isAccountOverviewSystemTotalsNodeSelection(selectedNode)) {
+    return {
+      homeNode: preferredHomeNode,
+      selectedNode,
+      systemTotals: true,
+      scope: 'system',
+      preferHomeNodeIdentity: false,
+    };
+  }
+
+  return {
+    homeNode: selectedNode,
+    selectedNode,
+    systemTotals: false,
+    scope: 'identity',
+    preferHomeNodeIdentity: true,
+  };
+}
+
+function resolveAccountOverviewIdentityPayload(homeNode = null, options = {}) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const {
+    preferHomeNode = false,
+    allowAnonymous = false,
+  } = options;
+  if (allowAnonymous) {
+    return {
+      userId: '',
+      username: '',
+      email: '',
+    };
+  }
+
+  const orderedUserIdCandidates = preferHomeNode
+    ? [
+      homeNode?.userId,
+      homeNode?.memberUserId,
+      homeNode?.sourceUserId,
+      homeNode?.id,
+      session?.id,
+      session?.userId,
+      session?.user_id,
+      session?.memberId,
+      session?.member_id,
+    ]
+    : [
+      session?.id,
+      session?.userId,
+      session?.user_id,
+      session?.memberId,
+      session?.member_id,
+      homeNode?.userId,
+      homeNode?.memberUserId,
+      homeNode?.sourceUserId,
+      homeNode?.id,
+    ];
+  const orderedUsernameCandidates = preferHomeNode
+    ? [
+      homeNode?.username,
+      homeNode?.memberUsername,
+      homeNode?.member_username,
+      homeNode?.memberCode,
+      session?.username,
+      session?.memberUsername,
+      session?.member_username,
+      session?.userName,
+      session?.user_name,
+    ]
+    : [
+      session?.username,
+      session?.memberUsername,
+      session?.member_username,
+      session?.userName,
+      session?.user_name,
+      homeNode?.username,
+      homeNode?.memberUsername,
+      homeNode?.member_username,
+      homeNode?.memberCode,
+    ];
+  const orderedEmailCandidates = preferHomeNode
+    ? [
+      homeNode?.email,
+      homeNode?.memberEmail,
+      homeNode?.member_email,
+      session?.email,
+      session?.userEmail,
+      session?.user_email,
+      session?.login,
+    ]
+    : [
+      session?.email,
+      session?.userEmail,
+      session?.user_email,
+      session?.login,
+      homeNode?.email,
+      homeNode?.memberEmail,
+      homeNode?.member_email,
+    ];
+
+  let userId = '';
+  for (const candidate of orderedUserIdCandidates) {
+    userId = safeText(candidate);
+    if (userId) {
+      break;
+    }
+  }
+
+  let username = '';
+  for (const candidate of orderedUsernameCandidates) {
+    username = safeText(candidate).replace(/^@+/, '');
+    if (username) {
+      break;
+    }
+  }
+
+  let email = '';
+  for (const candidate of orderedEmailCandidates) {
+    email = safeText(candidate);
+    if (email) {
+      break;
+    }
+  }
+
+  return {
+    userId,
+    username,
+    email,
+  };
+}
+
+function resolveAccountOverviewIdentityKey(identityPayload = {}) {
+  const userId = safeText(identityPayload?.userId);
+  const username = normalizeCredentialValue(safeText(identityPayload?.username).replace(/^@+/, ''));
+  const email = normalizeCredentialValue(identityPayload?.email);
+  return [userId, username, email].join('|');
+}
+
+function appendAccountOverviewIdentityQuery(query, identityPayload = {}) {
+  if (!(query instanceof URLSearchParams)) {
+    return;
+  }
+  const userId = safeText(identityPayload?.userId);
+  const username = safeText(identityPayload?.username).replace(/^@+/, '');
+  const email = safeText(identityPayload?.email);
+  if (userId) {
+    query.set('userId', userId);
+  }
+  if (username) {
+    query.set('username', username);
+  }
+  if (email) {
+    query.set('email', email);
+  }
+}
+
+async function fetchAccountOverviewEndpoint(endpoint, query = new URLSearchParams()) {
+  const queryString = query instanceof URLSearchParams
+    ? query.toString()
+    : '';
+  const requestUrl = queryString ? `${endpoint}?${queryString}` : endpoint;
+
+  try {
+    const response = await fetch(requestUrl, {
+      method: 'GET',
+      cache: 'no-store',
+      credentials: 'same-origin',
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return null;
+    }
+    return payload && typeof payload === 'object' ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveAccountOverviewRetailProfitFallback(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    homeNode?.retailProfit,
+    homeNode?.retail_profit,
+    homeNode?.retailCommission,
+    homeNode?.retail_commission,
+    session?.retailProfit,
+    session?.retail_profit,
+    session?.retailCommission,
+    session?.retail_commission,
+    session?.storeRetailProfit,
+    session?.store_retail_profit,
+  ];
+  for (const candidate of candidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, parsed);
+    }
+  }
+  return 0;
+}
+
+function resolveAccountOverviewSeedWalletBalance(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    accountOverviewRemoteSnapshot?.eWalletSnapshot?.balance,
+    session?.walletBalance,
+    session?.wallet_balance,
+    session?.eWalletBalance,
+    session?.ewalletBalance,
+    session?.e_wallet_balance,
+    homeNode?.walletBalance,
+    homeNode?.wallet_balance,
+    homeNode?.eWalletBalance,
+    homeNode?.ewalletBalance,
+    homeNode?.e_wallet_balance,
+  ];
+  for (const candidate of candidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, parsed);
+    }
+  }
+  return 0;
+}
+
+function resolveAccountOverviewBinaryTreeMetricsRecord(payload = null) {
+  if (payload?.snapshot && typeof payload.snapshot === 'object') {
+    return payload.snapshot;
+  }
+  const list = Array.isArray(payload?.snapshots) ? payload.snapshots : [];
+  return list.find((entry) => entry && typeof entry === 'object') || null;
+}
+
+function summarizeAccountOverviewBinaryTreeMetrics(payload = null) {
+  const list = Array.isArray(payload?.snapshots) ? payload.snapshots : [];
+  if (!list.length) {
+    return null;
+  }
+
+  const summary = {
+    id: 'system-binary-tree-summary',
+    totalAccumulatedBv: 0,
+    accountPersonalPv: 0,
+    totalCycles: 0,
+    leftLegBv: 0,
+    rightLegBv: 0,
+    accountRank: ADMIN_ROOT_DISPLAY_NAME,
+    updatedAt: '',
+  };
+
+  for (const entry of list) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+    summary.totalAccumulatedBv += Math.max(0, safeNumber(entry.totalAccumulatedBv, 0));
+    summary.accountPersonalPv += Math.max(0, safeNumber(entry.accountPersonalPv, 0));
+    summary.totalCycles += Math.max(0, safeNumber(entry.totalCycles, 0));
+    summary.leftLegBv += Math.max(0, safeNumber(entry.leftLegBv, 0));
+    summary.rightLegBv += Math.max(0, safeNumber(entry.rightLegBv, 0));
+  }
+
+  summary.totalAccumulatedBv = Math.floor(summary.totalAccumulatedBv);
+  summary.accountPersonalPv = Math.floor(summary.accountPersonalPv);
+  summary.totalCycles = Math.floor(summary.totalCycles);
+  summary.leftLegBv = Math.floor(summary.leftLegBv);
+  summary.rightLegBv = Math.floor(summary.rightLegBv);
+  return summary;
+}
+
+function resolveAccountOverviewSalesTeamCommissionRecord(payload = null) {
+  if (payload?.commission && typeof payload.commission === 'object') {
+    return payload.commission;
+  }
+  const list = Array.isArray(payload?.commissions) ? payload.commissions : [];
+  return list.find((entry) => entry && typeof entry === 'object') || null;
+}
+
+function summarizeAccountOverviewSalesTeamCommissions(payload = null) {
+  const list = Array.isArray(payload?.commissions) ? payload.commissions : [];
+  if (!list.length) {
+    return null;
+  }
+
+  const summary = {
+    id: 'system-sales-team-summary',
+    accountPackageKey: ENROLL_DEFAULT_PACKAGE_KEY,
+    cycleMultiplier: 0,
+    perCycleAmount: 0,
+    weeklyCapCycles: 0,
+    totalCycles: 0,
+    cappedCycles: 0,
+    overflowCycles: 0,
+    grossCommissionAmount: 0,
+    payoutOffsetAmount: 0,
+    netCommissionAmount: 0,
+    currencyCode: 'USD',
+  };
+
+  for (const entry of list) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+    summary.weeklyCapCycles += Math.max(0, safeNumber(entry.weeklyCapCycles, 0));
+    summary.totalCycles += Math.max(0, safeNumber(entry.totalCycles, 0));
+    summary.cappedCycles += Math.max(0, safeNumber(entry.cappedCycles, 0));
+    summary.overflowCycles += Math.max(0, safeNumber(entry.overflowCycles, 0));
+    summary.grossCommissionAmount += Math.max(0, safeNumber(entry.grossCommissionAmount, 0));
+    summary.payoutOffsetAmount += Math.max(0, safeNumber(entry.payoutOffsetAmount, 0));
+    summary.netCommissionAmount += Math.max(0, safeNumber(entry.netCommissionAmount, 0));
+  }
+
+  summary.weeklyCapCycles = Math.floor(summary.weeklyCapCycles);
+  summary.totalCycles = Math.floor(summary.totalCycles);
+  summary.cappedCycles = Math.floor(summary.cappedCycles);
+  summary.overflowCycles = Math.floor(summary.overflowCycles);
+  summary.grossCommissionAmount = Math.round(summary.grossCommissionAmount * 100) / 100;
+  summary.payoutOffsetAmount = Math.round(summary.payoutOffsetAmount * 100) / 100;
+  summary.netCommissionAmount = Math.round(summary.netCommissionAmount * 100) / 100;
+  return summary;
+}
+
+function resolveAccountOverviewRemoteSyncIntervalMs(options = {}) {
+  const {
+    forRetry = false,
+  } = options;
+  const panelVisible = Boolean(state.ui?.accountOverviewVisible);
+  const hiddenSyncMode = document.visibilityState === 'hidden' || !panelVisible;
+  const baseIntervalMs = hiddenSyncMode
+    ? ACCOUNT_OVERVIEW_REMOTE_SYNC_HIDDEN_INTERVAL_MS
+    : ACCOUNT_OVERVIEW_REMOTE_SYNC_VISIBLE_INTERVAL_MS;
+  if (!forRetry) {
+    return baseIntervalMs;
+  }
+  return Math.min(baseIntervalMs, ACCOUNT_OVERVIEW_REMOTE_SYNC_RETRY_INTERVAL_MS);
+}
+
+async function refreshAccountOverviewRemoteSnapshot(options = {}) {
+  const {
+    force = false,
+    homeNode = null,
+    scope = 'identity',
+    preferHomeNodeIdentity = false,
+  } = options;
+
+  if (accountOverviewRemoteSyncInFlight && accountOverviewRemoteSyncPromise) {
+    return accountOverviewRemoteSyncPromise;
+  }
+
+  const normalizedScope = normalizeAccountOverviewScopeKey(scope);
+  const allowAnonymous = normalizedScope === 'system';
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode, {
+    preferHomeNode: preferHomeNodeIdentity,
+    allowAnonymous,
+  });
+  const identityKey = `${normalizedScope}::${resolveAccountOverviewIdentityKey(identityPayload)}`;
+  const hasIdentity = Boolean(
+    safeText(identityPayload.userId)
+    || safeText(identityPayload.username)
+    || safeText(identityPayload.email),
+  );
+  if (!allowAnonymous && !hasIdentity) {
+    resetAccountOverviewRemoteSnapshot();
+    return accountOverviewRemoteSnapshot;
+  }
+
+  const nowMs = Date.now();
+  const hasSuccessfulSync = accountOverviewRemoteLastSyncedAtMs > 0;
+  const minimumIntervalMs = hasSuccessfulSync
+    ? resolveAccountOverviewRemoteSyncIntervalMs()
+    : resolveAccountOverviewRemoteSyncIntervalMs({ forRetry: true });
+  const identityChanged = identityKey !== accountOverviewRemoteIdentityKey;
+  if (
+    !force
+    && !identityChanged
+    && accountOverviewRemoteLastRequestAtMs > 0
+    && (nowMs - accountOverviewRemoteLastRequestAtMs) < minimumIntervalMs
+  ) {
+    return accountOverviewRemoteSnapshot;
+  }
+
+  accountOverviewRemoteIdentityKey = identityKey;
+  accountOverviewRemoteLastRequestAtMs = nowMs;
+  accountOverviewRemoteSyncInFlight = true;
+  accountOverviewRemoteRequestSequence += 1;
+  const requestSequence = accountOverviewRemoteRequestSequence;
+  accountOverviewRemoteSyncPromise = (async () => {
+    const identityQuery = new URLSearchParams();
+    if (hasIdentity) {
+      appendAccountOverviewIdentityQuery(identityQuery, identityPayload);
+    }
+
+    const walletQuery = new URLSearchParams(identityQuery.toString());
+    walletQuery.set('limit', '25');
+    const seedBalance = resolveAccountOverviewSeedWalletBalance(homeNode);
+    if (!allowAnonymous && seedBalance > 0) {
+      walletQuery.set('seedBalance', seedBalance.toFixed(2));
+    }
+
+    const [
+      binaryTreeMetricsPayload,
+      salesTeamCommissionsPayload,
+      commissionContainersPayload,
+      eWalletPayload,
+    ] = await Promise.all([
+      fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_BINARY_TREE_METRICS_API, identityQuery),
+      fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API, identityQuery),
+      allowAnonymous
+        ? Promise.resolve(null)
+        : fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API, identityQuery),
+      allowAnonymous
+        ? Promise.resolve(null)
+        : fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_E_WALLET_API, walletQuery),
+    ]);
+
+    const binaryTreeMetrics = normalizedScope === 'system'
+      ? (
+        summarizeAccountOverviewBinaryTreeMetrics(binaryTreeMetricsPayload)
+        || resolveAccountOverviewBinaryTreeMetricsRecord(binaryTreeMetricsPayload)
+      )
+      : resolveAccountOverviewBinaryTreeMetricsRecord(binaryTreeMetricsPayload);
+    const salesTeamCommission = normalizedScope === 'system'
+      ? (
+        summarizeAccountOverviewSalesTeamCommissions(salesTeamCommissionsPayload)
+        || resolveAccountOverviewSalesTeamCommissionRecord(salesTeamCommissionsPayload)
+      )
+      : resolveAccountOverviewSalesTeamCommissionRecord(salesTeamCommissionsPayload);
+    const commissionContainerSnapshot = (
+      commissionContainersPayload?.snapshot
+      && typeof commissionContainersPayload.snapshot === 'object'
+    )
+      ? commissionContainersPayload.snapshot
+      : null;
+    const eWalletSnapshot = (
+      eWalletPayload?.wallet
+      && typeof eWalletPayload.wallet === 'object'
+    )
+      ? eWalletPayload.wallet
+      : null;
+    const walletCommissionOffsets = (
+      eWalletPayload?.commissionOffsets
+      && typeof eWalletPayload.commissionOffsets === 'object'
+    )
+      ? eWalletPayload.commissionOffsets
+      : null;
+
+    const retailProfitBalance = normalizedScope === 'system'
+      ? 0
+      : resolveAccountOverviewRetailProfitFallback(homeNode);
+    if (requestSequence !== accountOverviewRemoteRequestSequence) {
+      return accountOverviewRemoteSnapshot;
+    }
+    const nextSnapshot = {
+      binaryTreeMetrics,
+      salesTeamCommission,
+      commissionContainerSnapshot,
+      eWalletSnapshot,
+      walletCommissionOffsets,
+      retailProfitBalance,
+      scope: normalizedScope,
+      identity: identityPayload,
+      updatedAtMs: Date.now(),
+    };
+
+    accountOverviewRemoteSnapshot = nextSnapshot;
+    accountOverviewRemoteDataVersion += 1;
+    if (
+      binaryTreeMetrics
+      || salesTeamCommission
+      || commissionContainerSnapshot
+      || eWalletSnapshot
+      || normalizedScope === 'system'
+    ) {
+      accountOverviewRemoteLastSyncedAtMs = nextSnapshot.updatedAtMs;
+    }
+    accountOverviewLastRenderSignature = '';
+    return accountOverviewRemoteSnapshot;
+  })();
+
+  try {
+    return await accountOverviewRemoteSyncPromise;
+  } finally {
+    if (requestSequence === accountOverviewRemoteRequestSequence) {
+      accountOverviewRemoteSyncInFlight = false;
+      accountOverviewRemoteSyncPromise = null;
+    }
+  }
+}
+
+function maybeRefreshAccountOverviewRemoteSnapshot(homeNode = null, options = {}) {
+  if (!isAccountOverviewPanelAvailable()) {
+    return;
+  }
+  const normalizedScope = normalizeAccountOverviewScopeKey(options?.scope || 'identity');
+  const allowAnonymous = normalizedScope === 'system';
+  const preferHomeNodeIdentity = options?.preferHomeNodeIdentity === true;
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode, {
+    preferHomeNode: preferHomeNodeIdentity,
+    allowAnonymous,
+  });
+  const hasIdentity = Boolean(
+    safeText(identityPayload.userId)
+    || safeText(identityPayload.username)
+    || safeText(identityPayload.email),
+  );
+  if (!allowAnonymous && !hasIdentity) {
+    return;
+  }
+  const identityKey = `${normalizedScope}::${resolveAccountOverviewIdentityKey(identityPayload)}`;
+  const identityChanged = identityKey !== accountOverviewRemoteIdentityKey;
+  const referenceMs = accountOverviewRemoteLastSyncedAtMs || accountOverviewRemoteLastRequestAtMs;
+  const refreshIntervalMs = accountOverviewRemoteLastSyncedAtMs > 0
+    ? resolveAccountOverviewRemoteSyncIntervalMs()
+    : resolveAccountOverviewRemoteSyncIntervalMs({ forRetry: true });
+  if (
+    identityChanged
+    || !referenceMs
+    || (Date.now() - referenceMs) >= refreshIntervalMs
+  ) {
+    void refreshAccountOverviewRemoteSnapshot({
+      force: identityChanged,
+      homeNode,
+      scope: normalizedScope,
+      preferHomeNodeIdentity,
+    });
+  }
+}
+
+function resolveAccountOverviewJoinedAtMs(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    homeNode?.createdAt,
+    homeNode?.created_at,
+    homeNode?.joinedAt,
+    homeNode?.joined_at,
+    session?.createdAt,
+    session?.created_at,
+    session?.joinedAt,
+    session?.joined_at,
+    session?.registeredAt,
+    session?.registered_at,
+  ];
+
+  for (const candidate of candidates) {
+    const parsed = Date.parse(safeText(candidate));
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return Number.NaN;
+}
+
+function formatAccountOverviewJoinedDate(joinedAtMs) {
+  if (!Number.isFinite(joinedAtMs)) {
+    return 'Joined recently';
+  }
+  try {
+    const formatted = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date(joinedAtMs));
+    return `Joined ${formatted}`;
+  } catch (_) {
+    return 'Joined recently';
+  }
+}
+
+function resolveAccountOverviewDirectSponsorCount(homeNode = null, options = {}) {
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  if (!safeNodes.length) {
+    return 0;
+  }
+
+  if (options?.systemTotals === true) {
+    return safeNodes.reduce((count, node) => {
+      const nodeId = normalizeCredentialValue(safeText(node?.id));
+      if (
+        !nodeId
+        || nodeId === 'root'
+        || nodeId === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+        || nodeId === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+      ) {
+        return count;
+      }
+      return count + 1;
+    }, 0);
+  }
+
+  const homeNodeId = normalizeCredentialValue(
+    safeText(homeNode?.id || resolvePreferredGlobalHomeNodeId()),
+  );
+  const homeUsernameKey = normalizeCredentialValue(
+    safeText(homeNode?.username || homeNode?.memberCode || ''),
+  );
+  let totalDirectSponsors = 0;
+
+  for (const node of safeNodes) {
+    const nodeId = normalizeCredentialValue(safeText(node?.id));
+    if (
+      !nodeId
+      || nodeId === 'root'
+      || nodeId === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+      || (homeNodeId && nodeId === homeNodeId)
+    ) {
+      continue;
+    }
+
+    const sponsorNodeId = normalizeCredentialValue(
+      safeText(node?.sponsorId || node?.globalSponsorId || node?.sourceSponsorId || ''),
+    );
+    if (homeNodeId && sponsorNodeId && sponsorNodeId === homeNodeId) {
+      totalDirectSponsors += 1;
+      continue;
+    }
+
+    const sponsorUsernameKey = normalizeCredentialValue(
+      safeText(node?.sponsorUsername || node?.sponsor_username || '').replace(/^@+/, ''),
+    );
+    if (homeUsernameKey && sponsorUsernameKey && sponsorUsernameKey === homeUsernameKey) {
+      totalDirectSponsors += 1;
+    }
+  }
+
+  return totalDirectSponsors;
+}
+
+function resolveAccountOverviewAnchoredMonthlyCutoffMs(homeNode = null, referenceDate = new Date()) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const anchorCandidates = [
+    homeNode?.createdAt,
+    homeNode?.created_at,
+    homeNode?.enrolledAt,
+    homeNode?.enrolled_at,
+    session?.createdAt,
+    session?.created_at,
+    session?.registeredAt,
+    session?.registered_at,
+  ];
+  let anchorDate = null;
+  for (const candidate of anchorCandidates) {
+    const parsed = Date.parse(safeText(candidate));
+    if (Number.isFinite(parsed)) {
+      anchorDate = new Date(parsed);
+      break;
+    }
+  }
+  if (!(anchorDate instanceof Date) || Number.isNaN(anchorDate.getTime())) {
+    return Number.NaN;
+  }
+
+  const safeReferenceDate = referenceDate instanceof Date && !Number.isNaN(referenceDate.getTime())
+    ? referenceDate
+    : new Date();
+
+  const buildCutoffUtcMs = (year, monthIndex) => {
+    const lastDayOfMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+    const anchoredDay = Math.min(anchorDate.getUTCDate(), lastDayOfMonth);
+    return Date.UTC(
+      year,
+      monthIndex,
+      anchoredDay,
+      anchorDate.getUTCHours(),
+      anchorDate.getUTCMinutes(),
+      anchorDate.getUTCSeconds(),
+      anchorDate.getUTCMilliseconds(),
+    );
+  };
+
+  let nextCutoffMs = buildCutoffUtcMs(
+    safeReferenceDate.getUTCFullYear(),
+    safeReferenceDate.getUTCMonth(),
+  );
+  if (nextCutoffMs <= safeReferenceDate.getTime()) {
+    const nextMonthIndex = safeReferenceDate.getUTCMonth() + 1;
+    const nextYear = safeReferenceDate.getUTCFullYear() + Math.floor(nextMonthIndex / 12);
+    const normalizedNextMonthIndex = ((nextMonthIndex % 12) + 12) % 12;
+    nextCutoffMs = buildCutoffUtcMs(nextYear, normalizedNextMonthIndex);
+  }
+
+  return nextCutoffMs;
+}
+
+function resolveAccountOverviewActivityUntilLabel(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const storedActiveUntilCandidates = [
+    homeNode?.activityActiveUntilAt,
+    homeNode?.activity_active_until_at,
+    session?.activityActiveUntilAt,
+    session?.activity_active_until_at,
+  ];
+  let storedActiveUntilMs = Number.NaN;
+  for (const candidate of storedActiveUntilCandidates) {
+    const parsed = Date.parse(safeText(candidate));
+    if (Number.isFinite(parsed)) {
+      storedActiveUntilMs = parsed;
+      break;
+    }
+  }
+
+  const now = new Date();
+  const anchoredCutoffMs = resolveAccountOverviewAnchoredMonthlyCutoffMs(homeNode, now);
+  const activeUntilMs = Number.isFinite(anchoredCutoffMs)
+    ? anchoredCutoffMs
+    : storedActiveUntilMs;
+  if (!Number.isFinite(activeUntilMs)) {
+    return '--';
+  }
+
+  const remainingMs = activeUntilMs - now.getTime();
+  if (remainingMs <= 0) {
+    return 'Expired';
+  }
+  return formatCountdown(remainingMs);
+}
+
+function resolveAccountOverviewLegVolumeMetrics(homeNodeIdInput = 'root') {
+  const homeNodeId = safeText(homeNodeIdInput || 'root') || 'root';
+  const snapshotHash = safeText(state.liveSync?.lastAppliedHash || '');
+  const cacheSignature = `${homeNodeId}::${snapshotHash}`;
+  if (
+    cacheSignature
+    && cacheSignature === accountOverviewCachedLegVolumeSignature
+    && accountOverviewCachedLegVolumeMetrics
+  ) {
+    return accountOverviewCachedLegVolumeMetrics;
+  }
+
+  const fallbackMetrics = {
+    personalVolume: 0,
+    leftVolume: 0,
+    rightVolume: 0,
+    totalVolume: 0,
+  };
+  let resolvedMetrics = fallbackMetrics;
+  try {
+    const metrics = resolveNodeLegVolumes(homeNodeId);
+    if (metrics && typeof metrics === 'object') {
+      resolvedMetrics = {
+        personalVolume: Math.max(0, Math.floor(safeNumber(metrics.personalVolume, 0))),
+        leftVolume: Math.max(0, Math.floor(safeNumber(metrics.leftVolume, 0))),
+        rightVolume: Math.max(0, Math.floor(safeNumber(metrics.rightVolume, 0))),
+        totalVolume: Math.max(0, Math.floor(safeNumber(metrics.totalVolume, 0))),
+      };
+    }
+  } catch {
+    resolvedMetrics = fallbackMetrics;
+  }
+
+  accountOverviewCachedLegVolumeSignature = cacheSignature;
+  accountOverviewCachedLegVolumeMetrics = resolvedMetrics;
+  return resolvedMetrics;
+}
+
+function resolveAccountOverviewTotalOrganizationBv(homeNode = null) {
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const remoteTotal = safeNumber(remoteMetrics?.totalAccumulatedBv, Number.NaN);
+  if (Number.isFinite(remoteTotal)) {
+    return Math.max(0, Math.floor(remoteTotal));
+  }
+
+  const explicitCandidates = [
+    homeNode?.totalAccumulatedBv,
+    homeNode?.total_accumulated_bv,
+    homeNode?.totalOrganizationBv,
+    homeNode?.total_organization_bv,
+  ];
+  for (const candidate of explicitCandidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, Math.floor(parsed));
+    }
+  }
+
+  const homeNodeId = safeText(homeNode?.id || resolvePreferredGlobalHomeNodeId()) || 'root';
+  const legVolumeMetrics = resolveAccountOverviewLegVolumeMetrics(homeNodeId);
+  return Math.max(
+    0,
+    Math.floor(safeNumber(legVolumeMetrics.leftVolume, 0) + safeNumber(legVolumeMetrics.rightVolume, 0)),
+  );
+}
+
+function resolveAccountOverviewPersonalBv(homeNode = null) {
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const remotePersonalBv = safeNumber(remoteMetrics?.accountPersonalPv, Number.NaN);
+  if (Number.isFinite(remotePersonalBv)) {
+    return Math.max(0, Math.floor(remotePersonalBv));
+  }
+
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    homeNode?.currentPersonalPvBv,
+    homeNode?.current_personal_pv_bv,
+    homeNode?.monthlyPersonalBv,
+    homeNode?.monthly_personal_bv,
+    session?.currentPersonalPvBv,
+    session?.current_personal_pv_bv,
+    session?.monthlyPersonalBv,
+    session?.monthly_personal_bv,
+  ];
+  for (const candidate of candidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, Math.floor(parsed));
+    }
+  }
+
+  return Math.max(0, Math.floor(resolveNodeCurrentPersonalBvForActivity(homeNode)));
+}
+
+function resolveAccountOverviewSalesTeamCycleProfile(packageKeyInput = ENROLL_DEFAULT_PACKAGE_KEY) {
+  const normalizedPackageKey = normalizeCredentialValue(packageKeyInput);
+  return ACCOUNT_OVERVIEW_SALES_TEAM_CYCLE_COMMISSION_PLAN[normalizedPackageKey]
+    || ACCOUNT_OVERVIEW_SALES_TEAM_CYCLE_COMMISSION_PLAN[ENROLL_DEFAULT_PACKAGE_KEY]
+    || { perCycle: 0, weeklyCapCycles: 0 };
+}
+
+function resolveAccountOverviewCycleCapMetrics(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const salesTeamCommission = accountOverviewRemoteSnapshot?.salesTeamCommission;
+  const profile = resolveAccountOverviewSalesTeamCycleProfile(
+    salesTeamCommission?.accountPackageKey
+    || homeNode?.enrollmentPackage
+    || session?.enrollmentPackage
+    || ENROLL_DEFAULT_PACKAGE_KEY,
+  );
+  const weeklyCapCycles = Math.max(0, Math.floor(safeNumber(
+    salesTeamCommission?.weeklyCapCycles,
+    profile.weeklyCapCycles,
+  )));
+  const totalCycles = Math.max(0, Math.floor(safeNumber(
+    salesTeamCommission?.cappedCycles,
+    salesTeamCommission?.totalCycles ?? remoteMetrics?.totalCycles ?? 0,
+  )));
+  const cappedCycles = weeklyCapCycles > 0
+    ? Math.min(totalCycles, weeklyCapCycles)
+    : totalCycles;
+  return {
+    cappedCycles,
+    weeklyCapCycles,
+  };
+}
+
+function resolveAccountOverviewSystemSalesRevenueTotal() {
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  let totalRevenue = 0;
+  for (const node of safeNodes) {
+    const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+    if (
+      !nodeIdKey
+      || nodeIdKey === 'root'
+      || nodeIdKey === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+      || nodeIdKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    ) {
+      continue;
+    }
+    const packagePrice = safeNumber(node?.packagePrice, Number.NaN);
+    const fallbackBv = safeNumber(node?.packageBv, 0);
+    const amount = Number.isFinite(packagePrice) && packagePrice > 0
+      ? packagePrice
+      : Math.max(0, fallbackBv);
+    totalRevenue += amount;
+  }
+  return Math.max(0, Math.round(totalRevenue * 100) / 100);
+}
+
+function resolveAccountOverviewSystemFastTrackGeneratedTotal() {
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  let totalFastTrack = 0;
+  for (const node of safeNodes) {
+    const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+    if (
+      !nodeIdKey
+      || nodeIdKey === 'root'
+      || nodeIdKey === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+      || nodeIdKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    ) {
+      continue;
+    }
+    totalFastTrack += Math.max(0, safeNumber(
+      node?.fastTrackBonusAmount ?? node?.fast_track_bonus_amount,
+      0,
+    ));
+  }
+  return Math.max(0, Math.round(totalFastTrack * 100) / 100);
+}
+
+function resolveAccountOverviewEWalletBalance(homeNode = null, options = {}) {
+  if (options?.systemTotals === true) {
+    return resolveAccountOverviewSystemSalesRevenueTotal();
+  }
+  const remoteWallet = accountOverviewRemoteSnapshot?.eWalletSnapshot;
+  const remoteBalance = safeNumber(remoteWallet?.balance, Number.NaN);
+  if (Number.isFinite(remoteBalance)) {
+    return Math.max(0, remoteBalance);
+  }
+  return resolveAccountOverviewSeedWalletBalance(homeNode);
+}
+
+function resolveAccountOverviewCommissionValue(...candidates) {
+  for (const candidate of candidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, parsed);
+    }
+  }
+  return 0;
+}
+
+function resolveAccountOverviewCommissionBalances(homeNode = null, options = {}) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const commissionContainerBalances = (
+    accountOverviewRemoteSnapshot?.commissionContainerSnapshot?.balances
+    && typeof accountOverviewRemoteSnapshot.commissionContainerSnapshot.balances === 'object'
+  )
+    ? accountOverviewRemoteSnapshot.commissionContainerSnapshot.balances
+    : {};
+  const salesTeamCommission = accountOverviewRemoteSnapshot?.salesTeamCommission;
+  const salesTeamCycleMetrics = resolveAccountOverviewCycleCapMetrics(homeNode);
+  const salesTeamProfile = resolveAccountOverviewSalesTeamCycleProfile(
+    salesTeamCommission?.accountPackageKey
+    || homeNode?.enrollmentPackage
+    || session?.enrollmentPackage
+    || ENROLL_DEFAULT_PACKAGE_KEY,
+  );
+  const fallbackSalesTeamGross = salesTeamCycleMetrics.cappedCycles * Math.max(0, safeNumber(salesTeamProfile?.perCycle, 0));
+  const walletCommissionOffsets = (
+    accountOverviewRemoteSnapshot?.walletCommissionOffsets
+    && typeof accountOverviewRemoteSnapshot.walletCommissionOffsets === 'object'
+  )
+    ? accountOverviewRemoteSnapshot.walletCommissionOffsets
+    : {};
+  if (options?.systemTotals === true) {
+    const generatedFastTrack = resolveAccountOverviewSystemFastTrackGeneratedTotal();
+    return {
+      retailProfit: resolveAccountOverviewCommissionValue(
+        walletCommissionOffsets.retailprofit,
+        walletCommissionOffsets.retail,
+        accountOverviewRemoteSnapshot?.retailProfitBalance,
+      ),
+      fastTrack: resolveAccountOverviewCommissionValue(
+        commissionContainerBalances.fasttrack,
+        commissionContainerBalances.fastTrack,
+        generatedFastTrack,
+      ),
+      salesTeam: resolveAccountOverviewCommissionValue(
+        commissionContainerBalances.salesteam,
+        commissionContainerBalances.salesTeam,
+        salesTeamCommission?.netCommissionAmount,
+        salesTeamCommission?.grossCommissionAmount,
+        fallbackSalesTeamGross,
+      ),
+      infinityBuilder: resolveAccountOverviewCommissionValue(
+        commissionContainerBalances.infinitybuilder,
+        commissionContainerBalances.infinityBuilder,
+      ),
+      legacyBuilder: resolveAccountOverviewCommissionValue(
+        commissionContainerBalances.legacyleadership,
+        commissionContainerBalances.legacyLeadership,
+      ),
+    };
+  }
+  return {
+    retailProfit: resolveAccountOverviewCommissionValue(
+      walletCommissionOffsets.retailprofit,
+      walletCommissionOffsets.retail,
+      accountOverviewRemoteSnapshot?.retailProfitBalance,
+      homeNode?.retailProfit,
+      homeNode?.retail_profit,
+      session?.retailProfit,
+      session?.retail_profit,
+    ),
+    fastTrack: resolveAccountOverviewCommissionValue(
+      commissionContainerBalances.fasttrack,
+      commissionContainerBalances.fastTrack,
+      homeNode?.fastTrackBonusAmount,
+      homeNode?.fast_track_bonus_amount,
+      session?.fastTrackBonusAmount,
+      session?.fast_track_bonus_amount,
+    ),
+    salesTeam: resolveAccountOverviewCommissionValue(
+      commissionContainerBalances.salesteam,
+      commissionContainerBalances.salesTeam,
+      salesTeamCommission?.netCommissionAmount,
+      salesTeamCommission?.grossCommissionAmount,
+      fallbackSalesTeamGross,
+    ),
+    infinityBuilder: resolveAccountOverviewCommissionValue(
+      commissionContainerBalances.infinitybuilder,
+      commissionContainerBalances.infinityBuilder,
+      homeNode?.infinityBuilderBonusAmount,
+      homeNode?.infinity_builder_bonus_amount,
+      session?.infinityBuilderBonusAmount,
+      session?.infinity_builder_bonus_amount,
+    ),
+    legacyBuilder: resolveAccountOverviewCommissionValue(
+      commissionContainerBalances.legacyleadership,
+      commissionContainerBalances.legacyLeadership,
+      homeNode?.legacyLeadershipBonusAmount,
+      homeNode?.legacy_leadership_bonus_amount,
+      session?.legacyLeadershipBonusAmount,
+      session?.legacy_leadership_bonus_amount,
+    ),
+  };
+}
+
+function resolveAccountOverviewBadgePalette(label, fallbackVariant = 'neutral') {
+  const normalized = normalizeCredentialValue(label);
+  if (
+    normalized.includes('founder')
+    || normalized.includes('title 1')
+    || normalized.includes('title1')
+  ) {
+    return ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyFounder;
+  }
+  if (normalized.includes('legacy')) {
+    return ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyRank;
+  }
+  if (normalized.includes('infinity') || normalized.includes('achiever')) {
+    return APPLE_MAPS_NODE_PALETTES.accent;
+  }
+  if (normalized.includes('business')) {
+    return APPLE_MAPS_NODE_PALETTES.mint;
+  }
+  if (
+    normalized.includes('personal')
+    || normalized.includes('starter')
+    || normalized.includes('builder')
+  ) {
+    return APPLE_MAPS_NODE_PALETTES.neutral;
+  }
+  const safeVariant = APPLE_MAPS_NODE_PALETTES[fallbackVariant]
+    ? fallbackVariant
+    : 'neutral';
+  return resolveNodeAvatarPalette(`account-overview:${normalized || safeVariant}`, {
+    variant: safeVariant,
+  });
+}
+
+function resolveAccountOverviewGradientBackground(palette, options = {}) {
+  void options;
+  return resolveCssGradientFromPalette(palette);
+}
+
+function syncAccountOverviewPanelPosition(layoutInput = state.layout) {
+  if (!isAccountOverviewPanelAvailable()) {
+    return;
+  }
+
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const sideNav = layout?.sideNav || null;
+  const sideNavToggle = layout?.sideNavToggle || null;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
+  );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: 820,
+      minWidth: 320,
+      minHeight: 320,
+      halfHeightRatio: 0.84,
+      fullScreenInFullStage: true,
+    });
+    accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-left-mobile', `${mobileFrame.x}px`);
+    accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-top-mobile', `${mobileFrame.y}px`);
+    applyTreeNextMobileOverlayPanelStyle(accountOverviewPanelElement, mobileFrame);
+    accountOverviewPanelElement.classList.remove('is-positioning');
+    return;
+  }
+
+  clearTreeNextMobileOverlayPanelStyle(accountOverviewPanelElement);
+
+  const panelHorizontalGap = 18;
+  const panelEdgePadding = 18;
+  const rightDockReservedWidth = 72;
+  const panelTop = sideNav
+    ? Math.round(sideNav.y)
+    : panelEdgePadding;
+  const panelHeight = sideNav
+    ? Math.round(sideNav.height)
+    : Math.max(320, viewportHeight - (panelEdgePadding * 2));
+
+  let anchorLeft = Math.round((viewportWidth - 640) / 2);
+  if (sideNavOpen && sideNav) {
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
+  } else if (sideNavToggle) {
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
+  }
+
+  const maxUsableWidth = Math.max(
+    360,
+    Math.floor(viewportWidth - anchorLeft - rightDockReservedWidth),
+  );
+  const panelWidth = clamp(Math.round(Math.min(760, maxUsableWidth)), 360, maxUsableWidth);
+
+  const clampedLeft = clamp(
+    anchorLeft,
+    panelEdgePadding,
+    Math.max(
+      panelEdgePadding,
+      viewportWidth - panelWidth - rightDockReservedWidth,
+    ),
+  );
+  const clampedTop = clamp(
+    panelTop,
+    panelEdgePadding,
+    Math.max(panelEdgePadding, viewportHeight - panelHeight - panelEdgePadding),
+  );
+  const clampedHeight = clamp(
+    panelHeight,
+    320,
+    Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+  );
+
+  accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-left', `${clampedLeft}px`);
+  accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-top', `${clampedTop}px`);
+  accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-width', `${panelWidth}px`);
+  accountOverviewPanelElement.style.setProperty('--tree-next-account-overview-height', `${clampedHeight}px`);
+  accountOverviewPanelElement.classList.remove('is-positioning');
+}
+
+function syncAccountOverviewPanelVisuals() {
+  if (!isAccountOverviewPanelAvailable()) {
+    return;
+  }
+
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  const systemTotalsMode = overviewContext?.systemTotals === true;
+  maybeRefreshAccountOverviewRemoteSnapshot(homeNode, {
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
+  if (Boolean(state.ui?.preferredAccountsVisible)) {
+    maybeRefreshPreferredAccountsSnapshot();
+  }
+  const displayName = systemTotalsMode
+    ? ADMIN_ROOT_DISPLAY_NAME
+    : (safeText(homeNode?.name || resolveSessionDisplayName()) || resolveSessionDisplayName());
+  const email = systemTotalsMode
+    ? ''
+    : safeText(homeNode?.email || resolveSessionDisplayEmail());
+  const username = systemTotalsMode
+    ? ADMIN_ROOT_USERNAME
+    : safeText(homeNode?.username || homeNode?.memberCode || session?.username || session?.login || '');
+  const handleSeed = username.replace(/^@+/, '') || safeText(email.split('@')[0]);
+  const handleText = handleSeed ? `@${handleSeed}` : '@member';
+  const rankLabel = systemTotalsMode
+    ? ADMIN_ROOT_DISPLAY_NAME
+    : safeText(
+      homeNode?.rank
+      || homeNode?.accountRank
+      || homeNode?.account_rank
+      || session?.accountRank
+      || session?.account_rank
+      || session?.rank
+      || accountOverviewRankLabelElement?.textContent
+      || 'Legacy',
+    );
+  const fallbackTitleLabel = safeText(accountOverviewTitleLabelElement?.textContent) || rankLabel || 'Member Title';
+  const sessionTitleLabel = resolveNodePrimaryTitleLabel(session, fallbackTitleLabel);
+  const sessionTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sessionTitleLabel, rankLabel);
+  const homeTitleLabel = resolveNodePrimaryTitleLabel(homeNode);
+  const homeTitleIsFallback = isTreeNextRankBuilderFallbackTitle(homeTitleLabel, rankLabel);
+  let titleLabel = systemTotalsMode ? 'System Overview' : fallbackTitleLabel;
+  if (systemTotalsMode) {
+    titleLabel = 'System Overview';
+  } else if (state.source === 'member') {
+    if (sessionTitleLabel && !sessionTitleIsFallback) {
+      titleLabel = sessionTitleLabel;
+    } else if (homeTitleLabel && !homeTitleIsFallback) {
+      titleLabel = homeTitleLabel;
+    } else {
+      titleLabel = sessionTitleLabel || homeTitleLabel || fallbackTitleLabel;
+    }
+  } else if (homeTitleLabel && !homeTitleIsFallback) {
+    titleLabel = homeTitleLabel;
+  } else {
+    titleLabel = sessionTitleLabel || homeTitleLabel || fallbackTitleLabel;
+  }
+  const joinedText = systemTotalsMode
+    ? 'Live system totals'
+    : formatAccountOverviewJoinedDate(resolveAccountOverviewJoinedAtMs(homeNode));
+  const iconSourceNode = {
+    ...(homeNode && typeof homeNode === 'object' ? homeNode : {}),
+    ...(session && typeof session === 'object' ? session : {}),
+    rank: rankLabel,
+    accountRank: rankLabel,
+    title: titleLabel,
+    accountTitle: titleLabel,
+    profileAccountTitle: titleLabel,
+  };
+  const [rankIconPath, titleIconPath] = resolveNodeDetailRankAndTitleIcons(iconSourceNode);
+  const avatarSignature = [
+    systemTotalsMode ? 'system' : 'member',
+    safeText(homeNode?.id),
+    safeText(homeNode?.username),
+    safeText(homeNode?.avatarUrl || homeNode?.avatar_url),
+    resolveSessionAvatarSignature(),
+  ].join('|');
+  const activeState = systemTotalsMode
+    ? true
+    : (homeNode ? resolveNodeActivityState(homeNode) : true);
+  const activeUntilLabel = systemTotalsMode
+    ? 'Exempt'
+    : resolveAccountOverviewActivityUntilLabel(homeNode);
+  const totalOrganizationBv = resolveAccountOverviewTotalOrganizationBv(homeNode);
+  const personalBv = resolveAccountOverviewPersonalBv(homeNode);
+  const cycleCapMetrics = resolveAccountOverviewCycleCapMetrics(homeNode);
+  const directSponsorCount = resolveAccountOverviewDirectSponsorCount(homeNode, {
+    systemTotals: systemTotalsMode,
+  });
+  const eWalletBalance = resolveAccountOverviewEWalletBalance(homeNode, {
+    systemTotals: systemTotalsMode,
+  });
+  const commissionBalances = resolveAccountOverviewCommissionBalances(homeNode, {
+    systemTotals: systemTotalsMode,
+  });
+  const totalCommissionGenerated = Math.max(0, (
+    safeNumber(commissionBalances.retailProfit, 0)
+    + safeNumber(commissionBalances.fastTrack, 0)
+    + safeNumber(commissionBalances.salesTeam, 0)
+    + safeNumber(commissionBalances.infinityBuilder, 0)
+    + safeNumber(commissionBalances.legacyBuilder, 0)
+  ));
+  const cycleCapText = systemTotalsMode
+    ? formatEnrollCurrency(resolveAccountOverviewSystemSalesRevenueTotal())
+    : `${formatInteger(cycleCapMetrics.cappedCycles, 0)} / ${formatInteger(cycleCapMetrics.weeklyCapCycles, 0)}`;
+  const cycleLabelText = systemTotalsMode
+    ? 'Total Generated Revenue'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.cycle;
+  const activeWindowLabelText = systemTotalsMode
+    ? 'Administrator Mode'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.activeWindow;
+  const totalBvLabelText = systemTotalsMode
+    ? 'Total Organization BV'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.totalBv;
+  const personalBvLabelText = systemTotalsMode
+    ? 'Total Personal BV'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.personalBv;
+  const directSponsorsLabelText = systemTotalsMode
+    ? 'Total Members'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.directSponsors;
+  const eWalletLabelText = systemTotalsMode
+    ? 'Total Commission Generated'
+    : ACCOUNT_OVERVIEW_DEFAULT_LABELS.eWallet;
+  const ewalletDisplayValue = systemTotalsMode
+    ? formatEnrollCurrency(totalCommissionGenerated)
+    : formatEnrollCurrency(eWalletBalance);
+  const renderSignature = [
+    systemTotalsMode ? 'system' : 'member',
+    displayName,
+    handleText,
+    rankLabel,
+    titleLabel,
+    joinedText,
+    avatarSignature,
+    safeText(rankIconPath),
+    safeText(titleIconPath),
+    activeState ? '1' : '0',
+    activeUntilLabel,
+    String(totalOrganizationBv),
+    String(personalBv),
+    cycleCapText,
+    cycleLabelText,
+    activeWindowLabelText,
+    totalBvLabelText,
+    personalBvLabelText,
+    directSponsorsLabelText,
+    eWalletLabelText,
+    String(directSponsorCount),
+    ewalletDisplayValue,
+    formatEnrollCurrency(commissionBalances.retailProfit),
+    formatEnrollCurrency(commissionBalances.fastTrack),
+    formatEnrollCurrency(commissionBalances.salesTeam),
+    formatEnrollCurrency(commissionBalances.infinityBuilder),
+    formatEnrollCurrency(commissionBalances.legacyBuilder),
+    String(accountOverviewRemoteDataVersion),
+  ].join('::');
+  if (renderSignature === accountOverviewLastRenderSignature) {
+    return;
+  }
+  accountOverviewLastRenderSignature = renderSignature;
+
+  setAccountOverviewText(accountOverviewNameElement, displayName);
+  setAccountOverviewText(accountOverviewHandleElement, handleText);
+  setAccountOverviewText(accountOverviewJoinedElement, joinedText);
+  setAccountOverviewText(accountOverviewRankLabelElement, rankLabel);
+  setAccountOverviewText(accountOverviewTitleLabelElement, titleLabel);
+  setAccountOverviewText(accountOverviewActiveWindowValueElement, activeUntilLabel);
+  setAccountOverviewText(accountOverviewActiveWindowLabelElement, activeWindowLabelText);
+  setAccountOverviewText(accountOverviewTotalBvValueElement, formatVolumeValue(totalOrganizationBv));
+  setAccountOverviewText(accountOverviewTotalBvLabelElement, totalBvLabelText);
+  setAccountOverviewText(accountOverviewPersonalBvValueElement, formatVolumeValue(personalBv));
+  setAccountOverviewText(accountOverviewPersonalBvLabelElement, personalBvLabelText);
+  setAccountOverviewText(accountOverviewCycleValueElement, cycleCapText);
+  setAccountOverviewText(accountOverviewCycleLabelElement, cycleLabelText);
+  setAccountOverviewText(accountOverviewDirectSponsorsValueElement, formatInteger(directSponsorCount, 0));
+  setAccountOverviewText(accountOverviewDirectSponsorsLabelElement, directSponsorsLabelText);
+  setAccountOverviewText(accountOverviewEwalletValueElement, ewalletDisplayValue);
+  setAccountOverviewText(accountOverviewEwalletLabelElement, eWalletLabelText);
+  setAccountOverviewText(accountOverviewSalesTeamValueElement, formatEnrollCurrency(commissionBalances.salesTeam));
+  setAccountOverviewText(accountOverviewRetailProfitValueElement, formatEnrollCurrency(commissionBalances.retailProfit));
+  setAccountOverviewText(accountOverviewFastTrackValueElement, formatEnrollCurrency(commissionBalances.fastTrack));
+  setAccountOverviewText(accountOverviewTrackSalesTeamValueElement, formatEnrollCurrency(commissionBalances.salesTeam));
+  setAccountOverviewText(accountOverviewInfinityBuilderValueElement, formatEnrollCurrency(commissionBalances.infinityBuilder));
+  setAccountOverviewText(accountOverviewLegacyBuilderValueElement, formatEnrollCurrency(commissionBalances.legacyBuilder));
+
+  if (accountOverviewRankIconElement instanceof HTMLImageElement && rankIconPath) {
+    accountOverviewRankIconElement.src = rankIconPath;
+  }
+  if (accountOverviewTitleIconElement instanceof HTMLImageElement && titleIconPath) {
+    accountOverviewTitleIconElement.src = titleIconPath;
+  }
+
+  const nodePhotoUrl = resolveNodeAvatarPhotoUrl(homeNode);
+  const nodeAvatarPalette = resolveAvatarPaletteFromRecord(homeNode) || resolveSessionAvatarPalette();
+  const sessionAvatarBackground = resolveSessionAvatarCssBackground();
+  if (accountOverviewAvatarElement instanceof HTMLElement) {
+    if (!systemTotalsMode && nodePhotoUrl) {
+      accountOverviewAvatarElement.style.backgroundImage = `url("${nodePhotoUrl}")`;
+      accountOverviewAvatarElement.dataset.avatarPhoto = 'true';
+    } else if (!systemTotalsMode && sessionAvatarBackground.isPhoto) {
+      accountOverviewAvatarElement.style.backgroundImage = sessionAvatarBackground.image;
+      accountOverviewAvatarElement.dataset.avatarPhoto = 'true';
+    } else {
+      accountOverviewAvatarElement.style.backgroundImage = resolveAccountOverviewGradientBackground(
+        nodeAvatarPalette,
+        { sheenAlpha: 0.26 },
+      );
+      accountOverviewAvatarElement.dataset.avatarPhoto = 'false';
+    }
+  }
+  if (accountOverviewAvatarInitialsElement instanceof HTMLElement) {
+    accountOverviewAvatarInitialsElement.textContent = resolveInitials(displayName);
+  }
+  if (accountOverviewStatusDotElement instanceof HTMLElement) {
+    accountOverviewStatusDotElement.classList.toggle('is-inactive', !activeState);
+  }
+
+  const rankPalette = resolveAccountOverviewBadgePalette(rankLabel, 'ocean');
+  const titlePalette = resolveAccountOverviewBadgePalette(titleLabel, 'amber');
+  if (accountOverviewRankBadgeElement instanceof HTMLElement) {
+    accountOverviewRankBadgeElement.style.backgroundImage = resolveAccountOverviewGradientBackground(rankPalette, {
+      sheenAlpha: 0.22,
+    });
+    accountOverviewRankBadgeElement.style.boxShadow = 'none';
+  }
+  if (accountOverviewTitleBadgeElement instanceof HTMLElement) {
+    accountOverviewTitleBadgeElement.style.backgroundImage = resolveAccountOverviewGradientBackground(titlePalette, {
+      sheenAlpha: 0.22,
+    });
+    accountOverviewTitleBadgeElement.style.boxShadow = 'none';
+  }
+}
+
+function syncAccountOverviewPanelVisibility() {
+  if (!isAccountOverviewPanelAvailable()) {
+    return;
+  }
+
+  const isVisible = Boolean(state.ui?.accountOverviewVisible);
+  accountOverviewPanelElement.classList.toggle('is-hidden', !isVisible);
+  accountOverviewPanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+}
+
+function setAccountOverviewPanelVisible(isVisible) {
+  const wasVisible = Boolean(state.ui.accountOverviewVisible);
+  const nextVisible = Boolean(isVisible);
+  state.ui.accountOverviewVisible = nextVisible;
+  if (nextVisible) {
+    state.ui.infinityBuilderVisible = false;
+    state.ui.rankAdvancementVisible = false;
+    state.ui.preferredAccountsVisible = false;
+    state.ui.myStoreVisible = false;
+    syncInfinityBuilderPanelVisibility();
+    syncRankAdvancementPanelVisibility();
+    syncPreferredAccountsPanelVisibility();
+    syncMyStorePanelVisibility();
+  }
+  syncAccountOverviewPanelVisibility();
+  if (nextVisible) {
+    const overviewContext = resolveAccountOverviewPanelContext();
+    const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+    void refreshAccountOverviewRemoteSnapshot({
+      force: true,
+      homeNode,
+      scope: overviewContext?.scope,
+      preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+    });
+    return;
+  }
+  if (wasVisible) {
+    restoreTreeNextMobileCenterPanelHalfStage({ animate: true });
+  }
+}
+
+function initAccountOverviewPanel() {
+  if (!isAccountOverviewPanelAvailable()) {
+    return;
+  }
+
+  syncAccountOverviewPanelPosition();
+  syncAccountOverviewPanelVisuals();
+  syncAccountOverviewPanelVisibility();
+  const overviewContext = resolveAccountOverviewPanelContext();
+  void refreshAccountOverviewRemoteSnapshot({
+    force: true,
+    homeNode: overviewContext?.homeNode || null,
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
+
+  if (accountOverviewRefreshButtonElement instanceof HTMLElement) {
+    accountOverviewRefreshButtonElement.addEventListener('click', () => {
+      setAccountOverviewPanelVisible(false);
+    });
+  }
+  for (const commissionButton of accountOverviewCommissionButtons) {
+    if (!(commissionButton instanceof HTMLButtonElement)) {
+      continue;
+    }
+    commissionButton.addEventListener('click', () => {
+      const commissionKey = normalizeCredentialValue(
+        commissionButton.dataset.accountOverviewCommission || '',
+      );
+      accountOverviewSelectedCommissionKey = commissionKey;
+      if (commissionKey === 'infinity-builder' || commissionKey === 'infinitybuilder') {
+        setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_INFINITY);
+        setInfinityBuilderPanelVisible(true);
+      } else if (
+        commissionKey === 'legacy-builder'
+        || commissionKey === 'legacybuilder'
+        || commissionKey === 'legacy-leadership'
+        || commissionKey === 'legacyleadership'
+      ) {
+        setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+        setInfinityBuilderPanelVisible(true);
+      }
+    });
+  }
+}
+
+function isInfinityBuilderPanelAvailable() {
+  return infinityBuilderPanelElement instanceof HTMLElement;
+}
+
+function normalizeInfinityBuilderPanelMode(modeInput = INFINITY_BUILDER_PANEL_MODE_INFINITY) {
+  const normalizedMode = normalizeCredentialValue(modeInput);
+  if (
+    normalizedMode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP
+    || normalizedMode === 'legacyleadership'
+    || normalizedMode === 'legacy-builder'
+    || normalizedMode === 'legacybuilder'
+  ) {
+    return INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP;
+  }
+  return INFINITY_BUILDER_PANEL_MODE_INFINITY;
+}
+
+function isLegacyLeadershipPanelMode() {
+  return normalizeInfinityBuilderPanelMode(infinityBuilderPanelMode)
+    === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP;
+}
+
+function resolveInfinityBuilderPanelModeConfig(modeInput = infinityBuilderPanelMode) {
+  const mode = normalizeInfinityBuilderPanelMode(modeInput);
+  if (mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    return {
+      mode,
+      panelTitle: 'Legacy Leadership Bonus',
+      panelCopyHtml: (
+        'The <strong>Legacy Leadership Bonus</strong> rewards leaders who build Legacy-only'
+        + ' teams through mapped depth levels (0-3). Each completed tier unlocks a one-time'
+        + ' tier reward.'
+      ),
+      tierLabelPrefix: 'Legacy Tier',
+      claimMapPrimaryKey: 'legacyleadership',
+      claimMapFallbackKey: 'legacyLeadership',
+      claimMessageLabel: 'Legacy tier reward',
+      currentEmptyText: 'Enroll Legacy package members to start building Tier 1.',
+      currentAriaLabelPrefix: 'View Legacy Tier',
+      commissionBalanceKey: 'legacyBuilder',
+      maxDepth: LEGACY_LEADERSHIP_MAX_DEPTH,
+      totalNodesPerTier: LEGACY_LEADERSHIP_TOTAL_NODES_PER_TIER,
+      baseVisibleTierCount: LEGACY_LEADERSHIP_BASE_VISIBLE_TIERS,
+      previewLockedTierCount: LEGACY_LEADERSHIP_PREVIEW_LOCKED_TIERS,
+      showMonthlyOverride: false,
+      unlockByDirectRequirement: true,
+      directSeedLabel: 'Legacy enrollments',
+    };
+  }
+  return {
+    mode,
+    panelTitle: 'Infinity Tier Commission',
+    panelCopyHtml: (
+      'The <strong>Infinity Tier Commission</strong> rewards members who build strong foundations.'
+      + ' Each tier has 3 direct Infinity/Legacy nodes. Infinity nodes reward $50 and Legacy'
+      + ' nodes reward $75. Tier 1 is strict: all 3 nodes must complete before 1% activates.'
+      + ' Tier 2+ activates 1% per node once it has 3 active directs (50 BV each).'
+    ),
+    tierLabelPrefix: 'Infinity Tier',
+    claimMapPrimaryKey: 'infinitybuilder',
+    claimMapFallbackKey: 'infinityBuilder',
+    claimMessageLabel: 'Tier reward',
+    currentEmptyText: 'Enroll Infinity or Legacy package members to start building Tier 1.',
+    currentAriaLabelPrefix: 'View Infinity Tier',
+    commissionBalanceKey: 'infinityBuilder',
+    maxDepth: 1,
+    totalNodesPerTier: INFINITY_BUILDER_TIER_NODE_REQUIREMENT,
+    baseVisibleTierCount: INFINITY_BUILDER_MIN_VISIBLE_TIERS,
+    previewLockedTierCount: 0,
+    showMonthlyOverride: true,
+    unlockByDirectRequirement: false,
+    directSeedLabel: 'Infinity/Legacy enrollments',
+  };
+}
+
+function isLegacyTierCanvasViewActive() {
+  return Boolean(
+    legacyTierCanvasViewState.active
+    && legacyTierCanvasViewState.model
+    && isLegacyLeadershipPanelMode(),
+  );
+}
+
+function clearPendingLegacyTierCanvasOpen() {
+  if (legacyTierCanvasOpenTimerId > 0) {
+    window.clearTimeout(legacyTierCanvasOpenTimerId);
+  }
+  legacyTierCanvasOpenTimerId = 0;
+  legacyTierCanvasOpenToken = '';
+}
+
+function clearPendingLegacyTierCanvasTierSwitch(options = {}) {
+  const preserveFade = options?.preserveFade === true;
+  if (legacyTierCanvasTierSwitchTimerId > 0) {
+    window.clearTimeout(legacyTierCanvasTierSwitchTimerId);
+  }
+  legacyTierCanvasTierSwitchTimerId = 0;
+  legacyTierCanvasTierSwitchToken = '';
+  legacyTierCanvasViewState.tierSwitchInFlight = false;
+  if (!preserveFade) {
+    setUniverseEnterViewFade('none');
+  }
+}
+
+function captureLegacyTierCanvasAnchorView(options = {}) {
+  const preferTarget = options?.preferTarget !== false;
+  const cameraTarget = preferTarget && state.camera?.target && typeof state.camera.target === 'object'
+    ? state.camera.target
+    : null;
+  const cameraView = state.camera?.view && typeof state.camera.view === 'object'
+    ? state.camera.view
+    : null;
+  const sourceView = cameraTarget || cameraView || null;
+  if (!sourceView) {
+    return {
+      x: 0,
+      y: 0,
+      scale: DEFAULT_HOME_SCALE,
+    };
+  }
+  return {
+    x: safeNumber(sourceView.x, 0),
+    y: safeNumber(sourceView.y, 0),
+    scale: clamp(safeNumber(sourceView.scale, DEFAULT_HOME_SCALE), MIN_SCALE, MAX_SCALE),
+  };
+}
+
+function resolveLegacyTierCanvasTierEntries(snapshotInput = null, selectedTierInput = null) {
+  const snapshot = snapshotInput && typeof snapshotInput === 'object' ? snapshotInput : null;
+  const tiers = Array.isArray(snapshot?.tiers) ? snapshot.tiers : [];
+  const selectedTierNumber = Math.max(
+    1,
+    Math.floor(safeNumber(
+      selectedTierInput?.tierNumber,
+      safeNumber(infinityBuilderSelectedTierNumber, 1),
+    )),
+  );
+  const unlockedOrSelected = tiers.filter((tier) => (
+    tier
+    && typeof tier === 'object'
+    && (Boolean(tier.isUnlocked) || Math.floor(safeNumber(tier.tierNumber, 0)) === selectedTierNumber)
+  ));
+  const sourceTiers = unlockedOrSelected.length ? unlockedOrSelected : tiers;
+  const tierNumberSet = new Set();
+  for (const tier of sourceTiers) {
+    const tierNumber = Math.floor(safeNumber(tier?.tierNumber, 0));
+    if (tierNumber > 0) {
+      tierNumberSet.add(tierNumber);
+    }
+  }
+  if (!tierNumberSet.size && selectedTierNumber > 0) {
+    tierNumberSet.add(selectedTierNumber);
+  }
+  const tierNumbers = Array.from(tierNumberSet).sort((a, b) => a - b);
+  return tierNumbers.map((tierNumber) => ({
+    tierNumber,
+    label: `Legacy Tier ${tierNumber}`,
+    isSelected: tierNumber === selectedTierNumber,
+  }));
+}
+
+function syncLegacyTierCanvasTierEntries(snapshotInput = null, selectedTierInput = null) {
+  legacyTierCanvasViewState.tierEntries = resolveLegacyTierCanvasTierEntries(
+    snapshotInput,
+    selectedTierInput,
+  );
+  if (legacyTierCanvasViewState.tierEntries.length <= 1) {
+    legacyTierCanvasViewState.dropdownOpen = false;
+  }
+}
+
+function selectLegacyTierCanvasTier(tierNumberInput = 0, options = {}) {
+  const requestedTierNumber = Math.floor(safeNumber(tierNumberInput, NaN));
+  if (!Number.isFinite(requestedTierNumber) || requestedTierNumber <= 0) {
+    return false;
+  }
+  if (!isLegacyLeadershipPanelMode()) {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+  }
+
+  const previousTierNumber = infinityBuilderSelectedTierNumber;
+  const wasLegacyViewActive = isLegacyTierCanvasViewActive();
+  const previousLegacyTierNumber = Math.max(
+    1,
+    Math.floor(safeNumber(
+      legacyTierCanvasViewState?.tierNumber,
+      previousTierNumber,
+    )),
+  );
+  infinityBuilderSelectedTierNumber = requestedTierNumber;
+  let selectedTierContext = resolveInfinityBuilderSelectedTierContext();
+  if (!selectedTierContext) {
+    const fallbackSnapshot = infinityBuilderLastPanelSnapshot;
+    const fallbackTier = resolveInfinityBuilderSelectedTierFromSnapshot(
+      fallbackSnapshot,
+      requestedTierNumber,
+    );
+    if (fallbackSnapshot && fallbackTier) {
+      selectedTierContext = {
+        snapshot: fallbackSnapshot,
+        selectedTier: fallbackTier,
+      };
+    }
+  }
+  if (!selectedTierContext) {
+    infinityBuilderSelectedTierNumber = previousTierNumber;
+    return false;
+  }
+
+  const resolvedTierNumber = Math.max(
+    1,
+    Math.floor(safeNumber(selectedTierContext?.selectedTier?.tierNumber, requestedTierNumber)),
+  );
+  infinityBuilderSelectedTierNumber = resolvedTierNumber;
+  infinityBuilderClaimFeedbackTierNumber = 0;
+  infinityBuilderLastRenderSignature = '';
+  infinityBuilderLastPanelSnapshot = selectedTierContext.snapshot || infinityBuilderLastPanelSnapshot;
+  syncLegacyTierCanvasTierEntries(selectedTierContext.snapshot, selectedTierContext.selectedTier);
+
+  const keepDropdownOpen = options?.keepDropdownOpen === true;
+  if (!keepDropdownOpen) {
+    legacyTierCanvasViewState.dropdownOpen = false;
+  }
+
+  const tierChanged = resolvedTierNumber !== previousLegacyTierNumber;
+  const shouldAnimateTierSwitch = wasLegacyViewActive && tierChanged;
+  if (shouldAnimateTierSwitch) {
+    const fadeOutDurationMs = 500;
+    const fadeInDurationMs = 760;
+    clearPendingLegacyTierCanvasTierSwitch({ preserveFade: true });
+    clearPendingUniverseEnterPrep({ preserveFade: true });
+    clearPendingUniverseBackPrep({ preserveFade: true });
+    legacyTierCanvasViewState.tierSwitchInFlight = true;
+    setUniverseEnterViewFade('out', fadeOutDurationMs);
+    const switchToken = `${resolvedTierNumber}:${Math.floor(getNowMs())}`;
+    legacyTierCanvasTierSwitchToken = switchToken;
+    legacyTierCanvasTierSwitchTimerId = window.setTimeout(() => {
+      if (legacyTierCanvasTierSwitchToken !== switchToken) {
+        return;
+      }
+      legacyTierCanvasTierSwitchToken = '';
+      legacyTierCanvasTierSwitchTimerId = 0;
+      legacyTierCanvasViewState.tierSwitchInFlight = false;
+      syncLegacyTierCanvasViewModel(selectedTierContext.snapshot, selectedTierContext.selectedTier);
+      setUniverseEnterViewFade('in', fadeInDurationMs);
+    }, fadeOutDurationMs);
+  } else if (wasLegacyViewActive) {
+    clearPendingLegacyTierCanvasTierSwitch();
+    syncLegacyTierCanvasViewModel(selectedTierContext.snapshot, selectedTierContext.selectedTier);
+  }
+
+  if (Boolean(state.ui?.infinityBuilderVisible)) {
+    syncInfinityBuilderPanelVisuals();
+  } else {
+    syncInfinityBuilderViewTreeButtonState({
+      isLegacyMode: true,
+      tierNumber: infinityBuilderSelectedTierNumber,
+    });
+  }
+  return true;
+}
+
+function closeLegacyTierCanvasView(options = {}) {
+  const preserveSelection = options?.preserveSelection !== false;
+  clearPendingLegacyTierCanvasOpen();
+  clearPendingLegacyTierCanvasTierSwitch();
+  const hadViewState = Boolean(legacyTierCanvasViewState.active || legacyTierCanvasViewState.model);
+  legacyTierCanvasViewState.active = false;
+  legacyTierCanvasViewState.tierNumber = 0;
+  legacyTierCanvasViewState.signature = '';
+  legacyTierCanvasViewState.model = null;
+  legacyTierCanvasViewState.anchorView = null;
+  legacyTierCanvasViewState.tierEntries = [];
+  legacyTierCanvasViewState.dropdownOpen = false;
+  legacyTierCanvasViewState.tierSwitchInFlight = false;
+  if (!preserveSelection || !hadViewState) {
+    return;
+  }
+  const selectedId = safeText(state.selectedId);
+  if (!selectedId) {
+    return;
+  }
+  const existsInMainTree = Array.isArray(state.nodes)
+    && state.nodes.some((node) => normalizeCredentialValue(node?.id) === normalizeCredentialValue(selectedId));
+  if (!existsInMainTree) {
+    setSelectedNode('', { animate: false });
+  }
+}
+
+function exitLegacyTierCanvasToBinaryDefault(animated = true) {
+  if (!isLegacyTierCanvasViewActive()) {
+    return false;
+  }
+  closeLegacyTierCanvasView({ preserveSelection: true });
+  goToGlobalHome(animated);
+  return true;
+}
+
+function toggleLegacyTierCanvasPanelVisibility() {
+  if (!isLegacyTierCanvasViewActive()) {
+    return false;
+  }
+  legacyTierCanvasViewState.dropdownOpen = false;
+  const nextVisible = !Boolean(state.ui?.infinityBuilderVisible);
+  if (nextVisible) {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+  }
+  setInfinityBuilderPanelVisible(nextVisible);
+  return true;
+}
+
+function allocateLegacyTierCanvasNodeId(baseIdInput = '', fallbackId = '', usageByBase = new Map()) {
+  const baseId = safeText(baseIdInput) || safeText(fallbackId) || 'legacy-tier-canvas-node';
+  const seenCount = Math.max(0, Math.floor(safeNumber(usageByBase.get(baseId), 0)));
+  usageByBase.set(baseId, seenCount + 1);
+  if (seenCount === 0) {
+    return baseId;
+  }
+  return `${baseId}::${seenCount + 1}`;
+}
+
+function createLegacyTierCanvasPlaceholderNode(nodeId = '', parentId = '', tierNumber = 1, depthLevel = 0, slotIndex = 0) {
+  return {
+    id: safeText(nodeId),
+    parent: safeText(parentId),
+    side: 'left',
+    depth: Math.max(0, Math.floor(safeNumber(depthLevel, 0))),
+    path: '',
+    name: '',
+    username: '',
+    accountStatus: 'inactive',
+    isActive: false,
+    isLegacyTierEmptySlot: true,
+    isLegacyTierViewPlaceholder: true,
+    legacyTierNumber: Math.max(1, Math.floor(safeNumber(tierNumber, 1))),
+    legacyTierSlotIndex: Math.max(0, Math.floor(safeNumber(slotIndex, 0))),
+  };
+}
+
+function buildLegacyTierCanvasNodeDescriptor(options = {}) {
+  const tierNumber = Math.max(1, Math.floor(safeNumber(options?.tierNumber, 1)));
+  const depthLevel = Math.max(0, Math.floor(safeNumber(options?.depthLevel, 0)));
+  const slotIndex = Math.max(0, Math.floor(safeNumber(options?.slotIndex, 0)));
+  const parentId = safeText(options?.parentId);
+  const snapshotEntry = options?.snapshotEntry && typeof options.snapshotEntry === 'object'
+    ? options.snapshotEntry
+    : null;
+  const usageByBase = options?.usageByBase instanceof Map ? options.usageByBase : new Map();
+  const sourceNode = snapshotEntry?.node && typeof snapshotEntry.node === 'object'
+    ? snapshotEntry.node
+    : null;
+  const preferredNodeId = safeText(snapshotEntry?.nodeId || sourceNode?.id);
+  const fallbackNodeId = `${LEGACY_TIER_CANVAS_PLACEHOLDER_ID_PREFIX}:tier-${tierNumber}:depth-${depthLevel}:slot-${slotIndex}`;
+  const resolvedNodeId = allocateLegacyTierCanvasNodeId(preferredNodeId, fallbackNodeId, usageByBase);
+  const isEmpty = !sourceNode;
+  const avatarSeedId = safeText(sourceNode?.id || snapshotEntry?.nodeId || resolvedNodeId) || resolvedNodeId;
+  const displayName = safeText(
+    snapshotEntry?.displayName
+    || sourceNode?.name
+    || snapshotEntry?.username
+    || sourceNode?.username
+    || sourceNode?.memberCode
+    || sourceNode?.member_code
+    || sourceNode?.id
+    || '',
+  );
+  const username = safeText(
+    snapshotEntry?.username
+    || sourceNode?.username
+    || sourceNode?.memberCode
+    || sourceNode?.member_code
+    || '',
+  );
+  const nodeRecord = isEmpty
+    ? createLegacyTierCanvasPlaceholderNode(
+      resolvedNodeId,
+      parentId,
+      tierNumber,
+      depthLevel,
+      slotIndex,
+    )
+    : {
+      ...sourceNode,
+      id: resolvedNodeId,
+      parent: parentId,
+      side: safeText(sourceNode?.side || ''),
+      depth: depthLevel,
+      path: safeText(sourceNode?.path),
+      name: displayName || safeText(sourceNode?.name),
+      username,
+      avatarSeed: safeText(sourceNode?.avatarSeed || sourceNode?.avatar_seed || avatarSeedId) || avatarSeedId,
+      avatarSeedId,
+      isLegacyTierEmptySlot: false,
+      isLegacyTierViewPlaceholder: false,
+    };
+  const isActive = isEmpty ? false : resolveNodeActivityState(sourceNode);
+  return {
+    id: resolvedNodeId,
+    parentId,
+    node: nodeRecord,
+    isEmpty,
+    isActive,
+    avatarSeedId,
+    depthLevel,
+    slotIndex,
+  };
+}
+
+function buildLegacyTierCanvasViewModel(snapshotInput = null, selectedTierInput = null) {
+  const snapshot = snapshotInput && typeof snapshotInput === 'object' ? snapshotInput : null;
+  const selectedTier = selectedTierInput && typeof selectedTierInput === 'object' ? selectedTierInput : null;
+  if (!snapshot || !selectedTier) {
+    return null;
+  }
+  const tierNumber = Math.max(1, Math.floor(safeNumber(selectedTier?.tierNumber, 1)));
+  const usageByBase = new Map();
+  const rootSnapshotEntry = {
+    node: snapshot?.homeNode && typeof snapshot.homeNode === 'object' ? snapshot.homeNode : null,
+    nodeId: safeText(snapshot?.homeNode?.id || ''),
+    username: resolveInfinityBuilderNodeUsername(snapshot?.homeNode),
+    displayName: safeText(
+      snapshot?.homeNode?.name
+      || snapshot?.homeNode?.username
+      || snapshot?.homeNode?.memberCode
+      || snapshot?.homeNode?.id,
+    ),
+  };
+  const rootDescriptor = buildLegacyTierCanvasNodeDescriptor({
+    snapshotEntry: rootSnapshotEntry,
+    parentId: '',
+    tierNumber,
+    depthLevel: 0,
+    slotIndex: 0,
+    usageByBase,
+  });
+
+  const seedSnapshotsInput = Array.isArray(selectedTier?.seedSnapshots)
+    ? selectedTier.seedSnapshots
+    : [];
+  const seedSnapshots = Array.from(
+    { length: INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER },
+    (_, seedIndex) => {
+      const seedSnapshot = seedSnapshotsInput[seedIndex];
+      return seedSnapshot && typeof seedSnapshot === 'object' ? seedSnapshot : null;
+    },
+  );
+
+  const levelOneDescriptors = seedSnapshots.map((seedSnapshot, seedIndex) => (
+    buildLegacyTierCanvasNodeDescriptor({
+      snapshotEntry: seedSnapshot,
+      parentId: rootDescriptor.id,
+      tierNumber,
+      depthLevel: 1,
+      slotIndex: seedIndex,
+      usageByBase,
+    })
+  ));
+
+  const levelTwoDescriptors = [];
+  for (let seedIndex = 0; seedIndex < INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER; seedIndex += 1) {
+    const seedSnapshot = seedSnapshots[seedIndex];
+    const childSnapshotsInput = Array.isArray(seedSnapshot?.childSnapshots)
+      ? seedSnapshot.childSnapshots
+      : [];
+    for (let childIndex = 0; childIndex < INFINITY_BUILDER_TIER_NODE_REQUIREMENT; childIndex += 1) {
+      const slotIndex = (seedIndex * INFINITY_BUILDER_TIER_NODE_REQUIREMENT) + childIndex;
+      const parentDescriptor = levelOneDescriptors[seedIndex];
+      levelTwoDescriptors.push(buildLegacyTierCanvasNodeDescriptor({
+        snapshotEntry: childSnapshotsInput[childIndex] || null,
+        parentId: safeText(parentDescriptor?.id),
+        tierNumber,
+        depthLevel: 2,
+        slotIndex,
+        usageByBase,
+      }));
+    }
+  }
+
+  const levelThreeDescriptors = [];
+  for (let seedIndex = 0; seedIndex < INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER; seedIndex += 1) {
+    const seedSnapshot = seedSnapshots[seedIndex];
+    const depthTwoGroupSnapshotsInput = Array.isArray(seedSnapshot?.depthTwoGroupSnapshots)
+      ? seedSnapshot.depthTwoGroupSnapshots
+      : [];
+    for (let groupIndex = 0; groupIndex < INFINITY_BUILDER_TIER_NODE_REQUIREMENT; groupIndex += 1) {
+      const parentLevelTwoIndex = (seedIndex * INFINITY_BUILDER_TIER_NODE_REQUIREMENT) + groupIndex;
+      const parentDescriptor = levelTwoDescriptors[parentLevelTwoIndex];
+      const groupSnapshot = Array.isArray(depthTwoGroupSnapshotsInput[groupIndex])
+        ? depthTwoGroupSnapshotsInput[groupIndex]
+        : [];
+      for (let childIndex = 0; childIndex < INFINITY_BUILDER_TIER_NODE_REQUIREMENT; childIndex += 1) {
+        const slotIndex = (
+          (seedIndex * levelTwoDescriptors.length)
+          + (groupIndex * INFINITY_BUILDER_TIER_NODE_REQUIREMENT)
+          + childIndex
+        );
+        levelThreeDescriptors.push(buildLegacyTierCanvasNodeDescriptor({
+          snapshotEntry: groupSnapshot[childIndex] || null,
+          parentId: safeText(parentDescriptor?.id),
+          tierNumber,
+          depthLevel: 3,
+          slotIndex,
+          usageByBase,
+        }));
+      }
+    }
+  }
+
+  const nodesByDepth = [
+    [rootDescriptor],
+    levelOneDescriptors,
+    levelTwoDescriptors,
+    levelThreeDescriptors,
+  ];
+  const descriptors = nodesByDepth.reduce(
+    (accumulator, depthDescriptors) => accumulator.concat(depthDescriptors),
+    [],
+  );
+  const signature = [
+    `tier:${tierNumber}`,
+    ...descriptors.map((descriptor) => [
+      descriptor.depthLevel,
+      descriptor.slotIndex,
+      descriptor.avatarSeedId,
+      descriptor.isEmpty ? '0' : (descriptor.isActive ? '1' : '2'),
+    ].join(':')),
+  ].join('|');
+  return {
+    tierNumber,
+    title: `Legacy Tier ${tierNumber} Tree View`,
+    rootId: rootDescriptor.id,
+    nodesByDepth,
+    descriptors,
+    signature,
+  };
+}
+
+function syncLegacyTierCanvasViewModel(snapshotInput = null, selectedTierInput = null) {
+  if (!legacyTierCanvasViewState.active) {
+    return false;
+  }
+  const model = buildLegacyTierCanvasViewModel(snapshotInput, selectedTierInput);
+  if (!model) {
+    closeLegacyTierCanvasView({ preserveSelection: true });
+    return false;
+  }
+  legacyTierCanvasViewState.active = true;
+  legacyTierCanvasViewState.tierNumber = model.tierNumber;
+  legacyTierCanvasViewState.signature = model.signature;
+  legacyTierCanvasViewState.model = model;
+  syncLegacyTierCanvasTierEntries(snapshotInput, selectedTierInput);
+  if (!legacyTierCanvasViewState.anchorView || typeof legacyTierCanvasViewState.anchorView !== 'object') {
+    legacyTierCanvasViewState.anchorView = captureLegacyTierCanvasAnchorView({
+      preferTarget: true,
+    });
+  }
+  const selectedId = safeText(state.selectedId);
+  const visibleIds = new Set(model.descriptors.map((descriptor) => descriptor.id));
+  if (!selectedId || !visibleIds.has(selectedId)) {
+    setSelectedNode(model.rootId, { animate: false });
+  }
+  return true;
+}
+
+function openLegacyTierCanvasView(snapshotInput = null, selectedTierInput = null, options = {}) {
+  clearPendingLegacyTierCanvasTierSwitch({ preserveFade: true });
+  legacyTierCanvasViewState.active = true;
+  const resetAnchorView = options?.resetAnchorView !== false;
+  if (resetAnchorView || !legacyTierCanvasViewState.anchorView) {
+    legacyTierCanvasViewState.anchorView = captureLegacyTierCanvasAnchorView({
+      preferTarget: options?.preferTargetAnchor !== false,
+    });
+  }
+  return syncLegacyTierCanvasViewModel(snapshotInput, selectedTierInput);
+}
+
+function syncInfinityBuilderViewTreeButtonState(options = {}) {
+  if (!(infinityBuilderViewTreeButtonElement instanceof HTMLButtonElement)) {
+    return;
+  }
+  const isLegacyMode = options?.isLegacyMode === true;
+  const tierNumber = Math.max(
+    1,
+    Math.floor(safeNumber(options?.tierNumber, infinityBuilderSelectedTierNumber || 1)),
+  );
+  if (isLegacyMode) {
+    infinityBuilderViewTreeButtonElement.hidden = false;
+    infinityBuilderViewTreeButtonElement.disabled = false;
+    infinityBuilderViewTreeButtonElement.textContent = 'View Tree';
+    infinityBuilderViewTreeButtonElement.setAttribute('aria-pressed', 'false');
+    infinityBuilderViewTreeButtonElement.setAttribute('aria-label', `View Legacy Tier ${tierNumber} Tree`);
+    return;
+  }
+  infinityBuilderViewTreeButtonElement.hidden = true;
+  infinityBuilderViewTreeButtonElement.disabled = true;
+  infinityBuilderViewTreeButtonElement.setAttribute('aria-pressed', 'false');
+  infinityBuilderViewTreeButtonElement.textContent = 'View Tree';
+  infinityBuilderViewTreeButtonElement.setAttribute('aria-label', 'View Legacy Tier Tree');
+}
+
+function normalizeInfinityBuilderTierSortDirection(directionInput = 'asc') {
+  const safeDirection = safeText(directionInput).toLowerCase();
+  return safeDirection === 'desc' ? 'desc' : 'asc';
+}
+
+function normalizeInfinityBuilderTierSortMode(modeInput = infinityBuilderPanelMode) {
+  return normalizeInfinityBuilderPanelMode(modeInput) === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP
+    ? INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP
+    : INFINITY_BUILDER_PANEL_MODE_INFINITY;
+}
+
+function resolveInfinityBuilderTierSortDirectionForMode(modeInput = infinityBuilderPanelMode) {
+  const mode = normalizeInfinityBuilderTierSortMode(modeInput);
+  if (mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    return normalizeInfinityBuilderTierSortDirection(infinityBuilderTierSortDirectionLegacyLeadership);
+  }
+  return normalizeInfinityBuilderTierSortDirection(infinityBuilderTierSortDirectionInfinity);
+}
+
+function resolveInfinityBuilderTierSortDirectionsSyncKey() {
+  return [
+    resolveInfinityBuilderTierSortDirectionForMode(INFINITY_BUILDER_PANEL_MODE_INFINITY),
+    resolveInfinityBuilderTierSortDirectionForMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP),
+  ].join('|');
+}
+
+function applyInfinityBuilderTierSortDirections(directionsInput = {}, options = {}) {
+  const source = directionsInput && typeof directionsInput === 'object' ? directionsInput : {};
+  const previousSyncKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+
+  infinityBuilderTierSortDirectionInfinity = normalizeInfinityBuilderTierSortDirection(
+    source.infinityBuilderTierSortDirection
+      || source.infinityBuilder
+      || infinityBuilderTierSortDirectionInfinity,
+  );
+  infinityBuilderTierSortDirectionLegacyLeadership = normalizeInfinityBuilderTierSortDirection(
+    source.legacyLeadershipTierSortDirection
+      || source.legacyLeadership
+      || infinityBuilderTierSortDirectionLegacyLeadership,
+  );
+  const updatedAt = safeText(source.tierSortDirectionsUpdatedAt);
+  if (updatedAt) {
+    infinityBuilderTierSortDirectionsUpdatedAt = updatedAt;
+  }
+
+  const nextSyncKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+  if (nextSyncKey !== previousSyncKey) {
+    infinityBuilderLastRenderSignature = '';
+    if (Boolean(state.ui?.infinityBuilderVisible)) {
+      syncInfinityBuilderPanelVisuals();
+    }
+    if (options?.syncServer !== false) {
+      if (canSyncInfinityBuilderTierSortDirectionsToServer()) {
+        infinityBuilderTierSortDirectionsLocalDirty = true;
+      }
+      requestInfinityBuilderTierSortDirectionsServerSync();
+    }
+  }
+}
+
+function applyInfinityBuilderTierSortDirectionsFromLaunchState(launchStateInput = state.launchState, options = {}) {
+  const launchState = launchStateInput && typeof launchStateInput === 'object'
+    ? launchStateInput
+    : {};
+  applyInfinityBuilderTierSortDirections({
+    infinityBuilderTierSortDirection: launchState?.infinityBuilderTierSortDirection,
+    legacyLeadershipTierSortDirection: launchState?.legacyLeadershipTierSortDirection,
+    tierSortDirectionsUpdatedAt: launchState?.tierSortDirectionsUpdatedAt,
+  }, {
+    syncServer: options?.syncServer === true,
+  });
+  if (options?.markSynced === true) {
+    infinityBuilderTierSortDirectionsLastSyncedKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+    infinityBuilderTierSortDirectionsLocalDirty = false;
+  }
+}
+
+function resolveInfinityBuilderTierSortLabel(
+  directionInput = resolveInfinityBuilderTierSortDirectionForMode(infinityBuilderPanelMode),
+) {
+  const direction = normalizeInfinityBuilderTierSortDirection(directionInput);
+  return direction === 'desc' ? 'Sort: Descending' : 'Sort: Ascending';
+}
+
+function toggleInfinityBuilderTierSortDirection() {
+  const mode = normalizeInfinityBuilderTierSortMode(infinityBuilderPanelMode);
+  const currentDirection = resolveInfinityBuilderTierSortDirectionForMode(mode);
+  const nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+  if (mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    applyInfinityBuilderTierSortDirections({
+      legacyLeadershipTierSortDirection: nextDirection,
+    }, {
+      syncServer: true,
+    });
+    return;
+  }
+  applyInfinityBuilderTierSortDirections({
+    infinityBuilderTierSortDirection: nextDirection,
+  }, {
+    syncServer: true,
+  });
+}
+
+function resolveInfinityBuilderSelectedTierFromSnapshot(snapshotInput = null, tierNumberInput = infinityBuilderSelectedTierNumber) {
+  const snapshot = snapshotInput && typeof snapshotInput === 'object' ? snapshotInput : null;
+  const tiers = Array.isArray(snapshot?.tiers) ? snapshot.tiers : [];
+  if (tiers.length === 0) {
+    return null;
+  }
+  const requestedTierNumber = Math.max(1, Math.floor(safeNumber(tierNumberInput, infinityBuilderSelectedTierNumber)));
+  return tiers.find((tier) => tier.tierNumber === requestedTierNumber)
+    || tiers.find((tier) => tier.isUnlocked)
+    || tiers[0]
+    || null;
+}
+
+function resolveInfinityBuilderSelectedTierContext() {
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  const snapshot = buildInfinityBuilderPanelSnapshot(homeNode);
+  const selectedTier = resolveInfinityBuilderSelectedTierFromSnapshot(snapshot);
+  if (!selectedTier) {
+    return null;
+  }
+  return {
+    snapshot,
+    selectedTier,
+  };
+}
+
+function resolveLegacyTierCanvasAnimationAnchorNodeId(snapshotInput = null, selectedTierInput = null) {
+  const snapshot = snapshotInput && typeof snapshotInput === 'object' ? snapshotInput : null;
+  const selectedTier = selectedTierInput && typeof selectedTierInput === 'object' ? selectedTierInput : null;
+  const seedSnapshots = Array.isArray(selectedTier?.seedSnapshots)
+    ? selectedTier.seedSnapshots
+    : [];
+  for (const seedSnapshot of seedSnapshots) {
+    const seedNode = seedSnapshot?.node && typeof seedSnapshot.node === 'object'
+      ? seedSnapshot.node
+      : null;
+    if (!seedNode) {
+      continue;
+    }
+    const focusId = resolveInfinityBuilderFocusNodeId(seedNode, {
+      nodeId: seedSnapshot?.nodeId,
+      username: seedSnapshot?.username,
+    });
+    if (focusId) {
+      return focusId;
+    }
+  }
+  const homeNode = snapshot?.homeNode && typeof snapshot.homeNode === 'object'
+    ? snapshot.homeNode
+    : null;
+  const homeFocusId = resolveInfinityBuilderFocusNodeId(homeNode, {
+    nodeId: safeText(homeNode?.id),
+    username: resolveInfinityBuilderNodeUsername(homeNode),
+  });
+  if (homeFocusId) {
+    return homeFocusId;
+  }
+  return safeText(resolvePreferredGlobalHomeNodeId() || 'root') || 'root';
+}
+
+function viewLegacyTierCanvasTree() {
+  if (!isLegacyLeadershipPanelMode()) {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+  }
+  const modeConfig = resolveInfinityBuilderPanelModeConfig();
+  if (modeConfig.mode !== INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    closeLegacyTierCanvasView({ preserveSelection: true });
+    return false;
+  }
+  let selectedTierContext = resolveInfinityBuilderSelectedTierContext();
+  if (!selectedTierContext) {
+    const fallbackSnapshot = infinityBuilderLastPanelSnapshot;
+    const fallbackTier = resolveInfinityBuilderSelectedTierFromSnapshot(fallbackSnapshot);
+    if (fallbackSnapshot && fallbackTier) {
+      selectedTierContext = {
+        snapshot: fallbackSnapshot,
+        selectedTier: fallbackTier,
+      };
+    }
+  }
+  if (!selectedTierContext) {
+    syncInfinityBuilderPanelVisuals();
+    selectedTierContext = resolveInfinityBuilderSelectedTierContext();
+  }
+  if (!selectedTierContext) {
+    return false;
+  }
+
+  syncInfinityBuilderViewTreeButtonState({
+    isLegacyMode: true,
+    tierNumber: selectedTierContext?.selectedTier?.tierNumber,
+  });
+  infinityBuilderLastPanelSnapshot = selectedTierContext.snapshot || infinityBuilderLastPanelSnapshot;
+  legacyTierCanvasViewState.dropdownOpen = false;
+
+  clearPendingUniverseEnterPrep({ preserveFade: true });
+  clearPendingUniverseBackPrep({ preserveFade: true });
+  clearPendingLegacyTierCanvasOpen();
+  clearPendingLegacyTierCanvasTierSwitch({ preserveFade: true });
+
+  const anchorNodeId = resolveLegacyTierCanvasAnimationAnchorNodeId(
+    selectedTierContext.snapshot,
+    selectedTierContext.selectedTier,
+  );
+  setUniverseEnterViewFade('out', Math.min(220, UNIVERSE_ENTER_GLOBAL_ZOOM_MS));
+  if (anchorNodeId && focusNode(anchorNodeId, UNIVERSE_ENTER_GLOBAL_FOCUS_RADIUS, true)) {
+    state.camera.targetReason = 'universe-enter';
+  }
+
+  legacyTierCanvasOpenTimerId = 0;
+  legacyTierCanvasOpenToken = '';
+  let opened = false;
+  try {
+    opened = openLegacyTierCanvasView(
+      selectedTierContext.snapshot,
+      selectedTierContext.selectedTier,
+      {
+        resetAnchorView: true,
+        preferTargetAnchor: true,
+      },
+    );
+  } catch (error) {
+    console.error('[TreeNext] Legacy tier canvas open failed:', error);
+    opened = false;
+  }
+  if (!opened) {
+    setUniverseEnterViewFade('none');
+    syncInfinityBuilderViewTreeButtonState({
+      isLegacyMode: true,
+      tierNumber: selectedTierContext?.selectedTier?.tierNumber,
+    });
+    return false;
+  }
+  setUniverseEnterViewFade('in', UNIVERSE_ENTER_LOCAL_FADE_IN_MS);
+  infinityBuilderLastRenderSignature = '';
+  syncInfinityBuilderPanelVisuals();
+  window.requestAnimationFrame(() => {
+    try {
+      renderFrame();
+    } catch (error) {
+      console.error('[TreeNext] Legacy tier canvas immediate render failed:', error);
+    }
+  });
+  return true;
+}
+
+function openLegacyTierOneCanvasView() {
+  const targetTierNumber = 1;
+  legacyTierCanvasViewState.dropdownOpen = false;
+  if (!isLegacyLeadershipPanelMode()) {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+  }
+  infinityBuilderSelectedTierNumber = targetTierNumber;
+  infinityBuilderClaimFeedbackTierNumber = 0;
+  infinityBuilderLastRenderSignature = '';
+
+  if (isLegacyTierCanvasViewActive()) {
+    return selectLegacyTierCanvasTier(targetTierNumber);
+  }
+  return viewLegacyTierCanvasTree();
+}
+
+function toggleLegacyTierQuickAccessView() {
+  if (isLegacyTierCanvasViewActive()) {
+    return exitLegacyTierCanvasToBinaryDefault(true);
+  }
+  return openLegacyTierOneCanvasView();
+}
+
+function setInfinityBuilderPanelMode(modeInput = INFINITY_BUILDER_PANEL_MODE_INFINITY) {
+  const normalizedMode = normalizeInfinityBuilderPanelMode(modeInput);
+  if (normalizedMode === infinityBuilderPanelMode) {
+    return;
+  }
+  infinityBuilderPanelMode = normalizedMode;
+  if (normalizedMode !== INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    closeLegacyTierCanvasView({ preserveSelection: true });
+  }
+  infinityBuilderSelectedTierNumber = 1;
+  infinityBuilderClaimFeedbackTierNumber = 0;
+  infinityBuilderLastRenderSignature = '';
+  infinityBuilderLastPanelSnapshot = null;
+  setInfinityBuilderClaimFeedback('');
+  syncInfinityBuilderViewTreeButtonState({
+    isLegacyMode: normalizedMode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP,
+    tierNumber: infinityBuilderSelectedTierNumber,
+  });
+  if (Boolean(state.ui?.infinityBuilderVisible)) {
+    syncInfinityBuilderPanelVisuals();
+  }
+}
+
+function resetInfinityBuilderPanelState() {
+  infinityBuilderPanelMode = INFINITY_BUILDER_PANEL_MODE_INFINITY;
+  infinityBuilderLastRenderSignature = '';
+  infinityBuilderLastPanelSnapshot = null;
+  infinityBuilderSelectedTierNumber = 1;
+  infinityBuilderTierSortDirectionInfinity = 'asc';
+  infinityBuilderTierSortDirectionLegacyLeadership = 'asc';
+  infinityBuilderTierSortDirectionsUpdatedAt = '';
+  infinityBuilderTierSortDirectionsSyncInFlight = false;
+  infinityBuilderTierSortDirectionsSyncQueued = false;
+  infinityBuilderTierSortDirectionsLastSyncedKey = '';
+  infinityBuilderTierSortDirectionsLocalDirty = false;
+  infinityBuilderClaimInFlight = false;
+  infinityBuilderClaimFeedbackTierNumber = 0;
+  if (infinityBuilderClaimFeedbackTimerId) {
+    clearTimeout(infinityBuilderClaimFeedbackTimerId);
+    infinityBuilderClaimFeedbackTimerId = 0;
+  }
+  setInfinityBuilderClaimFeedback('');
+  closeLegacyTierCanvasView({ preserveSelection: false });
+  syncInfinityBuilderViewTreeButtonState({ isLegacyMode: false });
+}
+
+function isInfinityBuilderPlaceholderNode(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return false;
+  }
+  const placeholderType = normalizeCredentialValue(
+    safeText(node?.businessCenterNodeType || node?.business_center_node_type || ''),
+  );
+  if (!placeholderType) {
+    return false;
+  }
+  return (
+    placeholderType.includes('placeholder')
+    || placeholderType.includes('queued')
+    || placeholderType.includes('reserved')
+  );
+}
+
+function isInfinityBuilderSpilloverNode(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return false;
+  }
+  const placementLeg = normalizeCredentialValue(
+    safeText(node?.placementLeg || node?.placement_leg || node?.sponsorLeg || node?.sponsor_leg || ''),
+  );
+  if (SPILLOVER_PLACEMENT_KEY_SET.has(placementLeg)) {
+    return true;
+  }
+  if (Boolean(node?.isSpillover || node?.is_spillover)) {
+    return true;
+  }
+  const parentKey = normalizeCredentialValue(
+    safeText(node?.parent || node?.parentId || node?.parent_id || ''),
+  );
+  const sponsorKey = normalizeCredentialValue(
+    safeText(node?.sponsorId || node?.globalSponsorId || node?.sourceSponsorId || ''),
+  );
+  return Boolean(parentKey && sponsorKey && sponsorKey !== parentKey);
+}
+
+function isTreeNextNodeAnonymized(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return false;
+  }
+  const normalizedName = normalizeCredentialValue(safeText(node?.name || ''));
+  const normalizedMemberCode = normalizeCredentialValue(
+    safeText(node?.memberCode || node?.member_code || node?.username || '').replace(/^@+/, ''),
+  );
+
+  if (
+    normalizedName.includes('anonymous')
+    || normalizedName.includes('annonymous')
+    || normalizedName.startsWith('spillover direct')
+    || normalizedName.startsWith('spillover network')
+    || normalizedName.startsWith('direct sponsor')
+    || normalizedName.startsWith('network member')
+  ) {
+    return true;
+  }
+
+  if (
+    normalizedMemberCode.startsWith('spillover-')
+    || normalizedMemberCode.startsWith('spillover-network-')
+    || normalizedMemberCode.startsWith('anonymous-')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function isTreeNextOutsideOrganizationSpilloverNode(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  // In scoped user trees, outside-source spillovers typically lose a resolvable sponsor id.
+  const outsideSpillover = Boolean(
+    node
+    && Boolean(node?.isSpillover)
+    && safeText(node?.placementParentId || node?.placement_parent_id || node?.parent || '')
+    && !safeText(node?.sponsorId || ''),
+  );
+  const isViewerOwnedSponsorBranchNode = Boolean(
+    node?.isViewerOwnedSponsorBranchNode
+    || node?.is_viewer_owned_sponsor_branch_node,
+  );
+  // Keep viewer-owned sponsor branches visible even when sponsor placement is out-of-scope.
+  return outsideSpillover && !isViewerOwnedSponsorBranchNode;
+}
+
+function resolveTreeNextSpilloverOutsideScopedOrganizationSource(nodeInput = null, viewerNodeId, includedNodeIds = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const sponsorNodeId = safeText(node?.sponsorId || '');
+  const normalizedViewerNodeId = safeText(viewerNodeId || '');
+  const included = includedNodeIds instanceof Set ? includedNodeIds : new Set();
+  const sourceWasSpillover = Boolean(
+    node?.isSpillover
+    || node?.is_spillover
+    || node?.placementLeg === 'spillover'
+    || node?.placement_leg === 'spillover'
+    || node?.sponsorLeg === 'spillover'
+    || node?.sponsor_leg === 'spillover',
+  );
+  return Boolean(
+    sourceWasSpillover
+    && sponsorNodeId
+    && sponsorNodeId !== normalizedViewerNodeId
+    && !included.has(sponsorNodeId),
+  );
+}
+
+function shouldApplyTreeNextNodePrivacyMask(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return false;
+  }
+  return (
+    isTreeNextNodeAnonymized(node)
+    || isTreeNextOutsideOrganizationSpilloverNode(node)
+  );
+}
+
+function resolveTreeNextNodePublicIdentity(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const fallbackName = safeText(options?.fallbackName || options?.fallback || node?.id || 'Member') || 'Member';
+  const isMasked = shouldApplyTreeNextNodePrivacyMask(node);
+  if (isMasked) {
+    return {
+      isMasked: true,
+      name: TREE_NEXT_PRIVACY_ANONYMOUS_LABEL,
+      username: '',
+      usernameLabel: TREE_NEXT_PRIVACY_HIDDEN_LABEL,
+      initials: resolveInitials(TREE_NEXT_PRIVACY_ANONYMOUS_LABEL),
+    };
+  }
+
+  const name = safeText(node?.name || node?.id || fallbackName) || fallbackName;
+  const username = safeText(node?.username || node?.memberCode || node?.member_code || '').replace(/^@+/, '');
+  return {
+    isMasked: false,
+    name,
+    username,
+    usernameLabel: username ? `@${username}` : '',
+    initials: resolveInitials(name),
+  };
+}
+
+function resolveInfinityBuilderNodeAddedAtMs(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return 0;
+  }
+  const numericAddedAt = safeNumber(node?.addedAt, Number.NaN);
+  if (Number.isFinite(numericAddedAt)) {
+    return Math.max(0, Math.floor(numericAddedAt));
+  }
+  const candidates = [
+    node?.createdAt,
+    node?.created_at,
+    node?.addedAt,
+    node?.added_at,
+    node?.updatedAt,
+    node?.updated_at,
+    node?.enrolledAt,
+    node?.enrolled_at,
+  ];
+  for (const candidate of candidates) {
+    const parsed = Date.parse(safeText(candidate));
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return 0;
+}
+
+function compareInfinityBuilderNodesOldestToNewest(leftNodeInput = null, rightNodeInput = null) {
+  const leftNode = leftNodeInput && typeof leftNodeInput === 'object' ? leftNodeInput : null;
+  const rightNode = rightNodeInput && typeof rightNodeInput === 'object' ? rightNodeInput : null;
+  const leftAddedAt = resolveInfinityBuilderNodeAddedAtMs(leftNode);
+  const rightAddedAt = resolveInfinityBuilderNodeAddedAtMs(rightNode);
+  if (leftAddedAt !== rightAddedAt) {
+    return leftAddedAt - rightAddedAt;
+  }
+  const leftKey = safeText(leftNode?.id || leftNode?.username || leftNode?.memberCode || '');
+  const rightKey = safeText(rightNode?.id || rightNode?.username || rightNode?.memberCode || '');
+  return leftKey.localeCompare(rightKey);
+}
+
+function isInfinityBuilderQualifyingSeedNode(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node || isInfinityBuilderPlaceholderNode(node)) {
+    return false;
+  }
+  const modeConfig = resolveInfinityBuilderPanelModeConfig(options?.mode || infinityBuilderPanelMode);
+  const packageKey = normalizeCredentialValue(
+    node?.enrollmentPackage
+    || node?.enrollment_package
+    || node?.packageKey
+    || node?.package_key,
+  );
+  if (modeConfig.mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    return packageKey === LEGACY_LEADERSHIP_REQUIRED_PACKAGE_KEY;
+  }
+  return INFINITY_BUILDER_QUALIFYING_PACKAGE_KEY_SET.has(packageKey);
+}
+
+function isInfinityBuilderQualifyingChildNode(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node || isInfinityBuilderPlaceholderNode(node)) {
+    return false;
+  }
+  const modeConfig = resolveInfinityBuilderPanelModeConfig(options?.mode || infinityBuilderPanelMode);
+  const packageKey = normalizeCredentialValue(
+    node?.enrollmentPackage
+    || node?.enrollment_package
+    || node?.packageKey
+    || node?.package_key,
+  );
+  if (modeConfig.mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP) {
+    return packageKey === LEGACY_LEADERSHIP_REQUIRED_PACKAGE_KEY;
+  }
+  return ENROLL_PAID_PACKAGE_KEY_SET.has(packageKey);
+}
+
+function resolveInfinityBuilderSeedTierRewardUsd(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node || isInfinityBuilderPlaceholderNode(node)) {
+    return 0;
+  }
+  const packageKey = normalizeCredentialValue(
+    node?.enrollmentPackage
+    || node?.enrollment_package
+    || node?.packageKey
+    || node?.package_key,
+  );
+  const packageRewardUsd = safeNumber(
+    INFINITY_BUILDER_TIER_REWARD_BY_PACKAGE_USD[packageKey],
+    Number.NaN,
+  );
+  if (Number.isFinite(packageRewardUsd)) {
+    return Math.max(0, Math.round(packageRewardUsd * 100) / 100);
+  }
+  return Math.max(
+    0,
+    Math.round((INFINITY_BUILDER_TIER_BONUS_USD / INFINITY_BUILDER_TIER_NODE_REQUIREMENT) * 100) / 100,
+  );
+}
+
+function resolveInfinityBuilderNodeUsername(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return '';
+  }
+  const rawUsername = safeText(
+    node?.username
+    || node?.memberUsername
+    || node?.member_username
+    || node?.memberCode
+    || node?.member_code
+    || node?.id,
+  );
+  if (!rawUsername) {
+    return '';
+  }
+  return rawUsername.startsWith('@') ? rawUsername : `@${rawUsername}`;
+}
+
+function resolveInfinityBuilderNodeInitials(initialsInput = '') {
+  const initials = safeText(initialsInput).replace(/\s+/g, '').slice(0, 2).toUpperCase();
+  return initials;
+}
+
+function resolveInfinityBuilderMutedPalette(basePaletteInput = null, mixRatio = 0.52) {
+  const basePalette = isAvatarPaletteRecord(basePaletteInput)
+    ? {
+      light: normalizeRgbTriplet(basePaletteInput.light[0], basePaletteInput.light[1], basePaletteInput.light[2]),
+      mid: normalizeRgbTriplet(basePaletteInput.mid[0], basePaletteInput.mid[1], basePaletteInput.mid[2]),
+      dark: normalizeRgbTriplet(basePaletteInput.dark[0], basePaletteInput.dark[1], basePaletteInput.dark[2]),
+    }
+    : resolveNodeAvatarPalette('infinity-builder:muted-fallback', { variant: 'ocean' });
+  const inactivePalette = APPLE_MAPS_NODE_PALETTES.inactive;
+  const safeMix = clamp(safeNumber(mixRatio, 0.52), 0, 1);
+  const blendChannel = (baseValue, inactiveValue) => Math.round(
+    (baseValue * (1 - safeMix)) + (inactiveValue * safeMix),
+  );
+  const blendTriplet = (baseTriplet, inactiveTriplet) => normalizeRgbTriplet(
+    blendChannel(baseTriplet[0], inactiveTriplet[0]),
+    blendChannel(baseTriplet[1], inactiveTriplet[1]),
+    blendChannel(baseTriplet[2], inactiveTriplet[2]),
+  );
+  return {
+    light: blendTriplet(basePalette.light, inactivePalette.light),
+    mid: blendTriplet(basePalette.mid, inactivePalette.mid),
+    dark: blendTriplet(basePalette.dark, inactivePalette.dark),
+  };
+}
+
+function resolveInfinityBuilderNodeBackgroundImage(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const fallbackSeed = safeText(
+    options?.fallbackSeed
+    || node?.id
+    || node?.username
+    || node?.memberCode
+    || 'placeholder',
+  );
+  if (!node) {
+    // Empty slots always use a consistent gray placeholder tone.
+    return resolveCssGradientFromPalette(APPLE_MAPS_NODE_PALETTES.inactive);
+  }
+
+  const nodeId = safeText(
+    node?.id
+    || node?.nodeId
+    || node?.userId
+    || node?.memberId
+    || node?.username
+    || node?.memberCode
+    || fallbackSeed,
+  );
+  const nodeRecord = resolveNodeById(nodeId) || node;
+  const isActiveAccount = options?.active !== false && resolveNodeActivityState(nodeRecord);
+  const isPersonallyEnrolledNode = isNodePersonallyEnrolledBySession(nodeRecord);
+  const baseVariant = isSessionAvatarNodeId(nodeId)
+    ? 'auto'
+    : (nodeId.toLowerCase() === 'root' ? 'root' : 'auto');
+  const nodeVariant = isPersonallyEnrolledNode ? 'direct' : baseVariant;
+
+  const paletteForState = resolveNodeAvatarPalette(
+    nodeId || `infinity-builder:${fallbackSeed}`,
+    isActiveAccount
+      ? (isPersonallyEnrolledNode
+        ? {
+          node: nodeRecord,
+          variant: nodeVariant,
+          ignoreSourcePalette: true,
+        }
+        : {
+          node: nodeRecord,
+          variant: nodeVariant,
+        })
+      : {
+        node: nodeRecord,
+        variant: isPersonallyEnrolledNode ? 'directInactive' : 'inactive',
+        ignoreSourcePalette: true,
+      },
+  );
+  return resolveCssGradientFromPalette(paletteForState);
+}
+
+function resolveInfinityBuilderFocusNodeId(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const directNodeId = safeText(options?.nodeId || node?.id);
+  if (directNodeId) {
+    return directNodeId;
+  }
+  const rawUsername = safeText(
+    options?.username
+    || node?.username
+    || node?.memberUsername
+    || node?.member_username
+    || node?.memberCode
+    || node?.member_code
+    || '',
+  ).replace(/^@+/, '');
+  if (!rawUsername) {
+    return '';
+  }
+  return safeText(resolveNodeIdByUsername(rawUsername));
+}
+
+function buildInfinityBuilderEmptyChildSnapshot(seedToken = '') {
+  return {
+    node: null,
+    nodeId: '',
+    username: '',
+    initials: '',
+    isActive: false,
+    backgroundImage: resolveInfinityBuilderNodeBackgroundImage(null, {
+      active: true,
+      fallbackSeed: `child-empty:${seedToken}`,
+    }),
+  };
+}
+
+function buildInfinityBuilderEmptySeedSnapshot(slotIndex = 0, tierNumber = 1) {
+  return {
+    slotIndex,
+    node: null,
+    nodeId: '',
+    displayName: '',
+    username: '',
+    initials: '',
+    isActive: false,
+    isCompletedNode: false,
+    isMonthlyOverrideQualified: false,
+    directEnrollmentCount: 0,
+    activeDirectEnrollmentCount: 0,
+    completedChildCount: 0,
+    totalOrganizationBv: 0,
+    monthlyOverrideUsd: 0,
+    weeklyOverrideUsd: 0,
+    nodeTierRewardUsd: 0,
+    backgroundImage: resolveInfinityBuilderNodeBackgroundImage(null, {
+      active: true,
+      fallbackSeed: `seed-empty:tier-${tierNumber}:slot-${slotIndex}`,
+    }),
+    childSnapshots: Array.from(
+      { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+      (_, childIndex) => buildInfinityBuilderEmptyChildSnapshot(`tier-${tierNumber}:slot-${slotIndex}:${childIndex}`),
+    ),
+  };
+}
+
+function resolveInfinityBuilderRawClaimMap(modeInput = infinityBuilderPanelMode) {
+  const modeConfig = resolveInfinityBuilderPanelModeConfig(modeInput);
+  const rawClaimMaps = (
+    accountOverviewRemoteSnapshot?.commissionContainerSnapshot?.claimMaps
+    && typeof accountOverviewRemoteSnapshot.commissionContainerSnapshot.claimMaps === 'object'
+  )
+    ? accountOverviewRemoteSnapshot.commissionContainerSnapshot.claimMaps
+    : {};
+  const primaryKey = safeText(modeConfig?.claimMapPrimaryKey);
+  const fallbackKey = safeText(modeConfig?.claimMapFallbackKey);
+  if (primaryKey && rawClaimMaps?.[primaryKey] && typeof rawClaimMaps[primaryKey] === 'object') {
+    return rawClaimMaps[primaryKey];
+  }
+  if (fallbackKey && rawClaimMaps?.[fallbackKey] && typeof rawClaimMaps[fallbackKey] === 'object') {
+    return rawClaimMaps[fallbackKey];
+  }
+  return {};
+}
+
+function resolveInfinityBuilderClaimRecordMap(modeInput = infinityBuilderPanelMode) {
+  const rawClaimMapInput = resolveInfinityBuilderRawClaimMap(modeInput);
+  const rawClaimMap = (
+    rawClaimMapInput
+    && typeof rawClaimMapInput === 'object'
+  )
+    ? rawClaimMapInput
+    : {};
+  const claimRecordMap = new Map();
+  for (const [tierKey, claimRecordInput] of Object.entries(rawClaimMap)) {
+    const claimRecord = claimRecordInput && typeof claimRecordInput === 'object'
+      ? claimRecordInput
+      : {};
+    const tierFromKey = Math.floor(safeNumber(tierKey, Number.NaN));
+    const tierFromRecord = Math.floor(safeNumber(claimRecord?.tierNumber, Number.NaN));
+    const tierNumber = Number.isFinite(tierFromRecord) && tierFromRecord > 0
+      ? tierFromRecord
+      : tierFromKey;
+    if (!Number.isFinite(tierNumber) || tierNumber <= 0) {
+      continue;
+    }
+    claimRecordMap.set(tierNumber, {
+      tierNumber,
+      amount: Math.max(0, safeNumber(claimRecord?.amount, 0)),
+      claimedAt: safeText(claimRecord?.claimedAt),
+      startedAt: safeText(claimRecord?.startedAt),
+      completedNodeCount: Math.max(0, Math.floor(safeNumber(claimRecord?.completedNodeCount, 0))),
+      seedHandles: Array.isArray(claimRecord?.seedHandles)
+        ? claimRecord.seedHandles.map((value) => safeText(value)).filter(Boolean)
+        : [],
+    });
+  }
+  return claimRecordMap;
+}
+
+function setInfinityBuilderClaimFeedback(message, options = {}) {
+  if (!(infinityBuilderClaimFeedbackElement instanceof HTMLElement)) {
+    return;
+  }
+  const {
+    isError = false,
+    isSuccess = false,
+    persist = false,
+  } = options;
+  const text = safeText(message);
+  infinityBuilderClaimFeedbackElement.textContent = text;
+  infinityBuilderClaimFeedbackElement.classList.toggle('is-error', Boolean(text) && Boolean(isError));
+  infinityBuilderClaimFeedbackElement.classList.toggle('is-success', Boolean(text) && Boolean(isSuccess));
+  if (infinityBuilderClaimFeedbackTimerId) {
+    clearTimeout(infinityBuilderClaimFeedbackTimerId);
+    infinityBuilderClaimFeedbackTimerId = 0;
+  }
+  if (!text || persist) {
+    return;
+  }
+  const capture = text;
+  infinityBuilderClaimFeedbackTimerId = window.setTimeout(() => {
+    if (!(infinityBuilderClaimFeedbackElement instanceof HTMLElement)) {
+      return;
+    }
+    if (safeText(infinityBuilderClaimFeedbackElement.textContent) !== capture) {
+      return;
+    }
+    infinityBuilderClaimFeedbackElement.textContent = '';
+    infinityBuilderClaimFeedbackElement.classList.remove('is-error', 'is-success');
+    infinityBuilderClaimFeedbackTimerId = 0;
+  }, 4000);
+}
+
+async function claimInfinityBuilderTierReward() {
+  if (infinityBuilderClaimInFlight) {
+    return;
+  }
+
+  const modeConfig = resolveInfinityBuilderPanelModeConfig();
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  const snapshot = buildInfinityBuilderPanelSnapshot(homeNode);
+  if (!Array.isArray(snapshot?.tiers) || snapshot.tiers.length === 0) {
+    setInfinityBuilderClaimFeedback('Tier details are not available yet.', { isError: true });
+    return;
+  }
+  const selectedTier = snapshot.tiers.find((tier) => tier.tierNumber === infinityBuilderSelectedTierNumber)
+    || snapshot.tiers.find((tier) => tier.isUnlocked)
+    || snapshot.tiers[0];
+  if (!selectedTier || !selectedTier.isUnlocked) {
+    setInfinityBuilderClaimFeedback('This tier is not unlocked yet.', { isError: true });
+    return;
+  }
+  if (!selectedTier.isCompleted) {
+    setInfinityBuilderClaimFeedback('Complete this tier before claiming its reward.', { isError: true });
+    return;
+  }
+  if (selectedTier.isClaimed) {
+    setInfinityBuilderClaimFeedback('This tier reward has already been claimed.', { isSuccess: true });
+    return;
+  }
+
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode, {
+    preferHomeNode: overviewContext?.preferHomeNodeIdentity === true,
+    allowAnonymous: false,
+  });
+  const hasIdentity = Boolean(
+    safeText(identityPayload?.userId)
+    || safeText(identityPayload?.username)
+    || safeText(identityPayload?.email),
+  );
+  if (!hasIdentity) {
+    setInfinityBuilderClaimFeedback('Sign in before claiming tier rewards.', { isError: true });
+    return;
+  }
+
+  const existingInfinityClaimMap = resolveInfinityBuilderRawClaimMap(modeConfig.mode);
+  const tierKey = String(selectedTier.tierNumber);
+  const existingTierRecord = (
+    existingInfinityClaimMap[tierKey]
+    && typeof existingInfinityClaimMap[tierKey] === 'object'
+  )
+    ? existingInfinityClaimMap[tierKey]
+    : {};
+  const claimedAt = new Date().toISOString();
+  const enrolledHandles = selectedTier.seedSnapshots
+    .map((memberSnapshot) => safeText(
+      memberSnapshot?.node?.username
+      || memberSnapshot?.node?.memberCode
+      || memberSnapshot?.node?.id,
+    ))
+    .filter(Boolean);
+  const tierRewardUsdFallback = modeConfig.mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP
+    ? LEGACY_LEADERSHIP_TIER_BONUS_USD
+    : INFINITY_BUILDER_TIER_BONUS_USD;
+  const tierRewardUsd = Math.max(0, safeNumber(selectedTier?.tierBonusUsd, tierRewardUsdFallback));
+  const nextInfinityClaimMap = {
+    ...existingInfinityClaimMap,
+    [tierKey]: {
+      tierNumber: selectedTier.tierNumber,
+      amount: tierRewardUsd,
+      claimedAt,
+      startedAt: safeText(existingTierRecord?.startedAt) || claimedAt,
+      completedNodeCount: Math.max(
+        0,
+        Math.floor(safeNumber(
+          selectedTier?.completedSeedNodeCount,
+          selectedTier?.tierProgressCount,
+          safeNumber(selectedTier?.litNodeCount, selectedTier.seedCount),
+        )),
+      ),
+      seedHandles: enrolledHandles,
+    },
+  };
+
+  infinityBuilderClaimInFlight = true;
+  infinityBuilderClaimFeedbackTierNumber = selectedTier.tierNumber;
+  setInfinityBuilderClaimFeedback(`Claiming ${modeConfig.claimMessageLabel.toLowerCase()}...`, { persist: true });
+  infinityBuilderLastRenderSignature = '';
+  syncInfinityBuilderPanelVisuals();
+
+  try {
+    const nextClaimMaps = {
+      [modeConfig.claimMapPrimaryKey]: nextInfinityClaimMap,
+    };
+    const response = await fetch(ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API, {
+      method: 'POST',
+      cache: 'no-store',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: safeText(identityPayload.userId),
+        username: safeText(identityPayload.username),
+        email: safeText(identityPayload.email),
+        claimMaps: nextClaimMaps,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const errorMessage = safeText(payload?.error)
+        || `Unable to claim tier reward (${response.status}).`;
+      throw new Error(errorMessage);
+    }
+    if (payload?.snapshot && typeof payload.snapshot === 'object') {
+      accountOverviewRemoteSnapshot = {
+        ...accountOverviewRemoteSnapshot,
+        commissionContainerSnapshot: payload.snapshot,
+        updatedAtMs: Date.now(),
+      };
+      accountOverviewRemoteDataVersion += 1;
+    }
+    const successLabel = modeConfig.mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP
+      ? `Legacy Tier ${selectedTier.tierNumber} reward claimed successfully.`
+      : `Tier ${selectedTier.tierNumber} reward claimed successfully.`;
+    setInfinityBuilderClaimFeedback(successLabel, { isSuccess: true });
+    infinityBuilderLastRenderSignature = '';
+    syncInfinityBuilderPanelVisuals();
+    void refreshAccountOverviewRemoteSnapshot({
+      force: true,
+      homeNode,
+      scope: overviewContext?.scope,
+      preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+    });
+  } catch (error) {
+    setInfinityBuilderClaimFeedback(
+      safeText(error?.message) || 'Unable to claim tier reward right now.',
+      { isError: true },
+    );
+  } finally {
+    infinityBuilderClaimInFlight = false;
+    infinityBuilderLastRenderSignature = '';
+    syncInfinityBuilderPanelVisuals();
+  }
+}
+
+function focusInfinityBuilderPanelNode(nodeIdInput = '') {
+  const nodeId = safeText(nodeIdInput);
+  if (!nodeId) {
+    return false;
+  }
+  if (isLegacyTierCanvasViewActive()) {
+    const projectedNodes = Array.isArray(state.frameResult?.projectedNodes)
+      ? state.frameResult.projectedNodes
+      : [];
+    if (projectedNodes.some((node) => safeText(node?.id) === nodeId)) {
+      setSelectedNode(nodeId, { animate: true });
+      return true;
+    }
+  }
+  if (focusNode(nodeId, 30, true)) {
+    return true;
+  }
+
+  const globalMetrics = state.adapter.resolveNodeMetrics(nodeId, getGlobalUniverseOptions());
+  if (!globalMetrics?.node) {
+    return false;
+  }
+
+  goToGlobalHome(false);
+  return focusNode(nodeId, 30, true);
+}
+
+function resolveInfinityBuilderEventTargetElement(eventInput = null) {
+  const rawTarget = eventInput?.target || null;
+  if (rawTarget instanceof Element) {
+    return rawTarget;
+  }
+  if (
+    rawTarget
+    && typeof rawTarget === 'object'
+    && 'parentElement' in rawTarget
+    && rawTarget.parentElement instanceof Element
+  ) {
+    return rawTarget.parentElement;
+  }
+  return null;
+}
+
+function buildInfinityBuilderBonusPanelSnapshot(homeNode = null) {
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  const resolvedHomeNode = homeNode && typeof homeNode === 'object'
+    ? homeNode
+    : (resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root') || null);
+  const homeNodeIdKey = normalizeCredentialValue(
+    safeText(resolvedHomeNode?.id || 'root'),
+  );
+  const homeGlobalNodeIdKey = normalizeCredentialValue(
+    safeText(resolvePreferredGlobalHomeNodeId() || resolvedHomeNode?.id || 'root'),
+  );
+  const homeUsernameKey = normalizeCredentialValue(
+    safeText(resolvedHomeNode?.username || resolvedHomeNode?.memberCode || '').replace(/^@+/, ''),
+  );
+  const rootKey = normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID);
+  const adminKey = normalizeCredentialValue(ADMIN_ROOT_USERNAME);
+  const sponsorChildrenById = new Map();
+  const sponsorChildrenByUsername = new Map();
+  const directSeedNodes = [];
+
+  for (const nodeInput of safeNodes) {
+    const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+    if (!node) {
+      continue;
+    }
+    const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+    if (!nodeIdKey || nodeIdKey === 'root' || nodeIdKey === rootKey || nodeIdKey === adminKey) {
+      continue;
+    }
+    if (isInfinityBuilderPlaceholderNode(node)) {
+      continue;
+    }
+    const mappedSponsorIdKey = normalizeCredentialValue(
+      safeText(node?.sponsorId || node?.globalSponsorId || ''),
+    );
+    const sourceSponsorIdKey = normalizeCredentialValue(
+      safeText(node?.sourceSponsorId || node?.source_sponsor_id || ''),
+    );
+    if (mappedSponsorIdKey) {
+      if (!sponsorChildrenById.has(mappedSponsorIdKey)) {
+        sponsorChildrenById.set(mappedSponsorIdKey, []);
+      }
+      sponsorChildrenById.get(mappedSponsorIdKey).push(node);
+    }
+    const sponsorUsernameKey = normalizeCredentialValue(
+      safeText(node?.sponsorUsername || node?.sponsor_username || '').replace(/^@+/, ''),
+    );
+    if (sponsorUsernameKey) {
+      if (!sponsorChildrenByUsername.has(sponsorUsernameKey)) {
+        sponsorChildrenByUsername.set(sponsorUsernameKey, []);
+      }
+      sponsorChildrenByUsername.get(sponsorUsernameKey).push(node);
+    }
+    if (!isInfinityBuilderQualifyingSeedNode(node, {
+      mode: INFINITY_BUILDER_PANEL_MODE_INFINITY,
+    })) {
+      continue;
+    }
+    const directSponsorIdKey = sourceSponsorIdKey || mappedSponsorIdKey;
+    const isDirectBySponsorId = Boolean(
+      directSponsorIdKey
+      && (
+        (homeNodeIdKey && directSponsorIdKey === homeNodeIdKey)
+        || (homeGlobalNodeIdKey && directSponsorIdKey === homeGlobalNodeIdKey)
+      ),
+    );
+    const isDirectBySponsorUsername = Boolean(
+      homeUsernameKey
+      && sponsorUsernameKey
+      && sponsorUsernameKey === homeUsernameKey,
+    );
+    if (isDirectBySponsorId || isDirectBySponsorUsername) {
+      directSeedNodes.push(node);
+    }
+  }
+
+  for (const [sponsorIdKey, childNodesInput] of sponsorChildrenById.entries()) {
+    const childNodes = Array.isArray(childNodesInput) ? childNodesInput.slice() : [];
+    childNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+    sponsorChildrenById.set(sponsorIdKey, childNodes);
+  }
+  for (const [sponsorUsernameKey, childNodesInput] of sponsorChildrenByUsername.entries()) {
+    const childNodes = Array.isArray(childNodesInput) ? childNodesInput.slice() : [];
+    childNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+    sponsorChildrenByUsername.set(sponsorUsernameKey, childNodes);
+  }
+  directSeedNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+
+  const computedTierCount = Math.max(
+    INFINITY_BUILDER_MIN_VISIBLE_TIERS,
+    Math.ceil(directSeedNodes.length / INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER) + 1,
+  );
+  const tierCount = clamp(
+    computedTierCount,
+    INFINITY_BUILDER_MIN_VISIBLE_TIERS,
+    INFINITY_BUILDER_MAX_VISIBLE_TIERS,
+  );
+  const claimRecordMap = resolveInfinityBuilderClaimRecordMap(
+    INFINITY_BUILDER_PANEL_MODE_INFINITY,
+  );
+  const tiers = [];
+  for (let tierIndex = 0; tierIndex < tierCount; tierIndex += 1) {
+    const tierNumber = tierIndex + 1;
+    const tierSeedNodes = directSeedNodes.slice(
+      tierIndex * INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER,
+      (tierIndex + 1) * INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER,
+    );
+    const seedSnapshots = [];
+    let completedSeedNodeCount = 0;
+    let tierRewardUsd = 0;
+    for (let slotIndex = 0; slotIndex < INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER; slotIndex += 1) {
+      const seedNode = tierSeedNodes[slotIndex] || null;
+      if (!seedNode) {
+        seedSnapshots.push(buildInfinityBuilderEmptySeedSnapshot(slotIndex, tierNumber));
+        continue;
+      }
+      const seedNodeId = safeText(seedNode?.id);
+      const seedNodeIdKey = normalizeCredentialValue(seedNodeId);
+      const seedUsernameKey = normalizeCredentialValue(
+        safeText(seedNode?.username || seedNode?.memberCode || '').replace(/^@+/, ''),
+      );
+      const rawChildCandidates = seedNodeIdKey && sponsorChildrenById.has(seedNodeIdKey)
+        ? sponsorChildrenById.get(seedNodeIdKey)
+        : (seedUsernameKey && sponsorChildrenByUsername.has(seedUsernameKey)
+          ? sponsorChildrenByUsername.get(seedUsernameKey)
+          : []);
+      const childCandidates = Array.isArray(rawChildCandidates)
+        ? rawChildCandidates
+          .filter((childNode) => isInfinityBuilderQualifyingChildNode(childNode, {
+            mode: INFINITY_BUILDER_PANEL_MODE_INFINITY,
+          }))
+          .slice()
+          .sort(compareInfinityBuilderNodesOldestToNewest)
+        : [];
+      const childNodes = childCandidates.slice(0, INFINITY_BUILDER_TIER_NODE_REQUIREMENT);
+      const childSnapshots = [];
+      const totalActiveDirectChildCount = childCandidates.reduce(
+        (count, childNode) => count + (resolveNodeActivityState(childNode) ? 1 : 0),
+        0,
+      );
+      const qualifiedActiveDirectChildCount = Math.min(
+        INFINITY_BUILDER_TIER_NODE_REQUIREMENT,
+        Math.max(0, totalActiveDirectChildCount),
+      );
+      for (let childIndex = 0; childIndex < INFINITY_BUILDER_TIER_NODE_REQUIREMENT; childIndex += 1) {
+        const childNode = childNodes[childIndex] || null;
+        if (!childNode) {
+          childSnapshots.push(buildInfinityBuilderEmptyChildSnapshot(`tier-${tierNumber}:slot-${slotIndex}:${childIndex}`));
+          continue;
+        }
+        const childDisplayName = safeText(
+          childNode?.name
+          || childNode?.username
+          || childNode?.memberCode
+          || childNode?.id
+          || 'Member',
+        ) || 'Member';
+        const childUsername = resolveInfinityBuilderNodeUsername(childNode);
+        const childNodeId = safeText(childNode?.id);
+        const childActive = resolveNodeActivityState(childNode);
+        childSnapshots.push({
+          node: childNode,
+          nodeId: childNodeId,
+          username: childUsername,
+          initials: resolveInitials(childDisplayName),
+          isActive: childActive,
+          backgroundImage: resolveInfinityBuilderNodeBackgroundImage(childNode, {
+            active: childActive,
+            fallbackSeed: `tier-${tierNumber}:slot-${slotIndex}:child-${childIndex}`,
+          }),
+        });
+      }
+      const seedDisplayName = safeText(
+        seedNode?.name
+        || seedNode?.username
+        || seedNode?.memberCode
+        || seedNodeId
+        || 'Member',
+      ) || 'Member';
+      const seedUsername = resolveInfinityBuilderNodeUsername(seedNode);
+      const seedActive = resolveNodeActivityState(seedNode);
+      const isCompletedNode = seedActive && totalActiveDirectChildCount >= INFINITY_BUILDER_TIER_NODE_REQUIREMENT;
+      if (isCompletedNode) {
+        completedSeedNodeCount += 1;
+      }
+      const volumeMetrics = resolveNodeLegVolumes(seedNodeId);
+      const totalOrganizationBv = Math.max(0, Math.floor(safeNumber(volumeMetrics?.totalVolume, 0)));
+      const monthlyOverrideUsd = isCompletedNode
+        ? Math.max(0, Math.round(totalOrganizationBv * INFINITY_BUILDER_TIER_OVERRIDE_RATE * 100) / 100)
+        : 0;
+      const nodeTierRewardUsd = resolveInfinityBuilderSeedTierRewardUsd(seedNode);
+      tierRewardUsd += nodeTierRewardUsd;
+      seedSnapshots.push({
+        slotIndex,
+        node: seedNode,
+        nodeId: seedNodeId,
+        displayName: seedDisplayName,
+        username: seedUsername,
+        initials: resolveInitials(seedDisplayName),
+        isActive: seedActive,
+        isCompletedNode,
+        isMonthlyOverrideQualified: isCompletedNode,
+        directEnrollmentCount: childCandidates.length,
+        activeDirectEnrollmentCount: totalActiveDirectChildCount,
+        completedChildCount: qualifiedActiveDirectChildCount,
+        totalOrganizationBv,
+        monthlyOverrideUsd,
+        weeklyOverrideUsd: monthlyOverrideUsd,
+        nodeTierRewardUsd,
+        backgroundImage: resolveInfinityBuilderNodeBackgroundImage(seedNode, {
+          active: seedActive,
+          fallbackSeed: `tier-${tierNumber}:slot-${slotIndex}`,
+        }),
+        childSnapshots,
+      });
+    }
+    const directRequirementMet = tierSeedNodes.length >= INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER;
+    const tierCompleted = directRequirementMet
+      && completedSeedNodeCount >= INFINITY_BUILDER_TIER_NODE_REQUIREMENT;
+    const claimRecord = claimRecordMap.get(tierNumber) || null;
+    const isClaimed = Boolean(safeText(claimRecord?.claimedAt));
+    const computedTierRewardUsd = Math.round(Math.max(0, tierRewardUsd) * 100) / 100;
+    const tierBonusUsd = isClaimed
+      ? Math.max(0, safeNumber(claimRecord?.amount, computedTierRewardUsd))
+      : computedTierRewardUsd;
+    tiers.push({
+      tierNumber,
+      seedCount: tierSeedNodes.length,
+      directRequirementMet,
+      completedSeedNodeCount,
+      isCompleted: tierCompleted,
+      isUnlocked: false,
+      isClaimed,
+      claimRecord,
+      tierBonusUsd,
+      seedSnapshots,
+    });
+  }
+
+  for (let tierIndex = 0; tierIndex < tiers.length; tierIndex += 1) {
+    if (tierIndex === 0) {
+      tiers[tierIndex].isUnlocked = true;
+      continue;
+    }
+    const previousTier = tiers[tierIndex - 1];
+    tiers[tierIndex].isUnlocked = Boolean(previousTier?.isUnlocked && previousTier?.isCompleted);
+  }
+
+  const firstTier = tiers.find((tier) => tier.tierNumber === 1) || null;
+  const firstTierStrictOverrideUnlocked = Boolean(firstTier?.isCompleted);
+  for (const tier of tiers) {
+    const applyStrictTierOneGate = tier?.tierNumber === 1;
+    for (const seedSnapshot of tier.seedSnapshots) {
+      const hasNode = Boolean(seedSnapshot?.node);
+      const meetsNodeRequirement = Boolean(seedSnapshot?.isCompletedNode);
+      const meetsMonthlyRequirement = hasNode
+        && meetsNodeRequirement
+        && Boolean(tier?.isUnlocked)
+        && (!applyStrictTierOneGate || firstTierStrictOverrideUnlocked);
+      seedSnapshot.isMonthlyOverrideQualified = meetsMonthlyRequirement;
+      const totalOrganizationBv = Math.max(0, Math.floor(safeNumber(seedSnapshot?.totalOrganizationBv, 0)));
+      const monthlyOverrideUsd = meetsMonthlyRequirement
+        ? Math.max(0, Math.round(totalOrganizationBv * INFINITY_BUILDER_TIER_OVERRIDE_RATE * 100) / 100)
+        : 0;
+      seedSnapshot.monthlyOverrideUsd = monthlyOverrideUsd;
+      seedSnapshot.weeklyOverrideUsd = monthlyOverrideUsd;
+    }
+  }
+
+  const completedTierCount = tiers.reduce((count, tier) => count + (tier.isCompleted ? 1 : 0), 0);
+  const claimedTierCount = tiers.reduce((count, tier) => count + (tier.isClaimed ? 1 : 0), 0);
+  const unlockedTierCount = tiers.reduce((count, tier) => count + (tier.isUnlocked ? 1 : 0), 0);
+  const totalTierRewardUsd = tiers.reduce(
+    (sum, tier) => sum + (tier?.isCompleted ? Math.max(0, safeNumber(tier?.tierBonusUsd, 0)) : 0),
+    0,
+  );
+  const claimableTierRewardUsd = tiers.reduce(
+    (sum, tier) => sum + (
+      tier?.isCompleted && !tier?.isClaimed
+        ? Math.max(0, safeNumber(tier?.tierBonusUsd, 0))
+        : 0
+    ),
+    0,
+  );
+  const totalMonthlyOverrideUsd = tiers.reduce((sum, tier) => (
+    sum + tier.seedSnapshots.reduce(
+      (seedSum, seedSnapshot) => seedSum + Math.max(0, safeNumber(
+        seedSnapshot?.monthlyOverrideUsd,
+        safeNumber(seedSnapshot?.weeklyOverrideUsd, 0),
+      )),
+      0,
+    )
+  ), 0);
+  const commissionBalances = resolveAccountOverviewCommissionBalances(resolvedHomeNode, {
+    systemTotals: false,
+  });
+  const currentBalanceUsd = Math.max(0, safeNumber(commissionBalances?.infinityBuilder, 0));
+
+  return {
+    homeNode: resolvedHomeNode,
+    tiers,
+    directSeedCount: directSeedNodes.length,
+    completedTierCount,
+    claimedTierCount,
+    unlockedTierCount,
+    totalTierRewardUsd: Math.max(0, Math.round(totalTierRewardUsd * 100) / 100),
+    claimableTierRewardUsd: Math.max(0, Math.round(claimableTierRewardUsd * 100) / 100),
+    totalMonthlyOverrideUsd: Math.max(0, Math.round(totalMonthlyOverrideUsd * 100) / 100),
+    totalWeeklyOverrideUsd: Math.max(0, Math.round(totalMonthlyOverrideUsd * 100) / 100),
+    currentBalanceUsd,
+  };
+}
+
+function buildLegacyLeadershipPanelSnapshot(homeNode = null) {
+  const modeConfig = resolveInfinityBuilderPanelModeConfig(
+    INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP,
+  );
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  const resolvedHomeNode = homeNode && typeof homeNode === 'object'
+    ? homeNode
+    : (resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root') || null);
+  const homeNodeIdKey = normalizeCredentialValue(
+    safeText(resolvedHomeNode?.id || 'root'),
+  );
+  const homeGlobalNodeIdKey = normalizeCredentialValue(
+    safeText(resolvePreferredGlobalHomeNodeId() || resolvedHomeNode?.id || 'root'),
+  );
+  const homeUsernameKey = normalizeCredentialValue(
+    safeText(resolvedHomeNode?.username || resolvedHomeNode?.memberCode || '').replace(/^@+/, ''),
+  );
+  const rootKey = normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID);
+  const adminKey = normalizeCredentialValue(ADMIN_ROOT_USERNAME);
+  const sponsorChildrenById = new Map();
+  const sponsorChildrenByUsername = new Map();
+  const directSeedNodes = [];
+
+  const toNodeIdentityKey = (nodeInput = null) => normalizeCredentialValue(
+    safeText(
+      nodeInput?.id
+      || nodeInput?.username
+      || nodeInput?.memberCode
+      || nodeInput?.member_code
+      || '',
+    ),
+  );
+
+  for (const nodeInput of safeNodes) {
+    const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+    if (!node) {
+      continue;
+    }
+    const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+    if (!nodeIdKey || nodeIdKey === 'root' || nodeIdKey === rootKey || nodeIdKey === adminKey) {
+      continue;
+    }
+    if (isInfinityBuilderPlaceholderNode(node)) {
+      continue;
+    }
+    if (!isInfinityBuilderQualifyingChildNode(node, { mode: modeConfig.mode })) {
+      continue;
+    }
+    const mappedSponsorIdKey = normalizeCredentialValue(
+      safeText(node?.sponsorId || node?.globalSponsorId || ''),
+    );
+    const sourceSponsorIdKey = normalizeCredentialValue(
+      safeText(node?.sourceSponsorId || node?.source_sponsor_id || ''),
+    );
+    if (mappedSponsorIdKey) {
+      if (!sponsorChildrenById.has(mappedSponsorIdKey)) {
+        sponsorChildrenById.set(mappedSponsorIdKey, []);
+      }
+      sponsorChildrenById.get(mappedSponsorIdKey).push(node);
+    }
+    const sponsorUsernameKey = normalizeCredentialValue(
+      safeText(node?.sponsorUsername || node?.sponsor_username || '').replace(/^@+/, ''),
+    );
+    if (sponsorUsernameKey) {
+      if (!sponsorChildrenByUsername.has(sponsorUsernameKey)) {
+        sponsorChildrenByUsername.set(sponsorUsernameKey, []);
+      }
+      sponsorChildrenByUsername.get(sponsorUsernameKey).push(node);
+    }
+    if (!isInfinityBuilderQualifyingSeedNode(node, { mode: modeConfig.mode })) {
+      continue;
+    }
+    const directSponsorIdKey = sourceSponsorIdKey || mappedSponsorIdKey;
+    const isDirectBySponsorId = Boolean(
+      directSponsorIdKey
+      && (
+        (homeNodeIdKey && directSponsorIdKey === homeNodeIdKey)
+        || (homeGlobalNodeIdKey && directSponsorIdKey === homeGlobalNodeIdKey)
+      ),
+    );
+    const isDirectBySponsorUsername = Boolean(
+      homeUsernameKey
+      && sponsorUsernameKey
+      && sponsorUsernameKey === homeUsernameKey,
+    );
+    if (isDirectBySponsorId || isDirectBySponsorUsername) {
+      directSeedNodes.push(node);
+    }
+  }
+
+  for (const [sponsorIdKey, childNodesInput] of sponsorChildrenById.entries()) {
+    const childNodes = Array.isArray(childNodesInput) ? childNodesInput.slice() : [];
+    childNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+    sponsorChildrenById.set(sponsorIdKey, childNodes);
+  }
+  for (const [sponsorUsernameKey, childNodesInput] of sponsorChildrenByUsername.entries()) {
+    const childNodes = Array.isArray(childNodesInput) ? childNodesInput.slice() : [];
+    childNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+    sponsorChildrenByUsername.set(sponsorUsernameKey, childNodes);
+  }
+  directSeedNodes.sort(compareInfinityBuilderNodesOldestToNewest);
+
+  const levelTwoCap = INFINITY_BUILDER_TIER_NODE_REQUIREMENT ** 2;
+  const levelThreeCap = INFINITY_BUILDER_TIER_NODE_REQUIREMENT ** 3;
+  const fullySeededTierCount = Math.floor(
+    directSeedNodes.length / INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER,
+  );
+  const computedTierCount = Math.max(
+    modeConfig.baseVisibleTierCount + modeConfig.previewLockedTierCount,
+    fullySeededTierCount + 1 + modeConfig.previewLockedTierCount,
+  );
+  const tierCount = clamp(
+    computedTierCount,
+    modeConfig.baseVisibleTierCount,
+    INFINITY_BUILDER_MAX_VISIBLE_TIERS,
+  );
+
+  const resolveChildCandidates = (nodeInput = null) => {
+    const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+    if (!node) {
+      return [];
+    }
+    const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+    const nodeUsernameKey = normalizeCredentialValue(
+      safeText(node?.username || node?.memberCode || '').replace(/^@+/, ''),
+    );
+    const rawCandidatesById = nodeIdKey && sponsorChildrenById.has(nodeIdKey)
+      ? sponsorChildrenById.get(nodeIdKey)
+      : [];
+    const rawCandidatesByUsername = nodeUsernameKey && sponsorChildrenByUsername.has(nodeUsernameKey)
+      ? sponsorChildrenByUsername.get(nodeUsernameKey)
+      : [];
+    const seenNodeKeys = new Set();
+    const resolvedChildren = [];
+    for (const candidateInput of [...rawCandidatesById, ...rawCandidatesByUsername]) {
+      const candidate = candidateInput && typeof candidateInput === 'object'
+        ? candidateInput
+        : null;
+      if (!candidate || !isInfinityBuilderQualifyingChildNode(candidate, { mode: modeConfig.mode })) {
+        continue;
+      }
+      const candidateKey = toNodeIdentityKey(candidate);
+      if (!candidateKey || seenNodeKeys.has(candidateKey)) {
+        continue;
+      }
+      seenNodeKeys.add(candidateKey);
+      resolvedChildren.push(candidate);
+    }
+    resolvedChildren.sort(compareInfinityBuilderNodesOldestToNewest);
+    return resolvedChildren;
+  };
+
+  const buildLegacyChildSnapshot = (nodeInput = null, fallbackSeed = '', depthLevel = 1) => {
+    const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+    if (!node) {
+      return {
+        node: null,
+        nodeId: '',
+        username: '',
+        initials: '',
+        isActive: false,
+        depthLevel,
+        backgroundImage: resolveInfinityBuilderNodeBackgroundImage(null, {
+          active: true,
+          fallbackSeed,
+        }),
+      };
+    }
+    const displayName = safeText(
+      node?.name
+      || node?.username
+      || node?.memberCode
+      || node?.id,
+    );
+    const nodeActive = resolveNodeActivityState(node);
+    return {
+      node,
+      nodeId: safeText(node?.id),
+      username: resolveInfinityBuilderNodeUsername(node),
+      initials: displayName ? resolveInitials(displayName) : '',
+      isActive: nodeActive,
+      depthLevel,
+      backgroundImage: resolveInfinityBuilderNodeBackgroundImage(node, {
+        active: nodeActive,
+        fallbackSeed,
+      }),
+    };
+  };
+
+  const buildLegacyEmptySeedSnapshot = (slotIndex = 0, tierNumber = 1) => ({
+    slotIndex,
+    node: null,
+    nodeId: '',
+    displayName: '',
+    username: '',
+    initials: '',
+    isActive: false,
+    isCompletedNode: false,
+    completedChildCount: 0,
+    totalOrganizationBv: 0,
+    monthlyOverrideUsd: 0,
+    weeklyOverrideUsd: 0,
+    tierMappedNodeCount: 0,
+    backgroundImage: resolveInfinityBuilderNodeBackgroundImage(null, {
+      active: true,
+      fallbackSeed: `legacy-seed-empty:tier-${tierNumber}:slot-${slotIndex}`,
+    }),
+    childSnapshots: Array.from(
+      { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+      (_, childIndex) => buildLegacyChildSnapshot(
+        null,
+        `legacy-child-empty:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+        1,
+      ),
+    ),
+    depthTwoSnapshots: Array.from(
+      { length: levelTwoCap },
+      (_, childIndex) => buildLegacyChildSnapshot(
+        null,
+        `legacy-depth-two-empty:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+        2,
+      ),
+    ),
+    depthTwoGroupSnapshots: Array.from(
+      { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+      (_, groupIndex) => Array.from(
+        { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+        (_, childIndex) => buildLegacyChildSnapshot(
+          null,
+          `legacy-depth-two-empty-group:tier-${tierNumber}:slot-${slotIndex}:${groupIndex}:${childIndex}`,
+          2,
+        ),
+      ),
+    ),
+    depthThreeSnapshots: Array.from(
+      { length: levelThreeCap },
+      (_, childIndex) => buildLegacyChildSnapshot(
+        null,
+        `legacy-depth-three-empty:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+        3,
+      ),
+    ),
+    depthThreeGroupSnapshots: Array.from(
+      { length: levelTwoCap },
+      (_, groupIndex) => Array.from(
+        { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+        (_, childIndex) => buildLegacyChildSnapshot(
+          null,
+          `legacy-depth-three-empty-group:tier-${tierNumber}:slot-${slotIndex}:${groupIndex}:${childIndex}`,
+          3,
+        ),
+      ),
+    ),
+  });
+
+  const claimRecordMap = resolveInfinityBuilderClaimRecordMap(modeConfig.mode);
+  const tiers = [];
+  for (let tierIndex = 0; tierIndex < tierCount; tierIndex += 1) {
+    const tierNumber = tierIndex + 1;
+    const tierSeedNodes = directSeedNodes.slice(
+      tierIndex * INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER,
+      (tierIndex + 1) * INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER,
+    );
+    const seedSnapshots = [];
+    let tierQualifiedNodeCount = 0;
+    for (let slotIndex = 0; slotIndex < INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER; slotIndex += 1) {
+      const seedNode = tierSeedNodes[slotIndex] || null;
+      if (!seedNode) {
+        seedSnapshots.push(buildLegacyEmptySeedSnapshot(slotIndex, tierNumber));
+        continue;
+      }
+      const levelOneNodes = resolveChildCandidates(seedNode).slice(
+        0,
+        INFINITY_BUILDER_TIER_NODE_REQUIREMENT,
+      );
+      const levelTwoNodeGroups = Array.from(
+        { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+        () => [],
+      );
+      for (
+        let levelOneIndex = 0;
+        levelOneIndex < INFINITY_BUILDER_TIER_NODE_REQUIREMENT;
+        levelOneIndex += 1
+      ) {
+        const levelOneNode = levelOneNodes[levelOneIndex] || null;
+        if (!levelOneNode) {
+          continue;
+        }
+        levelTwoNodeGroups[levelOneIndex] = resolveChildCandidates(levelOneNode).slice(
+          0,
+          INFINITY_BUILDER_TIER_NODE_REQUIREMENT,
+        );
+      }
+      const levelTwoNodes = levelTwoNodeGroups.flat().slice(0, levelTwoCap);
+      const levelThreeNodeGroups = Array.from({ length: levelTwoCap }, () => []);
+      for (let levelTwoIndex = 0; levelTwoIndex < levelTwoCap; levelTwoIndex += 1) {
+        const levelTwoNode = levelTwoNodes[levelTwoIndex] || null;
+        if (!levelTwoNode) {
+          continue;
+        }
+        levelThreeNodeGroups[levelTwoIndex] = resolveChildCandidates(levelTwoNode).slice(
+          0,
+          INFINITY_BUILDER_TIER_NODE_REQUIREMENT,
+        );
+      }
+      const levelThreeNodes = levelThreeNodeGroups.flat().slice(0, levelThreeCap);
+
+      const levelOneSnapshots = Array.from(
+        { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+        (_, childIndex) => buildLegacyChildSnapshot(
+          levelOneNodes[childIndex] || null,
+          `legacy-child:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+          1,
+        ),
+      );
+      const levelTwoSnapshots = Array.from(
+        { length: levelTwoCap },
+        (_, childIndex) => buildLegacyChildSnapshot(
+          levelTwoNodes[childIndex] || null,
+          `legacy-depth-two:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+          2,
+        ),
+      );
+      const levelTwoGroupSnapshots = Array.from(
+        { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+        (_, groupIndex) => Array.from(
+          { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+          (_, childIndex) => buildLegacyChildSnapshot(
+            levelTwoNodeGroups[groupIndex]?.[childIndex] || null,
+            `legacy-depth-two-group:tier-${tierNumber}:slot-${slotIndex}:${groupIndex}:${childIndex}`,
+            2,
+          ),
+        ),
+      );
+      const levelThreeSnapshots = Array.from(
+        { length: levelThreeCap },
+        (_, childIndex) => buildLegacyChildSnapshot(
+          levelThreeNodes[childIndex] || null,
+          `legacy-depth-three:tier-${tierNumber}:slot-${slotIndex}:${childIndex}`,
+          3,
+        ),
+      );
+      const levelThreeGroupSnapshots = Array.from(
+        { length: levelTwoCap },
+        (_, groupIndex) => Array.from(
+          { length: INFINITY_BUILDER_TIER_NODE_REQUIREMENT },
+          (_, childIndex) => buildLegacyChildSnapshot(
+            levelThreeNodeGroups[groupIndex]?.[childIndex] || null,
+            `legacy-depth-three-group:tier-${tierNumber}:slot-${slotIndex}:${groupIndex}:${childIndex}`,
+            3,
+          ),
+        ),
+      );
+
+      const seedNodeId = safeText(seedNode?.id);
+      const seedDisplayName = safeText(
+        seedNode?.name
+        || seedNode?.username
+        || seedNode?.memberCode
+        || seedNodeId,
+      );
+      const seedActive = resolveNodeActivityState(seedNode);
+      const seedMappedNodeCount = (
+        1
+        + levelOneNodes.length
+        + levelTwoNodes.length
+        + levelThreeNodes.length
+      );
+      tierQualifiedNodeCount += seedMappedNodeCount;
+      seedSnapshots.push({
+        slotIndex,
+        node: seedNode,
+        nodeId: seedNodeId,
+        displayName: seedDisplayName,
+        username: resolveInfinityBuilderNodeUsername(seedNode),
+        initials: seedDisplayName ? resolveInitials(seedDisplayName) : '',
+        isActive: seedActive,
+        isCompletedNode: false,
+        completedChildCount: levelOneNodes.length,
+        totalOrganizationBv: seedMappedNodeCount,
+        monthlyOverrideUsd: 0,
+        weeklyOverrideUsd: 0,
+        tierMappedNodeCount: seedMappedNodeCount,
+        backgroundImage: resolveInfinityBuilderNodeBackgroundImage(seedNode, {
+          active: seedActive,
+          fallbackSeed: `legacy-seed:tier-${tierNumber}:slot-${slotIndex}`,
+        }),
+        childSnapshots: levelOneSnapshots,
+        depthTwoSnapshots: levelTwoSnapshots,
+        depthTwoGroupSnapshots: levelTwoGroupSnapshots,
+        depthThreeSnapshots: levelThreeSnapshots,
+        depthThreeGroupSnapshots: levelThreeGroupSnapshots,
+      });
+    }
+
+    const directRequirementMet = tierSeedNodes.length >= INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER;
+    const downlineNodeCap = Math.max(0, modeConfig.totalNodesPerTier - 1);
+    const cappedQualifiedNodeCount = Math.min(downlineNodeCap, tierQualifiedNodeCount);
+    const effectiveQualifiedNodeCount = directRequirementMet
+      ? cappedQualifiedNodeCount
+      : Math.min(cappedQualifiedNodeCount, tierSeedNodes.length);
+    // Legacy tier view is a 40-node map that includes the home/root node.
+    const baseRootNodeCount = resolvedHomeNode ? 1 : 0;
+    const tierProgressCount = Math.min(
+      modeConfig.totalNodesPerTier,
+      baseRootNodeCount + effectiveQualifiedNodeCount,
+    );
+    const tierCompleted = directRequirementMet && tierProgressCount >= modeConfig.totalNodesPerTier;
+    const claimRecord = claimRecordMap.get(tierNumber) || null;
+    const isClaimed = Boolean(safeText(claimRecord?.claimedAt));
+    const completedSeedNodeCount = seedSnapshots.reduce(
+      (count, seedSnapshot) => count + (seedSnapshot?.node ? 1 : 0),
+      0,
+    );
+    tiers.push({
+      tierNumber,
+      seedCount: tierSeedNodes.length,
+      directRequirementMet,
+      completedSeedNodeCount,
+      isCompleted: tierCompleted,
+      isUnlocked: false,
+      isClaimed,
+      claimRecord,
+      tierBonusUsd: Math.max(
+        0,
+        safeNumber(claimRecord?.amount, LEGACY_LEADERSHIP_TIER_BONUS_USD),
+      ),
+      tierProgressCount,
+      totalNodeRequirement: modeConfig.totalNodesPerTier,
+      litNodeCount: tierProgressCount,
+      seedSnapshots,
+    });
+  }
+
+  for (let tierIndex = 0; tierIndex < tiers.length; tierIndex += 1) {
+    const isBaseVisibleTier = tierIndex < modeConfig.baseVisibleTierCount;
+    if (tierIndex === 0) {
+      tiers[tierIndex].isUnlocked = true;
+      continue;
+    }
+    const previousTier = tiers[tierIndex - 1];
+    const unlockedByProgress = modeConfig.unlockByDirectRequirement
+      ? Boolean(previousTier?.isUnlocked && previousTier?.directRequirementMet)
+      : Boolean(previousTier?.isUnlocked && previousTier?.isCompleted);
+    tiers[tierIndex].isUnlocked = isBaseVisibleTier || unlockedByProgress;
+  }
+
+  const completedTierCount = tiers.reduce((count, tier) => count + (tier.isCompleted ? 1 : 0), 0);
+  const claimedTierCount = tiers.reduce((count, tier) => count + (tier.isClaimed ? 1 : 0), 0);
+  const unlockedTierCount = tiers.reduce((count, tier) => count + (tier.isUnlocked ? 1 : 0), 0);
+  const totalTierRewardUsd = tiers.reduce(
+    (sum, tier) => sum + (tier?.isCompleted ? Math.max(0, safeNumber(tier?.tierBonusUsd, 0)) : 0),
+    0,
+  );
+  const claimableTierRewardUsd = tiers.reduce(
+    (sum, tier) => sum + (
+      tier?.isCompleted && !tier?.isClaimed
+        ? Math.max(0, safeNumber(tier?.tierBonusUsd, 0))
+        : 0
+    ),
+    0,
+  );
+  const commissionBalances = resolveAccountOverviewCommissionBalances(resolvedHomeNode, {
+    systemTotals: false,
+  });
+  const currentBalanceUsd = Math.max(0, safeNumber(commissionBalances?.legacyBuilder, 0));
+
+  return {
+    homeNode: resolvedHomeNode,
+    tiers,
+    directSeedCount: directSeedNodes.length,
+    completedTierCount,
+    claimedTierCount,
+    unlockedTierCount,
+    totalTierRewardUsd,
+    claimableTierRewardUsd,
+    totalMonthlyOverrideUsd: 0,
+    totalWeeklyOverrideUsd: 0,
+    currentBalanceUsd,
+    totalNodeRequirement: modeConfig.totalNodesPerTier,
+  };
+}
+
+function buildInfinityBuilderPanelSnapshot(homeNode = null) {
+  if (isLegacyLeadershipPanelMode()) {
+    return buildLegacyLeadershipPanelSnapshot(homeNode);
+  }
+  return buildInfinityBuilderBonusPanelSnapshot(homeNode);
+}
+
+function syncInfinityBuilderPanelPosition(layoutInput = state.layout) {
+  if (!isInfinityBuilderPanelAvailable()) {
+    return;
+  }
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const sideNav = layout?.sideNav || null;
+  const sideNavToggle = layout?.sideNavToggle || null;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
+  );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: 820,
+      minWidth: 320,
+      minHeight: 320,
+      halfHeightRatio: 0.84,
+    });
+    infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-left-mobile', `${mobileFrame.x}px`);
+    infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-top-mobile', `${mobileFrame.y}px`);
+    applyTreeNextMobileOverlayPanelStyle(infinityBuilderPanelElement, mobileFrame);
+    infinityBuilderPanelElement.classList.remove('is-positioning');
+    return;
+  }
+
+  clearTreeNextMobileOverlayPanelStyle(infinityBuilderPanelElement);
+
+  const panelHorizontalGap = 18;
+  const panelEdgePadding = 18;
+  const rightDockReservedWidth = 72;
+  const panelTop = sideNav
+    ? Math.round(sideNav.y)
+    : panelEdgePadding;
+  const panelHeight = sideNav
+    ? Math.round(sideNav.height)
+    : Math.max(320, viewportHeight - (panelEdgePadding * 2));
+
+  let anchorLeft = Math.round((viewportWidth - 640) / 2);
+  if (sideNavOpen && sideNav) {
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
+  } else if (sideNavToggle) {
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
+  }
+
+  const maxUsableWidth = Math.max(
+    360,
+    Math.floor(viewportWidth - anchorLeft - rightDockReservedWidth),
+  );
+  const panelWidth = clamp(Math.round(Math.min(760, maxUsableWidth)), 360, maxUsableWidth);
+  const clampedLeft = clamp(
+    anchorLeft,
+    panelEdgePadding,
+    Math.max(
+      panelEdgePadding,
+      viewportWidth - panelWidth - rightDockReservedWidth,
+    ),
+  );
+  const clampedTop = clamp(
+    panelTop,
+    panelEdgePadding,
+    Math.max(panelEdgePadding, viewportHeight - panelHeight - panelEdgePadding),
+  );
+  const clampedHeight = clamp(
+    panelHeight,
+    320,
+    Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+  );
+
+  infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-left', `${clampedLeft}px`);
+  infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-top', `${clampedTop}px`);
+  infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-width', `${panelWidth}px`);
+  infinityBuilderPanelElement.style.setProperty('--tree-next-infinity-builder-height', `${clampedHeight}px`);
+  infinityBuilderPanelElement.classList.remove('is-positioning');
+}
+
+function syncInfinityBuilderPanelVisuals() {
+  if (!isInfinityBuilderPanelAvailable() || !Boolean(state.ui?.infinityBuilderVisible)) {
+    return;
+  }
+  const modeConfig = resolveInfinityBuilderPanelModeConfig();
+  const isLegacyMode = modeConfig.mode === INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP;
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  maybeRefreshAccountOverviewRemoteSnapshot(homeNode, {
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
+  const snapshot = buildInfinityBuilderPanelSnapshot(homeNode);
+  if (!Array.isArray(snapshot?.tiers) || snapshot.tiers.length === 0) {
+    if (infinityBuilderTierBonusElement instanceof HTMLElement) {
+      infinityBuilderTierBonusElement.textContent = 'Tier reward is calculated from Infinity/Legacy node mix.';
+    }
+    if (infinityBuilderClaimButtonElement instanceof HTMLButtonElement) {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = 'Claim Tier Reward';
+    }
+    syncInfinityBuilderViewTreeButtonState({ isLegacyMode });
+    return;
+  }
+  infinityBuilderLastPanelSnapshot = snapshot;
+  const selectedTier = resolveInfinityBuilderSelectedTierFromSnapshot(snapshot);
+  if (!selectedTier) {
+    if (infinityBuilderTierBonusElement instanceof HTMLElement) {
+      infinityBuilderTierBonusElement.textContent = 'Tier reward is calculated from Infinity/Legacy node mix.';
+    }
+    if (infinityBuilderClaimButtonElement instanceof HTMLButtonElement) {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = 'Claim Tier Reward';
+    }
+    syncInfinityBuilderViewTreeButtonState({ isLegacyMode });
+    return;
+  }
+  if (selectedTier.tierNumber !== infinityBuilderSelectedTierNumber) {
+    infinityBuilderSelectedTierNumber = selectedTier.tierNumber;
+  }
+  if (!isLegacyMode && isLegacyTierCanvasViewActive()) {
+    closeLegacyTierCanvasView({ preserveSelection: true });
+  } else if (
+    isLegacyMode
+    && isLegacyTierCanvasViewActive()
+    && !legacyTierCanvasViewState.tierSwitchInFlight
+  ) {
+    syncLegacyTierCanvasViewModel(snapshot, selectedTier);
+  }
+
+  const tiersSignature = snapshot.tiers.map((tier) => [
+    tier.tierNumber,
+    tier.isUnlocked ? '1' : '0',
+    tier.isCompleted ? '1' : '0',
+    tier.isClaimed ? '1' : '0',
+    tier.seedCount,
+    tier.completedSeedNodeCount,
+    tier.seedSnapshots.map((seedSnapshot) => {
+      if (!seedSnapshot?.node) {
+        return 'empty';
+      }
+      return [
+        safeText(seedSnapshot.nodeId),
+        seedSnapshot.isActive ? '1' : '0',
+        seedSnapshot.isCompletedNode ? '1' : '0',
+        seedSnapshot.completedChildCount,
+        Math.floor(safeNumber(seedSnapshot.totalOrganizationBv, 0)),
+      ].join(':');
+    }).join(','),
+  ].join('|')).join('~');
+  const renderSignature = [
+    safeText(state.liveSync?.lastAppliedHash || ''),
+    modeConfig.mode,
+    accountOverviewRemoteDataVersion,
+    infinityBuilderSelectedTierNumber,
+    resolveInfinityBuilderTierSortDirectionForMode(INFINITY_BUILDER_PANEL_MODE_INFINITY),
+    resolveInfinityBuilderTierSortDirectionForMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP),
+    snapshot.directSeedCount,
+    snapshot.completedTierCount,
+    snapshot.claimedTierCount,
+    snapshot.totalTierRewardUsd.toFixed(2),
+    snapshot.currentBalanceUsd.toFixed(2),
+    safeNumber(snapshot.totalMonthlyOverrideUsd, snapshot.totalWeeklyOverrideUsd).toFixed(2),
+    tiersSignature,
+  ].join('::');
+  if (renderSignature === infinityBuilderLastRenderSignature) {
+    return;
+  }
+  infinityBuilderLastRenderSignature = renderSignature;
+
+  if (infinityBuilderBreadcrumbCurrentElement instanceof HTMLElement) {
+    infinityBuilderBreadcrumbCurrentElement.textContent = modeConfig.panelTitle;
+  }
+  if (infinityBuilderTitleElement instanceof HTMLElement) {
+    infinityBuilderTitleElement.textContent = modeConfig.panelTitle;
+  }
+  if (infinityBuilderCopyElement instanceof HTMLElement) {
+    infinityBuilderCopyElement.innerHTML = modeConfig.panelCopyHtml;
+  }
+
+  if (infinityBuilderTierTitleElement instanceof HTMLElement) {
+    infinityBuilderTierTitleElement.textContent = `${modeConfig.tierLabelPrefix} ${selectedTier.tierNumber}`;
+  }
+  if (infinityBuilderTierSubtitleElement instanceof HTMLElement) {
+    const previousTierNumber = Math.max(1, selectedTier.tierNumber - 1);
+    const remainingSeeds = Math.max(0, INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER - selectedTier.seedCount);
+    const tierProgressCount = Math.max(
+      0,
+      Math.floor(safeNumber(
+        selectedTier?.tierProgressCount,
+        safeNumber(selectedTier?.litNodeCount, selectedTier.seedCount),
+      )),
+    );
+    const totalNodeRequirement = Math.max(
+      0,
+      Math.floor(safeNumber(
+        selectedTier?.totalNodeRequirement,
+        safeNumber(snapshot?.totalNodeRequirement, modeConfig.totalNodesPerTier),
+      )),
+    );
+    if (!selectedTier.isUnlocked) {
+      if (isLegacyMode) {
+        infinityBuilderTierSubtitleElement.textContent = (
+          `Tier ${selectedTier.tierNumber} unlocks after Tier ${previousTierNumber} reaches `
+          + `${INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER} ${modeConfig.directSeedLabel}.`
+        );
+      } else {
+        infinityBuilderTierSubtitleElement.textContent = (
+          `Tier ${selectedTier.tierNumber} unlocks after Tier ${previousTierNumber}`
+          + ' completes all 3 nodes.'
+        );
+      }
+    } else if (selectedTier.isCompleted) {
+      if (isLegacyMode) {
+        infinityBuilderTierSubtitleElement.textContent = selectedTier.isClaimed
+          ? 'Tier completed and claimed. One-time reward archived.'
+          : 'Tier completed. One-time reward is ready to claim.';
+      } else {
+        infinityBuilderTierSubtitleElement.textContent = (
+          selectedTier.isClaimed
+            ? 'Tier completed and claimed. Monthly 1% bonuses remain active per qualified member.'
+            : 'Tier completed. Monthly 1% bonuses are active per qualified member.'
+        );
+      }
+    } else if (isLegacyMode) {
+      if (!selectedTier.directRequirementMet) {
+        infinityBuilderTierSubtitleElement.textContent = (
+          `${selectedTier.seedCount}/${INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER} Legacy enrollments completed. `
+          + (remainingSeeds > 0
+            ? `Enroll ${remainingSeeds} more Legacy member${remainingSeeds === 1 ? '' : 's'} to continue.`
+            : 'Direct requirement met.')
+        );
+      } else {
+        infinityBuilderTierSubtitleElement.textContent = '';
+      }
+    } else {
+      if (!selectedTier.directRequirementMet) {
+        infinityBuilderTierSubtitleElement.textContent = (
+          `${selectedTier.seedCount}/${INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER} Infinity/Legacy nodes enrolled. `
+          + (remainingSeeds > 0
+            ? `Enroll ${remainingSeeds} more to start node completion.`
+            : 'Tier enrollment requirement met.')
+        );
+      } else {
+        const completedNodes = Math.max(
+          0,
+          Math.floor(safeNumber(selectedTier?.completedSeedNodeCount, 0)),
+        );
+        const remainingCompletedNodes = Math.max(
+          0,
+          INFINITY_BUILDER_TIER_NODE_REQUIREMENT - completedNodes,
+        );
+        infinityBuilderTierSubtitleElement.textContent = (
+          `${completedNodes}/${INFINITY_BUILDER_TIER_NODE_REQUIREMENT} nodes completed. `
+          + (
+            remainingCompletedNodes > 0
+              ? `Complete ${remainingCompletedNodes} more node${remainingCompletedNodes === 1 ? '' : 's'} (3 active directs each).`
+              : 'All nodes are completed.'
+          )
+        );
+      }
+    }
+  }
+  const selectedTierRewardUsd = Math.max(
+    0,
+    safeNumber(
+      selectedTier?.tierBonusUsd,
+      isLegacyMode ? LEGACY_LEADERSHIP_TIER_BONUS_USD : INFINITY_BUILDER_TIER_BONUS_USD,
+    ),
+  );
+  if (infinityBuilderTierBonusElement instanceof HTMLElement) {
+    const selectedTierMonthlyOverrideUsd = selectedTier.seedSnapshots.reduce(
+      (sum, seedSnapshot) => sum + Math.max(0, safeNumber(
+        seedSnapshot?.monthlyOverrideUsd,
+        safeNumber(seedSnapshot?.weeklyOverrideUsd, 0),
+      )),
+      0,
+    );
+    if (!selectedTier.isUnlocked) {
+      infinityBuilderTierBonusElement.textContent = isLegacyMode
+        ? 'Tier reward is locked until the previous tier is completed.'
+        : 'Tier reward is locked until the previous tier is completed.';
+    } else if (selectedTier.isClaimed) {
+      infinityBuilderTierBonusElement.textContent = `Tier reward claimed: ${formatEnrollCurrency(selectedTierRewardUsd)} USD`;
+    } else if (selectedTier.isCompleted) {
+      if (isLegacyMode) {
+        infinityBuilderTierBonusElement.textContent = (
+          `Tier completed: ${formatEnrollCurrency(selectedTierRewardUsd)} USD one-time reward ready`
+        );
+      } else {
+        infinityBuilderTierBonusElement.textContent = (
+          `Tier completed: ${formatEnrollCurrency(selectedTierRewardUsd)} USD ready `
+          + `| Active monthly 1% total: ${formatEnrollCurrency(selectedTierMonthlyOverrideUsd)}`
+        );
+      }
+    } else {
+      const tierProgressCount = Math.max(
+        0,
+        Math.floor(safeNumber(
+          selectedTier?.tierProgressCount,
+          safeNumber(selectedTier?.litNodeCount, selectedTier.seedCount),
+        )),
+      );
+      const totalNodeRequirement = Math.max(
+        0,
+        Math.floor(safeNumber(
+          selectedTier?.totalNodeRequirement,
+          safeNumber(snapshot?.totalNodeRequirement, modeConfig.totalNodesPerTier),
+        )),
+      );
+      infinityBuilderTierBonusElement.textContent = isLegacyMode
+        ? `Tier progress: ${tierProgressCount}/${totalNodeRequirement} mapped Legacy nodes`
+        : (
+          selectedTierMonthlyOverrideUsd > 0
+            ? `Tier reward: ${formatEnrollCurrency(selectedTierRewardUsd)} USD | Active monthly 1% total: ${formatEnrollCurrency(selectedTierMonthlyOverrideUsd)}`
+            : `Tier reward: ${formatEnrollCurrency(selectedTierRewardUsd)} USD`
+        );
+    }
+  }
+  if (infinityBuilderClaimButtonElement instanceof HTMLButtonElement) {
+    const claimAmountLabel = formatEnrollCurrency(selectedTierRewardUsd);
+    if (infinityBuilderClaimInFlight) {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = 'Claiming...';
+    } else if (!selectedTier.isUnlocked) {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = 'Claim Tier Reward';
+    } else if (selectedTier.isClaimed) {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = 'Tier Reward Claimed';
+    } else if (selectedTier.isCompleted) {
+      infinityBuilderClaimButtonElement.disabled = false;
+      infinityBuilderClaimButtonElement.textContent = `Claim ${claimAmountLabel} Tier Reward`;
+    } else {
+      infinityBuilderClaimButtonElement.disabled = true;
+      infinityBuilderClaimButtonElement.textContent = 'Claim Tier Reward';
+    }
+  }
+  syncInfinityBuilderViewTreeButtonState({
+    isLegacyMode,
+    tierNumber: selectedTier?.tierNumber,
+  });
+  if (infinityBuilderClaimFeedbackElement instanceof HTMLElement) {
+    if (!infinityBuilderClaimInFlight && infinityBuilderClaimFeedbackTierNumber !== selectedTier.tierNumber) {
+      setInfinityBuilderClaimFeedback('');
+    }
+  }
+
+  if (infinityBuilderTierGridElement instanceof HTMLElement) {
+    infinityBuilderTierGridElement.innerHTML = '';
+    const tierFragment = document.createDocumentFragment();
+    for (const seedSnapshot of selectedTier.seedSnapshots) {
+      const seedCard = document.createElement('article');
+      seedCard.className = 'tree-next-infinity-builder-node-card';
+      if (isLegacyMode) {
+        seedCard.classList.add('is-legacy-mode');
+      }
+      const seedCore = document.createElement('div');
+      seedCore.className = 'tree-next-infinity-builder-node-core';
+      if (!seedSnapshot.node) {
+        seedCore.classList.add('is-empty');
+      } else if (!seedSnapshot.isActive) {
+        seedCore.classList.add('is-inactive');
+      }
+      seedCore.style.backgroundImage = safeText(seedSnapshot.backgroundImage);
+      seedCore.textContent = seedSnapshot.node
+        ? resolveInfinityBuilderNodeInitials(seedSnapshot.initials || '')
+        : '';
+      if (seedSnapshot.node) {
+        const seedNodeId = resolveInfinityBuilderFocusNodeId(seedSnapshot.node, {
+          nodeId: seedSnapshot.nodeId,
+          username: seedSnapshot.username,
+        });
+        if (seedNodeId) {
+          seedCore.dataset.infinityBuilderFocusNodeId = seedNodeId;
+          seedCore.classList.add('is-focusable');
+          seedCore.tabIndex = 0;
+          seedCore.setAttribute('role', 'button');
+        }
+        const seedLabel = safeText(seedSnapshot.username || seedSnapshot.displayName || '');
+        if (seedLabel) {
+          seedCore.title = seedLabel;
+        }
+      }
+
+      const branchElement = document.createElement('div');
+      branchElement.className = 'tree-next-infinity-builder-node-branch';
+      const childRow = document.createElement('div');
+      childRow.className = 'tree-next-infinity-builder-node-children';
+      for (const childSnapshot of seedSnapshot.childSnapshots) {
+        const childItem = document.createElement('span');
+        childItem.className = 'tree-next-infinity-builder-node-child-item';
+        const childDot = document.createElement('span');
+        childDot.className = 'tree-next-infinity-builder-node-child';
+        if (!childSnapshot.node) {
+          childDot.classList.add('is-empty');
+        } else if (!childSnapshot.isActive) {
+          childDot.classList.add('is-inactive');
+        }
+        childDot.style.backgroundImage = safeText(childSnapshot.backgroundImage);
+        childDot.textContent = childSnapshot.node
+          ? resolveInfinityBuilderNodeInitials(childSnapshot.initials || '')
+          : '';
+        if (childSnapshot.node) {
+          const childNodeId = resolveInfinityBuilderFocusNodeId(childSnapshot.node, {
+            nodeId: childSnapshot.nodeId,
+            username: childSnapshot.username,
+          });
+          if (childNodeId) {
+            childDot.dataset.infinityBuilderFocusNodeId = childNodeId;
+            childDot.classList.add('is-focusable');
+            childDot.tabIndex = 0;
+            childDot.setAttribute('role', 'button');
+            childItem.dataset.infinityBuilderFocusNodeId = childNodeId;
+            childItem.classList.add('is-focusable');
+          }
+          const childLabel = safeText(childSnapshot.username || '');
+          if (childLabel) {
+            childDot.title = childLabel;
+          }
+        }
+
+        childItem.append(childDot);
+        childRow.append(childItem);
+      }
+
+      let bvElement = null;
+      let payoutElement = null;
+      let usernameElement = null;
+      let statusElement = null;
+      if (!isLegacyMode) {
+        bvElement = document.createElement('p');
+        bvElement.className = 'tree-next-infinity-builder-node-bv';
+        bvElement.textContent = formatVolumeValue(seedSnapshot.totalOrganizationBv);
+
+        payoutElement = document.createElement('p');
+        payoutElement.className = 'tree-next-infinity-builder-node-payout';
+        payoutElement.textContent = `${formatEnrollCurrency(safeNumber(
+          seedSnapshot.monthlyOverrideUsd,
+          seedSnapshot.weeklyOverrideUsd,
+        ))} / month`;
+
+        usernameElement = document.createElement('p');
+        usernameElement.className = 'tree-next-infinity-builder-node-username';
+        usernameElement.textContent = safeText(seedSnapshot.node ? seedSnapshot.username : '');
+        if (!usernameElement.textContent) {
+          usernameElement.hidden = true;
+        }
+
+        statusElement = document.createElement('p');
+        statusElement.className = 'tree-next-infinity-builder-node-status';
+        if (!seedSnapshot.node) {
+          statusElement.textContent = '';
+        } else if (!seedSnapshot.isActive) {
+          statusElement.textContent = 'Account inactive';
+        } else if (!selectedTier.isUnlocked) {
+          const previousTierNumber = Math.max(1, selectedTier.tierNumber - 1);
+          statusElement.textContent = `Tier locked until Tier ${previousTierNumber} is completed`;
+        } else if (seedSnapshot.isMonthlyOverrideQualified) {
+          statusElement.textContent = '1% monthly active';
+        } else {
+          const isTierOneStrictBlocked = selectedTier.tierNumber === 1
+            && seedSnapshot.isCompletedNode
+            && !selectedTier.isCompleted;
+          if (isTierOneStrictBlocked) {
+            statusElement.textContent = 'Tier 1 strict: complete all 3 nodes to activate 1%';
+          } else {
+            const activeDirectEnrollments = Math.max(
+              0,
+              Math.floor(safeNumber(
+                seedSnapshot.activeDirectEnrollmentCount,
+                seedSnapshot.completedChildCount,
+              )),
+            );
+            const remainingChildren = Math.max(
+              0,
+              INFINITY_BUILDER_TIER_NODE_REQUIREMENT - activeDirectEnrollments,
+            );
+            statusElement.textContent = `Need ${remainingChildren} active enrollment${remainingChildren === 1 ? '' : 's'} for 1%`;
+          }
+        }
+      }
+
+      seedCard.append(seedCore, branchElement, childRow);
+      if (!isLegacyMode) {
+        seedCard.append(bvElement, payoutElement, usernameElement, statusElement);
+      }
+      tierFragment.append(seedCard);
+    }
+    infinityBuilderTierGridElement.append(tierFragment);
+  }
+
+  if (infinityBuilderCurrentListElement instanceof HTMLElement) {
+    if (infinityBuilderCurrentSortElement instanceof HTMLButtonElement) {
+      const tierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(infinityBuilderPanelMode);
+      const sortLabel = resolveInfinityBuilderTierSortLabel(tierSortDirection);
+      infinityBuilderCurrentSortElement.textContent = sortLabel;
+      infinityBuilderCurrentSortElement.setAttribute('aria-label', `${sortLabel}. Tap to toggle.`);
+      infinityBuilderCurrentSortElement.setAttribute(
+        'aria-pressed',
+        tierSortDirection === 'desc' ? 'true' : 'false',
+      );
+    }
+    const tierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(infinityBuilderPanelMode);
+    const sortedTiers = Array.isArray(snapshot?.tiers)
+      ? snapshot.tiers.slice().sort((leftTier, rightTier) => {
+        const leftTierNumber = Math.max(0, Math.floor(safeNumber(leftTier?.tierNumber, 0)));
+        const rightTierNumber = Math.max(0, Math.floor(safeNumber(rightTier?.tierNumber, 0)));
+        return tierSortDirection === 'desc'
+          ? (rightTierNumber - leftTierNumber)
+          : (leftTierNumber - rightTierNumber);
+      })
+      : [];
+    infinityBuilderCurrentListElement.innerHTML = '';
+    const listFragment = document.createDocumentFragment();
+    for (const tier of sortedTiers) {
+      const rowButton = document.createElement('button');
+      rowButton.type = 'button';
+      rowButton.className = 'tree-next-infinity-builder-current-item';
+      if (tier.tierNumber === infinityBuilderSelectedTierNumber) {
+        rowButton.classList.add('is-active');
+      }
+      rowButton.dataset.infinityBuilderTier = String(tier.tierNumber);
+      rowButton.setAttribute('aria-pressed', tier.tierNumber === infinityBuilderSelectedTierNumber ? 'true' : 'false');
+      rowButton.setAttribute('aria-label', `${modeConfig.currentAriaLabelPrefix} ${tier.tierNumber}`);
+
+      const row = document.createElement('div');
+      row.className = 'tree-next-infinity-builder-current-row';
+
+      const tierLabel = document.createElement('p');
+      tierLabel.className = 'tree-next-infinity-builder-current-tier';
+      tierLabel.textContent = `Tier ${tier.tierNumber}`;
+
+      const seedList = document.createElement('div');
+      seedList.className = 'tree-next-infinity-builder-current-seeds';
+      for (const seedSnapshot of tier.seedSnapshots) {
+        const seedEntry = document.createElement('span');
+        seedEntry.className = 'tree-next-infinity-builder-current-seed-entry';
+        const seedDot = document.createElement('span');
+        seedDot.className = 'tree-next-infinity-builder-current-seed';
+        const seedInitials = resolveInfinityBuilderNodeInitials(seedSnapshot.initials || '');
+        if (!seedSnapshot?.node) {
+          seedDot.classList.add('is-empty');
+          seedDot.textContent = '';
+        } else if (!seedSnapshot.isActive) {
+          seedDot.classList.add('is-inactive');
+          seedDot.textContent = seedInitials;
+        } else {
+          seedDot.textContent = seedInitials;
+        }
+        seedDot.style.backgroundImage = safeText(seedSnapshot.backgroundImage);
+        if (seedSnapshot?.node) {
+          const seedNodeId = resolveInfinityBuilderFocusNodeId(seedSnapshot.node, {
+            nodeId: seedSnapshot.nodeId,
+            username: seedSnapshot.username,
+          });
+          if (seedNodeId) {
+            seedDot.dataset.infinityBuilderFocusNodeId = seedNodeId;
+            seedDot.classList.add('is-focusable');
+            seedEntry.dataset.infinityBuilderFocusNodeId = seedNodeId;
+            seedEntry.classList.add('is-focusable');
+          }
+          const seedLabel = safeText(seedSnapshot.username || seedSnapshot.displayName || '');
+          if (seedLabel) {
+            seedDot.title = seedLabel;
+          }
+        }
+        if (isLegacyMode) {
+          seedEntry.append(seedDot);
+        } else {
+          const seedHandle = document.createElement('span');
+          seedHandle.className = 'tree-next-infinity-builder-current-seed-handle';
+          seedHandle.textContent = seedSnapshot?.node ? safeText(seedSnapshot.username || '') : '';
+          if (!seedHandle.textContent) {
+            seedHandle.hidden = true;
+          }
+          seedEntry.append(seedDot, seedHandle);
+        }
+        seedList.append(seedEntry);
+      }
+
+      if (isLegacyMode) {
+        const rowProgress = document.createElement('p');
+        rowProgress.className = 'tree-next-infinity-builder-current-progress';
+        const rowRequirementCount = Math.max(
+          1,
+          Math.floor(safeNumber(tier?.totalNodeRequirement, modeConfig.totalNodesPerTier)),
+        );
+        const rowMappedCount = Math.max(
+          0,
+          Math.floor(safeNumber(
+            tier?.tierProgressCount,
+            safeNumber(tier?.litNodeCount, tier?.seedCount),
+          )),
+        );
+        rowProgress.textContent = `${Math.min(rowMappedCount, rowRequirementCount)}/${rowRequirementCount}`;
+        row.classList.add('has-progress');
+        row.append(tierLabel, seedList, rowProgress);
+      } else {
+        row.append(tierLabel, seedList);
+      }
+      rowButton.append(row);
+      listFragment.append(rowButton);
+    }
+    infinityBuilderCurrentListElement.append(listFragment);
+  }
+
+  if (infinityBuilderCurrentEmptyElement instanceof HTMLElement) {
+    infinityBuilderCurrentEmptyElement.hidden = snapshot.directSeedCount > 0;
+    if (snapshot.directSeedCount === 0) {
+      infinityBuilderCurrentEmptyElement.textContent = modeConfig.currentEmptyText;
+    }
+  }
+}
+
+function syncInfinityBuilderPanelVisibility() {
+  if (!isInfinityBuilderPanelAvailable()) {
+    return;
+  }
+  const isVisible = Boolean(state.ui?.infinityBuilderVisible);
+  infinityBuilderPanelElement.classList.toggle('is-hidden', !isVisible);
+  infinityBuilderPanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+}
+
+function setInfinityBuilderPanelVisible(isVisible) {
+  const nextVisible = Boolean(isVisible);
+  state.ui.infinityBuilderVisible = nextVisible;
+  if (nextVisible) {
+    if (infinityBuilderPanelElement instanceof HTMLElement) {
+      infinityBuilderPanelElement.classList.remove('is-positioning');
+    }
+    state.ui.accountOverviewVisible = false;
+    state.ui.rankAdvancementVisible = false;
+    state.ui.preferredAccountsVisible = false;
+    state.ui.myStoreVisible = false;
+    syncAccountOverviewPanelVisibility();
+    syncRankAdvancementPanelVisibility();
+    syncPreferredAccountsPanelVisibility();
+    syncMyStorePanelVisibility();
+    infinityBuilderLastRenderSignature = '';
+    infinityBuilderClaimFeedbackTierNumber = 0;
+    setInfinityBuilderClaimFeedback('');
+    const overviewContext = resolveAccountOverviewPanelContext();
+    const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+    void refreshAccountOverviewRemoteSnapshot({
+      force: true,
+      homeNode,
+      scope: overviewContext?.scope,
+      preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+    });
+    syncInfinityBuilderViewTreeButtonState({
+      isLegacyMode: isLegacyLeadershipPanelMode(),
+      tierNumber: infinityBuilderSelectedTierNumber,
+    });
+    syncInfinityBuilderPanelVisuals();
+  } else {
+    infinityBuilderLastPanelSnapshot = null;
+  }
+  syncInfinityBuilderPanelVisibility();
+}
+
+function initInfinityBuilderPanel() {
+  if (!isInfinityBuilderPanelAvailable()) {
+    return;
+  }
+  syncInfinityBuilderPanelPosition();
+  syncInfinityBuilderPanelVisibility();
+  if (infinityBuilderCloseButtonElement instanceof HTMLButtonElement) {
+    infinityBuilderCloseButtonElement.addEventListener('click', () => {
+      setInfinityBuilderPanelVisible(false);
+    });
+  }
+  if (infinityBuilderBackButtonElement instanceof HTMLButtonElement) {
+    infinityBuilderBackButtonElement.addEventListener('click', () => {
+      setInfinityBuilderPanelVisible(false);
+      setAccountOverviewPanelVisible(true);
+    });
+  }
+  if (infinityBuilderClaimButtonElement instanceof HTMLButtonElement) {
+    infinityBuilderClaimButtonElement.addEventListener('click', () => {
+      void claimInfinityBuilderTierReward();
+    });
+  }
+  if (infinityBuilderCurrentSortElement instanceof HTMLButtonElement) {
+    infinityBuilderCurrentSortElement.addEventListener('click', (event) => {
+      event.preventDefault();
+      toggleInfinityBuilderTierSortDirection();
+      infinityBuilderLastRenderSignature = '';
+      syncInfinityBuilderPanelVisuals();
+    });
+  }
+  if (infinityBuilderViewTreeButtonElement instanceof HTMLButtonElement) {
+    infinityBuilderViewTreeButtonElement.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!viewLegacyTierCanvasTree()) {
+        syncInfinityBuilderPanelVisuals();
+      }
+    });
+  }
+  if (infinityBuilderPanelElement instanceof HTMLElement) {
+    infinityBuilderPanelElement.addEventListener('click', (event) => {
+      const targetElement = resolveInfinityBuilderEventTargetElement(event);
+      const focusElement = targetElement?.closest('[data-infinity-builder-focus-node-id]');
+      if (!(focusElement instanceof HTMLElement)) {
+        return;
+      }
+      const focusNodeId = safeText(focusElement.dataset.infinityBuilderFocusNodeId);
+      if (!focusNodeId) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      focusInfinityBuilderPanelNode(focusNodeId);
+    });
+    infinityBuilderPanelElement.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+      const targetElement = resolveInfinityBuilderEventTargetElement(event);
+      const focusElement = targetElement?.closest('[data-infinity-builder-focus-node-id]');
+      if (!(focusElement instanceof HTMLElement)) {
+        return;
+      }
+      const focusNodeId = safeText(focusElement.dataset.infinityBuilderFocusNodeId);
+      if (!focusNodeId) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      focusInfinityBuilderPanelNode(focusNodeId);
+    });
+  }
+  if (infinityBuilderCurrentListElement instanceof HTMLElement) {
+    infinityBuilderCurrentListElement.addEventListener('click', (event) => {
+      const targetElement = resolveInfinityBuilderEventTargetElement(event);
+      const focusElement = targetElement?.closest('[data-infinity-builder-focus-node-id]');
+      if (focusElement instanceof HTMLElement) {
+        return;
+      }
+      const rowButton = targetElement?.closest('[data-infinity-builder-tier]');
+      if (!(rowButton instanceof HTMLElement)) {
+        return;
+      }
+      const tierNumber = Math.floor(safeNumber(rowButton.dataset.infinityBuilderTier, 0));
+      if (!Number.isFinite(tierNumber) || tierNumber <= 0 || tierNumber === infinityBuilderSelectedTierNumber) {
+        return;
+      }
+      infinityBuilderSelectedTierNumber = tierNumber;
+      infinityBuilderClaimFeedbackTierNumber = 0;
+      infinityBuilderLastRenderSignature = '';
+      syncInfinityBuilderPanelVisuals();
+    });
+  }
+}
+
+const RANK_ADVANCEMENT_FALLBACK_MILESTONES = Object.freeze([
+  Object.freeze({
+    id: 'rank-ruby',
+    title: 'Ruby',
+    requiredRank: 'Ruby',
+    requiredDirectSponsorsPerSide: 1,
+    requiredPersonalPvBv: 50,
+    requiredCycles: 5,
+    rewardUsd: 62.5,
+    iconPath: '/brand_assets/Icons/Achievements/ruby.svg',
+  }),
+  Object.freeze({
+    id: 'rank-emerald',
+    title: 'Emerald',
+    requiredRank: 'Emerald',
+    requiredDirectSponsorsPerSide: 1,
+    requiredPersonalPvBv: 50,
+    requiredCycles: 10,
+    rewardUsd: 125,
+    iconPath: '/brand_assets/Icons/Achievements/emerald.svg',
+  }),
+  Object.freeze({
+    id: 'rank-sapphire',
+    title: 'Sapphire',
+    requiredRank: 'Sapphire',
+    requiredDirectSponsorsPerSide: 1,
+    requiredPersonalPvBv: 50,
+    requiredCycles: 20,
+    rewardUsd: 250,
+    iconPath: '/brand_assets/Icons/Achievements/sapphire.svg',
+  }),
+  Object.freeze({
+    id: 'rank-diamond',
+    title: 'Diamond',
+    requiredRank: 'Diamond',
+    requiredDirectSponsorsPerSide: 2,
+    requiredPersonalPvBv: 100,
+    requiredCycles: 40,
+    rewardUsd: 500,
+    iconPath: '/brand_assets/Icons/Achievements/diamond.svg',
+  }),
+  Object.freeze({
+    id: 'rank-blue-diamond',
+    title: 'Blue Diamond',
+    requiredRank: 'Blue Diamond',
+    requiredDirectSponsorsPerSide: 2,
+    requiredPersonalPvBv: 100,
+    requiredCycles: 80,
+    rewardUsd: 1000,
+    iconPath: '/brand_assets/Icons/Achievements/blue-diamond.svg',
+  }),
+  Object.freeze({
+    id: 'rank-black-diamond',
+    title: 'Black Diamond',
+    requiredRank: 'Black Diamond',
+    requiredDirectSponsorsPerSide: 2,
+    requiredPersonalPvBv: 100,
+    requiredCycles: 160,
+    rewardUsd: 2000,
+    iconPath: '/brand_assets/Icons/Achievements/black-diamond.svg',
+  }),
+  Object.freeze({
+    id: 'rank-crown',
+    title: 'Crown',
+    requiredRank: 'Crown',
+    requiredDirectSponsorsPerSide: 3,
+    requiredPersonalPvBv: 200,
+    requiredCycles: 320,
+    rewardUsd: 4000,
+    iconPath: '/brand_assets/Icons/Achievements/crown.svg',
+  }),
+  Object.freeze({
+    id: 'rank-double-crown',
+    title: 'Double Crown',
+    requiredRank: 'Double Crown',
+    requiredDirectSponsorsPerSide: 3,
+    requiredPersonalPvBv: 200,
+    requiredCycles: 640,
+    rewardUsd: 8000,
+    iconPath: '/brand_assets/Icons/Achievements/double-crown.svg',
+  }),
+  Object.freeze({
+    id: 'rank-royal-crown',
+    title: 'Royal Crown',
+    requiredRank: 'Royal Crown',
+    requiredDirectSponsorsPerSide: 3,
+    requiredPersonalPvBv: 200,
+    requiredCycles: 1000,
+    rewardUsd: 12500,
+    iconPath: '/brand_assets/Icons/Achievements/royal-crown.svg',
+  }),
+]);
+
+const RANK_ADVANCEMENT_GOOD_LIFE_MILESTONE_REWARD_BY_RANK_KEY = Object.freeze({
+  diamond: 500,
+  'blue diamond': 1000,
+  'black diamond': 2000,
+  crown: 4000,
+  'double crown': 8000,
+  'royal crown': 12500,
+});
+
+const RANK_ADVANCEMENT_MEMBER_REQUIREMENT_BY_RANK_KEY = Object.freeze({
+  emerald: '1 Ruby Member',
+  sapphire: '1 Emerald Member',
+  diamond: '1 Sapphire Member',
+  'blue diamond': '1 Diamond Member',
+  'black diamond': '1 Blue Diamond Member',
+  crown: '2 Black Diamond Members',
+  'double crown': '2 Crown Members',
+  'royal crown': '2 Double Crown Members',
+});
+
+const RANK_ADVANCEMENT_MEMBER_REQUIREMENT_RULE_BY_RANK_KEY = Object.freeze({
+  emerald: Object.freeze({ requiredRank: 'Ruby', requiredCount: 1 }),
+  sapphire: Object.freeze({ requiredRank: 'Emerald', requiredCount: 1 }),
+  diamond: Object.freeze({ requiredRank: 'Sapphire', requiredCount: 1 }),
+  'blue diamond': Object.freeze({ requiredRank: 'Diamond', requiredCount: 1 }),
+  'black diamond': Object.freeze({ requiredRank: 'Blue Diamond', requiredCount: 1 }),
+  crown: Object.freeze({ requiredRank: 'Black Diamond', requiredCount: 2 }),
+  'double crown': Object.freeze({ requiredRank: 'Crown', requiredCount: 2 }),
+  'royal crown': Object.freeze({ requiredRank: 'Double Crown', requiredCount: 2 }),
+});
+
+const RANK_ADVANCEMENT_NODE_BACKGROUND_BY_RANK_KEY = Object.freeze({
+  ruby: 'linear-gradient(135deg, #6A0A35 0%, #2C0820 100%)',
+  emerald: 'linear-gradient(135deg, #0D4E36 0%, #072719 100%)',
+  sapphire: 'linear-gradient(135deg, #1A3F90 0%, #0E244F 100%)',
+  diamond: 'linear-gradient(135deg, #124E68 0%, #0A2430 100%)',
+  'blue diamond': 'linear-gradient(135deg, #153D7A 0%, #0A1E45 100%)',
+  'black diamond': 'linear-gradient(135deg, #2A3448 0%, #111A2A 100%)',
+  crown: 'linear-gradient(135deg, #4A3A0C 0%, #241B05 100%)',
+  'double crown': 'linear-gradient(135deg, #4B2E08 0%, #231503 100%)',
+  'royal crown': 'linear-gradient(135deg, #3D2B70 0%, #1A1038 100%)',
+});
+
+function clearRankAdvancementFeedbackTimer() {
+  if (rankAdvancementFeedbackTimerId) {
+    window.clearTimeout(rankAdvancementFeedbackTimerId);
+    rankAdvancementFeedbackTimerId = 0;
+  }
+}
+
+function setRankAdvancementFeedback(message, options = {}) {
+  if (!(rankAdvancementFeedbackElement instanceof HTMLElement)) {
+    return;
+  }
+  const safeMessage = safeText(message);
+  const {
+    isError = false,
+    isSuccess = false,
+    persist = false,
+  } = options;
+  clearRankAdvancementFeedbackTimer();
+  rankAdvancementFeedbackElement.textContent = safeMessage;
+  rankAdvancementFeedbackElement.classList.toggle('is-error', Boolean(isError && safeMessage));
+  rankAdvancementFeedbackElement.classList.toggle('is-success', Boolean(isSuccess && safeMessage));
+  if (safeMessage && !persist) {
+    rankAdvancementFeedbackTimerId = window.setTimeout(() => {
+      if (!(rankAdvancementFeedbackElement instanceof HTMLElement)) {
+        return;
+      }
+      rankAdvancementFeedbackElement.textContent = '';
+      rankAdvancementFeedbackElement.classList.remove('is-error', 'is-success');
+      rankAdvancementFeedbackTimerId = 0;
+    }, 3400);
+  }
+}
+
+function formatRankAdvancementRewardCurrency(value) {
+  const amount = Math.max(0, safeNumber(value, 0));
+  return `${amount.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} USD`;
+}
+
+function formatRankAdvancementAcquiredSinceDate(value, options = {}) {
+  const safeValue = safeText(value);
+  let timestampMs = Date.parse(safeValue);
+  if (!Number.isFinite(timestampMs)) {
+    const periodKey = safeText(options?.periodKey);
+    const match = periodKey.match(/^(\d{4})-(\d{2})$/);
+    if (match) {
+      const year = Number.parseInt(match[1], 10);
+      const month = Number.parseInt(match[2], 10) - 1;
+      if (Number.isFinite(year) && Number.isFinite(month) && month >= 0 && month <= 11) {
+        timestampMs = Date.UTC(year, month, 1);
+      }
+    }
+  }
+  if (!Number.isFinite(timestampMs)) {
+    return '';
+  }
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date(timestampMs));
+  } catch {
+    return '';
+  }
+}
+
+function normalizeRankAdvancementRankKey(value) {
+  return normalizeCredentialValue(safeText(value).replace(/^rank-/, '').replace(/[_-]+/g, ' '));
+}
+
+function resolveRankAdvancementMemberRequirementRule(rankLabel = '') {
+  const rankKey = normalizeRankAdvancementRankKey(rankLabel);
+  return RANK_ADVANCEMENT_MEMBER_REQUIREMENT_RULE_BY_RANK_KEY[rankKey] || null;
+}
+
+function resolveRankAdvancementNodeRankLabel(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  return safeText(
+    node?.rank
+    || node?.accountRank
+    || node?.account_rank
+    || node?.profileRank
+    || node?.profile_rank
+    || '',
+  );
+}
+
+function resolveRankAdvancementDescendantRankCounts(homeNode = null) {
+  const counts = new Map();
+  const rootNodeId = safeText(
+    homeNode?.id
+    || resolvePreferredGlobalHomeNodeId()
+    || 'root',
+  ) || 'root';
+  if (!rootNodeId) {
+    return counts;
+  }
+
+  const nodeById = new Map();
+  const childrenByParent = new Map();
+  const appendChild = (parentIdInput, childIdInput) => {
+    const parentId = safeText(parentIdInput);
+    const childId = safeText(childIdInput);
+    if (!parentId || !childId || parentId === childId) {
+      return;
+    }
+    let childSet = childrenByParent.get(parentId);
+    if (!childSet) {
+      childSet = new Set();
+      childrenByParent.set(parentId, childSet);
+    }
+    childSet.add(childId);
+  };
+
+  for (let index = 0; index < state.nodes.length; index += 1) {
+    const rawNode = state.nodes[index];
+    const node = rawNode && typeof rawNode === 'object' ? rawNode : null;
+    if (!node) {
+      continue;
+    }
+    const nodeId = safeText(node.id);
+    if (!nodeId) {
+      continue;
+    }
+    nodeById.set(nodeId, node);
+    appendChild(node.parent || node.parentId || node.parent_id, nodeId);
+  }
+
+  for (let index = 0; index < state.nodes.length; index += 1) {
+    const rawNode = state.nodes[index];
+    const node = rawNode && typeof rawNode === 'object' ? rawNode : null;
+    if (!node) {
+      continue;
+    }
+    const nodeId = safeText(node.id);
+    if (!nodeId) {
+      continue;
+    }
+    appendChild(nodeId, node.leftChildId || node.left_child_id);
+    appendChild(nodeId, node.rightChildId || node.right_child_id);
+  }
+
+  const visited = new Set([rootNodeId]);
+  const queue = [rootNodeId];
+  while (queue.length > 0) {
+    const parentId = queue.shift();
+    const childIds = childrenByParent.get(parentId);
+    if (!(childIds instanceof Set) || childIds.size === 0) {
+      continue;
+    }
+    childIds.forEach((childId) => {
+      if (!childId || visited.has(childId)) {
+        return;
+      }
+      visited.add(childId);
+      queue.push(childId);
+      const childNode = nodeById.get(childId) || resolveNodeById(childId);
+      const rankKey = normalizeRankAdvancementRankKey(resolveRankAdvancementNodeRankLabel(childNode));
+      if (!rankKey) {
+        return;
+      }
+      counts.set(rankKey, Math.max(0, safeNumber(counts.get(rankKey), 0)) + 1);
+    });
+  }
+
+  return counts;
+}
+
+function resolveRankAdvancementMilestoneBackground(rankLabel = '') {
+  const key = normalizeRankAdvancementRankKey(rankLabel);
+  return RANK_ADVANCEMENT_NODE_BACKGROUND_BY_RANK_KEY[key]
+    || 'linear-gradient(135deg, #273750 0%, #111B29 100%)';
+}
+
+function resolveRankAdvancementMilestoneIconPath(item = {}) {
+  const explicitPath = safeText(item?.iconPath);
+  if (explicitPath && explicitPath.startsWith('/brand_assets/')) {
+    return explicitPath;
+  }
+  const rankLabel = safeText(item?.title || item?.requiredRank || '');
+  if (rankLabel) {
+    const iconKey = resolveAchievementIconKeyFromLabel(rankLabel);
+    if (iconKey && iconKey !== 'placeholder') {
+      return `/brand_assets/Icons/Achievements/${iconKey}.svg`;
+    }
+  }
+  return '/brand_assets/Icons/Achievements/diamond.svg';
+}
+
+function sortRankAdvancementMilestones(itemsInput = []) {
+  const safeItems = Array.isArray(itemsInput) ? itemsInput : [];
+  return safeItems
+    .filter((item) => item && typeof item === 'object')
+    .slice()
+    .sort((left, right) => {
+      const leftCycles = Math.max(0, Math.floor(safeNumber(left?.requiredCycles, 0)));
+      const rightCycles = Math.max(0, Math.floor(safeNumber(right?.requiredCycles, 0)));
+      if (leftCycles !== rightCycles) {
+        return leftCycles - rightCycles;
+      }
+      const leftDirect = Math.max(0, Math.floor(safeNumber(left?.requiredDirectSponsorsPerSide, 0)));
+      const rightDirect = Math.max(0, Math.floor(safeNumber(right?.requiredDirectSponsorsPerSide, 0)));
+      if (leftDirect !== rightDirect) {
+        return leftDirect - rightDirect;
+      }
+      return safeText(left?.title || '').localeCompare(safeText(right?.title || ''));
+    });
+}
+
+function resolveRankAdvancementSyncIntervalMs(options = {}) {
+  const {
+    forRetry = false,
+  } = options;
+  const panelVisible = Boolean(state.ui?.rankAdvancementVisible);
+  const hiddenSyncMode = document.visibilityState === 'hidden' || !panelVisible;
+  const baseIntervalMs = hiddenSyncMode
+    ? RANK_ADVANCEMENT_REMOTE_SYNC_HIDDEN_INTERVAL_MS
+    : RANK_ADVANCEMENT_REMOTE_SYNC_VISIBLE_INTERVAL_MS;
+  if (!forRetry) {
+    return baseIntervalMs;
+  }
+  return Math.min(baseIntervalMs, RANK_ADVANCEMENT_REMOTE_SYNC_RETRY_INTERVAL_MS);
+}
+
+function buildRankAdvancementRequestHeaders(baseHeaders = {}) {
+  const headers = {
+    ...baseHeaders,
+  };
+  if (state.source !== 'member') {
+    return headers;
+  }
+  const authToken = safeText(state.session?.authToken);
+  if (!authToken) {
+    return headers;
+  }
+  return {
+    ...headers,
+    Authorization: `Bearer ${authToken}`,
+  };
+}
+
+function isRankAdvancementPanelAvailable() {
+  return rankAdvancementPanelElement instanceof HTMLElement;
+}
+
+function resetRankAdvancementSnapshot() {
+  rankAdvancementSnapshot = null;
+  rankAdvancementDataVersion = 0;
+  rankAdvancementSyncPromise = null;
+  rankAdvancementSyncInFlight = false;
+  rankAdvancementLastRequestAtMs = 0;
+  rankAdvancementLastSyncedAtMs = 0;
+  rankAdvancementIdentityKey = '';
+  rankAdvancementLoading = false;
+  rankAdvancementClaimInFlight = false;
+  rankAdvancementCachedAchievementsPayload = null;
+  rankAdvancementCachedGoodLifePayload = null;
+  rankAdvancementLastRenderSignature = '';
+  rankAdvancementSelectedMilestoneId = '';
+  setRankAdvancementFeedback('', { persist: true });
+}
+
+function resolveRankAdvancementMemberRequirementLabel(rankLabel = '') {
+  const rankKey = normalizeRankAdvancementRankKey(rankLabel);
+  return RANK_ADVANCEMENT_MEMBER_REQUIREMENT_BY_RANK_KEY[rankKey] || 'No member rank requirement';
+}
+
+function resolveRankAdvancementGoodLifeFallbackReward(rankLabel = '') {
+  const rankKey = normalizeRankAdvancementRankKey(rankLabel);
+  return Math.max(0, safeNumber(RANK_ADVANCEMENT_GOOD_LIFE_MILESTONE_REWARD_BY_RANK_KEY[rankKey], 0));
+}
+
+function resolveRankAdvancementMilestonesFromPayload(achievementsPayload = null) {
+  const sourceAchievements = Array.isArray(achievementsPayload?.achievements)
+    ? achievementsPayload.achievements
+    : [];
+  const mappedRankAchievements = sourceAchievements
+    .filter((achievement) => normalizeCredentialValue(achievement?.tabId) === 'rank')
+    .map((achievement) => {
+      const title = safeText(achievement?.title || achievement?.requiredRank || 'Rank');
+      const requiredRank = safeText(achievement?.requiredRank || title || 'Rank');
+      return {
+        id: safeText(achievement?.id || `rank-${normalizeRankAdvancementRankKey(requiredRank).replace(/\s+/g, '-')}`),
+        title: title || requiredRank,
+        requiredRank,
+        requiredDirectSponsorsPerSide: Math.max(
+          0,
+          Math.floor(safeNumber(achievement?.requiredDirectSponsorsPerSide, 0)),
+        ),
+        requiredPersonalPvBv: Math.max(
+          0,
+          Math.floor(safeNumber(achievement?.requiredPersonalPvBv, 0)),
+        ),
+        requiredLegPersonalPvBv: Math.max(
+          0,
+          Math.floor(safeNumber(achievement?.requiredLegPersonalPvBv, 0)),
+        ),
+        requiredCycles: Math.max(0, Math.floor(safeNumber(achievement?.requiredCycles, 0))),
+        currentLeftDirectSponsors: Math.max(0, Math.floor(safeNumber(achievement?.currentLeftDirectSponsors, 0))),
+        currentRightDirectSponsors: Math.max(0, Math.floor(safeNumber(achievement?.currentRightDirectSponsors, 0))),
+        currentDirectSponsorsTotal: Math.max(0, Math.floor(safeNumber(achievement?.currentDirectSponsorsTotal, 0))),
+        currentPersonalPvBv: Math.max(0, Math.floor(safeNumber(achievement?.currentPersonalPvBv, 0))),
+        currentLeftQualifiedPersonalPvSponsors: Math.max(
+          0,
+          Math.floor(safeNumber(achievement?.currentLeftQualifiedPersonalPvSponsors, 0)),
+        ),
+        currentRightQualifiedPersonalPvSponsors: Math.max(
+          0,
+          Math.floor(safeNumber(achievement?.currentRightQualifiedPersonalPvSponsors, 0)),
+        ),
+        requiresActive: Boolean(achievement?.requiresActive),
+        lockReason: safeText(achievement?.lockReason),
+        rewardUsd: Math.max(0, safeNumber(achievement?.rewardUsd, 0)),
+        status: normalizeCredentialValue(achievement?.status),
+        eligible: Boolean(achievement?.eligible),
+        claimId: safeText(achievement?.claimId),
+        claimedAt: safeText(achievement?.claimedAt),
+        iconPath: resolveRankAdvancementMilestoneIconPath(achievement),
+      };
+    });
+
+  const sortedMilestones = sortRankAdvancementMilestones(mappedRankAchievements);
+  if (sortedMilestones.length > 0) {
+    return sortedMilestones;
+  }
+  return sortRankAdvancementMilestones(RANK_ADVANCEMENT_FALLBACK_MILESTONES);
+}
+
+function resolveRankAdvancementMilestoneProgressState(milestone = {}, context = {}) {
+  const requiredRankLabel = safeText(milestone?.title || milestone?.requiredRank);
+  const memberRequirementRule = resolveRankAdvancementMemberRequirementRule(requiredRankLabel);
+  const requiredMemberRankLabel = safeText(memberRequirementRule?.requiredRank);
+  const requiredMemberCount = Math.max(0, Math.floor(safeNumber(memberRequirementRule?.requiredCount, 0)));
+  const requiredMemberRankKey = normalizeRankAdvancementRankKey(requiredMemberRankLabel);
+  const descendantRankCounts = context?.descendantRankCounts instanceof Map
+    ? context.descendantRankCounts
+    : new Map();
+  const currentQualifiedMemberCount = requiredMemberRankKey
+    ? Math.max(0, Math.floor(safeNumber(descendantRankCounts.get(requiredMemberRankKey), 0)))
+    : 0;
+  const requiredCycles = Math.max(0, Math.floor(safeNumber(milestone?.requiredCycles, 0)));
+  const requiredPersonalBv = Math.max(0, Math.floor(safeNumber(milestone?.requiredPersonalPvBv, 0)));
+  const requiredDirectPerSide = Math.max(0, Math.floor(safeNumber(milestone?.requiredDirectSponsorsPerSide, 0)));
+  const requiredLegPersonalBv = Math.max(0, Math.floor(safeNumber(milestone?.requiredLegPersonalPvBv, 0)));
+  const currentCycles = Math.max(0, Math.floor(safeNumber(context?.currentCycles, 0)));
+  const currentPersonalBv = Math.max(
+    0,
+    Math.floor(safeNumber(milestone?.currentPersonalPvBv, context?.currentPersonalBv)),
+  );
+  const currentLeftDirectSponsors = Math.max(
+    0,
+    Math.floor(safeNumber(milestone?.currentLeftDirectSponsors, context?.leftDirectSponsors)),
+  );
+  const currentRightDirectSponsors = Math.max(
+    0,
+    Math.floor(safeNumber(milestone?.currentRightDirectSponsors, context?.rightDirectSponsors)),
+  );
+  const currentLeftQualifiedPersonalPvSponsors = Math.max(
+    0,
+    Math.floor(
+      safeNumber(
+        milestone?.currentLeftQualifiedPersonalPvSponsors,
+        currentLeftDirectSponsors,
+      ),
+    ),
+  );
+  const currentRightQualifiedPersonalPvSponsors = Math.max(
+    0,
+    Math.floor(
+      safeNumber(
+        milestone?.currentRightQualifiedPersonalPvSponsors,
+        currentRightDirectSponsors,
+      ),
+    ),
+  );
+  const requiresActive = Boolean(milestone?.requiresActive);
+  const accountIsActive = context?.isActive !== false;
+
+  const cycleMet = requiredCycles <= 0 || currentCycles >= requiredCycles;
+  const personalMet = requiredPersonalBv <= 0 || currentPersonalBv >= requiredPersonalBv;
+  const directMet = requiredDirectPerSide <= 0 || (
+    currentLeftDirectSponsors >= requiredDirectPerSide
+    && currentRightDirectSponsors >= requiredDirectPerSide
+  );
+  const legPersonalMet = requiredLegPersonalBv <= 0 || (
+    currentLeftQualifiedPersonalPvSponsors >= requiredDirectPerSide
+    && currentRightQualifiedPersonalPvSponsors >= requiredDirectPerSide
+  );
+  const memberMet = requiredMemberCount <= 0 || currentQualifiedMemberCount >= requiredMemberCount;
+  const activeMet = !requiresActive || accountIsActive;
+  const statusKey = normalizeCredentialValue(milestone?.status);
+  const claimedByStatus = statusKey === 'claimed' || Boolean(milestone?.claimId || milestone?.claimedAt || milestone?.claimed);
+  const metByStatus = (
+    statusKey === 'eligible'
+    || statusKey === 'claimable'
+    || statusKey === 'claimed'
+    || Boolean(milestone?.eligible)
+    || claimedByStatus
+  );
+  const metByValues = cycleMet && personalMet && directMet && legPersonalMet && memberMet && activeMet;
+  const met = metByValues || (claimedByStatus ? true : (metByStatus && memberMet));
+
+  return {
+    met,
+    cycleMet,
+    personalMet,
+    directMet,
+    legPersonalMet,
+    memberMet,
+    activeMet,
+    currentCycles,
+    currentPersonalBv,
+    currentLeftDirectSponsors,
+    currentRightDirectSponsors,
+    currentQualifiedMemberCount,
+    requiredCycles,
+    requiredPersonalBv,
+    requiredDirectPerSide,
+    requiredLegPersonalBv,
+    requiredMemberRankLabel,
+    requiredMemberCount,
+    cycleShortfall: Math.max(0, requiredCycles - currentCycles),
+    personalBvShortfall: Math.max(0, requiredPersonalBv - currentPersonalBv),
+    leftDirectShortfall: Math.max(0, requiredDirectPerSide - currentLeftDirectSponsors),
+    rightDirectShortfall: Math.max(0, requiredDirectPerSide - currentRightDirectSponsors),
+    memberShortfall: Math.max(0, requiredMemberCount - currentQualifiedMemberCount),
+  };
+}
+
+function resolveRankAdvancementProgressPercent(
+  milestonesInput = [],
+  milestoneProgressStatesInput = [],
+  currentCyclesInput = 0,
+) {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  if (milestones.length <= 1) {
+    return 0;
+  }
+  const milestoneProgressStates = Array.isArray(milestoneProgressStatesInput)
+    ? milestoneProgressStatesInput
+    : [];
+  const cycleThresholds = milestones.map((milestone) => Math.max(0, Math.floor(safeNumber(milestone?.requiredCycles, 0))));
+  const lastIndex = cycleThresholds.length - 1;
+  let highestMetIndex = -1;
+  for (let index = 0; index < milestones.length; index += 1) {
+    if (milestoneProgressStates[index]?.met) {
+      highestMetIndex = index;
+    }
+  }
+
+  if (highestMetIndex >= lastIndex) {
+    return 100;
+  }
+
+  const currentCycles = Math.max(0, Math.floor(safeNumber(currentCyclesInput, 0)));
+  const segmentStartIndex = highestMetIndex;
+  const nextIndex = Math.min(lastIndex, segmentStartIndex + 1);
+  const startThreshold = segmentStartIndex >= 0
+    ? cycleThresholds[segmentStartIndex]
+    : 0;
+  const endThreshold = Math.max(startThreshold + 1, cycleThresholds[nextIndex]);
+  const segmentRange = Math.max(1, endThreshold - startThreshold);
+  let segmentProgress = clamp((currentCycles - startThreshold) / segmentRange, 0, 1);
+  if (nextIndex < milestoneProgressStates.length && !milestoneProgressStates[nextIndex]?.met) {
+    segmentProgress = Math.min(segmentProgress, 0.92);
+  }
+  const progressNumerator = segmentStartIndex >= 0
+    ? segmentStartIndex + segmentProgress
+    : segmentProgress;
+  let progressRatio = clamp(progressNumerator / Math.max(1, lastIndex), 0, 1);
+  if (segmentStartIndex >= 0 && segmentStartIndex < lastIndex) {
+    const minimumPastThresholdRatio = clamp((segmentStartIndex + 0.08) / Math.max(1, lastIndex), 0, 1);
+    progressRatio = Math.max(progressRatio, minimumPastThresholdRatio);
+  }
+  return Math.max(0, Math.min(100, progressRatio * 100));
+}
+
+function resolveRankAdvancementEarnedMilestoneIndex(milestonesInput = [], achievementsPayload = null) {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  if (!milestones.length) {
+    return -1;
+  }
+  const explicitEarnedIds = [
+    achievementsPayload?.rankClaimedAchievementId,
+    achievementsPayload?.highestEligibleRankAchievementId,
+    achievementsPayload?.runRankAchievementId,
+    achievementsPayload?.rankRunAchievementId,
+    achievementsPayload?.highestRecordedRankAchievementId,
+  ].map((value) => safeText(value)).filter(Boolean);
+  for (let index = 0; index < explicitEarnedIds.length; index += 1) {
+    const matchedIndex = resolveRankAdvancementMilestoneIndexById(milestones, explicitEarnedIds[index]);
+    if (matchedIndex >= 0) {
+      return matchedIndex;
+    }
+  }
+
+  let statusDrivenIndex = -1;
+  for (let index = 0; index < milestones.length; index += 1) {
+    const milestone = milestones[index];
+    const statusKey = normalizeCredentialValue(milestone?.status);
+    if (
+      statusKey === 'claimed'
+      || statusKey === 'eligible'
+      || statusKey === 'claimable'
+      || Boolean(milestone?.claimId || milestone?.claimedAt || milestone?.eligible || milestone?.claimed)
+    ) {
+      statusDrivenIndex = index;
+    }
+  }
+  return statusDrivenIndex;
+}
+
+function resolveRankAdvancementSelectedMilestoneIndex(milestonesInput = [], defaultMilestoneIndex = 0) {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  if (!milestones.length) {
+    rankAdvancementSelectedMilestoneId = '';
+    return -1;
+  }
+
+  const selectedIndex = resolveRankAdvancementMilestoneIndexById(milestones, rankAdvancementSelectedMilestoneId);
+  if (selectedIndex >= 0) {
+    return selectedIndex;
+  }
+
+  const clampedDefaultIndex = clamp(
+    Math.floor(safeNumber(defaultMilestoneIndex, 0)),
+    0,
+    milestones.length - 1,
+  );
+  const fallbackMilestone = milestones[clampedDefaultIndex] || milestones[0];
+  rankAdvancementSelectedMilestoneId = safeText(fallbackMilestone?.id);
+  return resolveRankAdvancementMilestoneIndexById(milestones, rankAdvancementSelectedMilestoneId);
+}
+
+function resolveRankAdvancementMilestoneIndexById(milestonesInput = [], achievementId = '') {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  const safeAchievementId = safeText(achievementId);
+  if (!safeAchievementId) {
+    return -1;
+  }
+  for (let index = 0; index < milestones.length; index += 1) {
+    if (safeText(milestones[index]?.id) === safeAchievementId) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function resolveRankAdvancementMilestoneIndexByRankLabel(milestonesInput = [], rankLabel = '') {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  const targetRankKey = normalizeRankAdvancementRankKey(rankLabel);
+  if (!targetRankKey) {
+    return -1;
+  }
+  for (let index = 0; index < milestones.length; index += 1) {
+    const milestoneRankKey = normalizeRankAdvancementRankKey(
+      safeText(milestones[index]?.title || milestones[index]?.requiredRank),
+    );
+    if (milestoneRankKey === targetRankKey) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function resolveRankAdvancementRunMilestoneIndex(milestonesInput = [], currentCyclesInput = 0, achievementsPayload = null) {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  if (!milestones.length) {
+    return -1;
+  }
+
+  const currentCycles = Math.max(0, Math.floor(safeNumber(currentCyclesInput, 0)));
+  let reachedIndex = -1;
+  for (let index = 0; index < milestones.length; index += 1) {
+    const requiredCycles = Math.max(0, Math.floor(safeNumber(milestones[index]?.requiredCycles, 0)));
+    if (currentCycles >= requiredCycles) {
+      reachedIndex = index;
+    }
+  }
+  const clampRunIndexByCycles = (resolvedIndex) => {
+    if (resolvedIndex < 0) {
+      return resolvedIndex;
+    }
+    if (reachedIndex < 0) {
+      return resolvedIndex;
+    }
+    return Math.min(resolvedIndex, reachedIndex);
+  };
+
+  const explicitRunAchievementId = safeText(
+    achievementsPayload?.runRankAchievementId
+    || achievementsPayload?.rankRunAchievementId
+    || achievementsPayload?.highestEligibleRankAchievementId
+    || achievementsPayload?.rankClaimedAchievementId,
+  );
+  const explicitRunIndex = resolveRankAdvancementMilestoneIndexById(milestones, explicitRunAchievementId);
+  if (explicitRunIndex >= 0) {
+    return clampRunIndexByCycles(explicitRunIndex);
+  }
+
+  let eligibleIndex = -1;
+  for (let index = 0; index < milestones.length; index += 1) {
+    const statusKey = normalizeCredentialValue(milestones[index]?.status);
+    if (
+      statusKey === 'eligible'
+      || statusKey === 'claimable'
+      || statusKey === 'claimed'
+      || Boolean(milestones[index]?.eligible)
+    ) {
+      eligibleIndex = index;
+    }
+  }
+  if (eligibleIndex >= 0) {
+    return clampRunIndexByCycles(eligibleIndex);
+  }
+  if (reachedIndex >= 0) {
+    return reachedIndex;
+  }
+
+  return 0;
+}
+
+function resolveRankAdvancementClaimableMilestone(milestonesInput = []) {
+  const milestones = Array.isArray(milestonesInput) ? milestonesInput : [];
+  let claimableMilestone = null;
+  for (let index = 0; index < milestones.length; index += 1) {
+    const milestone = milestones[index];
+    const statusKey = normalizeCredentialValue(milestone?.status);
+    const claimed = statusKey === 'claimed' || Boolean(milestone?.claimId || milestone?.claimedAt);
+    const eligible = statusKey === 'eligible' || statusKey === 'claimable' || Boolean(milestone?.eligible);
+    if (!claimed && eligible) {
+      claimableMilestone = milestone;
+    }
+  }
+  return claimableMilestone;
+}
+
+function buildRankAdvancementSnapshotFromPayloads(achievementsPayload = null, goodLifePayload = null, homeNode = null) {
+  const milestones = resolveRankAdvancementMilestonesFromPayload(achievementsPayload).map((milestone) => {
+    const statusKey = normalizeCredentialValue(milestone?.status);
+    const claimed = statusKey === 'claimed' || Boolean(milestone?.claimId || milestone?.claimedAt);
+    const eligible = statusKey === 'eligible' || statusKey === 'claimable' || Boolean(milestone?.eligible);
+    return {
+      ...milestone,
+      status: statusKey || (claimed ? 'claimed' : (eligible ? 'eligible' : 'locked')),
+      claimed,
+      eligible,
+      iconPath: resolveRankAdvancementMilestoneIconPath(milestone),
+    };
+  });
+
+  const accountOverviewContext = resolveAccountOverviewPanelContext();
+  const resolvedHomeNode = homeNode
+    || accountOverviewContext?.homeNode
+    || resolveNodeById(resolvePreferredGlobalHomeNodeId())
+    || resolveNodeById('root')
+    || null;
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const currentCycles = Math.max(
+    0,
+    Math.floor(
+      safeNumber(
+        achievementsPayload?.currentCycles,
+        safeNumber(
+          remoteMetrics?.totalCycles,
+          resolveAccountOverviewCycleCapMetrics(resolvedHomeNode).cappedCycles,
+        ),
+      ),
+    ),
+  );
+  const totalBv = Math.max(0, Math.floor(resolveAccountOverviewTotalOrganizationBv(resolvedHomeNode)));
+  const personalBv = Math.max(
+    0,
+    Math.floor(safeNumber(achievementsPayload?.currentPersonalPvBv, resolveAccountOverviewPersonalBv(resolvedHomeNode))),
+  );
+  const leftDirectSponsors = Math.max(0, Math.floor(safeNumber(achievementsPayload?.leftDirectSponsors, 0)));
+  const rightDirectSponsors = Math.max(0, Math.floor(safeNumber(achievementsPayload?.rightDirectSponsors, 0)));
+  const totalDirectSponsors = Math.max(
+    0,
+    Math.floor(safeNumber(achievementsPayload?.totalDirectSponsors, leftDirectSponsors + rightDirectSponsors)),
+  );
+  const descendantRankCounts = resolveRankAdvancementDescendantRankCounts(resolvedHomeNode);
+  const isActive = Boolean(achievementsPayload?.isActive);
+  const milestoneProgressStates = milestones.map((milestone) => resolveRankAdvancementMilestoneProgressState(
+    milestone,
+    {
+      currentCycles,
+      currentPersonalBv: personalBv,
+      leftDirectSponsors,
+      rightDirectSponsors,
+      descendantRankCounts,
+      isActive,
+    },
+  ));
+  let highestMetMilestoneIndex = -1;
+  for (let index = 0; index < milestoneProgressStates.length; index += 1) {
+    if (milestoneProgressStates[index]?.met) {
+      highestMetMilestoneIndex = index;
+    }
+  }
+
+  const claimedMilestoneIndex = resolveRankAdvancementMilestoneIndexById(
+    milestones,
+    safeText(achievementsPayload?.rankClaimedAchievementId),
+  );
+  const serverEarnedMilestoneIndex = resolveRankAdvancementEarnedMilestoneIndex(milestones, achievementsPayload);
+  let earnedMilestoneIndex = highestMetMilestoneIndex;
+  if (claimedMilestoneIndex >= 0) {
+    earnedMilestoneIndex = claimedMilestoneIndex;
+  } else if (serverEarnedMilestoneIndex >= 0) {
+    earnedMilestoneIndex = highestMetMilestoneIndex >= 0
+      ? Math.min(serverEarnedMilestoneIndex, highestMetMilestoneIndex)
+      : -1;
+  }
+  const earnedMilestone = earnedMilestoneIndex >= 0
+    ? (milestones[earnedMilestoneIndex] || null)
+    : null;
+  const defaultTargetMilestoneIndex = milestones.length > 0
+    ? clamp(
+      earnedMilestoneIndex >= 0
+        ? earnedMilestoneIndex + 1
+        : 0,
+      0,
+      milestones.length - 1,
+    )
+    : -1;
+  const targetMilestoneIndex = resolveRankAdvancementSelectedMilestoneIndex(milestones, defaultTargetMilestoneIndex);
+  const targetMilestone = targetMilestoneIndex >= 0
+    ? (milestones[targetMilestoneIndex] || null)
+    : null;
+  const targetProgress = targetMilestoneIndex >= 0
+    ? (milestoneProgressStates[targetMilestoneIndex] || null)
+    : null;
+  const claimableMilestone = resolveRankAdvancementClaimableMilestone(milestones);
+  const claimableMilestoneIndex = resolveRankAdvancementMilestoneIndexById(
+    milestones,
+    safeText(claimableMilestone?.id),
+  );
+  const claimableMilestoneMet = (
+    claimableMilestoneIndex >= 0
+    && claimableMilestoneIndex < milestoneProgressStates.length
+    && Boolean(milestoneProgressStates[claimableMilestoneIndex]?.met)
+  );
+  const claimedRankThisPeriod = Boolean(
+    safeText(achievementsPayload?.rankClaimedAchievementId)
+    || safeText(achievementsPayload?.rankClaimedAchievementTitle)
+    || milestones.some((milestone) => Boolean(milestone?.claimed)),
+  );
+  const canClaimRankReward = Boolean(claimableMilestone && claimableMilestoneMet && !claimedRankThisPeriod);
+  const claimAchievementId = canClaimRankReward ? safeText(claimableMilestone?.id) : '';
+  const progressPercent = resolveRankAdvancementProgressPercent(
+    milestones,
+    milestoneProgressStates,
+    currentCycles,
+  );
+
+  const hasMonthlyRankReward = Boolean(earnedMilestone);
+  const rewardMilestone = hasMonthlyRankReward ? earnedMilestone : null;
+  const runRankLabel = hasMonthlyRankReward
+    ? safeText(rewardMilestone?.title || rewardMilestone?.requiredRank || 'Unranked')
+    : 'Wait next month for details';
+  const targetRankLabel = safeText(targetMilestone?.title || targetMilestone?.requiredRank || 'Rank') || 'Rank';
+  const targetRequiredCycles = Math.max(0, Math.floor(safeNumber(targetMilestone?.requiredCycles, currentCycles)));
+  const targetRequiredPersonalBv = Math.max(
+    0,
+    Math.floor(safeNumber(targetMilestone?.requiredPersonalPvBv, 0)),
+  );
+  const targetRequiredDirectPerSide = Math.max(
+    0,
+    Math.floor(safeNumber(targetMilestone?.requiredDirectSponsorsPerSide, 0)),
+  );
+  const targetCurrentLeftDirect = Math.max(
+    0,
+    Math.floor(safeNumber(targetProgress?.currentLeftDirectSponsors, leftDirectSponsors)),
+  );
+  const targetCurrentRightDirect = Math.max(
+    0,
+    Math.floor(safeNumber(targetProgress?.currentRightDirectSponsors, rightDirectSponsors)),
+  );
+  const targetCurrentPersonalBv = Math.max(
+    0,
+    Math.floor(safeNumber(targetProgress?.currentPersonalBv, personalBv)),
+  );
+  const targetRequiresLegPersonalBv = Math.max(
+    0,
+    Math.floor(safeNumber(targetMilestone?.requiredLegPersonalPvBv, 0)),
+  );
+  const targetPersonalMet = Boolean(targetProgress?.personalMet || targetRequiredPersonalBv <= 0);
+  const targetDirectMet = Boolean(
+    targetRequiredDirectPerSide <= 0
+    || (
+      Boolean(targetProgress?.directMet)
+      && (targetRequiresLegPersonalBv <= 0 || Boolean(targetProgress?.legPersonalMet))
+    ),
+  );
+  const targetCyclesMet = Boolean(targetProgress?.cycleMet || targetRequiredCycles <= 0);
+  const targetMemberMet = Boolean(
+    safeText(targetProgress?.requiredMemberRankLabel)
+    && Math.max(0, Math.floor(safeNumber(targetProgress?.requiredMemberCount, 0))) > 0
+    && targetProgress?.memberMet,
+  );
+  const targetCyclesRemaining = Math.max(0, targetRequiredCycles - currentCycles);
+  const targetPersonalBvRemaining = Math.max(0, targetRequiredPersonalBv - targetCurrentPersonalBv);
+  const targetLeftDirectRemaining = Math.max(0, targetRequiredDirectPerSide - targetCurrentLeftDirect);
+  const targetRightDirectRemaining = Math.max(0, targetRequiredDirectPerSide - targetCurrentRightDirect);
+  const rankRunPeriod = safeText(achievementsPayload?.rankRunPeriod);
+  const targetMilestoneClaimedAt = safeText(targetMilestone?.claimedAt);
+  const targetAcquiredSinceDateLabel = formatRankAdvancementAcquiredSinceDate(targetMilestoneClaimedAt, {
+    periodKey: rankRunPeriod,
+  });
+  const targetRewardUsd = Math.max(0, safeNumber(targetMilestone?.rewardUsd, 0));
+  const targetGoodLifePreviewUsd = Math.max(0, safeNumber(
+    resolveRankAdvancementGoodLifeFallbackReward(targetRankLabel),
+    0,
+  ));
+  const showTargetGoodLifePreview = targetGoodLifePreviewUsd > 0;
+  const currentAccountRankTitle = safeText(
+    achievementsPayload?.currentRank
+    || resolvedHomeNode?.accountRank
+    || resolvedHomeNode?.rank,
+  );
+  const currentAccountRankMilestoneIndex = resolveRankAdvancementMilestoneIndexByRankLabel(
+    milestones,
+    currentAccountRankTitle,
+  );
+
+  const goodLifeRewardAmount = hasMonthlyRankReward
+    ? resolveRankAdvancementGoodLifeFallbackReward(runRankLabel)
+    : 0;
+  const showGoodLifeBonus = hasMonthlyRankReward && goodLifeRewardAmount > 0;
+  const rewardUsd = Math.max(0, safeNumber(rewardMilestone?.rewardUsd, 0));
+  const rewardIconPath = hasMonthlyRankReward
+    ? resolveRankAdvancementMilestoneIconPath(rewardMilestone || {})
+    : '/brand_assets/Icons/Achievements/ruby.svg';
+  const rankClaimedTitle = safeText(achievementsPayload?.rankClaimedAchievementTitle);
+
+  return {
+    updatedAtMs: Date.now(),
+    milestones,
+    runMilestoneIndex: earnedMilestoneIndex,
+    runMilestoneId: safeText(rewardMilestone?.id),
+    runRankTitle: runRankLabel,
+    defaultTargetMilestoneIndex: defaultTargetMilestoneIndex >= 0 ? defaultTargetMilestoneIndex : 0,
+    defaultTargetAchievementId: defaultTargetMilestoneIndex >= 0
+      ? safeText(milestones[defaultTargetMilestoneIndex]?.id)
+      : '',
+    targetMilestoneIndex,
+    targetAchievementId: safeText(targetMilestone?.id),
+    targetRankTitle: targetRankLabel,
+    targetRequiredCycles,
+    targetRequiredPersonalBv,
+    targetRequiredDirectPerSide,
+    targetCurrentPersonalBv,
+    targetCurrentLeftDirect,
+    targetCurrentRightDirect,
+    targetPersonalMet,
+    targetDirectMet,
+    targetCyclesMet,
+    targetMemberMet,
+    targetCyclesRemaining,
+    targetPersonalBvRemaining,
+    targetLeftDirectRemaining,
+    targetRightDirectRemaining,
+    targetMilestoneClaimedAt,
+    targetAcquiredSinceDateLabel,
+    targetRewardUsd,
+    targetGoodLifePreviewUsd,
+    showTargetGoodLifePreview,
+    currentAccountRankTitle,
+    currentAccountRankMilestoneIndex,
+    targetMembersRequirementLabel: resolveRankAdvancementMemberRequirementLabel(targetRankLabel),
+    currentCycles,
+    currentPersonalBv: personalBv,
+    totalBv,
+    leftDirectSponsors,
+    rightDirectSponsors,
+    totalDirectSponsors,
+    highestMetMilestoneIndex,
+    hasMonthlyRankReward,
+    rankRewardUsd: rewardUsd,
+    rewardIconPath,
+    goodLifeRewardUsd: goodLifeRewardAmount,
+    showGoodLifeBonus,
+    progressPercent: Math.max(0, Math.min(100, progressPercent)),
+    claimAchievementId,
+    claimAchievementTitle: safeText(claimableMilestone?.title || claimableMilestone?.requiredRank),
+    canClaimRankReward,
+    rankClaimed: claimedRankThisPeriod,
+    rankClaimedTitle,
+    hasGoodLifeClaimedThisPeriod: Boolean(safeText(goodLifePayload?.claimedAt)),
+    rankRunPeriod,
+    rankRunPeriodLabel: safeText(achievementsPayload?.rankRunPeriodLabel),
+    periodLabel: safeText(
+      goodLifePayload?.periodLabel
+      || achievementsPayload?.rankClaimPeriodLabel
+      || 'This Month',
+    ) || 'This Month',
+  };
+}
+
+function resolveRankAdvancementRenderSignature(snapshot = null) {
+  if (!snapshot || typeof snapshot !== 'object') {
+    return 'empty';
+  }
+  return [
+    safeText(snapshot.targetAchievementId),
+    safeText(snapshot.defaultTargetAchievementId),
+    safeText(snapshot.runMilestoneId),
+    safeText(snapshot.claimAchievementId),
+    safeText(snapshot.rankClaimedTitle),
+    safeText(snapshot.runRankTitle),
+    String(Boolean(snapshot.hasMonthlyRankReward)),
+    String(Boolean(snapshot.showGoodLifeBonus)),
+    Math.round(safeNumber(snapshot.progressPercent, 0)),
+    Math.floor(safeNumber(snapshot.currentCycles, 0)),
+    Math.floor(safeNumber(snapshot.targetCyclesRemaining, 0)),
+    Math.floor(safeNumber(snapshot.targetPersonalBvRemaining, 0)),
+    Math.floor(safeNumber(snapshot.targetLeftDirectRemaining, 0)),
+    Math.floor(safeNumber(snapshot.targetRightDirectRemaining, 0)),
+    safeText(snapshot.targetMilestoneClaimedAt),
+    safeText(snapshot.targetAcquiredSinceDateLabel),
+    Math.round(safeNumber(snapshot.targetRewardUsd, 0) * 100),
+    Math.round(safeNumber(snapshot.targetGoodLifePreviewUsd, 0) * 100),
+    String(Boolean(snapshot.showTargetGoodLifePreview)),
+    safeText(snapshot.currentAccountRankTitle),
+    Math.floor(safeNumber(snapshot.currentAccountRankMilestoneIndex, -1)),
+    String(Boolean(snapshot.targetPersonalMet)),
+    String(Boolean(snapshot.targetDirectMet)),
+    String(Boolean(snapshot.targetCyclesMet)),
+    String(Boolean(snapshot.targetMemberMet)),
+    Math.floor(safeNumber(snapshot.highestMetMilestoneIndex, -1)),
+    Math.floor(safeNumber(snapshot.totalBv, 0)),
+    Math.floor(safeNumber(snapshot.currentPersonalBv, 0)),
+    Math.round(safeNumber(snapshot.rankRewardUsd, 0) * 100),
+    Math.round(safeNumber(snapshot.goodLifeRewardUsd, 0) * 100),
+    safeText(snapshot.periodLabel),
+  ].join('::');
+}
+
+function renderRankAdvancementMilestones(snapshot = null) {
+  if (!(rankAdvancementMilestonesElement instanceof HTMLElement)) {
+    return;
+  }
+  const milestones = Array.isArray(snapshot?.milestones) ? snapshot.milestones : [];
+  rankAdvancementMilestonesElement.innerHTML = '';
+  if (!milestones.length) {
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  const safeRunIndex = Math.floor(safeNumber(snapshot?.runMilestoneIndex, -1));
+  const highestMetMilestoneIndex = Math.floor(safeNumber(snapshot?.highestMetMilestoneIndex, -1));
+  const safeCurrentRankMilestoneIndex = Math.floor(safeNumber(snapshot?.currentAccountRankMilestoneIndex, -1));
+  const targetAchievementId = safeText(snapshot?.targetAchievementId);
+  milestones.forEach((milestone, index) => {
+    const milestoneId = safeText(milestone?.id);
+    const item = document.createElement('li');
+    item.className = 'tree-next-rank-advancement-milestone';
+    if (milestoneId === targetAchievementId) {
+      item.classList.add('is-target', 'is-selected');
+    }
+    if (index === safeCurrentRankMilestoneIndex) {
+      item.classList.add('is-current-rank');
+    }
+    if (index <= highestMetMilestoneIndex || index <= safeRunIndex) {
+      item.classList.add('is-passed');
+    } else {
+      item.classList.add('is-upcoming');
+    }
+    const risePx = Math.round(index * 7);
+    item.style.setProperty('--rank-node-rise', `${risePx}px`);
+
+    const nodeElement = document.createElement('button');
+    nodeElement.type = 'button';
+    nodeElement.className = 'tree-next-rank-advancement-milestone-node tree-next-rank-advancement-milestone-button';
+    nodeElement.style.setProperty(
+      '--rank-node-bg',
+      resolveRankAdvancementMilestoneBackground(milestone?.title || milestone?.requiredRank),
+    );
+    nodeElement.setAttribute(
+      'data-selected-label',
+      safeText(milestone?.title || milestone?.requiredRank || 'Rank'),
+    );
+    nodeElement.setAttribute('aria-label', `View ${safeText(milestone?.title || 'Rank')} requirements`);
+    nodeElement.setAttribute('aria-pressed', milestoneId === targetAchievementId ? 'true' : 'false');
+    if (milestoneId) {
+      nodeElement.dataset.rankAdvancementSelectId = milestoneId;
+      nodeElement.addEventListener('click', () => {
+        if (!milestoneId || milestoneId === rankAdvancementSelectedMilestoneId) {
+          return;
+        }
+        rankAdvancementSelectedMilestoneId = milestoneId;
+        const overviewContext = resolveAccountOverviewPanelContext();
+        const homeNode = overviewContext?.homeNode
+          || resolveNodeById(resolvePreferredGlobalHomeNodeId())
+          || resolveNodeById('root');
+        rankAdvancementSnapshot = buildRankAdvancementSnapshotFromPayloads(
+          rankAdvancementCachedAchievementsPayload,
+          rankAdvancementCachedGoodLifePayload,
+          homeNode,
+        );
+        rankAdvancementLastRenderSignature = '';
+        syncRankAdvancementPanelVisuals();
+      });
+    } else {
+      nodeElement.disabled = true;
+    }
+
+    const iconElement = document.createElement('img');
+    iconElement.className = 'tree-next-rank-advancement-milestone-icon';
+    iconElement.src = resolveRankAdvancementMilestoneIconPath(milestone);
+    iconElement.alt = `${safeText(milestone?.title || 'Rank')} icon`;
+    iconElement.loading = 'lazy';
+    iconElement.decoding = 'async';
+
+    const stemElement = document.createElement('span');
+    stemElement.className = 'tree-next-rank-advancement-milestone-stem';
+
+    nodeElement.append(iconElement);
+    item.append(nodeElement, stemElement);
+    fragment.append(item);
+  });
+  rankAdvancementMilestonesElement.append(fragment);
+}
+
+function syncRankAdvancementPanelPosition(layoutInput = state.layout) {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const sideNav = layout?.sideNav || null;
+  const sideNavToggle = layout?.sideNavToggle || null;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
+  );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: 820,
+      minWidth: 320,
+      minHeight: 320,
+      halfHeightRatio: 0.84,
+      fullScreenInFullStage: true,
+    });
+    rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-left-mobile', `${mobileFrame.x}px`);
+    rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-top-mobile', `${mobileFrame.y}px`);
+    applyTreeNextMobileOverlayPanelStyle(rankAdvancementPanelElement, mobileFrame);
+    rankAdvancementPanelElement.classList.remove('is-positioning');
+    return;
+  }
+
+  clearTreeNextMobileOverlayPanelStyle(rankAdvancementPanelElement);
+
+  const panelHorizontalGap = 18;
+  const panelEdgePadding = 18;
+  const rightDockReservedWidth = 72;
+  const panelTop = sideNav
+    ? Math.round(sideNav.y)
+    : panelEdgePadding;
+  const panelHeight = sideNav
+    ? Math.round(sideNav.height)
+    : Math.max(320, viewportHeight - (panelEdgePadding * 2));
+
+  let anchorLeft = Math.round((viewportWidth - 640) / 2);
+  if (sideNavOpen && sideNav) {
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
+  } else if (sideNavToggle) {
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
+  }
+
+  const maxUsableWidth = Math.max(
+    360,
+    Math.floor(viewportWidth - anchorLeft - rightDockReservedWidth),
+  );
+  const panelWidth = clamp(Math.round(Math.min(760, maxUsableWidth)), 360, maxUsableWidth);
+  const clampedLeft = clamp(
+    anchorLeft,
+    panelEdgePadding,
+    Math.max(
+      panelEdgePadding,
+      viewportWidth - panelWidth - rightDockReservedWidth,
+    ),
+  );
+  const clampedTop = clamp(
+    panelTop,
+    panelEdgePadding,
+    Math.max(panelEdgePadding, viewportHeight - panelHeight - panelEdgePadding),
+  );
+  const clampedHeight = clamp(
+    panelHeight,
+    320,
+    Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+  );
+
+  rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-left', `${clampedLeft}px`);
+  rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-top', `${clampedTop}px`);
+  rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-width', `${panelWidth}px`);
+  rankAdvancementPanelElement.style.setProperty('--tree-next-rank-advancement-height', `${clampedHeight}px`);
+  rankAdvancementPanelElement.classList.remove('is-positioning');
+}
+
+function syncRankAdvancementPanelVisibility() {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+  const isVisible = Boolean(state.ui?.rankAdvancementVisible);
+  rankAdvancementPanelElement.classList.toggle('is-hidden', !isVisible);
+  rankAdvancementPanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+}
+
+function syncRankAdvancementPanelVisuals() {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+  if (Boolean(state.ui?.rankAdvancementVisible)) {
+    maybeRefreshRankAdvancementSnapshot({ homeNode });
+  }
+
+  const snapshot = rankAdvancementSnapshot && typeof rankAdvancementSnapshot === 'object'
+    ? rankAdvancementSnapshot
+    : buildRankAdvancementSnapshotFromPayloads(null, null, homeNode);
+  const renderSignature = resolveRankAdvancementRenderSignature(snapshot);
+  if (renderSignature === rankAdvancementLastRenderSignature) {
+    return;
+  }
+  rankAdvancementLastRenderSignature = renderSignature;
+
+  const targetIsCurrentRun = (
+    Boolean(snapshot?.hasMonthlyRankReward)
+    && safeText(snapshot?.targetAchievementId) === safeText(snapshot?.runMilestoneId)
+  );
+  const isInspectingCustomRank = (
+    safeText(snapshot?.targetAchievementId)
+    && safeText(snapshot?.targetAchievementId) !== safeText(snapshot?.defaultTargetAchievementId)
+  );
+  const targetMilestoneIndex = Math.floor(safeNumber(snapshot?.targetMilestoneIndex, -1));
+  const highestMetMilestoneIndex = Math.floor(safeNumber(snapshot?.highestMetMilestoneIndex, -1));
+  const runMilestoneIndex = Math.floor(safeNumber(snapshot?.runMilestoneIndex, -1));
+  const isInspectingPassedRank = Boolean(
+    isInspectingCustomRank
+    && targetMilestoneIndex >= 0
+    && (
+      targetMilestoneIndex <= highestMetMilestoneIndex
+      || targetMilestoneIndex <= runMilestoneIndex
+    )
+  );
+  setAccountOverviewText(
+    rankAdvancementTargetPrefixElement,
+    isInspectingCustomRank
+      ? 'Rank Preview'
+      : (targetIsCurrentRun ? 'Current highest monthly run' : 'Keep it going! Running for'),
+  );
+  setAccountOverviewText(rankAdvancementTargetRankElement, snapshot?.targetRankTitle || 'Rank');
+  if (rankAdvancementAcquiredSinceElement instanceof HTMLElement) {
+    const acquiredSinceDateLabel = safeText(snapshot?.targetAcquiredSinceDateLabel);
+    const showAcquiredSince = Boolean(isInspectingCustomRank && isInspectingPassedRank && acquiredSinceDateLabel);
+    rankAdvancementAcquiredSinceElement.hidden = !showAcquiredSince;
+    rankAdvancementAcquiredSinceElement.textContent = showAcquiredSince
+      ? `Acquired since ${acquiredSinceDateLabel}`
+      : '';
+  }
+  if (rankAdvancementRewardPreviewElement instanceof HTMLElement) {
+    rankAdvancementRewardPreviewElement.textContent = `Rank Bonus: $${formatRankAdvancementRewardCurrency(snapshot?.targetRewardUsd)}`;
+  }
+  if (rankAdvancementGoodLifePreviewElement instanceof HTMLElement) {
+    const showGoodLifePreview = Boolean(snapshot?.showTargetGoodLifePreview);
+    rankAdvancementGoodLifePreviewElement.hidden = !showGoodLifePreview;
+    rankAdvancementGoodLifePreviewElement.textContent = showGoodLifePreview
+      ? `Good life Bonus: $${formatRankAdvancementRewardCurrency(snapshot?.targetGoodLifePreviewUsd)}`
+      : '';
+  }
+  const targetRequiredPersonalBv = Math.max(0, Math.floor(safeNumber(snapshot?.targetRequiredPersonalBv, 0)));
+  const targetRequiredDirectPerSide = Math.max(0, Math.floor(safeNumber(snapshot?.targetRequiredDirectPerSide, 0)));
+  const targetRequiredCycles = Math.max(0, Math.floor(safeNumber(snapshot?.targetRequiredCycles, 0)));
+  const targetPersonalMet = Boolean(snapshot?.targetPersonalMet);
+  const targetDirectMet = Boolean(snapshot?.targetDirectMet);
+  const targetCyclesMet = Boolean(snapshot?.targetCyclesMet);
+  setAccountOverviewText(
+    rankAdvancementPersonalRequirementElement,
+    targetRequiredPersonalBv > 0
+      ? `Minimum ${formatInteger(targetRequiredPersonalBv, 0)} Personal BV`
+      : 'No personal BV requirement',
+  );
+  setAccountOverviewText(
+    rankAdvancementDirectRequirementElement,
+    targetRequiredDirectPerSide > 0
+      ? (
+        `${formatInteger(targetRequiredDirectPerSide, 0)}:${formatInteger(targetRequiredDirectPerSide, 0)} `
+        + 'Active Direct Sponsors (50 Personal BV each)'
+      )
+      : 'No direct sponsor requirement',
+  );
+  setAccountOverviewText(
+    rankAdvancementCyclesRequirementElement,
+    targetRequiredCycles > 0
+      ? `${formatInteger(snapshot?.currentCycles, 0)} / ${formatInteger(targetRequiredCycles, 0)} Cycles`
+      : `${formatInteger(snapshot?.currentCycles, 0)} Cycles`,
+  );
+  setAccountOverviewText(
+    rankAdvancementMembersRequirementElement,
+    snapshot?.targetMembersRequirementLabel || 'No member rank requirement',
+  );
+
+  if (isInspectingCustomRank && !isInspectingPassedRank) {
+    if (rankAdvancementPersonalRequirementElement instanceof HTMLElement) {
+      rankAdvancementPersonalRequirementElement.classList.remove('is-met');
+      rankAdvancementPersonalRequirementElement.classList.add('is-neutral');
+    }
+    if (rankAdvancementDirectRequirementElement instanceof HTMLElement) {
+      rankAdvancementDirectRequirementElement.classList.remove('is-met');
+      rankAdvancementDirectRequirementElement.classList.add('is-neutral');
+    }
+    if (rankAdvancementCyclesRequirementElement instanceof HTMLElement) {
+      rankAdvancementCyclesRequirementElement.classList.remove('is-met');
+      rankAdvancementCyclesRequirementElement.classList.add('is-neutral');
+    }
+    if (rankAdvancementMembersRequirementElement instanceof HTMLElement) {
+      rankAdvancementMembersRequirementElement.classList.remove('is-met');
+      rankAdvancementMembersRequirementElement.classList.add('is-neutral');
+    }
+  } else {
+    const forceMetForPassedPreview = Boolean(isInspectingPassedRank);
+    const targetMemberMet = Boolean(snapshot?.targetMemberMet);
+    const renderPersonalMet = forceMetForPassedPreview || targetPersonalMet;
+    const renderDirectMet = forceMetForPassedPreview || targetDirectMet;
+    const renderCyclesMet = forceMetForPassedPreview || targetCyclesMet;
+    const renderMembersMet = forceMetForPassedPreview || targetMemberMet;
+    if (rankAdvancementPersonalRequirementElement instanceof HTMLElement) {
+      rankAdvancementPersonalRequirementElement.classList.toggle('is-met', renderPersonalMet);
+      rankAdvancementPersonalRequirementElement.classList.toggle('is-neutral', !renderPersonalMet);
+    }
+    if (rankAdvancementDirectRequirementElement instanceof HTMLElement) {
+      rankAdvancementDirectRequirementElement.classList.toggle('is-met', renderDirectMet);
+      rankAdvancementDirectRequirementElement.classList.toggle('is-neutral', !renderDirectMet);
+    }
+    if (rankAdvancementCyclesRequirementElement instanceof HTMLElement) {
+      rankAdvancementCyclesRequirementElement.classList.toggle('is-met', renderCyclesMet);
+      rankAdvancementCyclesRequirementElement.classList.toggle('is-neutral', !renderCyclesMet);
+    }
+    if (rankAdvancementMembersRequirementElement instanceof HTMLElement) {
+      rankAdvancementMembersRequirementElement.classList.toggle('is-met', renderMembersMet);
+      rankAdvancementMembersRequirementElement.classList.toggle('is-neutral', !renderMembersMet);
+    }
+  }
+
+  if (rankAdvancementProgressFillElement instanceof HTMLElement) {
+    rankAdvancementProgressFillElement.style.width = `${Math.max(0, Math.min(100, safeNumber(snapshot?.progressPercent, 0))).toFixed(2)}%`;
+  }
+  renderRankAdvancementMilestones(snapshot);
+
+  const hasMonthlyRankReward = Boolean(snapshot?.hasMonthlyRankReward);
+  if (rankAdvancementRewardIconElement instanceof HTMLImageElement) {
+    rankAdvancementRewardIconElement.src = safeText(snapshot?.rewardIconPath || '/brand_assets/Icons/Achievements/diamond.svg');
+    rankAdvancementRewardIconElement.alt = hasMonthlyRankReward
+      ? `${safeText(snapshot?.runRankTitle || 'Rank')} reward icon`
+      : 'Rank reward pending';
+  }
+  setAccountOverviewText(
+    rankAdvancementRewardRankElement,
+    hasMonthlyRankReward ? (snapshot?.runRankTitle || 'Rank') : 'Wait next month for details',
+  );
+  setAccountOverviewText(
+    rankAdvancementRewardAmountElement,
+    hasMonthlyRankReward
+      ? `$${formatRankAdvancementRewardCurrency(snapshot?.rankRewardUsd)}`
+      : '$0.00 USD',
+  );
+  if (rankAdvancementGoodLifeCopyElement instanceof HTMLElement) {
+    rankAdvancementGoodLifeCopyElement.hidden = !Boolean(snapshot?.showGoodLifeBonus);
+  }
+  if (Boolean(snapshot?.showGoodLifeBonus)) {
+    setAccountOverviewText(rankAdvancementGoodLifeRankElement, 'Good life Bonus');
+    setAccountOverviewText(
+      rankAdvancementGoodLifeAmountElement,
+      `$${formatRankAdvancementRewardCurrency(snapshot?.goodLifeRewardUsd)}`,
+    );
+  }
+  setAccountOverviewText(rankAdvancementAnalysisTotalBvElement, formatVolumeValue(snapshot?.totalBv));
+  setAccountOverviewText(rankAdvancementAnalysisPersonalBvElement, formatVolumeValue(snapshot?.currentPersonalBv));
+  setAccountOverviewText(rankAdvancementAnalysisCyclesElement, formatInteger(snapshot?.currentCycles, 0));
+
+  if (rankAdvancementClaimButtonElement instanceof HTMLButtonElement) {
+    const hasClaimed = Boolean(snapshot?.rankClaimed);
+    const canClaim = Boolean(snapshot?.canClaimRankReward);
+    rankAdvancementClaimButtonElement.classList.toggle('is-claimed', hasClaimed);
+    if (rankAdvancementClaimInFlight) {
+      rankAdvancementClaimButtonElement.disabled = true;
+      rankAdvancementClaimButtonElement.textContent = 'Claiming...';
+    } else if (hasClaimed) {
+      rankAdvancementClaimButtonElement.disabled = true;
+      rankAdvancementClaimButtonElement.textContent = 'Claimed for this month';
+    } else if (canClaim) {
+      rankAdvancementClaimButtonElement.disabled = false;
+      rankAdvancementClaimButtonElement.textContent = 'Claim now';
+    } else if (!hasMonthlyRankReward) {
+      rankAdvancementClaimButtonElement.disabled = true;
+      rankAdvancementClaimButtonElement.textContent = 'Wait next month for details';
+    } else {
+      rankAdvancementClaimButtonElement.disabled = true;
+      rankAdvancementClaimButtonElement.textContent = 'Claim at the end of the month';
+    }
+  }
+}
+
+async function fetchRankAdvancementEndpoint(endpoint, options = {}) {
+  const {
+    method = 'GET',
+    headers = {},
+    body,
+  } = options;
+  try {
+    const response = await fetch(endpoint, {
+      method,
+      cache: 'no-store',
+      credentials: 'same-origin',
+      headers,
+      ...(typeof body === 'undefined' ? {} : { body }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    return {
+      ok: response.ok,
+      status: response.status,
+      payload: payload && typeof payload === 'object' ? payload : {},
+    };
+  } catch {
+    return {
+      ok: false,
+      status: 0,
+      payload: {},
+    };
+  }
+}
+
+async function refreshRankAdvancementSnapshot(options = {}) {
+  if (!isRankAdvancementPanelAvailable()) {
+    return null;
+  }
+  if (rankAdvancementSyncInFlight && rankAdvancementSyncPromise) {
+    return rankAdvancementSyncPromise;
+  }
+
+  const force = options?.force === true;
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = options?.homeNode
+    || overviewContext?.homeNode
+    || resolveNodeById(resolvePreferredGlobalHomeNodeId())
+    || resolveNodeById('root')
+    || null;
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode, {
+    preferHomeNode: true,
+    allowAnonymous: state.source !== 'member',
+  });
+  const hasIdentity = Boolean(
+    safeText(identityPayload?.userId)
+    || safeText(identityPayload?.username)
+    || safeText(identityPayload?.email),
+  );
+  if (state.source === 'member' && !hasIdentity) {
+    rankAdvancementSnapshot = buildRankAdvancementSnapshotFromPayloads(null, null, homeNode);
+    rankAdvancementDataVersion += 1;
+    rankAdvancementLastRenderSignature = '';
+    syncRankAdvancementPanelVisuals();
+    return rankAdvancementSnapshot;
+  }
+
+  const identityKey = resolveAccountOverviewIdentityKey(identityPayload);
+  const identityChanged = identityKey !== rankAdvancementIdentityKey;
+  const nowMs = Date.now();
+  const hasSuccessfulSync = rankAdvancementLastSyncedAtMs > 0;
+  const minimumIntervalMs = hasSuccessfulSync
+    ? resolveRankAdvancementSyncIntervalMs()
+    : resolveRankAdvancementSyncIntervalMs({ forRetry: true });
+  if (
+    !force
+    && !identityChanged
+    && rankAdvancementLastRequestAtMs > 0
+    && (nowMs - rankAdvancementLastRequestAtMs) < minimumIntervalMs
+  ) {
+    return rankAdvancementSnapshot;
+  }
+
+  rankAdvancementIdentityKey = identityKey;
+  rankAdvancementLastRequestAtMs = nowMs;
+  rankAdvancementSyncInFlight = true;
+  rankAdvancementLoading = true;
+  syncRankAdvancementPanelVisuals();
+  rankAdvancementSyncPromise = (async () => {
+    const requestHeaders = buildRankAdvancementRequestHeaders();
+    const [achievementsResponse, goodLifeResponse] = await Promise.all([
+      fetchRankAdvancementEndpoint(MEMBER_ACHIEVEMENTS_API, {
+        method: 'GET',
+        headers: requestHeaders,
+      }),
+      fetchRankAdvancementEndpoint(MEMBER_GOOD_LIFE_MONTHLY_API, {
+        method: 'GET',
+        headers: requestHeaders,
+      }),
+    ]);
+
+    if (achievementsResponse.ok && achievementsResponse.payload && typeof achievementsResponse.payload === 'object') {
+      rankAdvancementCachedAchievementsPayload = achievementsResponse.payload;
+    }
+    if (goodLifeResponse.ok && goodLifeResponse.payload && typeof goodLifeResponse.payload === 'object') {
+      rankAdvancementCachedGoodLifePayload = goodLifeResponse.payload;
+    }
+
+    const nextSnapshot = buildRankAdvancementSnapshotFromPayloads(
+      rankAdvancementCachedAchievementsPayload,
+      rankAdvancementCachedGoodLifePayload,
+      homeNode,
+    );
+    rankAdvancementSnapshot = nextSnapshot;
+    rankAdvancementDataVersion += 1;
+    rankAdvancementLastRenderSignature = '';
+    if (achievementsResponse.ok || goodLifeResponse.ok) {
+      rankAdvancementLastSyncedAtMs = Date.now();
+    }
+    return rankAdvancementSnapshot;
+  })().catch((error) => {
+    console.warn('[TreeNext] Rank advancement sync failed:', error);
+    if (!rankAdvancementSnapshot) {
+      rankAdvancementSnapshot = buildRankAdvancementSnapshotFromPayloads(null, null, homeNode);
+      rankAdvancementDataVersion += 1;
+      rankAdvancementLastRenderSignature = '';
+    }
+    return rankAdvancementSnapshot;
+  }).finally(() => {
+    rankAdvancementSyncPromise = null;
+    rankAdvancementSyncInFlight = false;
+    rankAdvancementLoading = false;
+    syncRankAdvancementPanelVisuals();
+  });
+
+  return rankAdvancementSyncPromise;
+}
+
+function maybeRefreshRankAdvancementSnapshot(options = {}) {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+  if (!Boolean(state.ui?.rankAdvancementVisible) && options?.force !== true) {
+    return;
+  }
+  void refreshRankAdvancementSnapshot(options);
+}
+
+async function claimRankAdvancementMonthlyReward() {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+  if (rankAdvancementClaimInFlight || rankAdvancementSyncInFlight) {
+    return;
+  }
+  const snapshot = rankAdvancementSnapshot && typeof rankAdvancementSnapshot === 'object'
+    ? rankAdvancementSnapshot
+    : buildRankAdvancementSnapshotFromPayloads();
+  const claimAchievementId = safeText(snapshot?.claimAchievementId);
+  if (!claimAchievementId) {
+    setRankAdvancementFeedback('No rank reward is claimable yet for this month.', { isError: true });
+    return;
+  }
+  if (state.source !== 'member') {
+    setRankAdvancementFeedback('Rank reward claims are available only for member sessions.', { isError: true });
+    return;
+  }
+  const authToken = safeText(state.session?.authToken);
+  if (!authToken) {
+    setRankAdvancementFeedback('Sign in again before claiming rank rewards.', { isError: true });
+    return;
+  }
+
+  rankAdvancementClaimInFlight = true;
+  rankAdvancementLastRenderSignature = '';
+  setRankAdvancementFeedback('Claiming monthly rank reward...', { persist: true });
+  syncRankAdvancementPanelVisuals();
+
+  try {
+    const claimResponse = await fetchRankAdvancementEndpoint(
+      `${MEMBER_ACHIEVEMENTS_API}/${encodeURIComponent(claimAchievementId)}/claim`,
+      {
+        method: 'POST',
+        headers: buildRankAdvancementRequestHeaders(),
+      },
+    );
+    if (!claimResponse.ok) {
+      const errorMessage = safeText(claimResponse.payload?.error)
+        || `Unable to claim rank reward (${claimResponse.status}).`;
+      throw new Error(errorMessage);
+    }
+
+    const goodLifeResponse = await fetchRankAdvancementEndpoint(MEMBER_GOOD_LIFE_MONTHLY_API, {
+      method: 'GET',
+      headers: buildRankAdvancementRequestHeaders(),
+    });
+    if (claimResponse.payload && typeof claimResponse.payload === 'object') {
+      rankAdvancementCachedAchievementsPayload = claimResponse.payload;
+    }
+    if (goodLifeResponse.ok && goodLifeResponse.payload && typeof goodLifeResponse.payload === 'object') {
+      rankAdvancementCachedGoodLifePayload = goodLifeResponse.payload;
+    }
+    const overviewContext = resolveAccountOverviewPanelContext();
+    const homeNode = overviewContext?.homeNode || resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+    rankAdvancementSnapshot = buildRankAdvancementSnapshotFromPayloads(
+      rankAdvancementCachedAchievementsPayload,
+      rankAdvancementCachedGoodLifePayload,
+      homeNode,
+    );
+    rankAdvancementDataVersion += 1;
+    rankAdvancementLastRenderSignature = '';
+    rankAdvancementLastSyncedAtMs = Date.now();
+    const claimedLabel = safeText(rankAdvancementSnapshot?.rankClaimedTitle || snapshot?.claimAchievementTitle || 'Rank reward');
+    setRankAdvancementFeedback(`${claimedLabel} claimed successfully.`, { isSuccess: true });
+  } catch (error) {
+    const message = error instanceof Error && error.message
+      ? error.message
+      : 'Unable to claim monthly rank reward.';
+    setRankAdvancementFeedback(message, { isError: true, persist: true });
+  } finally {
+    rankAdvancementClaimInFlight = false;
+    rankAdvancementLastRenderSignature = '';
+    syncRankAdvancementPanelVisuals();
+  }
+}
+
+function setRankAdvancementPanelVisible(isVisible) {
+  const wasVisible = Boolean(state.ui.rankAdvancementVisible);
+  const nextVisible = Boolean(isVisible);
+  state.ui.rankAdvancementVisible = nextVisible;
+  if (nextVisible) {
+    state.ui.accountOverviewVisible = false;
+    state.ui.infinityBuilderVisible = false;
+    state.ui.preferredAccountsVisible = false;
+    state.ui.myStoreVisible = false;
+    syncAccountOverviewPanelVisibility();
+    syncInfinityBuilderPanelVisibility();
+    syncPreferredAccountsPanelVisibility();
+    syncMyStorePanelVisibility();
+    rankAdvancementLastRenderSignature = '';
+    rankAdvancementSelectedMilestoneId = '';
+    setRankAdvancementFeedback('');
+    const overviewContext = resolveAccountOverviewPanelContext();
+    const homeNode = overviewContext?.homeNode || resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+    void refreshRankAdvancementSnapshot({ force: true, homeNode });
+  }
+  syncRankAdvancementPanelVisibility();
+  if (wasVisible && !nextVisible) {
+    restoreTreeNextMobileCenterPanelHalfStage({ animate: true });
+  }
+}
+
+function initRankAdvancementPanel() {
+  if (!isRankAdvancementPanelAvailable()) {
+    return;
+  }
+  syncRankAdvancementPanelPosition();
+  syncRankAdvancementPanelVisuals();
+  syncRankAdvancementPanelVisibility();
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+  void refreshRankAdvancementSnapshot({ force: true, homeNode });
+  setRankAdvancementFeedback('');
+
+  if (rankAdvancementCloseButtonElement instanceof HTMLButtonElement) {
+    rankAdvancementCloseButtonElement.addEventListener('click', () => {
+      setRankAdvancementPanelVisible(false);
+    });
+  }
+  if (rankAdvancementClaimButtonElement instanceof HTMLButtonElement) {
+    rankAdvancementClaimButtonElement.addEventListener('click', () => {
+      void claimRankAdvancementMonthlyReward();
+    });
+  }
+}
+
+function isPreferredAccountsPanelAvailable() {
+  return preferredAccountsPanelElement instanceof HTMLElement;
+}
+
+function resolvePreferredAccountsSyncIntervalMs(options = {}) {
+  if (options?.forRetry) {
+    return ACCOUNT_OVERVIEW_REMOTE_SYNC_RETRY_INTERVAL_MS;
+  }
+  return document.visibilityState === 'hidden'
+    ? TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS
+    : TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
+}
+
+function normalizePreferredPlacementOptionValue(value, fallbackValue = PLACEMENT_OPTION_LEFT) {
+  const normalized = normalizeCredentialValue(value);
+  if (PREFERRED_ACCOUNTS_PLACEMENT_OPTIONS.includes(normalized)) {
+    return normalized;
+  }
+  if (SPILLOVER_PLACEMENT_KEY_SET.has(normalized)) {
+    return RIGHT_PLACEMENT_KEY_SET.has(normalized)
+      ? PLACEMENT_OPTION_SPILLOVER_RIGHT
+      : PLACEMENT_OPTION_SPILLOVER_LEFT;
+  }
+  if (EXTREME_PLACEMENT_KEY_SET.has(normalized)) {
+    return RIGHT_PLACEMENT_KEY_SET.has(normalized)
+      ? PLACEMENT_OPTION_EXTREME_RIGHT
+      : PLACEMENT_OPTION_EXTREME_LEFT;
+  }
+  if (normalized === 'right') {
+    return PLACEMENT_OPTION_RIGHT;
+  }
+  return PREFERRED_ACCOUNTS_PLACEMENT_OPTIONS.includes(fallbackValue)
+    ? fallbackValue
+    : PLACEMENT_OPTION_LEFT;
+}
+
+function resolvePreferredPlacementOptionFromMember(member = {}) {
+  const placementLeg = normalizeCredentialValue(member?.placementLeg);
+  if (placementLeg === PLACEMENT_OPTION_EXTREME_RIGHT) {
+    return PLACEMENT_OPTION_EXTREME_RIGHT;
+  }
+  if (placementLeg === PLACEMENT_OPTION_EXTREME_LEFT) {
+    return PLACEMENT_OPTION_EXTREME_LEFT;
+  }
+  if (SPILLOVER_PLACEMENT_KEY_SET.has(placementLeg)) {
+    const spilloverSide = normalizeCredentialValue(member?.spilloverPlacementSide);
+    return spilloverSide === 'right'
+      ? PLACEMENT_OPTION_SPILLOVER_RIGHT
+      : PLACEMENT_OPTION_SPILLOVER_LEFT;
+  }
+  return placementLeg === 'right'
+    ? PLACEMENT_OPTION_RIGHT
+    : PLACEMENT_OPTION_LEFT;
+}
+
+function resolvePreferredPlacementPayloadFromOption(placementOption) {
+  const normalizedOption = normalizePreferredPlacementOptionValue(placementOption);
+  if (normalizedOption === PLACEMENT_OPTION_RIGHT) {
+    return {
+      placementLeg: 'right',
+      spilloverPlacementSide: '',
+    };
+  }
+  if (normalizedOption === PLACEMENT_OPTION_EXTREME_LEFT) {
+    return {
+      placementLeg: PLACEMENT_OPTION_EXTREME_LEFT,
+      spilloverPlacementSide: '',
+    };
+  }
+  if (normalizedOption === PLACEMENT_OPTION_EXTREME_RIGHT) {
+    return {
+      placementLeg: PLACEMENT_OPTION_EXTREME_RIGHT,
+      spilloverPlacementSide: '',
+    };
+  }
+  if (normalizedOption === PLACEMENT_OPTION_SPILLOVER_RIGHT) {
+    return {
+      placementLeg: 'spillover',
+      spilloverPlacementSide: 'right',
+    };
+  }
+  if (normalizedOption === PLACEMENT_OPTION_SPILLOVER_LEFT) {
+    return {
+      placementLeg: 'spillover',
+      spilloverPlacementSide: 'left',
+    };
+  }
+  return {
+    placementLeg: 'left',
+    spilloverPlacementSide: '',
+  };
+}
+
+function formatPreferredAccountsDate(value, fallback = '--') {
+  const parsedMs = Date.parse(safeText(value));
+  if (!Number.isFinite(parsedMs)) {
+    return fallback;
+  }
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+    }).format(new Date(parsedMs));
+  } catch {
+    return fallback;
+  }
+}
+
+function resolvePreferredAccountsOriginLabel(member = {}) {
+  if (Boolean(member?.isAdminPlacement)) {
+    return 'System Transfer';
+  }
+  return 'Direct Link';
+}
+
+function collectPreferredAccountsMemberIdentityKeys(member = {}) {
+  return new Set([
+    normalizeCredentialValue(member?.userId),
+    normalizeCredentialValue(member?.id),
+    normalizeCredentialValue(member?.memberUsername || member?.username),
+    normalizeCredentialValue(member?.email),
+  ].filter(Boolean));
+}
+
+function collectPreferredAccountsInvoiceIdentityKeys(invoice = {}) {
+  return [
+    normalizeCredentialValue(invoice?.buyerUserId),
+    normalizeCredentialValue(invoice?.buyerUsername),
+    normalizeCredentialValue(invoice?.buyerEmail),
+  ].filter(Boolean);
+}
+
+function doesInvoiceMatchPreferredAccountsMember(invoice = {}, member = {}) {
+  const memberIdentityKeys = collectPreferredAccountsMemberIdentityKeys(member);
+  if (memberIdentityKeys.size === 0) {
+    return false;
+  }
+  const invoiceIdentityKeys = collectPreferredAccountsInvoiceIdentityKeys(invoice);
+  return invoiceIdentityKeys.some((identityKey) => memberIdentityKeys.has(identityKey));
+}
+
+function resolvePreferredAccountsOwnerUsernameKey() {
+  if (state.source === 'admin') {
+    return '';
+  }
+  const homeNode = resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+  const candidates = [
+    homeNode?.username,
+    homeNode?.memberCode,
+    state.session?.username,
+    state.session?.memberUsername,
+    state.session?.member_username,
+  ];
+  for (const candidate of candidates) {
+    const resolved = normalizeCredentialValue(safeText(candidate).replace(/^@+/, ''));
+    if (resolved && resolved !== normalizeCredentialValue(ADMIN_ROOT_USERNAME)) {
+      return resolved;
+    }
+  }
+  return '';
+}
+
+function isPreferredAccountsMemberCandidate(member = {}) {
+  const packageKey = normalizeCredentialValue(member?.enrollmentPackage);
+  if (packageKey === FREE_ACCOUNT_PACKAGE_KEY) {
+    return true;
+  }
+  const rankKey = normalizeCredentialValue(member?.accountRank || member?.rank);
+  return FREE_ACCOUNT_RANK_KEY_SET.has(rankKey);
+}
+
+function resolvePreferredAccountsDisplayName(member = {}) {
+  return safeText(
+    member?.fullName
+    || member?.name
+    || member?.memberUsername
+    || member?.username
+    || member?.email
+    || 'Preferred Customer',
+  ) || 'Preferred Customer';
+}
+
+function buildPreferredAccountsRowsFromData(membersInput = [], invoicesInput = []) {
+  const safeMembers = Array.isArray(membersInput) ? membersInput : [];
+  const safeInvoices = Array.isArray(invoicesInput) ? invoicesInput : [];
+  const ownerUsernameKey = resolvePreferredAccountsOwnerUsernameKey();
+
+  return safeMembers
+    .filter((member) => {
+      if (!member || typeof member !== 'object') {
+        return false;
+      }
+      if (!isPreferredAccountsMemberCandidate(member)) {
+        return false;
+      }
+      if (!ownerUsernameKey) {
+        return true;
+      }
+      const sponsorUsernameKey = normalizeCredentialValue(
+        safeText(member?.sponsorUsername || member?.sponsor_username).replace(/^@+/, ''),
+      );
+      if (!sponsorUsernameKey) {
+        return false;
+      }
+      return sponsorUsernameKey === ownerUsernameKey;
+    })
+    .map((member) => {
+      const memberId = safeText(
+        member?.id
+        || member?.userId
+        || member?.memberUsername
+        || member?.username
+        || member?.email,
+      );
+      if (!memberId) {
+        return null;
+      }
+
+      const matchedInvoices = safeInvoices.filter((invoice) => doesInvoiceMatchPreferredAccountsMember(invoice, member));
+      const totals = matchedInvoices.reduce((accumulator, invoice) => {
+        accumulator.totalSpend += Math.max(0, safeNumber(invoice?.amount, 0));
+        accumulator.totalBv += Math.max(0, Math.floor(safeNumber(invoice?.bp, 0)));
+        const invoiceCreatedAtMs = Date.parse(safeText(invoice?.createdAt));
+        if (Number.isFinite(invoiceCreatedAtMs) && invoiceCreatedAtMs > accumulator.lastPurchaseAtMs) {
+          accumulator.lastPurchaseAtMs = invoiceCreatedAtMs;
+          accumulator.lastPurchaseAt = safeText(invoice?.createdAt);
+        }
+        return accumulator;
+      }, {
+        totalSpend: 0,
+        totalBv: 0,
+        lastPurchaseAtMs: 0,
+        lastPurchaseAt: '',
+      });
+
+      const createdAt = safeText(member?.createdAt);
+      const createdAtMs = Date.parse(createdAt);
+      const avatarSeed = safeText(
+        member?.id
+        || member?.userId
+        || member?.memberUsername
+        || member?.username
+        || member?.email
+        || memberId,
+      );
+      const avatarPalette = resolveNodeAvatarPalette(`preferred-accounts:${avatarSeed}`, {
+        node: member,
+        variant: 'ocean',
+      });
+
+      return {
+        memberId,
+        member,
+        displayName: resolvePreferredAccountsDisplayName(member),
+        totalSpend: Math.round((totals.totalSpend + Number.EPSILON) * 100) / 100,
+        totalBv: Math.max(0, Math.floor(totals.totalBv)),
+        preferredSince: createdAt,
+        originLabel: resolvePreferredAccountsOriginLabel(member),
+        placementOption: resolvePreferredPlacementOptionFromMember(member),
+        avatarPalette,
+        avatarSeed,
+        createdAtMs: Number.isFinite(createdAtMs) ? createdAtMs : 0,
+        lastPurchaseAt: totals.lastPurchaseAt,
+        lastPurchaseAtMs: totals.lastPurchaseAtMs,
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) => {
+      if (right.lastPurchaseAtMs !== left.lastPurchaseAtMs) {
+        return right.lastPurchaseAtMs - left.lastPurchaseAtMs;
+      }
+      return right.createdAtMs - left.createdAtMs;
+    });
+}
+
+function resolvePreferredAccountsRowsSignature(rowsInput = []) {
+  const rows = Array.isArray(rowsInput) ? rowsInput : [];
+  return rows.map((row) => [
+    safeText(row?.memberId),
+    safeText(row?.displayName),
+    Number.isFinite(Number(row?.totalSpend)) ? Number(row.totalSpend).toFixed(2) : '0.00',
+    formatInteger(row?.totalBv, 0),
+    safeText(row?.preferredSince),
+    safeText(row?.originLabel),
+    safeText(row?.placementOption),
+    safeText(row?.lastPurchaseAt),
+  ].join('|')).join('~');
+}
+
+async function fetchPreferredAccountsStoreInvoices() {
+  const response = await fetch(STORE_INVOICES_API, {
+    method: 'GET',
+    cache: 'no-store',
+    credentials: 'same-origin',
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const errorMessage = safeText(payload?.error) || `Unable to load store invoices (${response.status}).`;
+    throw new Error(errorMessage);
+  }
+  return Array.isArray(payload?.invoices) ? payload.invoices : [];
+}
+
+function resolvePreferredAccountsSelectedRow() {
+  return preferredAccountsRows.find((row) => row.memberId === preferredAccountsSelectedMemberId) || null;
+}
+
+function clearPreferredAccountsFeedbackTimer() {
+  const timerId = Math.floor(safeNumber(preferredAccountsFeedbackTimerId, 0));
+  if (timerId > 0) {
+    window.clearTimeout(timerId);
+  }
+  preferredAccountsFeedbackTimerId = 0;
+}
+
+function setPreferredAccountsFeedback(message = '', options = {}) {
+  if (!(preferredAccountsFeedbackElement instanceof HTMLElement)) {
+    return;
+  }
+
+  clearPreferredAccountsFeedbackTimer();
+  const safeMessage = safeText(message);
+  preferredAccountsFeedbackElement.textContent = safeMessage;
+  preferredAccountsFeedbackElement.classList.remove('is-visible', 'is-error', 'is-success');
+
+  if (!safeMessage) {
+    return;
+  }
+
+  if (options?.isError) {
+    preferredAccountsFeedbackElement.classList.add('is-error');
+  } else if (options?.isSuccess) {
+    preferredAccountsFeedbackElement.classList.add('is-success');
+  }
+  preferredAccountsFeedbackElement.classList.add('is-visible');
+  if (options?.persist !== true) {
+    preferredAccountsFeedbackTimerId = window.setTimeout(() => {
+      preferredAccountsFeedbackTimerId = 0;
+      preferredAccountsFeedbackElement.classList.remove('is-visible', 'is-error', 'is-success');
+      preferredAccountsFeedbackElement.textContent = '';
+    }, 4200);
+  }
+}
+
+function syncPreferredAccountsPanelPosition(layoutInput = state.layout) {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return;
+  }
+
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const sideNav = layout?.sideNav || null;
+  const sideNavToggle = layout?.sideNavToggle || null;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
+  );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: 820,
+      minWidth: 320,
+      minHeight: 320,
+      halfHeightRatio: 0.84,
+      fullScreenInFullStage: true,
+    });
+    preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-left-mobile', `${mobileFrame.x}px`);
+    preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-top-mobile', `${mobileFrame.y}px`);
+    applyTreeNextMobileOverlayPanelStyle(preferredAccountsPanelElement, mobileFrame);
+    preferredAccountsPanelElement.classList.remove('is-positioning');
+    return;
+  }
+
+  clearTreeNextMobileOverlayPanelStyle(preferredAccountsPanelElement);
+
+  const panelHorizontalGap = 18;
+  const panelEdgePadding = 18;
+  const rightDockReservedWidth = 72;
+  const panelTop = sideNav
+    ? Math.round(sideNav.y)
+    : panelEdgePadding;
+  const panelHeight = sideNav
+    ? Math.round(sideNav.height)
+    : Math.max(320, viewportHeight - (panelEdgePadding * 2));
+
+  let anchorLeft = Math.round((viewportWidth - 640) / 2);
+  if (sideNavOpen && sideNav) {
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
+  } else if (sideNavToggle) {
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
+  }
+
+  const maxUsableWidth = Math.max(
+    360,
+    Math.floor(viewportWidth - anchorLeft - rightDockReservedWidth),
+  );
+  const panelWidth = clamp(Math.round(Math.min(760, maxUsableWidth)), 360, maxUsableWidth);
+
+  const clampedLeft = clamp(
+    anchorLeft,
+    panelEdgePadding,
+    Math.max(
+      panelEdgePadding,
+      viewportWidth - panelWidth - rightDockReservedWidth,
+    ),
+  );
+  const clampedTop = clamp(
+    panelTop,
+    panelEdgePadding,
+    Math.max(panelEdgePadding, viewportHeight - panelHeight - panelEdgePadding),
+  );
+  const clampedHeight = clamp(
+    panelHeight,
+    320,
+    Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+  );
+
+  preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-left', `${clampedLeft}px`);
+  preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-top', `${clampedTop}px`);
+  preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-width', `${panelWidth}px`);
+  preferredAccountsPanelElement.style.setProperty('--tree-next-preferred-accounts-height', `${clampedHeight}px`);
+  preferredAccountsPanelElement.classList.remove('is-positioning');
+}
+
+function syncPreferredAccountsPanelVisuals() {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return;
+  }
+
+  if (state.ui?.preferredAccountsVisible) {
+    maybeRefreshPreferredAccountsSnapshot();
+  }
+
+  const selectedRow = resolvePreferredAccountsSelectedRow();
+  const hasSelection = Boolean(selectedRow);
+  const rowsSignature = preferredAccountsRows.map((row) => [
+    row.memberId,
+    row.displayName,
+    row.totalSpend,
+    row.totalBv,
+    row.preferredSince,
+    row.originLabel,
+    row.placementOption,
+    row.lastPurchaseAt,
+  ].join('|')).join('~');
+  const renderSignature = [
+    preferredAccountsDataVersion,
+    preferredAccountsSelectedMemberId,
+    rowsSignature,
+    state.ui?.preferredAccountsSaving ? '1' : '0',
+  ].join('::');
+  if (renderSignature === preferredAccountsLastRenderSignature) {
+    return;
+  }
+  preferredAccountsLastRenderSignature = renderSignature;
+
+  if (preferredAccountsNameElement instanceof HTMLElement) {
+    preferredAccountsNameElement.textContent = hasSelection
+      ? selectedRow.displayName
+      : 'No preferred customer selected';
+  }
+  if (preferredAccountsTotalSpendElement instanceof HTMLElement) {
+    preferredAccountsTotalSpendElement.textContent = hasSelection
+      ? formatEnrollCurrency(selectedRow.totalSpend)
+      : formatEnrollCurrency(0);
+  }
+  if (preferredAccountsTotalBvElement instanceof HTMLElement) {
+    preferredAccountsTotalBvElement.textContent = hasSelection
+      ? `${formatInteger(selectedRow.totalBv)} BV`
+      : '0 BV';
+  }
+  if (preferredAccountsSinceElement instanceof HTMLElement) {
+    preferredAccountsSinceElement.textContent = hasSelection
+      ? formatPreferredAccountsDate(selectedRow.preferredSince)
+      : '--';
+  }
+  if (preferredAccountsOriginElement instanceof HTMLElement) {
+    preferredAccountsOriginElement.textContent = hasSelection
+      ? selectedRow.originLabel
+      : '--';
+  }
+  if (preferredAccountsAvatarElement instanceof HTMLElement) {
+    if (hasSelection) {
+      preferredAccountsAvatarElement.style.backgroundImage = resolveCssGradientFromPalette(selectedRow.avatarPalette);
+    } else {
+      preferredAccountsAvatarElement.style.backgroundImage = resolveCssGradientFromPalette(
+        resolveNodeAvatarPalette('preferred-accounts:empty', { variant: 'neutral' }),
+      );
+    }
+  }
+  if (preferredAccountsAvatarInitialsElement instanceof HTMLElement) {
+    preferredAccountsAvatarInitialsElement.textContent = hasSelection
+      ? resolveInitials(selectedRow.displayName)
+      : 'PA';
+  }
+
+  if (preferredAccountsPlacementPlanInput instanceof HTMLSelectElement) {
+    preferredAccountsPlacementPlanInput.disabled = !hasSelection || Boolean(state.ui?.preferredAccountsSaving);
+    preferredAccountsPlacementPlanInput.value = hasSelection
+      ? normalizePreferredPlacementOptionValue(selectedRow.placementOption)
+      : PLACEMENT_OPTION_LEFT;
+  }
+
+  if (preferredAccountsSaveButtonElement instanceof HTMLButtonElement) {
+    const isSaving = Boolean(state.ui?.preferredAccountsSaving);
+    preferredAccountsSaveButtonElement.disabled = !hasSelection || isSaving;
+    preferredAccountsSaveButtonElement.classList.toggle('is-loading', isSaving);
+    preferredAccountsSaveButtonElement.setAttribute('aria-busy', isSaving ? 'true' : 'false');
+    preferredAccountsSaveButtonElement.textContent = isSaving ? 'Saving Plan' : 'Save Profile Plan';
+  }
+
+  if (preferredAccountsEmptyElement instanceof HTMLElement) {
+    preferredAccountsEmptyElement.style.display = preferredAccountsRows.length > 0 ? 'none' : '';
+  }
+
+  if (preferredAccountsListElement instanceof HTMLElement) {
+    preferredAccountsListElement.innerHTML = '';
+    const rowsFragment = document.createDocumentFragment();
+    for (const row of preferredAccountsRows) {
+      const rowButton = document.createElement('button');
+      rowButton.type = 'button';
+      rowButton.className = `tree-next-preferred-accounts-list-item${row.memberId === preferredAccountsSelectedMemberId ? ' is-active' : ''}`;
+      rowButton.dataset.preferredAccountsMemberId = row.memberId;
+
+      const rowContent = document.createElement('div');
+      rowContent.className = 'tree-next-preferred-accounts-list-row';
+
+      const avatarDot = document.createElement('span');
+      avatarDot.className = 'tree-next-preferred-accounts-list-avatar';
+      avatarDot.style.backgroundImage = resolveCssGradientFromPalette(row.avatarPalette);
+      avatarDot.textContent = resolveInitials(row.displayName);
+
+      const rowCopy = document.createElement('div');
+      rowCopy.className = 'tree-next-preferred-accounts-list-copy';
+
+      const rowName = document.createElement('p');
+      rowName.className = 'tree-next-preferred-accounts-list-name';
+      rowName.textContent = row.displayName;
+      rowCopy.append(rowName);
+      rowContent.append(avatarDot, rowCopy);
+      rowButton.append(rowContent);
+      rowsFragment.append(rowButton);
+    }
+    preferredAccountsListElement.append(rowsFragment);
+  }
+}
+
+function syncPreferredAccountsPanelVisibility() {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return;
+  }
+
+  const isVisible = Boolean(state.ui?.preferredAccountsVisible);
+  preferredAccountsPanelElement.classList.toggle('is-hidden', !isVisible);
+  preferredAccountsPanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+}
+
+function setPreferredAccountsPanelVisible(isVisible) {
+  const wasVisible = Boolean(state.ui.preferredAccountsVisible);
+  const nextVisible = Boolean(isVisible);
+  state.ui.preferredAccountsVisible = nextVisible;
+  if (nextVisible) {
+    state.ui.preferredAccountsSaving = false;
+    state.ui.accountOverviewVisible = false;
+    state.ui.infinityBuilderVisible = false;
+    state.ui.rankAdvancementVisible = false;
+    state.ui.myStoreVisible = false;
+    syncAccountOverviewPanelVisibility();
+    syncInfinityBuilderPanelVisibility();
+    syncRankAdvancementPanelVisibility();
+    syncMyStorePanelVisibility();
+    preferredAccountsLastRenderSignature = '';
+    setPreferredAccountsFeedback('');
+    void refreshPreferredAccountsSnapshot({ force: true });
+  }
+  syncPreferredAccountsPanelVisibility();
+  if (wasVisible && !nextVisible) {
+    restoreTreeNextMobileCenterPanelHalfStage({ animate: true });
+  }
+}
+
+async function refreshPreferredAccountsSnapshot(options = {}) {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return null;
+  }
+  if (preferredAccountsSyncInFlight) {
+    return preferredAccountsSyncPromise;
+  }
+
+  const force = options?.force === true;
+  if (!force) {
+    const referenceMs = preferredAccountsLastSyncedAtMs || preferredAccountsLastRequestAtMs;
+    const refreshIntervalMs = preferredAccountsLastSyncedAtMs > 0
+      ? resolvePreferredAccountsSyncIntervalMs()
+      : resolvePreferredAccountsSyncIntervalMs({ forRetry: true });
+    if (referenceMs > 0 && (Date.now() - referenceMs) < refreshIntervalMs) {
+      return preferredAccountsRows;
+    }
+  }
+
+  preferredAccountsSyncInFlight = true;
+  preferredAccountsLastRequestAtMs = Date.now();
+  preferredAccountsSyncPromise = (async () => {
+    const members = await fetchTreeNextLiveRegisteredMembers();
+    let invoices = [];
+    try {
+      invoices = await fetchPreferredAccountsStoreInvoices();
+    } catch (error) {
+      console.warn('[TreeNext] Preferred accounts invoice fetch failed:', error);
+      invoices = [];
+    }
+    const nextRows = buildPreferredAccountsRowsFromData(members, invoices);
+    const nextRowsSignature = resolvePreferredAccountsRowsSignature(nextRows);
+    const rowsChanged = nextRowsSignature !== preferredAccountsRowsDataSignature;
+    preferredAccountsInvoices = invoices;
+    if (rowsChanged) {
+      preferredAccountsRows = nextRows;
+      preferredAccountsRowsDataSignature = nextRowsSignature;
+      preferredAccountsDataVersion += 1;
+    }
+    preferredAccountsLastSyncedAtMs = Date.now();
+
+    const hasSelectedMember = preferredAccountsRows.some((row) => row.memberId === preferredAccountsSelectedMemberId);
+    if (!hasSelectedMember) {
+      preferredAccountsSelectedMemberId = preferredAccountsRows[0]?.memberId || '';
+      preferredAccountsLastRenderSignature = '';
+    }
+    syncPreferredAccountsPanelVisuals();
+    return preferredAccountsRows;
+  })().finally(() => {
+    preferredAccountsSyncPromise = null;
+    preferredAccountsSyncInFlight = false;
+  });
+
+  return preferredAccountsSyncPromise;
+}
+
+function maybeRefreshPreferredAccountsSnapshot(options = {}) {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return;
+  }
+  if (!Boolean(state.ui?.preferredAccountsVisible) && options?.force !== true) {
+    return;
+  }
+  void refreshPreferredAccountsSnapshot(options);
+}
+
+async function submitPreferredAccountsPlacementPlan() {
+  if (!(preferredAccountsPlacementPlanInput instanceof HTMLSelectElement)) {
+    return;
+  }
+  if (Boolean(state.ui?.preferredAccountsSaving)) {
+    return;
+  }
+
+  const selectedRow = resolvePreferredAccountsSelectedRow();
+  if (!selectedRow) {
+    setPreferredAccountsFeedback('Select a preferred customer first.', { isError: true });
+    return;
+  }
+
+  const selectedPlacementOption = normalizePreferredPlacementOptionValue(
+    preferredAccountsPlacementPlanInput.value,
+    selectedRow.placementOption,
+  );
+  const placementPayload = resolvePreferredPlacementPayloadFromOption(selectedPlacementOption);
+  const sponsorUsername = safeText(selectedRow.member?.sponsorUsername || selectedRow.member?.sponsor_username);
+
+  state.ui.preferredAccountsSaving = true;
+  syncPreferredAccountsPanelVisuals();
+  setPreferredAccountsFeedback('Saving profile plan...', { persist: true });
+
+  try {
+    const response = await fetch(
+      `${resolveEnrollRegisteredMembersApi()}/${encodeURIComponent(selectedRow.memberId)}/placement`,
+      {
+        method: 'PATCH',
+        headers: buildTreeNextEnrollRequestHeaders({
+          'Content-Type': 'application/json',
+        }),
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          sponsorUsername,
+          placementLeg: placementPayload.placementLeg,
+          spilloverPlacementSide: placementPayload.spilloverPlacementSide,
+          spilloverParentMode: 'auto',
+          spilloverParentReference: '',
+        }),
+      },
+    );
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const errorMessage = safeText(payload?.error) || `Unable to save placement plan (${response.status}).`;
+      throw new Error(errorMessage);
+    }
+
+    selectedRow.placementOption = selectedPlacementOption;
+    if (selectedRow.member && typeof selectedRow.member === 'object') {
+      selectedRow.member.placementLeg = placementPayload.placementLeg;
+      selectedRow.member.spilloverPlacementSide = placementPayload.spilloverPlacementSide;
+    }
+    preferredAccountsRowsDataSignature = resolvePreferredAccountsRowsSignature(preferredAccountsRows);
+    preferredAccountsDataVersion += 1;
+    preferredAccountsLastRenderSignature = '';
+    setPreferredAccountsFeedback('Profile plan saved successfully.', { isSuccess: true });
+    void refreshPreferredAccountsSnapshot({ force: true }).catch((error) => {
+      console.warn('[TreeNext] Preferred accounts refresh after placement save failed:', error);
+    });
+    void syncTreeNextLiveNodes({ force: true, silent: true, reason: 'preferred-accounts-placement' });
+  } catch (error) {
+    const message = error instanceof Error && error.message
+      ? error.message
+      : 'Unable to save preferred account placement plan.';
+    setPreferredAccountsFeedback(message, { isError: true, persist: true });
+  } finally {
+    state.ui.preferredAccountsSaving = false;
+    syncPreferredAccountsPanelVisuals();
+  }
+}
+
+function initPreferredAccountsPanel() {
+  if (!isPreferredAccountsPanelAvailable()) {
+    return;
+  }
+
+  syncPreferredAccountsPanelPosition();
+  syncPreferredAccountsPanelVisuals();
+  syncPreferredAccountsPanelVisibility();
+  void refreshPreferredAccountsSnapshot({ force: true });
+
+  if (preferredAccountsCloseButtonElement instanceof HTMLButtonElement) {
+    preferredAccountsCloseButtonElement.addEventListener('click', () => {
+      setPreferredAccountsPanelVisible(false);
+    });
+  }
+
+  if (preferredAccountsPlacementPlanInput instanceof HTMLSelectElement) {
+    preferredAccountsPlacementPlanInput.addEventListener('change', () => {
+      setPreferredAccountsFeedback('');
+    });
+  }
+
+  if (preferredAccountsSaveButtonElement instanceof HTMLButtonElement) {
+    preferredAccountsSaveButtonElement.addEventListener('click', () => {
+      void submitPreferredAccountsPlacementPlan();
+    });
+  }
+
+  if (preferredAccountsListElement instanceof HTMLElement) {
+    preferredAccountsListElement.addEventListener('click', (event) => {
+      const targetElement = event.target instanceof HTMLElement
+        ? event.target
+        : null;
+      const rowButton = targetElement?.closest('[data-preferred-accounts-member-id]');
+      if (!(rowButton instanceof HTMLElement)) {
+        return;
+      }
+      const memberId = safeText(rowButton.dataset.preferredAccountsMemberId);
+      if (!memberId || memberId === preferredAccountsSelectedMemberId) {
+        return;
+      }
+      preferredAccountsSelectedMemberId = memberId;
+      preferredAccountsLastRenderSignature = '';
+      setPreferredAccountsFeedback('');
+      syncPreferredAccountsPanelVisuals();
+    });
+  }
+}
+
+function isMyStorePanelAvailable() {
+  return myStorePanelElement instanceof HTMLElement;
+}
+
+function resolveMyStorePackageKeyFromValue(value) {
+  const normalizedValue = normalizeCredentialValue(value);
+  if (!normalizedValue) {
+    return '';
+  }
+  if (MY_STORE_PACKAGE_DISPLAY_META[normalizedValue]) {
+    return normalizedValue;
+  }
+  if (normalizedValue.includes('preferred') || normalizedValue.includes('free')) {
+    return 'preferred-customer-pack';
+  }
+  if (normalizedValue.includes('legacy')) {
+    return 'legacy-builder-pack';
+  }
+  if (normalizedValue.includes('infinity') || normalizedValue.includes('achiever')) {
+    return 'infinity-builder-pack';
+  }
+  if (normalizedValue.includes('business')) {
+    return 'business-builder-pack';
+  }
+  if (normalizedValue.includes('personal')) {
+    return 'personal-builder-pack';
+  }
+  return '';
+}
+
+function resolveMyStoreCurrentPackageKey(homeNode = null) {
+  const safeHomeNode = homeNode && typeof homeNode === 'object' ? homeNode : null;
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    safeHomeNode?.enrollmentPackage,
+    safeHomeNode?.enrollment_package,
+    safeHomeNode?.accountPackage,
+    safeHomeNode?.account_package,
+    session?.enrollmentPackage,
+    session?.enrollment_package,
+    session?.accountPackage,
+    session?.account_package,
+    session?.package,
+    session?.subscriptionPackage,
+    session?.subscription_package,
+    safeHomeNode?.rank,
+    session?.rank,
+  ];
+  for (const candidate of candidates) {
+    const packageKey = resolveMyStorePackageKeyFromValue(candidate);
+    if (packageKey) {
+      return packageKey;
+    }
+  }
+  return 'preferred-customer-pack';
+}
+
+function resolveMyStoreUpgradePackageKeys(packageKey) {
+  const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
+  const upgradeKeys = MY_STORE_UPGRADE_PACKAGE_KEYS_BY_PACKAGE[normalizedPackageKey];
+  return Array.isArray(upgradeKeys) ? [...upgradeKeys] : [];
+}
+
+function resolveMyStoreUpgradePackageLabel(packageKey) {
+  const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
+  const explicitLabel = safeText(MY_STORE_PACKAGE_DISPLAY_META[normalizedPackageKey]?.label);
+  if (explicitLabel) {
+    return explicitLabel;
+  }
+  const fallbackLabel = safeText(resolveEnrollPackageMeta(normalizedPackageKey)?.label);
+  return fallbackLabel || 'Package Upgrade';
+}
+
+function resolveMyStoreUpgradeProductMeta(productKey = '') {
+  const normalizedProductKey = normalizeCredentialValue(productKey);
+  if (normalizedProductKey && MY_STORE_UPGRADE_PRODUCT_META[normalizedProductKey]) {
+    return MY_STORE_UPGRADE_PRODUCT_META[normalizedProductKey];
+  }
+  return MY_STORE_UPGRADE_PRODUCT_META[MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY];
+}
+
+function resolveMyStorePackageSelectableProductCount(packageKey) {
+  const packageMeta = resolveEnrollPackageMeta(packageKey);
+  return Math.max(0, Math.floor(safeNumber(packageMeta?.selectableProducts, 0)));
+}
+
+function resolveMyStoreUpgradeDelta(currentPackageKey, targetPackageKey) {
+  const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey) || 'preferred-customer-pack';
+  const normalizedTargetPackage = resolveMyStorePackageKeyFromValue(targetPackageKey);
+  const currentPackageProducts = resolveMyStorePackageSelectableProductCount(normalizedCurrentPackage);
+  const targetPackageProducts = resolveMyStorePackageSelectableProductCount(normalizedTargetPackage);
+  const productGain = Math.max(0, targetPackageProducts - currentPackageProducts);
+  const unitProductPrice = Math.max(0, safeNumber(MY_STORE_FEATURED_PRODUCT.price, 0));
+  const unitProductBv = Math.max(0, Math.round(safeNumber(MY_STORE_UPGRADE_PRODUCT_UNIT_BV, 50)));
+  const priceDue = Math.round((productGain * unitProductPrice) * 100) / 100;
+  const bvGain = Math.max(0, Math.round(productGain * unitProductBv));
+  return {
+    currentPackageKey: normalizedCurrentPackage,
+    targetPackageKey: normalizedTargetPackage,
+    productGain,
+    priceDue,
+    bvGain,
+  };
+}
+
+function resolveMyStoreStoreCode(homeNode = null) {
+  const safeHomeNode = homeNode && typeof homeNode === 'object' ? homeNode : null;
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    session?.publicStoreCode,
+    session?.public_store_code,
+    session?.storeCode,
+    session?.store_code,
+    session?.memberStoreCode,
+    session?.member_store_code,
+    safeHomeNode?.publicStoreCode,
+    safeHomeNode?.public_store_code,
+    safeHomeNode?.storeCode,
+    safeHomeNode?.store_code,
+  ];
+  for (const candidate of candidates) {
+    const storeCode = safeText(candidate).replace(/\s+/g, '');
+    if (storeCode && storeCode.toLowerCase() !== 'none') {
+      return storeCode;
+    }
+  }
+  return '';
+}
+
+function resolveMyStoreShareLink(homeNode = null) {
+  const fallbackPath = '/store.html';
+  try {
+    const shareUrl = new URL(fallbackPath, window.location.origin);
+    const storeCode = resolveMyStoreStoreCode(homeNode);
+    if (storeCode) {
+      shareUrl.searchParams.set('store', storeCode);
+    }
+    return shareUrl.toString();
+  } catch {
+    return fallbackPath;
+  }
+}
+
+function resolveMyStoreStep(stepValue = '') {
+  const normalizedStep = normalizeCredentialValue(stepValue);
+  return MY_STORE_VALID_STEPS.has(normalizedStep) ? normalizedStep : MY_STORE_STEP_CATALOG;
+}
+
+function buildMyStoreSelection(action, packageKey = '', currentPackageKey = '') {
+  const normalizedAction = normalizeCredentialValue(action);
+  const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
+  const baseQuantity = Math.max(1, Math.round(safeNumber(MY_STORE_FEATURED_PRODUCT.quantity, 1)));
+  const baseSelection = {
+    action: 'featured',
+    productKey: safeText(MY_STORE_FEATURED_PRODUCT.productKey || 'metacharge') || 'metacharge',
+    packageKey: '',
+    label: safeText(MY_STORE_FEATURED_PRODUCT.label) || 'MetaCharge',
+    imageUrl: safeText(MY_STORE_FEATURED_PRODUCT.imageUrl),
+    unitPrice: Math.max(0, safeNumber(MY_STORE_FEATURED_PRODUCT.price, 0)),
+    unitBv: Math.max(0, Math.round(safeNumber(MY_STORE_FEATURED_PRODUCT.bv, 0))),
+    quantity: baseQuantity,
+    upgradeProductKey: '',
+    upgradeProductLabel: '',
+    upgradeProductImageUrl: '',
+    upgradeProductQuantity: 0,
+    upgradeProductUnitPrice: 0,
+    upgradeProductUnitBv: 0,
+  };
+  if (normalizedAction !== 'upgrade' || !normalizedPackageKey) {
+    return baseSelection;
+  }
+  const upgradeDelta = resolveMyStoreUpgradeDelta(currentPackageKey, normalizedPackageKey);
+  const upgradeProduct = resolveMyStoreUpgradeProductMeta(MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY);
+  const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(upgradeDelta.productGain, 0)));
+  const upgradeProductUnitPrice = Math.max(0, safeNumber(upgradeProduct.unitPrice, 0));
+  const upgradeProductUnitBv = Math.max(0, Math.round(safeNumber(upgradeProduct.unitBv, 0)));
+  const upgradeSubtotal = Math.round((upgradeProductQuantity * upgradeProductUnitPrice) * 100) / 100;
+  const upgradeTotalBv = Math.max(0, Math.round(upgradeProductQuantity * upgradeProductUnitBv));
+  return {
+    ...baseSelection,
+    action: 'upgrade',
+    productKey: upgradeProduct.productKey,
+    packageKey: normalizedPackageKey,
+    label: resolveMyStoreUpgradePackageLabel(normalizedPackageKey),
+    imageUrl: safeText(upgradeProduct.imageUrl) || baseSelection.imageUrl,
+    unitPrice: Math.max(0, safeNumber(upgradeSubtotal, 0)),
+    unitBv: Math.max(0, Math.round(safeNumber(upgradeTotalBv, 0))),
+    quantity: 1,
+    upgradeProductKey: upgradeProduct.productKey,
+    upgradeProductLabel: safeText(upgradeProduct.label) || 'Upgrade Product',
+    upgradeProductImageUrl: safeText(upgradeProduct.imageUrl),
+    upgradeProductQuantity,
+    upgradeProductUnitPrice,
+    upgradeProductUnitBv,
+  };
+}
+
+function resolveMyStoreSelection(currentPackageKey = '') {
+  const selectionInput = state.ui?.myStoreSelection;
+  const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey) || 'preferred-customer-pack';
+  if (!selectionInput || typeof selectionInput !== 'object') {
+    return buildMyStoreSelection('featured', '', normalizedCurrentPackage);
+  }
+  const normalizedAction = normalizeCredentialValue(selectionInput.action);
+  const normalizedPackageKey = resolveMyStorePackageKeyFromValue(selectionInput.packageKey);
+  const isUpgrade = normalizedAction === 'upgrade' && Boolean(normalizedPackageKey);
+  const fallbackSelection = isUpgrade
+    ? buildMyStoreSelection('upgrade', normalizedPackageKey, normalizedCurrentPackage)
+    : buildMyStoreSelection('featured', '', normalizedCurrentPackage);
+  const quantityValue = Math.max(1, Math.round(safeNumber(selectionInput.quantity, fallbackSelection.quantity)));
+  const quantity = isUpgrade ? 1 : quantityValue;
+  let productKey = safeText(selectionInput.productKey || fallbackSelection.productKey) || fallbackSelection.productKey;
+  let imageUrl = safeText(selectionInput.imageUrl || fallbackSelection.imageUrl) || fallbackSelection.imageUrl;
+  let unitPrice = Math.max(0, safeNumber(selectionInput.unitPrice, fallbackSelection.unitPrice));
+  let unitBv = Math.max(0, Math.round(safeNumber(selectionInput.unitBv, fallbackSelection.unitBv)));
+  let upgradeProductKey = '';
+  let upgradeProductLabel = '';
+  let upgradeProductImageUrl = '';
+  let upgradeProductQuantity = 0;
+  let upgradeProductUnitPrice = 0;
+  let upgradeProductUnitBv = 0;
+  if (isUpgrade) {
+    const upgradeDelta = resolveMyStoreUpgradeDelta(normalizedCurrentPackage, normalizedPackageKey);
+    const selectedUpgradeProduct = resolveMyStoreUpgradeProductMeta(
+      safeText(selectionInput.upgradeProductKey || selectionInput.productKey || fallbackSelection.upgradeProductKey),
+    );
+    upgradeProductQuantity = Math.max(0, Math.round(safeNumber(upgradeDelta.productGain, 0)));
+    upgradeProductUnitPrice = Math.max(0, safeNumber(selectedUpgradeProduct.unitPrice, 0));
+    upgradeProductUnitBv = Math.max(0, Math.round(safeNumber(selectedUpgradeProduct.unitBv, 0)));
+    unitPrice = Math.round((upgradeProductQuantity * upgradeProductUnitPrice) * 100) / 100;
+    unitBv = Math.max(0, Math.round(upgradeProductQuantity * upgradeProductUnitBv));
+    productKey = selectedUpgradeProduct.productKey;
+    imageUrl = safeText(selectedUpgradeProduct.imageUrl) || fallbackSelection.imageUrl;
+    upgradeProductKey = selectedUpgradeProduct.productKey;
+    upgradeProductLabel = safeText(selectedUpgradeProduct.label) || 'Upgrade Product';
+    upgradeProductImageUrl = safeText(selectedUpgradeProduct.imageUrl);
+  }
+  return {
+    action: isUpgrade ? 'upgrade' : 'featured',
+    productKey,
+    packageKey: isUpgrade ? normalizedPackageKey : '',
+    label: safeText(selectionInput.label || fallbackSelection.label) || fallbackSelection.label,
+    imageUrl,
+    unitPrice,
+    unitBv,
+    quantity,
+    upgradeProductKey,
+    upgradeProductLabel,
+    upgradeProductImageUrl,
+    upgradeProductQuantity,
+    upgradeProductUnitPrice,
+    upgradeProductUnitBv,
+  };
+}
+
+function resolveMyStoreCheckoutAmounts(selectionInput, currentPackageKey) {
+  const selection = selectionInput && typeof selectionInput === 'object'
+    ? selectionInput
+    : buildMyStoreSelection('featured', '', currentPackageKey);
+  const isUpgradeSelection = normalizeCredentialValue(selection.action) === 'upgrade'
+    && Boolean(resolveMyStorePackageKeyFromValue(selection.packageKey));
+  const quantity = isUpgradeSelection
+    ? 1
+    : Math.max(1, Math.round(safeNumber(selection.quantity, 1)));
+  const subtotal = Math.round(Math.max(0, safeNumber(selection.unitPrice, 0) * quantity) * 100) / 100;
+  const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey);
+  const discountRate = !isUpgradeSelection && normalizedCurrentPackage === 'preferred-customer-pack' ? 0.15 : 0;
+  const discount = Math.round((subtotal * discountRate) * 100) / 100;
+  const taxableTotal = Math.max(0, subtotal - discount);
+  const tax = 0;
+  const total = Math.round(taxableTotal * 100) / 100;
+  const totalBv = Math.max(0, Math.round(safeNumber(selection.unitBv, 0) * quantity));
+  return {
+    isUpgradeSelection,
+    quantity,
+    subtotal,
+    discount,
+    tax,
+    total,
+    totalBv,
+  };
+}
+
+function renderMyStoreBreadcrumbs(stepValue = MY_STORE_STEP_CATALOG, options = {}) {
+  if (!(myStoreBreadcrumbsElement instanceof HTMLElement)) {
+    return;
+  }
+  const step = resolveMyStoreStep(stepValue);
+  const isUpgradeReview = Boolean(options?.isUpgradeReview);
+  const reviewLabel = isUpgradeReview ? 'Review Upgrade' : 'Review Purchase';
+  if (step === MY_STORE_STEP_THANK_YOU) {
+    myStoreBreadcrumbsElement.innerHTML = `
+      <button type="button" class="tree-next-my-store-breadcrumb-link" data-my-store-nav-step="${MY_STORE_STEP_CATALOG}">My Store</button>
+      <span class="tree-next-my-store-breadcrumb-separator" aria-hidden="true">&gt;</span>
+      <button type="button" class="tree-next-my-store-breadcrumb-link" data-my-store-nav-step="${MY_STORE_STEP_REVIEW}">${reviewLabel}</button>
+      <span class="tree-next-my-store-breadcrumb-separator" aria-hidden="true">&gt;</span>
+      <span class="tree-next-my-store-breadcrumb-current" aria-current="page">Thank You</span>
+    `;
+    return;
+  }
+  if (step === MY_STORE_STEP_CHECKOUT) {
+    myStoreBreadcrumbsElement.innerHTML = `
+      <button type="button" class="tree-next-my-store-breadcrumb-link" data-my-store-nav-step="${MY_STORE_STEP_CATALOG}">My Store</button>
+      <span class="tree-next-my-store-breadcrumb-separator" aria-hidden="true">&gt;</span>
+      <button type="button" class="tree-next-my-store-breadcrumb-link" data-my-store-nav-step="${MY_STORE_STEP_REVIEW}">${reviewLabel}</button>
+      <span class="tree-next-my-store-breadcrumb-separator" aria-hidden="true">&gt;</span>
+      <span class="tree-next-my-store-breadcrumb-current" aria-current="page">Checkout</span>
+    `;
+    return;
+  }
+  if (step === MY_STORE_STEP_REVIEW) {
+    myStoreBreadcrumbsElement.innerHTML = `
+      <button type="button" class="tree-next-my-store-breadcrumb-link" data-my-store-nav-step="${MY_STORE_STEP_CATALOG}">My Store</button>
+      <span class="tree-next-my-store-breadcrumb-separator" aria-hidden="true">&gt;</span>
+      <span class="tree-next-my-store-breadcrumb-current" aria-current="page">${reviewLabel}</span>
+    `;
+    return;
+  }
+  myStoreBreadcrumbsElement.innerHTML = '<span class="tree-next-my-store-breadcrumb-current" aria-current="page">My Store</span>';
+}
+
+function setMyStoreCheckoutFeedback(message = '', options = {}) {
+  if (!(myStoreCheckoutFeedbackElement instanceof HTMLElement)) {
+    return;
+  }
+  const safeMessage = safeText(message);
+  const isError = Boolean(options?.isError);
+  myStoreCheckoutFeedbackElement.textContent = safeMessage;
+  myStoreCheckoutFeedbackElement.classList.toggle('is-visible', Boolean(safeMessage));
+  myStoreCheckoutFeedbackElement.classList.toggle('is-error', Boolean(safeMessage) && isError);
+}
+
+function setMyStoreCheckoutSubmitting(isSubmitting, submitLabel = '') {
+  const nextSubmitting = Boolean(isSubmitting);
+  state.ui.myStoreCheckoutSubmitting = nextSubmitting;
+  if (myStoreCheckoutPayButtonElement instanceof HTMLButtonElement) {
+    myStoreCheckoutPayButtonElement.disabled = nextSubmitting;
+    myStoreCheckoutPayButtonElement.textContent = nextSubmitting
+      ? (safeText(submitLabel) || 'Processing...')
+      : 'Continue to Stripe';
+  }
+  if (myStoreCheckoutPreviousButtonElement instanceof HTMLButtonElement) {
+    myStoreCheckoutPreviousButtonElement.disabled = nextSubmitting;
+  }
+}
+
+function formatMyStoreCheckoutDate(value) {
+  const normalizedValue = safeText(value);
+  if (!normalizedValue) {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date());
+  }
+  const parsedValue = new Date(normalizedValue);
+  if (Number.isNaN(parsedValue.getTime())) {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date());
+  }
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(parsedValue);
+}
+
+function resolveMyStoreCheckoutCompletionSummary() {
+  const completion = state.ui?.myStoreCheckoutCompletion;
+  if (!completion || typeof completion !== 'object') {
+    return {
+      message: 'Payment received and your order is now processing.',
+      invoiceId: '--',
+      status: 'Posted',
+      amountPaid: 0,
+      bv: 0,
+      dateLabel: '--',
+    };
+  }
+  return {
+    message: safeText(completion.message) || 'Payment received and your order is now processing.',
+    invoiceId: safeText(completion.invoiceId) || '--',
+    status: safeText(completion.status) || 'Posted',
+    amountPaid: Math.max(0, safeNumber(completion.amountPaid, 0)),
+    bv: Math.max(0, Math.round(safeNumber(completion.bv, 0))),
+    dateLabel: safeText(completion.dateLabel) || '--',
+  };
+}
+
+function showMyStoreCheckoutThankYouStep(options = {}) {
+  state.ui.myStoreCheckoutCompletion = {
+    message: safeText(options?.message) || 'Payment received and your order is now processing.',
+    invoiceId: safeText(options?.invoiceId) || '--',
+    status: safeText(options?.status) || 'Posted',
+    amountPaid: Math.max(0, safeNumber(options?.amountPaid, 0)),
+    bv: Math.max(0, Math.round(safeNumber(options?.bv, 0))),
+    dateLabel: safeText(options?.dateLabel) || formatMyStoreCheckoutDate(options?.createdAt),
+  };
+  setMyStoreStep(MY_STORE_STEP_THANK_YOU, {
+    clearCheckoutFeedback: true,
+    preserveCheckoutCompletion: true,
+  });
+}
+
+function showMyStoreCheckoutPendingThankYouStep(options = {}) {
+  const completionSummary = resolveMyStoreCheckoutCompletionSummary();
+  const fallbackDateLabel = formatMyStoreCheckoutDate(new Date().toISOString());
+  showMyStoreCheckoutThankYouStep({
+    message: safeText(options?.message) || 'Payment successful. Receipt is syncing now.',
+    invoiceId: safeText(options?.invoiceId) || completionSummary.invoiceId || 'Generating...',
+    status: safeText(options?.status) || 'Pending',
+    amountPaid: Math.max(0, safeNumber(options?.amountPaid, completionSummary.amountPaid || 0)),
+    bv: Math.max(0, Math.round(safeNumber(options?.bv, completionSummary.bv || 0))),
+    dateLabel: safeText(options?.dateLabel) || completionSummary.dateLabel || fallbackDateLabel,
+  });
+}
+
+function resolveMyStorePendingCheckoutSummary(sessionId = '') {
+  const pendingCheckoutState = readTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY);
+  if (!pendingCheckoutState || typeof pendingCheckoutState !== 'object') {
+    return null;
+  }
+  const safeSessionId = safeText(sessionId);
+  const pendingSessionId = safeText(pendingCheckoutState.sessionId);
+  if (safeSessionId && pendingSessionId && pendingSessionId !== safeSessionId) {
+    return null;
+  }
+  return {
+    invoiceId: safeText(pendingCheckoutState.invoiceId),
+    amountPaid: Math.max(0, safeNumber(pendingCheckoutState.amountPaid, 0)),
+    bv: Math.max(0, Math.round(safeNumber(pendingCheckoutState.bv, 0))),
+    productLabel: safeText(pendingCheckoutState.productLabel),
+    quantity: Math.max(1, Math.round(safeNumber(pendingCheckoutState.quantity, 1))),
+    dateLabel: safeText(pendingCheckoutState.dateLabel) || formatMyStoreCheckoutDate(new Date().toISOString()),
+  };
+}
+
+function setMyStoreStep(stepValue, options = {}) {
+  const nextStep = resolveMyStoreStep(stepValue);
+  state.ui.myStoreStep = nextStep;
+  if (
+    nextStep !== MY_STORE_STEP_THANK_YOU
+    && options?.preserveCheckoutCompletion !== true
+  ) {
+    state.ui.myStoreCheckoutCompletion = null;
+  }
+  if (Boolean(options?.clearCheckoutFeedback)) {
+    setMyStoreCheckoutFeedback('');
+  }
+  if (options?.sync !== false) {
+    syncMyStorePanelVisuals();
+  }
+}
+
+function resetMyStoreCheckoutForm() {
+  if (myStoreCheckoutFormElement instanceof HTMLFormElement) {
+    myStoreCheckoutFormElement.reset();
+  }
+  setMyStoreCheckoutSubmitting(false);
+  clearMyStoreStripeCardInput();
+  if (myStoreCheckoutBillingCountrySelect instanceof HTMLSelectElement) {
+    myStoreCheckoutBillingCountrySelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+    syncTreeNextEnrollCustomSelectById(myStoreCheckoutBillingCountrySelect.id);
+  }
+  setMyStoreCheckoutFeedback('');
+}
+
+function navigateToMyStoreProduct(action, packageKey = '') {
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  state.ui.myStoreSelection = buildMyStoreSelection(action, packageKey, currentPackageKey);
+  setMyStoreStep(MY_STORE_STEP_REVIEW, { clearCheckoutFeedback: true, sync: false });
+  syncMyStorePanelVisuals();
+}
+
+function setMyStoreSelectionQuantity(quantityValue) {
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  const currentSelection = resolveMyStoreSelection(currentPackageKey);
+  if (normalizeCredentialValue(currentSelection.action) === 'upgrade') {
+    return;
+  }
+  const nextQuantity = clamp(Math.round(safeNumber(quantityValue, currentSelection.quantity)), 1, 99);
+  if (nextQuantity === currentSelection.quantity) {
+    return;
+  }
+  state.ui.myStoreSelection = {
+    ...currentSelection,
+    quantity: nextQuantity,
+  };
+  syncMyStorePanelVisuals();
+}
+
+function setMyStoreUpgradeSelectionProduct(productKey = '') {
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  const currentSelection = resolveMyStoreSelection(currentPackageKey);
+  if (normalizeCredentialValue(currentSelection.action) !== 'upgrade') {
+    return;
+  }
+  const selectedUpgradeProduct = resolveMyStoreUpgradeProductMeta(productKey);
+  if (safeText(currentSelection.upgradeProductKey) === selectedUpgradeProduct.productKey) {
+    return;
+  }
+  state.ui.myStoreSelection = {
+    ...currentSelection,
+    upgradeProductKey: selectedUpgradeProduct.productKey,
+  };
+  syncMyStorePanelVisuals();
+}
+
+function resolveMyStoreCheckoutFieldList() {
+  return [
+    myStoreCheckoutNameInputElement,
+    myStoreCheckoutBillingAddressInputElement,
+    myStoreCheckoutBillingCityInputElement,
+    myStoreCheckoutBillingStateInputElement,
+    myStoreCheckoutBillingPostalInputElement,
+  ].filter((element) => element instanceof HTMLInputElement);
+}
+
+async function refreshMyStorePostCheckoutUpgrade(accountUpgradeInput = null) {
+  const accountUpgrade = accountUpgradeInput && typeof accountUpgradeInput === 'object'
+    ? accountUpgradeInput
+    : null;
+  const upgradedUser = accountUpgrade?.user && typeof accountUpgrade.user === 'object'
+    ? accountUpgrade.user
+    : null;
+  if (upgradedUser) {
+    applyAccountUpgradeUserToLocalState(upgradedUser);
+  }
+
+  await refreshAuthenticatedMemberSessionSnapshot({ skipAccountOverviewReset: true });
+  await syncTreeNextLiveNodes({ force: true, silent: true, reason: 'my-store-upgrade' });
+
+  resetAccountOverviewRemoteSnapshot();
+  resetRankAdvancementSnapshot();
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  await refreshAccountOverviewRemoteSnapshot({
+    force: true,
+    homeNode,
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
+  await refreshRankAdvancementSnapshot({
+    force: true,
+    homeNode,
+  });
+  await refreshPreferredAccountsSnapshot({ force: true });
+  syncAccountOverviewPanelVisuals();
+  syncRankAdvancementPanelVisuals();
+  syncPreferredAccountsPanelVisuals();
+  syncMyStorePanelVisuals();
+}
+
+async function createMyStoreCheckoutSession(payload = {}) {
+  const response = await fetch(MY_STORE_CHECKOUT_SESSION_API, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(payload),
+  });
+  const responsePayload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const failureMessage = typeof responsePayload?.error === 'string'
+      ? responsePayload.error
+      : 'Unable to start My Store Stripe checkout.';
+    throw new Error(failureMessage);
+  }
+
+  const sessionId = safeText(responsePayload?.sessionId);
+  const sessionUrl = safeText(responsePayload?.sessionUrl);
+  if (!sessionId || !sessionUrl) {
+    throw new Error('My Store checkout response is missing Stripe session details.');
+  }
+
+  return {
+    sessionId,
+    sessionUrl,
+    checkout: responsePayload?.checkout && typeof responsePayload.checkout === 'object'
+      ? responsePayload.checkout
+      : {},
+  };
+}
+
+async function completeMyStoreCheckoutSession(sessionId) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    throw new Error('Checkout session ID is required to finalize My Store checkout.');
+  }
+
+  const response = await fetch(MY_STORE_CHECKOUT_SESSION_COMPLETE_API, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify({
+      sessionId: safeSessionId,
+    }),
+  });
+
+  const responsePayload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const failureMessage = typeof responsePayload?.error === 'string'
+      ? responsePayload.error
+      : 'Unable to finalize My Store checkout.';
+    throw new Error(failureMessage);
+  }
+
+  return {
+    completed: responsePayload?.completed === true,
+    alreadyProcessed: responsePayload?.alreadyProcessed === true,
+    invoice: responsePayload?.invoice && typeof responsePayload.invoice === 'object'
+      ? responsePayload.invoice
+      : null,
+    accountUpgrade: responsePayload?.accountUpgrade && typeof responsePayload.accountUpgrade === 'object'
+      ? responsePayload.accountUpgrade
+      : null,
+    preferredCustomer: responsePayload?.preferredCustomer && typeof responsePayload.preferredCustomer === 'object'
+      ? responsePayload.preferredCustomer
+      : null,
+    paymentIntent: responsePayload?.paymentIntent && typeof responsePayload.paymentIntent === 'object'
+      ? responsePayload.paymentIntent
+      : null,
+    checkoutSession: responsePayload?.checkoutSession && typeof responsePayload.checkoutSession === 'object'
+      ? responsePayload.checkoutSession
+      : null,
+  };
+}
+
+function openTreeNextStripeCheckoutWindow() {
+  const checkoutWindow = window.open(
+    'about:blank',
+    '_blank',
+    'popup=yes,width=520,height=760,resizable=yes,scrollbars=yes',
+  );
+  if (!checkoutWindow || checkoutWindow.closed) {
+    return null;
+  }
+  return checkoutWindow;
+}
+
+function isLikelyFetchNetworkError(error) {
+  const message = safeText(error instanceof Error ? error.message : String(error)).toLowerCase();
+  return (
+    message === 'failed to fetch'
+    || message.includes('networkerror')
+    || message.includes('network request failed')
+    || message.includes('load failed')
+  );
+}
+
+function clearMyStoreCheckoutRetryTracking(sessionId) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    return;
+  }
+  myStoreCheckoutRetryAttemptBySession.delete(safeSessionId);
+  const timeoutId = myStoreCheckoutRetryTimeoutBySession.get(safeSessionId);
+  if (safeNumber(timeoutId, 0) > 0) {
+    window.clearTimeout(timeoutId);
+  }
+  myStoreCheckoutRetryTimeoutBySession.delete(safeSessionId);
+}
+
+function scheduleMyStoreCheckoutNetworkRetry(sessionId) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    return false;
+  }
+  const existingTimeoutId = safeNumber(myStoreCheckoutRetryTimeoutBySession.get(safeSessionId), 0);
+  if (existingTimeoutId > 0) {
+    return true;
+  }
+  const currentAttempt = Math.max(0, Math.floor(safeNumber(
+    myStoreCheckoutRetryAttemptBySession.get(safeSessionId),
+    0,
+  )));
+  if (currentAttempt >= MY_STORE_CHECKOUT_NETWORK_RETRY_LIMIT) {
+    return false;
+  }
+  const nextAttempt = currentAttempt + 1;
+  myStoreCheckoutRetryAttemptBySession.set(safeSessionId, nextAttempt);
+  const timeoutId = window.setTimeout(() => {
+    myStoreCheckoutRetryTimeoutBySession.delete(safeSessionId);
+    void finalizeMyStoreCheckoutSessionFromStripeReturn(safeSessionId, {
+      preserveCurrentStep: true,
+      ensurePanelVisible: true,
+      maxAttempts: 50,
+      pollDelayMs: 700,
+    });
+  }, MY_STORE_CHECKOUT_NETWORK_RETRY_DELAY_MS);
+  myStoreCheckoutRetryTimeoutBySession.set(safeSessionId, timeoutId);
+  return true;
+}
+
+async function finalizeMyStoreCheckoutSessionFromStripeReturn(sessionId, options = {}) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    return;
+  }
+  if (myStoreCheckoutFinalizationInFlightSessionIds.has(safeSessionId)) {
+    return;
+  }
+  myStoreCheckoutFinalizationInFlightSessionIds.add(safeSessionId);
+  const checkoutWindow = options?.checkoutWindow;
+  const preserveCurrentStep = Boolean(options?.preserveCurrentStep);
+  const submitLabel = myStoreCheckoutPayButtonElement instanceof HTMLButtonElement
+    ? myStoreCheckoutPayButtonElement.textContent || 'Continue to Stripe'
+    : 'Continue to Stripe';
+  const requestedMaxAttempts = Math.floor(Number(options?.maxAttempts));
+  const requestedPollDelayMs = Math.floor(Number(options?.pollDelayMs));
+  const maxAttempts = Number.isFinite(requestedMaxAttempts) && requestedMaxAttempts > 0
+    ? requestedMaxAttempts
+    : (checkoutWindow ? 240 : 5);
+  const pollDelayMs = Number.isFinite(requestedPollDelayMs) && requestedPollDelayMs >= 250
+    ? requestedPollDelayMs
+    : (checkoutWindow ? 1200 : 700);
+
+  try {
+    if (options?.ensurePanelVisible !== false && !Boolean(state.ui?.myStoreVisible)) {
+      setMyStorePanelVisible(true);
+    }
+    if (!preserveCurrentStep) {
+      setMyStoreStep(MY_STORE_STEP_CHECKOUT, { clearCheckoutFeedback: true });
+    }
+    setMyStoreCheckoutSubmitting(true, 'Finalizing...');
+
+    setMyStoreCheckoutFeedback('Finalizing your order...');
+    let completionResult = await completeMyStoreCheckoutSession(safeSessionId);
+    let completionAttempts = 0;
+    while (!completionResult.completed && completionAttempts < maxAttempts) {
+      if (checkoutWindow?.closed) {
+        completionResult = await completeMyStoreCheckoutSession(safeSessionId);
+        if (!completionResult.completed) {
+          throw new Error('Stripe checkout window was closed before payment completed.');
+        }
+        break;
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, pollDelayMs));
+      completionAttempts += 1;
+      completionResult = await completeMyStoreCheckoutSession(safeSessionId);
+    }
+    if (!completionResult.completed) {
+      throw new Error('Payment captured, but order is still processing. Please retry shortly.');
+    }
+    if (checkoutWindow && !checkoutWindow.closed) {
+      checkoutWindow.close();
+    }
+
+    const accountUpgrade = completionResult.accountUpgrade && typeof completionResult.accountUpgrade === 'object'
+      ? completionResult.accountUpgrade
+      : null;
+    let accountUpgradeWarning = '';
+    if (accountUpgrade) {
+      if (accountUpgrade?.ok === true) {
+        await refreshMyStorePostCheckoutUpgrade(accountUpgrade);
+      } else {
+        accountUpgradeWarning = safeText(accountUpgrade?.message)
+          || 'Payment confirmed, but account upgrade is still processing.';
+      }
+    }
+
+    const invoice = completionResult.invoice && typeof completionResult.invoice === 'object'
+      ? completionResult.invoice
+      : null;
+    const invoiceId = safeText(invoice?.id);
+    const invoiceStatus = safeText(invoice?.status) || 'Posted';
+    const invoiceAmount = Math.max(0, safeNumber(invoice?.amount, 0));
+    const invoiceBv = Math.max(0, Math.round(safeNumber(invoice?.bp, 0)));
+    const invoiceDateLabel = formatMyStoreCheckoutDate(invoice?.createdAt);
+    const paymentSuccessMessage = completionResult.alreadyProcessed
+      ? 'Payment was already confirmed and linked to your order.'
+      : 'Payment confirmed successfully. Your order is complete.';
+    const successMessage = accountUpgradeWarning
+      ? `${paymentSuccessMessage} ${accountUpgradeWarning}`
+      : paymentSuccessMessage;
+
+    resetMyStoreCheckoutForm();
+    showMyStoreCheckoutThankYouStep({
+      message: successMessage,
+      invoiceId,
+      status: invoiceStatus,
+      amountPaid: invoiceAmount,
+      bv: invoiceBv,
+      dateLabel: invoiceDateLabel,
+    });
+    clearTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY);
+    clearMyStoreCheckoutRetryTracking(safeSessionId);
+  } catch (error) {
+    const isNetworkError = isLikelyFetchNetworkError(error);
+    const retryScheduled = isNetworkError
+      ? scheduleMyStoreCheckoutNetworkRetry(safeSessionId)
+      : false;
+    const retryAttempt = Math.max(1, Math.floor(safeNumber(
+      myStoreCheckoutRetryAttemptBySession.get(safeSessionId),
+      1,
+    )));
+    const fallbackMessage = isNetworkError
+      ? (
+        retryScheduled
+          ? `Payment succeeded. Syncing your order details now (retry ${retryAttempt}/${MY_STORE_CHECKOUT_NETWORK_RETRY_LIMIT})...`
+          : 'Payment succeeded, but we still cannot reach the server. Keep this tab open and refresh shortly to load invoice details.'
+      )
+      : (
+        error instanceof Error
+          ? error.message
+          : 'Unable to finalize checkout right now.'
+      );
+    if (resolveMyStoreStep(state.ui?.myStoreStep) === MY_STORE_STEP_THANK_YOU) {
+      showMyStoreCheckoutPendingThankYouStep({
+        message: fallbackMessage,
+      });
+    }
+    setMyStoreCheckoutFeedback(fallbackMessage, { isError: true });
+    setMyStoreCopyFeedback(fallbackMessage, { isError: true });
+  } finally {
+    setMyStoreCheckoutSubmitting(false, submitLabel);
+    myStoreCheckoutFinalizationInFlightSessionIds.delete(safeSessionId);
+  }
+}
+
+async function submitMyStoreCheckout() {
+  if (state.ui?.myStoreCheckoutSubmitting) {
+    return;
+  }
+  setMyStoreCheckoutFeedback('');
+  clearMyStoreCheckoutCardError();
+
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  const selection = resolveMyStoreSelection(currentPackageKey);
+  const checkoutAmounts = resolveMyStoreCheckoutAmounts(selection, currentPackageKey);
+  const checkoutProductId = safeText(selection.productKey || selection.upgradeProductKey || MY_STORE_FEATURED_PRODUCT.productKey);
+  const checkoutQuantity = checkoutAmounts.isUpgradeSelection
+    ? Math.max(1, Math.round(safeNumber(selection.upgradeProductQuantity, 1)))
+    : Math.max(1, Math.round(safeNumber(checkoutAmounts.quantity, 1)));
+  if (!checkoutProductId || checkoutQuantity <= 0) {
+    setMyStoreCheckoutFeedback('Unable to build cart selection for checkout.', { isError: true });
+    return;
+  }
+
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const buyerEmail = safeText(
+    session?.email
+    || session?.userEmail
+    || session?.user_email
+    || '',
+  );
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) {
+    setMyStoreCheckoutFeedback('A valid account email is required before checkout.', { isError: true });
+    return;
+  }
+
+  const buyerUserId = safeText(
+    session?.id
+    || session?.userId
+    || session?.user_id
+    || session?.memberId
+    || session?.member_id
+    || '',
+  );
+  const buyerUsername = safeText(
+    session?.username
+    || session?.memberUsername
+    || session?.member_username
+    || '',
+  ).replace(/^@+/, '');
+  const checkoutSource = state.source === 'member' ? 'member-dashboard' : 'binary-tree-next';
+  const discountPercent = (!checkoutAmounts.isUpgradeSelection
+    && resolveMyStorePackageKeyFromValue(currentPackageKey) === 'preferred-customer-pack')
+    ? 15
+    : 0;
+  const cardholderName = safeText(myStoreCheckoutNameInputElement?.value) || resolveSessionDisplayName();
+  const shippingAddress = safeText(myStoreCheckoutBillingAddressInputElement?.value) || 'Collected in Stripe Checkout';
+  const storeCode = resolveMyStoreStoreCode(homeNode);
+  const memberStoreLink = resolveMyStoreShareLink(homeNode);
+  const accountUpgradeTargetPackage = checkoutAmounts.isUpgradeSelection
+    ? resolveMyStorePackageKeyFromValue(selection.packageKey)
+    : '';
+  const checkoutWindow = openTreeNextStripeCheckoutWindow();
+  if (!checkoutWindow) {
+    const popupMessage = 'Pop-up blocked. Please allow pop-ups to continue with Stripe checkout.';
+    setMyStoreCheckoutFeedback(popupMessage, { isError: true });
+    setMyStoreCopyFeedback(popupMessage, { isError: true });
+    return;
+  }
+
+  const submitLabel = myStoreCheckoutPayButtonElement instanceof HTMLButtonElement
+    ? myStoreCheckoutPayButtonElement.textContent || 'Continue to Stripe'
+    : 'Continue to Stripe';
+  setMyStoreCheckoutSubmitting(true, 'Preparing payment...');
+
+  try {
+    setMyStoreCheckoutFeedback('Preparing secure payment...');
+    const checkoutSessionResult = await createMyStoreCheckoutSession({
+      cartLines: [
+        {
+          productId: checkoutProductId,
+          quantity: checkoutQuantity,
+        },
+      ],
+      storeCode,
+      buyerName: cardholderName || resolveSessionDisplayName(),
+      buyerEmail,
+      shippingAddress,
+      shippingMode: 'Standard Shipping',
+      source: checkoutSource,
+      memberStoreLink,
+      discountPercent,
+      checkoutMode: 'guest',
+      buyerUserId,
+      buyerUsername,
+      accountUpgradeTargetPackage,
+      returnPath: buildTreeNextStripeReturnPath(TREE_NEXT_STRIPE_RETURN_FLOW_MY_STORE),
+    });
+    persistTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY, {
+      sessionId: checkoutSessionResult.sessionId,
+      invoiceId: safeText(checkoutSessionResult.checkout?.invoiceId),
+      amountPaid: checkoutAmounts.total,
+      bv: checkoutAmounts.totalBv,
+      productLabel: checkoutAmounts.isUpgradeSelection
+        ? `Upgrade: ${safeText(selection.label) || 'Package Upgrade'}`
+        : (safeText(selection.label) || safeText(myStoreCheckoutProductLabelElement?.textContent) || 'Product'),
+      quantity: checkoutQuantity,
+      dateLabel: formatMyStoreCheckoutDate(new Date().toISOString()),
+      submittedAt: new Date().toISOString(),
+    });
+    setMyStoreCheckoutFeedback('Stripe checkout opened in a new window. Complete payment, then return to this tab.');
+    checkoutWindow.location.replace(checkoutSessionResult.sessionUrl);
+    checkoutWindow.focus();
+  } catch (error) {
+    const fallbackMessage = error instanceof Error
+      ? error.message
+      : 'Unable to complete checkout right now.';
+    setMyStoreCheckoutFeedback(fallbackMessage, { isError: true });
+    setMyStoreCopyFeedback(fallbackMessage, { isError: true });
+  } finally {
+    setMyStoreCheckoutSubmitting(false, submitLabel);
+  }
+}
+
+function removeMyStoreSelection() {
+  state.ui.myStoreSelection = null;
+  setMyStoreStep(MY_STORE_STEP_CATALOG, { clearCheckoutFeedback: true, sync: false });
+  resetMyStoreCheckoutForm();
+  syncMyStorePanelVisuals();
+}
+
+function openMyStoreCheckoutStep() {
+  setMyStoreStep(MY_STORE_STEP_CHECKOUT, { clearCheckoutFeedback: true });
+  setMyStoreCheckoutSubmitting(false);
+  void hydrateTreeNextEnrollBillingCountryOptions();
+  if (myStoreCheckoutBillingCountrySelect instanceof HTMLSelectElement) {
+    syncTreeNextEnrollCustomSelectById(myStoreCheckoutBillingCountrySelect.id);
+  }
+}
+
+function returnToMyStoreReviewStep() {
+  setMyStoreStep(MY_STORE_STEP_REVIEW, { clearCheckoutFeedback: true });
+}
+
+function setMyStoreCopyFeedback(message, options = {}) {
+  if (!(myStoreCopyFeedbackElement instanceof HTMLElement)) {
+    return;
+  }
+  const safeMessage = safeText(message);
+  const isError = Boolean(options?.isError);
+  myStoreCopyFeedbackElement.textContent = safeMessage;
+  myStoreCopyFeedbackElement.classList.toggle('is-visible', Boolean(safeMessage));
+  myStoreCopyFeedbackElement.classList.toggle('is-error', Boolean(safeMessage) && isError);
+}
+
+async function copyMyStoreShareLink() {
+  const fallbackLink = resolveMyStoreShareLink();
+  const shareLink = safeText(myStoreCopyLinkButtonElement?.dataset?.shareLink || fallbackLink);
+  if (!shareLink) {
+    setMyStoreCopyFeedback('Store link unavailable.', { isError: true });
+    return;
+  }
+
+  let copied = false;
+  if (navigator.clipboard && window.isSecureContext) {
+    copied = await navigator.clipboard.writeText(shareLink)
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  if (!copied) {
+    const helperInput = document.createElement('textarea');
+    helperInput.value = shareLink;
+    helperInput.setAttribute('readonly', 'true');
+    helperInput.style.position = 'absolute';
+    helperInput.style.left = '-9999px';
+    helperInput.style.opacity = '0';
+    document.body.appendChild(helperInput);
+    helperInput.select();
+    helperInput.setSelectionRange(0, helperInput.value.length);
+    try {
+      copied = document.execCommand('copy');
+    } catch {
+      copied = false;
+    }
+    document.body.removeChild(helperInput);
+  }
+
+  setMyStoreCopyFeedback(
+    copied ? 'Store link copied.' : 'Unable to copy link. Please copy manually.',
+    { isError: !copied },
+  );
+}
+
+function syncMyStorePanelPosition(layoutInput = state.layout) {
+  if (!isMyStorePanelAvailable()) {
+    return;
+  }
+
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const sideNav = layout?.sideNav || null;
+  const sideNavToggle = layout?.sideNavToggle || null;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)),
+  );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileOverlayPanelFrame(viewportWidth, viewportHeight, {
+      maxWidth: 860,
+      minWidth: 320,
+      minHeight: 360,
+      halfHeightRatio: 0.88,
+    });
+    myStorePanelElement.style.setProperty('--tree-next-my-store-left-mobile', `${mobileFrame.x}px`);
+    myStorePanelElement.style.setProperty('--tree-next-my-store-top-mobile', `${mobileFrame.y}px`);
+    applyTreeNextMobileOverlayPanelStyle(myStorePanelElement, mobileFrame);
+    myStorePanelElement.classList.remove('is-positioning');
+    return;
+  }
+
+  clearTreeNextMobileOverlayPanelStyle(myStorePanelElement);
+
+  const panelHorizontalGap = 18;
+  const panelEdgePadding = 18;
+  const rightDockReservedWidth = 72;
+  const panelTop = sideNav
+    ? Math.round(sideNav.y)
+    : panelEdgePadding;
+  const panelHeight = sideNav
+    ? Math.round(sideNav.height)
+    : Math.max(320, viewportHeight - (panelEdgePadding * 2));
+
+  let anchorLeft = Math.round((viewportWidth - 640) / 2);
+  if (sideNavOpen && sideNav) {
+    anchorLeft = Math.round(sideNav.x + sideNav.width + panelHorizontalGap);
+  } else if (sideNavToggle) {
+    anchorLeft = Math.round(sideNavToggle.x + sideNavToggle.width + panelHorizontalGap);
+  }
+
+  const maxUsableWidth = Math.max(
+    360,
+    Math.floor(viewportWidth - anchorLeft - rightDockReservedWidth),
+  );
+  const panelWidth = clamp(Math.round(Math.min(820, maxUsableWidth)), 360, maxUsableWidth);
+
+  const clampedLeft = clamp(
+    anchorLeft,
+    panelEdgePadding,
+    Math.max(
+      panelEdgePadding,
+      viewportWidth - panelWidth - rightDockReservedWidth,
+    ),
+  );
+  const clampedTop = clamp(
+    panelTop,
+    panelEdgePadding,
+    Math.max(panelEdgePadding, viewportHeight - panelHeight - panelEdgePadding),
+  );
+  let clampedHeight = clamp(
+    panelHeight,
+    320,
+    Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+  );
+
+  const currentMyStoreStep = resolveMyStoreStep(state.ui?.myStoreStep);
+  if (
+    myStoreScrollElement instanceof HTMLElement
+    && myStoreHeaderElement instanceof HTMLElement
+  ) {
+    const scrollComputedStyle = window.getComputedStyle(myStoreScrollElement);
+    const scrollPaddingTop = Math.max(0, safeNumber(Number.parseFloat(scrollComputedStyle.paddingTop), 0));
+    const scrollPaddingBottom = Math.max(0, safeNumber(Number.parseFloat(scrollComputedStyle.paddingBottom), 0));
+    const headerHeight = Math.max(0, safeNumber(myStoreHeaderElement.getBoundingClientRect().height, 0));
+    if (
+      currentMyStoreStep === MY_STORE_STEP_CHECKOUT
+      && myStoreCheckoutViewElement instanceof HTMLElement
+    ) {
+      const checkoutContentHeight = Math.max(0, safeNumber(myStoreCheckoutViewElement.scrollHeight, 0));
+      const checkoutTargetHeight = Math.ceil(
+        headerHeight
+        + scrollPaddingTop
+        + checkoutContentHeight
+        + scrollPaddingBottom
+        + 96,
+      );
+      clampedHeight = clamp(
+        checkoutTargetHeight,
+        460,
+        Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+      );
+    } else if (
+      currentMyStoreStep === MY_STORE_STEP_THANK_YOU
+      && myStoreThankYouViewElement instanceof HTMLElement
+    ) {
+      const thankYouContentHeight = Math.max(0, safeNumber(myStoreThankYouViewElement.scrollHeight, 0));
+      const thankYouTargetHeight = Math.ceil(
+        headerHeight
+        + scrollPaddingTop
+        + thankYouContentHeight
+        + scrollPaddingBottom
+        + 60,
+      );
+      clampedHeight = clamp(
+        thankYouTargetHeight,
+        420,
+        Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+      );
+    } else if (
+      currentMyStoreStep === MY_STORE_STEP_REVIEW
+      && myStoreReviewViewElement instanceof HTMLElement
+    ) {
+      const reviewContentHeight = Math.max(0, safeNumber(myStoreReviewViewElement.scrollHeight, 0));
+      const includeShareSection = myStoreShareViewElement instanceof HTMLElement
+        && window.getComputedStyle(myStoreShareViewElement).display !== 'none';
+      const shareContentHeight = includeShareSection
+        ? Math.max(0, safeNumber(myStoreShareViewElement.scrollHeight, 0))
+        : 0;
+      const reviewTargetHeight = Math.ceil(
+        headerHeight
+        + scrollPaddingTop
+        + reviewContentHeight
+        + shareContentHeight
+        + scrollPaddingBottom
+        + 44,
+      );
+      clampedHeight = clamp(
+        reviewTargetHeight,
+        420,
+        Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+      );
+    } else if (
+      currentMyStoreStep === MY_STORE_STEP_CATALOG
+      && myStoreCatalogViewElement instanceof HTMLElement
+    ) {
+      const homeNodeId = resolvePreferredGlobalHomeNodeId();
+      const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+      const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+      const hasUpgradeablePackages = resolveMyStoreUpgradePackageKeys(currentPackageKey).length > 0;
+      if (!hasUpgradeablePackages) {
+        const catalogContentHeight = Math.max(0, safeNumber(myStoreCatalogViewElement.scrollHeight, 0));
+        const includeShareSection = myStoreShareViewElement instanceof HTMLElement
+          && window.getComputedStyle(myStoreShareViewElement).display !== 'none';
+        const shareContentHeight = includeShareSection
+          ? Math.max(0, safeNumber(myStoreShareViewElement.scrollHeight, 0))
+          : 0;
+        const catalogTargetHeight = Math.ceil(
+          headerHeight
+          + scrollPaddingTop
+          + catalogContentHeight
+          + shareContentHeight
+          + scrollPaddingBottom
+          + 44,
+        );
+        clampedHeight = clamp(
+          catalogTargetHeight,
+          420,
+          Math.max(320, viewportHeight - (panelEdgePadding * 2)),
+        );
+      }
+    }
+  }
+
+  myStorePanelElement.style.setProperty('--tree-next-my-store-left', `${clampedLeft}px`);
+  myStorePanelElement.style.setProperty('--tree-next-my-store-top', `${clampedTop}px`);
+  myStorePanelElement.style.setProperty('--tree-next-my-store-width', `${panelWidth}px`);
+  myStorePanelElement.style.setProperty('--tree-next-my-store-height', `${clampedHeight}px`);
+  myStorePanelElement.classList.remove('is-positioning');
+}
+
+function syncMyStorePanelVisuals() {
+  if (!isMyStorePanelAvailable()) {
+    return;
+  }
+
+  const homeNodeId = resolvePreferredGlobalHomeNodeId();
+  const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+  const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  const currentStep = resolveMyStoreStep(state.ui?.myStoreStep);
+  const selection = resolveMyStoreSelection(currentPackageKey);
+  const checkoutAmounts = resolveMyStoreCheckoutAmounts(selection, currentPackageKey);
+  const upgradeKeys = resolveMyStoreUpgradePackageKeys(currentPackageKey);
+  const shareLink = resolveMyStoreShareLink(homeNode);
+  const completionSummary = resolveMyStoreCheckoutCompletionSummary();
+  const renderSignature = [
+    currentStep,
+    selection.action,
+    selection.packageKey,
+    selection.upgradeProductKey,
+    selection.upgradeProductQuantity,
+    selection.label,
+    selection.unitPrice,
+    selection.unitBv,
+    selection.quantity,
+    currentPackageKey,
+    upgradeKeys.join('|'),
+    shareLink,
+    completionSummary.message,
+    completionSummary.invoiceId,
+    completionSummary.status,
+    completionSummary.amountPaid,
+    completionSummary.bv,
+    completionSummary.dateLabel,
+    state.ui?.myStoreCheckoutSubmitting ? '1' : '0',
+  ].join('::');
+  if (renderSignature === myStoreLastRenderSignature) {
+    return;
+  }
+  myStoreLastRenderSignature = renderSignature;
+
+  if (myStoreFeaturedLabelElement instanceof HTMLElement) {
+    myStoreFeaturedLabelElement.textContent = MY_STORE_FEATURED_PRODUCT.label;
+  }
+  if (myStoreFeaturedImageElement instanceof HTMLImageElement) {
+    myStoreFeaturedImageElement.src = MY_STORE_FEATURED_PRODUCT.imageUrl;
+    myStoreFeaturedImageElement.alt = MY_STORE_FEATURED_PRODUCT.label;
+  }
+
+  myStorePanelElement.setAttribute('data-my-store-step', currentStep);
+  renderMyStoreBreadcrumbs(currentStep, { isUpgradeReview: checkoutAmounts.isUpgradeSelection });
+  if (myStoreReviewTitleElement instanceof HTMLElement) {
+    myStoreReviewTitleElement.textContent = checkoutAmounts.isUpgradeSelection
+      ? 'Review Upgrade'
+      : 'Review Purchase';
+  }
+
+  if (myStoreReviewImageElement instanceof HTMLImageElement) {
+    myStoreReviewImageElement.src = selection.imageUrl || MY_STORE_FEATURED_PRODUCT.imageUrl;
+    myStoreReviewImageElement.alt = checkoutAmounts.isUpgradeSelection
+      ? (safeText(selection.upgradeProductLabel) || selection.label)
+      : selection.label;
+  }
+  if (myStoreReviewNameElement instanceof HTMLElement) {
+    myStoreReviewNameElement.textContent = selection.label;
+  }
+  if (myStoreReviewQuantityElement instanceof HTMLElement) {
+    if (checkoutAmounts.isUpgradeSelection) {
+      const upgradeProductLabel = safeText(selection.upgradeProductLabel)
+        || resolveMyStoreUpgradeProductMeta(selection.upgradeProductKey).label;
+      const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeProductQuantity, 0)));
+      myStoreReviewQuantityElement.textContent = `${upgradeProductLabel} ${formatInteger(upgradeProductQuantity)}x`;
+    } else {
+      myStoreReviewQuantityElement.textContent = `${checkoutAmounts.quantity}x`;
+    }
+  }
+  const isQuantityEditable = !checkoutAmounts.isUpgradeSelection;
+  if (myStoreReviewQuantityControlElement instanceof HTMLElement) {
+    myStoreReviewQuantityControlElement.classList.toggle('is-readonly', !isQuantityEditable);
+  }
+  if (myStoreReviewUpgradeProductSelectorElement instanceof HTMLElement) {
+    myStoreReviewUpgradeProductSelectorElement.classList.toggle('is-hidden', !checkoutAmounts.isUpgradeSelection);
+  }
+  for (const buttonElement of myStoreReviewUpgradeProductButtons) {
+    if (!(buttonElement instanceof HTMLButtonElement)) {
+      continue;
+    }
+    const buttonProductKey = normalizeCredentialValue(buttonElement.dataset.myStoreUpgradeProductKey);
+    const isSelected = checkoutAmounts.isUpgradeSelection
+      && buttonProductKey
+      && buttonProductKey === normalizeCredentialValue(selection.upgradeProductKey);
+    buttonElement.classList.toggle('is-selected', Boolean(isSelected));
+    buttonElement.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+  }
+  if (myStoreReviewQuantityDecreaseButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewQuantityDecreaseButtonElement.disabled = !isQuantityEditable || checkoutAmounts.quantity <= 1;
+  }
+  if (myStoreReviewQuantityIncreaseButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewQuantityIncreaseButtonElement.disabled = !isQuantityEditable || checkoutAmounts.quantity >= 99;
+  }
+  if (myStoreReviewPriceElement instanceof HTMLElement) {
+    myStoreReviewPriceElement.textContent = formatEnrollCurrency(checkoutAmounts.subtotal);
+  }
+  if (myStoreReviewBvElement instanceof HTMLElement) {
+    myStoreReviewBvElement.textContent = `${formatInteger(checkoutAmounts.totalBv)} BV`;
+  }
+
+  if (myStoreUpgradesSectionElement instanceof HTMLElement) {
+    const shouldShowUpgrades = upgradeKeys.length > 0;
+    myStoreUpgradesSectionElement.classList.toggle('is-empty', !shouldShowUpgrades);
+  }
+
+  if (myStoreUpgradesGridElement instanceof HTMLElement) {
+    if (!upgradeKeys.length) {
+      myStoreUpgradesGridElement.innerHTML = '';
+    } else {
+      myStoreUpgradesGridElement.innerHTML = upgradeKeys.map((packageKey) => {
+        const packageLabel = resolveMyStoreUpgradePackageLabel(packageKey);
+        return `
+          <button
+            class="tree-next-my-store-upgrade-card tree-next-my-store-product-button"
+            type="button"
+            data-my-store-product-action="upgrade"
+            data-my-store-package-key="${packageKey}"
+          >
+            <div class="tree-next-my-store-product-image-shell is-upgrade">
+              <img src="${MY_STORE_FEATURED_PRODUCT.imageUrl}" alt="${packageLabel}" />
+            </div>
+            <p class="tree-next-my-store-upgrade-label">${packageLabel}</p>
+          </button>
+        `;
+      }).join('');
+    }
+  }
+
+  if (myStoreCheckoutProductLabelElement instanceof HTMLElement) {
+    if (checkoutAmounts.isUpgradeSelection) {
+      const upgradeProductLabel = safeText(selection.upgradeProductLabel)
+        || resolveMyStoreUpgradeProductMeta(selection.upgradeProductKey).label;
+      const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeProductQuantity, 0)));
+      myStoreCheckoutProductLabelElement.textContent = `${selection.label} - ${upgradeProductLabel} x${formatInteger(upgradeProductQuantity)}`;
+    } else {
+      myStoreCheckoutProductLabelElement.textContent = selection.label;
+    }
+  }
+  if (myStoreCheckoutSubtotalElement instanceof HTMLElement) {
+    myStoreCheckoutSubtotalElement.textContent = formatEnrollCurrency(checkoutAmounts.subtotal);
+  }
+  if (myStoreCheckoutDiscountElement instanceof HTMLElement) {
+    myStoreCheckoutDiscountElement.textContent = formatEnrollCurrency(checkoutAmounts.discount);
+  }
+  if (myStoreCheckoutTaxElement instanceof HTMLElement) {
+    myStoreCheckoutTaxElement.textContent = STRIPE_TAX_CALCULATED_LABEL;
+  }
+  if (myStoreCheckoutTotalElement instanceof HTMLElement) {
+    myStoreCheckoutTotalElement.textContent = formatEnrollCurrency(checkoutAmounts.total);
+  }
+  if (myStoreThankYouMessageElement instanceof HTMLElement) {
+    myStoreThankYouMessageElement.textContent = completionSummary.message;
+  }
+  if (myStoreThankYouInvoiceElement instanceof HTMLElement) {
+    myStoreThankYouInvoiceElement.textContent = completionSummary.invoiceId;
+  }
+  if (myStoreThankYouStatusElement instanceof HTMLElement) {
+    myStoreThankYouStatusElement.textContent = completionSummary.status;
+  }
+  if (myStoreThankYouAmountElement instanceof HTMLElement) {
+    myStoreThankYouAmountElement.textContent = formatEnrollCurrency(completionSummary.amountPaid);
+  }
+  if (myStoreThankYouBvElement instanceof HTMLElement) {
+    myStoreThankYouBvElement.textContent = `${formatInteger(completionSummary.bv)} BV`;
+  }
+  if (myStoreThankYouDateElement instanceof HTMLElement) {
+    myStoreThankYouDateElement.textContent = completionSummary.dateLabel;
+  }
+  if (myStoreCheckoutPayButtonElement instanceof HTMLButtonElement) {
+    const isSubmitting = Boolean(state.ui?.myStoreCheckoutSubmitting);
+    myStoreCheckoutPayButtonElement.disabled = isSubmitting;
+    if (!isSubmitting) {
+      myStoreCheckoutPayButtonElement.textContent = 'Continue to Stripe';
+    }
+  }
+  if (myStoreCheckoutPreviousButtonElement instanceof HTMLButtonElement) {
+    myStoreCheckoutPreviousButtonElement.disabled = Boolean(state.ui?.myStoreCheckoutSubmitting);
+  }
+
+  if (myStoreCopyLinkButtonElement instanceof HTMLButtonElement) {
+    myStoreCopyLinkButtonElement.dataset.shareLink = shareLink;
+    myStoreCopyLinkButtonElement.setAttribute('title', shareLink);
+  }
+}
+
+function syncMyStorePanelVisibility() {
+  if (!isMyStorePanelAvailable()) {
+    return;
+  }
+
+  const isVisible = Boolean(state.ui?.myStoreVisible);
+  myStorePanelElement.classList.toggle('is-hidden', !isVisible);
+  myStorePanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+}
+
+function setMyStorePanelVisible(isVisible) {
+  const nextVisible = Boolean(isVisible);
+  state.ui.myStoreVisible = nextVisible;
+  if (nextVisible) {
+    state.ui.accountOverviewVisible = false;
+    state.ui.infinityBuilderVisible = false;
+    state.ui.rankAdvancementVisible = false;
+    state.ui.preferredAccountsVisible = false;
+    syncAccountOverviewPanelVisibility();
+    syncInfinityBuilderPanelVisibility();
+    syncRankAdvancementPanelVisibility();
+    syncPreferredAccountsPanelVisibility();
+    state.ui.myStoreStep = MY_STORE_STEP_CATALOG;
+    state.ui.myStoreCheckoutCompletion = null;
+    state.ui.myStoreCheckoutSubmitting = false;
+    if (!state.ui.myStoreSelection || typeof state.ui.myStoreSelection !== 'object') {
+      state.ui.myStoreSelection = buildMyStoreSelection('featured');
+    }
+    setMyStoreCopyFeedback('');
+    resetMyStoreCheckoutForm();
+    myStoreLastRenderSignature = '';
+    syncMyStorePanelVisuals();
+  } else {
+    setMyStoreCheckoutFeedback('');
+  }
+  syncMyStorePanelVisibility();
+}
+
+function initMyStorePanel() {
+  if (!isMyStorePanelAvailable()) {
+    return;
+  }
+
+  syncMyStorePanelPosition();
+  syncMyStorePanelVisuals();
+  syncMyStorePanelVisibility();
+  setMyStoreCopyFeedback('');
+  setMyStoreCheckoutFeedback('');
+
+  if (myStoreCloseButtonElement instanceof HTMLButtonElement) {
+    myStoreCloseButtonElement.addEventListener('click', () => {
+      setMyStorePanelVisible(false);
+    });
+  }
+
+  if (myStoreCopyLinkButtonElement instanceof HTMLButtonElement) {
+    myStoreCopyLinkButtonElement.addEventListener('click', () => {
+      void copyMyStoreShareLink();
+    });
+  }
+
+  if (myStoreReviewRemoveButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewRemoveButtonElement.addEventListener('click', () => {
+      removeMyStoreSelection();
+    });
+  }
+
+  if (myStoreReviewCheckoutButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewCheckoutButtonElement.addEventListener('click', () => {
+      void submitMyStoreCheckout();
+    });
+  }
+
+  if (myStoreReviewQuantityDecreaseButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewQuantityDecreaseButtonElement.addEventListener('click', () => {
+      const homeNodeId = resolvePreferredGlobalHomeNodeId();
+      const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+      const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+      const currentSelection = resolveMyStoreSelection(currentPackageKey);
+      setMyStoreSelectionQuantity(currentSelection.quantity - 1);
+    });
+  }
+
+  if (myStoreReviewQuantityIncreaseButtonElement instanceof HTMLButtonElement) {
+    myStoreReviewQuantityIncreaseButtonElement.addEventListener('click', () => {
+      const homeNodeId = resolvePreferredGlobalHomeNodeId();
+      const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+      const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+      const currentSelection = resolveMyStoreSelection(currentPackageKey);
+      setMyStoreSelectionQuantity(currentSelection.quantity + 1);
+    });
+  }
+
+  if (myStoreCheckoutPreviousButtonElement instanceof HTMLButtonElement) {
+    myStoreCheckoutPreviousButtonElement.addEventListener('click', () => {
+      returnToMyStoreReviewStep();
+    });
+  }
+
+  if (myStoreThankYouDoneButtonElement instanceof HTMLButtonElement) {
+    myStoreThankYouDoneButtonElement.addEventListener('click', () => {
+      removeMyStoreSelection();
+    });
+  }
+
+  if (myStoreCheckoutPayButtonElement instanceof HTMLButtonElement) {
+    myStoreCheckoutPayButtonElement.addEventListener('click', () => {
+      void submitMyStoreCheckout();
+    });
+  }
+
+  if (myStoreCheckoutFormElement instanceof HTMLFormElement) {
+    myStoreCheckoutFormElement.addEventListener('submit', (event) => {
+      event.preventDefault();
+      void submitMyStoreCheckout();
+    });
+  }
+
+  if (myStoreCheckoutBillingCountrySelect instanceof HTMLSelectElement) {
+    myStoreCheckoutBillingCountrySelect.value = ENROLL_DEFAULT_BILLING_COUNTRY_CODE;
+    myStoreCheckoutBillingCountrySelect.addEventListener('change', () => {
+      setMyStoreCheckoutFeedback('');
+      clearMyStoreCheckoutCardError();
+    });
+  }
+
+  myStorePanelElement.addEventListener('click', (event) => {
+    const targetElement = event.target instanceof Element ? event.target : null;
+    if (!targetElement) {
+      return;
+    }
+    const navStepButton = targetElement.closest('[data-my-store-nav-step]');
+    if (navStepButton instanceof HTMLButtonElement) {
+      if (state.ui?.myStoreCheckoutSubmitting) {
+        return;
+      }
+      const nextStep = safeText(navStepButton.dataset.myStoreNavStep);
+      setMyStoreStep(nextStep, { clearCheckoutFeedback: true });
+      return;
+    }
+    const upgradeProductButton = targetElement.closest('[data-my-store-upgrade-product-key]');
+    if (upgradeProductButton instanceof HTMLButtonElement) {
+      const upgradeProductKey = safeText(upgradeProductButton.dataset.myStoreUpgradeProductKey);
+      setMyStoreUpgradeSelectionProduct(upgradeProductKey);
+      return;
+    }
+    const productActionButton = targetElement.closest('[data-my-store-product-action]');
+    if (!(productActionButton instanceof HTMLButtonElement)) {
+      return;
+    }
+    const productAction = safeText(productActionButton.dataset.myStoreProductAction);
+    const packageKey = safeText(productActionButton.dataset.myStorePackageKey);
+    navigateToMyStoreProduct(productAction, packageKey);
+  });
 }
 
 function setTreeNextEnrollModalOpen(isOpen) {
@@ -2848,6 +13155,7 @@ function closeTreeNextEnrollModal(options = {}) {
   if (clearPendingPlacement) {
     state.enroll.pendingPlacement = null;
   }
+  restoreTreeNextMobileCenterPanelHalfStage({ animate: true });
 
   if (
     restoreFocus
@@ -2878,10 +13186,15 @@ function openTreeNextEnrollModal(requestDetail = {}) {
     || parentId,
   ) || parentId;
   const parentReference = safeText(
-    requestDetail?.parentMemberCode
-    || requestDetail?.parentUsername
+    requestDetail?.parentUsername
+    || requestDetail?.parentMemberCode
     || parentId,
   ) || parentId;
+
+  if (isTreeNextMobileViewport()) {
+    state.ui.sideNavOpen = true;
+    setTreeNextMobileSidePanelStage(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL, { animate: false });
+  }
 
   state.enroll.lastTriggerElement = document.activeElement instanceof HTMLElement
     ? document.activeElement
@@ -2949,7 +13262,6 @@ function openTreeNextEnrollModal(requestDetail = {}) {
       treeNextEnrollEmailInput.focus({ preventScroll: true });
     }
   });
-  void initializeTreeNextEnrollStripeCard({ silent: true });
 }
 
 function resolvePlacementSponsorIdentity(placementLock) {
@@ -2977,12 +13289,32 @@ function resolvePlacementSponsorIdentity(placementLock) {
   };
 }
 
+function buildTreeNextEnrollRequestHeaders(baseHeaders = {}) {
+  const headers = {
+    ...baseHeaders,
+  };
+
+  if (state.source !== 'member') {
+    return headers;
+  }
+
+  const authToken = safeText(state.session?.authToken);
+  if (!authToken) {
+    throw new Error('Missing member auth token. Sign in again before enrolling.');
+  }
+
+  return {
+    ...headers,
+    Authorization: `Bearer ${authToken}`,
+  };
+}
+
 async function submitTreeNextEnrollmentRequest(payload = {}) {
   const response = await fetch(resolveEnrollRegisteredMembersApi(), {
     method: 'POST',
-    headers: {
+    headers: buildTreeNextEnrollRequestHeaders({
       'Content-Type': 'application/json',
-    },
+    }),
     credentials: 'same-origin',
     body: JSON.stringify(payload),
   });
@@ -3008,12 +13340,12 @@ async function submitTreeNextEnrollmentRequest(payload = {}) {
   return createdMember;
 }
 
-async function createTreeNextEnrollmentPaymentIntent(payload = {}) {
-  const response = await fetch(resolveEnrollRegisteredMembersIntentApi(), {
+async function createTreeNextEnrollmentCheckoutSession(payload = {}) {
+  const response = await fetch(resolveEnrollRegisteredMembersSessionApi(), {
     method: 'POST',
-    headers: {
+    headers: buildTreeNextEnrollRequestHeaders({
       'Content-Type': 'application/json',
-    },
+    }),
     credentials: 'same-origin',
     body: JSON.stringify(payload),
   });
@@ -3022,39 +13354,39 @@ async function createTreeNextEnrollmentPaymentIntent(payload = {}) {
   if (!response.ok) {
     const failureMessage = typeof responsePayload?.error === 'string'
       ? responsePayload.error
-      : 'Unable to create Stripe payment intent for enrollment.';
+      : 'Unable to create Stripe checkout session for enrollment.';
     throw new Error(failureMessage);
   }
 
-  const paymentIntentId = safeText(responsePayload?.paymentIntentId);
-  const clientSecret = safeText(responsePayload?.clientSecret);
-  if (!paymentIntentId || !clientSecret) {
-    throw new Error('Enrollment payment intent response is missing required Stripe fields.');
+  const sessionId = safeText(responsePayload?.sessionId);
+  const sessionUrl = safeText(responsePayload?.sessionUrl);
+  if (!sessionId || !sessionUrl) {
+    throw new Error('Enrollment checkout response is missing Stripe session details.');
   }
 
   return {
-    paymentIntentId,
-    clientSecret,
+    sessionId,
+    sessionUrl,
     checkout: responsePayload?.checkout && typeof responsePayload.checkout === 'object'
       ? responsePayload.checkout
       : {},
   };
 }
 
-async function completeTreeNextEnrollmentPaymentIntent(paymentIntentId) {
-  const safePaymentIntentId = safeText(paymentIntentId);
-  if (!safePaymentIntentId) {
-    throw new Error('Payment intent ID is required to finalize enrollment.');
+async function completeTreeNextEnrollmentCheckoutSession(sessionId) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    throw new Error('Checkout session ID is required to finalize enrollment.');
   }
 
-  const response = await fetch(resolveEnrollRegisteredMembersIntentCompleteApi(), {
+  const response = await fetch(resolveEnrollRegisteredMembersSessionCompleteApi(), {
     method: 'POST',
-    headers: {
+    headers: buildTreeNextEnrollRequestHeaders({
       'Content-Type': 'application/json',
-    },
+    }),
     credentials: 'same-origin',
     body: JSON.stringify({
-      paymentIntentId: safePaymentIntentId,
+      sessionId: safeSessionId,
     }),
   });
 
@@ -3062,7 +13394,7 @@ async function completeTreeNextEnrollmentPaymentIntent(paymentIntentId) {
   if (!response.ok) {
     const failureMessage = typeof responsePayload?.error === 'string'
       ? responsePayload.error
-      : 'Unable to finalize enrollment payment.';
+      : 'Unable to finalize enrollment checkout.';
     throw new Error(failureMessage);
   }
 
@@ -3078,10 +13410,392 @@ async function completeTreeNextEnrollmentPaymentIntent(paymentIntentId) {
       ? responsePayload.invoice
       : null,
     warning: safeText(responsePayload?.warning),
+    checkoutSession: responsePayload?.checkoutSession && typeof responsePayload.checkoutSession === 'object'
+      ? responsePayload.checkoutSession
+      : null,
     paymentIntent: responsePayload?.paymentIntent && typeof responsePayload.paymentIntent === 'object'
       ? responsePayload.paymentIntent
       : null,
   };
+}
+
+async function finalizeTreeNextEnrollmentCheckoutSessionFromStripeReturn(sessionId, options = {}) {
+  const safeSessionId = safeText(sessionId);
+  if (!safeSessionId) {
+    return;
+  }
+  if (enrollCheckoutFinalizationInFlightSessionIds.has(safeSessionId)) {
+    return;
+  }
+  enrollCheckoutFinalizationInFlightSessionIds.add(safeSessionId);
+  const submitLabel = treeNextEnrollModalSubmitButton instanceof HTMLButtonElement
+    ? treeNextEnrollModalSubmitButton.textContent || 'Register and Pay'
+    : 'Register and Pay';
+
+  try {
+    const checkoutWindow = options?.checkoutWindow;
+    const preserveCurrentStep = Boolean(options?.preserveCurrentStep);
+    const pendingCheckoutState = readTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY);
+    const pendingPlacementLock = (
+      pendingCheckoutState?.placementLock && typeof pendingCheckoutState.placementLock === 'object'
+    )
+      ? pendingCheckoutState.placementLock
+      : null;
+    const pendingPackageKey = resolveTreeNextEnrollPackageKey(
+      pendingCheckoutState?.packageKey || ENROLL_DEFAULT_PACKAGE_KEY,
+    );
+    const pendingTierKey = normalizeCredentialValue(
+      pendingCheckoutState?.tierKey || resolveEnrollFastTrackTierFromPackage(pendingPackageKey),
+    );
+    const pendingSpilloverSide = normalizeBinarySide(pendingCheckoutState?.spilloverPlacementSide) === 'right'
+      ? 'right'
+      : 'left';
+    const pendingSpilloverMode = Boolean(pendingCheckoutState?.isSpilloverPlacement);
+
+    if (pendingPlacementLock && typeof pendingPlacementLock === 'object') {
+      state.enroll.placementLock = {
+        ...pendingPlacementLock,
+      };
+    }
+
+    setTreeNextEnrollModalOpen(true);
+    if (!preserveCurrentStep) {
+      setTreeNextEnrollStep(3, { focusField: false });
+    }
+    state.enroll.submitting = true;
+    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
+      treeNextEnrollModalSubmitButton.disabled = true;
+      treeNextEnrollModalSubmitButton.textContent = 'Finalizing enrollment...';
+    }
+    setTreeNextEnrollFeedback('Finalizing enrollment...', 'neutral', { loading: true });
+
+    const maxAttempts = checkoutWindow ? 240 : 5;
+    const pollDelayMs = checkoutWindow ? 1200 : 700;
+    let completionResult = await completeTreeNextEnrollmentCheckoutSession(safeSessionId);
+    let completionAttempts = 0;
+    while (!completionResult.completed && completionAttempts < maxAttempts) {
+      if (checkoutWindow?.closed) {
+        completionResult = await completeTreeNextEnrollmentCheckoutSession(safeSessionId);
+        if (!completionResult.completed) {
+          throw new Error('Stripe checkout window was closed before payment completed.');
+        }
+        break;
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, pollDelayMs));
+      completionAttempts += 1;
+      completionResult = await completeTreeNextEnrollmentCheckoutSession(safeSessionId);
+    }
+    if (!completionResult.completed || !completionResult.member) {
+      throw new Error('Payment captured, but enrollment is still processing. Please retry in a moment.');
+    }
+    if (checkoutWindow && !checkoutWindow.closed) {
+      checkoutWindow.close();
+    }
+
+    const createdMember = completionResult.member;
+    const enrolledName = safeText(createdMember?.fullName || createdMember?.name) || 'Member';
+    const packageLabel = safeText(
+      createdMember?.enrollmentPackageLabel
+      || resolveEnrollPackageMeta(pendingPackageKey)?.label
+      || 'Legacy Builder Package',
+    ) || 'Legacy Builder Package';
+    const effectiveTier = normalizeCredentialValue(createdMember?.fastTrackTier || pendingTierKey);
+    const fallbackBonus = resolveEnrollFastTrackBonusAmount(pendingPackageKey, effectiveTier);
+    const commissionAmount = Math.max(0, safeNumber(createdMember?.fastTrackBonusAmount, fallbackBonus));
+
+    const placementLock = pendingPlacementLock && typeof pendingPlacementLock === 'object'
+      ? pendingPlacementLock
+      : null;
+    const placementSide = normalizeBinarySide(placementLock?.placementLeg) || pendingSpilloverSide;
+    const placementSideLabel = (placementSide === 'right' ? 'RIGHT' : 'LEFT');
+    const isSpilloverPlacement = pendingSpilloverMode || normalizeCredentialValue(placementLock?.placementLeg) === 'spillover';
+    const placementSummary = isSpilloverPlacement
+      ? `SPILLOVER ${placementSideLabel}`
+      : `${placementSideLabel} leg`;
+    const spilloverParentReference = safeText(
+      createdMember?.spilloverParentReference
+      || createdMember?.spillover_parent_reference,
+    );
+    const hasManualSpilloverParent = isSpilloverPlacement && Boolean(spilloverParentReference);
+    const parentLabel = safeText(placementLock?.parentName || placementLock?.parentId || 'selected sponsor');
+    const successFeedback = (isSpilloverPlacement && !hasManualSpilloverParent)
+      ? `${enrolledName} enrolled on ${placementSummary}. Receiving parent will auto-assign after live sync.`
+      : `${enrolledName} enrolled on ${placementSummary} under ${parentLabel}.`;
+    const finalFeedback = completionResult.warning
+      ? `${successFeedback} ${completionResult.warning}`
+      : successFeedback;
+
+    if (placementLock) {
+      state.enroll.pendingPlacement = {
+        createdMember,
+        placementLock: {
+          ...placementLock,
+        },
+        packageKey: pendingPackageKey,
+      };
+    } else {
+      state.enroll.pendingPlacement = null;
+    }
+
+    // Keep the tree slot reserved until the user confirms via Done.
+    // Forced live sync here can pre-place the node and cause duplicate placement errors.
+    if (!state.enroll.pendingPlacement) {
+      await syncTreeNextLiveNodes({ force: true, silent: true, reason: 'enroll-hosted-checkout' });
+    }
+
+    void (async () => {
+      try {
+        if (state.source === 'member') {
+          await refreshAuthenticatedMemberSessionSnapshot({ skipAccountOverviewReset: true });
+        }
+        resetAccountOverviewRemoteSnapshot();
+        resetRankAdvancementSnapshot();
+        const overviewContext = resolveAccountOverviewPanelContext();
+        const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+        await refreshAccountOverviewRemoteSnapshot({
+          force: true,
+          homeNode,
+          scope: overviewContext?.scope,
+          preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+        });
+        await refreshRankAdvancementSnapshot({
+          force: true,
+          homeNode,
+        });
+        syncAccountOverviewPanelVisuals();
+        syncRankAdvancementPanelVisuals();
+      } catch {
+        // Enrollment success should not fail when account-overview refresh has transient network issues.
+      }
+    })();
+
+    setTreeNextEnrollFeedback(finalFeedback, true);
+    showTreeNextEnrollThankYouStep({
+      enrolledName,
+      packageLabel,
+      commissionAmount,
+      passwordSetupLink: createdMember?.passwordSetupLink,
+    });
+    clearTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY);
+  } catch (error) {
+    const fallbackMessage = error instanceof Error
+      ? error.message
+      : 'Unable to finalize enrollment right now.';
+    setTreeNextEnrollFeedback(fallbackMessage, false);
+  } finally {
+    state.enroll.submitting = false;
+    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
+      treeNextEnrollModalSubmitButton.disabled = false;
+      treeNextEnrollModalSubmitButton.textContent = submitLabel;
+    }
+    enrollCheckoutFinalizationInFlightSessionIds.delete(safeSessionId);
+  }
+}
+
+function normalizeTreeNextStripeReturnPayload(payload = {}) {
+  const source = payload && typeof payload === 'object'
+    ? payload
+    : {};
+  const checkoutStatus = normalizeCredentialValue(
+    source.checkoutStatus || source.status,
+  );
+  const flow = normalizeCredentialValue(source.flow);
+  const sessionId = safeText(source.sessionId);
+  const signalId = safeText(source.signalId || source.id);
+  const emittedAtRaw = safeText(source.emittedAt);
+  const emittedAtMs = emittedAtRaw
+    ? Date.parse(emittedAtRaw)
+    : Number.NaN;
+  if (!checkoutStatus || !flow) {
+    return null;
+  }
+  if (checkoutStatus === 'success' && !sessionId) {
+    return null;
+  }
+  return {
+    checkoutStatus,
+    flow,
+    sessionId,
+    signalId,
+    emittedAtMs: Number.isFinite(emittedAtMs) ? emittedAtMs : 0,
+  };
+}
+
+function buildTreeNextStripeReturnSignalKey(payload = {}) {
+  const normalizedPayload = normalizeTreeNextStripeReturnPayload(payload);
+  if (!normalizedPayload) {
+    return '';
+  }
+  if (normalizedPayload.signalId) {
+    return normalizedPayload.signalId;
+  }
+  return `${normalizedPayload.flow}:${normalizedPayload.checkoutStatus}:${normalizedPayload.sessionId || 'none'}`;
+}
+
+async function processTreeNextStripeCheckoutReturnPayload(payload = {}, options = {}) {
+  const normalizedPayload = normalizeTreeNextStripeReturnPayload(payload);
+  if (!normalizedPayload) {
+    return false;
+  }
+  const checkoutStatus = normalizedPayload.checkoutStatus;
+  const flow = normalizedPayload.flow;
+  const sessionId = normalizedPayload.sessionId;
+  const preserveCurrentStep = Boolean(options?.preserveCurrentStep);
+
+  if (flow === TREE_NEXT_STRIPE_RETURN_FLOW_MY_STORE) {
+    if (checkoutStatus === 'cancel') {
+      setMyStorePanelVisible(true);
+      if (!preserveCurrentStep) {
+        setMyStoreStep(MY_STORE_STEP_CHECKOUT, { clearCheckoutFeedback: true });
+      }
+      setMyStoreCheckoutFeedback('Checkout was canceled. You can review your details and try again.', {
+        isError: true,
+      });
+      clearTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY);
+      return true;
+    }
+    if (checkoutStatus === 'success') {
+      if (options?.showPendingThankYou !== false) {
+        const pendingSummary = resolveMyStorePendingCheckoutSummary(sessionId);
+        setMyStorePanelVisible(true);
+        showMyStoreCheckoutPendingThankYouStep({
+          message: pendingSummary
+            ? 'Payment successful. Order confirmed instantly.'
+            : 'Payment successful. Receipt is syncing now.',
+          amountPaid: pendingSummary?.amountPaid,
+          bv: pendingSummary?.bv,
+          status: 'Pending',
+          invoiceId: pendingSummary?.invoiceId || 'Generating...',
+          dateLabel: pendingSummary?.dateLabel,
+        });
+      }
+      await finalizeMyStoreCheckoutSessionFromStripeReturn(sessionId, {
+        preserveCurrentStep: options?.showPendingThankYou !== false
+          ? true
+          : preserveCurrentStep,
+        ensurePanelVisible: options?.ensureMyStorePanelVisible !== false,
+        maxAttempts: options?.maxAttempts,
+        pollDelayMs: options?.pollDelayMs,
+      });
+      return true;
+    }
+    return true;
+  }
+
+  if (flow === TREE_NEXT_STRIPE_RETURN_FLOW_ENROLL) {
+    if (checkoutStatus === 'cancel') {
+      setTreeNextEnrollModalOpen(true);
+      if (!preserveCurrentStep) {
+        setTreeNextEnrollStep(1, { focusField: false });
+      }
+      setTreeNextEnrollFeedback('Checkout was canceled. Enrollment details were not submitted.', false);
+      clearTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY);
+      return true;
+    }
+    if (checkoutStatus === 'success') {
+      await finalizeTreeNextEnrollmentCheckoutSessionFromStripeReturn(sessionId, {
+        preserveCurrentStep,
+      });
+      return true;
+    }
+    return true;
+  }
+
+  return false;
+}
+
+function resolveTreeNextStripeReturnSignalPayload(rawValue) {
+  const parsed = parseSessionPayload(rawValue);
+  return normalizeTreeNextStripeReturnPayload(parsed || {});
+}
+
+async function processTreeNextStripeReturnSignalPayload(payload = {}, options = {}) {
+  const normalizedPayload = normalizeTreeNextStripeReturnPayload(payload);
+  if (!normalizedPayload) {
+    return false;
+  }
+  if (
+    normalizedPayload.emittedAtMs > 0
+    && (Date.now() - normalizedPayload.emittedAtMs) > TREE_NEXT_STRIPE_RETURN_SIGNAL_MAX_AGE_MS
+  ) {
+    return false;
+  }
+  const signalKey = buildTreeNextStripeReturnSignalKey(normalizedPayload);
+  if (signalKey && treeNextStripeReturnSignalHandledKeys.has(signalKey)) {
+    return false;
+  }
+  if (signalKey) {
+    treeNextStripeReturnSignalHandledKeys.add(signalKey);
+  }
+  try {
+    const handled = await processTreeNextStripeCheckoutReturnPayload(normalizedPayload, {
+      preserveCurrentStep: true,
+      ensureMyStorePanelVisible: true,
+      showPendingThankYou: true,
+      maxAttempts: 90,
+      pollDelayMs: 700,
+      ...options,
+    });
+    if (handled && options?.consumeSignal !== false) {
+      safeStorageRemove(window.localStorage, TREE_NEXT_STRIPE_RETURN_SIGNAL_STORAGE_KEY);
+    }
+    return handled;
+  } finally {
+    if (signalKey) {
+      treeNextStripeReturnSignalHandledKeys.delete(signalKey);
+    }
+  }
+}
+
+async function processTreeNextStripeReturnSignalFromStorage(options = {}) {
+  const signalPayload = resolveTreeNextStripeReturnSignalPayload(
+    safeStorageGet(window.localStorage, TREE_NEXT_STRIPE_RETURN_SIGNAL_STORAGE_KEY),
+  );
+  if (!signalPayload) {
+    return false;
+  }
+  return processTreeNextStripeReturnSignalPayload(signalPayload, options);
+}
+
+function onTreeNextStripeReturnMessage(event) {
+  if (!event || safeText(event.origin) !== window.location.origin) {
+    return;
+  }
+  const data = event.data && typeof event.data === 'object'
+    ? event.data
+    : null;
+  if (!data) {
+    return;
+  }
+  if (safeText(data.type) !== TREE_NEXT_STRIPE_RETURN_MESSAGE_TYPE) {
+    return;
+  }
+  const payload = data.payload && typeof data.payload === 'object'
+    ? data.payload
+    : data;
+  void processTreeNextStripeReturnSignalPayload(payload, {
+    preserveCurrentStep: true,
+  });
+}
+
+async function processTreeNextStripeCheckoutReturn() {
+  const returnDetails = resolveTreeNextStripeReturnDetails();
+  const hasReturnParams = Boolean(
+    returnDetails.checkoutStatus
+    || returnDetails.flow
+    || returnDetails.sessionId,
+  );
+  if (!hasReturnParams) {
+    return;
+  }
+  await processTreeNextStripeCheckoutReturnPayload(returnDetails, {
+    preserveCurrentStep: false,
+    ensureMyStorePanelVisible: true,
+    showPendingThankYou: true,
+    maxAttempts: 90,
+    pollDelayMs: 700,
+  });
+  clearTreeNextStripeReturnQueryParameters();
 }
 
 function resolveUniqueTreeNodeId(baseId) {
@@ -3102,6 +13816,139 @@ function resolveUniqueTreeNodeId(baseId) {
   }
 
   return `${fallbackBaseId}-${Date.now()}`;
+}
+
+function shouldSkipTreeNextPendingPlacementApply(pendingPlacement = null) {
+  const createdMember = pendingPlacement?.createdMember;
+  if (!createdMember || typeof createdMember !== 'object') {
+    return false;
+  }
+
+  const placementLegKey = normalizeCredentialValue(createdMember?.placementLeg);
+  const isSpilloverPlacement = Boolean(createdMember?.isSpillover) || SPILLOVER_PLACEMENT_KEY_SET.has(placementLegKey);
+  if (!isSpilloverPlacement) {
+    return false;
+  }
+
+  const spilloverParentReference = safeText(
+    createdMember?.spilloverParentReference
+    || createdMember?.spillover_parent_reference,
+  );
+  return !spilloverParentReference;
+}
+
+function buildTreeNextPlacementIdentityLookupSet(record = null) {
+  const source = record && typeof record === 'object' ? record : null;
+  const lookup = new Set();
+  if (!source) {
+    return lookup;
+  }
+
+  const register = (value) => {
+    const safeValue = safeText(value).replace(/^@+/, '');
+    const key = normalizeTreeNextLiveLookupKey(safeValue);
+    if (key) {
+      lookup.add(key);
+    }
+  };
+
+  register(source?.id);
+  register(source?.userId);
+  register(source?.user_id);
+  register(source?.memberId);
+  register(source?.member_id);
+  register(source?.memberUsername);
+  register(source?.member_username);
+  register(source?.username);
+  register(source?.memberCode);
+  register(source?.member_code);
+  register(source?.email);
+
+  return lookup;
+}
+
+function resolveExistingTreeNextPendingPlacementNode(pendingPlacement = null) {
+  const pending = pendingPlacement && typeof pendingPlacement === 'object'
+    ? pendingPlacement
+    : null;
+  const createdMember = pending?.createdMember && typeof pending.createdMember === 'object'
+    ? pending.createdMember
+    : null;
+  if (!createdMember) {
+    return null;
+  }
+
+  const memberLookup = buildTreeNextPlacementIdentityLookupSet(createdMember);
+  if (!memberLookup.size) {
+    return null;
+  }
+
+  const expectedParentId = safeText(pending?.placementLock?.parentId);
+  const expectedPlacementLeg = normalizeBinarySide(pending?.placementLock?.placementLeg) === 'right'
+    ? 'right'
+    : 'left';
+
+  let fallbackMatch = null;
+  for (const rawNode of state.nodes) {
+    const node = rawNode && typeof rawNode === 'object' ? rawNode : null;
+    if (!node) {
+      continue;
+    }
+    const nodeId = safeText(node?.id);
+    if (!nodeId || nodeId === 'root') {
+      continue;
+    }
+
+    const nodeLookup = buildTreeNextPlacementIdentityLookupSet({
+      id: nodeId,
+      userId: node?.userId,
+      user_id: node?.user_id,
+      memberId: node?.memberId,
+      member_id: node?.member_id,
+      memberUsername: node?.memberUsername || node?.username,
+      username: node?.username,
+      memberCode: node?.memberCode,
+      member_code: node?.member_code,
+      email: node?.email,
+    });
+    if (!nodeLookup.size) {
+      continue;
+    }
+
+    let matchedIdentity = false;
+    for (const key of nodeLookup) {
+      if (memberLookup.has(key)) {
+        matchedIdentity = true;
+        break;
+      }
+    }
+    if (!matchedIdentity) {
+      continue;
+    }
+
+    const nodeParentId = safeText(node?.parent || node?.parentId);
+    const nodePlacementLegRaw = normalizeBinarySide(node?.side || node?.placementSide || node?.sponsorLeg);
+    const nodePlacementLeg = nodePlacementLegRaw === 'right'
+      ? 'right'
+      : (nodePlacementLegRaw === 'left' ? 'left' : expectedPlacementLeg);
+    const strictPlacementMatch = expectedParentId
+      ? (nodeParentId === expectedParentId && nodePlacementLeg === expectedPlacementLeg)
+      : true;
+    const matchResult = {
+      nodeId,
+      parentId: nodeParentId || expectedParentId,
+      placementLeg: nodePlacementLeg || expectedPlacementLeg,
+    };
+
+    if (strictPlacementMatch) {
+      return matchResult;
+    }
+    if (!fallbackMatch) {
+      fallbackMatch = matchResult;
+    }
+  }
+
+  return fallbackMatch;
 }
 
 function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
@@ -3148,9 +13995,22 @@ function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
   const accountRank = safeText(createdMember?.accountRank || createdMember?.rank || '').trim() || 'Personal';
   const packageBv = Math.max(0, Math.floor(safeNumber(createdMember?.packageBv, packageMeta?.bv || 0)));
   const accountStatus = createdMember?.passwordSetupRequired ? 'Pending' : 'Active';
+  const starterPersonalPv = Math.max(0, Math.floor(safeNumber(createdMember?.starterPersonalPv, packageBv)));
+  const baselineStarterPersonalPv = Math.max(0, Math.floor(safeNumber(
+    createdMember?.serverCutoffBaselineStarterPersonalPv
+    ?? createdMember?.server_cutoff_baseline_starter_personal_pv,
+    0,
+  )));
+  const currentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
   const isSpilloverPlacement = Boolean(createdMember?.isSpillover)
     || normalizeCredentialValue(createdMember?.placementLeg) === 'spillover';
   const sponsorId = resolveTreeNextEnrollmentSponsorNodeId(createdMember, parentId, isSpilloverPlacement);
+  const sponsorUsername = safeText(
+    createdMember?.sponsorUsername
+    || createdMember?.sponsor_username
+    || createdMember?.sponsor
+    || '',
+  ).replace(/^@+/, '');
 
   state.nodes.push({
     id: nodeId,
@@ -3164,8 +14024,15 @@ function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
     rank: accountRank,
     title: `${accountRank} Builder`,
     badges: [accountRank],
-    volume: packageBv,
+    volume: starterPersonalPv > 0 ? starterPersonalPv : packageBv,
+    packageBv,
+    starterPersonalPv,
+    serverCutoffBaselineStarterPersonalPv: baselineStarterPersonalPv,
+    currentPersonalPvBv,
+    monthlyPersonalBv: currentPersonalPvBv,
     sponsorId,
+    globalSponsorId: sponsorId,
+    sponsorUsername,
     sponsorLeg: placementLeg,
     isSpillover: isSpilloverPlacement,
   });
@@ -3189,6 +14056,26 @@ function finalizePendingTreeNextEnrollmentPlacement(options = {}) {
       success: false,
       skipped: true,
       error: 'No pending enrollment placement to apply.',
+    };
+  }
+  if (shouldSkipTreeNextPendingPlacementApply(pendingPlacement)) {
+    state.enroll.pendingPlacement = null;
+    return {
+      success: false,
+      skipped: true,
+      reason: 'spillover-auto-placement',
+    };
+  }
+
+  const existingPlacement = resolveExistingTreeNextPendingPlacementNode(pendingPlacement);
+  if (existingPlacement?.nodeId) {
+    state.enroll.pendingPlacement = null;
+    return {
+      success: true,
+      nodeId: existingPlacement.nodeId,
+      parentId: existingPlacement.parentId,
+      placementLeg: normalizeBinarySide(existingPlacement.placementLeg) === 'right' ? 'right' : 'left',
+      alreadyPlaced: true,
     };
   }
 
@@ -3275,11 +14162,14 @@ function validateTreeNextEnrollStepTwo() {
   return true;
 }
 
-async function handleTreeNextEnrollModalSubmit(event) {
-  event.preventDefault();
+async function handleTreeNextEnrollModalSubmit(event = null) {
+  if (event && typeof event.preventDefault === 'function') {
+    event.preventDefault();
+  }
   clearTreeNextEnrollFeedback();
 
-  if (resolveTreeNextEnrollStep() !== 3) {
+  const currentStep = resolveTreeNextEnrollStep();
+  if (currentStep < 2) {
     return;
   }
   if (!(treeNextEnrollModalForm instanceof HTMLFormElement)) {
@@ -3305,59 +14195,6 @@ async function handleTreeNextEnrollModalSubmit(event) {
     return;
   }
 
-  const stripeReady = await initializeTreeNextEnrollStripeCard({ silent: true });
-  if (!stripeReady) {
-    setTreeNextEnrollFeedback('Stripe card fields are not ready yet.', false);
-    return;
-  }
-
-  const cardholderName = safeText(treeNextEnrollNameOnCardInput?.value);
-  const billingAddress = safeText(treeNextEnrollBillingAddressInput?.value);
-  const billingCity = safeText(treeNextEnrollBillingCityInput?.value);
-  const billingState = safeText(treeNextEnrollBillingStateInput?.value);
-  const billingPostalCode = safeText(treeNextEnrollBillingPostalCodeInput?.value);
-  const billingCountryValue = safeText(treeNextEnrollBillingCountrySelect?.value);
-  const billingCountryLabel = safeText(
-    treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement
-      ? treeNextEnrollBillingCountrySelect.selectedOptions?.[0]?.textContent
-      : '',
-  );
-  const billingCountryCode = resolveTreeNextEnrollStripeBillingCountryCode(
-    billingCountryValue || billingCountryLabel,
-  );
-  if (!cardholderName) {
-    setTreeNextEnrollFeedback('Cardholder name is required before checkout.', false);
-    if (treeNextEnrollNameOnCardInput instanceof HTMLInputElement) {
-      treeNextEnrollNameOnCardInput.focus({ preventScroll: true });
-    }
-    return;
-  }
-  if (!billingAddress || !billingCity || !billingState || !billingPostalCode || !billingCountryCode) {
-    setTreeNextEnrollFeedback('Billing address, city, state, ZIP, and country are required.', false);
-    if (!billingAddress && treeNextEnrollBillingAddressInput instanceof HTMLInputElement) {
-      treeNextEnrollBillingAddressInput.focus({ preventScroll: true });
-    } else if (!billingCity && treeNextEnrollBillingCityInput instanceof HTMLInputElement) {
-      treeNextEnrollBillingCityInput.focus({ preventScroll: true });
-    } else if (!billingState && treeNextEnrollBillingStateInput instanceof HTMLInputElement) {
-      treeNextEnrollBillingStateInput.focus({ preventScroll: true });
-    } else if (!billingPostalCode && treeNextEnrollBillingPostalCodeInput instanceof HTMLInputElement) {
-      treeNextEnrollBillingPostalCodeInput.focus({ preventScroll: true });
-    } else if (!billingCountryCode) {
-      const billingCountryEntry = treeNextEnrollCustomSelectByNativeId.get('tree-next-enroll-billing-country');
-      if (billingCountryEntry?.trigger instanceof HTMLButtonElement) {
-        billingCountryEntry.trigger.focus({ preventScroll: true });
-      } else if (treeNextEnrollBillingCountrySelect instanceof HTMLSelectElement) {
-        treeNextEnrollBillingCountrySelect.focus({ preventScroll: true });
-      }
-    }
-    return;
-  }
-  if (!isTreeNextEnrollStripeCardComplete || !isTreeNextEnrollStripeCardExpiryComplete || !isTreeNextEnrollStripeCardCvcComplete) {
-    setTreeNextEnrollCardError('Please enter a complete card number, expiry date, and CVC.');
-    setTreeNextEnrollFeedback('Please enter a complete card number, expiry date, and CVC.', false);
-    return;
-  }
-
   const email = safeText(treeNextEnrollEmailInput?.value);
   const memberUsername = safeText(treeNextEnrollUsernameInput?.value).replace(/^@+/, '');
   const firstName = safeText(treeNextEnrollFirstNameInput?.value);
@@ -3375,12 +14212,11 @@ async function handleTreeNextEnrollModalSubmit(event) {
   const isSpilloverPlacement = spilloverMode === ENROLL_SPILLOVER_MODE_SPILLOVER;
   const placementLeg = isSpilloverPlacement ? 'spillover' : placementSide;
   const spilloverPlacementSide = placementSide;
-  const spilloverParentMode = isSpilloverPlacement
-    ? (isAdminPlacementMode ? 'manual' : 'auto')
-    : 'auto';
-  const spilloverParentReference = (isSpilloverPlacement && isAdminPlacementMode)
-    ? safeText(placementLock.parentReference || placementLock.parentId)
-    : '';
+  // Always forward the anticipation parent as a server-side spillover anchor.
+  // If server policy forces spillover (first level fully occupied), this prevents
+  // fallback queue placement from drifting away from the selected anticipation node.
+  const spilloverParentReference = safeText(placementLock.parentReference || placementLock.parentId);
+  const spilloverParentMode = spilloverParentReference ? 'manual' : 'auto';
 
   if (!countryFlag) {
     setTreeNextEnrollFeedback('Country flag is required.', false);
@@ -3396,29 +14232,28 @@ async function handleTreeNextEnrollModalSubmit(event) {
   }
 
   const { sponsorUsername, sponsorName } = resolveTreeNextEnrollSponsorIdentityForMode(placementLock);
-  const submitLabel = treeNextEnrollModalSubmitButton instanceof HTMLButtonElement
-    ? treeNextEnrollModalSubmitButton.textContent || 'Register and Pay'
-    : 'Register and Pay';
+  const actionButton = currentStep === 2
+    ? treeNextEnrollStepTwoNextButton
+    : treeNextEnrollModalSubmitButton;
+  const submitLabel = actionButton instanceof HTMLButtonElement
+    ? actionButton.textContent || 'Continue to Stripe'
+    : 'Continue to Stripe';
+  const checkoutWindow = openTreeNextStripeCheckoutWindow();
+  if (!checkoutWindow) {
+    setTreeNextEnrollFeedback('Pop-up blocked. Please allow pop-ups to continue with Stripe checkout.', false);
+    return;
+  }
+
   state.enroll.submitting = true;
-  if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
-    treeNextEnrollModalSubmitButton.disabled = true;
-    treeNextEnrollModalSubmitButton.textContent = 'Registering...';
+  if (actionButton instanceof HTMLButtonElement) {
+    actionButton.disabled = true;
+    actionButton.textContent = 'Opening Stripe...';
   }
 
   try {
-    const stripeBillingAddress = {
-      line1: billingAddress,
-      city: billingCity,
-      state: billingState,
-      postal_code: billingPostalCode,
-    };
-    if (billingCountryCode) {
-      stripeBillingAddress.country = billingCountryCode;
-    }
-
     state.enroll.pendingPlacement = null;
     setTreeNextEnrollFeedback('Preparing secure payment...', 'neutral', { loading: true });
-    const paymentIntentResult = await createTreeNextEnrollmentPaymentIntent({
+    const checkoutSessionResult = await createTreeNextEnrollmentCheckoutSession({
       fullName,
       email,
       memberUsername,
@@ -3433,95 +14268,31 @@ async function handleTreeNextEnrollModalSubmit(event) {
       fastTrackTier: tierKey,
       sponsorUsername,
       sponsorName,
-      billingAddress,
-      billingCity,
-      billingState,
-      billingPostalCode,
-      billingCountry: billingCountryLabel || billingCountryCode,
-      billingCountryCode,
+      billingAddress: '',
+      billingCity: '',
+      billingState: '',
+      billingPostalCode: '',
+      billingCountry: '',
+      billingCountryCode: '',
+      returnPath: buildTreeNextStripeReturnPath(TREE_NEXT_STRIPE_RETURN_FLOW_ENROLL),
     });
-
-    if (!(treeNextEnrollStripeClient && treeNextEnrollStripeCardNumber)) {
-      throw new Error('Stripe card fields are not ready yet.');
-    }
-    clearTreeNextEnrollCardError();
-    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
-      treeNextEnrollModalSubmitButton.textContent = 'Confirming card...';
-    }
-    setTreeNextEnrollFeedback('Confirming your payment with Stripe...', 'neutral', { loading: true });
-
-    const { error: stripeConfirmError, paymentIntent } = await treeNextEnrollStripeClient.confirmCardPayment(
-      paymentIntentResult.clientSecret,
-      {
-        payment_method: {
-          card: treeNextEnrollStripeCardNumber,
-          billing_details: {
-            name: cardholderName,
-            email,
-            address: stripeBillingAddress,
-          },
-        },
-      },
-    );
-    if (stripeConfirmError) {
-      const stripeErrorMessage = safeText(stripeConfirmError?.message) || 'Payment could not be confirmed.';
-      setTreeNextEnrollCardError(stripeErrorMessage);
-      throw new Error(stripeErrorMessage);
-    }
-
-    const finalizedPaymentIntentId = safeText(paymentIntent?.id || paymentIntentResult.paymentIntentId);
-    if (!finalizedPaymentIntentId) {
-      throw new Error('Payment was submitted, but no Stripe payment reference was returned.');
-    }
-
-    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
-      treeNextEnrollModalSubmitButton.textContent = 'Finalizing enrollment...';
-    }
-    setTreeNextEnrollFeedback('Finalizing enrollment...', 'neutral', { loading: true });
-
-    let completionResult = await completeTreeNextEnrollmentPaymentIntent(finalizedPaymentIntentId);
-    let completionAttempts = 0;
-    while (!completionResult.completed && completionAttempts < 5) {
-      await new Promise((resolve) => window.setTimeout(resolve, 700));
-      completionAttempts += 1;
-      completionResult = await completeTreeNextEnrollmentPaymentIntent(finalizedPaymentIntentId);
-    }
-    if (!completionResult.completed || !completionResult.member) {
-      throw new Error('Payment captured, but enrollment is still processing. Please retry in a moment.');
-    }
-
-    const createdMember = completionResult.member;
-    const enrolledName = safeText(createdMember?.fullName || fullName) || 'Member';
-    const packageLabel = safeText(
-      createdMember?.enrollmentPackageLabel
-      || resolveEnrollPackageMeta(packageKey)?.label
-      || 'Legacy Builder Package',
-    ) || 'Legacy Builder Package';
-    const effectiveTier = normalizeCredentialValue(createdMember?.fastTrackTier || tierKey);
-    const fallbackBonus = resolveEnrollFastTrackBonusAmount(packageKey, effectiveTier);
-    const commissionAmount = Math.max(0, safeNumber(createdMember?.fastTrackBonusAmount, fallbackBonus));
-    const placementSideLabel = spilloverPlacementSide.toUpperCase();
-    const placementSummary = isSpilloverPlacement
-      ? `SPILLOVER ${placementSideLabel}`
-      : `${placementSideLabel} leg`;
-    const successFeedback = `${enrolledName} enrolled on ${placementSummary} under ${placementLock.parentName}.`;
-    const finalFeedback = completionResult.warning
-      ? `${successFeedback} ${completionResult.warning}`
-      : successFeedback;
-    setTreeNextEnrollFeedback(finalFeedback, true);
-    showTreeNextEnrollThankYouStep({
-      enrolledName,
-      packageLabel,
-      commissionAmount,
-      passwordSetupLink: createdMember?.passwordSetupLink,
-    });
-    state.enroll.pendingPlacement = {
-      createdMember,
+    persistTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY, {
+      packageKey,
+      tierKey,
+      isSpilloverPlacement,
+      spilloverPlacementSide,
       placementLock: {
         ...placementLock,
       },
-      packageKey,
-    };
+      submittedAt: new Date().toISOString(),
+    });
+    setTreeNextEnrollFeedback('Stripe checkout opened in a new window. Complete payment to continue...', 'neutral', { loading: true });
+    checkoutWindow.location.replace(checkoutSessionResult.sessionUrl);
+    checkoutWindow.focus();
+    await finalizeTreeNextEnrollmentCheckoutSessionFromStripeReturn(checkoutSessionResult.sessionId, {
+      checkoutWindow,
+      preserveCurrentStep: true,
+    });
   } catch (error) {
     const fallbackMessage = error instanceof Error
       ? error.message
@@ -3529,9 +14300,9 @@ async function handleTreeNextEnrollModalSubmit(event) {
     setTreeNextEnrollFeedback(fallbackMessage, false);
   } finally {
     state.enroll.submitting = false;
-    if (treeNextEnrollModalSubmitButton instanceof HTMLButtonElement) {
-      treeNextEnrollModalSubmitButton.disabled = false;
-      treeNextEnrollModalSubmitButton.textContent = submitLabel;
+    if (actionButton instanceof HTMLButtonElement) {
+      actionButton.disabled = false;
+      actionButton.textContent = submitLabel;
     }
   }
 }
@@ -3606,6 +14377,13 @@ function initTreeNextEnrollModal() {
         setTreeNextEnrollFeedback(`Member created, but tree update failed: ${applyResult.error}`, false);
         return;
       }
+      if (applyResult.skipped) {
+        void syncTreeNextLiveNodes({
+          force: true,
+          silent: true,
+          reason: 'enroll-done-skip-pending-placement',
+        });
+      }
       closeTreeNextEnrollModal({
         restoreFocus: false,
         clearFeedback: true,
@@ -3657,13 +14435,8 @@ function initTreeNextEnrollModal() {
     });
   }
   if (treeNextEnrollStepTwoNextButton instanceof HTMLButtonElement) {
-    treeNextEnrollStepTwoNextButton.addEventListener('click', async () => {
-      clearTreeNextEnrollFeedback();
-      if (!validateTreeNextEnrollStepTwo()) {
-        return;
-      }
-      setTreeNextEnrollStep(3, { focusField: true });
-      await initializeTreeNextEnrollStripeCard({ silent: true });
+    treeNextEnrollStepTwoNextButton.addEventListener('click', () => {
+      void handleTreeNextEnrollModalSubmit();
     });
   }
   if (treeNextEnrollStepThreePreviousButton instanceof HTMLButtonElement) {
@@ -3691,9 +14464,7 @@ function initTreeNextEnrollModal() {
     }
     if (currentStep === 2) {
       event.preventDefault();
-      if (validateTreeNextEnrollStepTwo()) {
-        setTreeNextEnrollStep(3, { focusField: true });
-      }
+      void handleTreeNextEnrollModalSubmit();
     }
   });
 
@@ -3708,9 +14479,10 @@ function resolveNodeReferenceLabel(nodeId, fallback = '-') {
   if (!node) {
     return fallback;
   }
-  const name = safeText(node.name || node.id) || fallback;
-  const username = safeText(node.username || '');
-  if (username) {
+  const identity = resolveTreeNextNodePublicIdentity(node, { fallbackName: fallback });
+  const name = safeText(identity.name || node.name || node.id) || fallback;
+  if (!identity.isMasked && identity.username) {
+    const username = safeText(identity.username || '');
     return `${name} (@${username})`;
   }
   return name;
@@ -3719,7 +14491,7 @@ function resolveNodeReferenceLabel(nodeId, fallback = '-') {
 function resolveNodeLegVolumes(nodeId) {
   const globalMeta = resolveGlobalNodeMetrics(nodeId);
   const selectedNode = globalMeta?.node || null;
-  const personalVolume = Math.max(0, Math.floor(safeNumber(selectedNode?.volume, 0)));
+  const personalVolume = Math.max(0, Math.floor(resolveNodeCurrentPersonalBvForActivity(selectedNode)));
   if (!globalMeta) {
     return {
       personalVolume,
@@ -3756,6 +14528,165 @@ function resolveNodeLegVolumes(nodeId) {
   };
 }
 
+function resolveSideNavMemberStatusSnapshot(targetNodeInput = null) {
+  const targetNode = targetNodeInput && typeof targetNodeInput === 'object'
+    ? targetNodeInput
+    : (resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root') || null);
+  const targetNodeId = safeText(targetNode?.id || resolvePreferredGlobalHomeNodeId() || 'root') || 'root';
+  const snapshotHash = safeText(state.liveSync?.lastAppliedHash || '');
+  const cacheSignature = `${targetNodeId}::${snapshotHash}`;
+
+  if (
+    cacheSignature
+    && cacheSignature === sideNavMemberStatusCachedSignature
+    && sideNavMemberStatusCachedSnapshot
+  ) {
+    return sideNavMemberStatusCachedSnapshot;
+  }
+
+  const fallbackSnapshot = {
+    targetNodeId,
+    totalMembers: 0,
+    totalActiveMembers: 0,
+    leftActiveMembers: 0,
+    rightActiveMembers: 0,
+    leftDirectSponsors: 0,
+    rightDirectSponsors: 0,
+    totalDirectSponsors: 0,
+  };
+  let nextSnapshot = fallbackSnapshot;
+
+  try {
+    const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+    if (!safeNodes.length) {
+      sideNavMemberStatusCachedSignature = cacheSignature;
+      sideNavMemberStatusCachedSnapshot = fallbackSnapshot;
+      return fallbackSnapshot;
+    }
+
+    const targetGlobalMeta = resolveGlobalNodeMetrics(targetNodeId);
+    const targetNodeIdKey = normalizeCredentialValue(targetNodeId);
+    const targetPath = safeText(targetGlobalMeta?.globalPath).toUpperCase();
+    const targetIsRootScope = (
+      targetNodeIdKey === 'root'
+      || targetNodeIdKey === normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID)
+      || targetNodeIdKey === normalizeCredentialValue(ADMIN_ROOT_USERNAME)
+    );
+    if (!targetGlobalMeta || (!targetPath && !targetIsRootScope)) {
+      sideNavMemberStatusCachedSignature = cacheSignature;
+      sideNavMemberStatusCachedSnapshot = fallbackSnapshot;
+      return fallbackSnapshot;
+    }
+
+    const leftPrefix = `${targetPath}L`;
+    const rightPrefix = `${targetPath}R`;
+    const rootKey = normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID);
+    const adminKey = normalizeCredentialValue(ADMIN_ROOT_USERNAME);
+    const targetUsernameKey = normalizeCredentialValue(
+      safeText(targetNode?.username || targetNode?.memberCode || '').replace(/^@+/, ''),
+    );
+    const resolvedGlobalNodes = state.adapter.resolveVisibleNodes(getGlobalUniverseOptions());
+    const globalNodes = Array.isArray(resolvedGlobalNodes) ? resolvedGlobalNodes : [];
+    const nodePathById = new Map();
+    for (const globalNode of globalNodes) {
+      const nodeId = safeText(globalNode?.id);
+      if (!nodeId) {
+        continue;
+      }
+      const nodePath = safeText(globalNode?.path).toUpperCase();
+      if (nodePath) {
+        nodePathById.set(nodeId, nodePath);
+      }
+    }
+
+    let totalMembers = 0;
+    let totalActiveMembers = 0;
+    let leftActiveMembers = 0;
+    let rightActiveMembers = 0;
+    let leftDirectSponsors = 0;
+    let rightDirectSponsors = 0;
+    let totalDirectSponsors = 0;
+
+    for (const nodeInput of safeNodes) {
+      const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+      if (!node || isInfinityBuilderPlaceholderNode(node)) {
+        continue;
+      }
+      const nodeId = safeText(node?.id);
+      const nodeIdKey = normalizeCredentialValue(nodeId);
+      if (
+        !nodeIdKey
+        || nodeIdKey === 'root'
+        || nodeIdKey === rootKey
+        || nodeIdKey === adminKey
+        || (targetNodeIdKey && nodeIdKey === targetNodeIdKey)
+      ) {
+        continue;
+      }
+
+      const nodePath = safeText(nodePathById.get(nodeId)).toUpperCase();
+      const isLeftMember = Boolean(leftPrefix && nodePath.startsWith(leftPrefix));
+      const isRightMember = Boolean(rightPrefix && nodePath.startsWith(rightPrefix));
+      if (!isLeftMember && !isRightMember) {
+        continue;
+      }
+
+      totalMembers += 1;
+      if (resolveNodeActivityState(node)) {
+        totalActiveMembers += 1;
+        if (isLeftMember) {
+          leftActiveMembers += 1;
+        } else if (isRightMember) {
+          rightActiveMembers += 1;
+        }
+      }
+
+      const sponsorNodeIdKey = normalizeCredentialValue(
+        safeText(node?.sponsorId || node?.globalSponsorId || node?.sourceSponsorId || node?.source_sponsor_id || ''),
+      );
+      const sponsorUsernameKey = normalizeCredentialValue(
+        safeText(node?.sponsorUsername || node?.sponsor_username || '').replace(/^@+/, ''),
+      );
+      const isDirectBySponsorId = Boolean(
+        targetNodeIdKey
+        && sponsorNodeIdKey
+        && sponsorNodeIdKey === targetNodeIdKey,
+      );
+      const isDirectBySponsorUsername = Boolean(
+        targetUsernameKey
+        && sponsorUsernameKey
+        && sponsorUsernameKey === targetUsernameKey,
+      );
+      if (!isDirectBySponsorId && !isDirectBySponsorUsername) {
+        continue;
+      }
+      totalDirectSponsors += 1;
+      if (isLeftMember) {
+        leftDirectSponsors += 1;
+      } else if (isRightMember) {
+        rightDirectSponsors += 1;
+      }
+    }
+
+    nextSnapshot = {
+      targetNodeId,
+      totalMembers,
+      totalActiveMembers,
+      leftActiveMembers,
+      rightActiveMembers,
+      leftDirectSponsors,
+      rightDirectSponsors,
+      totalDirectSponsors,
+    };
+  } catch {
+    nextSnapshot = fallbackSnapshot;
+  }
+
+  sideNavMemberStatusCachedSignature = cacheSignature;
+  sideNavMemberStatusCachedSnapshot = nextSnapshot;
+  return nextSnapshot;
+}
+
 function resolvePinnedPlaces(limit = 8) {
   const safeLimit = Math.max(1, Math.floor(safeNumber(limit, 8)));
   const favoritesState = getSideNavFavoritesState();
@@ -3773,12 +14704,13 @@ function resolvePinnedPlaces(limit = 8) {
 
   const places = pinnedIds.map((nodeId) => {
     const node = resolveNodeById(nodeId);
+    const identity = resolveTreeNextNodePublicIdentity(node, { fallbackName: nodeId });
     const volumes = resolveNodeLegVolumes(nodeId);
     return {
       key: nodeId,
       nodeId,
-      label: truncateText(safeText(node?.name || nodeId), 18),
-      initials: resolveInitials(safeText(node?.name || nodeId)),
+      label: truncateText(safeText(identity.name || node?.name || nodeId), 18),
+      initials: safeText(identity.initials || resolveInitials(safeText(node?.name || nodeId))),
       subtitle: formatCompactVolumeValue(volumes.totalVolume),
     };
   });
@@ -4012,6 +14944,10 @@ function isManualWheelZoomModifierPressed(event) {
 }
 
 function resolveSessionDisplayName() {
+  if (state.source === 'admin') {
+    return ADMIN_ROOT_DISPLAY_NAME;
+  }
+
   const session = state.session && typeof state.session === 'object' ? state.session : null;
   const firstName = safeText(session?.firstName || session?.first_name || session?.givenName || session?.given_name);
   const lastName = safeText(session?.lastName || session?.last_name || session?.familyName || session?.family_name);
@@ -4023,7 +14959,7 @@ function resolveSessionDisplayName() {
   if (combinedName) {
     return combinedName;
   }
-  return state.source === 'admin' ? 'Admin' : 'Member';
+  return 'Member';
 }
 
 function resolveSessionDisplayEmail() {
@@ -4107,6 +15043,27 @@ function isAvatarPaletteRecord(palette) {
     && group.length >= 3
     && group.slice(0, 3).every((value) => Number.isFinite(Number(value)))
   ));
+}
+
+function isGrayRgbTriplet(rgbTriplet, channelDeltaThreshold = 14) {
+  if (!Array.isArray(rgbTriplet) || rgbTriplet.length < 3) {
+    return false;
+  }
+  const [red, green, blue] = normalizeRgbTriplet(rgbTriplet[0], rgbTriplet[1], rgbTriplet[2]);
+  const maxChannel = Math.max(red, green, blue);
+  const minChannel = Math.min(red, green, blue);
+  return (maxChannel - minChannel) <= Math.max(0, Math.floor(safeNumber(channelDeltaThreshold, 14)));
+}
+
+function isGrayAvatarPalette(palette, channelDeltaThreshold = 14) {
+  if (!isAvatarPaletteRecord(palette)) {
+    return false;
+  }
+  return (
+    isGrayRgbTriplet(palette.light, channelDeltaThreshold)
+    && isGrayRgbTriplet(palette.mid, channelDeltaThreshold)
+    && isGrayRgbTriplet(palette.dark, channelDeltaThreshold)
+  );
 }
 
 function resolveAvatarColorTripletFromRecord(recordInput = null) {
@@ -4225,12 +15182,12 @@ function resolveSessionAvatarSeed(sessionInput = state.session) {
 
 function resolveSessionAvatarPalette(sessionInput = state.session) {
   const explicitPalette = resolveAvatarPaletteFromRecord(sessionInput);
-  if (explicitPalette) {
+  if (explicitPalette && !isGrayAvatarPalette(explicitPalette)) {
     return explicitPalette;
   }
 
   const colorTriplet = resolveSessionAvatarColorTriplet(sessionInput);
-  if (colorTriplet) {
+  if (colorTriplet && !isGrayRgbTriplet(colorTriplet)) {
     return buildAvatarPaletteFromColorTriplet(colorTriplet);
   }
 
@@ -4428,9 +15385,10 @@ function drawImageAvatarCircle(cx, cy, radius, imageUrl) {
 
 function drawResolvedAvatarCircle(cx, cy, radius, nodeId, options = {}) {
   const safeNodeId = safeText(nodeId);
+  const disablePhoto = options?.disablePhoto === true;
   if (isSessionAvatarNodeId(safeNodeId)) {
     const photoUrl = resolveSessionAvatarPhotoUrl();
-    if (photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
+    if (!disablePhoto && photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
       const sheen = createNodeAvatarSheen(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), options);
       context.beginPath();
       context.arc(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), 0, Math.PI * 2);
@@ -4438,19 +15396,24 @@ function drawResolvedAvatarCircle(cx, cy, radius, nodeId, options = {}) {
       context.fill();
       return { usedPhoto: true };
     }
-    fillNodeAvatarCircle(cx, cy, radius, safeNodeId || resolveSessionAvatarSeed(), {
-      ...options,
-      palette: resolveSessionAvatarPalette(),
-      variant: 'auto',
-    });
+    const useSessionPalette = options?.ignoreSourcePalette !== true;
+    fillNodeAvatarCircle(cx, cy, radius, safeNodeId || resolveSessionAvatarSeed(), useSessionPalette
+      ? {
+        ...options,
+        palette: resolveSessionAvatarPalette(),
+        variant: 'auto',
+      }
+      : options);
     return { usedPhoto: false };
   }
 
   const nodeRecord = options?.node && typeof options.node === 'object'
     ? options.node
     : resolveNodeById(safeNodeId);
+  const shouldMaskIdentity = shouldApplyTreeNextNodePrivacyMask(nodeRecord);
+  const shouldDisablePhoto = disablePhoto || shouldMaskIdentity;
   const photoUrl = resolveNodeAvatarPhotoUrl(nodeRecord);
-  if (photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
+  if (!shouldDisablePhoto && photoUrl && drawImageAvatarCircle(cx, cy, radius, photoUrl)) {
     const sheen = createNodeAvatarSheen(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), options);
     context.beginPath();
     context.arc(cx, cy, Math.max(0.2, safeNumber(radius, 0.2)), 0, Math.PI * 2);
@@ -4462,6 +15425,9 @@ function drawResolvedAvatarCircle(cx, cy, radius, nodeId, options = {}) {
   fillNodeAvatarCircle(cx, cy, radius, safeNodeId, {
     ...options,
     node: nodeRecord,
+    disablePhoto: shouldDisablePhoto,
+    ignoreSourcePalette: shouldMaskIdentity ? true : options?.ignoreSourcePalette,
+    variant: shouldMaskIdentity ? 'inactive' : options?.variant,
   });
   return { usedPhoto: false };
 }
@@ -4762,6 +15728,82 @@ function enterNodeUniverseWithZoomHint(nodeId = state.selectedId) {
   return true;
 }
 
+function resolveLegacyTierCanvasSelectedBinaryNodeId(nodeIdInput = state.selectedId) {
+  if (!isLegacyTierCanvasViewActive()) {
+    return '';
+  }
+  const selectedId = safeText(nodeIdInput);
+  if (!selectedId) {
+    return '';
+  }
+  const projectedNodes = Array.isArray(state.frameResult?.projectedNodes)
+    ? state.frameResult.projectedNodes
+    : [];
+  const selectedProjectedNode = projectedNodes.find((node) => safeText(node?.id) === selectedId) || null;
+  const selectedNodeRecord = selectedProjectedNode?.node && typeof selectedProjectedNode.node === 'object'
+    ? selectedProjectedNode.node
+    : null;
+  const isEmptySlot = Boolean(
+    selectedProjectedNode?.isLegacyTierEmptySlot
+    || selectedNodeRecord?.isLegacyTierEmptySlot
+    || selectedNodeRecord?.isLegacyTierViewPlaceholder,
+  );
+  if (isEmptySlot) {
+    return '';
+  }
+
+  const candidates = [];
+  const pushCandidate = (candidateInput = '') => {
+    const candidate = safeText(candidateInput);
+    if (!candidate) {
+      return;
+    }
+    candidates.push(candidate);
+    const duplicateIndex = candidate.indexOf('::');
+    if (duplicateIndex > 0) {
+      const baseCandidate = safeText(candidate.slice(0, duplicateIndex));
+      if (baseCandidate) {
+        candidates.push(baseCandidate);
+      }
+    }
+  };
+  pushCandidate(selectedProjectedNode?.avatarSeedId);
+  pushCandidate(selectedNodeRecord?.avatarSeedId);
+  pushCandidate(selectedNodeRecord?.avatarSeed);
+  pushCandidate(selectedNodeRecord?.id);
+  pushCandidate(selectedId);
+
+  for (const candidateId of candidates) {
+    if (resolveNodeById(candidateId)) {
+      return candidateId;
+    }
+  }
+
+  const username = safeText(
+    selectedNodeRecord?.username
+    || selectedNodeRecord?.memberCode
+    || selectedNodeRecord?.member_code
+    || '',
+  ).replace(/^@+/, '');
+  if (!username) {
+    return '';
+  }
+  return safeText(resolveNodeIdByUsername(username));
+}
+
+function enterSelectedUniverseNodeFromCurrentView() {
+  if (isLegacyTierCanvasViewActive()) {
+    const targetNodeId = resolveLegacyTierCanvasSelectedBinaryNodeId(state.selectedId);
+    if (!targetNodeId) {
+      return false;
+    }
+    closeLegacyTierCanvasView({ preserveSelection: false });
+    setSelectedNode(targetNodeId, { animate: false });
+    return enterNodeUniverseWithZoomHint(targetNodeId);
+  }
+  return enterNodeUniverseWithZoomHint(state.selectedId);
+}
+
 function gotoUniverseFromBreadcrumb(targetRootId, animated = true) {
   const safeTargetRootId = safeText(targetRootId);
   if (!safeTargetRootId) {
@@ -4984,6 +16026,285 @@ function safeStorageGet(storage, key) {
   }
 }
 
+function safeStorageSet(storage, key, value) {
+  try {
+    if (!storage) {
+      return false;
+    }
+    storage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function safeStorageRemove(storage, key) {
+  try {
+    if (!storage) {
+      return false;
+    }
+    storage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function persistTreeNextPendingCheckoutState(storageKey, payload = {}) {
+  if (!storageKey) {
+    return false;
+  }
+
+  const serialized = JSON.stringify(payload || {});
+  const wroteSession = safeStorageSet(window.sessionStorage, storageKey, serialized);
+  const wroteLocal = safeStorageSet(window.localStorage, storageKey, serialized);
+  return wroteSession || wroteLocal;
+}
+
+function readTreeNextPendingCheckoutState(storageKey) {
+  if (!storageKey) {
+    return null;
+  }
+  const raw = safeStorageGet(window.sessionStorage, storageKey)
+    || safeStorageGet(window.localStorage, storageKey);
+  return parseSessionPayload(raw);
+}
+
+function clearTreeNextPendingCheckoutState(storageKey) {
+  if (!storageKey) {
+    return;
+  }
+  safeStorageRemove(window.sessionStorage, storageKey);
+  safeStorageRemove(window.localStorage, storageKey);
+}
+
+function resolveTreeNextStripeReturnDetails() {
+  const query = new URLSearchParams(window.location.search || '');
+  return {
+    checkoutStatus: normalizeCredentialValue(query.get('checkout')),
+    sessionId: safeText(query.get('session_id')),
+    flow: normalizeCredentialValue(query.get(TREE_NEXT_STRIPE_RETURN_FLOW_QUERY_KEY)),
+  };
+}
+
+function resolveTreeNextStripeReturnTargetPath() {
+  const currentUrl = new URL(window.location.href);
+  currentUrl.searchParams.delete('checkout');
+  currentUrl.searchParams.delete('session_id');
+  currentUrl.searchParams.delete(TREE_NEXT_STRIPE_RETURN_FLOW_QUERY_KEY);
+  currentUrl.searchParams.delete(TREE_NEXT_STRIPE_RETURN_TARGET_QUERY_KEY);
+  return `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`;
+}
+
+function buildTreeNextStripeReturnPath(flow) {
+  const flowKey = normalizeCredentialValue(flow);
+  const returnUrl = new URL('/stripe-checkout-return.html', window.location.origin);
+  const targetPath = resolveTreeNextStripeReturnTargetPath();
+  if (flowKey) {
+    returnUrl.searchParams.set(TREE_NEXT_STRIPE_RETURN_FLOW_QUERY_KEY, flowKey);
+  }
+  if (targetPath) {
+    returnUrl.searchParams.set(TREE_NEXT_STRIPE_RETURN_TARGET_QUERY_KEY, targetPath);
+  }
+
+  return `${returnUrl.pathname}${returnUrl.search}${returnUrl.hash}`;
+}
+
+function clearTreeNextStripeReturnQueryParameters() {
+  const currentUrl = new URL(window.location.href);
+  currentUrl.searchParams.delete('checkout');
+  currentUrl.searchParams.delete('session_id');
+  currentUrl.searchParams.delete(TREE_NEXT_STRIPE_RETURN_FLOW_QUERY_KEY);
+  currentUrl.searchParams.delete(TREE_NEXT_STRIPE_RETURN_TARGET_QUERY_KEY);
+  const nextPath = `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`;
+  window.history.replaceState(window.history.state || {}, '', nextPath);
+}
+
+function writeCookieValue(key, value) {
+  try {
+    document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(value)}; path=/; SameSite=Lax`;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function persistSessionSnapshot(storageKey, cookieKey, sessionValue) {
+  if (!storageKey || !cookieKey || !sessionValue || typeof sessionValue !== 'object') {
+    return false;
+  }
+  const serializedSession = JSON.stringify(sessionValue);
+  const wroteLocal = safeStorageSet(window.localStorage, storageKey, serializedSession);
+  const wroteSession = safeStorageSet(window.sessionStorage, storageKey, serializedSession);
+  const wroteCookie = writeCookieValue(cookieKey, serializedSession);
+  return wroteLocal || wroteSession || wroteCookie;
+}
+
+function persistCurrentSourceSessionSnapshot(sessionValue = state.session) {
+  if (!sessionValue || typeof sessionValue !== 'object') {
+    return false;
+  }
+  const storageKey = state.source === 'admin'
+    ? ADMIN_AUTH_STORAGE_KEY
+    : MEMBER_AUTH_STORAGE_KEY;
+  const cookieKey = state.source === 'admin'
+    ? ADMIN_AUTH_COOKIE_KEY
+    : MEMBER_AUTH_COOKIE_KEY;
+  return persistSessionSnapshot(storageKey, cookieKey, sessionValue);
+}
+
+async function refreshAuthenticatedMemberSessionSnapshot(options = {}) {
+  if (state.source !== 'member') {
+    return {
+      ok: false,
+      reason: 'non-member-source',
+    };
+  }
+
+  const currentSession = state.session && typeof state.session === 'object' ? state.session : null;
+  const authToken = safeText(currentSession?.authToken);
+  if (!authToken) {
+    return {
+      ok: false,
+      reason: 'missing-auth-token',
+    };
+  }
+
+  try {
+    const response = await fetch(MEMBER_AUTH_SESSION_API, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      return {
+        ok: false,
+        reason: `http-${response.status}`,
+      };
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    const refreshedUser = payload?.user && typeof payload.user === 'object'
+      ? payload.user
+      : null;
+    if (!refreshedUser) {
+      return {
+        ok: false,
+        reason: 'missing-user',
+      };
+    }
+
+    const nextSession = {
+      ...(currentSession && typeof currentSession === 'object' ? currentSession : {}),
+      ...refreshedUser,
+      authToken,
+      authTokenExpiresAt: safeText(currentSession?.authTokenExpiresAt),
+    };
+    state.session = nextSession;
+    persistCurrentSourceSessionSnapshot(nextSession);
+    if (options?.skipAccountOverviewReset !== true) {
+      resetAccountOverviewRemoteSnapshot();
+      resetRankAdvancementSnapshot();
+    }
+    return {
+      ok: true,
+      session: nextSession,
+      checkedAt: safeText(payload?.checkedAt),
+    };
+  } catch {
+    return {
+      ok: false,
+      reason: 'network-fallback',
+    };
+  }
+}
+
+function applyAccountUpgradeUserToLocalState(userInput = null) {
+  const upgradedUser = userInput && typeof userInput === 'object' ? userInput : null;
+  if (!upgradedUser) {
+    return;
+  }
+
+  const currentSession = state.session && typeof state.session === 'object' ? state.session : {};
+  const nextSession = {
+    ...currentSession,
+    ...upgradedUser,
+    authToken: safeText(currentSession.authToken),
+    authTokenExpiresAt: safeText(currentSession.authTokenExpiresAt),
+  };
+  state.session = nextSession;
+  persistCurrentSourceSessionSnapshot(nextSession);
+
+  if (!Array.isArray(state.nodes) || !state.nodes.length) {
+    return;
+  }
+
+  const upgradedUsername = normalizeCredentialValue(upgradedUser.username);
+  const upgradedEmail = normalizeCredentialValue(upgradedUser.email);
+  let didMutateNodes = false;
+  state.nodes = state.nodes.map((node) => {
+    const safeNode = node && typeof node === 'object' ? node : null;
+    if (!safeNode) {
+      return node;
+    }
+    const nodeUsername = normalizeCredentialValue(safeNode.username || safeNode.memberCode);
+    const nodeEmail = normalizeCredentialValue(safeNode.email);
+    const matchesIdentity = (
+      (upgradedUsername && nodeUsername && upgradedUsername === nodeUsername)
+      || (upgradedEmail && nodeEmail && upgradedEmail === nodeEmail)
+    );
+    const matchesMemberRootNode = safeText(safeNode.id) === 'root' && state.source === 'member';
+    if (!matchesIdentity && !matchesMemberRootNode) {
+      return node;
+    }
+
+    didMutateNodes = true;
+    return {
+      ...safeNode,
+      rank: safeText(upgradedUser.accountRank || upgradedUser.rank || safeNode.rank),
+      accountRank: safeText(upgradedUser.accountRank || upgradedUser.rank || safeNode.accountRank),
+      enrollmentPackage: safeText(upgradedUser.enrollmentPackage || safeNode.enrollmentPackage),
+      enrollmentPackageLabel: safeText(upgradedUser.enrollmentPackageLabel || safeNode.enrollmentPackageLabel),
+      packageBv: Math.max(0, Math.round(safeNumber(
+        upgradedUser.enrollmentPackageBv,
+        safeNode.packageBv,
+      ))),
+      starterPersonalPv: Math.max(0, Math.round(safeNumber(
+        upgradedUser.starterPersonalPv,
+        safeNode.starterPersonalPv,
+      ))),
+      currentPersonalPvBv: Math.max(0, Math.round(safeNumber(
+        upgradedUser.currentPersonalPvBv,
+        safeNode.currentPersonalPvBv,
+      ))),
+      accountStatus: safeText(upgradedUser.accountStatus || safeNode.accountStatus || safeNode.status),
+      status: safeText(upgradedUser.accountStatus || safeNode.status || safeNode.accountStatus),
+      activityActiveUntilAt: safeText(upgradedUser.activityActiveUntilAt || safeNode.activityActiveUntilAt),
+      lastProductPurchaseAt: safeText(upgradedUser.lastProductPurchaseAt || safeNode.lastProductPurchaseAt),
+      lastPurchaseAt: safeText(upgradedUser.lastPurchaseAt || safeNode.lastPurchaseAt),
+      lastAccountUpgradeAt: safeText(upgradedUser.lastAccountUpgradeAt || safeNode.lastAccountUpgradeAt),
+      lastAccountUpgradeFromPackage: safeText(
+        upgradedUser.lastAccountUpgradeFromPackage || safeNode.lastAccountUpgradeFromPackage,
+      ),
+      lastAccountUpgradeToPackage: safeText(
+        upgradedUser.lastAccountUpgradeToPackage || safeNode.lastAccountUpgradeToPackage,
+      ),
+      lastAccountUpgradePvGain: Math.max(0, Math.round(safeNumber(
+        upgradedUser.lastAccountUpgradePvGain,
+        safeNode.lastAccountUpgradePvGain,
+      ))),
+    };
+  });
+
+  if (didMutateNodes) {
+    state.adapter.setNodes(state.nodes);
+    rebuildNodeChildLegIndex();
+    updateTreeNextLiveSnapshotHash(state.nodes);
+  }
+}
+
 function readCookieValue(key) {
   const source = safeText(document.cookie);
   const encodedKey = `${encodeURIComponent(key)}=`;
@@ -5010,11 +16331,39 @@ function readSessionSnapshot(storageKey, cookieKey) {
   return parseSessionPayload(readCookieValue(cookieKey));
 }
 
+function normalizePinnedNodeIdsFromLaunchStatePayload(value) {
+  const source = Array.isArray(value) ? value : [];
+  const deduped = [];
+  const seen = new Set();
+  for (const rawNodeId of source) {
+    const nodeId = safeText(rawNodeId);
+    if (!nodeId || seen.has(nodeId)) {
+      continue;
+    }
+    seen.add(nodeId);
+    deduped.push(nodeId);
+    if (deduped.length >= 10) {
+      break;
+    }
+  }
+  return deduped;
+}
+
+function resolveTimestampMs(value) {
+  const timestampMs = Date.parse(safeText(value));
+  return Number.isFinite(timestampMs) ? timestampMs : 0;
+}
+
 function createDefaultLaunchState(overrides = {}) {
   return {
     firstTime: false,
     firstOpenedAt: '',
     lastOpenedAt: '',
+    pinnedNodeIds: [],
+    pinnedNodeIdsUpdatedAt: '',
+    infinityBuilderTierSortDirection: 'asc',
+    legacyLeadershipTierSortDirection: 'asc',
+    tierSortDirectionsUpdatedAt: '',
     checkedAt: new Date().toISOString(),
     source: 'fallback',
     ...overrides,
@@ -5026,6 +16375,15 @@ function normalizeMemberBinaryTreeLaunchStatePayload(payload = {}, source = 'ser
     firstTime: payload?.firstTime === true,
     firstOpenedAt: safeText(payload?.firstOpenedAt),
     lastOpenedAt: safeText(payload?.lastOpenedAt),
+    pinnedNodeIds: normalizePinnedNodeIdsFromLaunchStatePayload(payload?.pinnedNodeIds),
+    pinnedNodeIdsUpdatedAt: safeText(payload?.pinnedNodeIdsUpdatedAt),
+    infinityBuilderTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+      payload?.infinityBuilderTierSortDirection,
+    ),
+    legacyLeadershipTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+      payload?.legacyLeadershipTierSortDirection,
+    ),
+    tierSortDirectionsUpdatedAt: safeText(payload?.tierSortDirectionsUpdatedAt),
     checkedAt: safeText(payload?.checkedAt) || new Date().toISOString(),
     source,
   });
@@ -5057,6 +16415,413 @@ async function fetchMemberBinaryTreeLaunchState(memberSession) {
   } catch {
     return createDefaultLaunchState({ source: 'network-fallback' });
   }
+}
+
+function clearPinnedNodeIdsServerSyncTimer() {
+  if (pinnedNodeIdsServerSyncTimerId) {
+    window.clearTimeout(pinnedNodeIdsServerSyncTimerId);
+    pinnedNodeIdsServerSyncTimerId = 0;
+  }
+}
+
+function canSyncPinnedNodeIdsToServer() {
+  return state.source === 'member' && Boolean(safeText(state.session?.authToken));
+}
+
+function canSyncInfinityBuilderTierSortDirectionsToServer() {
+  return state.source === 'member' && Boolean(safeText(state.session?.authToken));
+}
+
+function resolveInfinityBuilderTierSortDirectionsPayloadFromState() {
+  return {
+    infinityBuilderTierSortDirection: resolveInfinityBuilderTierSortDirectionForMode(
+      INFINITY_BUILDER_PANEL_MODE_INFINITY,
+    ),
+    legacyLeadershipTierSortDirection: resolveInfinityBuilderTierSortDirectionForMode(
+      INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP,
+    ),
+  };
+}
+
+async function fetchMemberBinaryTreeTierSortDirections(memberSession = state.session) {
+  const authToken = safeText(memberSession?.authToken);
+  if (!authToken) {
+    return {
+      success: false,
+      status: 401,
+      reason: 'missing-auth-token',
+    };
+  }
+
+  try {
+    const response = await fetch(MEMBER_BINARY_TREE_TIER_SORT_DIRECTIONS_API, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      return {
+        success: false,
+        status: response.status,
+        reason: `http-${response.status}`,
+      };
+    }
+    const payload = await response.json().catch(() => ({}));
+    return {
+      success: true,
+      status: 200,
+      infinityBuilderTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+        payload?.infinityBuilderTierSortDirection,
+      ),
+      legacyLeadershipTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+        payload?.legacyLeadershipTierSortDirection,
+      ),
+      tierSortDirectionsUpdatedAt: safeText(payload?.tierSortDirectionsUpdatedAt),
+      checkedAt: safeText(payload?.checkedAt),
+    };
+  } catch {
+    return {
+      success: false,
+      status: 0,
+      reason: 'network-fallback',
+    };
+  }
+}
+
+async function flushInfinityBuilderTierSortDirectionsServerSync() {
+  if (!canSyncInfinityBuilderTierSortDirectionsToServer()) {
+    return;
+  }
+
+  if (infinityBuilderTierSortDirectionsSyncInFlight) {
+    infinityBuilderTierSortDirectionsSyncQueued = true;
+    return;
+  }
+
+  const authToken = safeText(state.session?.authToken);
+  if (!authToken) {
+    return;
+  }
+
+  const currentDirections = resolveInfinityBuilderTierSortDirectionsPayloadFromState();
+  const currentSyncKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+  if (currentSyncKey === infinityBuilderTierSortDirectionsLastSyncedKey) {
+    infinityBuilderTierSortDirectionsLocalDirty = false;
+    return;
+  }
+
+  infinityBuilderTierSortDirectionsSyncInFlight = true;
+  try {
+    const response = await fetch(MEMBER_BINARY_TREE_TIER_SORT_DIRECTIONS_API, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(currentDirections),
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    const serverDirections = {
+      infinityBuilderTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+        payload?.infinityBuilderTierSortDirection,
+      ),
+      legacyLeadershipTierSortDirection: normalizeInfinityBuilderTierSortDirection(
+        payload?.legacyLeadershipTierSortDirection,
+      ),
+      tierSortDirectionsUpdatedAt: safeText(payload?.tierSortDirectionsUpdatedAt),
+    };
+    applyInfinityBuilderTierSortDirections(serverDirections, {
+      syncServer: false,
+    });
+    infinityBuilderTierSortDirectionsLocalDirty = false;
+    infinityBuilderTierSortDirectionsLastSyncedKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+    infinityBuilderTierSortDirectionsUpdatedAt = safeText(
+      payload?.tierSortDirectionsUpdatedAt || infinityBuilderTierSortDirectionsUpdatedAt,
+    );
+    if (state.launchState && typeof state.launchState === 'object') {
+      state.launchState.infinityBuilderTierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(
+        INFINITY_BUILDER_PANEL_MODE_INFINITY,
+      );
+      state.launchState.legacyLeadershipTierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(
+        INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP,
+      );
+      state.launchState.tierSortDirectionsUpdatedAt = infinityBuilderTierSortDirectionsUpdatedAt;
+    }
+  } catch {
+    // Ignore network errors; the next interaction can retry sync.
+  } finally {
+    infinityBuilderTierSortDirectionsSyncInFlight = false;
+    if (infinityBuilderTierSortDirectionsSyncQueued) {
+      infinityBuilderTierSortDirectionsSyncQueued = false;
+      void flushInfinityBuilderTierSortDirectionsServerSync();
+    }
+  }
+}
+
+function requestInfinityBuilderTierSortDirectionsServerSync() {
+  if (!canSyncInfinityBuilderTierSortDirectionsToServer()) {
+    return;
+  }
+  void flushInfinityBuilderTierSortDirectionsServerSync();
+}
+
+async function syncInfinityBuilderTierSortDirectionsFromServer(reason = 'manual') {
+  if (state.source !== 'member') {
+    return { success: false, skipped: true, reason: 'non-member-source' };
+  }
+  if (!canSyncInfinityBuilderTierSortDirectionsToServer()) {
+    return { success: false, skipped: true, reason: 'missing-auth-token' };
+  }
+  if (infinityBuilderTierSortDirectionsLocalDirty) {
+    requestInfinityBuilderTierSortDirectionsServerSync();
+    return { success: false, skipped: true, reason: 'local-sync-pending' };
+  }
+  if (infinityBuilderTierSortDirectionsSyncInFlight) {
+    return { success: false, skipped: true, reason: 'local-sync-pending' };
+  }
+
+  const remoteState = await fetchMemberBinaryTreeTierSortDirections(state.session);
+  if (!remoteState.success) {
+    return {
+      success: false,
+      skipped: false,
+      reason: remoteState.reason || 'remote-fetch-failed',
+    };
+  }
+
+  applyInfinityBuilderTierSortDirections({
+    infinityBuilderTierSortDirection: remoteState.infinityBuilderTierSortDirection,
+    legacyLeadershipTierSortDirection: remoteState.legacyLeadershipTierSortDirection,
+    tierSortDirectionsUpdatedAt: remoteState.tierSortDirectionsUpdatedAt,
+  }, {
+    syncServer: false,
+  });
+  infinityBuilderTierSortDirectionsLastSyncedKey = resolveInfinityBuilderTierSortDirectionsSyncKey();
+  infinityBuilderTierSortDirectionsLocalDirty = false;
+  infinityBuilderTierSortDirectionsUpdatedAt = safeText(
+    remoteState.tierSortDirectionsUpdatedAt || infinityBuilderTierSortDirectionsUpdatedAt,
+  );
+  if (state.launchState && typeof state.launchState === 'object') {
+    state.launchState.infinityBuilderTierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(
+      INFINITY_BUILDER_PANEL_MODE_INFINITY,
+    );
+    state.launchState.legacyLeadershipTierSortDirection = resolveInfinityBuilderTierSortDirectionForMode(
+      INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP,
+    );
+    state.launchState.tierSortDirectionsUpdatedAt = infinityBuilderTierSortDirectionsUpdatedAt;
+  }
+
+  return {
+    success: true,
+    skipped: false,
+    reason,
+  };
+}
+
+function resolvePinnedNodeIdsSyncKey(idsInput = state.pinnedNodeIds) {
+  return normalizePinnedNodeIds(idsInput).join('|');
+}
+
+async function fetchMemberBinaryTreePinnedNodes(memberSession = state.session) {
+  const authToken = safeText(memberSession?.authToken);
+  if (!authToken) {
+    return {
+      success: false,
+      status: 401,
+      reason: 'missing-auth-token',
+    };
+  }
+
+  try {
+    const response = await fetch(MEMBER_BINARY_TREE_PINNED_NODES_API, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        status: response.status,
+        reason: `http-${response.status}`,
+      };
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    return {
+      success: true,
+      status: 200,
+      pinnedNodeIds: normalizePinnedNodeIdsFromLaunchStatePayload(payload?.pinnedNodeIds),
+      pinnedNodeIdsUpdatedAt: safeText(payload?.pinnedNodeIdsUpdatedAt),
+      checkedAt: safeText(payload?.checkedAt),
+    };
+  } catch {
+    return {
+      success: false,
+      status: 0,
+      reason: 'network-fallback',
+    };
+  }
+}
+
+async function flushPinnedNodeIdsServerSync() {
+  if (!canSyncPinnedNodeIdsToServer()) {
+    return;
+  }
+
+  if (pinnedNodeIdsServerSyncInFlight) {
+    pinnedNodeIdsServerSyncQueued = true;
+    return;
+  }
+
+  const authToken = safeText(state.session?.authToken);
+  if (!authToken) {
+    return;
+  }
+
+  const currentPinnedNodeIds = normalizePinnedNodeIds(state.pinnedNodeIds);
+  const currentSyncKey = currentPinnedNodeIds.join('|');
+  if (currentSyncKey === pinnedNodeIdsLastSyncedKey) {
+    pinnedNodeIdsLocalDirty = false;
+    return;
+  }
+
+  pinnedNodeIdsServerSyncInFlight = true;
+  try {
+    const response = await fetch(MEMBER_BINARY_TREE_PINNED_NODES_API, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        pinnedNodeIds: currentPinnedNodeIds,
+      }),
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const shouldRetry = response.status !== 401 && response.status !== 403;
+      if (shouldRetry) {
+        schedulePinnedNodeIdsServerSync();
+      }
+      return;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    const serverPinnedNodeIds = normalizePinnedNodeIds(payload?.pinnedNodeIds);
+    const serverSyncKey = serverPinnedNodeIds.join('|');
+
+    pinnedNodeIdsLocalDirty = false;
+    pinnedNodeIdsLastSyncedKey = serverSyncKey;
+    if (serverSyncKey !== currentSyncKey) {
+      setPinnedNodeIds(serverPinnedNodeIds, {
+        persistLocal: true,
+        syncServer: false,
+      });
+    }
+
+    if (state.launchState && typeof state.launchState === 'object') {
+      state.launchState.pinnedNodeIds = serverPinnedNodeIds.slice();
+      state.launchState.pinnedNodeIdsUpdatedAt = safeText(payload?.pinnedNodeIdsUpdatedAt);
+    }
+  } catch {
+    schedulePinnedNodeIdsServerSync();
+  } finally {
+    pinnedNodeIdsServerSyncInFlight = false;
+    if (pinnedNodeIdsServerSyncQueued) {
+      pinnedNodeIdsServerSyncQueued = false;
+      void flushPinnedNodeIdsServerSync();
+    }
+  }
+}
+
+function schedulePinnedNodeIdsServerSync(options = {}) {
+  if (!canSyncPinnedNodeIdsToServer()) {
+    return;
+  }
+
+  const immediate = options?.immediate === true;
+  if (immediate) {
+    clearPinnedNodeIdsServerSyncTimer();
+    void flushPinnedNodeIdsServerSync();
+    return;
+  }
+
+  clearPinnedNodeIdsServerSyncTimer();
+  pinnedNodeIdsServerSyncTimerId = window.setTimeout(() => {
+    pinnedNodeIdsServerSyncTimerId = 0;
+    void flushPinnedNodeIdsServerSync();
+  }, PINNED_NODE_IDS_SERVER_SYNC_DEBOUNCE_MS);
+}
+
+async function syncPinnedNodeIdsFromServer(reason = 'timer') {
+  if (state.source !== 'member') {
+    return { success: false, skipped: true, reason: 'non-member-source' };
+  }
+
+  if (!canSyncPinnedNodeIdsToServer()) {
+    return { success: false, skipped: true, reason: 'missing-auth-token' };
+  }
+
+  if (pinnedNodeIdsLocalDirty || pinnedNodeIdsServerSyncInFlight || pinnedNodeIdsServerSyncTimerId > 0) {
+    return { success: false, skipped: true, reason: 'local-sync-pending' };
+  }
+
+  const remoteState = await fetchMemberBinaryTreePinnedNodes(state.session);
+  if (!remoteState.success) {
+    return {
+      success: false,
+      skipped: false,
+      reason: remoteState.reason || 'remote-fetch-failed',
+    };
+  }
+
+  const remotePinnedNodeIds = normalizePinnedNodeIds(remoteState.pinnedNodeIds);
+  const remoteSyncKey = remotePinnedNodeIds.join('|');
+  const remoteUpdatedAt = safeText(remoteState.pinnedNodeIdsUpdatedAt);
+  const remoteUpdatedAtMs = resolveTimestampMs(remoteUpdatedAt);
+  const localUpdatedAt = safeText(state.launchState?.pinnedNodeIdsUpdatedAt);
+  const localUpdatedAtMs = resolveTimestampMs(localUpdatedAt);
+
+  if (remoteSyncKey === pinnedNodeIdsLastSyncedKey && remoteUpdatedAtMs <= localUpdatedAtMs) {
+    return { success: true, skipped: true, reason: 'already-synced' };
+  }
+
+  if (remoteUpdatedAtMs > 0 && localUpdatedAtMs > 0 && remoteUpdatedAtMs < localUpdatedAtMs) {
+    return { success: true, skipped: true, reason: 'stale-remote-state' };
+  }
+
+  const localSyncKey = resolvePinnedNodeIdsSyncKey(state.pinnedNodeIds);
+  if (remoteSyncKey !== localSyncKey) {
+    setPinnedNodeIds(remotePinnedNodeIds, {
+      persistLocal: true,
+      syncServer: false,
+    });
+  }
+
+  pinnedNodeIdsLastSyncedKey = remoteSyncKey;
+  if (state.launchState && typeof state.launchState === 'object') {
+    state.launchState.pinnedNodeIds = remotePinnedNodeIds.slice();
+    state.launchState.pinnedNodeIdsUpdatedAt = remoteUpdatedAt;
+  }
+
+  return {
+    success: true,
+    skipped: false,
+    reason,
+    applied: remoteSyncKey !== localSyncKey,
+  };
 }
 
 async function resetMemberBinaryTreeLaunchStateFromDock() {
@@ -5172,6 +16937,35 @@ function resolveAppSource() {
   return source === 'admin' ? 'admin' : 'member';
 }
 
+function resolveInitialPanelKeyFromQuery() {
+  const params = new URLSearchParams(window.location.search || '');
+  const panelKey = normalizeCredentialValue(safeText(params.get('panel') || params.get('openPanel')));
+  if (panelKey === 'account-overview' || panelKey === 'accountoverview') {
+    return 'account-overview';
+  }
+  if (panelKey === 'infinity-builder' || panelKey === 'infinitybuilder') {
+    return 'infinity-builder';
+  }
+  if (
+    panelKey === 'legacy-leadership'
+    || panelKey === 'legacyleadership'
+    || panelKey === 'legacy-builder'
+    || panelKey === 'legacybuilder'
+  ) {
+    return 'legacy-leadership';
+  }
+  if (panelKey === 'rank-advancement' || panelKey === 'rankadvancement') {
+    return 'rank-advancement';
+  }
+  if (panelKey === 'preferred-accounts' || panelKey === 'preferredaccounts') {
+    return 'preferred-accounts';
+  }
+  if (panelKey === 'my-store' || panelKey === 'mystore') {
+    return 'my-store';
+  }
+  return '';
+}
+
 function redirectTo(pathname) {
   if (pathname) {
     window.location.replace(pathname);
@@ -5265,6 +17059,10 @@ async function bootstrapSession() {
   }
   state.session = validation.session;
   state.launchState = await fetchMemberBinaryTreeLaunchState(validation.session);
+  applyInfinityBuilderTierSortDirectionsFromLaunchState(state.launchState, {
+    syncServer: false,
+    markSynced: true,
+  });
   return true;
 }
 
@@ -5330,8 +17128,7 @@ function resolveTreeNextLiveMemberCreatedAtMs(member = {}, index = 0, totalMembe
 function resolveTreeNextLiveNodeStatusFromAccountStatus(accountStatus) {
   const normalized = normalizeCredentialValue(accountStatus);
   if (
-    normalized.includes('pending')
-    || normalized.includes('review')
+    normalized.includes('review')
     || normalized.includes('dormant')
     || normalized.includes('inactive')
     || normalized.includes('suspend')
@@ -5351,16 +17148,30 @@ function resolveTreeNextLiveMemberAccountStatus(member = {}) {
     || member?.memberAccountStatus
     || member?.member_account_status,
   );
+  const normalizedExplicitStatus = normalizeCredentialValue(explicitStatus);
+  if (
+    normalizedExplicitStatus.includes('review')
+    || normalizedExplicitStatus.includes('dormant')
+    || normalizedExplicitStatus.includes('inactive')
+    || normalizedExplicitStatus.includes('suspend')
+    || normalizedExplicitStatus.includes('disable')
+    || normalizedExplicitStatus.includes('expired')
+  ) {
+    return explicitStatus || 'Inactive';
+  }
+
+  const personalVolumeSnapshot = resolveTreeNextLiveMemberPersonalVolumeSnapshot(member);
+  const isActiveByPersonalBv = personalVolumeSnapshot.currentPersonalPvBv >= ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN;
   if (explicitStatus) {
-    return explicitStatus;
+    return isActiveByPersonalBv ? 'Active' : 'Inactive';
   }
   if (typeof member?.isActive === 'boolean') {
-    return member.isActive ? 'Active' : 'Inactive';
+    return member.isActive && isActiveByPersonalBv ? 'Active' : 'Inactive';
   }
   if (typeof member?.active === 'boolean') {
-    return member.active ? 'Active' : 'Inactive';
+    return member.active && isActiveByPersonalBv ? 'Active' : 'Inactive';
   }
-  return member?.passwordSetupRequired ? 'Pending' : 'Active';
+  return isActiveByPersonalBv ? 'Active' : 'Inactive';
 }
 
 function isTreeNextLiveBinaryTreeEligibleMember(member = {}) {
@@ -5418,12 +17229,35 @@ function resolveTreeNextLiveMemberRank(member = {}) {
   return 'Personal';
 }
 
-function resolveTreeNextLiveMemberVolume(member = {}) {
+function resolveTreeNextLiveMemberPersonalVolumeSnapshot(member = {}) {
   const packageKey = normalizeCredentialValue(member?.enrollmentPackage);
   const packageMeta = ENROLL_PACKAGE_META[packageKey];
   const packageBv = Math.max(0, Math.floor(safeNumber(member?.packageBv, safeNumber(packageMeta?.bv, 0))));
   const starterPersonalPv = Math.max(0, Math.floor(safeNumber(member?.starterPersonalPv, packageBv)));
-  return starterPersonalPv > 0 ? starterPersonalPv : packageBv;
+  const baselineStarterPersonalPv = Math.max(0, Math.floor(safeNumber(
+    member?.serverCutoffBaselineStarterPersonalPv
+    ?? member?.server_cutoff_baseline_starter_personal_pv,
+    0,
+  )));
+  const explicitCurrentPersonalPvBv = safeNumber(
+    member?.currentPersonalPvBv
+    ?? member?.current_personal_pv_bv
+    ?? member?.monthlyPersonalBv
+    ?? member?.monthly_personal_bv
+    ?? member?.currentWeekPersonalPv
+    ?? member?.current_week_personal_pv,
+    Number.NaN,
+  );
+  const derivedCurrentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  const currentPersonalPvBv = Number.isFinite(explicitCurrentPersonalPvBv)
+    ? Math.max(0, Math.floor(explicitCurrentPersonalPvBv))
+    : derivedCurrentPersonalPvBv;
+  return {
+    packageBv,
+    starterPersonalPv,
+    baselineStarterPersonalPv,
+    currentPersonalPvBv,
+  };
 }
 
 function createTreeNextLiveNodeIdForMember(member = {}, index = 0, usedNodeIds = new Set()) {
@@ -5480,6 +17314,7 @@ function createTreeNextLiveNodeIdForMember(member = {}, index = 0, usedNodeIds =
 function createTreeNextLiveScopedRootNode(sourceNode = null) {
   const source = sourceNode && typeof sourceNode === 'object' ? sourceNode : null;
   const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const isAdminSource = state.source === 'admin';
   const sessionDisplayName = safeText(resolveSessionDisplayName());
   const sourceDisplayName = safeText(source?.name);
   const sourceUsername = safeText(source?.username || source?.memberCode).replace(/^@+/, '');
@@ -5489,21 +17324,62 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     || session?.email
     || '',
   ).replace(/^@+/, '');
-  const displayName = state.source === 'admin'
-    ? (sourceDisplayName || sessionDisplayName || 'Company Root')
+  const displayName = isAdminSource
+    ? ADMIN_ROOT_DISPLAY_NAME
     : (sourceDisplayName || sessionDisplayName || 'Member');
-  const username = state.source === 'admin'
-    ? (sourceUsername || sessionUsername || 'company-root')
+  const username = isAdminSource
+    ? ADMIN_ROOT_USERNAME
     : (sourceUsername || sessionUsername || 'member');
-  const rank = safeText(source?.rank || session?.accountRank || session?.rank || 'Legacy') || 'Legacy';
+  const rank = isAdminSource
+    ? ADMIN_ROOT_DISPLAY_NAME
+    : (safeText(
+      source?.rank
+      || source?.accountRank
+      || source?.account_rank
+      || session?.accountRank
+      || session?.account_rank
+      || session?.rank
+      || 'Legacy',
+    ) || 'Legacy');
   const accountStatus = safeText(source?.accountStatus || source?.status || 'Active') || 'Active';
   const fallbackTitle = `${rank} Builder`;
-  const title = safeText(source?.title || fallbackTitle) || fallbackTitle;
+  const sourceTitle = resolveNodePrimaryTitleLabel(source);
+  const sessionTitle = resolveNodePrimaryTitleLabel(session);
+  const sessionTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sessionTitle, rank);
+  const sourceTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sourceTitle, rank);
+  let title = fallbackTitle;
+  if (isAdminSource) {
+    title = ADMIN_ROOT_TITLE;
+  } else if (state.source === 'member') {
+    if (sessionTitle && !sessionTitleIsFallback) {
+      title = sessionTitle;
+    } else if (sourceTitle && !sourceTitleIsFallback) {
+      title = sourceTitle;
+    } else {
+      title = sessionTitle || sourceTitle || fallbackTitle;
+    }
+  } else if (sourceTitle && !sourceTitleIsFallback) {
+    title = sourceTitle;
+  } else {
+    title = sessionTitle || sourceTitle || fallbackTitle;
+  }
+  const secondaryTitle = resolveNodeSecondaryTitleLabel(source) || resolveNodeSecondaryTitleLabel(session);
+  const rankIconPath = resolveNodeRankIconPathValue(source) || resolveNodeRankIconPathValue(session);
+  const titleIconPath = resolveNodeTitleIconPathValue(source) || resolveNodeTitleIconPathValue(session);
   const sourceBadges = Array.isArray(source?.badges)
     ? source.badges.map((badge) => safeText(badge)).filter(Boolean)
     : [];
-  const badges = sourceBadges.length ? sourceBadges : [rank];
+  const badges = isAdminSource
+    ? [ADMIN_ROOT_DISPLAY_NAME]
+    : (sourceBadges.length ? sourceBadges : [rank]);
   const volume = Math.max(0, Math.floor(safeNumber(source?.volume, 0)));
+  const starterPersonalPv = Math.max(0, Math.floor(safeNumber(source?.starterPersonalPv, volume)));
+  const baselineStarterPersonalPv = Math.max(0, Math.floor(safeNumber(
+    source?.serverCutoffBaselineStarterPersonalPv
+    ?? source?.server_cutoff_baseline_starter_personal_pv,
+    0,
+  )));
+  const currentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
   const sourceAvatarPalette = resolveAvatarPaletteFromRecord(source)
     || resolveAvatarPaletteFromRecord(session);
   const sourceAvatarColorTriplet = resolveAvatarColorTripletFromRecord(source)
@@ -5540,21 +17416,55 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     id: 'root',
     parent: '',
     side: '',
+    userId: safeText(
+      source?.userId
+      || source?.memberUserId
+      || session?.id
+      || session?.userId
+      || session?.user_id
+      || '',
+    ),
+    email: safeText(source?.email || session?.email || ''),
     memberCode: username,
     name: displayName,
     username,
-    role: safeText(source?.role || 'Network Head') || 'Network Head',
+    role: isAdminSource
+      ? ADMIN_ROOT_ROLE
+      : (safeText(source?.role || 'Network Head') || 'Network Head'),
     status: resolveTreeNextLiveNodeStatusFromAccountStatus(accountStatus),
     accountStatus,
     rank,
+    accountRank: rank,
     title,
+    accountTitle: title,
+    profileAccountTitle: title,
+    accountTitleSecondary: secondaryTitle,
+    profileAccountTitleSecondary: secondaryTitle,
+    rankIconPath,
+    titleIconPath,
+    profileBadgeRankIconPath: rankIconPath,
+    profileBadgeTitleIconPath: titleIconPath,
     badges,
     volume,
+    starterPersonalPv,
+    serverCutoffBaselineStarterPersonalPv: baselineStarterPersonalPv,
+    currentPersonalPvBv,
+    monthlyPersonalBv: currentPersonalPvBv,
     sponsorId: '',
+    globalSponsorId: '',
+    sponsorUsername: '',
     sponsorLeg: '',
     isSpillover: false,
     countryFlag: safeText(source?.countryFlag || session?.countryFlag || ''),
     enrollmentPackage: safeText(source?.enrollmentPackage || session?.enrollmentPackage || ''),
+    packagePrice: Math.max(0, safeNumber(source?.packagePrice ?? session?.packagePrice, 0)),
+    fastTrackBonusAmount: Math.max(0, safeNumber(
+      source?.fastTrackBonusAmount
+      ?? source?.fast_track_bonus_amount
+      ?? session?.fastTrackBonusAmount
+      ?? session?.fast_track_bonus_amount,
+      0,
+    )),
     avatarSeed: sourceAvatarSeed,
     avatarColor: sourceAvatarColorValue,
     avatarColorRgb: sourceAvatarColorTriplet ? [...sourceAvatarColorTriplet] : null,
@@ -5600,6 +17510,10 @@ function rebuildTreeNextLiveChildReferences(nodesInput = []) {
 }
 
 function resolveTreeNextLiveViewerGlobalNodeId(nodeById, lookupToNodeId) {
+  if (state.source === 'admin') {
+    return LIVE_TREE_GLOBAL_ROOT_ID;
+  }
+
   const session = state.session && typeof state.session === 'object' ? state.session : null;
   const candidates = [
     session?.rootNodeId,
@@ -5666,9 +17580,13 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
   const lookupToNodeId = new Map();
   const memberNodeIdByIndex = new Map();
 
-  const registerLookup = (rawValue, nodeId) => {
+  const registerLookup = (rawValue, nodeId, options = {}) => {
+    const preserveExisting = options?.preserveExisting === true;
     const lookupKey = normalizeTreeNextLiveLookupKey(rawValue);
     if (!lookupKey || !nodeId) {
+      return;
+    }
+    if (preserveExisting && lookupToNodeId.has(lookupKey)) {
       return;
     }
     lookupToNodeId.set(lookupKey, nodeId);
@@ -5678,24 +17596,37 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     id: LIVE_TREE_GLOBAL_ROOT_ID,
     parent: '',
     side: '',
-    memberCode: 'company-root',
-    name: 'Company Root',
-    username: 'company-root',
-    role: 'Network Head',
+    userId: ADMIN_ROOT_USERNAME,
+    email: safeText(state.session?.email || ''),
+    memberCode: ADMIN_ROOT_USERNAME,
+    name: ADMIN_ROOT_DISPLAY_NAME,
+    username: ADMIN_ROOT_USERNAME,
+    role: ADMIN_ROOT_ROLE,
     status: 'active',
     accountStatus: 'Active',
-    rank: 'Legacy',
-    title: 'Company Root',
-    badges: ['Legacy'],
+    rank: ADMIN_ROOT_DISPLAY_NAME,
+    accountRank: ADMIN_ROOT_DISPLAY_NAME,
+    title: ADMIN_ROOT_TITLE,
+    badges: [ADMIN_ROOT_DISPLAY_NAME],
     volume: 0,
+    starterPersonalPv: 0,
+    serverCutoffBaselineStarterPersonalPv: 0,
+    currentPersonalPvBv: 0,
+    monthlyPersonalBv: 0,
+    packagePrice: 0,
+    fastTrackBonusAmount: 0,
     sponsorId: '',
+    globalSponsorId: '',
+    sponsorUsername: '',
     sponsorLeg: '',
     isSpillover: false,
   };
   nodeById.set(LIVE_TREE_GLOBAL_ROOT_ID, globalRootNode);
   registerLookup(LIVE_TREE_GLOBAL_ROOT_ID, LIVE_TREE_GLOBAL_ROOT_ID);
+  registerLookup(ADMIN_ROOT_USERNAME, LIVE_TREE_GLOBAL_ROOT_ID);
   registerLookup('company-root', LIVE_TREE_GLOBAL_ROOT_ID);
   registerLookup('admin', LIVE_TREE_GLOBAL_ROOT_ID);
+  registerLookup('administrator', LIVE_TREE_GLOBAL_ROOT_ID);
 
   members.forEach((member, index) => {
     const nodeId = createTreeNextLiveNodeIdForMember(member, index, usedNodeIds);
@@ -5709,9 +17640,15 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
       || `Member ${index + 1}`,
     ) || `Member ${index + 1}`;
     const accountStatus = resolveTreeNextLiveMemberAccountStatus(member);
+    const personalVolumeSnapshot = resolveTreeNextLiveMemberPersonalVolumeSnapshot(member);
+    const sponsorUsername = safeText(member?.sponsorUsername || member?.sponsor_username).replace(/^@+/, '');
     const rank = resolveTreeNextLiveMemberRank(member);
     const fallbackTitle = `${rank} Builder`;
-    const title = safeText(member?.accountTitle || member?.title || fallbackTitle) || fallbackTitle;
+    const primaryTitle = resolveNodePrimaryTitleLabel(member);
+    const title = primaryTitle || fallbackTitle;
+    const secondaryTitle = resolveNodeSecondaryTitleLabel(member);
+    const rankIconPath = resolveNodeRankIconPathValue(member);
+    const titleIconPath = resolveNodeTitleIconPathValue(member);
     const createdAt = safeText(member?.createdAt || member?.updatedAt || '');
     const avatarPalette = resolveAvatarPaletteFromRecord(member);
     const avatarColorTriplet = resolveAvatarColorTripletFromRecord(member);
@@ -5736,6 +17673,8 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
       id: nodeId,
       parent: '',
       side: '',
+      userId: safeText(member?.userId || member?.id || ''),
+      email: safeText(member?.email || ''),
       memberCode: username || nodeId,
       name: displayName,
       username: username || nodeId,
@@ -5743,16 +17682,38 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
       status: resolveTreeNextLiveNodeStatusFromAccountStatus(accountStatus),
       accountStatus,
       rank,
+      accountRank: rank,
       title,
+      accountTitle: title,
+      profileAccountTitle: primaryTitle || title,
+      accountTitleSecondary: secondaryTitle,
+      profileAccountTitleSecondary: secondaryTitle,
+      rankIconPath,
+      titleIconPath,
+      profileBadgeRankIconPath: rankIconPath,
+      profileBadgeTitleIconPath: titleIconPath,
       badges: [rank],
-      volume: resolveTreeNextLiveMemberVolume(member),
+      volume: personalVolumeSnapshot.starterPersonalPv > 0
+        ? personalVolumeSnapshot.starterPersonalPv
+        : personalVolumeSnapshot.packageBv,
+      starterPersonalPv: personalVolumeSnapshot.starterPersonalPv,
+      serverCutoffBaselineStarterPersonalPv: personalVolumeSnapshot.baselineStarterPersonalPv,
+      currentPersonalPvBv: personalVolumeSnapshot.currentPersonalPvBv,
+      monthlyPersonalBv: personalVolumeSnapshot.currentPersonalPvBv,
       sponsorId: '',
+      globalSponsorId: '',
+      sponsorUsername,
       sponsorLeg: '',
       isSpillover: false,
       countryFlag: normalizeCredentialValue(member?.countryFlag),
       enrollmentPackage: normalizeCredentialValue(member?.enrollmentPackage),
-      packageBv: Math.max(0, Math.floor(safeNumber(member?.packageBv, 0))),
+      packagePrice: Math.max(0, safeNumber(member?.packagePrice, 0)),
+      packageBv: personalVolumeSnapshot.packageBv,
       fastTrackTier: normalizeCredentialValue(member?.fastTrackTier),
+      fastTrackBonusAmount: Math.max(0, safeNumber(
+        member?.fastTrackBonusAmount ?? member?.fast_track_bonus_amount,
+        0,
+      )),
       businessCenterNodeType: safeText(member?.businessCenterNodeType),
       isStaffTreeAccount: Boolean(member?.isStaffTreeAccount),
       createdAt,
@@ -5769,6 +17730,9 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     registerLookup(member?.memberUsername, nodeId);
     registerLookup(member?.username, nodeId);
     registerLookup(member?.email, nodeId);
+    registerLookup(member?.memberCode, nodeId, { preserveExisting: true });
+    registerLookup(member?.fullName, nodeId, { preserveExisting: true });
+    registerLookup(member?.name, nodeId, { preserveExisting: true });
     registerLookup(nodeId, nodeId);
   });
 
@@ -5885,6 +17849,7 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     if (!nodeById.has(node.sponsorId)) {
       node.sponsorId = LIVE_TREE_GLOBAL_ROOT_ID;
     }
+    node.globalSponsorId = node.sponsorId;
     node.isSpillover = placementPreference.isSpillover
       || Boolean(node.sponsorId && node.sponsorId !== node.parent);
     node.sponsorLeg = node.sponsorId === node.parent ? node.side : '';
@@ -5910,8 +17875,47 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     }
   }
 
+  // Track sponsor-graph ownership (direct + downline by sponsor), independent from placement subtree.
+  const sponsoredChildrenBySponsorId = new Map();
+  for (const [candidateNodeId, candidateNodeInput] of nodeById.entries()) {
+    const candidateNode = candidateNodeInput && typeof candidateNodeInput === 'object'
+      ? candidateNodeInput
+      : null;
+    if (!candidateNode) {
+      continue;
+    }
+    const candidateSponsorId = safeText(candidateNode?.sponsorId);
+    if (!candidateSponsorId || candidateSponsorId === candidateNodeId || !nodeById.has(candidateSponsorId)) {
+      continue;
+    }
+    if (!sponsoredChildrenBySponsorId.has(candidateSponsorId)) {
+      sponsoredChildrenBySponsorId.set(candidateSponsorId, []);
+    }
+    sponsoredChildrenBySponsorId.get(candidateSponsorId).push(candidateNodeId);
+  }
+
+  const viewerSponsoredOrganizationNodeIds = new Set();
+  const sponsorQueue = [viewerNodeId];
+  while (sponsorQueue.length > 0) {
+    const nextSponsorId = safeText(sponsorQueue.shift());
+    if (!nextSponsorId) {
+      continue;
+    }
+    const sponsoredChildIds = sponsoredChildrenBySponsorId.get(nextSponsorId) || [];
+    for (const sponsoredChildIdInput of sponsoredChildIds) {
+      const sponsoredChildId = safeText(sponsoredChildIdInput);
+      if (!sponsoredChildId || viewerSponsoredOrganizationNodeIds.has(sponsoredChildId) || !nodeById.has(sponsoredChildId)) {
+        continue;
+      }
+      viewerSponsoredOrganizationNodeIds.add(sponsoredChildId);
+      sponsorQueue.push(sponsoredChildId);
+    }
+  }
+
   const sourceRootNode = nodeById.get(viewerNodeId) || nodeById.get(LIVE_TREE_GLOBAL_ROOT_ID) || null;
-  const scopedNodes = [createTreeNextLiveScopedRootNode(sourceRootNode)];
+  const scopedNodeById = new Map();
+  scopedNodeById.set('root', createTreeNextLiveScopedRootNode(sourceRootNode));
+  const externalSpilloverSourceNodeIds = new Set();
 
   for (const includedNodeId of includedNodeIds) {
     if (includedNodeId === viewerNodeId || !nodeById.has(includedNodeId)) {
@@ -5923,13 +17927,22 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
       ? 'root'
       : (includedNodeIds.has(sourceParentId) ? sourceParentId : 'root');
     const sourceSponsorId = safeText(sourceNode?.sponsorId);
+    const sourceWasSpillover = Boolean(
+      sourceNode?.isSpillover
+      || sourceNode?.is_spillover
+      || sourceNode?.placementLeg === 'spillover'
+      || sourceNode?.placement_leg === 'spillover'
+      || sourceNode?.sponsorLeg === 'spillover'
+      || sourceNode?.sponsor_leg === 'spillover',
+    );
+    const isViewerOwnedSponsorBranchNode = viewerSponsoredOrganizationNodeIds.has(includedNodeId);
     let mappedSponsorId = '';
     if (sourceSponsorId === viewerNodeId) {
       mappedSponsorId = 'root';
     } else if (sourceSponsorId && includedNodeIds.has(sourceSponsorId)) {
       mappedSponsorId = sourceSponsorId;
-    } else if (sourceNode?.isSpillover) {
-      mappedSponsorId = 'root';
+    } else if (sourceWasSpillover) {
+      mappedSponsorId = '';
     } else {
       mappedSponsorId = mappedParentId || 'root';
     }
@@ -5937,20 +17950,90 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
     const scopedNode = {
       ...sourceNode,
       parent: mappedParentId,
+      placementParentId: mappedParentId,
+      placementSide: normalizeBinarySide(sourceNode?.side || sourceNode?.placementSide),
       sponsorId: mappedSponsorId,
+      globalSponsorId: mappedSponsorId,
+      sourceSponsorId,
+      isViewerOwnedSponsorBranchNode,
     };
     scopedNode.sponsorLeg = scopedNode.sponsorId === scopedNode.parent
       ? normalizeBinarySide(scopedNode.side)
       : '';
-    scopedNode.isSpillover = Boolean(
+    scopedNode.isSpillover = sourceWasSpillover || Boolean(
       scopedNode.sponsorId
       && scopedNode.parent
       && scopedNode.sponsorId !== scopedNode.parent,
     );
-    scopedNodes.push(scopedNode);
+    if (
+      resolveTreeNextSpilloverOutsideScopedOrganizationSource(sourceNode, viewerNodeId, includedNodeIds)
+      && !isViewerOwnedSponsorBranchNode
+    ) {
+      externalSpilloverSourceNodeIds.add(includedNodeId);
+    }
+    scopedNodeById.set(includedNodeId, scopedNode);
   }
 
-  const normalizedScopedNodes = rebuildTreeNextLiveChildReferences(scopedNodes);
+  const spilloverRootNodeIds = Array.from(externalSpilloverSourceNodeIds)
+    .filter((nodeId) => {
+      const node = scopedNodeById.get(nodeId);
+      if (!node) {
+        return false;
+      }
+      const parentId = safeText(node?.placementParentId || node?.parent || '');
+      return !parentId || !externalSpilloverSourceNodeIds.has(parentId);
+    });
+  const anonymizedNodeIdSet = new Set();
+  const anonymizedQueue = spilloverRootNodeIds.slice();
+  while (anonymizedQueue.length > 0) {
+    const nextNodeId = safeText(anonymizedQueue.shift());
+    if (!nextNodeId || anonymizedNodeIdSet.has(nextNodeId) || !scopedNodeById.has(nextNodeId)) {
+      continue;
+    }
+    const nextNode = scopedNodeById.get(nextNodeId);
+    if (!Boolean(nextNode?.isViewerOwnedSponsorBranchNode)) {
+      anonymizedNodeIdSet.add(nextNodeId);
+    }
+    const leftChildId = safeText(nextNode?.leftChildId);
+    const rightChildId = safeText(nextNode?.rightChildId);
+    if (leftChildId && scopedNodeById.has(leftChildId)) {
+      anonymizedQueue.push(leftChildId);
+    }
+    if (rightChildId && scopedNodeById.has(rightChildId)) {
+      anonymizedQueue.push(rightChildId);
+    }
+  }
+
+  const anonymizedNodeIds = Array.from(anonymizedNodeIdSet)
+    .sort((leftNodeId, rightNodeId) => {
+      const leftAddedAt = resolveInfinityBuilderNodeAddedAtMs(scopedNodeById.get(leftNodeId));
+      const rightAddedAt = resolveInfinityBuilderNodeAddedAtMs(scopedNodeById.get(rightNodeId));
+      if (leftAddedAt !== rightAddedAt) {
+        return leftAddedAt - rightAddedAt;
+      }
+      return leftNodeId.localeCompare(rightNodeId);
+    });
+  let spilloverDirectCount = 0;
+  let spilloverNetworkCount = 0;
+  for (const anonymizedNodeId of anonymizedNodeIds) {
+    const anonymizedNode = scopedNodeById.get(anonymizedNodeId);
+    if (!anonymizedNode) {
+      continue;
+    }
+    const isDirectPlacement = safeText(anonymizedNode?.placementParentId || anonymizedNode?.parent || '') === 'root';
+    if (isDirectPlacement) {
+      spilloverDirectCount += 1;
+      anonymizedNode.name = `Spillover Direct ${spilloverDirectCount}`;
+      anonymizedNode.memberCode = `spillover-${String(spilloverDirectCount).padStart(3, '0')}`;
+    } else {
+      spilloverNetworkCount += 1;
+      anonymizedNode.name = `Spillover Network ${spilloverNetworkCount}`;
+      anonymizedNode.memberCode = `spillover-network-${String(spilloverNetworkCount).padStart(3, '0')}`;
+    }
+    anonymizedNode.countryFlag = '';
+  }
+
+  const normalizedScopedNodes = rebuildTreeNextLiveChildReferences(Array.from(scopedNodeById.values()));
   if (normalizedScopedNodes.length > 0) {
     return normalizedScopedNodes;
   }
@@ -6003,6 +18086,13 @@ function resolveTreeNextLiveNodeSignature(node = {}) {
     safeText(safeNode.rank || safeNode.accountRank),
     safeText(safeNode.title),
     Math.floor(safeNumber(safeNode.volume, 0)),
+    Math.floor(safeNumber(
+      safeNode.currentPersonalPvBv
+      ?? safeNode.current_personal_pv_bv
+      ?? safeNode.monthlyPersonalBv
+      ?? safeNode.monthly_personal_bv,
+      0,
+    )),
     safeText(safeNode.businessCenterNodeType),
     safeText(safeNode.memberCode),
     safeNode.isSpillover ? '1' : '0',
@@ -6128,6 +18218,13 @@ function applyTreeNextLiveNodes(nextNodes, options = {}) {
   state.adapter.setNodes(state.nodes);
   rebuildNodeChildLegIndex();
   updateTreeNextLiveSnapshotHash(state.nodes);
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  maybeRefreshAccountOverviewRemoteSnapshot(homeNode, {
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
+  maybeRefreshRankAdvancementSnapshot({ homeNode });
 
   if (previousSelectedId) {
     const selectedStillExists = state.nodes.some((node) => safeText(node?.id) === previousSelectedId);
@@ -6178,6 +18275,7 @@ async function syncTreeNextLiveNodes(options = {}) {
       force,
       animateNewNodes: true,
     });
+    await syncPinnedNodeIdsFromServer(reason);
     state.liveSync.lastSyncedAtMs = Date.now();
     state.liveSync.errorStreak = 0;
     return {
@@ -6231,6 +18329,11 @@ function onTreeNextLiveSyncVisibilityChange() {
     return;
   }
   if (document.visibilityState === 'visible') {
+    void processTreeNextStripeReturnSignalFromStorage({
+      preserveCurrentStep: true,
+      consumeSignal: true,
+    });
+    void syncInfinityBuilderTierSortDirectionsFromServer('visibility');
     void syncTreeNextLiveNodes({ force: true, silent: true, reason: 'visibility' });
   }
   scheduleTreeNextLiveSync(resolveTreeNextLiveSyncIntervalMs());
@@ -6240,14 +18343,123 @@ function onTreeNextLiveSyncWindowFocus() {
   if (!state.liveSync?.started) {
     return;
   }
+  void processTreeNextStripeReturnSignalFromStorage({
+    preserveCurrentStep: true,
+    consumeSignal: true,
+  });
+  void syncInfinityBuilderTierSortDirectionsFromServer('focus');
   void syncTreeNextLiveNodes({ force: true, silent: true, reason: 'focus' });
   scheduleTreeNextLiveSync(resolveTreeNextLiveSyncIntervalMs());
 }
 
+function setMobileSearchViewportLockActive(active = false) {
+  if (active) {
+    const width = Math.max(1, Math.floor(window.innerWidth || state.renderSize?.width || 1));
+    const height = Math.max(1, Math.floor(window.innerHeight || state.renderSize?.height || 1));
+    if (!isTreeNextMobileViewport(width, height)) {
+      mobileSearchViewportLock.active = false;
+      mobileSearchViewportLock.width = 0;
+      mobileSearchViewportLock.height = 0;
+      return;
+    }
+    mobileSearchViewportLock.active = true;
+    mobileSearchViewportLock.width = width;
+    mobileSearchViewportLock.height = height;
+    return;
+  }
+  mobileSearchViewportLock.active = false;
+  mobileSearchViewportLock.width = 0;
+  mobileSearchViewportLock.height = 0;
+}
+
+function resolveCanvasViewportSizeWithMobileSearchLock() {
+  const rawWidth = Math.max(1, Math.floor(window.innerWidth || 1));
+  const rawHeight = Math.max(1, Math.floor(window.innerHeight || 1));
+  if (!mobileSearchViewportLock.active) {
+    return {
+      width: rawWidth,
+      height: rawHeight,
+    };
+  }
+  const lockWidth = Math.max(1, Math.floor(safeNumber(mobileSearchViewportLock.width, rawWidth)));
+  const lockHeight = Math.max(1, Math.floor(safeNumber(mobileSearchViewportLock.height, rawHeight)));
+  const widthDelta = Math.abs(rawWidth - lockWidth);
+  const sameWidth = widthDelta <= 4;
+  if (!sameWidth) {
+    mobileSearchViewportLock.width = rawWidth;
+    mobileSearchViewportLock.height = rawHeight;
+    return {
+      width: rawWidth,
+      height: rawHeight,
+    };
+  }
+  if (rawHeight < lockHeight) {
+    return {
+      width: lockWidth,
+      height: lockHeight,
+    };
+  }
+  if (rawHeight > (lockHeight + 8)) {
+    mobileSearchViewportLock.height = rawHeight;
+  }
+  return {
+    width: rawWidth,
+    height: rawHeight,
+  };
+}
+
+function resolveMobileRuntimeDprBounds(deviceDprInput = window.devicePixelRatio || 1) {
+  const deviceDpr = clamp(safeNumber(deviceDprInput, 1), 1, 3.5);
+  const maxMobileDpr = clamp(
+    Math.min(deviceDpr, MOBILE_PERF_DPR_CEILING),
+    1,
+    MOBILE_PERF_DPR_CEILING,
+  );
+  const qualityFloor = Math.max(
+    MOBILE_PERF_DPR_FLOOR,
+    (deviceDpr * MOBILE_PERF_DPR_MIN_DEVICE_RATIO),
+  );
+  const minMobileDpr = clamp(
+    Math.min(qualityFloor, maxMobileDpr),
+    1,
+    maxMobileDpr,
+  );
+  return {
+    minMobileDpr,
+    maxMobileDpr,
+  };
+}
+
+function resolveCanvasDprForViewport(widthInput, heightInput) {
+  const width = Math.max(1, Math.floor(safeNumber(widthInput, window.innerWidth || 1)));
+  const height = Math.max(1, Math.floor(safeNumber(heightInput, window.innerHeight || 1)));
+  const deviceDpr = clamp(window.devicePixelRatio || 1, 1, 3.5);
+  if (!isTreeNextMobileViewport(width, height)) {
+    state.perf.mobileRuntimeDpr = 0;
+    return clamp(deviceDpr, 1, 2.5);
+  }
+  const {
+    minMobileDpr,
+    maxMobileDpr,
+  } = resolveMobileRuntimeDprBounds(deviceDpr);
+  const seededRuntimeDpr = clamp(
+    Math.min(
+      safeNumber(state.perf.mobileRuntimeDpr, MOBILE_PERF_DPR_INITIAL),
+      maxMobileDpr,
+      MOBILE_PERF_DPR_INITIAL,
+    ),
+    minMobileDpr,
+    maxMobileDpr,
+  );
+  state.perf.mobileRuntimeDpr = seededRuntimeDpr;
+  return seededRuntimeDpr;
+}
+
 function updateCanvasSize() {
-  const width = Math.max(1, Math.floor(window.innerWidth || 1));
-  const height = Math.max(1, Math.floor(window.innerHeight || 1));
-  const dpr = clamp(window.devicePixelRatio || 1, 1, 2.5);
+  const viewportSize = resolveCanvasViewportSizeWithMobileSearchLock();
+  const width = viewportSize.width;
+  const height = viewportSize.height;
+  const dpr = resolveCanvasDprForViewport(width, height);
 
   state.renderSize.width = width;
   state.renderSize.height = height;
@@ -6265,51 +18477,148 @@ function updateCanvasSize() {
   glassBackdropContext.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
+function updateMobileRuntimeDprForPerf(nowMsInput = getNowMs()) {
+  const width = Math.max(1, Math.floor(safeNumber(state.renderSize?.width, window.innerWidth || 1)));
+  const height = Math.max(1, Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)));
+  if (!isTreeNextMobileViewport(width, height)) {
+    state.perf.mobileRuntimeDpr = 0;
+    state.perf.mobileDprLastAdjustAtMs = 0;
+    return;
+  }
+  const nowMs = safeNumber(nowMsInput, getNowMs());
+  const lastAdjustAtMs = safeNumber(state.perf.mobileDprLastAdjustAtMs, 0);
+  if ((nowMs - lastAdjustAtMs) < MOBILE_PERF_DPR_ADJUST_COOLDOWN_MS) {
+    return;
+  }
+  const fps = safeNumber(state.perf.fps, 0);
+  if (!Number.isFinite(fps) || fps <= 1) {
+    return;
+  }
+  const deviceDpr = clamp(window.devicePixelRatio || 1, 1, 3.5);
+  const {
+    minMobileDpr,
+    maxMobileDpr,
+  } = resolveMobileRuntimeDprBounds(deviceDpr);
+  const currentMobileDpr = clamp(
+    safeNumber(state.perf.mobileRuntimeDpr, Math.min(MOBILE_PERF_DPR_INITIAL, maxMobileDpr)),
+    minMobileDpr,
+    maxMobileDpr,
+  );
+  let nextMobileDpr = currentMobileDpr;
+  if (fps < MOBILE_PERF_DPR_FPS_LOWER && currentMobileDpr > minMobileDpr) {
+    nextMobileDpr = Math.max(minMobileDpr, currentMobileDpr - MOBILE_PERF_DPR_STEP_DOWN);
+  } else if (fps > MOBILE_PERF_DPR_FPS_UPPER && currentMobileDpr < maxMobileDpr) {
+    nextMobileDpr = Math.min(maxMobileDpr, currentMobileDpr + MOBILE_PERF_DPR_STEP_UP);
+  }
+  const roundedNextMobileDpr = Math.round(nextMobileDpr * 100) / 100;
+  if (Math.abs(roundedNextMobileDpr - currentMobileDpr) < 0.01) {
+    return;
+  }
+  state.perf.mobileRuntimeDpr = roundedNextMobileDpr;
+  state.perf.mobileDprLastAdjustAtMs = nowMs;
+  updateCanvasSize();
+}
+
 function resolveLayout(width, height) {
-  const edgePad = clamp(Math.round(Math.min(width, height) * 0.022), 20, 28);
-  const sideNavMaxWidth = Math.max(320, width - (edgePad * 2) - 24);
-  const sideNavWidth = clamp(390, 320, sideNavMaxWidth);
-  const sideNavVerticalInset = clamp(edgePad - 10, 10, edgePad);
+  const safeWidth = Math.max(1, Math.floor(safeNumber(width, window.innerWidth || 1)));
+  const safeHeight = Math.max(1, Math.floor(safeNumber(height, window.innerHeight || 1)));
+  const isMobileViewport = isTreeNextMobileViewport(safeWidth, safeHeight);
+  const edgePad = clamp(Math.round(Math.min(safeWidth, safeHeight) * 0.022), 20, 28);
+
+  if (isMobileViewport && !state.ui.sideNavOpen) {
+    state.ui.sideNavOpen = true;
+  }
+
+  const mobilePanelStage = resolveTreeNextMobileSidePanelStage({
+    width: safeWidth,
+    height: safeHeight,
+  });
+  const mobilePanelProgress = resolveTreeNextMobileSidePanelProgress({
+    width: safeWidth,
+    height: safeHeight,
+  });
 
   const workspace = {
     x: 0,
     y: 0,
-    width,
-    height,
+    width: safeWidth,
+    height: safeHeight,
   };
-  const sideNav = {
-    x: edgePad,
-    y: sideNavVerticalInset,
-    width: sideNavWidth,
-    height: height - (sideNavVerticalInset * 2),
-  };
-  const sideNavToggle = {
-    x: edgePad,
-    y: sideNavVerticalInset,
-    width: 124,
-    height: 30,
-  };
+
+  let sideNav;
+  let sideNavToggle;
+  if (isMobileViewport) {
+    const mobileFrame = resolveTreeNextMobileSidePanelFrame(
+      safeWidth,
+      safeHeight,
+      mobilePanelStage,
+      mobilePanelProgress,
+    );
+    sideNav = {
+      x: mobileFrame.x,
+      y: mobileFrame.y,
+      width: mobileFrame.width,
+      height: mobileFrame.height,
+      visibleHeight: mobileFrame.visibleHeight,
+      translateProgress: mobileFrame.translateProgress,
+      expansionProgress: mobileFrame.expansionProgress,
+      stage: mobileFrame.stage,
+    };
+    sideNavToggle = {
+      x: Math.round(sideNav.x + sideNav.width - 44),
+      y: Math.round(sideNav.y + 10),
+      width: 36,
+      height: 36,
+    };
+  } else {
+    const sideNavMaxWidth = Math.max(320, safeWidth - (edgePad * 2) - 24);
+    const sideNavWidth = clamp(390, 320, sideNavMaxWidth);
+    const sideNavVerticalInset = clamp(edgePad - 10, 10, edgePad);
+    sideNav = {
+      x: edgePad,
+      y: sideNavVerticalInset,
+      width: sideNavWidth,
+      height: safeHeight - (sideNavVerticalInset * 2),
+    };
+    sideNavToggle = {
+      x: edgePad,
+      y: sideNavVerticalInset,
+      width: 124,
+      height: 30,
+    };
+  }
+
   const topBar = {
     width: 0,
     height: 0,
   };
-  topBar.x = Math.round((width - topBar.width) / 2);
+  topBar.x = Math.round((safeWidth - topBar.width) / 2);
   topBar.y = edgePad;
 
   const bottomBar = {
-    width: clamp(Math.round(width * 0.29), 320, 430),
+    width: clamp(Math.round(safeWidth * 0.29), 320, 430),
     height: 92,
   };
-  bottomBar.x = Math.round((width - bottomBar.width) / 2);
-  bottomBar.y = height - edgePad - bottomBar.height - 10;
+  bottomBar.x = Math.round((safeWidth - bottomBar.width) / 2);
+  if (isMobileViewport && state.ui.sideNavOpen) {
+    bottomBar.y = Math.max(edgePad, Math.round(sideNav.y - bottomBar.height - 10));
+  } else {
+    bottomBar.y = safeHeight - edgePad - bottomBar.height - 10;
+  }
 
+  const occludedBottomHeight = (isMobileViewport && state.ui.sideNavOpen)
+    ? Math.max(0, safeHeight - sideNav.y)
+    : 0;
+  const usableViewportHeight = Math.max(120, safeHeight - occludedBottomHeight);
   const viewport = {
     x: 0,
     y: 0,
-    width,
-    height,
-    centerX: width / 2,
-    baseY: Math.max(78, Math.round(height * 0.12)),
+    width: safeWidth,
+    height: safeHeight,
+    centerX: safeWidth / 2,
+    baseY: isMobileViewport
+      ? Math.max(54, Math.round(usableViewportHeight * 0.18))
+      : Math.max(78, Math.round(safeHeight * 0.12)),
   };
 
   return {
@@ -6334,6 +18643,19 @@ function roundedRectPath(ctx, x, y, width, height, radius) {
   ctx.quadraticCurveTo(x, y + height, x, y + height - clampedRadius);
   ctx.lineTo(x, y + clampedRadius);
   ctx.quadraticCurveTo(x, y, x + clampedRadius, y);
+  ctx.closePath();
+}
+
+function roundedTopRectPath(ctx, x, y, width, height, leftRadius, rightRadiusInput = leftRadius) {
+  const clampedLeftRadius = clamp(leftRadius, 0, Math.min(width / 2, height));
+  const clampedRightRadius = clamp(rightRadiusInput, 0, Math.min(width / 2, height));
+  ctx.beginPath();
+  ctx.moveTo(x, y + height);
+  ctx.lineTo(x, y + clampedLeftRadius);
+  ctx.quadraticCurveTo(x, y, x + clampedLeftRadius, y);
+  ctx.lineTo(x + width - clampedRightRadius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + clampedRightRadius);
+  ctx.lineTo(x + width, y + height);
   ctx.closePath();
 }
 
@@ -6409,7 +18731,7 @@ function drawChevronGlyph(centerX, centerY, options = {}) {
 
 function drawSearchGlyph(centerX, centerY, options = {}) {
   const {
-    color = '#404652',
+    color = SIDE_NAV_SEARCH_TEXT_COLOR,
     size = 20,
     weight = 400,
   } = options;
@@ -6570,13 +18892,17 @@ function resolveNodeAvatarPalette(nodeId = '', options = {}) {
   const sourceNode = options?.node && typeof options.node === 'object'
     ? options.node
     : null;
-  const sourcePalette = resolveAvatarPaletteFromRecord(sourceNode);
-  if (sourcePalette) {
-    return sourcePalette;
-  }
-  const sourceColorTriplet = resolveAvatarColorTripletFromRecord(sourceNode);
-  if (sourceColorTriplet) {
-    return buildAvatarPaletteFromColorTriplet(sourceColorTriplet);
+  const ignoreSourcePalette = options?.ignoreSourcePalette === true;
+  const allowGraySourcePalette = options?.allowGraySourcePalette === true;
+  if (!ignoreSourcePalette) {
+    const sourcePalette = resolveAvatarPaletteFromRecord(sourceNode);
+    if (sourcePalette && (allowGraySourcePalette || !isGrayAvatarPalette(sourcePalette))) {
+      return sourcePalette;
+    }
+    const sourceColorTriplet = resolveAvatarColorTripletFromRecord(sourceNode);
+    if (sourceColorTriplet && (allowGraySourcePalette || !isGrayRgbTriplet(sourceColorTriplet))) {
+      return buildAvatarPaletteFromColorTriplet(sourceColorTriplet);
+    }
   }
   const variant = safeText(options.variant).toLowerCase();
   if (variant === 'root') {
@@ -6661,16 +18987,20 @@ function drawFavoriteNodeAvatar(cx, cy, radius, nodeId, initials, hovered = fals
   const iconRadius = hovered ? (safeRadius * 1.03) : safeRadius;
   const safeNodeId = safeText(nodeId);
   const nodeRecord = resolveNodeById(safeNodeId);
+  const identity = resolveTreeNextNodePublicIdentity(nodeRecord, { fallbackName: safeNodeId || 'Member' });
 
   const avatarRender = drawResolvedAvatarCircle(cx, cy, iconRadius, safeNodeId, {
     node: nodeRecord,
     variant: 'auto',
+    disablePhoto: identity.isMasked,
+    ignoreSourcePalette: identity.isMasked,
     alpha: 0.98,
     sheenAlpha: hovered ? 0.22 : 0.18,
   });
 
   if (!avatarRender.usedPhoto) {
-    drawText(initials, cx, cy + 0.5, {
+    const displayInitials = safeText(identity.initials || initials || '?');
+    drawText(displayInitials, cx, cy + 0.5, {
       size: Math.max(11, Math.floor(iconRadius * 0.54)),
       weight: 700,
       color: '#F7FAFF',
@@ -6719,11 +19049,368 @@ function pointInsideRect(pointX, pointY, rect) {
   );
 }
 
+function resolveSideNavSearchInputInteractiveRect() {
+  const inputRect = state.ui?.sideNavSearchInputRect;
+  if (!inputRect) {
+    return null;
+  }
+  const clipRect = state.ui?.sideNavSearchInputClipRect;
+  if (!clipRect) {
+    return inputRect;
+  }
+  const x = Math.max(safeNumber(inputRect.x, 0), safeNumber(clipRect.x, 0));
+  const y = Math.max(safeNumber(inputRect.y, 0), safeNumber(clipRect.y, 0));
+  const right = Math.min(
+    safeNumber(inputRect.x, 0) + safeNumber(inputRect.width, 0),
+    safeNumber(clipRect.x, 0) + safeNumber(clipRect.width, 0),
+  );
+  const bottom = Math.min(
+    safeNumber(inputRect.y, 0) + safeNumber(inputRect.height, 0),
+    safeNumber(clipRect.y, 0) + safeNumber(clipRect.height, 0),
+  );
+  const width = Math.max(0, right - x);
+  const height = Math.max(0, bottom - y);
+  if (width <= 0.5 || height <= 0.5) {
+    return null;
+  }
+  return {
+    x,
+    y,
+    width,
+    height,
+  };
+}
+
 function pointInsideActiveSideNav(pointX, pointY) {
   if (!state.ui.sideNavOpen) {
     return false;
   }
   return pointInsideRect(pointX, pointY, state.layout?.sideNav);
+}
+
+function pointInsideMobileSideNavHandle(pointX, pointY, layoutInput = state.layout) {
+  const handleRect = resolveMobileSideNavHandleRect(layoutInput);
+  return pointInsideRect(pointX, pointY, handleRect);
+}
+
+function maybeBeginMobileSideNavStageDrag(pointerId, pointerX, pointerY, options = {}) {
+  if (!state.ui?.sideNavOpen || !isTreeNextMobileViewport()) {
+    return false;
+  }
+  const ignoreFavoritesRegion = options?.ignoreFavoritesRegion === true;
+  const ignoreButtonGuard = options?.ignoreButtonGuard === true;
+  const startedFromHandle = pointInsideMobileSideNavHandle(pointerX, pointerY, state.layout);
+  let dragSource = 'handle';
+  if (!startedFromHandle) {
+    const allowSurfaceDrag = options?.allowSurfaceDrag === true;
+    const forceSurfaceDrag = options?.forceSurfaceDrag === true;
+    if (!allowSurfaceDrag) {
+      return false;
+    }
+    if (!pointInsideActiveSideNav(pointerX, pointerY)) {
+      return false;
+    }
+    if (!ignoreFavoritesRegion && pointInsideFavoritesCarousel(pointerX, pointerY)) {
+      return false;
+    }
+    if (pointInsideRect(pointerX, pointerY, resolveSideNavSearchInputInteractiveRect())) {
+      return false;
+    }
+    const buttonHint = options?.buttonHint;
+    const button = buttonHint && typeof buttonHint === 'object'
+      ? buttonHint
+      : buttonUnderPointer(pointerX, pointerY);
+    if (!ignoreButtonGuard && button && safeText(button.id) !== TREE_NEXT_MOBILE_SIDE_PANEL_HANDLE_ID) {
+      return false;
+    }
+    const currentStage = resolveTreeNextMobileSidePanelStage();
+    if (currentStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL && !forceSurfaceDrag) {
+      const sideNavRect = state.layout?.sideNav || null;
+      if (!sideNavRect) {
+        return false;
+      }
+      const surfaceDragBottomY = sideNavRect.y + TREE_NEXT_MOBILE_SIDE_PANEL_FULL_STAGE_SURFACE_DRAG_REGION_PX;
+      if (pointerY > surfaceDragBottomY) {
+        return false;
+      }
+    }
+    dragSource = 'surface';
+  }
+  const dragState = getTreeNextMobileSidePanelDragState();
+  const nowMs = getNowMs();
+  const startProgress = resolveTreeNextMobileSidePanelProgress({
+    width: state.renderSize?.width,
+    height: state.renderSize?.height,
+  });
+  dragState.active = true;
+  dragState.pointerId = pointerId;
+  dragState.source = dragSource;
+  dragState.startMs = nowMs;
+  dragState.startY = safeNumber(pointerY, 0);
+  dragState.startProgress = startProgress;
+  dragState.lastY = dragState.startY;
+  dragState.lastMoveMs = nowMs;
+  dragState.velocityY = 0;
+  dragState.startStage = resolveTreeNextMobileSidePanelStage();
+  const springState = getTreeNextMobileSidePanelSpringState();
+  springState.active = true;
+  springState.dragging = true;
+  springState.velocity = 0;
+  springState.currentProgress = startProgress;
+  springState.targetProgress = startProgress;
+  state.ui.sideNavBrandMenuOpen = false;
+  closeSearchDropdown();
+  return true;
+}
+
+function updateMobileSideNavStageDrag(pointerId, pointerY) {
+  const dragState = getTreeNextMobileSidePanelDragState();
+  if (!dragState.active || pointerId !== dragState.pointerId) {
+    return false;
+  }
+  const nowMs = getNowMs();
+  const currentY = safeNumber(pointerY, dragState.startY);
+  const viewportHeight = Math.max(1, Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)));
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height: viewportHeight });
+  const panelTravelDistance = Math.max(
+    1,
+    viewportHeight - TREE_NEXT_MOBILE_SIDE_PANEL_TOP_SAFE_INSET_PX - TREE_NEXT_MOBILE_SIDE_PANEL_BOTTOM_SAFE_INSET_PX,
+  );
+  // Drag distance is normalized into sheet translate progress:
+  // 0 = full, 0.5 = half, ~0.92 = closed.
+  const deltaY = currentY - safeNumber(dragState.startY, currentY);
+  const nextProgress = clamp(
+    safeNumber(dragState.startProgress, TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF) + (deltaY / panelTravelDistance),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const springState = getTreeNextMobileSidePanelSpringState();
+  springState.active = true;
+  springState.dragging = true;
+  springState.currentProgress = nextProgress;
+  springState.targetProgress = nextProgress;
+  springState.velocity = 0;
+
+  const deltaMs = Math.max(1, nowMs - safeNumber(dragState.lastMoveMs, nowMs));
+  const instantaneousVelocityY = (currentY - safeNumber(dragState.lastY, currentY)) / deltaMs;
+  dragState.velocityY = (safeNumber(dragState.velocityY, 0) * 0.65) + (instantaneousVelocityY * 0.35);
+  dragState.lastMoveMs = nowMs;
+  dragState.lastY = currentY;
+  state.ui.mobileSidePanelStage = resolveTreeNextMobileSidePanelStageFromProgress(nextProgress, {
+    height: viewportHeight,
+  });
+  state.ui.mobileSidePanelStageInitialized = true;
+  return true;
+}
+
+function finalizeMobileSideNavStageDrag(pointerId) {
+  const dragState = getTreeNextMobileSidePanelDragState();
+  if (!dragState.active || pointerId !== dragState.pointerId) {
+    return {
+      consumed: false,
+      stageChanged: false,
+    };
+  }
+
+  const nowMs = getNowMs();
+  const springState = getTreeNextMobileSidePanelSpringState();
+  const startY = safeNumber(dragState.startY, 0);
+  const lastY = safeNumber(dragState.lastY, startY);
+  const totalDeltaY = lastY - startY;
+  const elapsedMs = Math.max(1, nowMs - safeNumber(dragState.startMs, nowMs));
+  const fallbackVelocityY = totalDeltaY / elapsedMs;
+  const releaseVelocityY = safeNumber(
+    dragState.velocityY,
+    fallbackVelocityY,
+  );
+  const viewportHeight = Math.max(1, Math.floor(safeNumber(state.renderSize?.height, window.innerHeight || 1)));
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height: viewportHeight });
+  const panelTravelDistance = Math.max(
+    1,
+    viewportHeight - TREE_NEXT_MOBILE_SIDE_PANEL_TOP_SAFE_INSET_PX - TREE_NEXT_MOBILE_SIDE_PANEL_BOTTOM_SAFE_INSET_PX,
+  );
+  const releaseProgress = clamp(
+    safeNumber(springState.currentProgress, resolveTreeNextMobileSidePanelProgress()),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  const projectedProgress = clamp(
+    releaseProgress + ((releaseVelocityY * TREE_NEXT_MOBILE_SIDE_PANEL_SNAP_PROJECTION_MS) / panelTravelDistance),
+    TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_FULL,
+    closedProgress,
+  );
+  // Apple Maps-like snap: use release velocity and projected resting point.
+  const startStage = normalizeTreeNextMobileSidePanelStage(dragState.startStage);
+  const releaseStage = resolveTreeNextMobileSidePanelStageFromProgress(releaseProgress, {
+    height: viewportHeight,
+  });
+  const isTapGesture = (
+    Math.abs(totalDeltaY) <= TREE_NEXT_MOBILE_SIDE_PANEL_TAP_THRESHOLD_PX
+    && Math.abs(releaseVelocityY) <= 0.12
+  );
+  const dragSource = safeText(dragState.source || 'handle');
+  let nextStage = resolveTreeNextMobileSidePanelStageFromProgress(projectedProgress, {
+    height: viewportHeight,
+  });
+  if (isTapGesture) {
+    nextStage = dragSource === 'handle'
+      ? (startStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+        ? TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF
+        : resolveTreeNextMobileAdjacentSidePanelStage(startStage, 'up'))
+      : releaseStage;
+  } else if (Math.abs(releaseVelocityY) >= TREE_NEXT_MOBILE_SIDE_PANEL_FLICK_VELOCITY_PX_PER_MS) {
+    nextStage = releaseVelocityY < 0
+      ? resolveTreeNextMobileAdjacentSidePanelStage(releaseStage, 'up')
+      : resolveTreeNextMobileAdjacentSidePanelStage(releaseStage, 'down');
+  }
+
+  const stageChanged = nextStage !== normalizeTreeNextMobileSidePanelStage(state.ui?.mobileSidePanelStage);
+  setTreeNextMobileSidePanelStage(nextStage, { animate: true });
+  const springVelocityProgressPerSecond = clamp(
+    (releaseVelocityY * 1000) / panelTravelDistance,
+    -8,
+    8,
+  );
+  clearTreeNextMobileSidePanelDrag(pointerId);
+  const settledSpringState = getTreeNextMobileSidePanelSpringState();
+  settledSpringState.dragging = false;
+  settledSpringState.velocity = springVelocityProgressPerSecond;
+  return {
+    consumed: true,
+    stageChanged,
+  };
+}
+
+function getSideNavContentScrollState() {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  if (!state.ui.sideNavContentScroll || typeof state.ui.sideNavContentScroll !== 'object') {
+    state.ui.sideNavContentScroll = {
+      viewportRect: null,
+      scrollY: 0,
+      maxScrollY: 0,
+      dragActive: false,
+      dragPointerId: null,
+      dragStartY: 0,
+      dragStartScrollY: 0,
+      dragMoved: false,
+    };
+  }
+  return state.ui.sideNavContentScroll;
+}
+
+function clearSideNavContentScrollDrag(pointerId = null) {
+  const scrollState = getSideNavContentScrollState();
+  if (
+    pointerId !== null
+    && pointerId !== undefined
+    && scrollState.dragActive
+    && pointerId !== scrollState.dragPointerId
+  ) {
+    return false;
+  }
+  scrollState.dragActive = false;
+  scrollState.dragPointerId = null;
+  scrollState.dragStartY = 0;
+  scrollState.dragStartScrollY = clamp(safeNumber(scrollState.scrollY, 0), 0, Math.max(0, safeNumber(scrollState.maxScrollY, 0)));
+  scrollState.dragMoved = false;
+  return true;
+}
+
+function maybeBeginMobileSideNavContentScroll(pointerId, pointerX, pointerY, pointerType = 'mouse', options = {}) {
+  if (pointerType !== 'touch') {
+    return false;
+  }
+  if (!state.ui?.sideNavOpen || !isTreeNextMobileViewport()) {
+    return false;
+  }
+  if (resolveTreeNextMobileSidePanelStage() !== TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL) {
+    return false;
+  }
+  const scrollState = getSideNavContentScrollState();
+  const viewportRect = scrollState.viewportRect;
+  const maxScrollY = Math.max(0, safeNumber(scrollState.maxScrollY, 0));
+  if (!viewportRect || maxScrollY <= 0) {
+    return false;
+  }
+  if (!pointInsideRect(pointerX, pointerY, viewportRect)) {
+    return false;
+  }
+  const ignoreFavoritesRegion = options?.ignoreFavoritesRegion === true;
+  const ignoreButtonGuard = options?.ignoreButtonGuard === true;
+  if (!ignoreFavoritesRegion && pointInsideFavoritesCarousel(pointerX, pointerY)) {
+    return false;
+  }
+  if (pointInsideRect(pointerX, pointerY, resolveSideNavSearchInputInteractiveRect())) {
+    return false;
+  }
+  const button = buttonUnderPointer(pointerX, pointerY);
+  if (!ignoreButtonGuard && button && safeText(button.id) !== TREE_NEXT_MOBILE_SIDE_PANEL_HANDLE_ID) {
+    return false;
+  }
+  scrollState.dragActive = true;
+  scrollState.dragPointerId = pointerId;
+  scrollState.dragStartY = safeNumber(pointerY, 0);
+  scrollState.dragStartScrollY = clamp(safeNumber(scrollState.scrollY, 0), 0, maxScrollY);
+  scrollState.dragMoved = false;
+  return true;
+}
+
+function updateMobileSideNavContentScrollDrag(pointerId, pointerY) {
+  const scrollState = getSideNavContentScrollState();
+  if (!scrollState.dragActive || pointerId !== scrollState.dragPointerId) {
+    return false;
+  }
+  const maxScrollY = Math.max(0, safeNumber(scrollState.maxScrollY, 0));
+  if (maxScrollY <= 0) {
+    clearSideNavContentScrollDrag(pointerId);
+    return false;
+  }
+  const currentY = safeNumber(pointerY, safeNumber(scrollState.dragStartY, 0));
+  const deltaY = currentY - safeNumber(scrollState.dragStartY, currentY);
+  const startedAtTop = safeNumber(scrollState.dragStartScrollY, 0) <= 0.5;
+  if (
+    resolveTreeNextMobileSidePanelStage() === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+    && startedAtTop
+    && deltaY > 8
+  ) {
+    const pointerX = safeNumber(state.pointer.x, safeNumber(state.layout?.sideNav?.x, 0));
+    clearSideNavContentScrollDrag(pointerId);
+    if (maybeBeginMobileSideNavStageDrag(pointerId, pointerX, currentY, {
+      allowSurfaceDrag: true,
+      forceSurfaceDrag: true,
+    })) {
+      return updateMobileSideNavStageDrag(pointerId, currentY);
+    }
+    return false;
+  }
+  const nextScrollY = clamp(
+    safeNumber(scrollState.dragStartScrollY, 0) - deltaY,
+    0,
+    maxScrollY,
+  );
+  if (Math.abs(nextScrollY - safeNumber(scrollState.scrollY, 0)) >= 0.1) {
+    scrollState.dragMoved = true;
+  }
+  scrollState.scrollY = nextScrollY;
+  return true;
+}
+
+function finalizeMobileSideNavContentScrollDrag(pointerId) {
+  const scrollState = getSideNavContentScrollState();
+  if (!scrollState.dragActive || pointerId !== scrollState.dragPointerId) {
+    return {
+      consumed: false,
+      moved: false,
+    };
+  }
+  const moved = Boolean(scrollState.dragMoved);
+  clearSideNavContentScrollDrag(pointerId);
+  return {
+    consumed: true,
+    moved,
+  };
 }
 
 function getSideNavFavoritesState() {
@@ -6740,6 +19427,7 @@ function getSideNavFavoritesState() {
       dragStartX: 0,
       dragStartScrollX: 0,
       dragStartY: 0,
+      dragAxis: '',
       dragMoved: false,
       tapAction: '',
       placesCacheKey: '',
@@ -6781,19 +19469,79 @@ function beginFavoritesCarouselDrag(pointerId, pointerX, pointerY = 0, tapAction
   favorites.dragStartX = safeNumber(pointerX, 0);
   favorites.dragStartY = safeNumber(pointerY, 0);
   favorites.dragStartScrollX = safeNumber(favorites.scrollX, 0);
+  favorites.dragAxis = 'pending';
   favorites.dragMoved = false;
   favorites.tapAction = safeText(tapAction);
 }
 
-function updateFavoritesCarouselDrag(pointerId, pointerX, pointerY = 0) {
+function updateFavoritesCarouselDrag(pointerId, pointerX, pointerY = 0, pointerType = 'mouse') {
   const favorites = getSideNavFavoritesState();
   if (!favorites.dragActive || pointerId !== favorites.dragPointerId) {
     return false;
   }
-  const deltaX = safeNumber(pointerX, 0) - safeNumber(favorites.dragStartX, 0);
-  const deltaY = safeNumber(pointerY, 0) - safeNumber(favorites.dragStartY, 0);
+  const currentX = safeNumber(pointerX, safeNumber(favorites.dragStartX, 0));
+  const currentY = safeNumber(pointerY, safeNumber(favorites.dragStartY, 0));
+  const deltaX = currentX - safeNumber(favorites.dragStartX, 0);
+  const deltaY = currentY - safeNumber(favorites.dragStartY, 0);
+  const absDeltaX = Math.abs(deltaX);
+  const absDeltaY = Math.abs(deltaY);
+  const currentAxis = safeText(favorites.dragAxis || 'pending').toLowerCase();
+
+  if (currentAxis !== 'horizontal') {
+    if (
+      absDeltaX < TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaY < TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX
+    ) {
+      return true;
+    }
+    const horizontalIntent = (
+      absDeltaX >= TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaX > (absDeltaY + TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_BIAS_PX)
+    );
+    const verticalIntent = (
+      absDeltaY >= TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaY > (absDeltaX + TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_BIAS_PX)
+    );
+    if (horizontalIntent) {
+      favorites.dragAxis = 'horizontal';
+      favorites.dragMoved = true;
+    } else if (verticalIntent && pointerType === 'touch') {
+      stopFavoritesCarouselDrag(pointerId);
+      const handedOffToContentScroll = maybeBeginMobileSideNavContentScroll(
+        pointerId,
+        currentX,
+        currentY,
+        pointerType,
+        {
+          ignoreFavoritesRegion: true,
+          ignoreButtonGuard: true,
+        },
+      );
+      if (handedOffToContentScroll) {
+        canvas.classList.add('dragging');
+        return updateMobileSideNavContentScrollDrag(pointerId, currentY);
+      }
+      const handedOffToPanelDrag = maybeBeginMobileSideNavStageDrag(pointerId, currentX, currentY, {
+        allowSurfaceDrag: true,
+        forceSurfaceDrag: true,
+        ignoreFavoritesRegion: true,
+        ignoreButtonGuard: true,
+      });
+      if (handedOffToPanelDrag) {
+        canvas.classList.add('dragging');
+        return updateMobileSideNavStageDrag(pointerId, currentY);
+      }
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  if (safeText(favorites.dragAxis).toLowerCase() !== 'horizontal') {
+    return false;
+  }
   setFavoritesScroll(safeNumber(favorites.dragStartScrollX, 0) - deltaX);
-  if (!favorites.dragMoved && (Math.abs(deltaX) >= 6 || Math.abs(deltaY) >= 6)) {
+  if (!favorites.dragMoved && (absDeltaX >= 6 || absDeltaY >= 6)) {
     favorites.dragMoved = true;
   }
   return true;
@@ -6810,6 +19558,7 @@ function stopFavoritesCarouselDrag(pointerId = null) {
   favorites.dragActive = false;
   favorites.dragPointerId = null;
   favorites.dragStartY = 0;
+  favorites.dragAxis = '';
   favorites.dragMoved = false;
   favorites.tapAction = '';
   if (!state.drag.active) {
@@ -6873,6 +19622,80 @@ function drawBackground(width, height) {
 
 function drawWorkspaceBackdrop(workspace) {
   // Intentionally blank: plain Apple-gray background, no grid overlay.
+}
+
+function syncTreeNextMobileSheetInteractionState(layoutInput = state.layout) {
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const workspace = layout?.workspace || null;
+  const viewportWidth = Math.max(
+    1,
+    Math.floor(safeNumber(workspace?.width, state.renderSize?.width || window.innerWidth || 1)),
+  );
+  const viewportHeight = Math.max(
+    1,
+    Math.floor(safeNumber(workspace?.height, state.renderSize?.height || window.innerHeight || 1)),
+  );
+  const isMobileViewport = isTreeNextMobileViewport(viewportWidth, viewportHeight);
+  const stage = isMobileViewport
+    ? resolveTreeNextMobileSidePanelStage({ width: viewportWidth, height: viewportHeight })
+    : 'desktop';
+  if (
+    mobileSheetInteractionState.isMobile === isMobileViewport
+    && mobileSheetInteractionState.stage === stage
+  ) {
+    return;
+  }
+  mobileSheetInteractionState.isMobile = isMobileViewport;
+  mobileSheetInteractionState.stage = stage;
+
+  const htmlElement = document.documentElement;
+  if (htmlElement instanceof HTMLElement) {
+    if (isMobileViewport) {
+      htmlElement.setAttribute('data-tree-next-sheet-stage', stage);
+    } else {
+      htmlElement.removeAttribute('data-tree-next-sheet-stage');
+    }
+  }
+  const bodyElement = document.body;
+  if (bodyElement instanceof HTMLElement) {
+    if (isMobileViewport) {
+      bodyElement.setAttribute('data-tree-next-sheet-stage', stage);
+    } else {
+      bodyElement.removeAttribute('data-tree-next-sheet-stage');
+    }
+  }
+}
+
+function drawTreeNextMobileSheetBackdrop(layoutInput = state.layout) {
+  const layout = layoutInput && typeof layoutInput === 'object' ? layoutInput : null;
+  const workspace = layout?.workspace || null;
+  const sideNav = layout?.sideNav || null;
+  if (!workspace || !sideNav) {
+    return;
+  }
+  if (!isTreeNextMobileViewport(workspace.width, workspace.height)) {
+    return;
+  }
+  const sheetExpansion = clamp(
+    safeNumber(sideNav.expansionProgress, 1 - safeNumber(sideNav.translateProgress, 1)),
+    0,
+    1,
+  );
+  const closedProgress = resolveTreeNextMobileSidePanelClosedProgress({ height: workspace.height });
+  // Keep the map nearly untouched in the closed state; increase dim as the sheet expands.
+  const dimProgress = clamp(
+    (sheetExpansion - (1 - closedProgress))
+      / Math.max(0.0001, closedProgress),
+    0,
+    1,
+  );
+  if (dimProgress <= 0.001) {
+    return;
+  }
+  context.save();
+  context.fillStyle = `rgba(16, 22, 32, ${(0.03 + (dimProgress * 0.20)).toFixed(3)})`;
+  context.fillRect(workspace.x, workspace.y, workspace.width, workspace.height);
+  context.restore();
 }
 
 function drawBackdropBlurRegion(rect, radius = 20, blurPx = 16) {
@@ -6970,7 +19793,45 @@ function drawGlassCard(rect, options = {}) {
 }
 
 function drawPanelChrome(panel, tone = 'left') {
-  void tone;
+  const workspace = state.layout?.workspace || null;
+  const isMobileSidePanel = (
+    tone === 'left'
+    && workspace
+    && isTreeNextMobileViewport(workspace.width, workspace.height)
+  );
+  if (isMobileSidePanel) {
+    const sheetExpansionProgress = clamp(
+      safeNumber(panel.expansionProgress, 1 - safeNumber(panel.translateProgress, 1)),
+      0,
+      1,
+    );
+    const radiusCollapseProgress = clamp(
+      (sheetExpansionProgress - TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF)
+        / Math.max(0.0001, 1 - TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF),
+      0,
+      1,
+    );
+    const topCornerRadius = Math.round(30 * (1 - easeOutCubic(radiusCollapseProgress)));
+    const extensionHeight = 56;
+    const drawHeight = panel.height + extensionHeight;
+    roundedTopRectPath(context, panel.x, panel.y, panel.width, drawHeight, topCornerRadius, topCornerRadius);
+    context.fillStyle = SHELL_PANEL_COLOR;
+    context.fill();
+    roundedTopRectPath(
+      context,
+      panel.x + 0.5,
+      panel.y + 0.5,
+      panel.width - 1,
+      drawHeight,
+      Math.max(0, topCornerRadius - 0.5),
+      Math.max(0, topCornerRadius - 0.5),
+    );
+    context.lineWidth = 1;
+    context.strokeStyle = SHELL_PANEL_BORDER_COLOR;
+    context.stroke();
+    return;
+  }
+
   fillRoundedRect(context, panel.x, panel.y, panel.width, panel.height, 36, SHELL_PANEL_COLOR);
   strokeRoundedRect(
     context,
@@ -7108,6 +19969,12 @@ function resolveAvatarCssBackgroundForNode(nodeId) {
     return resolveSessionAvatarCssBackground();
   }
   const nodeRecord = resolveNodeById(safeNodeId);
+  if (shouldApplyTreeNextNodePrivacyMask(nodeRecord)) {
+    return {
+      image: resolveNodeAvatarCssGradient(`masked-${safeNodeId || 'member'}`),
+      isPhoto: false,
+    };
+  }
   const photoUrl = resolveNodeAvatarPhotoUrl(nodeRecord);
   if (photoUrl) {
     return {
@@ -7154,10 +20021,18 @@ function resolveSearchResultsForQuery(query, limit = SIDE_NAV_SEARCH_RESULT_MAX)
     if (!nodeId) {
       continue;
     }
-    const name = safeText(candidate?.name || nodeId) || nodeId;
-    const username = safeText(candidate?.username);
-    const rank = safeText(candidate?.rank);
-    const title = safeText(candidate?.title);
+    const identity = resolveTreeNextNodePublicIdentity(candidate, { fallbackName: nodeId });
+    if (identity.isMasked) {
+      const maskedNodeSearchKey = normalizeCredentialValue(nodeId);
+      const maskedVisibleKey = normalizeCredentialValue(TREE_NEXT_PRIVACY_ANONYMOUS_LABEL);
+      if (!maskedNodeSearchKey.includes(queryLower) && !maskedVisibleKey.includes(queryLower)) {
+        continue;
+      }
+    }
+    const name = safeText(identity.name || candidate?.name || nodeId) || nodeId;
+    const username = identity.isMasked ? '' : safeText(identity.username || candidate?.username || '');
+    const rank = identity.isMasked ? '' : safeText(candidate?.rank);
+    const title = identity.isMasked ? '' : safeText(candidate?.title);
     const subtitleParts = [];
     if (username) {
       subtitleParts.push(`@${username}`);
@@ -7169,15 +20044,16 @@ function resolveSearchResultsForQuery(query, limit = SIDE_NAV_SEARCH_RESULT_MAX)
       subtitleParts.push(title);
     }
     if (!subtitleParts.length) {
-      subtitleParts.push(`ID: ${nodeId}`);
+      subtitleParts.push(identity.isMasked ? 'Spillover node (private)' : `ID: ${nodeId}`);
     }
     ranked.push({
       id: nodeId,
       name,
-      initials: resolveInitials(name),
+      initials: safeText(identity.initials || resolveInitials(name)),
       username,
       rank,
       title,
+      isMasked: identity.isMasked,
       subtitle: subtitleParts.join(' · '),
       depth: Math.max(0, Math.floor(safeNumber(candidate?.depth, 0))),
       score: resolveSearchResultScore(candidate, queryLower),
@@ -7348,6 +20224,31 @@ function ensureSideNavSearchDropdown() {
 
   document.body.appendChild(dropdown);
   return dropdown;
+}
+
+function ensureSideNavSearchInputStyle() {
+  let styleElement = document.getElementById(SIDE_NAV_SEARCH_INPUT_STYLE_ID);
+  if (styleElement instanceof HTMLStyleElement) {
+    return styleElement;
+  }
+  styleElement = document.createElement('style');
+  styleElement.id = SIDE_NAV_SEARCH_INPUT_STYLE_ID;
+  styleElement.textContent = `
+    #${SIDE_NAV_SEARCH_INPUT_ID}::placeholder {
+      color: ${SIDE_NAV_SEARCH_TEXT_COLOR};
+      font-weight: 400;
+      opacity: 1;
+    }
+    #${SIDE_NAV_SEARCH_INPUT_ID}::-webkit-search-decoration,
+    #${SIDE_NAV_SEARCH_INPUT_ID}::-webkit-search-cancel-button,
+    #${SIDE_NAV_SEARCH_INPUT_ID}::-webkit-search-results-button,
+    #${SIDE_NAV_SEARCH_INPUT_ID}::-webkit-search-results-decoration {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+  `;
+  document.head.appendChild(styleElement);
+  return styleElement;
 }
 
 function resolveSideNavProfileMenuIconSpec(itemId) {
@@ -7743,7 +20644,12 @@ function renderSearchDropdown(dropdown) {
     avatarCore.style.height = '28px';
     avatarCore.style.borderRadius = '999px';
     avatarCore.style.boxSizing = 'border-box';
-    const avatarBackground = resolveAvatarCssBackgroundForNode(entry.id);
+    const avatarBackground = entry.isMasked
+      ? {
+        image: resolveNodeAvatarCssGradient(`masked-${safeText(entry.id) || 'member'}`),
+        isPhoto: false,
+      }
+      : resolveAvatarCssBackgroundForNode(entry.id);
     avatarCore.style.backgroundImage = avatarBackground.image;
     avatarCore.style.backgroundSize = 'cover';
     avatarCore.style.backgroundPosition = 'center';
@@ -7776,9 +20682,11 @@ function renderSearchDropdown(dropdown) {
     content.style.flex = '1 1 auto';
 
     const title = document.createElement('div');
-    const titleText = entry.username
-      ? `${truncateText(entry.name, 22)} (@${truncateText(entry.username, 18)})`
-      : truncateText(entry.name, 28);
+    const titleText = entry.isMasked
+      ? TREE_NEXT_PRIVACY_ANONYMOUS_LABEL
+      : (entry.username
+        ? `${truncateText(entry.name, 22)} (@${truncateText(entry.username, 18)})`
+        : truncateText(entry.name, 28));
     title.textContent = titleText;
     title.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
     title.style.fontSize = '12px';
@@ -7831,7 +20739,19 @@ function applySearchQuery(nextQuery, options = {}) {
   });
 }
 
+function isTreeNextOverlayPanelVisible() {
+  return Boolean(
+    state.enroll?.open
+    || state.ui?.accountOverviewVisible
+    || state.ui?.infinityBuilderVisible
+    || state.ui?.rankAdvancementVisible
+    || state.ui?.preferredAccountsVisible
+    || state.ui?.myStoreVisible,
+  );
+}
+
 function ensureSideNavSearchInput() {
+  ensureSideNavSearchInputStyle();
   let input = document.getElementById(SIDE_NAV_SEARCH_INPUT_ID);
   if (input instanceof HTMLInputElement) {
     return input;
@@ -7842,6 +20762,10 @@ function ensureSideNavSearchInput() {
   input.type = 'search';
   input.placeholder = 'Search username or name';
   input.autocomplete = 'off';
+  input.autocorrect = 'off';
+  input.autocapitalize = 'off';
+  input.setAttribute('inputmode', 'search');
+  input.setAttribute('enterkeyhint', 'search');
   input.spellcheck = false;
   input.style.position = 'fixed';
   input.style.left = '0px';
@@ -7856,17 +20780,70 @@ function ensureSideNavSearchInput() {
   input.style.webkitAppearance = 'none';
   input.style.boxSizing = 'border-box';
   input.style.fontFamily = '"SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
-  input.style.fontSize = '13px';
-  input.style.fontWeight = '600';
-  input.style.color = '#4A505C';
-  input.style.caretColor = '#4A505C';
+  input.style.fontSize = '16px';
+  input.style.lineHeight = '20px';
+  input.style.fontWeight = '400';
+  input.style.color = SIDE_NAV_SEARCH_TEXT_COLOR;
+  input.style.caretColor = SIDE_NAV_SEARCH_TEXT_COLOR;
+  input.style.webkitTextFillColor = SIDE_NAV_SEARCH_TEXT_COLOR;
   input.style.zIndex = '22';
   input.style.outline = 'none';
   input.style.display = 'none';
   input.style.boxShadow = 'none';
   input.style.transition = 'opacity 140ms ease';
 
+  let deferredSearchFocusTimerId = 0;
+  const clearDeferredSearchFocusTimer = () => {
+    const timerId = Math.floor(safeNumber(deferredSearchFocusTimerId, 0));
+    if (timerId > 0) {
+      window.clearTimeout(timerId);
+    }
+    deferredSearchFocusTimerId = 0;
+  };
+  const maybeExpandMobilePanelForSearchFocus = (options = {}) => {
+    if (!isTreeNextMobileViewport()) {
+      return false;
+    }
+    const currentMobileStage = resolveTreeNextMobileSidePanelStage();
+    if (currentMobileStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL) {
+      return false;
+    }
+    state.ui.sideNavOpen = true;
+    const animate = options?.animate !== false;
+    setTreeNextMobileSidePanelStage(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL, { animate });
+    return true;
+  };
+
+  input.addEventListener('pointerdown', (event) => {
+    setMobileSearchViewportLockActive(true);
+    clearDeferredSearchFocusTimer();
+    if (isTreeNextMobileViewport()) {
+      const currentMobileStage = resolveTreeNextMobileSidePanelStage();
+      if (currentMobileStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED) {
+        if (typeof event.preventDefault === 'function') {
+          event.preventDefault();
+        }
+        maybeExpandMobilePanelForSearchFocus({ animate: true });
+        deferredSearchFocusTimerId = window.setTimeout(() => {
+          deferredSearchFocusTimerId = 0;
+          if (document.activeElement === input) {
+            return;
+          }
+          try {
+            input.focus({ preventScroll: true });
+          } catch {
+            input.focus();
+          }
+        }, TREE_NEXT_MOBILE_SEARCH_FOCUS_EXPAND_DELAY_MS);
+        return;
+      }
+    }
+    maybeExpandMobilePanelForSearchFocus({ animate: true });
+  });
   input.addEventListener('focus', () => {
+    clearDeferredSearchFocusTimer();
+    setMobileSearchViewportLockActive(true);
+    maybeExpandMobilePanelForSearchFocus({ animate: true });
     state.ui.sideNavBrandMenuOpen = false;
     input.style.opacity = '1';
     refreshSearchResults({
@@ -7875,6 +20852,11 @@ function ensureSideNavSearchInput() {
     });
   });
   input.addEventListener('blur', () => {
+    clearDeferredSearchFocusTimer();
+    setMobileSearchViewportLockActive(false);
+    window.setTimeout(() => {
+      updateCanvasSize();
+    }, 0);
     input.style.opacity = '1';
     window.setTimeout(() => {
       if (document.activeElement === input) {
@@ -7942,9 +20924,27 @@ function syncSideNavSearchInput() {
   const input = ensureSideNavSearchInput();
   const dropdown = ensureSideNavSearchDropdown();
   const rect = state.ui.sideNavSearchInputRect;
+  const clipRect = state.ui.sideNavSearchInputClipRect;
   const dropdownRect = state.ui.sideNavSearchDropdownRect;
   const opacity = clamp(safeNumber(state.ui.sideNavSearchInputOpacity, 1), 0, 1);
-  if (!state.ui.sideNavOpen || !rect || !dropdownRect || opacity <= 0.001) {
+  const mobileViewport = isTreeNextMobileViewport();
+  input.style.fontSize = mobileViewport ? '16px' : '13px';
+  input.style.lineHeight = mobileViewport ? '20px' : '18px';
+  const clearSearchInputClip = () => {
+    input.style.clipPath = 'none';
+    input.style.webkitClipPath = 'none';
+  };
+
+  const overlayPanelVisible = isTreeNextOverlayPanelVisible();
+  if (overlayPanelVisible) {
+    if (document.activeElement === input) {
+      input.blur();
+    }
+    closeSearchDropdown();
+  }
+
+  if (overlayPanelVisible || !state.ui.sideNavOpen || !rect || !dropdownRect || opacity <= 0.001) {
+    clearSearchInputClip();
     input.style.display = 'none';
     dropdown.style.display = 'none';
     dropdown.style.opacity = '0';
@@ -7958,6 +20958,45 @@ function syncSideNavSearchInput() {
   input.style.top = `${Math.round(rect.y)}px`;
   input.style.width = `${Math.max(32, Math.round(rect.width))}px`;
   input.style.height = `${Math.max(24, Math.round(rect.height))}px`;
+  let searchInputFullyVisible = true;
+  if (clipRect && safeNumber(clipRect.width, 0) > 0 && safeNumber(clipRect.height, 0) > 0) {
+    const rectRight = safeNumber(rect.x, 0) + safeNumber(rect.width, 0);
+    const rectBottom = safeNumber(rect.y, 0) + safeNumber(rect.height, 0);
+    const clipRight = safeNumber(clipRect.x, 0) + safeNumber(clipRect.width, 0);
+    const clipBottom = safeNumber(clipRect.y, 0) + safeNumber(clipRect.height, 0);
+    const clipTopInset = clamp(safeNumber(clipRect.y, 0) - safeNumber(rect.y, 0), 0, safeNumber(rect.height, 0));
+    const clipBottomInset = clamp(rectBottom - clipBottom, 0, safeNumber(rect.height, 0));
+    const clipLeftInset = clamp(safeNumber(clipRect.x, 0) - safeNumber(rect.x, 0), 0, safeNumber(rect.width, 0));
+    const clipRightInset = clamp(rectRight - clipRight, 0, safeNumber(rect.width, 0));
+    const overlapWidth = Math.max(0, safeNumber(rect.width, 0) - clipLeftInset - clipRightInset);
+    const overlapHeight = Math.max(0, safeNumber(rect.height, 0) - clipTopInset - clipBottomInset);
+    if (overlapWidth <= 0.5 || overlapHeight <= 0.5) {
+      if (document.activeElement === input) {
+        input.blur();
+      }
+      closeSearchDropdown();
+      input.style.display = 'none';
+      dropdown.style.display = 'none';
+      dropdown.style.opacity = '0';
+      dropdown.dataset.renderKey = '';
+      return;
+    }
+    searchInputFullyVisible = (
+      clipTopInset <= 0.5
+      && clipBottomInset <= 0.5
+      && clipLeftInset <= 0.5
+      && clipRightInset <= 0.5
+    );
+    if (!searchInputFullyVisible) {
+      const clipPath = `inset(${clipTopInset.toFixed(2)}px ${clipRightInset.toFixed(2)}px ${clipBottomInset.toFixed(2)}px ${clipLeftInset.toFixed(2)}px)`;
+      input.style.clipPath = clipPath;
+      input.style.webkitClipPath = clipPath;
+    } else {
+      clearSearchInputClip();
+    }
+  } else {
+    clearSearchInputClip();
+  }
   if (document.activeElement !== input && input.value !== state.query) {
     input.value = state.query;
   }
@@ -7965,6 +21004,7 @@ function syncSideNavSearchInput() {
   const hasResults = Array.isArray(state.ui.sideNavSearchResults) && state.ui.sideNavSearchResults.length > 0;
   const showDropdown = (
     hasResults
+    && searchInputFullyVisible
     && state.ui.sideNavSearchDropdownOpen
     && !state.ui.sideNavBrandMenuOpen
     && safeText(state.query).trim().length > 0
@@ -7995,7 +21035,8 @@ function resolveUniverseCrumbLabel(nodeId) {
     return `Node ${nodeMatch[1]}`;
   }
   const globalMeta = state.adapter.resolveNodeMetrics(safeNodeId, getGlobalUniverseOptions());
-  const resolvedName = safeText(globalMeta?.node?.name);
+  const identity = resolveTreeNextNodePublicIdentity(globalMeta?.node, { fallbackName: safeNodeId });
+  const resolvedName = safeText(identity.name || globalMeta?.node?.name);
   if (resolvedName) {
     return truncateText(resolvedName, 12);
   }
@@ -8074,6 +21115,7 @@ function drawSideNav(layout) {
   const panelReveal = resolveStartupRevealForPanel(STARTUP_SIDE_PANEL_DELAY_MS);
   if (panelReveal.progress <= 0) {
     state.ui.sideNavSearchInputRect = null;
+    state.ui.sideNavSearchInputClipRect = null;
     state.ui.sideNavSearchInputOpacity = 0;
     state.ui.sideNavSearchDropdownRect = null;
     state.ui.sideNavBrandMenuAnchorRect = null;
@@ -8082,6 +21124,11 @@ function drawSideNav(layout) {
     const favorites = getSideNavFavoritesState();
     favorites.viewportRect = null;
     stopFavoritesCarouselDrag(null);
+    const contentScroll = getSideNavContentScrollState();
+    contentScroll.viewportRect = null;
+    contentScroll.maxScrollY = 0;
+    contentScroll.scrollY = 0;
+    clearSideNavContentScrollDrag(null);
     return;
   }
   const applyPanelReveal = beginStartupReveal(panelReveal);
@@ -8093,75 +21140,97 @@ function drawSideNav(layout) {
       ? clamp(safeNumber(panelReveal.alpha, 1), 0, 1)
       : 1;
 
+    const isMobileSideNav = isTreeNextMobileViewport(layout.workspace?.width, layout.workspace?.height);
+    const mobilePanelStage = isMobileSideNav
+      ? resolveTreeNextMobileSidePanelStage({
+        width: layout.workspace?.width,
+        height: layout.workspace?.height,
+      })
+      : TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL;
+    const isMobileFullStage = (
+      isMobileSideNav
+      && mobilePanelStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+    );
+    const isMobileClosed = (
+      isMobileSideNav
+      && mobilePanelStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED
+    );
+    const mobileSheetExpansionProgress = clamp(
+      safeNumber(panel.expansionProgress, 1 - safeNumber(panel.translateProgress, 1)),
+      0,
+      1,
+    );
+    const closedStageProgress = isMobileSideNav
+      ? resolveTreeNextMobileSidePanelSnapProgress(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED, {
+        height: layout.workspace?.height,
+      })
+      : TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_CLOSED;
+    const halfStageProgress = isMobileSideNav
+      ? resolveTreeNextMobileSidePanelSnapProgress(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF, {
+        height: layout.workspace?.height,
+      })
+      : TREE_NEXT_MOBILE_SIDE_PANEL_TRANSLATE_PROGRESS_HALF;
+    const closedStageExpansion = clamp(1 - closedStageProgress, 0, 1);
+    const halfStageExpansion = clamp(1 - halfStageProgress, 0, 1);
+    const expandedContentRevealRaw = isMobileSideNav
+      ? clamp(
+        (mobileSheetExpansionProgress - closedStageExpansion)
+          / Math.max(0.0001, halfStageExpansion - closedStageExpansion),
+        0,
+        1,
+      )
+      : 1;
+    const expandedContentReveal = isMobileSideNav ? easeOutCubic(expandedContentRevealRaw) : 1;
+    const collapsedContentReveal = isMobileSideNav ? clamp(1 - expandedContentReveal, 0, 1) : 0;
+    const isMobileExpandedStage = (
+      isMobileSideNav
+      && (
+        mobilePanelStage !== TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED
+        || expandedContentReveal > 0.001
+      )
+    );
+    let contentSizingPanelHeight = panel.height;
+    if (isMobileExpandedStage) {
+      const workspaceWidth = Math.max(
+        1,
+        Math.floor(safeNumber(layout.workspace?.width, state.renderSize?.width || panel.width || 1)),
+      );
+      const workspaceHeight = Math.max(
+        1,
+        Math.floor(safeNumber(layout.workspace?.height, state.renderSize?.height || panel.height || 1)),
+      );
+      const fullProgress = resolveTreeNextMobileSidePanelSnapProgress(
+        TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+        { height: workspaceHeight },
+      );
+      const fullStageFrame = resolveTreeNextMobileSidePanelFrame(
+        workspaceWidth,
+        workspaceHeight,
+        TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL,
+        fullProgress,
+      );
+      contentSizingPanelHeight = Math.max(
+        panel.height,
+        Math.floor(safeNumber(fullStageFrame?.height, panel.height)),
+      );
+    }
+    const mobileHandleRect = resolveMobileSideNavHandleRect(layout);
+    const hasMobileHandle = Boolean(mobileHandleRect);
     const insetX = 18;
     const slotX = panel.x + insetX;
     const slotWidth = panel.width - (insetX * 2);
-    const topPadding = 18;
+    const topPadding = isMobileSideNav ? 24 : 18;
     const gap = 16;
-    const searchRowHeight = 42;
-    const panelHeightScale = clamp((panel.height - 620) / 240, 0, 1);
-    const favoritesCardHeight = Math.round(136 + (32 * panelHeightScale));
+    const panelHeightScale = clamp((contentSizingPanelHeight - 620) / 240, 0, 1);
+    const favoritesCardBaseHeight = isMobileSideNav ? 104 : 136;
+    const favoritesCardHeight = Math.round(favoritesCardBaseHeight + ((isMobileSideNav ? 18 : 32) * panelHeightScale));
     const favoritesToDetailsGap = Math.round(4 + (8 * panelHeightScale));
-    const timerCardHeight = 124;
+    const memberStatusCardHeight = 124;
 
     let y = panel.y + topPadding;
-    const topControlButtonSize = 36;
-    const floatingProfileSize = 44;
-    const searchAvatarGap = 8;
-    const searchPillHeight = 36;
-    const topControlY = y + ((searchRowHeight - searchPillHeight) / 2);
-
-    const profileButtonId = 'side-nav-floating-profile';
-    const profileX = Math.max(
-      8,
-      Math.round((layout.workspace.x + layout.workspace.width) - floatingProfileSize - 8),
-    );
-    // Align to side-nav shell top instead of the search row height.
-    const profileY = panel.y;
-    const profileCenterX = profileX + (floatingProfileSize / 2);
-    const profileCenterY = profileY + (floatingProfileSize / 2);
-    const profileName = resolveSessionDisplayName();
-    const profileInitials = resolveInitials(profileName);
-    const profileRingRadius = (floatingProfileSize / 2);
-    const profileInnerRadius = profileRingRadius;
-
-    context.save();
-    context.shadowColor = 'rgba(25, 36, 52, 0.16)';
-    context.shadowBlur = 8;
-    context.shadowOffsetY = 2;
-    const sessionAvatarRender = drawResolvedAvatarCircle(
-      profileCenterX,
-      profileCenterY,
-      profileInnerRadius,
-      resolveSessionUserId(),
-      {
-        alpha: 0.98,
-        sheenAlpha: 0.2,
-      },
-    );
-    context.restore();
-    if (!sessionAvatarRender.usedPhoto) {
-      drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
-        size: Math.round(clamp(floatingProfileSize * 0.32, 12, 16)),
-        weight: 700,
-        color: '#F5F9FF',
-        align: 'center',
-      });
+    if (hasMobileHandle) {
+      y += 18;
     }
-    registerButton({
-      id: profileButtonId,
-      x: profileX,
-      y: profileY + buttonYOffset,
-      width: floatingProfileSize,
-      height: floatingProfileSize,
-      action: 'brand-menu:toggle',
-    });
-    state.ui.sideNavBrandMenuAnchorRect = {
-      x: profileX,
-      y: profileY + buttonYOffset,
-      width: floatingProfileSize,
-      height: floatingProfileSize,
-    };
 
     const sideNavToggleButtonId = 'side-nav-panel-toggle';
     const drawSideNavToggleButton = (buttonX, buttonY, size, action = 'side-nav:toggle') => {
@@ -8169,8 +21238,9 @@ function drawSideNav(layout) {
       const buttonFill = hovered ? '#E8EAF0' : SHELL_PANEL_COLOR;
       const buttonStroke = hovered ? '#DFE2EA' : SHELL_PANEL_COLOR;
       const iconColor = hovered ? '#444444' : '#888888';
-      fillRoundedRect(context, buttonX, buttonY, size, size, Math.round(size / 2), buttonFill);
-      strokeRoundedRect(context, buttonX + 0.5, buttonY + 0.5, size - 1, size - 1, Math.round(size / 2), buttonStroke, 1);
+      const cornerRadius = isMobileFullStage ? 0 : Math.round(size / 2);
+      fillRoundedRect(context, buttonX, buttonY, size, size, cornerRadius, buttonFill);
+      strokeRoundedRect(context, buttonX + 0.5, buttonY + 0.5, size - 1, size - 1, cornerRadius, buttonStroke, 1);
       drawMaterialButtonIcon('side_navigation', buttonX + (size / 2), buttonY + (size / 2) + 0.5, {
         size: Math.round(size * 0.58),
         weight: 500,
@@ -8189,25 +21259,274 @@ function drawSideNav(layout) {
 
     if (!state.ui.sideNavOpen) {
       state.ui.sideNavSearchInputRect = null;
+      state.ui.sideNavSearchInputClipRect = null;
       state.ui.sideNavSearchDropdownRect = null;
       closeSearchDropdown();
+      state.ui.sideNavBrandMenuAnchorRect = null;
+      state.ui.sideNavBrandMenuOpen = false;
       const favorites = getSideNavFavoritesState();
       favorites.viewportRect = null;
       stopFavoritesCarouselDrag(null);
+      const contentScroll = getSideNavContentScrollState();
+      contentScroll.viewportRect = null;
+      contentScroll.maxScrollY = 0;
+      contentScroll.scrollY = 0;
+      clearSideNavContentScrollDrag(null);
 
       const collapsedToggleX = panel.x + insetX;
-      drawSideNavToggleButton(collapsedToggleX, topControlY, topControlButtonSize);
+      drawSideNavToggleButton(collapsedToggleX, y + 3, 36);
       return;
     }
 
     drawPanelChrome(panel, 'left');
 
-    const searchPillWidth = slotWidth - topControlButtonSize - searchAvatarGap;
+    if (hasMobileHandle) {
+      const grabWidth = 42;
+      const grabHeight = 5;
+      const grabX = Math.round(mobileHandleRect.x + ((mobileHandleRect.width - grabWidth) / 2));
+      const grabY = Math.round(mobileHandleRect.y + 10);
+      fillRoundedRect(context, grabX, grabY, grabWidth, grabHeight, Math.round(grabHeight / 2), '#C8CDD8');
+      registerButton({
+        id: TREE_NEXT_MOBILE_SIDE_PANEL_HANDLE_ID,
+        x: mobileHandleRect.x,
+        y: mobileHandleRect.y + buttonYOffset,
+        width: mobileHandleRect.width,
+        height: mobileHandleRect.height,
+        action: 'noop',
+        rounded: false,
+      });
+    }
+
+    if (isMobileClosed) {
+      const shouldDrawCollapsedContent = collapsedContentReveal > 0.001;
+      const applyCollapsedContentFade = shouldDrawCollapsedContent && collapsedContentReveal < 0.999;
+      const collapsedContentInteractive = expandedContentReveal <= 0.001;
+      if (applyCollapsedContentFade) {
+        context.save();
+        context.globalAlpha *= collapsedContentReveal;
+      }
+      const collapsedSearchPillHeight = 36;
+      const collapsedSearchRowHeight = 42;
+      const collapsedAvatarGap = 8;
+      const collapsedSearchY = y + Math.round((collapsedSearchRowHeight - collapsedSearchPillHeight) / 2);
+      const collapsedPillX = slotX;
+      const collapsedProfileButtonSize = collapsedSearchPillHeight;
+      const collapsedProfileX = slotX + slotWidth - collapsedProfileButtonSize;
+      const collapsedProfileY = collapsedSearchY;
+      const collapsedProfileCenterX = collapsedProfileX + (collapsedProfileButtonSize / 2);
+      const collapsedProfileCenterY = collapsedProfileY + (collapsedProfileButtonSize / 2);
+      const collapsedProfileInitials = resolveInitials(resolveSessionDisplayName());
+      const collapsedAvatarRender = drawResolvedAvatarCircle(
+        collapsedProfileCenterX,
+        collapsedProfileCenterY,
+        collapsedProfileButtonSize / 2,
+        resolveSessionUserId(),
+        {
+          alpha: 0.98,
+          sheenAlpha: 0.2,
+        },
+      );
+      if (!collapsedAvatarRender.usedPhoto) {
+        drawText(collapsedProfileInitials, collapsedProfileCenterX, collapsedProfileCenterY + 0.5, {
+          size: Math.round(clamp(collapsedProfileButtonSize * 0.33, 11, 14)),
+          weight: 700,
+          color: '#F5F9FF',
+          align: 'center',
+        });
+      }
+      if (collapsedContentInteractive) {
+        registerButton({
+          id: 'side-nav-search-profile',
+          x: collapsedProfileX,
+          y: collapsedProfileY + buttonYOffset,
+          width: collapsedProfileButtonSize,
+          height: collapsedProfileButtonSize,
+          action: 'brand-menu:toggle',
+        });
+      }
+      state.ui.sideNavBrandMenuAnchorRect = {
+        x: collapsedProfileX,
+        y: collapsedProfileY + buttonYOffset,
+        width: collapsedProfileButtonSize,
+        height: collapsedProfileButtonSize,
+      };
+
+      const collapsedSearchPillWidth = Math.max(
+        150,
+        Math.round((collapsedProfileX - collapsedAvatarGap) - collapsedPillX),
+      );
+      fillRoundedRect(
+        context,
+        collapsedPillX,
+        collapsedSearchY,
+        collapsedSearchPillWidth,
+        collapsedSearchPillHeight,
+        18,
+        '#FFFFFF',
+      );
+      drawSearchGlyph(collapsedPillX + 18, collapsedSearchY + (collapsedSearchPillHeight / 2) + 0.5, {
+        color: SIDE_NAV_SEARCH_TEXT_COLOR,
+        size: 21,
+        weight: 450,
+      });
+      state.ui.sideNavSearchInputRect = {
+        x: collapsedPillX + 36,
+        y: collapsedSearchY + 2 + buttonYOffset,
+        width: collapsedSearchPillWidth - 42,
+        height: collapsedSearchPillHeight - 4,
+      };
+      state.ui.sideNavSearchInputClipRect = { ...state.ui.sideNavSearchInputRect };
+      state.ui.sideNavSearchDropdownRect = {
+        x: collapsedPillX,
+        y: collapsedSearchY + buttonYOffset,
+        width: collapsedSearchPillWidth,
+        height: collapsedSearchPillHeight,
+      };
+      const favorites = getSideNavFavoritesState();
+      favorites.viewportRect = null;
+      stopFavoritesCarouselDrag(null);
+      const contentScroll = getSideNavContentScrollState();
+      contentScroll.viewportRect = null;
+      contentScroll.maxScrollY = 0;
+      contentScroll.scrollY = 0;
+      clearSideNavContentScrollDrag(null);
+      if (applyCollapsedContentFade) {
+        context.restore();
+      }
+      if (expandedContentReveal <= 0.001) {
+        return;
+      }
+    }
+
+    const applyExpandedContentFade = isMobileSideNav && expandedContentReveal < 0.999;
+    if (applyExpandedContentFade) {
+      context.save();
+      context.globalAlpha *= expandedContentReveal;
+    }
+
+    const searchRowHeight = 42;
+    const topControlButtonSize = 36;
+    const searchAvatarGap = 8;
+    const searchPillHeight = 36;
+    const topControlY = y + ((searchRowHeight - searchPillHeight) / 2);
     const searchPillX = slotX;
-    const searchPillY = topControlY;
+    const showSideNavToggleInSearchRow = !isMobileSideNav;
+
+    const contentStartY = topControlY;
+    const contentViewportRect = {
+      x: slotX,
+      y: contentStartY,
+      width: slotWidth,
+      height: Math.max(0, (panel.y + panel.height - topPadding) - contentStartY),
+    };
+    const sideNavContentScrollState = getSideNavContentScrollState();
+    const contentScrollEnabled = (
+      isMobileSideNav
+      && mobilePanelStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+      && contentViewportRect.height > 0
+    );
+    const favoritesStartYBase = topControlY + searchRowHeight + gap;
+    const detailsStartYBase = favoritesStartYBase + favoritesCardHeight + favoritesToDetailsGap;
+    const detailsBottomLimitY = panel.y + panel.height - topPadding - memberStatusCardHeight - gap;
+    const fittedDetailsHeight = Math.max(isMobileSideNav ? 260 : 120, detailsBottomLimitY - detailsStartYBase);
+    const detailsCardHeightBase = isMobileExpandedStage
+      ? Math.max(fittedDetailsHeight, Math.round(contentSizingPanelHeight * 0.66))
+      : (contentScrollEnabled
+        ? Math.max(fittedDetailsHeight, Math.round(panel.height * 0.66))
+        : fittedDetailsHeight);
+    const totalScrollableContentHeight = (
+      (detailsStartYBase - contentStartY)
+      + detailsCardHeightBase
+      + gap
+      + memberStatusCardHeight
+    );
+    const contentScrollMaxY = contentScrollEnabled
+      ? Math.max(0, totalScrollableContentHeight - contentViewportRect.height)
+      : 0;
+    sideNavContentScrollState.viewportRect = { ...contentViewportRect };
+    sideNavContentScrollState.maxScrollY = contentScrollMaxY;
+    if (!contentScrollEnabled) {
+      sideNavContentScrollState.scrollY = 0;
+      clearSideNavContentScrollDrag(null);
+    } else {
+      sideNavContentScrollState.scrollY = clamp(
+        safeNumber(sideNavContentScrollState.scrollY, 0),
+        0,
+        contentScrollMaxY,
+      );
+    }
+    const contentScrollOffsetY = contentScrollEnabled
+      ? clamp(safeNumber(sideNavContentScrollState.scrollY, 0), 0, contentScrollMaxY)
+      : 0;
+    const shouldClipContentViewport = (
+      (isMobileSideNav && contentViewportRect.height > 0)
+      || (contentScrollEnabled && contentScrollMaxY > 0)
+    );
+    if (shouldClipContentViewport) {
+      context.save();
+      context.beginPath();
+      context.rect(
+        contentViewportRect.x - 2,
+        contentViewportRect.y,
+        contentViewportRect.width + 4,
+        contentViewportRect.height,
+      );
+      context.clip();
+    }
+
+    const searchPillY = topControlY - contentScrollOffsetY;
+    let controlCursorX = slotX + slotWidth;
+    if (showSideNavToggleInSearchRow) {
+      const sideNavToggleX = controlCursorX - topControlButtonSize;
+      drawSideNavToggleButton(sideNavToggleX, searchPillY, topControlButtonSize);
+      controlCursorX = sideNavToggleX - searchAvatarGap;
+    }
+
+    const profileButtonId = 'side-nav-search-profile';
+    const profileButtonSize = searchPillHeight;
+    const profileX = Math.round(controlCursorX - profileButtonSize);
+    const profileY = searchPillY;
+    const profileCenterX = profileX + (profileButtonSize / 2);
+    const profileCenterY = profileY + (profileButtonSize / 2);
+    const profileInitials = resolveInitials(resolveSessionDisplayName());
+    const sessionAvatarRender = drawResolvedAvatarCircle(
+      profileCenterX,
+      profileCenterY,
+      profileButtonSize / 2,
+      resolveSessionUserId(),
+      {
+        alpha: 0.98,
+        sheenAlpha: 0.2,
+      },
+    );
+    if (!sessionAvatarRender.usedPhoto) {
+      drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
+        size: Math.round(clamp(profileButtonSize * 0.33, 11, 14)),
+        weight: 700,
+        color: '#F5F9FF',
+        align: 'center',
+      });
+    }
+    registerButton({
+      id: profileButtonId,
+      x: profileX,
+      y: profileY + buttonYOffset,
+      width: profileButtonSize,
+      height: profileButtonSize,
+      action: 'brand-menu:toggle',
+    });
+    state.ui.sideNavBrandMenuAnchorRect = {
+      x: profileX,
+      y: profileY + buttonYOffset,
+      width: profileButtonSize,
+      height: profileButtonSize,
+    };
+
+    controlCursorX = profileX - searchAvatarGap;
+    const searchPillWidth = Math.max(150, Math.round(controlCursorX - searchPillX));
     fillRoundedRect(context, searchPillX, searchPillY, searchPillWidth, searchPillHeight, 18, '#FFFFFF');
     drawSearchGlyph(searchPillX + 18, searchPillY + (searchPillHeight / 2) + 0.5, {
-      color: '#353B47',
+      color: SIDE_NAV_SEARCH_TEXT_COLOR,
       size: 21,
       weight: 450,
     });
@@ -8219,16 +21538,20 @@ function drawSideNav(layout) {
       height: searchPillHeight - 4,
     };
     state.ui.sideNavSearchInputRect = searchInputRect;
+    state.ui.sideNavSearchInputClipRect = {
+      x: contentViewportRect.x,
+      y: contentViewportRect.y + buttonYOffset,
+      width: contentViewportRect.width,
+      height: contentViewportRect.height,
+    };
     state.ui.sideNavSearchDropdownRect = {
       x: searchPillX,
       y: searchPillY + buttonYOffset,
       width: searchPillWidth,
       height: searchPillHeight,
     };
-    const sideNavToggleX = searchPillX + searchPillWidth + searchAvatarGap;
-    drawSideNavToggleButton(sideNavToggleX, searchPillY, topControlButtonSize);
 
-    y += searchRowHeight + gap;
+    y = favoritesStartYBase - contentScrollOffsetY;
     drawText('Favorites', slotX + 4, y + 15, {
       size: 15,
       weight: 700,
@@ -8242,13 +21565,14 @@ function drawSideNav(layout) {
     const pinToggleX = slotX + slotWidth - pinToggleWidth - 4;
     const pinToggleY = y + 4;
     const canPinSelected = Boolean(safeText(state.selectedId));
+    const pinToggleRadius = 11;
     fillRoundedRect(
       context,
       pinToggleX,
       pinToggleY,
       pinToggleWidth,
       pinToggleHeight,
-      11,
+      pinToggleRadius,
       canPinSelected ? '#ECEFF5' : '#F1F2F6',
     );
     strokeRoundedRect(
@@ -8257,7 +21581,7 @@ function drawSideNav(layout) {
       pinToggleY + 0.5,
       pinToggleWidth - 1,
       pinToggleHeight - 1,
-      11,
+      pinToggleRadius,
       canPinSelected ? '#DCE1EB' : '#E6E8EF',
     );
     drawText(pinToggleLabel, pinToggleX + (pinToggleWidth / 2), pinToggleY + (pinToggleHeight / 2) + 0.5, {
@@ -8278,19 +21602,31 @@ function drawSideNav(layout) {
     }
 
     const favorites = resolvePinnedPlaces(12);
-    const favoritesViewportTopInset = Math.round(20 + (6 * panelHeightScale));
-    const favoritesViewportBottomInset = Math.round(8 + (10 * panelHeightScale));
+    const compactMobileFavoritesLayout = isMobileSideNav;
+    const favoritesViewportTopInset = compactMobileFavoritesLayout
+      ? Math.round(18 + (4 * panelHeightScale))
+      : Math.round(20 + (6 * panelHeightScale));
+    const favoritesViewportBottomInset = compactMobileFavoritesLayout
+      ? Math.round(6 + (8 * panelHeightScale))
+      : Math.round(8 + (10 * panelHeightScale));
+    const favoritesViewportMinHeight = compactMobileFavoritesLayout ? 90 : 84;
     const favoritesViewport = {
       x: slotX + 2,
       y: y + favoritesViewportTopInset,
       width: slotWidth - 4,
-      height: Math.max(84, favoritesCardHeight - favoritesViewportTopInset - favoritesViewportBottomInset),
+      height: Math.max(
+        favoritesViewportMinHeight,
+        favoritesCardHeight - favoritesViewportTopInset - favoritesViewportBottomInset,
+      ),
     };
     const favoritesState = getSideNavFavoritesState();
     favoritesState.viewportRect = { ...favoritesViewport };
-    const itemRadius = 30;
-    const itemSlotWidth = 84;
-    const itemGap = 8;
+    const itemRadius = compactMobileFavoritesLayout ? 22 : 30;
+    const itemSlotWidth = compactMobileFavoritesLayout ? 72 : 84;
+    const itemGap = compactMobileFavoritesLayout ? 10 : 8;
+    const itemAvatarTopInset = compactMobileFavoritesLayout ? 4 : 6;
+    const favoriteLabelOffsetY = compactMobileFavoritesLayout ? 14 : 17;
+    const favoriteSubtitleOffsetY = compactMobileFavoritesLayout ? 28 : 33;
     const contentWidth = favorites.length
       ? ((favorites.length * itemSlotWidth) + (Math.max(0, favorites.length - 1) * itemGap) + 12)
       : favoritesViewport.width;
@@ -8313,29 +21649,31 @@ function drawSideNav(layout) {
       const favorite = favorites[index];
       const itemX = favoritesViewport.x + 6 + (index * (itemSlotWidth + itemGap)) - safeNumber(favoritesState.scrollX, 0);
       const centerX = itemX + (itemSlotWidth / 2);
-      const centerY = favoritesViewport.y + itemRadius + 6;
+      const centerY = favoritesViewport.y + itemRadius + itemAvatarTopInset;
       const buttonId = `side-nav-favorite-${favorite.key}`;
       const hovered = state.hoveredButtonId === buttonId;
-      const favoriteTextMaxWidth = Math.max(40, itemSlotWidth - 10);
+      const favoriteTextMaxWidth = Math.max(40, itemSlotWidth - (compactMobileFavoritesLayout ? 8 : 10));
+      const favoriteLabelFontSize = compactMobileFavoritesLayout ? 11 : 12;
+      const favoriteSubtitleFontSize = compactMobileFavoritesLayout ? 9 : 10;
       const favoriteLabel = truncateTextToWidth(favorite.label, favoriteTextMaxWidth, {
-        size: 12,
+        size: favoriteLabelFontSize,
         weight: 600,
       });
       const favoriteSubtitle = truncateTextToWidth(favorite.subtitle, favoriteTextMaxWidth, {
-        size: 10,
+        size: favoriteSubtitleFontSize,
         weight: 500,
       });
 
       drawFavoriteNodeAvatar(centerX, centerY, itemRadius, favorite.nodeId, favorite.initials, hovered);
-      drawText(favoriteLabel, centerX, centerY + itemRadius + 17, {
-        size: 12,
+      drawText(favoriteLabel, centerX, centerY + itemRadius + favoriteLabelOffsetY, {
+        size: favoriteLabelFontSize,
         weight: 600,
         color: '#1B1F27',
         align: 'center',
         maxWidth: favoriteTextMaxWidth,
       });
-      drawText(favoriteSubtitle, centerX, centerY + itemRadius + 33, {
-        size: 10,
+      drawText(favoriteSubtitle, centerX, centerY + itemRadius + favoriteSubtitleOffsetY, {
+        size: favoriteSubtitleFontSize,
         weight: 500,
         color: '#7A8292',
         align: 'center',
@@ -8347,7 +21685,7 @@ function drawSideNav(layout) {
         x: itemX,
         y: (centerY - itemRadius) + buttonYOffset,
         width: itemSlotWidth,
-        height: (itemRadius * 2) + 40,
+        height: (itemRadius * 2) + (compactMobileFavoritesLayout ? 34 : 40),
         action: `pin:focus:${favorite.nodeId}`,
       });
     }
@@ -8355,9 +21693,9 @@ function drawSideNav(layout) {
     context.restore();
 
     y += favoritesCardHeight + favoritesToDetailsGap;
-    const timerCardY = panel.y + panel.height - topPadding - timerCardHeight;
-    const detailsCardHeight = Math.max(120, timerCardY - y - gap);
+    const detailsCardHeight = detailsCardHeightBase;
     const detailsBottomY = y + detailsCardHeight;
+    const memberStatusCardY = detailsBottomY + gap;
     const detailInsetX = slotX + 16;
     const detailContentWidth = slotWidth - 32;
     const detailCenterX = slotX + (slotWidth / 2);
@@ -8395,17 +21733,57 @@ function drawSideNav(layout) {
       });
     } else {
       const volumeMetrics = resolveNodeLegVolumes(selectedNodeId);
-      const displayName = truncateText(safeText(selectedNode.name || selectedNode.id), 24);
-      const username = truncateText(safeText(selectedNode.username || selectedNode.id), 24);
-      const nodeInitials = resolveInitials(safeText(selectedNode.name || selectedNode.id));
+      const selectedIdentity = resolveTreeNextNodePublicIdentity(selectedNode, {
+        fallbackName: safeText(selectedNode.id || selectedNodeId || 'Member'),
+      });
+      const shouldMaskSelectedNodeDetails = selectedIdentity.isMasked;
+      const displayName = truncateText(
+        safeText(selectedIdentity.name || selectedNode.name || selectedNode.id),
+        24,
+      );
+      const usernameHandle = truncateText(
+        safeText(
+          shouldMaskSelectedNodeDetails
+            ? TREE_NEXT_PRIVACY_HIDDEN_LABEL
+            : (selectedIdentity.username || selectedNode.username || selectedNode.id),
+        ),
+        24,
+      );
+      const usernameLine = shouldMaskSelectedNodeDetails
+        ? TREE_NEXT_PRIVACY_HIDDEN_LABEL
+        : `@${usernameHandle}`;
+      const nodeInitials = safeText(
+        selectedIdentity.initials || resolveInitials(safeText(selectedNode.name || selectedNode.id)),
+      );
       const selectedAvatarNodeId = safeText(selectedNode.id || selectedNodeId);
-      const selectedAvatarVariant = isSessionAvatarNodeId(selectedAvatarNodeId)
+      const selectedBaseAvatarVariant = isSessionAvatarNodeId(selectedAvatarNodeId)
         ? 'auto'
         : (selectedAvatarNodeId.toLowerCase() === 'root' ? 'root' : 'auto');
-      const rankValue = truncateText(safeText(selectedNode.rank || '-'), 16) || '-';
+      const isDirectSponsorNode = isNodePersonallyEnrolledBySession(selectedNode);
+      const selectedAvatarVariant = isDirectSponsorNode ? 'direct' : selectedBaseAvatarVariant;
+      const rankValue = shouldMaskSelectedNodeDetails
+        ? '-'
+        : (truncateText(safeText(selectedNode.rank || '-'), 16) || '-');
       const isActiveAccount = resolveNodeActivityState(selectedNode);
       const activityDotColor = isActiveAccount ? '#30C655' : '#B5B5B5';
-      const rankAndTitleIconPaths = resolveNodeDetailRankAndTitleIcons(selectedNode).slice(0, 2);
+      const selectedAvatarRenderOptions = isActiveAccount
+        ? (isDirectSponsorNode
+          ? {
+            variant: selectedAvatarVariant,
+            disablePhoto: true,
+            ignoreSourcePalette: true,
+          }
+          : {
+            variant: selectedAvatarVariant,
+          })
+        : {
+          variant: isDirectSponsorNode ? 'directInactive' : 'inactive',
+          disablePhoto: true,
+          ignoreSourcePalette: true,
+        };
+      const rankAndTitleIconPaths = shouldMaskSelectedNodeDetails
+        ? []
+        : resolveNodeDetailRankAndTitleIcons(selectedNode).slice(0, 2);
 
       const avatarRadius = Math.round(34 + (20 * detailVerticalScale));
       // Keep head space under "Details", but compress aggressively on shorter laptop heights.
@@ -8416,7 +21794,9 @@ function drawSideNav(layout) {
         + ((preferredHeaderToAvatarTopGap - compactHeaderToAvatarTopGap) * detailVerticalScale),
       );
       const avatarCenterY = detailsHeadingY + headerToAvatarTopGap + avatarRadius;
-      const nodePhotoUrl = resolveNodeAvatarPhotoUrl(selectedNode);
+      const nodePhotoUrl = (selectedAvatarRenderOptions.disablePhoto === true || shouldMaskSelectedNodeDetails)
+        ? ''
+        : resolveNodeAvatarPhotoUrl(selectedNode);
       let usedPhotoAvatar = false;
       context.beginPath();
       context.arc(detailCenterX, avatarCenterY, avatarRadius + 1.5, 0, Math.PI * 2);
@@ -8428,7 +21808,7 @@ function drawSideNav(layout) {
       if (!usedPhotoAvatar) {
         drawResolvedAvatarCircle(detailCenterX, avatarCenterY, avatarRadius, selectedAvatarNodeId, {
           node: selectedNode,
-          variant: selectedAvatarVariant,
+          ...selectedAvatarRenderOptions,
           alpha: 0.98,
           sheenAlpha: 0.16,
         });
@@ -8469,7 +21849,7 @@ function drawSideNav(layout) {
         align: 'center',
         maxWidth: detailContentWidth,
       });
-      drawText(`@${username}`, detailCenterX, usernameY, {
+      drawText(usernameLine, detailCenterX, usernameY, {
         size: detailSecondaryTextSize,
         weight: 500,
         family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
@@ -8541,7 +21921,8 @@ function drawSideNav(layout) {
         relationButtons.length * relationButtonHeight
       ) + (Math.max(0, relationButtons.length - 1) * relationButtonGap);
       const metricRows = [
-        { label: 'Total Organization BV', value: formatExactVolumeValue(volumeMetrics.totalVolume) },
+        { label: 'Total Organizational BV', value: formatExactVolumeValue(volumeMetrics.totalVolume) },
+        { label: 'Personal BV', value: formatExactVolumeValue(volumeMetrics.personalVolume) },
         { label: 'Left Leg', value: formatExactVolumeValue(volumeMetrics.leftVolume) },
         { label: 'Right Leg', value: formatExactVolumeValue(volumeMetrics.rightVolume) },
         { label: 'Cycles', value: String(cyclesCount) },
@@ -8604,11 +21985,15 @@ function drawSideNav(layout) {
         const isOutlineButton = safeText(entry.style).toLowerCase() === 'outline';
         const nodeId = safeText(entry.nodeId);
         const relationNode = resolveNodeById(nodeId);
-        const buttonEnabled = Boolean(nodeId);
+        const relationIdentity = resolveTreeNextNodePublicIdentity(relationNode, { fallbackName: nodeId || '-' });
+        const relationLabelMasked = shouldMaskSelectedNodeDetails || relationIdentity.isMasked;
+        const buttonEnabled = Boolean(nodeId) && !relationLabelMasked;
         const customLabel = safeText(entry.label);
-        const buttonLabel = customLabel || (buttonEnabled
-          ? truncateText(safeText(relationNode?.name || relationNode?.id || nodeId), 24)
-          : '-');
+        const buttonLabel = relationLabelMasked
+          ? (nodeId ? TREE_NEXT_PRIVACY_ANONYMOUS_LABEL : '-')
+          : (customLabel || (buttonEnabled
+            ? truncateText(safeText(relationIdentity.name || relationNode?.name || relationNode?.id || nodeId), 24)
+            : '-'));
         const buttonFill = isOutlineButton
           ? '#FFFFFF'
           : (buttonEnabled ? '#D0E6FF' : '#E1EBF8');
@@ -8659,7 +22044,9 @@ function drawSideNav(layout) {
           align: 'center',
           maxWidth: detailContentWidth - 84,
         });
-        const buttonAction = safeText(entry.action) || (nodeId ? `node:focus:${nodeId}` : '');
+        const buttonAction = buttonEnabled
+          ? (safeText(entry.action) || (nodeId ? `node:focus:${nodeId}` : ''))
+          : '';
         if (buttonEnabled && buttonAction) {
           registerButton({
             id: `side-nav-relation-${entry.id}`,
@@ -8673,36 +22060,104 @@ function drawSideNav(layout) {
       });
     }
 
-    fillRoundedRect(context, slotX, timerCardY, slotWidth, timerCardHeight, 18, '#F6F7FA');
-    strokeRoundedRect(context, slotX + 0.5, timerCardY + 0.5, slotWidth - 1, timerCardHeight - 1, 18, '#E4E7ED');
-    const cutoffSnapshot = resolveServerCutoffSnapshot();
-    drawText('Server Timer', slotX + 14, timerCardY + 16, {
-      size: 10,
-      weight: 700,
-      color: '#656C7D',
-    });
-    drawText(cutoffSnapshot.serverTimeLabel, slotX + 14, timerCardY + 34, {
-      size: 11,
-      weight: 500,
-      color: '#3E4658',
-      maxWidth: slotWidth - 28,
-    });
-    drawText(cutoffSnapshot.cutoffLabel, slotX + 14, timerCardY + 50, {
-      size: 10,
-      weight: 600,
-      color: '#70798B',
-      maxWidth: slotWidth - 28,
-    });
-    drawText('Next cut-off in', slotX + 14, timerCardY + 74, {
-      size: 10,
-      weight: 600,
-      color: '#70798B',
-    });
-    drawText(cutoffSnapshot.countdownLabel, slotX + 14, timerCardY + 94, {
-      size: 16,
-      weight: 700,
-      color: '#2F3645',
-    });
+    if (memberStatusCardHeight > 0) {
+      fillRoundedRect(context, slotX, memberStatusCardY, slotWidth, memberStatusCardHeight, 18, '#FFFFFF');
+      strokeRoundedRect(context, slotX + 0.5, memberStatusCardY + 0.5, slotWidth - 1, memberStatusCardHeight - 1, 18, '#E4E7ED');
+      const selectedNodeForStatus = selectedNode && typeof selectedNode === 'object'
+        ? selectedNode
+        : null;
+      const defaultNodeForStatus = resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root') || null;
+      const statusNode = selectedNodeForStatus || defaultNodeForStatus;
+      const memberStatusSnapshot = resolveSideNavMemberStatusSnapshot(statusNode);
+      const memberStatusLabelX = slotX + 14;
+      const memberStatusValueX = slotX + slotWidth - 14;
+
+      drawText('Organization Members', memberStatusLabelX, memberStatusCardY + 24, {
+        size: 10,
+        weight: 600,
+        color: '#70798B',
+      });
+      drawText(formatInteger(memberStatusSnapshot.totalMembers, 0), memberStatusValueX, memberStatusCardY + 24, {
+        size: 12,
+        weight: 700,
+        color: '#2F3645',
+        align: 'right',
+      });
+      line(
+        context,
+        memberStatusLabelX,
+        memberStatusCardY + 32,
+        slotX + slotWidth - 14,
+        memberStatusCardY + 32,
+        '#E1E4EA',
+        1,
+      );
+
+      drawText('Active Members', memberStatusLabelX, memberStatusCardY + 51, {
+        size: 10,
+        weight: 600,
+        color: '#70798B',
+      });
+      drawText(
+        `L ${formatInteger(memberStatusSnapshot.leftActiveMembers, 0)} | R ${formatInteger(memberStatusSnapshot.rightActiveMembers, 0)}`,
+        memberStatusValueX,
+        memberStatusCardY + 51,
+        {
+          size: 11,
+          weight: 600,
+          color: '#3E4658',
+          align: 'right',
+        },
+      );
+
+      drawText('Direct Sponsors', memberStatusLabelX, memberStatusCardY + 74, {
+        size: 10,
+        weight: 600,
+        color: '#70798B',
+      });
+      drawText(
+        `L ${formatInteger(memberStatusSnapshot.leftDirectSponsors, 0)} | R ${formatInteger(memberStatusSnapshot.rightDirectSponsors, 0)}`,
+        memberStatusValueX,
+        memberStatusCardY + 74,
+        {
+          size: 11,
+          weight: 600,
+          color: '#3E4658',
+          align: 'right',
+        },
+      );
+
+      drawText(
+        `Total Direct Sponsors: ${formatInteger(memberStatusSnapshot.totalDirectSponsors, 0)}`,
+        memberStatusLabelX,
+        memberStatusCardY + 97,
+        {
+          size: 10,
+          weight: 600,
+          color: '#70798B',
+          maxWidth: slotWidth - 28,
+        },
+      );
+      drawText(
+        `Total Active Members: ${formatInteger(memberStatusSnapshot.totalActiveMembers, 0)}`,
+        memberStatusValueX,
+        memberStatusCardY + 97,
+        {
+          size: 10,
+          weight: 600,
+          color: '#70798B',
+          align: 'right',
+          maxWidth: slotWidth - 28,
+        },
+      );
+    }
+
+    if (shouldClipContentViewport) {
+      context.restore();
+    }
+    if (applyExpandedContentFade) {
+      context.restore();
+    }
 
   } finally {
     if (applyPanelReveal) {
@@ -8910,17 +22365,437 @@ function drawBottomToolBar(layout) {
   }
   const applyPanelReveal = beginStartupReveal(panelReveal);
   const buttonYOffset = applyPanelReveal ? panelReveal.translateY : 0;
+  const workspace = layout.workspace;
+  if (isTreeNextMobileViewport(workspace?.width, workspace?.height)) {
+    const mobileStage = resolveTreeNextMobileSidePanelStage({
+      width: workspace?.width,
+      height: workspace?.height,
+    });
+    const sideNavPanel = layout?.sideNav && typeof layout.sideNav === 'object'
+      ? layout.sideNav
+      : null;
+    const mobileSheetExpansionProgress = clamp(
+      safeNumber(
+        sideNavPanel?.expansionProgress,
+        1 - safeNumber(
+          sideNavPanel?.translateProgress,
+          resolveTreeNextMobileSidePanelSnapProgress(mobileStage, {
+            height: workspace?.height,
+          }),
+        ),
+      ),
+      0,
+      1,
+    );
+    const halfStageExpansion = clamp(
+      1 - resolveTreeNextMobileSidePanelSnapProgress(
+        TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF,
+        { height: workspace?.height },
+      ),
+      0,
+      1,
+    );
+    // Fade and tuck outside controls as the sheet transitions from half -> full.
+    const outsideControlsHideProgress = easeOutCubic(clamp(
+      (mobileSheetExpansionProgress - halfStageExpansion)
+        / Math.max(0.0001, 1 - halfStageExpansion),
+      0,
+      1,
+    ));
+    const outsideControlsReveal = clamp(1 - outsideControlsHideProgress, 0, 1);
+    const showPanelShortcutRow = outsideControlsReveal > 0.001;
+    const showExternalNavRow = outsideControlsReveal > 0.001;
+    const rightDockButtons = [
+      {
+        id: 'mobile-top-right-account-overview',
+        iconGlyph: String.fromCodePoint(0xE871),
+        iconLigature: 'dashboard',
+        action: 'panel:account-overview:toggle',
+      },
+      {
+        id: 'mobile-top-right-rank-advancement',
+        iconGlyph: String.fromCodePoint(0xE8D0),
+        iconLigature: 'workspace_premium',
+        action: 'panel:rank-advancement:toggle',
+      },
+      {
+        id: 'mobile-top-right-preferred-accounts',
+        iconGlyph: String.fromCodePoint(0xE7FD),
+        iconLigature: 'person_add',
+        action: 'panel:preferred-accounts:toggle',
+      },
+      {
+        id: 'mobile-top-right-legacy-view',
+        iconGlyph: 'T',
+        iconLigature: 'hub',
+        action: 'legacy-tier:view:toggle',
+      },
+    ];
+    const mobileExternalNavButtons = [
+      {
+        id: 'mobile-sheet-back',
+        iconGlyph: String.fromCodePoint(0xEF7D),
+        iconLigature: 'arrow_left_alt',
+        action: 'universe:back',
+      },
+      {
+        id: 'mobile-sheet-home',
+        iconGlyph: String.fromCodePoint(0xE9B2),
+        iconLigature: 'home',
+        action: 'camera:home',
+      },
+      {
+        id: 'mobile-sheet-enter',
+        iconGlyph: String.fromCodePoint(0xEA77),
+        iconLigature: 'send_money',
+        action: 'universe:enter',
+      },
+      {
+        id: 'mobile-sheet-deep',
+        iconGlyph: String.fromCodePoint(0xE16D),
+        iconLigature: 'low_priority',
+        action: 'camera:deep',
+      },
+    ];
+    syncMobileTopControlsVisibilityForContext();
+    const topRightButtonSize = 40;
+    const topRightButtonGap = 8;
+    const toggleButtonId = 'mobile-top-controls-toggle';
+    const toggleButtonSize = topRightButtonSize;
+    const topControlsHidden = Boolean(state.ui?.mobileTopControlsHidden);
+    state.ui.mobileTopControlsReveal = topControlsHidden ? 0 : 1;
+    const rightAnchorX = Math.max(
+      8,
+      Math.round(
+        sideNavPanel
+          ? (safeNumber(sideNavPanel.x, 0) + safeNumber(sideNavPanel.width, safeNumber(workspace?.width, 0)) - 12)
+          : ((safeNumber(workspace?.x, 0) + safeNumber(workspace?.width, state.renderSize?.width || 0)) - 12),
+      ),
+    );
+    const rowRightAnchorX = rightAnchorX - toggleButtonSize - topRightButtonGap;
+    const rowStartY = Math.max(10, Math.round(safeNumber(workspace?.y, 0) + 12));
+    const panelTopY = Math.round(safeNumber(sideNavPanel?.y, rowStartY));
+    const externalNavRowY = Math.max(8, panelTopY - topRightButtonSize - 8);
+    const topControlsButtonsVisible = !topControlsHidden;
+
+    const drawTopRightMobileButtonRow = (buttons, rowY, options = {}) => {
+      const rowAlpha = clamp(safeNumber(options.alpha, 1), 0, 1);
+      if (rowAlpha <= 0.001) {
+        return;
+      }
+      const rowOffsetY = safeNumber(options.offsetY, 0);
+      const registerAlphaThreshold = clamp(safeNumber(options.registerAlphaThreshold, 0.55), 0, 1);
+      const anchorRightX = safeNumber(options.anchorRightX, rowRightAnchorX);
+      const applyRowAlpha = rowAlpha < 0.999;
+      if (applyRowAlpha) {
+        context.save();
+        context.globalAlpha *= rowAlpha;
+      }
+      let cursorRight = anchorRightX;
+      const canRegisterButtons = options.registerButtons !== false;
+      for (let index = 0; index < buttons.length; index += 1) {
+        const button = buttons[index];
+        const hovered = state.hoveredButtonId === button.id;
+        const active = typeof options.resolveActive === 'function'
+          ? Boolean(options.resolveActive(button))
+          : false;
+        const fill = active
+          ? '#D7E7FF'
+          : (hovered ? '#E7E9EF' : SHELL_PANEL_COLOR);
+        const stroke = active
+          ? '#BDD5F8'
+          : (hovered ? '#D7DBE6' : SHELL_PANEL_COLOR);
+        const iconColor = active ? '#1F5EA3' : '#4A5262';
+        const cornerRadius = Math.round(topRightButtonSize / 2);
+        const baseX = cursorRight - topRightButtonSize;
+        const x = baseX;
+        const y = Math.round(rowY + rowOffsetY);
+        const centerX = x + (topRightButtonSize / 2);
+        const centerY = y + (topRightButtonSize / 2);
+
+        fillRoundedRect(context, x, y, topRightButtonSize, topRightButtonSize, cornerRadius, fill);
+        strokeRoundedRect(
+          context,
+          x + 0.5,
+          y + 0.5,
+          topRightButtonSize - 1,
+          topRightButtonSize - 1,
+          cornerRadius,
+          stroke,
+          1,
+        );
+
+        const iconLigature = safeText(button.iconLigature);
+        if (iconLigature) {
+          drawMaterialButtonIcon(iconLigature, centerX, centerY + 0.5, {
+            size: 18,
+            weight: 500,
+            color: iconColor,
+            fill: 0,
+            fallbackGlyph: () => {
+              drawText(button.iconGlyph, centerX, centerY + 0.5, {
+                size: 18,
+                weight: 500,
+                family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+                color: iconColor,
+                align: 'center',
+              });
+            },
+          });
+        } else {
+          drawText(button.iconGlyph, centerX, centerY + 0.5, {
+            size: 18,
+            weight: 500,
+            family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+            color: iconColor,
+            align: 'center',
+          });
+        }
+
+        if (canRegisterButtons && rowAlpha >= registerAlphaThreshold) {
+          registerButton({
+            id: button.id,
+            x,
+            y: y + buttonYOffset,
+            width: topRightButtonSize,
+            height: topRightButtonSize,
+            action: button.action,
+          });
+        }
+        cursorRight = baseX - topRightButtonGap;
+      }
+      if (applyRowAlpha) {
+        context.restore();
+      }
+    };
+
+    if (showPanelShortcutRow) {
+      if (topControlsButtonsVisible) {
+        drawTopRightMobileButtonRow(rightDockButtons, rowStartY, {
+          anchorRightX: rowRightAnchorX,
+          alpha: outsideControlsReveal,
+          offsetY: -6 * outsideControlsHideProgress,
+          registerButtons: true,
+          registerAlphaThreshold: 0.5,
+          resolveActive: (button) => (
+            (button.action === 'panel:account-overview:toggle' && Boolean(state.ui?.accountOverviewVisible))
+            || (button.action === 'panel:rank-advancement:toggle' && Boolean(state.ui?.rankAdvancementVisible))
+            || (button.action === 'panel:preferred-accounts:toggle' && Boolean(state.ui?.preferredAccountsVisible))
+            || (button.action === 'legacy-tier:view:toggle' && isLegacyTierCanvasViewActive())
+          ),
+        });
+      }
+    }
+    if (showExternalNavRow) {
+      drawTopRightMobileButtonRow(mobileExternalNavButtons, externalNavRowY, {
+        anchorRightX: rightAnchorX,
+        alpha: outsideControlsReveal,
+        offsetY: -6 * outsideControlsHideProgress,
+        registerAlphaThreshold: 0.5,
+      });
+    }
+    if (showPanelShortcutRow || showExternalNavRow) {
+      const toggleY = showPanelShortcutRow ? rowStartY : externalNavRowY;
+      const toggleX = Math.round(rightAnchorX - toggleButtonSize);
+      const toggleCenterX = toggleX + (toggleButtonSize / 2);
+      const hovered = state.hoveredButtonId === toggleButtonId;
+      const fill = topControlsHidden
+        ? '#D7E7FF'
+        : (hovered ? '#E7E9EF' : SHELL_PANEL_COLOR);
+      const stroke = topControlsHidden
+        ? '#BDD5F8'
+        : (hovered ? '#D7DBE6' : SHELL_PANEL_COLOR);
+      const iconColor = topControlsHidden ? '#1F5EA3' : '#4A5262';
+      const toggleAlpha = outsideControlsReveal;
+      const toggleOffsetY = -6 * outsideControlsHideProgress;
+      const drawToggleY = Math.round(toggleY + toggleOffsetY);
+      const toggleInteractive = toggleAlpha >= 0.5;
+      const applyToggleAlpha = toggleAlpha < 0.999;
+
+      if (applyToggleAlpha) {
+        context.save();
+        context.globalAlpha *= toggleAlpha;
+      }
+
+      fillRoundedRect(
+        context,
+        toggleX,
+        drawToggleY,
+        toggleButtonSize,
+        toggleButtonSize,
+        Math.round(toggleButtonSize / 2),
+        fill,
+      );
+      strokeRoundedRect(
+        context,
+        toggleX + 0.5,
+        drawToggleY + 0.5,
+        toggleButtonSize - 1,
+        toggleButtonSize - 1,
+        Math.round(toggleButtonSize / 2),
+        stroke,
+        1,
+      );
+      drawMaterialButtonIcon(
+        topControlsHidden ? 'chevron_left' : 'chevron_right',
+        toggleCenterX,
+        drawToggleY + (toggleButtonSize / 2) + 0.5,
+        {
+          size: 19,
+          weight: 500,
+          color: iconColor,
+          fill: 0,
+          fallbackGlyph: () => {
+            drawText(topControlsHidden ? '<' : '>', toggleCenterX, drawToggleY + (toggleButtonSize / 2) + 0.5, {
+              size: 16,
+              weight: 700,
+              family: '"Segoe UI Symbol", sans-serif',
+              color: iconColor,
+              align: 'center',
+            });
+          },
+        },
+      );
+      if (toggleInteractive) {
+        registerButton({
+          id: toggleButtonId,
+          x: toggleX,
+          y: drawToggleY + buttonYOffset,
+          width: toggleButtonSize,
+          height: toggleButtonSize,
+          action: 'mobile:top-controls:toggle',
+        });
+      }
+      if (applyToggleAlpha) {
+        context.restore();
+      }
+    }
+
+    if (applyPanelReveal) {
+      context.restore();
+    }
+    return;
+  }
 
   try {
   const panel = layout.sideNav;
-  const workspace = layout.workspace;
   const railButtonSize = 44;
   const railGap = 12;
   const railEdgeInset = 8;
   const railTopGapFromProfile = 14;
   const dockIconSize = 20;
+  const floatingProfileSize = 44;
+  const profileX = Math.max(
+    8,
+    Math.round((workspace.x + workspace.width) - floatingProfileSize - 8),
+  );
+  const profileY = panel.y;
+  const profileLeftDockButtons = [
+    {
+      id: 'profile-left-dock-account-overview',
+      iconGlyph: String.fromCodePoint(0xE871),
+      iconLigature: 'dashboard',
+      action: 'panel:account-overview:toggle',
+    },
+    {
+      id: 'profile-left-dock-rank-advancement',
+      iconGlyph: String.fromCodePoint(0xE8D0),
+      iconLigature: 'workspace_premium',
+      action: 'panel:rank-advancement:toggle',
+    },
+    {
+      id: 'profile-left-dock-preferred-accounts',
+      iconGlyph: String.fromCodePoint(0xE7FD),
+      iconLigature: 'person_add',
+      action: 'panel:preferred-accounts:toggle',
+    },
+    {
+      id: 'profile-left-dock-legacy-trinary',
+      iconGlyph: 'T',
+      iconLigature: 'hub',
+      action: 'legacy-tier:view:toggle',
+    },
+  ];
+  const profileLeftDockButtonSize = 40;
+  const profileLeftDockGap = 8;
+  let profileLeftDockCursorRight = profileX - profileLeftDockGap;
+  for (let index = 0; index < profileLeftDockButtons.length; index += 1) {
+    const button = profileLeftDockButtons[index];
+    const hovered = state.hoveredButtonId === button.id;
+    const isAccountOverviewToggle = button.action === 'panel:account-overview:toggle';
+    const isRankAdvancementToggle = button.action === 'panel:rank-advancement:toggle';
+    const isPreferredAccountsToggle = button.action === 'panel:preferred-accounts:toggle';
+    const isLegacyTierViewButton = button.action === 'legacy-tier:view:toggle';
+    const active = (
+      (isAccountOverviewToggle && Boolean(state.ui?.accountOverviewVisible))
+      || (isRankAdvancementToggle && Boolean(state.ui?.rankAdvancementVisible))
+      || (isPreferredAccountsToggle && Boolean(state.ui?.preferredAccountsVisible))
+      || (isLegacyTierViewButton && isLegacyTierCanvasViewActive())
+    );
+    const x = profileLeftDockCursorRight - profileLeftDockButtonSize;
+    const y = profileY + Math.round((floatingProfileSize - profileLeftDockButtonSize) / 2);
+    const fill = active
+      ? '#D7E7FF'
+      : (hovered ? '#E7E9EF' : SHELL_PANEL_COLOR);
+    const stroke = active
+      ? '#BDD5F8'
+      : (hovered ? '#D7DBE6' : SHELL_PANEL_COLOR);
+    const iconColor = active ? '#1F5EA3' : '#4A5262';
+    const radius = profileLeftDockButtonSize / 2;
+    const centerX = x + radius;
+    const centerY = y + radius;
+
+    context.beginPath();
+    context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    context.fillStyle = fill;
+    context.fill();
+    context.beginPath();
+    context.arc(centerX, centerY, Math.max(1, radius - 0.5), 0, Math.PI * 2);
+    context.lineWidth = 1;
+    context.strokeStyle = stroke;
+    context.stroke();
+
+    const iconLigature = safeText(button.iconLigature);
+    if (iconLigature) {
+      drawMaterialButtonIcon(iconLigature, centerX, centerY + 0.5, {
+        size: 18,
+        weight: 500,
+        color: iconColor,
+        fill: 0,
+        fallbackGlyph: () => {
+          drawText(button.iconGlyph, centerX, centerY + 0.5, {
+            size: 18,
+            weight: 500,
+            family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+            color: iconColor,
+            align: 'center',
+          });
+        },
+      });
+    } else {
+      drawText(button.iconGlyph, centerX, centerY + 0.5, {
+        size: 18,
+        weight: 500,
+        family: '"Material Symbols Outlined", "Segoe UI Symbol", sans-serif',
+        color: iconColor,
+        align: 'center',
+      });
+    }
+
+    registerButton({
+      id: button.id,
+      x,
+      y: y + buttonYOffset,
+      width: profileLeftDockButtonSize,
+      height: profileLeftDockButtonSize,
+      action: button.action,
+    });
+
+    profileLeftDockCursorRight = x - profileLeftDockGap;
+  }
+
   const railX = Math.round((workspace.x + workspace.width) - railButtonSize - railEdgeInset);
-  const railStartY = panel.y + railButtonSize + railTopGapFromProfile;
+  const railStartY = panel.y + floatingProfileSize + railTopGapFromProfile;
 
   const dockButtons = [
     {
@@ -8958,11 +22833,23 @@ function drawBottomToolBar(layout) {
   for (let index = 0; index < dockButtons.length; index += 1) {
     const button = dockButtons[index];
     const hovered = state.hoveredButtonId === button.id;
+    const isAccountOverviewToggle = button.action === 'panel:account-overview:toggle';
+    const isRankAdvancementToggle = button.action === 'panel:rank-advancement:toggle';
+    const isPreferredAccountsToggle = button.action === 'panel:preferred-accounts:toggle';
+    const active = (
+      (isAccountOverviewToggle && Boolean(state.ui?.accountOverviewVisible))
+      || (isRankAdvancementToggle && Boolean(state.ui?.rankAdvancementVisible))
+      || (isPreferredAccountsToggle && Boolean(state.ui?.preferredAccountsVisible))
+    );
     const x = railX;
     const y = railStartY + (index * (railButtonSize + railGap));
-    const fill = hovered ? '#DEDEDE' : SHELL_PANEL_COLOR;
-    const stroke = hovered ? '#DFE2EA' : SHELL_PANEL_COLOR;
-    const iconColor = '#444444';
+    const fill = active
+      ? '#D7E7FF'
+      : (hovered ? '#DEDEDE' : SHELL_PANEL_COLOR);
+    const stroke = active
+      ? '#BDD5F8'
+      : (hovered ? '#DFE2EA' : SHELL_PANEL_COLOR);
+    const iconColor = active ? '#1F5EA3' : '#444444';
     const radius = railButtonSize / 2;
     const circleCenterX = x + radius;
     const circleCenterY = y + radius;
@@ -9157,6 +23044,82 @@ function resolveAnticipationSlots(frame, frameOptions) {
     Math.floor(safeNumber(selectedProjected.globalDepth, safeNumber(selectedProjected.node?.depth, 0))),
   );
   const pendingReservation = resolvePendingPlacementRevealReservation();
+  if (state.source === 'admin') {
+    const candidateSides = ['left', 'right'];
+    let placementSide = '';
+    for (const side of candidateSides) {
+      if (childLegs[side]) {
+        continue;
+      }
+      if (
+        pendingReservation
+        && pendingReservation.parentId === selectedNodeId
+        && pendingReservation.placementLeg === side
+      ) {
+        continue;
+      }
+      placementSide = side;
+      break;
+    }
+    if (!placementSide) {
+      return [];
+    }
+
+    const slotGlobalDepth = selectedGlobalDepth + 1;
+    const leftSlotLocalPath = `${baseLocalPath}L`;
+    const rightSlotLocalPath = `${baseLocalPath}R`;
+    const leftProjectedSlot = leftSlotLocalPath.length <= universeDepthCap
+      ? state.adapter.projectLocalPath(leftSlotLocalPath, frameOptions)
+      : null;
+    const rightProjectedSlot = rightSlotLocalPath.length <= universeDepthCap
+      ? state.adapter.projectLocalPath(rightSlotLocalPath, frameOptions)
+      : null;
+    const anchorProjectedSlot = placementSide === 'right'
+      ? (rightProjectedSlot || leftProjectedSlot)
+      : (leftProjectedSlot || rightProjectedSlot);
+    if (!anchorProjectedSlot) {
+      return [];
+    }
+
+    const radius = clamp(safeNumber(anchorProjectedSlot.r, 0) * 0.88, 6.5, 32);
+    if (radius <= 0.2) {
+      return [];
+    }
+
+    const hasBothProjectedSlots = Boolean(leftProjectedSlot && rightProjectedSlot);
+    const centerX = hasBothProjectedSlots
+      ? (
+        safeNumber(leftProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
+        + safeNumber(rightProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
+      ) / 2
+      : safeNumber(selectedProjected.x, safeNumber(anchorProjectedSlot.x, 0));
+    const centerY = hasBothProjectedSlots
+      ? (
+        safeNumber(leftProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
+        + safeNumber(rightProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
+      ) / 2
+      : safeNumber(anchorProjectedSlot.y, 0);
+    const slotLocalDepth = Math.max(
+      0,
+      Math.floor(safeNumber(anchorProjectedSlot.localDepth, baseLocalPath.length + 1)),
+    );
+    const encodedParentId = encodeURIComponent(selectedNodeId);
+    return [
+      {
+        key: `${selectedNodeId}:center:${placementSide}`,
+        buttonId: `${ANTICIPATION_BUTTON_ID_PREFIX}${encodedParentId}-center`,
+        action: `anticipation:${encodedParentId}|${placementSide}`,
+        parentNodeId: selectedNodeId,
+        side: placementSide,
+        hideSideLabel: true,
+        x: centerX,
+        y: centerY,
+        r: radius,
+        localDepth: slotLocalDepth,
+        globalDepth: slotGlobalDepth,
+      },
+    ];
+  }
   const sides = ['left', 'right'];
   const slots = [];
 
@@ -9301,7 +23264,9 @@ function drawAnticipationSlots(anticipationSlots) {
     try {
       const radius = Math.max(3.5, safeNumber(slot.r, 8));
       const hover = state.hoveredButtonId === slot.buttonId;
-      const sideLabel = slot.side === 'right' ? 'RIGHT' : 'LEFT';
+      const defaultSideLabel = slot.side === 'right' ? 'RIGHT' : 'LEFT';
+      const sideLabel = safeText(slot.sideLabel || defaultSideLabel);
+      const hideSideLabel = Boolean(slot.hideSideLabel);
 
       registerButton({
         id: slot.buttonId,
@@ -9339,13 +23304,15 @@ function drawAnticipationSlots(anticipationSlots) {
         align: 'center',
       });
 
-      drawText(sideLabel, slot.x, slot.y + radius + 10, {
-        size: 9,
-        weight: 600,
-        color: hover ? '#6A7E97' : '#7A8BA2',
-        align: 'center',
-        baseline: 'top',
-      });
+      if (!hideSideLabel && sideLabel) {
+        drawText(sideLabel, slot.x, slot.y + radius + 10, {
+          size: 9,
+          weight: 600,
+          color: hover ? '#6A7E97' : '#7A8BA2',
+          align: 'center',
+          baseline: 'top',
+        });
+      }
     } finally {
       if (applyReveal) {
         context.restore();
@@ -9536,9 +23503,49 @@ function drawNode(node) {
 
   const nodeId = safeText(node.id);
   const sourceNode = node?.node && typeof node.node === 'object' ? node.node : null;
-  const nodeVariant = isSessionAvatarNodeId(nodeId)
+  const nodeRecord = sourceNode || node;
+  const nodeIdentity = resolveTreeNextNodePublicIdentity(nodeRecord, {
+    fallbackName: safeText(node?.id || sourceNode?.id || 'Member'),
+  });
+  const shouldMaskNodeIdentity = nodeIdentity.isMasked;
+  const isLegacyTierEmptySlot = Boolean(
+    node?.isLegacyTierEmptySlot
+    || sourceNode?.isLegacyTierEmptySlot
+    || sourceNode?.isLegacyTierViewPlaceholder,
+  );
+  const avatarSeedId = safeText(
+    node?.avatarSeedId
+    || sourceNode?.avatarSeedId
+    || sourceNode?.avatarSeed
+    || nodeId,
+  ) || nodeId;
+  const isActiveAccount = isLegacyTierEmptySlot ? false : resolveNodeActivityState(nodeRecord);
+  const isPersonallyEnrolledNode = isLegacyTierEmptySlot ? false : isNodePersonallyEnrolledBySession(nodeRecord);
+  const baseNodeVariant = isSessionAvatarNodeId(avatarSeedId)
     ? 'auto'
-    : (nodeId.toLowerCase() === 'root' ? 'root' : 'auto');
+    : (avatarSeedId.toLowerCase() === 'root' ? 'root' : 'auto');
+  const nodeVariant = isLegacyTierEmptySlot
+    ? 'inactive'
+    : (isPersonallyEnrolledNode ? 'direct' : baseNodeVariant);
+  const avatarRenderOptions = (isLegacyTierEmptySlot || shouldMaskNodeIdentity)
+    ? {
+      variant: 'inactive',
+      disablePhoto: true,
+      ignoreSourcePalette: true,
+    }
+    : isActiveAccount
+    ? (isPersonallyEnrolledNode
+      ? {
+        variant: nodeVariant,
+        disablePhoto: true,
+        ignoreSourcePalette: true,
+      }
+      : {})
+    : {
+      variant: isPersonallyEnrolledNode ? 'directInactive' : 'inactive',
+      disablePhoto: true,
+      ignoreSourcePalette: true,
+    };
   let usedPhotoAvatar = false;
 
   if (node.lodTier === 'dot') {
@@ -9556,20 +23563,22 @@ function drawNode(node) {
         : 'rgba(174,184,198,0.9)';
       context.fill();
 
-      drawResolvedAvatarCircle(node.x, node.y, innerR, nodeId, {
+      drawResolvedAvatarCircle(node.x, node.y, innerR, avatarSeedId, {
         node: sourceNode,
         variant: nodeVariant,
         alpha: 0.98,
         sheenAlpha: 0.15,
+        ...avatarRenderOptions,
       });
       return;
     }
 
-    drawResolvedAvatarCircle(node.x, node.y, r, nodeId, {
+    drawResolvedAvatarCircle(node.x, node.y, r, avatarSeedId, {
       node: sourceNode,
       variant: nodeVariant,
       alpha: 0.96,
       sheenAlpha: 0.12,
+      ...avatarRenderOptions,
     });
     return;
   }
@@ -9597,11 +23606,12 @@ function drawNode(node) {
     context.stroke();
   }
 
-  const baseAvatarRender = drawResolvedAvatarCircle(node.x, node.y, innerR, nodeId, {
+  const baseAvatarRender = drawResolvedAvatarCircle(node.x, node.y, innerR, avatarSeedId, {
     node: sourceNode,
     variant: nodeVariant,
     alpha: 0.98,
     sheenAlpha: 0.16,
+    ...avatarRenderOptions,
   });
   usedPhotoAvatar = Boolean(baseAvatarRender?.usedPhoto);
   context.beginPath();
@@ -9617,11 +23627,11 @@ function drawNode(node) {
     && renderedRadius < 16
     && !isSelected
   );
-  if (hideDeepLevelLabel || renderedRadius < 9 || usedPhotoAvatar) {
+  if (hideDeepLevelLabel || renderedRadius < 9 || usedPhotoAvatar || isLegacyTierEmptySlot) {
     return;
   }
 
-  drawText(resolveInitials(node.node.name), node.x, node.y + 0.5, {
+  drawText(safeText(nodeIdentity.initials || resolveInitials(node.node?.name)), node.x, node.y + 0.5, {
     size: Math.max(7, Math.floor(innerR * 0.56)),
     weight: 700,
     color: '#f8fbff',
@@ -9634,41 +23644,855 @@ function drawNode(node) {
   }
 }
 
+function resolveUniverseBreadcrumbChipNode(crumbId = '') {
+  const safeCrumbId = safeText(crumbId);
+  if (!safeCrumbId) {
+    return null;
+  }
+  const globalMeta = state.adapter.resolveNodeMetrics(safeCrumbId, getGlobalUniverseOptions());
+  const nodeFromMeta = globalMeta?.node && typeof globalMeta.node === 'object'
+    ? globalMeta.node
+    : null;
+  const nodeFromState = resolveNodeById(safeCrumbId);
+  const nodeRecord = nodeFromMeta || nodeFromState || null;
+  if (!nodeRecord) {
+    return {
+      id: safeCrumbId,
+      node: { id: safeCrumbId, name: safeCrumbId, username: '' },
+      username: '',
+      usernameLabel: truncateText(safeCrumbId, 12),
+      initials: resolveInitials(safeCrumbId),
+    };
+  }
+  const identity = resolveTreeNextNodePublicIdentity(nodeRecord, { fallbackName: safeCrumbId });
+  const usernameRaw = safeText(identity.username || '').replace(/^@+/, '');
+  const fallbackName = safeText(identity.name || safeCrumbId);
+  const usernameLabel = identity.isMasked
+    ? TREE_NEXT_PRIVACY_ANONYMOUS_LABEL
+    : (usernameRaw
+      ? `@${truncateText(usernameRaw, 14)}`
+      : truncateText(fallbackName, 14));
+  return {
+    id: safeCrumbId,
+    node: nodeRecord,
+    username: usernameRaw,
+    usernameLabel,
+    initials: safeText(identity.initials || resolveInitials(fallbackName)),
+  };
+}
+
+function drawUniverseBreadcrumbNodeChips(startX, startY, maxWidth, containerHeightInput = 0) {
+  const historyTrail = resolveUniverseHistoryTrailNodeIds();
+  if (!historyTrail.length || maxWidth <= 0) {
+    return;
+  }
+
+  const avatarRadius = 13;
+  const arrowGap = 11;
+  const chipColumnMinWidth = 42;
+  const chipColumnMaxWidth = 84;
+  const labelGap = 5;
+  const labelFontSize = 10;
+  const contentHeight = (avatarRadius * 2) + labelGap + labelFontSize;
+  const containerHeight = Math.max(
+    contentHeight,
+    Math.floor(safeNumber(containerHeightInput, contentHeight)),
+  );
+  const contentTopY = startY + Math.floor((containerHeight - contentHeight) * 0.5);
+  const circleCenterY = contentTopY + avatarRadius;
+  const labelY = contentTopY + (avatarRadius * 2) + labelGap;
+  const chipHeight = containerHeight;
+
+  const chips = historyTrail.map((crumbIdInput, index) => {
+    const crumbId = safeText(crumbIdInput);
+    const crumbNode = resolveUniverseBreadcrumbChipNode(crumbId);
+    const usernameLabel = safeText(crumbNode?.usernameLabel || resolveUniverseCrumbLabel(crumbId));
+    const columnWidth = clamp(
+      Math.round(Math.max((avatarRadius * 2) + 8, (usernameLabel.length * 5.2) + 8)),
+      chipColumnMinWidth,
+      chipColumnMaxWidth,
+    );
+    return {
+      crumbId,
+      crumbNode,
+      usernameLabel,
+      index,
+      active: index === (historyTrail.length - 1),
+      columnWidth,
+    };
+  });
+
+  const computeTotalWidth = (entries) => (
+    entries.reduce((sum, item) => sum + item.columnWidth, 0)
+    + (Math.max(0, entries.length - 1) * arrowGap)
+  );
+
+  let visibleChips = chips.slice();
+  while (visibleChips.length > 1 && computeTotalWidth(visibleChips) > maxWidth) {
+    visibleChips = visibleChips.slice(1);
+  }
+  if (!visibleChips.length) {
+    return;
+  }
+
+  const totalVisibleWidth = computeTotalWidth(visibleChips);
+  let cursorX = Math.round(startX + ((maxWidth - totalVisibleWidth) * 0.5));
+  cursorX = clamp(cursorX, startX, startX + Math.max(0, maxWidth - totalVisibleWidth));
+  const endX = startX + maxWidth;
+
+  for (let localIndex = 0; localIndex < visibleChips.length; localIndex += 1) {
+    const chip = visibleChips[localIndex];
+    const {
+      crumbId,
+      crumbNode,
+      usernameLabel,
+      index,
+      active,
+      columnWidth,
+    } = chip;
+    if (cursorX + columnWidth > endX) {
+      break;
+    }
+
+    const buttonId = `top-universe-crumb-${index}-${crumbId}`;
+    const hovered = safeText(state.hoveredButtonId) === buttonId;
+
+    const centerX = cursorX + (columnWidth * 0.5);
+    const nodeRecord = crumbNode?.node && typeof crumbNode.node === 'object'
+      ? crumbNode.node
+      : null;
+    const isActiveAccount = resolveNodeActivityState(nodeRecord);
+    const isDirectNode = isNodePersonallyEnrolledBySession(nodeRecord);
+    const variant = safeText(crumbId).toLowerCase() === 'root'
+      ? 'root'
+      : (!isActiveAccount
+        ? (isDirectNode ? 'directInactive' : 'inactive')
+        : (isDirectNode ? 'direct' : 'auto'));
+    drawResolvedAvatarCircle(centerX, circleCenterY, avatarRadius, crumbId, {
+      node: nodeRecord,
+      variant,
+      disablePhoto: true,
+      ignoreSourcePalette: (!isActiveAccount || isDirectNode),
+      alpha: 0.98,
+      sheenAlpha: 0.15,
+    });
+    context.beginPath();
+    context.arc(centerX, circleCenterY, avatarRadius, 0, Math.PI * 2);
+    context.lineWidth = active ? 1.2 : (hovered ? 1.05 : 0.9);
+    context.strokeStyle = active
+      ? 'rgba(36, 49, 70, 0.48)'
+      : (hovered ? 'rgba(53, 72, 102, 0.35)' : 'rgba(56, 73, 101, 0.18)');
+    context.stroke();
+    drawText(safeText(crumbNode?.initials || ''), centerX, circleCenterY + 0.5, {
+      size: 9,
+      weight: 700,
+      color: '#FFFFFF',
+      align: 'center',
+      baseline: 'middle',
+      maxWidth: Math.max(10, (avatarRadius * 1.5)),
+    });
+    drawText(usernameLabel, centerX, labelY, {
+      size: labelFontSize,
+      weight: active ? 700 : 600,
+      color: active ? '#1B2434' : '#303849',
+      align: 'center',
+      baseline: 'top',
+      maxWidth: columnWidth - 6,
+    });
+
+    if (!active) {
+      registerButton({
+        id: buttonId,
+        x: cursorX,
+        y: startY,
+        width: columnWidth,
+        height: chipHeight,
+        action: `universe:history:goto:${index}`,
+      });
+    }
+
+    cursorX += columnWidth;
+    if (localIndex < visibleChips.length - 1) {
+      if (cursorX + arrowGap > endX) {
+        break;
+      }
+      drawText('>', cursorX + (arrowGap * 0.5), circleCenterY, {
+        size: 10,
+        weight: 600,
+        color: '#2E3542',
+        align: 'center',
+        baseline: 'middle',
+      });
+      cursorX += arrowGap;
+    }
+  }
+}
+
+function resolveLegacyTierCanvasFrame(layout) {
+  if (!isLegacyTierCanvasViewActive()) {
+    return null;
+  }
+  const model = legacyTierCanvasViewState.model && typeof legacyTierCanvasViewState.model === 'object'
+    ? legacyTierCanvasViewState.model
+    : null;
+  const workspace = layout?.workspace || null;
+  const viewport = layout?.viewport || null;
+  if (!model || !workspace || !viewport) {
+    return null;
+  }
+  const anchorView = legacyTierCanvasViewState.anchorView && typeof legacyTierCanvasViewState.anchorView === 'object'
+    ? legacyTierCanvasViewState.anchorView
+    : captureLegacyTierCanvasAnchorView({ preferTarget: true });
+  const anchorScale = clamp(safeNumber(anchorView.scale, DEFAULT_HOME_SCALE), MIN_SCALE, MAX_SCALE);
+  const anchorProjectionScale = Math.max(0.0001, resolveProjectionScale(anchorScale));
+  const cameraView = state.camera?.view && typeof state.camera.view === 'object'
+    ? state.camera.view
+    : anchorView;
+  const currentScale = clamp(safeNumber(cameraView.scale, anchorScale), MIN_SCALE, MAX_SCALE);
+  const currentProjectionScale = Math.max(0.0001, resolveProjectionScale(currentScale));
+  const currentViewX = safeNumber(cameraView.x, safeNumber(anchorView.x, 0));
+  const currentViewY = safeNumber(cameraView.y, safeNumber(anchorView.y, 0));
+
+  const sidePadding = Math.max(30, Math.round(workspace.width * 0.035));
+  const topPadding = Math.max(66, Math.round(workspace.height * 0.11));
+  const bottomPadding = Math.max(40, Math.round(workspace.height * 0.10));
+  const minX = workspace.x + sidePadding;
+  const maxX = (workspace.x + workspace.width) - sidePadding;
+  const minY = workspace.y + topPadding;
+  const maxY = (workspace.y + workspace.height) - bottomPadding;
+  const usableWidth = Math.max(140, maxX - minX);
+  const levelCount = LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH.length;
+  const availableHeight = Math.max(180, maxY - minY);
+  const depthYRatioTemplate = [0.04, 0.20, 0.33, 0.45];
+  const depthYRatioByLevel = Array.from(
+    { length: levelCount },
+    (_, depthIndex) => {
+      if (Number.isFinite(depthYRatioTemplate[depthIndex])) {
+        return clamp(depthYRatioTemplate[depthIndex], 0, 1);
+      }
+      const depthProgress = levelCount <= 1 ? 0 : (depthIndex / Math.max(1, levelCount - 1));
+      return clamp(0.04 + (depthProgress * 0.69), 0, 1);
+    },
+  );
+  const trinaryBranchFanout = Math.max(2, INFINITY_BUILDER_TIER_NODE_REQUIREMENT);
+  const trinaryStepDecay = 1 / trinaryBranchFanout;
+  const trinaryDepthTransitions = Math.max(1, levelCount - 1);
+  let trinarySeriesTotal = 0;
+  for (let depthOffset = 0; depthOffset < trinaryDepthTransitions; depthOffset += 1) {
+    trinarySeriesTotal += Math.pow(trinaryStepDecay, depthOffset);
+  }
+  const trinaryBaseStep = (usableWidth * 0.92) / Math.max(0.0001, 2 * trinarySeriesTotal);
+  const centerX = minX + (usableWidth * 0.5);
+  const descriptorPathById = new Map();
+  const rootId = safeText(model.rootId);
+  if (rootId) {
+    descriptorPathById.set(rootId, '');
+  }
+  const resolveTrinaryPathOffset = (pathInput = '') => {
+    const safePath = safeText(pathInput);
+    if (!safePath) {
+      return 0;
+    }
+    let offset = 0;
+    for (let index = 0; index < safePath.length; index += 1) {
+      const branchKey = safePath.charAt(index);
+      const branchDirection = branchKey === '0'
+        ? -1
+        : (branchKey === '2' ? 1 : 0);
+      const branchStep = trinaryBaseStep * Math.pow(trinaryStepDecay, index);
+      offset += branchDirection * branchStep;
+    }
+    return offset;
+  };
+  const radiusByDepth = Array.from(
+    { length: levelCount },
+    (_, depthIndex) => {
+      const safeDepth = Math.max(0, Math.floor(safeNumber(depthIndex, 0)));
+      const binaryDepthRadius = Math.max(
+        LEGACY_TIER_CANVAS_WORLD_RADIUS_MIN,
+        NODE_RADIUS_BASE * Math.pow(LEGACY_TIER_CANVAS_RADIUS_DEPTH_DECAY, safeDepth),
+      );
+      const slotCountAtDepth = LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH[safeDepth] || 1;
+      const slotStepAtDepth = usableWidth / Math.max(1, slotCountAtDepth + 1);
+      const depthRadiusLimit = safeDepth === 0
+        ? Math.max(18, usableWidth * 0.14)
+        : Math.max(2.8, slotStepAtDepth * 0.38);
+      return Math.max(2.2, Math.min(binaryDepthRadius, depthRadiusLimit));
+    },
+  );
+
+  const projectedNodes = [];
+  for (let depthIndex = 0; depthIndex < LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH.length; depthIndex += 1) {
+    const slotCount = LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH[depthIndex];
+    const slotStep = usableWidth / Math.max(1, slotCount + 1);
+    const depthY = minY + (availableHeight * depthYRatioByLevel[depthIndex]);
+    const depthRadius = radiusByDepth[depthIndex] || radiusByDepth[radiusByDepth.length - 1] || 2.2;
+    const depthDescriptors = Array.isArray(model.nodesByDepth?.[depthIndex])
+      ? model.nodesByDepth[depthIndex]
+      : [];
+    const siblingCursorByParent = new Map();
+    for (let slotIndex = 0; slotIndex < slotCount; slotIndex += 1) {
+      const descriptor = depthDescriptors[slotIndex] && typeof depthDescriptors[slotIndex] === 'object'
+        ? depthDescriptors[slotIndex]
+        : null;
+      const fallbackNodeId = `${LEGACY_TIER_CANVAS_PLACEHOLDER_ID_PREFIX}:tier-${model.tierNumber}:depth-${depthIndex}:slot-${slotIndex}`;
+      const descriptorNode = descriptor?.node && typeof descriptor.node === 'object'
+        ? descriptor.node
+        : null;
+      const nodeId = safeText(descriptor?.id || descriptorNode?.id || fallbackNodeId) || fallbackNodeId;
+      const parentId = safeText(descriptor?.parentId || descriptorNode?.parent || '');
+      const isEmpty = Boolean(descriptor?.isEmpty || descriptorNode?.isLegacyTierEmptySlot);
+      const avatarSeedId = safeText(
+        descriptor?.avatarSeedId
+        || descriptorNode?.avatarSeedId
+        || descriptorNode?.avatarSeed
+        || nodeId,
+      ) || nodeId;
+      const nodeRecord = descriptorNode
+        ? {
+          ...descriptorNode,
+          id: nodeId,
+          parent: parentId,
+          depth: depthIndex,
+          path: safeText(descriptorNode?.path),
+          isLegacyTierEmptySlot: isEmpty,
+          avatarSeedId,
+        }
+        : createLegacyTierCanvasPlaceholderNode(
+          nodeId,
+          parentId,
+          model.tierNumber,
+          depthIndex,
+          slotIndex,
+        );
+      let trinaryPath = '';
+      if (depthIndex > 0) {
+        const parentPath = descriptorPathById.get(parentId) || '';
+        const siblingCursor = Math.max(
+          0,
+          Math.floor(safeNumber(siblingCursorByParent.get(parentId), 0)),
+        );
+        siblingCursorByParent.set(parentId, siblingCursor + 1);
+        const siblingSlot = Math.min(trinaryBranchFanout - 1, siblingCursor);
+        const branchDigit = siblingSlot <= 0
+          ? '0'
+          : (siblingSlot >= trinaryBranchFanout - 1 ? '2' : '1');
+        trinaryPath = `${parentPath}${branchDigit}`;
+      }
+      descriptorPathById.set(nodeId, trinaryPath);
+      const baseX = clamp(
+        centerX + resolveTrinaryPathOffset(trinaryPath),
+        minX,
+        maxX,
+      );
+      const baseY = depthY;
+      const worldX = (baseX - viewport.centerX - safeNumber(anchorView.x, 0)) / anchorProjectionScale;
+      const worldY = (baseY - viewport.baseY - safeNumber(anchorView.y, 0)) / anchorProjectionScale;
+      const worldRadius = depthRadius / anchorProjectionScale;
+      const projectedX = viewport.centerX + currentViewX + (worldX * currentProjectionScale);
+      const projectedY = viewport.baseY + currentViewY + (worldY * currentProjectionScale);
+      const projectedRadius = Math.max(0.2, worldRadius * currentProjectionScale);
+      const lodTier = projectedRadius >= 14
+        ? 'full'
+        : (projectedRadius >= 6.5 ? 'medium' : 'dot');
+      projectedNodes.push({
+        id: nodeId,
+        node: nodeRecord,
+        worldX,
+        worldY,
+        worldRadius,
+        localDepth: depthIndex,
+        localPath: trinaryPath || `T${model.tierNumber}-D${depthIndex}-S${slotIndex}`,
+        globalDepth: depthIndex,
+        globalPath: `legacy-tier-${model.tierNumber}-depth-${depthIndex}-slot-${slotIndex}`,
+        x: projectedX,
+        y: projectedY,
+        r: projectedRadius,
+        lodTier,
+        isSelected: false,
+        isFocusPathNode: false,
+        isLegacyTierEmptySlot: isEmpty,
+        avatarSeedId,
+      });
+    }
+  }
+
+  const projectedById = new Map();
+  for (const projectedNode of projectedNodes) {
+    projectedById.set(projectedNode.id, projectedNode);
+  }
+  const selectedId = safeText(state.selectedId);
+  let selectedProjected = selectedId ? projectedById.get(selectedId) || null : null;
+  if (!selectedProjected && model.rootId && projectedById.has(model.rootId)) {
+    selectedProjected = projectedById.get(model.rootId);
+  }
+
+  if (selectedProjected) {
+    let cursorId = selectedProjected.id;
+    let safety = 0;
+    while (cursorId && safety < projectedNodes.length + 4) {
+      safety += 1;
+      const projectedNode = projectedById.get(cursorId);
+      if (!projectedNode) {
+        break;
+      }
+      projectedNode.isFocusPathNode = true;
+      cursorId = safeText(projectedNode?.node?.parent);
+    }
+  }
+
+  const lodCounts = {
+    full: 0,
+    medium: 0,
+    dot: 0,
+    hidden: 0,
+    culled: 0,
+    total: projectedNodes.length,
+  };
+  for (const projectedNode of projectedNodes) {
+    if (projectedNode.lodTier === 'full') {
+      lodCounts.full += 1;
+    } else if (projectedNode.lodTier === 'medium') {
+      lodCounts.medium += 1;
+    } else if (projectedNode.lodTier === 'dot') {
+      lodCounts.dot += 1;
+    }
+  }
+  const connectorCount = projectedNodes.reduce((count, projectedNode) => {
+    const parentId = safeText(projectedNode?.node?.parent);
+    if (parentId && projectedById.has(parentId)) {
+      return count + 1;
+    }
+    return count;
+  }, 0);
+
+  return {
+    visibleNodes: projectedNodes.map((projectedNode) => projectedNode.node),
+    projectedNodes,
+    connectors: [],
+    stats: {
+      ...lodCounts,
+      visible: projectedNodes.length,
+      connectors: connectorCount,
+      fullDepthMax: null,
+      visibleDepthMax: null,
+      universeRootId: model.rootId,
+      universeDepthCap: LEGACY_TIER_CANVAS_NODE_COUNTS_BY_DEPTH.length - 1,
+    },
+    selectedProjected,
+  };
+}
+
+function drawLegacyTierCanvasViewHeader(layout, frameInput = null) {
+  if (!isLegacyTierCanvasViewActive()) {
+    return;
+  }
+  const model = legacyTierCanvasViewState.model && typeof legacyTierCanvasViewState.model === 'object'
+    ? legacyTierCanvasViewState.model
+    : null;
+  const workspace = layout?.workspace || null;
+  if (!model || !workspace) {
+    return;
+  }
+  const cardWidth = clamp(Math.round(workspace.width * 0.40), 300, 500);
+  const cardHeight = 72;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+  const sideNav = layout?.sideNav && typeof layout.sideNav === 'object'
+    ? layout.sideNav
+    : null;
+  const sideNavAffectsHorizontalLayout = sideNavOpen
+    && sideNav
+    && !isTreeNextMobileViewport(workspace.width, workspace.height);
+  const layoutLeftBound = sideNavAffectsHorizontalLayout
+    ? Math.round(sideNav.x + sideNav.width + 12)
+    : workspace.x;
+  const layoutRightBound = Math.round(workspace.x + workspace.width);
+  const availableCenterX = sideNavAffectsHorizontalLayout
+    ? (layoutLeftBound + layoutRightBound) * 0.5
+    : (workspace.x + (workspace.width * 0.5));
+  const cardX = clamp(
+    Math.round(availableCenterX - (cardWidth * 0.5)),
+    workspace.x + 10,
+    (workspace.x + workspace.width) - cardWidth - 10,
+  );
+  const cardY = workspace.y + 14;
+  const headerButtonId = 'legacy-tier-canvas-header-toggle-panel';
+  const dropdownButtonId = 'legacy-tier-canvas-header-tier-dropdown-toggle';
+  const panelVisible = Boolean(state.ui?.infinityBuilderVisible);
+  const hoveredButtonId = safeText(state.hoveredButtonId);
+  const isHovered = hoveredButtonId === headerButtonId;
+  const tierEntriesInput = Array.isArray(legacyTierCanvasViewState.tierEntries)
+    ? legacyTierCanvasViewState.tierEntries
+    : [];
+  const selectedTierNumber = Math.max(
+    1,
+    Math.floor(safeNumber(
+      infinityBuilderSelectedTierNumber,
+      safeNumber(model?.tierNumber, 1),
+    )),
+  );
+  const tierEntries = tierEntriesInput.length
+    ? tierEntriesInput
+    : [{
+      tierNumber: selectedTierNumber,
+      label: `Legacy Tier ${selectedTierNumber}`,
+      isSelected: true,
+    }];
+  const dropdownEnabled = tierEntries.length > 1;
+  const dropdownOpen = dropdownEnabled && Boolean(legacyTierCanvasViewState.dropdownOpen);
+  const fillColor = panelVisible
+    ? (isHovered ? 'rgba(25, 39, 58, 0.90)' : 'rgba(22, 35, 53, 0.86)')
+    : (isHovered ? 'rgba(27, 43, 63, 0.84)' : 'rgba(19, 28, 41, 0.74)');
+  registerButton({
+    id: headerButtonId,
+    x: cardX,
+    y: cardY,
+    width: cardWidth,
+    height: cardHeight,
+    action: 'legacy-tier:panel:toggle',
+    rounded: true,
+  });
+  fillRoundedRect(
+    context,
+    cardX,
+    cardY,
+    cardWidth,
+    cardHeight,
+    16,
+    fillColor,
+  );
+  strokeRoundedRect(
+    context,
+    cardX,
+    cardY,
+    cardWidth,
+    cardHeight,
+    16,
+    panelVisible
+      ? (isHovered ? 'rgba(186, 209, 244, 0.72)' : 'rgba(162, 192, 234, 0.62)')
+      : (isHovered ? 'rgba(165, 196, 236, 0.62)' : 'rgba(139, 171, 214, 0.44)'),
+    isHovered ? 1.35 : 1,
+  );
+  const headerTitle = `Legacy Tier ${selectedTierNumber} Tree View`;
+  drawText(headerTitle, cardX + (cardWidth * 0.5), cardY + 14, {
+    size: 11,
+    weight: 700,
+    color: '#EEF6FF',
+    align: 'center',
+    baseline: 'middle',
+    maxWidth: cardWidth - 18,
+  });
+  const panelHint = panelVisible
+    ? 'Tap to hide Legacy Leadership panel'
+    : 'Tap to show Legacy Leadership panel';
+  drawText(panelHint, cardX + (cardWidth * 0.5), cardY + 28, {
+    size: 9,
+    weight: 600,
+    color: 'rgba(187, 210, 238, 0.92)',
+    align: 'center',
+    baseline: 'middle',
+    maxWidth: cardWidth - 18,
+  });
+  const dropdownWidth = clamp(Math.round(cardWidth * 0.43), 130, 210);
+  const dropdownHeight = 22;
+  const dropdownX = Math.round(cardX + ((cardWidth - dropdownWidth) * 0.5));
+  const dropdownY = cardY + cardHeight - dropdownHeight - 7;
+  const dropdownHovered = hoveredButtonId === dropdownButtonId;
+
+  registerButton({
+    id: dropdownButtonId,
+    x: dropdownX,
+    y: dropdownY,
+    width: dropdownWidth,
+    height: dropdownHeight,
+    action: dropdownEnabled ? 'legacy-tier:dropdown:toggle' : 'noop',
+    rounded: true,
+  });
+
+  fillRoundedRect(
+    context,
+    dropdownX,
+    dropdownY,
+    dropdownWidth,
+    dropdownHeight,
+    11,
+    dropdownHovered
+      ? 'rgba(240, 247, 255, 0.24)'
+      : 'rgba(229, 239, 252, 0.16)',
+  );
+  strokeRoundedRect(
+    context,
+    dropdownX + 0.5,
+    dropdownY + 0.5,
+    dropdownWidth - 1,
+    dropdownHeight - 1,
+    11,
+    dropdownHovered
+      ? 'rgba(198, 217, 242, 0.74)'
+      : 'rgba(180, 203, 235, 0.56)',
+    dropdownHovered ? 1.2 : 1,
+  );
+  const selectedTierLabel = `Legacy Tier ${selectedTierNumber}`;
+  drawText(selectedTierLabel, dropdownX + 12, dropdownY + (dropdownHeight * 0.5), {
+    size: 9,
+    weight: 700,
+    color: '#EAF4FF',
+    align: 'left',
+    baseline: 'middle',
+    maxWidth: dropdownWidth - 36,
+  });
+  drawText(
+    dropdownEnabled
+      ? (dropdownOpen ? '^' : 'v')
+      : '-',
+    dropdownX + dropdownWidth - 12,
+    dropdownY + (dropdownHeight * 0.5),
+    {
+      size: 9,
+      weight: 700,
+      color: 'rgba(218, 232, 249, 0.96)',
+      align: 'center',
+      baseline: 'middle',
+    },
+  );
+
+  if (dropdownOpen) {
+    const menuPadding = 4;
+    const optionHeight = 20;
+    const menuWidth = dropdownWidth;
+    const menuHeight = (menuPadding * 2) + (optionHeight * tierEntries.length);
+    const menuX = dropdownX;
+    const menuY = dropdownY + dropdownHeight + 6;
+
+    fillRoundedRect(
+      context,
+      menuX,
+      menuY,
+      menuWidth,
+      menuHeight,
+      10,
+      'rgba(17, 26, 39, 0.94)',
+    );
+    strokeRoundedRect(
+      context,
+      menuX + 0.5,
+      menuY + 0.5,
+      menuWidth - 1,
+      menuHeight - 1,
+      10,
+      'rgba(157, 186, 223, 0.52)',
+      1,
+    );
+
+    for (let index = 0; index < tierEntries.length; index += 1) {
+      const entry = tierEntries[index];
+      const tierNumber = Math.max(1, Math.floor(safeNumber(entry?.tierNumber, 0)));
+      const optionY = menuY + menuPadding + (index * optionHeight);
+      const optionButtonId = `legacy-tier-canvas-header-tier-option-${tierNumber}`;
+      const optionHovered = hoveredButtonId === optionButtonId;
+      const optionActive = tierNumber === selectedTierNumber;
+      registerButton({
+        id: optionButtonId,
+        x: menuX + 4,
+        y: optionY,
+        width: menuWidth - 8,
+        height: optionHeight,
+        action: `legacy-tier:select:${tierNumber}`,
+        rounded: true,
+      });
+
+      if (optionHovered || optionActive) {
+        fillRoundedRect(
+          context,
+          menuX + 4,
+          optionY + 1,
+          menuWidth - 8,
+          optionHeight - 2,
+          8,
+          optionActive
+            ? 'rgba(104, 142, 188, 0.36)'
+            : 'rgba(86, 116, 157, 0.26)',
+        );
+      }
+
+      drawText(`Legacy Tier ${tierNumber}`, menuX + 14, optionY + (optionHeight * 0.5), {
+        size: 9,
+        weight: optionActive ? 700 : 600,
+        color: optionActive ? '#EEF6FF' : 'rgba(207, 221, 241, 0.96)',
+        align: 'left',
+        baseline: 'middle',
+        maxWidth: menuWidth - 34,
+      });
+      if (optionActive) {
+        drawText('*', menuX + menuWidth - 14, optionY + (optionHeight * 0.5), {
+          size: 9,
+          weight: 700,
+          color: '#EAF4FF',
+          align: 'center',
+          baseline: 'middle',
+        });
+      }
+    }
+  }
+
+}
+
+function shouldDrawUniverseLocalBreadcrumbHeader() {
+  if (isLegacyTierCanvasViewActive()) {
+    return false;
+  }
+  const historyTrail = resolveUniverseHistoryTrailNodeIds();
+  if (historyTrail.length <= 1) {
+    return false;
+  }
+  const currentRootId = normalizeCredentialValue(getUniverseRootId());
+  const preferredHomeId = normalizeCredentialValue(resolvePreferredGlobalHomeNodeId() || 'root');
+  return Boolean(currentRootId && currentRootId !== preferredHomeId);
+}
+
+function resolveUniverseHistoryTrailNodeIds() {
+  const safeHistory = Array.isArray(state.universe?.history)
+    ? state.universe.history
+    : [];
+  const trail = [];
+  for (const snapshot of safeHistory) {
+    const rootId = safeText(snapshot?.rootId);
+    if (rootId) {
+      trail.push(rootId);
+    }
+  }
+  const currentRootId = safeText(getUniverseRootId()) || 'root';
+  trail.push(currentRootId);
+  return trail.length ? trail : ['root'];
+}
+
+function gotoUniverseFromHistoryIndex(targetIndexInput, animated = true) {
+  const targetIndex = Math.floor(safeNumber(targetIndexInput, NaN));
+  const trail = resolveUniverseHistoryTrailNodeIds();
+  if (!Number.isFinite(targetIndex) || targetIndex < 0 || targetIndex >= trail.length) {
+    return false;
+  }
+  const currentIndex = trail.length - 1;
+  if (targetIndex === currentIndex) {
+    return focusUniverseRoot(animated);
+  }
+  const targetRootId = safeText(trail[targetIndex]);
+  if (!targetRootId) {
+    return false;
+  }
+
+  const currentRootId = getUniverseRootId();
+  if (targetRootId === currentRootId) {
+    return focusUniverseRoot(animated);
+  }
+
+  const safeHistory = Array.isArray(state.universe.history)
+    ? state.universe.history
+    : [];
+  const targetSnapshot = safeHistory[targetIndex] || null;
+
+  rememberUniverseCamera(currentRootId);
+  state.universe.history = safeHistory.slice(0, targetIndex);
+  state.universe.rootId = targetRootId;
+  refreshUniverseBreadcrumb(targetRootId);
+  state.query = safeText(targetSnapshot?.query || '');
+  state.depthFilter = safeText(targetSnapshot?.depthFilter || 'all') || 'all';
+  setSelectedNode(safeText(targetSnapshot?.selectedId || targetRootId), { animate: false });
+
+  if (restoreUniverseCamera(targetRootId, animated)) {
+    return true;
+  }
+
+  if (focusNode(state.selectedId || targetRootId, 30, animated)) {
+    return true;
+  }
+  return focusUniverseRoot(animated);
+}
+
+function drawUniverseLocalBreadcrumbHeader(layout) {
+  if (!shouldDrawUniverseLocalBreadcrumbHeader()) {
+    return;
+  }
+  const workspace = layout?.workspace || null;
+  if (!workspace) {
+    return;
+  }
+
+  const cardWidth = clamp(Math.round(workspace.width * 0.34), 260, 480);
+  const cardHeight = 58;
+  const sideNavOpen = Boolean(state.ui?.sideNavOpen);
+  const sideNav = layout?.sideNav && typeof layout.sideNav === 'object'
+    ? layout.sideNav
+    : null;
+  const sideNavAffectsHorizontalLayout = sideNavOpen
+    && sideNav
+    && !isTreeNextMobileViewport(workspace.width, workspace.height);
+  const layoutLeftBound = sideNavAffectsHorizontalLayout
+    ? Math.round(sideNav.x + sideNav.width + 12)
+    : workspace.x;
+  const layoutRightBound = Math.round(workspace.x + workspace.width);
+  const availableCenterX = sideNavAffectsHorizontalLayout
+    ? (layoutLeftBound + layoutRightBound) * 0.5
+    : (workspace.x + (workspace.width * 0.5));
+  const cardX = clamp(
+    Math.round(availableCenterX - (cardWidth * 0.5)),
+    workspace.x + 10,
+    (workspace.x + workspace.width) - cardWidth - 10,
+  );
+  const cardY = workspace.y + 14;
+
+  fillRoundedRect(
+    context,
+    cardX,
+    cardY,
+    cardWidth,
+    cardHeight,
+    26,
+    '#FFFFFF',
+  );
+  drawUniverseBreadcrumbNodeChips(cardX + 12, cardY, cardWidth - 24, cardHeight);
+}
+
 function drawTreeViewport(layout) {
   const viewport = layout.viewport;
-  const projectionScale = resolveProjectionScale(state.camera.view.scale);
-
-  const frameOptions = {
-    ...getUniverseOptions(),
-    depth: state.depthFilter,
-    selectedId: state.selectedId,
-    showConnectors: state.showConnectors,
-    view: {
-      x: state.camera.view.x,
-      y: state.camera.view.y,
-      scale: projectionScale,
-    },
-    viewport,
-    nodeRadiusBase: NODE_RADIUS_BASE,
-    lodThresholds: {
-      full: 14,
-      medium: 6.5,
-      dot: 1.4,
-      min: 0.3,
-    },
-    semanticDepth: {
-      enabled: true,
-      baseScale: PROJECTION_BASE_SCALE,
-      baseFullDepth: 5,
-      baseVisibleDepth: 5,
-      fullDepthPerOctave: 1,
-      visibleDepthPerOctave: 3,
-    },
-    cullMargin: Math.max(220, Math.round(Math.min(viewport.width, viewport.height) * 0.34)),
-    devicePixelRatio: 1,
-  };
-  const frame = state.adapter.computeFrame(frameOptions);
-  const anticipationSlots = resolveAnticipationSlots(frame, frameOptions);
+  const legacyTierFrame = resolveLegacyTierCanvasFrame(layout);
+  const legacyViewActive = Boolean(legacyTierFrame);
+  let frame = legacyTierFrame;
+  let anticipationSlots = [];
+  if (!legacyViewActive) {
+    const projectionScale = resolveProjectionScale(state.camera.view.scale);
+    const frameOptions = {
+      ...getUniverseOptions(),
+      depth: state.depthFilter,
+      selectedId: state.selectedId,
+      showConnectors: state.showConnectors,
+      view: {
+        x: state.camera.view.x,
+        y: state.camera.view.y,
+        scale: projectionScale,
+      },
+      viewport,
+      nodeRadiusBase: NODE_RADIUS_BASE,
+      lodThresholds: {
+        full: 14,
+        medium: 6.5,
+        dot: 1.4,
+        min: 0.3,
+      },
+      semanticDepth: {
+        enabled: true,
+        baseScale: PROJECTION_BASE_SCALE,
+        baseFullDepth: 5,
+        baseVisibleDepth: 5,
+        fullDepthPerOctave: 1,
+        visibleDepthPerOctave: 3,
+      },
+      cullMargin: Math.max(220, Math.round(Math.min(viewport.width, viewport.height) * 0.34)),
+      devicePixelRatio: 1,
+    };
+    frame = state.adapter.computeFrame(frameOptions);
+    anticipationSlots = resolveAnticipationSlots(frame, frameOptions);
+  }
 
   state.frameResult = frame;
   state.anticipationSlots = anticipationSlots;
@@ -9689,8 +24513,11 @@ function drawTreeViewport(layout) {
   }
 
   drawConnectors(projectedNodes);
-  drawAnticipationConnectors(anticipationSlots, projectedNodes);
-  const selectedNode = projectedNodes.find((node) => node.id === state.selectedId) || null;
+  if (!legacyViewActive) {
+    drawAnticipationConnectors(anticipationSlots, projectedNodes);
+  }
+  const selectedNode = projectedNodes.find((node) => node.id === state.selectedId)
+    || (frame?.selectedProjected || null);
 
   for (const node of projectedNodes) {
     if (selectedNode && node.id === selectedNode.id) {
@@ -9701,7 +24528,12 @@ function drawTreeViewport(layout) {
   if (selectedNode) {
     drawNode(selectedNode);
   }
-  drawAnticipationSlots(anticipationSlots);
+  if (legacyViewActive) {
+    drawLegacyTierCanvasViewHeader(layout, frame);
+  } else {
+    drawAnticipationSlots(anticipationSlots);
+    drawUniverseLocalBreadcrumbHeader(layout);
+  }
 
   context.restore();
 }
@@ -9711,6 +24543,7 @@ function renderFrame() {
   const height = state.renderSize.height;
 
   state.layout = resolveLayout(width, height);
+  syncTreeNextMobileSheetInteractionState(state.layout);
   state.buttons = [];
   if (isTreeNextEnrollModalOpen()) {
     syncTreeNextEnrollPanelPosition(state.layout);
@@ -9720,8 +24553,47 @@ function renderFrame() {
   drawBackground(width, height);
   drawWorkspaceBackdrop(state.layout.workspace);
   drawTreeViewport(state.layout);
+  drawTreeNextMobileSheetBackdrop(state.layout);
   drawSideNav(state.layout);
   drawBottomToolBar(state.layout);
+  const accountOverviewVisible = Boolean(state.ui?.accountOverviewVisible);
+  if (accountOverviewVisible) {
+    syncAccountOverviewPanelPosition(state.layout);
+    syncAccountOverviewPanelVisuals();
+  }
+  syncAccountOverviewPanelVisibility();
+  const infinityBuilderVisible = Boolean(state.ui?.infinityBuilderVisible);
+  if (infinityBuilderVisible) {
+    syncInfinityBuilderPanelPosition(state.layout);
+    syncInfinityBuilderPanelVisuals();
+  }
+  syncInfinityBuilderPanelVisibility();
+  const rankAdvancementVisible = Boolean(state.ui?.rankAdvancementVisible);
+  if (rankAdvancementVisible) {
+    syncRankAdvancementPanelPosition(state.layout);
+    syncRankAdvancementPanelVisuals();
+  }
+  syncRankAdvancementPanelVisibility();
+  try {
+    const preferredAccountsVisible = Boolean(state.ui?.preferredAccountsVisible);
+    if (preferredAccountsVisible) {
+      syncPreferredAccountsPanelPosition(state.layout);
+      syncPreferredAccountsPanelVisuals();
+    }
+    syncPreferredAccountsPanelVisibility();
+  } catch (error) {
+    const nowMs = performance.now();
+    if ((nowMs - preferredAccountsRenderErrorLoggedAtMs) >= 1000) {
+      preferredAccountsRenderErrorLoggedAtMs = nowMs;
+      console.error('[TreeNext] Preferred accounts panel sync failed during render:', error);
+    }
+  }
+  const myStoreVisible = Boolean(state.ui?.myStoreVisible);
+  if (myStoreVisible) {
+    syncMyStorePanelPosition(state.layout);
+    syncMyStorePanelVisuals();
+  }
+  syncMyStorePanelVisibility();
   syncSideNavSearchInput();
   syncSideNavProfileMenu();
 }
@@ -9923,6 +24795,10 @@ function focusRoot(animated = true) {
 }
 
 function resolvePreferredGlobalHomeNodeId() {
+  if (state.source === 'admin') {
+    return 'root';
+  }
+
   const session = state.session && typeof state.session === 'object' ? state.session : null;
   const candidates = [
     session?.rootNodeId,
@@ -10113,6 +24989,268 @@ function panCameraBy(deltaX, deltaY) {
   state.camera.view.y += safeDeltaY;
 }
 
+function clearTouchPanInertia() {
+  if (!state.touchPanInertia || typeof state.touchPanInertia !== 'object') {
+    state.touchPanInertia = {
+      active: false,
+      velocityX: 0,
+      velocityY: 0,
+    };
+    return;
+  }
+  state.touchPanInertia.active = false;
+  state.touchPanInertia.velocityX = 0;
+  state.touchPanInertia.velocityY = 0;
+}
+
+function maybeStartTouchPanInertia(pointerId, pointerTypeInput = '') {
+  if (!state.drag.active || pointerId !== state.drag.pointerId) {
+    return false;
+  }
+  if (!isTreeNextMobileViewport()) {
+    clearTouchPanInertia();
+    return false;
+  }
+  const pointerType = safeText(pointerTypeInput || state.drag.pointerType).toLowerCase();
+  if (pointerType !== 'touch' || !state.drag.moved) {
+    clearTouchPanInertia();
+    return false;
+  }
+  if (touchGestureState.pinchActive || touchGestureState.activePointers.size > 0) {
+    clearTouchPanInertia();
+    return false;
+  }
+  const smoothVelocityX = clamp(
+    safeNumber(state.drag.velocityX, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+  const smoothVelocityY = clamp(
+    safeNumber(state.drag.velocityY, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+  const instantVelocityX = clamp(
+    safeNumber(state.drag.lastInstantVelocityX, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+  const instantVelocityY = clamp(
+    safeNumber(state.drag.lastInstantVelocityY, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+  const smoothSpeed = Math.hypot(smoothVelocityX, smoothVelocityY);
+  const instantSpeed = Math.hypot(instantVelocityX, instantVelocityY);
+  const velocityX = instantSpeed >= smoothSpeed ? instantVelocityX : smoothVelocityX;
+  const velocityY = instantSpeed >= smoothSpeed ? instantVelocityY : smoothVelocityY;
+  const speed = Math.hypot(velocityX, velocityY);
+  if (!Number.isFinite(speed) || speed < TOUCH_PAN_INERTIA_MIN_START_SPEED_PX_PER_MS) {
+    clearTouchPanInertia();
+    return false;
+  }
+  if (!state.touchPanInertia || typeof state.touchPanInertia !== 'object') {
+    state.touchPanInertia = {
+      active: false,
+      velocityX: 0,
+      velocityY: 0,
+    };
+  }
+  state.touchPanInertia.active = true;
+  state.touchPanInertia.velocityX = velocityX;
+  state.touchPanInertia.velocityY = velocityY;
+  return true;
+}
+
+function updateTouchPanInertia(deltaSecondsInput = 0.016) {
+  const inertia = state.touchPanInertia;
+  if (!inertia || inertia.active !== true) {
+    return;
+  }
+  if (!isTreeNextMobileViewport()) {
+    clearTouchPanInertia();
+    return;
+  }
+  if (state.camera.target) {
+    clearTouchPanInertia();
+    return;
+  }
+  if (
+    state.drag.active
+    || getTreeNextMobileSidePanelDragState().active
+    || getSideNavFavoritesState().dragActive
+    || getSideNavContentScrollState().dragActive
+    || touchGestureState.pinchActive
+    || touchGestureState.activePointers.size > 0
+  ) {
+    clearTouchPanInertia();
+    return;
+  }
+
+  const deltaSeconds = clamp(safeNumber(deltaSecondsInput, 0.016), 0.0001, 0.05);
+  const deltaMs = deltaSeconds * 1000;
+  const velocityX = clamp(
+    safeNumber(inertia.velocityX, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+  const velocityY = clamp(
+    safeNumber(inertia.velocityY, 0),
+    -TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+    TOUCH_PAN_INERTIA_MAX_SPEED_PX_PER_MS,
+  );
+
+  state.camera.view.x += velocityX * deltaMs;
+  state.camera.view.y += velocityY * deltaMs;
+
+  const damping = Math.exp(-TOUCH_PAN_INERTIA_DAMPING * deltaSeconds);
+  inertia.velocityX = velocityX * damping;
+  inertia.velocityY = velocityY * damping;
+  const speed = Math.hypot(inertia.velocityX, inertia.velocityY);
+  if (!Number.isFinite(speed) || speed <= TOUCH_PAN_INERTIA_STOP_SPEED_PX_PER_MS) {
+    clearTouchPanInertia();
+  }
+}
+
+function resetTouchPinchGesture() {
+  touchGestureState.activePointers.clear();
+  touchGestureState.pinchActive = false;
+  touchGestureState.pinchStartDistance = 0;
+  touchGestureState.pinchStartScale = clamp(state.camera.view.scale, MIN_SCALE, MAX_SCALE);
+  touchGestureState.lastCenterX = 0;
+  touchGestureState.lastCenterY = 0;
+}
+
+function trackTouchPointer(pointerId, pointX, pointY) {
+  touchGestureState.activePointers.set(pointerId, {
+    x: safeNumber(pointX, 0),
+    y: safeNumber(pointY, 0),
+  });
+}
+
+function untrackTouchPointer(pointerId) {
+  touchGestureState.activePointers.delete(pointerId);
+  if (touchGestureState.activePointers.size < 2) {
+    touchGestureState.pinchActive = false;
+    touchGestureState.pinchStartDistance = 0;
+    touchGestureState.pinchStartScale = clamp(state.camera.view.scale, MIN_SCALE, MAX_SCALE);
+  }
+}
+
+function beginTouchPinchGesture() {
+  if (touchGestureState.activePointers.size < 2) {
+    touchGestureState.pinchActive = false;
+    return false;
+  }
+  const points = Array.from(touchGestureState.activePointers.values());
+  const first = points[0];
+  const second = points[1];
+  const deltaX = second.x - first.x;
+  const deltaY = second.y - first.y;
+  const distance = Math.hypot(deltaX, deltaY);
+  if (!Number.isFinite(distance) || distance < 8) {
+    touchGestureState.pinchActive = false;
+    return false;
+  }
+  const centerX = (first.x + second.x) / 2;
+  const centerY = (first.y + second.y) / 2;
+  touchGestureState.pinchActive = true;
+  touchGestureState.pinchStartDistance = distance;
+  touchGestureState.pinchStartScale = clamp(state.camera.view.scale, MIN_SCALE, MAX_SCALE);
+  touchGestureState.lastCenterX = centerX;
+  touchGestureState.lastCenterY = centerY;
+  return true;
+}
+
+function updateTouchPinchGesture(pointerId, pointX, pointY) {
+  if (!touchGestureState.activePointers.has(pointerId)) {
+    return false;
+  }
+  trackTouchPointer(pointerId, pointX, pointY);
+  if (touchGestureState.activePointers.size < 2) {
+    return false;
+  }
+  if (!touchGestureState.pinchActive && !beginTouchPinchGesture()) {
+    return false;
+  }
+  const points = Array.from(touchGestureState.activePointers.values());
+  if (points.length < 2) {
+    return false;
+  }
+  const first = points[0];
+  const second = points[1];
+  const deltaX = second.x - first.x;
+  const deltaY = second.y - first.y;
+  const distance = Math.hypot(deltaX, deltaY);
+  if (!Number.isFinite(distance) || distance < 6) {
+    return true;
+  }
+  const centerX = (first.x + second.x) / 2;
+  const centerY = (first.y + second.y) / 2;
+  const startDistance = Math.max(6, safeNumber(touchGestureState.pinchStartDistance, distance));
+  const zoomFactor = distance / startDistance;
+  const nextScale = clamp(
+    safeNumber(touchGestureState.pinchStartScale, state.camera.view.scale) * zoomFactor,
+    MIN_SCALE,
+    MAX_SCALE,
+  );
+  const centerDeltaX = centerX - safeNumber(touchGestureState.lastCenterX, centerX);
+  const centerDeltaY = centerY - safeNumber(touchGestureState.lastCenterY, centerY);
+  if (Math.abs(centerDeltaX) > 0.001 || Math.abs(centerDeltaY) > 0.001) {
+    panCameraBy(centerDeltaX, centerDeltaY);
+  }
+  touchGestureState.lastCenterX = centerX;
+  touchGestureState.lastCenterY = centerY;
+  applyZoomAtPoint(centerX, centerY, nextScale);
+  return true;
+}
+
+function resolveMobileTopControlsAutoHideContextToken() {
+  if (!isTreeNextMobileViewport()) {
+    return '';
+  }
+  if (isLegacyTierCanvasViewActive()) {
+    return 'legacy-tier-view';
+  }
+  const universeRootId = normalizeCredentialValue(getUniverseRootId() || 'root');
+  if (universeRootId && universeRootId !== 'root') {
+    return `node-universe:${universeRootId}`;
+  }
+  return '';
+}
+
+function syncMobileTopControlsVisibilityForContext(options = {}) {
+  const uiState = state.ui && typeof state.ui === 'object'
+    ? state.ui
+    : null;
+  if (!uiState) {
+    return;
+  }
+  if (!isTreeNextMobileViewport()) {
+    uiState.mobileTopControlsAutoHideContextToken = '';
+    return;
+  }
+  const nextContextToken = resolveMobileTopControlsAutoHideContextToken();
+  const previousContextToken = safeText(uiState.mobileTopControlsAutoHideContextToken);
+  if (!nextContextToken) {
+    uiState.mobileTopControlsAutoHideContextToken = '';
+    return;
+  }
+  if (options?.force === true || nextContextToken !== previousContextToken) {
+    uiState.mobileTopControlsHidden = true;
+  }
+  uiState.mobileTopControlsAutoHideContextToken = nextContextToken;
+}
+
+function shouldForceMobilePanelFullForShortcutAction(actionInput) {
+  const safeAction = safeText(actionInput);
+  return (
+    safeAction === 'panel:account-overview:toggle'
+    || safeAction === 'panel:rank-advancement:toggle'
+    || safeAction === 'panel:preferred-accounts:toggle'
+  );
+}
+
 function triggerAction(action) {
   const safeAction = safeText(action);
   if (!safeAction || safeAction === 'noop') {
@@ -10127,7 +25265,26 @@ function triggerAction(action) {
     clearPendingUniverseBackPrep();
   }
 
+  if (shouldForceMobilePanelFullForShortcutAction(safeAction) && isTreeNextMobileViewport()) {
+    state.ui.sideNavOpen = true;
+    setTreeNextMobileSidePanelStage(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL, { animate: true });
+  }
+
   if (safeAction === 'brand-menu:toggle') {
+    if (isTreeNextMobileViewport()) {
+      const currentMobileStage = resolveTreeNextMobileSidePanelStage();
+      if (currentMobileStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED) {
+        state.ui.sideNavOpen = true;
+        setTreeNextMobileSidePanelStage(TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL, { animate: false });
+        state.ui.sideNavBrandMenuOpen = true;
+        closeSearchDropdown();
+        const searchInput = ensureSideNavSearchInput();
+        if (document.activeElement === searchInput) {
+          searchInput.blur();
+        }
+        return;
+      }
+    }
     state.ui.sideNavBrandMenuOpen = !state.ui.sideNavBrandMenuOpen;
     if (state.ui.sideNavBrandMenuOpen) {
       closeSearchDropdown();
@@ -10139,6 +25296,17 @@ function triggerAction(action) {
     return;
   }
   if (safeAction === 'side-nav:toggle') {
+    if (isTreeNextMobileViewport()) {
+      const currentStage = resolveTreeNextMobileSidePanelStage();
+      const nextStage = currentStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_FULL
+        ? TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF
+        : (currentStage === TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF
+          ? TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_CLOSED
+          : TREE_NEXT_MOBILE_SIDE_PANEL_STAGE_HALF);
+      setTreeNextMobileSidePanelStage(nextStage, { animate: true });
+      state.ui.sideNavOpen = true;
+      return;
+    }
     state.ui.sideNavOpen = !state.ui.sideNavOpen;
     state.ui.sideNavBrandMenuOpen = false;
     closeSearchDropdown();
@@ -10148,9 +25316,59 @@ function triggerAction(action) {
     }
     return;
   }
+  if (safeAction === 'mobile:top-controls:toggle') {
+    state.ui.mobileTopControlsHidden = !Boolean(state.ui?.mobileTopControlsHidden);
+    return;
+  }
+  if (safeAction === 'panel:account-overview:toggle') {
+    setAccountOverviewPanelVisible(!Boolean(state.ui?.accountOverviewVisible));
+    return;
+  }
+  if (safeAction === 'panel:rank-advancement:toggle') {
+    setRankAdvancementPanelVisible(!Boolean(state.ui?.rankAdvancementVisible));
+    return;
+  }
+  if (safeAction === 'panel:preferred-accounts:toggle') {
+    setPreferredAccountsPanelVisible(!Boolean(state.ui?.preferredAccountsVisible));
+    return;
+  }
+  if (safeAction === 'legacy-tier:panel:toggle') {
+    toggleLegacyTierCanvasPanelVisibility();
+    return;
+  }
+  if (safeAction === 'legacy-tier:view:toggle' || safeAction === 'legacy-tier:view:tier-1') {
+    toggleLegacyTierQuickAccessView();
+    return;
+  }
+  if (safeAction === 'legacy-tier:dropdown:toggle') {
+    if (!isLegacyTierCanvasViewActive()) {
+      return;
+    }
+    const tierEntries = Array.isArray(legacyTierCanvasViewState.tierEntries)
+      ? legacyTierCanvasViewState.tierEntries
+      : [];
+    if (tierEntries.length <= 1) {
+      legacyTierCanvasViewState.dropdownOpen = false;
+      return;
+    }
+    legacyTierCanvasViewState.dropdownOpen = !Boolean(legacyTierCanvasViewState.dropdownOpen);
+    return;
+  }
+  if (safeAction.startsWith('legacy-tier:select:')) {
+    const tierNumber = Math.floor(safeNumber(
+      safeAction.slice('legacy-tier:select:'.length),
+      NaN,
+    ));
+    selectLegacyTierCanvasTier(tierNumber);
+    return;
+  }
   if (safeAction.startsWith('brand-menu:page:')) {
     const targetPage = safeAction.slice('brand-menu:page:'.length);
     state.ui.sideNavBrandMenuOpen = false;
+    if (targetPage === 'my-store') {
+      setMyStorePanelVisible(true);
+      return;
+    }
     if (targetPage === 'dashboard') {
       const dashboardPath = state.source === 'admin'
         ? ADMIN_DASHBOARD_HOME_PATH
@@ -10164,6 +25382,9 @@ function triggerAction(action) {
     return;
   }
   if (safeAction === 'camera:home') {
+    if (exitLegacyTierCanvasToBinaryDefault(true)) {
+      return;
+    }
     goToGlobalHome(true);
     return;
   }
@@ -10184,11 +25405,24 @@ function triggerAction(action) {
     gotoUniverseFromBreadcrumb(targetRootId, true);
     return;
   }
+  if (safeAction.startsWith('universe:history:goto:')) {
+    const targetIndex = Math.floor(safeNumber(
+      safeAction.slice('universe:history:goto:'.length),
+      NaN,
+    ));
+    if (Number.isFinite(targetIndex)) {
+      gotoUniverseFromHistoryIndex(targetIndex, true);
+    }
+    return;
+  }
   if (safeAction === 'universe:enter') {
-    enterNodeUniverseWithZoomHint(state.selectedId);
+    enterSelectedUniverseNodeFromCurrentView();
     return;
   }
   if (safeAction === 'universe:back') {
+    if (exitLegacyTierCanvasToBinaryDefault(true)) {
+      return;
+    }
     exitNodeUniverseWithZoomHint(true);
     return;
   }
@@ -10250,6 +25484,10 @@ function triggerAction(action) {
     void resetMemberBinaryTreeLaunchStateFromDock();
     return;
   }
+  if (safeAction === 'panel:rank-advancement:placeholder') {
+    setRankAdvancementPanelVisible(!Boolean(state.ui?.rankAdvancementVisible));
+    return;
+  }
   if (safeAction.startsWith('depth:')) {
     state.depthFilter = safeAction.slice('depth:'.length) || 'all';
     fitCameraToFilteredNodes(true);
@@ -10277,16 +25515,66 @@ function updateHoverState(pointX, pointY) {
 function onPointerDown(event) {
   clearPendingUniverseEnterPrep();
   clearPendingUniverseBackPrep();
+  clearTouchPanInertia();
   const pointerX = event.clientX;
   const pointerY = event.clientY;
   state.pointer.x = pointerX;
   state.pointer.y = pointerY;
+
+  if (event.pointerType === 'touch') {
+    if (typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    trackTouchPointer(event.pointerId, pointerX, pointerY);
+    if (touchGestureState.activePointers.size >= 2) {
+      stopFavoritesCarouselDrag(null);
+      stopDragging(null);
+      clearTreeNextMobileSidePanelDrag();
+      beginTouchPinchGesture();
+      canvas.classList.add('dragging');
+      try {
+        canvas.setPointerCapture(event.pointerId);
+      } catch {
+        // Ignore pointer capture failures.
+      }
+      return;
+    }
+  }
 
   closeSearchDropdown();
   updateHoverState(pointerX, pointerY);
   const pointerInsideFavorites = pointInsideFavoritesCarousel(pointerX, pointerY);
   const brandMenuOpen = Boolean(state.ui.sideNavBrandMenuOpen);
   const button = buttonUnderPointer(pointerX, pointerY);
+  const buttonAction = safeText(button?.action);
+  const interactingWithLegacyTierDropdown = (
+    buttonAction === 'legacy-tier:dropdown:toggle'
+    || buttonAction.startsWith('legacy-tier:select:')
+  );
+  if (legacyTierCanvasViewState.dropdownOpen && !interactingWithLegacyTierDropdown) {
+    legacyTierCanvasViewState.dropdownOpen = false;
+  }
+  if (maybeBeginMobileSideNavStageDrag(event.pointerId, pointerX, pointerY, {
+    allowSurfaceDrag: event.pointerType === 'touch',
+    buttonHint: button,
+  })) {
+    canvas.classList.add('dragging');
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore pointer capture failures.
+    }
+    return;
+  }
+  if (maybeBeginMobileSideNavContentScroll(event.pointerId, pointerX, pointerY, event.pointerType)) {
+    canvas.classList.add('dragging');
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore pointer capture failures.
+    }
+    return;
+  }
   if (button) {
     const isBrandButton = (
       safeText(button.action) === 'brand-menu:toggle'
@@ -10343,11 +25631,17 @@ function onPointerDown(event) {
     setSelectedNode(hitNode.id, { animate: true, toggleIfSame: true });
     return;
   }
-
   state.drag.active = true;
   state.drag.pointerId = event.pointerId;
   state.drag.lastX = pointerX;
   state.drag.lastY = pointerY;
+  state.drag.pointerType = safeText(event.pointerType).toLowerCase();
+  state.drag.velocityX = 0;
+  state.drag.velocityY = 0;
+  state.drag.lastInstantVelocityX = 0;
+  state.drag.lastInstantVelocityY = 0;
+  state.drag.lastMoveAtMs = safeNumber(event.timeStamp, getNowMs());
+  state.drag.moved = false;
   state.camera.target = null;
   canvas.classList.add('dragging');
   try {
@@ -10362,17 +25656,64 @@ function onPointerMove(event) {
   state.pointer.y = event.clientY;
   state.pointer.inside = true;
 
-  if (updateFavoritesCarouselDrag(event.pointerId, event.clientX, event.clientY)) {
+  if (event.pointerType === 'touch' && touchGestureState.activePointers.has(event.pointerId)) {
+    if (updateTouchPinchGesture(event.pointerId, event.clientX, event.clientY)) {
+      if (typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      return;
+    }
+  }
+
+  if (updateMobileSideNavContentScrollDrag(event.pointerId, event.clientY)) {
+    if (typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    return;
+  }
+
+  if (updateMobileSideNavStageDrag(event.pointerId, event.clientY)) {
+    if (typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    return;
+  }
+
+  if (updateFavoritesCarouselDrag(event.pointerId, event.clientX, event.clientY, event.pointerType)) {
+    if (event.pointerType === 'touch' && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
     return;
   }
 
   if (state.drag.active && event.pointerId === state.drag.pointerId) {
     const deltaX = event.clientX - state.drag.lastX;
     const deltaY = event.clientY - state.drag.lastY;
+    const nowMs = safeNumber(event.timeStamp, getNowMs());
+    const lastMoveAtMs = safeNumber(state.drag.lastMoveAtMs, nowMs);
+    const rawDeltaMs = nowMs - lastMoveAtMs;
+    const deltaMs = clamp(
+      Number.isFinite(rawDeltaMs) && rawDeltaMs > 0 ? rawDeltaMs : 16,
+      1,
+      48,
+    );
+    const instantVelocityX = deltaX / deltaMs;
+    const instantVelocityY = deltaY / deltaMs;
+    state.drag.lastInstantVelocityX = instantVelocityX;
+    state.drag.lastInstantVelocityY = instantVelocityY;
+    state.drag.velocityX = (safeNumber(state.drag.velocityX, 0) * 0.55) + (instantVelocityX * 0.45);
+    state.drag.velocityY = (safeNumber(state.drag.velocityY, 0) * 0.55) + (instantVelocityY * 0.45);
+    state.drag.lastMoveAtMs = nowMs;
     state.drag.lastX = event.clientX;
     state.drag.lastY = event.clientY;
+    if (!state.drag.moved && (Math.abs(deltaX) >= 0.5 || Math.abs(deltaY) >= 0.5)) {
+      state.drag.moved = true;
+    }
     state.camera.view.x += deltaX;
     state.camera.view.y += deltaY;
+    if (event.pointerType === 'touch' && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
     return;
   }
 
@@ -10380,25 +25721,69 @@ function onPointerMove(event) {
 }
 
 function stopDragging(pointerId) {
-  if (!state.drag.active) {
-    return;
+  if (state.drag.active) {
+    if (pointerId !== null && pointerId !== undefined && pointerId !== state.drag.pointerId) {
+      return;
+    }
+    state.drag.active = false;
+    state.drag.pointerId = null;
+    state.drag.pointerType = '';
+    state.drag.velocityX = 0;
+    state.drag.velocityY = 0;
+    state.drag.lastInstantVelocityX = 0;
+    state.drag.lastInstantVelocityY = 0;
+    state.drag.lastMoveAtMs = 0;
+    state.drag.moved = false;
   }
-  if (pointerId !== null && pointerId !== undefined && pointerId !== state.drag.pointerId) {
-    return;
-  }
-  state.drag.active = false;
-  state.drag.pointerId = null;
-  if (!getSideNavFavoritesState().dragActive) {
+  const mobileDragActive = getTreeNextMobileSidePanelDragState().active;
+  const sideNavContentScrollActive = getSideNavContentScrollState().dragActive;
+  if (!getSideNavFavoritesState().dragActive && !mobileDragActive && !sideNavContentScrollActive) {
     canvas.classList.remove('dragging');
   }
 }
 
 function onPointerUp(event) {
+  const wasCanvasPanDrag = state.drag.active && event.pointerId === state.drag.pointerId;
+  const wasPinching = event.pointerType === 'touch'
+    && (touchGestureState.pinchActive || touchGestureState.activePointers.size > 1);
+  if (event.pointerType === 'touch') {
+    untrackTouchPointer(event.pointerId);
+  }
+
+  const mobileContentScrollResult = finalizeMobileSideNavContentScrollDrag(event.pointerId);
+  if (mobileContentScrollResult.consumed) {
+    stopFavoritesCarouselDrag(event.pointerId);
+    stopDragging(event.pointerId);
+    try {
+      canvas.releasePointerCapture(event.pointerId);
+    } catch {
+      // Ignore.
+    }
+    return;
+  }
+
+  const mobileDragResult = finalizeMobileSideNavStageDrag(event.pointerId);
+  if (mobileDragResult.consumed || wasPinching) {
+    stopFavoritesCarouselDrag(event.pointerId);
+    stopDragging(event.pointerId);
+    try {
+      canvas.releasePointerCapture(event.pointerId);
+    } catch {
+      // Ignore.
+    }
+    return;
+  }
+
   const releaseAction = resolveFavoritesCarouselReleaseAction(event.pointerId);
   if (releaseAction) {
     triggerAction(releaseAction);
   }
+  const shouldStartTouchPanInertia = (event.type === 'pointerup' || event.type === 'pointercancel')
+    && maybeStartTouchPanInertia(event.pointerId, event.pointerType);
   stopDragging(event.pointerId);
+  if (!shouldStartTouchPanInertia && wasCanvasPanDrag) {
+    clearTouchPanInertia();
+  }
   try {
     canvas.releasePointerCapture(event.pointerId);
   } catch {
@@ -10406,7 +25791,26 @@ function onPointerUp(event) {
   }
 }
 
-function onPointerLeave() {
+function onPointerLeave(event) {
+  if (event?.pointerType === 'touch') {
+    untrackTouchPointer(event.pointerId);
+  }
+  if (touchGestureState.activePointers.size === 0) {
+    resetTouchPinchGesture();
+  }
+  clearTreeNextMobileSidePanelDrag(event?.pointerId ?? null);
+  clearSideNavContentScrollDrag(event?.pointerId ?? null);
+  const shouldCancelTouchPanInertia = (
+    state.drag.active
+    || getTreeNextMobileSidePanelDragState().active
+    || getSideNavFavoritesState().dragActive
+    || getSideNavContentScrollState().dragActive
+    || touchGestureState.activePointers.size > 0
+    || touchGestureState.pinchActive
+  );
+  if (shouldCancelTouchPanInertia) {
+    clearTouchPanInertia();
+  }
   state.pointer.inside = false;
   state.hoveredButtonId = '';
   stopFavoritesCarouselDrag(null);
@@ -10416,6 +25820,7 @@ function onPointerLeave() {
 function onWheel(event) {
   clearPendingUniverseEnterPrep();
   clearPendingUniverseBackPrep();
+  clearTouchPanInertia();
   const layout = state.layout;
   if (!layout || !pointInsideRect(event.clientX, event.clientY, layout.workspace)) {
     return;
@@ -10431,7 +25836,6 @@ function onWheel(event) {
   if (pointInsideActiveSideNav(event.clientX, event.clientY)) {
     return;
   }
-
   const isTrackpadEvent = isLikelyTrackpadWheelEvent(event);
   const isTrackpadPinchZoom = isTrackpadEvent && event.ctrlKey && !event.metaKey;
   const isManualZoom = isManualWheelZoomModifierPressed(event);
@@ -10474,6 +25878,7 @@ function onWheel(event) {
 function onKeyDown(event) {
   const key = safeText(event.key).toLowerCase();
   const panStep = 34;
+  clearTouchPanInertia();
 
   if (isTreeNextEnrollModalOpen()) {
     if (key === 'escape') {
@@ -10571,7 +25976,7 @@ function onKeyDown(event) {
     return;
   }
   if (key === 'u') {
-    enterNodeUniverseWithZoomHint(state.selectedId);
+    enterSelectedUniverseNodeFromCurrentView();
     event.preventDefault();
     return;
   }
@@ -10592,13 +25997,24 @@ function onKeyDown(event) {
 }
 
 function onSessionStorageChange(event) {
+  const changedKey = safeText(event?.key);
+  if (changedKey === TREE_NEXT_STRIPE_RETURN_SIGNAL_STORAGE_KEY) {
+    const signalPayload = resolveTreeNextStripeReturnSignalPayload(event?.newValue);
+    if (signalPayload) {
+      void processTreeNextStripeReturnSignalPayload(signalPayload, {
+        preserveCurrentStep: true,
+        consumeSignal: true,
+      });
+    }
+    return;
+  }
+
   const expectedStorageKey = state.source === 'admin'
     ? ADMIN_AUTH_STORAGE_KEY
     : MEMBER_AUTH_STORAGE_KEY;
   const expectedCookieKey = state.source === 'admin'
     ? ADMIN_AUTH_COOKIE_KEY
     : MEMBER_AUTH_COOKIE_KEY;
-  const changedKey = safeText(event?.key);
   if (changedKey && changedKey !== expectedStorageKey) {
     return;
   }
@@ -10607,14 +26023,116 @@ function onSessionStorageChange(event) {
     return;
   }
   state.session = nextSession;
+  resetAccountOverviewRemoteSnapshot();
+  resetRankAdvancementSnapshot();
+  resetInfinityBuilderPanelState();
+  pinnedNodeIdsLastSyncedKey = '';
+  pinnedNodeIdsLocalDirty = false;
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || null;
+  void refreshAccountOverviewRemoteSnapshot({
+    force: true,
+    homeNode,
+    scope: overviewContext?.scope,
+    preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+  });
+  void refreshRankAdvancementSnapshot({
+    force: true,
+    homeNode,
+  });
+  if (state.source === 'member') {
+    void fetchMemberBinaryTreeLaunchState(nextSession)
+      .then((launchState) => {
+        if (!launchState || typeof launchState !== 'object') {
+          return;
+        }
+        state.launchState = launchState;
+        applyInfinityBuilderTierSortDirectionsFromLaunchState(launchState, {
+          syncServer: false,
+          markSynced: true,
+        });
+      })
+      .catch(() => {});
+    schedulePinnedNodeIdsServerSync({ immediate: true });
+  }
+}
+
+function bindTouchNavigationGuard() {
+  if (touchNavigationGuardBound) {
+    return;
+  }
+  touchNavigationGuardBound = true;
+
+  let gestureTrackingActive = false;
+  let gestureStartX = 0;
+  let gestureStartY = 0;
+  const edgeThresholdPx = 28;
+  const horizontalThresholdPx = 14;
+  const verticalBiasPx = 6;
+
+  window.addEventListener('touchstart', (event) => {
+    const touch = event.touches && event.touches.length ? event.touches[0] : null;
+    if (!touch || event.touches.length !== 1) {
+      gestureTrackingActive = false;
+      return;
+    }
+    gestureTrackingActive = true;
+    gestureStartX = safeNumber(touch.clientX, 0);
+    gestureStartY = safeNumber(touch.clientY, 0);
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (event) => {
+    if (!gestureTrackingActive) {
+      return;
+    }
+    const touch = event.touches && event.touches.length ? event.touches[0] : null;
+    if (!touch || event.touches.length !== 1) {
+      gestureTrackingActive = false;
+      return;
+    }
+    const currentX = safeNumber(touch.clientX, gestureStartX);
+    const currentY = safeNumber(touch.clientY, gestureStartY);
+    const deltaX = currentX - gestureStartX;
+    const deltaY = currentY - gestureStartY;
+    const startsNearLeftEdge = gestureStartX <= edgeThresholdPx;
+    const startsNearRightEdge = gestureStartX >= (Math.max(0, window.innerWidth || 0) - edgeThresholdPx);
+    const horizontalDominant = Math.abs(deltaX) >= horizontalThresholdPx
+      && Math.abs(deltaX) >= (Math.abs(deltaY) + verticalBiasPx);
+    if ((startsNearLeftEdge || startsNearRightEdge) && horizontalDominant) {
+      event.preventDefault();
+    }
+  }, { passive: false });
+
+  // When the app is actively handling touch gestures, keep control in-app
+  // and avoid browser back/forward or page panning side effects.
+  window.addEventListener('touchmove', (event) => {
+    const canvasGestureActive = (
+      state.drag.active
+      || getSideNavFavoritesState().dragActive
+      || getSideNavContentScrollState().dragActive
+      || touchGestureState.activePointers.size > 0
+      || getTreeNextMobileSidePanelDragState().active
+    );
+    if (canvasGestureActive) {
+      event.preventDefault();
+    }
+  }, { passive: false });
+
+  const clearGestureTracking = () => {
+    gestureTrackingActive = false;
+  };
+  window.addEventListener('touchend', clearGestureTracking, { passive: true });
+  window.addEventListener('touchcancel', clearGestureTracking, { passive: true });
 }
 
 function bindEvents() {
   window.addEventListener('resize', updateCanvasSize);
   window.addEventListener('keydown', onKeyDown, { passive: false });
   window.addEventListener('storage', onSessionStorageChange);
+  window.addEventListener('message', onTreeNextStripeReturnMessage);
   document.addEventListener('visibilitychange', onTreeNextLiveSyncVisibilityChange);
   window.addEventListener('focus', onTreeNextLiveSyncWindowFocus);
+  bindTouchNavigationGuard();
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerup', onPointerUp);
@@ -10625,25 +26143,36 @@ function bindEvents() {
 
 let lastTimestamp = performance.now();
 function tickFrame(timestamp) {
-  state.timeMs = timestamp;
-  updateSelectionAnimations(timestamp);
-  updatePlacementAnimations(timestamp);
+  try {
+    state.timeMs = timestamp;
+    updateSelectionAnimations(timestamp);
+    updatePlacementAnimations(timestamp);
 
-  const deltaSeconds = Math.max(0.0001, Math.min(0.08, (timestamp - lastTimestamp) / 1000));
-  lastTimestamp = timestamp;
+    const deltaSeconds = Math.max(0.0001, Math.min(0.08, (timestamp - lastTimestamp) / 1000));
+    lastTimestamp = timestamp;
 
-  adaptStartupRevealForFrameBudget(deltaSeconds * 1000);
-  animateCamera(deltaSeconds);
-  consumePendingPlacementReveal({ nowMs: timestamp });
-  renderFrame();
+    adaptStartupRevealForFrameBudget(deltaSeconds * 1000);
+    animateCamera(deltaSeconds);
+    updateTouchPanInertia(deltaSeconds);
+    updateTreeNextMobileSidePanelSpring(deltaSeconds);
+    consumePendingPlacementReveal({ nowMs: timestamp });
+    renderFrame();
 
-  const instantFps = 1 / deltaSeconds;
-  state.perf.fps = state.perf.fps === 0
-    ? instantFps
-    : ((state.perf.fps * 0.88) + (instantFps * 0.12));
-  state.perf.frameMs = state.perf.fps > 0 ? (1000 / state.perf.fps) : 0;
-
-  window.requestAnimationFrame(tickFrame);
+    const instantFps = 1 / deltaSeconds;
+    state.perf.fps = state.perf.fps === 0
+      ? instantFps
+      : ((state.perf.fps * 0.88) + (instantFps * 0.12));
+    state.perf.frameMs = state.perf.fps > 0 ? (1000 / state.perf.fps) : 0;
+    updateMobileRuntimeDprForPerf(timestamp);
+  } catch (error) {
+    const nowMs = performance.now();
+    if ((nowMs - renderLoopErrorLoggedAtMs) >= 1000) {
+      renderLoopErrorLoggedAtMs = nowMs;
+      console.error('[TreeNext] Render loop recovered from frame error:', error);
+    }
+  } finally {
+    window.requestAnimationFrame(tickFrame);
+  }
 }
 
 async function bootstrap() {
@@ -10682,13 +26211,75 @@ async function bootstrap() {
   refreshUniverseBreadcrumb('root');
 
   setSelectedNode('', { animate: false });
-  setPinnedNodeIds(readPinnedNodeIdsFromStorage());
+  const localPinnedNodeIds = normalizePinnedNodeIds(readPinnedNodeIdsFromStorage());
+  const launchStatePinnedNodeIds = normalizePinnedNodeIds(state.launchState?.pinnedNodeIds);
+  const launchStatePinnedNodeIdsUpdatedAt = safeText(state.launchState?.pinnedNodeIdsUpdatedAt);
+
+  if (state.source === 'member') {
+    const shouldBackfillServerPinnedNodeIds = (
+      launchStatePinnedNodeIds.length === 0
+      && !launchStatePinnedNodeIdsUpdatedAt
+      && localPinnedNodeIds.length > 0
+    );
+
+    const initialPinnedNodeIds = shouldBackfillServerPinnedNodeIds
+      ? localPinnedNodeIds
+      : launchStatePinnedNodeIds;
+
+    setPinnedNodeIds(initialPinnedNodeIds, {
+      persistLocal: true,
+      syncServer: false,
+    });
+
+    pinnedNodeIdsLastSyncedKey = shouldBackfillServerPinnedNodeIds
+      ? resolvePinnedNodeIdsSyncKey(launchStatePinnedNodeIds)
+      : resolvePinnedNodeIdsSyncKey(initialPinnedNodeIds);
+
+    if (shouldBackfillServerPinnedNodeIds) {
+      schedulePinnedNodeIdsServerSync({ immediate: true });
+    }
+    pinnedNodeIdsLocalDirty = false;
+  } else {
+    setPinnedNodeIds(localPinnedNodeIds, {
+      persistLocal: true,
+      syncServer: false,
+    });
+    pinnedNodeIdsLastSyncedKey = '';
+    pinnedNodeIdsLocalDirty = false;
+  }
+
   updateCanvasSize();
   configureStartupRevealProfile();
   state.layout = resolveLayout(state.renderSize.width, state.renderSize.height);
   state.viewport = state.layout.viewport;
   bindEvents();
   initTreeNextEnrollModal();
+  initAccountOverviewPanel();
+  initInfinityBuilderPanel();
+  initRankAdvancementPanel();
+  initPreferredAccountsPanel();
+  initMyStorePanel();
+  const initialPanelKey = resolveInitialPanelKeyFromQuery();
+  if (initialPanelKey === 'account-overview') {
+    setAccountOverviewPanelVisible(true);
+  } else if (initialPanelKey === 'infinity-builder') {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_INFINITY);
+    setInfinityBuilderPanelVisible(true);
+  } else if (initialPanelKey === 'legacy-leadership') {
+    setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
+    setInfinityBuilderPanelVisible(true);
+  } else if (initialPanelKey === 'rank-advancement') {
+    setRankAdvancementPanelVisible(true);
+  } else if (initialPanelKey === 'preferred-accounts') {
+    setPreferredAccountsPanelVisible(true);
+  } else if (initialPanelKey === 'my-store') {
+    setMyStorePanelVisible(true);
+  }
+  await processTreeNextStripeCheckoutReturn();
+  await processTreeNextStripeReturnSignalFromStorage({
+    preserveCurrentStep: true,
+    consumeSignal: true,
+  });
   startTreeNextLiveSync();
 
   setCameraTarget(computeHomeView(), false);
@@ -10708,3 +26299,6 @@ bootstrap().catch((error) => {
   hideFirstOpenSplashImmediately();
   showBootError(error instanceof Error ? error.message : String(error));
 });
+
+
+

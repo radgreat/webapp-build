@@ -1,7 +1,10 @@
 import { Router } from 'express';
+import { requireMemberAuthSession } from '../middleware/member-auth.middleware.js';
 import {
   listRegisteredMembers,
   registerMember,
+  postRegisteredMemberCheckoutSession,
+  postCompleteRegisteredMemberCheckoutSession,
   postRegisteredMemberPaymentIntent,
   postCompleteRegisteredMemberPaymentIntent,
   patchRegisteredMemberPlacement,
@@ -13,12 +16,16 @@ import {
 const router = Router();
 
 router.get('/registered-members', listRegisteredMembers);
-router.post('/registered-members', registerMember);
-router.post('/registered-members/intent', postRegisteredMemberPaymentIntent);
-router.post('/registered-members/intent/complete', postCompleteRegisteredMemberPaymentIntent);
-router.patch('/registered-members/:memberId/placement', patchRegisteredMemberPlacement);
+router.post('/registered-members', requireMemberAuthSession, registerMember);
+router.post('/registered-members/session', requireMemberAuthSession, postRegisteredMemberCheckoutSession);
+router.post('/registered-members/session/complete', requireMemberAuthSession, postCompleteRegisteredMemberCheckoutSession);
+router.post('/registered-members/intent', requireMemberAuthSession, postRegisteredMemberPaymentIntent);
+router.post('/registered-members/intent/complete', requireMemberAuthSession, postCompleteRegisteredMemberPaymentIntent);
+router.patch('/registered-members/:memberId/placement', requireMemberAuthSession, patchRegisteredMemberPlacement);
 router.get('/admin/registered-members', listRegisteredMembers);
 router.post('/admin/registered-members', registerMember);
+router.post('/admin/registered-members/session', postRegisteredMemberCheckoutSession);
+router.post('/admin/registered-members/session/complete', postCompleteRegisteredMemberCheckoutSession);
 router.post('/admin/registered-members/intent', postRegisteredMemberPaymentIntent);
 router.post('/admin/registered-members/intent/complete', postCompleteRegisteredMemberPaymentIntent);
 router.patch('/admin/registered-members/:memberId/placement', patchRegisteredMemberPlacement);

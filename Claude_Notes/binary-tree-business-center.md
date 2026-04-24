@@ -1,14 +1,38 @@
 # Binary Tree Business Center Notes
 
-Last Updated: 2026-04-10
+Last Updated: 2026-04-23
 
 ## Scope
 
-- Feature: Business Center placeholder nodes in binary tree.
-- Area: Member-auth backend APIs, registered member storage model, binary tree summary logic, and dashboard activation UI.
+- Feature: Business Center earning-node model in binary tree (main center + BC #1/#2/#3).
+- Area: Member-auth backend APIs, registered member storage model, binary tree summary/KPI logic, wallet attribution, and dashboard activation/earnings UI.
 
 ## What Changed
 
+- 2026-04-23 redesign pass (production compensation model migration):
+  - replaced placeholder-only behavior with independent earning-node behavior per center under one owner identity
+  - enforced max 3 business centers with configurable unlock rules:
+    - Tier 3 -> BC #1
+    - Tier 4 -> BC #2
+    - Tier 5 -> BC #3
+  - updated activation flow to manual, one-by-one, side-pinned, idempotent activation with audit records
+  - added single-wallet owner attribution model with per-center source tracking:
+    - immutable commission events
+    - source-attributed wallet ledger entries
+  - added new member endpoints for reporting:
+    - `GET /api/member-auth/business-centers/earnings`
+    - `GET /api/member-auth/business-centers/wallet-summary`
+  - updated dashboard Business Center panel in `index.html`:
+    - unified wallet summary card
+    - per-center earnings breakdown card
+    - updated unlock/activation/pending status rendering
+  - updated tree KPI exclusion logic in `index.html` and `binary-tree.mjs`:
+    - excludes legacy placeholders, auxiliary center nodes, and staff/admin nodes where applicable
+  - updated `registered_members` node-type defaults and normalization to `main_center` in `backend/stores/member.store.js`.
+  - follow-up alignment:
+    - server-side Business Center activation locked to LEFT side only
+    - Business Center dashboard controls moved to a standalone panel (removed from Legacy Leadership panel).
+    - Infinity Tier Commission and Legacy Leadership Bonus dashboard cards removed from `index.html` member dashboard while Binary Tree representations remain available.
 - 2026-04-10 follow-up (next-gen figma-style canvas redesign pass):
   - replaced prior mixed DOM chrome in `binary-tree-next` with full-canvas UI composition
   - left panel, right panel, center strip, and bottom tool panel now render directly in canvas layer

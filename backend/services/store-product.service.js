@@ -2,6 +2,10 @@ import {
   readStoreProductsStore,
   writeStoreProductsStore,
 } from '../stores/store-product.store.js';
+import {
+  normalizeStoreProductPackageEarnings,
+  resolveStoreProductLegacyBp,
+} from '../utils/store-product-earnings.helpers.js';
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -136,9 +140,17 @@ function normalizeStoreProduct(rawProduct = {}, index = 0) {
   const id = normalizeStoreProductId(rawProduct?.id || rawProduct?.slug || title, `product-${index + 1}`);
   const price = roundCurrencyAmount(rawProduct?.price);
   const bp = toWholeNumber(rawProduct?.bp ?? rawProduct?.bvPoints, 0);
+  const packageEarnings = normalizeStoreProductPackageEarnings(rawProduct?.packageEarnings, {
+    fallbackBp: bp,
+  });
+  const legacyBp = resolveStoreProductLegacyBp({
+    packageEarnings,
+    bp,
+  });
+  const detailFallbackBp = toWholeNumber(packageEarnings?.['personal-builder-pack']?.bv, legacyBp);
   const stock = toWholeNumber(rawProduct?.stock, 0);
   const description = normalizeText(rawProduct?.description || rawProduct?.summary || `${title} product description.`);
-  const details = parseStoreProductDetails(rawProduct?.details, bp);
+  const details = parseStoreProductDetails(rawProduct?.details, detailFallbackBp);
   const image = normalizeText(rawProduct?.image || rawProduct?.imageUrl || DEFAULT_PRODUCT_IMAGE);
   const images = normalizeStoreProductImages(rawProduct?.images, image);
   const status = normalizeStoreProductStatus(rawProduct?.status);
@@ -151,7 +163,8 @@ function normalizeStoreProduct(rawProduct = {}, index = 0) {
     image: images[0] || DEFAULT_PRODUCT_IMAGE,
     images,
     price,
-    bp,
+    bp: legacyBp,
+    packageEarnings,
     stock,
     status,
   };

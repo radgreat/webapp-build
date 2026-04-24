@@ -8,7 +8,16 @@ import {
 
 export async function listPayoutRequests(req, res) {
   try {
-    const result = await getPayoutRequests(req.query || {});
+    const authenticatedMember = req.authenticatedMember && typeof req.authenticatedMember === 'object'
+      ? req.authenticatedMember
+      : {};
+    const query = {
+      ...(req.query || {}),
+      userId: String(authenticatedMember.id || '').trim() || String(req.query?.userId || '').trim(),
+      username: String(authenticatedMember.username || '').trim() || String(req.query?.username || '').trim(),
+      email: String(authenticatedMember.email || '').trim() || String(req.query?.email || '').trim(),
+    };
+    const result = await getPayoutRequests(query);
 
     if (!result.success) {
       return res.status(result.status).json({ error: result.error });
@@ -25,7 +34,17 @@ export async function listPayoutRequests(req, res) {
 
 export async function postPayoutRequest(req, res) {
   try {
-    const result = await createPayoutRequest(req.body || {});
+    const authenticatedMember = req.authenticatedMember && typeof req.authenticatedMember === 'object'
+      ? req.authenticatedMember
+      : {};
+    const payload = {
+      ...(req.body || {}),
+      userId: String(authenticatedMember.id || '').trim() || String(req.body?.userId || '').trim(),
+      username: String(authenticatedMember.username || '').trim() || String(req.body?.username || '').trim(),
+      email: String(authenticatedMember.email || '').trim() || String(req.body?.email || '').trim(),
+      requestedByName: String(req.body?.requestedByName || authenticatedMember.name || authenticatedMember.username || '').trim(),
+    };
+    const result = await createPayoutRequest(payload);
 
     if (!result.success) {
       return res.status(result.status).json({ error: result.error });
@@ -71,7 +90,10 @@ export async function postAdminPayoutRequestStatus(req, res) {
 
 export async function postAdminPayoutRequestFulfill(req, res) {
   try {
-    const result = await fulfillAdminPayoutRequest(req.body || {});
+    const result = await fulfillAdminPayoutRequest({
+      ...(req.body || {}),
+      mode: req?.params?.mode || '',
+    });
 
     if (!result.success) {
       return res.status(result.status).json({ error: result.error });

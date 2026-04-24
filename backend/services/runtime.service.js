@@ -7,6 +7,10 @@ function normalizeText(value) {
   return String(value || '').trim();
 }
 
+function normalizeFallbackSponsorUsername(value) {
+  return normalizeText(value).toLowerCase();
+}
+
 function normalizeLegalDocuments(value = {}) {
   const source = value && typeof value === 'object' ? value : {};
   return {
@@ -26,9 +30,16 @@ function mapLegalDocumentsFromStore(settings = {}) {
   });
 }
 
+function mapFallbackSponsorUsernameFromStore(settings = {}) {
+  return normalizeFallbackSponsorUsername(
+    settings?.unattributed_free_account_fallback_sponsor_username,
+  );
+}
+
 export async function getRuntimeSettings() {
   const settings = await readRuntimeSettingsStore();
   const legalDocuments = mapLegalDocumentsFromStore(settings);
+  const fallbackSponsorUsername = mapFallbackSponsorUsernameFromStore(settings);
 
   return {
     success: true,
@@ -38,6 +49,7 @@ export async function getRuntimeSettings() {
         dashboardMockupModeEnabled: Boolean(settings?.dashboard_mockup_mode_enabled),
         tierClaimMockModeEnabled: Boolean(settings?.tier_claim_mock_mode_enabled),
         legal: legalDocuments,
+        unattributedFreeAccountFallbackSponsorUsername: fallbackSponsorUsername,
       },
     },
   };
@@ -51,6 +63,10 @@ export async function updateRuntimeSettings(payload = {}) {
     : {};
   const normalizedIncomingLegalDocuments = normalizeLegalDocuments(incomingLegalDocuments);
   const hasIncomingLegalDocuments = payload?.legal && typeof payload.legal === 'object';
+  const hasIncomingFallbackSponsorUsername = Object.prototype.hasOwnProperty.call(
+    payload || {},
+    'unattributedFreeAccountFallbackSponsorUsername',
+  );
   const nextLegalDocuments = {
     termsOfService: hasIncomingLegalDocuments
       ? normalizedIncomingLegalDocuments.termsOfService
@@ -65,6 +81,10 @@ export async function updateRuntimeSettings(payload = {}) {
       ? normalizedIncomingLegalDocuments.refundPolicy
       : currentLegalDocuments.refundPolicy,
   };
+  const currentFallbackSponsorUsername = mapFallbackSponsorUsernameFromStore(currentSettings);
+  const nextFallbackSponsorUsername = hasIncomingFallbackSponsorUsername
+    ? normalizeFallbackSponsorUsername(payload?.unattributedFreeAccountFallbackSponsorUsername)
+    : currentFallbackSponsorUsername;
 
   const nextSettings = {
     dashboardMockupModeEnabled:
@@ -81,6 +101,7 @@ export async function updateRuntimeSettings(payload = {}) {
     legalAgreement: nextLegalDocuments.agreement,
     legalShippingPolicy: nextLegalDocuments.shippingPolicy,
     legalRefundPolicy: nextLegalDocuments.refundPolicy,
+    unattributedFreeAccountFallbackSponsorUsername: nextFallbackSponsorUsername,
 
     updatedBy: normalizeText(payload.updatedBy || 'admin'),
   };
@@ -97,6 +118,7 @@ export async function updateRuntimeSettings(payload = {}) {
         dashboardMockupModeEnabled: Boolean(updated?.dashboard_mockup_mode_enabled),
         tierClaimMockModeEnabled: Boolean(updated?.tier_claim_mock_mode_enabled),
         legal: persistedLegalDocuments,
+        unattributedFreeAccountFallbackSponsorUsername: mapFallbackSponsorUsernameFromStore(updated),
       },
       updatedAt: updated?.updated_at || new Date().toISOString(),
       updatedBy: updated?.updated_by || nextSettings.updatedBy,

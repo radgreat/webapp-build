@@ -1,222 +1,104 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Products - Premiere Life</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preferred Store - Premiere Life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--line:#eef0f3;--ink:#101113;--muted:#5d6168;--btn:#077aff;--field:#e2e2e2;--danger:#9e1d1d;--info:#2e5f9d}
+*{box-sizing:border-box}html,body{margin:0;padding:0}body{min-height:100vh;background:var(--bg);color:var(--ink);font:400 14px "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.hidden{display:none!important}
+.topbar{height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;background:#fff}
+.topbar-inner{width:min(1240px,calc(100vw - 54px));display:flex;align-items:center;justify-content:space-between;gap:16px}
+.top-left{display:flex;align-items:center;gap:18px;min-width:0}.brand-icon{width:29px;height:29px;object-fit:contain;flex:0 0 auto}
+.nav{display:flex;align-items:center;gap:18px}.nav-link{color:#111;text-decoration:none;font-size:15px;letter-spacing:-.015em;opacity:.92;transition:opacity .18s,transform .18s}.nav-link:hover{opacity:1;transform:translateY(-1px)}
+.nav-link.active{opacity:1}.actions{display:flex;align-items:center;gap:10px}
+.btn{height:40px;border:0;border-radius:12px;padding:0 14px;font:500 14px "Inter",sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;transition:filter .18s,transform .18s}
+.btn:hover{filter:brightness(1.03);transform:translateY(-1px)}.btn:focus-visible{outline:2px solid rgba(7,122,255,.4);outline-offset:2px}
+.btn-primary{background:var(--btn);color:#fff}.btn-secondary{background:#f5f7fa;color:#1e2126}.btn:disabled{opacity:.55;cursor:default;transform:none;filter:none}
+.page{width:min(1240px,calc(100vw - 54px));margin:0 auto;padding:36px 0 72px}
+.gate{max-width:760px;margin:26px auto 0;border:1px solid var(--line);border-radius:20px;padding:34px;background:#fff;display:grid;gap:14px}
+.gate h1{margin:0;font-size:42px;line-height:1.05;letter-spacing:-.035em;font-weight:500}.gate p{margin:0;font-size:17px;line-height:1.45;color:var(--muted);max-width:660px}
+.gate-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}.pill{height:34px;border:1px solid var(--line);border-radius:999px;padding:0 14px;display:inline-flex;align-items:center;width:max-content;font-size:13px;color:#40444b;background:#fff}
+.hero{display:grid;gap:10px;margin:0 0 24px}.hero h1{margin:0;font-size:46px;line-height:1.04;letter-spacing:-.035em;font-weight:500}.hero p{margin:0;font-size:19px;line-height:1.35;color:var(--muted);max-width:760px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:24px}.panel{border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden}
+.panel-head{padding:18px 18px 14px;border-bottom:1px solid var(--line);display:grid;gap:8px}.panel-title{margin:0;font-size:25px;letter-spacing:-.03em;font-weight:500}.panel-sub{margin:0;font-size:14px;color:#60656d}
+.products{padding:18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.product{border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px;background:#fff}
+.product-media{width:100%;aspect-ratio:1/1;border-radius:12px;background:#f7f8fa;display:grid;place-items:center;overflow:hidden}.product-media img{width:78%;height:78%;object-fit:contain}
+.product-name{margin:0;font-size:17px;letter-spacing:-.02em;font-weight:500}.product-copy{margin:0;color:#666b73;font-size:13px;line-height:1.4}
+.product-meta{display:flex;align-items:center;justify-content:space-between;gap:10px}.product-price{font-size:17px;letter-spacing:-.02em;font-weight:500}
+.cart-body{padding:14px 18px 18px;display:grid;gap:12px}.cart-list{display:grid;gap:10px;max-height:280px;overflow:auto}.cart-empty{margin:0;color:#666b73;font-size:14px}
+.cart-item{border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:8px}.row,.sum-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cart-item-name,.cart-item-price{margin:0;font-size:14px}.qty{display:inline-flex;align-items:center;gap:6px}.qty button{width:24px;height:24px;border:0;border-radius:8px;background:#eff2f6;font:500 14px "Inter",sans-serif;cursor:pointer}
+.qty button:disabled,.remove:disabled{opacity:.5;cursor:default}.qty span{min-width:18px;text-align:center;font-size:13px;color:#31363d}.remove{border:0;background:transparent;color:#7b7f86;font:500 12px "Inter",sans-serif;cursor:pointer}
+.summary{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:8px}.sum-row{font-size:13px;color:#4a4f56}.sum-row strong{font-size:18px;color:#15171a}
+.feedback{margin:0;min-height:18px;color:var(--danger);font-size:12px}.feedback.info{color:var(--info)}.hint{color:#334154;font-size:12px;text-decoration:none}.hint:hover{text-decoration:underline}
+.thank{margin-top:24px;border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:8px}.thank h3{margin:0;font-size:26px;letter-spacing:-.03em;font-weight:500}.thank p{margin:0;font-size:14px;color:#5e626a}
+.loading,.error{padding:18px;color:#5f646c;font-size:14px}.error{color:#8e2323}
+@media (max-width:1040px){.topbar-inner,.page{width:min(1240px,calc(100vw - 26px))}.layout{grid-template-columns:1fr}.hero h1{font-size:38px}.hero p{font-size:17px}.gate h1{font-size:34px}.gate{padding:28px}}
+@media (max-width:760px){.topbar{height:60px}.topbar-inner{width:calc(100vw - 18px)}.top-left{gap:10px}.brand-icon{width:24px;height:24px}.nav{gap:10px}.nav-link{font-size:13px}.page{width:calc(100vw - 18px);padding:22px 0 44px}
+.gate{padding:20px;margin-top:16px}.gate h1{font-size:28px}.gate p{font-size:15px}.gate-actions{display:grid;grid-template-columns:1fr}
+.hero h1{font-size:30px}.hero p{font-size:15px}.panel-title{font-size:22px}.products{grid-template-columns:1fr;padding:14px}.panel-head{padding:14px}.cart-body{padding:12px 14px 14px}.thank h3{font-size:22px}}
+</style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900">
-  <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-    <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-      <div class="flex items-center">
-        <a href="/store.html" class="inline-flex items-center"><img src="/brand_assets/Logos/L%26D%20Logo_Cropped.png" alt="L&D logo" class="h-10 w-auto"></a>
-      </div>
-
-      <nav class="mt-3 flex flex-wrap items-center gap-5 text-sm font-medium text-slate-700">
-        <a href="/" class="transition hover:text-emerald-600">Home</a>
-        <a href="/store.html" class="text-emerald-700">Products</a>
-        <a id="nav-support-link" href="/store-support.html" class="transition hover:text-emerald-600">Support</a>
-        <div class="ml-auto flex items-center gap-2">
-          <a id="public-store-checkout-link" href="/store-checkout.html" aria-label="Cart and checkout" class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5">
-              <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2zM7.17 13h9.92c.75 0 1.41-.41 1.75-1.03L22 6.5a1 1 0 0 0-.87-1.5H6.21l-.94-2H2v2h2l3.6 7.59L6.25 15c-.16.28-.25.61-.25.95 0 1.1.9 2 2 2h12v-2H8.42c-.14 0-.25-.11-.25-.25l.03-.12L9.1 14h7.55c.75 0 1.41-.41 1.75-1.03L21 8H8.53l-.45-1H19l-1.91 3.5H9.53l-2.36-5H20.3L17.17 13H7.17z"/>
-            </svg>
-            <span id="public-store-cart-count" class="absolute -right-1 -top-1 min-w-4 rounded-full bg-emerald-600 px-1 text-center text-[10px] font-semibold leading-4 text-white">0</span>
-            <span class="sr-only">Cart / Checkout</span>
-          </a>
-          <button id="header-login-trigger" type="button" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500 sm:text-sm">Login</button>
-        </div>
-      </nav>
-    </div>
-  </header>
-
-  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div>
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Shop Products</p>
-          <h1 class="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">Browse the catalog first</h1>
-          <p class="mt-2 text-sm text-slate-600">Checkout happens on a dedicated page after customers choose what they want.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div class="mb-4 flex items-center justify-between gap-4">
-        <h2 class="text-lg font-semibold text-slate-900">Products</h2>
-        <span id="public-store-product-count" class="text-sm text-slate-500">0 items</span>
-      </div>
-      <div id="public-store-product-grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
-    </section>
-
-  </main>
-
-  <div id="header-login-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-900/60" data-login-modal-close></div>
-    <section class="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Account Access</p>
-          <h2 class="mt-1 text-xl font-bold text-slate-900">Choose Your Login</h2>
-          <p class="mt-1 text-sm text-slate-600">Select the account type you want to access.</p>
-        </div>
-        <button type="button" data-login-modal-close class="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">Close</button>
-      </div>
-      <div class="mt-4 grid gap-3">
-        <a id="header-login-member-link" href="/login.html" class="rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">Member Login</a>
-        <a id="header-login-preferred-link" href="/login.html" class="rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">Customer Login</a>
-      </div>
-      <p class="mt-4 text-sm text-slate-600">
-        Don't have an account?
-        <a id="header-login-register-link" href="/store-register.html" class="font-semibold text-emerald-700 underline hover:text-emerald-600">Register now</a>
-        to get 15% discount on your checkout.
-      </p>
-    </section>
-  </div>
-
-  <script src="/storefront-shared.js"></script>
-  <script>
-    const shared = window.StorefrontShared;
-    const navSupportLinkElement = document.getElementById('nav-support-link');
-    const productGridElement = document.getElementById('public-store-product-grid');
-    const productCountElement = document.getElementById('public-store-product-count');
-    const cartCountElement = document.getElementById('public-store-cart-count');
-    const checkoutLinkElement = document.getElementById('public-store-checkout-link');
-    const headerLoginTriggerElement = document.getElementById('header-login-trigger');
-    const headerLoginModalElement = document.getElementById('header-login-modal');
-    const headerLoginMemberLinkElement = document.getElementById('header-login-member-link');
-    const headerLoginPreferredLinkElement = document.getElementById('header-login-preferred-link');
-    const headerLoginRegisterLinkElement = document.getElementById('header-login-register-link');
-    const headerLoginModalCloseElements = Array.from(document.querySelectorAll('[data-login-modal-close]'));
-
-    let storeProducts = [];
-    let activeStoreCode = '';
-
-    function resolveRouteStoreCode() {
-      const queryParams = new URLSearchParams(window.location.search);
-      return shared.normalizeStoreCode(queryParams.get('store'));
-    }
-
-    function syncAuthLinks() {
-      const sessionUser = shared.readUserSession();
-      const hasSession = Boolean(sessionUser && typeof sessionUser === 'object');
-      const isFreeSession = shared.isFreeAccountUser(sessionUser);
-
-      if (headerLoginPreferredLinkElement) {
-        headerLoginPreferredLinkElement.href = isFreeSession
-          ? shared.buildDashboardUrl(activeStoreCode)
-          : shared.buildFreeLoginUrl(activeStoreCode);
-        headerLoginPreferredLinkElement.textContent = isFreeSession ? 'My Dashboard' : 'Customer Login';
-      }
-
-      if (headerLoginMemberLinkElement) {
-        headerLoginMemberLinkElement.href = hasSession && !isFreeSession ? '/index.html' : '/login.html';
-        headerLoginMemberLinkElement.textContent = hasSession && !isFreeSession ? 'Member Dashboard' : 'Member Login';
-      }
-
-      if (headerLoginRegisterLinkElement) {
-        headerLoginRegisterLinkElement.href = shared.buildRegisterUrl(activeStoreCode);
-      }
-    }
-
-    function hideHeaderLoginModal() {
-      if (!headerLoginModalElement) {
-        return;
-      }
-      headerLoginModalElement.classList.add('hidden');
-      headerLoginModalElement.classList.remove('flex');
-    }
-
-    function showHeaderLoginModal() {
-      if (!headerLoginModalElement) {
-        return;
-      }
-      syncAuthLinks();
-      headerLoginModalElement.classList.remove('hidden');
-      headerLoginModalElement.classList.add('flex');
-    }
-
-    function bindHeaderLoginModal() {
-      if (headerLoginTriggerElement) {
-        headerLoginTriggerElement.addEventListener('click', showHeaderLoginModal);
-      }
-
-      headerLoginModalCloseElements.forEach((closeElement) => {
-        closeElement.addEventListener('click', hideHeaderLoginModal);
-      });
-    }
-
-    function renderCartCount() {
-      const cartLines = shared.getCart(storeProducts);
-      const cartSummary = shared.resolveCartSummary(cartLines, storeProducts);
-      if (cartCountElement) {
-        cartCountElement.textContent = shared.formatInteger(cartSummary.itemCount);
-      }
-      if (checkoutLinkElement) {
-        checkoutLinkElement.href = shared.buildCheckoutUrl(activeStoreCode);
-      }
-      if (navSupportLinkElement) {
-        navSupportLinkElement.href = shared.buildSupportUrl(activeStoreCode);
-      }
-    }
-
-    function renderProducts() {
-      if (!productGridElement) {
-        return;
-      }
-
-      if (productCountElement) {
-        productCountElement.textContent = `${shared.formatInteger(storeProducts.length)} items`;
-      }
-
-      if (storeProducts.length === 0) {
-        productGridElement.innerHTML = `
-          <div class="col-span-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-600">
-            No products are available right now.
-          </div>
-        `;
-        renderCartCount();
-        return;
-      }
-
-      productGridElement.innerHTML = storeProducts.map((product) => {
-        const productUrl = shared.buildProductUrl(product.id, activeStoreCode);
-        return `
-          <article class="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-            <a href="${productUrl}" class="block overflow-hidden rounded-lg border border-slate-200">
-              <img src="${shared.escapeHtml(product.image)}" alt="${shared.escapeHtml(product.title)}" draggable="false" class="aspect-[4/5] w-full select-none object-cover transition duration-200 hover:scale-[1.02]" style="-webkit-user-drag: none;">
-            </a>
-            <div class="mt-3 flex flex-1 flex-col">
-              <h3 class="text-base font-semibold text-slate-900">${shared.escapeHtml(product.title)}</h3>
-              <p class="mt-1 line-clamp-2 text-sm text-slate-600">${shared.escapeHtml(product.description)}</p>
-              <p class="mt-3 text-lg font-bold text-emerald-700">${shared.formatCurrency(product.price)}</p>
-              <a href="${productUrl}" class="mt-3 inline-flex items-center justify-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">View Product</a>
-            </div>
-          </article>
-        `;
-      }).join('');
-
-      renderCartCount();
-    }
-
-    async function initStorePage() {
-      activeStoreCode = resolveRouteStoreCode();
-      shared.setActiveStoreCode(activeStoreCode);
-      syncAuthLinks();
-      bindHeaderLoginModal();
-
-      try {
-        storeProducts = await shared.fetchProducts();
-      } catch (error) {
-        console.warn('Unable to load store products:', error);
-        storeProducts = [];
-      }
-
-      renderProducts();
-    }
-
-    void initStorePage();
-  </script>
+<body>
+<header class="topbar"><div class="topbar-inner"><div class="top-left"><a id="brand-home-link" href="/store.html" aria-label="Store Home"><img class="brand-icon" src="/brand_assets/Logos/L&D Icon.svg" alt="L&D icon"></a><nav id="guest-nav" class="nav"><a id="guest-store-link" class="nav-link active" href="/store.html">Store</a><a id="guest-support-link" class="nav-link" href="/store-support.html">Support</a></nav><nav id="member-nav" class="nav hidden"><a id="member-dashboard-link" class="nav-link" href="/store-dashboard.html">Dashboard</a><a id="member-store-link" class="nav-link active" href="/store.html">Store</a><a id="member-support-link" class="nav-link" href="/store-support.html">Support</a></nav></div><div id="guest-actions" class="actions"><a id="guest-login-link" class="nav-link" href="/login.html">Login</a></div><div id="member-actions" class="actions hidden"><button id="logout-button" class="btn btn-secondary" type="button">Logout</button></div></div></header>
+<main class="page">
+<section id="guest-view" class="gate hidden"><h1>Login to your Preferred Store.</h1><p>Purchases now happen only inside a Preferred account. Sign in to access store and cart, or join first if you do not have an account yet.</p><div class="gate-actions"><a id="guest-login-cta" href="/login.html" class="btn btn-primary">Login to Continue</a><a id="guest-register-cta" href="/store-register.html" class="btn btn-secondary">Join as Preferred</a></div></section>
+<section id="auth-view" class="hidden"><section class="hero"><h1>Preferred Store</h1><p>Shop products, review cart, and continue directly to secure Stripe payment.</p></section>
+<section class="layout"><article class="panel"><header class="panel-head"><h2 class="panel-title">Store</h2><p class="panel-sub">Choose products to add into cart.</p></header><div id="products-wrap"><div id="products-loading" class="loading">Loading products...</div><div id="products-error" class="error hidden"></div><div id="products-grid" class="products hidden"></div></div></article><aside><article class="panel"><header class="panel-head"><h2 class="panel-title">Cart</h2><p class="panel-sub">Review items, then continue to Stripe payment.</p></header><div class="cart-body"><div id="cart-list" class="cart-list"></div><div class="summary"><div class="sum-row"><span>Subtotal</span><span id="sum-subtotal">$0.00</span></div><div class="sum-row"><span>Discount (15%)</span><span id="sum-discount">$0.00</span></div><div class="sum-row"><span>Estimated total (before tax)</span><strong id="sum-total">$0.00</strong></div></div><button id="continue-stripe-button" class="btn btn-primary" type="button">Continue to Stripe</button><p id="cart-feedback" class="feedback" role="alert"></p><a id="manage-profile-link" class="hint" href="/store-dashboard.html">Need profile or shipping details? Manage your Preferred dashboard.</a></div></article></aside></section>
+<section id="thank-you" class="thank hidden"><h3>Thank you for your order.</h3><p id="thank-you-message">Payment received and your order is processing.</p><p id="thank-you-meta"></p></section></section>
+</main>
+<script src="/storefront-shared.js?v=20260415a"></script>
+<script>
+const shared=window.StorefrontShared,PROFILE_KEY='charge-store-profile-v1:',ADDRESS_KEY='charge-store-address-v1:';
+const st={code:'',products:[],cart:[],session:null,submitting:false};
+const el={brand:document.getElementById('brand-home-link'),guestNav:document.getElementById('guest-nav'),memberNav:document.getElementById('member-nav'),guestActions:document.getElementById('guest-actions'),memberActions:document.getElementById('member-actions'),guestStore:document.getElementById('guest-store-link'),guestSupport:document.getElementById('guest-support-link'),guestLogin:document.getElementById('guest-login-link'),memberDash:document.getElementById('member-dashboard-link'),memberStore:document.getElementById('member-store-link'),memberSupport:document.getElementById('member-support-link'),guestView:document.getElementById('guest-view'),authView:document.getElementById('auth-view'),guestLoginCta:document.getElementById('guest-login-cta'),guestRegisterCta:document.getElementById('guest-register-cta'),logout:document.getElementById('logout-button'),loading:document.getElementById('products-loading'),prodErr:document.getElementById('products-error'),grid:document.getElementById('products-grid'),cart:document.getElementById('cart-list'),sub:document.getElementById('sum-subtotal'),disc:document.getElementById('sum-discount'),total:document.getElementById('sum-total'),stripe:document.getElementById('continue-stripe-button'),feedback:document.getElementById('cart-feedback'),profile:document.getElementById('manage-profile-link'),thank:document.getElementById('thank-you'),thankMsg:document.getElementById('thank-you-message'),thankMeta:document.getElementById('thank-you-meta')};
+const t=v=>String(v||'').trim(),isPreferred=()=>Boolean(st.session&&typeof st.session==='object');
+const META_CHARGE_PRODUCT_KEY='metacharge',META_CHARGE_NOBG_IMAGE='/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png?v=20260415a';
+const productKey=v=>t(v).toLowerCase().replace(/[^a-z0-9]/g,'');
+function resolveProductImage(product){const idKey=productKey(product?.id),titleKey=productKey(product?.title);if(idKey===META_CHARGE_PRODUCT_KEY||titleKey.includes(META_CHARGE_PRODUCT_KEY))return META_CHARGE_NOBG_IMAGE;return t(product?.image||'https://placehold.co/700x700?text=Product')}
+const parse=v=>{if(!v)return null;try{const p=JSON.parse(v);return p&&typeof p==='object'?p:null}catch{return null}};
+const safeGet=(s,k)=>{try{return s?s.getItem(k):null}catch{return null}};
+const readJson=k=>parse(safeGet(window.localStorage,k))||null;
+const identity=s=>t(s?.id||s?.userId||s?.username||s?.email||'preferred');
+const profile=s=>readJson(`${PROFILE_KEY}${identity(s)}`)||{};
+const address=s=>readJson(`${ADDRESS_KEY}${identity(s)}`)||{};
+const buyerName=s=>t(profile(s).displayName||s?.name||s?.displayName||s?.fullName||s?.username||'Preferred Account Member');
+const buyerEmail=s=>t(s?.email);
+function shipping(s){const a=address(s),parts=[t(a.fullName),t(a.line1),t(a.line2),t(a.city),t(a.state),t(a.postal),t(a.country)].filter(Boolean);return parts.length?parts.join(', '):'Shipping address will be confirmed during Stripe Checkout'}
+function setFeedback(msg,isError=true){if(!el.feedback)return;el.feedback.textContent=t(msg);el.feedback.classList.toggle('info',!isError)}
+function setSubmitting(on){st.submitting=Boolean(on);if(!el.stripe)return;el.stripe.disabled=st.submitting||!isPreferred()||st.cart.length===0;el.stripe.textContent=st.submitting?'Preparing Stripe...':'Continue to Stripe'}
+function sync(){const store=shared.buildStorefrontUrl(st.code),support=shared.buildSupportUrl(st.code),login=shared.buildFreeLoginUrl(st.code),reg=shared.buildRegisterUrl(st.code),dash=shared.buildDashboardUrl(st.code);
+if(el.guestStore)el.guestStore.href=store;if(el.guestSupport)el.guestSupport.href=support;if(el.guestLogin)el.guestLogin.href=login;if(el.guestLoginCta)el.guestLoginCta.href=login;if(el.guestRegisterCta)el.guestRegisterCta.href=reg;if(el.memberDash)el.memberDash.href=dash;if(el.memberStore)el.memberStore.href=store;if(el.memberSupport)el.memberSupport.href=support;if(el.profile)el.profile.href=dash;if(el.brand)el.brand.href=isPreferred()?dash:store;
+const guest=!isPreferred();el.guestNav?.classList.toggle('hidden',!guest);el.guestActions?.classList.toggle('hidden',!guest);el.memberNav?.classList.toggle('hidden',guest);el.memberActions?.classList.toggle('hidden',guest);el.guestView?.classList.toggle('hidden',!guest);el.authView?.classList.toggle('hidden',guest)}
+function renderProducts(){if(!el.grid)return;if(!Array.isArray(st.products)||st.products.length===0){el.grid.classList.add('hidden');el.loading?.classList.add('hidden');if(el.prodErr){el.prodErr.classList.remove('hidden');el.prodErr.textContent='No products are available right now.'}return}
+el.loading?.classList.add('hidden');el.prodErr?.classList.add('hidden');el.grid.classList.remove('hidden');el.grid.innerHTML=st.products.map(p=>`<article class="product"><div class="product-media"><img src="${shared.escapeHtml(resolveProductImage(p))}" alt="${shared.escapeHtml(p.title||'Product')}"></div><p class="product-name">${shared.escapeHtml(p.title||'Product')}</p><p class="product-copy">${shared.escapeHtml(t(p.description).slice(0,120))}</p><div class="product-meta"><div class="product-price">${shared.formatCurrency(p.price)}</div><button class="btn btn-primary" type="button" data-action="add" data-product-id="${shared.escapeHtml(p.id||'')}">Add</button></div></article>`).join('')}
+function renderCart(){if(!el.cart)return;if(!Array.isArray(st.cart)||st.cart.length===0){el.cart.innerHTML='<p class="cart-empty">Your cart is empty.</p>';return}const byId=shared.mapProductsById(st.products);el.cart.innerHTML=st.cart.map(line=>{const p=byId.get(line.productId);if(!p)return'';const lt=shared.formatCurrency((Number(p.price)||0)*(Number(line.quantity)||0));const pid=shared.escapeHtml(p.id||'');return `<article class="cart-item"><div class="row"><p class="cart-item-name">${shared.escapeHtml(p.title||'Product')}</p><p class="cart-item-price">${lt}</p></div><div class="row"><div class="qty"><button type="button" data-action="down" data-product-id="${pid}">-</button><span>${shared.formatInteger(line.quantity||0)}</span><button type="button" data-action="up" data-product-id="${pid}">+</button></div><button class="remove" type="button" data-action="remove" data-product-id="${pid}">Remove</button></div></article>`}).join('')}
+function renderSummary(){const s=shared.resolveCartSummary(st.cart,st.products,{discountPercent:shared.PUBLIC_DISCOUNT_PERCENT});if(el.sub)el.sub.textContent=shared.formatCurrency(s.subtotal);if(el.disc)el.disc.textContent=`-${shared.formatCurrency(s.discount)}`;if(el.total)el.total.textContent=shared.formatCurrency(s.total);setSubmitting(st.submitting)}
+function renderAll(){sync();if(!isPreferred())return;renderProducts();renderCart();renderSummary()}
+function refreshCart(){st.cart=shared.getCart(st.products)}
+function ensure(){if(isPreferred())return true;setFeedback('Login is required to purchase.');el.guestView?.scrollIntoView({behavior:'smooth',block:'center'});return false}
+function add(pid){if(!ensure())return;shared.addToCart(pid,1,st.products);refreshCart();renderAll();setFeedback('')}
+function qty(pid,delta){if(!ensure())return;const line=st.cart.find(x=>String(x.productId)===String(pid));if(!line)return;shared.updateCartQuantity(pid,Math.max(0,Number(line.quantity||0)+Number(delta||0)),st.products);refreshCart();renderAll()}
+function removeLine(pid){if(!ensure())return;shared.removeFromCart(pid,st.products);refreshCart();renderAll()}
+async function toStripe(){if(st.submitting)return;setFeedback('');if(!ensure())return;if(!Array.isArray(st.cart)||st.cart.length===0){setFeedback('Your cart is empty.');return}const name=buyerName(st.session),email=buyerEmail(st.session),ship=shipping(st.session);if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){setFeedback('Your account needs a valid email before checkout.');return}
+setSubmitting(true);setFeedback('Preparing secure Stripe checkout...',false);const r=await shared.submitCheckout({products:st.products,storeCode:st.code,checkoutMode:shared.CHECKOUT_MODE_GUEST,discountPercent:shared.PUBLIC_DISCOUNT_PERCENT,checkoutFields:{buyerName:name,buyerEmail:email,shippingAddress:ship,shippingMode:'Standard Shipping',freeAccountMemberUsername:'',freeAccountPhone:'',freeAccountCountryFlag:'us',freeAccountNotes:''}});
+if(!r.ok||!r.redirectUrl){setFeedback(r.message||'Unable to start checkout.');setSubmitting(false);return}window.location.assign(r.redirectUrl)}
+const completeMeta=i=>`Invoice ${t(i.id||'--')} - ${shared.formatCurrency(i.amount||0)}`;
+function clearReturn(){const u=new URL(window.location.href);u.searchParams.delete('checkout');u.searchParams.delete('session_id');window.history.replaceState({},'',`${u.pathname}${u.search}${u.hash}`)}
+async function handleReturn(){const q=new URLSearchParams(window.location.search),status=t(q.get('checkout')).toLowerCase(),sid=t(q.get('session_id'));if(!status)return;if(status==='cancel'){setFeedback('Checkout was canceled. You can review and try again.');clearReturn();return}if(status!=='success'||!sid){clearReturn();return}
+setFeedback('Finalizing order...',false);let done=await shared.completeCheckoutSession(sid),tries=0;while(done.ok&&!done.completed&&tries<6){await new Promise(r=>setTimeout(r,700));done=await shared.completeCheckoutSession(sid);tries+=1}
+if(!done.ok||!done.completed){setFeedback(done.message||'Payment is processing. Please refresh shortly.');clearReturn();return}
+const inv=done.invoice||done.payload?.invoice||{};el.thank?.classList.remove('hidden');if(el.thankMsg)el.thankMsg.textContent=done.message||'Payment confirmed successfully.';if(el.thankMeta)el.thankMeta.textContent=completeMeta(inv);setFeedback('');refreshCart();renderAll();clearReturn()}
+function bind(){el.grid?.addEventListener('click',e=>{const b=e.target.closest('[data-action="add"]');if(!(b instanceof HTMLElement))return;const pid=t(b.dataset.productId);if(!pid)return;add(pid)});el.cart?.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!(b instanceof HTMLElement))return;const action=t(b.dataset.action),pid=t(b.dataset.productId);if(!pid)return;if(action==='down'){qty(pid,-1);return}if(action==='up'){qty(pid,1);return}if(action==='remove'){removeLine(pid)}});el.stripe?.addEventListener('click',()=>{void toStripe()});el.logout?.addEventListener('click',()=>{shared.clearUserSession({clearCart:true});const loginUrl=new URL(shared.buildFreeLoginUrl(st.code),window.location.origin);loginUrl.searchParams.set('logout','1');loginUrl.searchParams.set('t',String(Date.now()));window.location.replace(`${loginUrl.pathname}${loginUrl.search}`)})}
+function resolveCode(session){const q=new URLSearchParams(window.location.search);return shared.normalizeStoreCode(t(q.get('store')||session?.attributionStoreCode||session?.publicStoreCode||session?.storeCode))}
+async function init(){const session=shared.readUserSession();st.session=shared.isFreeAccountUser(session)?session:null;st.code=resolveCode(st.session);shared.setActiveStoreCode(st.code);bind();window.addEventListener('storage',e=>{if(e.key==='vault-auth-user'||e.key==='vault-auth-last-logout-at'){window.location.reload()}});renderAll();if(!isPreferred())return;try{st.products=await shared.fetchProducts()}catch(err){el.loading?.classList.add('hidden');if(el.prodErr){el.prodErr.classList.remove('hidden');el.prodErr.textContent=err instanceof Error?err.message:'Unable to load products.'}return}refreshCart();renderAll();await handleReturn()}
+void init();
+</script>
 </body>
 </html>
