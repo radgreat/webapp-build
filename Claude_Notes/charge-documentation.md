@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 326
+**Times Updated:** 328
 
 ## Overview
 
@@ -14,6 +14,130 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ?????????????????????????????????????? high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Update (2026-04-26) - Monthly Active Window + 7-Day Renewal Warning Window
+
+### What Was Changed
+
+- Updated account activity state resolution in `backend/utils/member-activity.helpers.js` to support:
+  - monthly qualification threshold (`50 BV`) as the active basis
+  - continued `Active` state for up to 7 days after `activityActiveUntilAt`
+  - automatic `Inactive` transition after the 7-day renewal warning window
+  - warning metadata (`isActivityWarning`, `activityWarningCode`, `activityWarningUntilAt`, `activityWarningMessage`) without exposing a separate public "grace" status.
+- Updated purchase and account-upgrade activity writes in `backend/services/member.service.js`:
+  - `activityActiveUntilAt` now extends only when the user qualifies in the current cycle
+  - non-qualifying BV additions no longer auto-extend active window
+  - closes the monthly refresh loophole where small BV updates could keep extending activity.
+- Updated mapped user/member payloads to expose warning-state metadata:
+  - `backend/stores/user.store.js`
+  - `backend/stores/member.store.js`
+  - `backend/utils/auth.helpers.js`.
+
+### Files Affected
+
+- `backend/utils/member-activity.helpers.js`
+- `backend/services/member.service.js`
+- `backend/stores/user.store.js`
+- `backend/stores/member.store.js`
+- `backend/utils/auth.helpers.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept public account status vocabulary stable (`active` / `inactive`) and implemented warning-window behavior through eligibility logic + warning metadata.
+- Reused existing `activityActiveUntilAt` as the qualified-until anchor to keep schema impact minimal.
+- Applied transition logic centrally in activity helper and reused that helper in purchase/upgrade mutation flows.
+
+### Known Limitations
+
+- Existing historical `activityActiveUntilAt` values created before this update remain as-is; behavior is corrected forward by new mutation logic.
+- Warning messaging is now available in backend payloads but frontend warning presentation is still dependent on UI wiring.
+
+### Validation
+
+- `node --check backend/utils/member-activity.helpers.js` passed.
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/stores/user.store.js` passed.
+- `node --check backend/stores/member.store.js` passed.
+- `node --check backend/utils/auth.helpers.js` passed.
+- Manual scenario simulation confirmed:
+  - active through due date
+  - active + warning during 7-day renewal window
+  - inactive after warning window
+  - immediate re-qualification when 50 BV is met within a cycle.
+
+## Update (2026-04-26) - Inactive Earnings Enforcement (Sales Team + Rank/Good Life)
+
+### What Was Changed
+
+- Updated `backend/services/admin.service.js` cutoff processing so inactive accounts no longer receive cycle counts/commission amounts in generated Sales Team snapshots.
+- Kept BV carry-forward baseline consumption logic intact, so BV can still be consumed at cutoff while inactive and only remainder carries forward.
+- Updated `backend/services/wallet.service.js` to block Sales Team commission-to-wallet transfer when account is inactive.
+- Updated `backend/services/member-achievement.service.js` so inactive accounts resolve cycle count as `0` for achievement/rank progression, and rank active-requirement is no longer bypassed by monthly recorded rank state.
+- Updated `backend/services/member-good-life.service.js` so Good Life claimability now requires active status and claim endpoint rejects inactive accounts.
+
+### Files Affected
+
+- `backend/services/admin.service.js`
+- `backend/services/wallet.service.js`
+- `backend/services/member-achievement.service.js`
+- `backend/services/member-good-life.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Scoped enforcement to earning-critical backend paths only (cutoff earning output, Sales Team transfer, rank/good-life eligibility) to avoid broad behavior changes outside requested scope.
+- Preserved existing BV carry-forward mechanics while decoupling inactive accounts from payout/cycle credit.
+- Applied Sales Team-specific transfer block in wallet flow instead of globally blocking all wallet operations.
+
+### Known Limitations
+
+- Existing previously transferred wallet balances are not retroactively altered.
+- This pass does not yet redesign the full account-activity lifecycle model (next phase requested separately).
+
+### Validation
+
+- `node --check backend/services/admin.service.js` passed.
+- `node --check backend/services/wallet.service.js` passed.
+- `node --check backend/services/member-achievement.service.js` passed.
+- `node --check backend/services/member-good-life.service.js` passed.
+
+## Update (2026-04-26) - Server Cutoff Carry-Forward Baseline Fix (Sales Team Cycle Weekly Window)
+
+### What Was Changed
+
+- Updated `backend/services/admin.service.js` cutoff baseline handling so weekly server-cutoff baselines no longer reset to full leg totals.
+- Added `resolveNextCutoffCarryForwardBaselines(...)` to compute next baseline using:
+  - existing baseline
+  - current-week BV since baseline
+  - the active cycle rule thresholds (`cycleLowerBv` / `cycleHigherBv`)
+  - consumed BV from cycles applied in the current weekly window.
+- Updated `forceServerCutoff(...)` state write path to use computed carry-forward baselines for:
+  - `baselineLeftLegBv`
+  - `baselineRightLegBv`.
+
+### Files Affected
+
+- `backend/services/admin.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Scoped change to cutoff state baseline write logic only to avoid touching payout, dashboard rendering, or broader commission flows.
+- Preserved existing data model and existing API response shape while changing only how baseline values are computed.
+- Baseline inputs are clamped against current totals to stay safe if historical data is partially reset.
+
+### Known Limitations
+
+- This update addresses carry-forward baseline behavior only; it does not redesign broader cycle payout policy or package cap policy.
+
+### Validation
+
+- `node --check backend/services/admin.service.js` passed.
+- Manual scenario check (Week 1 then Week 2 increment) confirms leftover BV remains in weekly window instead of being wiped at cutoff.
 
 ## Update (2026-04-26) - Enrollment Split Option + Personal Split Guardrails + Dynamic Product Labels
 

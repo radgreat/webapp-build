@@ -38,7 +38,7 @@ import {
   resolveAuthAccountAudience,
 } from '../utils/auth.helpers.js';
 import {
-  resolveMemberAccountStatusByPersonalBv,
+  resolveMemberActivityStateByPersonalBv,
   resolveMemberPersonalBvSnapshot,
 } from '../utils/member-activity.helpers.js';
 import {
@@ -2150,21 +2150,18 @@ export async function createRegisteredMember(payload) {
 
     const createdAtDate = new Date();
     const createdAt = createdAtDate.toISOString();
-    const enrollmentPersonalBvSnapshot = resolveMemberPersonalBvSnapshot({
+    const enrollmentActivityState = resolveMemberActivityStateByPersonalBv({
+      passwordSetupRequired: true,
       createdAt,
       currentPersonalPvBv: packageBv,
     }, {
       referenceDate: createdAtDate,
     });
-    const activityActiveUntilAt = enrollmentPersonalBvSnapshot.nextCutoffAt;
-    const currentPersonalPvBv = enrollmentPersonalBvSnapshot.currentPersonalPvBv;
+    const activityActiveUntilAt = normalizeText(enrollmentActivityState?.activeUntilAt);
+    const currentPersonalPvBv = Math.max(0, Math.floor(Number(enrollmentActivityState?.currentPersonalPvBv) || 0));
     const accountStatus = isReservationPlan
       ? 'pending'
-      : resolveMemberAccountStatusByPersonalBv({
-          passwordSetupRequired: true,
-          createdAt,
-          currentPersonalPvBv,
-        });
+      : normalizeText(enrollmentActivityState?.accountStatus) || 'inactive';
     const userId = `usr_${Date.now()}_${randomUUID().slice(0, 8)}`;
 
     const newUser = {
@@ -2595,7 +2592,6 @@ export async function recordMemberPurchase(payload, options = {}) {
   const isFreeAccountUser = userPackageKey === FREE_ACCOUNT_PACKAGE_KEY || userRankKey === normalizeCredential(FREE_ACCOUNT_RANK_LABEL);
   const effectivePvGain = isFreeAccountUser ? 0 : pvGain;
   const personalBvSnapshot = resolveMemberPersonalBvSnapshot(existingUser, { referenceDate: now });
-  const nextActivityActiveUntilAt = personalBvSnapshot.nextCutoffAt;
 
   const enrollmentPackageBv = Math.max(0, Math.floor(Number(existingUser?.enrollmentPackageBv) || 0));
   const currentStarterPersonalPv = Math.max(
@@ -2607,16 +2603,25 @@ export async function recordMemberPurchase(payload, options = {}) {
     0,
     personalBvSnapshot.currentPersonalPvBv + effectivePvGain,
   );
-  const nextAccountStatus = isPendingReservationMember
-    ? 'pending'
-    : resolveMemberAccountStatusByPersonalBv({
+  const nextActivityState = isPendingReservationMember
+    ? null
+    : resolveMemberActivityStateByPersonalBv({
         ...existingUser,
         starterPersonalPv: nextStarterPersonalPvSafe,
         currentPersonalPvBv: nextCurrentPersonalPvBv,
-        activityActiveUntilAt: nextActivityActiveUntilAt,
         lastProductPurchaseAt: nowIso,
         lastPurchaseAt: nowIso,
+      }, {
+        referenceDate: now,
       });
+  const nextActivityActiveUntilAt = normalizeText(
+    nextActivityState?.activeUntilAt
+    || existingUser?.activityActiveUntilAt
+    || '',
+  );
+  const nextAccountStatus = isPendingReservationMember
+    ? 'pending'
+    : normalizeText(nextActivityState?.accountStatus) || 'inactive';
 
   users[userIndex] = {
     ...existingUser,
@@ -3352,12 +3357,11 @@ export async function upgradeMemberAccount(payload, options = {}) {
     || 'Personal';
 
   const personalBvSnapshot = resolveMemberPersonalBvSnapshot(existingUser, { referenceDate: now });
-  const nextActivityActiveUntilAt = personalBvSnapshot.nextCutoffAt;
   const nextCurrentPersonalPvBv = Math.max(
     0,
     personalBvSnapshot.currentPersonalPvBv + upgradeBvGain,
   );
-  const nextAccountStatus = resolveMemberAccountStatusByPersonalBv({
+  const nextActivityState = resolveMemberActivityStateByPersonalBv({
     ...existingUser,
     enrollmentPackage: targetPackageKey,
     enrollmentPackageBv: nextPackageBv,
@@ -3365,13 +3369,20 @@ export async function upgradeMemberAccount(payload, options = {}) {
     currentPersonalPvBv: nextCurrentPersonalPvBv,
     rank: nextRank,
     accountRank: nextRank,
-    activityActiveUntilAt: nextActivityActiveUntilAt,
     lastProductPurchaseAt: nowIso,
     lastPurchaseAt: nowIso,
     lastAccountUpgradeAt: nowIso,
     accountStatus: '',
     status: '',
+  }, {
+    referenceDate: now,
   });
+  const nextActivityActiveUntilAt = normalizeText(
+    nextActivityState?.activeUntilAt
+    || existingUser?.activityActiveUntilAt
+    || '',
+  );
+  const nextAccountStatus = normalizeText(nextActivityState?.accountStatus) || 'inactive';
 
   users[userIndex] = {
     ...existingUser,

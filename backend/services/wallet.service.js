@@ -16,6 +16,7 @@ import {
   buildAccountUpgradeRequiredResult,
   isPendingOrReservationMember,
 } from '../utils/member-capability.helpers.js';
+import { resolveMemberActivityStateByPersonalBv } from '../utils/member-activity.helpers.js';
 
 const DEFAULT_CURRENCY_CODE = 'USD';
 const EWALLET_PAYOUT_SOURCE_KEY = 'ewallet';
@@ -472,6 +473,16 @@ export async function createEWalletCommissionTransfer(payload = {}) {
   }
   if (isPendingOrReservationMember(memberUser)) {
     return buildAccountUpgradeRequiredResult();
+  }
+  if (sourceMeta.key === 'salesteam') {
+    const activityState = resolveMemberActivityStateByPersonalBv(memberUser);
+    if (!activityState?.isActive) {
+      return {
+        success: false,
+        status: 403,
+        error: 'Account must be Active to transfer Sales Team commissions.',
+      };
+    }
   }
 
   const amountRaw = Number(payload?.amount);

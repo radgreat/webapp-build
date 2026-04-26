@@ -1039,6 +1039,11 @@ async function resolveCurrentMemberDirectSponsorSummary(member = {}) {
 }
 
 async function resolveCurrentMemberCycleCount(member = {}) {
+  const activityState = resolveMemberActivityState(member);
+  if (!activityState.isActive) {
+    return 0;
+  }
+
   const fallbackCycles = toWholeNumber(member?.starterTotalCycles, 0);
 
   const userId = normalizeText(member?.id);
@@ -1646,9 +1651,7 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   const meetsLegacyBuilderThirdLevelRequirement = meetsMonthlyRecordedRankRun
     ? true
     : meetsLegacyBuilderThirdLevelRequirementNow;
-  const meetsActiveRequirement = meetsMonthlyRecordedRankRun
-    ? true
-    : meetsActiveRequirementNow;
+  const meetsActiveRequirement = meetsActiveRequirementNow;
 
   const baseRequirementsMet = (
     meetsRankRequirement

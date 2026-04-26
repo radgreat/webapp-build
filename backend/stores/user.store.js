@@ -75,6 +75,16 @@ function mapDbUserToAppUser(row) {
     currentPersonalPvBv: activityState.currentPersonalPvBv,
     monthlyPersonalBv: activityState.currentPersonalPvBv,
     isActive: activityState.isActive,
+    isActivityWarning: activityState.isActivityWarning === true,
+    activityWarningCode: typeof activityState.activityWarningCode === 'string'
+      ? activityState.activityWarningCode
+      : '',
+    activityWarningUntilAt: typeof activityState.activityWarningUntilAt === 'string'
+      ? activityState.activityWarningUntilAt
+      : '',
+    activityWarningMessage: typeof activityState.activityWarningMessage === 'string'
+      ? activityState.activityWarningMessage
+      : '',
     //serverCutoffBaselineSetAt: row.server_cutoff_baseline_set_at,
     //createdAt: row.created_at,
     //updatedAt: row.updated_at,

@@ -18,6 +18,7 @@ import {
   writeMemberServerCutoffStateStore,
 } from '../stores/cutoff.store.js';
 import adminPool from '../db/admin-db.js';
+import { resolveMemberActivityStateByPersonalBv } from '../utils/member-activity.helpers.js';
 
 const RUNTIME_SETTINGS_TABLE_NAME = 'runtime_settings';
 const SQL_IDENTIFIER_PATTERN = /^[a-z_][a-z0-9_]*$/i;
@@ -273,6 +274,50 @@ function resolveSalesTeamPayoutOffsetAmount(identityKeys, payoutRequests) {
   }, 0);
 }
 
+function resolveNextCutoffCarryForwardBaselines(snapshot, existingState) {
+  if (!snapshot || typeof snapshot !== 'object') {
+    return {
+      baselineLeftLegBv: 0,
+      baselineRightLegBv: 0,
+    };
+  }
+
+  const totalLeftLegBv = Math.max(0, toWholeNumber(snapshot?.leftLegBv, 0));
+  const totalRightLegBv = Math.max(0, toWholeNumber(snapshot?.rightLegBv, 0));
+  const cycleLowerBv = Math.max(1, toWholeNumber(snapshot?.cycleLowerBv, 500));
+  const cycleHigherBv = Math.max(cycleLowerBv, toWholeNumber(snapshot?.cycleHigherBv, 1000));
+
+  const existingBaselineLeftLegBv = Math.min(
+    totalLeftLegBv,
+    Math.max(0, toWholeNumber(existingState?.baselineLeftLegBv, 0))
+  );
+  const existingBaselineRightLegBv = Math.min(
+    totalRightLegBv,
+    Math.max(0, toWholeNumber(existingState?.baselineRightLegBv, 0))
+  );
+
+  const currentWeekLeftLegBv = Math.max(0, totalLeftLegBv - existingBaselineLeftLegBv);
+  const currentWeekRightLegBv = Math.max(0, totalRightLegBv - existingBaselineRightLegBv);
+  const lowerLegCurrentWeekBv = Math.min(currentWeekLeftLegBv, currentWeekRightLegBv);
+  const higherLegCurrentWeekBv = Math.max(currentWeekLeftLegBv, currentWeekRightLegBv);
+  const lowerLegSide = currentWeekLeftLegBv <= currentWeekRightLegBv ? 'left' : 'right';
+
+  const cyclesToApply = Math.max(0, Math.floor(Math.min(
+    lowerLegCurrentWeekBv / cycleLowerBv,
+    higherLegCurrentWeekBv / cycleHigherBv,
+  )));
+
+  const lowerLegConsumedBv = Math.min(lowerLegCurrentWeekBv, cyclesToApply * cycleLowerBv);
+  const higherLegConsumedBv = Math.min(higherLegCurrentWeekBv, cyclesToApply * cycleHigherBv);
+  const consumedLeftLegBv = lowerLegSide === 'left' ? lowerLegConsumedBv : higherLegConsumedBv;
+  const consumedRightLegBv = lowerLegSide === 'right' ? lowerLegConsumedBv : higherLegConsumedBv;
+
+  return {
+    baselineLeftLegBv: Math.min(totalLeftLegBv, existingBaselineLeftLegBv + consumedLeftLegBv),
+    baselineRightLegBv: Math.min(totalRightLegBv, existingBaselineRightLegBv + consumedRightLegBv),
+  };
+}
+
 export async function resetAllMockData(payload = {}) {
   const clearedBy = normalizeText(payload.updatedBy || payload.clearedBy || 'admin');
   const cleared = Object.keys(FLUSH_TRUNCATE_TABLES_BY_KEY).reduce((accumulator, key) => {
@@ -472,11 +517,19 @@ export async function forceServerCutoff(payload = {}) {
     const rightLegBv = Math.max(0, toWholeNumber(snapshot?.rightLegBv, 0));
     const cycleLowerBv = Math.max(1, toWholeNumber(snapshot?.cycleLowerBv, 500));
     const cycleHigherBv = Math.max(cycleLowerBv, toWholeNumber(snapshot?.cycleHigherBv, 1000));
-
-    const totalCycles = Math.floor(Math.min(
+    const identityKeys = resolveMetricsIdentityKeys(snapshot);
+    const matchedUser = resolveFirstLookupMatch(identityKeys, userIdentityLookup);
+    const activityState = matchedUser
+      ? resolveMemberActivityStateByPersonalBv(matchedUser)
+      : null;
+    const isEarningEligible = activityState
+      ? activityState.isActive === true
+      : true;
+    const computedCycles = Math.floor(Math.min(
       leftLegBv / cycleLowerBv,
       rightLegBv / cycleHigherBv,
     ));
+    const totalCycles = isEarningEligible ? computedCycles : 0;
 
     totalCyclesApplied += totalCycles;
 
@@ -491,9 +544,6 @@ export async function forceServerCutoff(payload = {}) {
       updatedAt: nowIso,
       createdAt: snapshot?.createdAt || nowIso,
     });
-
-    const identityKeys = resolveMetricsIdentityKeys(snapshot);
-    const matchedUser = resolveFirstLookupMatch(identityKeys, userIdentityLookup);
 
     const existingCommissionIndex = existingCommissions.findIndex((commission, commissionIndex) => {
       if (matchedCommissionIndexes.has(commissionIndex)) {
@@ -570,6 +620,7 @@ export async function forceServerCutoff(payload = {}) {
 
     const matchedSnapshot = nextSnapshots.find((entry) => doesMetricsRecordBelongToIdentity(entry, identityKeys)) || null;
     const existingState = existingCutoffStates.find((entry) => doesMetricsRecordBelongToIdentity(entry, identityKeys)) || null;
+    const nextCarryForwardBaselines = resolveNextCutoffCarryForwardBaselines(matchedSnapshot, existingState);
 
     const nextState = {
       ...(existingState || {}),
@@ -577,8 +628,8 @@ export async function forceServerCutoff(payload = {}) {
       userId: normalizeText(existingState?.userId || user?.id || matchedSnapshot?.userId),
       username: normalizeText(existingState?.username || user?.username || matchedSnapshot?.username),
       email: normalizeText(existingState?.email || user?.email || matchedSnapshot?.email),
-      baselineLeftLegBv: matchedSnapshot ? Math.max(0, toWholeNumber(matchedSnapshot?.leftLegBv, 0)) : 0,
-      baselineRightLegBv: matchedSnapshot ? Math.max(0, toWholeNumber(matchedSnapshot?.rightLegBv, 0)) : 0,
+      baselineLeftLegBv: nextCarryForwardBaselines.baselineLeftLegBv,
+      baselineRightLegBv: nextCarryForwardBaselines.baselineRightLegBv,
       lastAppliedCutoffUtcMs: Math.max(0, Math.floor(Date.parse(nowIso) || 0)),
       createdAt: existingState?.createdAt || nowIso,
       updatedAt: nowIso,

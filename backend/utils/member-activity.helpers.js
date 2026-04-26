@@ -1,4 +1,5 @@
 export const ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN = 50;
+export const ACTIVE_MEMBER_RENEWAL_WARNING_DAYS = 7;
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -40,6 +41,16 @@ function parseDate(value) {
   return Number.isFinite(parsed.getTime()) ? parsed : null;
 }
 
+function addDays(date, days = 0) {
+  const safeDate = parseDate(date);
+  if (!safeDate) {
+    return null;
+  }
+
+  const safeDays = Number.isFinite(Number(days)) ? Number(days) : 0;
+  return new Date(safeDate.getTime() + (safeDays * 24 * 60 * 60 * 1000));
+}
+
 function resolveActivityAnchorDate(member = {}, referenceDate = new Date()) {
   return parseDate(
     member?.createdAt
@@ -49,6 +60,15 @@ function resolveActivityAnchorDate(member = {}, referenceDate = new Date()) {
     || member?.enrolledAt
     || member?.enrolled_at,
   ) || parseDate(referenceDate) || new Date();
+}
+
+function resolveMemberActivityActiveUntilDate(member = {}) {
+  return parseDate(
+    member?.activityActiveUntilAt
+    || member?.activity_active_until_at
+    || member?.activeUntilAt
+    || member?.active_until_at,
+  );
 }
 
 function buildAnchoredMonthlyDate(anchorDate, year, monthIndex) {
@@ -237,12 +257,39 @@ export function resolveMemberCurrentPersonalBv(member = {}) {
 }
 
 export function resolveMemberActivityStateByPersonalBv(member = {}, options = {}) {
+  const referenceDate = parseDate(options?.referenceDate) || new Date();
   const requiredPersonalBv = Math.max(
     1,
     toWholeNumber(options?.requiredPersonalBv, ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN),
   );
-  const personalBvSnapshot = resolveMemberPersonalBvSnapshot(member, options);
+  const personalBvSnapshot = resolveMemberPersonalBvSnapshot(member, {
+    ...(options && typeof options === 'object' ? options : {}),
+    referenceDate,
+  });
   const currentPersonalPvBv = personalBvSnapshot.currentPersonalPvBv;
+  const nextCutoffDate = parseDate(personalBvSnapshot.nextCutoffAt);
+  const previousActiveUntilDate = resolveMemberActivityActiveUntilDate(member);
+  const isCurrentWindowQualified = currentPersonalPvBv >= requiredPersonalBv;
+  const activeUntilDate = isCurrentWindowQualified
+    ? nextCutoffDate
+    : previousActiveUntilDate;
+  const warningUntilDate = addDays(activeUntilDate, ACTIVE_MEMBER_RENEWAL_WARNING_DAYS);
+  const nowUtcMs = referenceDate.getTime();
+  const activeUntilUtcMs = activeUntilDate ? activeUntilDate.getTime() : NaN;
+  const warningUntilUtcMs = warningUntilDate ? warningUntilDate.getTime() : NaN;
+  const isWithinQualifiedWindow = Number.isFinite(activeUntilUtcMs) && nowUtcMs <= activeUntilUtcMs;
+  const isWithinWarningWindow = !isWithinQualifiedWindow
+    && Number.isFinite(warningUntilUtcMs)
+    && nowUtcMs <= warningUntilUtcMs;
+  const isActive = isCurrentWindowQualified || isWithinQualifiedWindow || isWithinWarningWindow;
+  const activeUntilAt = activeUntilDate ? activeUntilDate.toISOString() : '';
+  const activeCutoffAt = nextCutoffDate ? nextCutoffDate.toISOString() : '';
+  const activityWarningUntilAt = isWithinWarningWindow && warningUntilDate
+    ? warningUntilDate.toISOString()
+    : '';
+  const activityWarningMessage = isWithinWarningWindow
+    ? `Maintain at least ${requiredPersonalBv.toLocaleString()} BV personal volume by ${activityWarningUntilAt} to keep your account active.`
+    : '';
   const inactiveStatusOverride = resolveInactiveStatusOverride(member);
 
   if (inactiveStatusOverride) {
@@ -252,11 +299,16 @@ export function resolveMemberActivityStateByPersonalBv(member = {}, options = {}
       accountStatus: inactiveStatusOverride,
       currentPersonalPvBv,
       requiredPersonalBv,
-      activeUntilAt: personalBvSnapshot.nextCutoffAt,
+      isCurrentWindowQualified,
+      isActivityWarning: false,
+      activityWarningCode: '',
+      activityWarningUntilAt: '',
+      activityWarningMessage: '',
+      activeUntilAt,
+      activeCutoffAt,
     };
   }
 
-  const isActive = currentPersonalPvBv >= requiredPersonalBv;
   const pendingStatus = resolvePendingStatus(member);
   return {
     isActive,
@@ -264,7 +316,13 @@ export function resolveMemberActivityStateByPersonalBv(member = {}, options = {}
     accountStatus: pendingStatus || (isActive ? 'active' : 'inactive'),
     currentPersonalPvBv,
     requiredPersonalBv,
-    activeUntilAt: personalBvSnapshot.nextCutoffAt,
+    isCurrentWindowQualified,
+    isActivityWarning: isWithinWarningWindow,
+    activityWarningCode: isWithinWarningWindow ? 'activity-renewal-required' : '',
+    activityWarningUntilAt,
+    activityWarningMessage,
+    activeUntilAt,
+    activeCutoffAt,
   };
 }
 

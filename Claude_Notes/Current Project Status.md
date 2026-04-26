@@ -7,6 +7,76 @@ Last Updated: 2026-04-26
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
 
+## Recent Update (2026-04-26) - Monthly Active Window + 7-Day Renewal Warning Window
+
+- Completed:
+  - upgraded activity resolution in `backend/utils/member-activity.helpers.js` to keep accounts `active` for 7 days after monthly due date, then auto-transition to `inactive` if 50 BV is still unmet.
+  - kept status output as `active`/`inactive` only, and added warning metadata instead of introducing a public `grace` status.
+  - updated purchase + upgrade mutation paths in `backend/services/member.service.js` so `activityActiveUntilAt` extends only when current-cycle qualification is achieved.
+  - exposed warning payload fields through user/member/auth sanitization in:
+    - `backend/stores/user.store.js`
+    - `backend/stores/member.store.js`
+    - `backend/utils/auth.helpers.js`.
+- Outcome:
+  - members keep eligibility during the 1-week renewal window.
+  - non-qualifying low-BV updates no longer create monthly extension loopholes.
+- Files updated:
+  - `backend/utils/member-activity.helpers.js`
+  - `backend/services/member.service.js`
+  - `backend/stores/user.store.js`
+  - `backend/stores/member.store.js`
+  - `backend/utils/auth.helpers.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/utils/member-activity.helpers.js` passed.
+  - `node --check backend/services/member.service.js` passed.
+  - `node --check backend/stores/user.store.js` passed.
+  - `node --check backend/stores/member.store.js` passed.
+  - `node --check backend/utils/auth.helpers.js` passed.
+
+## Recent Update (2026-04-26) - Inactive Earnings Enforcement (Sales Team + Rank/Good Life)
+
+- Completed:
+  - enforced inactive-state earning suppression during server cutoff in `backend/services/admin.service.js` by zeroing inactive cycle/commission credit outputs.
+  - preserved BV consumption/carry-forward baseline mechanics at cutoff so remaining BV still rolls forward correctly.
+  - blocked Sales Team commission transfer to E-Wallet while inactive in `backend/services/wallet.service.js`.
+  - updated rank progression cycle resolution in `backend/services/member-achievement.service.js` so inactive accounts contribute `0` cycles and cannot bypass active requirement for rank reward eligibility.
+  - updated Good Life monthly claimability in `backend/services/member-good-life.service.js` so inactive accounts cannot claim rewards.
+- Outcome:
+  - inactive accounts are now excluded from Sales Team payout/cycle credit and related reward claims, while BV carry-forward behavior remains intact.
+- Files updated:
+  - `backend/services/admin.service.js`
+  - `backend/services/wallet.service.js`
+  - `backend/services/member-achievement.service.js`
+  - `backend/services/member-good-life.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/services/admin.service.js` passed.
+  - `node --check backend/services/wallet.service.js` passed.
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - `node --check backend/services/member-good-life.service.js` passed.
+
+## Recent Update (2026-04-26) - Server Cutoff Carry-Forward Baseline Fix
+
+- Completed:
+  - updated cutoff-state baseline write logic in `backend/services/admin.service.js` so cutoff no longer zeroes weekly carry-forward by setting baselines to full leg totals.
+  - added carry-forward baseline resolver using:
+    - existing cutoff baselines
+    - current week BV delta (total minus baseline)
+    - cycle rule thresholds (`cycleLowerBv` / `cycleHigherBv`)
+    - consumed BV from current-week cycles.
+  - wired `forceServerCutoff(...)` to persist computed baselines for `baselineLeftLegBv` and `baselineRightLegBv`.
+- Outcome:
+  - leftover BV from the non-consumed side now carries into the following weekly cutoff window instead of being wiped on cutoff.
+- Files updated:
+  - `backend/services/admin.service.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/services/admin.service.js` passed.
+
 ## Recent Update (2026-04-26) - Enrollment Split Option + Personal Split Restriction + Product Naming Alignment
 
 - Completed:

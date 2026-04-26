@@ -295,6 +295,7 @@ async function buildGoodLifeMonthlySnapshot(member = {}) {
   const currentRank = normalizeRankLabelForGoodLife(rankAdvancementRunSnapshot?.runRankTitle) || 'Unranked';
   const currentRankIndex = resolveRankIndex(currentRank);
   const highestCurrentMilestone = resolveHighestMilestoneForRankIndex(currentRankIndex);
+  const isActive = Boolean(rankAdvancementRunSnapshot?.isActive);
 
   const progressRecord = await upsertMemberGoodLifeMonthlyHighest({
     userId,
@@ -316,7 +317,9 @@ async function buildGoodLifeMonthlySnapshot(member = {}) {
   const claimedMilestone = GOOD_LIFE_MILESTONE_BY_ID.get(
     normalizeText(progressRecord?.claimedAchievementId),
   ) || null;
-  const canClaim = !normalizeText(progressRecord?.claimedAt) && Boolean(highestRecordedMilestone);
+  const canClaim = isActive
+    && !normalizeText(progressRecord?.claimedAt)
+    && Boolean(highestRecordedMilestone);
   const claimableAchievementId = canClaim ? normalizeText(highestRecordedMilestone?.id) : '';
 
   const milestones = buildGoodLifeMilestoneList(progressRecord, { claimableAchievementId });
@@ -338,6 +341,7 @@ async function buildGoodLifeMonthlySnapshot(member = {}) {
     highestRecordedRewardUsd: roundCurrencyAmount(
       progressRecord?.highestRewardAmount ?? highestRecordedMilestone?.rewardUsd,
     ),
+    isActive,
     claimedAt: normalizeText(progressRecord?.claimedAt),
     claimedAchievementId: normalizeText(progressRecord?.claimedAchievementId),
     claimedRank: normalizeText(progressRecord?.claimedRank),
@@ -395,6 +399,17 @@ export async function claimGoodLifeMonthlyForMember(member = {}) {
       success: false,
       status: 409,
       error: `Good Life reward already claimed for ${snapshot.periodLabel || 'this month'}.`,
+      data: {
+        success: false,
+        ...snapshot,
+      },
+    };
+  }
+  if (!snapshot.isActive) {
+    return {
+      success: false,
+      status: 403,
+      error: 'Account must be Active to claim Good Life rewards.',
       data: {
         success: false,
         ...snapshot,
