@@ -1,5 +1,6 @@
 export const ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN = 50;
 export const ACTIVE_MEMBER_RENEWAL_WARNING_DAYS = 7;
+export const ACTIVE_MEMBER_ACTIVITY_WINDOW_DAYS = 30;
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -71,39 +72,20 @@ function resolveMemberActivityActiveUntilDate(member = {}) {
   );
 }
 
-function buildAnchoredMonthlyDate(anchorDate, year, monthIndex) {
-  const safeAnchor = parseDate(anchorDate) || new Date();
-  const lastDayOfMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
-  const anchoredDay = Math.min(safeAnchor.getUTCDate(), lastDayOfMonth);
-  return new Date(Date.UTC(
-    year,
-    monthIndex,
-    anchoredDay,
-    safeAnchor.getUTCHours(),
-    safeAnchor.getUTCMinutes(),
-    safeAnchor.getUTCSeconds(),
-    safeAnchor.getUTCMilliseconds(),
-  ));
-}
-
 export function resolveMemberNextMonthlyCutoffDate(member = {}, options = {}) {
   const referenceDate = parseDate(options?.referenceDate) || new Date();
   const anchorDate = resolveActivityAnchorDate(member, referenceDate);
-
-  let nextCutoffDate = buildAnchoredMonthlyDate(
-    anchorDate,
-    referenceDate.getUTCFullYear(),
-    referenceDate.getUTCMonth(),
+  const activityWindowDays = Math.max(
+    1,
+    toWholeNumber(options?.activityWindowDays, ACTIVE_MEMBER_ACTIVITY_WINDOW_DAYS),
   );
-
-  if (nextCutoffDate.getTime() <= referenceDate.getTime()) {
-    const nextMonthIndex = referenceDate.getUTCMonth() + 1;
-    const nextYear = referenceDate.getUTCFullYear() + Math.floor(nextMonthIndex / 12);
-    const normalizedNextMonthIndex = ((nextMonthIndex % 12) + 12) % 12;
-    nextCutoffDate = buildAnchoredMonthlyDate(anchorDate, nextYear, normalizedNextMonthIndex);
-  }
-
-  return nextCutoffDate;
+  const activityWindowMs = activityWindowDays * 24 * 60 * 60 * 1000;
+  const anchorMs = anchorDate.getTime();
+  const referenceMs = referenceDate.getTime();
+  const elapsedMs = Math.max(0, referenceMs - anchorMs);
+  const completedWindowCount = Math.floor(elapsedMs / activityWindowMs);
+  const nextCutoffMs = anchorMs + ((completedWindowCount + 1) * activityWindowMs);
+  return new Date(nextCutoffMs);
 }
 
 export function resolveMemberNextMonthlyCutoffAt(member = {}, options = {}) {
@@ -112,13 +94,11 @@ export function resolveMemberNextMonthlyCutoffAt(member = {}, options = {}) {
 
 function resolveMemberCurrentWindowStartDate(member = {}, options = {}) {
   const nextCutoffDate = resolveMemberNextMonthlyCutoffDate(member, options);
-  const anchorDate = resolveActivityAnchorDate(member, parseDate(options?.referenceDate) || new Date());
-
-  const previousMonthIndex = nextCutoffDate.getUTCMonth() - 1;
-  const previousYear = nextCutoffDate.getUTCFullYear() + Math.floor(previousMonthIndex / 12);
-  const normalizedPreviousMonthIndex = ((previousMonthIndex % 12) + 12) % 12;
-
-  return buildAnchoredMonthlyDate(anchorDate, previousYear, normalizedPreviousMonthIndex);
+  const activityWindowDays = Math.max(
+    1,
+    toWholeNumber(options?.activityWindowDays, ACTIVE_MEMBER_ACTIVITY_WINDOW_DAYS),
+  );
+  return addDays(nextCutoffDate, -activityWindowDays);
 }
 
 function resolveLatestPersonalBvEventDate(member = {}) {

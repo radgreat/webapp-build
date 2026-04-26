@@ -149,7 +149,9 @@ function resolveMetricsIdentityKeys(identityPayload) {
   };
 
   appendKey(identityPayload?.userId);
+  const normalizedUsername = normalizeText(identityPayload?.username).replace(/^@+/, '');
   appendKey(identityPayload?.username);
+  appendKey(normalizedUsername);
   appendKey(identityPayload?.email);
   return keys;
 }
@@ -159,9 +161,12 @@ function doesMetricsRecordBelongToIdentity(record, identityKeys) {
     return false;
   }
 
+  const rawUsername = normalizeText(record?.username);
+  const normalizedUsername = rawUsername.replace(/^@+/, '');
   const candidates = [
     record?.userId,
-    record?.username,
+    rawUsername,
+    normalizedUsername,
     record?.email,
   ];
 
@@ -241,8 +246,8 @@ export async function getMemberServerCutoffMetrics(query = {}) {
   const higherLegCurrentWeekBv = Math.max(currentWeekLeftLegBv, currentWeekRightLegBv);
 
   const estimatedCycles = Math.max(0, Math.floor(Math.min(
-    lowerLegCurrentWeekBv / cycleLowerBv,
-    higherLegCurrentWeekBv / cycleHigherBv,
+    lowerLegCurrentWeekBv / cycleHigherBv,
+    higherLegCurrentWeekBv / cycleLowerBv,
   )));
 
   const latestForcedCutoffAt = normalizeText(history[0]?.forcedAt);

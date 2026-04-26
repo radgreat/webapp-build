@@ -303,12 +303,13 @@ function resolveNextCutoffCarryForwardBaselines(snapshot, existingState) {
   const lowerLegSide = currentWeekLeftLegBv <= currentWeekRightLegBv ? 'left' : 'right';
 
   const cyclesToApply = Math.max(0, Math.floor(Math.min(
-    lowerLegCurrentWeekBv / cycleLowerBv,
-    higherLegCurrentWeekBv / cycleHigherBv,
+    lowerLegCurrentWeekBv / cycleHigherBv,
+    higherLegCurrentWeekBv / cycleLowerBv,
   )));
 
-  const lowerLegConsumedBv = Math.min(lowerLegCurrentWeekBv, cyclesToApply * cycleLowerBv);
-  const higherLegConsumedBv = Math.min(higherLegCurrentWeekBv, cyclesToApply * cycleHigherBv);
+  // Dynamic rule: weaker leg consumes the higher threshold; stronger leg consumes the lower threshold.
+  const lowerLegConsumedBv = Math.min(lowerLegCurrentWeekBv, cyclesToApply * cycleHigherBv);
+  const higherLegConsumedBv = Math.min(higherLegCurrentWeekBv, cyclesToApply * cycleLowerBv);
   const consumedLeftLegBv = lowerLegSide === 'left' ? lowerLegConsumedBv : higherLegConsumedBv;
   const consumedRightLegBv = lowerLegSide === 'right' ? lowerLegConsumedBv : higherLegConsumedBv;
 
@@ -525,9 +526,11 @@ export async function forceServerCutoff(payload = {}) {
     const isEarningEligible = activityState
       ? activityState.isActive === true
       : true;
+    const weakerLegBv = Math.min(leftLegBv, rightLegBv);
+    const strongerLegBv = Math.max(leftLegBv, rightLegBv);
     const computedCycles = Math.floor(Math.min(
-      leftLegBv / cycleLowerBv,
-      rightLegBv / cycleHigherBv,
+      weakerLegBv / cycleHigherBv,
+      strongerLegBv / cycleLowerBv,
     ));
     const totalCycles = isEarningEligible ? computedCycles : 0;
 

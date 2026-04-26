@@ -3851,11 +3851,7 @@
                   </div>
                   <p id="dashboard-sales-commission-value" class="mt-3 font-body font-semibold text-[2rem] leading-[1.1] tracking-[-0.02em] text-text-primary">$0.00</p>
                   <p class="mt-1 text-caption text-text-secondary">Team commission available in current cycle window</p>
-                  <div class="mt-auto pt-3 space-y-3">
-                    <p id="dashboard-sales-commission-cycle-summary" class="text-caption text-text-tertiary">0 / 50 cycle cap used this week</p>
-                    <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-border">
-                      <div id="dashboard-sales-commission-cap-progress" class="h-full rounded-full bg-brand-400 transition-[width] duration-300 ease-spring" style="width: 0%"></div>
-                    </div>
+                  <div class="mt-auto pt-3">
                     <button id="dashboard-sales-commission-request-payout-button" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-3 py-2.5 text-body-sm font-medium text-text-inverse shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised active:scale-[0.97] transition-transform duration-150 ease-spring disabled:cursor-not-allowed disabled:opacity-40" aria-label="Transfer sales team commission to E-Wallet">
                       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5v7.5H2.25v-7.5zM5.25 10.875h3m7.5 0h3M6 13.125h4.5"/></svg>
                       Transfer to Wallet
@@ -4013,6 +4009,7 @@
                     <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Estimated Cycles</p>
                     <p id="estimated-cycles-value" class="font-body font-semibold text-body text-text-primary">--</p>
                   </div>
+                  <p id="server-cutoff-cycle-cap-summary" class="mt-1 text-[11px] text-text-secondary">Weekly cycle cap: 0 / 0</p>
                   <p class="mt-1 text-[11px] text-text-tertiary">Split rule: <span id="cycle-bv-value">500 / 1,000</span> BV (either leg)</p>
                 </div>
               </article>
@@ -6350,6 +6347,9 @@
 
         persistUserSessionSnapshot(user);
         window.__vaultAuthUser = user;
+        if (typeof updateServerCutoffMetrics === 'function') {
+          updateServerCutoffMetrics();
+        }
       } catch (error) {
         console.warn('Session sync skipped: network or server unavailable.', error);
       }
@@ -6939,6 +6939,9 @@
       let pendingSalesTeamCommissionSyncTimerId = null;
       let lastBinaryTreeMetricsSyncSignature = '';
       let lastSalesTeamCommissionSyncSignature = '';
+      let settledSalesTeamCommissionSnapshot = null;
+      let pendingSettledSalesTeamCommissionSnapshotPromise = null;
+      let lastSettledSalesTeamCommissionSnapshotFetchSignature = '';
       const WALLET_BALANCE_FIELD_CANDIDATES = Object.freeze([
         'walletBalance',
         'eWalletBalance',
@@ -8234,11 +8237,10 @@
       const dashboardAccountOverviewBadgeStripElement = document.getElementById('dashboard-account-overview-badge-strip');
       const dashboardSalesCommissionValueElement = document.getElementById('dashboard-sales-commission-value');
       const dashboardSalesCommissionRateBadgeElement = document.getElementById('dashboard-sales-commission-rate-badge');
-      const dashboardSalesCommissionCycleSummaryElement = document.getElementById('dashboard-sales-commission-cycle-summary');
       const dashboardSalesCommissionPerCycleElement = document.getElementById('dashboard-sales-commission-per-cycle');
       const dashboardSalesCommissionCapValueElement = document.getElementById('dashboard-sales-commission-cap-value');
-      const dashboardSalesCommissionCapProgressElement = document.getElementById('dashboard-sales-commission-cap-progress');
       const dashboardSalesCommissionRequestPayoutButtonElement = document.getElementById('dashboard-sales-commission-request-payout-button');
+      const serverCutoffCycleCapSummaryElement = document.getElementById('server-cutoff-cycle-cap-summary');
       const infinityBuilderTierGroupCardsElement = document.getElementById('infinity-builder-tier-group-cards');
       const infinityBuilderClaimableBonusValueElement = document.getElementById('infinity-builder-claimable-bonus');
       const infinityBuilderViewModeRadioElements = Array.from(document.querySelectorAll('input[name="infinity-builder-view-mode"]'));
@@ -8340,6 +8342,7 @@
       const accountOverviewNewMembersTrendElement = document.getElementById('account-overview-new-members-trend');
       const accountOverviewDirectSponsorsTrendElement = document.getElementById('account-overview-direct-sponsors-trend');
       let updateServerCutoffMetrics = () => {};
+      let latestDashboardCutoffLoopMetrics = null;
       let binaryTreeInitPromise = null;
       let binaryTreeModulePromise = null;
       let binaryTreeMockData = null;
@@ -8589,6 +8592,39 @@
         const safeOffset = Number.isFinite(rawOffset) && rawOffset > 0 ? rawOffset : 0;
         commissionPayoutOffsetBySource[normalizedSourceKey] = safeOffset;
         return safeOffset;
+      }
+
+      function resolveCommissionContainerBalance(sourceKey, fallbackAmount = 0) {
+        const fallbackValue = Math.max(0, Number(fallbackAmount) || 0);
+        const balances = commissionContainerSnapshot?.balances;
+        if (!balances || typeof balances !== 'object') {
+          return fallbackValue;
+        }
+
+        const normalizedSourceKey = normalizeMemberKey(sourceKey);
+        const candidateValues = [
+          balances[normalizedSourceKey],
+        ];
+        if (normalizedSourceKey === 'salesteam') {
+          candidateValues.push(balances.salesTeam);
+        }
+        if (normalizedSourceKey === 'fasttrack') {
+          candidateValues.push(balances.fastTrack);
+        }
+        if (normalizedSourceKey === 'infinitybuilder') {
+          candidateValues.push(balances.infinityBuilder);
+        }
+        if (normalizedSourceKey === 'legacyleadership') {
+          candidateValues.push(balances.legacyLeadership);
+        }
+
+        for (const candidateValue of candidateValues) {
+          const parsed = Number(candidateValue);
+          if (Number.isFinite(parsed) && parsed >= 0) {
+            return parsed;
+          }
+        }
+        return fallbackValue;
       }
 
       function resolveNetCommissionBalance(sourceKey, grossAmount) {
@@ -14452,6 +14488,119 @@
         };
       }
 
+      function buildIdentityQueryString(identityPayload = resolveCurrentMemberIdentityPayload()) {
+        const query = new URLSearchParams();
+        const userId = String(identityPayload?.userId || '').trim();
+        const username = String(identityPayload?.username || '').trim();
+        const email = String(identityPayload?.email || '').trim();
+        if (userId) {
+          query.set('userId', userId);
+        }
+        if (username) {
+          query.set('username', username);
+        }
+        if (email) {
+          query.set('email', email);
+        }
+        return query.toString();
+      }
+
+      function sanitizeSalesTeamCommissionSnapshot(snapshotInput = {}) {
+        if (!snapshotInput || typeof snapshotInput !== 'object') {
+          return null;
+        }
+
+        return {
+          id: String(snapshotInput.id || '').trim(),
+          userId: String(snapshotInput.userId || '').trim(),
+          username: String(snapshotInput.username || '').trim(),
+          email: String(snapshotInput.email || '').trim(),
+          accountPackageKey: normalizeMemberKey(snapshotInput.accountPackageKey) || 'personal-builder-pack',
+          cycleMultiplier: Math.max(0, Number(snapshotInput.cycleMultiplier) || 0),
+          perCycleAmount: toCurrencyNumber(snapshotInput.perCycleAmount, 0),
+          weeklyCapCycles: Math.max(0, toWholeNumber(snapshotInput.weeklyCapCycles, 0)),
+          totalCycles: Math.max(0, toWholeNumber(snapshotInput.totalCycles, 0)),
+          cappedCycles: Math.max(0, toWholeNumber(snapshotInput.cappedCycles, 0)),
+          overflowCycles: Math.max(0, toWholeNumber(snapshotInput.overflowCycles, 0)),
+          grossCommissionAmount: toCurrencyNumber(snapshotInput.grossCommissionAmount, 0),
+          payoutOffsetAmount: toCurrencyNumber(snapshotInput.payoutOffsetAmount, 0),
+          netCommissionAmount: toCurrencyNumber(snapshotInput.netCommissionAmount, 0),
+          createdAt: String(snapshotInput.createdAt || '').trim(),
+          updatedAt: String(snapshotInput.updatedAt || '').trim(),
+        };
+      }
+
+      async function loadSettledSalesTeamCommissionSnapshotForCurrentUser(options = {}) {
+        if (dashboardMockupModeEnabled) {
+          settledSalesTeamCommissionSnapshot = null;
+          lastSettledSalesTeamCommissionSnapshotFetchSignature = '';
+          if (options?.rerender !== false) {
+            renderSalesTeamCommissionsCard(currentDashboardTotalCycles, currentSessionUser);
+          }
+          return null;
+        }
+
+        const identity = resolveCurrentMemberIdentityPayload();
+        const identityQuery = buildIdentityQueryString(identity);
+        const cutoffSignature = String(latestDashboardCutoffLoopMetrics?.lastAppliedCutoffAt || '').trim();
+        const fetchSignature = [
+          identity.userId,
+          identity.username,
+          identity.email,
+          cutoffSignature,
+        ].join('|');
+        const force = options?.force === true;
+
+        if (!force && fetchSignature && fetchSignature === lastSettledSalesTeamCommissionSnapshotFetchSignature) {
+          if (options?.rerender === true) {
+            renderSalesTeamCommissionsCard(currentDashboardTotalCycles, currentSessionUser);
+          }
+          return settledSalesTeamCommissionSnapshot;
+        }
+
+        if (!identityQuery) {
+          settledSalesTeamCommissionSnapshot = null;
+          lastSettledSalesTeamCommissionSnapshotFetchSignature = fetchSignature;
+          if (options?.rerender !== false) {
+            renderSalesTeamCommissionsCard(currentDashboardTotalCycles, currentSessionUser);
+          }
+          return null;
+        }
+
+        if (!force && pendingSettledSalesTeamCommissionSnapshotPromise) {
+          return pendingSettledSalesTeamCommissionSnapshotPromise;
+        }
+
+        pendingSettledSalesTeamCommissionSnapshotPromise = fetch(`${SALES_TEAM_COMMISSIONS_API}?${identityQuery}`, {
+          method: 'GET',
+          cache: 'no-store',
+        }).then(async (response) => {
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string'
+              ? payload.error
+              : `Unable to load settled sales team commission snapshot (${response.status}).`;
+            throw new Error(message);
+          }
+
+          settledSalesTeamCommissionSnapshot = sanitizeSalesTeamCommissionSnapshot(payload?.commission);
+          lastSettledSalesTeamCommissionSnapshotFetchSignature = fetchSignature;
+          if (options?.rerender !== false) {
+            renderSalesTeamCommissionsCard(currentDashboardTotalCycles, currentSessionUser);
+          }
+          return settledSalesTeamCommissionSnapshot;
+        }).catch((error) => {
+          if (!options?.silent) {
+            console.warn('Unable to load settled sales team commission snapshot:', error);
+          }
+          return settledSalesTeamCommissionSnapshot;
+        }).finally(() => {
+          pendingSettledSalesTeamCommissionSnapshotPromise = null;
+        });
+
+        return pendingSettledSalesTeamCommissionSnapshotPromise;
+      }
+
       function resolveCurrentPayoutRequestIdentityPayload() {
         const identity = resolveCurrentMemberIdentityPayload();
         return {
@@ -14730,6 +14879,9 @@
           commissionOffsetsHydrated = true;
           commissionContainerSnapshot = createDefaultCommissionContainerSnapshot();
           commissionContainersHydrated = true;
+          settledSalesTeamCommissionSnapshot = null;
+          pendingSettledSalesTeamCommissionSnapshotPromise = null;
+          lastSettledSalesTeamCommissionSnapshotFetchSignature = '';
           recalculateEnrollDerivedMetrics();
           renderSalesTeamCommissionsCard(currentDashboardTotalCycles, currentSessionUser);
           if (!options.silent) {
@@ -14756,6 +14908,16 @@
         } catch (error) {
           commissionContainersHydrated = true;
           console.warn('Unable to initialize commission containers:', error);
+        }
+
+        try {
+          await loadSettledSalesTeamCommissionSnapshotForCurrentUser({
+            rerender: false,
+            force: true,
+            silent: true,
+          });
+        } catch (error) {
+          console.warn('Unable to initialize settled sales team commissions:', error);
         }
 
         recalculateEnrollDerivedMetrics();
@@ -14817,6 +14979,10 @@
                 ? responsePayload.error
                 : `Unable to persist binary tree metrics snapshot (${response.status}).`;
               console.warn(message);
+            } else if (typeof updateServerCutoffMetrics === 'function') {
+              // Ensure cutoff card re-syncs after snapshot persistence so first-load
+              // server cutoff volumes do not wait for manual reload/interval tick.
+              updateServerCutoffMetrics();
             }
           } catch (error) {
             console.warn('Unable to persist binary tree metrics snapshot:', error);
@@ -14825,65 +14991,9 @@
       }
 
       function queueSalesTeamCommissionSnapshotSync(snapshotInput = {}) {
-        if (dashboardMockupModeEnabled) {
-          return;
-        }
-
-        const identity = resolveCurrentMemberIdentityPayload();
-        if (!identity.userId && !identity.username && !identity.email) {
-          return;
-        }
-
-        const rawCycleMultiplier = Number(snapshotInput.cycleMultiplier);
-        const payload = {
-          ...identity,
-          accountPackageKey: normalizeMemberKey(snapshotInput.accountPackageKey) || 'personal-builder-pack',
-          cycleMultiplier: Number.isFinite(rawCycleMultiplier) && rawCycleMultiplier >= 0 ? rawCycleMultiplier : 0,
-          perCycleAmount: toCurrencyNumber(snapshotInput.perCycleAmount, 0),
-          weeklyCapCycles: toWholeNumber(snapshotInput.weeklyCapCycles, 0),
-          totalCycles: toWholeNumber(snapshotInput.totalCycles, 0),
-          cappedCycles: toWholeNumber(snapshotInput.cappedCycles, 0),
-          overflowCycles: toWholeNumber(snapshotInput.overflowCycles, 0),
-          grossCommissionAmount: toCurrencyNumber(snapshotInput.grossCommissionAmount, 0),
-          payoutOffsetAmount: toCurrencyNumber(snapshotInput.payoutOffsetAmount, 0),
-          netCommissionAmount: toCurrencyNumber(snapshotInput.netCommissionAmount, 0),
-          currencyCode: 'USD',
-          snapshotAt: new Date().toISOString(),
-        };
-
-        const signature = JSON.stringify({
-          ...payload,
-          snapshotAt: '',
-        });
-        if (signature === lastSalesTeamCommissionSyncSignature) {
-          return;
-        }
-        lastSalesTeamCommissionSyncSignature = signature;
-
-        if (pendingSalesTeamCommissionSyncTimerId !== null) {
-          window.clearTimeout(pendingSalesTeamCommissionSyncTimerId);
-        }
-        pendingSalesTeamCommissionSyncTimerId = window.setTimeout(async () => {
-          pendingSalesTeamCommissionSyncTimerId = null;
-          try {
-            const response = await fetch(SALES_TEAM_COMMISSIONS_API, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(payload),
-            });
-            if (!response.ok) {
-              const responsePayload = await response.json().catch(() => ({}));
-              const message = typeof responsePayload?.error === 'string'
-                ? responsePayload.error
-                : `Unable to persist sales team commission snapshot (${response.status}).`;
-              console.warn(message);
-            }
-          } catch (error) {
-            console.warn('Unable to persist sales team commission snapshot:', error);
-          }
-        }, 300);
+        void snapshotInput;
+        // Sales Team cycle rewards are cutoff-settled server-side; member runtime
+        // should never push live pre-cutoff cycle snapshots.
       }
 
       async function loadCommissionPayoutRequestsForCurrentUser(options = {}) {
@@ -15428,6 +15538,9 @@
           setPersistedCommissionPayoutRequestEntries([]);
           commissionContainerSnapshot = createDefaultCommissionContainerSnapshot();
           commissionContainersHydrated = true;
+          settledSalesTeamCommissionSnapshot = null;
+          pendingSettledSalesTeamCommissionSnapshotPromise = null;
+          lastSettledSalesTeamCommissionSnapshotFetchSignature = '';
           if (pendingCommissionContainerSyncTimerId !== null) {
             window.clearTimeout(pendingCommissionContainerSyncTimerId);
             pendingCommissionContainerSyncTimerId = null;
@@ -16912,28 +17025,36 @@
         const hasCardBindings = (
           dashboardSalesCommissionValueElement
           && dashboardSalesCommissionRateBadgeElement
-          && dashboardSalesCommissionCycleSummaryElement
           && dashboardSalesCommissionPerCycleElement
           && dashboardSalesCommissionCapValueElement
-          && dashboardSalesCommissionCapProgressElement
         );
         if (!hasCardBindings) {
           return;
         }
 
-        const normalizedCycles = Math.max(0, toWholeNumber(totalCycles, 0));
         const profile = resolveSalesTeamCycleCommissionProfile(user);
+        const appliedCutoffAt = String(latestDashboardCutoffLoopMetrics?.lastAppliedCutoffAt || '').trim();
+        const hasAppliedCutoff = Boolean(appliedCutoffAt);
+        const settledSnapshot = hasAppliedCutoff
+          ? sanitizeSalesTeamCommissionSnapshot(settledSalesTeamCommissionSnapshot)
+          : null;
+        const displayCycles = Math.max(0, toWholeNumber(settledSnapshot?.totalCycles, 0));
         const cappedCycles = profile.weeklyCapCycles > 0
-          ? Math.min(normalizedCycles, profile.weeklyCapCycles)
-          : normalizedCycles;
-        const overflowCycles = Math.max(0, normalizedCycles - cappedCycles);
-        const grossCommissionValue = cappedCycles * profile.perCycle;
-        const weeklyCapValue = profile.weeklyCapCycles * profile.perCycle;
-        const usagePercent = profile.weeklyCapCycles > 0
-          ? Math.min(100, (cappedCycles / profile.weeklyCapCycles) * 100)
+          ? Math.min(displayCycles, profile.weeklyCapCycles)
+          : displayCycles;
+        const overflowCycles = Math.max(0, displayCycles - cappedCycles);
+        const grossCommissionValue = hasAppliedCutoff
+          ? toCurrencyNumber(settledSnapshot?.grossCommissionAmount, cappedCycles * profile.perCycle)
           : 0;
-        const commissionValue = resolveNetCommissionBalance('salesTeam', grossCommissionValue);
-        const payoutOffsetAmount = Math.max(0, grossCommissionValue - commissionValue);
+        const snapshotNetCommissionValue = hasAppliedCutoff
+          ? toCurrencyNumber(settledSnapshot?.netCommissionAmount, grossCommissionValue)
+          : 0;
+        const commissionValue = hasAppliedCutoff
+          ? (commissionOffsetsHydrated
+            ? resolveNetCommissionBalance('salesTeam', grossCommissionValue)
+            : snapshotNetCommissionValue)
+          : 0;
+        const weeklyCapValue = profile.weeklyCapCycles * profile.perCycle;
         salesTeamCommissionBalanceValue = commissionValue;
         renderDashboardTotalBalance();
 
@@ -16941,28 +17062,16 @@
         dashboardSalesCommissionValueElement.textContent = formatCurrency(commissionValue);
         dashboardSalesCommissionPerCycleElement.textContent = formatCurrency(profile.perCycle);
         dashboardSalesCommissionCapValueElement.textContent = formatCurrency(weeklyCapValue);
-        dashboardSalesCommissionCapProgressElement.style.width = `${usagePercent.toFixed(1)}%`;
-
-        if (overflowCycles > 0) {
-          dashboardSalesCommissionCycleSummaryElement.textContent = `${cappedCycles.toLocaleString()} / ${profile.weeklyCapCycles.toLocaleString()} cycle cap used this week (${overflowCycles.toLocaleString()} overflow)`;
-        } else {
-          dashboardSalesCommissionCycleSummaryElement.textContent = `${cappedCycles.toLocaleString()} / ${profile.weeklyCapCycles.toLocaleString()} cycle cap used this week`;
+        if (serverCutoffCycleCapSummaryElement) {
+          const cappedCyclesLabel = cappedCycles.toLocaleString();
+          const weeklyCapLabel = profile.weeklyCapCycles.toLocaleString();
+          if (overflowCycles > 0) {
+            serverCutoffCycleCapSummaryElement.textContent = `Weekly cycle cap: ${cappedCyclesLabel} / ${weeklyCapLabel} (${overflowCycles.toLocaleString()} overflow)`;
+          } else {
+            serverCutoffCycleCapSummaryElement.textContent = `Weekly cycle cap: ${cappedCyclesLabel} / ${weeklyCapLabel}`;
+          }
         }
         refreshCommissionPayoutButtonStates();
-
-        queueSalesTeamCommissionSnapshotSync({
-          accountPackageKey: profile.packageKey,
-          cycleMultiplier: profile.multiplier,
-          perCycleAmount: profile.perCycle,
-          weeklyCapCycles: profile.weeklyCapCycles,
-          totalCycles: normalizedCycles,
-          cappedCycles,
-          overflowCycles,
-          grossCommissionAmount: grossCommissionValue,
-          payoutOffsetAmount,
-          netCommissionAmount: commissionValue,
-        });
-        queueCommissionContainerSnapshotSync();
       }
 
       function resolveMemberIdentityKey(member) {
@@ -23731,6 +23840,77 @@
       window.addEventListener('resize', syncTreeSummaryOverviewCardsUi);
       syncTreeSummaryOverviewCardsUi();
 
+      function resolveDashboardLoopDisplayMetrics(rawMetricsInput = {}) {
+        const rawLeftLegBv = Math.max(0, toWholeNumber(rawMetricsInput?.leftLegBv, 0));
+        const rawRightLegBv = Math.max(0, toWholeNumber(rawMetricsInput?.rightLegBv, 0));
+        const rawCycleCount = Math.max(0, toWholeNumber(rawMetricsInput?.totalCycles, 0));
+        if (dashboardMockupModeEnabled) {
+          return {
+            leftLegBv: rawLeftLegBv,
+            rightLegBv: rawRightLegBv,
+            totalCycles: Math.max(0, toWholeNumber(DASHBOARD_KPI_MOCK_PREVIEW.cycles, rawCycleCount)),
+          };
+        }
+
+        const cutoffLoopMetrics = latestDashboardCutoffLoopMetrics && typeof latestDashboardCutoffLoopMetrics === 'object'
+          ? latestDashboardCutoffLoopMetrics
+          : null;
+        if (!cutoffLoopMetrics) {
+          return {
+            leftLegBv: rawLeftLegBv,
+            rightLegBv: rawRightLegBv,
+            totalCycles: rawCycleCount,
+          };
+        }
+
+        const cutoffLeftLegBv = Math.max(0, toWholeNumber(cutoffLoopMetrics.leftLegBv, rawLeftLegBv));
+        const cutoffRightLegBv = Math.max(0, toWholeNumber(cutoffLoopMetrics.rightLegBv, rawRightLegBv));
+        const cycleLowerBv = Math.max(1, toWholeNumber(cutoffLoopMetrics.cycleLowerBv, CYCLE_RULE_LOWER_BV));
+        const cycleHigherBv = Math.max(cycleLowerBv, toWholeNumber(cutoffLoopMetrics.cycleHigherBv, CYCLE_RULE_HIGHER_BV));
+        const lowerLegCutoffBv = Math.min(cutoffLeftLegBv, cutoffRightLegBv);
+        const higherLegCutoffBv = Math.max(cutoffLeftLegBv, cutoffRightLegBv);
+        const fallbackCutoffCycleCount = Math.floor(Math.min(
+          lowerLegCutoffBv / cycleHigherBv,
+          higherLegCutoffBv / cycleLowerBv,
+        ));
+        const cutoffCycleCount = Math.max(0, toWholeNumber(
+          cutoffLoopMetrics.estimatedCycles,
+          fallbackCutoffCycleCount,
+        ));
+
+        return {
+          leftLegBv: cutoffLeftLegBv,
+          rightLegBv: cutoffRightLegBv,
+          totalCycles: cutoffCycleCount,
+        };
+      }
+
+      function applyDashboardLoopDisplayMetrics(loopMetricsInput = {}) {
+        const loopLeftLegBv = Math.max(0, toWholeNumber(loopMetricsInput?.leftLegBv, 0));
+        const loopRightLegBv = Math.max(0, toWholeNumber(loopMetricsInput?.rightLegBv, 0));
+        const loopCycleCount = Math.max(0, toWholeNumber(loopMetricsInput?.totalCycles, 0));
+        if (dashboardTotalCyclesValueElement) {
+          dashboardTotalCyclesValueElement.textContent = loopCycleCount.toLocaleString();
+        }
+        currentDashboardTotalCycles = loopCycleCount;
+        renderSalesTeamCommissionsCard(loopCycleCount, currentSessionUser);
+        if (treeSummaryEstimatedCyclesValueElement) {
+          treeSummaryEstimatedCyclesValueElement.textContent = loopCycleCount.toLocaleString();
+        }
+        if (treeFullscreenSummaryEstimatedCyclesValueElement) {
+          treeFullscreenSummaryEstimatedCyclesValueElement.textContent = loopCycleCount.toLocaleString();
+        }
+        if (treeSummaryLeftLegBvValueElement) {
+          treeSummaryLeftLegBvValueElement.textContent = `${loopLeftLegBv.toLocaleString()} BV`;
+        }
+        if (treeSummaryRightLegBvValueElement) {
+          treeSummaryRightLegBvValueElement.textContent = `${loopRightLegBv.toLocaleString()} BV`;
+        }
+        if (treeFullscreenSummaryLegVolumesValueElement) {
+          treeFullscreenSummaryLegVolumesValueElement.textContent = `L ${loopLeftLegBv.toLocaleString()} | R ${loopRightLegBv.toLocaleString()}`;
+        }
+      }
+
       function applyBinaryTreeDashboardSummary(summary) {
         if (!summary || typeof summary !== 'object') {
           return;
@@ -23749,8 +23929,8 @@
         const lowerLegBv = Math.min(leftLegBv, rightLegBv);
         const higherLegBv = Math.max(leftLegBv, rightLegBv);
         accountTotalCycles = Math.floor(Math.min(
-          lowerLegBv / CYCLE_RULE_LOWER_BV,
-          higherLegBv / CYCLE_RULE_HIGHER_BV,
+          lowerLegBv / CYCLE_RULE_HIGHER_BV,
+          higherLegBv / CYCLE_RULE_LOWER_BV,
         ));
 
         if (currentSessionStarterDashboard.hasStarterProfile) {
@@ -23759,9 +23939,11 @@
         const dashboardPersonalVolume = dashboardMockupModeEnabled
           ? toWholeNumber(DASHBOARD_KPI_MOCK_PREVIEW.personalVolume, 0)
           : accountPersonalVolume;
-        const dashboardCycleCount = dashboardMockupModeEnabled
-          ? toWholeNumber(DASHBOARD_KPI_MOCK_PREVIEW.cycles, 0)
-          : accountTotalCycles;
+        const dashboardLoopMetrics = resolveDashboardLoopDisplayMetrics({
+          leftLegBv,
+          rightLegBv,
+          totalCycles: accountTotalCycles,
+        });
         totalAccumulatedPv = toWholeNumber(leftLegBv + rightLegBv, 0);
         const lifetimeTotalOrganizationBv = resolveLifetimeTotalOrganizationBvFromTreeData(binaryTreeMockData);
         const fallbackRank = accountOverviewCardElement?.dataset.accountRank || 'Legacy';
@@ -23779,11 +23961,7 @@
           trackTrend: !dashboardMockupModeEnabled,
           observedAtMs: dashboardPersonalVolumeObservedAtMs,
         });
-        if (dashboardTotalCyclesValueElement) {
-          dashboardTotalCyclesValueElement.textContent = dashboardCycleCount.toLocaleString();
-        }
-        currentDashboardTotalCycles = dashboardCycleCount;
-        renderSalesTeamCommissionsCard(dashboardCycleCount, currentSessionUser);
+        applyDashboardLoopDisplayMetrics(dashboardLoopMetrics);
         if (treeSummaryAccountRankValueElement) {
           treeSummaryAccountRankValueElement.textContent = accountRank;
         }
@@ -23799,23 +23977,8 @@
         if (treeSummaryNewMembersValueElement) {
           treeSummaryNewMembersValueElement.textContent = newMembersJoined.toLocaleString();
         }
-        if (treeSummaryEstimatedCyclesValueElement) {
-          treeSummaryEstimatedCyclesValueElement.textContent = accountTotalCycles.toLocaleString();
-        }
-        if (treeFullscreenSummaryEstimatedCyclesValueElement) {
-          treeFullscreenSummaryEstimatedCyclesValueElement.textContent = accountTotalCycles.toLocaleString();
-        }
         if (treeSummaryCycleRuleValueElement) {
-          treeSummaryCycleRuleValueElement.textContent = `${CYCLE_RULE_LOWER_BV.toLocaleString()} / ${CYCLE_RULE_HIGHER_BV.toLocaleString()} BV`;
-        }
-        if (treeSummaryLeftLegBvValueElement) {
-          treeSummaryLeftLegBvValueElement.textContent = `${leftLegBv.toLocaleString()} BV`;
-        }
-        if (treeSummaryRightLegBvValueElement) {
-          treeSummaryRightLegBvValueElement.textContent = `${rightLegBv.toLocaleString()} BV`;
-        }
-        if (treeFullscreenSummaryLegVolumesValueElement) {
-          treeFullscreenSummaryLegVolumesValueElement.textContent = `L ${leftLegBv.toLocaleString()} | R ${rightLegBv.toLocaleString()}`;
+          treeSummaryCycleRuleValueElement.textContent = `${CYCLE_RULE_HIGHER_BV.toLocaleString()} (weaker) / ${CYCLE_RULE_LOWER_BV.toLocaleString()} (stronger) BV`;
         }
         if (treeSummaryDirectSponsorsValueElement) {
           treeSummaryDirectSponsorsValueElement.textContent = totalDirectSponsors.toLocaleString();
@@ -23880,7 +24043,7 @@
           leftLegBv,
           rightLegBv,
           totalAccumulatedBv: totalAccumulatedPv,
-          totalCycles: dashboardCycleCount,
+          totalCycles: accountTotalCycles,
           cycleLowerBv: CYCLE_RULE_LOWER_BV,
           cycleHigherBv: CYCLE_RULE_HIGHER_BV,
         });
@@ -26345,6 +26508,11 @@
         renderAccountRankIcon(currentAccountRank);
         syncAccountRankUpgradeCta(currentSessionUser);
         applyPreferredCustomerNavAccess();
+        void loadSettledSalesTeamCommissionSnapshotForCurrentUser({
+          force: true,
+          rerender: true,
+          silent: true,
+        });
         renderSalesTeamCommissionsCard(currentDashboardTotalCycles, currentSessionUser);
         if (binaryTreeSummarySnapshot) {
           applyBinaryTreeDashboardSummary(binaryTreeSummarySnapshot);
@@ -27243,12 +27411,7 @@
           toWholeNumber(Number.parseInt(card.dataset.cycleBvHigher || String(CYCLE_RULE_HIGHER_BV), 10), CYCLE_RULE_HIGHER_BV),
         );
         const cutoffSyncIntervalMs = 30000;
-        const cutoffMetricsSyncDelayAfterSummaryMs = 700;
-        const cutoffIdentityPayload = {
-          userId: String(currentSessionUser?.id || '').trim(),
-          username: String(currentSessionUser?.username || '').trim(),
-          email: String(currentSessionUser?.email || '').trim(),
-        };
+        const cutoffMetricsSyncDelayAfterSummaryMs = 200;
         const accountOverviewCard = document.getElementById('account-overview-card');
         const cutoffDesktopMediaQuery = window.matchMedia('(min-width: 1024px)');
         let cutoffTimeZone = fallbackCutoffTimeZone;
@@ -27264,6 +27427,59 @@
         let pendingCutoffMetricsSyncTimerId = null;
         let cutoffHeightSyncAnimationFrameId = null;
         let cutoffHeightObserver = null;
+
+        function resolveMemberServerCutoffIdentityPayload() {
+          const orderedUserIdCandidates = [
+            currentSessionUser?.id,
+            currentSessionUser?.userId,
+            currentSessionUser?.user_id,
+            currentSessionUser?.memberId,
+            currentSessionUser?.member_id,
+          ];
+          const orderedUsernameCandidates = [
+            currentSessionUser?.username,
+            currentSessionUser?.memberUsername,
+            currentSessionUser?.member_username,
+            currentSessionUser?.userName,
+            currentSessionUser?.user_name,
+          ];
+          const orderedEmailCandidates = [
+            currentSessionUser?.email,
+            currentSessionUser?.userEmail,
+            currentSessionUser?.user_email,
+            currentSessionUser?.login,
+          ];
+
+          let userId = '';
+          for (const candidate of orderedUserIdCandidates) {
+            userId = String(candidate || '').trim();
+            if (userId) {
+              break;
+            }
+          }
+
+          let username = '';
+          for (const candidate of orderedUsernameCandidates) {
+            username = String(candidate || '').trim().replace(/^@+/, '');
+            if (username) {
+              break;
+            }
+          }
+
+          let email = '';
+          for (const candidate of orderedEmailCandidates) {
+            email = String(candidate || '').trim();
+            if (email) {
+              break;
+            }
+          }
+
+          return {
+            userId,
+            username,
+            email,
+          };
+        }
 
         function syncServerCutoffCardHeightToOverview() {
           if (!cutoffDesktopMediaQuery.matches) {
@@ -27300,8 +27516,8 @@
           const lowerLegBv = Math.min(leftLegBv, rightLegBv);
           const higherLegBv = Math.max(leftLegBv, rightLegBv);
           const estimatedCycles = Math.floor(Math.min(
-            lowerLegBv / cycleLowerBv,
-            higherLegBv / cycleHigherBv,
+            lowerLegBv / cycleHigherBv,
+            higherLegBv / cycleLowerBv,
           ));
           if (leftLegValue) {
             leftLegValue.textContent = leftLegBv.toLocaleString();
@@ -27315,7 +27531,7 @@
         }
 
         if (cycleBvValue) {
-          cycleBvValue.textContent = `${cycleLowerBv.toLocaleString()} / ${cycleHigherBv.toLocaleString()}`;
+          cycleBvValue.textContent = `${cycleHigherBv.toLocaleString()} (weaker) / ${cycleLowerBv.toLocaleString()} (stronger)`;
         }
         renderVolumeMetrics();
         requestServerCutoffHeightSync();
@@ -27461,6 +27677,13 @@
           cycleHigherBv = Math.max(cycleLowerBv, toWholeNumber(metrics.cycleHigherBv, cycleHigherBv));
           leftLegBv = Math.max(0, toWholeNumber(metrics.currentWeekLeftLegBv, leftLegBv));
           rightLegBv = Math.max(0, toWholeNumber(metrics.currentWeekRightLegBv, rightLegBv));
+          const lowerLegBv = Math.min(leftLegBv, rightLegBv);
+          const higherLegBv = Math.max(leftLegBv, rightLegBv);
+          const fallbackEstimatedCycles = Math.floor(Math.min(
+            lowerLegBv / cycleHigherBv,
+            higherLegBv / cycleLowerBv,
+          ));
+          const estimatedCycles = Math.max(0, toWholeNumber(metrics.estimatedCycles, fallbackEstimatedCycles));
           const baselinePersonalPv = Math.max(0, toWholeNumber(
             metrics.baselinePersonalPv,
             toWholeNumber(currentSessionUser?.serverCutoffBaselineStarterPersonalPv, 0),
@@ -27469,6 +27692,9 @@
             metrics.currentWeekPersonalPv,
             Math.max(0, toWholeNumber(currentSessionStarterDashboard?.currentWeekPersonalPv, 0)),
           ));
+          const previousAppliedCutoffAt = String(latestDashboardCutoffLoopMetrics?.lastAppliedCutoffAt || '').trim();
+          const nextLastAppliedCutoffAt = String(cutoff.lastAppliedCutoffAt || '').trim();
+          const nextLatestForcedCutoffAt = String(cutoff.latestForcedCutoffAt || '').trim();
 
           card.dataset.leftLegBv = String(leftLegBv);
           card.dataset.rightLegBv = String(rightLegBv);
@@ -27478,9 +27704,18 @@
           card.dataset.cutoffMinute = String(cutoffMinute);
           card.dataset.cycleBvLower = String(cycleLowerBv);
           card.dataset.cycleBvHigher = String(cycleHigherBv);
+          latestDashboardCutoffLoopMetrics = {
+            leftLegBv,
+            rightLegBv,
+            estimatedCycles,
+            cycleLowerBv,
+            cycleHigherBv,
+            lastAppliedCutoffAt: nextLastAppliedCutoffAt,
+            latestForcedCutoffAt: nextLatestForcedCutoffAt,
+          };
 
           if (cycleBvValue) {
-            cycleBvValue.textContent = `${cycleLowerBv.toLocaleString()} / ${cycleHigherBv.toLocaleString()}`;
+            cycleBvValue.textContent = `${cycleHigherBv.toLocaleString()} (weaker) / ${cycleLowerBv.toLocaleString()} (stronger)`;
           }
 
           currentSessionUser.serverCutoffBaselineStarterPersonalPv = baselinePersonalPv;
@@ -27500,11 +27735,36 @@
               serverConfirmed: true,
             });
           }
+          const summaryLeftLegBv = Math.max(0, toWholeNumber(binaryTreeSummarySnapshot?.leftLegBv, leftLegBv));
+          const summaryRightLegBv = Math.max(0, toWholeNumber(binaryTreeSummarySnapshot?.rightLegBv, rightLegBv));
+          const summaryLowerLegBv = Math.min(summaryLeftLegBv, summaryRightLegBv);
+          const summaryHigherLegBv = Math.max(summaryLeftLegBv, summaryRightLegBv);
+          const summaryFallbackCycles = Math.floor(Math.min(
+            summaryLowerLegBv / CYCLE_RULE_HIGHER_BV,
+            summaryHigherLegBv / CYCLE_RULE_LOWER_BV,
+          ));
+          const summaryCycles = Math.max(0, toWholeNumber(
+            binaryTreeSummarySnapshot?.accountTotalCycles,
+            summaryFallbackCycles,
+          ));
+          applyDashboardLoopDisplayMetrics(resolveDashboardLoopDisplayMetrics({
+            leftLegBv: summaryLeftLegBv,
+            rightLegBv: summaryRightLegBv,
+            totalCycles: summaryCycles,
+          }));
+          if (nextLastAppliedCutoffAt !== previousAppliedCutoffAt) {
+            void loadSettledSalesTeamCommissionSnapshotForCurrentUser({
+              force: true,
+              rerender: true,
+              silent: true,
+            });
+          }
           renderVolumeMetrics();
           requestServerCutoffHeightSync();
         }
 
         function buildMemberServerCutoffMetricsQuery() {
+          const cutoffIdentityPayload = resolveMemberServerCutoffIdentityPayload();
           const query = new URLSearchParams();
           if (cutoffIdentityPayload.userId) {
             query.set('userId', cutoffIdentityPayload.userId);
@@ -28404,13 +28664,7 @@
         loadRuntimeSettings().catch((error) => {
           console.warn('Unable to initialize runtime settings:', error);
         });
-        loadCommissionPayoutRequestsForCurrentUser().catch((error) => {
-          console.warn('Unable to initialize wallet commission offsets:', error);
-        });
-        loadCommissionContainerSnapshotForCurrentUser({ rerender: true }).catch((error) => {
-          commissionContainersHydrated = true;
-          console.warn('Unable to initialize commission containers:', error);
-        });
+        void initializeCommissionRuntimeState({ silent: true });
         window.addEventListener('storage', (event) => {
           if (event.key !== RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY) {
             return;

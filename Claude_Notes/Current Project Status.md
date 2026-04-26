@@ -7,6 +7,53 @@ Last Updated: 2026-04-26
 - Living status tracker for active scope, roadmap, and development gates.
 - Updated continuously as work progresses.
 
+## Recent Update (2026-04-26) - Dashboard Cutoff Identity Sync Fix + Backend Identity Normalization
+
+- Completed:
+  - fixed `index.html` cutoff identity query construction to resolve identity dynamically on each sync instead of capturing a stale one-time snapshot.
+  - expanded dashboard cutoff identity fallbacks to include:
+    - `id/userId/memberId`
+    - `username/memberUsername`
+    - `email/userEmail/login`
+  - normalized dashboard cutoff usernames by stripping leading `@`.
+  - triggered immediate cutoff-metrics refresh after async session hydration completes.
+  - updated `backend/services/cutoff.service.js` identity matching to treat `@username` and `username` as equivalent.
+- Outcome:
+  - prevents server cutoff panel from sticking at `0 / 0` when session identity arrives after initial card init or carries `@`-prefixed usernames.
+  - member cutoff metrics endpoint now resolves identities robustly across normalized username variants.
+- Files updated:
+  - `index.html`
+  - `backend/services/cutoff.service.js`
+  - `Claude_Notes/member-dashboard-page.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/services/cutoff.service.js` passed.
+  - inline script parse check for `index.html` passed (`INLINE_SCRIPT_PARSE_OK blocks=3`).
+  - `getMemberServerCutoffMetrics({ username: '@zeroone' })` resolved expected metrics successfully.
+
+## Recent Update (2026-04-26) - Business Center Dynamic Cycle Direction Aligned
+
+- Completed:
+  - updated `backend/services/member-business-center.service.js` cycle settlement computation to enforce dynamic consumption direction:
+    - weaker leg consumes `cycleHigherBv` (default `1000 BV`)
+    - stronger leg consumes `cycleLowerBv` (default `500 BV`)
+  - removed the previous balancing heuristic that could consume the lower threshold on the weaker leg in some scenarios.
+  - kept admin display logic unchanged by request (admin is management-only and non-reward-critical).
+- Outcome:
+  - Business Center cycle carry/consumption behavior now matches member-side cutoff cycle rule direction.
+  - reversed-leg scenarios now behave symmetrically (carry remains on the stronger side after one cycle).
+- Files updated:
+  - `backend/services/member-business-center.service.js`
+  - `Claude_Notes/binary-tree-business-center.md`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+- Validation:
+  - `node --check backend/services/member-business-center.service.js` passed.
+  - scenario checks:
+    - `L=1000`, `R=1192` => `cycles=1`, carry `L=0`, `R=692`
+    - `L=1192`, `R=1000` => `cycles=1`, carry `L=692`, `R=0`
+
 ## Recent Update (2026-04-26) - Monthly Active Window + 7-Day Renewal Warning Window
 
 - Completed:
@@ -105,6 +152,35 @@ Last Updated: 2026-04-26
   - `Claude_Notes/Current Project Status.md`
 - Validation:
   - `node --check binary-tree-next-app.mjs` passed.
+  - inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 3`.
+
+## Recent Update (2026-04-26) - Dynamic Weaker/Stronger Cycle Cut + Sales Team KPI Fix
+
+- Completed:
+  - switched cycle math to dynamic cut direction:
+    - weaker leg consumes `1000 BV`
+    - stronger leg consumes `500 BV`
+  - applied dynamic rule in backend cutoff consumption, cutoff metrics estimation, dashboard loop formulas, and binary tree loop formulas.
+  - fixed Sales Team KPI behavior so previously earned Sales Team balance from commission container is not erased when current loop cycles drop/reset after cutoff.
+  - added sync guard to avoid posting downgraded sales-team snapshot values that can wipe existing earned KPI state.
+
+- Outcome:
+  - carry-forward logic now aligns with expected scenario (`L=1000`, `R=1192` => `R` carry `692` after one cycle).
+  - Sales Team KPI card preserves earned balance/cycle context instead of unexpectedly dropping to zero during loop refresh.
+
+- Files updated:
+  - `backend/services/admin.service.js`
+  - `backend/services/cutoff.service.js`
+  - `index.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check backend/services/admin.service.js` passed.
+  - `node --check backend/services/cutoff.service.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+  - inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 3`.
   - `node --check backend/services/member.service.js` passed.
 
 ## Recent Update (2026-04-24) - Search Overlay Clipping Fix While Mobile Panel Scrolls
@@ -18390,3 +18466,110 @@ Validation state:
 
 - Validation:
   - inline script parse check passed for `index.html`.
+
+## Recent Update (2026-04-26) - Weekly Cutoff Loop Metrics Aligned in UI
+
+- Completed:
+  - switched member dashboard loop displays (cycles + left/right BV summary cards) to cutoff-consumed current-week values.
+  - integrated Binary Tree Next account overview sync with `/api/member/server-cutoff-metrics`.
+  - updated Binary Tree selected-node detail panel (`Left Leg`, `Right Leg`, `Cycles`) to show cutoff-consumed values for the signed-in member node.
+  - preserved historical/lifetime metrics displays and raw snapshot persistence behavior to avoid backend carry-forward regression.
+
+- Outcome:
+  - users no longer see raw lifetime leg totals in loop-facing areas right after cutoff consumption.
+  - loop displays now match expected post-cutoff consumed state (including valid carry-forward remainders).
+
+- Files updated:
+  - `index.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Recent Update (2026-04-26) - Account Activity + Payout Eligibility Hardening
+
+- Completed:
+  - replaced month-anchored account activity window logic with strict rolling `30-day` windows in activity helpers.
+  - enforced inactive-account blocking in payout request and payout fulfillment workflows.
+  - aligned capability gating so `pending-password-setup` is treated as pending.
+
+- Outcome:
+  - account activity duration no longer drifts by calendar month length.
+  - inactive members cannot submit/fulfill payout flows until active again.
+  - status labeling and pending-capability gates are now consistent.
+
+- Files updated:
+  - `backend/utils/member-activity.helpers.js`
+  - `backend/services/payout.service.js`
+  - `backend/utils/member-capability.helpers.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+
+- Validation:
+  - `node --check backend/utils/member-activity.helpers.js` passed.
+  - `node --check backend/services/payout.service.js` passed.
+  - `node --check backend/utils/member-capability.helpers.js` passed.
+
+## Recent Update (2026-04-26) - Sales Team Rewards Gated to Post-Cutoff Settlement
+
+- Completed:
+  - switched Sales Team commission card to render from settled snapshot data only.
+  - gated Sales Team reward visibility by `lastAppliedCutoffAt` from server cutoff metrics.
+  - blocked member-side pre-cutoff Sales Team snapshot persistence (member runtime no longer POSTs live cycle estimates).
+  - refreshed settled Sales Team snapshot when cutoff settlement changes and when current session identity updates.
+  - unified dashboard bootstrap commission init through `initializeCommissionRuntimeState(...)`.
+
+- Outcome:
+  - users no longer see/claim Sales Team cycle rewards before cutoff settlement.
+  - Sales Team payout button now remains disabled pre-cutoff because available commission stays `0` until settlement exists.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+
+- Validation:
+  - inline script parse check passed for `index.html` (`INLINE_SCRIPT_PARSE_OK blocks=3`).
+
+## Recent Update (2026-04-26) - Sales Team KPI UI Simplified, Cycle Cap Moved to Server Cutoff
+
+- Completed:
+  - removed Sales Team KPI card cycle-progress bar.
+  - removed Sales Team KPI waiting-state text (`Awaiting server cutoff...`).
+  - moved weekly cycle-cap display into Server Cutoff card under `Estimated Cycles`.
+  - rewired render output so cycle-cap usage (`X / Y`) is shown in Server Cutoff panel.
+
+- Outcome:
+  - Sales Team KPI card is cleaner and focused on commission value + transfer action.
+  - cycle-cap context remains visible but now sits with cutoff/cycle data where it belongs.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+
+- Validation:
+  - inline script parse check passed for `index.html` (`INLINE_SCRIPT_PARSE_OK blocks=3`).
+
+## Recent Update (2026-04-26) - Server Cutoff Panel First-Load Sync Performance Fix
+
+- Completed:
+  - added a post-persistence cutoff refresh trigger after binary metrics snapshot save succeeds.
+  - reduced cutoff post-summary refresh delay from `700ms` to `200ms`.
+
+- Outcome:
+  - Server Cutoff left/right volumes now hydrate on initial load without requiring manual page reload in the common race path.
+  - cutoff panel refreshes faster after binary summary updates.
+
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+
+- Validation:
+  - inline script parse check passed for `index.html` (`INLINE_SCRIPT_PARSE_OK blocks=3`).

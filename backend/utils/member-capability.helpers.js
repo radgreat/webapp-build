@@ -26,7 +26,11 @@ export function isMembershipPlacementReservationPackage(packageKeyInput = '') {
 }
 
 export function isPendingMemberAccount(member = {}) {
-  return resolveMemberAccountStatusKey(member) === 'pending';
+  const accountStatusKey = resolveMemberAccountStatusKey(member);
+  return accountStatusKey === 'pending'
+    || accountStatusKey === 'pending-password-setup'
+    || accountStatusKey.startsWith('pending-')
+    || accountStatusKey.startsWith('pending_');
 }
 
 export function isPendingOrReservationMember(member = {}) {

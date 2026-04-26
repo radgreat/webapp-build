@@ -222,6 +222,7 @@ const MEMBER_BINARY_TREE_TIER_SORT_DIRECTIONS_API = '/api/member-auth/binary-tre
 const ADMIN_REGISTERED_MEMBERS_API = '/api/admin/registered-members';
 const ACCOUNT_OVERVIEW_BINARY_TREE_METRICS_API = '/api/binary-tree-metrics';
 const ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API = '/api/sales-team-commissions';
+const ACCOUNT_OVERVIEW_MEMBER_SERVER_CUTOFF_METRICS_API = '/api/member/server-cutoff-metrics';
 const ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API = '/api/commission-containers';
 const ACCOUNT_OVERVIEW_E_WALLET_API = '/api/e-wallet';
 const MEMBER_ACHIEVEMENTS_API = '/api/member-auth/achievements';
@@ -2701,8 +2702,9 @@ function resolveNodeCycleCount(nodeInput = null, volumeMetricsInput = null) {
   const rightLeg = Math.max(0, Math.floor(safeNumber(metrics.rightVolume, 0)));
   const weakerLeg = Math.min(leftLeg, rightLeg);
   const strongerLeg = Math.max(leftLeg, rightLeg);
-  const cyclesFromWeakerLeg = Math.floor(weakerLeg / 500);
-  const cyclesFromStrongerLeg = Math.floor(strongerLeg / 1000);
+  // Dynamic cycle rule: weaker leg consumes 1000 BV, stronger leg consumes 500 BV.
+  const cyclesFromWeakerLeg = Math.floor(weakerLeg / 1000);
+  const cyclesFromStrongerLeg = Math.floor(strongerLeg / 500);
   return Math.max(0, Math.min(cyclesFromWeakerLeg, cyclesFromStrongerLeg));
 }
 
@@ -4574,6 +4576,7 @@ function createEmptyAccountOverviewRemoteSnapshot() {
   return {
     binaryTreeMetrics: null,
     salesTeamCommission: null,
+    serverCutoffMetrics: null,
     commissionContainerSnapshot: null,
     eWalletSnapshot: null,
     walletCommissionOffsets: null,
@@ -4865,6 +4868,43 @@ function resolveAccountOverviewBinaryTreeMetricsRecord(payload = null) {
   return list.find((entry) => entry && typeof entry === 'object') || null;
 }
 
+function resolveAccountOverviewServerCutoffMetricsRecord(payload = null) {
+  const metrics = (
+    payload?.data?.metrics
+    && typeof payload.data.metrics === 'object'
+  )
+    ? payload.data.metrics
+    : (
+      payload?.metrics
+      && typeof payload.metrics === 'object'
+        ? payload.metrics
+        : null
+    );
+  if (!metrics) {
+    return null;
+  }
+  const cycleLowerBv = Math.max(1, Math.floor(safeNumber(metrics.cycleLowerBv, 500)));
+  const cycleHigherBv = Math.max(cycleLowerBv, Math.floor(safeNumber(metrics.cycleHigherBv, 1000)));
+  const currentWeekLeftLegBv = Math.max(0, Math.floor(safeNumber(metrics.currentWeekLeftLegBv, 0)));
+  const currentWeekRightLegBv = Math.max(0, Math.floor(safeNumber(metrics.currentWeekRightLegBv, 0)));
+  const lowerLegBv = Math.min(currentWeekLeftLegBv, currentWeekRightLegBv);
+  const higherLegBv = Math.max(currentWeekLeftLegBv, currentWeekRightLegBv);
+  const estimatedCycles = Math.max(0, Math.floor(safeNumber(
+    metrics.estimatedCycles,
+    Math.min(
+      Math.floor(lowerLegBv / cycleHigherBv),
+      Math.floor(higherLegBv / cycleLowerBv),
+    ),
+  )));
+  return {
+    cycleLowerBv,
+    cycleHigherBv,
+    currentWeekLeftLegBv,
+    currentWeekRightLegBv,
+    estimatedCycles,
+  };
+}
+
 function summarizeAccountOverviewBinaryTreeMetrics(payload = null) {
   const list = Array.isArray(payload?.snapshots) ? payload.snapshots : [];
   if (!list.length) {
@@ -5033,11 +5073,15 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
     const [
       binaryTreeMetricsPayload,
       salesTeamCommissionsPayload,
+      serverCutoffMetricsPayload,
       commissionContainersPayload,
       eWalletPayload,
     ] = await Promise.all([
       fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_BINARY_TREE_METRICS_API, identityQuery),
       fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API, identityQuery),
+      allowAnonymous
+        ? Promise.resolve(null)
+        : fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_MEMBER_SERVER_CUTOFF_METRICS_API, identityQuery),
       allowAnonymous
         ? Promise.resolve(null)
         : fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API, identityQuery),
@@ -5058,6 +5102,9 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
         || resolveAccountOverviewSalesTeamCommissionRecord(salesTeamCommissionsPayload)
       )
       : resolveAccountOverviewSalesTeamCommissionRecord(salesTeamCommissionsPayload);
+    const serverCutoffMetrics = allowAnonymous
+      ? null
+      : resolveAccountOverviewServerCutoffMetricsRecord(serverCutoffMetricsPayload);
     const commissionContainerSnapshot = (
       commissionContainersPayload?.snapshot
       && typeof commissionContainersPayload.snapshot === 'object'
@@ -5086,6 +5133,7 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
     const nextSnapshot = {
       binaryTreeMetrics,
       salesTeamCommission,
+      serverCutoffMetrics,
       commissionContainerSnapshot,
       eWalletSnapshot,
       walletCommissionOffsets,
@@ -5100,6 +5148,7 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
     if (
       binaryTreeMetrics
       || salesTeamCommission
+      || serverCutoffMetrics
       || commissionContainerSnapshot
       || eWalletSnapshot
       || normalizedScope === 'system'
@@ -15215,6 +15264,84 @@ function resolveNodeLegVolumes(nodeId) {
   };
 }
 
+function shouldUseCutoffLoopMetricsForNode(nodeIdInput = '', nodeInput = null) {
+  const selectedNodeIdKey = normalizeCredentialValue(nodeIdInput);
+  if (!selectedNodeIdKey) {
+    return false;
+  }
+
+  const preferredHomeNodeIdKey = normalizeCredentialValue(resolvePreferredGlobalHomeNodeId() || '');
+  if (preferredHomeNodeIdKey && preferredHomeNodeIdKey !== 'root' && selectedNodeIdKey === preferredHomeNodeIdKey) {
+    return true;
+  }
+
+  const sessionNodeIdSet = resolveSessionAvatarNodeIdSet();
+  sessionNodeIdSet.delete('root');
+  if (sessionNodeIdSet.has(selectedNodeIdKey)) {
+    return true;
+  }
+
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  if (!node || !session) {
+    return false;
+  }
+  const nodeUsernameKey = normalizeCredentialValue(
+    safeText(node.username || node.memberCode || node.member_username || '').replace(/^@+/, ''),
+  );
+  const sessionUsernameKey = normalizeCredentialValue(
+    safeText(session.username || session.memberUsername || '').replace(/^@+/, ''),
+  );
+  return Boolean(nodeUsernameKey && sessionUsernameKey && nodeUsernameKey === sessionUsernameKey);
+}
+
+function resolveNodeLoopDisplayMetrics(nodeIdInput = '', nodeInput = null, baseVolumeMetricsInput = null) {
+  const baseVolumeMetrics = baseVolumeMetricsInput && typeof baseVolumeMetricsInput === 'object'
+    ? baseVolumeMetricsInput
+    : resolveNodeLegVolumes(nodeIdInput);
+  const fallbackCycleCount = resolveNodeCycleCount(nodeInput, baseVolumeMetrics);
+  const fallbackMetrics = {
+    leftVolume: Math.max(0, Math.floor(safeNumber(baseVolumeMetrics?.leftVolume, 0))),
+    rightVolume: Math.max(0, Math.floor(safeNumber(baseVolumeMetrics?.rightVolume, 0))),
+    cycles: Math.max(0, Math.floor(safeNumber(fallbackCycleCount, 0))),
+  };
+  if (!shouldUseCutoffLoopMetricsForNode(nodeIdInput, nodeInput)) {
+    return fallbackMetrics;
+  }
+
+  const cutoffMetrics = accountOverviewRemoteSnapshot?.serverCutoffMetrics;
+  if (!cutoffMetrics || typeof cutoffMetrics !== 'object') {
+    return fallbackMetrics;
+  }
+
+  const leftVolume = Math.max(0, Math.floor(safeNumber(
+    cutoffMetrics.currentWeekLeftLegBv,
+    fallbackMetrics.leftVolume,
+  )));
+  const rightVolume = Math.max(0, Math.floor(safeNumber(
+    cutoffMetrics.currentWeekRightLegBv,
+    fallbackMetrics.rightVolume,
+  )));
+  const cycleLowerBv = Math.max(1, Math.floor(safeNumber(cutoffMetrics.cycleLowerBv, 500)));
+  const cycleHigherBv = Math.max(cycleLowerBv, Math.floor(safeNumber(cutoffMetrics.cycleHigherBv, 1000)));
+  const lowerLegBv = Math.min(leftVolume, rightVolume);
+  const higherLegBv = Math.max(leftVolume, rightVolume);
+  const computedCycleCount = Math.floor(Math.min(
+    lowerLegBv / cycleHigherBv,
+    higherLegBv / cycleLowerBv,
+  ));
+  const cycles = Math.max(0, Math.floor(safeNumber(
+    cutoffMetrics.estimatedCycles,
+    computedCycleCount,
+  )));
+
+  return {
+    leftVolume,
+    rightVolume,
+    cycles,
+  };
+}
+
 function resolveSideNavMemberStatusSnapshot(targetNodeInput = null) {
   const targetNode = targetNodeInput && typeof targetNodeInput === 'object'
     ? targetNodeInput
@@ -22623,7 +22750,8 @@ function drawSideNav(layout) {
         }
       }
 
-      const cyclesCount = resolveNodeCycleCount(selectedNode, volumeMetrics);
+      const loopDisplayMetrics = resolveNodeLoopDisplayMetrics(selectedNodeId, selectedNode, volumeMetrics);
+      const cyclesCount = Math.max(0, Math.floor(safeNumber(loopDisplayMetrics.cycles, 0)));
       const relationButtonHeight = Math.round(32 + (14 * detailVerticalScale));
       const relationButtonGap = Math.round(4 + (8 * detailVerticalScale));
       const metricsToButtonsGap = Math.round(6 + (10 * detailVerticalScale));
@@ -22659,8 +22787,8 @@ function drawSideNav(layout) {
       const metricRows = [
         { label: 'Total Organizational BV', value: formatExactVolumeValue(volumeMetrics.totalVolume) },
         { label: 'Personal BV', value: formatExactVolumeValue(volumeMetrics.personalVolume) },
-        { label: 'Left Leg', value: formatExactVolumeValue(volumeMetrics.leftVolume) },
-        { label: 'Right Leg', value: formatExactVolumeValue(volumeMetrics.rightVolume) },
+        { label: 'Left Leg', value: formatExactVolumeValue(loopDisplayMetrics.leftVolume) },
+        { label: 'Right Leg', value: formatExactVolumeValue(loopDisplayMetrics.rightVolume) },
         { label: 'Cycles', value: String(cyclesCount) },
       ];
       const maxRelationStartY = detailsBottomY - relationBlockHeight - detailsBottomPad;

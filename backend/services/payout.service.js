@@ -30,6 +30,7 @@ import {
   buildAccountUpgradeRequiredResult,
   isPendingOrReservationMember,
 } from '../utils/member-capability.helpers.js';
+import { resolveMemberActivityStateByPersonalBv } from '../utils/member-activity.helpers.js';
 
 const DEFAULT_CURRENCY_CODE = 'USD';
 const DEFAULT_MINIMUM_PAYOUT_AMOUNT_USD = 20;
@@ -745,6 +746,19 @@ function buildInvalidAmountError(minimumAmount) {
   };
 }
 
+function buildActiveAccountRequiredResult(status = 403) {
+  return {
+    success: false,
+    status,
+    error: 'Active account required.',
+  };
+}
+
+function isInactiveMemberForPayout(member = {}) {
+  const activityState = resolveMemberActivityStateByPersonalBv(member);
+  return activityState?.isActive !== true;
+}
+
 export async function getPayoutRequests(query = {}) {
   const identityKeys = resolvePayoutRequestIdentityKeys({
     userId: query?.userId,
@@ -799,6 +813,9 @@ export async function createPayoutRequest(payload = {}) {
   }
   if (isPendingOrReservationMember(memberUser)) {
     return buildAccountUpgradeRequiredResult();
+  }
+  if (isInactiveMemberForPayout(memberUser)) {
+    return buildActiveAccountRequiredResult();
   }
 
   const payoutEligibility = await resolveStripePayoutEligibilityForMember(memberUser);
@@ -1126,6 +1143,11 @@ export async function fulfillAdminPayoutRequest(payload = {}) {
       await client.query('ROLLBACK');
       transactionClosed = true;
       return buildAccountUpgradeRequiredResult();
+    }
+    if (isInactiveMemberForPayout(memberUser)) {
+      await client.query('ROLLBACK');
+      transactionClosed = true;
+      return buildActiveAccountRequiredResult();
     }
 
     const amount = roundCurrencyAmount(existingRequest.amount);

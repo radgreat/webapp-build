@@ -1,11 +1,50 @@
 # Member Dashboard Page Notes
 
-Last Updated: 2026-04-24
+Last Updated: 2026-04-26
 
 ## Scope
 
 - Page: `index.html`
 - Purpose: Primary authenticated member dashboard shell and module host.
+
+## Recent Update (2026-04-26) - Server Cutoff Panel Identity Sync + `@username` Handling
+
+### What Was Changed
+
+- Updated cutoff metrics identity flow in `index.html`:
+  - replaced static `cutoffIdentityPayload` capture with dynamic per-request identity resolution.
+  - added fallback identity candidates from session:
+    - `id/userId/memberId`
+    - `username/memberUsername`
+    - `email/userEmail/login`
+  - normalized username for cutoff API queries by stripping leading `@`.
+- Updated session hydration flow in `index.html`:
+  - after successful `/api/member-auth/session` merge, triggers cutoff metrics refresh so server cutoff panel can update immediately.
+- Updated backend `backend/services/cutoff.service.js`:
+  - identity matching now considers both raw username and `@`-stripped username for query/record matching.
+
+### Files Affected
+
+- `index.html`
+- `backend/services/cutoff.service.js`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept existing cutoff display math unchanged and focused patch scope on identity resolution and sync timing.
+- Added normalization on both UI and API sides to avoid silent identity misses.
+
+### Known Limitations
+
+- In this environment snapshot, forced cutoff history/state tables are empty, so loop carry-forward will not appear consumed until a cutoff is actually applied.
+
+### Validation
+
+- `node --check backend/services/cutoff.service.js` passed.
+- Inline script parse check for `index.html` passed (`INLINE_SCRIPT_PARSE_OK blocks=3`).
+- Verified service behavior: `getMemberServerCutoffMetrics({ username: '@zeroone' })` resolves member metrics.
 
 ## Recent Update (2026-04-24) - Enroll Member Package Dropdown Removes Free Account Option
 
@@ -745,6 +784,68 @@ Known limitation:
 ### Validation
 
 - Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-26) - KPI UI Rework: Weekly Cycle Cap Moved to Server Cutoff Card
+
+### What Changed
+
+- In `index.html`:
+  - removed Sales Team KPI card cycle summary line and progress bar.
+  - added `#server-cutoff-cycle-cap-summary` under Server Cutoff `Estimated Cycles`.
+  - updated `renderSalesTeamCommissionsCard(...)` to:
+    - stop rendering `Awaiting server cutoff before cycles are credited.` on Sales Team card.
+    - render `Weekly cycle cap: X / Y` (and overflow suffix when applicable) inside Server Cutoff panel.
+
+### Design Decisions
+
+- Kept Sales Team card focused on monetary KPI and payout CTA.
+- Moved cycle-cap context to cutoff panel because it is cutoff/cycle operational data.
+
+### Validation
+
+- Inline script parse check passed for `index.html` (`INLINE_SCRIPT_PARSE_OK blocks=3`).
+
+## Addendum (2026-04-26) - Server Cutoff First-Load Volume Hydration Fix
+
+### What Changed
+
+- In `index.html`:
+  - updated `queueBinaryTreeMetricsSnapshotSync(...)` to call `updateServerCutoffMetrics()` after successful snapshot POST completion.
+  - reduced `cutoffMetricsSyncDelayAfterSummaryMs` from `700` to `200` for faster first-load and post-summary cutoff panel updates.
+
+### Design Decisions
+
+- The cutoff card now refreshes after the snapshot write completes, preventing stale first-call reads that required manual reload before.
+
+### Validation
+
+- Inline script parse check passed for `index.html` (`INLINE_SCRIPT_PARSE_OK blocks=3`).
+
+## Addendum (2026-04-26) - Sales Team Commission Card Uses Settled Post-Cutoff Data
+
+### What Changed
+
+- In `index.html`:
+  - added settled Sales Team commission loader (`loadSettledSalesTeamCommissionSnapshotForCurrentUser`) using `GET /api/sales-team-commissions`.
+  - updated `renderSalesTeamCommissionsCard(...)` to require cutoff settlement (`lastAppliedCutoffAt`) before showing cycles/commission.
+  - card now displays waiting message pre-cutoff: `Awaiting server cutoff before cycles are credited.`
+  - removed member runtime pre-cutoff Sales Team snapshot writes by no-oping `queueSalesTeamCommissionSnapshotSync(...)`.
+  - tied settled Sales Team refresh to cutoff timestamp changes in `applyServerCutoffMetricsPayload(...)`.
+  - bootstrap now initializes payout offsets + commission containers + settled Sales Team state via `initializeCommissionRuntimeState(...)`.
+  - session user patch path now refreshes settled Sales Team snapshot to keep identity data aligned.
+
+### Design Decisions
+
+- Sales Team reward KPI is now settlement-driven, not live loop-estimate-driven.
+- Payout eligibility follows settled balance only, so pre-cutoff loops cannot be transferred.
+
+### Known Limitations
+
+- If cutoff metrics payload is temporarily unavailable, Sales Team card remains conservative (0 + waiting state) until cutoff data is restored.
+
+### Validation
+
+- Inline script parse check passed for `index.html` (`INLINE_SCRIPT_PARSE_OK blocks=3`).
 
 ## Addendum (2026-04-26) - My Store Account Upgrades Checkout (Index)
 

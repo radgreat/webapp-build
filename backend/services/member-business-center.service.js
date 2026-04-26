@@ -2706,36 +2706,23 @@ function resolveCycleSplitComputation({
   let cycleCount = 0;
 
   while (true) {
-    const canLeftBeLower = remainingLeft >= lowerBv && remainingRight >= higherBv;
-    const canRightBeLower = remainingRight >= lowerBv && remainingLeft >= higherBv;
+    const weakerIsLeft = remainingLeft <= remainingRight;
+    const weakerVolume = weakerIsLeft ? remainingLeft : remainingRight;
+    const strongerVolume = weakerIsLeft ? remainingRight : remainingLeft;
 
-    if (!canLeftBeLower && !canRightBeLower) {
+    if (weakerVolume < higherBv || strongerVolume < lowerBv) {
       break;
     }
 
-    let consumeLeft = 0;
-    let consumeRight = 0;
-
-    if (canLeftBeLower && canRightBeLower) {
-      const diffLeftLower = Math.abs((remainingLeft - lowerBv) - (remainingRight - higherBv));
-      const diffRightLower = Math.abs((remainingLeft - higherBv) - (remainingRight - lowerBv));
-      if (diffLeftLower <= diffRightLower) {
-        consumeLeft = lowerBv;
-        consumeRight = higherBv;
-      } else {
-        consumeLeft = higherBv;
-        consumeRight = lowerBv;
-      }
-    } else if (canLeftBeLower) {
-      consumeLeft = lowerBv;
-      consumeRight = higherBv;
+    // Dynamic rule: weaker leg consumes higher threshold; stronger leg consumes lower threshold.
+    if (weakerIsLeft) {
+      remainingLeft -= higherBv;
+      remainingRight -= lowerBv;
     } else {
-      consumeLeft = higherBv;
-      consumeRight = lowerBv;
+      remainingLeft -= lowerBv;
+      remainingRight -= higherBv;
     }
 
-    remainingLeft -= consumeLeft;
-    remainingRight -= consumeRight;
     cycleCount += 1;
   }
 
