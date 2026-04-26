@@ -15,6 +15,10 @@ import {
   findUserById,
   findUserByIdentifier,
 } from '../stores/user.store.js';
+import {
+  buildAccountUpgradeRequiredResult,
+  isPendingOrReservationMember,
+} from '../utils/member-capability.helpers.js';
 
 const MAX_BUSINESS_CENTER_COUNT = 3;
 const NODE_TYPE_MAIN_CENTER = 'main_center';
@@ -191,6 +195,56 @@ function resolveAuthenticatedIdentity(memberInput = {}) {
     username: normalizeText(memberInput?.username),
     email: normalizeText(memberInput?.email),
   };
+}
+
+async function resolveAuthenticatedUserByIdentity(identity = {}) {
+  const userId = normalizeText(identity?.userId);
+  if (userId) {
+    const matchedById = await findUserById(userId);
+    if (matchedById) {
+      return matchedById;
+    }
+  }
+
+  const username = normalizeText(identity?.username);
+  if (username) {
+    const matchedByUsername = await findUserByIdentifier(username);
+    if (matchedByUsername) {
+      return matchedByUsername;
+    }
+  }
+
+  const email = normalizeText(identity?.email);
+  if (email) {
+    const matchedByEmail = await findUserByIdentifier(email);
+    if (matchedByEmail) {
+      return matchedByEmail;
+    }
+  }
+
+  return null;
+}
+
+async function resolvePendingAccountRestrictionForMember(memberInput = {}) {
+  const authenticatedIdentity = resolveAuthenticatedIdentity(memberInput);
+  if (
+    !authenticatedIdentity.userId
+    && !authenticatedIdentity.username
+    && !authenticatedIdentity.email
+  ) {
+    return null;
+  }
+
+  const authenticatedUser = await resolveAuthenticatedUserByIdentity(authenticatedIdentity);
+  if (!authenticatedUser) {
+    return null;
+  }
+
+  if (isPendingOrReservationMember(authenticatedUser)) {
+    return buildAccountUpgradeRequiredResult();
+  }
+
+  return null;
 }
 
 function doesMemberMatchIdentity(member = {}, identity = {}) {
@@ -2139,6 +2193,11 @@ export async function listBusinessCentersForMember(memberInput = {}) {
 }
 
 export async function syncBusinessCenterProgressForMember(memberInput = {}, payload = {}) {
+  const pendingAccountRestriction = await resolvePendingAccountRestrictionForMember(memberInput);
+  if (pendingAccountRestriction) {
+    return pendingAccountRestriction;
+  }
+
   const completedLegacyTierCountRaw = Number(payload?.completedLegacyTierCount);
   if (!Number.isFinite(completedLegacyTierCountRaw) || completedLegacyTierCountRaw < 0) {
     return {
@@ -2168,6 +2227,11 @@ export async function syncBusinessCenterProgressForMember(memberInput = {}, payl
 }
 
 export async function activateBusinessCenterForMember(memberInput = {}, payload = {}) {
+  const pendingAccountRestriction = await resolvePendingAccountRestrictionForMember(memberInput);
+  if (pendingAccountRestriction) {
+    return pendingAccountRestriction;
+  }
+
   const requestedSide = normalizePlacementSide(
     payload?.side
     || payload?.placementSide

@@ -1,5 +1,42 @@
 # Binary Tree Next Notes
 
+## Update (2026-04-24) - Profile Menu Logout Action Wired
+
+### What Changed
+
+- Fixed profile-menu logout action in binary-tree-next-app.mjs so it performs full sign-out.
+- Added helpers to clear current-source auth storage + cookie and resolve source login path.
+- Updated triggerAction for brand-menu:action:logout to:
+  - close menu/dropdowns
+  - clear current auth snapshot
+  - clear in-memory session
+  - redirect to /login.html (member) or /admin-login.html (admin).
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
+## Update (2026-04-24) - Desktop Profile Icon Placement Scoped Correctly
+
+### What Changed
+
+- Updated drawSideNav so the search-row profile icon renders only on mobile.
+- Desktop search row no longer places the profile icon inside the left panel.
+- Added desktop floating profile avatar button rendering in drawBottomToolBar on the right side of the screen.
+- Wired desktop floating profile avatar as the profile menu anchor while preserving mobile in-panel profile behavior.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
 ## Update (2026-04-24) - Search Overlay Clipping Fix While Mobile Panel Scrolls
 
 ### What Changed
@@ -3837,6 +3874,105 @@ Known limitations:
 ### Files Affected
 
 - `binary-tree-next-app.mjs`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-25) - Reservation Plan Gating In Tree Next
+
+### What Changed
+
+- Added reservation package constants/metadata to tree-next runtime.
+- Added pending/reservation account detection helpers used by tree-next actions.
+- Enrollment package selection validation now accepts the reservation package in the tree-next modal.
+- Added pending account guards so tree-next enrollment mutation paths are blocked with upgrade-required messaging:
+  - `requestEnrollMemberFromTree(...)`
+  - `openTreeNextEnrollModal(...)`
+  - `handleTreeNextEnrollModalSubmit(...)`
+- Tree anticipation slots are now suppressed for pending/reservation accounts.
+- Tree-next My Store controls now enforce pending restrictions:
+  - share-link copy disabled/hidden
+  - checkout action disabled and relabeled to `Upgrade Required`
+- Added `Membership Placement Reservation - $49.99` option to `#tree-next-enroll-package` in `binary-tree-next.html`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+### Design Decisions
+
+- Preserved visual tree participation while gating mutation/control actions for pending members.
+- Used a single user-facing restriction message to keep UX consistent with dashboard/store gates.
+
+### Known Limitations
+
+- This pass focused on runtime guardrails and selector availability; no separate admin-only tree-next package-management UI was introduced.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-25) - My Store Upgrade Split Product Checkout
+
+### What Changed
+
+- Added split allocation logic for My Store package upgrades in `binary-tree-next-app.mjs`.
+- Upgrade checkout now sends split product lines (`carryover + selected`) instead of a single product line.
+- Added checkout payload field `accountUpgradeSelectedProductKey` for backend upgrade finalization metadata.
+- Updated review and checkout labels to display both product quantities (e.g., `MetaCharge 7x + MetaRoast 10x`).
+- Updated copy in `binary-tree-next.html` to reflect split-product selection.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-25) - My Store Upgrade Modes (All / All / Split)
+
+### What Changed
+
+- `binary-tree-next.html`
+  - upgrade selector now presents 3 explicit options:
+    - `All MetaCharge`
+    - `All MetaRoast`
+    - `Split Products`
+  - checkout subtitle copy updated to neutral `product allocation` language.
+
+- `binary-tree-next-app.mjs`
+  - added mode-based upgrade allocation state:
+    - `all-metacharge`
+    - `all-metaroast`
+    - `split`
+  - replaced forced split allocation helper with mode-aware allocation resolver.
+  - selector click handling now sets mode + key together.
+  - checkout payload now includes `accountUpgradeProductMode` and selected product key metadata.
+  - UI selected-state logic now follows selected mode.
+
+### Design Decisions
+
+- Preserved split allocation math for split mode (carryover-to-half + remainder).
+- Kept selected product key as split anchor so split direction remains configurable.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-26) - My Store Review Button Overlap Layout Fix
+
+### What Changed
+
+- `binary-tree-next.html`
+  - converted `.tree-next-my-store-review-card` from fixed grid columns to a wrap-safe flex layout.
+  - made `.tree-next-my-store-review-main` the flexible primary content region.
+  - constrained `.tree-next-my-store-review-side` as an action column that wraps below content when needed.
+  - adjusted checkout button minimum width handling to avoid overflow in tight widths.
+  - updated container/media behavior so wrapped side actions center and remain visually clean.
+
+### Design Decisions
+
+- Solved the issue with layout mechanics (flow/wrap) instead of increasing breakpoints only, because the panel can be narrow even on wide viewports.
+- Kept the same desktop visual intent while preventing the review controls from overlapping.
 
 ### Validation
 

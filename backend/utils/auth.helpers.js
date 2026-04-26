@@ -87,6 +87,9 @@ export function sanitizeUserForAuthResponse(user) {
     publicStoreCode: typeof user?.publicStoreCode === 'string' ? user.publicStoreCode : '',
     storeCode: typeof user?.storeCode === 'string' ? user.storeCode : '',
     enrollmentPackage: user?.enrollmentPackage || '',
+    currentPackageProductKey: typeof user?.currentPackageProductKey === 'string'
+      ? user.currentPackageProductKey
+      : '',
     enrollmentPackageLabel: user?.enrollmentPackageLabel || '',
     enrollmentPackagePrice: Number.isFinite(Number(user?.enrollmentPackagePrice))
       ? Number(user.enrollmentPackagePrice)

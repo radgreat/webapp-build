@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 324
+**Times Updated:** 326
 
 ## Overview
 
@@ -14,6 +14,117 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ?????????????????????????????????????? high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Update (2026-04-26) - Enrollment Split Option + Personal Split Guardrails + Dynamic Product Labels
+
+### What Was Changed
+
+- Updated Binary Tree enrollment product selector in `binary-tree-next.html`:
+  - product option labels now use exact naming:
+    - `MetaCharge™`
+    - `MetaRoast™`
+  - added explicit third option: `Split Products`.
+- Updated enrollment product summary behavior in `binary-tree-next-app.mjs`:
+  - split product selection is now package-gated and interactive via custom select plumbing.
+  - split is only available for:
+    - `Business Builder Pack`
+    - `Infinity Builder Pack`
+    - `Legacy Builder Pack`
+  - split selection is now hidden (removed from view) for `Personal Builder Pack` and non-split-eligible packages.
+  - checkout summary product line now renders dynamic split allocation text when split is selected (e.g., `MetaCharge™ 10x + MetaRoast™ 10x`).
+- Reinforced upgrade split rules in `binary-tree-next-app.mjs`:
+  - kept all three upgrade product modes available:
+    - `All MetaCharge™`
+    - `All MetaRoast™`
+    - `Split Products`
+  - split mode is now hidden from the Binary Tree review selector for personal-target upgrades and only shown for Business+ targets.
+  - added upgrade split eligibility checks to keep UI and computed allocation in sync.
+
+### Follow-up (2026-04-26) - Personal Split Option Hidden Everywhere in Binary Tree
+
+- Updated custom select rendering in `binary-tree-next-app.mjs` so hidden native options are not rendered in the custom dropdown menu.
+- Updated enrollment product availability sync to toggle `hidden` on the split option for non-eligible packages (not only disabled state).
+- Updated My Store upgrade review product selector to hide the `Split Products` button when the selected upgrade package is not split-eligible.
+- Result:
+  - `Personal Builder Pack` no longer shows split option in Binary Tree enrollment product dropdown.
+  - personal-target upgrade review no longer shows split option button.
+- Extended backend product-mode handling in `backend/services/member.service.js`:
+  - enrollment product normalization now supports `split` with package eligibility checks.
+  - account-upgrade mode normalization now enforces split eligibility by target package.
+  - current package product state now supports `split` for carry-forward logic.
+  - split upgrades now persist package product state as `split` so future upgrades can derive balanced carryover behavior.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `backend/services/member.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept split as a true third option (not forced mode) so users can still choose full single-product allocations.
+- Enforced Business+ gating in both frontend and backend to avoid UI/API mismatch.
+- Used explicit product-state normalization to support future upgrade math when a package is already split.
+
+### Known Limitations
+
+- Existing historical accounts created before split-state persistence may still carry legacy single-product state and may need migration/backfill if strict historical split accuracy is required.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-26) - User Dashboard My Store: Account Upgrades Checkout Added
+
+### Request Applied
+
+- Added Account Upgrades directly inside User Dashboard `My Store` (`index.html`) so upgrades can be selected and checked out from the same store surface.
+
+### What Was Changed
+
+- `index.html`
+  - added new `My Store` section UI block:
+    - package upgrade cards (available tiers above current package)
+    - product mode options:
+      - `All MetaCharge™`
+      - `All MetaRoast™`
+      - `Split Products`
+    - upgrade quote + product allocation preview
+    - dedicated `Checkout Upgrade in Stripe` button
+  - added frontend upgrade state + allocation logic for My Store:
+    - mode normalization (`all-metacharge`, `all-metaroast`, `split`)
+    - split eligibility gating by target package (Business and above only)
+    - ownership-aware split preview based on current owned product key
+  - added hosted Stripe checkout submit flow for upgrades using existing store checkout API metadata:
+    - `accountUpgradeTargetPackage`
+    - `accountUpgradeSelectedProductKey`
+    - `accountUpgradeProductMode`
+  - updated hosted checkout completion sync to apply `accountUpgrade.user` session patch when returned.
+  - added success/warning feedback handling for upgrade result messages after Stripe return finalization.
+
+### Design Decisions
+
+- Reused existing store checkout session/complete endpoints so My Store upgrades stay in one payment pipeline.
+- Kept regular cart checkout and upgrade checkout as separate actions to avoid mixed checkout ambiguity.
+- Mirrored backend split behavior in frontend preview to keep allocation labels consistent pre- and post-payment.
+
+### Known Limitations
+
+- Upgrade checkout requires active `MetaCharge` / `MetaRoast` catalog products with sufficient stock; if missing/insufficient, upgrade checkout is blocked with guidance in UI.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+- `node --check backend/services/member.service.js` passed.
 
 ## Update (2026-04-24) - Mobile Outside Button Groups Smooth Half->Full Animation
 
@@ -67,6 +178,28 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - panel hidden/not open
   - closed state search row
   - expanded scrollable content state.
+
+### Addendum (2026-04-24) - Desktop Profile Icon Restored to Right Side (Mobile-Only In-Panel Profile)
+
+- Updated `drawSideNav(...)` so the search-row profile icon is now mobile-only.
+- Desktop search row no longer renders the profile icon inside the left panel.
+- Updated desktop toolbar rendering in `drawBottomToolBar(...)` to render/register a floating profile avatar button on the right side of the screen and use it as the profile menu anchor.
+- Preserved mobile behavior where the profile icon remains inside the center/left panel search row.
+
+### Addendum (2026-04-24) - Profile Menu Logout Wiring Fixed
+
+- Fixed unwired logout action in `binary-tree-next-app.mjs` profile menu flow.
+- Added session-clear helpers for Binary Tree Next shell:
+  - `clearCookieValue(...)`
+  - `clearSessionSnapshot(...)`
+  - `clearCurrentSourceSessionSnapshot(...)`
+  - `resolveSourceLoginPath(...)`
+  - `logoutCurrentSourceSession(...)`
+- Updated `triggerAction('brand-menu:action:logout')` to execute full logout behavior instead of only closing the menu:
+  - close profile menu/search dropdown
+  - clear current source auth snapshot from localStorage/sessionStorage/cookie
+  - null session in memory
+  - redirect to source-appropriate login (`/login.html` member, `/admin-login.html` admin).
 
 ## Update (2026-04-24) - Binary Tree Next Mobile UX Pass (Apple Maps Style Sheet + Touch Controls)
 
@@ -31704,6 +31837,678 @@ Known limitation:
 ### Outcome
 
 - Canvas rendering remains significantly sharper on mobile while still retaining adaptive behavior.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - User Enroll Member Package UI Removes Free Account Option
+
+### Request Applied
+
+- On user dashboard Enroll Member page, remove the free account option from Enrollment Package selection.
+
+### Fix Implemented
+
+- Updated `index.html` Enrollment Package dropdown options on user-facing enrollment flows:
+  - removed `<option value="preferred-customer-pack">Free Account - $0</option>` from `#enroll-member-package`
+  - removed `<option value="preferred-customer-pack">Free Account - $0</option>` from `#tree-enroll-package`
+- Left free-account constants/package metadata untouched to avoid regressions for existing preferred/free account records and supporting logic paths.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Scoped the change to member-facing UI selectors only, matching the request without broad rank/package logic refactors.
+
+### Known Limitations
+
+- Backend and internal logic still include `preferred-customer-pack`; only the user-side selection list has changed.
+
+### Validation
+
+- Confirmed both user enrollment package selects now show only paid package entries.
+
+## Addendum (2026-04-25) - Membership Placement Reservation Plan + Pending Account Enforcement
+
+### Request Applied
+
+- Implement a new enrollment plan: `Membership Placement Reservation` (`$49.99`) that reserves binary-tree placement while keeping the account in a non-earning, non-enrolling `Pending` state until upgrade.
+
+### Core Backend Changes
+
+- Added capability helper: `backend/utils/member-capability.helpers.js`
+  - constants for reservation package + standardized upgrade-required error
+  - shared checks: pending state / reservation plan / pending-or-reservation
+- Updated enrollment + upgrade flow in `backend/services/member.service.js`
+  - added reservation package metadata (`price`, `bv`, feature flags)
+  - reservation account creation now sets account status to `pending`
+  - reservation member records are created with `isEarningEligible=false` and inactive activation status
+  - pending/reservation members are blocked from member-enrollment routes (except admin-placement mode)
+  - pending/reservation users cannot receive purchase PV via `recordMemberPurchase`
+  - upgrade path treats reservation tier as free-tier origin and defaults next upgrade target to `personal-builder-pack`
+  - on successful upgrade, earning + activation fields are re-enabled
+  - fixed post-upgrade status derivation so legacy `pending` state does not persist after package upgrade
+- Added server-side restriction checks for pending/reservation users in:
+  - `backend/services/store-checkout.service.js`
+  - `backend/services/invoice.service.js`
+  - `backend/services/preferred-attribution.service.js`
+  - `backend/services/payout.service.js`
+  - `backend/services/wallet.service.js`
+  - `backend/services/member-business-center.service.js`
+- Restricted flows now return `Account upgrade required.` with `403` when applicable.
+
+### Frontend Changes
+
+- `index.html`
+  - added reservation package option to member enrollment selectors
+  - introduced pending/reservation state helpers and upgrade-gate messaging
+  - pending users now see dashboard + tree access but are blocked from enrollment/sponsor/invite actions
+  - binary-tree enroll controls and preferred customer enrollment are blocked for pending members
+  - store-link copy/access and store attribution usage are disabled for pending users
+  - My Store checkout actions are disabled for pending users with upgrade-required messaging
+  - account status badges + upgrade CTA now reflect `Pending`
+  - business-center panel/actions are blocked with upgrade prompt for pending users
+- `binary-tree-next-app.mjs`
+  - added reservation package metadata/constants and pending gate message
+  - added pending/reservation helper checks across tree-next enrollment/anticipation actions
+  - pending users are blocked from tree-next enroll modal/actions and anticipation slot interactions
+  - tree-next My Store share-link and checkout actions are disabled for pending users
+- `binary-tree-next.html`
+  - added reservation package option to `#tree-next-enroll-package` select
+
+### Files Affected
+
+- `backend/utils/member-capability.helpers.js`
+- `backend/utils/member-activity.helpers.js`
+- `backend/services/member.service.js`
+- `backend/services/store-checkout.service.js`
+- `backend/services/invoice.service.js`
+- `backend/services/preferred-attribution.service.js`
+- `backend/services/payout.service.js`
+- `backend/services/wallet.service.js`
+- `backend/services/member-business-center.service.js`
+- `index.html`
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+### Design Decisions
+
+- Reservation package is placement-only and non-earning by default; commission and payout surfaces are blocked server-side.
+- Reservation package is treated as free-tier origin for upgrade progression to avoid introducing a parallel upgrade ladder.
+- Access model is view-first: pending users keep dashboard + tree visibility while all growth/earning mutations are gated.
+
+### Known Limitations
+
+- No dedicated database migration file was introduced in this pass because package/state handling is currently driven by existing record fields and runtime logic.
+- Admin-side package catalogs outside the touched member/tree flows may require a follow-up if reservation plan must appear everywhere in admin tooling.
+
+### Validation
+
+- `node --check backend/services/member.service.js`
+- `node --check backend/services/store-checkout.service.js`
+- `node --check backend/services/invoice.service.js`
+- `node --check backend/services/preferred-attribution.service.js`
+- `node --check backend/services/payout.service.js`
+- `node --check backend/services/wallet.service.js`
+- `node --check backend/services/member-business-center.service.js`
+- `node --check backend/utils/member-capability.helpers.js`
+- `node --check backend/utils/member-activity.helpers.js`
+- `node --check binary-tree-next-app.mjs`
+
+## Addendum (2026-04-25) - Pending Reservation UI: Rank Suppression + Upgrade Toast On Restricted Navigation
+
+### Request Applied
+
+- For Membership Placement Reservation (`Pending`) users:
+  - do not show a normal account rank under the dashboard `Account Active Until` KPI.
+  - when clicking `Enroll Member` or `Preferred Customers`, show toast: `Account Upgrade Required.`
+
+### What Was Changed
+
+- Updated `index.html` dashboard KPI rendering:
+  - in `renderDashboardAccountOverviewKpi(...)`, pending users now render `Rank: --` instead of inherited paid-rank labels.
+- Added lightweight toast utility in `index.html`:
+  - `ensureAccountUpgradeToastElement(...)`
+  - `showAccountUpgradeRequiredToast(...)`
+  - message constant `ACCOUNT_UPGRADE_REQUIRED_TOAST_MESSAGE = 'Account Upgrade Required.'`
+- Updated page gating logic in `setPage(...)`:
+  - when pending users attempt `enroll-member` or `preferred-customer`, existing redirect-to-dashboard remains in place.
+  - if request is user-click initiated (`showUpgradeToast: true`), toast now appears.
+- Updated click handlers:
+  - sidebar nav clicks now pass `showUpgradeToast: true` into `setPage(...)`.
+  - quick action `Enroll Member` button now triggers the same toast when blocked.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Design Decisions
+
+- Kept existing backend/front-end restriction flow unchanged; added toast as UX feedback layer.
+- Scoped rank suppression to the `Account Active Until` dashboard KPI to avoid unintended side effects in commission/rank internals.
+
+### Validation
+
+- Parsed all inline scripts in `index.html` via Node function compilation check.
+
+## Addendum (2026-04-25) - Upgrade-Required Toast Position + Theme Adjustment
+
+### Request Applied
+
+- Moved `Account Upgrade Required` toast to a below-center / bottom-center position.
+- Switched toast styling to a stronger red warning treatment.
+
+### What Was Changed
+
+- Updated toast class list in `ensureAccountUpgradeToastElement(...)`:
+  - position changed from top-right to horizontal center near lower viewport (`left-1/2`, `-translate-x-1/2`, `bottom-14`).
+  - width constrained for mobile/desktop balance (`w-[min(92vw,26rem)]`).
+  - visual style changed to red warning:
+    - `border-semantic-danger/45`
+    - `bg-semantic-danger-bg/95`
+    - `text-semantic-danger`
+    - centered text + slightly stronger weight.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Upgrade Toast Text Contrast Adjustment
+
+### Request Applied
+
+- Changed pending upgrade-required toast font color to white for stronger readability.
+
+### What Was Changed
+
+- In `index.html` (`ensureAccountUpgradeToastElement(...)`), updated toast class from `text-semantic-danger` to `text-white`.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Upgrade Toast Duration Increased
+
+### Request Applied
+
+- Increased upgrade-required toast visible duration so it stays on screen a little longer.
+
+### What Was Changed
+
+- In `index.html` (`showAccountUpgradeRequiredToast(...)`), changed visible timeout from `2200ms` to `3200ms` before fade-out.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Restricted Nav UX Fix (No Forced Home Redirect)
+
+### Issue
+
+- Pending reservation users clicking `Enroll Member` / `Preferred Customers` from non-dashboard pages were being redirected to Home before seeing the toast.
+
+### Fix Applied
+
+- Updated `setPage(...)` restriction branch in `index.html`:
+  - keeps existing feedback + toast behavior.
+  - when `preserveCurrentPageOnRestricted: true`, function now returns early and does **not** change active page.
+- Updated sidebar nav click calls to pass:
+  - `showUpgradeToast: true`
+  - `preserveCurrentPageOnRestricted: true`
+- Updated quick action Enroll handler:
+  - removed forced `setPage('dashboard')` redirect when restricted.
+
+### Outcome
+
+- Pending users now get `Account Upgrade Required.` toast on the page they are currently viewing.
+- No unwanted jump back to Home during blocked navigation attempts.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Reservation Account: Hide Account-Until Badge Strip
+
+### Request Applied
+
+- In Dashboard `Account Active Until` section, remove/hide the badge strip for reservation (`Pending`) users.
+
+### What Was Changed
+
+- Updated `renderDashboardAccountKpiBadges(...)` in `index.html`:
+  - added early guard using `isPendingMembershipReservationUser(currentSessionUser)`.
+  - when true, badge strip is cleared + hidden and hovercard is force-closed.
+
+### Outcome
+
+- Reservation/Pending accounts no longer show account-status badge icons in the `Account Active Until` card.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Reservation Dashboard Visibility: Hide Business Centers + Fast Track Panel
+
+### Request Applied
+
+- For reservation/pending users on the dashboard:
+  - hide `Business Centers`
+  - hide `Fast Track Bonus` panel
+
+### What Was Changed
+
+- In `index.html`:
+  - added dashboard reference `businessCenterPanelElement` for `#business-center-panel`.
+  - updated `renderDashboardAccountOverviewKpi(...)` to toggle visibility by pending state:
+    - `businessCenterPanelElement.classList.toggle('hidden', isPending)`
+    - `fastTrackBonusPanelElement.classList.toggle('hidden', isPending)`
+
+### Outcome
+
+- Reservation/pending accounts no longer see Business Centers or Fast Track Bonus card on dashboard.
+- Visibility auto-restores for non-pending users (including after upgrade) because toggle runs during KPI re-render.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Fast Track Upgrade Path Rule Alignment (Preferred + Reservation Entry Plans)
+
+### Review Scope
+
+- Reviewed upgrade paths for:
+  1. `preferred-customer-pack` -> paid package
+  2. `membership-placement-reservation` -> paid package
+  3. paid package -> higher paid package
+
+### Finding
+
+- `membership-placement-reservation` -> paid upgrade path did not qualify for sponsor Fast Track credit in `upgradeMemberAccount(...)`.
+- Existing condition only allowed first-upgrade Fast Track when current package was `preferred-customer-pack`.
+
+### Fix Applied
+
+- Updated Fast Track eligibility condition in `backend/services/member.service.js`:
+  - first paid upgrade now includes both entry plans:
+    - `preferred-customer-pack`
+    - `membership-placement-reservation`
+  - paid->paid upgrades remain excluded.
+- Updated Fast Track upgrade status messages to be route-neutral (`First paid upgrade...`) rather than `Preferred`-only wording.
+
+### Resulting Rules Enforced
+
+- Preferred -> paid: sponsor Fast Track applies.
+- Reservation -> paid: sponsor Fast Track applies.
+- Paid -> higher paid: no Fast Track applies.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+
+## Follow-up Addendum (2026-04-25) - Fast Track Upgrade Sponsor Resolution Fallback (Attribution Owner)
+
+### Additional Rule Alignment
+
+- Expanded first-paid-upgrade Fast Track sponsor resolution to honor attribution owner when direct sponsor username is missing.
+
+### What Was Changed
+
+- In `backend/services/member.service.js` (`upgradeMemberAccount`):
+  - added `resolveSponsorUsernameFromAttributionCode(...)`.
+  - sponsor lookup now resolves in order:
+    1. direct sponsor username
+    2. store attribution owner username (from member/user attribution code)
+  - Fast Track success message now reflects whether payout used direct sponsor or attribution owner.
+
+### Outcome
+
+- First paid upgrades for preferred/reservation accounts can credit Fast Track to direct sponsor or attributed owner (when available).
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+
+## Addendum (2026-04-25) - Account Upgrade Split Product Allocation (MetaCharge + MetaRoast)
+
+### Request Applied
+
+- Expanded account-upgrade product handling from single-product quantity to split-product allocation.
+- Target behavior: during package upgrade, product gain can be split between `MetaCharge` and `MetaRoast` while preserving full package product totals.
+- Example target behavior implemented: `Personal (3) -> Legacy (20)` yields `+17` gain, with split logic producing `+7` carryover product and `+10` selected split product.
+
+### What Was Changed
+
+- `binary-tree-next-app.mjs`
+  - added split allocator for My Store upgrade flow:
+    - computes `carryover` quantity against half-target threshold
+    - computes remaining quantity for selected split product
+  - checkout now submits two `cartLines` for upgrade checkouts when split applies.
+  - review/checkout labels now show split summary (e.g., `MetaCharge 7x + MetaRoast 10x`).
+  - checkout payload now sends `accountUpgradeSelectedProductKey` metadata for backend upgrade application.
+
+- `binary-tree-next.html`
+  - updated My Store upgrade copy to reflect split-product selection semantics.
+
+- `store-dashboard.html`
+  - replaced single-product upgrade quote builder with split-quote logic.
+  - checkout now sends split cart lines (`carryover + selected`) instead of one line.
+  - upgrade payload now includes `accountUpgradeSelectedProductKey`.
+  - pending checkout summary now persists split product label text.
+  - product picker copy updated to reflect split behavior.
+
+- `backend/services/store-checkout.service.js`
+  - added upgrade product-key normalization helpers for checkout metadata.
+  - persisted `account_upgrade_selected_product_key` into Stripe metadata (payment intent + hosted session).
+  - account-upgrade finalization now reads this key from metadata and forwards it to `upgradeMemberAccount`.
+
+- `backend/services/member.service.js`
+  - added backend split-allocation resolver (`selected + carryover`) tied to package product counts.
+  - `upgradeMemberAccount(...)` now accepts split selected-product keys and returns:
+    - `upgrade.productAllocation`
+    - split labels/quantities for both products.
+
+- `index.html`
+  - account upgrade success feedback now surfaces backend split summary when available (`upgrade.productAllocation.splitLabel`).
+
+### Design Decisions
+
+- Used a deterministic half-target balancing rule:
+  - carryover product receives quantity needed to reach half of target package total.
+  - selected split product receives the remainder of upgrade gain.
+- Kept checkout as source-of-truth for purchasable upgrade product lines by sending split `cartLines`.
+- Kept direct `POST /api/member-auth/upgrade-account` backward compatible; split selection is optional.
+
+### Known Limitations
+
+- Direct dashboard upgrade (`index.html`) currently does not expose a split-product picker UI; backend will still return split allocation using default fallback when no product key is provided.
+- Historical per-member starter product ownership is not persisted in dedicated columns yet; carryover identity in direct API-only flow relies on selected/default split input rather than stored product history.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `store-dashboard.html`
+- `backend/services/store-checkout.service.js`
+- `backend/services/member.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/preferred-dashboard-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/BackEnd-Notes.md`
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- Inline script parse check passed for:
+  - `store-dashboard.html`
+  - `index.html`
+
+## Addendum (2026-04-25) - Reservation My Store Checkout + Personal BV Credit
+
+### Request Applied
+
+- Reserved/Pending members can now complete product checkout from `My Store` and receive personal BV credit from those purchases.
+
+### What Was Changed
+
+- `index.html`
+  - removed reservation-only checkout block in `renderCart()` so checkout button stays available when cart + attribution are valid.
+  - removed reservation early-return gates in:
+    - `checkoutCart()`
+    - `createInvoiceFromLines(...)`
+  - updated store routing helpers to keep attribution routing available for reservation users:
+    - `resolveRegisteredAttributionCode()`
+    - `resolveCheckoutStoreRouting()`
+  - updated `shouldBuyerReceiveStorePurchaseBv(...)` so reservation buyers are no longer excluded from buyer BV credit logic.
+
+- `backend/services/member.service.js`
+  - `recordMemberPurchase(...)` now supports scoped option `allowPendingPersonalBvCredit`.
+  - when this scoped option is used for reservation/pending members:
+    - personal BV fields are still updated
+    - account status is explicitly preserved as `pending` (no auto-activation).
+
+- `backend/services/store-checkout.service.js`
+  - buyer BV credit call now passes `allowPendingPersonalBvCredit: true` when recording buyer store-purchase BV.
+  - owner/attribution pending restrictions remain unchanged.
+
+### Design Decisions
+
+- Kept reservation store-link restrictions intact (copy/store-link sharing still blocked) while allowing direct buyer checkout from dashboard store.
+- Scoped pending BV exception narrowly to checkout buyer-credit path instead of globally allowing pending purchase-record APIs.
+- Preserved `Pending` status after reservation BV credit to avoid accidental eligibility/activation changes.
+
+### Known Limitations
+
+- Checkout still requires a resolved attribution mapping (`storeAppliedUplineCode`); if mapping is missing, checkout remains blocked with existing attribution error messaging.
+
+### Files Affected
+
+- `index.html`
+- `backend/services/member.service.js`
+- `backend/services/store-checkout.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/public-store-page.md`
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- Inline script parse check passed for `index.html` (`3` inline blocks).
+
+## Addendum (2026-04-25) - Upgrade Product Selection Modes (All MetaCharge / All MetaRoast / Split)
+
+### Request Applied
+
+- Converted forced split behavior into explicit selectable modes for account upgrades.
+- Users can now choose:
+  - All `MetaCharge`
+  - All `MetaRoast`
+  - `Split Products`
+
+### What Was Changed
+
+- `binary-tree-next.html`
+  - kept/updated 3-option upgrade selector labels (`All MetaCharge`, `All MetaRoast`, `Split Products`).
+  - checkout subtitle copy now uses neutral `product allocation` wording.
+
+- `binary-tree-next-app.mjs`
+  - added upgrade product mode model and normalization helpers.
+  - replaced forced-split resolver with mode-aware allocation resolver.
+  - selection state now persists `upgradeProductMode` and `upgradeProductKey`.
+  - selector button active state now maps to mode (not only product key).
+  - checkout payload now sends:
+    - `accountUpgradeSelectedProductKey`
+    - `accountUpgradeProductMode`
+
+- `store-dashboard.html`
+  - added mode constants and mode-aware quote/allocation logic.
+  - upgrade picker now supports 3 options in markup and runtime (`All MetaCharge`, `All MetaRoast`, `Split Products`).
+  - checkout payload now sends:
+    - `accountUpgradeSelectedProductKey`
+    - `accountUpgradeProductMode`
+
+- `backend/services/store-checkout.service.js`
+  - added upgrade mode normalization and metadata resolver.
+  - persisted `account_upgrade_product_mode` in Stripe metadata (payment-intent + hosted-session paths).
+  - account-upgrade finalization now forwards both selected key + mode to `upgradeMemberAccount(...)`.
+  - compatibility fallback: legacy payloads with selected key but no mode are interpreted as `split`.
+
+- `backend/services/member.service.js`
+  - added mode constants and mode normalization.
+  - `resolveAccountUpgradeProductAllocation(...)` is now mode-aware:
+    - `all-metacharge`
+    - `all-metaroast`
+    - `split`
+  - `upgradeMemberAccount(...)` now accepts/normalizes `upgradeSplitProductMode` and related aliases.
+  - `upgrade.productAllocation` now includes selected mode in response.
+
+- `index.html`
+  - account-upgrade success feedback label changed from `Product split` to neutral `Product allocation`.
+
+### Design Decisions
+
+- Kept split algorithm unchanged for split mode (carryover to half-target, remainder to selected product).
+- Kept selected product key in split mode so users can still anchor split direction.
+- Added backward compatibility at backend mode normalization to avoid incorrect allocation for in-flight legacy checkouts.
+
+### Known Limitations
+
+- Split direction UI is still anchored through selected product key; there is no separate secondary control dedicated only to split-direction labeling.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `store-dashboard.html`
+- `backend/services/store-checkout.service.js`
+- `backend/services/member.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/preferred-dashboard-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/BackEnd-Notes.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/services/member.service.js` passed.
+- inline script parse checks passed for:
+  - `store-dashboard.html`
+  - `index.html`
+
+## Addendum (2026-04-26) - Interactive Split Uses Owned Product + Binary Tree Enrollment Product Field
+
+### Request Applied
+
+- Made split allocation truly ownership-aware for account upgrades.
+- Added explicit product selection in Binary Tree enrollment checkout flow.
+- Preserved all three upgrade modes:
+  - `All MetaCharge`
+  - `All MetaRoast`
+  - `Split Products`
+
+### What Was Changed
+
+- `binary-tree-next.html`
+  - added a new Step 2 `Product` field (`MetaCharge` / `MetaRoast`) in enrollment.
+  - added checkout summary row in Step 3 to explicitly show selected product.
+
+- `binary-tree-next-app.mjs`
+  - added enrollment product constants, resolver, validation, and summary sync.
+  - enrollment submit payload now includes `enrollmentProductKey`.
+  - wired product select reset/init behavior with existing custom-select flow.
+  - My Store upgrade split now resolves carryover side from the member’s current owned product key.
+  - split button behavior now maps to ownership-aware allocation.
+
+- `backend/services/member.service.js`
+  - enrollment checkout + payment-intent metadata now persist `enrollment_product_key`.
+  - enrollment completion now reads and stores product ownership as `currentPackageProductKey`.
+  - `createRegisteredMember(...)` now persists `currentPackageProductKey` to user/member records.
+  - `upgradeMemberAccount(...)` split allocation now uses stored owned-product key for lesser/carryover side.
+  - upgrade persistence now updates `currentPackageProductKey` after each upgrade path.
+
+- `backend/stores/user.store.js`
+  - added persistence and schema ensure support for `member_users.current_package_product_key`.
+  - read/write/upsert/find/update queries now map `currentPackageProductKey`.
+
+- `backend/stores/member.store.js`
+  - added persistence and schema ensure support for `registered_members.current_package_product_key`.
+  - read/write/upsert mappings include `currentPackageProductKey`.
+
+- `backend/utils/auth.helpers.js`
+  - auth/session response now includes `currentPackageProductKey`.
+
+### Design Decisions
+
+- For split mode, carryover product is now anchored to previously owned product key (historical ownership), not inferred as complement of newly selected product.
+- For all-single-product modes, current package product key is updated to selected product.
+- For split mode persistence, current package product key remains aligned with carryover/owned side.
+
+### Known Limitations
+
+- Existing historical accounts without stored product ownership default to `MetaCharge` until they perform an enrollment/upgrade path that persists product ownership data.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `backend/services/member.service.js`
+- `backend/stores/user.store.js`
+- `backend/stores/member.store.js`
+- `backend/utils/auth.helpers.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/stores/user.store.js` passed.
+- `node --check backend/stores/member.store.js` passed.
+- `node --check backend/utils/auth.helpers.js` passed.
+
+## Addendum (2026-04-26) - Binary Tree My Store Review Layout Overlap Fix
+
+### Request Applied
+
+- Fixed Binary Tree My Store review-card layout where upgrade option buttons and the `Checkout` button could overlap in narrower panel widths.
+
+### What Was Changed
+
+- `binary-tree-next.html`
+  - refactored `.tree-next-my-store-review-card` from rigid two-column grid to wrap-safe flex layout.
+  - set `.tree-next-my-store-review-main` as flexible primary column with responsive minimum width constraints.
+  - set `.tree-next-my-store-review-side` to a fixed-action column that wraps to its own row when space is insufficient.
+  - tightened `.tree-next-my-store-review-checkout` sizing (`min-width: min(220px, 100%)`) to prevent overflow.
+  - updated responsive/container rules so side actions center cleanly when wrapped.
+
+### Design Decisions
+
+- Used width-adaptive wrapping instead of viewport-only breakpoints so the layout responds to the actual modal/panel width.
+- Preserved desktop visual hierarchy (details left, price/actions right) while preventing collisions at intermediate widths.
+
+### Known Limitations
+
+- This pass addressed overlap/layout flow only; no checkout logic or product-allocation business rules were changed.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
 
 ### Validation
 

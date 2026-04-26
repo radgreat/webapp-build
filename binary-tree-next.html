@@ -3397,14 +3397,17 @@
     }
 
     .tree-next-my-store-review-card {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: start;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
       gap: 20px;
+      container-type: inline-size;
+      container-name: my-store-review-card;
     }
 
     .tree-next-my-store-review-main {
-      min-width: 0;
+      min-width: min(100%, 320px);
+      flex: 1 1 420px;
       display: grid;
       grid-template-columns: auto minmax(0, 1fr);
       align-items: start;
@@ -3575,9 +3578,12 @@
     }
 
     .tree-next-my-store-review-side {
-      justify-self: end;
+      min-width: 0;
+      flex: 0 1 220px;
+      margin-left: auto;
       display: grid;
       justify-items: end;
+      align-content: start;
       gap: 10px;
     }
 
@@ -3629,7 +3635,9 @@
 
     .tree-next-my-store-review-checkout {
       margin-top: 10px;
-      min-width: 220px;
+      width: 100%;
+      max-width: 220px;
+      min-width: min(220px, 100%);
       min-height: 52px;
       border: 0;
       border-radius: 999px;
@@ -3659,6 +3667,48 @@
     .tree-next-my-store-review-checkout:active {
       transform: scale(0.98);
       opacity: 0.92;
+    }
+
+    @container my-store-review-card (max-width: 860px) {
+      .tree-next-my-store-review-main {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .tree-next-my-store-review-details {
+        gap: 10px;
+        justify-items: center;
+        margin-top: 0;
+      }
+
+      .tree-next-my-store-upgrade-product-selector {
+        width: min(340px, 100%);
+        justify-items: center;
+      }
+
+      .tree-next-my-store-upgrade-product-options {
+        width: min(340px, 100%);
+      }
+
+      .tree-next-my-store-upgrade-product-button {
+        text-align: center;
+      }
+
+      .tree-next-my-store-review-side {
+        flex: 1 1 100%;
+        margin-left: 0;
+        justify-items: center;
+      }
+
+      .tree-next-my-store-review-checkout {
+        min-width: min(220px, 100%);
+        max-width: 320px;
+      }
+
+      .tree-next-my-store-product-image-shell.is-review {
+        width: min(286px, 80vw);
+        padding: 26px;
+      }
     }
 
     .tree-next-my-store-section.is-checkout {
@@ -4014,7 +4064,6 @@
       }
 
       .tree-next-my-store-review-card {
-        grid-template-columns: 1fr;
         gap: 18px;
       }
 
@@ -4043,7 +4092,8 @@
       }
 
       .tree-next-my-store-review-side {
-        justify-self: stretch;
+        flex: 1 1 100%;
+        margin-left: 0;
         justify-items: center;
       }
 
@@ -6300,7 +6350,7 @@
                 class="tree-next-my-store-upgrade-product-selector is-hidden"
                 aria-label="Upgrade product selector"
               >
-                <p class="tree-next-my-store-upgrade-product-title">Select your product</p>
+                <p class="tree-next-my-store-upgrade-product-title">Choose product option</p>
                 <div class="tree-next-my-store-upgrade-product-options" role="group" aria-label="Upgrade products">
                   <button
                     id="tree-next-my-store-upgrade-product-metacharge"
@@ -6308,14 +6358,21 @@
                     type="button"
                     data-my-store-upgrade-product-key="metacharge"
                     aria-pressed="true"
-                  >MetaCharge&trade;</button>
+                  >All MetaCharge&trade;</button>
                   <button
                     id="tree-next-my-store-upgrade-product-metaroast"
                     class="tree-next-my-store-upgrade-product-button"
                     type="button"
                     data-my-store-upgrade-product-key="metaroast"
                     aria-pressed="false"
-                  >MetaRoast&trade;</button>
+                  >All MetaRoast&trade;</button>
+                  <button
+                    id="tree-next-my-store-upgrade-product-split"
+                    class="tree-next-my-store-upgrade-product-button"
+                    type="button"
+                    data-my-store-upgrade-product-key="split"
+                    aria-pressed="false"
+                  >Split Products</button>
                 </div>
               </div>
             </div>
@@ -6332,7 +6389,7 @@
       <section class="tree-next-my-store-section is-checkout" data-my-store-view="checkout" aria-labelledby="tree-next-my-store-checkout-title">
         <h3 id="tree-next-my-store-checkout-title" class="tree-next-my-store-checkout-title">Complete Checkout</h3>
         <p class="tree-next-my-store-checkout-subtitle">
-          You're almost done! Please review all information entered and ensure the selected product is correct before proceeding.
+          You're almost done! Please review all information entered and ensure your product allocation is correct before proceeding.
         </p>
 
         <article class="tree-next-enroll-checkout-summary" aria-label="Checkout summary">
@@ -6568,6 +6625,36 @@
                     <option value="infinity-builder-pack">Infinity Builder Pack</option>
                     <option value="business-builder-pack">Business Builder Pack</option>
                     <option value="personal-builder-pack">Personal Builder Pack</option>
+                    <option value="membership-placement-reservation">Membership Placement Reservation - $49.99</option>
+                  </select>
+                </div>
+              </div>
+              <div class="tree-next-enroll-field-group">
+                <p class="tree-next-enroll-field-label">Product</p>
+                <label class="tree-next-enroll-sr-only" for="tree-next-enroll-product">Product</label>
+                <div class="tree-next-enroll-select-wrap" data-enroll-custom-select>
+                  <button
+                    type="button"
+                    class="tree-next-enroll-custom-select-trigger"
+                    data-enroll-custom-select-trigger
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-controls="tree-next-enroll-product-menu"
+                  >
+                    <span class="tree-next-enroll-custom-select-value" data-enroll-custom-select-value>MetaCharge&trade;</span>
+                    <span class="material-symbols-outlined tree-next-enroll-custom-select-icon" aria-hidden="true">expand_more</span>
+                  </button>
+                  <div
+                    id="tree-next-enroll-product-menu"
+                    class="tree-next-enroll-custom-select-menu"
+                    data-enroll-custom-select-menu
+                    role="listbox"
+                    aria-label="Product"
+                  ></div>
+                  <select id="tree-next-enroll-product" class="tree-next-enroll-form-select tree-next-enroll-native-select" name="enrollmentProduct" required>
+                    <option value="metacharge">MetaCharge&trade;</option>
+                    <option value="metaroast">MetaRoast&trade;</option>
+                    <option value="split">Split Products</option>
                   </select>
                 </div>
               </div>
@@ -6627,6 +6714,10 @@
               <div class="tree-next-enroll-checkout-row">
                 <span id="tree-next-enroll-summary-package-label">Legacy Builder Package</span>
                 <span id="tree-next-enroll-summary-subtotal">$960.00</span>
+              </div>
+              <div class="tree-next-enroll-checkout-row">
+                <span>Product</span>
+                <span id="tree-next-enroll-summary-product-label">MetaCharge&trade;</span>
               </div>
               <div class="tree-next-enroll-checkout-row">
                 <span>Discount</span>

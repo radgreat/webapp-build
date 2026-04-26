@@ -8,6 +8,11 @@ import {
   findUserById,
   readMockUsersStore,
 } from '../stores/user.store.js';
+import {
+  ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE,
+  buildAccountUpgradeRequiredResult,
+  isPendingOrReservationMember,
+} from '../utils/member-capability.helpers.js';
 
 const DEFAULT_COOKIE_NAME = 'charge_preferred_claim';
 const DEFAULT_REGISTER_REDIRECT_PATH = '/store-register.html';
@@ -433,6 +438,13 @@ async function resolveClaimOwnerFromClaims(claims = {}) {
   }
 
   const owner = ownerByUserId || ownerByStoreCode || null;
+  if (owner && isPendingOrReservationMember(owner)) {
+    return {
+      ok: false,
+      status: 403,
+      error: ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE,
+    };
+  }
   const resolvedStoreCode = normalizeStoreCode(
     ownerStoreCode
     || owner?.publicStoreCode
@@ -853,6 +865,9 @@ export async function createMemberPreferredAttributionLink(
       status: 404,
       error: 'Member account was not found for attribution link generation.',
     };
+  }
+  if (isPendingOrReservationMember(authenticatedMember)) {
+    return buildAccountUpgradeRequiredResult();
   }
 
   const ownerStoreCode = normalizeStoreCode(

@@ -3154,6 +3154,170 @@
       filter: none;
     }
 
+    .storefront-v2-upgrade {
+      border: 1px solid rgb(var(--surface-border));
+      border-radius: 18px;
+      background: rgb(var(--surface-raised));
+      box-shadow: var(--shadow-depth-1);
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .storefront-v2-upgrade-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .storefront-v2-upgrade-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      font-weight: 500;
+      color: rgb(var(--text-primary));
+    }
+
+    .storefront-v2-upgrade-caption {
+      margin: 6px 0 0;
+      font-size: 13px;
+      line-height: 1.4;
+      color: rgb(var(--text-secondary));
+      max-width: 640px;
+    }
+
+    .storefront-v2-upgrade-packages {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .storefront-v2-upgrade-package {
+      border: 1px solid rgb(var(--surface-border));
+      border-radius: 14px;
+      background: rgb(var(--surface-base));
+      text-align: left;
+      padding: 12px;
+      display: grid;
+      gap: 6px;
+      cursor: pointer;
+      transition: border-color 180ms cubic-bezier(0.22, 1, 0.36, 1), transform 180ms cubic-bezier(0.22, 1, 0.36, 1), filter 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .storefront-v2-upgrade-package:hover {
+      border-color: rgb(var(--surface-border-light));
+      transform: translateY(-1px);
+      filter: brightness(1.01);
+    }
+
+    .storefront-v2-upgrade-package:focus-visible {
+      outline: 2px solid rgb(var(--brand-500) / 0.44);
+      outline-offset: 2px;
+    }
+
+    .storefront-v2-upgrade-package.is-selected {
+      border-color: rgb(var(--brand-500) / 0.7);
+      background: rgb(var(--brand-500) / 0.08);
+    }
+
+    .storefront-v2-upgrade-package-name {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      font-weight: 600;
+      color: rgb(var(--text-primary));
+    }
+
+    .storefront-v2-upgrade-package-meta {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.35;
+      color: rgb(var(--text-secondary));
+    }
+
+    .storefront-v2-upgrade-product-picker {
+      border: 1px solid rgb(var(--surface-border));
+      border-radius: 14px;
+      background: rgb(var(--surface-base) / 0.4);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .storefront-v2-upgrade-product-title {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.3;
+      color: rgb(var(--text-secondary));
+      font-weight: 500;
+    }
+
+    .storefront-v2-upgrade-product-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .storefront-v2-upgrade-product-option {
+      min-height: 34px;
+      border: 1px solid rgb(var(--surface-border));
+      border-radius: 999px;
+      background: rgb(var(--surface-base));
+      color: rgb(var(--text-primary));
+      font-size: 13px;
+      line-height: 1;
+      font-weight: 500;
+      padding: 0 14px;
+      cursor: pointer;
+      transition: border-color 180ms cubic-bezier(0.22, 1, 0.36, 1), background-color 180ms cubic-bezier(0.22, 1, 0.36, 1), color 180ms cubic-bezier(0.22, 1, 0.36, 1), transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .storefront-v2-upgrade-product-option:hover {
+      border-color: rgb(var(--surface-border-light));
+      transform: translateY(-1px);
+    }
+
+    .storefront-v2-upgrade-product-option:focus-visible {
+      outline: 2px solid rgb(var(--brand-500) / 0.44);
+      outline-offset: 2px;
+    }
+
+    .storefront-v2-upgrade-product-option.is-selected {
+      border-color: rgb(var(--brand-500));
+      background: rgb(var(--brand-500));
+      color: rgb(var(--text-inverse));
+    }
+
+    .storefront-v2-upgrade-summary {
+      display: grid;
+      gap: 8px;
+    }
+
+    .storefront-v2-upgrade-summary-copy {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.45;
+      color: rgb(var(--text-secondary));
+    }
+
+    .storefront-v2-upgrade-allocation {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.4;
+      color: rgb(var(--text-primary));
+      font-weight: 500;
+    }
+
+    .storefront-v2-upgrade-feedback {
+      margin: 4px 0 0;
+      min-height: 18px;
+      line-height: 1.35;
+    }
+
     .storefront-v2-share {
       border: 1px solid rgb(var(--surface-border));
       border-radius: 18px;
@@ -3228,6 +3392,10 @@
       .storefront-v2-products {
         grid-template-columns: 1fr;
         padding: 14px;
+      }
+
+      .storefront-v2-upgrade-packages {
+        grid-template-columns: 1fr;
       }
 
       .storefront-v2-panel-head {
@@ -4872,11 +5040,11 @@
                 <div class="md:col-span-1">
                   <label for="enroll-member-package" class="block text-caption text-text-tertiary">Enrollment Package</label>
                   <select id="enroll-member-package" name="enrollmentPackage" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
-                    <option value="preferred-customer-pack">Free Account - $0</option>
                     <option value="personal-builder-pack">Personal Builder Pack - $192</option>
                     <option value="business-builder-pack">Business Builder Pack - $384</option>
                     <option value="infinity-builder-pack">Infinity Builder Pack - $640</option>
                     <option value="legacy-builder-pack">Legacy Builder Pack - $1280</option>
+                    <option value="membership-placement-reservation">Membership Placement Reservation - $49.99</option>
                   </select>
                 </div>
                 <div class="md:col-span-1">
@@ -5570,11 +5738,11 @@
                       <label class="block">
                         <span class="text-caption text-text-tertiary">Enrollment Package</span>
                       <select id="tree-enroll-package" name="enrollmentPackage" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
-                          <option value="preferred-customer-pack">Free Account - $0</option>
                           <option value="personal-builder-pack">Personal Builder Pack - $192</option>
                           <option value="business-builder-pack">Business Builder Pack - $384</option>
                           <option value="infinity-builder-pack">Infinity Builder Pack - $640</option>
                           <option value="legacy-builder-pack">Legacy Builder Pack - $1280</option>
+                          <option value="membership-placement-reservation">Membership Placement Reservation - $49.99</option>
                       </select>
                       </label>
                     </div>
@@ -5682,6 +5850,36 @@
                 </div>
               </aside>
             </div>
+
+            <section id="store-account-upgrade-section" class="storefront-v2-upgrade storefront-v2-surface hidden" aria-labelledby="store-account-upgrade-title">
+              <header class="storefront-v2-upgrade-head">
+                <div>
+                  <h3 id="store-account-upgrade-title" class="storefront-v2-upgrade-title">Account Upgrades</h3>
+                  <p id="store-account-upgrade-caption" class="storefront-v2-upgrade-caption">
+                    Select a package and choose your product allocation for upgrade checkout.
+                  </p>
+                </div>
+                <span id="store-account-upgrade-current-package" class="storefront-v2-chip">Current Package: Preferred Customer</span>
+              </header>
+
+              <div id="store-account-upgrade-packages" class="storefront-v2-upgrade-packages" role="group" aria-label="Account upgrade packages"></div>
+
+              <div id="store-account-upgrade-product-picker" class="storefront-v2-upgrade-product-picker" role="group" aria-label="Upgrade product option">
+                <p class="storefront-v2-upgrade-product-title">Choose product option</p>
+                <div class="storefront-v2-upgrade-product-options">
+                  <button id="store-account-upgrade-product-metacharge" class="storefront-v2-upgrade-product-option is-selected" type="button" data-store-upgrade-product-key="metacharge" aria-pressed="true">All MetaCharge&trade;</button>
+                  <button id="store-account-upgrade-product-metaroast" class="storefront-v2-upgrade-product-option" type="button" data-store-upgrade-product-key="metaroast" aria-pressed="false">All MetaRoast&trade;</button>
+                  <button id="store-account-upgrade-product-split" class="storefront-v2-upgrade-product-option" type="button" data-store-upgrade-product-key="split" aria-pressed="false">Split Products</button>
+                </div>
+              </div>
+
+              <div class="storefront-v2-upgrade-summary">
+                <p id="store-account-upgrade-summary" class="storefront-v2-upgrade-summary-copy">Select a package to view your upgrade quote.</p>
+                <p id="store-account-upgrade-allocation" class="storefront-v2-upgrade-allocation hidden"></p>
+                <button id="store-account-upgrade-checkout-btn" type="button" class="storefront-v2-checkout-button">Checkout Upgrade in Stripe</button>
+                <p id="store-account-upgrade-feedback" class="storefront-v2-upgrade-feedback hidden text-caption"></p>
+              </div>
+            </section>
 
             <section class="storefront-v2-share storefront-v2-surface" aria-labelledby="store-share-and-earn-title">
               <h3 id="store-share-and-earn-title" class="storefront-v2-share-title">Share and Earn</h3>
@@ -6252,6 +6450,7 @@
       const quickActionEnrollMemberButton = document.getElementById('quick-action-enroll-member');
       const quickActionTransferWalletButton = document.getElementById('quick-action-transfer-wallet');
       const dashboardEwalletGoButtonElement = document.getElementById('dashboard-ewallet-go-button');
+      const businessCenterPanelElement = document.getElementById('business-center-panel');
       const fastTrackBonusPanelElement = document.getElementById('fast-track-bonus-card');
       const fastTrackBonusValueElement = document.getElementById('fast-track-bonus-value');
       const fastTrackRequestPayoutButtonElement = document.getElementById('fast-track-request-payout-button');
@@ -6606,6 +6805,10 @@
       const RUNTIME_SETTINGS_API = '/api/runtime-settings';
       const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
       const FREE_ACCOUNT_RANK_LABEL = 'Preferred Customer';
+      const MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY = 'membership-placement-reservation';
+      const MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_LABEL = 'Membership Placement Reservation';
+      const PENDING_ACCOUNT_UPGRADE_GATE_MESSAGE = 'Your account is currently under Membership Placement Reservation. Upgrade to a full account package to invite, enroll, sponsor, and participate in commissions.';
+      const ACCOUNT_UPGRADE_REQUIRED_TOAST_MESSAGE = 'Account Upgrade Required.';
       const PLACEMENT_LEG_LEFT = 'left';
       const PLACEMENT_LEG_RIGHT = 'right';
       const PLACEMENT_LEG_SPILLOVER = 'spillover';
@@ -6615,6 +6818,17 @@
       const PLACEMENT_LEG_EXTREME_RIGHT = 'extreme-right';
       const FAST_TRACK_PACKAGE_META = {
         [FREE_ACCOUNT_PACKAGE_KEY]: { label: 'Free Account', price: 0, bv: 0 },
+        [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: {
+          label: MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_LABEL,
+          price: 49.99,
+          bv: 0,
+          canEarn: false,
+          canEnroll: false,
+          canSponsor: false,
+          storeLinkEnabled: false,
+          binaryTreeViewOnly: true,
+          isReservationPlan: true,
+        },
         'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
         'business-builder-pack': { label: 'Business Builder Pack', price: 384, bv: 300 },
         'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
@@ -6623,6 +6837,7 @@
       const DEFAULT_STORE_BUILDER_PACKAGE_KEY = 'personal-builder-pack';
       const STORE_PRODUCT_PACKAGE_KEYS = Object.freeze([
         FREE_ACCOUNT_PACKAGE_KEY,
+        MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY,
         'personal-builder-pack',
         'business-builder-pack',
         'infinity-builder-pack',
@@ -6630,6 +6845,7 @@
       ]);
       const DEFAULT_STORE_PACKAGE_EARNINGS = Object.freeze({
         [FREE_ACCOUNT_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
+        [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: Object.freeze({ retailCommission: 0, bv: 0 }),
         'personal-builder-pack': Object.freeze({ retailCommission: 4, bv: 50 }),
         'business-builder-pack': Object.freeze({ retailCommission: 8, bv: 48 }),
         'infinity-builder-pack': Object.freeze({ retailCommission: 12, bv: 44 }),
@@ -6643,6 +6859,7 @@
       };
       const STARTING_RANK_BY_PACKAGE = {
         [FREE_ACCOUNT_PACKAGE_KEY]: FREE_ACCOUNT_RANK_LABEL,
+        [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: 'Personal',
         'personal-builder-pack': 'Personal',
         'business-builder-pack': 'Business',
         'infinity-builder-pack': 'Infinity',
@@ -6657,6 +6874,7 @@
       ]);
       const SALES_TEAM_CYCLE_COMMISSION_PLAN = Object.freeze({
         [FREE_ACCOUNT_PACKAGE_KEY]: { multiplier: 0, perCycle: 0, weeklyCapCycles: 0 },
+        [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: { multiplier: 0, perCycle: 0, weeklyCapCycles: 0 },
         'personal-builder-pack': { multiplier: 0.05, perCycle: 25, weeklyCapCycles: 50 },
         'business-builder-pack': { multiplier: 0.075, perCycle: 37.5, weeklyCapCycles: 250 },
         'infinity-builder-pack': { multiplier: 0.10, perCycle: 50, weeklyCapCycles: 500 },
@@ -6672,6 +6890,7 @@
       const PACKAGE_PRODUCT_PRICE_USD = 64;
       const PACKAGE_PRODUCT_COUNT_BY_KEY = Object.freeze({
         [FREE_ACCOUNT_PACKAGE_KEY]: 0,
+        [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: 0,
         'personal-builder-pack': 3,
         'business-builder-pack': 6,
         'infinity-builder-pack': 10,
@@ -6691,6 +6910,8 @@
       let baseBinaryTreeDirectSponsors = 0;
       let currentDashboardTotalCycles = 0;
       let currentAccountRank = 'Legacy';
+      let accountUpgradeToastElement = null;
+      let accountUpgradeToastTimerId = null;
       let spilloverParentSuggestionKeys = new Set();
       let spilloverParentSuggestionItems = [];
       let profileEditLastTriggerElement = null;
@@ -8260,8 +8481,10 @@
       const DEFAULT_PROFILE_AVATAR_URL = 'https://placehold.co/160x160';
       const accountRankActivityActiveClasses = ['bg-semantic-success-bg', 'text-semantic-success'];
       const accountRankActivityInactiveClasses = ['bg-semantic-danger-bg', 'text-semantic-danger'];
+      const accountRankActivityPendingClasses = ['bg-semantic-warning-bg', 'text-semantic-warning'];
       const accountRankLegacyTaskMessage = 'Complete your Task to Rank up! Next rank: Ruby';
       const accountRankUpgradePromptMessage = 'Upgrade your account to maximize your commission';
+      const accountRankPendingUpgradePromptMessage = 'Upgrade to activate earning and enrollment features.';
       const accountRankUpgradeFeedbackSuccessClasses = ['text-semantic-success'];
       const accountRankUpgradeFeedbackErrorClasses = ['text-semantic-danger'];
       const accountOverviewTrendPositiveClasses = ['bg-semantic-success-bg', 'text-semantic-success'];
@@ -8547,6 +8770,26 @@
         return normalizedPackageKey === normalizeMemberKey(FREE_ACCOUNT_PACKAGE_KEY);
       }
 
+      function isMembershipPlacementReservationPackageKey(packageKey) {
+        const normalizedPackageKey = normalizeMemberKey(packageKey);
+        return normalizedPackageKey === normalizeMemberKey(MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY);
+      }
+
+      function isPendingMembershipReservationUser(user = currentSessionUser) {
+        if (!user || typeof user !== 'object') {
+          return false;
+        }
+        const statusKey = normalizeMemberKey(user?.accountStatus || user?.status || '');
+        if (statusKey === 'pending') {
+          return true;
+        }
+        return isMembershipPlacementReservationPackageKey(user?.enrollmentPackage);
+      }
+
+      function getPendingMembershipUpgradeGateMessage() {
+        return PENDING_ACCOUNT_UPGRADE_GATE_MESSAGE;
+      }
+
       function isPreferredCustomerRank(rankValue) {
         const normalizedRank = normalizeMemberKey(normalizeRankLabel(rankValue));
         return normalizedRank === normalizeMemberKey(FREE_ACCOUNT_RANK_LABEL)
@@ -8560,6 +8803,10 @@
         }
         return isPreferredCustomerPackageKey(user?.enrollmentPackage)
           || isPreferredCustomerRank(resolveSessionAccountRank(user) || user?.rank);
+      }
+
+      function isEnrollmentRestrictedForCurrentSession(user = currentSessionUser) {
+        return isPendingMembershipReservationUser(user);
       }
 
       function resolvePreferredCustomerAccessiblePage(pageName) {
@@ -8648,6 +8895,15 @@
       function resolveAccountRankActivityState(user) {
         const statusCandidate = String(user?.accountStatus || user?.status || '').trim().toLowerCase();
         const currentPersonalBv = resolveAccountCurrentPersonalBv(user);
+        if (statusCandidate.includes('pending') || isMembershipPlacementReservationPackageKey(user?.enrollmentPackage)) {
+          return {
+            isActive: false,
+            isPending: true,
+            label: 'Pending',
+            currentPersonalBv,
+            requiredPersonalBv: ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN,
+          };
+        }
         if (
           statusCandidate.includes('review')
           || statusCandidate.includes('suspend')
@@ -8655,6 +8911,7 @@
         ) {
           return {
             isActive: false,
+            isPending: false,
             label: 'Inactive',
             currentPersonalBv,
             requiredPersonalBv: ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN,
@@ -8664,6 +8921,7 @@
         const isActive = currentPersonalBv >= ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN;
         return {
           isActive,
+          isPending: false,
           label: isActive ? 'Active' : 'Inactive',
           currentPersonalBv,
           requiredPersonalBv: ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN,
@@ -8777,42 +9035,69 @@
         ) || 'Legacy';
         const {
           isActive,
+          isPending,
           label,
           currentPersonalBv,
           requiredPersonalBv,
         } = resolveAccountRankActivityState(user);
 
+        if (businessCenterPanelElement) {
+          businessCenterPanelElement.classList.toggle('hidden', isPending);
+        }
+        if (fastTrackBonusPanelElement) {
+          fastTrackBonusPanelElement.classList.toggle('hidden', isPending);
+        }
+
         if (dashboardAccountOverviewStatusBadgeElement) {
           dashboardAccountOverviewStatusBadgeElement.textContent = label;
-          dashboardAccountOverviewStatusBadgeElement.setAttribute(
-            'aria-label',
-            `To stay active and keep earning commissions, maintain at least ${requiredPersonalBv.toLocaleString()} Personal BV this month.`,
-          );
+          const statusAriaLabel = isPending
+            ? getPendingMembershipUpgradeGateMessage()
+            : `To stay active and keep earning commissions, maintain at least ${requiredPersonalBv.toLocaleString()} Personal BV this month.`;
+          dashboardAccountOverviewStatusBadgeElement.setAttribute('aria-label', statusAriaLabel);
           dashboardAccountOverviewStatusBadgeElement.classList.remove(
             ...accountRankActivityActiveClasses,
             ...accountRankActivityInactiveClasses,
+            ...accountRankActivityPendingClasses,
           );
-          dashboardAccountOverviewStatusBadgeElement.classList.add(
-            ...(isActive ? accountRankActivityActiveClasses : accountRankActivityInactiveClasses),
-          );
+          if (isPending) {
+            dashboardAccountOverviewStatusBadgeElement.classList.add(...accountRankActivityPendingClasses);
+          } else if (isActive) {
+            dashboardAccountOverviewStatusBadgeElement.classList.add(...accountRankActivityActiveClasses);
+          } else {
+            dashboardAccountOverviewStatusBadgeElement.classList.add(...accountRankActivityInactiveClasses);
+          }
         }
 
         if (dashboardAccountOverviewRankValueElement) {
-          dashboardAccountOverviewRankValueElement.textContent = `Rank: ${resolvedRankLabel}`;
+          dashboardAccountOverviewRankValueElement.textContent = isPending
+            ? 'Rank: --'
+            : `Rank: ${resolvedRankLabel}`;
         }
 
         if (dashboardAccountOverviewActiveWindowElement) {
-          const activityUntilDisplay = resolveAccountActivityUntilLabel(user);
-          dashboardAccountOverviewActiveWindowElement.textContent = activityUntilDisplay.text;
-          dashboardAccountOverviewActiveWindowElement.setAttribute(
-            'aria-label',
-            activityUntilDisplay.ariaLabel,
-          );
+          if (isPending) {
+            dashboardAccountOverviewActiveWindowElement.textContent = 'Upgrade Required';
+            dashboardAccountOverviewActiveWindowElement.setAttribute(
+              'aria-label',
+              getPendingMembershipUpgradeGateMessage(),
+            );
+          } else {
+            const activityUntilDisplay = resolveAccountActivityUntilLabel(user);
+            dashboardAccountOverviewActiveWindowElement.textContent = activityUntilDisplay.text;
+            dashboardAccountOverviewActiveWindowElement.setAttribute(
+              'aria-label',
+              activityUntilDisplay.ariaLabel,
+            );
+          }
         }
       }
 
       function resolveBinaryNodeStatus(user) {
-        return resolveAccountRankActivityState(user).isActive ? 'active' : 'inactive';
+        const activityState = resolveAccountRankActivityState(user);
+        if (activityState.isPending) {
+          return 'stabilizing';
+        }
+        return activityState.isActive ? 'active' : 'inactive';
       }
 
       function normalizeCountryFlag(rawValue) {
@@ -8872,11 +9157,21 @@
       }
 
       function renderAccountRankActivityBadge(user) {
-        const { isActive, label } = resolveAccountRankActivityState(user);
+        const { isActive, isPending, label } = resolveAccountRankActivityState(user);
         if (accountRankActivityBadgeElement) {
           accountRankActivityBadgeElement.textContent = label;
-          accountRankActivityBadgeElement.classList.remove(...accountRankActivityActiveClasses, ...accountRankActivityInactiveClasses);
-          accountRankActivityBadgeElement.classList.add(...(isActive ? accountRankActivityActiveClasses : accountRankActivityInactiveClasses));
+          accountRankActivityBadgeElement.classList.remove(
+            ...accountRankActivityActiveClasses,
+            ...accountRankActivityInactiveClasses,
+            ...accountRankActivityPendingClasses,
+          );
+          if (isPending) {
+            accountRankActivityBadgeElement.classList.add(...accountRankActivityPendingClasses);
+          } else if (isActive) {
+            accountRankActivityBadgeElement.classList.add(...accountRankActivityActiveClasses);
+          } else {
+            accountRankActivityBadgeElement.classList.add(...accountRankActivityInactiveClasses);
+          }
         }
         renderDashboardAccountOverviewKpi(user, currentAccountRank);
       }
@@ -10506,6 +10801,13 @@
           return;
         }
 
+        if (isPendingMembershipReservationUser(currentSessionUser)) {
+          dashboardAccountOverviewBadgeStripElement.innerHTML = '';
+          dashboardAccountOverviewBadgeStripElement.classList.add('hidden');
+          hideDashboardAccountKpiBadgeHovercard({ immediate: true });
+          return;
+        }
+
         const badgeEntries = resolveDashboardAccountKpiBadgeEntries(profileState);
         dashboardAccountOverviewBadgeStripElement.innerHTML = '';
 
@@ -11156,6 +11458,7 @@
         if (!hasAuthToken) {
           return;
         }
+        const isPendingReservationAccount = isPendingMembershipReservationUser(currentSessionUser);
 
         const businessCenters = businessCenterStatus?.businessCenters;
         const maxCenters = Math.max(1, toWholeNumber(businessCenters?.maxCenters ?? businessCenters?.cap, 3));
@@ -11197,6 +11500,9 @@
         } else if (!businessCenters) {
           statusChipClassName = `${statusChipBaseClassName} border-semantic-danger/35 bg-semantic-danger-bg text-semantic-danger`;
           statusChipText = 'Unavailable';
+        } else if (isPendingReservationAccount) {
+          statusChipClassName = `${statusChipBaseClassName} border-semantic-warning/35 bg-semantic-warning-bg text-semantic-warning`;
+          statusChipText = 'Upgrade Required';
         } else if (isStaffTreeAccount) {
           statusChipClassName = `${statusChipBaseClassName} border-surface-border bg-surface-base text-text-tertiary`;
           statusChipText = 'Staff Locked';
@@ -11228,6 +11534,8 @@
         if (businessCenterSummaryDetailElement) {
           if (!businessCenters && businessCenterStatusLoading) {
             businessCenterSummaryDetailElement.textContent = 'Loading Business Center metrics from your server record...';
+          } else if (isPendingReservationAccount) {
+            businessCenterSummaryDetailElement.textContent = getPendingMembershipUpgradeGateMessage();
           } else if (isStaffTreeAccount) {
             businessCenterSummaryDetailElement.textContent = 'This account is flagged as staff/admin and cannot activate Business Centers.';
           } else {
@@ -11252,7 +11560,8 @@
         const disableControls = businessCenterActivationInFlight
           || businessCenterStatusLoading
           || !canActivate
-          || !businessCenters;
+          || !businessCenters
+          || isPendingReservationAccount;
 
         if (businessCenterActivationSideInput) {
           businessCenterActivationSideInput.disabled = disableControls;
@@ -11261,7 +11570,7 @@
           businessCenterActivateButtonElement.disabled = disableControls;
           businessCenterActivateButtonElement.textContent = businessCenterActivationInFlight
             ? 'Activating...'
-            : 'Activate Business Center';
+            : (isPendingReservationAccount ? 'Upgrade Required' : 'Activate Business Center');
         }
 
         renderBusinessCenterWalletSummarySection();
@@ -11512,6 +11821,9 @@
       }
 
       async function syncBusinessCenterProgressNow(completedLegacyTierCount, options = {}) {
+        if (isPendingMembershipReservationUser(currentSessionUser)) {
+          return businessCenterStatus;
+        }
         const silent = options?.silent !== false;
         const force = options?.force === true;
         const safeCompletedTierCount = Math.max(0, toWholeNumber(completedLegacyTierCount, 0));
@@ -11588,6 +11900,10 @@
 
       async function activateBusinessCenterFromPanel() {
         if (businessCenterActivationInFlight) {
+          return;
+        }
+        if (isPendingMembershipReservationUser(currentSessionUser)) {
+          setBusinessCenterActivationFeedback(getPendingMembershipUpgradeGateMessage(), false);
           return;
         }
 
@@ -15573,6 +15889,9 @@
 
       function resolveAccountPackageTierIndex(currentPackageKey) {
         const normalizedCurrentPackageKey = normalizeMemberKey(currentPackageKey);
+        if (normalizedCurrentPackageKey === normalizeMemberKey(MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY)) {
+          return ACCOUNT_UPGRADE_PACKAGE_ORDER.indexOf(normalizeMemberKey(FREE_ACCOUNT_PACKAGE_KEY));
+        }
         return ACCOUNT_UPGRADE_PACKAGE_ORDER.indexOf(normalizedCurrentPackageKey);
       }
 
@@ -15644,6 +15963,44 @@
         );
       }
 
+      function ensureAccountUpgradeToastElement() {
+        if (accountUpgradeToastElement instanceof HTMLElement && document.body.contains(accountUpgradeToastElement)) {
+          return accountUpgradeToastElement;
+        }
+
+        const toastElement = document.createElement('div');
+        toastElement.id = 'account-upgrade-required-toast';
+        toastElement.className = 'pointer-events-none fixed left-1/2 bottom-14 z-[120] w-[min(92vw,26rem)] -translate-x-1/2 rounded-lg border border-semantic-danger/45 bg-semantic-danger-bg/95 px-3 py-2 text-center text-body-sm font-semibold text-white shadow-depth-2 backdrop-blur-sm opacity-0 transition-opacity duration-200 ease-out';
+        toastElement.setAttribute('role', 'status');
+        toastElement.setAttribute('aria-live', 'polite');
+        toastElement.setAttribute('aria-atomic', 'true');
+        toastElement.hidden = true;
+        document.body.appendChild(toastElement);
+        accountUpgradeToastElement = toastElement;
+        return toastElement;
+      }
+
+      function showAccountUpgradeRequiredToast(message = ACCOUNT_UPGRADE_REQUIRED_TOAST_MESSAGE) {
+        const toastElement = ensureAccountUpgradeToastElement();
+        const normalizedMessage = String(message || '').trim() || ACCOUNT_UPGRADE_REQUIRED_TOAST_MESSAGE;
+        toastElement.textContent = normalizedMessage;
+        toastElement.hidden = false;
+        toastElement.classList.remove('opacity-0');
+
+        if (accountUpgradeToastTimerId !== null) {
+          window.clearTimeout(accountUpgradeToastTimerId);
+          accountUpgradeToastTimerId = null;
+        }
+
+        accountUpgradeToastTimerId = window.setTimeout(() => {
+          toastElement.classList.add('opacity-0');
+          accountUpgradeToastTimerId = window.setTimeout(() => {
+            toastElement.hidden = true;
+            accountUpgradeToastTimerId = null;
+          }, 220);
+        }, 3200);
+      }
+
       function syncAccountRankUpgradeCta(user) {
         if (!accountRankUpgradeWrapElement || !accountRankUpgradeButtonElement || !accountRankUpgradeHintElement) {
           return;
@@ -15652,11 +16009,14 @@
         const currentPackageKey = resolveCurrentAccountPackageKey(user);
         const currentTierIndex = resolveAccountPackageTierIndex(currentPackageKey);
         const isLegacyTier = currentTierIndex === ACCOUNT_UPGRADE_PACKAGE_ORDER.length - 1;
+        const isPendingReservationAccount = isPendingMembershipReservationUser(user);
 
         if (accountRankSourceElement) {
-          accountRankSourceElement.textContent = isLegacyTier
-            ? accountRankLegacyTaskMessage
-            : accountRankUpgradePromptMessage;
+          accountRankSourceElement.textContent = isPendingReservationAccount
+            ? accountRankPendingUpgradePromptMessage
+            : (isLegacyTier
+              ? accountRankLegacyTaskMessage
+              : accountRankUpgradePromptMessage);
         }
 
         const availableUpgradePackageKeys = resolveAvailableAccountUpgradePackageKeys(currentPackageKey);
@@ -21505,6 +21865,10 @@
       async function submitPreferredCustomerPlan(event) {
         event.preventDefault();
         clearPreferredCustomerPlanFeedback();
+        if (isEnrollmentRestrictedForCurrentSession(currentSessionUser)) {
+          setPreferredCustomerPlanFeedback(getPendingMembershipUpgradeGateMessage(), false);
+          return;
+        }
 
         const selectedRow = preferredCustomerPlannerRows.find((row) => row.memberId === selectedPreferredCustomerMemberId) || null;
         if (!selectedRow || !selectedRow.member) {
@@ -21778,12 +22142,15 @@
           || createdMember?.rank
           || resolveStartingRankFromEnrollmentPackage(packageKey),
         ) || resolveStartingRankFromEnrollmentPackage(packageKey);
+        const isMembershipReservation = isMembershipPlacementReservationPackageKey(packageKey);
         const isPendingPreferred = isPreferredCustomerPackageKey(packageKey)
           || isPreferredCustomerRank(assignedRankLabel);
         const setupEmailQueued = createdMember?.passwordSetupEmailQueued ? ' Password setup email is queued.' : '';
-        const successMessage = isPendingPreferred
-          ? `${creditedMember} enrolled as Free Account (Pending). Placement is saved and will auto-place into Binary Tree after account upgrade.${setupEmailQueued}`
-          : `${creditedMember} enrolled. Assigned rank: ${assignedRankLabel}. Fast Track +${formatCurrency(creditedBonus)} credited.${setupEmailQueued}`;
+        const successMessage = isMembershipReservation
+          ? `${creditedMember} enrolled under Membership Placement Reservation (Pending). Placement is saved. Upgrade to activate enrollment, sponsorship, and commissions.${setupEmailQueued}`
+          : (isPendingPreferred
+            ? `${creditedMember} enrolled as Free Account (Pending). Placement is saved and will auto-place into Binary Tree after account upgrade.${setupEmailQueued}`
+            : `${creditedMember} enrolled. Assigned rank: ${assignedRankLabel}. Fast Track +${formatCurrency(creditedBonus)} credited.${setupEmailQueued}`);
         return {
           creditedMember,
           message: successMessage,
@@ -22660,6 +23027,10 @@
         if (!binaryTreePanelElement.classList.contains('tree-fullscreen-mode')) {
           return;
         }
+        if (isEnrollmentRestrictedForCurrentSession(currentSessionUser)) {
+          setEnrollMemberFeedback(getPendingMembershipUpgradeGateMessage(), false);
+          return;
+        }
 
         treeEnrollLastTriggerElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         treeEnrollModalForm.reset();
@@ -22743,6 +23114,10 @@
         clearEnrollMemberFeedback();
 
         if (!enrollMemberForm) {
+          return;
+        }
+        if (isEnrollmentRestrictedForCurrentSession(currentSessionUser)) {
+          setEnrollMemberFeedback(getPendingMembershipUpgradeGateMessage(), false);
           return;
         }
 
@@ -22882,6 +23257,10 @@
 
         if (!treeEnrollModalForm || !treeEnrollPlacementLock) {
           setTreeEnrollFeedback('Placement context is missing. Select an anticipation node again.', false);
+          return;
+        }
+        if (isEnrollmentRestrictedForCurrentSession(currentSessionUser)) {
+          setTreeEnrollFeedback(getPendingMembershipUpgradeGateMessage(), false);
           return;
         }
 
@@ -23174,6 +23553,11 @@
         initTreeSettingsPanel();
         if (quickActionEnrollMemberButton) {
           quickActionEnrollMemberButton.addEventListener('click', () => {
+            if (isEnrollmentRestrictedForCurrentSession(currentSessionUser)) {
+              setAccountRankUpgradeFeedback(getPendingMembershipUpgradeGateMessage(), false);
+              showAccountUpgradeRequiredToast();
+              return;
+            }
             setPage('enroll-member', { routeMode: 'push' });
           });
         }
@@ -23670,6 +24054,16 @@
       const storeCartBpElement = document.getElementById('store-cart-bp');
       const storeCheckoutButton = document.getElementById('store-checkout-btn');
       const storeCheckoutFeedback = document.getElementById('store-checkout-feedback');
+      const storeAccountUpgradeSectionElement = document.getElementById('store-account-upgrade-section');
+      const storeAccountUpgradeCaptionElement = document.getElementById('store-account-upgrade-caption');
+      const storeAccountUpgradeCurrentPackageElement = document.getElementById('store-account-upgrade-current-package');
+      const storeAccountUpgradePackagesElement = document.getElementById('store-account-upgrade-packages');
+      const storeAccountUpgradeProductPickerElement = document.getElementById('store-account-upgrade-product-picker');
+      const storeAccountUpgradeProductOptionButtons = Array.from(document.querySelectorAll('[data-store-upgrade-product-key]'));
+      const storeAccountUpgradeSummaryElement = document.getElementById('store-account-upgrade-summary');
+      const storeAccountUpgradeAllocationElement = document.getElementById('store-account-upgrade-allocation');
+      const storeAccountUpgradeCheckoutButton = document.getElementById('store-account-upgrade-checkout-btn');
+      const storeAccountUpgradeFeedbackElement = document.getElementById('store-account-upgrade-feedback');
       const storeInvoiceFeed = document.getElementById('store-invoice-feed');
       const storeKpiInvoices = document.getElementById('store-kpi-invoices');
       const storeKpiOwnerCredit = document.getElementById('store-kpi-owner-credit');
@@ -23714,6 +24108,28 @@
         { id: 'INV-240918', buyer: 'J. Thomas', attributionKey: defaultUplineStoreCode, amount: 72, retailCommission: 8, bp: 48, status: 'Pending', discount: 8.0, mockSeed: true },
         { id: 'INV-240915', buyer: 'M. Chen', attributionKey: defaultUplineStoreCode, amount: 265, retailCommission: 12, bp: 44, status: 'Posted', discount: 29.44, mockSeed: true },
       ]);
+      const STORE_ACCOUNT_UPGRADE_PRODUCT_META = Object.freeze({
+        metacharge: Object.freeze({
+          key: 'metacharge',
+          label: 'MetaCharge\u2122',
+        }),
+        metaroast: Object.freeze({
+          key: 'metaroast',
+          label: 'MetaRoast\u2122',
+        }),
+      });
+      const STORE_ACCOUNT_UPGRADE_DEFAULT_PRODUCT_KEY = 'metacharge';
+      const STORE_ACCOUNT_UPGRADE_DEFAULT_SPLIT_PRODUCT_KEY = 'metaroast';
+      const STORE_ACCOUNT_UPGRADE_PRODUCT_KEY_SPLIT = 'split';
+      const STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METACHARGE = 'all-metacharge';
+      const STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METAROAST = 'all-metaroast';
+      const STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_SPLIT = 'split';
+      const STORE_ACCOUNT_UPGRADE_DEFAULT_PRODUCT_MODE = STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+      const STORE_ACCOUNT_UPGRADE_SPLIT_ELIGIBLE_PACKAGE_KEY_SET = new Set([
+        'business-builder-pack',
+        'infinity-builder-pack',
+        'legacy-builder-pack',
+      ]);
 
       let storeProducts = [];
       let storeCart = [];
@@ -23732,6 +24148,9 @@
       let isStoreStripeCheckoutPending = false;
       let isStoreStripeCardComplete = false;
       let pendingStoreImageWarmupPromise = null;
+      let selectedStoreUpgradePackageKey = '';
+      let selectedStoreUpgradeProductKey = STORE_ACCOUNT_UPGRADE_DEFAULT_PRODUCT_KEY;
+      let selectedStoreUpgradeProductMode = STORE_ACCOUNT_UPGRADE_DEFAULT_PRODUCT_MODE;
 
       function resolveStoreInvoiceSeedValue(invoiceId) {
         const match = String(invoiceId || '').trim().toUpperCase().match(/^INV-(\d+)$/);
@@ -24050,17 +24469,29 @@
       }
 
       function hydrateStoreSetupIdentity() {
+        const isPendingReservation = isPendingMembershipReservationUser(currentSessionUser);
         if (storeCodeValueElement) {
           storeCodeValueElement.textContent = storePublicCode;
         }
 
-        const publicStoreLink = buildPublicStoreLink();
+        const publicStoreLink = isPendingReservation
+          ? 'Account upgrade required.'
+          : buildPublicStoreLink();
         if (storeLinkValueElement) {
           storeLinkValueElement.textContent = publicStoreLink;
         }
 
         if (storeLinkValueSetupElement) {
           storeLinkValueSetupElement.textContent = publicStoreLink;
+        }
+
+        if (copyStoreLinkButton) {
+          copyStoreLinkButton.classList.toggle('hidden', isPendingReservation);
+          copyStoreLinkButton.disabled = isPendingReservation;
+        }
+        if (copyStoreLinkButtonSetup) {
+          copyStoreLinkButtonSetup.classList.toggle('hidden', isPendingReservation);
+          copyStoreLinkButtonSetup.disabled = isPendingReservation;
         }
       }
 
@@ -24414,6 +24845,9 @@
         const ownerCreditUser = safePayload?.ownerCredit?.user && typeof safePayload.ownerCredit.user === 'object'
           ? safePayload.ownerCredit.user
           : null;
+        const accountUpgradeUser = safePayload?.accountUpgrade?.user && typeof safePayload.accountUpgrade.user === 'object'
+          ? safePayload.accountUpgrade.user
+          : null;
 
         if (buyerCreditUser) {
           applySessionUserPatch(buyerCreditUser);
@@ -24421,6 +24855,10 @@
 
         if (ownerCreditUser && doesIdentityBelongToCurrentSessionUser(ownerCreditUser)) {
           applySessionUserPatch(ownerCreditUser);
+        }
+
+        if (accountUpgradeUser) {
+          applySessionUserPatch(accountUpgradeUser);
         }
 
         const authToken = resolveMemberAuthToken();
@@ -24493,6 +24931,20 @@
         syncStoreMetrics();
         renderRecentActivityFeed();
         await syncSessionAfterStoreCheckoutCompletion(completionResult.payload);
+        const accountUpgradeResult = completionResult?.payload?.accountUpgrade && typeof completionResult.payload.accountUpgrade === 'object'
+          ? completionResult.payload.accountUpgrade
+          : null;
+        const accountUpgradeMessage = String(accountUpgradeResult?.message || '').trim();
+        if (accountUpgradeResult?.ok === true) {
+          setStoreUpgradeFeedback(
+            accountUpgradeMessage || 'Account upgrade was applied successfully.',
+            true,
+          );
+        } else if (accountUpgradeResult && accountUpgradeMessage) {
+          setStoreUpgradeFeedback(accountUpgradeMessage, false);
+        } else {
+          clearStoreUpgradeFeedback();
+        }
 
         storeCart = [];
         if (storeCheckoutFormElement) {
@@ -24506,7 +24958,10 @@
         isStoreStripeCheckoutPending = false;
         renderCart();
         setStoreFlowStep('grid');
-        updateCheckoutFeedback(completionResult.message || 'Payment confirmed successfully.', true);
+        const completionMessage = accountUpgradeResult && accountUpgradeResult.ok === false && accountUpgradeMessage
+          ? `${completionResult.message || 'Payment confirmed successfully.'} ${accountUpgradeMessage}`
+          : (completionResult.message || 'Payment confirmed successfully.');
+        updateCheckoutFeedback(completionMessage, true);
         clearStoreHostedCheckoutReturnDetails();
       }
 
@@ -25009,6 +25464,404 @@
         };
       }
 
+      function normalizeStoreAccountUpgradeProductKey(value = '') {
+        const normalizedValue = String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!normalizedValue) {
+          return '';
+        }
+        if (normalizedValue.includes('roast')) {
+          return 'metaroast';
+        }
+        if (normalizedValue.includes('charge')) {
+          return 'metacharge';
+        }
+        return '';
+      }
+
+      function normalizeStoreAccountUpgradeCurrentPackageProductKey(value = '') {
+        const normalizedValue = String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!normalizedValue) {
+          return '';
+        }
+        if (normalizedValue.includes('split')) {
+          return STORE_ACCOUNT_UPGRADE_PRODUCT_KEY_SPLIT;
+        }
+        return normalizeStoreAccountUpgradeProductKey(normalizedValue);
+      }
+
+      function normalizeStoreAccountUpgradeProductMode(value = '') {
+        const normalizedValue = String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!normalizedValue) {
+          return '';
+        }
+        if (normalizedValue.includes('split')) {
+          return STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_SPLIT;
+        }
+        if (normalizedValue.includes('roast')) {
+          return STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METAROAST;
+        }
+        if (normalizedValue.includes('charge')) {
+          return STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+        }
+        return '';
+      }
+
+      function resolveStoreAccountUpgradeProductModeBySelectionKey(value = '') {
+        return normalizeStoreAccountUpgradeProductMode(value);
+      }
+
+      function resolveStoreAccountUpgradeProductMeta(productKey = '') {
+        const normalizedProductKey = normalizeStoreAccountUpgradeProductKey(productKey);
+        if (normalizedProductKey && STORE_ACCOUNT_UPGRADE_PRODUCT_META[normalizedProductKey]) {
+          return STORE_ACCOUNT_UPGRADE_PRODUCT_META[normalizedProductKey];
+        }
+        return STORE_ACCOUNT_UPGRADE_PRODUCT_META[STORE_ACCOUNT_UPGRADE_DEFAULT_PRODUCT_KEY];
+      }
+
+      function resolveStoreAccountUpgradeComplementaryProductKey(productKey = '') {
+        return normalizeStoreAccountUpgradeProductKey(productKey) === 'metaroast'
+          ? 'metacharge'
+          : 'metaroast';
+      }
+
+      function isStoreAccountUpgradeSplitEligiblePackage(packageKey = '') {
+        const normalizedPackageKey = normalizeMemberKey(packageKey);
+        return STORE_ACCOUNT_UPGRADE_SPLIT_ELIGIBLE_PACKAGE_KEY_SET.has(normalizedPackageKey);
+      }
+
+      function resolveStoreAccountUpgradeProductMode(productMode = '', selectedProductKey = '', targetPackageKey = '') {
+        const splitAllowed = isStoreAccountUpgradeSplitEligiblePackage(targetPackageKey);
+        const normalizedMode = normalizeStoreAccountUpgradeProductMode(productMode);
+        if (normalizedMode === STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_SPLIT && !splitAllowed) {
+          const fallbackProductKey = normalizeStoreAccountUpgradeProductKey(selectedProductKey);
+          return fallbackProductKey === 'metaroast'
+            ? STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METAROAST
+            : STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+        }
+        if (normalizedMode) {
+          return normalizedMode;
+        }
+        const normalizedProductKey = normalizeStoreAccountUpgradeProductKey(selectedProductKey);
+        if (normalizedProductKey === 'metaroast') {
+          return STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METAROAST;
+        }
+        if (normalizedProductKey === 'metacharge') {
+          return STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+        }
+        return STORE_ACCOUNT_UPGRADE_DEFAULT_PRODUCT_MODE;
+      }
+
+      function resolveStoreAccountUpgradeProductKeyByMode(productMode = '', selectedProductKey = '', targetPackageKey = '') {
+        const normalizedMode = resolveStoreAccountUpgradeProductMode(
+          productMode,
+          selectedProductKey,
+          targetPackageKey,
+        );
+        if (normalizedMode === STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METAROAST) {
+          return 'metaroast';
+        }
+        if (normalizedMode === STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METACHARGE) {
+          return 'metacharge';
+        }
+        const normalizedSelectedProductKey = normalizeStoreAccountUpgradeProductKey(selectedProductKey);
+        if (normalizedSelectedProductKey) {
+          return normalizedSelectedProductKey;
+        }
+        return normalizedMode === STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_SPLIT
+          ? STORE_ACCOUNT_UPGRADE_DEFAULT_SPLIT_PRODUCT_KEY
+          : STORE_ACCOUNT_UPGRADE_DEFAULT_PRODUCT_KEY;
+      }
+
+      function resolveStoreCurrentPackageProductKey() {
+        return (
+          normalizeStoreAccountUpgradeCurrentPackageProductKey(currentSessionUser?.currentPackageProductKey)
+          || normalizeStoreAccountUpgradeCurrentPackageProductKey(currentSessionUser?.current_package_product_key)
+          || STORE_ACCOUNT_UPGRADE_DEFAULT_PRODUCT_KEY
+        );
+      }
+
+      function resolveStoreAccountUpgradeProductAllocation(currentPackageKey = '', targetPackageKey = '', options = {}) {
+        const selectedProductKey = normalizeStoreAccountUpgradeProductKey(options?.selectedProductKey || '');
+        const selectedProductMode = normalizeStoreAccountUpgradeProductMode(options?.selectedProductMode || '');
+        const currentPackageProductKey = normalizeStoreAccountUpgradeCurrentPackageProductKey(options?.currentPackageProductKey || '');
+        const normalizedCurrentPackage = normalizeMemberKey(currentPackageKey);
+        const normalizedTargetPackage = normalizeMemberKey(targetPackageKey);
+        const currentPackageProducts = Math.max(0, getPackageProductCount(normalizedCurrentPackage));
+        const targetPackageProducts = Math.max(
+          currentPackageProducts,
+          getPackageProductCount(normalizedTargetPackage),
+        );
+        const productGain = Math.max(0, targetPackageProducts - currentPackageProducts);
+        const normalizedCurrentPackageProductKey = currentPackageProductKey || resolveStoreCurrentPackageProductKey();
+        const normalizedProductMode = resolveStoreAccountUpgradeProductMode(
+          selectedProductMode,
+          selectedProductKey,
+          normalizedTargetPackage,
+        );
+        let resolvedSelectedProductKey = resolveStoreAccountUpgradeProductKeyByMode(
+          normalizedProductMode,
+          selectedProductKey || STORE_ACCOUNT_UPGRADE_DEFAULT_PRODUCT_KEY,
+          normalizedTargetPackage,
+        );
+        let selectedProduct = resolveStoreAccountUpgradeProductMeta(resolvedSelectedProductKey);
+        let carryoverProduct = resolveStoreAccountUpgradeProductMeta(
+          resolveStoreAccountUpgradeComplementaryProductKey(selectedProduct.key),
+        );
+        let carryoverQuantity = 0;
+        let selectedQuantity = productGain;
+
+        if (normalizedProductMode === STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_SPLIT) {
+          const currentPackageIsSplit = normalizedCurrentPackageProductKey === STORE_ACCOUNT_UPGRADE_PRODUCT_KEY_SPLIT;
+          const resolvedCarryoverProductKey = currentPackageIsSplit
+            ? resolveStoreAccountUpgradeComplementaryProductKey(selectedProduct.key)
+            : (
+                normalizeStoreAccountUpgradeProductKey(normalizedCurrentPackageProductKey)
+                || resolveStoreAccountUpgradeComplementaryProductKey(selectedProduct.key)
+              );
+          carryoverProduct = resolveStoreAccountUpgradeProductMeta(resolvedCarryoverProductKey);
+          resolvedSelectedProductKey = resolveStoreAccountUpgradeComplementaryProductKey(carryoverProduct.key);
+          selectedProduct = resolveStoreAccountUpgradeProductMeta(resolvedSelectedProductKey);
+          const carryoverTargetTotal = Math.ceil(targetPackageProducts / 2);
+          const existingCarryoverProductQuantity = currentPackageIsSplit
+            ? Math.floor(currentPackageProducts / 2)
+            : currentPackageProducts;
+          const carryoverNeeded = Math.max(0, carryoverTargetTotal - existingCarryoverProductQuantity);
+          carryoverQuantity = Math.min(productGain, carryoverNeeded);
+          selectedQuantity = Math.max(0, productGain - carryoverQuantity);
+        }
+
+        const lines = [];
+        if (carryoverQuantity > 0) {
+          lines.push({
+            productKey: carryoverProduct.key,
+            productLabel: carryoverProduct.label,
+            quantity: carryoverQuantity,
+          });
+        }
+        if (selectedQuantity > 0) {
+          lines.push({
+            productKey: selectedProduct.key,
+            productLabel: selectedProduct.label,
+            quantity: selectedQuantity,
+          });
+        }
+
+        return {
+          currentPackageProducts,
+          targetPackageProducts,
+          productGain,
+          currentPackageProductKey: normalizedCurrentPackageProductKey,
+          selectedProductMode: normalizedProductMode,
+          selectedProductKey: selectedProduct.key,
+          selectedProductLabel: selectedProduct.label,
+          selectedQuantity,
+          carryoverProductKey: carryoverProduct.key,
+          carryoverProductLabel: carryoverProduct.label,
+          carryoverQuantity,
+          lines,
+        };
+      }
+
+      function formatStoreAccountUpgradeAllocationLabel(allocationInput = null) {
+        const allocation = allocationInput && typeof allocationInput === 'object' ? allocationInput : {};
+        const allocationLines = Array.isArray(allocation.lines) ? allocation.lines : [];
+        if (allocationLines.length > 0) {
+          return allocationLines
+            .map((line) => `${line.productLabel} ${formatInteger(toWholeNumber(line.quantity, 0))}x`)
+            .join(' + ');
+        }
+        const fallbackLabel = String(allocation.selectedProductLabel || resolveStoreAccountUpgradeProductMeta(allocation.selectedProductKey).label).trim();
+        return `${fallbackLabel} 0x`;
+      }
+
+      function resolveStoreAccountUpgradeCheckoutProduct(productKey = '') {
+        const normalizedProductKey = normalizeStoreAccountUpgradeProductKey(productKey) || STORE_ACCOUNT_UPGRADE_DEFAULT_PRODUCT_KEY;
+        const productFromCatalog = (Array.isArray(storeProducts) ? storeProducts : []).find((product) => {
+          if (!product || normalizeMemberKey(product?.status) === 'archived') {
+            return false;
+          }
+          const idKey = normalizeStoreAccountUpgradeProductKey(product?.id);
+          const titleKey = normalizeStoreAccountUpgradeProductKey(product?.title);
+          return idKey === normalizedProductKey || titleKey === normalizedProductKey;
+        }) || null;
+        return {
+          productKey: normalizedProductKey,
+          productLabel: resolveStoreAccountUpgradeProductMeta(normalizedProductKey).label,
+          productId: String(productFromCatalog?.id || '').trim(),
+          availableStock: Math.max(0, toWholeNumber(productFromCatalog?.stock, 0)),
+        };
+      }
+
+      function resolveStoreAccountUpgradeCheckoutLines(allocationInput = null) {
+        const allocation = allocationInput && typeof allocationInput === 'object' ? allocationInput : {};
+        const normalizedLines = [];
+        const missingProductLabels = [];
+        (Array.isArray(allocation.lines) ? allocation.lines : []).forEach((line) => {
+          const quantity = Math.max(0, toWholeNumber(line?.quantity, 0));
+          if (quantity <= 0) {
+            return;
+          }
+          const checkoutProduct = resolveStoreAccountUpgradeCheckoutProduct(line?.productKey);
+          if (!checkoutProduct.productId || checkoutProduct.availableStock <= 0 || checkoutProduct.availableStock < quantity) {
+            missingProductLabels.push(checkoutProduct.productLabel);
+            return;
+          }
+          normalizedLines.push({
+            productId: checkoutProduct.productId,
+            quantity,
+            productLabel: checkoutProduct.productLabel,
+          });
+        });
+        return {
+          lines: normalizedLines,
+          missingProductLabels,
+        };
+      }
+
+      function clearStoreUpgradeFeedback() {
+        if (!storeAccountUpgradeFeedbackElement) {
+          return;
+        }
+        storeAccountUpgradeFeedbackElement.textContent = '';
+        storeAccountUpgradeFeedbackElement.classList.add('hidden');
+      }
+
+      function setStoreUpgradeFeedback(message = '', isSuccess = true) {
+        if (!storeAccountUpgradeFeedbackElement) {
+          return;
+        }
+        const normalizedMessage = String(message || '').trim();
+        if (!normalizedMessage) {
+          clearStoreUpgradeFeedback();
+          return;
+        }
+        storeAccountUpgradeFeedbackElement.textContent = normalizedMessage;
+        storeAccountUpgradeFeedbackElement.classList.remove('hidden', 'text-semantic-success', 'text-semantic-danger');
+        storeAccountUpgradeFeedbackElement.classList.add(isSuccess ? 'text-semantic-success' : 'text-semantic-danger');
+      }
+
+      function renderStoreAccountUpgrades() {
+        if (!storeAccountUpgradeSectionElement) {
+          return;
+        }
+
+        const currentPackageKey = resolveCurrentAccountPackageKey(currentSessionUser);
+        const availableUpgradePackageKeys = resolveAvailableAccountUpgradePackageKeys(currentPackageKey);
+        if (!availableUpgradePackageKeys.length) {
+          storeAccountUpgradeSectionElement.classList.add('hidden');
+          selectedStoreUpgradePackageKey = '';
+          return;
+        }
+
+        storeAccountUpgradeSectionElement.classList.remove('hidden');
+        const currentPackageLabel = getFastTrackPackageLabel(currentPackageKey);
+        if (storeAccountUpgradeCurrentPackageElement) {
+          storeAccountUpgradeCurrentPackageElement.textContent = `Current Package: ${currentPackageLabel}`;
+        }
+
+        const hasSelectedPackage = availableUpgradePackageKeys.includes(selectedStoreUpgradePackageKey);
+        if (!hasSelectedPackage) {
+          selectedStoreUpgradePackageKey = availableUpgradePackageKeys[0];
+        }
+
+        const quote = resolveAccountUpgradeDelta(currentPackageKey, selectedStoreUpgradePackageKey);
+        const splitAllowed = isStoreAccountUpgradeSplitEligiblePackage(selectedStoreUpgradePackageKey);
+        selectedStoreUpgradeProductMode = resolveStoreAccountUpgradeProductMode(
+          selectedStoreUpgradeProductMode,
+          selectedStoreUpgradeProductKey,
+          selectedStoreUpgradePackageKey,
+        );
+        selectedStoreUpgradeProductKey = resolveStoreAccountUpgradeProductKeyByMode(
+          selectedStoreUpgradeProductMode,
+          selectedStoreUpgradeProductKey,
+          selectedStoreUpgradePackageKey,
+        );
+        const productAllocation = resolveStoreAccountUpgradeProductAllocation(
+          currentPackageKey,
+          selectedStoreUpgradePackageKey,
+          {
+            selectedProductMode: selectedStoreUpgradeProductMode,
+            selectedProductKey: selectedStoreUpgradeProductKey,
+            currentPackageProductKey: resolveStoreCurrentPackageProductKey(),
+          },
+        );
+        selectedStoreUpgradeProductMode = productAllocation.selectedProductMode;
+        selectedStoreUpgradeProductKey = productAllocation.selectedProductKey;
+        const checkoutLines = resolveStoreAccountUpgradeCheckoutLines(productAllocation);
+        const hasMissingUpgradeProducts = checkoutLines.missingProductLabels.length > 0;
+        const targetPackageLabel = getFastTrackPackageLabel(selectedStoreUpgradePackageKey);
+        if (storeAccountUpgradeCaptionElement) {
+          storeAccountUpgradeCaptionElement.textContent = `${targetPackageLabel}: Pay ${formatCurrency(quote.priceDue)} | +${formatInteger(quote.bvGain)} BV | +${formatInteger(quote.productCount)} products`;
+        }
+
+        if (storeAccountUpgradePackagesElement) {
+          storeAccountUpgradePackagesElement.innerHTML = availableUpgradePackageKeys
+            .map((packageKey) => {
+              const packageLabel = getFastTrackPackageLabel(packageKey);
+              const packageDelta = resolveAccountUpgradeDelta(currentPackageKey, packageKey);
+              const isSelected = packageKey === selectedStoreUpgradePackageKey;
+              return `
+                <button
+                  type="button"
+                  class="storefront-v2-upgrade-package ${isSelected ? 'is-selected' : ''}"
+                  data-store-upgrade-package-key="${escapeHtml(packageKey)}"
+                  aria-pressed="${isSelected ? 'true' : 'false'}"
+                >
+                  <p class="storefront-v2-upgrade-package-name">${escapeHtml(packageLabel)}</p>
+                  <p class="storefront-v2-upgrade-package-meta">Pay ${formatCurrency(packageDelta.priceDue)} | +${formatInteger(packageDelta.bvGain)} BV | +${formatInteger(packageDelta.productCount)} products</p>
+                </button>
+              `;
+            })
+            .join('');
+        }
+
+        if (storeAccountUpgradeProductPickerElement) {
+          storeAccountUpgradeProductPickerElement.classList.toggle('hidden', !selectedStoreUpgradePackageKey);
+        }
+
+        storeAccountUpgradeProductOptionButtons.forEach((buttonElement) => {
+          if (!(buttonElement instanceof HTMLButtonElement)) {
+            return;
+          }
+          const selectionKey = String(buttonElement.dataset.storeUpgradeProductKey || '').trim();
+          const productMode = resolveStoreAccountUpgradeProductModeBySelectionKey(selectionKey);
+          const isSplitOption = productMode === STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_SPLIT;
+          const shouldHide = isSplitOption && !splitAllowed;
+          buttonElement.hidden = shouldHide;
+          const isSelected = productMode && !shouldHide && productMode === selectedStoreUpgradeProductMode;
+          buttonElement.classList.toggle('is-selected', Boolean(isSelected));
+          buttonElement.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+        });
+
+        if (storeAccountUpgradeSummaryElement) {
+          if (hasMissingUpgradeProducts) {
+            const missingLabels = Array.from(new Set(checkoutLines.missingProductLabels));
+            storeAccountUpgradeSummaryElement.textContent = `Upgrade products are unavailable in your live catalog: ${missingLabels.join(', ')}.`;
+          } else {
+            storeAccountUpgradeSummaryElement.textContent = `${targetPackageLabel}: Pay ${formatCurrency(quote.priceDue)} for ${formatInteger(quote.productCount)} products.`;
+          }
+        }
+
+        if (storeAccountUpgradeAllocationElement) {
+          const allocationLabel = formatStoreAccountUpgradeAllocationLabel(productAllocation);
+          storeAccountUpgradeAllocationElement.textContent = `Product allocation: ${allocationLabel}`;
+          storeAccountUpgradeAllocationElement.classList.remove('hidden');
+        }
+
+        if (storeAccountUpgradeCheckoutButton) {
+          storeAccountUpgradeCheckoutButton.disabled = (
+            isStoreStripeCheckoutPending
+            || !selectedStoreUpgradePackageKey
+            || quote.productCount <= 0
+            || checkoutLines.lines.length <= 0
+            || hasMissingUpgradeProducts
+          );
+          storeAccountUpgradeCheckoutButton.textContent = isStoreStripeCheckoutPending
+            ? 'Processing...'
+            : 'Checkout Upgrade in Stripe';
+        }
+      }
+
       function syncStoreGridSummary(totals) {
         if (storeGridCartCountBadgeElement) {
           storeGridCartCountBadgeElement.textContent = `${totals.items} item${totals.items === 1 ? '' : 's'} in cart`;
@@ -25183,6 +26036,7 @@
         syncStoreGridSummary(totals);
 
         if (!storeCartItemsElement || !storeCartCountElement || !storeCartSubtotalElement || !storeCartBpElement || !storeCheckoutButton || !storeCartEmptyElement) {
+          renderStoreAccountUpgrades();
           return;
         }
 
@@ -25195,7 +26049,11 @@
           storeCartTotalElement.textContent = formatCurrency(totals.total);
         }
         storeCartBpElement.textContent = `${formatInteger(totals.bp)} BV`;
-        storeCheckoutButton.disabled = totals.items === 0 || !storeAppliedUplineCode || isStoreStripeCheckoutPending;
+        storeCheckoutButton.disabled = (
+          totals.items === 0
+          || !storeAppliedUplineCode
+          || isStoreStripeCheckoutPending
+        );
         if (isStoreStripeCheckoutPending) {
           storeCheckoutButton.textContent = 'Processing...';
         } else {
@@ -25205,6 +26063,7 @@
         if (storeCart.length === 0) {
           storeCartEmptyElement.classList.remove('hidden');
           storeCartItemsElement.innerHTML = '';
+          renderStoreAccountUpgrades();
           return;
         }
 
@@ -25236,6 +26095,7 @@
             </article>
           `;
         }).join('');
+        renderStoreAccountUpgrades();
       }
 
       function renderInvoiceFeed() {
@@ -25567,6 +26427,8 @@
           }
 
           await loadRegisteredMembers();
+          hydrateStoreSetupIdentity();
+          renderCart();
 
           const upgradedPackageLabel = getFastTrackPackageLabel(
             normalizeMemberKey(payload?.upgrade?.toPackage || currentSessionUser?.enrollmentPackage),
@@ -25574,8 +26436,12 @@
           const gainedPv = toWholeNumber(payload?.upgrade?.pvGain, 0);
           const upgradePriceDue = Math.max(0, Number(payload?.upgrade?.priceDue) || 0);
           const upgradeProductCount = toWholeNumber(payload?.upgrade?.productCount, 0);
+          const upgradeProductAllocationLabel = String(payload?.upgrade?.productAllocation?.splitLabel || '').trim();
+          const upgradeProductAllocationSuffix = upgradeProductAllocationLabel
+            ? ` Product allocation: ${upgradeProductAllocationLabel}.`
+            : '';
           setAccountRankUpgradeFeedback(
-            `Account upgraded to ${upgradedPackageLabel}. Paid ${formatCurrency(upgradePriceDue)} for ${upgradeProductCount.toLocaleString()} products. +${gainedPv.toLocaleString()} PV applied (Fast Track not applied on upgrades).`,
+            `Account upgraded to ${upgradedPackageLabel}. Paid ${formatCurrency(upgradePriceDue)} for ${upgradeProductCount.toLocaleString()} products. +${gainedPv.toLocaleString()} PV applied (Fast Track not applied on upgrades).${upgradeProductAllocationSuffix}`,
             true,
           );
         } catch (error) {
@@ -25651,6 +26517,9 @@
         const matchedSponsorMember = Array.isArray(registeredMembers)
           ? registeredMembers.find((member) => normalizeMemberKey(member?.memberUsername || member?.username) === normalizedSponsorUsername)
           : null;
+        if (isPendingMembershipReservationUser(matchedSponsorMember)) {
+          return null;
+        }
 
         return {
           userId: String(matchedSponsorMember?.userId || '').trim(),
@@ -25943,6 +26812,114 @@
         window.location.assign(sessionResult.sessionUrl);
       }
 
+      async function checkoutStoreAccountUpgrade() {
+        clearStoreUpgradeFeedback();
+        const currentPackageKey = resolveCurrentAccountPackageKey(currentSessionUser);
+        const availableUpgradePackageKeys = resolveAvailableAccountUpgradePackageKeys(currentPackageKey);
+        if (!availableUpgradePackageKeys.length) {
+          setStoreUpgradeFeedback('Your account is already at the highest package tier.', false);
+          return;
+        }
+
+        if (!availableUpgradePackageKeys.includes(selectedStoreUpgradePackageKey)) {
+          selectedStoreUpgradePackageKey = availableUpgradePackageKeys[0];
+        }
+
+        const targetPackageKey = normalizeMemberKey(selectedStoreUpgradePackageKey);
+        if (!targetPackageKey) {
+          setStoreUpgradeFeedback('Select an upgrade package first.', false);
+          return;
+        }
+
+        const upgradeQuote = resolveAccountUpgradeDelta(currentPackageKey, targetPackageKey);
+        if (upgradeQuote.productCount <= 0) {
+          setStoreUpgradeFeedback('No additional products are available for this upgrade selection.', false);
+          renderStoreAccountUpgrades();
+          return;
+        }
+
+        const productAllocation = resolveStoreAccountUpgradeProductAllocation(
+          currentPackageKey,
+          targetPackageKey,
+          {
+            selectedProductMode: selectedStoreUpgradeProductMode,
+            selectedProductKey: selectedStoreUpgradeProductKey,
+            currentPackageProductKey: resolveStoreCurrentPackageProductKey(),
+          },
+        );
+        selectedStoreUpgradeProductMode = productAllocation.selectedProductMode;
+        selectedStoreUpgradeProductKey = productAllocation.selectedProductKey;
+        const checkoutLines = resolveStoreAccountUpgradeCheckoutLines(productAllocation);
+        if (checkoutLines.lines.length <= 0) {
+          const missingLabels = checkoutLines.missingProductLabels.length > 0
+            ? ` Missing products: ${Array.from(new Set(checkoutLines.missingProductLabels)).join(', ')}.`
+            : '';
+          setStoreUpgradeFeedback(`Unable to build upgrade products for checkout.${missingLabels}`, false);
+          renderStoreAccountUpgrades();
+          return;
+        }
+
+        const buyerName = String(currentSessionUser?.name || currentSessionUser?.username || 'Store Buyer').trim();
+        const buyerEmail = String(currentSessionUser?.email || '').trim().toLowerCase();
+        if (!buyerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) {
+          setStoreUpgradeFeedback('Your account needs a valid email before checkout.', false);
+          return;
+        }
+
+        const addressParts = [
+          currentSessionUser?.shippingAddress,
+          currentSessionUser?.address,
+          currentSessionUser?.billingAddress,
+          currentSessionUser?.city,
+          currentSessionUser?.state,
+          currentSessionUser?.postalCode,
+          currentSessionUser?.country,
+        ].map((value) => String(value || '').trim()).filter(Boolean);
+        const shippingAddress = addressParts.length > 0
+          ? addressParts.join(', ')
+          : 'Shipping address will be confirmed during Stripe checkout.';
+        const checkoutStoreRouting = resolveCheckoutStoreRouting();
+        const checkoutSessionPayload = {
+          cartLines: checkoutLines.lines.map((line) => ({
+            productId: line.productId,
+            quantity: line.quantity,
+          })),
+          storeCode: checkoutStoreRouting.attributionKey,
+          buyerName,
+          buyerEmail,
+          shippingAddress,
+          shippingMode: 'Standard Shipping',
+          source: 'member-dashboard-upgrade',
+          returnPath: '/index.html',
+          memberStoreLink: checkoutStoreRouting.storeLink || buildPublicStoreLink(storePublicCode),
+          discountPercent: 0,
+          checkoutMode: 'guest',
+          buyerUserId: String(currentSessionUser?.id || '').trim(),
+          buyerUsername: String(currentSessionUser?.username || '').trim(),
+          accountUpgradeTargetPackage: targetPackageKey,
+          accountUpgradeSelectedProductKey: productAllocation.selectedProductKey,
+          accountUpgradeProductMode: productAllocation.selectedProductMode,
+        };
+
+        isStoreStripeCheckoutPending = true;
+        renderCart();
+        setStoreUpgradeFeedback('Preparing Stripe checkout for account upgrade...', true);
+        updateCheckoutFeedback('Preparing Stripe checkout for account upgrade...', true);
+        const sessionResult = await createStoreStripeCheckoutSession(checkoutSessionPayload);
+        if (!sessionResult.ok) {
+          isStoreStripeCheckoutPending = false;
+          renderCart();
+          const failureMessage = sessionResult.message || 'Unable to start Stripe checkout.';
+          setStoreUpgradeFeedback(failureMessage, false);
+          updateCheckoutFeedback(failureMessage, false);
+          return;
+        }
+
+        setStoreUpgradeFeedback('Redirecting to secure Stripe checkout...', true);
+        updateCheckoutFeedback('Redirecting to secure Stripe checkout...', true);
+        window.location.assign(sessionResult.sessionUrl);
+      }
+
       function openStoreProductPage(productId) {
         const product = getProductById(productId);
         if (!product) {
@@ -26123,6 +27100,58 @@
           });
         }
 
+        if (storeAccountUpgradePackagesElement) {
+          storeAccountUpgradePackagesElement.addEventListener('click', (event) => {
+            const packageButton = event.target.closest('[data-store-upgrade-package-key]');
+            if (!(packageButton instanceof HTMLButtonElement)) {
+              return;
+            }
+            const selectedPackageKey = normalizeMemberKey(packageButton.dataset.storeUpgradePackageKey || '');
+            if (!selectedPackageKey || selectedStoreUpgradePackageKey === selectedPackageKey) {
+              return;
+            }
+            selectedStoreUpgradePackageKey = selectedPackageKey;
+            clearStoreUpgradeFeedback();
+            renderStoreAccountUpgrades();
+          });
+        }
+
+        storeAccountUpgradeProductOptionButtons.forEach((buttonElement) => {
+          if (!(buttonElement instanceof HTMLButtonElement)) {
+            return;
+          }
+          buttonElement.addEventListener('click', () => {
+            const nextMode = resolveStoreAccountUpgradeProductModeBySelectionKey(
+              buttonElement.dataset.storeUpgradeProductKey || '',
+            );
+            if (!nextMode) {
+              return;
+            }
+            const targetPackageKey = normalizeMemberKey(selectedStoreUpgradePackageKey);
+            if (nextMode === STORE_ACCOUNT_UPGRADE_PRODUCT_MODE_SPLIT && !isStoreAccountUpgradeSplitEligiblePackage(targetPackageKey)) {
+              return;
+            }
+            const nextProductKey = resolveStoreAccountUpgradeProductKeyByMode(
+              nextMode,
+              selectedStoreUpgradeProductKey,
+              targetPackageKey,
+            );
+            if (nextMode === selectedStoreUpgradeProductMode && nextProductKey === selectedStoreUpgradeProductKey) {
+              return;
+            }
+            selectedStoreUpgradeProductMode = nextMode;
+            selectedStoreUpgradeProductKey = nextProductKey;
+            clearStoreUpgradeFeedback();
+            renderStoreAccountUpgrades();
+          });
+        });
+
+        if (storeAccountUpgradeCheckoutButton) {
+          storeAccountUpgradeCheckoutButton.addEventListener('click', () => {
+            void checkoutStoreAccountUpgrade();
+          });
+        }
+
         if (copyStoreCodeButton && storeCodeValueElement && copyStoreCodeFeedback) {
           copyStoreCodeButton.addEventListener('click', async () => {
             await copyTextValue(storeCodeValueElement.textContent.trim(), copyStoreCodeFeedback, 'Store code copied.');
@@ -26131,12 +27160,24 @@
 
         if (copyStoreLinkButton && storeLinkValueElement && copyStoreLinkFeedback) {
           copyStoreLinkButton.addEventListener('click', async () => {
+            if (isPendingMembershipReservationUser(currentSessionUser)) {
+              copyStoreLinkFeedback.textContent = 'Account upgrade required.';
+              copyStoreLinkFeedback.classList.remove('hidden', 'text-semantic-success');
+              copyStoreLinkFeedback.classList.add('text-semantic-danger');
+              return;
+            }
             await copyTextValue(storeLinkValueElement.textContent.trim(), copyStoreLinkFeedback, 'Store link copied.');
           });
         }
 
         if (copyStoreLinkButtonSetup && storeLinkValueSetupElement && copyStoreLinkFeedbackSetup) {
           copyStoreLinkButtonSetup.addEventListener('click', async () => {
+            if (isPendingMembershipReservationUser(currentSessionUser)) {
+              copyStoreLinkFeedbackSetup.textContent = 'Account upgrade required.';
+              copyStoreLinkFeedbackSetup.classList.remove('hidden', 'text-semantic-success');
+              copyStoreLinkFeedbackSetup.classList.add('text-semantic-danger');
+              return;
+            }
             await copyTextValue(storeLinkValueSetupElement.textContent.trim(), copyStoreLinkFeedbackSetup, 'Store link copied.');
           });
         }
@@ -26677,7 +27718,21 @@
 
       function setPage(pageName, options = {}) {
         const requestedPage = pageMeta[pageName] ? pageName : 'dashboard';
-        const nextPage = resolvePreferredCustomerAccessiblePage(requestedPage);
+        let nextPage = resolvePreferredCustomerAccessiblePage(requestedPage);
+        const requestedRestrictedEnrollmentPage = nextPage === 'enroll-member' || nextPage === 'preferred-customer';
+        if (
+          isEnrollmentRestrictedForCurrentSession(currentSessionUser)
+          && requestedRestrictedEnrollmentPage
+        ) {
+          setAccountRankUpgradeFeedback(getPendingMembershipUpgradeGateMessage(), false);
+          if (options.showUpgradeToast === true) {
+            showAccountUpgradeRequiredToast();
+          }
+          if (options.preserveCurrentPageOnRestricted === true) {
+            return;
+          }
+          nextPage = 'dashboard';
+        }
         const pageViewKey = nextPage;
         const shouldPersist = options.persist !== false;
         const shouldUpdateRoute = options.updateRoute !== false;
@@ -26786,6 +27841,8 @@
           setPage(requestedPage, {
             routeMode: 'push',
             autoEnterBinaryTreeFullscreen: requestedPage === 'binary-tree',
+            showUpgradeToast: true,
+            preserveCurrentPageOnRestricted: true,
           });
 
           if (window.innerWidth < 1024) {

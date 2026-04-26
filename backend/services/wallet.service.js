@@ -12,6 +12,10 @@ import {
   resolveWalletCommissionTransferSenderId,
 } from '../stores/wallet.store.js';
 import { createPayoutRequest } from './payout.service.js';
+import {
+  buildAccountUpgradeRequiredResult,
+  isPendingOrReservationMember,
+} from '../utils/member-capability.helpers.js';
 
 const DEFAULT_CURRENCY_CODE = 'USD';
 const EWALLET_PAYOUT_SOURCE_KEY = 'ewallet';
@@ -466,6 +470,9 @@ export async function createEWalletCommissionTransfer(payload = {}) {
       error: 'Member account was not found for commission transfer.',
     };
   }
+  if (isPendingOrReservationMember(memberUser)) {
+    return buildAccountUpgradeRequiredResult();
+  }
 
   const amountRaw = Number(payload?.amount);
   if (!Number.isFinite(amountRaw) || amountRaw <= 0) {
@@ -592,6 +599,9 @@ export async function createEWalletPayoutRequest(payload = {}) {
       status: 404,
       error: 'Member account was not found for E-Wallet payout request.',
     };
+  }
+  if (isPendingOrReservationMember(memberUser)) {
+    return buildAccountUpgradeRequiredResult();
   }
 
   const amount = roundCurrencyAmount(payload?.amount);

@@ -114,6 +114,7 @@ function mapDbMemberToAppMember(row) {
     spilloverPlacementSide: row.spillover_placement_side,
     spilloverParentReference: row.spillover_parent_reference,
     enrollmentPackage: row.enrollment_package,
+    currentPackageProductKey: row.current_package_product_key,
     enrollmentPackageLabel: row.enrollment_package_label,
     fastTrackTier: row.fast_track_tier,
     fastTrackTierLabel: row.fast_track_tier_label,
@@ -185,6 +186,7 @@ function mapAppMemberToDbMember(member) {
     spillover_placement_side: member?.spilloverPlacementSide || '',
     spillover_parent_reference: member?.spilloverParentReference || '',
     enrollment_package: member?.enrollmentPackage || '',
+    current_package_product_key: member?.currentPackageProductKey || '',
     enrollment_package_label: member?.enrollmentPackageLabel || '',
     fast_track_tier: member?.fastTrackTier || '',
     fast_track_tier_label: member?.fastTrackTierLabel || '',
@@ -286,7 +288,8 @@ async function ensureRegisteredMembersBusinessCenterColumns() {
         ADD COLUMN IF NOT EXISTS business_centers_pending integer NOT NULL DEFAULT 0,
         ADD COLUMN IF NOT EXISTS business_centers_overflow_pending integer NOT NULL DEFAULT 0,
         ADD COLUMN IF NOT EXISTS business_centers_count integer NOT NULL DEFAULT 0,
-        ADD COLUMN IF NOT EXISTS is_staff_tree_account boolean NOT NULL DEFAULT false
+        ADD COLUMN IF NOT EXISTS is_staff_tree_account boolean NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS current_package_product_key text NOT NULL DEFAULT ''
     `);
 
     await pool.query(`
@@ -482,6 +485,7 @@ export async function writeRegisteredMembersStore(members) {
           business_centers_overflow_pending,
           business_centers_count,
           is_staff_tree_account,
+          current_package_product_key,
           created_at
         )
         VALUES (
@@ -490,7 +494,7 @@ export async function writeRegisteredMembersStore(members) {
           $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,
           $31,$32,$33,$34,$35,$36,$37,$38,$39,$40,
           $41,$42,$43,$44,$45,$46,$47,$48,$49,$50,
-          $51,$52,$53,$54,$55,$56,$57,$58
+          $51,$52,$53,$54,$55,$56,$57,$58,$59
         )
       `, [
         row.id,
@@ -550,6 +554,7 @@ export async function writeRegisteredMembersStore(members) {
         row.business_centers_overflow_pending,
         row.business_centers_count,
         row.is_staff_tree_account,
+        row.current_package_product_key,
         row.created_at,
       ]);
     }
@@ -630,6 +635,7 @@ export async function upsertRegisteredMemberRecord(member, options = {}) {
     row.business_centers_overflow_pending,
     row.business_centers_count,
     row.is_staff_tree_account,
+    row.current_package_product_key,
     row.created_at,
   ];
   const insertSql = `
@@ -691,6 +697,7 @@ export async function upsertRegisteredMemberRecord(member, options = {}) {
       business_centers_overflow_pending,
       business_centers_count,
       is_staff_tree_account,
+      current_package_product_key,
       created_at
     )
     VALUES (
@@ -699,7 +706,7 @@ export async function upsertRegisteredMemberRecord(member, options = {}) {
       $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,
       $31,$32,$33,$34,$35,$36,$37,$38,$39,$40,
       $41,$42,$43,$44,$45,$46,$47,$48,$49,$50,
-      $51,$52,$53,$54,$55,$56,$57,$58
+      $51,$52,$53,$54,$55,$56,$57,$58,$59
     )
   `;
 
@@ -775,6 +782,7 @@ export async function upsertRegisteredMemberRecord(member, options = {}) {
       business_centers_overflow_pending = $55,
       business_centers_count = $56,
       is_staff_tree_account = $57,
+      current_package_product_key = $58,
       updated_at = NOW()
     WHERE id = $1
   `, [
@@ -835,6 +843,7 @@ export async function upsertRegisteredMemberRecord(member, options = {}) {
     row.business_centers_overflow_pending,
     row.business_centers_count,
     row.is_staff_tree_account,
+    row.current_package_product_key,
   ]);
 
   if (updateResult.rowCount > 0) {

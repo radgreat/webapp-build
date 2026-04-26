@@ -26,6 +26,10 @@ import {
   createStripeConnectTransferForPayout,
   resolveStripeConnectStatusForUserIdentity,
 } from './stripe-client.service.js';
+import {
+  buildAccountUpgradeRequiredResult,
+  isPendingOrReservationMember,
+} from '../utils/member-capability.helpers.js';
 
 const DEFAULT_CURRENCY_CODE = 'USD';
 const DEFAULT_MINIMUM_PAYOUT_AMOUNT_USD = 20;
@@ -793,6 +797,9 @@ export async function createPayoutRequest(payload = {}) {
       error: 'Member account was not found for this payout request.',
     };
   }
+  if (isPendingOrReservationMember(memberUser)) {
+    return buildAccountUpgradeRequiredResult();
+  }
 
   const payoutEligibility = await resolveStripePayoutEligibilityForMember(memberUser);
   if (!payoutEligibility.success) {
@@ -1114,6 +1121,11 @@ export async function fulfillAdminPayoutRequest(payload = {}) {
         status: 404,
         error: 'Member account was not found for this payout request.',
       };
+    }
+    if (isPendingOrReservationMember(memberUser)) {
+      await client.query('ROLLBACK');
+      transactionClosed = true;
+      return buildAccountUpgradeRequiredResult();
     }
 
     const amount = roundCurrencyAmount(existingRequest.amount);

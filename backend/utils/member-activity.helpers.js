@@ -124,6 +124,17 @@ function resolveLatestPersonalBvEventDate(member = {}) {
 }
 
 function resolvePendingStatus(member = {}) {
+  const explicitStatus = normalizeCredential(
+    member?.accountStatus
+    || member?.status
+    || member?.userAccountStatus
+    || member?.user_account_status
+    || member?.memberAccountStatus
+    || member?.member_account_status,
+  );
+  if (explicitStatus === 'pending') {
+    return 'pending';
+  }
   return member?.passwordSetupRequired === true ? 'pending-password-setup' : '';
 }
 

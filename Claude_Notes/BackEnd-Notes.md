@@ -110,3 +110,74 @@ No member/business rows are seeded.
 - Replace plain admin password flow with hashed password verification.
 - Wire backend API layer to Postgres queries.
 - Remove JSON read/write dependencies from production path.
+
+## Addendum (2026-04-25) - Upgrade Fast Track Entry-Plan Eligibility
+
+### What Changed
+
+- In `backend/services/member.service.js` (`upgradeMemberAccount`):
+  - first-paid-upgrade Fast Track eligibility now includes both entry plans:
+    - `preferred-customer-pack`
+    - `membership-placement-reservation`
+  - paid-to-paid upgrades still do not trigger Fast Track.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+
+## Follow-up Addendum (2026-04-25) - Upgrade Fast Track Sponsor Resolution
+
+### What Changed
+
+- Added attribution-owner fallback logic to `upgradeMemberAccount` in `backend/services/member.service.js` when direct sponsor username is unavailable.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+
+## Addendum (2026-04-25) - Account Upgrade Split Product Allocation Metadata + Response
+
+### What Changed
+
+- `backend/services/store-checkout.service.js`
+  - added checkout metadata persistence for `account_upgrade_selected_product_key`.
+  - upgrade finalization now reads selected split product key from metadata and forwards to `upgradeMemberAccount`.
+
+- `backend/services/member.service.js`
+  - added split allocation resolver for account upgrades (`selected` + `carryover`).
+  - `upgradeMemberAccount(...)` now accepts split selected-product input and returns `upgrade.productAllocation` with:
+    - selected product key/label/quantity
+    - carryover product key/label/quantity
+    - split label summary.
+
+### Validation
+
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/services/member.service.js` passed.
+
+## Addendum (2026-04-25) - Account Upgrade Product Mode Support
+
+### What Changed
+
+- `backend/services/store-checkout.service.js`
+  - added upgrade mode normalization/resolution for checkout metadata.
+  - persisted `account_upgrade_product_mode` in Stripe metadata for both checkout flows.
+  - account-upgrade finalization now forwards both:
+    - selected product key
+    - selected product mode
+
+- `backend/services/member.service.js`
+  - account-upgrade allocation resolver is now mode-aware:
+    - `all-metacharge`
+    - `all-metaroast`
+    - `split`
+  - `upgradeMemberAccount(...)` now accepts normalized mode aliases and returns mode in `upgrade.productAllocation`.
+
+### Compatibility
+
+- If legacy checkout payloads provide selected product key but no mode, backend infers `split` to preserve legacy forced-split behavior for in-flight sessions.
+
+### Validation
+
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/services/member.service.js` passed.

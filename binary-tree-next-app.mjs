@@ -25,6 +25,10 @@ const ADMIN_ROOT_USERNAME = 'administrator';
 const ADMIN_ROOT_TITLE = 'Administrator';
 const ADMIN_ROOT_ROLE = 'Administrator';
 const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
+const MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY = 'membership-placement-reservation';
+const MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_LABEL = 'Membership Placement Reservation';
+const ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE = 'Account upgrade required.';
+const PENDING_RESERVATION_GATE_MESSAGE = 'Your account is currently under Membership Placement Reservation. Upgrade to a full account package to invite, enroll, sponsor, and participate in commissions.';
 const FREE_ACCOUNT_RANK_KEY_SET = new Set([
   'preferred customer',
   'preferred',
@@ -246,9 +250,31 @@ const ENROLL_BILLING_COUNTRY_FALLBACK_OPTIONS = Object.freeze([
   Object.freeze({ code: 'US', label: 'United States' }),
 ]);
 const ENROLL_DEFAULT_PACKAGE_KEY = 'legacy-builder-pack';
+const ENROLL_DEFAULT_PRODUCT_KEY = 'metacharge';
+const ENROLL_SPLIT_PRODUCT_KEY = 'split';
+const ENROLL_PRODUCT_META = Object.freeze({
+  metacharge: Object.freeze({
+    key: 'metacharge',
+    label: 'MetaCharge\u2122',
+  }),
+  metaroast: Object.freeze({
+    key: 'metaroast',
+    label: 'MetaRoast\u2122',
+  }),
+  [ENROLL_SPLIT_PRODUCT_KEY]: Object.freeze({
+    key: ENROLL_SPLIT_PRODUCT_KEY,
+    label: 'Split Products',
+  }),
+});
+const ENROLL_SPLIT_ELIGIBLE_PACKAGE_KEY_SET = new Set([
+  'business-builder-pack',
+  'infinity-builder-pack',
+  'legacy-builder-pack',
+]);
 const STRIPE_TAX_CALCULATED_LABEL = 'Calculated at Stripe checkout';
 const ACCOUNT_OVERVIEW_SALES_TEAM_CYCLE_COMMISSION_PLAN = Object.freeze({
   [FREE_ACCOUNT_PACKAGE_KEY]: { perCycle: 0, weeklyCapCycles: 0 },
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: { perCycle: 0, weeklyCapCycles: 0 },
   'personal-builder-pack': { perCycle: 25, weeklyCapCycles: 50 },
   'business-builder-pack': { perCycle: 37.5, weeklyCapCycles: 250 },
   'infinity-builder-pack': { perCycle: 50, weeklyCapCycles: 500 },
@@ -291,12 +317,28 @@ const ENROLL_PACKAGE_META = Object.freeze({
     price: 1280,
     selectableProducts: 20,
   }),
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: Object.freeze({
+    label: MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_LABEL,
+    bv: 0,
+    price: 49.99,
+    selectableProducts: 0,
+    canEarn: false,
+    canEnroll: false,
+    canSponsor: false,
+    storeLinkEnabled: false,
+    binaryTreeViewOnly: true,
+    isReservationPlan: true,
+  }),
 });
 const ENROLL_PAID_PACKAGE_KEY_SET = new Set([
   'personal-builder-pack',
   'business-builder-pack',
   'infinity-builder-pack',
   'legacy-builder-pack',
+]);
+const ENROLL_SELECTABLE_PACKAGE_KEY_SET = new Set([
+  ...ENROLL_PAID_PACKAGE_KEY_SET,
+  MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY,
 ]);
 const INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER = 3;
 const INFINITY_BUILDER_TIER_NODE_REQUIREMENT = 3;
@@ -338,6 +380,7 @@ const ENROLL_FAST_TRACK_RATE_BY_TIER = Object.freeze({
 });
 const ENROLL_FAST_TRACK_TIER_BY_PACKAGE = Object.freeze({
   'preferred-customer-pack': 'personal-pack',
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: 'personal-pack',
   'personal-builder-pack': 'personal-pack',
   'business-builder-pack': 'business-pack',
   'infinity-builder-pack': 'achievers-pack',
@@ -436,6 +479,17 @@ const MY_STORE_FEATURED_PRODUCT = Object.freeze({
 });
 const MY_STORE_UPGRADE_PRODUCT_UNIT_BV = 50;
 const MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY = 'metacharge';
+const MY_STORE_UPGRADE_DEFAULT_SPLIT_PRODUCT_KEY = 'metaroast';
+const MY_STORE_PACKAGE_PRODUCT_KEY_SPLIT = 'split';
+const MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE = 'all-metacharge';
+const MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST = 'all-metaroast';
+const MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT = 'split';
+const MY_STORE_UPGRADE_DEFAULT_PRODUCT_MODE = MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+const MY_STORE_UPGRADE_SPLIT_ELIGIBLE_PACKAGE_KEY_SET = new Set([
+  'business-builder-pack',
+  'infinity-builder-pack',
+  'legacy-builder-pack',
+]);
 const MY_STORE_UPGRADE_PRODUCT_META = Object.freeze({
   metacharge: Object.freeze({
     productKey: 'metacharge',
@@ -477,6 +531,9 @@ const MY_STORE_PACKAGE_DISPLAY_META = Object.freeze({
   'preferred-customer-pack': Object.freeze({
     label: 'Preferred Customer Account',
   }),
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: Object.freeze({
+    label: MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_LABEL,
+  }),
   'personal-builder-pack': Object.freeze({
     label: 'Personal Builder Package',
   }),
@@ -492,6 +549,12 @@ const MY_STORE_PACKAGE_DISPLAY_META = Object.freeze({
 });
 const MY_STORE_UPGRADE_PACKAGE_KEYS_BY_PACKAGE = Object.freeze({
   'preferred-customer-pack': Object.freeze([
+    'personal-builder-pack',
+    'business-builder-pack',
+    'infinity-builder-pack',
+    'legacy-builder-pack',
+  ]),
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: Object.freeze([
     'personal-builder-pack',
     'business-builder-pack',
     'infinity-builder-pack',
@@ -718,11 +781,13 @@ const treeNextEnrollSpilloverModeFieldGroup = treeNextEnrollSpilloverModeInput i
   : null;
 const treeNextEnrollCountryFlagInput = document.getElementById('tree-next-enroll-country-flag');
 const treeNextEnrollPackageInput = document.getElementById('tree-next-enroll-package');
+const treeNextEnrollProductInput = document.getElementById('tree-next-enroll-product');
 const treeNextEnrollFastTrackTierInput = document.getElementById('tree-next-enroll-fast-track-tier');
 const treeNextEnrollPackageBvElement = document.getElementById('tree-next-enroll-package-bv');
 const treeNextEnrollPackageProductsElement = document.getElementById('tree-next-enroll-package-products');
 const treeNextEnrollPackageFastTrackBonusElement = document.getElementById('tree-next-enroll-package-fast-track-bonus');
 const treeNextEnrollSummaryPackageLabelElement = document.getElementById('tree-next-enroll-summary-package-label');
+const treeNextEnrollSummaryProductLabelElement = document.getElementById('tree-next-enroll-summary-product-label');
 const treeNextEnrollSummarySubtotalElement = document.getElementById('tree-next-enroll-summary-subtotal');
 const treeNextEnrollSummaryDiscountElement = document.getElementById('tree-next-enroll-summary-discount');
 const treeNextEnrollSummaryTaxElement = document.getElementById('tree-next-enroll-summary-tax');
@@ -2532,6 +2597,37 @@ function resolveSessionSponsorUsernameKey(sessionInput = state.session) {
   );
 }
 
+function isMembershipPlacementReservationPackage(packageKey) {
+  return normalizeCredentialValue(packageKey) === MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY;
+}
+
+function resolveAccountStatusKey(record = {}) {
+  return normalizeCredentialValue(
+    record?.accountStatus
+    || record?.status
+    || record?.userAccountStatus
+    || record?.user_account_status
+    || record?.memberAccountStatus
+    || record?.member_account_status,
+  );
+}
+
+function isPendingOrReservationAccountRecord(record = {}) {
+  const statusKey = resolveAccountStatusKey(record);
+  if (statusKey === 'pending') {
+    return true;
+  }
+  return isMembershipPlacementReservationPackage(record?.enrollmentPackage);
+}
+
+function isCurrentSessionPendingOrReservationAccount() {
+  if (isPendingOrReservationAccountRecord(state.session || {})) {
+    return true;
+  }
+  const homeNode = resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+  return isPendingOrReservationAccountRecord(homeNode || {});
+}
+
 function isNodePersonallyEnrolledBySession(nodeInput = null) {
   const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
   if (!node) {
@@ -2860,6 +2956,10 @@ function resolveNodeChildLegState(nodeId) {
 }
 
 function requestEnrollMemberFromTree(parentId, side) {
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    setTreeNextEnrollFeedback(PENDING_RESERVATION_GATE_MESSAGE, false);
+    return;
+  }
   const safeParentId = safeText(parentId);
   const placementLeg = normalizeBinarySide(side) === 'right' ? 'right' : 'left';
   if (!safeParentId) {
@@ -2930,17 +3030,115 @@ function resolveEnrollFastTrackTierLabel(tierKey) {
   return ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY[normalizedTier] || ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY['personal-pack'];
 }
 
-function isTreeNextEnrollPaidPackage(packageKey) {
+function isTreeNextEnrollSelectablePackage(packageKey) {
   const normalizedPackage = normalizeCredentialValue(packageKey);
-  return ENROLL_PAID_PACKAGE_KEY_SET.has(normalizedPackage);
+  return ENROLL_SELECTABLE_PACKAGE_KEY_SET.has(normalizedPackage);
 }
 
 function resolveTreeNextEnrollPackageKey(packageKey) {
   const normalizedPackage = normalizeCredentialValue(packageKey);
-  if (isTreeNextEnrollPaidPackage(normalizedPackage)) {
+  if (isTreeNextEnrollSelectablePackage(normalizedPackage)) {
     return normalizedPackage;
   }
   return ENROLL_DEFAULT_PACKAGE_KEY;
+}
+
+function resolveTreeNextEnrollProductKey(productKey = '') {
+  const normalizedProduct = normalizeCredentialValue(productKey).replace(/[^a-z0-9]/g, '');
+  if (normalizedProduct.includes('split')) {
+    return ENROLL_SPLIT_PRODUCT_KEY;
+  }
+  if (normalizedProduct.includes('roast')) {
+    return 'metaroast';
+  }
+  if (normalizedProduct.includes('charge')) {
+    return 'metacharge';
+  }
+  return ENROLL_DEFAULT_PRODUCT_KEY;
+}
+
+function resolveTreeNextEnrollProductMeta(productKey = '') {
+  const normalizedProductKey = resolveTreeNextEnrollProductKey(productKey);
+  return ENROLL_PRODUCT_META[normalizedProductKey] || ENROLL_PRODUCT_META[ENROLL_DEFAULT_PRODUCT_KEY];
+}
+
+function isTreeNextEnrollSplitEligiblePackage(packageKey = '') {
+  const normalizedPackageKey = resolveTreeNextEnrollPackageKey(packageKey);
+  return ENROLL_SPLIT_ELIGIBLE_PACKAGE_KEY_SET.has(normalizedPackageKey);
+}
+
+function resolveTreeNextEnrollSplitAllocation(packageKey = '') {
+  const normalizedPackageKey = resolveTreeNextEnrollPackageKey(packageKey);
+  const packageMeta = resolveEnrollPackageMeta(normalizedPackageKey);
+  const selectableProducts = Math.max(0, Math.floor(safeNumber(packageMeta?.selectableProducts, 0)));
+  const metachargeQuantity = Math.ceil(selectableProducts / 2);
+  const metaroastQuantity = Math.max(0, selectableProducts - metachargeQuantity);
+  return {
+    metachargeQuantity,
+    metaroastQuantity,
+  };
+}
+
+function formatTreeNextEnrollSplitSummaryLabel(packageKey = '') {
+  const splitAllocation = resolveTreeNextEnrollSplitAllocation(packageKey);
+  return `MetaCharge\u2122 ${formatInteger(splitAllocation.metachargeQuantity)}x + MetaRoast\u2122 ${formatInteger(splitAllocation.metaroastQuantity)}x`;
+}
+
+function syncTreeNextEnrollProductAvailability(packageKey = '') {
+  if (!(treeNextEnrollProductInput instanceof HTMLSelectElement)) {
+    return resolveTreeNextEnrollProductKey(ENROLL_DEFAULT_PRODUCT_KEY);
+  }
+
+  const normalizedPackageKey = resolveTreeNextEnrollPackageKey(
+    packageKey || treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY,
+  );
+  const splitAllowed = isTreeNextEnrollSplitEligiblePackage(normalizedPackageKey);
+  const currentProductKey = resolveTreeNextEnrollProductKey(treeNextEnrollProductInput.value);
+  let nextProductValue = currentProductKey;
+  let needsMenuRebuild = false;
+
+  for (const option of Array.from(treeNextEnrollProductInput.options || [])) {
+    const optionProductKey = resolveTreeNextEnrollProductKey(option?.value);
+    const shouldHide = optionProductKey === ENROLL_SPLIT_PRODUCT_KEY && !splitAllowed;
+    const shouldDisable = shouldHide;
+    if (option.hidden !== shouldHide) {
+      option.hidden = shouldHide;
+      needsMenuRebuild = true;
+    }
+    if (option.disabled !== shouldDisable) {
+      option.disabled = shouldDisable;
+      needsMenuRebuild = true;
+    }
+  }
+
+  if (currentProductKey === ENROLL_SPLIT_PRODUCT_KEY && !splitAllowed) {
+    nextProductValue = ENROLL_DEFAULT_PRODUCT_KEY;
+  }
+  if (!ENROLL_PRODUCT_META[nextProductValue]) {
+    nextProductValue = ENROLL_DEFAULT_PRODUCT_KEY;
+  }
+
+  const hasNextValue = Array.from(treeNextEnrollProductInput.options || []).some(
+    (option) => !option.disabled && resolveTreeNextEnrollProductKey(option?.value) === nextProductValue,
+  );
+  if (!hasNextValue) {
+    const firstEnabledOption = Array.from(treeNextEnrollProductInput.options || []).find((option) => !option.disabled);
+    nextProductValue = resolveTreeNextEnrollProductKey(firstEnabledOption?.value || ENROLL_DEFAULT_PRODUCT_KEY);
+  }
+
+  if (resolveTreeNextEnrollProductKey(treeNextEnrollProductInput.value) !== nextProductValue) {
+    treeNextEnrollProductInput.value = nextProductValue;
+  }
+
+  const productSelectEntry = treeNextEnrollCustomSelectByNativeId.get('tree-next-enroll-product');
+  if (productSelectEntry && needsMenuRebuild) {
+    buildTreeNextEnrollCustomSelectMenu(productSelectEntry);
+    closeTreeNextEnrollCustomSelect(productSelectEntry);
+  } else {
+    syncTreeNextEnrollCustomSelectById('tree-next-enroll-product');
+  }
+
+  return resolveTreeNextEnrollProductKey(treeNextEnrollProductInput.value || nextProductValue);
 }
 
 function resolveEnrollPackageMeta(packageKey) {
@@ -3336,6 +3534,9 @@ function buildTreeNextEnrollCustomSelectMenu(entry) {
   menu.innerHTML = '';
   entry.optionButtons = [];
   for (const option of Array.from(nativeSelect.options || [])) {
+    if (option.hidden) {
+      continue;
+    }
     const optionValue = safeText(option?.value);
     const optionLabel = safeText(option?.label || option?.textContent || optionValue);
     const optionButton = document.createElement('button');
@@ -3967,7 +4168,12 @@ function syncTreeNextEnrollPackagePreview() {
   ) {
     treeNextEnrollPackageInput.value = selectedPackage;
   }
+  const selectedProductKey = syncTreeNextEnrollProductAvailability(selectedPackage);
   const packageMeta = resolveEnrollPackageMeta(selectedPackage);
+  const productMeta = resolveTreeNextEnrollProductMeta(selectedProductKey);
+  const splitSummaryLabel = selectedProductKey === ENROLL_SPLIT_PRODUCT_KEY
+    ? formatTreeNextEnrollSplitSummaryLabel(selectedPackage)
+    : '';
   const tierFromForm = normalizeCredentialValue(treeNextEnrollFastTrackTierInput?.value || '');
   const tierKey = tierFromForm || resolveEnrollFastTrackTierFromPackage(selectedPackage);
   const packageBv = Math.max(0, Math.floor(safeNumber(packageMeta?.bv, 0)));
@@ -3991,6 +4197,11 @@ function syncTreeNextEnrollPackagePreview() {
   if (treeNextEnrollSummaryPackageLabelElement instanceof HTMLElement) {
     treeNextEnrollSummaryPackageLabelElement.textContent = packageMeta?.label || 'Package';
   }
+  if (treeNextEnrollSummaryProductLabelElement instanceof HTMLElement) {
+    treeNextEnrollSummaryProductLabelElement.textContent = splitSummaryLabel
+      || productMeta?.label
+      || 'MetaCharge\u2122';
+  }
   if (treeNextEnrollSummarySubtotalElement instanceof HTMLElement) {
     treeNextEnrollSummarySubtotalElement.textContent = formatEnrollCurrency(subtotalAmount);
   }
@@ -4004,6 +4215,7 @@ function syncTreeNextEnrollPackagePreview() {
     treeNextEnrollSummaryTotalElement.textContent = formatEnrollCurrency(totalAmount);
   }
   syncTreeNextEnrollCustomSelectById('tree-next-enroll-package');
+  syncTreeNextEnrollCustomSelectById('tree-next-enroll-product');
 }
 
 function resolveTreeNextEnrollPlacementSideFromLock(placementLock = state.enroll?.placementLock) {
@@ -11596,6 +11808,32 @@ function resolveMyStoreCurrentPackageKey(homeNode = null) {
   return 'preferred-customer-pack';
 }
 
+function resolveMyStoreCurrentPackageProductKey(homeNode = null) {
+  const safeHomeNode = homeNode && typeof homeNode === 'object' ? homeNode : null;
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    safeHomeNode?.currentPackageProductKey,
+    safeHomeNode?.current_package_product_key,
+    safeHomeNode?.enrollmentProductKey,
+    safeHomeNode?.enrollment_product_key,
+    safeHomeNode?.defaultProductKey,
+    safeHomeNode?.default_product_key,
+    session?.currentPackageProductKey,
+    session?.current_package_product_key,
+    session?.enrollmentProductKey,
+    session?.enrollment_product_key,
+    session?.defaultProductKey,
+    session?.default_product_key,
+  ];
+  for (const candidate of candidates) {
+    const productKey = normalizeMyStoreCurrentPackageProductKey(candidate);
+    if (productKey) {
+      return productKey;
+    }
+  }
+  return MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY;
+}
+
 function resolveMyStoreUpgradePackageKeys(packageKey) {
   const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
   const upgradeKeys = MY_STORE_UPGRADE_PACKAGE_KEYS_BY_PACKAGE[normalizedPackageKey];
@@ -11613,16 +11851,128 @@ function resolveMyStoreUpgradePackageLabel(packageKey) {
 }
 
 function resolveMyStoreUpgradeProductMeta(productKey = '') {
-  const normalizedProductKey = normalizeCredentialValue(productKey);
+  const normalizedProductKey = normalizeMyStoreUpgradeProductKey(productKey);
   if (normalizedProductKey && MY_STORE_UPGRADE_PRODUCT_META[normalizedProductKey]) {
     return MY_STORE_UPGRADE_PRODUCT_META[normalizedProductKey];
   }
   return MY_STORE_UPGRADE_PRODUCT_META[MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY];
 }
 
+function normalizeMyStoreUpgradeProductKey(value = '') {
+  const normalizedValue = normalizeCredentialValue(value).replace(/[^a-z0-9]/g, '');
+  if (!normalizedValue) {
+    return '';
+  }
+  if (normalizedValue.includes('roast')) {
+    return 'metaroast';
+  }
+  if (normalizedValue.includes('charge')) {
+    return 'metacharge';
+  }
+  return '';
+}
+
+function normalizeMyStoreCurrentPackageProductKey(value = '') {
+  const normalizedValue = normalizeCredentialValue(value).replace(/[^a-z0-9]/g, '');
+  if (!normalizedValue) {
+    return '';
+  }
+  if (normalizedValue.includes('split')) {
+    return MY_STORE_PACKAGE_PRODUCT_KEY_SPLIT;
+  }
+  return normalizeMyStoreUpgradeProductKey(normalizedValue);
+}
+
+function isMyStoreUpgradeSplitEligiblePackage(packageKey = '') {
+  const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
+  return MY_STORE_UPGRADE_SPLIT_ELIGIBLE_PACKAGE_KEY_SET.has(normalizedPackageKey);
+}
+
+function normalizeMyStoreUpgradeProductMode(value = '') {
+  const normalizedValue = normalizeCredentialValue(value).replace(/[^a-z0-9]/g, '');
+  if (!normalizedValue) {
+    return '';
+  }
+  if (normalizedValue.includes('split')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT;
+  }
+  if (normalizedValue.includes('roast')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST;
+  }
+  if (normalizedValue.includes('charge')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+  }
+  return '';
+}
+
+function resolveMyStoreUpgradeProductMode(productMode = '', selectedProductKey = '', targetPackageKey = '') {
+  const splitAllowed = isMyStoreUpgradeSplitEligiblePackage(targetPackageKey);
+  const normalizedMode = normalizeMyStoreUpgradeProductMode(productMode);
+  if (normalizedMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT && !splitAllowed) {
+    const fallbackSelectedProductKey = normalizeMyStoreUpgradeProductKey(selectedProductKey);
+    return fallbackSelectedProductKey === 'metaroast'
+      ? MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST
+      : MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+  }
+  if (normalizedMode) {
+    return normalizedMode;
+  }
+  const normalizedSelectedProductKey = normalizeMyStoreUpgradeProductKey(selectedProductKey);
+  if (normalizedSelectedProductKey === 'metaroast') {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST;
+  }
+  if (normalizedSelectedProductKey === 'metacharge') {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+  }
+  return MY_STORE_UPGRADE_DEFAULT_PRODUCT_MODE;
+}
+
+function resolveMyStoreUpgradeProductModeBySelectionKey(selectionKey = '') {
+  const normalizedKey = normalizeCredentialValue(selectionKey).replace(/[^a-z0-9]/g, '');
+  if (!normalizedKey) {
+    return '';
+  }
+  if (normalizedKey.includes('split')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT;
+  }
+  if (normalizedKey.includes('roast')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST;
+  }
+  if (normalizedKey.includes('charge')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+  }
+  return '';
+}
+
+function resolveMyStoreUpgradeProductKeyByMode(productMode = '', selectedProductKey = '', targetPackageKey = '') {
+  const normalizedMode = resolveMyStoreUpgradeProductMode(
+    productMode,
+    selectedProductKey,
+    targetPackageKey,
+  );
+  if (normalizedMode === MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST) {
+    return 'metaroast';
+  }
+  if (normalizedMode === MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE) {
+    return 'metacharge';
+  }
+  const normalizedSelectedProductKey = normalizeMyStoreUpgradeProductKey(selectedProductKey);
+  if (normalizedSelectedProductKey) {
+    return normalizedSelectedProductKey;
+  }
+  return normalizedMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT
+    ? MY_STORE_UPGRADE_DEFAULT_SPLIT_PRODUCT_KEY
+    : MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY;
+}
+
 function resolveMyStorePackageSelectableProductCount(packageKey) {
   const packageMeta = resolveEnrollPackageMeta(packageKey);
   return Math.max(0, Math.floor(safeNumber(packageMeta?.selectableProducts, 0)));
+}
+
+function resolveMyStoreComplementaryUpgradeProductKey(productKey = '') {
+  const normalizedProductKey = normalizeMyStoreUpgradeProductKey(productKey);
+  return normalizedProductKey === 'metaroast' ? 'metacharge' : 'metaroast';
 }
 
 function resolveMyStoreUpgradeDelta(currentPackageKey, targetPackageKey) {
@@ -11641,6 +11991,73 @@ function resolveMyStoreUpgradeDelta(currentPackageKey, targetPackageKey) {
     productGain,
     priceDue,
     bvGain,
+  };
+}
+
+function resolveMyStoreUpgradeProductAllocation(currentPackageKey, targetPackageKey, options = {}) {
+  const {
+    selectedProductKey = '',
+    selectedProductMode = '',
+    currentPackageProductKey = '',
+  } = options && typeof options === 'object'
+    ? options
+    : {};
+  const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey) || 'preferred-customer-pack';
+  const normalizedTargetPackage = resolveMyStorePackageKeyFromValue(targetPackageKey);
+  const currentPackageProducts = resolveMyStorePackageSelectableProductCount(normalizedCurrentPackage);
+  const targetPackageProducts = Math.max(
+    currentPackageProducts,
+    resolveMyStorePackageSelectableProductCount(normalizedTargetPackage),
+  );
+  const productGain = Math.max(0, targetPackageProducts - currentPackageProducts);
+  const normalizedCurrentPackageProductKey = normalizeMyStoreCurrentPackageProductKey(currentPackageProductKey)
+    || resolveMyStoreCurrentPackageProductKey();
+  const normalizedProductMode = resolveMyStoreUpgradeProductMode(
+    selectedProductMode,
+    selectedProductKey,
+    normalizedTargetPackage,
+  );
+  let resolvedSelectedProductKey = resolveMyStoreUpgradeProductKeyByMode(
+    normalizedProductMode,
+    selectedProductKey || MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY,
+    normalizedTargetPackage,
+  );
+  let selectedProduct = resolveMyStoreUpgradeProductMeta(resolvedSelectedProductKey);
+  let carryoverProduct = resolveMyStoreUpgradeProductMeta(
+    resolveMyStoreComplementaryUpgradeProductKey(selectedProduct.productKey),
+  );
+  let carryoverQuantity = 0;
+  let selectedQuantity = productGain;
+  if (normalizedProductMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT) {
+    const currentPackageIsSplit = normalizedCurrentPackageProductKey === MY_STORE_PACKAGE_PRODUCT_KEY_SPLIT;
+    const resolvedCarryoverProductKey = currentPackageIsSplit
+      ? resolveMyStoreComplementaryUpgradeProductKey(selectedProduct.productKey)
+      : (
+          normalizeMyStoreUpgradeProductKey(normalizedCurrentPackageProductKey)
+          || resolveMyStoreComplementaryUpgradeProductKey(selectedProduct.productKey)
+        );
+    carryoverProduct = resolveMyStoreUpgradeProductMeta(resolvedCarryoverProductKey);
+    resolvedSelectedProductKey = resolveMyStoreComplementaryUpgradeProductKey(carryoverProduct.productKey);
+    selectedProduct = resolveMyStoreUpgradeProductMeta(resolvedSelectedProductKey);
+    const carryoverTargetTotal = Math.ceil(targetPackageProducts / 2);
+    const existingCarryoverProductQuantity = currentPackageIsSplit
+      ? Math.floor(currentPackageProducts / 2)
+      : currentPackageProducts;
+    const carryoverNeeded = Math.max(0, carryoverTargetTotal - existingCarryoverProductQuantity);
+    carryoverQuantity = Math.min(productGain, carryoverNeeded);
+    selectedQuantity = Math.max(0, productGain - carryoverQuantity);
+  }
+
+  return {
+    currentPackageProducts,
+    targetPackageProducts,
+    productGain,
+    currentPackageProductKey: normalizedCurrentPackageProductKey,
+    selectedProductMode: normalizedProductMode,
+    selectedProduct,
+    selectedQuantity,
+    carryoverProduct,
+    carryoverQuantity,
   };
 }
 
@@ -11687,7 +12104,12 @@ function resolveMyStoreStep(stepValue = '') {
   return MY_STORE_VALID_STEPS.has(normalizedStep) ? normalizedStep : MY_STORE_STEP_CATALOG;
 }
 
-function buildMyStoreSelection(action, packageKey = '', currentPackageKey = '') {
+function buildMyStoreSelection(
+  action,
+  packageKey = '',
+  currentPackageKey = '',
+  currentPackageProductKey = '',
+) {
   const normalizedAction = normalizeCredentialValue(action);
   const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
   const baseQuantity = Math.max(1, Math.round(safeNumber(MY_STORE_FEATURED_PRODUCT.quantity, 1)));
@@ -11695,86 +12117,153 @@ function buildMyStoreSelection(action, packageKey = '', currentPackageKey = '') 
     action: 'featured',
     productKey: safeText(MY_STORE_FEATURED_PRODUCT.productKey || 'metacharge') || 'metacharge',
     packageKey: '',
-    label: safeText(MY_STORE_FEATURED_PRODUCT.label) || 'MetaCharge',
+    label: safeText(MY_STORE_FEATURED_PRODUCT.label) || 'MetaCharge\u2122',
     imageUrl: safeText(MY_STORE_FEATURED_PRODUCT.imageUrl),
     unitPrice: Math.max(0, safeNumber(MY_STORE_FEATURED_PRODUCT.price, 0)),
     unitBv: Math.max(0, Math.round(safeNumber(MY_STORE_FEATURED_PRODUCT.bv, 0))),
     quantity: baseQuantity,
+    upgradeProductMode: '',
     upgradeProductKey: '',
     upgradeProductLabel: '',
     upgradeProductImageUrl: '',
     upgradeProductQuantity: 0,
     upgradeProductUnitPrice: 0,
     upgradeProductUnitBv: 0,
+    upgradeCarryoverProductKey: '',
+    upgradeCarryoverProductLabel: '',
+    upgradeCarryoverProductImageUrl: '',
+    upgradeCarryoverProductQuantity: 0,
+    upgradeCarryoverProductUnitPrice: 0,
+    upgradeCarryoverProductUnitBv: 0,
   };
   if (normalizedAction !== 'upgrade' || !normalizedPackageKey) {
     return baseSelection;
   }
-  const upgradeDelta = resolveMyStoreUpgradeDelta(currentPackageKey, normalizedPackageKey);
-  const upgradeProduct = resolveMyStoreUpgradeProductMeta(MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY);
-  const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(upgradeDelta.productGain, 0)));
-  const upgradeProductUnitPrice = Math.max(0, safeNumber(upgradeProduct.unitPrice, 0));
-  const upgradeProductUnitBv = Math.max(0, Math.round(safeNumber(upgradeProduct.unitBv, 0)));
-  const upgradeSubtotal = Math.round((upgradeProductQuantity * upgradeProductUnitPrice) * 100) / 100;
-  const upgradeTotalBv = Math.max(0, Math.round(upgradeProductQuantity * upgradeProductUnitBv));
+  const productAllocation = resolveMyStoreUpgradeProductAllocation(
+    currentPackageKey,
+    normalizedPackageKey,
+    {
+      selectedProductKey: MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY,
+      selectedProductMode: MY_STORE_UPGRADE_DEFAULT_PRODUCT_MODE,
+      currentPackageProductKey,
+    },
+  );
+  const selectedUpgradeProduct = productAllocation.selectedProduct;
+  const carryoverUpgradeProduct = productAllocation.carryoverProduct;
+  const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(productAllocation.selectedQuantity, 0)));
+  const upgradeCarryoverProductQuantity = Math.max(0, Math.round(safeNumber(productAllocation.carryoverQuantity, 0)));
+  const upgradeProductUnitPrice = Math.max(0, safeNumber(selectedUpgradeProduct.unitPrice, 0));
+  const upgradeProductUnitBv = Math.max(0, Math.round(safeNumber(selectedUpgradeProduct.unitBv, 0)));
+  const upgradeCarryoverProductUnitPrice = Math.max(0, safeNumber(carryoverUpgradeProduct.unitPrice, 0));
+  const upgradeCarryoverProductUnitBv = Math.max(0, Math.round(safeNumber(carryoverUpgradeProduct.unitBv, 0)));
+  const upgradeSubtotal = Math.round((
+    (upgradeProductQuantity * upgradeProductUnitPrice)
+    + (upgradeCarryoverProductQuantity * upgradeCarryoverProductUnitPrice)
+  ) * 100) / 100;
+  const upgradeTotalBv = Math.max(0, Math.round(
+    (upgradeProductQuantity * upgradeProductUnitBv)
+    + (upgradeCarryoverProductQuantity * upgradeCarryoverProductUnitBv),
+  ));
   return {
     ...baseSelection,
     action: 'upgrade',
-    productKey: upgradeProduct.productKey,
+    productKey: selectedUpgradeProduct.productKey,
     packageKey: normalizedPackageKey,
     label: resolveMyStoreUpgradePackageLabel(normalizedPackageKey),
-    imageUrl: safeText(upgradeProduct.imageUrl) || baseSelection.imageUrl,
+    imageUrl: safeText(selectedUpgradeProduct.imageUrl) || baseSelection.imageUrl,
     unitPrice: Math.max(0, safeNumber(upgradeSubtotal, 0)),
     unitBv: Math.max(0, Math.round(safeNumber(upgradeTotalBv, 0))),
     quantity: 1,
-    upgradeProductKey: upgradeProduct.productKey,
-    upgradeProductLabel: safeText(upgradeProduct.label) || 'Upgrade Product',
-    upgradeProductImageUrl: safeText(upgradeProduct.imageUrl),
+    upgradeProductMode: productAllocation.selectedProductMode,
+    upgradeProductKey: selectedUpgradeProduct.productKey,
+    upgradeProductLabel: safeText(selectedUpgradeProduct.label) || 'Upgrade Product',
+    upgradeProductImageUrl: safeText(selectedUpgradeProduct.imageUrl),
     upgradeProductQuantity,
     upgradeProductUnitPrice,
     upgradeProductUnitBv,
+    upgradeCarryoverProductKey: carryoverUpgradeProduct.productKey,
+    upgradeCarryoverProductLabel: safeText(carryoverUpgradeProduct.label) || 'Upgrade Product',
+    upgradeCarryoverProductImageUrl: safeText(carryoverUpgradeProduct.imageUrl),
+    upgradeCarryoverProductQuantity,
+    upgradeCarryoverProductUnitPrice,
+    upgradeCarryoverProductUnitBv,
   };
 }
 
-function resolveMyStoreSelection(currentPackageKey = '') {
+function resolveMyStoreSelection(currentPackageKey = '', currentPackageProductKey = '') {
   const selectionInput = state.ui?.myStoreSelection;
   const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey) || 'preferred-customer-pack';
   if (!selectionInput || typeof selectionInput !== 'object') {
-    return buildMyStoreSelection('featured', '', normalizedCurrentPackage);
+    return buildMyStoreSelection('featured', '', normalizedCurrentPackage, currentPackageProductKey);
   }
   const normalizedAction = normalizeCredentialValue(selectionInput.action);
   const normalizedPackageKey = resolveMyStorePackageKeyFromValue(selectionInput.packageKey);
   const isUpgrade = normalizedAction === 'upgrade' && Boolean(normalizedPackageKey);
   const fallbackSelection = isUpgrade
-    ? buildMyStoreSelection('upgrade', normalizedPackageKey, normalizedCurrentPackage)
-    : buildMyStoreSelection('featured', '', normalizedCurrentPackage);
+    ? buildMyStoreSelection('upgrade', normalizedPackageKey, normalizedCurrentPackage, currentPackageProductKey)
+    : buildMyStoreSelection('featured', '', normalizedCurrentPackage, currentPackageProductKey);
   const quantityValue = Math.max(1, Math.round(safeNumber(selectionInput.quantity, fallbackSelection.quantity)));
   const quantity = isUpgrade ? 1 : quantityValue;
   let productKey = safeText(selectionInput.productKey || fallbackSelection.productKey) || fallbackSelection.productKey;
   let imageUrl = safeText(selectionInput.imageUrl || fallbackSelection.imageUrl) || fallbackSelection.imageUrl;
   let unitPrice = Math.max(0, safeNumber(selectionInput.unitPrice, fallbackSelection.unitPrice));
   let unitBv = Math.max(0, Math.round(safeNumber(selectionInput.unitBv, fallbackSelection.unitBv)));
+  let upgradeProductMode = '';
   let upgradeProductKey = '';
   let upgradeProductLabel = '';
   let upgradeProductImageUrl = '';
   let upgradeProductQuantity = 0;
   let upgradeProductUnitPrice = 0;
   let upgradeProductUnitBv = 0;
+  let upgradeCarryoverProductKey = '';
+  let upgradeCarryoverProductLabel = '';
+  let upgradeCarryoverProductImageUrl = '';
+  let upgradeCarryoverProductQuantity = 0;
+  let upgradeCarryoverProductUnitPrice = 0;
+  let upgradeCarryoverProductUnitBv = 0;
   if (isUpgrade) {
-    const upgradeDelta = resolveMyStoreUpgradeDelta(normalizedCurrentPackage, normalizedPackageKey);
-    const selectedUpgradeProduct = resolveMyStoreUpgradeProductMeta(
-      safeText(selectionInput.upgradeProductKey || selectionInput.productKey || fallbackSelection.upgradeProductKey),
+    const productAllocation = resolveMyStoreUpgradeProductAllocation(
+      normalizedCurrentPackage,
+      normalizedPackageKey,
+      {
+        selectedProductKey: safeText(
+          selectionInput.upgradeProductKey
+          || selectionInput.productKey
+          || fallbackSelection.upgradeProductKey,
+        ),
+        selectedProductMode: safeText(
+          selectionInput.upgradeProductMode
+          || fallbackSelection.upgradeProductMode
+          || MY_STORE_UPGRADE_DEFAULT_PRODUCT_MODE,
+        ),
+        currentPackageProductKey,
+      },
     );
-    upgradeProductQuantity = Math.max(0, Math.round(safeNumber(upgradeDelta.productGain, 0)));
+    const selectedUpgradeProduct = productAllocation.selectedProduct;
+    const carryoverUpgradeProduct = productAllocation.carryoverProduct;
+    upgradeProductMode = productAllocation.selectedProductMode;
+    upgradeProductQuantity = Math.max(0, Math.round(safeNumber(productAllocation.selectedQuantity, 0)));
     upgradeProductUnitPrice = Math.max(0, safeNumber(selectedUpgradeProduct.unitPrice, 0));
     upgradeProductUnitBv = Math.max(0, Math.round(safeNumber(selectedUpgradeProduct.unitBv, 0)));
-    unitPrice = Math.round((upgradeProductQuantity * upgradeProductUnitPrice) * 100) / 100;
-    unitBv = Math.max(0, Math.round(upgradeProductQuantity * upgradeProductUnitBv));
+    upgradeCarryoverProductQuantity = Math.max(0, Math.round(safeNumber(productAllocation.carryoverQuantity, 0)));
+    upgradeCarryoverProductUnitPrice = Math.max(0, safeNumber(carryoverUpgradeProduct.unitPrice, 0));
+    upgradeCarryoverProductUnitBv = Math.max(0, Math.round(safeNumber(carryoverUpgradeProduct.unitBv, 0)));
+    unitPrice = Math.round((
+      (upgradeProductQuantity * upgradeProductUnitPrice)
+      + (upgradeCarryoverProductQuantity * upgradeCarryoverProductUnitPrice)
+    ) * 100) / 100;
+    unitBv = Math.max(0, Math.round(
+      (upgradeProductQuantity * upgradeProductUnitBv)
+      + (upgradeCarryoverProductQuantity * upgradeCarryoverProductUnitBv),
+    ));
     productKey = selectedUpgradeProduct.productKey;
     imageUrl = safeText(selectedUpgradeProduct.imageUrl) || fallbackSelection.imageUrl;
     upgradeProductKey = selectedUpgradeProduct.productKey;
     upgradeProductLabel = safeText(selectedUpgradeProduct.label) || 'Upgrade Product';
     upgradeProductImageUrl = safeText(selectedUpgradeProduct.imageUrl);
+    upgradeCarryoverProductKey = carryoverUpgradeProduct.productKey;
+    upgradeCarryoverProductLabel = safeText(carryoverUpgradeProduct.label) || 'Upgrade Product';
+    upgradeCarryoverProductImageUrl = safeText(carryoverUpgradeProduct.imageUrl);
   }
   return {
     action: isUpgrade ? 'upgrade' : 'featured',
@@ -11785,12 +12274,19 @@ function resolveMyStoreSelection(currentPackageKey = '') {
     unitPrice,
     unitBv,
     quantity,
+    upgradeProductMode,
     upgradeProductKey,
     upgradeProductLabel,
     upgradeProductImageUrl,
     upgradeProductQuantity,
     upgradeProductUnitPrice,
     upgradeProductUnitBv,
+    upgradeCarryoverProductKey,
+    upgradeCarryoverProductLabel,
+    upgradeCarryoverProductImageUrl,
+    upgradeCarryoverProductQuantity,
+    upgradeCarryoverProductUnitPrice,
+    upgradeCarryoverProductUnitBv,
   };
 }
 
@@ -11820,6 +12316,35 @@ function resolveMyStoreCheckoutAmounts(selectionInput, currentPackageKey) {
     total,
     totalBv,
   };
+}
+
+function formatMyStoreUpgradeSplitLabel(selectionInput = {}) {
+  const selection = selectionInput && typeof selectionInput === 'object'
+    ? selectionInput
+    : {};
+  const carryoverProductLabel = safeText(selection.upgradeCarryoverProductLabel)
+    || resolveMyStoreUpgradeProductMeta(selection.upgradeCarryoverProductKey).label;
+  const carryoverProductQuantity = Math.max(
+    0,
+    Math.round(safeNumber(selection.upgradeCarryoverProductQuantity, 0)),
+  );
+  const selectedProductLabel = safeText(selection.upgradeProductLabel)
+    || resolveMyStoreUpgradeProductMeta(selection.upgradeProductKey).label;
+  const selectedProductQuantity = Math.max(
+    0,
+    Math.round(safeNumber(selection.upgradeProductQuantity, 0)),
+  );
+  const parts = [];
+  if (carryoverProductQuantity > 0) {
+    parts.push(`${carryoverProductLabel} ${formatInteger(carryoverProductQuantity)}x`);
+  }
+  if (selectedProductQuantity > 0) {
+    parts.push(`${selectedProductLabel} ${formatInteger(selectedProductQuantity)}x`);
+  }
+  if (parts.length > 0) {
+    return parts.join(' + ');
+  }
+  return `${selectedProductLabel} ${formatInteger(selectedProductQuantity)}x`;
 }
 
 function renderMyStoreBreadcrumbs(stepValue = MY_STORE_STEP_CATALOG, options = {}) {
@@ -12013,7 +12538,13 @@ function navigateToMyStoreProduct(action, packageKey = '') {
   const homeNodeId = resolvePreferredGlobalHomeNodeId();
   const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
   const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-  state.ui.myStoreSelection = buildMyStoreSelection(action, packageKey, currentPackageKey);
+  const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+  state.ui.myStoreSelection = buildMyStoreSelection(
+    action,
+    packageKey,
+    currentPackageKey,
+    currentPackageProductKey,
+  );
   setMyStoreStep(MY_STORE_STEP_REVIEW, { clearCheckoutFeedback: true, sync: false });
   syncMyStorePanelVisuals();
 }
@@ -12022,7 +12553,8 @@ function setMyStoreSelectionQuantity(quantityValue) {
   const homeNodeId = resolvePreferredGlobalHomeNodeId();
   const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
   const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-  const currentSelection = resolveMyStoreSelection(currentPackageKey);
+  const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+  const currentSelection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
   if (normalizeCredentialValue(currentSelection.action) === 'upgrade') {
     return;
   }
@@ -12037,21 +12569,56 @@ function setMyStoreSelectionQuantity(quantityValue) {
   syncMyStorePanelVisuals();
 }
 
-function setMyStoreUpgradeSelectionProduct(productKey = '') {
+function setMyStoreUpgradeSelectionProduct(productSelectionKey = '') {
   const homeNodeId = resolvePreferredGlobalHomeNodeId();
   const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
   const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-  const currentSelection = resolveMyStoreSelection(currentPackageKey);
+  const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+  const currentSelection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
   if (normalizeCredentialValue(currentSelection.action) !== 'upgrade') {
     return;
   }
-  const selectedUpgradeProduct = resolveMyStoreUpgradeProductMeta(productKey);
-  if (safeText(currentSelection.upgradeProductKey) === selectedUpgradeProduct.productKey) {
+  const requestedProductMode = resolveMyStoreUpgradeProductModeBySelectionKey(productSelectionKey);
+  if (!requestedProductMode) {
+    return;
+  }
+  const targetPackageKey = resolveMyStorePackageKeyFromValue(currentSelection.packageKey);
+  const splitAllowed = isMyStoreUpgradeSplitEligiblePackage(targetPackageKey);
+  if (requestedProductMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT && !splitAllowed) {
+    return;
+  }
+  let nextProductMode = requestedProductMode;
+  const currentPackageProductState = normalizeMyStoreCurrentPackageProductKey(currentPackageProductKey);
+  let nextProductKey = normalizeMyStoreUpgradeProductKey(currentSelection.upgradeProductKey)
+    || resolveMyStoreUpgradeProductKeyByMode(
+      MY_STORE_UPGRADE_DEFAULT_PRODUCT_MODE,
+      MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY,
+      targetPackageKey,
+    );
+  if (requestedProductMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT) {
+    nextProductMode = MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT;
+    if (currentPackageProductState === MY_STORE_PACKAGE_PRODUCT_KEY_SPLIT) {
+      nextProductKey = normalizeMyStoreUpgradeProductKey(currentSelection.upgradeProductKey)
+        || MY_STORE_UPGRADE_DEFAULT_SPLIT_PRODUCT_KEY;
+    } else {
+      nextProductKey = resolveMyStoreComplementaryUpgradeProductKey(currentPackageProductState);
+    }
+  } else {
+    nextProductKey = resolveMyStoreUpgradeProductKeyByMode(requestedProductMode, nextProductKey, targetPackageKey);
+  }
+  const currentProductMode = resolveMyStoreUpgradeProductMode(
+    currentSelection.upgradeProductMode,
+    currentSelection.upgradeProductKey,
+    targetPackageKey,
+  );
+  const currentProductKey = normalizeMyStoreUpgradeProductKey(currentSelection.upgradeProductKey);
+  if (currentProductMode === nextProductMode && currentProductKey === nextProductKey) {
     return;
   }
   state.ui.myStoreSelection = {
     ...currentSelection,
-    upgradeProductKey: selectedUpgradeProduct.productKey,
+    upgradeProductMode: nextProductMode,
+    upgradeProductKey: nextProductKey,
   };
   syncMyStorePanelVisuals();
 }
@@ -12377,17 +12944,50 @@ async function submitMyStoreCheckout() {
   }
   setMyStoreCheckoutFeedback('');
   clearMyStoreCheckoutCardError();
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    setMyStoreCheckoutFeedback(PENDING_RESERVATION_GATE_MESSAGE, { isError: true });
+    return;
+  }
 
   const homeNodeId = resolvePreferredGlobalHomeNodeId();
   const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
   const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-  const selection = resolveMyStoreSelection(currentPackageKey);
+  const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+  const selection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
   const checkoutAmounts = resolveMyStoreCheckoutAmounts(selection, currentPackageKey);
-  const checkoutProductId = safeText(selection.productKey || selection.upgradeProductKey || MY_STORE_FEATURED_PRODUCT.productKey);
-  const checkoutQuantity = checkoutAmounts.isUpgradeSelection
-    ? Math.max(1, Math.round(safeNumber(selection.upgradeProductQuantity, 1)))
-    : Math.max(1, Math.round(safeNumber(checkoutAmounts.quantity, 1)));
-  if (!checkoutProductId || checkoutQuantity <= 0) {
+  const checkoutCartLines = [];
+  let checkoutQuantity = 0;
+  if (checkoutAmounts.isUpgradeSelection) {
+    const carryoverProductId = safeText(selection.upgradeCarryoverProductKey);
+    const carryoverQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeCarryoverProductQuantity, 0)));
+    const selectedUpgradeProductId = safeText(selection.upgradeProductKey || selection.productKey);
+    const selectedUpgradeQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeProductQuantity, 0)));
+    if (carryoverProductId && carryoverQuantity > 0) {
+      checkoutCartLines.push({
+        productId: carryoverProductId,
+        quantity: carryoverQuantity,
+      });
+      checkoutQuantity += carryoverQuantity;
+    }
+    if (selectedUpgradeProductId && selectedUpgradeQuantity > 0) {
+      checkoutCartLines.push({
+        productId: selectedUpgradeProductId,
+        quantity: selectedUpgradeQuantity,
+      });
+      checkoutQuantity += selectedUpgradeQuantity;
+    }
+  } else {
+    const checkoutProductId = safeText(selection.productKey || MY_STORE_FEATURED_PRODUCT.productKey);
+    const featuredQuantity = Math.max(1, Math.round(safeNumber(checkoutAmounts.quantity, 1)));
+    if (checkoutProductId && featuredQuantity > 0) {
+      checkoutCartLines.push({
+        productId: checkoutProductId,
+        quantity: featuredQuantity,
+      });
+      checkoutQuantity = featuredQuantity;
+    }
+  }
+  if (!Array.isArray(checkoutCartLines) || checkoutCartLines.length === 0 || checkoutQuantity <= 0) {
     setMyStoreCheckoutFeedback('Unable to build cart selection for checkout.', { isError: true });
     return;
   }
@@ -12430,6 +13030,16 @@ async function submitMyStoreCheckout() {
   const accountUpgradeTargetPackage = checkoutAmounts.isUpgradeSelection
     ? resolveMyStorePackageKeyFromValue(selection.packageKey)
     : '';
+  const accountUpgradeSelectedProductKey = checkoutAmounts.isUpgradeSelection
+    ? normalizeMyStoreUpgradeProductKey(selection.upgradeProductKey)
+    : '';
+  const accountUpgradeProductMode = checkoutAmounts.isUpgradeSelection
+    ? resolveMyStoreUpgradeProductMode(
+      selection.upgradeProductMode,
+      selection.upgradeProductKey,
+      accountUpgradeTargetPackage,
+    )
+    : '';
   const checkoutWindow = openTreeNextStripeCheckoutWindow();
   if (!checkoutWindow) {
     const popupMessage = 'Pop-up blocked. Please allow pop-ups to continue with Stripe checkout.';
@@ -12446,12 +13056,7 @@ async function submitMyStoreCheckout() {
   try {
     setMyStoreCheckoutFeedback('Preparing secure payment...');
     const checkoutSessionResult = await createMyStoreCheckoutSession({
-      cartLines: [
-        {
-          productId: checkoutProductId,
-          quantity: checkoutQuantity,
-        },
-      ],
+      cartLines: checkoutCartLines,
       storeCode,
       buyerName: cardholderName || resolveSessionDisplayName(),
       buyerEmail,
@@ -12464,6 +13069,8 @@ async function submitMyStoreCheckout() {
       buyerUserId,
       buyerUsername,
       accountUpgradeTargetPackage,
+      accountUpgradeSelectedProductKey,
+      accountUpgradeProductMode,
       returnPath: buildTreeNextStripeReturnPath(TREE_NEXT_STRIPE_RETURN_FLOW_MY_STORE),
     });
     persistTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY, {
@@ -12472,7 +13079,7 @@ async function submitMyStoreCheckout() {
       amountPaid: checkoutAmounts.total,
       bv: checkoutAmounts.totalBv,
       productLabel: checkoutAmounts.isUpgradeSelection
-        ? `Upgrade: ${safeText(selection.label) || 'Package Upgrade'}`
+        ? `Upgrade: ${safeText(selection.label) || 'Package Upgrade'} - ${formatMyStoreUpgradeSplitLabel(selection)}`
         : (safeText(selection.label) || safeText(myStoreCheckoutProductLabelElement?.textContent) || 'Product'),
       quantity: checkoutQuantity,
       dateLabel: formatMyStoreCheckoutDate(new Date().toISOString()),
@@ -12524,6 +13131,10 @@ function setMyStoreCopyFeedback(message, options = {}) {
 }
 
 async function copyMyStoreShareLink() {
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    setMyStoreCopyFeedback(ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE, { isError: true });
+    return;
+  }
   const fallbackLink = resolveMyStoreShareLink();
   const shareLink = safeText(myStoreCopyLinkButtonElement?.dataset?.shareLink || fallbackLink);
   if (!shareLink) {
@@ -12752,8 +13363,9 @@ function syncMyStorePanelVisuals() {
   const homeNodeId = resolvePreferredGlobalHomeNodeId();
   const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
   const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
   const currentStep = resolveMyStoreStep(state.ui?.myStoreStep);
-  const selection = resolveMyStoreSelection(currentPackageKey);
+  const selection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
   const checkoutAmounts = resolveMyStoreCheckoutAmounts(selection, currentPackageKey);
   const upgradeKeys = resolveMyStoreUpgradePackageKeys(currentPackageKey);
   const shareLink = resolveMyStoreShareLink(homeNode);
@@ -12762,13 +13374,17 @@ function syncMyStorePanelVisuals() {
     currentStep,
     selection.action,
     selection.packageKey,
+    selection.upgradeProductMode,
     selection.upgradeProductKey,
     selection.upgradeProductQuantity,
+    selection.upgradeCarryoverProductKey,
+    selection.upgradeCarryoverProductQuantity,
     selection.label,
     selection.unitPrice,
     selection.unitBv,
     selection.quantity,
     currentPackageKey,
+    currentPackageProductKey,
     upgradeKeys.join('|'),
     shareLink,
     completionSummary.message,
@@ -12811,10 +13427,7 @@ function syncMyStorePanelVisuals() {
   }
   if (myStoreReviewQuantityElement instanceof HTMLElement) {
     if (checkoutAmounts.isUpgradeSelection) {
-      const upgradeProductLabel = safeText(selection.upgradeProductLabel)
-        || resolveMyStoreUpgradeProductMeta(selection.upgradeProductKey).label;
-      const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeProductQuantity, 0)));
-      myStoreReviewQuantityElement.textContent = `${upgradeProductLabel} ${formatInteger(upgradeProductQuantity)}x`;
+      myStoreReviewQuantityElement.textContent = formatMyStoreUpgradeSplitLabel(selection);
     } else {
       myStoreReviewQuantityElement.textContent = `${checkoutAmounts.quantity}x`;
     }
@@ -12826,14 +13439,29 @@ function syncMyStorePanelVisuals() {
   if (myStoreReviewUpgradeProductSelectorElement instanceof HTMLElement) {
     myStoreReviewUpgradeProductSelectorElement.classList.toggle('is-hidden', !checkoutAmounts.isUpgradeSelection);
   }
+  const splitUpgradeAllowed = isMyStoreUpgradeSplitEligiblePackage(selection.packageKey);
   for (const buttonElement of myStoreReviewUpgradeProductButtons) {
     if (!(buttonElement instanceof HTMLButtonElement)) {
       continue;
     }
-    const buttonProductKey = normalizeCredentialValue(buttonElement.dataset.myStoreUpgradeProductKey);
+    const buttonSelectionKey = safeText(buttonElement.dataset.myStoreUpgradeProductKey);
+    const buttonProductMode = resolveMyStoreUpgradeProductModeBySelectionKey(buttonSelectionKey);
+    const isSplitButton = buttonProductMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT;
+    const shouldHide = checkoutAmounts.isUpgradeSelection && isSplitButton && !splitUpgradeAllowed;
+    buttonElement.hidden = shouldHide;
+    const isDisabled = false;
+    buttonElement.disabled = isDisabled;
+    buttonElement.removeAttribute('aria-disabled');
+    buttonElement.removeAttribute('title');
+    const currentProductMode = resolveMyStoreUpgradeProductMode(
+      selection.upgradeProductMode,
+      selection.upgradeProductKey,
+      selection.packageKey,
+    );
     const isSelected = checkoutAmounts.isUpgradeSelection
-      && buttonProductKey
-      && buttonProductKey === normalizeCredentialValue(selection.upgradeProductKey);
+      && buttonProductMode
+      && !shouldHide
+      && buttonProductMode === currentProductMode;
     buttonElement.classList.toggle('is-selected', Boolean(isSelected));
     buttonElement.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
   }
@@ -12880,10 +13508,7 @@ function syncMyStorePanelVisuals() {
 
   if (myStoreCheckoutProductLabelElement instanceof HTMLElement) {
     if (checkoutAmounts.isUpgradeSelection) {
-      const upgradeProductLabel = safeText(selection.upgradeProductLabel)
-        || resolveMyStoreUpgradeProductMeta(selection.upgradeProductKey).label;
-      const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeProductQuantity, 0)));
-      myStoreCheckoutProductLabelElement.textContent = `${selection.label} - ${upgradeProductLabel} x${formatInteger(upgradeProductQuantity)}`;
+      myStoreCheckoutProductLabelElement.textContent = `${selection.label} - ${formatMyStoreUpgradeSplitLabel(selection)}`;
     } else {
       myStoreCheckoutProductLabelElement.textContent = selection.label;
     }
@@ -12920,9 +13545,12 @@ function syncMyStorePanelVisuals() {
   }
   if (myStoreCheckoutPayButtonElement instanceof HTMLButtonElement) {
     const isSubmitting = Boolean(state.ui?.myStoreCheckoutSubmitting);
-    myStoreCheckoutPayButtonElement.disabled = isSubmitting;
+    const isPendingReservationAccount = isCurrentSessionPendingOrReservationAccount();
+    myStoreCheckoutPayButtonElement.disabled = isSubmitting || isPendingReservationAccount;
     if (!isSubmitting) {
-      myStoreCheckoutPayButtonElement.textContent = 'Continue to Stripe';
+      myStoreCheckoutPayButtonElement.textContent = isPendingReservationAccount
+        ? 'Upgrade Required'
+        : 'Continue to Stripe';
     }
   }
   if (myStoreCheckoutPreviousButtonElement instanceof HTMLButtonElement) {
@@ -12931,7 +13559,13 @@ function syncMyStorePanelVisuals() {
 
   if (myStoreCopyLinkButtonElement instanceof HTMLButtonElement) {
     myStoreCopyLinkButtonElement.dataset.shareLink = shareLink;
-    myStoreCopyLinkButtonElement.setAttribute('title', shareLink);
+    const isPendingReservationAccount = isCurrentSessionPendingOrReservationAccount();
+    myStoreCopyLinkButtonElement.disabled = isPendingReservationAccount;
+    myStoreCopyLinkButtonElement.toggleAttribute('hidden', isPendingReservationAccount);
+    myStoreCopyLinkButtonElement.setAttribute(
+      'title',
+      isPendingReservationAccount ? ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE : shareLink,
+    );
   }
 }
 
@@ -13013,7 +13647,8 @@ function initMyStorePanel() {
       const homeNodeId = resolvePreferredGlobalHomeNodeId();
       const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
       const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-      const currentSelection = resolveMyStoreSelection(currentPackageKey);
+      const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+      const currentSelection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
       setMyStoreSelectionQuantity(currentSelection.quantity - 1);
     });
   }
@@ -13023,7 +13658,8 @@ function initMyStorePanel() {
       const homeNodeId = resolvePreferredGlobalHomeNodeId();
       const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
       const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-      const currentSelection = resolveMyStoreSelection(currentPackageKey);
+      const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+      const currentSelection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
       setMyStoreSelectionQuantity(currentSelection.quantity + 1);
     });
   }
@@ -13132,6 +13768,9 @@ function closeTreeNextEnrollModal(options = {}) {
     if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
       treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
     }
+    if (treeNextEnrollProductInput instanceof HTMLSelectElement) {
+      treeNextEnrollProductInput.value = ENROLL_DEFAULT_PRODUCT_KEY;
+    }
     if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
       treeNextEnrollSpilloverModeInput.value = isTreeNextEnrollAdminPlacementMode()
         ? ENROLL_SPILLOVER_MODE_SPILLOVER
@@ -13169,6 +13808,10 @@ function closeTreeNextEnrollModal(options = {}) {
 
 function openTreeNextEnrollModal(requestDetail = {}) {
   if (!(treeNextEnrollModalForm instanceof HTMLFormElement) || !(treeNextEnrollPlacementLegInput instanceof HTMLInputElement)) {
+    return;
+  }
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    setTreeNextEnrollFeedback(PENDING_RESERVATION_GATE_MESSAGE, false);
     return;
   }
 
@@ -13213,6 +13856,9 @@ function openTreeNextEnrollModal(requestDetail = {}) {
   }
   if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
     treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
+  }
+  if (treeNextEnrollProductInput instanceof HTMLSelectElement) {
+    treeNextEnrollProductInput.value = ENROLL_DEFAULT_PRODUCT_KEY;
   }
   if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
     treeNextEnrollSpilloverModeInput.value = isTreeNextEnrollAdminPlacementMode()
@@ -14140,8 +14786,8 @@ function validateTreeNextEnrollStepTwo() {
     }
     return false;
   }
-  if (!isTreeNextEnrollPaidPackage(packageKey)) {
-    setTreeNextEnrollFeedback('Only paid enrollment packages are allowed in this panel.', false);
+  if (!isTreeNextEnrollSelectablePackage(packageKey)) {
+    setTreeNextEnrollFeedback('Select a valid enrollment package.', false);
     if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
       treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
       treeNextEnrollPackageInput.focus({ preventScroll: true });
@@ -14149,6 +14795,27 @@ function validateTreeNextEnrollStepTwo() {
     syncTreeNextEnrollTierFromPackage();
     syncTreeNextEnrollPackagePreview();
     syncTreeNextEnrollCustomSelectById('tree-next-enroll-package');
+    return false;
+  }
+  const productKey = syncTreeNextEnrollProductAvailability(packageKey);
+  if (productKey === ENROLL_SPLIT_PRODUCT_KEY && !isTreeNextEnrollSplitEligiblePackage(packageKey)) {
+    setTreeNextEnrollFeedback('Split products are available for Business Builder Package and above.', false);
+    if (treeNextEnrollProductInput instanceof HTMLSelectElement) {
+      treeNextEnrollProductInput.value = ENROLL_DEFAULT_PRODUCT_KEY;
+      treeNextEnrollProductInput.focus({ preventScroll: true });
+    }
+    syncTreeNextEnrollPackagePreview();
+    syncTreeNextEnrollCustomSelectById('tree-next-enroll-product');
+    return false;
+  }
+  if (!ENROLL_PRODUCT_META[productKey]) {
+    setTreeNextEnrollFeedback('Select a valid product.', false);
+    if (treeNextEnrollProductInput instanceof HTMLSelectElement) {
+      treeNextEnrollProductInput.value = ENROLL_DEFAULT_PRODUCT_KEY;
+      treeNextEnrollProductInput.focus({ preventScroll: true });
+    }
+    syncTreeNextEnrollPackagePreview();
+    syncTreeNextEnrollCustomSelectById('tree-next-enroll-product');
     return false;
   }
   if (isTreeNextEnrollAdminPlacementMode() && treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
@@ -14167,6 +14834,10 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
     event.preventDefault();
   }
   clearTreeNextEnrollFeedback();
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    setTreeNextEnrollFeedback(PENDING_RESERVATION_GATE_MESSAGE, false);
+    return;
+  }
 
   const currentStep = resolveTreeNextEnrollStep();
   if (currentStep < 2) {
@@ -14204,6 +14875,9 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
   const packageKey = resolveTreeNextEnrollPackageKey(
     treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY,
   );
+  const enrollmentProductKey = resolveTreeNextEnrollProductKey(
+    treeNextEnrollProductInput?.value || ENROLL_DEFAULT_PRODUCT_KEY,
+  );
   const tierFromForm = normalizeCredentialValue(treeNextEnrollFastTrackTierInput?.value || '');
   const tierKey = tierFromForm || resolveEnrollFastTrackTierFromPackage(packageKey);
   const placementSide = resolveTreeNextEnrollPlacementSideFromLock(placementLock);
@@ -14222,8 +14896,12 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
     setTreeNextEnrollFeedback('Country flag is required.', false);
     return;
   }
-  if (!isTreeNextEnrollPaidPackage(packageKey)) {
-    setTreeNextEnrollFeedback('Only paid enrollment packages are allowed in this panel.', false);
+  if (!isTreeNextEnrollSelectablePackage(packageKey)) {
+    setTreeNextEnrollFeedback('Select a valid enrollment package.', false);
+    return;
+  }
+  if (!ENROLL_PRODUCT_META[enrollmentProductKey]) {
+    setTreeNextEnrollFeedback('Select a valid product.', false);
     return;
   }
   if (!ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY[tierKey]) {
@@ -14265,6 +14943,7 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
       spilloverParentMode,
       spilloverParentReference,
       enrollmentPackage: packageKey,
+      enrollmentProductKey,
       fastTrackTier: tierKey,
       sponsorUsername,
       sponsorName,
@@ -14278,6 +14957,7 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
     });
     persistTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY, {
       packageKey,
+      enrollmentProductKey,
       tierKey,
       isSpilloverPlacement,
       spilloverPlacementSide,
@@ -14328,6 +15008,13 @@ function initTreeNextEnrollModal() {
     treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
     treeNextEnrollPackageInput.addEventListener('change', () => {
       syncTreeNextEnrollTierFromPackage();
+      syncTreeNextEnrollPackagePreview();
+      clearTreeNextEnrollFeedback();
+    });
+  }
+  if (treeNextEnrollProductInput instanceof HTMLSelectElement) {
+    treeNextEnrollProductInput.value = ENROLL_DEFAULT_PRODUCT_KEY;
+    treeNextEnrollProductInput.addEventListener('change', () => {
       syncTreeNextEnrollPackagePreview();
       clearTreeNextEnrollFeedback();
     });
@@ -16129,6 +16816,20 @@ function writeCookieValue(key, value) {
   }
 }
 
+function clearCookieValue(key) {
+  if (!key) {
+    return false;
+  }
+  try {
+    const encodedKey = encodeURIComponent(key);
+    document.cookie = `${encodedKey}=; path=/; Max-Age=0; SameSite=Lax`;
+    document.cookie = `${encodedKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function persistSessionSnapshot(storageKey, cookieKey, sessionValue) {
   if (!storageKey || !cookieKey || !sessionValue || typeof sessionValue !== 'object') {
     return false;
@@ -16151,6 +16852,37 @@ function persistCurrentSourceSessionSnapshot(sessionValue = state.session) {
     ? ADMIN_AUTH_COOKIE_KEY
     : MEMBER_AUTH_COOKIE_KEY;
   return persistSessionSnapshot(storageKey, cookieKey, sessionValue);
+}
+
+function clearSessionSnapshot(storageKey, cookieKey) {
+  const removedLocal = safeStorageRemove(window.localStorage, storageKey);
+  const removedSession = safeStorageRemove(window.sessionStorage, storageKey);
+  const removedCookie = clearCookieValue(cookieKey);
+  return removedLocal || removedSession || removedCookie;
+}
+
+function clearCurrentSourceSessionSnapshot() {
+  const storageKey = state.source === 'admin'
+    ? ADMIN_AUTH_STORAGE_KEY
+    : MEMBER_AUTH_STORAGE_KEY;
+  const cookieKey = state.source === 'admin'
+    ? ADMIN_AUTH_COOKIE_KEY
+    : MEMBER_AUTH_COOKIE_KEY;
+  return clearSessionSnapshot(storageKey, cookieKey);
+}
+
+function resolveSourceLoginPath(sourceInput = state.source) {
+  return sourceInput === 'admin'
+    ? '/admin-login.html'
+    : '/login.html';
+}
+
+function logoutCurrentSourceSession() {
+  state.ui.sideNavBrandMenuOpen = false;
+  closeSearchDropdown();
+  clearCurrentSourceSessionSnapshot();
+  state.session = null;
+  redirectTo(resolveSourceLoginPath(state.source));
 }
 
 async function refreshAuthenticatedMemberSessionSnapshot(options = {}) {
@@ -21482,47 +22214,51 @@ function drawSideNav(layout) {
       controlCursorX = sideNavToggleX - searchAvatarGap;
     }
 
-    const profileButtonId = 'side-nav-search-profile';
-    const profileButtonSize = searchPillHeight;
-    const profileX = Math.round(controlCursorX - profileButtonSize);
-    const profileY = searchPillY;
-    const profileCenterX = profileX + (profileButtonSize / 2);
-    const profileCenterY = profileY + (profileButtonSize / 2);
-    const profileInitials = resolveInitials(resolveSessionDisplayName());
-    const sessionAvatarRender = drawResolvedAvatarCircle(
-      profileCenterX,
-      profileCenterY,
-      profileButtonSize / 2,
-      resolveSessionUserId(),
-      {
-        alpha: 0.98,
-        sheenAlpha: 0.2,
-      },
-    );
-    if (!sessionAvatarRender.usedPhoto) {
-      drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
-        size: Math.round(clamp(profileButtonSize * 0.33, 11, 14)),
-        weight: 700,
-        color: '#F5F9FF',
-        align: 'center',
+    const showSearchRowProfileButton = isMobileSideNav;
+    if (showSearchRowProfileButton) {
+      const profileButtonId = 'side-nav-search-profile';
+      const profileButtonSize = searchPillHeight;
+      const profileX = Math.round(controlCursorX - profileButtonSize);
+      const profileY = searchPillY;
+      const profileCenterX = profileX + (profileButtonSize / 2);
+      const profileCenterY = profileY + (profileButtonSize / 2);
+      const profileInitials = resolveInitials(resolveSessionDisplayName());
+      const sessionAvatarRender = drawResolvedAvatarCircle(
+        profileCenterX,
+        profileCenterY,
+        profileButtonSize / 2,
+        resolveSessionUserId(),
+        {
+          alpha: 0.98,
+          sheenAlpha: 0.2,
+        },
+      );
+      if (!sessionAvatarRender.usedPhoto) {
+        drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
+          size: Math.round(clamp(profileButtonSize * 0.33, 11, 14)),
+          weight: 700,
+          color: '#F5F9FF',
+          align: 'center',
+        });
+      }
+      registerButton({
+        id: profileButtonId,
+        x: profileX,
+        y: profileY + buttonYOffset,
+        width: profileButtonSize,
+        height: profileButtonSize,
+        action: 'brand-menu:toggle',
       });
+      state.ui.sideNavBrandMenuAnchorRect = {
+        x: profileX,
+        y: profileY + buttonYOffset,
+        width: profileButtonSize,
+        height: profileButtonSize,
+      };
+      controlCursorX = profileX - searchAvatarGap;
+    } else {
+      state.ui.sideNavBrandMenuAnchorRect = null;
     }
-    registerButton({
-      id: profileButtonId,
-      x: profileX,
-      y: profileY + buttonYOffset,
-      width: profileButtonSize,
-      height: profileButtonSize,
-      action: 'brand-menu:toggle',
-    });
-    state.ui.sideNavBrandMenuAnchorRect = {
-      x: profileX,
-      y: profileY + buttonYOffset,
-      width: profileButtonSize,
-      height: profileButtonSize,
-    };
-
-    controlCursorX = profileX - searchAvatarGap;
     const searchPillWidth = Math.max(150, Math.round(controlCursorX - searchPillX));
     fillRoundedRect(context, searchPillX, searchPillY, searchPillWidth, searchPillHeight, 18, '#FFFFFF');
     drawSearchGlyph(searchPillX + 18, searchPillY + (searchPillHeight / 2) + 0.5, {
@@ -22690,6 +23426,56 @@ function drawBottomToolBar(layout) {
     Math.round((workspace.x + workspace.width) - floatingProfileSize - 8),
   );
   const profileY = panel.y;
+  const desktopProfileButtonId = 'desktop-floating-profile';
+  const profileHovered = state.hoveredButtonId === desktopProfileButtonId;
+  const profileCenterX = profileX + (floatingProfileSize / 2);
+  const profileCenterY = profileY + (floatingProfileSize / 2);
+  if (profileHovered) {
+    context.beginPath();
+    context.arc(profileCenterX, profileCenterY, (floatingProfileSize / 2) + 1.5, 0, Math.PI * 2);
+    context.fillStyle = '#E8EAF0';
+    context.fill();
+  }
+  const floatingProfileAvatar = drawResolvedAvatarCircle(
+    profileCenterX,
+    profileCenterY,
+    floatingProfileSize / 2,
+    resolveSessionUserId(),
+    {
+      alpha: 0.98,
+      sheenAlpha: 0.2,
+    },
+  );
+  if (!floatingProfileAvatar.usedPhoto) {
+    const profileInitials = resolveInitials(resolveSessionDisplayName());
+    drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
+      size: Math.round(clamp(floatingProfileSize * 0.33, 12, 16)),
+      weight: 700,
+      color: '#F5F9FF',
+      align: 'center',
+    });
+  }
+  if (profileHovered) {
+    context.beginPath();
+    context.arc(profileCenterX, profileCenterY, (floatingProfileSize / 2) - 0.5, 0, Math.PI * 2);
+    context.lineWidth = 1;
+    context.strokeStyle = '#D3D8E4';
+    context.stroke();
+  }
+  registerButton({
+    id: desktopProfileButtonId,
+    x: profileX,
+    y: profileY + buttonYOffset,
+    width: floatingProfileSize,
+    height: floatingProfileSize,
+    action: 'brand-menu:toggle',
+  });
+  state.ui.sideNavBrandMenuAnchorRect = {
+    x: profileX,
+    y: profileY + buttonYOffset,
+    width: floatingProfileSize,
+    height: floatingProfileSize,
+  };
   const profileLeftDockButtons = [
     {
       id: 'profile-left-dock-account-overview',
@@ -23010,6 +23796,9 @@ function beginStartupReveal(reveal) {
 }
 
 function resolveAnticipationSlots(frame, frameOptions) {
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    return [];
+  }
   if (resolvePendingPlacementRevealNodeId()) {
     return [];
   }
@@ -25378,7 +26167,7 @@ function triggerAction(action) {
     return;
   }
   if (safeAction === 'brand-menu:action:logout') {
-    state.ui.sideNavBrandMenuOpen = false;
+    logoutCurrentSourceSession();
     return;
   }
   if (safeAction === 'camera:home') {

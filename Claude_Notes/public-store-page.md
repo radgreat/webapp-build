@@ -1182,3 +1182,33 @@
 
 - `node --check backend/services/store-checkout.service.js` passed.
 - `index.html` inline script parsing passed.
+
+## Update (2026-04-25) - Reservation Buyer Checkout BV Credit Support
+
+### What Changed
+
+- In `backend/services/store-checkout.service.js`:
+  - buyer BV credit write now opts into reservation-safe purchase credit (`allowPendingPersonalBvCredit: true`).
+- In `backend/services/member.service.js`:
+  - `recordMemberPurchase(...)` supports scoped reservation buyer BV write path.
+  - reservation accounts receiving buyer BV remain `pending`.
+
+### Why
+
+- Reservation users need to purchase products and receive personal BV from dashboard store purchases without unlocking earning/enrollment capabilities.
+
+### Files Affected
+
+- `backend/services/store-checkout.service.js`
+- `backend/services/member.service.js`
+- `index.html`
+- `Claude_Notes/public-store-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `index.html` inline script parse check passed.

@@ -1,11 +1,39 @@
 # Member Dashboard Page Notes
 
-Last Updated: 2026-04-18
+Last Updated: 2026-04-24
 
 ## Scope
 
 - Page: `index.html`
 - Purpose: Primary authenticated member dashboard shell and module host.
+
+## Recent Update (2026-04-24) - Enroll Member Package Dropdown Removes Free Account Option
+
+### What Was Changed
+
+- Updated user dashboard Enroll Member package selectors in `index.html`:
+  - removed `Free Account - $0` from `#enroll-member-package`
+  - removed `Free Account - $0` from `#tree-enroll-package`
+- Kept free-account package metadata/constants intact for existing account handling and historical records.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Limited this change to the member-facing Enrollment Package UI so paid packages remain selectable without altering backend package resolution behavior.
+
+### Known Limitations
+
+- Existing preferred/free account enrollments and related logic remain supported in code; this update only removes that option from user-facing enrollment dropdowns.
+
+### Validation
+
+- Verified both enrollment package dropdowns now list paid builder packages only.
 
 ## Recent Update (2026-04-18) - No Dashboard Flash Before Login Redirect
 
@@ -653,3 +681,215 @@ Known limitation:
 - Checkout return flow now calls session+member refresh path in-place.
 - `node --check backend/services/store-checkout.service.js` passed.
 - `index.html` inline script parse check passed.
+
+## Update (2026-04-25) - Membership Placement Reservation Dashboard/Store Restrictions
+
+### What Changed
+
+- Added reservation package option to dashboard enrollment selectors:
+  - `#enroll-member-package`
+  - `#tree-enroll-package`
+- Added pending/reservation account helpers and a unified gate message in `index.html`.
+- Dashboard account status rendering now supports explicit `Pending` state:
+  - status badge class updates
+  - pending-aware activity label/ARIA messaging
+  - pending-specific upgrade CTA messaging
+- Enrollment/sponsor-related dashboard actions now block pending users and show upgrade-required feedback.
+- Preferred customer and tree-enroll submission flows now block pending users client-side before API call.
+- Business center activation panel now enters `Upgrade Required` state for pending accounts and prevents activation/sync actions.
+- My Store restrictions for pending users:
+  - share/store links are masked as upgrade-required
+  - copy link buttons are hidden/disabled
+  - checkout actions are disabled with upgrade-required text
+  - checkout/invoice creation paths are blocked with upgrade gate feedback
+
+### Files Affected
+
+- `index.html`
+
+### Design Decisions
+
+- Kept dashboard/tree/store pages accessible for reservation members, but converted all earning/enrollment controls to upgrade-gated actions.
+- Added client-side guardrails as UX reinforcement while relying on backend checks for final enforcement.
+
+### Known Limitations
+
+- Final enforcement depends on backend APIs (implemented in this rollout); frontend guards are intentionally defensive and not standalone security controls.
+
+### Validation
+
+- Inline flow checks were updated and syntax-sensitive backend endpoints were validated with `node --check`.
+
+## Update (2026-04-25) - Reservation User Dashboard Feedback Polish
+
+### What Changed
+
+- In `index.html` dashboard KPI rendering (`renderDashboardAccountOverviewKpi`):
+  - pending reservation users now display `Rank: --` in the `Account Active Until` card instead of inherited package rank labels.
+- Added upgrade-required toast helpers in `index.html`:
+  - `ensureAccountUpgradeToastElement(...)`
+  - `showAccountUpgradeRequiredToast(...)`
+- Updated restricted navigation feedback for pending reservation users:
+  - blocked `Enroll Member` / `Preferred Customers` route attempts now show toast `Account Upgrade Required.`
+  - applies to sidebar nav clicks and quick-action Enroll Member click path.
+
+### Files Affected
+
+- `index.html`
+
+### Design Decisions
+
+- Kept existing pending restriction logic and route fallback behavior; added toast feedback as a UX enhancement.
+- Limited rank suppression to the requested dashboard KPI section to avoid broad rank-state regressions.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-26) - My Store Account Upgrades Checkout (Index)
+
+### What Changed
+
+- Added a new Account Upgrades block inside `My Store` in `index.html`:
+  - upgrade package cards for available tiers above current package
+  - product selection options:
+    - `All MetaCharge™`
+    - `All MetaRoast™`
+    - `Split Products`
+  - dynamic quote summary + product allocation preview
+  - dedicated `Checkout Upgrade in Stripe` action
+- Added frontend upgrade allocation logic in dashboard store runtime:
+  - mode normalization for all/split selections
+  - split eligibility gating by target package (Business and above only)
+  - ownership-aware split distribution preview using current package product key
+- Added upgrade checkout submission path using existing store checkout session API with account-upgrade metadata fields.
+- Updated hosted checkout completion synchronization to patch session user from `accountUpgrade.user` when returned.
+
+### Design Decisions
+
+- Kept standard cart checkout and account upgrade checkout separate to keep user intent explicit.
+- Used backend-compatible allocation math in frontend preview to avoid mismatch between quote and post-payment result.
+
+### Known Limitations
+
+- Upgrade checkout requires active/in-stock `MetaCharge` and `MetaRoast` items in product catalog; unavailable stock blocks upgrade checkout.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Upgrade Toast Visual Positioning Tweak
+
+### What Changed
+
+- Updated `ensureAccountUpgradeToastElement(...)` in `index.html`:
+  - moved toast anchor to bottom-center/below-center of viewport.
+  - switched to red warning palette and centered message alignment.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Toast Text Color Update
+
+### What Changed
+
+- Updated upgrade-required toast text class to `text-white` in `index.html` for better contrast.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Toast Duration Tuning
+
+### What Changed
+
+- Updated upgrade-required toast visible duration to `3200ms` in `index.html`.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - In-Place Toast On Restricted Enroll/Preferred Navigation
+
+### What Changed
+
+- Adjusted `setPage(...)` restricted-page guard to support preserving current page during blocked nav attempts.
+- Sidebar nav now requests in-place restriction handling and toast display.
+- Removed forced dashboard redirect from quick-action enroll restricted path.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Account Active Until Badge Strip Hidden For Reservation Users
+
+### What Changed
+
+- In `index.html`, `renderDashboardAccountKpiBadges(...)` now exits early for pending/reservation accounts and hides the badge strip.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Reservation User Dashboard Panel Visibility
+
+### What Changed
+
+- In `index.html`, dashboard KPI render now toggles panel visibility for pending/reservation accounts:
+  - hides `#business-center-panel`
+  - hides `#fast-track-bonus-card`
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Upgrade Split Allocation Feedback
+
+### What Changed
+
+- Updated `handleAccountRankUpgrade()` success messaging in `index.html` to include backend split summary when available:
+  - reads `payload.upgrade.productAllocation.splitLabel`
+  - appends `Product split: ...` to upgrade confirmation.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Reservation My Store Purchase + Personal BV
+
+### What Changed
+
+- In `index.html` store checkout flow:
+  - removed reservation block from cart checkout state (`renderCart`).
+  - removed reservation early-return gates in `checkoutCart()` and `createInvoiceFromLines(...)`.
+  - restored attribution routing resolution for reservation users in `resolveRegisteredAttributionCode()` and `resolveCheckoutStoreRouting()`.
+  - updated `shouldBuyerReceiveStorePurchaseBv(...)` to allow reservation buyers.
+
+### Design Decisions
+
+- Purchase access was enabled only for direct buyer checkout in dashboard `My Store`.
+- Reservation restrictions for shareable store-link usage were intentionally left active.
+
+### Known Limitations
+
+- If attribution mapping is not resolvable for the account, checkout still blocks using existing attribution error path.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Upgrade Feedback Copy: Product Allocation
+
+### What Changed
+
+- In `index.html` account-upgrade success feedback:
+  - changed suffix label from `Product split: ...` to `Product allocation: ...`.
+
+### Why
+
+- Upgrade flows now support both all-product and split modes, so `allocation` is the correct neutral term.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.

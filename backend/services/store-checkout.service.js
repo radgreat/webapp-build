@@ -30,6 +30,10 @@ import {
   normalizeStorePackageKey,
   resolveStorePackageEarning,
 } from '../utils/store-product-earnings.helpers.js';
+import {
+  ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE,
+  isPendingOrReservationMember,
+} from '../utils/member-capability.helpers.js';
 
 const LEGACY_STORE_CODE_ALIASES = Object.freeze({
   'CHG-7X42': 'CHG-ZERO',
@@ -275,12 +279,13 @@ function resolveInvoiceStatus(amount) {
   return Number(amount) >= INVOICE_STATUS_PENDING_AMOUNT ? 'Pending' : 'Posted';
 }
 
-function resolveStoreOwnerByAttributionCode(users, storeCode) {
+function resolveStoreOwnerByAttributionCode(users, storeCode, options = {}) {
   const normalizedStoreCode = normalizeStoreCode(storeCode);
   if (!normalizedStoreCode) {
     return null;
   }
 
+  const includeRestrictedOwners = options?.includeRestrictedOwners === true;
   const safeUsers = Array.isArray(users) ? users : [];
   const directStoreOwner = safeUsers.find((user) => {
     const ownerStoreCode = normalizeStoreCode(user?.storeCode);
@@ -288,6 +293,9 @@ function resolveStoreOwnerByAttributionCode(users, storeCode) {
     return ownerStoreCode === normalizedStoreCode || ownerPublicStoreCode === normalizedStoreCode;
   });
   if (directStoreOwner) {
+    if (!includeRestrictedOwners && isPendingOrReservationMember(directStoreOwner)) {
+      return null;
+    }
     return directStoreOwner;
   }
 
@@ -295,6 +303,9 @@ function resolveStoreOwnerByAttributionCode(users, storeCode) {
     normalizeStoreCode(user?.attributionStoreCode) === normalizedStoreCode
   ));
   if (attributionMatches.length === 1) {
+    if (!includeRestrictedOwners && isPendingOrReservationMember(attributionMatches[0])) {
+      return null;
+    }
     return attributionMatches[0];
   }
 
@@ -454,12 +465,23 @@ function resolveCheckoutAttribution({
 } = {}) {
   const normalizedRequestedStoreCode = normalizeStoreCode(requestedStoreCode);
   if (normalizedRequestedStoreCode) {
-    const attributionOwner = resolveStoreOwnerByAttributionCode(users, normalizedRequestedStoreCode);
+    const attributionOwner = resolveStoreOwnerByAttributionCode(
+      users,
+      normalizedRequestedStoreCode,
+      { includeRestrictedOwners: true },
+    );
     if (!attributionOwner) {
       return {
         ok: false,
         status: 404,
         error: 'Member store code was not found. Please verify the store code.',
+      };
+    }
+    if (isPendingOrReservationMember(attributionOwner)) {
+      return {
+        ok: false,
+        status: 403,
+        error: ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE,
       };
     }
 
@@ -516,6 +538,39 @@ function normalizeCheckoutCartLines(lines) {
       productId,
       quantity,
     }));
+}
+
+function normalizeCheckoutUpgradeProductKey(value = '') {
+  const normalized = normalizeText(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (!normalized) {
+    return '';
+  }
+  if (normalized.includes('roast')) {
+    return 'metaroast';
+  }
+  if (normalized.includes('charge')) {
+    return 'metacharge';
+  }
+  return '';
+}
+
+function normalizeCheckoutUpgradeProductMode(value = '', selectedProductKey = '') {
+  const normalizedMode = normalizeText(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (normalizedMode.includes('split')) {
+    return 'split';
+  }
+  if (normalizedMode.includes('roast')) {
+    return 'all-metaroast';
+  }
+  if (normalizedMode.includes('charge')) {
+    return 'all-metacharge';
+  }
+
+  const normalizedSelectedProductKey = normalizeCheckoutUpgradeProductKey(selectedProductKey);
+  if (normalizedSelectedProductKey) {
+    return 'split';
+  }
+  return 'all-metacharge';
 }
 
 function buildPublicStoreLink(origin, storeCode) {
@@ -1005,8 +1060,14 @@ async function resolveCheckoutBuyerPreferredCustomerIdentity({
   }
 
   const sponsorUser = normalizedAttributionKey
-    ? resolveStoreOwnerByAttributionCode(users, normalizedAttributionKey)
+    ? resolveStoreOwnerByAttributionCode(users, normalizedAttributionKey, { includeRestrictedOwners: true })
     : null;
+  if (sponsorUser && isPendingOrReservationMember(sponsorUser)) {
+    return {
+      ...fallbackIdentity,
+      reason: ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE,
+    };
+  }
   let sponsorUsername = normalizeText(sponsorUser?.username);
   let sponsorName = normalizeText(sponsorUser?.name || sponsorUser?.username || 'Store Owner');
 
@@ -1131,6 +1192,31 @@ function resolveCheckoutAccountUpgradeTargetPackage(metadata = {}) {
   );
 }
 
+function resolveCheckoutAccountUpgradeSelectedProductKey(metadata = {}) {
+  return normalizeCheckoutUpgradeProductKey(
+    metadata.account_upgrade_selected_product_key
+    || metadata.accountUpgradeSelectedProductKey
+    || metadata.account_upgrade_product_key
+    || metadata.accountUpgradeProductKey
+    || metadata.upgrade_product_key
+    || metadata.upgradeProductKey
+    || '',
+  );
+}
+
+function resolveCheckoutAccountUpgradeProductMode(metadata = {}, selectedProductKey = '') {
+  return normalizeCheckoutUpgradeProductMode(
+    metadata.account_upgrade_product_mode
+    || metadata.accountUpgradeProductMode
+    || metadata.account_upgrade_split_mode
+    || metadata.accountUpgradeSplitMode
+    || metadata.account_upgrade_mode
+    || metadata.accountUpgradeMode
+    || '',
+    selectedProductKey,
+  );
+}
+
 function isCheckoutAccountUpgradeEnabled(metadata = {}) {
   const explicitFlag = normalizeText(
     metadata.account_upgrade_enabled
@@ -1150,6 +1236,8 @@ async function applyCheckoutAccountUpgrade({
   buyerEmail = '',
 } = {}) {
   const upgradeTargetPackage = resolveCheckoutAccountUpgradeTargetPackage(metadata);
+  const upgradeSelectedProductKey = resolveCheckoutAccountUpgradeSelectedProductKey(metadata);
+  const upgradeProductMode = resolveCheckoutAccountUpgradeProductMode(metadata, upgradeSelectedProductKey);
   const shouldUpgrade = isCheckoutAccountUpgradeEnabled(metadata) && Boolean(upgradeTargetPackage);
   if (!shouldUpgrade) {
     return {
@@ -1177,6 +1265,8 @@ async function applyCheckoutAccountUpgrade({
     username,
     email,
     targetPackage: upgradeTargetPackage,
+    upgradeSplitSelectedProductKey: upgradeSelectedProductKey,
+    upgradeSplitProductMode: upgradeProductMode,
   }, {
     persistMode: resolveCheckoutPersistenceMode(metadata),
   });
@@ -1468,6 +1558,9 @@ async function finalizeSuccessfulStoreCheckout({
 
     const createdInvoice = invoiceResult.data?.invoice || null;
     const attributionOwner = invoiceResult.data?.attributionOwner || null;
+    const effectiveAttributionOwner = isPendingOrReservationMember(attributionOwner)
+      ? null
+      : attributionOwner;
 
     let buyerCredit = {
       ok: true,
@@ -1488,6 +1581,7 @@ async function finalizeSuccessfulStoreCheckout({
         pvGain: buyerBv,
       }, {
         persistMode: checkoutPersistenceMode,
+        allowPendingPersonalBvCredit: true,
       });
 
       buyerCredit = buyerCreditResult.success
@@ -1510,13 +1604,13 @@ async function finalizeSuccessfulStoreCheckout({
 
     if (
       ownerBv > 0
-      && attributionOwner
-      && (attributionOwner.userId || attributionOwner.username || attributionOwner.email)
+      && effectiveAttributionOwner
+      && (effectiveAttributionOwner.userId || effectiveAttributionOwner.username || effectiveAttributionOwner.email)
     ) {
       const ownerCreditResult = await recordMemberPurchase({
-        userId: normalizeText(attributionOwner.userId),
-        username: normalizeText(attributionOwner.username),
-        email: normalizeText(attributionOwner.email),
+        userId: normalizeText(effectiveAttributionOwner.userId),
+        username: normalizeText(effectiveAttributionOwner.username),
+        email: normalizeText(effectiveAttributionOwner.email),
         pvGain: ownerBv,
       }, {
         persistMode: checkoutPersistenceMode,
@@ -1538,10 +1632,11 @@ async function finalizeSuccessfulStoreCheckout({
     const ownerRetailCommission = {
       amount: retailCommission,
       attributed: Boolean(
-        attributionOwner && (attributionOwner.userId || attributionOwner.username || attributionOwner.email),
+        effectiveAttributionOwner
+        && (effectiveAttributionOwner.userId || effectiveAttributionOwner.username || effectiveAttributionOwner.email),
       ),
-      owner: attributionOwner,
-      message: attributionOwner
+      owner: effectiveAttributionOwner,
+      message: effectiveAttributionOwner
         ? (retailCommission > 0
           ? 'Retail commission mapped to attribution owner.'
           : 'No retail commission for this checkout.')
@@ -1564,7 +1659,7 @@ async function finalizeSuccessfulStoreCheckout({
         completed: true,
         alreadyProcessed: false,
         invoice: createdInvoice,
-        attributionOwner,
+        attributionOwner: effectiveAttributionOwner,
         preferredCustomer: preferredCustomerIdentity,
         accountUpgrade,
         buyerCredit,
@@ -1692,9 +1787,10 @@ export async function registerPreferredCustomerWithoutCheckout(payload = {}, con
   });
 
   if (!identity.ok) {
+    const blockedForPendingOwner = normalizeText(identity.reason) === ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE;
     return {
       success: false,
-      status: 422,
+      status: blockedForPendingOwner ? 403 : 422,
       error: identity.reason || 'Unable to register Preferred Account at this time.',
     };
   }
@@ -1850,6 +1946,25 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
     payload.accountUpgradeTargetPackage || payload.account_upgrade_target_package,
   );
   const isAccountUpgradeCheckout = Boolean(accountUpgradeTargetPackage);
+  const accountUpgradeSelectedProductKey = normalizeCheckoutUpgradeProductKey(
+    payload.accountUpgradeSelectedProductKey
+    || payload.account_upgrade_selected_product_key
+    || payload.accountUpgradeProductKey
+    || payload.account_upgrade_product_key
+    || payload.upgradeProductKey
+    || payload.upgrade_product_key
+    || '',
+  );
+  const accountUpgradeProductMode = normalizeCheckoutUpgradeProductMode(
+    payload.accountUpgradeProductMode
+    || payload.account_upgrade_product_mode
+    || payload.accountUpgradeSplitMode
+    || payload.account_upgrade_split_mode
+    || payload.accountUpgradeMode
+    || payload.account_upgrade_mode
+    || '',
+    accountUpgradeSelectedProductKey,
+  );
   const checkoutClientTag = resolveCheckoutClientTagFromPayload(payload);
 
   const checkoutMetadata = {
@@ -1896,6 +2011,8 @@ export async function createStoreCheckoutPaymentIntent(payload = {}, context = {
     fallback_attribution_used: implicitAttributionOwner && !attributionResolution.hasLinkAttribution ? 'true' : 'false',
     account_upgrade_enabled: isAccountUpgradeCheckout ? 'true' : 'false',
     account_upgrade_target_package: sanitizeStripeMetadataValue(accountUpgradeTargetPackage),
+    account_upgrade_selected_product_key: sanitizeStripeMetadataValue(accountUpgradeSelectedProductKey),
+    account_upgrade_product_mode: sanitizeStripeMetadataValue(accountUpgradeProductMode),
     checkout_client: sanitizeStripeMetadataValue(checkoutClientTag),
     source: sanitizeStripeMetadataValue(payload.source || 'storefront'),
   };
@@ -2107,6 +2224,25 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     payload.accountUpgradeTargetPackage || payload.account_upgrade_target_package,
   );
   const isAccountUpgradeCheckout = Boolean(accountUpgradeTargetPackage);
+  const accountUpgradeSelectedProductKey = normalizeCheckoutUpgradeProductKey(
+    payload.accountUpgradeSelectedProductKey
+    || payload.account_upgrade_selected_product_key
+    || payload.accountUpgradeProductKey
+    || payload.account_upgrade_product_key
+    || payload.upgradeProductKey
+    || payload.upgrade_product_key
+    || '',
+  );
+  const accountUpgradeProductMode = normalizeCheckoutUpgradeProductMode(
+    payload.accountUpgradeProductMode
+    || payload.account_upgrade_product_mode
+    || payload.accountUpgradeSplitMode
+    || payload.account_upgrade_split_mode
+    || payload.accountUpgradeMode
+    || payload.account_upgrade_mode
+    || '',
+    accountUpgradeSelectedProductKey,
+  );
   const checkoutClientTag = resolveCheckoutClientTagFromPayload(payload);
 
   const checkoutMetadata = {
@@ -2153,6 +2289,8 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     fallback_attribution_used: implicitAttributionOwner && !attributionResolution.hasLinkAttribution ? 'true' : 'false',
     account_upgrade_enabled: isAccountUpgradeCheckout ? 'true' : 'false',
     account_upgrade_target_package: sanitizeStripeMetadataValue(accountUpgradeTargetPackage),
+    account_upgrade_selected_product_key: sanitizeStripeMetadataValue(accountUpgradeSelectedProductKey),
+    account_upgrade_product_mode: sanitizeStripeMetadataValue(accountUpgradeProductMode),
     checkout_client: sanitizeStripeMetadataValue(checkoutClientTag),
     source: sanitizeStripeMetadataValue(payload.source || 'storefront'),
   };
@@ -2175,6 +2313,8 @@ export async function createStoreCheckoutSession(payload = {}, context = {}) {
     bp: checkoutMetadata.bp,
     account_upgrade_enabled: checkoutMetadata.account_upgrade_enabled,
     account_upgrade_target_package: checkoutMetadata.account_upgrade_target_package,
+    account_upgrade_selected_product_key: checkoutMetadata.account_upgrade_selected_product_key,
+    account_upgrade_product_mode: checkoutMetadata.account_upgrade_product_mode,
     checkout_client: checkoutMetadata.checkout_client,
     source: checkoutMetadata.source,
   };

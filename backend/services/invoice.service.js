@@ -6,6 +6,10 @@ import {
 } from '../stores/invoice.store.js';
 import { readMockUsersStore } from '../stores/user.store.js';
 import { normalizeStorePackageKey } from '../utils/store-product-earnings.helpers.js';
+import {
+  ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE,
+  isPendingOrReservationMember,
+} from '../utils/member-capability.helpers.js';
 
 const LEGACY_STORE_CODE_ALIASES = Object.freeze({
   'CHG-7X42': 'CHG-ZERO',
@@ -67,12 +71,13 @@ function resolveStoreCodeFromLink(linkValue) {
   }
 }
 
-function resolveStoreOwnerByAttributionCode(users, storeCode) {
+function resolveStoreOwnerByAttributionCode(users, storeCode, options = {}) {
   const normalizedStoreCode = normalizeStoreCode(storeCode);
   if (!normalizedStoreCode) {
     return null;
   }
 
+  const includeRestrictedOwners = options?.includeRestrictedOwners === true;
   const safeUsers = Array.isArray(users) ? users : [];
   const directStoreOwner = safeUsers.find((user) => {
     const ownerStoreCode = normalizeStoreCode(user?.storeCode);
@@ -80,6 +85,9 @@ function resolveStoreOwnerByAttributionCode(users, storeCode) {
     return ownerStoreCode === normalizedStoreCode || ownerPublicStoreCode === normalizedStoreCode;
   });
   if (directStoreOwner) {
+    if (!includeRestrictedOwners && isPendingOrReservationMember(directStoreOwner)) {
+      return null;
+    }
     return directStoreOwner;
   }
 
@@ -87,6 +95,9 @@ function resolveStoreOwnerByAttributionCode(users, storeCode) {
     normalizeStoreCode(user?.attributionStoreCode) === normalizedStoreCode
   ));
   if (attributionMatches.length === 1) {
+    if (!includeRestrictedOwners && isPendingOrReservationMember(attributionMatches[0])) {
+      return null;
+    }
     return attributionMatches[0];
   }
 
@@ -165,7 +176,11 @@ export async function createStoreInvoice(payload = {}) {
   const users = await readMockUsersStore();
   const providedMemberStoreCode = memberStoreCode || memberStoreCodeFromLink;
   if (providedMemberStoreCode) {
-    const matchedMemberStoreOwner = resolveStoreOwnerByAttributionCode(users, providedMemberStoreCode);
+    const matchedMemberStoreOwner = resolveStoreOwnerByAttributionCode(
+      users,
+      providedMemberStoreCode,
+      { includeRestrictedOwners: true },
+    );
     if (!matchedMemberStoreOwner) {
       return {
         success: false,
@@ -173,9 +188,25 @@ export async function createStoreInvoice(payload = {}) {
         error: 'Member store code was not found. Please verify the store code.',
       };
     }
+    if (isPendingOrReservationMember(matchedMemberStoreOwner)) {
+      return {
+        success: false,
+        status: 403,
+        error: ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE,
+      };
+    }
   }
 
-  const attributionOwner = resolveStoreOwnerByAttributionCode(users, attributionKey);
+  const attributionOwner = resolveStoreOwnerByAttributionCode(users, attributionKey, {
+    includeRestrictedOwners: true,
+  });
+  if (attributionOwner && isPendingOrReservationMember(attributionOwner)) {
+    return {
+      success: false,
+      status: 403,
+      error: ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE,
+    };
+  }
   const invoices = await readMockStoreInvoicesStore();
   const invoiceId = requestedInvoiceId || resolveNextStoreInvoiceId(invoices);
   const existingInvoice = invoices.find((invoice) => (

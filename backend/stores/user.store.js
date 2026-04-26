@@ -48,6 +48,7 @@ function mapDbUserToAppUser(row) {
     publicStoreCode: row.public_store_code,
     storeCode: row.store_code,
     enrollmentPackage: row.enrollment_package,
+    currentPackageProductKey: row.current_package_product_key,
     enrollmentPackageLabel: row.enrollment_package_label,
     enrollmentPackagePrice: Number(row.enrollment_package_price || 0),
     enrollmentPackageBv: Number(row.enrollment_package_bv || 0),
@@ -113,6 +114,7 @@ function mapAppUserToDbUser(user) {
     public_store_code: user?.publicStoreCode || '',
     store_code: user?.storeCode || '',
     enrollment_package: user?.enrollmentPackage || '',
+    current_package_product_key: user?.currentPackageProductKey || '',
     enrollment_package_label: user?.enrollmentPackageLabel || '',
     enrollment_package_price: Number(user?.enrollmentPackagePrice || 0),
     enrollment_package_bv: Number(user?.enrollmentPackageBv || 0),
@@ -162,7 +164,8 @@ async function ensureMemberUsersPersonalVolumeColumns() {
   memberUsersPersonalVolumeColumnsPromise = (async () => {
     await pool.query(`
       ALTER TABLE charge.member_users
-        ADD COLUMN IF NOT EXISTS current_personal_pv_bv integer NOT NULL DEFAULT 0
+        ADD COLUMN IF NOT EXISTS current_personal_pv_bv integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS current_package_product_key text NOT NULL DEFAULT ''
     `);
     memberUsersPersonalVolumeColumnsReady = true;
   })().catch((error) => {
@@ -405,13 +408,14 @@ export async function writeMockUsersStore(users) {
           password_updated_at,
           server_cutoff_baseline_starter_personal_pv,
           server_cutoff_baseline_set_at,
+          current_package_product_key,
           created_at
         )
         VALUES (
           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
           $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
           $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,
-          $31
+          $31,$32
         )
       `, [
         row.id,
@@ -444,6 +448,7 @@ export async function writeMockUsersStore(users) {
         row.password_updated_at,
         row.server_cutoff_baseline_starter_personal_pv,
         row.server_cutoff_baseline_set_at,
+        row.current_package_product_key,
         row.created_at,
       ]);
     }
@@ -497,6 +502,7 @@ export async function upsertMockUserRecord(user, options = {}) {
     row.password_updated_at,
     row.server_cutoff_baseline_starter_personal_pv,
     row.server_cutoff_baseline_set_at,
+    row.current_package_product_key,
     row.created_at,
   ];
   const insertSql = `
@@ -531,13 +537,14 @@ export async function upsertMockUserRecord(user, options = {}) {
       password_updated_at,
       server_cutoff_baseline_starter_personal_pv,
       server_cutoff_baseline_set_at,
+      current_package_product_key,
       created_at
     )
     VALUES (
       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
       $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
       $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,
-      $31
+      $31,$32
     )
   `;
 
@@ -587,6 +594,7 @@ export async function upsertMockUserRecord(user, options = {}) {
       server_cutoff_baseline_starter_personal_pv = $28,
       server_cutoff_baseline_set_at = $29,
       current_personal_pv_bv = $30,
+      current_package_product_key = $31,
       updated_at = NOW()
     WHERE id = $1
   `, [
@@ -620,6 +628,7 @@ export async function upsertMockUserRecord(user, options = {}) {
     row.server_cutoff_baseline_starter_personal_pv,
     row.server_cutoff_baseline_set_at,
     row.current_personal_pv_bv,
+    row.current_package_product_key,
   ]);
 
   if (updateResult.rowCount > 0) {
@@ -651,6 +660,7 @@ export async function findUserByIdentifier(identifierInput) {
       public_store_code,
       store_code,
       enrollment_package,
+      current_package_product_key,
       enrollment_package_label,
       enrollment_package_price,
       enrollment_package_bv,
@@ -701,6 +711,7 @@ export async function findUserById(userIdInput) {
       public_store_code,
       store_code,
       enrollment_package,
+      current_package_product_key,
       enrollment_package_label,
       enrollment_package_price,
       enrollment_package_bv,
@@ -752,6 +763,7 @@ export async function findUserByUsername(usernameInput, options = {}) {
       public_store_code,
       store_code,
       enrollment_package,
+      current_package_product_key,
       enrollment_package_label,
       enrollment_package_price,
       enrollment_package_bv,
@@ -803,6 +815,7 @@ export async function findUserByEmail(emailInput, options = {}) {
       public_store_code,
       store_code,
       enrollment_package,
+      current_package_product_key,
       enrollment_package_label,
       enrollment_package_price,
       enrollment_package_bv,
@@ -934,7 +947,8 @@ export async function updateUserById(userIdInput, updater) {
       password_updated_at = $27,
       server_cutoff_baseline_starter_personal_pv = $28,
       server_cutoff_baseline_set_at = $29,
-      current_personal_pv_bv = $30
+      current_personal_pv_bv = $30,
+      current_package_product_key = $31
     WHERE id = $1
     RETURNING
       id,
@@ -949,6 +963,7 @@ export async function updateUserById(userIdInput, updater) {
       public_store_code,
       store_code,
       enrollment_package,
+      current_package_product_key,
       enrollment_package_label,
       enrollment_package_price,
       enrollment_package_bv,
@@ -1000,6 +1015,7 @@ export async function updateUserById(userIdInput, updater) {
     row.server_cutoff_baseline_starter_personal_pv,
     row.server_cutoff_baseline_set_at,
     row.current_personal_pv_bv,
+    row.current_package_product_key,
   ]);
 
   return mapDbUserToAppUser(result.rows[0] || null);
