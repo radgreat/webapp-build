@@ -86,7 +86,7 @@ const FAST_TRACK_PACKAGE_META = {
     binaryTreeViewOnly: true,
     isReservationPlan: true,
   },
-  'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
+  'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 150 },
   'business-builder-pack': { label: 'Business Builder Pack', price: 384, bv: 300 },
   'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
   'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 1280, bv: 1000 },

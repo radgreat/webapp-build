@@ -994,3 +994,71 @@ Known limitation:
 ### Validation
 
 - Inline script parse check passed for `index.html`.
+
+## Update (2026-04-27) - Dashboard Cycle Threshold Migration to 1000/1000
+
+### What Changed
+
+- `index.html`
+  - updated cycle constants to `1000/1000`.
+  - updated cutoff/dashboard cycle threshold normalization to enforce minimum `1000` values.
+  - retained post-cutoff-only sales-team rendering behavior while reading updated settled cycle snapshots.
+
+### Validation
+
+- inline script parse check passed for `index.html`.
+
+## Update (2026-04-27) - Store Checkout Earnings Rule Clarification Applied
+
+### Changes
+- Store package-earning resolution now supports preferred package-tier matrix (`50/48/44/38`) for preferred-buyer settlement.
+- Paid-member settlement now always uses paid bucket BV and excludes retail commission.
+
+### Notes
+- Retail commission is now only included in preferred-buyer settlement path.
+- Paid-member purchase flow remains BV-creditable but with zero retail commission.
+
+## Update (2026-04-27) - My Store Stripe Store-Code Consistency
+
+### What Changed
+- index.html
+  - esolveCheckoutStoreRouting() now returns a canonical checkout store code and uses that same value for storeLink generation.
+  - Stripe checkout payloads for My Store cart and account-upgrade now use storeCode: checkoutStoreRouting.storeCode.
+
+### Why
+- Prevents backend invoice validation error when storeCode and memberStoreLink carry different normalized store codes.
+
+### Validation
+- Manual code-path audit confirms cart and upgrade Stripe payloads now share one store-code source.
+
+## Update (2026-04-28) - My Store Popup Stripe Checkout + Receipt Modal
+
+### What Changed
+- `index.html`
+  - My Store cart checkout now opens Stripe checkout in a new popup window instead of redirecting the current tab.
+  - My Store account-upgrade checkout now uses the same popup behavior.
+  - Added hosted-checkout return signal forwarding from popup tab back to opener tab.
+  - Added My Store receipt modal summarizing checkout completion (invoice, status, amount, BV, date).
+  - Added signal dedupe guard to avoid duplicate finalization when both storage and postMessage callbacks are received.
+
+### Why
+- Keeps users on `User Dashboard > My Store` while Stripe checkout happens externally.
+- Prevents loss of in-page context and provides clear transaction confirmation after return.
+
+### Validation
+- Inline script parse check passed for `index.html`.
+
+## Update (2026-04-28) - Receipt Modal Shows Processing State On Stripe Return
+
+### What Changed
+- `index.html`
+  - Added receipt modal loading indicator (`store-checkout-receipt-loading`).
+  - Checkout return finalization now opens receipt modal immediately with processing placeholders.
+  - Receipt modal updates in-place to confirmed invoice values once finalize endpoint reports completion.
+  - Failure path now clears loading and surfaces an attention status message in the modal.
+
+### Why
+- Prevents silent waiting after users return from Stripe and improves perceived responsiveness.
+
+### Validation
+- Inline script parse check passed for `index.html`.

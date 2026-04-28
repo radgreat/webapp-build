@@ -197,17 +197,7 @@ function resolveRawMemberCurrentPersonalBv(member = {}) {
     ]),
     enrollmentPackageBv,
   );
-  const baselineStarterPersonalPv = toWholeNumber(
-    resolveFirstFiniteNumber([
-      member?.serverCutoffBaselineStarterPersonalPv,
-      member?.server_cutoff_baseline_starter_personal_pv,
-      member?.personalVolumeBaselineBv,
-      member?.personal_volume_baseline_bv,
-    ]),
-    0,
-  );
-
-  return Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  return Math.max(0, starterPersonalPv);
 }
 
 export function resolveMemberPersonalBvSnapshot(member = {}, options = {}) {

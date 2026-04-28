@@ -5120,7 +5120,7 @@
                 </div>
                 <div class="flex items-center justify-between gap-3">
                   <span class="text-caption text-text-tertiary">Package BV</span>
-                  <span id="enroll-preview-package-bv" class="font-body font-semibold text-body text-text-primary">192 BV</span>
+                  <span id="enroll-preview-package-bv" class="font-body font-semibold text-body text-text-primary">150 BV</span>
                 </div>
                 <div class="flex items-center justify-between gap-3">
                   <span class="text-caption text-text-tertiary">Fast Track Bonus</span>
@@ -5788,6 +5788,46 @@
         <section id="page-my-store" data-page-view="my-store" class="hidden space-y-6">
           <div data-store-view="storefront" class="space-y-6">
             <p id="store-checkout-feedback" class="storefront-v2-surface hidden text-caption"></p>
+            <div id="store-checkout-receipt-modal-overlay" class="fixed inset-0 z-50 hidden bg-surface-base/70 backdrop-blur-sm px-4 py-5 sm:px-6 sm:py-8" aria-hidden="true">
+              <section id="store-checkout-receipt-modal" role="dialog" aria-modal="true" aria-labelledby="store-checkout-receipt-title" class="mx-auto flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-surface-border bg-surface-raised shadow-depth-3">
+                <header class="px-5 py-4 border-b border-surface-border">
+                  <h4 id="store-checkout-receipt-title" class="font-body font-medium text-display-sm text-text-primary">Payment Receipt</h4>
+                  <p id="store-checkout-receipt-message" class="mt-1 text-caption text-text-tertiary">Payment confirmed successfully.</p>
+                  <div id="store-checkout-receipt-loading" class="mt-2 hidden items-center gap-2 rounded-lg border border-brand-500/25 bg-brand-500/10 px-3 py-2 text-caption text-brand-600" role="status" aria-live="polite">
+                    <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity="0.3" stroke-width="2"></circle>
+                      <path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                    </svg>
+                    <span>Finalizing payment details...</span>
+                  </div>
+                </header>
+                <div class="px-5 py-4 space-y-3 text-body-sm text-text-secondary">
+                  <div class="flex items-center justify-between gap-3">
+                    <span>Invoice</span>
+                    <span id="store-checkout-receipt-invoice" class="font-medium text-text-primary">--</span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <span>Status</span>
+                    <span id="store-checkout-receipt-status" class="font-medium text-text-primary">Posted</span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <span>Amount Paid</span>
+                    <span id="store-checkout-receipt-amount" class="font-medium text-text-primary">$0.00</span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <span>Business Volume</span>
+                    <span id="store-checkout-receipt-bv" class="font-medium text-text-primary">0 BV</span>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <span>Date</span>
+                    <span id="store-checkout-receipt-date" class="font-medium text-text-primary">--</span>
+                  </div>
+                </div>
+                <footer class="flex justify-end gap-2 px-5 py-4 border-t border-surface-border">
+                  <button id="store-checkout-receipt-close" type="button" class="inline-flex items-center rounded-lg border border-surface-border bg-surface-base px-4 py-2 text-body-sm text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.98] transition-transform duration-150 ease-spring">Close</button>
+                </footer>
+              </section>
+            </div>
 
             <div id="store-flow-grid-view" class="storefront-v2-layout storefront-v2-surface">
               <article class="storefront-v2-panel">
@@ -6792,6 +6832,10 @@
       const STORE_CHECKOUT_COMPLETE_API = '/api/store-checkout/complete';
       const STORE_CHECKOUT_INTENT_API = '/api/store-checkout/intent';
       const STORE_CHECKOUT_INTENT_COMPLETE_API = '/api/store-checkout/intent/complete';
+      const STORE_STRIPE_RETURN_SIGNAL_STORAGE_KEY = 'member-dashboard-store-stripe-return-signal-v1';
+      const STORE_STRIPE_RETURN_SIGNAL_MAX_AGE_MS = 10 * 60 * 1000;
+      const STORE_STRIPE_RETURN_SIGNAL_DEDUP_WINDOW_MS = 2 * 60 * 1000;
+      const STORE_STRIPE_RETURN_MESSAGE_TYPE = 'member-dashboard-store-stripe-return';
       const E_WALLET_API = '/api/e-wallet';
       const E_WALLET_PEER_TRANSFER_API = '/api/e-wallet/peer-transfer';
       const E_WALLET_COMMISSION_TRANSFER_API = '/api/e-wallet/commission-transfer';
@@ -6829,27 +6873,100 @@
           binaryTreeViewOnly: true,
           isReservationPlan: true,
         },
-        'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
+        'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 150 },
         'business-builder-pack': { label: 'Business Builder Pack', price: 384, bv: 300 },
         'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
         'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 1280, bv: 1000 },
       };
-      const DEFAULT_STORE_BUILDER_PACKAGE_KEY = 'personal-builder-pack';
+      const PAID_MEMBER_PACKAGE_KEY = 'paid-member-pack';
+      const PREFERRED_PERSONAL_PACKAGE_KEY = 'personal-builder-pack';
+      const PREFERRED_BUSINESS_PACKAGE_KEY = 'business-builder-pack';
+      const PREFERRED_INFINITY_PACKAGE_KEY = 'infinity-builder-pack';
+      const PREFERRED_LEGACY_PACKAGE_KEY = 'legacy-builder-pack';
+      const DEFAULT_STORE_BUILDER_PACKAGE_KEY = PAID_MEMBER_PACKAGE_KEY;
       const STORE_PRODUCT_PACKAGE_KEYS = Object.freeze([
-        FREE_ACCOUNT_PACKAGE_KEY,
-        MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY,
-        'personal-builder-pack',
-        'business-builder-pack',
-        'infinity-builder-pack',
-        'legacy-builder-pack',
+        PREFERRED_PERSONAL_PACKAGE_KEY,
+        PREFERRED_BUSINESS_PACKAGE_KEY,
+        PREFERRED_INFINITY_PACKAGE_KEY,
+        PREFERRED_LEGACY_PACKAGE_KEY,
+        PAID_MEMBER_PACKAGE_KEY,
       ]);
       const DEFAULT_STORE_PACKAGE_EARNINGS = Object.freeze({
-        [FREE_ACCOUNT_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
-        [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: Object.freeze({ retailCommission: 0, bv: 0 }),
-        'personal-builder-pack': Object.freeze({ retailCommission: 4, bv: 50 }),
-        'business-builder-pack': Object.freeze({ retailCommission: 8, bv: 48 }),
-        'infinity-builder-pack': Object.freeze({ retailCommission: 12, bv: 44 }),
-        'legacy-builder-pack': Object.freeze({ retailCommission: 20, bv: 38 }),
+        [PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
+        [PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze({ retailCommission: 8, bv: 48 }),
+        [PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze({ retailCommission: 12, bv: 44 }),
+        [PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze({ retailCommission: 20, bv: 38 }),
+        [PAID_MEMBER_PACKAGE_KEY]: Object.freeze({ retailCommission: 0, bv: 50 }),
+      });
+      const STORE_PRODUCT_PACKAGE_KEY_ALIASES = Object.freeze({
+        [PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze([
+          PREFERRED_PERSONAL_PACKAGE_KEY,
+          'personal_builder_pack',
+          'personalBuilderPack',
+          'personal',
+          'personal-pack',
+          FREE_ACCOUNT_PACKAGE_KEY,
+          MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY,
+          'membership_placement_reservation',
+          'membershipPlacementReservation',
+          'preferred_customer_pack',
+          'preferredCustomerPack',
+          'preferred-customer',
+          'free-account',
+          'freeAccount',
+          'free',
+        ]),
+        [PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze([
+          PREFERRED_BUSINESS_PACKAGE_KEY,
+          'business_builder_pack',
+          'businessBuilderPack',
+          'business',
+          'business-pack',
+        ]),
+        [PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze([
+          PREFERRED_INFINITY_PACKAGE_KEY,
+          'infinity_builder_pack',
+          'infinityBuilderPack',
+          'infinity',
+          'achievers-pack',
+        ]),
+        [PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze([
+          PREFERRED_LEGACY_PACKAGE_KEY,
+          'legacy_builder_pack',
+          'legacyBuilderPack',
+          'legacy',
+          'legacy-pack',
+        ]),
+        [PAID_MEMBER_PACKAGE_KEY]: Object.freeze([
+          PAID_MEMBER_PACKAGE_KEY,
+          'paid_member_pack',
+          'paidMemberPack',
+          'paid-member',
+          'paid_member',
+          'paid-member-account',
+          'paid',
+          // Backward compatibility for products saved before paid-member bucket.
+          PREFERRED_PERSONAL_PACKAGE_KEY,
+          'personal_builder_pack',
+          'personalBuilderPack',
+          'personal',
+          'personal-pack',
+          PREFERRED_BUSINESS_PACKAGE_KEY,
+          'business_builder_pack',
+          'businessBuilderPack',
+          'business',
+          'business-pack',
+          PREFERRED_INFINITY_PACKAGE_KEY,
+          'infinity_builder_pack',
+          'infinityBuilderPack',
+          'infinity',
+          'achievers-pack',
+          PREFERRED_LEGACY_PACKAGE_KEY,
+          'legacy_builder_pack',
+          'legacyBuilderPack',
+          'legacy',
+          'legacy-pack',
+        ]),
       });
       const FAST_TRACK_TIER_META = {
         'personal-pack': { label: 'Personal Pack' },
@@ -8410,7 +8527,7 @@
         uk: 'GB',
         'u.k.': 'GB',
       });
-      const CYCLE_RULE_LOWER_BV = 500;
+      const CYCLE_RULE_LOWER_BV = 1000;
       const CYCLE_RULE_HIGHER_BV = 1000;
       const INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER = 3;
       const INFINITY_BUILDER_TOTAL_NODES_PER_TIER = 4;
@@ -8922,10 +9039,7 @@
           0,
         );
         const starterPersonalPv = toWholeNumber(user?.starterPersonalPv, enrollmentPackageBv);
-        const baselineStarterPersonalPv = resolveMemberServerCutoffBaselineVolume(user, 0);
-        return hasExpiredCutoff
-          ? 0
-          : Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+        return hasExpiredCutoff ? 0 : starterPersonalPv;
       }
 
       function resolveAccountRankActivityState(user) {
@@ -14945,8 +15059,8 @@
           rightLegBv: toWholeNumber(snapshotInput.rightLegBv, 0),
           totalAccumulatedBv: toWholeNumber(snapshotInput.totalAccumulatedBv, 0),
           totalCycles: toWholeNumber(snapshotInput.totalCycles, 0),
-          cycleLowerBv: Math.max(1, toWholeNumber(snapshotInput.cycleLowerBv, CYCLE_RULE_LOWER_BV)),
-          cycleHigherBv: Math.max(1, toWholeNumber(snapshotInput.cycleHigherBv, CYCLE_RULE_HIGHER_BV)),
+          cycleLowerBv: Math.max(CYCLE_RULE_LOWER_BV, toWholeNumber(snapshotInput.cycleLowerBv, CYCLE_RULE_LOWER_BV)),
+          cycleHigherBv: Math.max(CYCLE_RULE_HIGHER_BV, toWholeNumber(snapshotInput.cycleHigherBv, CYCLE_RULE_HIGHER_BV)),
           snapshotAt: new Date().toISOString(),
         };
         payload.cycleHigherBv = Math.max(payload.cycleLowerBv, payload.cycleHigherBv);
@@ -23865,7 +23979,7 @@
 
         const cutoffLeftLegBv = Math.max(0, toWholeNumber(cutoffLoopMetrics.leftLegBv, rawLeftLegBv));
         const cutoffRightLegBv = Math.max(0, toWholeNumber(cutoffLoopMetrics.rightLegBv, rawRightLegBv));
-        const cycleLowerBv = Math.max(1, toWholeNumber(cutoffLoopMetrics.cycleLowerBv, CYCLE_RULE_LOWER_BV));
+        const cycleLowerBv = Math.max(CYCLE_RULE_LOWER_BV, toWholeNumber(cutoffLoopMetrics.cycleLowerBv, CYCLE_RULE_LOWER_BV));
         const cycleHigherBv = Math.max(cycleLowerBv, toWholeNumber(cutoffLoopMetrics.cycleHigherBv, CYCLE_RULE_HIGHER_BV));
         const lowerLegCutoffBv = Math.min(cutoffLeftLegBv, cutoffRightLegBv);
         const higherLegCutoffBv = Math.max(cutoffLeftLegBv, cutoffRightLegBv);
@@ -24217,6 +24331,15 @@
       const storeCartBpElement = document.getElementById('store-cart-bp');
       const storeCheckoutButton = document.getElementById('store-checkout-btn');
       const storeCheckoutFeedback = document.getElementById('store-checkout-feedback');
+      const storeCheckoutReceiptModalOverlayElement = document.getElementById('store-checkout-receipt-modal-overlay');
+      const storeCheckoutReceiptMessageElement = document.getElementById('store-checkout-receipt-message');
+      const storeCheckoutReceiptLoadingElement = document.getElementById('store-checkout-receipt-loading');
+      const storeCheckoutReceiptInvoiceElement = document.getElementById('store-checkout-receipt-invoice');
+      const storeCheckoutReceiptStatusElement = document.getElementById('store-checkout-receipt-status');
+      const storeCheckoutReceiptAmountElement = document.getElementById('store-checkout-receipt-amount');
+      const storeCheckoutReceiptBvElement = document.getElementById('store-checkout-receipt-bv');
+      const storeCheckoutReceiptDateElement = document.getElementById('store-checkout-receipt-date');
+      const storeCheckoutReceiptCloseButtonElement = document.getElementById('store-checkout-receipt-close');
       const storeAccountUpgradeSectionElement = document.getElementById('store-account-upgrade-section');
       const storeAccountUpgradeCaptionElement = document.getElementById('store-account-upgrade-caption');
       const storeAccountUpgradeCurrentPackageElement = document.getElementById('store-account-upgrade-current-package');
@@ -24310,6 +24433,10 @@
       let isStoreStripeReady = false;
       let isStoreStripeCheckoutPending = false;
       let isStoreStripeCardComplete = false;
+      let storeStripeCheckoutPopupWindowRef = null;
+      let storeStripeCheckoutPopupWatchTimerId = 0;
+      let storeStripeCheckoutPendingSessionId = '';
+      const storeStripeReturnSignalHandledKeyMap = new Map();
       let pendingStoreImageWarmupPromise = null;
       let selectedStoreUpgradePackageKey = '';
       let selectedStoreUpgradeProductKey = STORE_ACCOUNT_UPGRADE_DEFAULT_PRODUCT_KEY;
@@ -24624,10 +24751,13 @@
       }
 
       function resolveCheckoutStoreRouting() {
+        const normalizedStoreCode = normalizeStoreCode(storePublicCode || '');
+        const normalizedAttributionKey = normalizeStoreCode(storeAppliedUplineCode || '');
+        const checkoutStoreCode = normalizedStoreCode || normalizedAttributionKey;
         return {
-          storeCode: normalizeStoreCode(storePublicCode || ''),
-          attributionKey: normalizeStoreCode(storeAppliedUplineCode || ''),
-          storeLink: buildPublicStoreLink(storePublicCode),
+          storeCode: checkoutStoreCode,
+          attributionKey: normalizedAttributionKey || checkoutStoreCode,
+          storeLink: buildPublicStoreLink(checkoutStoreCode || storePublicCode),
         };
       }
 
@@ -24998,6 +25128,249 @@
         window.history.replaceState(window.history.state || {}, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
       }
 
+      function openStoreStripeCheckoutWindow() {
+        const checkoutWindow = window.open(
+          'about:blank',
+          '_blank',
+          'popup=yes,width=520,height=760,resizable=yes,scrollbars=yes',
+        );
+        if (!checkoutWindow || checkoutWindow.closed) {
+          return null;
+        }
+        return checkoutWindow;
+      }
+
+      function clearStoreStripeCheckoutPopupWatch() {
+        if (storeStripeCheckoutPopupWatchTimerId > 0) {
+          window.clearInterval(storeStripeCheckoutPopupWatchTimerId);
+        }
+        storeStripeCheckoutPopupWatchTimerId = 0;
+        storeStripeCheckoutPopupWindowRef = null;
+      }
+
+      function startStoreStripeCheckoutPopupWatch(checkoutWindow) {
+        clearStoreStripeCheckoutPopupWatch();
+        if (!checkoutWindow || checkoutWindow.closed) {
+          return;
+        }
+        storeStripeCheckoutPopupWindowRef = checkoutWindow;
+        storeStripeCheckoutPopupWatchTimerId = window.setInterval(() => {
+          if (!storeStripeCheckoutPopupWindowRef || storeStripeCheckoutPopupWindowRef.closed !== true) {
+            return;
+          }
+          clearStoreStripeCheckoutPopupWatch();
+          if (!isStoreStripeCheckoutPending) {
+            return;
+          }
+          isStoreStripeCheckoutPending = false;
+          renderCart();
+          if (storeStripeCheckoutPendingSessionId) {
+            updateCheckoutFeedback(
+              'Stripe window closed. If payment completed, your receipt will appear shortly.',
+              true,
+            );
+          }
+        }, 550);
+      }
+
+      function setStoreCheckoutReceiptModalOpen(isOpen) {
+        if (!storeCheckoutReceiptModalOverlayElement) {
+          return;
+        }
+        const nextOpen = Boolean(isOpen);
+        storeCheckoutReceiptModalOverlayElement.classList.toggle('hidden', !nextOpen);
+        storeCheckoutReceiptModalOverlayElement.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
+      }
+
+      function closeStoreCheckoutReceiptModal() {
+        setStoreCheckoutReceiptModalOpen(false);
+      }
+
+      function setStoreCheckoutReceiptLoadingState(isLoading) {
+        if (!storeCheckoutReceiptLoadingElement) {
+          return;
+        }
+        const nextLoading = Boolean(isLoading);
+        storeCheckoutReceiptLoadingElement.classList.toggle('hidden', !nextLoading);
+        storeCheckoutReceiptLoadingElement.classList.toggle('inline-flex', nextLoading);
+      }
+
+      function formatStoreCheckoutReceiptDateLabel(dateValue) {
+        const timestamp = Date.parse(String(dateValue || '').trim());
+        if (!Number.isFinite(timestamp) || timestamp <= 0) {
+          return '--';
+        }
+        return new Date(timestamp).toLocaleString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+        });
+      }
+
+      function showStoreCheckoutReceiptModal(completionResult = {}, options = {}) {
+        const isLoading = options.loading === true;
+        const invoice = completionResult?.invoice && typeof completionResult.invoice === 'object'
+          ? completionResult.invoice
+          : null;
+        const payload = completionResult?.payload && typeof completionResult.payload === 'object'
+          ? completionResult.payload
+          : {};
+        const checkoutSummary = payload?.checkout && typeof payload.checkout === 'object'
+          ? payload.checkout
+          : {};
+        const invoiceId = String(options.invoiceId || invoice?.id || checkoutSummary?.invoiceId || '--').trim() || '--';
+        const statusLabel = String(
+          options.statusLabel
+          || invoice?.status
+          || checkoutSummary?.status
+          || (isLoading ? 'Processing' : 'Posted'),
+        ).trim() || (isLoading ? 'Processing' : 'Posted');
+        const amountValue = Math.max(0, Number(invoice?.amount ?? checkoutSummary?.total ?? checkoutSummary?.amountPaid) || 0);
+        const bvValue = Math.max(
+          0,
+          toWholeNumber(
+            invoice?.bp
+            ?? checkoutSummary?.invoiceBv
+            ?? checkoutSummary?.bp
+            ?? checkoutSummary?.bv,
+            0,
+          ),
+        );
+        const dateLabel = formatStoreCheckoutReceiptDateLabel(
+          invoice?.createdAt
+          || invoice?.created_at
+          || checkoutSummary?.createdAt
+          || checkoutSummary?.date
+          || new Date().toISOString(),
+        );
+        const message = String(
+          options.message
+          || completionResult?.message
+          || (isLoading
+            ? 'Payment submitted. Finalizing your receipt now...'
+            : 'Payment confirmed successfully.'),
+        ).trim() || (isLoading
+          ? 'Payment submitted. Finalizing your receipt now...'
+          : 'Payment confirmed successfully.');
+        const amountLabel = String(
+          options.amountLabel
+          || (isLoading ? '--' : formatCurrency(amountValue)),
+        ).trim() || '--';
+        const bvLabel = String(
+          options.bvLabel
+          || (isLoading ? '--' : `${bvValue.toLocaleString()} BV`),
+        ).trim() || '--';
+        const dateText = String(
+          options.dateLabel
+          || (isLoading ? 'Waiting for confirmation...' : dateLabel),
+        ).trim() || '--';
+
+        if (storeCheckoutReceiptMessageElement) {
+          storeCheckoutReceiptMessageElement.textContent = message;
+        }
+        setStoreCheckoutReceiptLoadingState(isLoading);
+        if (storeCheckoutReceiptInvoiceElement) {
+          storeCheckoutReceiptInvoiceElement.textContent = invoiceId;
+        }
+        if (storeCheckoutReceiptStatusElement) {
+          storeCheckoutReceiptStatusElement.textContent = statusLabel;
+        }
+        if (storeCheckoutReceiptAmountElement) {
+          storeCheckoutReceiptAmountElement.textContent = amountLabel;
+        }
+        if (storeCheckoutReceiptBvElement) {
+          storeCheckoutReceiptBvElement.textContent = bvLabel;
+        }
+        if (storeCheckoutReceiptDateElement) {
+          storeCheckoutReceiptDateElement.textContent = dateText;
+        }
+        setStoreCheckoutReceiptModalOpen(true);
+      }
+
+      function normalizeStoreHostedCheckoutReturnPayload(payload = {}) {
+        const source = payload && typeof payload === 'object'
+          ? payload
+          : {};
+        const checkoutStatus = String(source.checkoutStatus || source.status || '').trim().toLowerCase();
+        const sessionId = String(source.sessionId || source.session_id || '').trim();
+        const emittedAtRaw = String(source.emittedAt || source.emitted_at || '').trim();
+        const emittedAtMs = emittedAtRaw ? Date.parse(emittedAtRaw) : Number.NaN;
+        const signalId = String(source.signalId || source.id || '').trim();
+        if (!checkoutStatus) {
+          return null;
+        }
+        if (checkoutStatus === 'success' && !sessionId) {
+          return null;
+        }
+        return {
+          checkoutStatus,
+          sessionId,
+          signalId,
+          emittedAtMs: Number.isFinite(emittedAtMs) ? emittedAtMs : 0,
+        };
+      }
+
+      function buildStoreHostedCheckoutReturnSignalKey(payload = {}) {
+        const normalizedPayload = normalizeStoreHostedCheckoutReturnPayload(payload);
+        if (!normalizedPayload) {
+          return '';
+        }
+        if (normalizedPayload.signalId) {
+          return normalizedPayload.signalId;
+        }
+        return `${normalizedPayload.checkoutStatus}:${normalizedPayload.sessionId || 'none'}`;
+      }
+
+      function resolveStoreHostedCheckoutReturnSignalPayload(rawValue) {
+        const parsedPayload = parseSessionPayload(rawValue);
+        return normalizeStoreHostedCheckoutReturnPayload(parsedPayload || {});
+      }
+
+      function pruneStoreHostedCheckoutReturnSignalHandledKeys(nowMs = Date.now()) {
+        for (const [signalKey, handledAtMsRaw] of storeStripeReturnSignalHandledKeyMap.entries()) {
+          const handledAtMs = Number(handledAtMsRaw);
+          if (!Number.isFinite(handledAtMs)) {
+            storeStripeReturnSignalHandledKeyMap.delete(signalKey);
+            continue;
+          }
+          if ((nowMs - handledAtMs) > (STORE_STRIPE_RETURN_SIGNAL_MAX_AGE_MS + STORE_STRIPE_RETURN_SIGNAL_DEDUP_WINDOW_MS)) {
+            storeStripeReturnSignalHandledKeyMap.delete(signalKey);
+          }
+        }
+      }
+
+      function emitStoreHostedCheckoutReturnSignal(payload = {}) {
+        const normalizedPayload = normalizeStoreHostedCheckoutReturnPayload(payload);
+        if (!normalizedPayload) {
+          return false;
+        }
+        const signalPayload = {
+          ...normalizedPayload,
+          emittedAt: new Date().toISOString(),
+          signalId: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        };
+        const serialized = JSON.stringify(signalPayload);
+        const wroteSignal = safeStorageSet(window.localStorage, STORE_STRIPE_RETURN_SIGNAL_STORAGE_KEY, serialized);
+        let postedSignal = false;
+        try {
+          if (window.opener && window.opener !== window) {
+            window.opener.postMessage(
+              {
+                type: STORE_STRIPE_RETURN_MESSAGE_TYPE,
+                payload: signalPayload,
+              },
+              window.location.origin,
+            );
+            postedSignal = true;
+          }
+        } catch (error) {
+          console.warn('Unable to post hosted checkout return message to opener:', error);
+        }
+        return wroteSignal || postedSignal;
+      }
+
       async function syncSessionAfterStoreCheckoutCompletion(completionPayload = null) {
         const safePayload = completionPayload && typeof completionPayload === 'object'
           ? completionPayload
@@ -25033,52 +25406,81 @@
         await loadRegisteredMembers();
       }
 
-      async function handleStoreHostedCheckoutReturn() {
-        const returnDetails = resolveStoreHostedCheckoutReturnDetails();
-        if (!returnDetails.checkoutStatus) {
-          return;
+      async function processStoreHostedCheckoutSuccess(sessionId, options = {}) {
+        const normalizedSessionId = String(sessionId || '').trim();
+        if (!normalizedSessionId) {
+          isStoreStripeCheckoutPending = false;
+          renderCart();
+          updateCheckoutFeedback('Checkout session ID is missing.', false);
+          return false;
         }
 
-        if (returnDetails.checkoutStatus === 'cancel') {
-          updateCheckoutFeedback('Checkout was canceled. Review your details and try again.', false);
-          setStoreFlowStep('grid');
-          clearStoreHostedCheckoutReturnDetails();
-          return;
-        }
-
-        if (returnDetails.checkoutStatus !== 'success') {
-          clearStoreHostedCheckoutReturnDetails();
-          return;
-        }
-
+        storeStripeCheckoutPendingSessionId = normalizedSessionId;
         isStoreStripeCheckoutPending = true;
         renderCart();
+        if (options.showReceiptModal !== false) {
+          showStoreCheckoutReceiptModal({}, {
+            loading: true,
+            message: 'Payment submitted. Finalizing your receipt now...',
+            invoiceId: 'Pending confirmation',
+            statusLabel: 'Processing',
+            amountLabel: '--',
+            bvLabel: '--',
+            dateLabel: 'Waiting for confirmation...',
+          });
+        }
         updateCheckoutFeedback('Finalizing your order...', true);
 
-        let completionResult = await finalizeStoreStripeCheckoutSession(returnDetails.sessionId);
+        let completionResult = await finalizeStoreStripeCheckoutSession(normalizedSessionId);
         let completionAttempts = 0;
         while (completionResult.ok && !completionResult.completed && completionAttempts < 5) {
           await new Promise((resolve) => window.setTimeout(resolve, 700));
           completionAttempts += 1;
-          completionResult = await finalizeStoreStripeCheckoutSession(returnDetails.sessionId);
+          completionResult = await finalizeStoreStripeCheckoutSession(normalizedSessionId);
         }
 
         if (!completionResult.ok) {
+          storeStripeCheckoutPendingSessionId = '';
           isStoreStripeCheckoutPending = false;
+          clearStoreStripeCheckoutPopupWatch();
           renderCart();
-          updateCheckoutFeedback(completionResult.message || 'Unable to finalize checkout.', false);
+          const checkoutFailureMessage = completionResult.message || 'Unable to finalize checkout.';
+          updateCheckoutFeedback(checkoutFailureMessage, false);
+          if (options.showReceiptModal !== false) {
+            showStoreCheckoutReceiptModal({}, {
+              loading: false,
+              message: checkoutFailureMessage,
+              invoiceId: 'Pending confirmation',
+              statusLabel: 'Needs attention',
+              amountLabel: '--',
+              bvLabel: '--',
+              dateLabel: formatStoreCheckoutReceiptDateLabel(new Date().toISOString()),
+            });
+          }
           setStoreFlowStep('grid');
-          clearStoreHostedCheckoutReturnDetails();
-          return;
+          return false;
         }
 
         if (!completionResult.completed) {
+          storeStripeCheckoutPendingSessionId = '';
           isStoreStripeCheckoutPending = false;
+          clearStoreStripeCheckoutPopupWatch();
           renderCart();
-          updateCheckoutFeedback(completionResult.message || 'Payment is still processing. Refresh shortly.', true);
+          const pendingCompletionMessage = completionResult.message || 'Payment is still processing. Refresh shortly.';
+          updateCheckoutFeedback(pendingCompletionMessage, true);
+          if (options.showReceiptModal !== false) {
+            showStoreCheckoutReceiptModal({}, {
+              loading: true,
+              message: pendingCompletionMessage,
+              invoiceId: 'Pending confirmation',
+              statusLabel: 'Processing',
+              amountLabel: '--',
+              bvLabel: '--',
+              dateLabel: 'Waiting for confirmation...',
+            });
+          }
           setStoreFlowStep('grid');
-          clearStoreHostedCheckoutReturnDetails();
-          return;
+          return true;
         }
 
         await loadStoreProductCatalog();
@@ -25118,14 +25520,144 @@
         }
         isStoreStripeCardComplete = false;
         hydrateStoreCheckoutIdentityFields();
+        storeStripeCheckoutPendingSessionId = '';
         isStoreStripeCheckoutPending = false;
+        clearStoreStripeCheckoutPopupWatch();
         renderCart();
         setStoreFlowStep('grid');
         const completionMessage = accountUpgradeResult && accountUpgradeResult.ok === false && accountUpgradeMessage
           ? `${completionResult.message || 'Payment confirmed successfully.'} ${accountUpgradeMessage}`
           : (completionResult.message || 'Payment confirmed successfully.');
         updateCheckoutFeedback(completionMessage, true);
+        if (options.showReceiptModal !== false) {
+          showStoreCheckoutReceiptModal(completionResult, {
+            message: completionMessage,
+          });
+        }
+        return true;
+      }
+
+      async function processStoreHostedCheckoutReturnPayload(payload = {}, options = {}) {
+        const normalizedPayload = normalizeStoreHostedCheckoutReturnPayload(payload);
+        if (!normalizedPayload) {
+          return false;
+        }
+
+        if (normalizedPayload.checkoutStatus === 'cancel') {
+          storeStripeCheckoutPendingSessionId = '';
+          isStoreStripeCheckoutPending = false;
+          clearStoreStripeCheckoutPopupWatch();
+          renderCart();
+          closeStoreCheckoutReceiptModal();
+          updateCheckoutFeedback('Checkout was canceled. Review your details and try again.', false);
+          if (options.preserveCurrentStep !== true) {
+            setStoreFlowStep('grid');
+          }
+          return true;
+        }
+
+        if (normalizedPayload.checkoutStatus !== 'success') {
+          return true;
+        }
+
+        return processStoreHostedCheckoutSuccess(normalizedPayload.sessionId, options);
+      }
+
+      async function processStoreHostedCheckoutReturnSignalPayload(payload = {}, options = {}) {
+        const normalizedPayload = normalizeStoreHostedCheckoutReturnPayload(payload);
+        if (!normalizedPayload) {
+          return false;
+        }
+
+        if (
+          normalizedPayload.emittedAtMs > 0
+          && (Date.now() - normalizedPayload.emittedAtMs) > STORE_STRIPE_RETURN_SIGNAL_MAX_AGE_MS
+        ) {
+          return false;
+        }
+
+        const nowMs = Date.now();
+        pruneStoreHostedCheckoutReturnSignalHandledKeys(nowMs);
+        const signalKey = buildStoreHostedCheckoutReturnSignalKey(normalizedPayload);
+        if (signalKey) {
+          const handledAtMs = Number(storeStripeReturnSignalHandledKeyMap.get(signalKey));
+          if (Number.isFinite(handledAtMs) && (nowMs - handledAtMs) <= STORE_STRIPE_RETURN_SIGNAL_DEDUP_WINDOW_MS) {
+            return false;
+          }
+          storeStripeReturnSignalHandledKeyMap.set(signalKey, nowMs);
+        }
+
+        const handled = await processStoreHostedCheckoutReturnPayload(normalizedPayload, {
+          preserveCurrentStep: true,
+          showReceiptModal: true,
+          ...options,
+        });
+        if (handled && options.consumeSignal !== false) {
+          safeStorageRemove(window.localStorage, STORE_STRIPE_RETURN_SIGNAL_STORAGE_KEY);
+        }
+        return handled;
+      }
+
+      async function processStoreHostedCheckoutReturnSignalFromStorage(options = {}) {
+        const signalPayload = resolveStoreHostedCheckoutReturnSignalPayload(
+          safeStorageGet(window.localStorage, STORE_STRIPE_RETURN_SIGNAL_STORAGE_KEY),
+        );
+        if (!signalPayload) {
+          return false;
+        }
+        return processStoreHostedCheckoutReturnSignalPayload(signalPayload, options);
+      }
+
+      function onStoreHostedCheckoutReturnMessage(event) {
+        if (!event || String(event.origin || '').trim() !== window.location.origin) {
+          return;
+        }
+        const data = event.data && typeof event.data === 'object' ? event.data : null;
+        if (!data || String(data.type || '').trim() !== STORE_STRIPE_RETURN_MESSAGE_TYPE) {
+          return;
+        }
+        const payload = data.payload && typeof data.payload === 'object'
+          ? data.payload
+          : data;
+        void processStoreHostedCheckoutReturnSignalPayload(payload, {
+          preserveCurrentStep: true,
+          consumeSignal: true,
+        });
+      }
+
+      async function handleStoreHostedCheckoutReturn() {
+        const returnDetails = resolveStoreHostedCheckoutReturnDetails();
+        if (!returnDetails.checkoutStatus) {
+          return {
+            handled: false,
+            forwardedToOpener: false,
+          };
+        }
+
+        const canForwardToOpener = Boolean(window.opener && window.opener !== window && !window.opener.closed);
+        if (canForwardToOpener) {
+          const forwarded = emitStoreHostedCheckoutReturnSignal(returnDetails);
+          if (forwarded) {
+            clearStoreHostedCheckoutReturnDetails();
+            window.setTimeout(() => {
+              window.close();
+            }, 120);
+            return {
+              handled: true,
+              forwardedToOpener: true,
+            };
+          }
+        }
+
+        const handled = await processStoreHostedCheckoutReturnPayload(returnDetails, {
+          preserveCurrentStep: false,
+          showReceiptModal: true,
+        });
         clearStoreHostedCheckoutReturnDetails();
+        return {
+          handled,
+          forwardedToOpener: false,
+        };
       }
 
       async function createStoreStripePaymentIntent(checkoutData = {}) {
@@ -25236,6 +25768,19 @@
         return String(value || '').trim().toLowerCase().replace(/[_\s]+/g, '-');
       }
 
+      function normalizeStorePackageKey(value) {
+        const normalizedPackageKey = normalizePackageKey(value);
+        if (!normalizedPackageKey) {
+          return '';
+        }
+
+        const matchedPackageKey = STORE_PRODUCT_PACKAGE_KEYS.find((packageKey) => {
+          const aliases = STORE_PRODUCT_PACKAGE_KEY_ALIASES[packageKey] || [];
+          return aliases.includes(normalizedPackageKey);
+        });
+        return matchedPackageKey || normalizedPackageKey;
+      }
+
       function normalizePackageEarningEntry(entry, fallback = {}) {
         const source = entry && typeof entry === 'object' ? entry : {};
         const fallbackEntry = fallback && typeof fallback === 'object' ? fallback : {};
@@ -25265,20 +25810,12 @@
         const normalized = {};
 
         STORE_PRODUCT_PACKAGE_KEYS.forEach((packageKey) => {
-          const normalizedPackageKey = normalizePackageKey(packageKey);
-          const aliases = [
-            packageKey,
-            normalizedPackageKey,
-            normalizedPackageKey.replace(/-/g, '_'),
-            normalizedPackageKey.replace(/-([a-z])/g, (_, character) => character.toUpperCase()),
-          ];
+          const aliases = STORE_PRODUCT_PACKAGE_KEY_ALIASES[packageKey] || [packageKey];
           const sourceKey = aliases.find((alias) => Object.prototype.hasOwnProperty.call(source, alias));
           const sourceEntry = sourceKey ? source[sourceKey] : null;
           const defaultEntry = DEFAULT_STORE_PACKAGE_EARNINGS[packageKey]
             || { retailCommission: 0, bv: 0 };
-          const fallbackEntry = packageKey === 'legacy-builder-pack'
-            ? { ...defaultEntry, bv: toWholeNumber(fallbackBp, defaultEntry.bv) }
-            : defaultEntry;
+          const fallbackEntry = defaultEntry;
           normalized[packageKey] = normalizePackageEarningEntry(sourceEntry, fallbackEntry);
         });
 
@@ -25287,20 +25824,23 @@
 
       function resolveStoreBuyerPackageKey(user = currentSessionUser) {
         const normalizedPackageKey = normalizePackageKey(user?.enrollmentPackage);
-        if (STORE_PRODUCT_PACKAGE_KEYS.includes(normalizedPackageKey)) {
-          return normalizedPackageKey;
+        if (
+          normalizedPackageKey === normalizePackageKey(FREE_ACCOUNT_PACKAGE_KEY)
+          || normalizedPackageKey === normalizePackageKey(MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY)
+        ) {
+          return FREE_ACCOUNT_PACKAGE_KEY;
         }
-        return DEFAULT_STORE_BUILDER_PACKAGE_KEY;
+        return PAID_MEMBER_PACKAGE_KEY;
       }
 
       function resolveStoreProductPackageEarning(product = {}, packageKey = '') {
-        const normalizedPackageKey = normalizePackageKey(packageKey);
+        const normalizedPackageKey = normalizeStorePackageKey(packageKey);
         const packageEarnings = normalizeStoreProductPackageEarnings(product?.packageEarnings, product?.bp);
         const resolvedPackageKey = STORE_PRODUCT_PACKAGE_KEYS.includes(normalizedPackageKey)
           ? normalizedPackageKey
           : DEFAULT_STORE_BUILDER_PACKAGE_KEY;
         return packageEarnings[resolvedPackageKey]
-          || packageEarnings[DEFAULT_STORE_BUILDER_PACKAGE_KEY]
+          || packageEarnings[PAID_MEMBER_PACKAGE_KEY]
           || { retailCommission: 0, bv: toWholeNumber(product?.bp, 0) };
       }
 
@@ -25351,7 +25891,7 @@
           bp,
         );
         const legacyBv = toWholeNumber(
-          packageEarnings?.['legacy-builder-pack']?.bv,
+          packageEarnings?.[PAID_MEMBER_PACKAGE_KEY]?.bv,
           bp,
         );
 
@@ -25361,7 +25901,7 @@
         const description = String(rawProduct?.description || rawProduct?.summary || `${title} product description.`).trim();
         const details = parseStoreProductDetails(
           rawProduct?.details,
-          toWholeNumber(packageEarnings?.['personal-builder-pack']?.bv, legacyBv),
+          toWholeNumber(packageEarnings?.[PAID_MEMBER_PACKAGE_KEY]?.bv, legacyBv),
         );
 
         const image = String(rawProduct?.image || rawProduct?.imageUrl || 'https://placehold.co/1000x1250?text=Product').trim() || 'https://placehold.co/1000x1250?text=Product';
@@ -26916,6 +27456,7 @@
       }
 
       async function checkoutCart() {
+        closeStoreCheckoutReceiptModal();
         if (storeCart.length === 0) {
           updateCheckoutFeedback('Cart is empty. Add products before checkout.', false);
           return;
@@ -26950,7 +27491,7 @@
 
         const checkoutSessionPayload = {
           cartLines: checkoutLinesSnapshot,
-          storeCode: checkoutStoreRouting.attributionKey,
+          storeCode: checkoutStoreRouting.storeCode,
           buyerName,
           buyerEmail,
           shippingAddress,
@@ -26963,24 +27504,53 @@
           buyerUserId: String(currentSessionUser?.id || '').trim(),
           buyerUsername: String(currentSessionUser?.username || '').trim(),
         };
+        const checkoutWindow = openStoreStripeCheckoutWindow();
+        if (!checkoutWindow) {
+          updateCheckoutFeedback('Pop-up blocked. Please allow pop-ups to continue checkout.', false);
+          return;
+        }
 
         isStoreStripeCheckoutPending = true;
+        storeStripeCheckoutPendingSessionId = '';
         setStoreStripeCardError('');
         renderCart();
-        updateCheckoutFeedback('Preparing Stripe checkout...', true);
+        updateCheckoutFeedback('Preparing Stripe checkout in a new window...', true);
 
         const sessionResult = await createStoreStripeCheckoutSession(checkoutSessionPayload);
         if (!sessionResult.ok) {
+          try {
+            checkoutWindow.close();
+          } catch {}
           isStoreStripeCheckoutPending = false;
+          storeStripeCheckoutPendingSessionId = '';
+          clearStoreStripeCheckoutPopupWatch();
           renderCart();
           updateCheckoutFeedback(sessionResult.message || 'Unable to start Stripe checkout.', false);
           return;
         }
-        updateCheckoutFeedback('Redirecting to secure Stripe checkout...', true);
-        window.location.assign(sessionResult.sessionUrl);
+        storeStripeCheckoutPendingSessionId = sessionResult.sessionId;
+        startStoreStripeCheckoutPopupWatch(checkoutWindow);
+        try {
+          checkoutWindow.location.assign(sessionResult.sessionUrl);
+        } catch {
+          try {
+            checkoutWindow.close();
+          } catch {}
+          isStoreStripeCheckoutPending = false;
+          storeStripeCheckoutPendingSessionId = '';
+          clearStoreStripeCheckoutPopupWatch();
+          renderCart();
+          updateCheckoutFeedback('Unable to open Stripe checkout window.', false);
+          return;
+        }
+        updateCheckoutFeedback(
+          'Stripe checkout opened in a new window. Complete payment there and your receipt will appear here.',
+          true,
+        );
       }
 
       async function checkoutStoreAccountUpgrade() {
+        closeStoreCheckoutReceiptModal();
         clearStoreUpgradeFeedback();
         const currentPackageKey = resolveCurrentAccountPackageKey(currentSessionUser);
         const availableUpgradePackageKeys = resolveAvailableAccountUpgradePackageKeys(currentPackageKey);
@@ -27052,7 +27622,7 @@
             productId: line.productId,
             quantity: line.quantity,
           })),
-          storeCode: checkoutStoreRouting.attributionKey,
+          storeCode: checkoutStoreRouting.storeCode,
           buyerName,
           buyerEmail,
           shippingAddress,
@@ -27068,24 +27638,56 @@
           accountUpgradeSelectedProductKey: productAllocation.selectedProductKey,
           accountUpgradeProductMode: productAllocation.selectedProductMode,
         };
+        const checkoutWindow = openStoreStripeCheckoutWindow();
+        if (!checkoutWindow) {
+          const popupMessage = 'Pop-up blocked. Please allow pop-ups to continue checkout.';
+          setStoreUpgradeFeedback(popupMessage, false);
+          updateCheckoutFeedback(popupMessage, false);
+          return;
+        }
 
         isStoreStripeCheckoutPending = true;
+        storeStripeCheckoutPendingSessionId = '';
         renderCart();
-        setStoreUpgradeFeedback('Preparing Stripe checkout for account upgrade...', true);
-        updateCheckoutFeedback('Preparing Stripe checkout for account upgrade...', true);
+        setStoreUpgradeFeedback('Preparing Stripe checkout in a new window...', true);
+        updateCheckoutFeedback('Preparing Stripe checkout in a new window...', true);
         const sessionResult = await createStoreStripeCheckoutSession(checkoutSessionPayload);
         if (!sessionResult.ok) {
+          try {
+            checkoutWindow.close();
+          } catch {}
           isStoreStripeCheckoutPending = false;
+          storeStripeCheckoutPendingSessionId = '';
+          clearStoreStripeCheckoutPopupWatch();
           renderCart();
           const failureMessage = sessionResult.message || 'Unable to start Stripe checkout.';
           setStoreUpgradeFeedback(failureMessage, false);
           updateCheckoutFeedback(failureMessage, false);
           return;
         }
+        storeStripeCheckoutPendingSessionId = sessionResult.sessionId;
+        startStoreStripeCheckoutPopupWatch(checkoutWindow);
+        try {
+          checkoutWindow.location.assign(sessionResult.sessionUrl);
+        } catch {
+          try {
+            checkoutWindow.close();
+          } catch {}
+          isStoreStripeCheckoutPending = false;
+          storeStripeCheckoutPendingSessionId = '';
+          clearStoreStripeCheckoutPopupWatch();
+          renderCart();
+          const popupFailureMessage = 'Unable to open Stripe checkout window.';
+          setStoreUpgradeFeedback(popupFailureMessage, false);
+          updateCheckoutFeedback(popupFailureMessage, false);
+          return;
+        }
 
-        setStoreUpgradeFeedback('Redirecting to secure Stripe checkout...', true);
-        updateCheckoutFeedback('Redirecting to secure Stripe checkout...', true);
-        window.location.assign(sessionResult.sessionUrl);
+        setStoreUpgradeFeedback('Stripe checkout opened in a new window. Complete payment there.', true);
+        updateCheckoutFeedback(
+          'Stripe checkout opened in a new window. Complete payment there and your receipt will appear here.',
+          true,
+        );
       }
 
       function openStoreProductPage(productId) {
@@ -27100,7 +27702,10 @@
       }
 
       async function initMyStore() {
-        await handleStoreHostedCheckoutReturn();
+        const hostedCheckoutReturnResult = await handleStoreHostedCheckoutReturn();
+        if (hostedCheckoutReturnResult?.forwardedToOpener) {
+          return;
+        }
         storeAppliedUplineCode = resolveRegisteredAttributionCode();
         storePublicCode = resolvePublicStoreCode();
         syncStoreRankDiscountState();
@@ -27265,6 +27870,19 @@
         if (storeCheckoutButton) {
           storeCheckoutButton.addEventListener('click', () => {
             void checkoutCart();
+          });
+        }
+
+        if (storeCheckoutReceiptCloseButtonElement) {
+          storeCheckoutReceiptCloseButtonElement.addEventListener('click', () => {
+            closeStoreCheckoutReceiptModal();
+          });
+        }
+        if (storeCheckoutReceiptModalOverlayElement) {
+          storeCheckoutReceiptModalOverlayElement.addEventListener('click', (event) => {
+            if (event.target === storeCheckoutReceiptModalOverlayElement) {
+              closeStoreCheckoutReceiptModal();
+            }
           });
         }
 
@@ -27673,7 +28291,7 @@
           cutoffWeekday = Math.max(0, Math.min(6, toWholeNumber(cutoff.weekday, cutoffWeekday)));
           cutoffHour = Math.max(0, Math.min(23, toWholeNumber(cutoff.hour, cutoffHour)));
           cutoffMinute = Math.max(0, Math.min(59, toWholeNumber(cutoff.minute, cutoffMinute)));
-          cycleLowerBv = Math.max(1, toWholeNumber(metrics.cycleLowerBv, cycleLowerBv));
+          cycleLowerBv = Math.max(CYCLE_RULE_LOWER_BV, toWholeNumber(metrics.cycleLowerBv, cycleLowerBv));
           cycleHigherBv = Math.max(cycleLowerBv, toWholeNumber(metrics.cycleHigherBv, cycleHigherBv));
           leftLegBv = Math.max(0, toWholeNumber(metrics.currentWeekLeftLegBv, leftLegBv));
           rightLegBv = Math.max(0, toWholeNumber(metrics.currentWeekRightLegBv, rightLegBv));
@@ -28661,11 +29279,25 @@
         initializeServerCutoffCard();
         initializeThemeFromSettings();
         void initMyStore();
+        window.addEventListener('message', onStoreHostedCheckoutReturnMessage);
+        void processStoreHostedCheckoutReturnSignalFromStorage({
+          consumeSignal: true,
+        });
         loadRuntimeSettings().catch((error) => {
           console.warn('Unable to initialize runtime settings:', error);
         });
         void initializeCommissionRuntimeState({ silent: true });
         window.addEventListener('storage', (event) => {
+          if (event.key === STORE_STRIPE_RETURN_SIGNAL_STORAGE_KEY) {
+            const signalPayload = resolveStoreHostedCheckoutReturnSignalPayload(event.newValue);
+            if (signalPayload) {
+              void processStoreHostedCheckoutReturnSignalPayload(signalPayload, {
+                preserveCurrentStep: true,
+                consumeSignal: true,
+              });
+            }
+            return;
+          }
           if (event.key !== RUNTIME_SETTINGS_FALLBACK_STORAGE_KEY) {
             return;
           }

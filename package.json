@@ -2,6 +2,7 @@
   "type": "module",
   "scripts": {
     "dev": "node backend/app.js",
+    "test:binary-cycle": "node --test backend/tests/binary-cycle-cutoff.test.js",
     "backfill:store-links": "node backend/scripts/backfill-user-store-links.mjs",
     "backfill:preferred-customers": "node backend/scripts/backfill-preferred-customers-from-invoices.mjs"
   },

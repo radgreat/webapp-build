@@ -19,6 +19,11 @@ import {
   buildAccountUpgradeRequiredResult,
   isPendingOrReservationMember,
 } from '../utils/member-capability.helpers.js';
+import {
+  BINARY_CYCLE_STRONG_LEG_BV,
+  BINARY_CYCLE_WEAK_LEG_BV,
+  resolveBinaryCycleComputation,
+} from '../utils/binary-cycle.helpers.js';
 
 const MAX_BUSINESS_CENTER_COUNT = 3;
 const NODE_TYPE_MAIN_CENTER = 'main_center';
@@ -2698,43 +2703,20 @@ function resolveCycleSplitComputation({
   cycleLowerBv,
   cycleHigherBv,
 }) {
-  let remainingLeft = Math.max(0, toWholeNumber(leftVolume, 0));
-  let remainingRight = Math.max(0, toWholeNumber(rightVolume, 0));
-  const lowerBv = Math.max(1, toWholeNumber(cycleLowerBv, 500));
-  const higherBv = Math.max(lowerBv, toWholeNumber(cycleHigherBv, 1000));
-
-  let cycleCount = 0;
-
-  while (true) {
-    const weakerIsLeft = remainingLeft <= remainingRight;
-    const weakerVolume = weakerIsLeft ? remainingLeft : remainingRight;
-    const strongerVolume = weakerIsLeft ? remainingRight : remainingLeft;
-
-    if (weakerVolume < higherBv || strongerVolume < lowerBv) {
-      break;
-    }
-
-    // Dynamic rule: weaker leg consumes higher threshold; stronger leg consumes lower threshold.
-    if (weakerIsLeft) {
-      remainingLeft -= higherBv;
-      remainingRight -= lowerBv;
-    } else {
-      remainingLeft -= lowerBv;
-      remainingRight -= higherBv;
-    }
-
-    cycleCount += 1;
-  }
-
-  const usedLeftVolume = Math.max(0, toWholeNumber(leftVolume, 0) - remainingLeft);
-  const usedRightVolume = Math.max(0, toWholeNumber(rightVolume, 0) - remainingRight);
+  const cycleComputation = resolveBinaryCycleComputation({
+    leftVolume: Math.max(0, toWholeNumber(leftVolume, 0)),
+    rightVolume: Math.max(0, toWholeNumber(rightVolume, 0)),
+    strongLegCycleBv: Math.max(1, toWholeNumber(cycleLowerBv, BINARY_CYCLE_STRONG_LEG_BV)),
+    weakLegCycleBv: Math.max(1, toWholeNumber(cycleHigherBv, BINARY_CYCLE_WEAK_LEG_BV)),
+  });
 
   return {
-    cycleCount,
-    usedLeftVolume,
-    usedRightVolume,
-    remainingLeftVolume: remainingLeft,
-    remainingRightVolume: remainingRight,
+    cycleCount: cycleComputation.cycleCount,
+    usedLeftVolume: cycleComputation.consumedLeftVolume,
+    usedRightVolume: cycleComputation.consumedRightVolume,
+    remainingLeftVolume: cycleComputation.remainingLeftVolume,
+    remainingRightVolume: cycleComputation.remainingRightVolume,
+    strongLegSide: cycleComputation.strongLegSide,
   };
 }
 
@@ -2805,8 +2787,8 @@ export async function settleBusinessCenterCycleCommission(payload = {}) {
 
   const leftVolumeDelta = Math.max(0, toWholeNumber(payload?.leftVolumeDelta, 0));
   const rightVolumeDelta = Math.max(0, toWholeNumber(payload?.rightVolumeDelta, 0));
-  const cycleLowerBv = Math.max(1, toWholeNumber(payload?.cycleLowerBv, 500));
-  const cycleHigherBv = Math.max(cycleLowerBv, toWholeNumber(payload?.cycleHigherBv, 1000));
+  const cycleLowerBv = Math.max(1, toWholeNumber(payload?.cycleLowerBv, BINARY_CYCLE_STRONG_LEG_BV));
+  const cycleHigherBv = Math.max(1, toWholeNumber(payload?.cycleHigherBv, BINARY_CYCLE_WEAK_LEG_BV));
 
   const client = await pool.connect();
   let transactionClosed = false;

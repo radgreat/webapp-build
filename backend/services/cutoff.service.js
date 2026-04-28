@@ -5,12 +5,19 @@ import {
 import { readMockBinaryTreeMetricsStore } from '../stores/metrics.store.js';
 import { readMockUsersStore } from '../stores/user.store.js';
 import { readRegisteredMembersStore } from '../stores/member.store.js';
+import {
+  BINARY_CYCLE_STRONG_LEG_BV,
+  BINARY_CYCLE_WEAK_LEG_BV,
+  resolveBinaryCycleComputation,
+} from '../utils/binary-cycle.helpers.js';
 
 const SERVER_CUTOFF_TIME_ZONE = 'America/Los_Angeles';
 const SERVER_CUTOFF_WEEKDAY = 6;
 const SERVER_CUTOFF_HOUR = 23;
 const SERVER_CUTOFF_MINUTE = 59;
 const SERVER_CUTOFF_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
+const CYCLE_RULE_STRONGER_BV = BINARY_CYCLE_STRONG_LEG_BV;
+const CYCLE_RULE_WEAKER_BV = BINARY_CYCLE_WEAK_LEG_BV;
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -228,8 +235,8 @@ export async function getMemberServerCutoffMetrics(query = {}) {
 
   const totalLeftLegBv = Math.max(0, toWholeNumber(matchedSnapshot?.leftLegBv, 0));
   const totalRightLegBv = Math.max(0, toWholeNumber(matchedSnapshot?.rightLegBv, 0));
-  const cycleLowerBv = Math.max(1, toWholeNumber(matchedSnapshot?.cycleLowerBv, 500));
-  const cycleHigherBv = Math.max(cycleLowerBv, toWholeNumber(matchedSnapshot?.cycleHigherBv, 1000));
+  const cycleLowerBv = CYCLE_RULE_STRONGER_BV;
+  const cycleHigherBv = CYCLE_RULE_WEAKER_BV;
   const totalPersonalPv = matchedUser
     ? Math.max(0, toWholeNumber(matchedUser?.starterPersonalPv, toWholeNumber(matchedUser?.enrollmentPackageBv, 0)))
     : Math.max(0, toWholeNumber(matchedMember?.starterPersonalPv, toWholeNumber(matchedMember?.packageBv, 0)));
@@ -242,13 +249,13 @@ export async function getMemberServerCutoffMetrics(query = {}) {
   const currentWeekLeftLegBv = Math.max(0, totalLeftLegBv - baselineLeftLegBv);
   const currentWeekRightLegBv = Math.max(0, totalRightLegBv - baselineRightLegBv);
   const currentWeekPersonalPv = Math.max(0, totalPersonalPv - baselinePersonalPv);
-  const lowerLegCurrentWeekBv = Math.min(currentWeekLeftLegBv, currentWeekRightLegBv);
-  const higherLegCurrentWeekBv = Math.max(currentWeekLeftLegBv, currentWeekRightLegBv);
-
-  const estimatedCycles = Math.max(0, Math.floor(Math.min(
-    lowerLegCurrentWeekBv / cycleHigherBv,
-    higherLegCurrentWeekBv / cycleLowerBv,
-  )));
+  const estimatedCycleComputation = resolveBinaryCycleComputation({
+    leftVolume: currentWeekLeftLegBv,
+    rightVolume: currentWeekRightLegBv,
+    strongLegCycleBv: cycleLowerBv,
+    weakLegCycleBv: cycleHigherBv,
+  });
+  const estimatedCycles = estimatedCycleComputation.cycleCount;
 
   const latestForcedCutoffAt = normalizeText(history[0]?.forcedAt);
   const { nextCutoffUtcMs, lastClosedCutoffUtcMs } = resolveServerCutoffWindow(new Date());

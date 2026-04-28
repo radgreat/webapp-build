@@ -48,7 +48,15 @@ const DEFAULT_CHECKOUT_RETURN_PATH = '/store-checkout.html';
 const STRIPE_METADATA_VALUE_LIMIT = 500;
 const CHECKOUT_MODE_GUEST = 'guest';
 const CHECKOUT_MODE_FREE_ACCOUNT = 'free-account';
-const DEFAULT_BUILDER_PACKAGE_KEY = 'personal-builder-pack';
+const PAID_MEMBER_PACKAGE_KEY = 'paid-member-pack';
+const DEFAULT_PREFERRED_SETTLEMENT_PACKAGE_KEY = 'personal-builder-pack';
+const PREFERRED_SETTLEMENT_PACKAGE_KEY_SET = new Set([
+  'personal-builder-pack',
+  'business-builder-pack',
+  'infinity-builder-pack',
+  'legacy-builder-pack',
+]);
+const DEFAULT_BUILDER_PACKAGE_KEY = PAID_MEMBER_PACKAGE_KEY;
 const PREFERRED_UPGRADE_CHECKOUT_CLIENT = 'preferred-dashboard-upgrade';
 const CHECKOUT_PERSIST_MODE_REWRITE = 'rewrite';
 const CHECKOUT_PERSIST_MODE_UPSERT = 'upsert';
@@ -84,6 +92,21 @@ function toWholeNumber(value, fallback = 0) {
 
 function roundCurrency(value) {
   return Math.round((Math.max(0, Number(value) || 0) + Number.EPSILON) * 100) / 100;
+}
+
+function normalizePackageKey(value) {
+  return normalizeText(value).toLowerCase().replace(/[_\s]+/g, '-');
+}
+
+function isPreferredOrReservationPackageKey(value) {
+  const normalizedValue = normalizePackageKey(value);
+  return (
+    normalizedValue === FREE_ACCOUNT_PACKAGE_KEY
+    || normalizedValue === 'membership-placement-reservation'
+    || normalizedValue === 'preferred-customer'
+    || normalizedValue === 'free-account'
+    || normalizedValue === 'free'
+  );
 }
 
 function resolveCurrencyMinorAmount(amount) {
@@ -346,6 +369,10 @@ function resolveCheckoutBuyerPackageKey({
   }
 
   const resolvedMatchedBuyer = matchedBuyer || resolveCheckoutBuyerIdentity(users, payload);
+  if (isPreferredOrReservationPackageKey(resolvedMatchedBuyer?.enrollmentPackage)) {
+    return FREE_ACCOUNT_PACKAGE_KEY;
+  }
+
   const matchedPackageKey = normalizeStorePackageKey(resolvedMatchedBuyer?.enrollmentPackage);
   if (matchedPackageKey) {
     return matchedPackageKey;
@@ -360,30 +387,34 @@ function resolveCheckoutSettlementProfile({
   attributionOwner = null,
   hasKnownBuyerIdentity = false,
 } = {}) {
-  const normalizedBuyerPackageKey = normalizeStorePackageKey(buyerPackageKey)
+  const rawBuyerPackageKey = normalizePackageKey(buyerPackageKey);
+  const normalizedBuyerPackageKey = normalizeStorePackageKey(rawBuyerPackageKey)
     || DEFAULT_BUILDER_PACKAGE_KEY;
   const isPreferredBuyer = (
     checkoutMode === CHECKOUT_MODE_FREE_ACCOUNT
+    || isPreferredOrReservationPackageKey(rawBuyerPackageKey)
     || normalizedBuyerPackageKey === FREE_ACCOUNT_PACKAGE_KEY
   );
   const isRetailGuest = checkoutMode === CHECKOUT_MODE_GUEST && hasKnownBuyerIdentity !== true;
   const usesOwnerSettlement = isPreferredBuyer || isRetailGuest;
-  const ownerPackageKey = normalizeStorePackageKey(attributionOwner?.enrollmentPackage)
-    || DEFAULT_BUILDER_PACKAGE_KEY;
-  const earningsPackageKey = usesOwnerSettlement && attributionOwner
+  const normalizedOwnerPackageKey = normalizeStorePackageKey(attributionOwner?.enrollmentPackage);
+  const ownerPackageKey = PREFERRED_SETTLEMENT_PACKAGE_KEY_SET.has(normalizedOwnerPackageKey)
+    ? normalizedOwnerPackageKey
+    : DEFAULT_PREFERRED_SETTLEMENT_PACKAGE_KEY;
+  const earningsPackageKey = isPreferredBuyer
     ? ownerPackageKey
-    : normalizedBuyerPackageKey;
+    : PAID_MEMBER_PACKAGE_KEY;
 
   return {
     isPreferredBuyer,
     isRetailGuest,
     usesOwnerSettlement,
-    buyerPackageKey: normalizedBuyerPackageKey,
+    buyerPackageKey: isPreferredBuyer ? FREE_ACCOUNT_PACKAGE_KEY : normalizedBuyerPackageKey,
     ownerPackageKey,
     earningsPackageKey,
     applyBuyerBvCredit: !usesOwnerSettlement,
     applyOwnerBvCredit: Boolean(usesOwnerSettlement && attributionOwner),
-    includeRetailCommission: Boolean(usesOwnerSettlement && attributionOwner),
+    includeRetailCommission: Boolean(isPreferredBuyer && attributionOwner),
   };
 }
 
@@ -1336,7 +1367,10 @@ async function finalizeSuccessfulStoreCheckout({
   );
   let buyerBv = parseMetadataWholeNumber(metadata.buyer_bv, invoiceBv);
   const retailCommission = parseMetadataCurrencyValue(metadata.retail_commission, 0);
-  const buyerPackageKey = normalizeStorePackageKey(metadata.buyer_package_key || '');
+  const rawBuyerPackageKey = normalizePackageKey(metadata.buyer_package_key || '');
+  const buyerPackageKey = isPreferredOrReservationPackageKey(rawBuyerPackageKey)
+    ? FREE_ACCOUNT_PACKAGE_KEY
+    : normalizeStorePackageKey(rawBuyerPackageKey);
   const discount = parseMetadataCurrencyValue(metadata.discount_amount, 0);
   const invoiceStatus = normalizeText(metadata.invoice_status) || resolveInvoiceStatus(normalizedAmount);
   const attributionKey = normalizeStoreCode(metadata.attribution_key || metadata.member_store_code);

@@ -3977,3 +3977,342 @@ Known limitations:
 ### Validation
 
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-27) - Details Panel Loop Metrics Now Node-Scoped (Cutoff Carry-Over)
+
+### What Changed
+
+- `binary-tree-next-app.mjs`
+  - added node-scoped cutoff metrics lookup for selected nodes via `/api/member/server-cutoff-metrics`.
+  - added cache/in-flight dedupe so repeated selection/render does not spam endpoint calls.
+  - `resolveNodeLoopDisplayMetrics(...)` now resolves `Left Leg` / `Right Leg` / `Cycles` from cutoff metrics per selected node when identity can be resolved.
+  - removed Details row `Total Organizational BV` (lifetime total hidden for now).
+
+### Design Decisions
+
+- Preserved fallback to branch totals whenever node identity is unavailable or cutoff API response is missing.
+- Excluded root/admin/system nodes from cutoff lookup to keep admin reward-exception behavior intact.
+
+### Known Limitations
+
+- Newly selected nodes can show fallback values briefly until first cutoff response completes.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-27) - Details Panel Total BV Restored + Tree Cycle Rule 1000/1000
+
+### What Changed
+
+- `binary-tree-next-app.mjs`
+  - added Tree Next cycle constants and normalized loop computations to `1000/1000` thresholds.
+  - updated node fallback cycle computation from `1000/500` to `1000/1000`.
+  - normalized cutoff-derived cycle threshold parsing to enforce minimum `1000` values.
+  - restored left Details metric row `Total Organizational BV`.
+
+### Design Decisions
+
+- Kept weak/strong role detection by lower/higher current leg volume while applying equal thresholds (`1000` each).
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-27) - Details Card Refactor to Monthly Weekly Carousel (Commission-Based UI)
+
+### What Changed
+
+- Replaced the previous Details-card identity/row layout in `binary-tree-next-app.mjs` with a month/week commission carousel presentation.
+- Added carousel state + gesture handling:
+  - week tabs
+  - month arrows
+  - horizontal swipe on Details card
+  - vertical handoff back to side-panel content scroll for touch
+- Updated Details card rows to explicit BV labels:
+  - `Available Left Leg BV`
+  - `Available Right Leg BV`
+  - cycle result (`Cycles Earned`, `Strong Leg`, consumed rows)
+  - carry-forward (`Left/Right Carry Forward BV`, `Preserved` / `Flushed`)
+  - personal activity and `Team Generated BV`
+- Added helper text clarifying available vs consumed BV usage.
+
+### Data / Logic Notes
+
+- Uses existing cutoff + tree metrics data paths (no backend settlement rewrite).
+- Extends cutoff metrics parsing to include total/baseline/current-week fields when available.
+- Weekly snapshots are generated in UI from current cutoff metrics + deterministic carry-forward projection when historical weekly records are not present.
+- Current week auto-selection resets on node change.
+
+### Known Limitations
+
+- Historical weekly values are estimated continuity views when per-week persisted snapshot history is unavailable from API.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Monthly Weekly Carousel Follow-up
+
+### What Changed
+
+- `binary-tree-next-app.mjs`
+  - normalized Details-carousel fallback weak-leg threshold to `1000` so fallback cycle math is consistent with tree-wide `1000/1000` configuration.
+  - week tabs now render explicit labels (`Week 1`, `Week 2`, etc.) to match monthly reset UX language.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Card Clean Layout Pass
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - redesigned Details card renderer for cleaner readability and reduced clutter.
+  - week tabs now use centered equal-width spacing logic to remove visible gap inconsistency.
+  - promoted Available BV to two primary cards and compacted the remaining commission fields into a concise row list.
+
+### Keep / Remove Decisions
+- Kept:
+  - month navigation, week tabs, weekly status chip, swipe behavior
+  - Available BV, cycle result, carry-forward, activity, team volume labels
+  - helper explanation text for Available vs Consumed BV
+- Removed from card body:
+  - selected username line (extra visual noise)
+  - duplicated split consumed/carry rows as separate lines (now compact left/right combined rows)
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Card Visual Reference Alignment
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - replaced Details card interior layout to visually align with provided design reference.
+  - restored avatar-centered identity header and bottom relation buttons.
+  - simplified commission rows to a clean, compact table-style list.
+  - updated week-tab spacing/centering algorithm to remove visible gap inconsistency.
+
+### Keep / Remove Decisions (This Pass)
+- Kept:
+  - month/week carousel interactions and swipe logic
+  - explicit BV labeling
+  - parent/sponsor focus buttons
+- Removed:
+  - extra header/status chip clutter
+  - helper text block in final visual card body
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Relation Buttons Style Reverted
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - reverted only the two bottom Details relation buttons to the old/original design style (fills, text colors, icon balance, centered label treatment).
+
+### Scope
+- No changes to carousel behavior, metrics computation, swipe handling, or panel structure.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details User Profile Header Revert
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - reverted user profile header visuals to older design style:
+    - blue gradient avatar circle
+    - activity status dot
+    - centered name and username text styling/spacing
+
+### Scope
+- Limited to profile-header visuals only.
+- Bottom relation buttons and carousel behavior remain as previously adjusted.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Profile Node Legacy Render Logic Re-Applied
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - restored old profile node header render behavior:
+    - uses `drawResolvedAvatarCircle(...)`
+    - initials are shown again when avatar photo is unavailable
+
+### Scope
+- Visual rollback limited to profile node rendering logic.
+- Positioning from current weekly-layout pass retained.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Available BV Source Reliability Guard
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - enhanced `resolveDetailsCarouselSnapshot(...)` with stale-cutoff guard and resilient source selection for available BV fields.
+  - total BV clamping bounds now include both cutoff and fallback sources to prevent accidental zeroing.
+
+### Why
+- Some selected-node cutoff payloads can return `0/0` while loop/tree metrics still have positive BV, causing tiles to incorrectly render `0 BV`.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Stale Cutoff Override Guard (Available BV)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - updated `resolveNodeLoopDisplayMetrics(...)` to preserve subtree fallback leg volumes when cutoff returns stale `currentWeekLeftLegBv=0` and `currentWeekRightLegBv=0`.
+  - updated `resolveDetailsCarouselSnapshot(...)` fallback source selection so available BV cannot be zeroed when subtree leg volume is present.
+
+### Why
+- Real-world case showed node cutoff payloads at `0/0` while subtree leg volume remained positive (`zerofour` left leg `192 BV`).
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Primary BV Card Typography Alignment
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - adjusted `drawPrimaryVolumeCard(...)` to use centered X alignment and balanced Y offsets for label/value stack.
+  - improved inner spacing consistency between left and right BV cards.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Weekly Tabs Simplified To 4 Weeks
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - removed variable 5-week month generation.
+  - enforced a fixed 4-week tab model and merged end-of-month overflow days into Week 4.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Snapshot Pre-Join Zeroing
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added node join timestamp resolver for Details carousel.
+  - pre-join weeks now return zero available/consumed/carry/team/personal values to avoid false early-week volume display.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Scoped Root Timestamp Mapping
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added created/joined/enrolled timestamps to `createTreeNextLiveScopedRootNode(...)` output.
+  - ensures Details pre-join week zeroing logic applies to root (`id: root`) user selections.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Joined Date Display In Details Profile Header
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - injected joined-date text row under username in `drawSideNavDetailsCarouselCard(...)`.
+  - used node join/create timestamp resolver to keep date source aligned with pre-join week gating logic.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Active Week Marker + Week Preview Color State
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - week tabs now support independent active-vs-selected styling.
+  - added active dot marker and green active state while preserving gray preview state for selected historical/future week.
+  - increased profile-header vertical spacing under joined-date row.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Server Cutoff Week Window Mapping
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added cutoff-date month resolver for Details week tabs.
+  - week rows now correspond to cutoff-cycle windows and current-week anchor is tied to next cutoff date.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Active Dot Removed From Week Tabs
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - removed active week dot rendering block inside week tab loop.
+  - active week remains identifiable via tab fill/text color state only.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Carousel Fade/Slide Week Transition
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added Details carousel transition state fields and helper functions for animated selection changes.
+  - updated week/month selection actions to use transition-aware navigation.
+  - refactored `drawSideNavDetailsCarouselCard(...)` content rendering to draw outgoing + incoming snapshots during animation.
+  - animation behavior:
+    - outgoing snapshot fades/slides out
+    - incoming snapshot fades/slides in
+    - swipe drag remains direct and does not stack transition interpolation while finger drag is active.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Weekly Transition Changed To Fade-Only
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - removed x-axis slide interpolation in `drawSideNavDetailsCarouselCard(...)` transition path.
+  - retained crossfade blending and all existing week navigation logic.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Fade Duration Increased
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - updated Details weekly crossfade constant from `220ms` to `300ms`.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-27) - Binary Tree My Store Paid BV Resolution
+
+### What Changed
+- inary-tree-next-app.mjs
+  - Added My Store package-earning alias map with paid-member compatibility fallback.
+  - Added /api/store-products hydration for featured-product metadata.
+  - Featured selection now resolves BV by buyer type:
+    - paid account -> paid-member bucket
+    - preferred/reservation -> preferred-personal bucket fallback
+  - Removed hard dependency on legacy static featured BV during selection/render.
+- inary-tree-next.html
+  - Updated review card fallback text from 38 BV to 50 BV.
+
+### Validation
+- 
+ode --check binary-tree-next-app.mjs passed.
+
+## Patch Update (2026-04-27) - Consumed/Carry Forward Rule Correction (1000/500)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - fixed weak-leg fallback from `1000` to `500`.
+  - removed `cycleHigherBv` coercion to `>= cycleLowerBv` in frontend cutoff parsing.
+  - resulting Details cycle math now follows strong-leg `1000` and weak-leg `500` expectations.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.

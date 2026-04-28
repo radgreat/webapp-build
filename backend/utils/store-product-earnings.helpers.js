@@ -1,25 +1,39 @@
 const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
-const DEFAULT_BUILDER_PACKAGE_KEY = 'personal-builder-pack';
+const MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY = 'membership-placement-reservation';
+const PAID_MEMBER_PACKAGE_KEY = 'paid-member-pack';
+const PREFERRED_PERSONAL_PACKAGE_KEY = 'personal-builder-pack';
+const PREFERRED_BUSINESS_PACKAGE_KEY = 'business-builder-pack';
+const PREFERRED_INFINITY_PACKAGE_KEY = 'infinity-builder-pack';
+const PREFERRED_LEGACY_PACKAGE_KEY = 'legacy-builder-pack';
+const DEFAULT_BUILDER_PACKAGE_KEY = PAID_MEMBER_PACKAGE_KEY;
 
 export const STORE_PRODUCT_PACKAGE_KEYS = Object.freeze([
-  FREE_ACCOUNT_PACKAGE_KEY,
-  'personal-builder-pack',
-  'business-builder-pack',
-  'infinity-builder-pack',
-  'legacy-builder-pack',
+  PREFERRED_PERSONAL_PACKAGE_KEY,
+  PREFERRED_BUSINESS_PACKAGE_KEY,
+  PREFERRED_INFINITY_PACKAGE_KEY,
+  PREFERRED_LEGACY_PACKAGE_KEY,
+  PAID_MEMBER_PACKAGE_KEY,
 ]);
 
 export const DEFAULT_STORE_PACKAGE_EARNINGS = Object.freeze({
-  [FREE_ACCOUNT_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
-  'personal-builder-pack': Object.freeze({ retailCommission: 4, bv: 50 }),
-  'business-builder-pack': Object.freeze({ retailCommission: 8, bv: 48 }),
-  'infinity-builder-pack': Object.freeze({ retailCommission: 12, bv: 44 }),
-  'legacy-builder-pack': Object.freeze({ retailCommission: 20, bv: 38 }),
+  [PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
+  [PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze({ retailCommission: 8, bv: 48 }),
+  [PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze({ retailCommission: 12, bv: 44 }),
+  [PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze({ retailCommission: 20, bv: 38 }),
+  [PAID_MEMBER_PACKAGE_KEY]: Object.freeze({ retailCommission: 0, bv: 50 }),
 });
 
 const PACKAGE_KEY_ALIASES = Object.freeze({
-  [FREE_ACCOUNT_PACKAGE_KEY]: Object.freeze([
+  [PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze([
+    PREFERRED_PERSONAL_PACKAGE_KEY,
+    'personal_builder_pack',
+    'personalBuilderPack',
+    'personal',
+    'personal-pack',
     FREE_ACCOUNT_PACKAGE_KEY,
+    MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY,
+    'membership_placement_reservation',
+    'membershipPlacementReservation',
     'preferred_customer_pack',
     'preferredCustomerPack',
     'preferred-customer',
@@ -27,29 +41,52 @@ const PACKAGE_KEY_ALIASES = Object.freeze({
     'freeAccount',
     'free',
   ]),
-  'personal-builder-pack': Object.freeze([
-    'personal-builder-pack',
-    'personal_builder_pack',
-    'personalBuilderPack',
-    'personal',
-    'personal-pack',
-  ]),
-  'business-builder-pack': Object.freeze([
-    'business-builder-pack',
+  [PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze([
+    PREFERRED_BUSINESS_PACKAGE_KEY,
     'business_builder_pack',
     'businessBuilderPack',
     'business',
     'business-pack',
   ]),
-  'infinity-builder-pack': Object.freeze([
-    'infinity-builder-pack',
+  [PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze([
+    PREFERRED_INFINITY_PACKAGE_KEY,
     'infinity_builder_pack',
     'infinityBuilderPack',
     'infinity',
     'achievers-pack',
   ]),
-  'legacy-builder-pack': Object.freeze([
-    'legacy-builder-pack',
+  [PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze([
+    PREFERRED_LEGACY_PACKAGE_KEY,
+    'legacy_builder_pack',
+    'legacyBuilderPack',
+    'legacy',
+    'legacy-pack',
+  ]),
+  [PAID_MEMBER_PACKAGE_KEY]: Object.freeze([
+    PAID_MEMBER_PACKAGE_KEY,
+    'paid_member_pack',
+    'paidMemberPack',
+    'paid-member',
+    'paid_member',
+    'paid-member-account',
+    'paid',
+    // Backward compatibility: pre-paid-bucket products can still resolve paid BV.
+    PREFERRED_PERSONAL_PACKAGE_KEY,
+    'personal_builder_pack',
+    'personalBuilderPack',
+    'personal',
+    'personal-pack',
+    PREFERRED_BUSINESS_PACKAGE_KEY,
+    'business_builder_pack',
+    'businessBuilderPack',
+    'business',
+    'business-pack',
+    PREFERRED_INFINITY_PACKAGE_KEY,
+    'infinity_builder_pack',
+    'infinityBuilderPack',
+    'infinity',
+    'achievers-pack',
+    PREFERRED_LEGACY_PACKAGE_KEY,
     'legacy_builder_pack',
     'legacyBuilderPack',
     'legacy',
@@ -143,7 +180,7 @@ export function normalizeStoreProductPackageEarnings(rawPackageEarnings = {}, op
     const defaultEntry = DEFAULT_STORE_PACKAGE_EARNINGS[packageKey]
       || { retailCommission: 0, bv: 0 };
 
-    const fallbackEntry = (fallbackMode === 'legacy-bp' && packageKey !== FREE_ACCOUNT_PACKAGE_KEY)
+    const fallbackEntry = (fallbackMode === 'legacy-bp' && packageKey === PAID_MEMBER_PACKAGE_KEY)
       ? { retailCommission: defaultEntry.retailCommission, bv: fallbackBp }
       : defaultEntry;
 
@@ -177,7 +214,7 @@ export function resolveStorePackageEarning(source = {}, packageKey = '', options
 
 export function resolveStoreProductLegacyBp(source = {}) {
   return toWholeNumber(
-    resolveStorePackageEarning(source, 'legacy-builder-pack').bv,
+    resolveStorePackageEarning(source, PAID_MEMBER_PACKAGE_KEY).bv,
     0,
   );
 }

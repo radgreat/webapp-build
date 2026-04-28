@@ -181,3 +181,76 @@ No member/business rows are seeded.
 
 - `node --check backend/services/store-checkout.service.js` passed.
 - `node --check backend/services/member.service.js` passed.
+
+## Update (2026-04-27) - Cutoff/Cycle Backend Rule Update (1000/1000 + Personal Baseline Guard)
+
+### What Changed
+
+- `backend/services/admin.service.js`
+  - cycle thresholds normalized to `1000/1000` minimum.
+  - force-cutoff commission cycles now use baseline-adjusted current-week leg volumes.
+  - removed force-cutoff writes that reset `serverCutoffBaselineStarterPersonalPv` on user/member records.
+- `backend/services/cutoff.service.js`
+  - API cycle thresholds normalized to `>=1000` for compatibility with updated rule.
+- `backend/services/metrics.service.js`
+  - binary metrics snapshot sanitizer normalizes stored cycle thresholds to `>=1000`.
+- `backend/services/member-business-center.service.js`
+  - business-center cycle split thresholds normalized to `1000/1000`.
+
+### Validation
+
+- `node --check backend/services/admin.service.js` passed.
+- `node --check backend/services/cutoff.service.js` passed.
+- `node --check backend/services/metrics.service.js` passed.
+- `node --check backend/services/member-business-center.service.js` passed.
+
+### Patch Note (2026-04-27)
+- Added force-cutoff baseline safety guard: when a member has no matching binary snapshot, cutoff baseline state now keeps existing baseline values instead of resetting to `0`.
+- File: `backend/services/admin.service.js`
+- Validation: `node --check backend/services/admin.service.js` passed.
+
+## Update (2026-04-27) - Server Cutoff Binary Carry Forward/Flush Rule Fix (1000/500 + Tie-Left)
+
+### Scope
+- Audited and updated weekly server cutoff binary cycle settlement and carry-forward baseline progression.
+- Goal: enforce deterministic strong-leg logic, active-only carry-forward, and inactivity flush at cutoff.
+
+### Business-rule alignment implemented
+- Strong leg at cutoff = side with higher BV.
+- Tie-breaker = Left side is always strong when equal.
+- Per-cycle deduction:
+  - strong leg: `1000 BV`
+  - weak leg: `500 BV`
+- Active members carry forward unused BV.
+- Inactive members flush carry-forward at cutoff (`0/0` carry).
+
+### Backend implementation details
+- Added `backend/utils/binary-cycle.helpers.js`:
+  - `resolveBinaryCycleComputation(...)`
+  - `resolveServerCutoffCarryForwardState(...)`
+- Updated `backend/services/admin.service.js`:
+  - `forceServerCutoff(...)` now uses shared helper for deterministic cycle math.
+  - `resolveNextCutoffCarryForwardBaselines(...)` now flushes baselines to total leg BV when inactive.
+  - activity gate for cutoff settlement now uses threshold-oriented cutoff-active check.
+  - added cutoff audit `console.info(...)` events for carry/consume/flush actions.
+- Updated `backend/services/cutoff.service.js` to return estimated cycles from the same deterministic cycle computation.
+- Updated `backend/services/metrics.service.js` and `backend/stores/metrics.store.js` to normalize persisted cycle values to strong=`1000`, weak=`500`.
+- Updated `backend/services/member-business-center.service.js` to use deterministic strong-leg cycle computation and 1000/500 defaults.
+
+### Tests added
+- `backend/tests/binary-cycle-cutoff.test.js` (Node built-in test runner)
+- Covers:
+  - active carry-forward
+  - exact-cycle settlement
+  - multi-cycle remainder correctness
+  - inactivity flush
+  - reactivation after flush
+  - one-leg scenarios
+  - repeated-cutoff idempotency
+  - no double-count with new BV
+  - tie-breaker deterministic behavior
+  - non-negative safeguards
+
+### Validation
+- `npm.cmd run test:binary-cycle` => pass (11 tests)
+- `node --check` pass on all edited backend files.

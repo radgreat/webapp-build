@@ -95,3 +95,34 @@
 
 #### Notes
 - Legacy admin binary tree panel markup remains in file, but route/nav access is now retired from admin dashboard routing and sidebar navigation.
+
+## Update (2026-04-27) - Admin Cutoff Card + Force Cutoff Rule Alignment
+
+### What Changed
+
+- `admin.html`
+  - updated admin cycle constants to `1000/1000`.
+  - aligned admin cutoff-card estimated cycle formula with weak/high and strong/low threshold division.
+- `backend/services/admin.service.js`
+  - force-cutoff now settles cycles from current-week leg volumes.
+  - removed personal BV baseline rewrites from force-cutoff execution.
+
+### Validation
+
+- inline script parse check passed for `admin.html`.
+- `node --check backend/services/admin.service.js` passed.
+
+## Update (2026-04-27) - My Store Package Earnings UI Rule Alignment
+
+### Changes
+- Product Management > Package Earnings now supports:
+  - Preferred Personal (Retail + BV)
+  - Preferred Business (Retail + BV)
+  - Preferred Infinity (Retail + BV)
+  - Preferred Legacy (Retail + BV)
+  - Paid Member (BV only)
+- Paid Member retail commission input removed by design.
+
+### Behavior
+- Form save enforces `paid-member-pack.retailCommission = 0`.
+- Preferred tiers persist as separate package-key earnings entries.

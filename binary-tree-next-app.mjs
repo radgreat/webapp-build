@@ -188,6 +188,10 @@ const TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_MIN_DISPLACEMENT = 0.0008;
 const TREE_NEXT_MOBILE_SEARCH_FOCUS_EXPAND_DELAY_MS = 170;
 const TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX = 8;
 const TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_BIAS_PX = 3;
+const TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_THRESHOLD_PX = 8;
+const TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_BIAS_PX = 3;
+const TREE_NEXT_MOBILE_DETAILS_SWIPE_TRIGGER_PX = 44;
+const TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS = 300;
 const TREE_NEXT_MOBILE_SIDE_PANEL_FULL_STAGE_SURFACE_DRAG_REGION_PX = 120;
 const TREE_NEXT_MOBILE_OVERLAY_PANEL_EDGE_INSET_PX = 8;
 const TREE_NEXT_MOBILE_OVERLAY_PANEL_HALF_TOP_INSET_PX = 56;
@@ -215,6 +219,8 @@ const SERVER_CUTOFF_TIMEZONE = 'America/Los_Angeles';
 const SERVER_CUTOFF_WEEKDAY = 6;
 const SERVER_CUTOFF_HOUR = 23;
 const SERVER_CUTOFF_MINUTE = 59;
+const TREE_NEXT_DETAILS_FALLBACK_STRONG_LEG_BV = 1000;
+const TREE_NEXT_DETAILS_FALLBACK_WEAK_LEG_BV = 500;
 const MEMBER_AUTH_SESSION_API = '/api/member-auth/session';
 const MEMBER_REGISTERED_MEMBERS_API = '/api/registered-members';
 const MEMBER_BINARY_TREE_PINNED_NODES_API = '/api/member-auth/binary-tree-next/pinned-nodes';
@@ -230,6 +236,10 @@ const MEMBER_GOOD_LIFE_MONTHLY_API = '/api/member-auth/good-life/monthly';
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_VISIBLE_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_HIDDEN_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS;
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_RETRY_INTERVAL_MS = 2800;
+const TREE_NEXT_CYCLE_RULE_STRONGER_BV = 1000;
+const TREE_NEXT_CYCLE_RULE_WEAKER_BV = 500;
+const NODE_SERVER_CUTOFF_METRICS_CACHE_TTL_MS = 12000;
+const NODE_SERVER_CUTOFF_METRICS_CACHE_MAX_ENTRIES = 1800;
 const RANK_ADVANCEMENT_REMOTE_SYNC_VISIBLE_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
 const RANK_ADVANCEMENT_REMOTE_SYNC_HIDDEN_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS;
 const RANK_ADVANCEMENT_REMOTE_SYNC_RETRY_INTERVAL_MS = 2800;
@@ -238,6 +248,7 @@ const ADMIN_REGISTERED_MEMBERS_SESSION_API = '/api/admin/registered-members/sess
 const MEMBER_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/registered-members/session/complete';
 const ADMIN_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/admin/registered-members/session/complete';
 const STORE_INVOICES_API = '/api/store-invoices';
+const STORE_PRODUCTS_API = '/api/store-products';
 const MEMBER_DASHBOARD_HOME_PATH = '/index.html';
 const ADMIN_DASHBOARD_HOME_PATH = '/admin.html';
 const ENROLL_STRIPE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
@@ -472,13 +483,102 @@ const ACCOUNT_OVERVIEW_BADGE_PALETTES = Object.freeze({
 });
 const MY_STORE_FEATURED_PRODUCT = Object.freeze({
   productKey: 'metacharge',
-  label: 'MetaCharge™',
+  label: 'MetaCharge\u2122',
   imageUrl: '/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png',
   price: 64,
-  bv: 38,
+  bv: 50,
   quantity: 1,
 });
 const MY_STORE_UPGRADE_PRODUCT_UNIT_BV = 50;
+const MY_STORE_PAID_MEMBER_PACKAGE_KEY = 'paid-member-pack';
+const MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY = 'personal-builder-pack';
+const MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY = 'business-builder-pack';
+const MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY = 'infinity-builder-pack';
+const MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY = 'legacy-builder-pack';
+const MY_STORE_PRODUCT_PACKAGE_KEYS = Object.freeze([
+  MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+  MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+  MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+  MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+  MY_STORE_PAID_MEMBER_PACKAGE_KEY,
+]);
+const MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS = Object.freeze({
+  [MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
+  [MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze({ retailCommission: 8, bv: 48 }),
+  [MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze({ retailCommission: 12, bv: 44 }),
+  [MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze({ retailCommission: 20, bv: 38 }),
+  [MY_STORE_PAID_MEMBER_PACKAGE_KEY]: Object.freeze({ retailCommission: 0, bv: 50 }),
+});
+const MY_STORE_PRODUCT_PACKAGE_KEY_ALIASES = Object.freeze({
+  [MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze([
+    MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+    'personal_builder_pack',
+    'personalBuilderPack',
+    'personal',
+    'personal-pack',
+    FREE_ACCOUNT_PACKAGE_KEY,
+    MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY,
+    'membership_placement_reservation',
+    'membershipPlacementReservation',
+    'preferred_customer_pack',
+    'preferredCustomerPack',
+    'preferred-customer',
+    'free-account',
+    'freeAccount',
+    'free',
+  ]),
+  [MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze([
+    MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+    'business_builder_pack',
+    'businessBuilderPack',
+    'business',
+    'business-pack',
+  ]),
+  [MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze([
+    MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+    'infinity_builder_pack',
+    'infinityBuilderPack',
+    'infinity',
+    'achievers-pack',
+  ]),
+  [MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze([
+    MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+    'legacy_builder_pack',
+    'legacyBuilderPack',
+    'legacy',
+    'legacy-pack',
+  ]),
+  [MY_STORE_PAID_MEMBER_PACKAGE_KEY]: Object.freeze([
+    MY_STORE_PAID_MEMBER_PACKAGE_KEY,
+    'paid_member_pack',
+    'paidMemberPack',
+    'paid-member',
+    'paid_member',
+    'paid-member-account',
+    'paid',
+    // Backward compatibility for products saved before paid-member bucket.
+    MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+    'personal_builder_pack',
+    'personalBuilderPack',
+    'personal',
+    'personal-pack',
+    MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+    'business_builder_pack',
+    'businessBuilderPack',
+    'business',
+    'business-pack',
+    MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+    'infinity_builder_pack',
+    'infinityBuilderPack',
+    'infinity',
+    'achievers-pack',
+    MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+    'legacy_builder_pack',
+    'legacyBuilderPack',
+    'legacy',
+    'legacy-pack',
+  ]),
+});
 const MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY = 'metacharge';
 const MY_STORE_UPGRADE_DEFAULT_SPLIT_PRODUCT_KEY = 'metaroast';
 const MY_STORE_PACKAGE_PRODUCT_KEY_SPLIT = 'split';
@@ -840,6 +940,8 @@ let accountOverviewRemoteIdentityKey = '';
 let accountOverviewRemoteRequestSequence = 0;
 let accountOverviewCachedLegVolumeSignature = '';
 let accountOverviewCachedLegVolumeMetrics = null;
+let nodeServerCutoffMetricsCache = new Map();
+let nodeServerCutoffMetricsInFlight = new Map();
 let sideNavMemberStatusCachedSignature = '';
 let sideNavMemberStatusCachedSnapshot = null;
 let rankAdvancementLastRenderSignature = '';
@@ -899,6 +1001,8 @@ let preferredAccountsFeedbackTimerId = 0;
 let preferredAccountsRenderErrorLoggedAtMs = 0;
 let renderLoopErrorLoggedAtMs = 0;
 let myStoreLastRenderSignature = '';
+let myStoreProductCatalogHydrationPromise = null;
+let myStoreCatalogProducts = [];
 let isTreeNextEnrollStripeReady = false;
 let isTreeNextEnrollStripeCardComplete = false;
 let isTreeNextEnrollStripeCardExpiryComplete = false;
@@ -1040,6 +1144,28 @@ const state = {
       dragStartY: 0,
       dragStartScrollY: 0,
       dragMoved: false,
+    },
+    sideNavDetailsCarousel: {
+      viewportRect: null,
+      selectedNodeId: '',
+      selectedMonthKey: '',
+      selectedWeekNumber: 0,
+      dragActive: false,
+      dragPointerId: null,
+      dragStartX: 0,
+      dragStartY: 0,
+      dragAxis: '',
+      dragMoved: false,
+      dragDeltaX: 0,
+      tapAction: '',
+      transitionActive: false,
+      transitionStartedAtMs: 0,
+      transitionDurationMs: TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS,
+      transitionDirection: 0,
+      transitionFromMonthKey: '',
+      transitionFromWeekNumber: 0,
+      transitionToMonthKey: '',
+      transitionToWeekNumber: 0,
     },
   },
   enroll: {
@@ -2098,20 +2224,35 @@ function setSelectedNode(nextId, options = {}) {
     if (!animate) {
       state.selectionFxTracks = Object.create(null);
       state.selectedId = '';
+      getSideNavDetailsCarouselState().selectedNodeId = '';
       return;
     }
     startSelectionAnimation(currentId, 0, 'deselect', nowMs);
     state.selectedId = '';
+    getSideNavDetailsCarouselState().selectedNodeId = '';
     return;
   }
 
   if (targetId === currentId) {
+    if (targetId) {
+      const existingNode = resolveNodeById(targetId);
+      if (existingNode) {
+        maybeRefreshNodeServerCutoffMetrics(existingNode);
+      }
+    }
     return;
   }
 
   if (!animate) {
     state.selectionFxTracks = Object.create(null);
     state.selectedId = targetId;
+    getSideNavDetailsCarouselState().selectedNodeId = '';
+    if (targetId) {
+      const selectedNode = resolveNodeById(targetId);
+      if (selectedNode) {
+        maybeRefreshNodeServerCutoffMetrics(selectedNode);
+      }
+    }
     return;
   }
 
@@ -2122,6 +2263,13 @@ function setSelectedNode(nextId, options = {}) {
     startSelectionAnimation(targetId, 1, 'select', nowMs, 0);
   }
   state.selectedId = targetId;
+  getSideNavDetailsCarouselState().selectedNodeId = '';
+  if (targetId) {
+    const selectedNode = resolveNodeById(targetId);
+    if (selectedNode) {
+      maybeRefreshNodeServerCutoffMetrics(selectedNode);
+    }
+  }
 }
 
 function safeText(value) {
@@ -2532,18 +2680,6 @@ function resolveNodeCurrentPersonalBvForActivity(nodeInput = null) {
     ?? node?.package_bv,
     0,
   )));
-  const baselinePersonalPv = safeNumber(
-    node?.serverCutoffBaselineStarterPersonalPv
-    ?? node?.server_cutoff_baseline_starter_personal_pv
-    ?? node?.personalVolumeBaselineBv
-    ?? node?.personal_volume_baseline_bv,
-    NaN,
-  );
-  if (Number.isFinite(baselinePersonalPv) && baselinePersonalPv > 0) {
-    return hasExpiredCutoff
-      ? 0
-      : Math.max(0, starterPersonalPv - Math.max(0, Math.floor(baselinePersonalPv)));
-  }
   return hasExpiredCutoff ? 0 : starterPersonalPv;
 }
 
@@ -2702,9 +2838,9 @@ function resolveNodeCycleCount(nodeInput = null, volumeMetricsInput = null) {
   const rightLeg = Math.max(0, Math.floor(safeNumber(metrics.rightVolume, 0)));
   const weakerLeg = Math.min(leftLeg, rightLeg);
   const strongerLeg = Math.max(leftLeg, rightLeg);
-  // Dynamic cycle rule: weaker leg consumes 1000 BV, stronger leg consumes 500 BV.
-  const cyclesFromWeakerLeg = Math.floor(weakerLeg / 1000);
-  const cyclesFromStrongerLeg = Math.floor(strongerLeg / 500);
+  // Dynamic cycle rule: weaker/stronger legs both consume 1000 BV per cycle.
+  const cyclesFromWeakerLeg = Math.floor(weakerLeg / TREE_NEXT_CYCLE_RULE_WEAKER_BV);
+  const cyclesFromStrongerLeg = Math.floor(strongerLeg / TREE_NEXT_CYCLE_RULE_STRONGER_BV);
   return Math.max(0, Math.min(cyclesFromWeakerLeg, cyclesFromStrongerLeg));
 }
 
@@ -4585,6 +4721,284 @@ function createEmptyAccountOverviewRemoteSnapshot() {
   };
 }
 
+function resetNodeServerCutoffMetricsCache() {
+  nodeServerCutoffMetricsCache = new Map();
+  nodeServerCutoffMetricsInFlight = new Map();
+}
+
+function resolveNodeServerCutoffMetricsIdentityPayload(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node || isInfinityBuilderPlaceholderNode(node) || shouldApplyTreeNextNodePrivacyMask(node)) {
+    return {
+      userId: '',
+      username: '',
+      email: '',
+    };
+  }
+
+  const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+  const username = safeText(
+    node?.username
+    || node?.memberCode
+    || node?.member_code
+    || node?.memberUsername
+    || node?.member_username
+    || '',
+  ).replace(/^@+/, '');
+  const usernameKey = normalizeCredentialValue(username);
+  const adminUsernameKey = normalizeCredentialValue(ADMIN_ROOT_USERNAME);
+  const globalRootNodeIdKey = normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID);
+  const isSystemOrAdminNode = (
+    !nodeIdKey
+    || nodeIdKey === 'root'
+    || nodeIdKey === globalRootNodeIdKey
+    || nodeIdKey === adminUsernameKey
+    || usernameKey === adminUsernameKey
+  );
+  if (isSystemOrAdminNode) {
+    return {
+      userId: '',
+      username: '',
+      email: '',
+    };
+  }
+
+  const userIdCandidates = [
+    node?.userId,
+    node?.memberUserId,
+    node?.member_user_id,
+    node?.sourceUserId,
+    node?.source_user_id,
+    node?.id,
+  ];
+  let userId = '';
+  for (const candidate of userIdCandidates) {
+    const value = safeText(candidate);
+    if (value) {
+      userId = value;
+      break;
+    }
+  }
+  const userIdKey = normalizeCredentialValue(userId);
+  if (!userId || userIdKey === 'root' || userIdKey === globalRootNodeIdKey || userIdKey === adminUsernameKey) {
+    userId = '';
+  }
+
+  const emailCandidates = [
+    node?.email,
+    node?.memberEmail,
+    node?.member_email,
+    node?.userEmail,
+    node?.user_email,
+    node?.sourceEmail,
+    node?.source_email,
+  ];
+  let email = '';
+  for (const candidate of emailCandidates) {
+    const value = safeText(candidate);
+    if (value) {
+      email = value;
+      break;
+    }
+  }
+
+  return {
+    userId,
+    username,
+    email,
+  };
+}
+
+function hasNodeServerCutoffMetricsIdentity(identityPayload = {}) {
+  return Boolean(
+    safeText(identityPayload?.userId)
+    || safeText(identityPayload?.username)
+    || safeText(identityPayload?.email),
+  );
+}
+
+function resolveNodeServerCutoffMetricsCacheKeys(identityPayload = {}) {
+  const keys = [];
+  const usernameKey = normalizeCredentialValue(safeText(identityPayload?.username).replace(/^@+/, ''));
+  const userIdKey = normalizeCredentialValue(identityPayload?.userId);
+  const emailKey = normalizeCredentialValue(identityPayload?.email);
+  if (usernameKey) {
+    keys.push(`username:${usernameKey}`);
+  }
+  if (userIdKey) {
+    keys.push(`user:${userIdKey}`);
+  }
+  if (emailKey) {
+    keys.push(`email:${emailKey}`);
+  }
+  return Array.from(new Set(keys));
+}
+
+function resolveNodeServerCutoffMetricsCachePrimaryKey(identityPayload = {}) {
+  const keys = resolveNodeServerCutoffMetricsCacheKeys(identityPayload);
+  return keys[0] || '';
+}
+
+function resolveNodeServerCutoffMetricsCachedEntry(identityPayload = {}) {
+  const keys = resolveNodeServerCutoffMetricsCacheKeys(identityPayload);
+  for (const key of keys) {
+    if (nodeServerCutoffMetricsCache.has(key)) {
+      return nodeServerCutoffMetricsCache.get(key) || null;
+    }
+  }
+  return null;
+}
+
+function isNodeServerCutoffMetricsCacheEntryFresh(entryInput = null, nowMs = Date.now()) {
+  const entry = entryInput && typeof entryInput === 'object' ? entryInput : null;
+  if (!entry) {
+    return false;
+  }
+  const fetchedAtMs = Math.max(0, safeNumber(entry.fetchedAtMs, 0));
+  if (!fetchedAtMs) {
+    return false;
+  }
+  return (nowMs - fetchedAtMs) < NODE_SERVER_CUTOFF_METRICS_CACHE_TTL_MS;
+}
+
+function pruneNodeServerCutoffMetricsCache() {
+  const overflow = nodeServerCutoffMetricsCache.size - NODE_SERVER_CUTOFF_METRICS_CACHE_MAX_ENTRIES;
+  if (overflow <= 0) {
+    return;
+  }
+  let remaining = overflow;
+  for (const key of nodeServerCutoffMetricsCache.keys()) {
+    nodeServerCutoffMetricsCache.delete(key);
+    remaining -= 1;
+    if (remaining <= 0) {
+      break;
+    }
+  }
+}
+
+function cacheNodeServerCutoffMetrics(identityPayload = {}, metricsInput = null, options = {}) {
+  if (!hasNodeServerCutoffMetricsIdentity(identityPayload)) {
+    return;
+  }
+  const cacheKeys = resolveNodeServerCutoffMetricsCacheKeys(identityPayload);
+  if (!cacheKeys.length) {
+    return;
+  }
+  const fetchedAtMs = Math.max(0, safeNumber(options?.fetchedAtMs, Date.now()));
+  const metrics = (
+    metricsInput
+    && typeof metricsInput === 'object'
+  )
+    ? metricsInput
+    : null;
+  const entry = {
+    metrics,
+    fetchedAtMs,
+  };
+  for (const cacheKey of cacheKeys) {
+    nodeServerCutoffMetricsCache.set(cacheKey, entry);
+  }
+  pruneNodeServerCutoffMetricsCache();
+}
+
+async function refreshNodeServerCutoffMetrics(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const force = options?.force === true;
+  const identityPayload = resolveNodeServerCutoffMetricsIdentityPayload(node);
+  if (!hasNodeServerCutoffMetricsIdentity(identityPayload)) {
+    return null;
+  }
+  const primaryKey = resolveNodeServerCutoffMetricsCachePrimaryKey(identityPayload);
+  if (!primaryKey) {
+    return null;
+  }
+
+  const nowMs = Date.now();
+  const cachedEntry = resolveNodeServerCutoffMetricsCachedEntry(identityPayload);
+  if (!force && isNodeServerCutoffMetricsCacheEntryFresh(cachedEntry, nowMs)) {
+    return cachedEntry?.metrics && typeof cachedEntry.metrics === 'object'
+      ? cachedEntry.metrics
+      : null;
+  }
+
+  if (nodeServerCutoffMetricsInFlight.has(primaryKey)) {
+    return nodeServerCutoffMetricsInFlight.get(primaryKey);
+  }
+
+  const requestPromise = (async () => {
+    const identityQuery = new URLSearchParams();
+    appendAccountOverviewIdentityQuery(identityQuery, identityPayload);
+    const payload = await fetchAccountOverviewEndpoint(
+      ACCOUNT_OVERVIEW_MEMBER_SERVER_CUTOFF_METRICS_API,
+      identityQuery,
+    );
+    const metrics = resolveAccountOverviewServerCutoffMetricsRecord(payload);
+    cacheNodeServerCutoffMetrics(identityPayload, metrics, {
+      fetchedAtMs: Date.now(),
+    });
+    return metrics;
+  })().catch(() => {
+    // Avoid immediate retry storms when the endpoint is temporarily unavailable.
+    cacheNodeServerCutoffMetrics(identityPayload, cachedEntry?.metrics || null, {
+      fetchedAtMs: Date.now(),
+    });
+    return cachedEntry?.metrics && typeof cachedEntry.metrics === 'object'
+      ? cachedEntry.metrics
+      : null;
+  }).finally(() => {
+    nodeServerCutoffMetricsInFlight.delete(primaryKey);
+  });
+
+  nodeServerCutoffMetricsInFlight.set(primaryKey, requestPromise);
+  return requestPromise;
+}
+
+function maybeRefreshNodeServerCutoffMetrics(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return;
+  }
+  const force = options?.force === true;
+  const identityPayload = resolveNodeServerCutoffMetricsIdentityPayload(node);
+  if (!hasNodeServerCutoffMetricsIdentity(identityPayload)) {
+    return;
+  }
+  const primaryKey = resolveNodeServerCutoffMetricsCachePrimaryKey(identityPayload);
+  if (!primaryKey) {
+    return;
+  }
+  const cachedEntry = resolveNodeServerCutoffMetricsCachedEntry(identityPayload);
+  if (!force && isNodeServerCutoffMetricsCacheEntryFresh(cachedEntry)) {
+    return;
+  }
+  if (nodeServerCutoffMetricsInFlight.has(primaryKey)) {
+    return;
+  }
+  void refreshNodeServerCutoffMetrics(node, { force });
+}
+
+function resolveNodeServerCutoffMetrics(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return null;
+  }
+  const identityPayload = resolveNodeServerCutoffMetricsIdentityPayload(node);
+  if (!hasNodeServerCutoffMetricsIdentity(identityPayload)) {
+    return null;
+  }
+  const cachedEntry = resolveNodeServerCutoffMetricsCachedEntry(identityPayload);
+  if (!cachedEntry) {
+    maybeRefreshNodeServerCutoffMetrics(node);
+    return null;
+  }
+  if (!isNodeServerCutoffMetricsCacheEntryFresh(cachedEntry)) {
+    maybeRefreshNodeServerCutoffMetrics(node);
+  }
+  return cachedEntry?.metrics && typeof cachedEntry.metrics === 'object'
+    ? cachedEntry.metrics
+    : null;
+}
+
 function resetAccountOverviewRemoteSnapshot() {
   accountOverviewRemoteRequestSequence += 1;
   accountOverviewRemoteSnapshot = createEmptyAccountOverviewRemoteSnapshot();
@@ -4596,6 +5010,7 @@ function resetAccountOverviewRemoteSnapshot() {
   accountOverviewRemoteIdentityKey = '';
   accountOverviewCachedLegVolumeSignature = '';
   accountOverviewCachedLegVolumeMetrics = null;
+  resetNodeServerCutoffMetricsCache();
   accountOverviewLastRenderSignature = '';
 }
 
@@ -4883,8 +5298,25 @@ function resolveAccountOverviewServerCutoffMetricsRecord(payload = null) {
   if (!metrics) {
     return null;
   }
-  const cycleLowerBv = Math.max(1, Math.floor(safeNumber(metrics.cycleLowerBv, 500)));
-  const cycleHigherBv = Math.max(cycleLowerBv, Math.floor(safeNumber(metrics.cycleHigherBv, 1000)));
+  const cutoffMeta = (
+    payload?.data?.cutoff
+    && typeof payload.data.cutoff === 'object'
+  )
+    ? payload.data.cutoff
+    : (
+      payload?.cutoff
+      && typeof payload.cutoff === 'object'
+        ? payload.cutoff
+        : null
+    );
+  const cycleLowerBv = Math.max(
+    1,
+    Math.floor(safeNumber(metrics.cycleLowerBv, TREE_NEXT_CYCLE_RULE_STRONGER_BV)),
+  );
+  const cycleHigherBv = Math.max(
+    1,
+    Math.floor(safeNumber(metrics.cycleHigherBv, TREE_NEXT_CYCLE_RULE_WEAKER_BV)),
+  );
   const currentWeekLeftLegBv = Math.max(0, Math.floor(safeNumber(metrics.currentWeekLeftLegBv, 0)));
   const currentWeekRightLegBv = Math.max(0, Math.floor(safeNumber(metrics.currentWeekRightLegBv, 0)));
   const lowerLegBv = Math.min(currentWeekLeftLegBv, currentWeekRightLegBv);
@@ -4899,9 +5331,20 @@ function resolveAccountOverviewServerCutoffMetricsRecord(payload = null) {
   return {
     cycleLowerBv,
     cycleHigherBv,
+    totalLeftLegBv: Math.max(0, Math.floor(safeNumber(metrics.totalLeftLegBv, currentWeekLeftLegBv))),
+    totalRightLegBv: Math.max(0, Math.floor(safeNumber(metrics.totalRightLegBv, currentWeekRightLegBv))),
+    totalPersonalPv: Math.max(0, Math.floor(safeNumber(metrics.totalPersonalPv, metrics.currentWeekPersonalPv))),
+    baselineLeftLegBv: Math.max(0, Math.floor(safeNumber(metrics.baselineLeftLegBv, 0))),
+    baselineRightLegBv: Math.max(0, Math.floor(safeNumber(metrics.baselineRightLegBv, 0))),
+    baselinePersonalPv: Math.max(0, Math.floor(safeNumber(metrics.baselinePersonalPv, 0))),
     currentWeekLeftLegBv,
     currentWeekRightLegBv,
+    currentWeekPersonalPv: Math.max(0, Math.floor(safeNumber(metrics.currentWeekPersonalPv, 0))),
     estimatedCycles,
+    nextCutoffAt: safeText(cutoffMeta?.nextCutoffAt),
+    lastClosedCutoffAt: safeText(cutoffMeta?.lastClosedCutoffAt),
+    latestForcedCutoffAt: safeText(cutoffMeta?.latestForcedCutoffAt),
+    lastAppliedCutoffAt: safeText(cutoffMeta?.lastAppliedCutoffAt),
   };
 }
 
@@ -5127,6 +5570,11 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
     const retailProfitBalance = normalizedScope === 'system'
       ? 0
       : resolveAccountOverviewRetailProfitFallback(homeNode);
+    if (!allowAnonymous && hasNodeServerCutoffMetricsIdentity(identityPayload)) {
+      cacheNodeServerCutoffMetrics(identityPayload, serverCutoffMetrics, {
+        fetchedAtMs: Date.now(),
+      });
+    }
     if (requestSequence !== accountOverviewRemoteRequestSequence) {
       return accountOverviewRemoteSnapshot;
     }
@@ -11804,6 +12252,183 @@ function isMyStorePanelAvailable() {
   return myStorePanelElement instanceof HTMLElement;
 }
 
+function normalizeMyStoreCurrency(value, fallback = 0) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    const fallbackValue = Number(fallback);
+    return Number.isFinite(fallbackValue) ? fallbackValue : 0;
+  }
+  return Math.round(Math.max(0, numericValue) * 100) / 100;
+}
+
+function normalizeMyStoreWholeNumber(value, fallback = 0) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    const fallbackValue = Number(fallback);
+    return Number.isFinite(fallbackValue) ? Math.max(0, Math.round(fallbackValue)) : 0;
+  }
+  return Math.max(0, Math.round(numericValue));
+}
+
+function normalizeMyStorePackageEarningEntry(sourceEntry, fallbackEntry = {}) {
+  const source = sourceEntry && typeof sourceEntry === 'object' ? sourceEntry : {};
+  const fallback = fallbackEntry && typeof fallbackEntry === 'object' ? fallbackEntry : {};
+  return {
+    retailCommission: normalizeMyStoreCurrency(
+      source.retailCommission
+      ?? source.retail
+      ?? source.commission
+      ?? source.usd
+      ?? source.amount,
+      fallback.retailCommission,
+    ),
+    bv: normalizeMyStoreWholeNumber(
+      source.bv
+      ?? source.bp
+      ?? source.personalBv,
+      fallback.bv,
+    ),
+  };
+}
+
+function normalizeMyStoreProductPackageEarnings(rawPackageEarnings = {}) {
+  const source = rawPackageEarnings && typeof rawPackageEarnings === 'object'
+    ? rawPackageEarnings
+    : {};
+  const normalized = {};
+  MY_STORE_PRODUCT_PACKAGE_KEYS.forEach((packageKey) => {
+    const aliases = MY_STORE_PRODUCT_PACKAGE_KEY_ALIASES[packageKey] || [packageKey];
+    const sourceKey = aliases.find((alias) => Object.prototype.hasOwnProperty.call(source, alias));
+    const sourceEntry = sourceKey ? source[sourceKey] : null;
+    const defaultEntry = MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS[packageKey]
+      || { retailCommission: 0, bv: 0 };
+    normalized[packageKey] = normalizeMyStorePackageEarningEntry(sourceEntry, defaultEntry);
+  });
+  return normalized;
+}
+
+function resolveMyStoreBuyerPackageEarningKey(currentPackageKey = '') {
+  const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey);
+  if (
+    normalizedCurrentPackage === FREE_ACCOUNT_PACKAGE_KEY
+    || normalizedCurrentPackage === MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY
+  ) {
+    return MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY;
+  }
+  return MY_STORE_PAID_MEMBER_PACKAGE_KEY;
+}
+
+function normalizeMyStoreCatalogProduct(rawProduct = {}, index = 0) {
+  const source = rawProduct && typeof rawProduct === 'object' ? rawProduct : {};
+  const fallbackLabel = `Product ${index + 1}`;
+  const label = safeText(source.title || source.name || fallbackLabel) || fallbackLabel;
+  const productKey = safeText(source.id || source.slug || label) || `product-${index + 1}`;
+  const price = Math.round(Math.max(0, safeNumber(source.price, 0)) * 100) / 100;
+  const legacyBv = normalizeMyStoreWholeNumber(source.bp ?? source.bvPoints, 0);
+  const packageEarnings = normalizeMyStoreProductPackageEarnings(source.packageEarnings);
+  const imageUrl = safeText(source.image || source.imageUrl || MY_STORE_FEATURED_PRODUCT.imageUrl);
+  const status = normalizeCredentialValue(source.status);
+  const lookupKey = normalizeMyStoreUpgradeProductKey(productKey) || normalizeMyStoreUpgradeProductKey(label);
+
+  return {
+    productKey,
+    lookupKey,
+    label,
+    imageUrl,
+    price,
+    legacyBv,
+    packageEarnings,
+    status: status === 'archived' ? 'archived' : 'active',
+  };
+}
+
+function resolveMyStoreCatalogFeaturedProductEntry() {
+  if (!Array.isArray(myStoreCatalogProducts) || myStoreCatalogProducts.length === 0) {
+    return null;
+  }
+  const activeProducts = myStoreCatalogProducts.filter((product) => product?.status !== 'archived');
+  const preferredProducts = activeProducts.length > 0 ? activeProducts : myStoreCatalogProducts;
+  if (preferredProducts.length === 0) {
+    return null;
+  }
+  const defaultLookupKey = normalizeMyStoreUpgradeProductKey(MY_STORE_FEATURED_PRODUCT.productKey);
+  const matchByLookupKey = preferredProducts.find((product) => product?.lookupKey === defaultLookupKey);
+  return matchByLookupKey || preferredProducts[0];
+}
+
+function resolveMyStoreFeaturedProduct(currentPackageKey = '') {
+  const fallback = MY_STORE_FEATURED_PRODUCT;
+  const catalogProduct = resolveMyStoreCatalogFeaturedProductEntry();
+  if (!catalogProduct) {
+    const fallbackPackageKey = resolveMyStoreBuyerPackageEarningKey(currentPackageKey);
+    const fallbackPackageEarning = MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS[fallbackPackageKey]
+      || MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS[MY_STORE_PAID_MEMBER_PACKAGE_KEY]
+      || { retailCommission: 0, bv: fallback.bv };
+    return {
+      ...fallback,
+      bv: normalizeMyStoreWholeNumber(fallbackPackageEarning.bv, fallback.bv),
+    };
+  }
+
+  const buyerPackageKey = resolveMyStoreBuyerPackageEarningKey(currentPackageKey);
+  const packageEarning = catalogProduct.packageEarnings?.[buyerPackageKey]
+    || catalogProduct.packageEarnings?.[MY_STORE_PAID_MEMBER_PACKAGE_KEY]
+    || MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS[buyerPackageKey]
+    || MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS[MY_STORE_PAID_MEMBER_PACKAGE_KEY]
+    || { retailCommission: 0, bv: fallback.bv };
+
+  return {
+    productKey: safeText(catalogProduct.productKey || fallback.productKey) || fallback.productKey,
+    label: safeText(catalogProduct.label || fallback.label) || fallback.label,
+    imageUrl: safeText(catalogProduct.imageUrl || fallback.imageUrl) || fallback.imageUrl,
+    price: Math.max(0, safeNumber(catalogProduct.price, fallback.price)),
+    bv: normalizeMyStoreWholeNumber(
+      packageEarning?.bv,
+      normalizeMyStoreWholeNumber(catalogProduct.legacyBv, fallback.bv),
+    ),
+    quantity: Math.max(1, Math.round(safeNumber(fallback.quantity, 1))),
+  };
+}
+
+async function hydrateMyStoreProductCatalog(options = {}) {
+  const force = options?.force === true;
+  if (!force && Array.isArray(myStoreCatalogProducts) && myStoreCatalogProducts.length > 0) {
+    return myStoreCatalogProducts;
+  }
+  if (myStoreProductCatalogHydrationPromise) {
+    return myStoreProductCatalogHydrationPromise;
+  }
+
+  myStoreProductCatalogHydrationPromise = (async () => {
+    try {
+      const response = await fetch(STORE_PRODUCTS_API, {
+        method: 'GET',
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message = safeText(payload?.error) || `Unable to load store products (${response.status}).`;
+        throw new Error(message);
+      }
+      const products = Array.isArray(payload?.products)
+        ? payload.products.map((product, index) => normalizeMyStoreCatalogProduct(product, index))
+        : [];
+      myStoreCatalogProducts = products;
+      myStoreLastRenderSignature = '';
+      syncMyStorePanelVisuals();
+      return myStoreCatalogProducts;
+    } catch (error) {
+      console.warn('Unable to hydrate My Store product catalog:', error);
+      return myStoreCatalogProducts;
+    } finally {
+      myStoreProductCatalogHydrationPromise = null;
+    }
+  })();
+
+  return myStoreProductCatalogHydrationPromise;
+}
+
 function resolveMyStorePackageKeyFromValue(value) {
   const normalizedValue = normalizeCredentialValue(value);
   if (!normalizedValue) {
@@ -12030,7 +12655,8 @@ function resolveMyStoreUpgradeDelta(currentPackageKey, targetPackageKey) {
   const currentPackageProducts = resolveMyStorePackageSelectableProductCount(normalizedCurrentPackage);
   const targetPackageProducts = resolveMyStorePackageSelectableProductCount(normalizedTargetPackage);
   const productGain = Math.max(0, targetPackageProducts - currentPackageProducts);
-  const unitProductPrice = Math.max(0, safeNumber(MY_STORE_FEATURED_PRODUCT.price, 0));
+  const featuredProduct = resolveMyStoreFeaturedProduct(normalizedCurrentPackage);
+  const unitProductPrice = Math.max(0, safeNumber(featuredProduct.price, 0));
   const unitProductBv = Math.max(0, Math.round(safeNumber(MY_STORE_UPGRADE_PRODUCT_UNIT_BV, 50)));
   const priceDue = Math.round((productGain * unitProductPrice) * 100) / 100;
   const bvGain = Math.max(0, Math.round(productGain * unitProductBv));
@@ -12161,15 +12787,16 @@ function buildMyStoreSelection(
 ) {
   const normalizedAction = normalizeCredentialValue(action);
   const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
-  const baseQuantity = Math.max(1, Math.round(safeNumber(MY_STORE_FEATURED_PRODUCT.quantity, 1)));
+  const featuredProduct = resolveMyStoreFeaturedProduct(currentPackageKey);
+  const baseQuantity = Math.max(1, Math.round(safeNumber(featuredProduct.quantity, 1)));
   const baseSelection = {
     action: 'featured',
-    productKey: safeText(MY_STORE_FEATURED_PRODUCT.productKey || 'metacharge') || 'metacharge',
+    productKey: safeText(featuredProduct.productKey || 'metacharge') || 'metacharge',
     packageKey: '',
-    label: safeText(MY_STORE_FEATURED_PRODUCT.label) || 'MetaCharge\u2122',
-    imageUrl: safeText(MY_STORE_FEATURED_PRODUCT.imageUrl),
-    unitPrice: Math.max(0, safeNumber(MY_STORE_FEATURED_PRODUCT.price, 0)),
-    unitBv: Math.max(0, Math.round(safeNumber(MY_STORE_FEATURED_PRODUCT.bv, 0))),
+    label: safeText(featuredProduct.label) || 'MetaCharge\u2122',
+    imageUrl: safeText(featuredProduct.imageUrl),
+    unitPrice: Math.max(0, safeNumber(featuredProduct.price, 0)),
+    unitBv: Math.max(0, Math.round(safeNumber(featuredProduct.bv, 0))),
     quantity: baseQuantity,
     upgradeProductMode: '',
     upgradeProductKey: '',
@@ -12253,6 +12880,7 @@ function resolveMyStoreSelection(currentPackageKey = '', currentPackageProductKe
     : buildMyStoreSelection('featured', '', normalizedCurrentPackage, currentPackageProductKey);
   const quantityValue = Math.max(1, Math.round(safeNumber(selectionInput.quantity, fallbackSelection.quantity)));
   const quantity = isUpgrade ? 1 : quantityValue;
+  let label = safeText(selectionInput.label || fallbackSelection.label) || fallbackSelection.label;
   let productKey = safeText(selectionInput.productKey || fallbackSelection.productKey) || fallbackSelection.productKey;
   let imageUrl = safeText(selectionInput.imageUrl || fallbackSelection.imageUrl) || fallbackSelection.imageUrl;
   let unitPrice = Math.max(0, safeNumber(selectionInput.unitPrice, fallbackSelection.unitPrice));
@@ -12313,12 +12941,20 @@ function resolveMyStoreSelection(currentPackageKey = '', currentPackageProductKe
     upgradeCarryoverProductKey = carryoverUpgradeProduct.productKey;
     upgradeCarryoverProductLabel = safeText(carryoverUpgradeProduct.label) || 'Upgrade Product';
     upgradeCarryoverProductImageUrl = safeText(carryoverUpgradeProduct.imageUrl);
+  } else {
+    // Keep featured pricing/BV aligned with current paid/preferred buyer rules.
+    const featuredProduct = resolveMyStoreFeaturedProduct(normalizedCurrentPackage);
+    label = safeText(featuredProduct.label) || fallbackSelection.label;
+    productKey = safeText(featuredProduct.productKey || fallbackSelection.productKey) || fallbackSelection.productKey;
+    imageUrl = safeText(featuredProduct.imageUrl || fallbackSelection.imageUrl) || fallbackSelection.imageUrl;
+    unitPrice = Math.max(0, safeNumber(featuredProduct.price, fallbackSelection.unitPrice));
+    unitBv = Math.max(0, Math.round(safeNumber(featuredProduct.bv, fallbackSelection.unitBv)));
   }
   return {
     action: isUpgrade ? 'upgrade' : 'featured',
     productKey,
     packageKey: isUpgrade ? normalizedPackageKey : '',
-    label: safeText(selectionInput.label || fallbackSelection.label) || fallbackSelection.label,
+    label,
     imageUrl,
     unitPrice,
     unitBv,
@@ -13026,7 +13662,8 @@ async function submitMyStoreCheckout() {
       checkoutQuantity += selectedUpgradeQuantity;
     }
   } else {
-    const checkoutProductId = safeText(selection.productKey || MY_STORE_FEATURED_PRODUCT.productKey);
+    const featuredProduct = resolveMyStoreFeaturedProduct(currentPackageKey);
+    const checkoutProductId = safeText(selection.productKey || featuredProduct.productKey);
     const featuredQuantity = Math.max(1, Math.round(safeNumber(checkoutAmounts.quantity, 1)));
     if (checkoutProductId && featuredQuantity > 0) {
       checkoutCartLines.push({
@@ -13416,6 +14053,7 @@ function syncMyStorePanelVisuals() {
   const currentStep = resolveMyStoreStep(state.ui?.myStoreStep);
   const selection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
   const checkoutAmounts = resolveMyStoreCheckoutAmounts(selection, currentPackageKey);
+  const featuredProduct = resolveMyStoreFeaturedProduct(currentPackageKey);
   const upgradeKeys = resolveMyStoreUpgradePackageKeys(currentPackageKey);
   const shareLink = resolveMyStoreShareLink(homeNode);
   const completionSummary = resolveMyStoreCheckoutCompletionSummary();
@@ -13450,11 +14088,11 @@ function syncMyStorePanelVisuals() {
   myStoreLastRenderSignature = renderSignature;
 
   if (myStoreFeaturedLabelElement instanceof HTMLElement) {
-    myStoreFeaturedLabelElement.textContent = MY_STORE_FEATURED_PRODUCT.label;
+    myStoreFeaturedLabelElement.textContent = featuredProduct.label;
   }
   if (myStoreFeaturedImageElement instanceof HTMLImageElement) {
-    myStoreFeaturedImageElement.src = MY_STORE_FEATURED_PRODUCT.imageUrl;
-    myStoreFeaturedImageElement.alt = MY_STORE_FEATURED_PRODUCT.label;
+    myStoreFeaturedImageElement.src = featuredProduct.imageUrl;
+    myStoreFeaturedImageElement.alt = featuredProduct.label;
   }
 
   myStorePanelElement.setAttribute('data-my-store-step', currentStep);
@@ -13466,7 +14104,7 @@ function syncMyStorePanelVisuals() {
   }
 
   if (myStoreReviewImageElement instanceof HTMLImageElement) {
-    myStoreReviewImageElement.src = selection.imageUrl || MY_STORE_FEATURED_PRODUCT.imageUrl;
+    myStoreReviewImageElement.src = selection.imageUrl || featuredProduct.imageUrl;
     myStoreReviewImageElement.alt = checkoutAmounts.isUpgradeSelection
       ? (safeText(selection.upgradeProductLabel) || selection.label)
       : selection.label;
@@ -13546,7 +14184,7 @@ function syncMyStorePanelVisuals() {
             data-my-store-package-key="${packageKey}"
           >
             <div class="tree-next-my-store-product-image-shell is-upgrade">
-              <img src="${MY_STORE_FEATURED_PRODUCT.imageUrl}" alt="${packageLabel}" />
+              <img src="${featuredProduct.imageUrl}" alt="${packageLabel}" />
             </div>
             <p class="tree-next-my-store-upgrade-label">${packageLabel}</p>
           </button>
@@ -13643,9 +14281,19 @@ function setMyStorePanelVisible(isVisible) {
     state.ui.myStoreStep = MY_STORE_STEP_CATALOG;
     state.ui.myStoreCheckoutCompletion = null;
     state.ui.myStoreCheckoutSubmitting = false;
+    const homeNodeId = resolvePreferredGlobalHomeNodeId();
+    const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+    const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+    const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
     if (!state.ui.myStoreSelection || typeof state.ui.myStoreSelection !== 'object') {
-      state.ui.myStoreSelection = buildMyStoreSelection('featured');
+      state.ui.myStoreSelection = buildMyStoreSelection(
+        'featured',
+        '',
+        currentPackageKey,
+        currentPackageProductKey,
+      );
     }
+    void hydrateMyStoreProductCatalog({ force: true });
     setMyStoreCopyFeedback('');
     resetMyStoreCheckoutForm();
     myStoreLastRenderSignature = '';
@@ -13666,6 +14314,7 @@ function initMyStorePanel() {
   syncMyStorePanelVisibility();
   setMyStoreCopyFeedback('');
   setMyStoreCheckoutFeedback('');
+  void hydrateMyStoreProductCatalog();
 
   if (myStoreCloseButtonElement instanceof HTMLButtonElement) {
     myStoreCloseButtonElement.addEventListener('click', () => {
@@ -14696,7 +15345,16 @@ function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
     ?? createdMember?.server_cutoff_baseline_starter_personal_pv,
     0,
   )));
-  const currentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  const explicitCurrentPersonalPvBv = safeNumber(
+    createdMember?.currentPersonalPvBv
+    ?? createdMember?.current_personal_pv_bv
+    ?? createdMember?.monthlyPersonalBv
+    ?? createdMember?.monthly_personal_bv,
+    Number.NaN,
+  );
+  const currentPersonalPvBv = Number.isFinite(explicitCurrentPersonalPvBv)
+    ? Math.max(0, Math.floor(explicitCurrentPersonalPvBv))
+    : starterPersonalPv;
   const isSpilloverPlacement = Boolean(createdMember?.isSpillover)
     || normalizeCredentialValue(createdMember?.placementLeg) === 'spillover';
   const sponsorId = resolveTreeNextEnrollmentSponsorNodeId(createdMember, parentId, isSpilloverPlacement);
@@ -15265,7 +15923,8 @@ function resolveNodeLegVolumes(nodeId) {
 }
 
 function shouldUseCutoffLoopMetricsForNode(nodeIdInput = '', nodeInput = null) {
-  const selectedNodeIdKey = normalizeCredentialValue(nodeIdInput);
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const selectedNodeIdKey = normalizeCredentialValue(safeText(nodeIdInput || node?.id));
   if (!selectedNodeIdKey) {
     return false;
   }
@@ -15281,7 +15940,6 @@ function shouldUseCutoffLoopMetricsForNode(nodeIdInput = '', nodeInput = null) {
     return true;
   }
 
-  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
   const session = state.session && typeof state.session === 'object' ? state.session : null;
   if (!node || !session) {
     return false;
@@ -15296,34 +15954,65 @@ function shouldUseCutoffLoopMetricsForNode(nodeIdInput = '', nodeInput = null) {
 }
 
 function resolveNodeLoopDisplayMetrics(nodeIdInput = '', nodeInput = null, baseVolumeMetricsInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object'
+    ? nodeInput
+    : resolveNodeById(nodeIdInput);
   const baseVolumeMetrics = baseVolumeMetricsInput && typeof baseVolumeMetricsInput === 'object'
     ? baseVolumeMetricsInput
     : resolveNodeLegVolumes(nodeIdInput);
-  const fallbackCycleCount = resolveNodeCycleCount(nodeInput, baseVolumeMetrics);
+  const fallbackCycleCount = resolveNodeCycleCount(node, baseVolumeMetrics);
   const fallbackMetrics = {
     leftVolume: Math.max(0, Math.floor(safeNumber(baseVolumeMetrics?.leftVolume, 0))),
     rightVolume: Math.max(0, Math.floor(safeNumber(baseVolumeMetrics?.rightVolume, 0))),
     cycles: Math.max(0, Math.floor(safeNumber(fallbackCycleCount, 0))),
   };
-  if (!shouldUseCutoffLoopMetricsForNode(nodeIdInput, nodeInput)) {
-    return fallbackMetrics;
-  }
-
-  const cutoffMetrics = accountOverviewRemoteSnapshot?.serverCutoffMetrics;
+  const useAccountOverviewCutoffMetrics = shouldUseCutoffLoopMetricsForNode(nodeIdInput, node);
+  const accountOverviewCutoffMetrics = useAccountOverviewCutoffMetrics
+    ? accountOverviewRemoteSnapshot?.serverCutoffMetrics
+    : null;
+  const nodeCutoffMetrics = resolveNodeServerCutoffMetrics(node);
+  const cutoffMetrics = (
+    accountOverviewCutoffMetrics
+    && typeof accountOverviewCutoffMetrics === 'object'
+  )
+    ? accountOverviewCutoffMetrics
+    : nodeCutoffMetrics;
   if (!cutoffMetrics || typeof cutoffMetrics !== 'object') {
+    if (!useAccountOverviewCutoffMetrics && node) {
+      maybeRefreshNodeServerCutoffMetrics(node);
+    }
     return fallbackMetrics;
   }
 
-  const leftVolume = Math.max(0, Math.floor(safeNumber(
-    cutoffMetrics.currentWeekLeftLegBv,
-    fallbackMetrics.leftVolume,
-  )));
-  const rightVolume = Math.max(0, Math.floor(safeNumber(
-    cutoffMetrics.currentWeekRightLegBv,
-    fallbackMetrics.rightVolume,
-  )));
-  const cycleLowerBv = Math.max(1, Math.floor(safeNumber(cutoffMetrics.cycleLowerBv, 500)));
-  const cycleHigherBv = Math.max(cycleLowerBv, Math.floor(safeNumber(cutoffMetrics.cycleHigherBv, 1000)));
+  const cutoffCurrentLeftRaw = safeNumber(cutoffMetrics.currentWeekLeftLegBv, Number.NaN);
+  const cutoffCurrentRightRaw = safeNumber(cutoffMetrics.currentWeekRightLegBv, Number.NaN);
+  const cutoffCurrentLeftVolume = Number.isFinite(cutoffCurrentLeftRaw)
+    ? Math.max(0, Math.floor(cutoffCurrentLeftRaw))
+    : fallbackMetrics.leftVolume;
+  const cutoffCurrentRightVolume = Number.isFinite(cutoffCurrentRightRaw)
+    ? Math.max(0, Math.floor(cutoffCurrentRightRaw))
+    : fallbackMetrics.rightVolume;
+  const cutoffAppearsStale = (
+    Number.isFinite(cutoffCurrentLeftRaw)
+    && Number.isFinite(cutoffCurrentRightRaw)
+    && cutoffCurrentLeftVolume <= 0
+    && cutoffCurrentRightVolume <= 0
+    && (fallbackMetrics.leftVolume > 0 || fallbackMetrics.rightVolume > 0)
+  );
+  const leftVolume = cutoffAppearsStale
+    ? fallbackMetrics.leftVolume
+    : cutoffCurrentLeftVolume;
+  const rightVolume = cutoffAppearsStale
+    ? fallbackMetrics.rightVolume
+    : cutoffCurrentRightVolume;
+  const cycleLowerBv = Math.max(
+    1,
+    Math.floor(safeNumber(cutoffMetrics.cycleLowerBv, TREE_NEXT_CYCLE_RULE_STRONGER_BV)),
+  );
+  const cycleHigherBv = Math.max(
+    1,
+    Math.floor(safeNumber(cutoffMetrics.cycleHigherBv, TREE_NEXT_CYCLE_RULE_WEAKER_BV)),
+  );
   const lowerLegBv = Math.min(leftVolume, rightVolume);
   const higherLegBv = Math.max(leftVolume, rightVolume);
   const computedCycleCount = Math.floor(Math.min(
@@ -15331,7 +16020,7 @@ function resolveNodeLoopDisplayMetrics(nodeIdInput = '', nodeInput = null, baseV
     higherLegBv / cycleLowerBv,
   ));
   const cycles = Math.max(0, Math.floor(safeNumber(
-    cutoffMetrics.estimatedCycles,
+    cutoffAppearsStale ? Number.NaN : cutoffMetrics.estimatedCycles,
     computedCycleCount,
   )));
 
@@ -15533,6 +16222,833 @@ function resolvePinnedPlaces(limit = 8) {
   favoritesState.placesCacheLimit = safeLimit;
   favoritesState.placesCache = places;
   return places;
+}
+
+function getSideNavDetailsCarouselState() {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  if (!state.ui.sideNavDetailsCarousel || typeof state.ui.sideNavDetailsCarousel !== 'object') {
+    state.ui.sideNavDetailsCarousel = {
+      viewportRect: null,
+      selectedNodeId: '',
+      selectedMonthKey: '',
+      selectedWeekNumber: 0,
+      dragActive: false,
+      dragPointerId: null,
+      dragStartX: 0,
+      dragStartY: 0,
+      dragAxis: '',
+      dragMoved: false,
+      dragDeltaX: 0,
+      tapAction: '',
+      transitionActive: false,
+      transitionStartedAtMs: 0,
+      transitionDurationMs: TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS,
+      transitionDirection: 0,
+      transitionFromMonthKey: '',
+      transitionFromWeekNumber: 0,
+      transitionToMonthKey: '',
+      transitionToWeekNumber: 0,
+    };
+  }
+  const detailsCarousel = state.ui.sideNavDetailsCarousel;
+  if (typeof detailsCarousel.transitionActive !== 'boolean') {
+    detailsCarousel.transitionActive = false;
+  }
+  if (!Number.isFinite(detailsCarousel.transitionStartedAtMs)) {
+    detailsCarousel.transitionStartedAtMs = 0;
+  }
+  detailsCarousel.transitionDurationMs = Math.max(
+    1,
+    safeNumber(detailsCarousel.transitionDurationMs, TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS),
+  );
+  if (!Number.isFinite(detailsCarousel.transitionDirection)) {
+    detailsCarousel.transitionDirection = 0;
+  }
+  detailsCarousel.transitionFromMonthKey = safeText(detailsCarousel.transitionFromMonthKey);
+  detailsCarousel.transitionToMonthKey = safeText(detailsCarousel.transitionToMonthKey);
+  detailsCarousel.transitionFromWeekNumber = Math.max(0, Math.floor(safeNumber(detailsCarousel.transitionFromWeekNumber, 0)));
+  detailsCarousel.transitionToWeekNumber = Math.max(0, Math.floor(safeNumber(detailsCarousel.transitionToWeekNumber, 0)));
+  return detailsCarousel;
+}
+
+function pointInsideDetailsCarousel(pointX, pointY) {
+  if (!state.ui.sideNavOpen) {
+    return false;
+  }
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  return pointInsideRect(pointX, pointY, detailsCarousel.viewportRect);
+}
+
+function resolveDetailsCarouselMonthKey(yearInput, monthIndexInput) {
+  const year = Math.floor(safeNumber(yearInput, new Date().getFullYear()));
+  const monthIndex = clamp(Math.floor(safeNumber(monthIndexInput, new Date().getMonth())), 0, 11);
+  return `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+}
+
+function parseDetailsCarouselMonthKey(monthKeyInput = '') {
+  const monthKey = safeText(monthKeyInput);
+  const match = /^(\d{4})-(\d{2})$/.exec(monthKey);
+  if (match) {
+    const parsedYear = Number.parseInt(match[1], 10);
+    const parsedMonth = Number.parseInt(match[2], 10);
+    if (Number.isFinite(parsedYear) && Number.isFinite(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12) {
+      return {
+        year: parsedYear,
+        monthIndex: parsedMonth - 1,
+        monthKey: resolveDetailsCarouselMonthKey(parsedYear, parsedMonth - 1),
+      };
+    }
+  }
+  const now = new Date();
+  return {
+    year: now.getFullYear(),
+    monthIndex: now.getMonth(),
+    monthKey: resolveDetailsCarouselMonthKey(now.getFullYear(), now.getMonth()),
+  };
+}
+
+function addDetailsCarouselMonths(monthKeyInput = '', deltaMonthsInput = 0) {
+  const deltaMonths = Math.floor(safeNumber(deltaMonthsInput, 0));
+  const parsed = parseDetailsCarouselMonthKey(monthKeyInput);
+  const shiftedDate = new Date(parsed.year, parsed.monthIndex + deltaMonths, 1);
+  return resolveDetailsCarouselMonthKey(shiftedDate.getFullYear(), shiftedDate.getMonth());
+}
+
+function resolveDetailsCarouselMonthCutoffDates(yearInput, monthIndexInput) {
+  const year = Math.floor(safeNumber(yearInput, new Date().getFullYear()));
+  const monthIndex = clamp(Math.floor(safeNumber(monthIndexInput, new Date().getMonth())), 0, 11);
+  const daysInMonth = Math.max(28, new Date(year, monthIndex + 1, 0).getDate());
+  const cutoffDates = [];
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const candidateCutoff = new Date(year, monthIndex, day, SERVER_CUTOFF_HOUR, SERVER_CUTOFF_MINUTE, 0, 0);
+    if (candidateCutoff.getDay() !== SERVER_CUTOFF_WEEKDAY) {
+      continue;
+    }
+    cutoffDates.push(candidateCutoff);
+  }
+  if (!cutoffDates.length) {
+    cutoffDates.push(new Date(year, monthIndex, daysInMonth, SERVER_CUTOFF_HOUR, SERVER_CUTOFF_MINUTE, 0, 0));
+  }
+  return cutoffDates;
+}
+
+function resolveDetailsCarouselMonthWeekCount(yearInput, monthIndexInput) {
+  return Math.max(1, resolveDetailsCarouselMonthCutoffDates(yearInput, monthIndexInput).length);
+}
+
+function resolveDetailsCarouselMonthWeeks(monthKeyInput = '') {
+  const parsed = parseDetailsCarouselMonthKey(monthKeyInput);
+  const cutoffDates = resolveDetailsCarouselMonthCutoffDates(parsed.year, parsed.monthIndex);
+  const weekCount = Math.max(1, cutoffDates.length);
+  const monthStartDate = new Date(parsed.year, parsed.monthIndex, 1, 0, 0, 0, 0);
+  let monthLabel = monthStartDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  try {
+    monthLabel = new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      year: 'numeric',
+    }).format(monthStartDate);
+  } catch {
+    // Keep locale fallback.
+  }
+  const weeks = [];
+  for (let weekNumber = 1; weekNumber <= weekCount; weekNumber += 1) {
+    const cutoffDate = cutoffDates[weekNumber - 1];
+    const startDate = new Date(cutoffDate);
+    startDate.setDate(startDate.getDate() - 6);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(cutoffDate);
+    endDate.setHours(23, 59, 59, 999);
+    weeks.push({
+      weekNumber,
+      label: `Week ${weekNumber}`,
+      startDate,
+      endDate,
+      cutoffAt: new Date(cutoffDate),
+    });
+  }
+  return {
+    year: parsed.year,
+    monthIndex: parsed.monthIndex,
+    monthKey: parsed.monthKey,
+    monthLabel,
+    weeks,
+  };
+}
+
+function resolveDetailsCarouselWeekNumberForCutoffDate(cutoffDateInput = new Date()) {
+  const cutoffDate = cutoffDateInput instanceof Date ? cutoffDateInput : new Date(cutoffDateInput);
+  const monthKey = resolveDetailsCarouselMonthKey(cutoffDate.getFullYear(), cutoffDate.getMonth());
+  const monthData = resolveDetailsCarouselMonthWeeks(monthKey);
+  const matchingWeekIndex = monthData.weeks.findIndex((week) => {
+    return (
+      week?.endDate instanceof Date
+      && week.endDate.getFullYear() === cutoffDate.getFullYear()
+      && week.endDate.getMonth() === cutoffDate.getMonth()
+      && week.endDate.getDate() === cutoffDate.getDate()
+    );
+  });
+  if (matchingWeekIndex >= 0) {
+    return clamp(matchingWeekIndex + 1, 1, Math.max(1, monthData.weeks.length));
+  }
+  return clamp(Math.max(1, monthData.weeks.length), 1, Math.max(1, monthData.weeks.length));
+}
+
+function resolveDetailsCarouselCurrentAnchor(referenceDate = new Date()) {
+  const now = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
+  const activeCutoffDate = resolveNextServerCutoffDate(now);
+  const monthKey = resolveDetailsCarouselMonthKey(activeCutoffDate.getFullYear(), activeCutoffDate.getMonth());
+  const weekNumber = resolveDetailsCarouselWeekNumberForCutoffDate(activeCutoffDate);
+  return {
+    monthKey,
+    weekNumber,
+  };
+}
+
+function clampDetailsCarouselWeekNumber(monthKeyInput = '', weekNumberInput = 1) {
+  const monthData = resolveDetailsCarouselMonthWeeks(monthKeyInput);
+  const weekCount = Math.max(1, monthData.weeks.length);
+  return clamp(Math.floor(safeNumber(weekNumberInput, 1)), 1, weekCount);
+}
+
+function setDetailsCarouselSelection(monthKeyInput = '', weekNumberInput = 1) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const monthData = resolveDetailsCarouselMonthWeeks(monthKeyInput);
+  detailsCarousel.selectedMonthKey = monthData.monthKey;
+  detailsCarousel.selectedWeekNumber = clampDetailsCarouselWeekNumber(monthData.monthKey, weekNumberInput);
+}
+
+function clearDetailsCarouselTransition(detailsCarouselInput = null) {
+  const detailsCarousel = detailsCarouselInput && typeof detailsCarouselInput === 'object'
+    ? detailsCarouselInput
+    : getSideNavDetailsCarouselState();
+  detailsCarousel.transitionActive = false;
+  detailsCarousel.transitionStartedAtMs = 0;
+  detailsCarousel.transitionDurationMs = TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS;
+  detailsCarousel.transitionDirection = 0;
+  detailsCarousel.transitionFromMonthKey = '';
+  detailsCarousel.transitionFromWeekNumber = 0;
+  detailsCarousel.transitionToMonthKey = '';
+  detailsCarousel.transitionToWeekNumber = 0;
+}
+
+function resolveDetailsCarouselSelectionAnchor(referenceDate = new Date()) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const currentAnchor = resolveDetailsCarouselCurrentAnchor(referenceDate);
+  const monthKey = safeText(detailsCarousel.selectedMonthKey) || currentAnchor.monthKey;
+  const weekNumber = clampDetailsCarouselWeekNumber(monthKey, detailsCarousel.selectedWeekNumber || currentAnchor.weekNumber);
+  if (detailsCarousel.selectedMonthKey !== monthKey || detailsCarousel.selectedWeekNumber !== weekNumber) {
+    detailsCarousel.selectedMonthKey = monthKey;
+    detailsCarousel.selectedWeekNumber = weekNumber;
+  }
+  return {
+    monthKey,
+    weekNumber,
+  };
+}
+
+function resolveDetailsCarouselAdjacentWeek(monthKeyInput = '', weekNumberInput = 1, directionInput = 1) {
+  const direction = safeNumber(directionInput, 0) >= 0 ? 1 : -1;
+  const monthData = resolveDetailsCarouselMonthWeeks(monthKeyInput);
+  const weekNumber = clampDetailsCarouselWeekNumber(monthData.monthKey, weekNumberInput);
+  if (direction >= 0) {
+    if (weekNumber < monthData.weeks.length) {
+      return {
+        monthKey: monthData.monthKey,
+        weekNumber: weekNumber + 1,
+      };
+    }
+    const nextMonthKey = addDetailsCarouselMonths(monthData.monthKey, 1);
+    return {
+      monthKey: nextMonthKey,
+      weekNumber: 1,
+    };
+  }
+  if (weekNumber > 1) {
+    return {
+      monthKey: monthData.monthKey,
+      weekNumber: weekNumber - 1,
+    };
+  }
+  const previousMonthKey = addDetailsCarouselMonths(monthData.monthKey, -1);
+  const previousMonthData = resolveDetailsCarouselMonthWeeks(previousMonthKey);
+  return {
+    monthKey: previousMonthData.monthKey,
+    weekNumber: Math.max(1, previousMonthData.weeks.length),
+  };
+}
+
+function startDetailsCarouselTransition(targetMonthKeyInput = '', targetWeekNumberInput = 1, options = {}) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const referenceDate = options?.referenceDate || new Date();
+  const currentSelection = resolveDetailsCarouselSelectionAnchor(referenceDate);
+  const targetMonthData = resolveDetailsCarouselMonthWeeks(targetMonthKeyInput || currentSelection.monthKey);
+  const targetMonthKey = targetMonthData.monthKey;
+  const targetWeekNumber = clampDetailsCarouselWeekNumber(targetMonthKey, targetWeekNumberInput);
+  if (currentSelection.monthKey === targetMonthKey && currentSelection.weekNumber === targetWeekNumber) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    setDetailsCarouselSelection(targetMonthKey, targetWeekNumber);
+    return false;
+  }
+  const weekDistance = resolveDetailsCarouselWeekDistance(
+    currentSelection.monthKey,
+    currentSelection.weekNumber,
+    targetMonthKey,
+    targetWeekNumber,
+  );
+  const directionHint = safeNumber(options?.directionHint, Number.NaN);
+  const direction = Number.isFinite(directionHint) && directionHint !== 0
+    ? (directionHint > 0 ? 1 : -1)
+    : (weekDistance >= 0 ? 1 : -1);
+  detailsCarousel.transitionActive = true;
+  detailsCarousel.transitionStartedAtMs = safeNumber(options?.startedAtMs, getNowMs());
+  detailsCarousel.transitionDurationMs = Math.max(
+    100,
+    Math.floor(safeNumber(options?.durationMs, TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS)),
+  );
+  detailsCarousel.transitionDirection = direction;
+  detailsCarousel.transitionFromMonthKey = currentSelection.monthKey;
+  detailsCarousel.transitionFromWeekNumber = currentSelection.weekNumber;
+  detailsCarousel.transitionToMonthKey = targetMonthKey;
+  detailsCarousel.transitionToWeekNumber = targetWeekNumber;
+  setDetailsCarouselSelection(targetMonthKey, targetWeekNumber);
+  return true;
+}
+
+function resolveDetailsCarouselTransitionFrame(referenceMsInput = getNowMs()) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  if (!detailsCarousel.transitionActive) {
+    return null;
+  }
+  const fromMonthKey = safeText(detailsCarousel.transitionFromMonthKey);
+  const toMonthKey = safeText(detailsCarousel.transitionToMonthKey);
+  const fromWeekNumber = Math.max(1, Math.floor(safeNumber(detailsCarousel.transitionFromWeekNumber, 1)));
+  const toWeekNumber = Math.max(1, Math.floor(safeNumber(detailsCarousel.transitionToWeekNumber, 1)));
+  if (!fromMonthKey || !toMonthKey) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    return null;
+  }
+  if (fromMonthKey === toMonthKey && fromWeekNumber === toWeekNumber) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    return null;
+  }
+  const durationMs = Math.max(1, Math.floor(safeNumber(
+    detailsCarousel.transitionDurationMs,
+    TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS,
+  )));
+  const startedAtMs = safeNumber(detailsCarousel.transitionStartedAtMs, getNowMs());
+  const nowMs = safeNumber(referenceMsInput, getNowMs());
+  const elapsedMs = Math.max(0, nowMs - startedAtMs);
+  const progress = clamp(elapsedMs / durationMs, 0, 1);
+  if (progress >= 1) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    return null;
+  }
+  const direction = safeNumber(detailsCarousel.transitionDirection, 0) >= 0 ? 1 : -1;
+  return {
+    progress,
+    easedProgress: easeOutCubic(progress),
+    direction,
+    fromMonthKey,
+    fromWeekNumber,
+    toMonthKey,
+    toWeekNumber,
+  };
+}
+
+function selectDetailsCarouselWeek(monthKeyInput = '', weekNumberInput = 1, options = {}) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const animate = options?.animate !== false;
+  const referenceDate = options?.referenceDate || new Date();
+  const currentSelection = resolveDetailsCarouselSelectionAnchor(referenceDate);
+  const monthData = resolveDetailsCarouselMonthWeeks(monthKeyInput || currentSelection.monthKey);
+  const targetMonthKey = monthData.monthKey;
+  const targetWeekNumber = clampDetailsCarouselWeekNumber(targetMonthKey, weekNumberInput);
+  if (!animate) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    setDetailsCarouselSelection(targetMonthKey, targetWeekNumber);
+    return;
+  }
+  const weekDistance = resolveDetailsCarouselWeekDistance(
+    currentSelection.monthKey,
+    currentSelection.weekNumber,
+    targetMonthKey,
+    targetWeekNumber,
+  );
+  const directionHint = weekDistance === 0 ? 0 : (weekDistance > 0 ? 1 : -1);
+  startDetailsCarouselTransition(targetMonthKey, targetWeekNumber, {
+    directionHint,
+    referenceDate,
+    durationMs: options?.durationMs,
+  });
+}
+
+function stepDetailsCarouselWeek(stepInput = 1, options = {}) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const animate = options?.animate !== false;
+  const step = Math.floor(safeNumber(stepInput, 0));
+  if (!step) {
+    return;
+  }
+  const referenceDate = options?.referenceDate || new Date();
+  const currentSelection = resolveDetailsCarouselSelectionAnchor(referenceDate);
+  let monthKey = currentSelection.monthKey;
+  let weekNumber = currentSelection.weekNumber;
+  const direction = step > 0 ? 1 : -1;
+  for (let index = 0; index < Math.abs(step); index += 1) {
+    const nextSelection = resolveDetailsCarouselAdjacentWeek(monthKey, weekNumber, direction);
+    monthKey = nextSelection.monthKey;
+    weekNumber = nextSelection.weekNumber;
+  }
+  if (!animate) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    setDetailsCarouselSelection(monthKey, weekNumber);
+    return;
+  }
+  startDetailsCarouselTransition(monthKey, weekNumber, {
+    directionHint: direction,
+    referenceDate,
+    durationMs: options?.durationMs,
+  });
+}
+
+function stepDetailsCarouselMonth(stepInput = 1, options = {}) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const animate = options?.animate !== false;
+  const step = Math.floor(safeNumber(stepInput, 0));
+  if (!step) {
+    return;
+  }
+  const referenceDate = options?.referenceDate || new Date();
+  const currentSelection = resolveDetailsCarouselSelectionAnchor(referenceDate);
+  const currentMonthKey = currentSelection.monthKey;
+  const shiftedMonthKey = addDetailsCarouselMonths(currentMonthKey, step);
+  const desiredWeekNumber = currentSelection.weekNumber;
+  if (!animate) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    setDetailsCarouselSelection(shiftedMonthKey, desiredWeekNumber);
+    return;
+  }
+  startDetailsCarouselTransition(shiftedMonthKey, desiredWeekNumber, {
+    directionHint: step > 0 ? 1 : -1,
+    referenceDate,
+    durationMs: options?.durationMs,
+  });
+}
+
+function resolveDetailsCarouselWeekDistance(fromMonthKeyInput, fromWeekNumberInput, toMonthKeyInput, toWeekNumberInput) {
+  const fromMonthData = resolveDetailsCarouselMonthWeeks(fromMonthKeyInput);
+  const toMonthData = resolveDetailsCarouselMonthWeeks(toMonthKeyInput);
+  const fromWeekNumber = clampDetailsCarouselWeekNumber(fromMonthData.monthKey, fromWeekNumberInput);
+  const toWeekNumber = clampDetailsCarouselWeekNumber(toMonthData.monthKey, toWeekNumberInput);
+  if (fromMonthData.monthKey === toMonthData.monthKey && fromWeekNumber === toWeekNumber) {
+    return 0;
+  }
+  const fromSerial = (fromMonthData.year * 12) + fromMonthData.monthIndex;
+  const toSerial = (toMonthData.year * 12) + toMonthData.monthIndex;
+  const direction = (toSerial > fromSerial || (toSerial === fromSerial && toWeekNumber > fromWeekNumber))
+    ? 1
+    : -1;
+  let cursorMonthKey = fromMonthData.monthKey;
+  let cursorWeekNumber = fromWeekNumber;
+  let stepCount = 0;
+  const maxSteps = 240;
+  while (stepCount < maxSteps) {
+    const nextSelection = resolveDetailsCarouselAdjacentWeek(cursorMonthKey, cursorWeekNumber, direction);
+    cursorMonthKey = nextSelection.monthKey;
+    cursorWeekNumber = nextSelection.weekNumber;
+    stepCount += 1;
+    if (cursorMonthKey === toMonthData.monthKey && cursorWeekNumber === toWeekNumber) {
+      return direction * stepCount;
+    }
+  }
+  return 0;
+}
+
+function formatDetailsCarouselDateRange(startDateInput, endDateInput) {
+  const startDate = startDateInput instanceof Date ? startDateInput : new Date(startDateInput);
+  const endDate = endDateInput instanceof Date ? endDateInput : new Date(endDateInput);
+  let startLabel = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  let endLabel = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+    startLabel = formatter.format(startDate);
+    endLabel = formatter.format(endDate);
+  } catch {
+    // Keep locale fallback.
+  }
+  return `${startLabel} - ${endLabel}`;
+}
+
+function resolveDetailsCarouselCutoffStatus(startDateInput, endDateInput, nowInput = new Date()) {
+  const startDate = startDateInput instanceof Date ? startDateInput : new Date(startDateInput);
+  const endDate = endDateInput instanceof Date ? endDateInput : new Date(endDateInput);
+  const now = nowInput instanceof Date ? nowInput : new Date(nowInput);
+  if (now >= startDate && now <= endDate) {
+    return {
+      key: 'current',
+      label: 'Current Week',
+      fill: '#E8F7ED',
+      text: '#1D7A36',
+    };
+  }
+  if (now > endDate) {
+    return {
+      key: 'closed',
+      label: 'Closed Cutoff',
+      fill: '#ECEFF5',
+      text: '#576176',
+    };
+  }
+  return {
+    key: 'pending',
+    label: 'Pending',
+    fill: '#FFF4E4',
+    text: '#9A6418',
+  };
+}
+
+function resolveNodeCutoffMetricsForDetails(nodeIdInput = '', nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object'
+    ? nodeInput
+    : resolveNodeById(nodeIdInput);
+  const useAccountOverviewCutoffMetrics = shouldUseCutoffLoopMetricsForNode(nodeIdInput, node);
+  const accountOverviewCutoffMetrics = useAccountOverviewCutoffMetrics
+    ? accountOverviewRemoteSnapshot?.serverCutoffMetrics
+    : null;
+  const nodeCutoffMetrics = resolveNodeServerCutoffMetrics(node);
+  const cutoffMetrics = (
+    accountOverviewCutoffMetrics
+    && typeof accountOverviewCutoffMetrics === 'object'
+  )
+    ? accountOverviewCutoffMetrics
+    : nodeCutoffMetrics;
+  if (!cutoffMetrics || typeof cutoffMetrics !== 'object') {
+    if (!useAccountOverviewCutoffMetrics && node) {
+      maybeRefreshNodeServerCutoffMetrics(node);
+    }
+    return null;
+  }
+  return cutoffMetrics;
+}
+
+function resolveDetailsCarouselCycleComputation(availableLeftInput = 0, availableRightInput = 0, options = {}) {
+  const availableLeftBV = Math.max(0, Math.floor(safeNumber(availableLeftInput, 0)));
+  const availableRightBV = Math.max(0, Math.floor(safeNumber(availableRightInput, 0)));
+  const strongLegCycleBv = Math.max(
+    1,
+    Math.floor(safeNumber(options?.strongLegCycleBv, TREE_NEXT_DETAILS_FALLBACK_STRONG_LEG_BV)),
+  );
+  const weakLegCycleBv = Math.max(
+    1,
+    Math.floor(safeNumber(options?.weakLegCycleBv, TREE_NEXT_DETAILS_FALLBACK_WEAK_LEG_BV)),
+  );
+  const strongLegKey = availableLeftBV >= availableRightBV ? 'left' : 'right';
+  const weakLegKey = strongLegKey === 'left' ? 'right' : 'left';
+  const strongLegVolume = strongLegKey === 'left' ? availableLeftBV : availableRightBV;
+  const weakLegVolume = weakLegKey === 'left' ? availableLeftBV : availableRightBV;
+  const cycles = Math.max(0, Math.floor(Math.min(
+    strongLegVolume / strongLegCycleBv,
+    weakLegVolume / weakLegCycleBv,
+  )));
+  const consumedStrongLegBV = Math.min(strongLegVolume, cycles * strongLegCycleBv);
+  const consumedWeakLegBV = Math.min(weakLegVolume, cycles * weakLegCycleBv);
+  const consumedLeftBV = strongLegKey === 'left' ? consumedStrongLegBV : consumedWeakLegBV;
+  const consumedRightBV = strongLegKey === 'right' ? consumedStrongLegBV : consumedWeakLegBV;
+  const carryForwardLeftBV = Math.max(0, availableLeftBV - consumedLeftBV);
+  const carryForwardRightBV = Math.max(0, availableRightBV - consumedRightBV);
+  return {
+    strongLegKey,
+    cycles,
+    consumedLeftBV,
+    consumedRightBV,
+    carryForwardLeftBV,
+    carryForwardRightBV,
+  };
+}
+
+function resolveDetailsCarouselNodeJoinedAtMs(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return Number.NaN;
+  }
+  const numericAddedAt = safeNumber(node?.addedAt ?? node?.added_at, Number.NaN);
+  if (Number.isFinite(numericAddedAt) && numericAddedAt > 0) {
+    return Math.max(0, Math.floor(numericAddedAt));
+  }
+  const candidates = [
+    node?.createdAt,
+    node?.created_at,
+    node?.joinedAt,
+    node?.joined_at,
+    node?.enrolledAt,
+    node?.enrolled_at,
+    node?.registeredAt,
+    node?.registered_at,
+  ];
+  for (const candidate of candidates) {
+    const parsed = Date.parse(safeText(candidate));
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return Number.NaN;
+}
+
+function resolveDetailsCarouselProjectedWeekMetrics(options = {}) {
+  const stepDistance = Math.floor(safeNumber(options?.stepDistance, 0));
+  const activeStatus = options?.activeStatus !== false;
+  const baseAvailableLeftBV = Math.max(0, Math.floor(safeNumber(options?.baseAvailableLeftBV, 0)));
+  const baseAvailableRightBV = Math.max(0, Math.floor(safeNumber(options?.baseAvailableRightBV, 0)));
+  let availableLeftBV = baseAvailableLeftBV;
+  let availableRightBV = baseAvailableRightBV;
+  if (stepDistance > 0) {
+    for (let stepIndex = 0; stepIndex < stepDistance; stepIndex += 1) {
+      const priorComputation = resolveDetailsCarouselCycleComputation(availableLeftBV, availableRightBV, {
+        strongLegCycleBv: options?.strongLegCycleBv,
+        weakLegCycleBv: options?.weakLegCycleBv,
+      });
+      if (!activeStatus) {
+        availableLeftBV = 0;
+        availableRightBV = 0;
+        continue;
+      }
+      availableLeftBV = priorComputation.carryForwardLeftBV;
+      availableRightBV = priorComputation.carryForwardRightBV;
+    }
+  }
+  const liveComputation = resolveDetailsCarouselCycleComputation(availableLeftBV, availableRightBV, {
+    strongLegCycleBv: options?.strongLegCycleBv,
+    weakLegCycleBv: options?.weakLegCycleBv,
+  });
+  if (!activeStatus) {
+    return {
+      availableLeftBV,
+      availableRightBV,
+      cycles: 0,
+      strongLegKey: liveComputation.strongLegKey,
+      consumedLeftBV: 0,
+      consumedRightBV: 0,
+      carryForwardLeftBV: 0,
+      carryForwardRightBV: 0,
+      projectionMode: stepDistance === 0 ? 'live' : (stepDistance > 0 ? 'projected-future' : 'estimated-history'),
+    };
+  }
+  return {
+    availableLeftBV,
+    availableRightBV,
+    cycles: liveComputation.cycles,
+    strongLegKey: liveComputation.strongLegKey,
+    consumedLeftBV: liveComputation.consumedLeftBV,
+    consumedRightBV: liveComputation.consumedRightBV,
+    carryForwardLeftBV: liveComputation.carryForwardLeftBV,
+    carryForwardRightBV: liveComputation.carryForwardRightBV,
+    projectionMode: stepDistance === 0 ? 'live' : (stepDistance > 0 ? 'projected-future' : 'estimated-history'),
+  };
+}
+
+function resolveDetailsCarouselSnapshot(options = {}) {
+  const nodeId = safeText(options?.nodeId);
+  const node = options?.node && typeof options.node === 'object'
+    ? options.node
+    : resolveNodeById(nodeId);
+  const volumeMetrics = options?.volumeMetrics && typeof options.volumeMetrics === 'object'
+    ? options.volumeMetrics
+    : resolveNodeLegVolumes(nodeId);
+  const loopDisplayMetrics = options?.loopDisplayMetrics && typeof options.loopDisplayMetrics === 'object'
+    ? options.loopDisplayMetrics
+    : resolveNodeLoopDisplayMetrics(nodeId, node, volumeMetrics);
+  const cutoffMetrics = options?.cutoffMetrics && typeof options.cutoffMetrics === 'object'
+    ? options.cutoffMetrics
+    : resolveNodeCutoffMetricsForDetails(nodeId, node);
+  const activeStatus = resolveNodeActivityState(node);
+  const cycleLowerBv = Math.max(
+    1,
+    Math.floor(safeNumber(
+      cutoffMetrics?.cycleLowerBv,
+      TREE_NEXT_DETAILS_FALLBACK_STRONG_LEG_BV,
+    )),
+  );
+  const cycleHigherBv = Math.max(
+    1,
+    Math.floor(safeNumber(
+      cutoffMetrics?.cycleHigherBv,
+      TREE_NEXT_DETAILS_FALLBACK_WEAK_LEG_BV,
+    )),
+  );
+  const subtreeLeftBV = Math.max(0, Math.floor(safeNumber(volumeMetrics?.leftVolume, 0)));
+  const subtreeRightBV = Math.max(0, Math.floor(safeNumber(volumeMetrics?.rightVolume, 0)));
+  const loopLeftBV = Math.max(0, Math.floor(safeNumber(
+    loopDisplayMetrics?.leftVolume,
+    subtreeLeftBV,
+  )));
+  const loopRightBV = Math.max(0, Math.floor(safeNumber(
+    loopDisplayMetrics?.rightVolume,
+    subtreeRightBV,
+  )));
+  const fallbackLeftBV = Math.max(loopLeftBV, subtreeLeftBV);
+  const fallbackRightBV = Math.max(loopRightBV, subtreeRightBV);
+  const cutoffTotalLeftRaw = safeNumber(cutoffMetrics?.totalLeftLegBv, Number.NaN);
+  const cutoffTotalRightRaw = safeNumber(cutoffMetrics?.totalRightLegBv, Number.NaN);
+  const cutoffCurrentLeftRaw = safeNumber(cutoffMetrics?.currentWeekLeftLegBv, Number.NaN);
+  const cutoffCurrentRightRaw = safeNumber(cutoffMetrics?.currentWeekRightLegBv, Number.NaN);
+  const cutoffTotalLeftBV = Number.isFinite(cutoffTotalLeftRaw)
+    ? Math.max(0, Math.floor(cutoffTotalLeftRaw))
+    : Number.NaN;
+  const cutoffTotalRightBV = Number.isFinite(cutoffTotalRightRaw)
+    ? Math.max(0, Math.floor(cutoffTotalRightRaw))
+    : Number.NaN;
+  const cutoffCurrentLeftBV = Number.isFinite(cutoffCurrentLeftRaw)
+    ? Math.max(0, Math.floor(cutoffCurrentLeftRaw))
+    : Number.NaN;
+  const cutoffCurrentRightBV = Number.isFinite(cutoffCurrentRightRaw)
+    ? Math.max(0, Math.floor(cutoffCurrentRightRaw))
+    : Number.NaN;
+  const cutoffAppearsStale = (
+    Number.isFinite(cutoffCurrentLeftBV)
+    && Number.isFinite(cutoffCurrentRightBV)
+    && cutoffCurrentLeftBV <= 0
+    && cutoffCurrentRightBV <= 0
+    && (fallbackLeftBV > 0 || fallbackRightBV > 0)
+  );
+  const sourceAvailableLeftBV = cutoffAppearsStale
+    ? fallbackLeftBV
+    : (Number.isFinite(cutoffCurrentLeftBV) ? cutoffCurrentLeftBV : fallbackLeftBV);
+  const sourceAvailableRightBV = cutoffAppearsStale
+    ? fallbackRightBV
+    : (Number.isFinite(cutoffCurrentRightBV) ? cutoffCurrentRightBV : fallbackRightBV);
+  const totalLeftBV = Math.max(
+    0,
+    Number.isFinite(cutoffTotalLeftBV) ? cutoffTotalLeftBV : 0,
+    subtreeLeftBV,
+    fallbackLeftBV,
+    sourceAvailableLeftBV,
+  );
+  const totalRightBV = Math.max(
+    0,
+    Number.isFinite(cutoffTotalRightBV) ? cutoffTotalRightBV : 0,
+    subtreeRightBV,
+    fallbackRightBV,
+    sourceAvailableRightBV,
+  );
+  const baseAvailableLeftBV = clamp(sourceAvailableLeftBV, 0, totalLeftBV);
+  const baseAvailableRightBV = clamp(sourceAvailableRightBV, 0, totalRightBV);
+  const currentAnchor = resolveDetailsCarouselCurrentAnchor(options?.referenceDate || new Date());
+  const selectedMonthKey = safeText(options?.selectedMonthKey) || currentAnchor.monthKey;
+  const selectedWeekNumber = clampDetailsCarouselWeekNumber(
+    selectedMonthKey,
+    options?.selectedWeekNumber || currentAnchor.weekNumber,
+  );
+  const weekDistance = resolveDetailsCarouselWeekDistance(
+    currentAnchor.monthKey,
+    currentAnchor.weekNumber,
+    selectedMonthKey,
+    selectedWeekNumber,
+  );
+  const projectedWeekMetrics = resolveDetailsCarouselProjectedWeekMetrics({
+    stepDistance: weekDistance,
+    activeStatus,
+    baseAvailableLeftBV,
+    baseAvailableRightBV,
+    strongLegCycleBv: cycleLowerBv,
+    weakLegCycleBv: cycleHigherBv,
+  });
+  const monthData = resolveDetailsCarouselMonthWeeks(selectedMonthKey);
+  const selectedWeek = monthData.weeks[Math.max(0, selectedWeekNumber - 1)] || monthData.weeks[0];
+  const dateRangeLabel = formatDetailsCarouselDateRange(selectedWeek.startDate, selectedWeek.endDate);
+  const nodeJoinedAtMs = resolveDetailsCarouselNodeJoinedAtMs(node);
+  const selectedWeekEndMs = selectedWeek?.endDate instanceof Date
+    ? selectedWeek.endDate.getTime()
+    : Number.NaN;
+  const preJoinWeek = (
+    Number.isFinite(nodeJoinedAtMs)
+    && Number.isFinite(selectedWeekEndMs)
+    && selectedWeekEndMs < nodeJoinedAtMs
+  );
+  const cutoffStatus = resolveDetailsCarouselCutoffStatus(
+    selectedWeek.startDate,
+    selectedWeek.endDate,
+    options?.referenceDate || new Date(),
+  );
+  const effectiveWeekMetrics = preJoinWeek
+    ? {
+      availableLeftBV: 0,
+      availableRightBV: 0,
+      cycles: 0,
+      strongLegKey: 'left',
+      consumedLeftBV: 0,
+      consumedRightBV: 0,
+      carryForwardLeftBV: 0,
+      carryForwardRightBV: 0,
+      projectionMode: 'pre-join',
+    }
+    : projectedWeekMetrics;
+  const effectiveTotalLeftBV = preJoinWeek ? 0 : totalLeftBV;
+  const effectiveTotalRightBV = preJoinWeek ? 0 : totalRightBV;
+  const availableLeftBV = clamp(effectiveWeekMetrics.availableLeftBV, 0, effectiveTotalLeftBV);
+  const availableRightBV = clamp(effectiveWeekMetrics.availableRightBV, 0, effectiveTotalRightBV);
+  const consumedLeftBV = Math.max(0, effectiveTotalLeftBV - availableLeftBV);
+  const consumedRightBV = Math.max(0, effectiveTotalRightBV - availableRightBV);
+  const teamGeneratedBV = preJoinWeek
+    ? 0
+    : Math.max(0, Math.floor(safeNumber(volumeMetrics.totalVolume, totalLeftBV + totalRightBV)));
+  const personalBV = preJoinWeek
+    ? 0
+    : Math.max(0, Math.floor(safeNumber(
+      cutoffMetrics?.currentWeekPersonalPv,
+      volumeMetrics.personalVolume,
+    )));
+  const strongLegLabel = effectiveWeekMetrics.strongLegKey === 'right'
+    ? 'Right'
+    : 'Left';
+  return {
+    monthKey: monthData.monthKey,
+    monthLabel: monthData.monthLabel,
+    weekNumber: selectedWeekNumber,
+    weekLabel: `Week ${selectedWeekNumber}`,
+    weeks: monthData.weeks,
+    dateRangeLabel,
+    cutoffStatus,
+    totalLeftBV: effectiveTotalLeftBV,
+    totalRightBV: effectiveTotalRightBV,
+    consumedLeftBV,
+    consumedRightBV,
+    availableLeftBV,
+    availableRightBV,
+    cycles: effectiveWeekMetrics.cycles,
+    strongLegLabel,
+    cycleConsumedLeftBV: effectiveWeekMetrics.consumedLeftBV,
+    cycleConsumedRightBV: effectiveWeekMetrics.consumedRightBV,
+    carryForwardLeftBV: effectiveWeekMetrics.carryForwardLeftBV,
+    carryForwardRightBV: effectiveWeekMetrics.carryForwardRightBV,
+    carryForwardStatus: preJoinWeek ? 'preserved' : (activeStatus ? 'preserved' : 'flushed'),
+    personalBV,
+    activeStatus: preJoinWeek ? false : activeStatus,
+    teamGeneratedBV,
+    projectionMode: effectiveWeekMetrics.projectionMode,
+  };
+}
+
+function syncDetailsCarouselSelectionForNode(nodeIdInput = '', referenceDate = new Date()) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const nodeId = safeText(nodeIdInput);
+  const currentAnchor = resolveDetailsCarouselCurrentAnchor(referenceDate);
+  if (detailsCarousel.selectedNodeId !== nodeId) {
+    detailsCarousel.selectedNodeId = nodeId;
+    detailsCarousel.selectedMonthKey = currentAnchor.monthKey;
+    detailsCarousel.selectedWeekNumber = currentAnchor.weekNumber;
+    detailsCarousel.dragDeltaX = 0;
+    clearDetailsCarouselTransition(detailsCarousel);
+  }
+  if (!detailsCarousel.selectedMonthKey) {
+    detailsCarousel.selectedMonthKey = currentAnchor.monthKey;
+  }
+  detailsCarousel.selectedWeekNumber = clampDetailsCarouselWeekNumber(
+    detailsCarousel.selectedMonthKey,
+    detailsCarousel.selectedWeekNumber || currentAnchor.weekNumber,
+  );
+  return currentAnchor;
 }
 
 function formatCutoffHourMinute(hour24, minute) {
@@ -18107,7 +19623,7 @@ function resolveTreeNextLiveMemberPersonalVolumeSnapshot(member = {}) {
     ?? member?.current_week_personal_pv,
     Number.NaN,
   );
-  const derivedCurrentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  const derivedCurrentPersonalPvBv = Math.max(0, starterPersonalPv);
   const currentPersonalPvBv = Number.isFinite(explicitCurrentPersonalPvBv)
     ? Math.max(0, Math.floor(explicitCurrentPersonalPvBv))
     : derivedCurrentPersonalPvBv;
@@ -18238,7 +19754,20 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     ?? source?.server_cutoff_baseline_starter_personal_pv,
     0,
   )));
-  const currentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  const explicitCurrentPersonalPvBv = safeNumber(
+    source?.currentPersonalPvBv
+    ?? source?.current_personal_pv_bv
+    ?? source?.monthlyPersonalBv
+    ?? source?.monthly_personal_bv
+    ?? session?.currentPersonalPvBv
+    ?? session?.current_personal_pv_bv
+    ?? session?.monthlyPersonalBv
+    ?? session?.monthly_personal_bv,
+    Number.NaN,
+  );
+  const currentPersonalPvBv = Number.isFinite(explicitCurrentPersonalPvBv)
+    ? Math.max(0, Math.floor(explicitCurrentPersonalPvBv))
+    : starterPersonalPv;
   const sourceAvatarPalette = resolveAvatarPaletteFromRecord(source)
     || resolveAvatarPaletteFromRecord(session);
   const sourceAvatarColorTriplet = resolveAvatarColorTripletFromRecord(source)
@@ -18270,6 +19799,26 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     || session?.profile_image_url,
   );
   const sourceAvatarSeed = resolveNodeAvatarSeed(source, resolveSessionAvatarSeed(session));
+  const resolvedCreatedAt = safeText(
+    source?.createdAt
+    || source?.created_at
+    || source?.joinedAt
+    || source?.joined_at
+    || source?.enrolledAt
+    || source?.enrolled_at
+    || session?.createdAt
+    || session?.created_at
+    || session?.joinedAt
+    || session?.joined_at
+    || session?.registeredAt
+    || session?.registered_at,
+  );
+  const resolvedUpdatedAt = safeText(
+    source?.updatedAt
+    || source?.updated_at
+    || session?.updatedAt
+    || session?.updated_at,
+  );
 
   return {
     id: 'root',
@@ -18329,6 +19878,10 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     avatarColorRgb: sourceAvatarColorTriplet ? [...sourceAvatarColorTriplet] : null,
     avatarPalette: sourceAvatarPalette,
     avatarUrl: sourceAvatarPhotoUrl,
+    createdAt: resolvedCreatedAt,
+    joinedAt: resolvedCreatedAt,
+    enrolledAt: resolvedCreatedAt,
+    updatedAt: resolvedUpdatedAt,
   };
 }
 
@@ -20197,8 +21750,12 @@ function maybeBeginMobileSideNavContentScroll(pointerId, pointerX, pointerY, poi
     return false;
   }
   const ignoreFavoritesRegion = options?.ignoreFavoritesRegion === true;
+  const ignoreDetailsRegion = options?.ignoreDetailsRegion === true;
   const ignoreButtonGuard = options?.ignoreButtonGuard === true;
   if (!ignoreFavoritesRegion && pointInsideFavoritesCarousel(pointerX, pointerY)) {
+    return false;
+  }
+  if (!ignoreDetailsRegion && pointInsideDetailsCarousel(pointerX, pointerY)) {
     return false;
   }
   if (pointInsideRect(pointerX, pointerY, resolveSideNavSearchInputInteractiveRect())) {
@@ -20432,6 +21989,129 @@ function resolveFavoritesCarouselReleaseAction(pointerId) {
   }
   const action = favorites.dragMoved ? '' : safeText(favorites.tapAction);
   stopFavoritesCarouselDrag(pointerId);
+  return action;
+}
+
+function beginDetailsCarouselDrag(pointerId, pointerX, pointerY = 0, tapAction = '') {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  detailsCarousel.dragActive = true;
+  detailsCarousel.dragPointerId = pointerId;
+  detailsCarousel.dragStartX = safeNumber(pointerX, 0);
+  detailsCarousel.dragStartY = safeNumber(pointerY, 0);
+  detailsCarousel.dragAxis = 'pending';
+  detailsCarousel.dragMoved = false;
+  detailsCarousel.dragDeltaX = 0;
+  detailsCarousel.tapAction = safeText(tapAction);
+}
+
+function updateDetailsCarouselDrag(pointerId, pointerX, pointerY = 0, pointerType = 'mouse') {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  if (!detailsCarousel.dragActive || pointerId !== detailsCarousel.dragPointerId) {
+    return false;
+  }
+  const currentX = safeNumber(pointerX, safeNumber(detailsCarousel.dragStartX, 0));
+  const currentY = safeNumber(pointerY, safeNumber(detailsCarousel.dragStartY, 0));
+  const deltaX = currentX - safeNumber(detailsCarousel.dragStartX, 0);
+  const deltaY = currentY - safeNumber(detailsCarousel.dragStartY, 0);
+  const absDeltaX = Math.abs(deltaX);
+  const absDeltaY = Math.abs(deltaY);
+  const currentAxis = safeText(detailsCarousel.dragAxis || 'pending').toLowerCase();
+
+  if (currentAxis !== 'horizontal') {
+    if (
+      absDeltaX < TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaY < TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_THRESHOLD_PX
+    ) {
+      return true;
+    }
+    const horizontalIntent = (
+      absDeltaX >= TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaX > (absDeltaY + TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_BIAS_PX)
+    );
+    const verticalIntent = (
+      absDeltaY >= TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaY > (absDeltaX + TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_BIAS_PX)
+    );
+    if (horizontalIntent) {
+      detailsCarousel.dragAxis = 'horizontal';
+      detailsCarousel.dragMoved = true;
+    } else if (verticalIntent && pointerType === 'touch') {
+      stopDetailsCarouselDrag(pointerId);
+      const handedOffToContentScroll = maybeBeginMobileSideNavContentScroll(
+        pointerId,
+        currentX,
+        currentY,
+        pointerType,
+        {
+          ignoreDetailsRegion: true,
+          ignoreButtonGuard: true,
+        },
+      );
+      if (handedOffToContentScroll) {
+        canvas.classList.add('dragging');
+        return updateMobileSideNavContentScrollDrag(pointerId, currentY);
+      }
+      const handedOffToPanelDrag = maybeBeginMobileSideNavStageDrag(pointerId, currentX, currentY, {
+        allowSurfaceDrag: true,
+        forceSurfaceDrag: true,
+        ignoreButtonGuard: true,
+      });
+      if (handedOffToPanelDrag) {
+        canvas.classList.add('dragging');
+        return updateMobileSideNavStageDrag(pointerId, currentY);
+      }
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  if (safeText(detailsCarousel.dragAxis).toLowerCase() !== 'horizontal') {
+    return false;
+  }
+  detailsCarousel.dragDeltaX = clamp(deltaX, -220, 220);
+  if (!detailsCarousel.dragMoved && (absDeltaX >= 6 || absDeltaY >= 6)) {
+    detailsCarousel.dragMoved = true;
+  }
+  return true;
+}
+
+function stopDetailsCarouselDrag(pointerId = null) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  if (!detailsCarousel.dragActive) {
+    return;
+  }
+  if (pointerId !== null && pointerId !== detailsCarousel.dragPointerId) {
+    return;
+  }
+  detailsCarousel.dragActive = false;
+  detailsCarousel.dragPointerId = null;
+  detailsCarousel.dragStartX = 0;
+  detailsCarousel.dragStartY = 0;
+  detailsCarousel.dragAxis = '';
+  detailsCarousel.dragMoved = false;
+  detailsCarousel.dragDeltaX = 0;
+  detailsCarousel.tapAction = '';
+  const mobileDragActive = getTreeNextMobileSidePanelDragState().active;
+  const sideNavContentScrollActive = getSideNavContentScrollState().dragActive;
+  if (!state.drag.active && !getSideNavFavoritesState().dragActive && !mobileDragActive && !sideNavContentScrollActive) {
+    canvas.classList.remove('dragging');
+  }
+}
+
+function resolveDetailsCarouselReleaseAction(pointerId) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  if (!detailsCarousel.dragActive || pointerId !== detailsCarousel.dragPointerId) {
+    return '';
+  }
+  let action = '';
+  const swipeDeltaX = safeNumber(detailsCarousel.dragDeltaX, 0);
+  if (Math.abs(swipeDeltaX) >= TREE_NEXT_MOBILE_DETAILS_SWIPE_TRIGGER_PX) {
+    action = swipeDeltaX < 0 ? 'details-carousel:week:next' : 'details-carousel:week:prev';
+  } else if (!detailsCarousel.dragMoved) {
+    action = safeText(detailsCarousel.tapAction);
+  }
+  stopDetailsCarouselDrag(pointerId);
   return action;
 }
 
@@ -21970,6 +23650,474 @@ function drawUniverseBreadcrumbLinks(startX, startY, maxWidth) {
   }
 }
 
+function drawSideNavDetailsCarouselCard(options = {}) {
+  const slotX = safeNumber(options?.slotX, 0);
+  const slotWidth = Math.max(0, safeNumber(options?.slotWidth, 0));
+  const cardY = safeNumber(options?.y, 0);
+  const cardHeight = Math.max(0, safeNumber(options?.detailsCardHeight, 0));
+  const detailInsetX = safeNumber(options?.detailInsetX, slotX + 16);
+  const detailContentWidth = Math.max(0, safeNumber(options?.detailContentWidth, slotWidth - 32));
+  const detailCenterX = safeNumber(options?.detailCenterX, slotX + (slotWidth / 2));
+  const detailRightX = safeNumber(options?.detailRightX, slotX + slotWidth - 16);
+  const detailVerticalScale = clamp(safeNumber(options?.detailVerticalScale, 0), 0, 1);
+  const buttonYOffset = safeNumber(options?.buttonYOffset, 0);
+  const selectedNodeId = safeText(options?.selectedNodeId);
+  const selectedNode = options?.selectedNode && typeof options.selectedNode === 'object'
+    ? options.selectedNode
+    : resolveNodeById(selectedNodeId);
+  const detailsCarousel = getSideNavDetailsCarouselState();
+
+  detailsCarousel.viewportRect = {
+    x: slotX,
+    y: cardY + buttonYOffset,
+    width: slotWidth,
+    height: cardHeight,
+  };
+
+  fillRoundedRect(context, slotX, cardY, slotWidth, cardHeight, 28, '#FFFFFF');
+  strokeRoundedRect(context, slotX + 0.5, cardY + 0.5, slotWidth - 1, cardHeight - 1, 28, '#E2E2E2');
+
+  const contentTopInset = Math.round(14 + (6 * detailVerticalScale));
+  const contentBottomInset = Math.round(14 + (4 * detailVerticalScale));
+  const contentTopY = cardY + contentTopInset;
+  const contentBottomY = cardY + cardHeight - contentBottomInset;
+
+  if (!selectedNode) {
+    drawText('Select a node to view details.', detailCenterX, cardY + (cardHeight / 2), {
+      size: 12,
+      weight: 500,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#888888',
+      align: 'center',
+      maxWidth: detailContentWidth,
+    });
+    return;
+  }
+
+  const selectedIdentity = resolveTreeNextNodePublicIdentity(selectedNode, {
+    fallbackName: safeText(selectedNode.id || selectedNodeId || 'Member'),
+  });
+  const selectedName = truncateTextToWidth(
+    safeText(selectedIdentity.name || selectedNode.name || selectedNode.id || selectedNodeId),
+    Math.max(130, detailContentWidth * 0.72),
+    {
+      size: 13,
+      weight: 600,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+    },
+  );
+  const selectedUsernameLine = selectedIdentity.isMasked
+    ? TREE_NEXT_PRIVACY_HIDDEN_LABEL
+    : `@${truncateText(safeText(selectedIdentity.username || selectedNode.username || selectedNode.id || selectedNodeId), 24)}`;
+  const selectedJoinedAtMs = resolveDetailsCarouselNodeJoinedAtMs(selectedNode);
+  const selectedJoinedDateLine = selectedIdentity.isMasked
+    ? 'Joined date hidden'
+    : formatAccountOverviewJoinedDate(selectedJoinedAtMs);
+  const selectedAvatarNodeId = safeText(selectedNode.id || selectedNodeId || selectedName || 'member');
+  const selectedInitials = safeText(
+    selectedIdentity.initials || resolveInitials(selectedName || selectedAvatarNodeId),
+  ).slice(0, 2).toUpperCase();
+
+  syncDetailsCarouselSelectionForNode(selectedNodeId, new Date());
+  const snapshot = resolveDetailsCarouselSnapshot({
+    nodeId: selectedNodeId,
+    node: selectedNode,
+    selectedMonthKey: detailsCarousel.selectedMonthKey,
+    selectedWeekNumber: detailsCarousel.selectedWeekNumber,
+    referenceDate: new Date(),
+  });
+  setDetailsCarouselSelection(snapshot.monthKey, snapshot.weekNumber);
+
+  const dragOffsetX = detailsCarousel.dragActive
+    ? safeNumber(detailsCarousel.dragDeltaX, 0) * 0.24
+    : 0;
+  const transitionFrame = detailsCarousel.dragActive
+    ? null
+    : resolveDetailsCarouselTransitionFrame(getNowMs());
+  const snapshotReferenceDate = new Date();
+  const outgoingSnapshot = transitionFrame
+    ? resolveDetailsCarouselSnapshot({
+      nodeId: selectedNodeId,
+      node: selectedNode,
+      selectedMonthKey: transitionFrame.fromMonthKey,
+      selectedWeekNumber: transitionFrame.fromWeekNumber,
+      referenceDate: snapshotReferenceDate,
+    })
+    : null;
+
+  const drawSnapshotContent = (snapshotData, optionsInput = {}) => {
+    const allowInteractions = optionsInput?.allowInteractions !== false;
+    const avatarRadius = Math.round(32 + (8 * detailVerticalScale));
+    const avatarCenterY = contentTopY + avatarRadius + Math.round(6 + (3 * detailVerticalScale));
+    const avatarRender = drawResolvedAvatarCircle(detailCenterX, avatarCenterY, avatarRadius, selectedAvatarNodeId, {
+      node: selectedNode,
+      alpha: 0.98,
+      sheenAlpha: 0.16,
+    });
+    if (!avatarRender.usedPhoto) {
+      drawText(selectedInitials, detailCenterX, avatarCenterY + 0.5, {
+        size: Math.round(clamp(avatarRadius * 0.54, 14, 22)),
+        weight: 700,
+        color: '#F5F9FF',
+        align: 'center',
+      });
+    }
+
+    const activityDotColor = snapshotData.activeStatus ? '#2FB949' : '#A6ADB9';
+    const statusOuterRadius = Math.max(6, Math.floor(avatarRadius * 0.22));
+    const statusInnerRadius = Math.max(5, statusOuterRadius - 2);
+    const statusCenterX = detailCenterX + Math.floor(avatarRadius * 0.72);
+    const statusCenterY = avatarCenterY + Math.floor(avatarRadius * 0.66);
+    context.beginPath();
+    context.arc(statusCenterX, statusCenterY, statusOuterRadius, 0, Math.PI * 2);
+    context.fillStyle = '#FFFFFF';
+    context.fill();
+    context.beginPath();
+    context.arc(statusCenterX, statusCenterY, statusInnerRadius, 0, Math.PI * 2);
+    context.fillStyle = activityDotColor;
+    context.fill();
+
+    const nameY = avatarCenterY + avatarRadius + Math.round(16 + (4 * detailVerticalScale));
+    drawText(selectedName, detailCenterX, nameY, {
+      size: 16,
+      weight: 600,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#111111',
+      align: 'center',
+      maxWidth: detailContentWidth,
+    });
+    const usernameY = nameY + Math.round(18 + (3 * detailVerticalScale));
+    drawText(selectedUsernameLine, detailCenterX, usernameY, {
+      size: 12,
+      weight: 500,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#7A7A7A',
+      align: 'center',
+      maxWidth: detailContentWidth,
+    });
+    const joinedDateY = usernameY + Math.round(15 + (2 * detailVerticalScale));
+    drawText(selectedJoinedDateLine, detailCenterX, joinedDateY, {
+      size: 11,
+      weight: 500,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#8C95A3',
+      align: 'center',
+      maxWidth: detailContentWidth,
+    });
+
+    const monthNavY = joinedDateY + Math.round(16 + (3 * detailVerticalScale));
+    const monthNavButtonSize = Math.round(22 + (2 * detailVerticalScale));
+    const monthPrevButtonX = detailInsetX;
+    const monthNextButtonX = detailRightX - monthNavButtonSize;
+    const monthNavCenterX = detailInsetX + (detailContentWidth / 2);
+    fillRoundedRect(context, monthPrevButtonX, monthNavY, monthNavButtonSize, monthNavButtonSize, 11, '#EEF0F4');
+    fillRoundedRect(context, monthNextButtonX, monthNavY, monthNavButtonSize, monthNavButtonSize, 11, '#EEF0F4');
+    drawText('<', monthPrevButtonX + (monthNavButtonSize / 2), monthNavY + (monthNavButtonSize / 2) + 0.5, {
+      size: 14,
+      weight: 700,
+      color: '#1F2633',
+      align: 'center',
+    });
+    drawText('>', monthNextButtonX + (monthNavButtonSize / 2), monthNavY + (monthNavButtonSize / 2) + 0.5, {
+      size: 14,
+      weight: 700,
+      color: '#1F2633',
+      align: 'center',
+    });
+    drawText(snapshotData.monthLabel, monthNavCenterX, monthNavY + (monthNavButtonSize / 2) + 0.5, {
+      size: 13,
+      weight: 700,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#151B26',
+      align: 'center',
+      maxWidth: Math.max(60, detailContentWidth - 70),
+    });
+    if (allowInteractions) {
+      registerButton({
+        id: 'side-nav-details-carousel-month-prev',
+        x: monthPrevButtonX,
+        y: monthNavY + buttonYOffset,
+        width: monthNavButtonSize,
+        height: monthNavButtonSize,
+        action: 'details-carousel:month:prev',
+      });
+      registerButton({
+        id: 'side-nav-details-carousel-month-next',
+        x: monthNextButtonX,
+        y: monthNavY + buttonYOffset,
+        width: monthNavButtonSize,
+        height: monthNavButtonSize,
+        action: 'details-carousel:month:next',
+      });
+    }
+
+    const dateRangeY = monthNavY + monthNavButtonSize + Math.round(11 + detailVerticalScale);
+    drawText(snapshotData.dateRangeLabel, monthNavCenterX, dateRangeY, {
+      size: 12,
+      weight: 500,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#7A8292',
+      align: 'center',
+      maxWidth: detailContentWidth,
+    });
+
+    const weekTabsY = dateRangeY + Math.round(10 + (2 * detailVerticalScale));
+    const weekTabs = Array.isArray(snapshotData.weeks) ? snapshotData.weeks : [];
+    const activeAnchor = resolveDetailsCarouselCurrentAnchor(new Date());
+    const activeMonthKey = safeText(activeAnchor.monthKey);
+    const activeWeekNumber = Math.max(1, Math.floor(safeNumber(activeAnchor.weekNumber, 1)));
+    const weekTabCount = Math.max(1, weekTabs.length);
+    let weekTabGap = weekTabCount >= 5 ? 4 : 8;
+    const weekTabHeight = Math.round(24 + (4 * detailVerticalScale));
+    const weekRowInset = 2;
+    const weekRowWidth = Math.max(80, detailContentWidth - (weekRowInset * 2));
+    let weekTabWidth = Math.floor((weekRowWidth - ((weekTabCount - 1) * weekTabGap)) / weekTabCount);
+    if (weekTabWidth < 48 && weekTabCount >= 5) {
+      weekTabGap = 3;
+      weekTabWidth = Math.floor((weekRowWidth - ((weekTabCount - 1) * weekTabGap)) / weekTabCount);
+    }
+    weekTabWidth = Math.max(42, weekTabWidth);
+    const weekTabsTotalWidth = (weekTabWidth * weekTabCount) + (Math.max(0, weekTabCount - 1) * weekTabGap);
+    const weekTabsStartX = detailInsetX + weekRowInset + Math.max(0, Math.floor((weekRowWidth - weekTabsTotalWidth) / 2));
+
+    weekTabs.forEach((weekEntry, index) => {
+      const weekTabX = weekTabsStartX + (index * (weekTabWidth + weekTabGap));
+      const isSelectedWeek = weekEntry.weekNumber === snapshotData.weekNumber;
+      const isActiveWeek = (
+        safeText(snapshotData.monthKey) === activeMonthKey
+        && Math.max(1, Math.floor(safeNumber(weekEntry.weekNumber, 1))) === activeWeekNumber
+      );
+      let weekTabFill = '#E6E8ED';
+      let weekTabStroke = '#E1E4EA';
+      let weekTabTextColor = '#111821';
+      if (isSelectedWeek && isActiveWeek) {
+        weekTabFill = '#3296F6';
+        weekTabStroke = '#3296F6';
+        weekTabTextColor = '#FFFFFF';
+      } else if (isSelectedWeek) {
+        weekTabFill = '#D5DAE3';
+        weekTabStroke = '#C2C9D6';
+        weekTabTextColor = '#1F2838';
+      } else if (isActiveWeek) {
+        weekTabFill = '#E8F7ED';
+        weekTabStroke = '#7ACB90';
+        weekTabTextColor = '#1D7A36';
+      }
+      fillRoundedRect(context, weekTabX, weekTabsY, weekTabWidth, weekTabHeight, 13, weekTabFill);
+      strokeRoundedRect(context, weekTabX + 0.5, weekTabsY + 0.5, weekTabWidth - 1, weekTabHeight - 1, 13, weekTabStroke, 1);
+      drawText(weekEntry.label || `Week ${weekEntry.weekNumber}`, weekTabX + (weekTabWidth / 2), weekTabsY + (weekTabHeight / 2) + 0.5, {
+        size: weekTabCount > 4 ? 9 : 10.5,
+        weight: isSelectedWeek ? 700 : (isActiveWeek ? 700 : 600),
+        color: weekTabTextColor,
+        align: 'center',
+      });
+      if (allowInteractions) {
+        registerButton({
+          id: `side-nav-details-carousel-week-${weekEntry.weekNumber}`,
+          x: weekTabX,
+          y: weekTabsY + buttonYOffset,
+          width: weekTabWidth,
+          height: weekTabHeight,
+          action: `details-carousel:week-select:${snapshotData.monthKey}|${weekEntry.weekNumber}`,
+        });
+      }
+    });
+
+    const primaryCardY = weekTabsY + weekTabHeight + Math.round(12 + (2 * detailVerticalScale));
+    const primaryCardGap = 8;
+    const primaryCardHeight = Math.round(56 + (14 * detailVerticalScale));
+    const primaryCardWidth = Math.max(70, Math.floor((detailContentWidth - primaryCardGap) / 2));
+    const primaryLeftCardX = detailInsetX;
+    const primaryRightCardX = detailRightX - primaryCardWidth;
+    const primaryCardBottomY = primaryCardY + primaryCardHeight;
+    const primaryCardLabelSize = primaryCardHeight >= 62 ? 10 : 9;
+    const primaryCardValueSize = primaryCardHeight >= 62 ? 15 : 13;
+
+    const drawPrimaryVolumeCard = (cardX, cardLabel, cardValue) => {
+      const cardCenterX = cardX + (primaryCardWidth / 2);
+      const cardCenterY = primaryCardY + (primaryCardHeight / 2);
+      const labelYOffset = Math.max(9, Math.round(primaryCardValueSize * 0.72));
+      const valueYOffset = Math.max(8, Math.round(primaryCardValueSize * 0.6));
+      const labelY = Math.round(cardCenterY - labelYOffset);
+      const valueY = Math.round(cardCenterY + valueYOffset);
+      fillRoundedRect(context, cardX, primaryCardY, primaryCardWidth, primaryCardHeight, 16, '#DFE3E9');
+      drawText(cardLabel, cardCenterX, labelY, {
+        size: primaryCardLabelSize,
+        weight: 600,
+        color: '#111821',
+        align: 'center',
+        maxWidth: primaryCardWidth - 18,
+      });
+      drawText(cardValue, cardCenterX, valueY, {
+        size: primaryCardValueSize,
+        weight: 700,
+        color: '#111821',
+        align: 'center',
+        maxWidth: primaryCardWidth - 18,
+      });
+    };
+
+    drawPrimaryVolumeCard(primaryLeftCardX, 'Available Left Leg BV', formatExactVolumeValue(snapshotData.availableLeftBV));
+    drawPrimaryVolumeCard(primaryRightCardX, 'Available Right Leg BV', formatExactVolumeValue(snapshotData.availableRightBV));
+
+    const relationButtonHeight = Math.round(40 + (8 * detailVerticalScale));
+    const relationButtonGap = Math.round(10 + (2 * detailVerticalScale));
+    const relationButtonsTotalHeight = (relationButtonHeight * 2) + relationButtonGap;
+    const relationButtonsStartY = contentBottomY - relationButtonsTotalHeight;
+
+    const compactRowsTopY = primaryCardBottomY + Math.round(10 + detailVerticalScale);
+    const compactRowsBottomY = relationButtonsStartY - Math.round(10 + detailVerticalScale);
+    const compactRows = [
+      { label: 'Cycles Earned', value: formatInteger(snapshotData.cycles, 0), emphasis: true },
+      {
+        label: 'Consumed BV (Left / Right)',
+        value: `${formatExactVolumeValue(snapshotData.cycleConsumedLeftBV)} / ${formatExactVolumeValue(snapshotData.cycleConsumedRightBV)}`,
+      },
+      {
+        label: 'Carry Forward BV (Left / Right)',
+        value: `${formatExactVolumeValue(snapshotData.carryForwardLeftBV)} / ${formatExactVolumeValue(snapshotData.carryForwardRightBV)}`,
+      },
+      { label: 'Personal BV', value: formatExactVolumeValue(snapshotData.personalBV) },
+      { label: 'Activity Status', value: snapshotData.activeStatus ? 'Active' : 'Inactive' },
+      { label: 'Team Generated BV', value: formatExactVolumeValue(snapshotData.teamGeneratedBV) },
+    ];
+    const compactRowsHeight = Math.max(48, compactRowsBottomY - compactRowsTopY);
+    const compactRowHeight = clamp(Math.floor(compactRowsHeight / Math.max(1, compactRows.length)), 13, 20);
+    const compactRowFontSize = clamp(Math.round(compactRowHeight * 0.5), 10, 12);
+
+    compactRows.forEach((row, index) => {
+      const rowY = compactRowsTopY + (index * compactRowHeight);
+      if (rowY + 8 > compactRowsBottomY) {
+        return;
+      }
+      const rowTextY = rowY + Math.floor(compactRowHeight * 0.56);
+      drawText(row.label, detailInsetX, rowTextY, {
+        size: compactRowFontSize,
+        weight: row.emphasis ? 700 : 500,
+        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        color: row.emphasis ? '#1E3D66' : '#66748E',
+        maxWidth: detailContentWidth * 0.68,
+      });
+      drawText(row.value, detailRightX, rowTextY, {
+        size: compactRowFontSize,
+        weight: row.emphasis ? 700 : 600,
+        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        color: '#18253B',
+        align: 'right',
+        maxWidth: detailContentWidth * 0.34,
+      });
+      const dividerY = rowY + compactRowHeight - 1;
+      if (index < compactRows.length - 1 && dividerY < compactRowsBottomY) {
+        line(context, detailInsetX, dividerY, detailInsetX + detailContentWidth, dividerY, '#D4D9E2', 1);
+      }
+    });
+
+    const parentId = safeText(selectedNode.parent);
+    const preferredSponsorId = safeText(selectedNode.sponsorId);
+    const sponsorId = resolveNodeById(preferredSponsorId) ? preferredSponsorId : parentId;
+    const relationButtons = [
+      {
+        id: 'parent',
+        nodeId: parentId,
+        iconPath: resolveDetailsRelationIconPath('parent', 'light'),
+        fallbackGlyph: drawFallbackFamilyHistoryGlyph,
+      },
+      {
+        id: 'sponsor',
+        nodeId: sponsorId,
+        iconPath: resolveDetailsRelationIconPath('sponsor', 'light'),
+        fallbackGlyph: drawFallbackPersonAddGlyph,
+      },
+    ];
+
+    relationButtons.forEach((entry, index) => {
+      const buttonY = relationButtonsStartY + (index * (relationButtonHeight + relationButtonGap));
+      const nodeId = safeText(entry.nodeId);
+      const relationNode = resolveNodeById(nodeId);
+      const relationIdentity = resolveTreeNextNodePublicIdentity(relationNode, { fallbackName: nodeId || '-' });
+      const relationLabelMasked = relationIdentity.isMasked;
+      const relationLabel = relationLabelMasked
+        ? TREE_NEXT_PRIVACY_ANONYMOUS_LABEL
+        : truncateText(safeText(relationIdentity.name || relationNode?.name || relationNode?.id || '-'), 24);
+      const buttonEnabled = Boolean(nodeId);
+      const buttonFill = buttonEnabled ? '#D0E6FF' : '#E1EBF8';
+      const buttonTextColor = buttonEnabled ? '#077AFF' : '#7D9BC2';
+      const iconSize = Math.round(clamp(relationButtonHeight * 0.58, 18, 26));
+      const iconCenterX = detailInsetX + Math.round(22 + (relationButtonHeight * 0.3));
+      const iconCenterY = buttonY + (relationButtonHeight / 2) + 0.5;
+
+      fillRoundedRect(context, detailInsetX, buttonY, detailContentWidth, relationButtonHeight, 23, buttonFill);
+      const drawn = drawImageAssetRect(
+        iconCenterX - (iconSize / 2),
+        iconCenterY - (iconSize / 2),
+        iconSize,
+        iconSize,
+        safeText(entry.iconPath),
+      );
+      if (!drawn) {
+        drawMaterialButtonIcon(
+          entry.id === 'parent' ? 'family_history' : 'person_add',
+          iconCenterX,
+          iconCenterY,
+          {
+            size: iconSize,
+            weight: 600,
+            color: buttonTextColor,
+            fallbackGlyph: entry.fallbackGlyph,
+            fill: 1,
+          },
+        );
+      }
+      drawText(relationLabel, detailCenterX, buttonY + (relationButtonHeight / 2) + 0.5, {
+        size: 14,
+        weight: 600,
+        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        color: buttonTextColor,
+        align: 'center',
+        maxWidth: detailContentWidth - 84,
+      });
+
+      if (allowInteractions && buttonEnabled && !relationLabelMasked) {
+        registerButton({
+          id: `side-nav-relation-${entry.id}`,
+          x: detailInsetX,
+          y: buttonY + buttonYOffset,
+          width: detailContentWidth,
+          height: relationButtonHeight,
+          action: `node:focus:${nodeId}`,
+        });
+      }
+    });
+  };
+
+  context.save();
+  roundedRectPath(context, slotX + 1, cardY + 1, Math.max(0, slotWidth - 2), Math.max(0, cardHeight - 2), 28);
+  context.clip();
+  if (transitionFrame && outgoingSnapshot) {
+    const easedProgress = clamp(safeNumber(transitionFrame.easedProgress, 0), 0, 1);
+    const outgoingAlpha = clamp(1 - easedProgress, 0, 1);
+    const incomingAlpha = clamp(easedProgress, 0, 1);
+
+    context.save();
+    context.globalAlpha *= outgoingAlpha;
+    context.translate(dragOffsetX, 0);
+    drawSnapshotContent(outgoingSnapshot, { allowInteractions: false });
+    context.restore();
+
+    context.save();
+    context.globalAlpha *= incomingAlpha;
+    context.translate(dragOffsetX, 0);
+    drawSnapshotContent(snapshot, { allowInteractions: true });
+    context.restore();
+  } else {
+    context.save();
+    context.translate(dragOffsetX, 0);
+    drawSnapshotContent(snapshot, { allowInteractions: true });
+    context.restore();
+  }
+  context.restore();
+}
+
 function drawSideNav(layout) {
   const panelReveal = resolveStartupRevealForPanel(STARTUP_SIDE_PANEL_DELAY_MS);
   if (panelReveal.progress <= 0) {
@@ -21983,6 +24131,9 @@ function drawSideNav(layout) {
     const favorites = getSideNavFavoritesState();
     favorites.viewportRect = null;
     stopFavoritesCarouselDrag(null);
+    const detailsCarousel = getSideNavDetailsCarouselState();
+    detailsCarousel.viewportRect = null;
+    stopDetailsCarouselDrag(null);
     const contentScroll = getSideNavContentScrollState();
     contentScroll.viewportRect = null;
     contentScroll.maxScrollY = 0;
@@ -22126,6 +24277,9 @@ function drawSideNav(layout) {
       const favorites = getSideNavFavoritesState();
       favorites.viewportRect = null;
       stopFavoritesCarouselDrag(null);
+      const detailsCarousel = getSideNavDetailsCarouselState();
+      detailsCarousel.viewportRect = null;
+      stopDetailsCarouselDrag(null);
       const contentScroll = getSideNavContentScrollState();
       contentScroll.viewportRect = null;
       contentScroll.maxScrollY = 0;
@@ -22244,6 +24398,9 @@ function drawSideNav(layout) {
       const favorites = getSideNavFavoritesState();
       favorites.viewportRect = null;
       stopFavoritesCarouselDrag(null);
+      const detailsCarousel = getSideNavDetailsCarouselState();
+      detailsCarousel.viewportRect = null;
+      stopDetailsCarouselDrag(null);
       const contentScroll = getSideNavContentScrollState();
       contentScroll.viewportRect = null;
       contentScroll.maxScrollY = 0;
@@ -22564,365 +24721,22 @@ function drawSideNav(layout) {
     const detailCenterX = slotX + (slotWidth / 2);
     const detailRightX = slotX + slotWidth - 16;
     const detailVerticalScale = clamp((detailsCardHeight - 380) / 240, 0, 1);
-    const detailsHeadingSize = Math.round(22 + (2 * detailVerticalScale));
-    const detailPrimaryTextSize = Math.round(22 + (2 * detailVerticalScale));
-    const detailSecondaryTextSize = Math.round(11 + detailVerticalScale);
-    const detailRankTextSize = detailSecondaryTextSize;
-    const detailMetricTextSize = detailSecondaryTextSize;
-    const detailRelationLabelSize = Math.round(13 + detailVerticalScale);
-
-    fillRoundedRect(context, slotX, y, slotWidth, detailsCardHeight, 28, '#FFFFFF');
-    strokeRoundedRect(context, slotX + 0.5, y + 0.5, slotWidth - 1, detailsCardHeight - 1, 28, '#E2E2E2');
-
     const selectedNodeId = safeText(state.selectedId);
     const selectedNode = resolveNodeById(selectedNodeId);
-    const detailsHeadingY = y + Math.round(34 + (2 * detailVerticalScale));
-    drawText('Details', detailCenterX, detailsHeadingY, {
-      size: detailsHeadingSize,
-      weight: 600,
-      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-      color: '#111111',
-      align: 'center',
+    drawSideNavDetailsCarouselCard({
+      slotX,
+      slotWidth,
+      y,
+      detailsCardHeight,
+      detailInsetX,
+      detailContentWidth,
+      detailCenterX,
+      detailRightX,
+      detailVerticalScale,
+      buttonYOffset,
+      selectedNodeId,
+      selectedNode,
     });
-
-    if (!selectedNode) {
-      drawText('Select a node to view details.', detailCenterX, detailsHeadingY + 38, {
-        size: Math.max(12, detailSecondaryTextSize),
-        weight: 500,
-        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-        color: '#888888',
-        align: 'center',
-        maxWidth: detailContentWidth,
-      });
-    } else {
-      const volumeMetrics = resolveNodeLegVolumes(selectedNodeId);
-      const selectedIdentity = resolveTreeNextNodePublicIdentity(selectedNode, {
-        fallbackName: safeText(selectedNode.id || selectedNodeId || 'Member'),
-      });
-      const shouldMaskSelectedNodeDetails = selectedIdentity.isMasked;
-      const displayName = truncateText(
-        safeText(selectedIdentity.name || selectedNode.name || selectedNode.id),
-        24,
-      );
-      const usernameHandle = truncateText(
-        safeText(
-          shouldMaskSelectedNodeDetails
-            ? TREE_NEXT_PRIVACY_HIDDEN_LABEL
-            : (selectedIdentity.username || selectedNode.username || selectedNode.id),
-        ),
-        24,
-      );
-      const usernameLine = shouldMaskSelectedNodeDetails
-        ? TREE_NEXT_PRIVACY_HIDDEN_LABEL
-        : `@${usernameHandle}`;
-      const nodeInitials = safeText(
-        selectedIdentity.initials || resolveInitials(safeText(selectedNode.name || selectedNode.id)),
-      );
-      const selectedAvatarNodeId = safeText(selectedNode.id || selectedNodeId);
-      const selectedBaseAvatarVariant = isSessionAvatarNodeId(selectedAvatarNodeId)
-        ? 'auto'
-        : (selectedAvatarNodeId.toLowerCase() === 'root' ? 'root' : 'auto');
-      const isDirectSponsorNode = isNodePersonallyEnrolledBySession(selectedNode);
-      const selectedAvatarVariant = isDirectSponsorNode ? 'direct' : selectedBaseAvatarVariant;
-      const rankValue = shouldMaskSelectedNodeDetails
-        ? '-'
-        : (truncateText(safeText(selectedNode.rank || '-'), 16) || '-');
-      const isActiveAccount = resolveNodeActivityState(selectedNode);
-      const activityDotColor = isActiveAccount ? '#30C655' : '#B5B5B5';
-      const selectedAvatarRenderOptions = isActiveAccount
-        ? (isDirectSponsorNode
-          ? {
-            variant: selectedAvatarVariant,
-            disablePhoto: true,
-            ignoreSourcePalette: true,
-          }
-          : {
-            variant: selectedAvatarVariant,
-          })
-        : {
-          variant: isDirectSponsorNode ? 'directInactive' : 'inactive',
-          disablePhoto: true,
-          ignoreSourcePalette: true,
-        };
-      const rankAndTitleIconPaths = shouldMaskSelectedNodeDetails
-        ? []
-        : resolveNodeDetailRankAndTitleIcons(selectedNode).slice(0, 2);
-
-      const avatarRadius = Math.round(34 + (20 * detailVerticalScale));
-      // Keep head space under "Details", but compress aggressively on shorter laptop heights.
-      const compactHeaderToAvatarTopGap = 12;
-      const preferredHeaderToAvatarTopGap = 64;
-      const headerToAvatarTopGap = Math.round(
-        compactHeaderToAvatarTopGap
-        + ((preferredHeaderToAvatarTopGap - compactHeaderToAvatarTopGap) * detailVerticalScale),
-      );
-      const avatarCenterY = detailsHeadingY + headerToAvatarTopGap + avatarRadius;
-      const nodePhotoUrl = (selectedAvatarRenderOptions.disablePhoto === true || shouldMaskSelectedNodeDetails)
-        ? ''
-        : resolveNodeAvatarPhotoUrl(selectedNode);
-      let usedPhotoAvatar = false;
-      context.beginPath();
-      context.arc(detailCenterX, avatarCenterY, avatarRadius + 1.5, 0, Math.PI * 2);
-      context.fillStyle = '#FFFFFF';
-      context.fill();
-      if (nodePhotoUrl) {
-        usedPhotoAvatar = drawImageAvatarCircle(detailCenterX, avatarCenterY, avatarRadius, nodePhotoUrl);
-      }
-      if (!usedPhotoAvatar) {
-        drawResolvedAvatarCircle(detailCenterX, avatarCenterY, avatarRadius, selectedAvatarNodeId, {
-          node: selectedNode,
-          ...selectedAvatarRenderOptions,
-          alpha: 0.98,
-          sheenAlpha: 0.16,
-        });
-        const avatarInitialsSize = Math.round(clamp(avatarRadius * 0.63, 24, 34));
-        drawText(nodeInitials, detailCenterX, avatarCenterY + 0.5, {
-          size: avatarInitialsSize,
-          weight: 700,
-          family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-          color: '#FFFFFF',
-          align: 'center',
-        });
-      }
-
-      const statusDotCenterX = detailCenterX + (avatarRadius * 0.62);
-      const statusDotCenterY = avatarCenterY + (avatarRadius * 0.68);
-      const statusDotOuterRadius = clamp(Math.round(avatarRadius * 0.19), 7, 10);
-      const statusDotInnerRadius = Math.max(5, statusDotOuterRadius - 2);
-      context.beginPath();
-      context.arc(statusDotCenterX, statusDotCenterY, statusDotOuterRadius, 0, Math.PI * 2);
-      context.fillStyle = '#FFFFFF';
-      context.fill();
-      context.beginPath();
-      context.arc(statusDotCenterX, statusDotCenterY, statusDotInnerRadius, 0, Math.PI * 2);
-      context.fillStyle = activityDotColor;
-      context.fill();
-
-      const avatarToNameGap = Math.round(44 + (36 * detailVerticalScale));
-      const nameToUsernameGap = Math.round(16 + (10 * detailVerticalScale));
-      const usernameToRankGap = Math.round(14 + (10 * detailVerticalScale));
-      const displayNameY = avatarCenterY + avatarToNameGap;
-      const usernameY = displayNameY + nameToUsernameGap;
-      const rankY = usernameY + usernameToRankGap;
-      drawText(displayName, detailCenterX, displayNameY, {
-        size: detailPrimaryTextSize,
-        weight: 600,
-        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-        color: '#111111',
-        align: 'center',
-        maxWidth: detailContentWidth,
-      });
-      drawText(usernameLine, detailCenterX, usernameY, {
-        size: detailSecondaryTextSize,
-        weight: 500,
-        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-        color: '#888888',
-        align: 'center',
-        maxWidth: detailContentWidth,
-      });
-
-      const rankIconSize = Math.round(14 + (2 * detailVerticalScale));
-      const rankIconGap = 4;
-      const rankTextWidth = measureTextWidth(rankValue, {
-        size: detailRankTextSize,
-        weight: 500,
-        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-      });
-      const iconBlockWidth = rankAndTitleIconPaths.length
-        ? (10 + (rankAndTitleIconPaths.length * rankIconSize) + ((rankAndTitleIconPaths.length - 1) * rankIconGap))
-        : 0;
-      const rankRowWidth = rankTextWidth + iconBlockWidth;
-      let rankCursorX = detailCenterX - (rankRowWidth / 2);
-      drawText(rankValue, rankCursorX, rankY, {
-        size: detailRankTextSize,
-        weight: 500,
-        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-        color: '#888888',
-      });
-      rankCursorX += rankTextWidth + 10;
-      for (let index = 0; index < rankAndTitleIconPaths.length; index += 1) {
-        const iconPath = rankAndTitleIconPaths[index];
-        const iconX = rankCursorX + (index * (rankIconSize + rankIconGap));
-        const iconY = rankY - (rankIconSize / 2);
-        const drawn = drawImageAssetRect(iconX, iconY, rankIconSize, rankIconSize, iconPath);
-        if (!drawn) {
-          fillRoundedRect(context, iconX, iconY, rankIconSize, rankIconSize, 4, '#DADADA');
-        }
-      }
-
-      const loopDisplayMetrics = resolveNodeLoopDisplayMetrics(selectedNodeId, selectedNode, volumeMetrics);
-      const cyclesCount = Math.max(0, Math.floor(safeNumber(loopDisplayMetrics.cycles, 0)));
-      const relationButtonHeight = Math.round(32 + (14 * detailVerticalScale));
-      const relationButtonGap = Math.round(4 + (8 * detailVerticalScale));
-      const metricsToButtonsGap = Math.round(6 + (10 * detailVerticalScale));
-      const detailsBottomPad = Math.round(8 + (10 * detailVerticalScale));
-      const minMetricRowHeight = Math.round(12 + (10 * detailVerticalScale));
-      const maxMetricRowHeight = Math.round(50 + (8 * detailVerticalScale));
-      const rankToMetricsGap = Math.round(10 + (26 * detailVerticalScale));
-      const parentId = safeText(selectedNode.parent);
-      const preferredSponsorId = safeText(selectedNode.sponsorId);
-      const sponsorId = resolveNodeById(preferredSponsorId) ? preferredSponsorId : parentId;
-      const detailsPanelMode = 'light';
-      const relationButtons = [
-        {
-          id: 'parent',
-          style: 'filled',
-          iconName: 'family_history',
-          iconPath: resolveDetailsRelationIconPath('parent', detailsPanelMode),
-          nodeId: parentId,
-          fallbackGlyph: drawFallbackFamilyHistoryGlyph,
-        },
-        {
-          id: 'sponsor',
-          style: 'filled',
-          iconName: 'person_add',
-          iconPath: resolveDetailsRelationIconPath('sponsor', detailsPanelMode),
-          nodeId: sponsorId,
-          fallbackGlyph: drawFallbackPersonAddGlyph,
-        },
-      ];
-      const relationBlockHeight = (
-        relationButtons.length * relationButtonHeight
-      ) + (Math.max(0, relationButtons.length - 1) * relationButtonGap);
-      const metricRows = [
-        { label: 'Total Organizational BV', value: formatExactVolumeValue(volumeMetrics.totalVolume) },
-        { label: 'Personal BV', value: formatExactVolumeValue(volumeMetrics.personalVolume) },
-        { label: 'Left Leg', value: formatExactVolumeValue(loopDisplayMetrics.leftVolume) },
-        { label: 'Right Leg', value: formatExactVolumeValue(loopDisplayMetrics.rightVolume) },
-        { label: 'Cycles', value: String(cyclesCount) },
-      ];
-      const maxRelationStartY = detailsBottomY - relationBlockHeight - detailsBottomPad;
-      const desiredMetricsStartY = rankY + rankToMetricsGap;
-      const maxMetricsStartY = maxRelationStartY - metricsToButtonsGap - (metricRows.length * minMetricRowHeight);
-      const metricsStartY = Math.min(desiredMetricsStartY, maxMetricsStartY);
-      const availableMetricHeight = Math.max(
-        0,
-        detailsBottomY
-          - metricsStartY
-          - relationBlockHeight
-          - metricsToButtonsGap
-          - detailsBottomPad,
-      );
-      const metricRowHeight = clamp(
-        Math.floor(availableMetricHeight / Math.max(1, metricRows.length)),
-        minMetricRowHeight,
-        maxMetricRowHeight,
-      );
-      metricRows.forEach((row, rowIndex) => {
-        const rowTopY = metricsStartY + (rowIndex * metricRowHeight);
-        const metricRowTextY = rowTopY + clamp(metricRowHeight * 0.5, 11, 20);
-        const metricDividerInset = Math.max(2, Math.round(metricRowHeight * 0.12));
-        drawText(row.label, detailInsetX + 2, metricRowTextY, {
-          size: detailMetricTextSize,
-          weight: 500,
-          family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-          color: '#888888',
-          maxWidth: detailContentWidth * 0.6,
-        });
-        drawText(row.value, detailRightX, metricRowTextY, {
-          size: detailMetricTextSize,
-          weight: 400,
-          family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-          color: '#171717',
-          align: 'right',
-        });
-        line(
-          context,
-          detailInsetX,
-          rowTopY + metricRowHeight - metricDividerInset,
-          detailInsetX + detailContentWidth,
-          rowTopY + metricRowHeight - metricDividerInset,
-          '#E2E2E2',
-          1,
-        );
-      });
-
-      const relationStartY = maxRelationStartY;
-      const relationButtonLabelFamily = '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
-      const relationButtonLabelWeight = 600;
-
-      relationButtons.forEach((entry, index) => {
-        const buttonY = relationStartY + (index * (relationButtonHeight + relationButtonGap));
-        if (buttonY + relationButtonHeight > detailsBottomY - 8) {
-          return;
-        }
-        const isOutlineButton = safeText(entry.style).toLowerCase() === 'outline';
-        const nodeId = safeText(entry.nodeId);
-        const relationNode = resolveNodeById(nodeId);
-        const relationIdentity = resolveTreeNextNodePublicIdentity(relationNode, { fallbackName: nodeId || '-' });
-        const relationLabelMasked = shouldMaskSelectedNodeDetails || relationIdentity.isMasked;
-        const buttonEnabled = Boolean(nodeId) && !relationLabelMasked;
-        const customLabel = safeText(entry.label);
-        const buttonLabel = relationLabelMasked
-          ? (nodeId ? TREE_NEXT_PRIVACY_ANONYMOUS_LABEL : '-')
-          : (customLabel || (buttonEnabled
-            ? truncateText(safeText(relationIdentity.name || relationNode?.name || relationNode?.id || nodeId), 24)
-            : '-'));
-        const buttonFill = isOutlineButton
-          ? '#FFFFFF'
-          : (buttonEnabled ? '#D0E6FF' : '#E1EBF8');
-        const buttonTextColor = isOutlineButton
-          ? '#077AFF'
-          : (buttonEnabled ? '#077AFF' : '#7D9BC2');
-        const iconSize = Math.round(clamp(
-          relationButtonHeight * (isOutlineButton ? 0.62 : 0.58),
-          18,
-          isOutlineButton ? 28 : 26,
-        ));
-        const iconCenterX = detailInsetX + Math.round(22 + (relationButtonHeight * 0.3));
-        const iconCenterY = buttonY + (relationButtonHeight / 2) + 0.5;
-        fillRoundedRect(context, detailInsetX, buttonY, detailContentWidth, relationButtonHeight, 23, buttonFill);
-        if (isOutlineButton) {
-          strokeRoundedRect(
-            context,
-            detailInsetX + 0.5,
-            buttonY + 0.5,
-            detailContentWidth - 1,
-            relationButtonHeight - 1,
-            23,
-            '#077AFF',
-            1,
-          );
-        }
-        const renderedSvg = drawImageAssetRect(
-          iconCenterX - (iconSize / 2),
-          iconCenterY - (iconSize / 2),
-          iconSize,
-          iconSize,
-          safeText(entry.iconPath),
-        );
-        if (!renderedSvg) {
-          drawMaterialButtonIcon(entry.iconName, iconCenterX, iconCenterY, {
-            size: iconSize,
-            weight: isOutlineButton ? 500 : 600,
-            color: buttonTextColor,
-            fallbackGlyph: entry.fallbackGlyph,
-            fill: isOutlineButton ? 0 : 1,
-          });
-        }
-        drawText(buttonLabel, detailCenterX, buttonY + (relationButtonHeight / 2) + 0.5, {
-          size: detailRelationLabelSize,
-          weight: relationButtonLabelWeight,
-          family: relationButtonLabelFamily,
-          color: buttonTextColor,
-          align: 'center',
-          maxWidth: detailContentWidth - 84,
-        });
-        const buttonAction = buttonEnabled
-          ? (safeText(entry.action) || (nodeId ? `node:focus:${nodeId}` : ''))
-          : '';
-        if (buttonEnabled && buttonAction) {
-          registerButton({
-            id: `side-nav-relation-${entry.id}`,
-            x: detailInsetX,
-            y: buttonY + buttonYOffset,
-            width: detailContentWidth,
-            height: relationButtonHeight,
-            action: buttonAction,
-          });
-        }
-      });
-    }
 
     if (memberStatusCardHeight > 0) {
       fillRoundedRect(context, slotX, memberStatusCardY, slotWidth, memberStatusCardHeight, 18, '#FFFFFF');
@@ -25996,6 +27810,7 @@ function updateTouchPanInertia(deltaSecondsInput = 0.016) {
     state.drag.active
     || getTreeNextMobileSidePanelDragState().active
     || getSideNavFavoritesState().dragActive
+    || getSideNavDetailsCarouselState().dragActive
     || getSideNavContentScrollState().dragActive
     || touchGestureState.pinchActive
     || touchGestureState.activePointers.size > 0
@@ -26233,6 +28048,31 @@ function triggerAction(action) {
     }
     return;
   }
+  if (safeAction === 'details-carousel:month:prev') {
+    stepDetailsCarouselMonth(-1);
+    return;
+  }
+  if (safeAction === 'details-carousel:month:next') {
+    stepDetailsCarouselMonth(1);
+    return;
+  }
+  if (safeAction === 'details-carousel:week:prev') {
+    stepDetailsCarouselWeek(-1);
+    return;
+  }
+  if (safeAction === 'details-carousel:week:next') {
+    stepDetailsCarouselWeek(1);
+    return;
+  }
+  if (safeAction.startsWith('details-carousel:week-select:')) {
+    const payload = safeAction.slice('details-carousel:week-select:'.length);
+    const separatorIndex = payload.lastIndexOf('|');
+    const monthKey = separatorIndex >= 0 ? payload.slice(0, separatorIndex) : payload;
+    const weekNumberRaw = separatorIndex >= 0 ? payload.slice(separatorIndex + 1) : '';
+    const weekNumber = Math.max(1, Math.floor(safeNumber(weekNumberRaw, 1)));
+    selectDetailsCarouselWeek(monthKey, weekNumber);
+    return;
+  }
   if (safeAction === 'mobile:top-controls:toggle') {
     state.ui.mobileTopControlsHidden = !Boolean(state.ui?.mobileTopControlsHidden);
     return;
@@ -26445,6 +28285,7 @@ function onPointerDown(event) {
     trackTouchPointer(event.pointerId, pointerX, pointerY);
     if (touchGestureState.activePointers.size >= 2) {
       stopFavoritesCarouselDrag(null);
+      stopDetailsCarouselDrag(null);
       stopDragging(null);
       clearTreeNextMobileSidePanelDrag();
       beginTouchPinchGesture();
@@ -26461,6 +28302,7 @@ function onPointerDown(event) {
   closeSearchDropdown();
   updateHoverState(pointerX, pointerY);
   const pointerInsideFavorites = pointInsideFavoritesCarousel(pointerX, pointerY);
+  const pointerInsideDetails = pointInsideDetailsCarousel(pointerX, pointerY);
   const brandMenuOpen = Boolean(state.ui.sideNavBrandMenuOpen);
   const button = buttonUnderPointer(pointerX, pointerY);
   const buttonAction = safeText(button?.action);
@@ -26511,6 +28353,16 @@ function onPointerDown(event) {
       }
       return;
     }
+    if (pointerInsideDetails && button.id.startsWith('side-nav-details-carousel-')) {
+      beginDetailsCarouselDrag(event.pointerId, pointerX, pointerY, button.action);
+      canvas.classList.add('dragging');
+      try {
+        canvas.setPointerCapture(event.pointerId);
+      } catch {
+        // Ignore pointer capture failures.
+      }
+      return;
+    }
     triggerAction(button.action);
     return;
   }
@@ -26520,6 +28372,20 @@ function onPointerDown(event) {
       state.ui.sideNavBrandMenuOpen = false;
     }
     beginFavoritesCarouselDrag(event.pointerId, pointerX, pointerY);
+    canvas.classList.add('dragging');
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore pointer capture failures.
+    }
+    return;
+  }
+
+  if (pointerInsideDetails) {
+    if (brandMenuOpen) {
+      state.ui.sideNavBrandMenuOpen = false;
+    }
+    beginDetailsCarouselDrag(event.pointerId, pointerX, pointerY);
     canvas.classList.add('dragging');
     try {
       canvas.setPointerCapture(event.pointerId);
@@ -26603,6 +28469,13 @@ function onPointerMove(event) {
     return;
   }
 
+  if (updateDetailsCarouselDrag(event.pointerId, event.clientX, event.clientY, event.pointerType)) {
+    if (event.pointerType === 'touch' && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    return;
+  }
+
   if (state.drag.active && event.pointerId === state.drag.pointerId) {
     const deltaX = event.clientX - state.drag.lastX;
     const deltaY = event.clientY - state.drag.lastY;
@@ -26654,7 +28527,8 @@ function stopDragging(pointerId) {
   }
   const mobileDragActive = getTreeNextMobileSidePanelDragState().active;
   const sideNavContentScrollActive = getSideNavContentScrollState().dragActive;
-  if (!getSideNavFavoritesState().dragActive && !mobileDragActive && !sideNavContentScrollActive) {
+  const sideNavDetailsDragActive = getSideNavDetailsCarouselState().dragActive;
+  if (!getSideNavFavoritesState().dragActive && !sideNavDetailsDragActive && !mobileDragActive && !sideNavContentScrollActive) {
     canvas.classList.remove('dragging');
   }
 }
@@ -26670,6 +28544,7 @@ function onPointerUp(event) {
   const mobileContentScrollResult = finalizeMobileSideNavContentScrollDrag(event.pointerId);
   if (mobileContentScrollResult.consumed) {
     stopFavoritesCarouselDrag(event.pointerId);
+    stopDetailsCarouselDrag(event.pointerId);
     stopDragging(event.pointerId);
     try {
       canvas.releasePointerCapture(event.pointerId);
@@ -26682,6 +28557,7 @@ function onPointerUp(event) {
   const mobileDragResult = finalizeMobileSideNavStageDrag(event.pointerId);
   if (mobileDragResult.consumed || wasPinching) {
     stopFavoritesCarouselDrag(event.pointerId);
+    stopDetailsCarouselDrag(event.pointerId);
     stopDragging(event.pointerId);
     try {
       canvas.releasePointerCapture(event.pointerId);
@@ -26694,6 +28570,10 @@ function onPointerUp(event) {
   const releaseAction = resolveFavoritesCarouselReleaseAction(event.pointerId);
   if (releaseAction) {
     triggerAction(releaseAction);
+  }
+  const detailsReleaseAction = resolveDetailsCarouselReleaseAction(event.pointerId);
+  if (detailsReleaseAction) {
+    triggerAction(detailsReleaseAction);
   }
   const shouldStartTouchPanInertia = (event.type === 'pointerup' || event.type === 'pointercancel')
     && maybeStartTouchPanInertia(event.pointerId, event.pointerType);
@@ -26721,6 +28601,7 @@ function onPointerLeave(event) {
     state.drag.active
     || getTreeNextMobileSidePanelDragState().active
     || getSideNavFavoritesState().dragActive
+    || getSideNavDetailsCarouselState().dragActive
     || getSideNavContentScrollState().dragActive
     || touchGestureState.activePointers.size > 0
     || touchGestureState.pinchActive
@@ -26731,6 +28612,7 @@ function onPointerLeave(event) {
   state.pointer.inside = false;
   state.hoveredButtonId = '';
   stopFavoritesCarouselDrag(null);
+  stopDetailsCarouselDrag(null);
   stopDragging(null);
 }
 
@@ -27026,6 +28908,7 @@ function bindTouchNavigationGuard() {
     const canvasGestureActive = (
       state.drag.active
       || getSideNavFavoritesState().dragActive
+      || getSideNavDetailsCarouselState().dragActive
       || getSideNavContentScrollState().dragActive
       || touchGestureState.activePointers.size > 0
       || getTreeNextMobileSidePanelDragState().active
@@ -27216,6 +29099,7 @@ bootstrap().catch((error) => {
   hideFirstOpenSplashImmediately();
   showBootError(error instanceof Error ? error.message : String(error));
 });
+
 
 
 

@@ -32975,3 +32975,820 @@ Known limitation:
 ### Validation
 
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-27) - Binary Tree Details Dynamic Cutoff Metrics + Lifetime Row Removal
+
+### Request Applied
+
+- Verified Binary Tree left Details metrics were lifetime-derived for most selected nodes.
+- Updated selected-node loop metrics to use server-cutoff current-week values (post-consumption carry-over) when identity is available.
+- Removed lifetime `Total Organizational BV` from the Details panel for now.
+
+### What Was Changed
+
+- `binary-tree-next-app.mjs`
+  - added node-scoped server-cutoff metrics cache + in-flight request dedupe for `/api/member/server-cutoff-metrics`.
+  - added selected-node identity resolver (`userId`/`username`/`email`) with root/admin/masked-node exclusions.
+  - added refresh hooks on node selection and lazy refresh during render for missing/stale cache entries.
+  - updated `resolveNodeLoopDisplayMetrics(...)` to prefer node-scoped cutoff metrics (or account-overview cutoff metrics for home/session identity), with fallback to branch totals when unavailable.
+  - removed Details metric row: `Total Organizational BV`.
+
+### Design Decisions
+
+- Kept admin/system totals excluded from cutoff reward lookup.
+- Kept fallback rendering so panel remains populated even if cutoff endpoint is temporarily unavailable.
+- Used short-lived cache (`12s`) to balance responsiveness and request load.
+
+### Known Limitations
+
+- First render after selecting a new node can briefly show fallback values until cutoff metrics return.
+- Nodes without resolvable identity continue using fallback branch totals.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-27) - Cutoff Personal BV Reset Fix + 1000/1000 Cycle Rule Alignment
+
+### Request Applied
+
+- Kept Personal BV reset behavior tied to account activity duration (30-day window/expiry) instead of weekly force-cutoff runs.
+- Restored `Total Organizational BV` row on Binary Tree left Details panel.
+- Updated cycle consumption rule so strong leg no longer consumes `500`; both weak/strong legs consume `1000` per cycle.
+
+### What Was Changed
+
+- `backend/services/admin.service.js`
+  - removed user/member personal baseline rewrites from `forceServerCutoff(...)` (no more cutoff-time personal PV flush side-effect).
+  - cycle thresholds now enforce `1000/1000` minimum.
+  - force-cutoff cycle settlement now calculates commission cycles from **current-week** volumes (`total - baseline`) instead of lifetime totals.
+- `backend/services/cutoff.service.js`
+  - normalized returned cycle thresholds to `>=1000` for both legs.
+- `backend/services/metrics.service.js`
+  - binary snapshot sanitizer now normalizes `cycleLowerBv/cycleHigherBv` to `>=1000`.
+- `backend/services/member-business-center.service.js`
+  - business-center cycle split thresholds normalized to `1000/1000`.
+- `index.html`
+  - dashboard cycle constants updated to `1000/1000`.
+  - cutoff/dashboard cycle math now respects updated threshold floors.
+- `admin.html`
+  - admin cycle constants updated to `1000/1000`.
+  - admin cutoff card estimated-cycle formula aligned with weak/high + strong/low pattern.
+- `binary-tree-next-app.mjs`
+  - Tree Next cycle constants added and normalized to `1000/1000`.
+  - node loop cycle fallback logic updated from `1000/500` to `1000/1000`.
+  - re-added Details row `Total Organizational BV`.
+
+### Design Decisions
+
+- Personal BV lifecycle remains account-duration based (`activityActiveUntilAt`), while weekly cutoff only consumes/carries leg BV.
+- Enforced threshold floors in API normalization paths so old snapshots with `500` do not reintroduce legacy behavior.
+
+### Known Limitations
+
+- Existing historical snapshot/state data created before this patch may still contain prior baseline/threshold values until refreshed by new writes/cutoff runs.
+
+### Files Affected
+
+- `backend/services/admin.service.js`
+- `backend/services/cutoff.service.js`
+- `backend/services/metrics.service.js`
+- `backend/services/member-business-center.service.js`
+- `index.html`
+- `admin.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/BackEnd-Notes.md`
+
+### Validation
+
+- `node --check backend/services/admin.service.js` passed.
+- `node --check backend/services/cutoff.service.js` passed.
+- `node --check backend/services/metrics.service.js` passed.
+- `node --check backend/services/member-business-center.service.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- inline script parse checks passed for `index.html` and `admin.html`.
+
+### Patch Note (2026-04-27)
+- Added force-cutoff baseline safety guard: when a member has no matching binary snapshot, cutoff baseline state now keeps existing baseline values instead of resetting to `0`.
+- File: `backend/services/admin.service.js`
+- Validation: `node --check backend/services/admin.service.js` passed.
+
+## Update (2026-04-27) - Binary Weekly Cutoff Carry Forward/Flush Rule Hardening (1000/500, Strong-Leg Tie-Left)
+
+### What changed
+- Implemented deterministic binary cycle math for weekly cutoff with these rules:
+  - Strong leg consumes `1000 BV` per cycle.
+  - Weaker leg consumes `500 BV` per cycle.
+  - Strong leg is whichever side has higher BV at cutoff.
+  - Tie-breaker is deterministic: if left BV equals right BV, `Left` is always treated as strong.
+- Added reusable helper module to centralize cycle math and cutoff carry-forward state transitions:
+  - `backend/utils/binary-cycle.helpers.js`
+  - Includes `resolveBinaryCycleComputation(...)` and `resolveServerCutoffCarryForwardState(...)`.
+- Updated force cutoff settlement logic in `backend/services/admin.service.js`:
+  - Cycle payout computation now uses the shared helper and strict strong/weak deduction.
+  - Carry-forward baseline update now flushes carry-forward to `0/0` (by advancing baselines to total leg BV) when member is inactive at cutoff.
+  - Carry-forward baseline update remains idempotent across repeated cutoffs.
+  - Added cutoff-time audit logging entries for:
+    - BV consumed for cycle payout
+    - BV carried forward
+    - BV flushed due to inactivity
+- Updated member cutoff metrics service (`backend/services/cutoff.service.js`) to use same cycle model for estimated cycles.
+- Updated snapshot sanitization/storage defaults:
+  - `backend/services/metrics.service.js`
+  - `backend/stores/metrics.store.js`
+  - Normalized cycle fields to strong=`1000`, weak=`500` to avoid drifting rule values.
+- Updated business-center cycle settlement path (`backend/services/member-business-center.service.js`) to reuse deterministic strong-leg cycle helper and 1000/500 deduction semantics.
+
+### Active/inactive cutoff rule handling
+- Cutoff activity gate now evaluates cutoff eligibility using personal BV threshold semantics for cutoff processing (strict threshold check from resolved activity state fields), instead of only relying on broader activity-window/warning behavior.
+- Inactive at cutoff:
+  - No cycle payout is applied.
+  - Carry-forward is flushed (`left/right carry => 0/0` through baseline alignment to total).
+- Active at cutoff:
+  - Unused weekly BV carries forward.
+
+### Files affected
+- `backend/utils/binary-cycle.helpers.js` (new)
+- `backend/services/admin.service.js`
+- `backend/services/cutoff.service.js`
+- `backend/services/metrics.service.js`
+- `backend/stores/metrics.store.js`
+- `backend/services/member-business-center.service.js`
+- `backend/tests/binary-cycle-cutoff.test.js` (new)
+- `package.json`
+
+### Test coverage added
+- Added Node built-in tests for requested carry-forward/cycle/flush scenarios:
+  - active 900/400 => carry-forward unchanged
+  - active 1000/500 => one cycle, zero carry
+  - active 2500/1200 and mirrored 1200/2500 => expected cycles and remainders
+  - inactive cutoff flushes carry-forward to 0/0
+  - reactivation after flush does not resurrect old flushed BV
+  - one-leg-only active carries forward
+  - one-leg-only inactive flushes to 0/0
+  - repeated cutoffs remain idempotent
+  - new weekly BV not double-counted against prior carry
+  - non-negative safeguards
+  - explicit tie-breaker validation (left strong on equal BV)
+
+### Validation
+- `node --check backend/utils/binary-cycle.helpers.js`
+- `node --check backend/services/admin.service.js`
+- `node --check backend/services/cutoff.service.js`
+- `node --check backend/services/metrics.service.js`
+- `node --check backend/stores/metrics.store.js`
+- `node --check backend/services/member-business-center.service.js`
+- `node --check backend/tests/binary-cycle-cutoff.test.js`
+- `npm.cmd run test:binary-cycle` (11/11 pass)
+
+### Known limitations / follow-ups
+- Existing UI layers may still contain hardcoded display assumptions from prior cycle-rule variants; cutoff backend is now authoritative and deterministic for payout/carry-forward behavior.
+
+## Update (2026-04-27) - Personal BV Zero Fallback Fix (Zeroone Restore)
+
+### Problem
+- `zeroone` still showed `0` Personal BV in some UI contexts even though DB records retained Personal BV.
+- Root cause: several fallback paths derived Personal BV as `starterPersonalPv - serverCutoffBaselineStarterPersonalPv`.
+- When baseline equals starter (common after cutoff baseline snapshots), fallback incorrectly resolved to `0`.
+
+### What changed
+- Reworked Personal BV fallback logic to avoid server-cutoff baseline subtraction for account activity/current Personal BV contexts.
+- Personal BV now resolves as:
+  - explicit current personal BV fields first (`currentPersonalPvBv` / `monthlyPersonalBv`)
+  - fallback to `starterPersonalPv`
+  - activity-window expiry still gates display to `0` when account window is actually expired
+- Applied in:
+  - backend activity snapshot helper
+  - member dashboard personal BV resolver
+  - Binary Tree node + root personal BV resolvers
+  - Binary Tree enrollment placement immediate node hydration
+
+### Files updated
+- `backend/utils/member-activity.helpers.js`
+- `index.html`
+- `binary-tree-next-app.mjs`
+
+### Verification
+- Live DB check for `zeroone`:
+  - `charge.member_users.current_personal_pv_bv = 1304`
+  - `charge.member_users.starter_personal_pv = 1304`
+  - `charge.registered_members.starter_personal_pv = 1304`
+- Service-level checks:
+  - `resolveMemberPersonalBvSnapshot(...)` now returns `currentPersonalPvBv: 1304` for baseline-equals-starter scenario.
+  - `getRegisteredMembers()` returns `zeroone.currentPersonalPvBv: 1304`.
+  - `getBinaryTreeMetrics({ username: 'zeroone' })` snapshot remains `accountPersonalPv: 1304`.
+- Parse checks:
+  - `node --check backend/utils/member-activity.helpers.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+
+### Notes
+- This is a logic hardening fix; no destructive data resets were applied.
+- Personal BV reset behavior remains governed by activity window/expiry timing, not weekly server-cutoff baseline deltas.
+
+## Update (2026-04-27) - Binary Tree Details Refactor to Monthly Weekly Carousel (Commission UX)
+
+### What Changed
+
+- Refactored only the left-panel `Details` card in `binary-tree-next-app.mjs` into a monthly weekly carousel model.
+- Kept Search, Favorites, side-panel shell framing, and member-status card behavior intact.
+- Added month/week carousel state and interactions:
+  - month navigation arrows
+  - week tabs (`Week 1` ... `Week 5` when applicable)
+  - horizontal swipe support on the Details card (mobile + pointer)
+- Added Details-carousel gesture routing so horizontal swipes stay inside the card while vertical touch drags hand off to panel scrolling.
+- Added browser-touch guard participation for Details drag state to reduce back-swipe/page-pan conflicts while swiping inside the card.
+
+### Weekly Card Data Model in UI
+
+- Introduced a UI snapshot model derived from existing metrics (no backend cycle logic rewrite):
+  - `totalLeftBV`
+  - `totalRightBV`
+  - `consumedLeftBV`
+  - `consumedRightBV`
+  - `availableLeftBV = totalLeftBV - consumedLeftBV`
+  - `availableRightBV = totalRightBV - consumedRightBV`
+  - cycle/strong-leg/consumed-per-week/carry-forward fields
+  - personal activity + team-generated totals
+- Updated cutoff metrics parsing (`resolveAccountOverviewServerCutoffMetricsRecord`) so the Details card can use returned total/baseline/current-week fields directly when present.
+
+### Details Card Content Now Shown
+
+- Header:
+  - `Month + Week`
+  - date range
+  - status chip: `Current Week`, `Closed Cutoff`, or `Pending`
+- Primary volume rows:
+  - `Available Left Leg BV`
+  - `Available Right Leg BV`
+- Cycle result rows:
+  - `Cycles Earned`
+  - `Strong Leg`
+  - `Left Consumed BV`
+  - `Right Consumed BV`
+- Carry-forward rows:
+  - `Left Carry Forward BV`
+  - `Right Carry Forward BV`
+  - `Carry Forward Status` (`Preserved` / `Flushed`)
+- Personal activity rows:
+  - `Personal BV`
+  - `Active Status`
+- Secondary team row:
+  - `Team Generated BV`
+- Helper text added:
+  - `Available BV is the Business Volume still usable for your next cycle.`
+  - `Consumed BV was already used for paid cycles.`
+
+### Current Week Detection
+
+- Current week is resolved from local date at render time:
+  - current month key: `YYYY-MM`
+  - week number in month: `floor((dayOfMonth - 1) / 7) + 1`
+- On node selection change, carousel defaults back to the current month + current week.
+
+### Carry Forward Across Months
+
+- Snapshot projection is continuous across week navigation (including month boundaries):
+  - future week availability starts from prior week carry-forward
+  - inactive status flushes carry-forward (`0/0`)
+- This keeps continuity behavior intact at the UI model layer, so moving from prior-month final week to next-month week 1 preserves carry-forward flow semantics.
+
+### Files Updated
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Known Limitations / Assumptions
+
+- Weekly historical snapshots are derived from currently available cutoff metrics + deterministic projection, because historical per-week records are not yet returned by current APIs.
+- Past weeks therefore render as estimated continuity views when direct historical weekly snapshots are unavailable.
+- Tried to run screenshot workflow via `screenshot.mjs` against `http://127.0.0.1:5500`, but no active local server contract was available in this workspace (`serve.mjs` missing), so visual screenshot verification could not be completed in this pass.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Carousel Cycle Fallback + Week Label Compliance
+
+- Adjusted Details-carousel fallback cycle thresholds to remain consistent with current tree cycle rule (`1000/1000`):
+  - `TREE_NEXT_DETAILS_FALLBACK_WEAK_LEG_BV` changed from `500` to `1000`.
+- Updated week tab text from compact `W#` to explicit `Week #` labels for monthly reset clarity.
+- Parse validation: `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Card Simplification (Clean Readability Pass)
+
+### What Changed
+- Reworked `drawSideNavDetailsCarouselCard(...)` for a cleaner information hierarchy and reduced visual noise.
+- Removed per-row username clutter from the Details body and replaced it with a compact active/inactive chip near member name.
+- Redesigned weekly tabs with centered, equal-width layout math to eliminate uneven spacing/gap drift:
+  - deterministic `weekTabsStartX`
+  - adaptive tab gap for 5-week months
+  - explicit tab stroke for clearer hit targets
+- Converted primary BV into two emphasized cards:
+  - `Available Left Leg BV`
+  - `Available Right Leg BV`
+- Reduced metrics density into a compact readable list:
+  - `Cycles Earned`
+  - `Strong Leg`
+  - `Consumed BV (Left / Right)`
+  - `Carry Forward BV (Left / Right)`
+  - `Carry Forward Status`
+  - `Personal BV`
+  - `Activity Status`
+  - `Team Generated BV`
+- Kept helper clarification text for Available vs Consumed BV semantics.
+
+### Design Intent
+- Make the card feel close to the previous clean state while retaining commission-week context.
+- Prioritize scanability on laptop/mobile by reducing duplicated rows and improving alignment consistency.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Card Matched to Provided Reference Style
+
+### Applied UI Match Changes
+- Reworked Details card to mirror the provided visual structure:
+  - centered avatar with active-dot overlay
+  - centered member name + username
+  - centered month with left/right chevrons and centered date range
+  - rounded week pills with blue selected state and neutral unselected state
+  - two rounded primary BV tiles (`Available Left Leg BV`, `Available Right Leg BV`)
+  - compact 6-row metrics list with horizontal dividers
+  - two bottom blue relation buttons (parent/sponsor focus actions)
+- Removed non-reference visual clutter:
+  - removed top "Details" heading from card body
+  - removed extra status chip near header
+  - removed helper copy block from bottom to keep clean visual hierarchy
+- Kept backend/logic behavior intact (carousel selection, swipe actions, BV snapshot semantics).
+
+### Week Spacing Fix
+- Week tabs now use centered equal-width layout with deterministic start offset (`weekTabsStartX`) and adaptive gap logic for 4/5-week months to avoid uneven edge gaps.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Restored Original Bottom Relation Button Style
+
+- Reverted bottom relation buttons in Details card to prior/original visual style treatment:
+  - fill colors: enabled `#D0E6FF`, disabled `#E1EBF8`
+  - text colors: enabled `#077AFF`, disabled `#7D9BC2`
+  - old icon sizing/left-anchor balance and centered label alignment
+  - rounded radius restored to previous style (`23`)
+- Kept current overall card layout and data rows intact; only bottom button styling/behavior was adjusted.
+- Validation: `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - User Profile Header Rolled Back To Older Design
+
+- Updated Details card user profile area to match older design treatment:
+  - static blue gradient avatar circle (`#8BBBF5 -> #3296F6`)
+  - clean active/inactive status dot overlay
+  - centered name/username typography and spacing aligned to original design intent
+- Kept month/week carousel behavior and bottom-button rollback unchanged.
+- Validation: `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Profile Node Initials + Old Avatar Behavior Restored
+
+- Restored old user-profile node behavior in Details header:
+  - avatar now uses legacy `drawResolvedAvatarCircle(...)` path
+  - initials render inside avatar again when no photo is present
+- Kept the newer position/layout placement (header location unchanged).
+- Validation: `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Available Left/Right BV Zero Fallback Fix
+
+- Fixed Details snapshot resolver where `Available Left/Right BV` could be forced to `0` due to stale/zero cutoff totals.
+- Added reliability guard in `resolveDetailsCarouselSnapshot(...)`:
+  - if cutoff current-week BV reads `0/0` while loop/tree fallback has positive BV, use fallback available BV source instead of stale cutoff values.
+- Normalized total BV bounds to include max of cutoff totals, volume metrics, fallback loop metrics, and resolved available values before clamping.
+- Result: Available BV tiles now surface real data when cutoff payload is stale/zeroed for selected nodes.
+- Validation: `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Stale Cutoff Override Removed For Available BV
+
+### What Changed
+
+- `binary-tree-next-app.mjs`
+  - updated `resolveNodeLoopDisplayMetrics(...)` so a cutoff payload reporting `currentWeekLeftLegBv = 0` and `currentWeekRightLegBv = 0` no longer overwrites positive subtree fallback volumes.
+  - updated `resolveDetailsCarouselSnapshot(...)` to treat subtree-derived leg volume as a hard fallback floor when resolving available BV and stale cutoff detection.
+
+### Why
+
+- Some members (for example `zerofour`) can have real subtree leg volume (e.g. left-leg `192 BV`) while cutoff metrics endpoint still returns `0/0`.
+- Prior resolver ordering accepted cutoff zeros as authoritative, causing Details tiles to render `0 BV`.
+
+### Scope / Logic Notes
+
+- Backend logic remains unchanged.
+- This patch is UI-source selection only:
+  - prefers cutoff values when valid,
+  - auto-falls back to subtree leg volumes when cutoff appears stale (`0/0` while subtree > 0).
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Available BV Tile Text Alignment Cleanup
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - refined `drawPrimaryVolumeCard(...)` text layout using center-based offsets instead of fixed top/bottom hardcoded Y positions.
+  - centered both label and value text horizontally in each tile.
+  - lifted BV value baseline upward to remove the low-sitting appearance and keep equal visual padding.
+
+### Result
+- `Available Left Leg BV` and `Available Right Leg BV` tiles now have matching internal spacing and cleaner vertical balance.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Removed Week 5 (Fixed 4-Week Monthly Carousel)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - `resolveDetailsCarouselMonthWeekCount(...)` now always returns `4`.
+  - `resolveDetailsCarouselMonthWeeks(...)` now merges overflow month days into `Week 4` by setting week-4 end date to month end.
+
+### Result
+- Carousel tabs are now always: `Week 1`, `Week 2`, `Week 3`, `Week 4`.
+- Months with 29/30/31 days no longer render `Week 5`; extra days are included in Week 4 date range.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Pre-Join Week Data Accuracy Guard
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added `resolveDetailsCarouselNodeJoinedAtMs(...)` to resolve each node's actual join/create timestamp from node metadata.
+  - updated `resolveDetailsCarouselSnapshot(...)` with a pre-join week guard:
+    - if selected week ends before node join date, week data is zeroed for BV/cycles/carry-forward/team/personal metrics.
+    - active status is set to inactive for those pre-join weeks.
+
+### Why
+- Newly created members (example: `zeroone` around April 20, 2026) should not show commission BV in earlier April weeks.
+
+### Result
+- Weeks before account creation now render clean historical zeros instead of projected current values.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Root Node Join Timestamp Propagation Fix
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - updated `createTreeNextLiveScopedRootNode(...)` to propagate join/create timestamps onto scoped root node:
+    - `createdAt`
+    - `joinedAt`
+    - `enrolledAt`
+    - `updatedAt`
+
+### Why
+- Pre-join week zeroing relied on node join timestamp. The scoped `root` node (viewer account like `zeroone`) did not include these fields, so week gating could not apply and old weeks still showed data.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Joined Date Added Under Username (Details Header)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added joined-date line directly below username in the Details card header.
+  - joined date is resolved from node metadata and rendered using existing `formatAccountOverviewJoinedDate(...)` formatter.
+  - adjusted month-navigation Y offset to preserve vertical rhythm after adding the new line.
+
+### UX Intent
+- Surface account creation anchor clearly for 30-day activity window tracking.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Header Spacing + Persistent Active Week Indicator
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - increased vertical spacing in Details header after adding Joined date line:
+    - name -> username gap
+    - username -> joined date gap
+    - joined date -> month navigation gap
+  - week-tab styling now preserves Active Week identity even when previewing another week:
+    - Active Week (not selected): green tab
+    - Selected preview week (not active): gray tab
+    - Selected + Active: blue tab
+  - added active-week dot marker on the week tab for explicit identification.
+
+### UX Result
+- Header no longer feels cramped after adding joined date.
+- Active Week remains visually identifiable while browsing other weeks.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Weekly Tabs Aligned To Server Cutoff Windows
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - replaced fixed calendar-bucket week generation with cutoff-based week generation using server cutoff weekday/time constants.
+  - each month now builds week tabs from cutoff dates occurring in that month.
+  - each week range now represents one server-cutoff cycle window (`start = cutoff day - 6`, `end = cutoff day`).
+  - current/active week anchor is now derived from `resolveNextServerCutoffDate(...)` and mapped to the matching cutoff week tab.
+
+### Behavioral Effect
+- Week tabs/date ranges now reflect actual weekly server cutoff cycles instead of static day-of-month segmentation.
+- month may show 4 or 5 week tabs depending on how many cutoff dates fall in that month.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Active Week Dot Marker Removed
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - removed the active-week corner dot marker from week tabs.
+  - retained active week color states:
+    - active-only: green
+    - selected preview-only: gray
+    - selected+active: blue
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Week Preview Transition Animation
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added dedicated Details carousel transition state (`transitionActive`, direction, from/to month-week, duration, start timestamp).
+  - added transition helpers:
+    - `clearDetailsCarouselTransition(...)`
+    - `resolveDetailsCarouselSelectionAnchor(...)`
+    - `startDetailsCarouselTransition(...)`
+    - `resolveDetailsCarouselTransitionFrame(...)`
+    - `selectDetailsCarouselWeek(...)`
+  - routed month/week navigation actions and week-tab selection through animation-aware selection flow.
+  - refactored Details card content render path to support dual-snapshot drawing:
+    - outgoing week snapshot fades/slides out
+    - incoming week snapshot fades/slides in
+  - kept swipe drag behavior intact; transitions are suppressed while drag is active to avoid gesture conflicts.
+
+### UX Result
+- Week preview changes now animate smoothly for both button navigation and swipe next/prev.
+- Data logic, server-cutoff week modeling, and BV computation remain unchanged.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Transition Simplified To Pure Fade
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - removed horizontal slide movement from the weekly preview transition.
+  - kept only a simple crossfade (`outgoing alpha down`, `incoming alpha up`) for week changes and swipe-triggered next/prev.
+
+### UX Result
+- Transition is now calmer and easier to read with no lateral motion.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Crossfade Duration Slightly Slower
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - increased `TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS` from `220` to `300`.
+
+### UX Result
+- Weekly preview fade is smoother/slower while remaining simple (no slide motion).
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Account Package BV Sync Across Enrollment + Backend
+
+### What Changed
+- `index.html`
+  - updated `FAST_TRACK_PACKAGE_META['personal-builder-pack'].bv` from `192` to `150`.
+  - updated Enroll Member preview default text from `192 BV` to `150 BV`.
+- `admin.html`
+  - updated `FAST_TRACK_PACKAGE_META['personal-builder-pack'].bv` from `192` to `150`.
+  - updated Enroll Member preview default text from `192 BV` to `150 BV`.
+- `login.html`
+  - updated `FAST_TRACK_PACKAGE_META['personal-builder-pack'].bv` from `192` to `150`.
+- `backend/services/member.service.js`
+  - updated server-side enrollment package map (`FAST_TRACK_PACKAGE_META`) for Personal package BV from `192` to `150`.
+- `backend/scripts/simulate-zeroone-live-test.mjs`
+  - updated Personal package BV fixture from `192` to `150` so simulation data matches live package rules.
+
+### Design Decisions
+- Kept Personal package price at `$192`; only BV was changed.
+- Aligned all enrollment/account-package BV maps to match Binary Tree Next package BV (`150/300/500/1000`).
+
+### Known Limitations
+- Existing accounts already stored with legacy Personal `192` BV are not auto-migrated by this patch; this change ensures new enrollment and package-meta-driven flows use `150`.
+
+### Validation
+- repo-wide scan for legacy package mappings (`bv: 192` and `192 BV`) returned no remaining code matches.
+- `cmd /c npm run test:binary-cycle` passed (`11/11` tests).
+
+## Data Fix (2026-04-27) - `zerofive` Personal BV Corrected From 192 to 150
+
+### What Changed
+- Applied a direct DB transactional correction for `zerofive` (`personal-builder-pack`) so account package BV aligns with the updated Personal package rule (`150 BV`).
+- Updated rows:
+  - `charge.member_users`
+    - `enrollment_package_bv`: `192` -> `150`
+    - `starter_personal_pv`: `192` -> `150`
+    - `current_personal_pv_bv`: `192` -> `150` (only because it exactly matched legacy starter value)
+  - `charge.registered_members`
+    - `package_bv`: `192` -> `150`
+    - `starter_personal_pv`: `192` -> `150`
+
+### Safety / Scope
+- Targeted only `username/member_username = zerofive`.
+- Guarded updates by package type (`personal-builder-pack`) and legacy value checks for starter/current fields.
+
+### Validation
+- Post-update readback confirms both records now store `150` BV values for package/starter/current fields.
+
+## Patch Update (2026-04-27) - My Store Package Earnings Split (Preferred vs Paid)
+
+### What Changed
+- `admin.html`
+  - Updated **Admin > My Store > Product Management > Package Earning** UI from tier-based rows to two rows:
+    - `Preferred Account`
+    - `Paid Member`
+  - Rewired input bindings and form parsing to use only these two package buckets.
+  - Save payload now writes canonical keys:
+    - `preferred-customer-pack`
+    - `paid-member-pack`
+  - Added backward-compatible mirrors so legacy readers still resolve values:
+    - paid value mirrored to `personal/business/infinity/legacy-builder-pack`
+    - preferred value mirrored to `membership-placement-reservation`
+  - Updated list summary line to show `BV Preferred/Paid` and `Paid Retail`.
+
+- `index.html`
+  - Unified storefront package earning resolver to a two-bucket model (`Preferred` + `Paid`).
+  - Added alias normalization so legacy package keys map into the new paid bucket.
+  - Removed legacy tier-specific store default BV/commission table (`50/48/44/38`) from storefront package-earning defaults.
+  - Paid-member settlement path now consistently resolves from one paid bucket fallback (`paid-member-pack`).
+
+### Design Decisions
+- Kept legacy alias support to avoid breaking existing stored product payloads.
+- Treated Membership Placement Reservation as Preferred for store package-earning resolution.
+- Preserved package tier logic for enrollment/rank/commission plans outside store-product package earnings.
+
+### Validation
+- Inline script syntax checks passed:
+  - `index.html` (all inline scripts)
+  - `admin.html` (all inline scripts)
+- JS syntax checks passed:
+  - `node --check backend/utils/store-product-earnings.helpers.js`
+  - `node --check backend/services/store-checkout.service.js`
+  - `node --check backend/services/store-product.service.js`
+- Scan confirms no remaining store package-earning defaults using legacy `48/44/38` BV values in the updated store resolver surfaces.
+
+## Patch Update (2026-04-27) - Preferred Tier Matrix Restored + Paid Retail Disabled
+
+### Request Clarification Applied
+- Preferred checkout should keep package-tier options:
+  - Personal: `50 BV`
+  - Business: `48 BV`
+  - Infinity: `44 BV`
+  - Legacy: `38 BV`
+- Paid member checkout should use a single BV value and **no retail commission**.
+- Retail commission is now applied only when the buyer is a preferred/free account checkout.
+
+### What Changed
+- `admin.html`
+  - Reworked Package Earnings panel to:
+    - Preferred Personal (Retail + BV)
+    - Preferred Business (Retail + BV)
+    - Preferred Infinity (Retail + BV)
+    - Preferred Legacy (Retail + BV)
+    - Paid Member (BV only)
+  - Save parser now enforces `paid-member-pack.retailCommission = 0`.
+  - Backward compatibility retained via alias mirror writes:
+    - `preferred-customer-pack` and `membership-placement-reservation` mirror Preferred Personal
+    - paid aliases (`paid_member_pack`, `paid-member`) mirror paid bucket.
+- `backend/utils/store-product-earnings.helpers.js`
+  - Canonical store earnings keys now include preferred tier package keys plus `paid-member-pack`.
+  - Defaults restored for preferred tier matrix (`50/48/44/38`) and paid default set to `retailCommission: 0, bv: 50`.
+- `backend/services/store-checkout.service.js`
+  - Preferred-buyer settlement now resolves earnings package from attribution owner package tier.
+  - Paid-buyer settlement always resolves to `paid-member-pack`.
+  - `includeRetailCommission` now true only for preferred-buyer settlement with attribution owner.
+- `index.html` and `storefront-shared.js`
+  - Updated package earning defaults/aliases to match preferred tier matrix + paid bucket model.
+  - Paid bucket defaults now carry zero retail commission.
+
+### Validation
+- `node --check backend/utils/store-product-earnings.helpers.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check storefront-shared.js` passed.
+- Inline script syntax checks passed:
+  - `admin.html`
+  - `index.html`
+
+## Patch Update (2026-04-27) - My Store Stripe Attribution Mismatch + Paid BV Surface Sync
+
+### Issue Observed
+- User dashboard My Store checkout could fail after Stripe with:
+  - Store code does not match store link. Please verify attribution details.
+
+### Root Cause
+- Checkout session payload was mixing different store identifiers:
+  - storeCode used checkoutStoreRouting.attributionKey
+  - memberStoreLink used checkoutStoreRouting.storeLink (public store code)
+- Invoice service validates that memberStoreCode and memberStoreLink store query resolve to the same code; mixed codes triggered hard reject.
+
+### Changes Applied
+- index.html
+  - Updated esolveCheckoutStoreRouting() to compute a canonical checkout store code and build link from that same code.
+  - Updated My Store Stripe payloads (regular purchase + account upgrade) to send:
+    - storeCode: checkoutStoreRouting.storeCode
+    - link remains based on same canonical code.
+- inary-tree-next-app.mjs
+  - Added paid/preferred package-earning compatibility model for featured My Store product BV display.
+  - Added /api/store-products hydration for Binary Tree My Store featured product to resolve BV from package earnings.
+  - For paid members, featured product BV now resolves from paid-member bucket (not legacy package tier fallback).
+  - Safeguard default featured BV changed to 50.
+- inary-tree-next.html
+  - Updated static review fallback label from 38 BV to 50 BV.
+
+### Validation
+- 
+ode --check binary-tree-next-app.mjs passed.
+- 
+ode --check storefront-shared.js passed.
+- 
+ode --check backend/utils/store-product-earnings.helpers.js passed.
+- 
+ode --check backend/services/store-checkout.service.js passed.
+
+## Update (2026-04-28) - Dashboard My Store Stripe Popup Return + Receipt Modal
+
+### Completed
+- `index.html`
+  - Changed My Store checkout flow (cart and account-upgrade) to open Stripe checkout in a popup window instead of redirecting the current tab.
+  - Added hosted-checkout return signaling from popup to opener tab using both:
+    - `window.opener.postMessage(...)`
+    - localStorage signal key (`member-dashboard-store-stripe-return-signal-v1`)
+  - Added receipt modal on My Store page to summarize completed purchases:
+    - invoice id, status, amount paid, BV, and date.
+  - Added popup-return handling that auto-closes the Stripe return window when it can forward completion back to the opener tab.
+  - Added signal dedupe window to prevent duplicate finalization calls when both `postMessage` and storage events fire.
+  - Updated signal-forward success logic so popup close path still proceeds if `postMessage` succeeds even when localStorage write fails.
+
+### Why
+- Keeps the member on `User Dashboard > My Store` while payment is completed in Stripe.
+- Removes confusion from full-tab redirect back to dashboard home.
+- Gives immediate transaction confirmation in the original tab via receipt-style popup.
+
+### Validation
+- Inline script parse check passed for `index.html` (`Parsed 6 inline scripts successfully.`).
+- `node --check storefront-shared.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-28) - My Store Receipt Modal Immediate Loading State
+
+### Completed
+- `index.html`
+  - Added a loading indicator block inside the My Store receipt modal header.
+  - When Stripe returns with checkout success, the receipt modal now opens immediately in `Processing` state before completion API polling finishes.
+  - Receipt modal now transitions from loading placeholders to finalized invoice data after successful completion.
+  - If completion fails, modal loading is removed and status/message are updated to a visible attention state.
+
+### Why
+- Users now get immediate visual confirmation that post-Stripe processing is in progress, instead of waiting with no modal feedback.
+
+### Validation
+- Inline script parse check passed for `index.html` (`Parsed 6 inline scripts successfully.`).
+
+## Patch Update (2026-04-27) - Cycle Threshold Fix (1000/500) For Details Calculations
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - corrected weak-leg defaults to `500`:
+    - `TREE_NEXT_DETAILS_FALLBACK_WEAK_LEG_BV = 500`
+    - `TREE_NEXT_CYCLE_RULE_WEAKER_BV = 500`
+  - removed frontend normalization that forced `cycleHigherBv >= cycleLowerBv` in cutoff metric parsing and loop display metric parsing.
+  - cycle thresholds are now read as provided (`cycleLowerBv` for strong leg, `cycleHigherBv` for weak leg) with safe minimum `1` only.
+
+### Why
+- Previous clamp caused weak-leg threshold to become `1000`, producing consumed values like `1000 / 1000` instead of expected `500 / 1000` (when right is strong).
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.

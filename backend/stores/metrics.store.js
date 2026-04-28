@@ -1,4 +1,8 @@
 import pool from '../db/db.js';
+import {
+  BINARY_CYCLE_STRONG_LEG_BV,
+  BINARY_CYCLE_WEAK_LEG_BV,
+} from '../utils/binary-cycle.helpers.js';
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -45,8 +49,8 @@ function mapDbBinaryMetricToApp(row) {
     rightLegBv: Number(row.right_leg_bv || 0),
     totalAccumulatedBv: Number(row.total_accumulated_bv || 0),
     totalCycles: Number(row.total_cycles || 0),
-    cycleLowerBv: Number(row.cycle_lower_bv || 500),
-    cycleHigherBv: Number(row.cycle_higher_bv || 1000),
+    cycleLowerBv: Number(row.cycle_lower_bv || BINARY_CYCLE_STRONG_LEG_BV),
+    cycleHigherBv: Number(row.cycle_higher_bv || BINARY_CYCLE_WEAK_LEG_BV),
     createdAt: toIsoStringOrEmpty(row.created_at),
     updatedAt: toIsoStringOrEmpty(row.updated_at),
   };
@@ -64,8 +68,8 @@ function mapAppBinaryMetricToDb(snapshot) {
     right_leg_bv: Number(snapshot?.rightLegBv || 0),
     total_accumulated_bv: Number(snapshot?.totalAccumulatedBv || 0),
     total_cycles: Number(snapshot?.totalCycles || 0),
-    cycle_lower_bv: Number(snapshot?.cycleLowerBv || 500),
-    cycle_higher_bv: Number(snapshot?.cycleHigherBv || 1000),
+    cycle_lower_bv: Number(snapshot?.cycleLowerBv || BINARY_CYCLE_STRONG_LEG_BV),
+    cycle_higher_bv: Number(snapshot?.cycleHigherBv || BINARY_CYCLE_WEAK_LEG_BV),
     created_at: snapshot?.createdAt || new Date().toISOString(),
     updated_at: snapshot?.updatedAt || new Date().toISOString(),
   };

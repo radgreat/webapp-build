@@ -3428,7 +3428,7 @@
                 </div>
                 <div class="flex items-center justify-between gap-3">
                   <span class="text-caption text-text-tertiary">Package BV</span>
-                  <span id="enroll-preview-package-bv" class="font-body font-semibold text-body text-text-primary">192 BV</span>
+                  <span id="enroll-preview-package-bv" class="font-body font-semibold text-body text-text-primary">150 BV</span>
                 </div>
                 <div class="flex items-center justify-between gap-3">
                   <span class="text-caption text-text-tertiary">Fast Track Bonus (Admin)</span>
@@ -4342,27 +4342,31 @@
                         </label>
                         <div class="rounded-xl border border-surface-border bg-surface-base/60 p-3">
                           <p class="text-caption font-medium uppercase tracking-[0.08em] text-text-tertiary">Package Earnings</p>
-                          <p class="mt-1 text-[11px] text-text-tertiary">Set retail commission and buyer BV per package.</p>
+                          <p class="mt-1 text-[11px] text-text-tertiary">Preferred checkout uses package-tier earnings. Paid member checkout uses one BV value and no retail commission.</p>
                           <div class="mt-3 grid grid-cols-1 gap-2">
                             <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2">
-                              <p class="text-caption text-text-secondary">Personal Builder</p>
-                              <input id="admin-product-personal-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                              <input id="admin-product-personal-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <p class="text-caption text-text-secondary">Preferred Personal</p>
+                              <input id="admin-product-preferred-personal-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <input id="admin-product-preferred-personal-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
                             </div>
                             <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2">
-                              <p class="text-caption text-text-secondary">Business Builder</p>
-                              <input id="admin-product-business-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                              <input id="admin-product-business-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <p class="text-caption text-text-secondary">Preferred Business</p>
+                              <input id="admin-product-preferred-business-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <input id="admin-product-preferred-business-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
                             </div>
                             <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2">
-                              <p class="text-caption text-text-secondary">Infinity Builder</p>
-                              <input id="admin-product-infinity-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                              <input id="admin-product-infinity-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <p class="text-caption text-text-secondary">Preferred Infinity</p>
+                              <input id="admin-product-preferred-infinity-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <input id="admin-product-preferred-infinity-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
                             </div>
                             <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2">
-                              <p class="text-caption text-text-secondary">Legacy Builder</p>
-                              <input id="admin-product-legacy-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                              <input id="admin-product-legacy-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <p class="text-caption text-text-secondary">Preferred Legacy</p>
+                              <input id="admin-product-preferred-legacy-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <input id="admin-product-preferred-legacy-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                            </div>
+                            <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,2fr)] items-center gap-2">
+                              <p class="text-caption text-text-secondary">Paid Member</p>
+                              <input id="admin-product-paid-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
                             </div>
                           </div>
                         </div>
@@ -5333,7 +5337,7 @@
         '🏳': 'un',
       });
       const FAST_TRACK_PACKAGE_META = {
-        'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
+        'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 150 },
         'business-builder-pack': { label: 'Business Builder Pack', price: 384, bv: 300 },
         'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
         'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 1280, bv: 1000 },
@@ -5726,7 +5730,7 @@
       let treeEnrollLastTriggerElement = null;
       let treeSettingsLastTriggerElement = null;
       const DEFAULT_TREE_TRACKPAD_ZOOM_SENSITIVITY = 0.3;
-      const CYCLE_RULE_LOWER_BV = 500;
+      const CYCLE_RULE_LOWER_BV = 1000;
       const CYCLE_RULE_HIGHER_BV = 1000;
       const ACCOUNT_OVERVIEW_TREND_STORAGE_KEY = 'charge-admin-account-overview-trend-v1';
       const accountOverviewTrendPositiveClasses = ['bg-semantic-success-bg', 'text-semantic-success'];
@@ -11320,14 +11324,15 @@
       const adminProductImagePreviewElement = document.getElementById('admin-product-image-preview');
       const adminProductPriceInput = document.getElementById('admin-product-price-input');
       const adminProductStockInput = document.getElementById('admin-product-stock-input');
-      const adminProductPersonalRetailInput = document.getElementById('admin-product-personal-retail-input');
-      const adminProductPersonalBvInput = document.getElementById('admin-product-personal-bv-input');
-      const adminProductBusinessRetailInput = document.getElementById('admin-product-business-retail-input');
-      const adminProductBusinessBvInput = document.getElementById('admin-product-business-bv-input');
-      const adminProductInfinityRetailInput = document.getElementById('admin-product-infinity-retail-input');
-      const adminProductInfinityBvInput = document.getElementById('admin-product-infinity-bv-input');
-      const adminProductLegacyRetailInput = document.getElementById('admin-product-legacy-retail-input');
-      const adminProductLegacyBvInput = document.getElementById('admin-product-legacy-bv-input');
+      const adminProductPreferredPersonalRetailInput = document.getElementById('admin-product-preferred-personal-retail-input');
+      const adminProductPreferredPersonalBvInput = document.getElementById('admin-product-preferred-personal-bv-input');
+      const adminProductPreferredBusinessRetailInput = document.getElementById('admin-product-preferred-business-retail-input');
+      const adminProductPreferredBusinessBvInput = document.getElementById('admin-product-preferred-business-bv-input');
+      const adminProductPreferredInfinityRetailInput = document.getElementById('admin-product-preferred-infinity-retail-input');
+      const adminProductPreferredInfinityBvInput = document.getElementById('admin-product-preferred-infinity-bv-input');
+      const adminProductPreferredLegacyRetailInput = document.getElementById('admin-product-preferred-legacy-retail-input');
+      const adminProductPreferredLegacyBvInput = document.getElementById('admin-product-preferred-legacy-bv-input');
+      const adminProductPaidBvInput = document.getElementById('admin-product-paid-bv-input');
       const adminProductStatusInput = document.getElementById('admin-product-status-input');
       const adminProductDescriptionInput = document.getElementById('admin-product-description-input');
       const adminProductExtraImagesInput = document.getElementById('admin-product-extra-images-input');
@@ -11364,17 +11369,99 @@
       const publicStoreCodeByUser = {
         alexm: 'CHG-7X42',
       };
+      const STORE_FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
+      const STORE_MEMBERSHIP_RESERVATION_PACKAGE_KEY = 'membership-placement-reservation';
+      const STORE_PREFERRED_PERSONAL_PACKAGE_KEY = 'personal-builder-pack';
+      const STORE_PREFERRED_BUSINESS_PACKAGE_KEY = 'business-builder-pack';
+      const STORE_PREFERRED_INFINITY_PACKAGE_KEY = 'infinity-builder-pack';
+      const STORE_PREFERRED_LEGACY_PACKAGE_KEY = 'legacy-builder-pack';
+      const STORE_PREFERRED_PACKAGE_KEYS = Object.freeze([
+        STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+        STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+        STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+        STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+      ]);
+      const STORE_PAID_MEMBER_PACKAGE_KEY = 'paid-member-pack';
       const STORE_PRODUCT_PACKAGE_KEYS = Object.freeze([
-        'personal-builder-pack',
-        'business-builder-pack',
-        'infinity-builder-pack',
-        'legacy-builder-pack',
+        ...STORE_PREFERRED_PACKAGE_KEYS,
+        STORE_PAID_MEMBER_PACKAGE_KEY,
       ]);
       const DEFAULT_STORE_PACKAGE_EARNINGS = Object.freeze({
-        'personal-builder-pack': Object.freeze({ retailCommission: 4, bv: 50 }),
-        'business-builder-pack': Object.freeze({ retailCommission: 8, bv: 48 }),
-        'infinity-builder-pack': Object.freeze({ retailCommission: 12, bv: 44 }),
-        'legacy-builder-pack': Object.freeze({ retailCommission: 20, bv: 38 }),
+        [STORE_PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
+        [STORE_PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze({ retailCommission: 8, bv: 48 }),
+        [STORE_PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze({ retailCommission: 12, bv: 44 }),
+        [STORE_PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze({ retailCommission: 20, bv: 38 }),
+        [STORE_PAID_MEMBER_PACKAGE_KEY]: Object.freeze({ retailCommission: 0, bv: 50 }),
+      });
+      const STORE_PRODUCT_PACKAGE_KEY_ALIASES = Object.freeze({
+        [STORE_PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze([
+          STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+          'personal_builder_pack',
+          'personalBuilderPack',
+          'personal',
+          'personal-pack',
+          STORE_FREE_ACCOUNT_PACKAGE_KEY,
+          STORE_MEMBERSHIP_RESERVATION_PACKAGE_KEY,
+          'membership_placement_reservation',
+          'membershipPlacementReservation',
+          'preferred_customer_pack',
+          'preferredCustomerPack',
+          'preferred-customer',
+          'free-account',
+          'freeAccount',
+          'free',
+        ]),
+        [STORE_PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze([
+          STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+          'business_builder_pack',
+          'businessBuilderPack',
+          'business',
+          'business-pack',
+        ]),
+        [STORE_PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze([
+          STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+          'infinity_builder_pack',
+          'infinityBuilderPack',
+          'infinity',
+          'achievers-pack',
+        ]),
+        [STORE_PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze([
+          STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+          'legacy_builder_pack',
+          'legacyBuilderPack',
+          'legacy',
+          'legacy-pack',
+        ]),
+        [STORE_PAID_MEMBER_PACKAGE_KEY]: Object.freeze([
+          STORE_PAID_MEMBER_PACKAGE_KEY,
+          'paid_member_pack',
+          'paidMemberPack',
+          'paid-member',
+          'paid_member',
+          'paid-member-account',
+          'paid',
+          // Backward compatibility for products saved before paid-member bucket.
+          STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+          'personal_builder_pack',
+          'personalBuilderPack',
+          'personal',
+          'personal-pack',
+          STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+          'business_builder_pack',
+          'businessBuilderPack',
+          'business',
+          'business-pack',
+          STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+          'infinity_builder_pack',
+          'infinityBuilderPack',
+          'infinity',
+          'achievers-pack',
+          STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+          'legacy_builder_pack',
+          'legacyBuilderPack',
+          'legacy',
+          'legacy-pack',
+        ]),
       });
 
       let storeProducts = [];
@@ -11486,6 +11573,20 @@
         return String(value || '').trim().toLowerCase().replace(/[_\s]+/g, '-');
       }
 
+      function normalizeStorePackageKey(value) {
+        const normalizedPackageKey = normalizePackageKey(value);
+        if (!normalizedPackageKey) {
+          return '';
+        }
+
+        const matchedPackageKey = STORE_PRODUCT_PACKAGE_KEYS.find((packageKey) => {
+          const aliases = STORE_PRODUCT_PACKAGE_KEY_ALIASES[packageKey] || [];
+          return aliases.includes(normalizedPackageKey);
+        });
+
+        return matchedPackageKey || normalizedPackageKey;
+      }
+
       function cloneDefaultPackageEarnings() {
         return STORE_PRODUCT_PACKAGE_KEYS.reduce((acc, packageKey) => {
           const defaults = DEFAULT_STORE_PACKAGE_EARNINGS[packageKey] || { retailCommission: 0, bv: 0 };
@@ -11523,21 +11624,12 @@
         const source = rawPackageEarnings && typeof rawPackageEarnings === 'object'
           ? rawPackageEarnings
           : {};
-        const legacyFallbackBv = toWholeNumber(fallbackBp, defaults['legacy-builder-pack']?.bv || 0);
 
         STORE_PRODUCT_PACKAGE_KEYS.forEach((packageKey) => {
-          const normalizedPackageKey = normalizePackageKey(packageKey);
-          const aliasKeys = [
-            packageKey,
-            normalizedPackageKey,
-            normalizedPackageKey.replace(/-/g, '_'),
-            normalizedPackageKey.replace(/-([a-z])/g, (_, character) => character.toUpperCase()),
-          ];
+          const aliasKeys = STORE_PRODUCT_PACKAGE_KEY_ALIASES[packageKey] || [packageKey];
           const sourceEntryKey = aliasKeys.find((aliasKey) => Object.prototype.hasOwnProperty.call(source, aliasKey));
           const sourceEntry = sourceEntryKey ? source[sourceEntryKey] : null;
-          const fallbackEntry = packageKey === 'legacy-builder-pack'
-            ? { ...defaults[packageKey], bv: legacyFallbackBv || defaults[packageKey].bv }
-            : defaults[packageKey];
+          const fallbackEntry = defaults[packageKey];
           defaults[packageKey] = normalizePackageEarningEntry(sourceEntry, fallbackEntry);
         });
 
@@ -11545,13 +11637,13 @@
       }
 
       function resolveProductPackageEarning(product, packageKey, fallbackBp = 0) {
-        const normalizedPackageKey = normalizePackageKey(packageKey);
+        const normalizedPackageKey = normalizeStorePackageKey(packageKey);
         const normalizedPackageEarnings = normalizeStoreProductPackageEarnings(
           product?.packageEarnings,
           fallbackBp,
         );
         return normalizedPackageEarnings[normalizedPackageKey]
-          || normalizedPackageEarnings['legacy-builder-pack']
+          || normalizedPackageEarnings[STORE_PAID_MEMBER_PACKAGE_KEY]
           || { retailCommission: 0, bv: toWholeNumber(fallbackBp, 0) };
       }
 
@@ -11635,7 +11727,7 @@
           bp,
         );
         const legacyBv = toWholeNumber(
-          packageEarnings?.['legacy-builder-pack']?.bv,
+          packageEarnings?.[STORE_PAID_MEMBER_PACKAGE_KEY]?.bv,
           bp,
         );
         const numericStock = Number(rawProduct?.stock);
@@ -11643,7 +11735,7 @@
         const description = String(rawProduct?.description || rawProduct?.summary || `${title} product description.`).trim();
         const details = parseStoreProductDetails(
           rawProduct?.details,
-          toWholeNumber(packageEarnings?.['personal-builder-pack']?.bv, legacyBv),
+          toWholeNumber(packageEarnings?.[STORE_PAID_MEMBER_PACKAGE_KEY]?.bv, legacyBv),
         );
         const image = String(rawProduct?.image || rawProduct?.imageUrl || 'https://placehold.co/1000x1250?text=Product').trim() || 'https://placehold.co/1000x1250?text=Product';
         const images = normalizeStoreProductImages(rawProduct?.images, image);
@@ -11916,29 +12008,32 @@
           adminProductStatusInput.value = 'active';
         }
         const defaultPackageEarnings = cloneDefaultPackageEarnings();
-        if (adminProductPersonalRetailInput) {
-          adminProductPersonalRetailInput.value = String(defaultPackageEarnings['personal-builder-pack'].retailCommission);
+        if (adminProductPreferredPersonalRetailInput) {
+          adminProductPreferredPersonalRetailInput.value = String(defaultPackageEarnings[STORE_PREFERRED_PERSONAL_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductPersonalBvInput) {
-          adminProductPersonalBvInput.value = String(defaultPackageEarnings['personal-builder-pack'].bv);
+        if (adminProductPreferredPersonalBvInput) {
+          adminProductPreferredPersonalBvInput.value = String(defaultPackageEarnings[STORE_PREFERRED_PERSONAL_PACKAGE_KEY].bv);
         }
-        if (adminProductBusinessRetailInput) {
-          adminProductBusinessRetailInput.value = String(defaultPackageEarnings['business-builder-pack'].retailCommission);
+        if (adminProductPreferredBusinessRetailInput) {
+          adminProductPreferredBusinessRetailInput.value = String(defaultPackageEarnings[STORE_PREFERRED_BUSINESS_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductBusinessBvInput) {
-          adminProductBusinessBvInput.value = String(defaultPackageEarnings['business-builder-pack'].bv);
+        if (adminProductPreferredBusinessBvInput) {
+          adminProductPreferredBusinessBvInput.value = String(defaultPackageEarnings[STORE_PREFERRED_BUSINESS_PACKAGE_KEY].bv);
         }
-        if (adminProductInfinityRetailInput) {
-          adminProductInfinityRetailInput.value = String(defaultPackageEarnings['infinity-builder-pack'].retailCommission);
+        if (adminProductPreferredInfinityRetailInput) {
+          adminProductPreferredInfinityRetailInput.value = String(defaultPackageEarnings[STORE_PREFERRED_INFINITY_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductInfinityBvInput) {
-          adminProductInfinityBvInput.value = String(defaultPackageEarnings['infinity-builder-pack'].bv);
+        if (adminProductPreferredInfinityBvInput) {
+          adminProductPreferredInfinityBvInput.value = String(defaultPackageEarnings[STORE_PREFERRED_INFINITY_PACKAGE_KEY].bv);
         }
-        if (adminProductLegacyRetailInput) {
-          adminProductLegacyRetailInput.value = String(defaultPackageEarnings['legacy-builder-pack'].retailCommission);
+        if (adminProductPreferredLegacyRetailInput) {
+          adminProductPreferredLegacyRetailInput.value = String(defaultPackageEarnings[STORE_PREFERRED_LEGACY_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductLegacyBvInput) {
-          adminProductLegacyBvInput.value = String(defaultPackageEarnings['legacy-builder-pack'].bv);
+        if (adminProductPreferredLegacyBvInput) {
+          adminProductPreferredLegacyBvInput.value = String(defaultPackageEarnings[STORE_PREFERRED_LEGACY_PACKAGE_KEY].bv);
+        }
+        if (adminProductPaidBvInput) {
+          adminProductPaidBvInput.value = String(defaultPackageEarnings[STORE_PAID_MEMBER_PACKAGE_KEY].bv);
         }
         setAdminProductImagePreview('');
         setAdminProductImageUploadStatus('');
@@ -11975,29 +12070,32 @@
           product?.packageEarnings,
           product?.bp,
         );
-        if (adminProductPersonalRetailInput) {
-          adminProductPersonalRetailInput.value = String(packageEarnings['personal-builder-pack'].retailCommission);
+        if (adminProductPreferredPersonalRetailInput) {
+          adminProductPreferredPersonalRetailInput.value = String(packageEarnings[STORE_PREFERRED_PERSONAL_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductPersonalBvInput) {
-          adminProductPersonalBvInput.value = String(packageEarnings['personal-builder-pack'].bv);
+        if (adminProductPreferredPersonalBvInput) {
+          adminProductPreferredPersonalBvInput.value = String(packageEarnings[STORE_PREFERRED_PERSONAL_PACKAGE_KEY].bv);
         }
-        if (adminProductBusinessRetailInput) {
-          adminProductBusinessRetailInput.value = String(packageEarnings['business-builder-pack'].retailCommission);
+        if (adminProductPreferredBusinessRetailInput) {
+          adminProductPreferredBusinessRetailInput.value = String(packageEarnings[STORE_PREFERRED_BUSINESS_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductBusinessBvInput) {
-          adminProductBusinessBvInput.value = String(packageEarnings['business-builder-pack'].bv);
+        if (adminProductPreferredBusinessBvInput) {
+          adminProductPreferredBusinessBvInput.value = String(packageEarnings[STORE_PREFERRED_BUSINESS_PACKAGE_KEY].bv);
         }
-        if (adminProductInfinityRetailInput) {
-          adminProductInfinityRetailInput.value = String(packageEarnings['infinity-builder-pack'].retailCommission);
+        if (adminProductPreferredInfinityRetailInput) {
+          adminProductPreferredInfinityRetailInput.value = String(packageEarnings[STORE_PREFERRED_INFINITY_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductInfinityBvInput) {
-          adminProductInfinityBvInput.value = String(packageEarnings['infinity-builder-pack'].bv);
+        if (adminProductPreferredInfinityBvInput) {
+          adminProductPreferredInfinityBvInput.value = String(packageEarnings[STORE_PREFERRED_INFINITY_PACKAGE_KEY].bv);
         }
-        if (adminProductLegacyRetailInput) {
-          adminProductLegacyRetailInput.value = String(packageEarnings['legacy-builder-pack'].retailCommission);
+        if (adminProductPreferredLegacyRetailInput) {
+          adminProductPreferredLegacyRetailInput.value = String(packageEarnings[STORE_PREFERRED_LEGACY_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductLegacyBvInput) {
-          adminProductLegacyBvInput.value = String(packageEarnings['legacy-builder-pack'].bv);
+        if (adminProductPreferredLegacyBvInput) {
+          adminProductPreferredLegacyBvInput.value = String(packageEarnings[STORE_PREFERRED_LEGACY_PACKAGE_KEY].bv);
+        }
+        if (adminProductPaidBvInput) {
+          adminProductPaidBvInput.value = String(packageEarnings[STORE_PAID_MEMBER_PACKAGE_KEY].bv);
         }
         if (adminProductDescriptionInput) {
           adminProductDescriptionInput.value = product.description;
@@ -12059,40 +12157,54 @@
 
         const packageInputMap = [
           {
-            key: 'personal-builder-pack',
-            label: 'Personal Builder',
-            retailInput: adminProductPersonalRetailInput,
-            bvInput: adminProductPersonalBvInput,
+            key: STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+            label: 'Preferred Personal',
+            retailInput: adminProductPreferredPersonalRetailInput,
+            bvInput: adminProductPreferredPersonalBvInput,
+            includeRetailCommission: true,
           },
           {
-            key: 'business-builder-pack',
-            label: 'Business Builder',
-            retailInput: adminProductBusinessRetailInput,
-            bvInput: adminProductBusinessBvInput,
+            key: STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+            label: 'Preferred Business',
+            retailInput: adminProductPreferredBusinessRetailInput,
+            bvInput: adminProductPreferredBusinessBvInput,
+            includeRetailCommission: true,
           },
           {
-            key: 'infinity-builder-pack',
-            label: 'Infinity Builder',
-            retailInput: adminProductInfinityRetailInput,
-            bvInput: adminProductInfinityBvInput,
+            key: STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+            label: 'Preferred Infinity',
+            retailInput: adminProductPreferredInfinityRetailInput,
+            bvInput: adminProductPreferredInfinityBvInput,
+            includeRetailCommission: true,
           },
           {
-            key: 'legacy-builder-pack',
-            label: 'Legacy Builder',
-            retailInput: adminProductLegacyRetailInput,
-            bvInput: adminProductLegacyBvInput,
+            key: STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+            label: 'Preferred Legacy',
+            retailInput: adminProductPreferredLegacyRetailInput,
+            bvInput: adminProductPreferredLegacyBvInput,
+            includeRetailCommission: true,
+          },
+          {
+            key: STORE_PAID_MEMBER_PACKAGE_KEY,
+            label: 'Paid Member',
+            bvInput: adminProductPaidBvInput,
+            includeRetailCommission: false,
           },
         ];
 
         const packageEarnings = {};
         for (const packageInputEntry of packageInputMap) {
-          const numericRetail = Number(packageInputEntry.retailInput?.value);
           const numericBv = Number(packageInputEntry.bvInput?.value);
-          if (!Number.isFinite(numericRetail) || numericRetail < 0) {
-            return {
-              ok: false,
-              message: `${packageInputEntry.label} retail commission must be a valid non-negative number.`,
-            };
+          const numericRetail = packageInputEntry.includeRetailCommission
+            ? Number(packageInputEntry.retailInput?.value)
+            : 0;
+          if (packageInputEntry.includeRetailCommission) {
+            if (!Number.isFinite(numericRetail) || numericRetail < 0) {
+              return {
+                ok: false,
+                message: `${packageInputEntry.label} retail commission must be a valid non-negative number.`,
+              };
+            }
           }
           if (!Number.isFinite(numericBv) || numericBv < 0) {
             return {
@@ -12101,12 +12213,22 @@
             };
           }
           packageEarnings[packageInputEntry.key] = {
-            retailCommission: roundCurrency(numericRetail),
+            retailCommission: packageInputEntry.includeRetailCommission
+              ? roundCurrency(numericRetail)
+              : 0,
             bv: Math.floor(numericBv),
           };
         }
 
-        const legacyBv = toWholeNumber(packageEarnings['legacy-builder-pack']?.bv, 0);
+        const paidEarning = packageEarnings[STORE_PAID_MEMBER_PACKAGE_KEY] || { retailCommission: 0, bv: 0 };
+        const preferredPersonalEarning = packageEarnings[STORE_PREFERRED_PERSONAL_PACKAGE_KEY]
+          || { retailCommission: 0, bv: 0 };
+        packageEarnings[STORE_FREE_ACCOUNT_PACKAGE_KEY] = { ...preferredPersonalEarning };
+        packageEarnings[STORE_MEMBERSHIP_RESERVATION_PACKAGE_KEY] = { ...preferredPersonalEarning };
+        packageEarnings['paid_member_pack'] = { ...paidEarning };
+        packageEarnings['paid-member'] = { ...paidEarning };
+
+        const legacyBv = toWholeNumber(packageEarnings[STORE_PAID_MEMBER_PACKAGE_KEY]?.bv, 0);
         const images = normalizeStoreProductImages(extraImagesRaw, image);
 
         return {
@@ -12246,15 +12368,19 @@
           product?.packageEarnings,
           product?.bp,
         );
-        const personalBv = toWholeNumber(packageEarnings?.['personal-builder-pack']?.bv, 0);
-        const businessBv = toWholeNumber(packageEarnings?.['business-builder-pack']?.bv, 0);
-        const infinityBv = toWholeNumber(packageEarnings?.['infinity-builder-pack']?.bv, 0);
-        const legacyBv = toWholeNumber(packageEarnings?.['legacy-builder-pack']?.bv, 0);
-        const legacyRetail = roundCurrency(packageEarnings?.['legacy-builder-pack']?.retailCommission);
+        const personalBv = toWholeNumber(packageEarnings?.[STORE_PREFERRED_PERSONAL_PACKAGE_KEY]?.bv, 0);
+        const businessBv = toWholeNumber(packageEarnings?.[STORE_PREFERRED_BUSINESS_PACKAGE_KEY]?.bv, 0);
+        const infinityBv = toWholeNumber(packageEarnings?.[STORE_PREFERRED_INFINITY_PACKAGE_KEY]?.bv, 0);
+        const legacyBv = toWholeNumber(packageEarnings?.[STORE_PREFERRED_LEGACY_PACKAGE_KEY]?.bv, 0);
+        const paidBv = toWholeNumber(packageEarnings?.[STORE_PAID_MEMBER_PACKAGE_KEY]?.bv, 0);
+        const personalRetail = roundCurrency(packageEarnings?.[STORE_PREFERRED_PERSONAL_PACKAGE_KEY]?.retailCommission);
+        const businessRetail = roundCurrency(packageEarnings?.[STORE_PREFERRED_BUSINESS_PACKAGE_KEY]?.retailCommission);
+        const infinityRetail = roundCurrency(packageEarnings?.[STORE_PREFERRED_INFINITY_PACKAGE_KEY]?.retailCommission);
+        const legacyRetail = roundCurrency(packageEarnings?.[STORE_PREFERRED_LEGACY_PACKAGE_KEY]?.retailCommission);
 
         return {
-          bvLine: `BV P/B/I/L: ${formatInteger(personalBv)}/${formatInteger(businessBv)}/${formatInteger(infinityBv)}/${formatInteger(legacyBv)}`,
-          retailLine: `Legacy Retail: ${formatCurrency(legacyRetail)}`,
+          bvLine: `BV Preferred P/B/I/L: ${formatInteger(personalBv)}/${formatInteger(businessBv)}/${formatInteger(infinityBv)}/${formatInteger(legacyBv)} · Paid: ${formatInteger(paidBv)}`,
+          retailLine: `Retail Preferred P/B/I/L: ${formatCurrency(personalRetail)}/${formatCurrency(businessRetail)}/${formatCurrency(infinityRetail)}/${formatCurrency(legacyRetail)}`,
         };
       }
 
@@ -12711,7 +12837,7 @@
         let leftLegBv = totalLeftLegBv;
         let rightLegBv = totalRightLegBv;
         const cycleLowerBv = Math.max(
-          1,
+          CYCLE_RULE_LOWER_BV,
           toWholeNumber(Number.parseInt(card.dataset.cycleBvLower || card.dataset.cycleBv || String(CYCLE_RULE_LOWER_BV), 10), CYCLE_RULE_LOWER_BV),
         );
         const cycleHigherBv = Math.max(
@@ -12785,8 +12911,8 @@
           const lowerLegBv = Math.min(leftLegBv, rightLegBv);
           const higherLegBv = Math.max(leftLegBv, rightLegBv);
           const estimatedCycles = Math.floor(Math.min(
-            lowerLegBv / cycleLowerBv,
-            higherLegBv / cycleHigherBv,
+            lowerLegBv / cycleHigherBv,
+            higherLegBv / cycleLowerBv,
           ));
           if (leftLegValue) {
             leftLegValue.textContent = leftLegBv.toLocaleString();
