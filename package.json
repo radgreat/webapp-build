@@ -3,8 +3,10 @@
   "scripts": {
     "dev": "node backend/app.js",
     "test:binary-cycle": "node --test backend/tests/binary-cycle-cutoff.test.js",
+    "test:ledger": "node --test backend/tests/ledger.service.test.js",
     "backfill:store-links": "node backend/scripts/backfill-user-store-links.mjs",
-    "backfill:preferred-customers": "node backend/scripts/backfill-preferred-customers-from-invoices.mjs"
+    "backfill:preferred-customers": "node backend/scripts/backfill-preferred-customers-from-invoices.mjs",
+    "backfill:ledger": "node backend/scripts/backfill-ledger-entries.mjs"
   },
   "dependencies": {
     "dotenv": "^17.3.1",

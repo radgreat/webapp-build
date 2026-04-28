@@ -4,7 +4,7 @@
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 330
+**Times Updated:** 334
 
 ## Overview
 
@@ -14,6 +14,288 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ?????????????????????????????????????? high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Patch Update (2026-04-28) - User Dashboard KPI: Retail Profit Card + Transfer To Wallet
+
+### What Changed
+
+- Updated dashboard KPI card layout in `index.html`:
+  - replaced `E-Wallet Balance` card with `Retail Profit` card.
+  - removed member-facing wallet mini-graph from KPI row.
+  - added new KPI CTA button: `Transfer to Wallet`.
+- Added new Retail Profit dashboard bindings in `index.html`:
+  - `dashboard-retail-profit-value`
+  - `dashboard-retail-profit-request-payout-button`
+  - runtime retail-profit balance state and render helpers using ledger summary data.
+- Added commission transfer source support for Retail Profit:
+  - frontend payout source maps now include `retailprofit`.
+  - backend wallet source meta now accepts `retailprofit`.
+  - wallet sender-id/source-key mapping now includes `commission-retailprofit` for offset tracking.
+  - wallet commission offset map defaults now include `retailprofit`.
+
+### Data Behavior
+
+- Retail Profit KPI value is ledger-driven:
+  - reads member ledger summary `byType.retail_commission.netAmount`
+  - subtracts prior wallet transfer offsets for `retailprofit` (when hydrated)
+  - result is the available amount shown on the KPI card and used by transfer CTA.
+- Transfer button behavior:
+  - uses existing `/api/e-wallet/commission-transfer` flow
+  - now posts `sourceKey=retailprofit` for Retail Profit transfers.
+
+### Files Affected
+
+- `index.html`
+- `backend/services/wallet.service.js`
+- `backend/stores/wallet.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- `node --check backend/services/wallet.service.js` passed.
+- `node --check backend/stores/wallet.store.js` passed.
+- `npm.cmd run test:ledger` passed (`6/6`).
+- `index.html` inline script parse check passed (`Parsed inline scripts: 3`).
+
+## Patch Update (2026-04-28) - Binary Tree Track Commissions Retail Profit Fetch Authorization
+
+### What Changed
+
+- Updated `binary-tree-next-app.mjs`:
+  - `fetchAccountOverviewEndpoint(...)` now attaches request headers via `buildRankAdvancementRequestHeaders(...)`.
+  - member-source requests now include `Authorization: Bearer <authToken>` for Account Overview remote sync calls.
+
+### Root Cause
+
+- Account Overview sync path was calling member-auth ledger summary endpoint (`/api/member-auth/ledger/summary`) without bearer auth headers.
+- Response was rejected and normalized to `null`, so Retail Profit fell back to non-ledger values and displayed `0` in Track Commissions.
+
+### Impact
+
+- Member-auth summary requests in Account Overview now authenticate correctly.
+- Retail Profit card can resolve the live ledger retail net amount instead of stale zero fallback behavior.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-28) - Binary Tree Account Overview Live Data Alignment
+
+### What Changed
+
+- Updated Binary Tree Next Account Overview data resolution in:
+  - `binary-tree-next-app.mjs`
+- Updated backend cutoff personal metric sourcing in:
+  - `backend/services/cutoff.service.js`
+- Account Overview resolver changes:
+  - `resolveAccountOverviewTotalOrganizationBv(...)`
+    - now prioritizes live subtree leg totals derived from current in-memory tree state (`resolveAccountOverviewLegVolumeMetrics`) before remote snapshot/cutoff fallbacks.
+  - `resolveAccountOverviewPersonalBv(...)`
+    - now prioritizes live current-PV candidates (`currentPersonalPvBv`/monthly PV on home node + session) and local activity-resolved PV before cutoff/snapshot fallbacks.
+  - `resolveAccountOverviewCommissionBalances(...)`
+    - `Sales Team Commission` card now prefers ledger `byType.sales_team_commission.netAmount` before commission-container fallback values.
+    - `Retail Profit` remained ledger-first behavior through ledger summary path.
+- Backend cutoff service update:
+  - replaced `totalPersonalPv` starter-only fallback behavior with current/live PV-first field resolution using `toFirstWholeNumber(...)`.
+
+### Why
+
+- Reported issue: Account Overview values were showing stale/older data on Binary Tree for:
+  - Total Organization BV
+  - Personal BV
+  - Retail Profit
+  - Sales Team Commission
+- Root cause pattern:
+  - fallback order favored older snapshot/starter/container values even when fresher runtime tree/ledger data existed.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check backend/services/cutoff.service.js` passed.
+- `npm.cmd run test:binary-cycle` passed (`11/11`).
+- `npm.cmd run test:ledger` passed (`6/6`).
+
+## Patch Update (2026-04-28) - Member Ledger Metadata Hidden In Commissions UI
+
+### What Changed
+
+- Updated member dashboard ledger renderer in:
+  - `index.html`
+- Removed the metadata details block from each row in the **User Dashboard > Commissions** ledger table.
+
+### Behavior
+
+- Ledger metadata is still stored in backend records for audit/debugging.
+- Metadata is no longer displayed to members in the ledger UI.
+- Entry description, source refs, IDs, amounts, BV, status, and timestamps remain visible.
+
+### Validation
+
+- Inline script parse check passed for `index.html` (`Parsed inline scripts: 3`).
+
+## Patch Update (2026-04-28) - Ledger Historical Backfill Executed (`zeroone`)
+
+### What Changed
+
+- Added a dedicated ledger backfill script:
+  - `backend/scripts/backfill-ledger-entries.mjs`
+- Added npm runner:
+  - `package.json` -> `backfill:ledger`
+- Backfill sources wired through existing services/stores (no direct ledger SQL writes):
+  - retail commission candidates from `store_invoices`
+  - fast-track candidates from `registered_members`
+  - sales-team candidates from `sales_team_commission_snapshots`
+  - payout audit/debit candidates from `payout_requests`
+- Backfill was executed for target member `zeroone`:
+  - dry-run first
+  - live run second
+  - rerun validation third (idempotency check)
+
+### Execution Result (`zeroone`)
+
+- Created ledger entries: `9`
+  - `1` retail commission (preferred-customer qualified invoice only)
+  - `3` fast-track commissions
+  - `5` payout entries (`2` paid + `3` failed audit entries)
+- Idempotency validation:
+  - second live run returned all eligible events as `idempotent` and created `0` new rows.
+
+### Design Decisions
+
+- Retail backfill is intentionally conservative:
+  - only invoices with preferred-retail signals are eligible to avoid over-crediting legacy rows where `retail_commission` historically mirrored invoice total.
+- Payout idempotency keys:
+  - kept runtime-compatible `payout:{requestId}:{userId}` for `PAID`
+  - used status-scoped keys for non-paid payout events (`FAILED`/`PENDING`) to avoid blocking future paid posting if a request lifecycle changes.
+
+### Validation
+
+- `node --check backend/scripts/backfill-ledger-entries.mjs` passed.
+- `npm.cmd run backfill:ledger -- --dry-run --username=zeroone` completed with expected counts.
+- `npm.cmd run backfill:ledger -- --username=zeroone` created entries successfully.
+- Re-run of same command showed fully idempotent behavior.
+- Direct service check:
+  - `getUserLedgerSummary` for `zeroone` returned `200` with populated values.
+- `npm.cmd run test:ledger` passed (`6/6`).
+
+### Known Limitations
+
+- Sales Team snapshot backfill is event-safe but currently no positive historical snapshot rows existed, so no Sales Team entries were created in this run.
+- Existing summary serialization currently clamps negative net values to `0` in `byStatus/byType` output (legacy helper behavior); payout debit visibility still exists through entry list and `paidOutAmount`.
+
+## Update (2026-04-28) - Dedicated Ledger System (Member + Admin + Backend Integrations)
+
+### What Was Changed
+
+- Added a dedicated ledger data model/service layer and API routes:
+  - new table bootstrap + indexes for `charge.ledger_entries`
+  - immutable-friendly entry flow (reversal entries instead of mutating historical amounts)
+  - idempotency-key support to prevent duplicate commission posting
+  - member ledger endpoints:
+    - `GET /api/member-auth/ledger`
+    - `GET /api/member-auth/ledger/summary`
+  - admin ledger endpoints:
+    - `GET /api/admin/ledger`
+    - `GET /api/admin/ledger/summary`
+    - `POST /api/admin/ledger/adjustments`
+    - `POST /api/admin/ledger/:entryId/reverse`
+- Integrated ledger writes into existing earning flows:
+  - retail commission write on store checkout commission settlement
+  - fast-track commission write on enrollment
+  - sales-team commission write on cycle settlement
+  - payout debit ledger write during admin payout fulfillment
+- Added a dedicated member Commissions ledger page in `index.html`:
+  - summary cards (total, pending, posted, available, paid out)
+  - type/status/date/search filters
+  - detailed ledger table with status/source/type and metadata drill-down
+  - Recent Activity now reads from ledger entries when available (fallback preserved)
+- Added admin ledger explorer in `admin.html`:
+  - global ledger search/filter by user/type/status/source/date
+  - summary cards + entry list with metadata
+  - manual admin adjustment form
+  - reverse action per eligible ledger row
+- Added isolated ledger service tests with dependency-injected mocks for:
+  - retail/fast-track/sales-team entry creation
+  - idempotency duplicate prevention
+  - pending vs available summary behavior contract
+  - reversal direction + original-entry status transition
+
+### Files Affected
+
+- `backend/app.js`
+- `backend/routes/ledger.routes.js`
+- `backend/controllers/ledger.controller.js`
+- `backend/services/ledger.service.js`
+- `backend/stores/ledger.store.js`
+- `backend/utils/ledger.helpers.js`
+- `backend/services/store-checkout.service.js`
+- `backend/services/member.service.js`
+- `backend/services/member-business-center.service.js`
+- `backend/services/payout.service.js`
+- `backend/tests/ledger.service.test.js`
+- `package.json`
+- `index.html`
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/BackEnd-Notes.md`
+
+### Design Decisions
+
+- Kept data immutable-oriented by introducing explicit reversal records and linking them to originals.
+- Kept existing commission and payout logic intact; ledger is integrated as an auditable sidecar source-of-truth layer.
+- Reused existing coding/style patterns in both dashboards, and avoided replacing unrelated modules.
+- Added test dependency hooks in `ledger.service.js` only for isolation-safe unit tests without DB coupling.
+
+### Known Limitations
+
+- New ledger tests validate service behavior with mocked store dependencies; they do not run against a live database in this suite.
+- Existing historical activity cards still support fallback non-ledger sources when ledger data is absent.
+
+### Validation
+
+- `node --check` passed for all touched backend ledger files.
+- Inline script parse checks passed for:
+  - `index.html`
+  - `admin.html`
+- Tests passed:
+  - `npm.cmd run test:ledger` (`6/6`)
+  - `npm.cmd run test:binary-cycle` (`11/11`)
+
+## Patch Update (2026-04-28) - Zeroone Ledger Summary Load Failure Fix (DB Bootstrap Fallback)
+
+### Issue
+
+- Member ledger summary for `zeroone` failed with:
+  - `Unable to load member ledger summary.`
+- Root cause was ledger table bootstrap depending on admin DB credentials when table installation was needed.
+
+### What Was Changed
+
+- Updated `backend/stores/ledger.store.js` bootstrap path:
+  - added primary DB install attempt first (`DB_USER`/`DB_PASSWORD` pool)
+  - admin install attempt now runs only as fallback when admin credentials are configured
+  - improved combined error reporting when both install paths fail
+- This prevents member-summary failures caused solely by admin credential auth issues.
+
+### Files Affected
+
+- `backend/stores/ledger.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/BackEnd-Notes.md`
+
+### Validation
+
+- Direct service verification for `zeroone`:
+  - `getUserLedgerSummary(...)` now returns `status: 200` with summary payload.
+- `node --check backend/stores/ledger.store.js` passed.
+- `npm.cmd run test:ledger` passed (`6/6`).
+- `npm.cmd run test:binary-cycle` passed (`11/11`).
 
 ## Update (2026-04-26) - Member Cutoff Metrics Identity Sync Hardening (Dashboard + API)
 

@@ -7,6 +7,95 @@ Updated: 2026-03-04
 
 This document tracks backend/database migration preparation from JSON mock storage to PostgreSQL.
 
+## Update (2026-04-28) - Ledger Subsystem Added (Audit + Commission + Payout Compatibility)
+
+### What Changed
+
+- Added ledger helper/store/service/controller/route stack:
+  - `backend/utils/ledger.helpers.js`
+  - `backend/stores/ledger.store.js`
+  - `backend/services/ledger.service.js`
+  - `backend/controllers/ledger.controller.js`
+  - `backend/routes/ledger.routes.js`
+- Mounted ledger routes through `backend/app.js`.
+- Ledger table bootstrap/ensure logic now manages `charge.ledger_entries` with:
+  - commission/payout/adjustment/reversal enums
+  - direction/status/source enums
+  - idempotency unique index (partial)
+  - user/status/type/source/date lookup indexes
+- Integrated event writers into existing commission flows:
+  - retail commission events
+  - fast-track enrollment events
+  - sales-team cycle events
+  - payout debit events during admin fulfillment
+- Added service-level tests with dependency injection to verify entry generation, idempotency handling, summary contract, and reversal semantics:
+  - `backend/tests/ledger.service.test.js`
+
+### Validation
+
+- `node --check` passed for touched ledger backend files.
+- `npm.cmd run test:ledger` passed (`6/6`).
+- `npm.cmd run test:binary-cycle` passed (`11/11`).
+
+## Patch (2026-04-28) - Ledger Bootstrap Credential Fallback Fix
+
+### What Changed
+
+- Updated `backend/stores/ledger.store.js` bootstrap flow so ledger table install does not rely exclusively on admin DB credentials:
+  - primary pool install attempt now runs first
+  - admin pool install attempt runs as fallback only when admin credentials are explicitly configured
+  - combined, clearer error message returned when both install paths fail
+
+### Why
+
+- Prevents member-ledger summary failures when admin DB credentials are invalid but primary DB credentials are valid.
+
+### Validation
+
+- Direct service check for `zeroone` ledger summary returned success (`200`).
+- `node --check backend/stores/ledger.store.js` passed.
+- `npm.cmd run test:ledger` passed.
+
+## Patch (2026-04-28) - Ledger Historical Backfill Script + Execution (`zeroone`)
+
+### What Changed
+
+- Added reusable ledger backfill utility:
+  - `backend/scripts/backfill-ledger-entries.mjs`
+- Added npm command:
+  - `backfill:ledger` in `package.json`
+- Script integrates via existing service APIs (no direct ledger SQL mutation), including:
+  - `createRetailCommissionLedgerEntry(...)`
+  - `createFastTrackCommissionLedgerEntry(...)`
+  - `createSalesTeamCommissionLedgerEntry(...)`
+  - `createPayoutLedgerEntry(...)`
+
+### Backfill Scope Decisions
+
+- Retail commission backfill is conservative to avoid legacy false-positives:
+  - only preferred-retail-signaled invoices are eligible.
+- Fast-track source is reconstructed from `registered_members.fast_track_bonus_amount`.
+- Payout history includes paid and failed audit-relevant entries.
+- Sales-team snapshot support included, but current dataset had no positive net rows.
+
+### Live Execution Result (`--username=zeroone`)
+
+- Created entries: `9`
+  - retail commission: `1`
+  - fast-track commission: `3`
+  - payout: `5` (`2 paid`, `3 failed`)
+  - sales-team commission: `0`
+- Re-run idempotency check:
+  - no duplicate rows created; all eligible events returned `idempotent`.
+
+### Validation
+
+- `node --check backend/scripts/backfill-ledger-entries.mjs` passed.
+- `npm.cmd run backfill:ledger -- --dry-run --username=zeroone` passed.
+- `npm.cmd run backfill:ledger -- --username=zeroone` passed.
+- repeated live run confirmed idempotent behavior.
+- `npm.cmd run test:ledger` passed (`6/6`).
+
 ## Migration Files Added
 
 | Order | File | Purpose | Status |

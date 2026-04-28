@@ -1,11 +1,96 @@
 # Member Dashboard Page Notes
 
-Last Updated: 2026-04-26
+Last Updated: 2026-04-28
 
 ## Scope
 
 - Page: `index.html`
 - Purpose: Primary authenticated member dashboard shell and module host.
+
+## Patch Update (2026-04-28) - KPI Row Update: Retail Profit Replaces E-Wallet Card
+
+### What Was Changed
+
+- Updated Dashboard KPI card row in `index.html`:
+  - replaced `E-Wallet Balance` overview card with `Retail Profit`.
+  - added Retail Profit `Transfer to Wallet` button on the card.
+- Added Retail Profit transfer source support to runtime + backend integration:
+  - frontend commission payout mappings include `retailprofit`.
+  - backend wallet commission-transfer source map supports `retailprofit`.
+  - wallet commission offsets now track `retailprofit` so available transfer amount is net-aware.
+- Retail Profit value source behavior:
+  - resolves from member ledger summary (`retail_commission` type net amount)
+  - applies commission transfer offsets to avoid overstating transferable value.
+
+### Files Affected
+
+- `index.html`
+- `backend/services/wallet.service.js`
+- `backend/stores/wallet.store.js`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check backend/services/wallet.service.js` passed.
+- `node --check backend/stores/wallet.store.js` passed.
+- `npm.cmd run test:ledger` passed (`6/6`).
+- inline script parse check passed for `index.html` (`Parsed inline scripts: 3`).
+
+## Recent Update (2026-04-28) - Dedicated Commissions Ledger Page + Recent Activity Ledger Source
+
+### What Was Changed
+
+- Added a dedicated Commissions page view in `index.html` (`data-page="commissions"`):
+  - summary cards:
+    - Total Earned
+    - Pending
+    - Posted
+    - Available
+    - Paid Out
+  - filter controls:
+    - search text
+    - type
+    - status
+    - from/to date
+  - full ledger table with:
+    - commission type
+    - amount + direction
+    - BV
+    - status badge
+    - source reference/source id
+    - description
+    - created/posted/reversed timestamps
+    - metadata details expander for audit/debugging
+- Added member-ledger API integration:
+  - `GET /api/member-auth/ledger`
+  - `GET /api/member-auth/ledger/summary`
+- Updated recent activity feed construction so ledger entries become the primary source when available.
+
+### Files Affected
+
+- `index.html`
+- `backend/routes/ledger.routes.js`
+- `backend/controllers/ledger.controller.js`
+- `backend/services/ledger.service.js`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved existing activity fallback sources to avoid blank UX if ledger data is temporarily unavailable.
+- Kept ledger rendering read-only on member side; adjustments/reversals remain admin-controlled.
+
+### Known Limitations
+
+- Recent Activity still supports legacy fallback entries in scenarios where ledger has no records.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+- Member ledger refresh/render path executes without syntax/runtime parse errors in current build checks.
 
 ## Recent Update (2026-04-26) - Server Cutoff Panel Identity Sync + `@username` Handling
 

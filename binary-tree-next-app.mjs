@@ -231,6 +231,8 @@ const ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API = '/api/sales-team-commissions
 const ACCOUNT_OVERVIEW_MEMBER_SERVER_CUTOFF_METRICS_API = '/api/member/server-cutoff-metrics';
 const ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API = '/api/commission-containers';
 const ACCOUNT_OVERVIEW_E_WALLET_API = '/api/e-wallet';
+const ACCOUNT_OVERVIEW_MEMBER_LEDGER_SUMMARY_API = '/api/member-auth/ledger/summary';
+const ACCOUNT_OVERVIEW_ADMIN_LEDGER_SUMMARY_API = '/api/admin/ledger/summary';
 const MEMBER_ACHIEVEMENTS_API = '/api/member-auth/achievements';
 const MEMBER_GOOD_LIFE_MONTHLY_API = '/api/member-auth/good-life/monthly';
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_VISIBLE_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
@@ -4716,6 +4718,7 @@ function createEmptyAccountOverviewRemoteSnapshot() {
     commissionContainerSnapshot: null,
     eWalletSnapshot: null,
     walletCommissionOffsets: null,
+    ledgerSummary: null,
     retailProfitBalance: 0,
     updatedAtMs: 0,
   };
@@ -5211,12 +5214,16 @@ async function fetchAccountOverviewEndpoint(endpoint, query = new URLSearchParam
     ? query.toString()
     : '';
   const requestUrl = queryString ? `${endpoint}?${queryString}` : endpoint;
+  const requestHeaders = buildRankAdvancementRequestHeaders({
+    Accept: 'application/json',
+  });
 
   try {
     const response = await fetch(requestUrl, {
       method: 'GET',
       cache: 'no-store',
       credentials: 'same-origin',
+      headers: requestHeaders,
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -5345,6 +5352,47 @@ function resolveAccountOverviewServerCutoffMetricsRecord(payload = null) {
     lastClosedCutoffAt: safeText(cutoffMeta?.lastClosedCutoffAt),
     latestForcedCutoffAt: safeText(cutoffMeta?.latestForcedCutoffAt),
     lastAppliedCutoffAt: safeText(cutoffMeta?.lastAppliedCutoffAt),
+  };
+}
+
+function resolveAccountOverviewLedgerSummaryRecord(payload = null) {
+  const summary = (
+    payload?.summary
+    && typeof payload.summary === 'object'
+  )
+    ? payload.summary
+    : (
+      payload?.data?.summary
+      && typeof payload.data.summary === 'object'
+        ? payload.data.summary
+        : null
+    );
+  if (!summary) {
+    return null;
+  }
+
+  const byType = summary.byType && typeof summary.byType === 'object'
+    ? summary.byType
+    : {};
+  const normalizedByType = {};
+  for (const [entryType, entryValue] of Object.entries(byType)) {
+    if (!entryType || !entryValue || typeof entryValue !== 'object') {
+      continue;
+    }
+    normalizedByType[entryType] = {
+      count: Math.max(0, Math.floor(safeNumber(entryValue.count, 0))),
+      netAmount: Math.round(Math.max(0, safeNumber(entryValue.netAmount, 0)) * 100) / 100,
+    };
+  }
+
+  return {
+    totalEarned: Math.round(Math.max(0, safeNumber(summary.totalEarned, 0)) * 100) / 100,
+    pendingBalance: Math.round(Math.max(0, safeNumber(summary.pendingBalance, 0)) * 100) / 100,
+    postedBalance: Math.round(Math.max(0, safeNumber(summary.postedBalance, 0)) * 100) / 100,
+    availableBalance: Math.round(Math.max(0, safeNumber(summary.availableBalance, 0)) * 100) / 100,
+    paidOutAmount: Math.round(Math.max(0, safeNumber(summary.paidOutAmount, 0)) * 100) / 100,
+    reversedAmount: Math.round(Math.max(0, safeNumber(summary.reversedAmount, 0)) * 100) / 100,
+    byType: normalizedByType,
   };
 }
 
@@ -5513,12 +5561,20 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
       walletQuery.set('seedBalance', seedBalance.toFixed(2));
     }
 
+    const ledgerSummaryQuery = new URLSearchParams(identityQuery.toString());
+    ledgerSummaryQuery.set('status', 'pending,posted,paid');
+    const isAdminSource = normalizeCredentialValue(safeText(state.source)) === 'admin';
+    const ledgerSummaryEndpoint = isAdminSource
+      ? ACCOUNT_OVERVIEW_ADMIN_LEDGER_SUMMARY_API
+      : ACCOUNT_OVERVIEW_MEMBER_LEDGER_SUMMARY_API;
+
     const [
       binaryTreeMetricsPayload,
       salesTeamCommissionsPayload,
       serverCutoffMetricsPayload,
       commissionContainersPayload,
       eWalletPayload,
+      ledgerSummaryPayload,
     ] = await Promise.all([
       fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_BINARY_TREE_METRICS_API, identityQuery),
       fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API, identityQuery),
@@ -5531,6 +5587,9 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
       allowAnonymous
         ? Promise.resolve(null)
         : fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_E_WALLET_API, walletQuery),
+      allowAnonymous
+        ? Promise.resolve(null)
+        : fetchAccountOverviewEndpoint(ledgerSummaryEndpoint, ledgerSummaryQuery),
     ]);
 
     const binaryTreeMetrics = normalizedScope === 'system'
@@ -5566,10 +5625,20 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
     )
       ? eWalletPayload.commissionOffsets
       : null;
+    const ledgerSummary = allowAnonymous
+      ? null
+      : resolveAccountOverviewLedgerSummaryRecord(ledgerSummaryPayload);
+    const ledgerRetailNetAmount = safeNumber(
+      ledgerSummary?.byType?.retail_commission?.netAmount,
+      Number.NaN,
+    );
 
     const retailProfitBalance = normalizedScope === 'system'
       ? 0
-      : resolveAccountOverviewRetailProfitFallback(homeNode);
+      : resolveAccountOverviewCommissionValue(
+        ledgerRetailNetAmount,
+        resolveAccountOverviewRetailProfitFallback(homeNode),
+      );
     if (!allowAnonymous && hasNodeServerCutoffMetricsIdentity(identityPayload)) {
       cacheNodeServerCutoffMetrics(identityPayload, serverCutoffMetrics, {
         fetchedAtMs: Date.now(),
@@ -5585,6 +5654,7 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
       commissionContainerSnapshot,
       eWalletSnapshot,
       walletCommissionOffsets,
+      ledgerSummary,
       retailProfitBalance,
       scope: normalizedScope,
       identity: identityPayload,
@@ -5599,6 +5669,7 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
       || serverCutoffMetrics
       || commissionContainerSnapshot
       || eWalletSnapshot
+      || ledgerSummary
       || normalizedScope === 'system'
     ) {
       accountOverviewRemoteLastSyncedAtMs = nextSnapshot.updatedAtMs;
@@ -5883,10 +5954,14 @@ function resolveAccountOverviewLegVolumeMetrics(homeNodeIdInput = 'root') {
 }
 
 function resolveAccountOverviewTotalOrganizationBv(homeNode = null) {
-  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
-  const remoteTotal = safeNumber(remoteMetrics?.totalAccumulatedBv, Number.NaN);
-  if (Number.isFinite(remoteTotal)) {
-    return Math.max(0, Math.floor(remoteTotal));
+  const homeNodeId = safeText(homeNode?.id || resolvePreferredGlobalHomeNodeId()) || 'root';
+  const legVolumeMetrics = resolveAccountOverviewLegVolumeMetrics(homeNodeId);
+  const liveLegTotal = Math.max(
+    0,
+    Math.floor(safeNumber(legVolumeMetrics.leftVolume, 0) + safeNumber(legVolumeMetrics.rightVolume, 0)),
+  );
+  if (liveLegTotal > 0) {
+    return liveLegTotal;
   }
 
   const explicitCandidates = [
@@ -5897,28 +5972,46 @@ function resolveAccountOverviewTotalOrganizationBv(homeNode = null) {
   ];
   for (const candidate of explicitCandidates) {
     const parsed = safeNumber(candidate, Number.NaN);
-    if (Number.isFinite(parsed)) {
+    if (Number.isFinite(parsed) && parsed > 0) {
       return Math.max(0, Math.floor(parsed));
     }
   }
 
-  const homeNodeId = safeText(homeNode?.id || resolvePreferredGlobalHomeNodeId()) || 'root';
-  const legVolumeMetrics = resolveAccountOverviewLegVolumeMetrics(homeNodeId);
-  return Math.max(
-    0,
-    Math.floor(safeNumber(legVolumeMetrics.leftVolume, 0) + safeNumber(legVolumeMetrics.rightVolume, 0)),
-  );
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const remoteTotal = safeNumber(remoteMetrics?.totalAccumulatedBv, Number.NaN);
+  if (Number.isFinite(remoteTotal) && remoteTotal > 0) {
+    return Math.max(0, Math.floor(remoteTotal));
+  }
+
+  const cutoffMetrics = accountOverviewRemoteSnapshot?.serverCutoffMetrics;
+  const currentWeekLeftLegBv = safeNumber(cutoffMetrics?.currentWeekLeftLegBv, Number.NaN);
+  const currentWeekRightLegBv = safeNumber(cutoffMetrics?.currentWeekRightLegBv, Number.NaN);
+  if (
+    Number.isFinite(currentWeekLeftLegBv)
+    && Number.isFinite(currentWeekRightLegBv)
+    && (currentWeekLeftLegBv > 0 || currentWeekRightLegBv > 0)
+  ) {
+    return Math.max(0, Math.floor(currentWeekLeftLegBv + currentWeekRightLegBv));
+  }
+
+  for (const candidate of explicitCandidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, Math.floor(parsed));
+    }
+  }
+  if (Number.isFinite(remoteTotal)) {
+    return Math.max(0, Math.floor(remoteTotal));
+  }
+  if (Number.isFinite(currentWeekLeftLegBv) && Number.isFinite(currentWeekRightLegBv)) {
+    return Math.max(0, Math.floor(currentWeekLeftLegBv + currentWeekRightLegBv));
+  }
+  return liveLegTotal;
 }
 
 function resolveAccountOverviewPersonalBv(homeNode = null) {
-  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
-  const remotePersonalBv = safeNumber(remoteMetrics?.accountPersonalPv, Number.NaN);
-  if (Number.isFinite(remotePersonalBv)) {
-    return Math.max(0, Math.floor(remotePersonalBv));
-  }
-
   const session = state.session && typeof state.session === 'object' ? state.session : null;
-  const candidates = [
+  const liveCandidates = [
     homeNode?.currentPersonalPvBv,
     homeNode?.current_personal_pv_bv,
     homeNode?.monthlyPersonalBv,
@@ -5928,14 +6021,54 @@ function resolveAccountOverviewPersonalBv(homeNode = null) {
     session?.monthlyPersonalBv,
     session?.monthly_personal_bv,
   ];
-  for (const candidate of candidates) {
+  for (const candidate of liveCandidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return Math.max(0, Math.floor(parsed));
+    }
+  }
+
+  const localActivityResolvedPersonalBv = Math.max(
+    0,
+    Math.floor(resolveNodeCurrentPersonalBvForActivity(homeNode)),
+  );
+  if (localActivityResolvedPersonalBv > 0) {
+    return localActivityResolvedPersonalBv;
+  }
+
+  const cutoffMetrics = accountOverviewRemoteSnapshot?.serverCutoffMetrics;
+  const currentWeekPersonalPv = safeNumber(cutoffMetrics?.currentWeekPersonalPv, Number.NaN);
+  if (Number.isFinite(currentWeekPersonalPv) && currentWeekPersonalPv > 0) {
+    return Math.max(0, Math.floor(currentWeekPersonalPv));
+  }
+
+  const cutoffTotalPersonalPv = safeNumber(cutoffMetrics?.totalPersonalPv, Number.NaN);
+  if (Number.isFinite(cutoffTotalPersonalPv) && cutoffTotalPersonalPv > 0) {
+    return Math.max(0, Math.floor(cutoffTotalPersonalPv));
+  }
+
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const remotePersonalBv = safeNumber(remoteMetrics?.accountPersonalPv, Number.NaN);
+  if (Number.isFinite(remotePersonalBv) && remotePersonalBv > 0) {
+    return Math.max(0, Math.floor(remotePersonalBv));
+  }
+
+  for (const candidate of liveCandidates) {
     const parsed = safeNumber(candidate, Number.NaN);
     if (Number.isFinite(parsed)) {
       return Math.max(0, Math.floor(parsed));
     }
   }
-
-  return Math.max(0, Math.floor(resolveNodeCurrentPersonalBvForActivity(homeNode)));
+  if (Number.isFinite(currentWeekPersonalPv)) {
+    return Math.max(0, Math.floor(currentWeekPersonalPv));
+  }
+  if (Number.isFinite(cutoffTotalPersonalPv)) {
+    return Math.max(0, Math.floor(cutoffTotalPersonalPv));
+  }
+  if (Number.isFinite(remotePersonalBv)) {
+    return Math.max(0, Math.floor(remotePersonalBv));
+  }
+  return localActivityResolvedPersonalBv;
 }
 
 function resolveAccountOverviewSalesTeamCycleProfile(packageKeyInput = ENROLL_DEFAULT_PACKAGE_KEY) {
@@ -5949,6 +6082,7 @@ function resolveAccountOverviewCycleCapMetrics(homeNode = null) {
   const session = state.session && typeof state.session === 'object' ? state.session : null;
   const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
   const salesTeamCommission = accountOverviewRemoteSnapshot?.salesTeamCommission;
+  const serverCutoffMetrics = accountOverviewRemoteSnapshot?.serverCutoffMetrics;
   const profile = resolveAccountOverviewSalesTeamCycleProfile(
     salesTeamCommission?.accountPackageKey
     || homeNode?.enrollmentPackage
@@ -5959,10 +6093,14 @@ function resolveAccountOverviewCycleCapMetrics(homeNode = null) {
     salesTeamCommission?.weeklyCapCycles,
     profile.weeklyCapCycles,
   )));
-  const totalCycles = Math.max(0, Math.floor(safeNumber(
+  const fallbackTotalCycles = Math.max(0, Math.floor(safeNumber(
     salesTeamCommission?.cappedCycles,
     salesTeamCommission?.totalCycles ?? remoteMetrics?.totalCycles ?? 0,
   )));
+  const estimatedCycles = Math.floor(safeNumber(serverCutoffMetrics?.estimatedCycles, Number.NaN));
+  const totalCycles = Number.isFinite(estimatedCycles)
+    ? Math.max(0, estimatedCycles)
+    : fallbackTotalCycles;
   const cappedCycles = weeklyCapCycles > 0
     ? Math.min(totalCycles, weeklyCapCycles)
     : totalCycles;
@@ -6040,11 +6178,18 @@ function resolveAccountOverviewCommissionValue(...candidates) {
 
 function resolveAccountOverviewCommissionBalances(homeNode = null, options = {}) {
   const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const serverCutoffMetrics = accountOverviewRemoteSnapshot?.serverCutoffMetrics;
   const commissionContainerBalances = (
     accountOverviewRemoteSnapshot?.commissionContainerSnapshot?.balances
     && typeof accountOverviewRemoteSnapshot.commissionContainerSnapshot.balances === 'object'
   )
     ? accountOverviewRemoteSnapshot.commissionContainerSnapshot.balances
+    : {};
+  const ledgerByType = (
+    accountOverviewRemoteSnapshot?.ledgerSummary?.byType
+    && typeof accountOverviewRemoteSnapshot.ledgerSummary.byType === 'object'
+  )
+    ? accountOverviewRemoteSnapshot.ledgerSummary.byType
     : {};
   const salesTeamCommission = accountOverviewRemoteSnapshot?.salesTeamCommission;
   const salesTeamCycleMetrics = resolveAccountOverviewCycleCapMetrics(homeNode);
@@ -6055,6 +6200,17 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
     || ENROLL_DEFAULT_PACKAGE_KEY,
   );
   const fallbackSalesTeamGross = salesTeamCycleMetrics.cappedCycles * Math.max(0, safeNumber(salesTeamProfile?.perCycle, 0));
+  const hasLiveSalesTeamCycleSignal = Number.isFinite(
+    safeNumber(serverCutoffMetrics?.estimatedCycles, Number.NaN),
+  );
+  const liveSalesTeamGross = hasLiveSalesTeamCycleSignal
+    ? Math.round((Math.max(0, salesTeamCycleMetrics.cappedCycles) * Math.max(0, safeNumber(
+      salesTeamCommission?.perCycleAmount,
+      salesTeamProfile?.perCycle,
+    )) + Number.EPSILON) * 100) / 100
+    : Number.NaN;
+  const ledgerRetailProfit = safeNumber(ledgerByType?.retail_commission?.netAmount, Number.NaN);
+  const ledgerSalesTeam = safeNumber(ledgerByType?.sales_team_commission?.netAmount, Number.NaN);
   const walletCommissionOffsets = (
     accountOverviewRemoteSnapshot?.walletCommissionOffsets
     && typeof accountOverviewRemoteSnapshot.walletCommissionOffsets === 'object'
@@ -6065,6 +6221,7 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
     const generatedFastTrack = resolveAccountOverviewSystemFastTrackGeneratedTotal();
     return {
       retailProfit: resolveAccountOverviewCommissionValue(
+        ledgerRetailProfit,
         walletCommissionOffsets.retailprofit,
         walletCommissionOffsets.retail,
         accountOverviewRemoteSnapshot?.retailProfitBalance,
@@ -6075,6 +6232,8 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
         generatedFastTrack,
       ),
       salesTeam: resolveAccountOverviewCommissionValue(
+        ledgerSalesTeam,
+        liveSalesTeamGross,
         commissionContainerBalances.salesteam,
         commissionContainerBalances.salesTeam,
         salesTeamCommission?.netCommissionAmount,
@@ -6093,6 +6252,7 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
   }
   return {
     retailProfit: resolveAccountOverviewCommissionValue(
+      ledgerRetailProfit,
       walletCommissionOffsets.retailprofit,
       walletCommissionOffsets.retail,
       accountOverviewRemoteSnapshot?.retailProfitBalance,
@@ -6110,6 +6270,8 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
       session?.fast_track_bonus_amount,
     ),
     salesTeam: resolveAccountOverviewCommissionValue(
+      ledgerSalesTeam,
+      liveSalesTeamGross,
       commissionContainerBalances.salesteam,
       commissionContainerBalances.salesTeam,
       salesTeamCommission?.netCommissionAmount,

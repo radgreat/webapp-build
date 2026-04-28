@@ -22,6 +22,7 @@ import memberNotificationRoutes from './routes/member-notification.routes.js';
 import memberBusinessCenterRoutes from './routes/member-business-center.routes.js';
 import preferredAttributionRoutes from './routes/preferred-attribution.routes.js';
 import stripeWebhookRoutes from './routes/stripe-webhook.routes.js';
+import ledgerRoutes from './routes/ledger.routes.js';
 import { warmRegisteredMembersStoreSchema } from './stores/member.store.js';
 import { ensureMemberUserLookupIndexes } from './stores/user.store.js';
 import { warmPreferredAttributionStoreSchema } from './stores/preferred-attribution.store.js';
@@ -63,6 +64,7 @@ app.use('/api', emailRoutes);
 app.use('/api', commissionContainerRoutes);
 app.use('/api', storeProductRoutes);
 app.use('/api', storeCheckoutRoutes);
+app.use('/api', ledgerRoutes);
 
 // temporary health check
 app.get('/api/health', (req, res) => {

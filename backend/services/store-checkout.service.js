@@ -34,6 +34,7 @@ import {
   ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE,
   isPendingOrReservationMember,
 } from '../utils/member-capability.helpers.js';
+import { createRetailCommissionLedgerEntry } from './ledger.service.js';
 
 const LEGACY_STORE_CODE_ALIASES = Object.freeze({
   'CHG-7X42': 'CHG-ZERO',
@@ -1663,6 +1664,67 @@ async function finalizeSuccessfulStoreCheckout({
           };
     }
 
+    let ownerRetailLedgerEntry = null;
+    if (
+      retailCommission > 0
+      && effectiveAttributionOwner
+      && (effectiveAttributionOwner.userId || effectiveAttributionOwner.username || effectiveAttributionOwner.email)
+    ) {
+      try {
+        const retailLedgerResult = await createRetailCommissionLedgerEntry({
+          userId: normalizeText(effectiveAttributionOwner.userId),
+          username: normalizeText(effectiveAttributionOwner.username),
+          email: normalizeEmail(effectiveAttributionOwner.email),
+          buyerUserId,
+          buyerUsername,
+          buyerEmail: buyerEmailForInvoice,
+          buyerName: resolvedBuyerName,
+          storeOwnerUserId: normalizeText(effectiveAttributionOwner.userId),
+          storeOwnerUsername: normalizeText(effectiveAttributionOwner.username),
+          storeOwnerEmail: normalizeEmail(effectiveAttributionOwner.email),
+          storeCode: memberStoreCode || attributionKey,
+          amountUsd: retailCommission,
+          bvAmount: ownerBv,
+          status: invoiceStatus,
+          sourceId: normalizeText(createdInvoice?.id || invoiceId),
+          sourceRef: normalizeText(createdInvoice?.stripeInvoiceNumber || invoiceId),
+          orderId: normalizeText(createdInvoice?.id || invoiceId),
+          invoiceId: normalizeText(createdInvoice?.id || invoiceId),
+          invoiceStatus,
+          orderReference: normalizeText(createdInvoice?.stripeInvoiceId || createdInvoice?.stripePaymentIntentId),
+          paymentReference: normalizeText(
+            createdInvoice?.stripePaymentIntentId
+            || createdInvoice?.stripeCheckoutSessionId
+            || normalizedStripeReference?.stripePaymentIntentId
+            || normalizedStripeReference?.stripeCheckoutSessionId,
+          ),
+          accountPackageKey: resolvedBuyerPackageKey || buyerPackageKey,
+          settlementPackageKey: normalizeStorePackageKey(
+            metadata.settlement_package_key
+            || metadata.settlementPackageKey
+            || '',
+          ),
+          accountPackageLabel: normalizeText(metadata.buyer_package_label || ''),
+          checkoutMode,
+          attributionKey,
+          memberStoreCode,
+          memberStoreLink,
+          description: `Retail commission from store order ${normalizeText(createdInvoice?.id || invoiceId)}`,
+          idempotencyKey: `retail_commission:${normalizeText(createdInvoice?.id || invoiceId)}:${normalizeText(effectiveAttributionOwner.userId)}`,
+          debug: {
+            buyerCreditApplied: buyerCredit?.ok === true,
+            ownerCreditApplied: ownerCredit?.ok === true,
+            isPreferredBuyerCheckout,
+          },
+        });
+
+        ownerRetailLedgerEntry = retailLedgerResult?.entry || null;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error || 'Unknown ledger error.');
+        console.warn(`[store-checkout] Unable to persist retail commission ledger entry for invoice ${invoiceId}: ${errorMessage}`);
+      }
+    }
+
     const ownerRetailCommission = {
       amount: retailCommission,
       attributed: Boolean(
@@ -1670,6 +1732,7 @@ async function finalizeSuccessfulStoreCheckout({
         && (effectiveAttributionOwner.userId || effectiveAttributionOwner.username || effectiveAttributionOwner.email),
       ),
       owner: effectiveAttributionOwner,
+      ledgerEntryId: normalizeText(ownerRetailLedgerEntry?.id),
       message: effectiveAttributionOwner
         ? (retailCommission > 0
           ? 'Retail commission mapped to attribution owner.'
@@ -1699,6 +1762,7 @@ async function finalizeSuccessfulStoreCheckout({
         buyerCredit,
         ownerCredit,
         ownerRetailCommission,
+        ledger: ownerRetailLedgerEntry ? { retailCommission: ownerRetailLedgerEntry } : null,
         ...paymentReference,
       },
     };

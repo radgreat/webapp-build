@@ -2,6 +2,29 @@
 
 ## Update Log
 
+### 2026-04-28 - Admin Ledger Explorer (Global Audit + Manual Adjustments + Reversal Actions)
+
+| Area | Change |
+|---|---|
+| Ledger Explorer UI | Added a dedicated ledger explorer block inside `admin.html` Commissions page with summary cards, count pill, filters, table, and metadata drill-down. |
+| Filtering | Added user search + text search + type/status/source/date filters wired to `/api/admin/ledger` and `/api/admin/ledger/summary`. |
+| Manual Financial Action | Added manual ledger adjustment form wired to `POST /api/admin/ledger/adjustments` (credit/debit + amount + optional BV + description). |
+| Reversal Flow | Added per-row reverse action wired to `POST /api/admin/ledger/:entryId/reverse` with audit reason prompt. |
+| Routing Integration | Added Commissions-page lifecycle refresh hook so admin ledger reloads when navigating into `Commissions`. |
+
+#### Files Updated This Pass
+- `admin.html`
+- `backend/routes/ledger.routes.js`
+- `backend/controllers/ledger.controller.js`
+- `backend/services/ledger.service.js`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+#### Notes
+- Existing payout-request fulfillment UI remains intact and now co-exists with the dedicated ledger explorer.
+- Reversal actions are designed for immutable-ledger behavior (new reversing entries instead of overwriting original amounts).
+
 ### 2026-04-17 - Admin Dashboard Modernization to User-Dashboard Theme System
 
 | Area | Change |

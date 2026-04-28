@@ -26,6 +26,7 @@ const COMMISSION_SOURCE_META = Object.freeze({
   infinitybuilder: { key: 'infinitybuilder', label: 'Infinity Tier Commission' },
   legacyleadership: { key: 'legacyleadership', label: 'Legacy Leadership Bonus' },
   salesteam: { key: 'salesteam', label: 'Sales Team Commissions' },
+  retailprofit: { key: 'retailprofit', label: 'Retail Profit' },
 });
 
 function normalizeText(value) {
@@ -198,6 +199,7 @@ async function buildWalletSnapshotForUser(user, options = {}) {
         infinitybuilder: 0,
         legacyleadership: 0,
         salesteam: 0,
+        retailprofit: 0,
       },
     };
   }

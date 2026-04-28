@@ -24,6 +24,7 @@ import {
   BINARY_CYCLE_WEAK_LEG_BV,
   resolveBinaryCycleComputation,
 } from '../utils/binary-cycle.helpers.js';
+import { createSalesTeamCommissionLedgerEntry } from './ledger.service.js';
 
 const MAX_BUSINESS_CENTER_COUNT = 3;
 const NODE_TYPE_MAIN_CENTER = 'main_center';
@@ -2951,6 +2952,49 @@ export async function settleBusinessCenterCycleCommission(payload = {}) {
       executor: client,
     });
 
+    let salesTeamLedgerEntry = null;
+    try {
+      const salesTeamLedgerResult = await createSalesTeamCommissionLedgerEntry({
+        userId: ownerUserId,
+        username: normalizeText(payload?.ownerUsername || eventResult?.event?.ownerUsername),
+        email: normalizeText(payload?.ownerEmail || eventResult?.event?.ownerEmail),
+        amountUsd: commissionAmount,
+        bvAmount: cycleComputation.usedLeftVolume + cycleComputation.usedRightVolume,
+        status: 'posted',
+        sourceId: normalizeText(eventResult?.event?.id || eventDedupKey),
+        sourceRef: normalizeText(payload?.volumeReference || sourceNodeId),
+        cycleId: normalizeText(eventResult?.event?.id || eventDedupKey),
+        cycleBatchId: `bc-cycle:${sourceNodeId}`,
+        cycleCount: cycleComputation.cycleCount,
+        leftBvUsed: cycleComputation.usedLeftVolume,
+        rightBvUsed: cycleComputation.usedRightVolume,
+        leftCarryoverBefore: leftCarryBefore,
+        rightCarryoverBefore: rightCarryBefore,
+        leftCarryoverAfter: cycleComputation.remainingLeftVolume,
+        rightCarryoverAfter: cycleComputation.remainingRightVolume,
+        commissionPeriodLabel: normalizeText(payload?.commissionPeriodLabel || 'Business Center Cycle Settlement'),
+        packageKey: normalizeText(payload?.accountPackageKey || payload?.packageKey),
+        perCycleAmount,
+        idempotencyKey: `sales_team_cycle:${normalizeText(eventResult?.event?.id || eventDedupKey)}:${ownerUserId}`,
+        description: `Sales Team commission settled from ${sourceCenterLabel} (${cycleComputation.cycleCount} cycle${cycleComputation.cycleCount === 1 ? '' : 's'})`,
+        debug: {
+          sourceNodeId,
+          sourceCenterIndex,
+          sourceCenterType,
+          sourceCenterLabel,
+          cycleLowerBv,
+          cycleHigherBv,
+          volumeReference: normalizeText(payload?.volumeReference),
+        },
+      }, {
+        executor: client,
+      });
+      salesTeamLedgerEntry = salesTeamLedgerResult?.entry || null;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error || 'Unknown ledger error.');
+      console.warn(`[BusinessCenterCycle] Unable to persist Sales Team ledger entry (${eventDedupKey}): ${errorMessage}`);
+    }
+
     await client.query('COMMIT');
     transactionClosed = true;
 
@@ -2974,6 +3018,7 @@ export async function settleBusinessCenterCycleCommission(payload = {}) {
         event: eventResult.event,
         ledgerEntry: eventResult.ledgerEntry,
         wallet: eventResult.wallet,
+        salesTeamLedgerEntry,
       },
     };
   } catch (error) {

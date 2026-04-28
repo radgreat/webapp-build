@@ -35,6 +35,17 @@ function toWholeNumber(value, fallback = 0) {
   return Math.max(0, Math.floor(numericValue));
 }
 
+function toFirstWholeNumber(candidates = [], fallback = 0) {
+  const safeCandidates = Array.isArray(candidates) ? candidates : [];
+  for (const candidate of safeCandidates) {
+    const parsed = Number(candidate);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, Math.floor(parsed));
+    }
+  }
+  return toWholeNumber(fallback, 0);
+}
+
 function getCutoffZoneOffsetMs(atDate, timeZone) {
   const offsetParts = new Intl.DateTimeFormat('en-US', {
     timeZone,
@@ -237,9 +248,24 @@ export async function getMemberServerCutoffMetrics(query = {}) {
   const totalRightLegBv = Math.max(0, toWholeNumber(matchedSnapshot?.rightLegBv, 0));
   const cycleLowerBv = CYCLE_RULE_STRONGER_BV;
   const cycleHigherBv = CYCLE_RULE_WEAKER_BV;
-  const totalPersonalPv = matchedUser
-    ? Math.max(0, toWholeNumber(matchedUser?.starterPersonalPv, toWholeNumber(matchedUser?.enrollmentPackageBv, 0)))
-    : Math.max(0, toWholeNumber(matchedMember?.starterPersonalPv, toWholeNumber(matchedMember?.packageBv, 0)));
+  const totalPersonalPv = toFirstWholeNumber([
+    matchedUser?.currentPersonalPvBv,
+    matchedUser?.current_personal_pv_bv,
+    matchedUser?.monthlyPersonalBv,
+    matchedUser?.monthly_personal_bv,
+    matchedUser?.starterPersonalPv,
+    matchedUser?.starter_personal_pv,
+    matchedUser?.enrollmentPackageBv,
+    matchedUser?.enrollment_package_bv,
+    matchedMember?.currentPersonalPvBv,
+    matchedMember?.current_personal_pv_bv,
+    matchedMember?.monthlyPersonalBv,
+    matchedMember?.monthly_personal_bv,
+    matchedMember?.starterPersonalPv,
+    matchedMember?.starter_personal_pv,
+    matchedMember?.packageBv,
+    matchedMember?.package_bv,
+  ], 0);
 
   const baselineLeftLegBv = Math.max(0, toWholeNumber(matchedState?.baselineLeftLegBv, 0));
   const baselineRightLegBv = Math.max(0, toWholeNumber(matchedState?.baselineRightLegBv, 0));

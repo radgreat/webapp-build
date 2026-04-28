@@ -3264,6 +3264,120 @@
                   </div>
                 </div>
               </div>
+
+              <div class="rounded-xl border border-surface-border bg-surface-base/30 p-4 space-y-4">
+                <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h4 class="font-body font-medium text-body text-text-primary">Ledger Explorer</h4>
+                    <p class="mt-1 text-caption text-text-secondary">Global audit feed for retail, fast-track, sales-team, payout, adjustment, and reversal entries.</p>
+                  </div>
+                  <span id="admin-ledger-count-pill" class="inline-flex items-center rounded-full border border-brand-500/25 bg-brand-500/10 px-2.5 py-1 text-caption text-brand-300">0 entries</span>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Total Earned</p>
+                    <p id="admin-ledger-total-earned" class="mt-2 font-body font-semibold text-mono-data text-text-primary">$0.00</p>
+                  </div>
+                  <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Pending</p>
+                    <p id="admin-ledger-pending-balance" class="mt-2 font-body font-semibold text-mono-data text-semantic-warning">$0.00</p>
+                  </div>
+                  <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Available</p>
+                    <p id="admin-ledger-available-balance" class="mt-2 font-body font-semibold text-mono-data text-semantic-success">$0.00</p>
+                  </div>
+                  <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Paid Out</p>
+                    <p id="admin-ledger-paid-out" class="mt-2 font-body font-semibold text-mono-data text-semantic-info">$0.00</p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                  <div class="relative">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A6.5 6.5 0 105.8 5.8a6.5 6.5 0 0010.85 10.85z"/></svg>
+                    <input id="admin-ledger-user-search-input" type="text" placeholder="User (id, username, email)" class="w-full bg-surface-base border border-surface-border rounded-lg pl-9 pr-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  </div>
+                  <div class="relative">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A6.5 6.5 0 105.8 5.8a6.5 6.5 0 0010.85 10.85z"/></svg>
+                    <input id="admin-ledger-search-input" type="text" placeholder="Search source, reference, or description" class="w-full bg-surface-base border border-surface-border rounded-lg pl-9 pr-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  </div>
+                  <select id="admin-ledger-type-filter" class="bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                    <option value="all">All types</option>
+                    <option value="retail_commission">Retail Commission</option>
+                    <option value="fast_track_commission">Fast Track Commission</option>
+                    <option value="sales_team_commission">Sales Team Commission</option>
+                    <option value="payout">Payout</option>
+                    <option value="adjustment">Adjustment</option>
+                    <option value="reversal">Reversal</option>
+                  </select>
+                  <select id="admin-ledger-status-filter" class="bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                    <option value="all">All statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="posted">Posted</option>
+                    <option value="paid">Paid</option>
+                    <option value="reversed">Reversed</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  <select id="admin-ledger-source-filter" class="bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                    <option value="all">All sources</option>
+                    <option value="order">Order</option>
+                    <option value="enrollment">Enrollment</option>
+                    <option value="binary_cycle">Binary Cycle</option>
+                    <option value="payout">Payout</option>
+                    <option value="admin_adjustment">Admin Adjustment</option>
+                  </select>
+                  <input id="admin-ledger-from-date" type="date" class="bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  <input id="admin-ledger-to-date" type="date" class="bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  <div class="flex items-center gap-2">
+                    <button id="admin-ledger-apply-filter-button" type="button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Apply
+                    </button>
+                    <button id="admin-ledger-refresh-button" type="button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Refresh
+                    </button>
+                  </div>
+                </div>
+
+                <form id="admin-ledger-adjustment-form" class="grid grid-cols-1 gap-2 rounded-xl border border-surface-border bg-surface-base/45 p-3 md:grid-cols-6">
+                  <input id="admin-ledger-adjustment-user-input" name="identifier" type="text" required placeholder="Member username/email/userId" class="md:col-span-2 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  <select id="admin-ledger-adjustment-direction-input" name="direction" class="w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                    <option value="credit">Credit</option>
+                    <option value="debit">Debit</option>
+                  </select>
+                  <input id="admin-ledger-adjustment-amount-input" name="amount" type="number" min="0.01" step="0.01" required placeholder="Amount USD" class="w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  <input id="admin-ledger-adjustment-bv-input" name="bvAmount" type="number" min="0" step="1" placeholder="BV (optional)" class="w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  <button id="admin-ledger-adjustment-submit-button" type="submit" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-500 text-text-inverse text-body-sm font-medium hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring disabled:opacity-40 disabled:cursor-not-allowed">
+                    Add Adjustment
+                  </button>
+                  <textarea id="admin-ledger-adjustment-description-input" name="description" rows="2" maxlength="240" placeholder="Adjustment reason / audit note" class="md:col-span-6 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150"></textarea>
+                </form>
+
+                <p id="admin-ledger-feedback" class="hidden text-body-sm"></p>
+
+                <div class="rounded-xl border border-surface-border bg-surface-raised overflow-hidden">
+                  <div class="overflow-x-auto">
+                    <table class="min-w-[1100px] w-full text-left">
+                      <thead class="bg-surface-base/85 border-b border-surface-border">
+                        <tr class="text-caption uppercase tracking-[0.08em] text-text-tertiary">
+                          <th class="px-4 py-3 font-medium">Member</th>
+                          <th class="px-4 py-3 font-medium">Type</th>
+                          <th class="px-4 py-3 font-medium">Amount</th>
+                          <th class="px-4 py-3 font-medium">BV</th>
+                          <th class="px-4 py-3 font-medium">Status</th>
+                          <th class="px-4 py-3 font-medium">Source</th>
+                          <th class="px-4 py-3 font-medium">Details</th>
+                          <th class="px-4 py-3 font-medium text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="admin-ledger-table-body" class="divide-y divide-surface-border"></tbody>
+                    </table>
+                  </div>
+                  <div id="admin-ledger-empty-state" class="hidden border-t border-surface-border px-4 py-4 text-body-sm text-text-secondary">
+                    No ledger entries found.
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -5296,6 +5410,30 @@
       const commissionOrderDetailFeedback = document.getElementById('commission-order-detail-feedback');
       const commissionOrderDetailEmptyState = document.getElementById('commission-order-detail-empty');
       const commissionOrderDetailContent = document.getElementById('commission-order-detail-content');
+      const adminLedgerCountPillElement = document.getElementById('admin-ledger-count-pill');
+      const adminLedgerTotalEarnedElement = document.getElementById('admin-ledger-total-earned');
+      const adminLedgerPendingBalanceElement = document.getElementById('admin-ledger-pending-balance');
+      const adminLedgerAvailableBalanceElement = document.getElementById('admin-ledger-available-balance');
+      const adminLedgerPaidOutElement = document.getElementById('admin-ledger-paid-out');
+      const adminLedgerUserSearchInput = document.getElementById('admin-ledger-user-search-input');
+      const adminLedgerSearchInput = document.getElementById('admin-ledger-search-input');
+      const adminLedgerTypeFilter = document.getElementById('admin-ledger-type-filter');
+      const adminLedgerStatusFilter = document.getElementById('admin-ledger-status-filter');
+      const adminLedgerSourceFilter = document.getElementById('admin-ledger-source-filter');
+      const adminLedgerFromDateInput = document.getElementById('admin-ledger-from-date');
+      const adminLedgerToDateInput = document.getElementById('admin-ledger-to-date');
+      const adminLedgerApplyFilterButton = document.getElementById('admin-ledger-apply-filter-button');
+      const adminLedgerRefreshButton = document.getElementById('admin-ledger-refresh-button');
+      const adminLedgerTableBody = document.getElementById('admin-ledger-table-body');
+      const adminLedgerEmptyState = document.getElementById('admin-ledger-empty-state');
+      const adminLedgerFeedback = document.getElementById('admin-ledger-feedback');
+      const adminLedgerAdjustmentForm = document.getElementById('admin-ledger-adjustment-form');
+      const adminLedgerAdjustmentUserInput = document.getElementById('admin-ledger-adjustment-user-input');
+      const adminLedgerAdjustmentDirectionInput = document.getElementById('admin-ledger-adjustment-direction-input');
+      const adminLedgerAdjustmentAmountInput = document.getElementById('admin-ledger-adjustment-amount-input');
+      const adminLedgerAdjustmentBvInput = document.getElementById('admin-ledger-adjustment-bv-input');
+      const adminLedgerAdjustmentDescriptionInput = document.getElementById('admin-ledger-adjustment-description-input');
+      const adminLedgerAdjustmentSubmitButton = document.getElementById('admin-ledger-adjustment-submit-button');
 
       const REGISTERED_MEMBERS_API = '/api/admin/registered-members';
       const MEMBER_RANKS_API = '/api/member-ranks';
@@ -5305,6 +5443,9 @@
       const ADMIN_PAYOUT_REQUESTS_API = '/api/admin/payout-requests';
       const ADMIN_PAYOUT_REQUESTS_FULFILL_BASE_API = '/api/admin/payout-requests/fulfill';
       const ADMIN_PAYOUT_REQUESTS_STATUS_API = '/api/admin/payout-requests/status';
+      const ADMIN_LEDGER_API = '/api/admin/ledger';
+      const ADMIN_LEDGER_SUMMARY_API = '/api/admin/ledger/summary';
+      const ADMIN_LEDGER_ADJUSTMENTS_API = '/api/admin/ledger/adjustments';
       const IS_ADMIN_ENROLLMENT_MODE = true;
       const ACCOUNT_ACTIVITY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
       const DEFAULT_COUNTRY_FLAG = 'un';
@@ -5404,6 +5545,21 @@
       let commissionOrdersSearchTerm = '';
       let commissionOrdersStatusFilterValue = 'all';
       let commissionOrdersSourceFilterValue = 'all';
+      let adminLedgerEntries = [];
+      let adminLedgerSummary = null;
+      let adminLedgerTotalCount = 0;
+      let adminLedgerLoading = false;
+      let adminLedgerRefreshQueued = false;
+      let adminLedgerRefreshTimerId = null;
+      const adminLedgerFilters = {
+        userSearch: '',
+        search: '',
+        type: 'all',
+        status: 'all',
+        sourceType: 'all',
+        fromDate: '',
+        toDate: '',
+      };
       if (IS_ADMIN_ENROLLMENT_MODE && fastTrackBonusValueElement) {
         fastTrackBonusValueElement.textContent = '$0.00';
       }
@@ -8274,6 +8430,686 @@
         });
       }
 
+      const ADMIN_LEDGER_TYPE_LABELS = Object.freeze({
+        retail_commission: 'Retail Commission',
+        fast_track_commission: 'Fast Track Commission',
+        sales_team_commission: 'Sales Team Commission',
+        payout: 'Payout',
+        adjustment: 'Adjustment',
+        reversal: 'Reversal',
+      });
+      const ADMIN_LEDGER_SOURCE_LABELS = Object.freeze({
+        order: 'Order',
+        enrollment: 'Enrollment',
+        binary_cycle: 'Binary Cycle',
+        payout: 'Payout',
+        admin_adjustment: 'Admin Adjustment',
+      });
+      const ADMIN_LEDGER_STATUS_BADGE_CLASS_BY_KEY = Object.freeze({
+        pending: 'border-semantic-warning/35 bg-semantic-warning-bg text-semantic-warning',
+        posted: 'border-semantic-success/35 bg-semantic-success-bg text-semantic-success',
+        paid: 'border-semantic-info/35 bg-semantic-info-bg text-semantic-info',
+        reversed: 'border-semantic-danger/35 bg-semantic-danger-bg text-semantic-danger',
+        failed: 'border-semantic-danger/35 bg-semantic-danger-bg text-semantic-danger',
+      });
+
+      function normalizeAdminLedgerTypeValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (Object.prototype.hasOwnProperty.call(ADMIN_LEDGER_TYPE_LABELS, normalized)) {
+          return normalized;
+        }
+        return '';
+      }
+
+      function normalizeAdminLedgerStatusValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (
+          normalized === 'pending'
+          || normalized === 'posted'
+          || normalized === 'paid'
+          || normalized === 'reversed'
+          || normalized === 'failed'
+        ) {
+          return normalized;
+        }
+        return '';
+      }
+
+      function normalizeAdminLedgerSourceTypeValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (Object.prototype.hasOwnProperty.call(ADMIN_LEDGER_SOURCE_LABELS, normalized)) {
+          return normalized;
+        }
+        return '';
+      }
+
+      function normalizeAdminLedgerDirectionValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (normalized === 'debit') {
+          return 'debit';
+        }
+        return 'credit';
+      }
+
+      function resolveAdminLedgerTypeLabel(typeValue) {
+        const normalized = normalizeAdminLedgerTypeValue(typeValue);
+        return ADMIN_LEDGER_TYPE_LABELS[normalized] || 'Ledger Entry';
+      }
+
+      function resolveAdminLedgerStatusLabel(statusValue) {
+        const normalized = normalizeAdminLedgerStatusValue(statusValue) || 'posted';
+        return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+      }
+
+      function resolveAdminLedgerStatusBadgeClass(statusValue) {
+        const normalized = normalizeAdminLedgerStatusValue(statusValue) || 'posted';
+        return ADMIN_LEDGER_STATUS_BADGE_CLASS_BY_KEY[normalized] || 'border-surface-border bg-surface-base text-text-secondary';
+      }
+
+      function resolveAdminLedgerSourceLabel(sourceTypeValue) {
+        const normalized = normalizeAdminLedgerSourceTypeValue(sourceTypeValue);
+        return ADMIN_LEDGER_SOURCE_LABELS[normalized] || 'Ledger Source';
+      }
+
+      function safeSerializeAdminLedgerMetadata(metadataInput) {
+        const safeMetadata = metadataInput && typeof metadataInput === 'object' && !Array.isArray(metadataInput)
+          ? metadataInput
+          : {};
+        if (Object.keys(safeMetadata).length === 0) {
+          return '';
+        }
+        try {
+          return JSON.stringify(safeMetadata, null, 2);
+        } catch {
+          return '';
+        }
+      }
+
+      function sanitizeAdminLedgerEntryRecord(entryInput = {}) {
+        if (!entryInput || typeof entryInput !== 'object') {
+          return null;
+        }
+
+        const id = String(entryInput.id || '').trim();
+        if (!id) {
+          return null;
+        }
+
+        const amountRaw = Number(entryInput.amount ?? entryInput.amountUsd ?? 0);
+        const amount = Number.isFinite(amountRaw) ? Math.max(0, amountRaw) : 0;
+        const bvAmount = Math.max(0, Number(entryInput.bvAmount) || 0);
+        const type = normalizeAdminLedgerTypeValue(entryInput.type) || 'adjustment';
+        const direction = normalizeAdminLedgerDirectionValue(entryInput.direction);
+        const status = normalizeAdminLedgerStatusValue(entryInput.status) || 'posted';
+        const sourceType = normalizeAdminLedgerSourceTypeValue(entryInput.sourceType);
+        const sourceId = String(entryInput.sourceId || '').trim();
+        const sourceRef = String(entryInput.sourceRef || '').trim();
+        const description = String(entryInput.description || '').trim();
+        const username = String(entryInput.username || '').trim();
+        const email = String(entryInput.email || '').trim();
+        const userId = String(entryInput.userId || '').trim();
+        const createdAt = String(entryInput.createdAt || '').trim();
+        const postedAt = String(entryInput.postedAt || '').trim();
+        const reversedAt = String(entryInput.reversedAt || '').trim();
+        const metadata = entryInput.metadata && typeof entryInput.metadata === 'object' && !Array.isArray(entryInput.metadata)
+          ? entryInput.metadata
+          : {};
+        const metadataText = safeSerializeAdminLedgerMetadata(metadata);
+        const occurredAtMsRaw = Date.parse(postedAt || createdAt || '');
+        const occurredAtMs = Number.isFinite(occurredAtMsRaw) ? occurredAtMsRaw : 0;
+        const memberLabel = username || email || userId || 'Member';
+
+        return {
+          id,
+          userId,
+          username,
+          email,
+          memberLabel,
+          type,
+          direction,
+          status,
+          sourceType,
+          sourceId,
+          sourceRef,
+          description,
+          amount,
+          bvAmount,
+          metadata,
+          metadataText,
+          createdAt,
+          postedAt,
+          reversedAt,
+          occurredAtMs,
+          typeLabel: resolveAdminLedgerTypeLabel(type),
+          statusLabel: resolveAdminLedgerStatusLabel(status),
+          sourceLabel: resolveAdminLedgerSourceLabel(sourceType),
+        };
+      }
+
+      function sanitizeAdminLedgerSummaryRecord(summaryInput = {}) {
+        const source = summaryInput && typeof summaryInput === 'object' ? summaryInput : {};
+        return {
+          totalEarned: Math.max(0, Number(source.totalEarned) || 0),
+          pendingBalance: Math.max(0, Number(source.pendingBalance) || 0),
+          postedBalance: Math.max(0, Number(source.postedBalance) || 0),
+          availableBalance: Math.max(0, Number(source.availableBalance) || 0),
+          paidOutAmount: Math.max(0, Number(source.paidOutAmount) || 0),
+          reversedAmount: Math.max(0, Number(source.reversedAmount) || 0),
+        };
+      }
+
+      function setAdminLedgerFeedback(message, tone = 'info') {
+        if (!adminLedgerFeedback) {
+          return;
+        }
+
+        const safeMessage = String(message || '').trim();
+        if (!safeMessage) {
+          adminLedgerFeedback.textContent = '';
+          adminLedgerFeedback.classList.add('hidden');
+          adminLedgerFeedback.classList.remove('text-semantic-success', 'text-semantic-danger', 'text-text-secondary');
+          return;
+        }
+
+        const toneKey = normalizeMemberKey(tone);
+        adminLedgerFeedback.textContent = safeMessage;
+        adminLedgerFeedback.classList.remove('hidden', 'text-semantic-success', 'text-semantic-danger', 'text-text-secondary');
+        if (toneKey === 'success') {
+          adminLedgerFeedback.classList.add('text-semantic-success');
+        } else if (toneKey === 'error' || toneKey === 'danger' || toneKey === 'failed') {
+          adminLedgerFeedback.classList.add('text-semantic-danger');
+        } else {
+          adminLedgerFeedback.classList.add('text-text-secondary');
+        }
+      }
+
+      function renderAdminLedgerSummary() {
+        const summary = sanitizeAdminLedgerSummaryRecord(adminLedgerSummary);
+        if (adminLedgerTotalEarnedElement) {
+          adminLedgerTotalEarnedElement.textContent = formatCurrency(summary.totalEarned);
+        }
+        if (adminLedgerPendingBalanceElement) {
+          adminLedgerPendingBalanceElement.textContent = formatCurrency(summary.pendingBalance);
+        }
+        if (adminLedgerAvailableBalanceElement) {
+          adminLedgerAvailableBalanceElement.textContent = formatCurrency(summary.availableBalance);
+        }
+        if (adminLedgerPaidOutElement) {
+          adminLedgerPaidOutElement.textContent = formatCurrency(summary.paidOutAmount);
+        }
+      }
+
+      function renderAdminLedgerTable() {
+        if (!adminLedgerTableBody || !adminLedgerEmptyState) {
+          return;
+        }
+
+        const safeEntries = Array.isArray(adminLedgerEntries) ? adminLedgerEntries : [];
+        if (adminLedgerCountPillElement) {
+          adminLedgerCountPillElement.textContent = `${Math.max(0, Number(adminLedgerTotalCount) || safeEntries.length).toLocaleString()} entries`;
+        }
+
+        if (safeEntries.length === 0) {
+          adminLedgerTableBody.innerHTML = '';
+          adminLedgerEmptyState.classList.remove('hidden');
+          adminLedgerEmptyState.textContent = adminLedgerLoading
+            ? 'Loading ledger entries...'
+            : 'No ledger entries match your filters.';
+          return;
+        }
+
+        adminLedgerEmptyState.classList.add('hidden');
+        adminLedgerTableBody.innerHTML = safeEntries.map((entry) => {
+          const safeEntry = sanitizeAdminLedgerEntryRecord(entry);
+          if (!safeEntry) {
+            return '';
+          }
+
+          const amountLabelBase = formatCurrency(safeEntry.amount);
+          const amountIsCredit = safeEntry.direction === 'credit';
+          const amountClassName = amountIsCredit ? 'text-semantic-success' : 'text-semantic-danger';
+          const amountLabel = `${amountIsCredit ? '+' : '-'}${amountLabelBase}`;
+          const statusClassName = resolveAdminLedgerStatusBadgeClass(safeEntry.status);
+          const createdLabel = formatPayoutQueueTimestamp(safeEntry.createdAt);
+          const postedLabel = safeEntry.postedAt ? formatPayoutQueueTimestamp(safeEntry.postedAt) : '--';
+          const reversedLabel = safeEntry.reversedAt ? formatPayoutQueueTimestamp(safeEntry.reversedAt) : '--';
+          const sourceRefLabel = safeEntry.sourceRef || safeEntry.sourceId || '--';
+          const canReverse = safeEntry.status !== 'reversed' && safeEntry.type !== 'reversal' && safeEntry.amount > 0;
+          const metadataDetails = safeEntry.metadataText
+            ? `
+                <details class="mt-2 rounded-lg border border-surface-border bg-surface-base/55 p-2">
+                  <summary class="cursor-pointer text-caption text-text-secondary hover:text-text-primary">Metadata</summary>
+                  <pre class="mt-2 max-h-44 overflow-auto rounded bg-surface-base p-2 text-[11px] leading-4 text-text-secondary">${escapeHtml(safeEntry.metadataText)}</pre>
+                </details>
+              `
+            : '';
+          const reverseActionMarkup = canReverse
+            ? `
+                <button
+                  type="button"
+                  data-admin-ledger-reverse="${escapeHtml(safeEntry.id)}"
+                  class="inline-flex items-center justify-center gap-2 rounded-lg border border-surface-border bg-surface-base px-3 py-1.5 text-body-sm text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]"
+                >
+                  Reverse
+                </button>
+              `
+            : '<span class="text-caption text-text-tertiary">--</span>';
+
+          return `
+            <tr class="bg-transparent hover:bg-surface-base/45 transition-colors duration-150">
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm font-medium text-text-primary">${escapeHtml(safeEntry.memberLabel)}</p>
+                <p class="mt-1 font-mono text-[10px] text-text-tertiary">${escapeHtml(safeEntry.email || safeEntry.userId || '--')}</p>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm font-medium text-text-primary">${escapeHtml(safeEntry.typeLabel)}</p>
+                <p class="mt-1 text-caption text-text-tertiary">${escapeHtml(safeEntry.sourceLabel)}</p>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm font-semibold ${amountClassName}">${escapeHtml(amountLabel)}</p>
+              </td>
+              <td class="px-4 py-3 align-top text-body-sm text-text-primary">${escapeHtml(String(Math.max(0, Number(safeEntry.bvAmount) || 0)))}</td>
+              <td class="px-4 py-3 align-top">
+                <span class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-caption ${statusClassName}">${escapeHtml(safeEntry.statusLabel)}</span>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="font-mono text-[11px] text-text-primary">${escapeHtml(sourceRefLabel)}</p>
+                <p class="mt-1 font-mono text-[10px] text-text-tertiary">${escapeHtml(safeEntry.sourceId || '--')}</p>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm text-text-primary">${escapeHtml(safeEntry.description || 'Ledger event')}</p>
+                <p class="mt-1 text-caption text-text-tertiary">Entry: <span class="font-mono">${escapeHtml(safeEntry.id)}</span></p>
+                <p class="mt-1 text-caption text-text-tertiary">Created ${escapeHtml(createdLabel)} · Posted ${escapeHtml(postedLabel)} · Reversed ${escapeHtml(reversedLabel)}</p>
+                ${metadataDetails}
+              </td>
+              <td class="px-4 py-3 align-top text-right">
+                ${reverseActionMarkup}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      function syncAdminLedgerFilterUi() {
+        if (adminLedgerUserSearchInput) {
+          adminLedgerUserSearchInput.value = adminLedgerFilters.userSearch;
+        }
+        if (adminLedgerSearchInput) {
+          adminLedgerSearchInput.value = adminLedgerFilters.search;
+        }
+        if (adminLedgerTypeFilter) {
+          adminLedgerTypeFilter.value = adminLedgerFilters.type;
+        }
+        if (adminLedgerStatusFilter) {
+          adminLedgerStatusFilter.value = adminLedgerFilters.status;
+        }
+        if (adminLedgerSourceFilter) {
+          adminLedgerSourceFilter.value = adminLedgerFilters.sourceType;
+        }
+        if (adminLedgerFromDateInput) {
+          adminLedgerFromDateInput.value = adminLedgerFilters.fromDate;
+        }
+        if (adminLedgerToDateInput) {
+          adminLedgerToDateInput.value = adminLedgerFilters.toDate;
+        }
+      }
+
+      function applyAdminLedgerFilterStateFromUi() {
+        adminLedgerFilters.userSearch = String(adminLedgerUserSearchInput?.value || '').trim();
+        adminLedgerFilters.search = String(adminLedgerSearchInput?.value || '').trim();
+        adminLedgerFilters.type = normalizeAdminLedgerTypeValue(adminLedgerTypeFilter?.value) || 'all';
+        adminLedgerFilters.status = normalizeAdminLedgerStatusValue(adminLedgerStatusFilter?.value) || 'all';
+        adminLedgerFilters.sourceType = normalizeAdminLedgerSourceTypeValue(adminLedgerSourceFilter?.value) || 'all';
+        adminLedgerFilters.fromDate = String(adminLedgerFromDateInput?.value || '').trim();
+        adminLedgerFilters.toDate = String(adminLedgerToDateInput?.value || '').trim();
+      }
+
+      function buildAdminLedgerQueryParams(filters = {}) {
+        const query = new URLSearchParams();
+        const safeUserSearch = String(filters.userSearch || '').trim();
+        const safeSearch = String(filters.search || '').trim();
+        const safeType = normalizeAdminLedgerTypeValue(filters.type);
+        const safeStatus = normalizeAdminLedgerStatusValue(filters.status);
+        const safeSourceType = normalizeAdminLedgerSourceTypeValue(filters.sourceType);
+        const safeFromDate = String(filters.fromDate || '').trim();
+        const safeToDate = String(filters.toDate || '').trim();
+
+        if (safeUserSearch) {
+          query.set('userSearch', safeUserSearch);
+        }
+        if (safeSearch) {
+          query.set('search', safeSearch);
+        }
+        if (safeType) {
+          query.set('type', safeType);
+        }
+        if (safeStatus) {
+          query.set('status', safeStatus);
+        }
+        if (safeSourceType) {
+          query.set('sourceType', safeSourceType);
+        }
+        if (safeFromDate) {
+          query.set('fromDate', safeFromDate);
+        }
+        if (safeToDate) {
+          query.set('toDate', safeToDate);
+        }
+        query.set('limit', '120');
+        query.set('offset', '0');
+        return query;
+      }
+
+      async function loadAdminLedgerSummary() {
+        const query = buildAdminLedgerQueryParams(adminLedgerFilters);
+        const response = await fetch(`${ADMIN_LEDGER_SUMMARY_API}?${query.toString()}`, {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof payload?.error === 'string'
+            ? payload.error
+            : `Unable to load admin ledger summary (${response.status}).`;
+          throw new Error(message);
+        }
+
+        adminLedgerSummary = sanitizeAdminLedgerSummaryRecord(payload?.summary);
+        renderAdminLedgerSummary();
+        return adminLedgerSummary;
+      }
+
+      async function loadAdminLedgerEntries() {
+        const query = buildAdminLedgerQueryParams(adminLedgerFilters);
+        const response = await fetch(`${ADMIN_LEDGER_API}?${query.toString()}`, {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof payload?.error === 'string'
+            ? payload.error
+            : `Unable to load admin ledger entries (${response.status}).`;
+          throw new Error(message);
+        }
+
+        const rawEntries = Array.isArray(payload?.entries) ? payload.entries : [];
+        adminLedgerEntries = rawEntries
+          .map((entry) => sanitizeAdminLedgerEntryRecord(entry))
+          .filter(Boolean)
+          .sort((left, right) => (right.occurredAtMs || 0) - (left.occurredAtMs || 0));
+        adminLedgerTotalCount = Math.max(0, Number(payload?.totalCount) || adminLedgerEntries.length);
+        renderAdminLedgerTable();
+        return adminLedgerEntries;
+      }
+
+      async function refreshAdminLedger(options = {}) {
+        if (adminLedgerLoading) {
+          if (options.force !== true) {
+            adminLedgerRefreshQueued = true;
+            return;
+          }
+        }
+
+        adminLedgerLoading = true;
+        if (!options.silent) {
+          setAdminLedgerFeedback('Refreshing ledger...', 'info');
+        }
+        renderAdminLedgerTable();
+
+        try {
+          await Promise.all([
+            loadAdminLedgerSummary(),
+            loadAdminLedgerEntries(),
+          ]);
+          if (!options.silent) {
+            setAdminLedgerFeedback('Ledger updated.', 'success');
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to refresh admin ledger.';
+          if (!options.silent) {
+            setAdminLedgerFeedback(message, 'error');
+          }
+        } finally {
+          adminLedgerLoading = false;
+          renderAdminLedgerTable();
+          if (adminLedgerRefreshQueued) {
+            adminLedgerRefreshQueued = false;
+            if (adminLedgerRefreshTimerId !== null) {
+              window.clearTimeout(adminLedgerRefreshTimerId);
+            }
+            adminLedgerRefreshTimerId = window.setTimeout(() => {
+              adminLedgerRefreshTimerId = null;
+              void refreshAdminLedger({ force: true, silent: true });
+            }, 250);
+          }
+        }
+      }
+
+      async function createAdminLedgerAdjustmentFromUi() {
+        const identifier = String(adminLedgerAdjustmentUserInput?.value || '').trim();
+        const amountValue = Number(adminLedgerAdjustmentAmountInput?.value || 0);
+        const direction = normalizeAdminLedgerDirectionValue(adminLedgerAdjustmentDirectionInput?.value || 'credit');
+        const description = String(adminLedgerAdjustmentDescriptionInput?.value || '').trim();
+        const bvValueRaw = String(adminLedgerAdjustmentBvInput?.value || '').trim();
+        const bvAmount = bvValueRaw ? Math.max(0, Math.floor(Number(bvValueRaw) || 0)) : 0;
+        const amount = Number.isFinite(amountValue) ? Math.max(0, amountValue) : 0;
+
+        if (!identifier) {
+          throw new Error('Member identifier is required for adjustment.');
+        }
+        if (amount <= 0) {
+          throw new Error('Adjustment amount must be greater than 0.');
+        }
+
+        const response = await fetch(ADMIN_LEDGER_ADJUSTMENTS_API, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            identifier,
+            direction,
+            amount,
+            bvAmount,
+            description,
+            adminActor: currentSessionUser?.username || currentSessionUser?.name || 'admin',
+            metadata: {
+              createdFrom: 'admin-ledger-ui',
+            },
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof payload?.error === 'string'
+            ? payload.error
+            : `Unable to create adjustment (${response.status}).`;
+          throw new Error(message);
+        }
+
+        const entry = sanitizeAdminLedgerEntryRecord(payload?.entry);
+        if (!entry) {
+          throw new Error('Adjustment was saved but entry payload was invalid.');
+        }
+
+        return {
+          idempotent: Boolean(payload?.idempotent),
+          entry,
+        };
+      }
+
+      async function reverseAdminLedgerEntryById(entryId) {
+        const safeEntryId = String(entryId || '').trim();
+        if (!safeEntryId) {
+          return;
+        }
+
+        const reason = window.prompt(
+          'Provide a reversal reason for audit trail:',
+          'Admin correction.',
+        );
+        if (reason === null) {
+          return;
+        }
+
+        const response = await fetch(`${ADMIN_LEDGER_API}/${encodeURIComponent(safeEntryId)}/reverse`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reason: String(reason || '').trim() || 'Admin correction.',
+            description: String(reason || '').trim() || 'Admin correction.',
+            metadata: {
+              reversedFrom: 'admin-ledger-ui',
+              adminActor: currentSessionUser?.username || currentSessionUser?.name || 'admin',
+            },
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof payload?.error === 'string'
+            ? payload.error
+            : `Unable to reverse ledger entry (${response.status}).`;
+          throw new Error(message);
+        }
+
+        return {
+          idempotent: Boolean(payload?.idempotent),
+          originalEntry: sanitizeAdminLedgerEntryRecord(payload?.originalEntry),
+          reversalEntry: sanitizeAdminLedgerEntryRecord(payload?.reversalEntry),
+        };
+      }
+
+      function initializeAdminLedgerModule() {
+        syncAdminLedgerFilterUi();
+        renderAdminLedgerSummary();
+        renderAdminLedgerTable();
+
+        if (adminLedgerApplyFilterButton && adminLedgerApplyFilterButton.dataset.bound !== 'true') {
+          adminLedgerApplyFilterButton.dataset.bound = 'true';
+          adminLedgerApplyFilterButton.addEventListener('click', () => {
+            applyAdminLedgerFilterStateFromUi();
+            void refreshAdminLedger({ force: true });
+          });
+        }
+
+        if (adminLedgerRefreshButton && adminLedgerRefreshButton.dataset.bound !== 'true') {
+          adminLedgerRefreshButton.dataset.bound = 'true';
+          adminLedgerRefreshButton.addEventListener('click', () => {
+            applyAdminLedgerFilterStateFromUi();
+            void refreshAdminLedger({ force: true });
+          });
+        }
+
+        if (adminLedgerSearchInput && adminLedgerSearchInput.dataset.bound !== 'true') {
+          adminLedgerSearchInput.dataset.bound = 'true';
+          adminLedgerSearchInput.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter') {
+              return;
+            }
+            event.preventDefault();
+            applyAdminLedgerFilterStateFromUi();
+            void refreshAdminLedger({ force: true });
+          });
+        }
+
+        if (adminLedgerUserSearchInput && adminLedgerUserSearchInput.dataset.bound !== 'true') {
+          adminLedgerUserSearchInput.dataset.bound = 'true';
+          adminLedgerUserSearchInput.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter') {
+              return;
+            }
+            event.preventDefault();
+            applyAdminLedgerFilterStateFromUi();
+            void refreshAdminLedger({ force: true });
+          });
+        }
+
+        if (adminLedgerAdjustmentForm && adminLedgerAdjustmentForm.dataset.bound !== 'true') {
+          adminLedgerAdjustmentForm.dataset.bound = 'true';
+          adminLedgerAdjustmentForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            if (typeof adminLedgerAdjustmentForm.reportValidity === 'function' && !adminLedgerAdjustmentForm.reportValidity()) {
+              return;
+            }
+
+            setAdminLedgerFeedback('');
+            if (adminLedgerAdjustmentSubmitButton) {
+              adminLedgerAdjustmentSubmitButton.disabled = true;
+            }
+
+            createAdminLedgerAdjustmentFromUi()
+              .then((result) => {
+                setAdminLedgerFeedback(
+                  result.idempotent
+                    ? `Adjustment already exists for entry ${result.entry.id}.`
+                    : `Adjustment added for ${result.entry.memberLabel}.`,
+                  'success',
+                );
+                if (adminLedgerAdjustmentAmountInput) {
+                  adminLedgerAdjustmentAmountInput.value = '';
+                }
+                if (adminLedgerAdjustmentBvInput) {
+                  adminLedgerAdjustmentBvInput.value = '';
+                }
+                if (adminLedgerAdjustmentDescriptionInput) {
+                  adminLedgerAdjustmentDescriptionInput.value = '';
+                }
+                void refreshAdminLedger({ force: true, silent: true });
+              })
+              .catch((error) => {
+                const message = error instanceof Error ? error.message : 'Unable to create ledger adjustment.';
+                setAdminLedgerFeedback(message, 'error');
+              })
+              .finally(() => {
+                if (adminLedgerAdjustmentSubmitButton) {
+                  adminLedgerAdjustmentSubmitButton.disabled = false;
+                }
+              });
+          });
+        }
+
+        if (adminLedgerTableBody && adminLedgerTableBody.dataset.bound !== 'true') {
+          adminLedgerTableBody.dataset.bound = 'true';
+          adminLedgerTableBody.addEventListener('click', (event) => {
+            const reverseButton = event.target.closest('[data-admin-ledger-reverse]');
+            if (!reverseButton) {
+              return;
+            }
+
+            const entryId = String(reverseButton.dataset.adminLedgerReverse || '').trim();
+            if (!entryId) {
+              return;
+            }
+
+            reverseButton.disabled = true;
+            setAdminLedgerFeedback('');
+            reverseAdminLedgerEntryById(entryId)
+              .then((result) => {
+                setAdminLedgerFeedback(
+                  result.idempotent
+                    ? `Entry ${entryId} was already reversed.`
+                    : `Entry ${entryId} reversed successfully.`,
+                  'success',
+                );
+                void refreshAdminLedger({ force: true, silent: true });
+              })
+              .catch((error) => {
+                const message = error instanceof Error ? error.message : 'Unable to reverse ledger entry.';
+                setAdminLedgerFeedback(message, 'error');
+              })
+              .finally(() => {
+                reverseButton.disabled = false;
+              });
+          });
+        }
+      }
+
       function resolvePayoutSourceLabel(sourceKeyInput) {
         const sourceKey = normalizeMemberKey(sourceKeyInput);
         if (sourceKey === 'fasttrack') {
@@ -9608,6 +10444,8 @@
         clearCommissionOrdersFeedback();
         renderCommissionOrdersFeed();
         renderCommissionOrderDetailPanel();
+        setAdminLedgerFeedback('');
+        initializeAdminLedgerModule();
 
         if (commissionOrdersRefreshButton) {
           commissionOrdersRefreshButton.addEventListener('click', () => {
@@ -13274,6 +14112,11 @@
             const message = error instanceof Error ? error.message : 'Unable to load commissions.';
             setCommissionOrdersFeedback(message, false);
           });
+        }
+
+        if (nextPage === 'commissions') {
+          applyAdminLedgerFilterStateFromUi();
+          void refreshAdminLedger({ force: true, silent: true });
         }
 
         if (nextPage === 'commission-order') {

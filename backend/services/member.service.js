@@ -52,6 +52,7 @@ import {
   readCommissionContainerByUserId,
   upsertCommissionContainerByUserId,
 } from '../stores/commission-container.store.js';
+import { createFastTrackCommissionLedgerEntry } from './ledger.service.js';
 
 const DEFAULT_ATTRIBUTION_STORE_CODE = 'REGISTRATION_LOCKED';
 const DEFAULT_ENROLLMENT_RETURN_PATH = '/binary-tree-next.html';
@@ -1758,6 +1759,11 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
       isAdminPlacement,
       enrollmentContext: isAdminPlacement ? 'admin' : 'member',
       authenticatedMember: payload?.authenticatedMember || null,
+      enrollmentSourceId: normalizeText(paymentIntent?.id || paymentIntentId || metadata.invoice_id),
+      enrollmentOrderReference: normalizeText(metadata.invoice_id || ''),
+      paymentReference: normalizeText(paymentIntent?.id || paymentIntentId || ''),
+      paymentIntentId: normalizeText(paymentIntent?.id || paymentIntentId || ''),
+      paymentStatus: normalizeText(paymentIntent?.status || ''),
     });
 
     if (!registrationResult.success) {
@@ -2276,11 +2282,50 @@ export async function createRegisteredMember(payload) {
     }
     await upsertMockUserRecord(newUser, { client, preferInsert: true });
     await upsertRegisteredMemberRecord(createdMember, { client, preferInsert: true });
-    await creditSponsorFastTrackCommissionContainer({
+    const sponsorFastTrackCreditResult = await creditSponsorFastTrackCommissionContainer({
       sponsorUser: matchedSponsorUser,
       fastTrackBonusAmount,
       client,
     });
+    if (fastTrackBonusAmount > 0 && matchedSponsorUser) {
+      try {
+        const sponsorLedgerUserId = normalizeText(matchedSponsorUser?.id || matchedSponsorUser?.userId);
+        await createFastTrackCommissionLedgerEntry({
+          userId: sponsorLedgerUserId,
+          username: normalizeText(matchedSponsorUser?.username),
+          email: normalizeText(matchedSponsorUser?.email),
+          sponsorUserId: sponsorLedgerUserId,
+          sponsorUsername: normalizeText(matchedSponsorUser?.username),
+          sponsorEmail: normalizeText(matchedSponsorUser?.email),
+          sponsorFastTrackTier: resolvedSponsorFastTrackTier,
+          enrolledUserId: normalizeText(createdMember?.userId || newUser?.id),
+          enrolledUsername: normalizeText(createdMember?.memberUsername || newUser?.username),
+          enrolledEmail: normalizeText(createdMember?.email || newUser?.email),
+          enrolledName: normalizeText(createdMember?.fullName || newUser?.name),
+          enrollmentId: normalizeText(payload?.enrollmentSourceId || createdMember?.id),
+          orderReference: normalizeText(payload?.enrollmentOrderReference || payload?.invoiceId || payload?.invoice_id),
+          paymentReference: normalizeText(payload?.paymentReference || payload?.paymentIntentId || payload?.checkoutSessionId),
+          packageKey: enrollmentPackage,
+          packageLabel: packageMeta?.label,
+          amountUsd: fastTrackBonusAmount,
+          status: sponsorFastTrackCreditResult ? 'posted' : 'failed',
+          sourceId: normalizeText(payload?.enrollmentSourceId || createdMember?.id),
+          sourceRef: normalizeText(payload?.enrollmentOrderReference || payload?.invoiceId || payload?.paymentIntentId || createdMember?.id),
+          idempotencyKey: `fast_track:${normalizeText(payload?.enrollmentSourceId || createdMember?.id)}:${sponsorLedgerUserId}`,
+          description: `Fast Track commission from enrollment ${normalizeText(createdMember?.memberUsername || createdMember?.id)}`,
+          debug: {
+            isAdminPlacement,
+            creditApplied: Boolean(sponsorFastTrackCreditResult),
+            enrollmentContext,
+          },
+        }, {
+          executor: client,
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error || 'Unknown ledger error.');
+        console.warn(`[MemberEnrollment] Unable to persist Fast Track ledger entry for ${normalizeText(createdMember?.id)}: ${errorMessage}`);
+      }
+    }
     await upsertPasswordSetupTokenRecord(tokenRecord, { client, preferInsert: true });
     await insertMockEmailOutboxRecord(emailLogRecord, { client, preferInsert: true });
     await client.query('COMMIT');
@@ -3545,6 +3590,41 @@ export async function upgradeMemberAccount(payload, options = {}) {
               fastTrackBonusAmount: fastTrackUpgradeBonusAmount,
             });
             fastTrackUpgradeBonusApplied = Boolean(fastTrackCreditResult);
+            try {
+              const sponsorLedgerUserId = normalizeText(matchedSponsorUser?.id || matchedSponsorUser?.userId);
+              await createFastTrackCommissionLedgerEntry({
+                userId: sponsorLedgerUserId,
+                username: normalizeText(matchedSponsorUser?.username),
+                email: normalizeText(matchedSponsorUser?.email),
+                sponsorUserId: sponsorLedgerUserId,
+                sponsorUsername: normalizeText(matchedSponsorUser?.username),
+                sponsorEmail: normalizeText(matchedSponsorUser?.email),
+                sponsorFastTrackTier: resolvedSponsorFastTrackTier,
+                enrolledUserId: normalizeText(matchedUser?.id),
+                enrolledUsername: normalizeText(matchedUser?.username),
+                enrolledEmail: normalizeText(matchedUser?.email),
+                enrolledName: normalizeText(matchedUser?.name),
+                enrollmentId: `upgrade:${normalizeText(matchedUser?.id)}:${targetPackageKey}`,
+                orderReference: normalizeText(payload?.orderReference || payload?.invoiceId || payload?.invoice_id),
+                paymentReference: normalizeText(payload?.paymentReference || payload?.paymentIntentId || payload?.checkoutSessionId),
+                packageKey: targetPackageKey,
+                packageLabel: nextPackageMeta?.label,
+                amountUsd: fastTrackUpgradeBonusAmount,
+                status: fastTrackUpgradeBonusApplied ? 'posted' : 'failed',
+                sourceId: `upgrade:${normalizeText(matchedUser?.id)}:${targetPackageKey}`,
+                sourceRef: normalizeText(payload?.orderReference || payload?.invoiceId || targetPackageKey),
+                idempotencyKey: `fast_track:upgrade:${normalizeText(matchedUser?.id)}:${targetPackageKey}:${sponsorLedgerUserId}`,
+                description: `Fast Track commission from first paid upgrade (${targetPackageKey})`,
+                debug: {
+                  source: 'account-upgrade',
+                  sponsorResolutionSource: sponsorResolutionSourceLabel,
+                  creditApplied: fastTrackUpgradeBonusApplied,
+                },
+              });
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error || 'Unknown ledger error.');
+              console.warn(`[AccountUpgrade] Unable to persist Fast Track ledger entry for ${normalizeText(matchedUser?.id)}: ${errorMessage}`);
+            }
             fastTrackUpgradeBonusMessage = fastTrackUpgradeBonusApplied
               ? `Fast Track bonus credited to ${sponsorResolutionSourceLabel} from first paid upgrade.`
               : 'First paid upgrade completed, but Fast Track commission wallet write failed.';

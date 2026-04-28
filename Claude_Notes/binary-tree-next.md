@@ -4316,3 +4316,52 @@ ode --check binary-tree-next-app.mjs passed.
 
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-28) - Account Overview Live Metrics Source Priority Fix
+
+### What Changed
+
+- Updated `binary-tree-next-app.mjs` Account Overview metric resolvers so live values are preferred over stale snapshot/container fallbacks.
+- `Total Organization BV` now prefers current in-memory tree leg totals from `resolveAccountOverviewLegVolumeMetrics(...)`.
+- `Personal BV` now prefers live current-PV fields (`currentPersonalPvBv` / monthly PV) and activity-resolved PV before cutoff/snapshot fallback values.
+- `Sales Team Commission` card now prefers ledger summary type net amount before older commission-container fallback values.
+- `Retail Profit` remains ledger-first through the new account-overview ledger summary snapshot path.
+
+### Backend Alignment
+
+- Updated `backend/services/cutoff.service.js`:
+  - `getMemberServerCutoffMetrics(...)` now resolves `totalPersonalPv` using current/live personal PV fields first (with starter/package fallback only when needed).
+  - added helper `toFirstWholeNumber(...)` for deterministic field priority parsing.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `backend/services/cutoff.service.js`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check backend/services/cutoff.service.js` passed.
+- `npm.cmd run test:binary-cycle` passed (`11/11`).
+- `npm.cmd run test:ledger` passed (`6/6`).
+
+## Update (2026-04-28) - Track Commissions Retail Profit Member-Auth Header Fix
+
+### What Changed
+
+- Updated `binary-tree-next-app.mjs` account-overview remote fetch helper:
+  - `fetchAccountOverviewEndpoint(...)` now uses `buildRankAdvancementRequestHeaders(...)`.
+  - member-source requests now include bearer authorization headers.
+
+### Root Cause
+
+- Track Commissions was requesting `/api/member-auth/ledger/summary` without auth headers.
+- Ledger summary response normalized to `null`, which forced Retail Profit fallback to `0`.
+
+### Outcome
+
+- Retail Profit card in Track Commissions can now resolve ledger-backed retail net amount for authenticated members.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.

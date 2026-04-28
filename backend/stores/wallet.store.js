@@ -5,6 +5,7 @@ const COMMISSION_SOURCE_KEY_TO_TRANSFER_ID = Object.freeze({
   infinitybuilder: 'commission-infinitybuilder',
   legacyleadership: 'commission-legacyleadership',
   salesteam: 'commission-salesteam',
+  retailprofit: 'commission-retailprofit',
 });
 
 const TRANSFER_ID_TO_COMMISSION_SOURCE_KEY = Object.freeze({
@@ -12,6 +13,7 @@ const TRANSFER_ID_TO_COMMISSION_SOURCE_KEY = Object.freeze({
   'commission-infinitybuilder': 'infinitybuilder',
   'commission-legacyleadership': 'legacyleadership',
   'commission-salesteam': 'salesteam',
+  'commission-retailprofit': 'retailprofit',
 });
 
 function normalizeText(value) {
@@ -462,6 +464,7 @@ export async function readWalletCommissionOffsetMapForUserId(userIdInput, execut
     infinitybuilder: 0,
     legacyleadership: 0,
     salesteam: 0,
+    retailprofit: 0,
   };
 
   if (!userId) {

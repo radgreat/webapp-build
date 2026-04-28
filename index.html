@@ -3543,7 +3543,7 @@
           Invoice
         </a>
 
-        <a href="#" data-nav-static class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+        <a href="/Commissions" data-nav-link data-page="commissions" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
           <span class="material-symbols-outlined" aria-hidden="true">payments</span>
           Commissions
         </a>
@@ -3813,29 +3813,20 @@
             <!-- ===== ROW 1: OVERVIEW CARDS ===== -->
             <div class="grid items-stretch grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
 
-              <!-- Card: E-Wallet Balance -->
+              <!-- Card: Retail Profit -->
               <div class="group relative flex h-full min-h-[220px] overflow-hidden rounded-2xl border border-surface-border bg-surface-raised/90 p-5 shadow-depth-1 hover:border-surface-border-light hover:shadow-depth-2 hover:-translate-y-0.5 transition-transform duration-150 ease-spring">
                 <div class="pointer-events-none absolute -top-16 right-0 h-32 w-32 rounded-full bg-brand-500/20 blur-2xl"></div>
                 <div class="relative flex h-full w-full flex-col">
                   <div class="flex items-center justify-between gap-3">
-                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">E-Wallet Balance</p>
-                    <span class="inline-flex items-center gap-1 rounded-full border border-brand-500/25 bg-brand-500/10 px-2 py-0.5 text-caption font-medium text-brand-300">Available</span>
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Retail Profit</p>
+                    <span class="inline-flex items-center gap-1 rounded-full border border-semantic-success/20 bg-semantic-success-bg px-2 py-0.5 text-caption font-medium text-semantic-success">Commission</span>
                   </div>
-                  <p id="dashboard-total-balance-value" class="mt-3 font-body font-semibold text-[2rem] leading-[1.1] tracking-[-0.02em] text-text-primary">$0.00</p>
-                  <p class="mt-1 text-caption text-text-secondary">Current available wallet funds</p>
-                  <div class="mt-3">
-                    <div class="relative">
-                      <div id="dashboard-ewallet-balance-bars" class="grid h-10 items-end gap-0.5 px-0.5"></div>
-                      <div id="dashboard-ewallet-balance-tooltip" class="pointer-events-none absolute -top-10 left-1/2 z-10 hidden -translate-x-1/2 rounded-lg border border-surface-border-light bg-surface-floating/95 px-2.5 py-1 shadow-depth-1 backdrop-blur-sm">
-                        <p id="dashboard-ewallet-balance-tooltip-date" class="text-[10px] leading-3 text-text-tertiary">--/--</p>
-                        <p id="dashboard-ewallet-balance-tooltip-value" class="text-[11px] font-medium leading-4 text-text-primary">$0.00</p>
-                      </div>
-                    </div>
-                    <p id="dashboard-ewallet-balance-graph-caption" class="mt-1 text-[11px] text-text-tertiary">No wallet history in the last 30 days</p>
-                  </div>
+                  <p id="dashboard-retail-profit-value" class="mt-3 font-body font-semibold text-[2rem] leading-[1.1] tracking-[-0.02em] text-text-primary">$0.00</p>
+                  <p class="mt-1 text-caption text-text-secondary">Available retail commissions from your ledger</p>
                   <div class="mt-auto pt-3">
-                    <button id="dashboard-ewallet-go-button" type="button" class="inline-flex w-full items-center justify-center rounded-xl bg-brand-500 px-3 py-2.5 text-body-sm font-medium text-text-inverse shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised active:scale-[0.98] transition-transform duration-150 ease-spring">
-                      Go to E-Wallet
+                    <button id="dashboard-retail-profit-request-payout-button" type="button" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-3 py-2.5 text-body-sm font-medium text-text-inverse shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised active:scale-[0.97] transition-transform duration-150 ease-spring disabled:cursor-not-allowed disabled:opacity-40" aria-label="Transfer retail profit to E-Wallet">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5v7.5H2.25v-7.5zM5.25 10.875h3m7.5 0h3M6 13.125h4.5"/></svg>
+                      Transfer to Wallet
                     </button>
                   </div>
                 </div>
@@ -4705,6 +4696,111 @@
               </div>
             </section>
           </div>
+        </section>
+        <section id="page-commissions" data-page-view="commissions" class="hidden space-y-6">
+          <article class="relative overflow-hidden rounded-2xl border border-surface-border bg-surface-raised p-6 shadow-depth-1">
+            <div class="pointer-events-none absolute -top-24 right-4 h-64 w-64 rounded-full bg-brand-500/15 blur-3xl"></div>
+            <div class="pointer-events-none absolute -bottom-24 -left-6 h-56 w-56 rounded-full bg-semantic-info/12 blur-3xl"></div>
+            <div class="relative space-y-5">
+              <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p class="text-caption uppercase tracking-[0.1em] text-text-tertiary">Commission Ledger</p>
+                  <h3 class="mt-1 font-body font-medium text-display-sm text-text-primary">Commissions</h3>
+                  <p class="mt-2 text-body-sm text-text-secondary">Auditable ledger of commission earnings, BV events, payouts, and adjustments.</p>
+                </div>
+                <span id="commissions-ledger-count-pill" class="inline-flex items-center rounded-full border border-brand-500/30 bg-brand-500/10 px-3 py-1 text-caption text-brand-300">
+                  0 entries
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Total Earned</p>
+                  <p id="commissions-summary-total-earned" class="mt-2 font-body font-semibold text-mono-data text-text-primary">$0.00</p>
+                </div>
+                <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Pending</p>
+                  <p id="commissions-summary-pending-balance" class="mt-2 font-body font-semibold text-mono-data text-semantic-warning">$0.00</p>
+                </div>
+                <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Posted</p>
+                  <p id="commissions-summary-posted-balance" class="mt-2 font-body font-semibold text-mono-data text-semantic-success">$0.00</p>
+                </div>
+                <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Available</p>
+                  <p id="commissions-summary-available-balance" class="mt-2 font-body font-semibold text-mono-data text-text-primary">$0.00</p>
+                </div>
+                <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Paid Out</p>
+                  <p id="commissions-summary-paid-out" class="mt-2 font-body font-semibold text-mono-data text-semantic-info">$0.00</p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="rounded-2xl border border-surface-border bg-surface-raised p-5 shadow-depth-1 sm:p-6">
+            <div class="space-y-3">
+              <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                <div class="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:w-auto xl:grid-cols-5">
+                  <div class="relative">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A6.5 6.5 0 105.8 5.8a6.5 6.5 0 0010.85 10.85z"/></svg>
+                    <input id="commissions-ledger-search-input" type="text" placeholder="Search source, order, user, or entry id" class="w-full rounded-lg border border-surface-border bg-surface-base py-2 pl-9 pr-3 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" />
+                  </div>
+                  <select id="commissions-ledger-type-filter" class="rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                    <option value="all">All commission types</option>
+                    <option value="retail_commission">Retail Commission</option>
+                    <option value="fast_track_commission">Fast Track Commission</option>
+                    <option value="sales_team_commission">Sales Team Commission</option>
+                    <option value="payout">Payout</option>
+                    <option value="adjustment">Adjustment</option>
+                    <option value="reversal">Reversal</option>
+                  </select>
+                  <select id="commissions-ledger-status-filter" class="rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                    <option value="all">All statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="posted">Posted</option>
+                    <option value="paid">Paid</option>
+                    <option value="reversed">Reversed</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  <input id="commissions-ledger-from-date" type="date" class="rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" />
+                  <input id="commissions-ledger-to-date" type="date" class="rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" />
+                </div>
+                <div class="flex items-center gap-2">
+                  <button id="commissions-ledger-apply-filter" type="button" class="inline-flex items-center justify-center gap-2 rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+                    Apply
+                  </button>
+                  <button id="commissions-ledger-refresh-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
+                    Refresh
+                  </button>
+                </div>
+              </div>
+
+              <p id="commissions-ledger-feedback" class="hidden text-body-sm"></p>
+
+              <div class="overflow-hidden rounded-xl border border-surface-border bg-surface-base/35">
+                <div class="overflow-x-auto">
+                  <table class="min-w-[1080px] w-full text-left">
+                    <thead class="border-b border-surface-border bg-surface-base/90">
+                      <tr class="text-caption uppercase tracking-[0.08em] text-text-tertiary">
+                        <th class="px-4 py-3 font-medium">Type</th>
+                        <th class="px-4 py-3 font-medium">Amount</th>
+                        <th class="px-4 py-3 font-medium">BV</th>
+                        <th class="px-4 py-3 font-medium">Status</th>
+                        <th class="px-4 py-3 font-medium">Source</th>
+                        <th class="px-4 py-3 font-medium">Description</th>
+                        <th class="px-4 py-3 font-medium">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody id="commissions-ledger-table-body" class="divide-y divide-surface-border"></tbody>
+                  </table>
+                </div>
+                <div id="commissions-ledger-empty-state" class="hidden border-t border-surface-border px-4 py-4 text-body-sm text-text-secondary">
+                  No ledger entries match your filters.
+                </div>
+              </div>
+            </div>
+          </article>
         </section>
         <section id="page-profile" data-page-view="profile" class="hidden space-y-6">
           <div class="bg-surface-raised border border-surface-border rounded-2xl shadow-depth-1 overflow-hidden">
@@ -6512,6 +6608,22 @@
       const recentActivityPanelElement = document.getElementById('recent-activity-panel');
       const recentActivityViewAllButtonElement = document.getElementById('recent-activity-view-all-button');
       const recentActivityFeedElement = document.getElementById('recent-activity-feed');
+      const commissionsSummaryTotalEarnedElement = document.getElementById('commissions-summary-total-earned');
+      const commissionsSummaryPendingBalanceElement = document.getElementById('commissions-summary-pending-balance');
+      const commissionsSummaryPostedBalanceElement = document.getElementById('commissions-summary-posted-balance');
+      const commissionsSummaryAvailableBalanceElement = document.getElementById('commissions-summary-available-balance');
+      const commissionsSummaryPaidOutElement = document.getElementById('commissions-summary-paid-out');
+      const commissionsLedgerCountPillElement = document.getElementById('commissions-ledger-count-pill');
+      const commissionsLedgerSearchInputElement = document.getElementById('commissions-ledger-search-input');
+      const commissionsLedgerTypeFilterElement = document.getElementById('commissions-ledger-type-filter');
+      const commissionsLedgerStatusFilterElement = document.getElementById('commissions-ledger-status-filter');
+      const commissionsLedgerFromDateElement = document.getElementById('commissions-ledger-from-date');
+      const commissionsLedgerToDateElement = document.getElementById('commissions-ledger-to-date');
+      const commissionsLedgerApplyFilterButtonElement = document.getElementById('commissions-ledger-apply-filter');
+      const commissionsLedgerRefreshButtonElement = document.getElementById('commissions-ledger-refresh-button');
+      const commissionsLedgerFeedbackElement = document.getElementById('commissions-ledger-feedback');
+      const commissionsLedgerTableBodyElement = document.getElementById('commissions-ledger-table-body');
+      const commissionsLedgerEmptyStateElement = document.getElementById('commissions-ledger-empty-state');
       const eWalletBalanceValueElement = document.getElementById('ewallet-balance-value');
       const eWalletTotalSentValueElement = document.getElementById('ewallet-total-sent-value');
       const eWalletTotalReceivedValueElement = document.getElementById('ewallet-total-received-value');
@@ -6675,6 +6787,8 @@
       const MEMBER_BUSINESS_CENTER_WALLET_SUMMARY_API = '/api/member-auth/business-centers/wallet-summary';
       const MEMBER_BUSINESS_CENTER_PROGRESS_API = '/api/member-auth/business-centers/progress';
       const MEMBER_BUSINESS_CENTER_ACTIVATE_API = '/api/member-auth/business-centers/activate';
+      const MEMBER_LEDGER_API = '/api/member-auth/ledger';
+      const MEMBER_LEDGER_SUMMARY_API = '/api/member-auth/ledger/summary';
       const PROFILE_ACHIEVEMENT_ICON_PATHS_BY_ID = Object.freeze({
         'good-life-diamond': Object.freeze({
           dark: '/brand_assets/Icons/Achievements/diamond.svg',
@@ -7044,6 +7158,20 @@
       const MAX_RECENT_ACTIVITY_ITEMS = 12;
       const recentActivityRuntimeEntries = [];
       let recentActivityFeedExpanded = false;
+      let memberLedgerEntries = [];
+      let memberLedgerSummary = null;
+      let memberLedgerLoading = false;
+      let memberLedgerTotalCount = 0;
+      let memberLedgerLastRefreshAt = 0;
+      let memberLedgerRefreshQueued = false;
+      let memberLedgerRefreshTimerId = null;
+      const memberLedgerFilters = {
+        search: '',
+        type: 'all',
+        status: 'all',
+        fromDate: '',
+        toDate: '',
+      };
       const fastTrackSessionBalanceRaw = Number(currentSessionUser?.fastTrackBonusBalance);
       const fastTrackBaseBalance = Number.isFinite(fastTrackSessionBalanceRaw)
         ? Math.max(0, fastTrackSessionBalanceRaw)
@@ -7052,6 +7180,7 @@
       let infinityBuilderBonusBalanceValue = 0;
       let legacyLeadershipBonusBalanceValue = 0;
       let salesTeamCommissionBalanceValue = 0;
+      let retailProfitCommissionBalanceValue = 0;
       let pendingBinaryTreeMetricsSyncTimerId = null;
       let pendingSalesTeamCommissionSyncTimerId = null;
       let lastBinaryTreeMetricsSyncSignature = '';
@@ -7070,6 +7199,7 @@
         infinitybuilder: 0,
         legacyleadership: 0,
         salesteam: 0,
+        retailprofit: 0,
       };
       let walletBalanceOverrideValue = resolveSessionWalletBalance(currentSessionUser);
 
@@ -8108,6 +8238,10 @@
           title: 'E-Wallet',
           searchPlaceholder: 'Search wallet transfers...',
         },
+        commissions: {
+          title: 'Commissions',
+          searchPlaceholder: 'Search ledger entries...',
+        },
         'enroll-member': {
           title: 'Enroll Member',
           searchPlaceholder: 'Search enrolled members...',
@@ -8127,6 +8261,7 @@
         profile: '/Profile',
         'my-store': '/MyStore',
         'e-wallet': '/EWallet',
+        commissions: '/Commissions',
         'enroll-member': '/EnrollMember',
         'preferred-customer': '/PreferredCustomer',
         settings: '/Settings',
@@ -8335,6 +8470,8 @@
       }
 
       const dashboardTotalBalanceValueElement = document.getElementById('dashboard-total-balance-value');
+      const dashboardRetailProfitValueElement = document.getElementById('dashboard-retail-profit-value');
+      const dashboardRetailProfitRequestPayoutButtonElement = document.getElementById('dashboard-retail-profit-request-payout-button');
       const dashboardEwalletBalanceBarsElement = document.getElementById('dashboard-ewallet-balance-bars');
       const dashboardEwalletBalanceTooltipElement = document.getElementById('dashboard-ewallet-balance-tooltip');
       const dashboardEwalletBalanceTooltipDateElement = document.getElementById('dashboard-ewallet-balance-tooltip-date');
@@ -8757,6 +8894,47 @@
         return Math.max(0, safeGrossAmount - safeOffset);
       }
 
+      function resolveDashboardRetailProfitGrossAmount() {
+        const summary = sanitizeLedgerSummaryRecord(memberLedgerSummary);
+        const byType = summary?.byType && typeof summary.byType === 'object'
+          ? summary.byType
+          : {};
+        const candidateKeys = [
+          'retail_commission',
+          'retailcommission',
+          'retail-profit',
+          'retailprofit',
+        ];
+        const normalizedCandidateKeys = new Set(candidateKeys.map((key) => normalizeMemberKey(key)));
+
+        for (const [entryType, entryValue] of Object.entries(byType)) {
+          if (!normalizedCandidateKeys.has(normalizeMemberKey(entryType))) {
+            continue;
+          }
+          const netAmount = Number(entryValue?.netAmount);
+          if (Number.isFinite(netAmount) && netAmount >= 0) {
+            return netAmount;
+          }
+        }
+
+        return 0;
+      }
+
+      function resolveDashboardRetailProfitAvailableAmount() {
+        const grossRetailProfit = Math.max(0, Number(resolveDashboardRetailProfitGrossAmount()) || 0);
+        if (!commissionOffsetsHydrated) {
+          return grossRetailProfit;
+        }
+        return resolveNetCommissionBalance('retailprofit', grossRetailProfit);
+      }
+
+      function renderDashboardRetailProfitCard() {
+        retailProfitCommissionBalanceValue = resolveDashboardRetailProfitAvailableAmount();
+        if (dashboardRetailProfitValueElement) {
+          dashboardRetailProfitValueElement.textContent = formatCurrency(retailProfitCommissionBalanceValue);
+        }
+      }
+
       function syncCommissionPayoutButtonState(buttonElement, sourceLabel, availableAmount) {
         if (!buttonElement) {
           return;
@@ -8778,6 +8956,7 @@
       }
 
       function refreshCommissionPayoutButtonStates() {
+        renderDashboardRetailProfitCard();
         syncCommissionPayoutButtonState(
           fastTrackRequestPayoutButtonElement,
           'Fast Track Bonus',
@@ -8797,6 +8976,11 @@
           dashboardSalesCommissionRequestPayoutButtonElement,
           'Sales Team Commissions',
           salesTeamCommissionBalanceValue,
+        );
+        syncCommissionPayoutButtonState(
+          dashboardRetailProfitRequestPayoutButtonElement,
+          'Retail Profit',
+          retailProfitCommissionBalanceValue,
         );
       }
 
@@ -14371,6 +14555,7 @@
           infinitybuilder: 0,
           legacyleadership: 0,
           salesteam: 0,
+          retailprofit: 0,
         };
       }
 
@@ -14993,11 +15178,17 @@
           commissionOffsetsHydrated = true;
           commissionContainerSnapshot = createDefaultCommissionContainerSnapshot();
           commissionContainersHydrated = true;
+          memberLedgerEntries = [];
+          memberLedgerSummary = null;
+          memberLedgerTotalCount = 0;
+          memberLedgerLastRefreshAt = 0;
           settledSalesTeamCommissionSnapshot = null;
           pendingSettledSalesTeamCommissionSnapshotPromise = null;
           lastSettledSalesTeamCommissionSnapshotFetchSignature = '';
           recalculateEnrollDerivedMetrics();
           renderSalesTeamCommissionsCard(currentDashboardTotalCycles, currentSessionUser);
+          renderCommissionsLedgerSummary();
+          renderCommissionsLedgerTable();
           if (!options.silent) {
             renderRecentActivityFeed();
           }
@@ -15032,6 +15223,12 @@
           });
         } catch (error) {
           console.warn('Unable to initialize settled sales team commissions:', error);
+        }
+
+        try {
+          await refreshMemberLedger({ force: true, silent: true });
+        } catch (error) {
+          console.warn('Unable to initialize member ledger snapshot:', error);
         }
 
         recalculateEnrollDerivedMetrics();
@@ -19804,6 +20001,494 @@
         }).format(date);
       }
 
+      const LEDGER_TYPE_LABELS = Object.freeze({
+        retail_commission: 'Retail Commission',
+        fast_track_commission: 'Fast Track Commission',
+        sales_team_commission: 'Sales Team Commission',
+        payout: 'Payout',
+        adjustment: 'Adjustment',
+        reversal: 'Reversal',
+      });
+      const LEDGER_SOURCE_LABELS = Object.freeze({
+        order: 'Order',
+        enrollment: 'Enrollment',
+        binary_cycle: 'Binary Cycle',
+        payout: 'Payout',
+        admin_adjustment: 'Admin Adjustment',
+      });
+      const LEDGER_STATUS_BADGE_CLASS_BY_KEY = Object.freeze({
+        pending: 'border-semantic-warning/35 bg-semantic-warning-bg text-semantic-warning',
+        posted: 'border-semantic-success/35 bg-semantic-success-bg text-semantic-success',
+        paid: 'border-semantic-info/35 bg-semantic-info-bg text-semantic-info',
+        reversed: 'border-semantic-danger/35 bg-semantic-danger-bg text-semantic-danger',
+        failed: 'border-semantic-danger/35 bg-semantic-danger-bg text-semantic-danger',
+      });
+      const LEDGER_STATUS_TONE_BY_KEY = Object.freeze({
+        pending: 'warning',
+        posted: 'success',
+        paid: 'success',
+        reversed: 'danger',
+        failed: 'danger',
+      });
+
+      function buildMemberAuthHeadersOrThrow(headers = {}) {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          throw new Error('Member auth token is missing. Sign in again to continue.');
+        }
+        return {
+          ...headers,
+          Authorization: `Bearer ${authToken}`,
+        };
+      }
+
+      function normalizeLedgerTypeValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (Object.prototype.hasOwnProperty.call(LEDGER_TYPE_LABELS, normalized)) {
+          return normalized;
+        }
+        return '';
+      }
+
+      function normalizeLedgerStatusValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (
+          normalized === 'pending'
+          || normalized === 'posted'
+          || normalized === 'paid'
+          || normalized === 'reversed'
+          || normalized === 'failed'
+        ) {
+          return normalized;
+        }
+        return '';
+      }
+
+      function normalizeLedgerDirectionValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (normalized === 'debit') {
+          return 'debit';
+        }
+        if (normalized === 'credit') {
+          return 'credit';
+        }
+        return 'credit';
+      }
+
+      function normalizeLedgerSourceTypeValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (Object.prototype.hasOwnProperty.call(LEDGER_SOURCE_LABELS, normalized)) {
+          return normalized;
+        }
+        return '';
+      }
+
+      function resolveLedgerTypeLabel(typeValue) {
+        const normalized = normalizeLedgerTypeValue(typeValue);
+        return LEDGER_TYPE_LABELS[normalized] || 'Ledger Entry';
+      }
+
+      function resolveLedgerStatusLabel(statusValue) {
+        const normalized = normalizeLedgerStatusValue(statusValue) || 'posted';
+        return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+      }
+
+      function resolveLedgerStatusBadgeClass(statusValue) {
+        const normalized = normalizeLedgerStatusValue(statusValue) || 'posted';
+        return LEDGER_STATUS_BADGE_CLASS_BY_KEY[normalized] || 'border-surface-border bg-surface-base text-text-secondary';
+      }
+
+      function resolveLedgerStatusTone(statusValue) {
+        const normalized = normalizeLedgerStatusValue(statusValue) || 'posted';
+        return LEDGER_STATUS_TONE_BY_KEY[normalized] || 'neutral';
+      }
+
+      function resolveLedgerSourceLabel(sourceTypeValue) {
+        const normalized = normalizeLedgerSourceTypeValue(sourceTypeValue);
+        return LEDGER_SOURCE_LABELS[normalized] || 'Ledger Source';
+      }
+
+      function safeSerializeLedgerMetadata(metadataInput) {
+        const safeMetadata = metadataInput && typeof metadataInput === 'object' && !Array.isArray(metadataInput)
+          ? metadataInput
+          : {};
+        if (Object.keys(safeMetadata).length === 0) {
+          return '';
+        }
+        try {
+          return JSON.stringify(safeMetadata, null, 2);
+        } catch {
+          return '';
+        }
+      }
+
+      function sanitizeLedgerEntryRecord(entryInput = {}) {
+        if (!entryInput || typeof entryInput !== 'object') {
+          return null;
+        }
+
+        const id = String(entryInput.id || '').trim();
+        if (!id) {
+          return null;
+        }
+
+        const amountRaw = Number(entryInput.amount ?? entryInput.amountUsd ?? 0);
+        const amount = Number.isFinite(amountRaw) ? Math.max(0, amountRaw) : 0;
+        const bvAmount = Math.max(0, Number(entryInput.bvAmount) || 0);
+        const type = normalizeLedgerTypeValue(entryInput.type) || 'adjustment';
+        const direction = normalizeLedgerDirectionValue(entryInput.direction);
+        const status = normalizeLedgerStatusValue(entryInput.status) || 'posted';
+        const sourceType = normalizeLedgerSourceTypeValue(entryInput.sourceType);
+        const sourceId = String(entryInput.sourceId || '').trim();
+        const sourceRef = String(entryInput.sourceRef || '').trim();
+        const description = String(entryInput.description || '').trim();
+        const createdAt = String(entryInput.createdAt || '').trim();
+        const postedAt = String(entryInput.postedAt || '').trim();
+        const reversedAt = String(entryInput.reversedAt || '').trim();
+        const metadata = entryInput.metadata && typeof entryInput.metadata === 'object' && !Array.isArray(entryInput.metadata)
+          ? entryInput.metadata
+          : {};
+        const metadataText = safeSerializeLedgerMetadata(metadata);
+        const occurredAtMs = resolveRecentActivityTimestampMs(
+          postedAt || createdAt,
+          resolveRecentActivityTimestampMs(createdAt, Date.now()),
+        );
+
+        return {
+          id,
+          type,
+          direction,
+          status,
+          sourceType,
+          sourceId,
+          sourceRef,
+          description,
+          amount,
+          bvAmount,
+          metadata,
+          metadataText,
+          createdAt,
+          postedAt,
+          reversedAt,
+          occurredAtMs,
+          typeLabel: resolveLedgerTypeLabel(type),
+          statusLabel: resolveLedgerStatusLabel(status),
+          sourceLabel: resolveLedgerSourceLabel(sourceType),
+        };
+      }
+
+      function sanitizeLedgerSummaryRecord(summaryInput = {}) {
+        const source = summaryInput && typeof summaryInput === 'object' ? summaryInput : {};
+        return {
+          totalEarned: Math.max(0, Number(source.totalEarned) || 0),
+          pendingBalance: Math.max(0, Number(source.pendingBalance) || 0),
+          postedBalance: Math.max(0, Number(source.postedBalance) || 0),
+          availableBalance: Math.max(0, Number(source.availableBalance) || 0),
+          paidOutAmount: Math.max(0, Number(source.paidOutAmount) || 0),
+          reversedAmount: Math.max(0, Number(source.reversedAmount) || 0),
+          byStatus: source.byStatus && typeof source.byStatus === 'object' ? source.byStatus : {},
+          byType: source.byType && typeof source.byType === 'object' ? source.byType : {},
+        };
+      }
+
+      function setCommissionsLedgerFeedback(message, tone = 'info') {
+        if (!commissionsLedgerFeedbackElement) {
+          return;
+        }
+
+        const safeMessage = String(message || '').trim();
+        if (!safeMessage) {
+          commissionsLedgerFeedbackElement.textContent = '';
+          commissionsLedgerFeedbackElement.classList.add('hidden');
+          commissionsLedgerFeedbackElement.classList.remove('text-semantic-success', 'text-semantic-danger', 'text-text-secondary');
+          return;
+        }
+
+        const toneKey = normalizeMemberKey(tone);
+        commissionsLedgerFeedbackElement.textContent = safeMessage;
+        commissionsLedgerFeedbackElement.classList.remove('hidden', 'text-semantic-success', 'text-semantic-danger', 'text-text-secondary');
+        if (toneKey === 'success') {
+          commissionsLedgerFeedbackElement.classList.add('text-semantic-success');
+        } else if (toneKey === 'error' || toneKey === 'danger' || toneKey === 'failed') {
+          commissionsLedgerFeedbackElement.classList.add('text-semantic-danger');
+        } else {
+          commissionsLedgerFeedbackElement.classList.add('text-text-secondary');
+        }
+      }
+
+      function renderCommissionsLedgerSummary() {
+        const summary = sanitizeLedgerSummaryRecord(memberLedgerSummary);
+        if (commissionsSummaryTotalEarnedElement) {
+          commissionsSummaryTotalEarnedElement.textContent = formatCurrency(summary.totalEarned);
+        }
+        if (commissionsSummaryPendingBalanceElement) {
+          commissionsSummaryPendingBalanceElement.textContent = formatCurrency(summary.pendingBalance);
+        }
+        if (commissionsSummaryPostedBalanceElement) {
+          commissionsSummaryPostedBalanceElement.textContent = formatCurrency(summary.postedBalance);
+        }
+        if (commissionsSummaryAvailableBalanceElement) {
+          commissionsSummaryAvailableBalanceElement.textContent = formatCurrency(summary.availableBalance);
+        }
+        if (commissionsSummaryPaidOutElement) {
+          commissionsSummaryPaidOutElement.textContent = formatCurrency(summary.paidOutAmount);
+        }
+        renderDashboardRetailProfitCard();
+      }
+
+      function renderCommissionsLedgerTable() {
+        if (!commissionsLedgerTableBodyElement || !commissionsLedgerEmptyStateElement) {
+          return;
+        }
+
+        const safeEntries = Array.isArray(memberLedgerEntries) ? memberLedgerEntries : [];
+        if (commissionsLedgerCountPillElement) {
+          commissionsLedgerCountPillElement.textContent = `${Math.max(0, Number(memberLedgerTotalCount) || safeEntries.length).toLocaleString()} entries`;
+        }
+
+        if (safeEntries.length === 0) {
+          commissionsLedgerTableBodyElement.innerHTML = '';
+          commissionsLedgerEmptyStateElement.classList.remove('hidden');
+          commissionsLedgerEmptyStateElement.textContent = memberLedgerLoading
+            ? 'Loading ledger entries...'
+            : 'No ledger entries match your filters.';
+          return;
+        }
+
+        commissionsLedgerEmptyStateElement.classList.add('hidden');
+        commissionsLedgerTableBodyElement.innerHTML = safeEntries.map((entry) => {
+          const safeEntry = sanitizeLedgerEntryRecord(entry);
+          if (!safeEntry) {
+            return '';
+          }
+
+          const amountLabelBase = formatCurrency(safeEntry.amount);
+          const amountIsCredit = safeEntry.direction === 'credit';
+          const amountClassName = amountIsCredit ? 'text-semantic-success' : 'text-semantic-danger';
+          const amountLabel = `${amountIsCredit ? '+' : '-'}${amountLabelBase}`;
+          const statusClass = resolveLedgerStatusBadgeClass(safeEntry.status);
+          const createdLabel = formatMemberDateTime(safeEntry.createdAt);
+          const postedLabel = safeEntry.postedAt ? formatMemberDateTime(safeEntry.postedAt) : '--';
+          const reversedLabel = safeEntry.reversedAt ? formatMemberDateTime(safeEntry.reversedAt) : '--';
+          const sourceLine = safeEntry.sourceRef || safeEntry.sourceId || '--';
+          return `
+            <tr class="bg-transparent hover:bg-surface-base/45 transition-colors duration-150">
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm font-medium text-text-primary">${escapeHtml(safeEntry.typeLabel)}</p>
+                <p class="mt-1 text-caption text-text-tertiary">${escapeHtml(safeEntry.sourceLabel)}</p>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm font-semibold ${amountClassName}">${escapeHtml(amountLabel)}</p>
+              </td>
+              <td class="px-4 py-3 align-top text-body-sm text-text-primary">${escapeHtml(String(Math.max(0, Number(safeEntry.bvAmount) || 0)))}</td>
+              <td class="px-4 py-3 align-top">
+                <span class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-caption ${statusClass}">${escapeHtml(safeEntry.statusLabel)}</span>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="font-mono text-[11px] text-text-primary">${escapeHtml(sourceLine)}</p>
+                <p class="mt-1 font-mono text-[10px] text-text-tertiary">${escapeHtml(safeEntry.sourceId || '--')}</p>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm text-text-primary">${escapeHtml(safeEntry.description || 'Ledger event')}</p>
+                <p class="mt-1 text-caption text-text-tertiary">Entry ID: <span class="font-mono">${escapeHtml(safeEntry.id)}</span></p>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="text-caption text-text-secondary">Created ${escapeHtml(createdLabel)}</p>
+                <p class="mt-1 text-caption text-text-tertiary">Posted ${escapeHtml(postedLabel)}</p>
+                <p class="mt-1 text-caption text-text-tertiary">Reversed ${escapeHtml(reversedLabel)}</p>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      function buildMemberLedgerQueryParams(filters = {}) {
+        const query = new URLSearchParams();
+        const safeSearch = String(filters.search || '').trim();
+        const safeType = normalizeLedgerTypeValue(filters.type);
+        const safeStatus = normalizeLedgerStatusValue(filters.status);
+        const safeFromDate = String(filters.fromDate || '').trim();
+        const safeToDate = String(filters.toDate || '').trim();
+
+        if (safeSearch) {
+          query.set('search', safeSearch);
+        }
+        if (safeType) {
+          query.set('type', safeType);
+        }
+        if (safeStatus) {
+          query.set('status', safeStatus);
+        }
+        if (safeFromDate) {
+          query.set('fromDate', safeFromDate);
+        }
+        if (safeToDate) {
+          query.set('toDate', safeToDate);
+        }
+        query.set('limit', '120');
+        query.set('offset', '0');
+        return query;
+      }
+
+      async function loadMemberLedgerSummary() {
+        const response = await fetch(MEMBER_LEDGER_SUMMARY_API, {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+          headers: buildMemberAuthHeadersOrThrow({
+            Accept: 'application/json',
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof payload?.error === 'string'
+            ? payload.error
+            : `Unable to load ledger summary (${response.status}).`;
+          throw new Error(message);
+        }
+
+        memberLedgerSummary = sanitizeLedgerSummaryRecord(payload?.summary);
+        renderCommissionsLedgerSummary();
+        return memberLedgerSummary;
+      }
+
+      async function loadMemberLedgerEntries() {
+        const query = buildMemberLedgerQueryParams(memberLedgerFilters);
+        const response = await fetch(`${MEMBER_LEDGER_API}?${query.toString()}`, {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+          headers: buildMemberAuthHeadersOrThrow({
+            Accept: 'application/json',
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof payload?.error === 'string'
+            ? payload.error
+            : `Unable to load ledger entries (${response.status}).`;
+          throw new Error(message);
+        }
+
+        const rawEntries = Array.isArray(payload?.entries) ? payload.entries : [];
+        memberLedgerEntries = rawEntries
+          .map((entry) => sanitizeLedgerEntryRecord(entry))
+          .filter(Boolean)
+          .sort((left, right) => (right.occurredAtMs || 0) - (left.occurredAtMs || 0));
+        memberLedgerTotalCount = Math.max(0, Number(payload?.totalCount) || memberLedgerEntries.length);
+        memberLedgerLastRefreshAt = Date.now();
+        renderCommissionsLedgerTable();
+        return memberLedgerEntries;
+      }
+
+      async function refreshMemberLedger(options = {}) {
+        if (memberLedgerLoading) {
+          if (options.force !== true) {
+            memberLedgerRefreshQueued = true;
+            return;
+          }
+        }
+
+        memberLedgerLoading = true;
+        if (!options.silent) {
+          setCommissionsLedgerFeedback('Refreshing ledger...', 'info');
+        }
+        renderCommissionsLedgerTable();
+
+        try {
+          await Promise.all([
+            loadMemberLedgerSummary(),
+            loadMemberLedgerEntries(),
+          ]);
+          if (!options.silent) {
+            setCommissionsLedgerFeedback('Ledger updated.', 'success');
+          }
+          renderRecentActivityFeed();
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to refresh ledger.';
+          if (!options.silent) {
+            setCommissionsLedgerFeedback(message, 'error');
+          }
+        } finally {
+          memberLedgerLoading = false;
+          renderCommissionsLedgerTable();
+          if (memberLedgerRefreshQueued) {
+            memberLedgerRefreshQueued = false;
+            if (memberLedgerRefreshTimerId !== null) {
+              window.clearTimeout(memberLedgerRefreshTimerId);
+            }
+            memberLedgerRefreshTimerId = window.setTimeout(() => {
+              memberLedgerRefreshTimerId = null;
+              void refreshMemberLedger({ force: true, silent: true });
+            }, 250);
+          }
+        }
+      }
+
+      function applyCommissionsLedgerFilterStateFromUi() {
+        memberLedgerFilters.search = String(commissionsLedgerSearchInputElement?.value || '').trim();
+        memberLedgerFilters.type = normalizeLedgerTypeValue(commissionsLedgerTypeFilterElement?.value) || 'all';
+        memberLedgerFilters.status = normalizeLedgerStatusValue(commissionsLedgerStatusFilterElement?.value) || 'all';
+        memberLedgerFilters.fromDate = String(commissionsLedgerFromDateElement?.value || '').trim();
+        memberLedgerFilters.toDate = String(commissionsLedgerToDateElement?.value || '').trim();
+      }
+
+      function syncCommissionsLedgerFilterUi() {
+        if (commissionsLedgerSearchInputElement) {
+          commissionsLedgerSearchInputElement.value = memberLedgerFilters.search;
+        }
+        if (commissionsLedgerTypeFilterElement) {
+          commissionsLedgerTypeFilterElement.value = memberLedgerFilters.type;
+        }
+        if (commissionsLedgerStatusFilterElement) {
+          commissionsLedgerStatusFilterElement.value = memberLedgerFilters.status;
+        }
+        if (commissionsLedgerFromDateElement) {
+          commissionsLedgerFromDateElement.value = memberLedgerFilters.fromDate;
+        }
+        if (commissionsLedgerToDateElement) {
+          commissionsLedgerToDateElement.value = memberLedgerFilters.toDate;
+        }
+      }
+
+      function buildLedgerRecentActivityEntries(limit = MAX_RECENT_ACTIVITY_ITEMS) {
+        if (dashboardMockupModeEnabled) {
+          return [];
+        }
+
+        const hasFiniteLimit = Number.isFinite(limit) && limit > 0;
+        const entries = [];
+        for (const record of Array.isArray(memberLedgerEntries) ? memberLedgerEntries : []) {
+          const entry = sanitizeLedgerEntryRecord(record);
+          if (!entry) {
+            continue;
+          }
+
+          const isCredit = entry.direction === 'credit';
+          const kind = entry.type === 'payout' ? 'payout' : 'commission';
+          const sourceLabel = entry.sourceRef || entry.sourceId || entry.id;
+          entries.push({
+            id: `ledger-${entry.id}`,
+            kind,
+            badgeLabel: kind === 'payout' ? 'Payout' : 'Commission',
+            categoryLabel: entry.typeLabel,
+            iconLabel: kind === 'payout' ? 'PO' : 'CM',
+            title: entry.typeLabel,
+            detail: `${sourceLabel}${entry.description ? ` · ${entry.description}` : ''}`,
+            statusLabel: entry.statusLabel,
+            statusTone: resolveLedgerStatusTone(entry.status),
+            amountValue: entry.amount,
+            amountDirection: isCredit ? 'credit' : 'debit',
+            occurredAtMs: entry.occurredAtMs,
+          });
+
+          if (hasFiniteLimit && entries.length >= limit) {
+            break;
+          }
+        }
+        return entries;
+      }
+
       function resolveRecentActivityTimestampMs(value, fallbackMs = 0) {
         if (Number.isFinite(Number(value)) && Number(value) > 0) {
           return Number(value);
@@ -20063,13 +20748,20 @@
       }
 
       function buildRecentActivityFeedEntries(limit = MAX_RECENT_ACTIVITY_ITEMS) {
+        const ledgerEntries = buildLedgerRecentActivityEntries(Number.POSITIVE_INFINITY);
         const combinedEntries = [
           ...recentActivityRuntimeEntries,
-          ...buildPersistedCommissionPayoutRecentActivityEntries(),
-          ...buildEnrollmentRecentActivityEntries(),
-          ...buildClaimRecentActivityEntries(INFINITY_BUILDER_CLAIM_STORAGE_KEY, 'Infinity Builder', 'infinity-claim'),
-          ...buildClaimRecentActivityEntries(LEGACY_LEADERSHIP_CLAIM_STORAGE_KEY, 'Legacy Leadership', 'legacy-claim'),
-          ...buildStoreInvoiceRecentActivityEntries(),
+          ...(
+            ledgerEntries.length > 0
+              ? ledgerEntries
+              : [
+                  ...buildPersistedCommissionPayoutRecentActivityEntries(),
+                  ...buildEnrollmentRecentActivityEntries(),
+                  ...buildClaimRecentActivityEntries(INFINITY_BUILDER_CLAIM_STORAGE_KEY, 'Infinity Builder', 'infinity-claim'),
+                  ...buildClaimRecentActivityEntries(LEGACY_LEADERSHIP_CLAIM_STORAGE_KEY, 'Legacy Leadership', 'legacy-claim'),
+                  ...buildStoreInvoiceRecentActivityEntries(),
+                ]
+          ),
         ];
 
         combinedEntries.sort((left, right) => {
@@ -20202,6 +20894,49 @@
         });
       }
 
+      function initializeCommissionsLedgerModule() {
+        syncCommissionsLedgerFilterUi();
+        renderCommissionsLedgerSummary();
+        renderCommissionsLedgerTable();
+
+        if (
+          commissionsLedgerSearchInputElement
+          && commissionsLedgerSearchInputElement.dataset.bound !== 'true'
+        ) {
+          commissionsLedgerSearchInputElement.dataset.bound = 'true';
+          commissionsLedgerSearchInputElement.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter') {
+              return;
+            }
+            event.preventDefault();
+            applyCommissionsLedgerFilterStateFromUi();
+            void refreshMemberLedger({ force: true });
+          });
+        }
+
+        if (
+          commissionsLedgerApplyFilterButtonElement
+          && commissionsLedgerApplyFilterButtonElement.dataset.bound !== 'true'
+        ) {
+          commissionsLedgerApplyFilterButtonElement.dataset.bound = 'true';
+          commissionsLedgerApplyFilterButtonElement.addEventListener('click', () => {
+            applyCommissionsLedgerFilterStateFromUi();
+            void refreshMemberLedger({ force: true });
+          });
+        }
+
+        if (
+          commissionsLedgerRefreshButtonElement
+          && commissionsLedgerRefreshButtonElement.dataset.bound !== 'true'
+        ) {
+          commissionsLedgerRefreshButtonElement.dataset.bound = 'true';
+          commissionsLedgerRefreshButtonElement.addEventListener('click', () => {
+            applyCommissionsLedgerFilterStateFromUi();
+            void refreshMemberLedger({ force: true });
+          });
+        }
+      }
+
       function resolveCommissionPayoutSourceMeta(sourceKey) {
         switch (normalizeMemberKey(sourceKey)) {
           case 'fasttrack':
@@ -20212,6 +20947,8 @@
             return { key: 'legacyleadership', label: 'Legacy Leadership Bonus' };
           case 'salesteam':
             return { key: 'salesteam', label: 'Sales Team Commissions' };
+          case 'retailprofit':
+            return { key: 'retailprofit', label: 'Retail Profit' };
           default:
             return null;
         }
@@ -20231,6 +20968,9 @@
         if (normalizedKey === 'salesteam') {
           return Math.max(0, Number(salesTeamCommissionBalanceValue) || 0);
         }
+        if (normalizedKey === 'retailprofit') {
+          return Math.max(0, Number(retailProfitCommissionBalanceValue) || 0);
+        }
         return 0;
       }
 
@@ -20248,6 +20988,9 @@
         if (normalizedKey === 'salesteam') {
           return dashboardSalesCommissionRequestPayoutButtonElement;
         }
+        if (normalizedKey === 'retailprofit') {
+          return dashboardRetailProfitRequestPayoutButtonElement;
+        }
         return null;
       }
 
@@ -20257,7 +21000,13 @@
           return;
         }
 
-        if (!dashboardMockupModeEnabled && (!commissionContainersHydrated || !commissionOffsetsHydrated)) {
+        if (
+          !dashboardMockupModeEnabled
+          && (
+            !commissionOffsetsHydrated
+            || (sourceMeta.key !== 'retailprofit' && !commissionContainersHydrated)
+          )
+        ) {
           return;
         }
 
@@ -20335,6 +21084,7 @@
         bindPayoutButton(infinityBuilderTopRequestPayoutButtonElement, 'infinitybuilder');
         bindPayoutButton(legacyLeadershipTopRequestPayoutButtonElement, 'legacyleadership');
         bindPayoutButton(dashboardSalesCommissionRequestPayoutButtonElement, 'salesteam');
+        bindPayoutButton(dashboardRetailProfitRequestPayoutButtonElement, 'retailprofit');
         refreshCommissionPayoutButtonStates();
       }
 
@@ -28678,6 +29428,11 @@
             });
         }
 
+        if (pageViewKey === 'commissions') {
+          applyCommissionsLedgerFilterStateFromUi();
+          void refreshMemberLedger({ force: true });
+        }
+
         if (pageViewKey === 'settings') {
           syncSettingsPageAccountOverview();
           setActiveSettingsCategory(activeSettingsCategory);
@@ -29315,6 +30070,7 @@
         initializeFastTrackPanelHeightSync();
         initializeRecentActivityPanelHeightSync();
         initializeRecentActivityPanelControls();
+        initializeCommissionsLedgerModule();
         initializeProfileModule();
         bindBusinessCenterActivationControls();
         initEnrollMemberModule();

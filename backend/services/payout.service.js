@@ -31,6 +31,7 @@ import {
   isPendingOrReservationMember,
 } from '../utils/member-capability.helpers.js';
 import { resolveMemberActivityStateByPersonalBv } from '../utils/member-activity.helpers.js';
+import { createPayoutLedgerEntry } from './ledger.service.js';
 
 const DEFAULT_CURRENCY_CODE = 'USD';
 const DEFAULT_MINIMUM_PAYOUT_AMOUNT_USD = 20;
@@ -1312,6 +1313,46 @@ export async function fulfillAdminPayoutRequest(payload = {}) {
       };
     }
 
+    let payoutLedgerEntry = null;
+    try {
+      const payoutLedgerResult = await createPayoutLedgerEntry({
+        userId: normalizeText(memberUser?.id || existingRequest?.requestedByUserId),
+        username: normalizeText(memberUser?.username || existingRequest?.requestedByUsername),
+        email: normalizeText(memberUser?.email || existingRequest?.requestedByEmail),
+        amountUsd: amount,
+        status: 'paid',
+        sourceId: normalizeText(savedPaidRequest?.id || requestId),
+        sourceRef: normalizeText(
+          fulfillmentGatewayMeta.gatewayReference
+          || fulfillmentGatewayMeta.transferReference
+          || savedPaidRequest?.gatewayReference
+          || savedPaidRequest?.transferReference
+          || savedPaidRequest?.id
+          || requestId,
+        ),
+        payoutRequestId: normalizeText(savedPaidRequest?.id || requestId),
+        payoutMethod: normalizeText(savedPaidRequest?.payoutMethod || payload?.payoutMethod),
+        transferMode: normalizeText(fulfillmentGatewayMeta.transferMode || payload?.transferMode),
+        gatewayKey: normalizeText(fulfillmentGatewayMeta.gatewayKey),
+        gatewayLabel: normalizeText(fulfillmentGatewayMeta.gatewayLabel),
+        gatewayReference: normalizeText(fulfillmentGatewayMeta.gatewayReference),
+        transferReference: normalizeText(fulfillmentGatewayMeta.transferReference),
+        idempotencyKey: `payout:${normalizeText(savedPaidRequest?.id || requestId)}:${normalizeText(memberUser?.id)}`,
+        description: `Payout fulfilled (${normalizeText(savedPaidRequest?.id || requestId)})`,
+        debug: {
+          gatewayStatus: normalizeText(fulfillmentGatewayMeta.gatewayStatus),
+          gatewayMessage: normalizeText(fulfillmentGatewayMeta.gatewayMessage),
+          fulfilledBy: normalizeText(payload?.updatedBy || payload?.fulfilledBy || 'admin'),
+        },
+      }, {
+        executor: client,
+      });
+      payoutLedgerEntry = payoutLedgerResult?.entry || null;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error || 'Unknown ledger error.');
+      console.warn(`[PayoutFulfillment] Unable to persist payout ledger entry for ${requestId}: ${errorMessage}`);
+    }
+
     await client.query('COMMIT');
     transactionClosed = true;
 
@@ -1321,6 +1362,7 @@ export async function fulfillAdminPayoutRequest(payload = {}) {
       data: {
         success: true,
         request: savedPaidRequest,
+        ledger: payoutLedgerEntry ? { payout: payoutLedgerEntry } : null,
         updatedAt: nowIso,
         statusChanged: true,
       },
