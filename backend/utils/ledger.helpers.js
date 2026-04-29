@@ -4,6 +4,8 @@ export const LEDGER_ENTRY_TYPES = Object.freeze({
   RETAIL_COMMISSION: 'retail_commission',
   FAST_TRACK_COMMISSION: 'fast_track_commission',
   SALES_TEAM_COMMISSION: 'sales_team_commission',
+  LEADERSHIP_MATCHING_BONUS: 'leadership_matching_bonus',
+  MATCHING_BONUS_TRANSFER_TO_WALLET: 'matching_bonus_transfer_to_wallet',
   PAYOUT: 'payout',
   ADJUSTMENT: 'adjustment',
   REVERSAL: 'reversal',
@@ -26,6 +28,8 @@ export const LEDGER_SOURCE_TYPES = Object.freeze({
   ORDER: 'order',
   ENROLLMENT: 'enrollment',
   BINARY_CYCLE: 'binary_cycle',
+  SALES_TEAM_COMMISSION: 'sales_team_commission',
+  COMMISSION_TRANSFER: 'commission_transfer',
   PAYOUT: 'payout',
   ADMIN_ADJUSTMENT: 'admin_adjustment',
 });

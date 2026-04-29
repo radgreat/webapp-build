@@ -6,6 +6,7 @@ const COMMISSION_SOURCE_KEY_TO_TRANSFER_ID = Object.freeze({
   legacyleadership: 'commission-legacyleadership',
   salesteam: 'commission-salesteam',
   retailprofit: 'commission-retailprofit',
+  matchingbonus: 'commission-matchingbonus',
 });
 
 const TRANSFER_ID_TO_COMMISSION_SOURCE_KEY = Object.freeze({
@@ -14,6 +15,7 @@ const TRANSFER_ID_TO_COMMISSION_SOURCE_KEY = Object.freeze({
   'commission-legacyleadership': 'legacyleadership',
   'commission-salesteam': 'salesteam',
   'commission-retailprofit': 'retailprofit',
+  'commission-matchingbonus': 'matchingbonus',
 });
 
 function normalizeText(value) {
@@ -465,6 +467,7 @@ export async function readWalletCommissionOffsetMapForUserId(userIdInput, execut
     legacyleadership: 0,
     salesteam: 0,
     retailprofit: 0,
+    matchingbonus: 0,
   };
 
   if (!userId) {

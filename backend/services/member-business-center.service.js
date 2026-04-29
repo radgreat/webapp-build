@@ -25,6 +25,7 @@ import {
   resolveBinaryCycleComputation,
 } from '../utils/binary-cycle.helpers.js';
 import { createSalesTeamCommissionLedgerEntry } from './ledger.service.js';
+import { processLeadershipMatchingBonusFromSalesTeamCommission } from './leadership-matching.service.js';
 
 const MAX_BUSINESS_CENTER_COUNT = 3;
 const NODE_TYPE_MAIN_CENTER = 'main_center';
@@ -2953,6 +2954,7 @@ export async function settleBusinessCenterCycleCommission(payload = {}) {
     });
 
     let salesTeamLedgerEntry = null;
+    let leadershipMatchingBonus = null;
     try {
       const salesTeamLedgerResult = await createSalesTeamCommissionLedgerEntry({
         userId: ownerUserId,
@@ -2995,6 +2997,27 @@ export async function settleBusinessCenterCycleCommission(payload = {}) {
       console.warn(`[BusinessCenterCycle] Unable to persist Sales Team ledger entry (${eventDedupKey}): ${errorMessage}`);
     }
 
+    if (salesTeamLedgerEntry) {
+      const matchingBonusResult = await processLeadershipMatchingBonusFromSalesTeamCommission({
+        sourceType: 'sales_team_commission',
+        sourceSalesTeamCommissionId: normalizeText(salesTeamLedgerEntry.id || eventResult?.event?.id || eventDedupKey),
+        sourceCycleId: normalizeText(eventResult?.event?.id || eventDedupKey),
+        sourceCycleBatchId: `bc-cycle:${sourceNodeId}`,
+        sourceCycleCutoffId: normalizeText(payload?.cycleCutoffId || payload?.volumeReference),
+        sourceEarnerUserId: ownerUserId,
+        sourceEarnerUsername: normalizeText(payload?.ownerUsername || eventResult?.event?.ownerUsername),
+        sourceEarnerEmail: normalizeText(payload?.ownerEmail || eventResult?.event?.ownerEmail),
+        baseSalesTeamCommissionAmount: commissionAmount,
+        sourceRef: normalizeText(payload?.volumeReference || sourceNodeId),
+        status: normalizeText(salesTeamLedgerEntry.status || 'posted'),
+        postedAt: normalizeText(salesTeamLedgerEntry.postedAt || eventResult?.event?.createdAt),
+        createdAt: normalizeText(eventResult?.event?.createdAt),
+      }, {
+        executor: client,
+      });
+      leadershipMatchingBonus = matchingBonusResult?.data || null;
+    }
+
     await client.query('COMMIT');
     transactionClosed = true;
 
@@ -3019,6 +3042,7 @@ export async function settleBusinessCenterCycleCommission(payload = {}) {
         ledgerEntry: eventResult.ledgerEntry,
         wallet: eventResult.wallet,
         salesTeamLedgerEntry,
+        leadershipMatchingBonus,
       },
     };
   } catch (error) {

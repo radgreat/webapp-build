@@ -230,6 +230,49 @@ function buildSalesTeamMetadata(payload = {}) {
   };
 }
 
+function buildLeadershipMatchingBonusMetadata(payload = {}) {
+  return {
+    sourceCommission: {
+      salesTeamCommissionId: normalizeText(payload?.sourceSalesTeamCommissionId || payload?.sourceId),
+      cycleId: normalizeText(payload?.sourceCycleId || payload?.cycleId),
+      cycleBatchId: normalizeText(payload?.sourceCycleBatchId || payload?.cycleBatchId),
+      cycleCutoffId: normalizeText(payload?.sourceCycleCutoffId || payload?.cycleCutoffId),
+      sourceEarnerUserId: normalizeText(payload?.sourceEarnerUserId),
+      sourceEarnerUsername: normalizeText(payload?.sourceEarnerUsername),
+      sourceEarnerEmail: normalizeText(payload?.sourceEarnerEmail),
+      baseAmount: roundCurrencyAmount(payload?.baseSalesTeamCommissionAmount ?? payload?.baseAmount, 0),
+    },
+    recipient: {
+      userId: normalizeText(payload?.userId || payload?.recipientUserId),
+      username: normalizeText(payload?.username || payload?.recipientUsername),
+      email: normalizeText(payload?.email || payload?.recipientEmail),
+      rank: normalizeText(payload?.recipientRank),
+    },
+    matching: {
+      sponsorLevel: Math.max(1, toWholeNumber(payload?.sponsorLevel, 1)),
+      percentage: roundCurrencyAmount(payload?.matchPercentage, 0),
+      amount: roundCurrencyAmount(payload?.amountUsd ?? payload?.amount, 0),
+    },
+    debug: payload?.debug && typeof payload.debug === 'object' ? payload.debug : {},
+  };
+}
+
+function buildMatchingBonusTransferMetadata(payload = {}) {
+  return {
+    transfer: {
+      transferId: normalizeText(payload?.transferId || payload?.sourceId),
+      transactionId: normalizeText(payload?.transactionId),
+      sourceBalance: 'matching_bonus',
+      destinationBalance: 'wallet',
+      previousMatchingBonusBalance: roundCurrencyAmount(payload?.previousMatchingBonusBalance, 0),
+      newMatchingBonusBalance: roundCurrencyAmount(payload?.newMatchingBonusBalance, 0),
+      previousWalletBalance: roundCurrencyAmount(payload?.previousWalletBalance, 0),
+      newWalletBalance: roundCurrencyAmount(payload?.newWalletBalance, 0),
+    },
+    debug: payload?.debug && typeof payload.debug === 'object' ? payload.debug : {},
+  };
+}
+
 function buildPayoutMetadata(payload = {}) {
   return {
     payout: {
@@ -363,6 +406,91 @@ export async function createSalesTeamCommissionLedgerEntry(payload = {}, options
     idempotencyKey,
     description: buildLedgerDescription(payload?.description, `Sales Team commission from cycle ${sourceId}`),
     metadata: buildSalesTeamMetadata(payload),
+    postedAt: normalizeText(payload?.postedAt),
+    createdAt: normalizeText(payload?.createdAt),
+  }, options?.executor);
+}
+
+export async function createLeadershipMatchingBonusLedgerEntry(payload = {}, options = {}) {
+  await ledgerServiceDependencies.ensureLedgerTables();
+
+  const userId = normalizeText(payload?.userId || payload?.recipientUserId);
+  const amount = roundCurrencyAmount(payload?.amountUsd ?? payload?.amount, 0);
+  const sourceSalesTeamCommissionId = normalizeText(
+    payload?.sourceSalesTeamCommissionId
+    || payload?.sourceId
+    || payload?.salesTeamCommissionId,
+  );
+  if (!userId || amount <= 0 || !sourceSalesTeamCommissionId) {
+    return {
+      entry: null,
+      idempotent: false,
+      skipped: true,
+    };
+  }
+
+  const sponsorLevel = Math.max(1, toWholeNumber(payload?.sponsorLevel, 1));
+  const status = normalizeLedgerStatus(payload?.status, LEDGER_ENTRY_STATUSES.POSTED);
+  const idempotencyKey = resolveIdempotencyKeyWithFallback(
+    payload?.idempotencyKey,
+    `leadership_matching_bonus:${sourceSalesTeamCommissionId}:${userId}:level:${sponsorLevel}`,
+  );
+
+  return ledgerServiceDependencies.insertLedgerEntry({
+    userId,
+    username: normalizeText(payload?.username || payload?.recipientUsername),
+    email: normalizeText(payload?.email || payload?.recipientEmail),
+    type: LEDGER_ENTRY_TYPES.LEADERSHIP_MATCHING_BONUS,
+    direction: LEDGER_ENTRY_DIRECTIONS.CREDIT,
+    amount,
+    bvAmount: Math.max(0, toWholeNumber(payload?.bvAmount, 0)),
+    status,
+    sourceType: LEDGER_SOURCE_TYPES.SALES_TEAM_COMMISSION,
+    sourceId: sourceSalesTeamCommissionId,
+    sourceRef: normalizeText(payload?.sourceRef || payload?.sourceCycleId || sourceSalesTeamCommissionId),
+    idempotencyKey,
+    description: buildLedgerDescription(payload?.description, `Leadership matching bonus from Sales Team commission ${sourceSalesTeamCommissionId}`),
+    metadata: buildLeadershipMatchingBonusMetadata(payload),
+    postedAt: normalizeText(payload?.postedAt),
+    createdAt: normalizeText(payload?.createdAt),
+  }, options?.executor);
+}
+
+export async function createMatchingBonusTransferToWalletLedgerEntry(payload = {}, options = {}) {
+  await ledgerServiceDependencies.ensureLedgerTables();
+
+  const userId = normalizeText(payload?.userId);
+  const amount = roundCurrencyAmount(payload?.amountUsd ?? payload?.amount, 0);
+  const sourceId = normalizeText(payload?.sourceId || payload?.transferId || payload?.transactionId);
+  if (!userId || amount <= 0 || !sourceId) {
+    return {
+      entry: null,
+      idempotent: false,
+      skipped: true,
+    };
+  }
+
+  const status = normalizeLedgerStatus(payload?.status, LEDGER_ENTRY_STATUSES.POSTED);
+  const idempotencyKey = resolveIdempotencyKeyWithFallback(
+    payload?.idempotencyKey,
+    `matching_bonus_transfer:${sourceId}:${userId}`,
+  );
+
+  return ledgerServiceDependencies.insertLedgerEntry({
+    userId,
+    username: normalizeText(payload?.username),
+    email: normalizeText(payload?.email),
+    type: LEDGER_ENTRY_TYPES.MATCHING_BONUS_TRANSFER_TO_WALLET,
+    direction: LEDGER_ENTRY_DIRECTIONS.DEBIT,
+    amount,
+    bvAmount: 0,
+    status,
+    sourceType: LEDGER_SOURCE_TYPES.COMMISSION_TRANSFER,
+    sourceId,
+    sourceRef: normalizeText(payload?.sourceRef || sourceId),
+    idempotencyKey,
+    description: buildLedgerDescription(payload?.description, `Matching Bonus transferred to wallet (${sourceId})`),
+    metadata: buildMatchingBonusTransferMetadata(payload),
     postedAt: normalizeText(payload?.postedAt),
     createdAt: normalizeText(payload?.createdAt),
   }, options?.executor);

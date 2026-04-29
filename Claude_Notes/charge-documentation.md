@@ -34074,3 +34074,95 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-28) - Leadership Matching Bonus (Finalized Sales Team Source Only)
+
+### Scope Completed
+- Implemented Leadership Matching Bonus computation from finalized Sales Team commission ledger events created during cycle settlement.
+- Matching traversal now uses sponsor/enrollment lineage (`registered_members.sponsor_username`) only, up to 9 levels.
+- Added rank-depth percentage handling for:
+  - Ruby, Emerald, Sapphire, Diamond, Blue Diamond, Black Diamond, Crown, Double Crown, Royal Crown.
+- Added idempotent duplicate prevention per earning event using:
+  - source Sales Team commission id
+  - recipient user id
+  - sponsor level
+  - bonus type key.
+
+### Backend Changes
+- `backend/services/leadership-matching.service.js` (new)
+  - Introduced sponsor-upline traversal and per-level matching bonus calculation.
+  - Enforced finalized source status and sales-team source type gate.
+  - Added test dependency hooks for deterministic unit coverage.
+- `backend/services/member-business-center.service.js`
+  - Hooked matching-bonus processing immediately after Sales Team ledger entry creation in cycle settlement.
+  - Matching payload now captures source commission/cycle/cutoff context for auditing.
+- `backend/services/ledger.service.js`
+  - Added ledger creators:
+    - `createLeadershipMatchingBonusLedgerEntry`
+    - `createMatchingBonusTransferToWalletLedgerEntry`
+  - Added structured metadata payloads for earning and transfer audit trails.
+- `backend/utils/ledger.helpers.js`
+  - Added ledger types:
+    - `leadership_matching_bonus`
+    - `matching_bonus_transfer_to_wallet`
+  - Added source types:
+    - `sales_team_commission`
+    - `commission_transfer`
+- `backend/stores/ledger.store.js`
+  - Expanded table constraints for new ledger types/source types.
+  - Added runtime constraint refresh step for existing installations.
+  - Included `leadership_matching_bonus` in total-earned summary computation.
+
+### Wallet / Transfer Integration
+- `backend/stores/wallet.store.js`
+  - Added `matchingbonus` commission-source sender mapping (`commission-matchingbonus`).
+  - Added matching-bonus offset aggregation in commission offset map.
+- `backend/services/wallet.service.js`
+  - Added `matchingbonus` commission source metadata.
+  - Added available-balance validation for matching-bonus transfers using posted/paid leadership-matching ledger totals minus historical transfer offsets.
+  - Added transfer ledger write (`matching_bonus_transfer_to_wallet`) with pre/post balance metadata.
+  - Added optional transfer transaction id ingestion for transfer idempotency keying.
+
+### Dashboard / UI (No KPI-Grid Card Added)
+- Per request, did **not** add Matching Bonus to the top KPI row.
+- Added Matching Bonus card to the right dashboard column (alongside existing bonus/action panels) in `index.html`:
+  - Available matching-bonus balance
+  - Transfer to Wallet button
+  - Zero/available state messaging
+  - Disabled transfer button when balance is below minimum transfer amount.
+- Reused existing commission transfer flow (`/api/e-wallet/commission-transfer`) with source key `matchingbonus`.
+- Updated frontend commission-offset maps, transfer source routing, and button binding to include `matchingbonus`.
+
+### Ledger / Reporting UI Updates
+- `index.html` ledger filter options + labels now include:
+  - Leadership Matching Bonus
+  - Matching Bonus Transfer to Wallet
+  - Commission Transfer source type.
+- `admin.html` ledger explorer filters/labels now include the same categories/source types.
+
+### Tests Added / Updated
+- `backend/tests/leadership-matching.service.test.js` (new)
+  - finalized-only gating
+  - exclusion for retail/fast-track/raw-bv/carry-over sources
+  - rank-depth coverage (Ruby through Royal Crown)
+  - level-9 traversal cap
+  - safe stop on missing sponsor
+  - duplicate/idempotent processing behavior
+  - ledger payload audit field assertions.
+- `backend/tests/ledger.service.test.js`
+  - added unit coverage for:
+    - leadership matching earning ledger creation
+    - matching bonus transfer-to-wallet ledger creation.
+
+### Validation Run
+- `cmd /c npm run test:ledger` passed.
+- `cmd /c npm run test:matching-bonus` passed.
+- `cmd /c npm run test:binary-cycle` passed.
+- `node --check` passed for modified backend service/store/test files.
+- Inline script parse checks passed for:
+  - `index.html`
+  - `admin.html`
+
+### Known Notes
+- Matching bonus transfer safety now enforces server-side available balance checks for `matchingbonus` source before wallet credit.
+- Existing non-matching commission transfer sources retain their prior behavior/pattern.

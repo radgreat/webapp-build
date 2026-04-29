@@ -106,6 +106,8 @@ async function installLedgerTablesWithPool(targetPool, options = {}) {
             'retail_commission',
             'fast_track_commission',
             'sales_team_commission',
+            'leadership_matching_bonus',
+            'matching_bonus_transfer_to_wallet',
             'payout',
             'adjustment',
             'reversal'
@@ -116,7 +118,15 @@ async function installLedgerTablesWithPool(targetPool, options = {}) {
         CONSTRAINT ledger_entries_bv_amount_check CHECK (bv_amount >= 0),
         CONSTRAINT ledger_entries_status_check CHECK (status IN ('pending', 'posted', 'paid', 'reversed', 'failed')),
         CONSTRAINT ledger_entries_source_type_check CHECK (
-          source_type IN ('order', 'enrollment', 'binary_cycle', 'payout', 'admin_adjustment')
+          source_type IN (
+            'order',
+            'enrollment',
+            'binary_cycle',
+            'sales_team_commission',
+            'commission_transfer',
+            'payout',
+            'admin_adjustment'
+          )
         )
       )
     `);
@@ -209,6 +219,47 @@ async function ensureLedgerTableColumns() {
   `);
 }
 
+async function ensureLedgerTableConstraints() {
+  await pool.query(`
+    ALTER TABLE charge.ledger_entries
+    DROP CONSTRAINT IF EXISTS ledger_entries_type_check
+  `);
+  await pool.query(`
+    ALTER TABLE charge.ledger_entries
+    ADD CONSTRAINT ledger_entries_type_check CHECK (
+      type IN (
+        'retail_commission',
+        'fast_track_commission',
+        'sales_team_commission',
+        'leadership_matching_bonus',
+        'matching_bonus_transfer_to_wallet',
+        'payout',
+        'adjustment',
+        'reversal'
+      )
+    )
+  `);
+
+  await pool.query(`
+    ALTER TABLE charge.ledger_entries
+    DROP CONSTRAINT IF EXISTS ledger_entries_source_type_check
+  `);
+  await pool.query(`
+    ALTER TABLE charge.ledger_entries
+    ADD CONSTRAINT ledger_entries_source_type_check CHECK (
+      source_type IN (
+        'order',
+        'enrollment',
+        'binary_cycle',
+        'sales_team_commission',
+        'commission_transfer',
+        'payout',
+        'admin_adjustment'
+      )
+    )
+  `);
+}
+
 export async function ensureLedgerTables() {
   if (ledgerTablesReady) {
     return;
@@ -268,6 +319,7 @@ export async function ensureLedgerTables() {
     }
 
     await ensureLedgerTableColumns();
+    await ensureLedgerTableConstraints();
     await pool.query('SELECT 1 FROM charge.ledger_entries LIMIT 1');
     ledgerTablesReady = true;
   })().catch((error) => {
@@ -775,7 +827,13 @@ export async function getLedgerSummary(filters = {}, executor = pool) {
       COALESCE(SUM(
         CASE
           WHEN direction = 'credit'
-            AND type IN ('retail_commission', 'fast_track_commission', 'sales_team_commission', 'adjustment')
+            AND type IN (
+              'retail_commission',
+              'fast_track_commission',
+              'sales_team_commission',
+              'leadership_matching_bonus',
+              'adjustment'
+            )
           THEN amount
           ELSE 0
         END

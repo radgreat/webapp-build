@@ -4,6 +4,8 @@ import {
   __resetLedgerServiceDependenciesForTests,
   __setLedgerServiceDependenciesForTests,
   createFastTrackCommissionLedgerEntry,
+  createLeadershipMatchingBonusLedgerEntry,
+  createMatchingBonusTransferToWalletLedgerEntry,
   createRetailCommissionLedgerEntry,
   createSalesTeamCommissionLedgerEntry,
   getUserLedgerSummary,
@@ -128,6 +130,82 @@ test('sales team cycle creates one sales-team commission ledger entry', async ()
     assert.equal(result.entry?.amount, 120);
     assert.equal(result.entry?.bvAmount, 1500);
     assert.equal(result.entry?.idempotencyKey, 'sales_team_cycle:cycle-3001:cycler-1');
+  } finally {
+    restoreLedgerServiceDependencies();
+  }
+});
+
+test('leadership matching bonus creates one matching-bonus ledger entry', async () => {
+  const insertedRows = [];
+  withLedgerServiceDependencies({
+    insertLedgerEntry: async (payload) => {
+      insertedRows.push(payload);
+      return {
+        entry: { id: 'led-match-1', ...payload },
+        idempotent: false,
+      };
+    },
+  });
+
+  try {
+    const result = await createLeadershipMatchingBonusLedgerEntry({
+      userId: 'upline-1',
+      username: 'upline-user',
+      sourceSalesTeamCommissionId: 'sales-ledger-1',
+      sourceCycleId: 'cycle-1',
+      sourceEarnerUserId: 'earner-1',
+      sponsorLevel: 2,
+      matchPercentage: 5,
+      baseSalesTeamCommissionAmount: 120,
+      amountUsd: 6,
+    });
+
+    assert.equal(insertedRows.length, 1);
+    assert.equal(result.idempotent, false);
+    assert.equal(result.entry?.type, 'leadership_matching_bonus');
+    assert.equal(result.entry?.sourceType, 'sales_team_commission');
+    assert.equal(result.entry?.sourceId, 'sales-ledger-1');
+    assert.equal(result.entry?.amount, 6);
+    assert.equal(result.entry?.direction, 'credit');
+    assert.equal(result.entry?.idempotencyKey, 'leadership_matching_bonus:sales-ledger-1:upline-1:level:2');
+  } finally {
+    restoreLedgerServiceDependencies();
+  }
+});
+
+test('matching bonus transfer creates one transfer-to-wallet ledger entry', async () => {
+  const insertedRows = [];
+  withLedgerServiceDependencies({
+    insertLedgerEntry: async (payload) => {
+      insertedRows.push(payload);
+      return {
+        entry: { id: 'led-match-transfer-1', ...payload },
+        idempotent: false,
+      };
+    },
+  });
+
+  try {
+    const result = await createMatchingBonusTransferToWalletLedgerEntry({
+      userId: 'upline-1',
+      username: 'upline-user',
+      sourceId: 'ewtx_1001',
+      transferId: 'ewtx_1001',
+      amountUsd: 16.5,
+      previousMatchingBonusBalance: 20,
+      newMatchingBonusBalance: 3.5,
+      previousWalletBalance: 100,
+      newWalletBalance: 116.5,
+    });
+
+    assert.equal(insertedRows.length, 1);
+    assert.equal(result.idempotent, false);
+    assert.equal(result.entry?.type, 'matching_bonus_transfer_to_wallet');
+    assert.equal(result.entry?.sourceType, 'commission_transfer');
+    assert.equal(result.entry?.sourceId, 'ewtx_1001');
+    assert.equal(result.entry?.amount, 16.5);
+    assert.equal(result.entry?.direction, 'debit');
+    assert.equal(result.entry?.idempotencyKey, 'matching_bonus_transfer:ewtx_1001:upline-1');
   } finally {
     restoreLedgerServiceDependencies();
   }

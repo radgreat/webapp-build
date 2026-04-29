@@ -3269,7 +3269,7 @@
                 <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <h4 class="font-body font-medium text-body text-text-primary">Ledger Explorer</h4>
-                    <p class="mt-1 text-caption text-text-secondary">Global audit feed for retail, fast-track, sales-team, payout, adjustment, and reversal entries.</p>
+                    <p class="mt-1 text-caption text-text-secondary">Global audit feed for retail, fast-track, sales-team, leadership matching, payout, adjustment, and reversal entries.</p>
                   </div>
                   <span id="admin-ledger-count-pill" class="inline-flex items-center rounded-full border border-brand-500/25 bg-brand-500/10 px-2.5 py-1 text-caption text-brand-300">0 entries</span>
                 </div>
@@ -3307,6 +3307,8 @@
                     <option value="retail_commission">Retail Commission</option>
                     <option value="fast_track_commission">Fast Track Commission</option>
                     <option value="sales_team_commission">Sales Team Commission</option>
+                    <option value="leadership_matching_bonus">Leadership Matching Bonus</option>
+                    <option value="matching_bonus_transfer_to_wallet">Matching Bonus Transfer to Wallet</option>
                     <option value="payout">Payout</option>
                     <option value="adjustment">Adjustment</option>
                     <option value="reversal">Reversal</option>
@@ -3324,6 +3326,8 @@
                     <option value="order">Order</option>
                     <option value="enrollment">Enrollment</option>
                     <option value="binary_cycle">Binary Cycle</option>
+                    <option value="sales_team_commission">Sales Team Commission</option>
+                    <option value="commission_transfer">Commission Transfer</option>
                     <option value="payout">Payout</option>
                     <option value="admin_adjustment">Admin Adjustment</option>
                   </select>
@@ -8434,6 +8438,8 @@
         retail_commission: 'Retail Commission',
         fast_track_commission: 'Fast Track Commission',
         sales_team_commission: 'Sales Team Commission',
+        leadership_matching_bonus: 'Leadership Matching Bonus',
+        matching_bonus_transfer_to_wallet: 'Matching Bonus Transfer to Wallet',
         payout: 'Payout',
         adjustment: 'Adjustment',
         reversal: 'Reversal',
@@ -8442,6 +8448,8 @@
         order: 'Order',
         enrollment: 'Enrollment',
         binary_cycle: 'Binary Cycle',
+        sales_team_commission: 'Sales Team Commission',
+        commission_transfer: 'Commission Transfer',
         payout: 'Payout',
         admin_adjustment: 'Admin Adjustment',
       });

@@ -4090,8 +4090,38 @@
                   <p id="fast-track-commission-audit-empty" class="mt-3 rounded-lg border border-dashed border-surface-border bg-surface-base/45 px-3 py-2 text-caption text-text-secondary">
                     No Fast Track commission records yet.
                   </p>
-                  <div id="fast-track-commission-audit-list" class="mt-3 hidden min-h-0 flex-1 space-y-2 overflow-y-auto pr-1"></div>
+                <div id="fast-track-commission-audit-list" class="mt-3 hidden min-h-0 flex-1 space-y-2 overflow-y-auto pr-1"></div>
                 </div>
+            </div>
+
+            <div id="matching-bonus-card" class="rounded-2xl border border-brand-500/20 bg-surface-raised/95 p-5 shadow-depth-1 flex min-h-0 flex-col">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-brand-500/10 border border-brand-500/25 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 6.75h9m-9 4.5h9m-9 4.5h5.25M6.75 3.75h10.5A2.25 2.25 0 0119.5 6v12a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 18V6a2.25 2.25 0 012.25-2.25z"/></svg>
+                  </div>
+                  <div>
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Matching Bonus</p>
+                    <p class="text-caption text-text-tertiary mt-1">Leadership match from Sales Team commissions</p>
+                  </div>
+                </div>
+                <span id="matching-bonus-status-chip" class="inline-flex items-center gap-1 text-caption px-2 py-0.5 rounded-full bg-semantic-info-bg text-semantic-info">0.00 USD</span>
+              </div>
+
+              <div class="mt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                <div>
+                  <p id="matching-bonus-value" class="font-body font-semibold text-[2rem] leading-none text-text-primary">$0.00</p>
+                  <p class="text-caption text-text-tertiary mt-2">Available matching bonus balance</p>
+                </div>
+                <button id="matching-bonus-request-payout-button" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500 text-text-inverse font-medium text-body-sm shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised active:scale-[0.97] transition-transform duration-150 ease-spring disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Transfer matching bonus to E-Wallet">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5v7.5H2.25v-7.5zM5.25 10.875h3m7.5 0h3M6 13.125h4.5"/></svg>
+                  Transfer to Wallet
+                </button>
+              </div>
+
+              <p id="matching-bonus-help-text" class="text-caption text-text-tertiary mt-4">
+                Earned from finalized Sales Team commission records from your sponsored downline.
+              </p>
             </div>
 
             <div id="recent-activity-panel" class="relative overflow-hidden rounded-2xl border border-surface-border-light bg-surface-elevated/70 shadow-depth-1 flex min-h-0 flex-col">
@@ -4751,6 +4781,8 @@
                     <option value="retail_commission">Retail Commission</option>
                     <option value="fast_track_commission">Fast Track Commission</option>
                     <option value="sales_team_commission">Sales Team Commission</option>
+                    <option value="leadership_matching_bonus">Leadership Matching Bonus</option>
+                    <option value="matching_bonus_transfer_to_wallet">Matching Bonus Transfer to Wallet</option>
                     <option value="payout">Payout</option>
                     <option value="adjustment">Adjustment</option>
                     <option value="reversal">Reversal</option>
@@ -6593,6 +6625,11 @@
       const fastTrackCommissionAuditCountElement = document.getElementById('fast-track-commission-audit-count');
       const fastTrackCommissionAuditEmptyElement = document.getElementById('fast-track-commission-audit-empty');
       const fastTrackCommissionAuditListElement = document.getElementById('fast-track-commission-audit-list');
+      const matchingBonusPanelElement = document.getElementById('matching-bonus-card');
+      const matchingBonusValueElement = document.getElementById('matching-bonus-value');
+      const matchingBonusStatusChipElement = document.getElementById('matching-bonus-status-chip');
+      const matchingBonusHelpTextElement = document.getElementById('matching-bonus-help-text');
+      const matchingBonusRequestPayoutButtonElement = document.getElementById('matching-bonus-request-payout-button');
       const infinityBuilderBonusPanelElement = document.getElementById('infinity-builder-bonus-panel');
       const legacyLeadershipBonusPanelElement = document.getElementById('legacy-leadership-bonus-panel');
       const infinityBuilderTopBonusValueElement = document.getElementById('infinity-builder-top-bonus-value');
@@ -7181,6 +7218,7 @@
       let legacyLeadershipBonusBalanceValue = 0;
       let salesTeamCommissionBalanceValue = 0;
       let retailProfitCommissionBalanceValue = 0;
+      let matchingBonusBalanceValue = 0;
       let pendingBinaryTreeMetricsSyncTimerId = null;
       let pendingSalesTeamCommissionSyncTimerId = null;
       let lastBinaryTreeMetricsSyncSignature = '';
@@ -7200,6 +7238,7 @@
         legacyleadership: 0,
         salesteam: 0,
         retailprofit: 0,
+        matchingbonus: 0,
       };
       let walletBalanceOverrideValue = resolveSessionWalletBalance(currentSessionUser);
 
@@ -7234,6 +7273,7 @@
           + Math.max(0, Number(infinityBuilderBonusBalanceValue) || 0)
           + Math.max(0, Number(legacyLeadershipBonusBalanceValue) || 0)
           + Math.max(0, Number(salesTeamCommissionBalanceValue) || 0)
+          + Math.max(0, Number(matchingBonusBalanceValue) || 0)
         );
       }
 
@@ -8935,6 +8975,85 @@
         }
       }
 
+      function resolveDashboardMatchingBonusGrossAmount() {
+        const summary = sanitizeLedgerSummaryRecord(memberLedgerSummary);
+        const byType = summary?.byType && typeof summary.byType === 'object'
+          ? summary.byType
+          : {};
+        const candidateKeys = [
+          'leadership_matching_bonus',
+          'leadershipmatchingbonus',
+          'matchingbonus',
+          'matching-bonus',
+        ];
+        const normalizedCandidateKeys = new Set(candidateKeys.map((key) => normalizeMemberKey(key)));
+
+        for (const [entryType, entryValue] of Object.entries(byType)) {
+          if (!normalizedCandidateKeys.has(normalizeMemberKey(entryType))) {
+            continue;
+          }
+          const netAmount = Number(entryValue?.netAmount);
+          if (Number.isFinite(netAmount) && netAmount >= 0) {
+            return netAmount;
+          }
+        }
+
+        return 0;
+      }
+
+      function resolveDashboardMatchingBonusAvailableAmount() {
+        const grossMatchingBonus = Math.max(0, Number(resolveDashboardMatchingBonusGrossAmount()) || 0);
+        if (!commissionOffsetsHydrated) {
+          return grossMatchingBonus;
+        }
+        return resolveNetCommissionBalance('matchingbonus', grossMatchingBonus);
+      }
+
+      function renderDashboardMatchingBonusCard() {
+        const isLoading = Boolean(memberLedgerLoading && !memberLedgerSummary);
+        if (isLoading) {
+          matchingBonusBalanceValue = 0;
+          if (matchingBonusValueElement) {
+            matchingBonusValueElement.textContent = '--';
+          }
+          if (matchingBonusStatusChipElement) {
+            matchingBonusStatusChipElement.textContent = 'Loading...';
+            matchingBonusStatusChipElement.classList.remove('bg-semantic-success-bg', 'text-semantic-success');
+            matchingBonusStatusChipElement.classList.add('bg-semantic-info-bg', 'text-semantic-info');
+          }
+          if (matchingBonusHelpTextElement) {
+            matchingBonusHelpTextElement.textContent = 'Loading matching bonus ledger summary...';
+          }
+          renderDashboardTotalBalance();
+          return;
+        }
+
+        matchingBonusBalanceValue = resolveDashboardMatchingBonusAvailableAmount();
+        if (matchingBonusValueElement) {
+          matchingBonusValueElement.textContent = formatCurrency(matchingBonusBalanceValue);
+        }
+        if (matchingBonusStatusChipElement) {
+          matchingBonusStatusChipElement.textContent = `${matchingBonusBalanceValue.toFixed(2)} USD`;
+          matchingBonusStatusChipElement.classList.remove(
+            'bg-semantic-info-bg',
+            'text-semantic-info',
+            'bg-semantic-success-bg',
+            'text-semantic-success',
+          );
+          if (matchingBonusBalanceValue > 0) {
+            matchingBonusStatusChipElement.classList.add('bg-semantic-success-bg', 'text-semantic-success');
+          } else {
+            matchingBonusStatusChipElement.classList.add('bg-semantic-info-bg', 'text-semantic-info');
+          }
+        }
+        if (matchingBonusHelpTextElement) {
+          matchingBonusHelpTextElement.textContent = matchingBonusBalanceValue > 0
+            ? 'Available from finalized Sales Team commissions generated by your sponsored downline.'
+            : 'No available matching bonus yet. Credits appear after finalized Sales Team commission runs.';
+        }
+        renderDashboardTotalBalance();
+      }
+
       function syncCommissionPayoutButtonState(buttonElement, sourceLabel, availableAmount) {
         if (!buttonElement) {
           return;
@@ -8957,6 +9076,7 @@
 
       function refreshCommissionPayoutButtonStates() {
         renderDashboardRetailProfitCard();
+        renderDashboardMatchingBonusCard();
         syncCommissionPayoutButtonState(
           fastTrackRequestPayoutButtonElement,
           'Fast Track Bonus',
@@ -8981,6 +9101,11 @@
           dashboardRetailProfitRequestPayoutButtonElement,
           'Retail Profit',
           retailProfitCommissionBalanceValue,
+        );
+        syncCommissionPayoutButtonState(
+          matchingBonusRequestPayoutButtonElement,
+          'Matching Bonus',
+          matchingBonusBalanceValue,
         );
       }
 
@@ -14556,6 +14681,7 @@
           legacyleadership: 0,
           salesteam: 0,
           retailprofit: 0,
+          matchingbonus: 0,
         };
       }
 
@@ -15372,6 +15498,13 @@
           throw new Error('Transfer amount must be greater than 0.');
         }
 
+        const transactionId = [
+          'c2w',
+          normalizeMemberKey(sourceMeta?.key || 'commission'),
+          Date.now(),
+          Math.random().toString(36).slice(2, 10),
+        ].join(':');
+
         const response = await fetch(E_WALLET_COMMISSION_TRANSFER_API, {
           method: 'POST',
           headers: {
@@ -15383,6 +15516,7 @@
             email: identity.email,
             sourceKey: sourceMeta?.key || 'commission',
             amount: safeAmountValue,
+            transactionId,
             senderSeedBalance: Math.max(0, Number(resolveDashboardTotalBalanceValue()) || 0),
             limit: 50,
           }),
@@ -20005,6 +20139,8 @@
         retail_commission: 'Retail Commission',
         fast_track_commission: 'Fast Track Commission',
         sales_team_commission: 'Sales Team Commission',
+        leadership_matching_bonus: 'Leadership Matching Bonus',
+        matching_bonus_transfer_to_wallet: 'Matching Bonus Transfer to Wallet',
         payout: 'Payout',
         adjustment: 'Adjustment',
         reversal: 'Reversal',
@@ -20013,6 +20149,8 @@
         order: 'Order',
         enrollment: 'Enrollment',
         binary_cycle: 'Binary Cycle',
+        sales_team_commission: 'Sales Team Commission',
+        commission_transfer: 'Commission Transfer',
         payout: 'Payout',
         admin_adjustment: 'Admin Adjustment',
       });
@@ -20234,6 +20372,7 @@
           commissionsSummaryPaidOutElement.textContent = formatCurrency(summary.paidOutAmount);
         }
         renderDashboardRetailProfitCard();
+        renderDashboardMatchingBonusCard();
       }
 
       function renderCommissionsLedgerTable() {
@@ -20949,6 +21088,8 @@
             return { key: 'salesteam', label: 'Sales Team Commissions' };
           case 'retailprofit':
             return { key: 'retailprofit', label: 'Retail Profit' };
+          case 'matchingbonus':
+            return { key: 'matchingbonus', label: 'Matching Bonus' };
           default:
             return null;
         }
@@ -20971,6 +21112,9 @@
         if (normalizedKey === 'retailprofit') {
           return Math.max(0, Number(retailProfitCommissionBalanceValue) || 0);
         }
+        if (normalizedKey === 'matchingbonus') {
+          return Math.max(0, Number(matchingBonusBalanceValue) || 0);
+        }
         return 0;
       }
 
@@ -20991,6 +21135,9 @@
         if (normalizedKey === 'retailprofit') {
           return dashboardRetailProfitRequestPayoutButtonElement;
         }
+        if (normalizedKey === 'matchingbonus') {
+          return matchingBonusRequestPayoutButtonElement;
+        }
         return null;
       }
 
@@ -21004,7 +21151,11 @@
           !dashboardMockupModeEnabled
           && (
             !commissionOffsetsHydrated
-            || (sourceMeta.key !== 'retailprofit' && !commissionContainersHydrated)
+            || (
+              sourceMeta.key !== 'retailprofit'
+              && sourceMeta.key !== 'matchingbonus'
+              && !commissionContainersHydrated
+            )
           )
         ) {
           return;
@@ -21085,6 +21236,7 @@
         bindPayoutButton(legacyLeadershipTopRequestPayoutButtonElement, 'legacyleadership');
         bindPayoutButton(dashboardSalesCommissionRequestPayoutButtonElement, 'salesteam');
         bindPayoutButton(dashboardRetailProfitRequestPayoutButtonElement, 'retailprofit');
+        bindPayoutButton(matchingBonusRequestPayoutButtonElement, 'matchingbonus');
         refreshCommissionPayoutButtonStates();
       }
 

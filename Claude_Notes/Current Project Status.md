@@ -19206,3 +19206,44 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-28) - Leadership Matching Bonus Delivered (Non-KPI Placement)
+
+### Done
+- Leadership Matching Bonus backend flow is implemented from finalized Sales Team commission records only.
+- Sponsor/enrollment upline traversal is implemented to max 9 levels with rank-based percentage matrix.
+- Earning idempotency is implemented per:
+  - source sales-team commission id
+  - recipient user id
+  - sponsor level
+  - bonus type.
+- Matching Bonus transfer-to-wallet is integrated into existing commission transfer endpoint/flow.
+- Matching Bonus transfer now writes ledger entries with before/after source+wallet balances.
+- Dashboard now shows Matching Bonus in right-column bonus panels (not top KPI grid, per user direction).
+- Admin/member ledger filters now include:
+  - Leadership Matching Bonus
+  - Matching Bonus Transfer to Wallet
+  - Commission Transfer source type.
+
+### Files Updated In This Scope
+- `backend/services/leadership-matching.service.js` (new)
+- `backend/services/member-business-center.service.js`
+- `backend/services/ledger.service.js`
+- `backend/services/wallet.service.js`
+- `backend/stores/ledger.store.js`
+- `backend/stores/wallet.store.js`
+- `backend/utils/ledger.helpers.js`
+- `backend/tests/leadership-matching.service.test.js` (new)
+- `backend/tests/ledger.service.test.js`
+- `index.html`
+- `admin.html`
+- `package.json`
+
+### Verification Snapshot
+- `cmd /c npm run test:ledger` passed.
+- `cmd /c npm run test:matching-bonus` passed.
+- `cmd /c npm run test:binary-cycle` passed.
+- Inline script parse checks passed for `index.html` and `admin.html`.
+
+### Active Follow-Up / Risks
+- Existing legacy commission sources (fasttrack/infinity/legacy/salesteam/retailprofit) keep prior transfer validation behavior; only matching-bonus source now performs explicit server-side available-balance validation before wallet credit.
