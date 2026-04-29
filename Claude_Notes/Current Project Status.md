@@ -19738,3 +19738,17 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Binary Tree My Store Product Catalog Visibility
+
+### Completed
+- Confirmed and fixed Binary Tree `Profile > My Store` product visibility gap where only a single featured product was shown.
+- My Store catalog in Binary Tree now renders live products from `/api/store-products` (active-first) and includes newly added admin products.
+- Product selection now persists by product key through in-panel Review and Checkout states.
+- Updated My Store catalog panel markup/styling for multi-product responsive card layout.
+
+### Scope
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.

@@ -3318,6 +3318,17 @@
 
     .tree-next-my-store-featured-product {
       margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(165px, 1fr));
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    .tree-next-my-store-featured-product.is-single {
+      grid-template-columns: 1fr;
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .tree-next-my-store-product-button {
@@ -3402,12 +3413,26 @@
       max-height: 82%;
     }
 
-    #tree-next-my-store-featured-label {
+    .tree-next-my-store-catalog-product-card {
+      min-width: 0;
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .tree-next-my-store-catalog-product-card.is-selected .tree-next-my-store-product-image-shell {
+      box-shadow:
+        0 0 0 2px rgba(69, 143, 236, 0.62),
+        inset 0 1px 0 rgba(255, 255, 255, 0.68);
+    }
+
+    .tree-next-my-store-catalog-product-label {
       margin: 0;
       color: #111318;
-      font-size: 40px;
+      font-size: 17px;
       font-weight: 700;
-      line-height: 1.24;
+      line-height: 1.25;
       text-align: center;
     }
 
@@ -4090,8 +4115,8 @@
         font-size: 27px;
       }
 
-      #tree-next-my-store-featured-label {
-        font-size: 34px;
+      .tree-next-my-store-featured-product {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .tree-next-my-store-upgrades-grid {
@@ -4202,12 +4227,8 @@
         grid-template-columns: 1fr;
       }
 
-      .tree-next-my-store-product-image-shell.is-featured {
-        width: min(270px, 82vw);
-      }
-
-      #tree-next-my-store-featured-label {
-        font-size: 30px;
+      .tree-next-my-store-featured-product {
+        grid-template-columns: 1fr;
       }
 
       .tree-next-my-store-section.is-share {
@@ -6360,19 +6381,20 @@
 
       <div data-my-store-view="catalog">
         <section class="tree-next-my-store-section is-featured" aria-labelledby="tree-next-my-store-featured-title">
-          <h3 id="tree-next-my-store-featured-title" class="tree-next-my-store-section-title">Featured</h3>
-          <div class="tree-next-my-store-featured-product">
+          <h3 id="tree-next-my-store-featured-title" class="tree-next-my-store-section-title">Products</h3>
+          <div id="tree-next-my-store-featured-products" class="tree-next-my-store-featured-product is-single">
             <button
               id="tree-next-my-store-featured-button"
-              class="tree-next-my-store-product-button"
+              class="tree-next-my-store-product-button tree-next-my-store-catalog-product-card is-selected"
               type="button"
               data-my-store-product-action="featured"
               data-my-store-product-key="metacharge"
+              aria-pressed="true"
             >
-              <div class="tree-next-my-store-product-image-shell is-featured">
+              <div class="tree-next-my-store-product-image-shell is-upgrade">
                 <img id="tree-next-my-store-featured-image" src="/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png" alt="MetaCharge bottle" />
               </div>
-              <p id="tree-next-my-store-featured-label">MetaCharge&trade;</p>
+              <p id="tree-next-my-store-featured-label" class="tree-next-my-store-catalog-product-label">MetaCharge&trade;</p>
             </button>
           </div>
         </section>

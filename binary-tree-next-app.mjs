@@ -818,8 +818,7 @@ const myStoreThankYouViewElement = myStorePanelElement?.querySelector('[data-my-
 const myStoreShareViewElement = myStorePanelElement?.querySelector('[data-my-store-share-block]') || null;
 const myStoreBreadcrumbsElement = document.getElementById('tree-next-my-store-breadcrumbs');
 const myStoreCloseButtonElement = document.getElementById('tree-next-my-store-close');
-const myStoreFeaturedImageElement = document.getElementById('tree-next-my-store-featured-image');
-const myStoreFeaturedLabelElement = document.getElementById('tree-next-my-store-featured-label');
+const myStoreFeaturedProductsElement = document.getElementById('tree-next-my-store-featured-products');
 const myStoreUpgradesSectionElement = document.getElementById('tree-next-my-store-upgrades-section');
 const myStoreUpgradesGridElement = document.getElementById('tree-next-my-store-upgrades-grid');
 const myStoreReviewImageElement = document.getElementById('tree-next-my-store-review-image');
@@ -2292,6 +2291,25 @@ function setSelectedNode(nextId, options = {}) {
 
 function safeText(value) {
   return String(value || '').trim();
+}
+
+function escapeHtml(value) {
+  return safeText(value).replace(/[&<>"']/g, (character) => {
+    switch (character) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case '\'':
+        return '&#39;';
+      default:
+        return character;
+    }
+  });
 }
 
 function safeNumber(value, fallback = 0) {
@@ -12931,23 +12949,41 @@ function normalizeMyStoreCatalogProduct(rawProduct = {}, index = 0) {
   };
 }
 
-function resolveMyStoreCatalogFeaturedProductEntry() {
+function resolveMyStoreCatalogProductEntries() {
   if (!Array.isArray(myStoreCatalogProducts) || myStoreCatalogProducts.length === 0) {
-    return null;
+    return [];
   }
   const activeProducts = myStoreCatalogProducts.filter((product) => product?.status !== 'archived');
-  const preferredProducts = activeProducts.length > 0 ? activeProducts : myStoreCatalogProducts;
+  return activeProducts.length > 0 ? activeProducts : myStoreCatalogProducts;
+}
+
+function resolveMyStoreCatalogFeaturedProductEntry(preferredProductKey = '') {
+  const preferredProducts = resolveMyStoreCatalogProductEntries();
   if (preferredProducts.length === 0) {
     return null;
+  }
+  const normalizedPreferredProductKey = normalizeMyStoreUpgradeProductKey(preferredProductKey)
+    || normalizeCredentialValue(preferredProductKey);
+  if (normalizedPreferredProductKey) {
+    const preferredProductMatch = preferredProducts.find((product) => {
+      const productKey = normalizeMyStoreUpgradeProductKey(product?.productKey)
+        || normalizeCredentialValue(product?.productKey);
+      const lookupKey = normalizeMyStoreUpgradeProductKey(product?.lookupKey)
+        || normalizeCredentialValue(product?.lookupKey);
+      return normalizedPreferredProductKey === productKey || normalizedPreferredProductKey === lookupKey;
+    });
+    if (preferredProductMatch) {
+      return preferredProductMatch;
+    }
   }
   const defaultLookupKey = normalizeMyStoreUpgradeProductKey(MY_STORE_FEATURED_PRODUCT.productKey);
   const matchByLookupKey = preferredProducts.find((product) => product?.lookupKey === defaultLookupKey);
   return matchByLookupKey || preferredProducts[0];
 }
 
-function resolveMyStoreFeaturedProduct(currentPackageKey = '') {
+function resolveMyStoreFeaturedProduct(currentPackageKey = '', preferredProductKey = '') {
   const fallback = MY_STORE_FEATURED_PRODUCT;
-  const catalogProduct = resolveMyStoreCatalogFeaturedProductEntry();
+  const catalogProduct = resolveMyStoreCatalogFeaturedProductEntry(preferredProductKey);
   if (!catalogProduct) {
     const fallbackPackageKey = resolveMyStoreBuyerPackageEarningKey(currentPackageKey);
     const fallbackPackageEarning = MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS[fallbackPackageKey]
@@ -13373,10 +13409,11 @@ function buildMyStoreSelection(
   packageKey = '',
   currentPackageKey = '',
   currentPackageProductKey = '',
+  preferredProductKey = '',
 ) {
   const normalizedAction = normalizeCredentialValue(action);
   const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
-  const featuredProduct = resolveMyStoreFeaturedProduct(currentPackageKey);
+  const featuredProduct = resolveMyStoreFeaturedProduct(currentPackageKey, preferredProductKey);
   const baseQuantity = Math.max(1, Math.round(safeNumber(featuredProduct.quantity, 1)));
   const baseSelection = {
     action: 'featured',
@@ -13464,9 +13501,19 @@ function resolveMyStoreSelection(currentPackageKey = '', currentPackageProductKe
   const normalizedAction = normalizeCredentialValue(selectionInput.action);
   const normalizedPackageKey = resolveMyStorePackageKeyFromValue(selectionInput.packageKey);
   const isUpgrade = normalizedAction === 'upgrade' && Boolean(normalizedPackageKey);
+  const preferredFeaturedProductKey = safeText(
+    selectionInput.productKey
+    || selectionInput.catalogProductKey,
+  );
   const fallbackSelection = isUpgrade
     ? buildMyStoreSelection('upgrade', normalizedPackageKey, normalizedCurrentPackage, currentPackageProductKey)
-    : buildMyStoreSelection('featured', '', normalizedCurrentPackage, currentPackageProductKey);
+    : buildMyStoreSelection(
+      'featured',
+      '',
+      normalizedCurrentPackage,
+      currentPackageProductKey,
+      preferredFeaturedProductKey,
+    );
   const quantityValue = Math.max(1, Math.round(safeNumber(selectionInput.quantity, fallbackSelection.quantity)));
   const quantity = isUpgrade ? 1 : quantityValue;
   let label = safeText(selectionInput.label || fallbackSelection.label) || fallbackSelection.label;
@@ -13532,7 +13579,10 @@ function resolveMyStoreSelection(currentPackageKey = '', currentPackageProductKe
     upgradeCarryoverProductImageUrl = safeText(carryoverUpgradeProduct.imageUrl);
   } else {
     // Keep featured pricing/BV aligned with current paid/preferred buyer rules.
-    const featuredProduct = resolveMyStoreFeaturedProduct(normalizedCurrentPackage);
+    const featuredProduct = resolveMyStoreFeaturedProduct(
+      normalizedCurrentPackage,
+      preferredFeaturedProductKey,
+    );
     label = safeText(featuredProduct.label) || fallbackSelection.label;
     productKey = safeText(featuredProduct.productKey || fallbackSelection.productKey) || fallbackSelection.productKey;
     imageUrl = safeText(featuredProduct.imageUrl || fallbackSelection.imageUrl) || fallbackSelection.imageUrl;
@@ -13808,16 +13858,19 @@ function resetMyStoreCheckoutForm() {
   setMyStoreCheckoutFeedback('');
 }
 
-function navigateToMyStoreProduct(action, packageKey = '') {
+function navigateToMyStoreProduct(action, packageKey = '', preferredProductKey = '') {
   const homeNodeId = resolvePreferredGlobalHomeNodeId();
   const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
   const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
   const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+  const normalizedAction = normalizeCredentialValue(action);
+  const nextFeaturedProductKey = normalizedAction === 'featured' ? safeText(preferredProductKey) : '';
   state.ui.myStoreSelection = buildMyStoreSelection(
     action,
     packageKey,
     currentPackageKey,
     currentPackageProductKey,
+    nextFeaturedProductKey,
   );
   setMyStoreStep(MY_STORE_STEP_REVIEW, { clearCheckoutFeedback: true, sync: false });
   syncMyStorePanelVisuals();
@@ -14643,6 +14696,7 @@ function syncMyStorePanelVisuals() {
   const selection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
   const checkoutAmounts = resolveMyStoreCheckoutAmounts(selection, currentPackageKey);
   const featuredProduct = resolveMyStoreFeaturedProduct(currentPackageKey);
+  const catalogProducts = resolveMyStoreCatalogProductEntries();
   const upgradeKeys = resolveMyStoreUpgradePackageKeys(currentPackageKey);
   const shareLink = resolveMyStoreShareLink(homeNode);
   const completionSummary = resolveMyStoreCheckoutCompletionSummary();
@@ -14655,6 +14709,7 @@ function syncMyStorePanelVisuals() {
     selection.upgradeProductQuantity,
     selection.upgradeCarryoverProductKey,
     selection.upgradeCarryoverProductQuantity,
+    selection.productKey,
     selection.label,
     selection.unitPrice,
     selection.unitBv,
@@ -14676,12 +14731,43 @@ function syncMyStorePanelVisuals() {
   }
   myStoreLastRenderSignature = renderSignature;
 
-  if (myStoreFeaturedLabelElement instanceof HTMLElement) {
-    myStoreFeaturedLabelElement.textContent = featuredProduct.label;
-  }
-  if (myStoreFeaturedImageElement instanceof HTMLImageElement) {
-    myStoreFeaturedImageElement.src = featuredProduct.imageUrl;
-    myStoreFeaturedImageElement.alt = featuredProduct.label;
+  if (myStoreFeaturedProductsElement instanceof HTMLElement) {
+    const selectedFeaturedProductKey = normalizeMyStoreUpgradeProductKey(selection.productKey)
+      || normalizeCredentialValue(selection.productKey);
+    const isFeaturedSelection = normalizeCredentialValue(selection.action) !== 'upgrade';
+    const productsToRender = catalogProducts.length > 0
+      ? catalogProducts
+      : [featuredProduct];
+    myStoreFeaturedProductsElement.classList.toggle('is-single', productsToRender.length <= 1);
+    myStoreFeaturedProductsElement.innerHTML = productsToRender.map((product, index) => {
+      const productKey = safeText(product?.productKey || `product-${index + 1}`) || `product-${index + 1}`;
+      const productLabel = safeText(product?.label || `Product ${index + 1}`) || `Product ${index + 1}`;
+      const productImageUrl = safeText(product?.imageUrl || featuredProduct.imageUrl) || featuredProduct.imageUrl;
+      const escapedProductKey = escapeHtml(productKey);
+      const escapedProductLabel = escapeHtml(productLabel);
+      const escapedProductImageUrl = escapeHtml(productImageUrl);
+      const productLookupKey = normalizeMyStoreUpgradeProductKey(productKey)
+        || normalizeMyStoreUpgradeProductKey(productLabel)
+        || normalizeCredentialValue(productKey);
+      const isSelected = isFeaturedSelection
+        && Boolean(selectedFeaturedProductKey)
+        && Boolean(productLookupKey)
+        && productLookupKey === selectedFeaturedProductKey;
+      return `
+        <button
+          class="tree-next-my-store-product-button tree-next-my-store-catalog-product-card${isSelected ? ' is-selected' : ''}"
+          type="button"
+          data-my-store-product-action="featured"
+          data-my-store-product-key="${escapedProductKey}"
+          aria-pressed="${isSelected ? 'true' : 'false'}"
+        >
+          <div class="tree-next-my-store-product-image-shell is-upgrade">
+            <img src="${escapedProductImageUrl}" alt="${escapedProductLabel}" />
+          </div>
+          <p class="tree-next-my-store-catalog-product-label">${escapedProductLabel}</p>
+        </button>
+      `;
+    }).join('');
   }
 
   myStorePanelElement.setAttribute('data-my-store-step', currentStep);
@@ -15010,7 +15096,8 @@ function initMyStorePanel() {
     }
     const productAction = safeText(productActionButton.dataset.myStoreProductAction);
     const packageKey = safeText(productActionButton.dataset.myStorePackageKey);
-    navigateToMyStoreProduct(productAction, packageKey);
+    const productKey = safeText(productActionButton.dataset.myStoreProductKey);
+    navigateToMyStoreProduct(productAction, packageKey, productKey);
   });
 }
 

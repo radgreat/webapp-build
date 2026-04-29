@@ -34901,3 +34901,19 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Binary Tree My Store Live Catalog Rendering
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - My Store catalog now renders from live `/api/store-products` entries (active products first) instead of displaying only a single static featured product card.
+  - Added preferred product-key resolution so the selected catalog product is preserved through Review/Checkout state updates.
+  - Updated My Store catalog click handling to pass the selected product key from button datasets.
+- `binary-tree-next.html`
+  - Converted the featured section into a live product-grid container (`#tree-next-my-store-featured-products`).
+  - Added catalog card selected-state styling and responsive grid behavior for tablet/mobile.
+
+### Why
+- Admin-added products (for example `MetaRoastTM`) were not appearing in `Binary Tree > Profile > My Store` even though they appeared in the dashboard store view.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
