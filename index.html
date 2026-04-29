@@ -3917,7 +3917,7 @@
                       <span id="account-overview-total-bv-trend" class="inline-flex items-center gap-1 text-caption font-medium px-2 py-0.5 rounded-full bg-semantic-info-bg text-semantic-info">+0.0%</span>
                     </div>
                     <p id="total-accumulated-pv-value" class="mt-3 font-body font-semibold text-[2rem] leading-tight tracking-[-0.02em] text-text-primary">--</p>
-                    <p id="account-overview-personal-organization-bv" class="text-caption text-text-tertiary mt-2">Weekly Personal Organization BV: --</p>
+                    <p id="account-overview-personal-organization-bv" class="text-caption text-text-tertiary mt-2">Weekly Personal BV: --</p>
                     <div class="mt-3">
                       <div class="flex items-center gap-3 text-[11px] text-text-tertiary">
                         <span class="inline-flex items-center gap-1.5">
@@ -3973,7 +3973,7 @@
 
           <!-- Server Cut-Off (top-right) -->
           <div class="lg:col-span-1 lg:self-start">
-            <div id="server-cutoff-card" class="relative overflow-hidden rounded-2xl border border-surface-border-light bg-surface-elevated/70 shadow-depth-1" data-left-leg-bv="12480" data-right-leg-bv="9730" data-cycle-bv="500" data-cutoff-weekday="6" data-cutoff-hour="23" data-cutoff-minute="59" data-cutoff-timezone="America/Los_Angeles">
+            <div id="server-cutoff-card" class="relative overflow-hidden rounded-2xl border border-surface-border-light bg-surface-elevated/70 shadow-depth-1" data-left-leg-bv="0" data-right-leg-bv="0" data-cycle-bv="1000" data-cutoff-weekday="6" data-cutoff-hour="23" data-cutoff-minute="59" data-cutoff-timezone="America/Los_Angeles">
               <div class="pointer-events-none absolute -top-12 right-0 h-28 w-28 rounded-full bg-brand-500/12 blur-2xl"></div>
               <article class="relative px-5 py-5">
                 <div class="flex items-start justify-between gap-3">
@@ -17395,8 +17395,9 @@
         const packageBv = toWholeNumber(member?.packageBv, getFastTrackPackageBv(member?.enrollmentPackage));
         const starterPersonalPvRaw = toWholeNumber(member?.starterPersonalPv, 0);
         const starterPersonalPv = starterPersonalPvRaw > 0 ? starterPersonalPvRaw : packageBv;
-        const cutoffBaselinePv = resolveMemberServerCutoffBaselineVolume(member, 0);
-        return Math.max(0, starterPersonalPv - cutoffBaselinePv);
+        // Keep dashboard tree-volume metrics aligned with the Binary Tree details
+        // panel "Team Generated BV" base volume model.
+        return Math.max(0, starterPersonalPv);
       }
 
       function isBinaryTreeEligibleMember(member) {
@@ -24893,11 +24894,14 @@
           cutoffLoopMetrics.estimatedCycles,
           fallbackCutoffCycleCount,
         ));
+        const resolvedLeftLegBv = Math.max(rawLeftLegBv, cutoffLeftLegBv);
+        const resolvedRightLegBv = Math.max(rawRightLegBv, cutoffRightLegBv);
+        const resolvedCycleCount = Math.max(rawCycleCount, cutoffCycleCount);
 
         return {
-          leftLegBv: cutoffLeftLegBv,
-          rightLegBv: cutoffRightLegBv,
-          totalCycles: cutoffCycleCount,
+          leftLegBv: resolvedLeftLegBv,
+          rightLegBv: resolvedRightLegBv,
+          totalCycles: resolvedCycleCount,
         };
       }
 
@@ -24960,7 +24964,13 @@
           rightLegBv,
           totalCycles: accountTotalCycles,
         });
-        totalAccumulatedPv = toWholeNumber(leftLegBv + rightLegBv, 0);
+        const dashboardLeftLegBv = Math.max(0, toWholeNumber(dashboardLoopMetrics.leftLegBv, leftLegBv));
+        const dashboardRightLegBv = Math.max(0, toWholeNumber(dashboardLoopMetrics.rightLegBv, rightLegBv));
+        accountTotalCycles = Math.max(0, toWholeNumber(dashboardLoopMetrics.totalCycles, accountTotalCycles));
+        totalAccumulatedPv = toWholeNumber(
+          dashboardLeftLegBv + dashboardRightLegBv,
+          toWholeNumber(leftLegBv + rightLegBv, 0),
+        );
         const lifetimeTotalOrganizationBv = resolveLifetimeTotalOrganizationBvFromTreeData(binaryTreeMockData);
         const fallbackRank = accountOverviewCardElement?.dataset.accountRank || 'Legacy';
         const sessionAccountRank = resolveSessionAccountRank(currentSessionUser);
@@ -25024,14 +25034,21 @@
         syncProfileBadgeDisplays(resolveEffectiveMemberProfile());
         syncAccountRankUpgradeCta(currentSessionUser);
         syncAutoFastTrackTierFromRank();
+        const weeklyTeamGeneratedBv = Math.max(0, toWholeNumber(totalAccumulatedPv, 0));
+        const weeklyTotalOrganizationBv = Math.max(
+          0,
+          toWholeNumber(weeklyTeamGeneratedBv + dashboardPersonalVolume, weeklyTeamGeneratedBv),
+        );
         if (totalAccumulatedPvValueElement) {
-          totalAccumulatedPvValueElement.textContent = `${totalAccumulatedPv.toLocaleString()} BV`;
+          totalAccumulatedPvValueElement.textContent = `${weeklyTotalOrganizationBv.toLocaleString()} BV`;
         }
         baseBinaryTreeNewMembersJoined = newMembersJoined;
         baseBinaryTreeDirectSponsors = totalDirectSponsors;
         const organizationRollups = renderOrganizationSummaryRollups();
-        const weeklyPersonalOrganizationBv = toWholeNumber(organizationRollups?.personalOrganizationBv, 0);
-        updateAccountOverviewBvComparisonGraph(totalAccumulatedPv, weeklyPersonalOrganizationBv, {
+        if (accountOverviewPersonalOrganizationBvElement) {
+          accountOverviewPersonalOrganizationBvElement.textContent = `Weekly Personal BV: ${weeklyTeamGeneratedBv.toLocaleString()} BV`;
+        }
+        updateAccountOverviewBvComparisonGraph(weeklyTotalOrganizationBv, weeklyTeamGeneratedBv, {
           trackTrend: !dashboardMockupModeEnabled,
           observedAtMs: resolveServerPersonalVolumeObservedAtMs(currentSessionUser),
         });
@@ -25047,17 +25064,17 @@
           treeFullscreenSummaryLifetimePersonalOrganizationBvValueElement.textContent = `${lifetimePersonalOrganizationBv.toLocaleString()} BV`;
         }
         renderAccountOverviewTrendBadges({
-          totalOrganizationBv: totalAccumulatedPv,
+          totalOrganizationBv: weeklyTotalOrganizationBv,
           newMembers: organizationRollups?.newMembers ?? 0,
           totalDirectSponsors: organizationRollups?.totalDirectSponsors ?? 0,
         });
         refreshSpilloverParentSuggestions();
-        updateServerCutoffMetrics({ leftLegBv, rightLegBv });
+        updateServerCutoffMetrics({ leftLegBv: dashboardLeftLegBv, rightLegBv: dashboardRightLegBv });
         queueBinaryTreeMetricsSnapshotSync({
           accountRank,
           accountPersonalPv: dashboardPersonalVolume,
-          leftLegBv,
-          rightLegBv,
+          leftLegBv: dashboardLeftLegBv,
+          rightLegBv: dashboardRightLegBv,
           totalAccumulatedBv: totalAccumulatedPv,
           totalCycles: accountTotalCycles,
           cycleLowerBv: CYCLE_RULE_LOWER_BV,
@@ -28940,8 +28957,8 @@
         let cutoffMinute = Math.max(0, Math.min(59, toWholeNumber(fallbackCutoffMinute, 59)));
         let cycleLowerBv = fallbackCycleLowerBv;
         let cycleHigherBv = fallbackCycleHigherBv;
-        let leftLegBv = toWholeNumber(Number.parseInt(card.dataset.leftLegBv || '0', 10), 0);
-        let rightLegBv = toWholeNumber(Number.parseInt(card.dataset.rightLegBv || '0', 10), 0);
+        let leftLegBv = 0;
+        let rightLegBv = 0;
         let lastCutoffMetricsSyncMs = 0;
         let pendingCutoffMetricsSyncPromise = null;
         let pendingCutoffMetricsSyncTimerId = null;
@@ -29195,8 +29212,12 @@
           cutoffMinute = Math.max(0, Math.min(59, toWholeNumber(cutoff.minute, cutoffMinute)));
           cycleLowerBv = Math.max(CYCLE_RULE_LOWER_BV, toWholeNumber(metrics.cycleLowerBv, cycleLowerBv));
           cycleHigherBv = Math.max(cycleLowerBv, toWholeNumber(metrics.cycleHigherBv, cycleHigherBv));
-          leftLegBv = Math.max(0, toWholeNumber(metrics.currentWeekLeftLegBv, leftLegBv));
-          rightLegBv = Math.max(0, toWholeNumber(metrics.currentWeekRightLegBv, rightLegBv));
+          const cutoffLeftLegBv = Math.max(0, toWholeNumber(metrics.currentWeekLeftLegBv, leftLegBv));
+          const cutoffRightLegBv = Math.max(0, toWholeNumber(metrics.currentWeekRightLegBv, rightLegBv));
+          const summaryFallbackLeftLegBv = Math.max(0, toWholeNumber(binaryTreeSummarySnapshot?.leftLegBv, leftLegBv));
+          const summaryFallbackRightLegBv = Math.max(0, toWholeNumber(binaryTreeSummarySnapshot?.rightLegBv, rightLegBv));
+          leftLegBv = Math.max(leftLegBv, cutoffLeftLegBv, summaryFallbackLeftLegBv);
+          rightLegBv = Math.max(rightLegBv, cutoffRightLegBv, summaryFallbackRightLegBv);
           const lowerLegBv = Math.min(leftLegBv, rightLegBv);
           const higherLegBv = Math.max(leftLegBv, rightLegBv);
           const fallbackEstimatedCycles = Math.floor(Math.min(
@@ -29267,11 +29288,50 @@
             binaryTreeSummarySnapshot?.accountTotalCycles,
             summaryFallbackCycles,
           ));
-          applyDashboardLoopDisplayMetrics(resolveDashboardLoopDisplayMetrics({
+          const dashboardLoopMetrics = resolveDashboardLoopDisplayMetrics({
             leftLegBv: summaryLeftLegBv,
             rightLegBv: summaryRightLegBv,
             totalCycles: summaryCycles,
-          }));
+          });
+          applyDashboardLoopDisplayMetrics(dashboardLoopMetrics);
+          const weeklyTeamGeneratedBv = Math.max(
+            0,
+            toWholeNumber(
+              toWholeNumber(dashboardLoopMetrics?.leftLegBv, summaryLeftLegBv)
+                + toWholeNumber(dashboardLoopMetrics?.rightLegBv, summaryRightLegBv),
+              0,
+            ),
+          );
+          const weeklyPersonalBv = Math.max(
+            0,
+            toWholeNumber(
+              currentSessionStarterDashboard?.currentPersonalPvBv,
+              resolveAccountCurrentPersonalBv(currentSessionUser),
+            ),
+          );
+          const weeklyTotalOrganizationBv = Math.max(
+            0,
+            toWholeNumber(weeklyTeamGeneratedBv + weeklyPersonalBv, weeklyTeamGeneratedBv),
+          );
+          if (totalAccumulatedPvValueElement) {
+            totalAccumulatedPvValueElement.textContent = `${weeklyTotalOrganizationBv.toLocaleString()} BV`;
+          }
+          const organizationRollups = renderOrganizationSummaryRollups();
+          if (accountOverviewPersonalOrganizationBvElement) {
+            accountOverviewPersonalOrganizationBvElement.textContent = `Weekly Personal BV: ${weeklyTeamGeneratedBv.toLocaleString()} BV`;
+          }
+          updateAccountOverviewBvComparisonGraph(weeklyTotalOrganizationBv, weeklyTeamGeneratedBv, {
+            trackTrend: !dashboardMockupModeEnabled,
+            observedAtMs: resolveServerPersonalVolumeObservedAtMs(
+              currentSessionUser,
+              cutoff.latestForcedCutoffAt || cutoff.lastAppliedCutoffAt,
+            ),
+          });
+          renderAccountOverviewTrendBadges({
+            totalOrganizationBv: weeklyTotalOrganizationBv,
+            newMembers: organizationRollups?.newMembers ?? baseBinaryTreeNewMembersJoined,
+            totalDirectSponsors: organizationRollups?.totalDirectSponsors ?? baseBinaryTreeDirectSponsors,
+          });
           if (nextLastAppliedCutoffAt !== previousAppliedCutoffAt) {
             void loadSettledSalesTeamCommissionSnapshotForCurrentUser({
               force: true,

@@ -19247,3 +19247,56 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Active Follow-Up / Risks
 - Existing legacy commission sources (fasttrack/infinity/legacy/salesteam/retailprofit) keep prior transfer validation behavior; only matching-bonus source now performs explicit server-side available-balance validation before wallet credit.
+
+## Update (2026-04-28) - Weekly Total Organization BV Live Sync Fix
+
+### Scope
+- User Dashboard account overview metric alignment (`index.html`).
+
+### Progress
+- Completed wiring so `Weekly Total Organization BV` is now driven by resolved weekly loop metrics (same leg-volume basis used for binary-tree weekly generated volume behavior).
+- Added cutoff-payload refresh for KPI + BV graph + trend badge so values update when live weekly cutoff data arrives.
+
+### Active Notes
+- No UI layout changes were made; this is data-flow correction only.
+- Snapshot sync payload now uses resolved loop leg values to match rendered dashboard state.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Patch Update (2026-04-28) - Weekly BV Zero Override Fix
+
+### Completed
+- Updated dashboard loop metric resolution to prevent zero cutoff payloads from overriding non-zero tree summary legs/cycles.
+- Aligned member binary volume source with Binary Tree Details `Team Generated BV` basis (starter/package volume, non-baseline-subtracted).
+
+### Impact
+- `Weekly Total Organization BV` now reflects non-zero tree data when available.
+- Server cutoff/dashboard KPI paths now remain consistent with tree-side generated volume semantics.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Patch Update (2026-04-28) - BV Comparison Semantic Alignment
+
+### Completed
+- Updated Account Overview comparison series to use:
+  - `Total BV = Team Generated BV + Personal BV`
+  - `Personal BV = Team Generated BV (without personal add-on)`
+- Added non-zero fallback behavior so cutoff zero payloads do not flatten server-cutoff leg display or dashboard comparison values.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+- Local data check confirms non-zero split metrics are produced.
+
+## Patch Update (2026-04-28) - Server Cutoff Left/Right Drift Correction
+
+### Completed
+- Removed stale server-cutoff seed leg values from HTML defaults.
+- Changed server-cutoff left/right runtime bootstrap to start at `0` so live summary/cutoff payload values drive display.
+
+### Why
+- Prevents large legacy seed values from surviving fallback math and overriding correct current-user leg values.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).

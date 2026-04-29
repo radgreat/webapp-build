@@ -34166,3 +34166,86 @@ ode --check backend/services/store-checkout.service.js passed.
 ### Known Notes
 - Matching bonus transfer safety now enforces server-side available balance checks for `matchingbonus` source before wallet credit.
 - Existing non-matching commission transfer sources retain their prior behavior/pattern.
+
+## Update (2026-04-28) - Weekly Total Organization BV Sync With Binary Tree Team Volume
+
+### What Changed
+- `index.html`
+  - Updated `applyBinaryTreeDashboardSummary` to compute `Weekly Total Organization BV` from `resolveDashboardLoopDisplayMetrics(...)` output instead of raw summary leg values only.
+  - `queueBinaryTreeMetricsSnapshotSync(...)` now sends the resolved weekly leg values used by the KPI display.
+  - `applyServerCutoffMetricsPayload(...)` now immediately refreshes:
+    - `Weekly Total Organization BV`
+    - Account Overview BV comparison graph
+    - Account Overview trend badges
+    using the same resolved loop metrics flow used by the binary-tree weekly leg logic.
+
+### Files Affected
+- `index.html`
+
+### Design Decisions
+- Kept one metric source-of-truth path by using `resolveDashboardLoopDisplayMetrics(...)`, because it already merges tree summary values with live cutoff metrics.
+- Avoided re-calling the full binary-tree summary renderer from cutoff sync to prevent unnecessary render side effects and potential repeated forced cutoff refreshes.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Patch Update (2026-04-28) - Weekly BV Zero Regression (Cutoff Override + Volume Source Alignment)
+
+### Root Cause
+- `resolveDashboardLoopDisplayMetrics(...)` always prioritized cutoff payload leg values when cutoff state existed, even when those values were `0` and tree-summary legs were non-zero.
+- Dashboard tree-volume inputs (`resolveMemberBinaryVolume`) were baseline-subtracted, while Binary Tree Details `Team Generated BV` uses the non-baseline node volume model.
+
+### Fix Applied
+- `index.html`
+  - `resolveDashboardLoopDisplayMetrics(...)`
+    - now resolves each leg/cycle as `max(rawSummaryValue, cutoffValue)` so zero cutoff payloads no longer erase non-zero tree values.
+  - `resolveMemberBinaryVolume(...)`
+    - aligned to the Binary Tree details volume model by using starter/package volume without cutoff-baseline subtraction.
+
+### Result
+- Weekly Total Organization BV no longer gets pinned to `0` by zero cutoff snapshots when tree data is non-zero.
+- Server Cutoff refresh and dashboard metrics now stay consistent with tree-side generated volume semantics.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Patch Update (2026-04-28) - Account Overview BV Comparison Formula Alignment (Total vs Personal)
+
+### Requested Semantics Applied
+- `Total BV` now follows: `Team Generated BV + Personal BV`.
+- `Personal BV` series in the comparison graph now follows: `Team Generated BV (excluding personal add-on)`.
+
+### Implementation
+- `index.html`
+  - `resolveMemberBinaryVolume(...)` now uses starter/package volume directly so dashboard team-volume math aligns with tree-side generated volume model.
+  - `resolveDashboardLoopDisplayMetrics(...)` now keeps non-zero raw tree legs/cycles when cutoff snapshots return zeros.
+  - Account Overview chart now uses:
+    - series 1 = `weeklyTotalOrganizationBv = weeklyTeamGeneratedBv + weeklyPersonalBv`
+    - series 2 = `weeklyTeamGeneratedBv`
+  - Account Overview secondary caption text now uses `Weekly Personal BV: <team-generated-without-personal> BV`.
+  - Server Cutoff left/right legs now keep non-zero summary fallbacks when cutoff payload legs are zero.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+- Local data sanity check produced non-zero split model output (`team`, `personal`, `total`).
+
+## Patch Update (2026-04-28) - Server Cutoff Seed-Value Override Fix
+
+### Root Cause
+- `server-cutoff-card` markup still carried legacy seed values (`data-left-leg-bv="12480"`, `data-right-leg-bv="9730"`, `data-cycle-bv="500"`).
+- `initializeServerCutoffCard()` then kept those values alive through `Math.max(...)` fallback logic, causing left/right cutoff display drift even when tree-side values were lower and correct.
+
+### Fix Applied
+- `index.html`
+  - Updated `server-cutoff-card` seed attributes to neutral values:
+    - `data-left-leg-bv="0"`
+    - `data-right-leg-bv="0"`
+    - `data-cycle-bv="1000"`
+  - Updated server cutoff runtime initialization:
+    - `leftLegBv` and `rightLegBv` now initialize to `0` (not seeded from markup attributes).
+
+### Expected Outcome for `zeroone`
+- Server Cut Off card can now resolve to live tree/cutoff values (e.g., `Left 1000 / Right 1150`) instead of retaining stale seeded values.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).

@@ -1147,3 +1147,58 @@ Known limitation:
 
 ### Validation
 - Inline script parse check passed for `index.html`.
+
+## Update (2026-04-28) - Weekly Total Organization BV Mirrors Weekly Tree Loop Metrics
+
+### What Changed
+- `index.html`
+  - Dashboard Account Overview `Weekly Total Organization BV` now resolves from `resolveDashboardLoopDisplayMetrics(...)` outputs so the card stays aligned with weekly binary-tree leg volume calculations.
+  - Cutoff payload handling now refreshes the same KPI, BV comparison graph, and trend badge immediately when live weekly cutoff metrics are received.
+
+### Why
+- Previous logic relied on raw summary leg values, which could remain stale relative to live cutoff-driven weekly leg totals.
+- This patch keeps the user dashboard KPI behavior consistent with the binary-tree weekly generated-volume metric path.
+
+### Validation
+- Targeted code-path inspection completed for:
+  - `applyBinaryTreeDashboardSummary(...)`
+  - `applyServerCutoffMetricsPayload(...)`
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Patch Update (2026-04-28) - Dashboard Weekly BV Uses Tree-Consistent Volume Inputs
+
+### What Changed
+- `index.html`
+  - Updated `resolveMemberBinaryVolume(...)` to use non-baseline-subtracted starter/package volume, matching Binary Tree Details generated-volume semantics.
+  - Updated `resolveDashboardLoopDisplayMetrics(...)` to keep non-zero raw tree summary legs/cycles when cutoff payload legs/cycles are zero.
+
+### Why
+- Prevented cutoff payload zeros from flattening dashboard totals when tree-side data already has weekly/generated BV signal.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Patch Update (2026-04-28) - Dashboard BV Graph Formula Update
+
+### What Changed
+- `index.html`
+  - Updated dashboard BV graph feeds so:
+    - `Total BV` = team-generated + personal
+    - `Personal BV` = team-generated (without adding personal)
+  - Updated fallback handling so server cutoff leg tiles and graph values remain non-zero when summary data is non-zero but cutoff payload returns zeros.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Patch Update (2026-04-28) - Server Cutoff Seed Values Neutralized
+
+### What Changed
+- `index.html`
+  - Neutralized server-cutoff card seed data attributes for left/right BV and cycle defaults.
+  - Server-cutoff left/right runtime state now starts from `0` instead of preloaded legacy values.
+
+### Impact
+- Dashboard Server Cutoff leg values now track live tree/cutoff values instead of stale seeded numbers.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
