@@ -19300,3 +19300,33 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Update (2026-04-28) - Business Center Rule Set Migrated to 2-Center Model
+
+### Completed
+- Business Center rule model is now enforced as max 2 centers per owner.
+- Unlock progression moved to:
+  - Tier 4 -> BC #1
+  - Tier 5 -> BC #2
+- Tier 3 unlock removed.
+- Business Center #3 is deprecated in runtime and UI paths.
+
+### Files Updated In This Scope
+- `backend/services/member-business-center.service.js`
+- `backend/tests/member-business-center.service.test.js` (new)
+- `index.html`
+- `package.json`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Verification Snapshot
+- `cmd /c npm run test:business-centers` passed.
+- `cmd /c npm run test:binary-cycle` passed.
+- `cmd /c npm run test:ledger` passed.
+- `cmd /c npm run test:matching-bonus` passed.
+- `node --check backend/services/member-business-center.service.js` passed.
+
+### Active Notes / Priority
+- Historical BC index-3 ledger/commission rows are preserved for audit continuity.
+- New writes and activations are constrained to max 2 centers and Tier 4/5 unlock only.
+- Dashboard/tree labels no longer expose `Business Center #3`; legacy over-cap rows display as `Legacy Center #N`.

@@ -4015,7 +4015,7 @@
                   <div>
                     <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Business Centers</p>
                     <p id="business-center-summary-value" class="mt-1 text-body-sm font-medium text-text-primary">Loading Business Center status...</p>
-                    <p id="business-center-summary-detail" class="mt-1 text-caption text-text-tertiary">Main Center and Business Centers #1-#3 are independent earning nodes under one wallet owner.</p>
+                    <p id="business-center-summary-detail" class="mt-1 text-caption text-text-tertiary">Main Center and Business Centers #1-#2 are independent earning nodes under one wallet owner.</p>
                   </div>
                   <span id="business-center-activation-status-chip" class="inline-flex w-fit items-center gap-1 rounded-full border border-surface-border bg-surface-base px-2 py-0.5 text-caption text-text-secondary">Syncing</span>
                 </div>
@@ -11755,6 +11755,47 @@
         return `bc_activate_${ownerSeed}_${timeSeed}_${randomSeed}`.slice(0, 120);
       }
 
+      const BUSINESS_CENTER_UI_MAX_CENTER_COUNT = 2;
+
+      function resolveBusinessCenterCapFromStatus(defaultCap = BUSINESS_CENTER_UI_MAX_CENTER_COUNT) {
+        const fallbackCap = Math.max(1, toWholeNumber(defaultCap, BUSINESS_CENTER_UI_MAX_CENTER_COUNT));
+        const statusCap = Math.max(
+          1,
+          toWholeNumber(
+            businessCenterStatus?.businessCenters?.maxCenters
+            ?? businessCenterStatus?.businessCenters?.cap,
+            fallbackCap,
+          ),
+        );
+        return Math.min(BUSINESS_CENTER_UI_MAX_CENTER_COUNT, statusCap);
+      }
+
+      function resolveBusinessCenterDisplayLabel(centerIndexInput, explicitLabel = '', options = {}) {
+        const centerIndex = toWholeNumber(centerIndexInput, 0);
+        if (centerIndex <= 0) {
+          return 'Main Center';
+        }
+
+        const maxCenters = resolveBusinessCenterCapFromStatus(options?.maxCenters);
+        const defaultLabel = centerIndex <= maxCenters
+          ? `Business Center #${centerIndex}`
+          : `Legacy Center #${centerIndex}`;
+        const trimmedLabel = String(explicitLabel || '').trim();
+
+        if (!trimmedLabel) {
+          return defaultLabel;
+        }
+
+        if (
+          centerIndex > maxCenters
+          && /^business\s*center\s*#?\s*\d+$/i.test(trimmedLabel)
+        ) {
+          return `Legacy Center #${centerIndex}`;
+        }
+
+        return trimmedLabel;
+      }
+
       function renderBusinessCenterWalletSummarySection() {
         if (!businessCenterWalletSummaryValueElement || !businessCenterWalletSummaryDetailElement) {
           return;
@@ -11806,10 +11847,10 @@
         detailParts.push(`Credited ${formatCurrency(totalCreditedAmount)} across ${ledgerEntryCount.toLocaleString()} entries.`);
         if (topSourceCenter && Number(topSourceCenter?.totalAmount ?? 0) > 0) {
           const sourceIndex = toWholeNumber(topSourceCenter?.sourceCenterIndex, 0);
-          const sourceLabel = String(
-            topSourceCenter?.sourceCenterLabel
-            || (sourceIndex > 0 ? `Business Center #${sourceIndex}` : 'Main Center'),
-          ).trim() || 'Main Center';
+          const sourceLabel = resolveBusinessCenterDisplayLabel(
+            sourceIndex,
+            topSourceCenter?.sourceCenterLabel,
+          );
           detailParts.push(`Top source: ${sourceLabel} (${formatCurrency(Number(topSourceCenter.totalAmount))}).`);
         } else {
           detailParts.push('All center commissions credit this single wallet.');
@@ -11843,21 +11884,32 @@
           return;
         }
 
+        const maxConfiguredCenters = resolveBusinessCenterCapFromStatus();
         const baseCenters = [
           { centerIndex: 0, centerType: 'main_center', centerLabel: 'Main Center', eventCount: 0, totalAmount: 0 },
-          { centerIndex: 1, centerType: 'business_center', centerLabel: 'Business Center #1', eventCount: 0, totalAmount: 0 },
-          { centerIndex: 2, centerType: 'business_center', centerLabel: 'Business Center #2', eventCount: 0, totalAmount: 0 },
-          { centerIndex: 3, centerType: 'business_center', centerLabel: 'Business Center #3', eventCount: 0, totalAmount: 0 },
         ];
+        for (let centerIndex = 1; centerIndex <= maxConfiguredCenters; centerIndex += 1) {
+          baseCenters.push({
+            centerIndex,
+            centerType: 'business_center',
+            centerLabel: resolveBusinessCenterDisplayLabel(centerIndex, '', { maxCenters: maxConfiguredCenters }),
+            eventCount: 0,
+            totalAmount: 0,
+          });
+        }
 
         const centerEntryByIndex = new Map();
         const sourceCenters = Array.isArray(earningsSummary?.centers) ? earningsSummary.centers : [];
         sourceCenters.forEach((entry) => {
-          const centerIndex = Math.max(0, Math.min(3, toWholeNumber(entry?.centerIndex, 0)));
+          const centerIndex = Math.max(0, toWholeNumber(entry?.centerIndex, 0));
           centerEntryByIndex.set(centerIndex, {
             centerIndex,
             centerType: String(entry?.centerType || (centerIndex > 0 ? 'business_center' : 'main_center')),
-            centerLabel: String(entry?.centerLabel || (centerIndex > 0 ? `Business Center #${centerIndex}` : 'Main Center')).trim(),
+            centerLabel: resolveBusinessCenterDisplayLabel(
+              centerIndex,
+              entry?.centerLabel,
+              { maxCenters: maxConfiguredCenters },
+            ),
             eventCount: toWholeNumber(entry?.eventCount, 0),
             totalAmount: Number(entry?.totalAmount ?? 0),
           });
@@ -11870,13 +11922,28 @@
           }))
           .sort((left, right) => left.centerIndex - right.centerIndex);
 
+        const legacyCenters = Array.from(centerEntryByIndex.values())
+          .filter((center) => toWholeNumber(center?.centerIndex, 0) > maxConfiguredCenters)
+          .map((center) => ({
+            ...center,
+            centerLabel: resolveBusinessCenterDisplayLabel(
+              center?.centerIndex,
+              center?.centerLabel,
+              { maxCenters: maxConfiguredCenters },
+            ),
+          }));
+
+        const mergedAndLegacyCenters = mergedCenters
+          .concat(legacyCenters)
+          .sort((left, right) => left.centerIndex - right.centerIndex);
+
         const totalAmount = Number(
           earningsSummary?.totalAmount
-          ?? mergedCenters.reduce((sum, center) => sum + Number(center?.totalAmount ?? 0), 0),
+          ?? mergedAndLegacyCenters.reduce((sum, center) => sum + Number(center?.totalAmount ?? 0), 0),
         );
         const eventCount = toWholeNumber(
           earningsSummary?.eventCount,
-          mergedCenters.reduce((sum, center) => sum + toWholeNumber(center?.eventCount, 0), 0),
+          mergedAndLegacyCenters.reduce((sum, center) => sum + toWholeNumber(center?.eventCount, 0), 0),
         );
 
         const summaryLine = document.createElement('p');
@@ -11884,8 +11951,12 @@
         summaryLine.textContent = `Total: ${formatCurrency(totalAmount)} from ${eventCount.toLocaleString()} commission events.`;
         businessCenterEarningsListElement.appendChild(summaryLine);
 
-        mergedCenters.forEach((center) => {
-          const centerLabel = String(center?.centerLabel || (center.centerIndex > 0 ? `Business Center #${center.centerIndex}` : 'Main Center')).trim();
+        mergedAndLegacyCenters.forEach((center) => {
+          const centerLabel = resolveBusinessCenterDisplayLabel(
+            center?.centerIndex,
+            center?.centerLabel,
+            { maxCenters: maxConfiguredCenters },
+          );
           const amount = Number(center?.totalAmount ?? 0);
           const centerEventCount = toWholeNumber(center?.eventCount, 0);
 
@@ -11920,7 +11991,7 @@
         const isPendingReservationAccount = isPendingMembershipReservationUser(currentSessionUser);
 
         const businessCenters = businessCenterStatus?.businessCenters;
-        const maxCenters = Math.max(1, toWholeNumber(businessCenters?.maxCenters ?? businessCenters?.cap, 3));
+        const maxCenters = resolveBusinessCenterCapFromStatus();
         const unlockedCount = toWholeNumber(businessCenters?.unlockedCount ?? businessCenters?.earnedLifetime, 0);
         const activatedCount = toWholeNumber(businessCenters?.activatedCount ?? businessCenters?.activated ?? businessCenters?.count, 0);
         const pendingCount = toWholeNumber(
@@ -19121,10 +19192,9 @@
           const isBusinessCenterPlaceholder = businessCenterNodeType === 'legacy_placeholder';
           const isBusinessCenterAuxiliary = businessCenterNodeType === 'business_center' || businessCenterIndex > 0;
           const memberDisplayName = (isBusinessCenterPlaceholder || isBusinessCenterAuxiliary)
-            ? String(
-              member?.businessCenterLabel
-              || member?.fullName
-              || `Business Center #${Math.max(1, businessCenterIndex || 1)}`,
+            ? resolveBusinessCenterDisplayLabel(
+              businessCenterIndex,
+              member?.businessCenterLabel || member?.fullName,
             )
             : String(member?.fullName || member?.memberUsername || member?.email || `Member ${index + 1}`);
           const memberProfileBadgeVisibility = member?.profileBadgeVisibility && typeof member.profileBadgeVisibility === 'object'

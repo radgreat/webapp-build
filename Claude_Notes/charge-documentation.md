@@ -34249,3 +34249,65 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Update (2026-04-28) - Business Center Rule Migration (Max 2, Tier 4/5 Unlock)
+
+### What Changed
+- Updated Business Center capability from a 3-center model to a strict 2-center model.
+- New unlock mapping is now:
+  - Legacy Leadership Tier 4 -> Business Center #1
+  - Legacy Leadership Tier 5 -> Business Center #2
+- Removed Tier 3 unlock behavior for Business Centers.
+- Deprecated Business Center #3 paths in runtime/UI while preserving historical records.
+
+### Backend Rule + Migration Implementation
+- `backend/services/member-business-center.service.js`
+  - Changed `MAX_BUSINESS_CENTER_COUNT` from `3` to `2`.
+  - Updated default unlock rules to only two entries (`#1 -> tier 4`, `#2 -> tier 5`).
+  - Added default-tier resolver logic so rule fallback no longer assumes Tier 3 for BC #1.
+  - Added source-label normalization so legacy index `>2` entries are displayed as `Legacy Center #N` instead of `Business Center #N`.
+  - Tightened event write validation so `sourceCenterIndex > 2` is rejected instead of silently clamped.
+  - Kept settlement/ledger historical index-3 compatibility for immutable historical tables.
+
+### Schema/Backfill Safety Changes
+- `ensureBusinessCenterRedesignTables()` now:
+  - migrates `registered_members.business_center_index > 2` to `legacy_placeholder` + `deprecated` activation status (no hard delete);
+  - relabels legacy over-cap labels from `Business Center #N` to `Legacy Center #N` where applicable;
+  - updates unlock rule records so only indexes 1 and 2 are active (`tier 4/5`);
+  - deactivates unlock rules where `business_center_index > 2`;
+  - clamps owner progress counts and center-index arrays to max 2;
+  - reapplies owner-progress check constraints using max 2.
+
+### UI + Tree + Label Updates
+- `index.html`
+  - Updated Business Center summary copy from `#1-#3` to `#1-#2`.
+  - Added shared label resolver that:
+    - keeps active labels to max 2,
+    - converts over-cap historical center labels to `Legacy Center #N`.
+  - Updated earnings rendering to:
+    - show only `Main + BC #1 + BC #2` as active base rows,
+    - include legacy over-cap rows (if present) as legacy labels,
+    - never show `Business Center #3` text.
+  - Updated activation panel cap fallback from `3` to strict UI cap `2`.
+  - Updated tree-node auxiliary display naming to use the new center-label resolver.
+
+### Tests Added / Updated
+- Added `backend/tests/member-business-center.service.test.js` covering:
+  - max center config = 2,
+  - unlock mapping (tier 4/5),
+  - Tier 3 no-unlock behavior,
+  - dropping legacy index 3 from active/unlocked progress snapshots.
+- Added script in `package.json`:
+  - `test:business-centers`
+
+### Validation
+- `cmd /c npm run test:business-centers` passed.
+- `cmd /c npm run test:binary-cycle` passed.
+- `cmd /c npm run test:ledger` passed.
+- `cmd /c npm run test:matching-bonus` passed.
+- `node --check backend/services/member-business-center.service.js` passed.
+
+### Known Limitations / Notes
+- Historical immutable settlement/ledger tables still allow index 3 rows so prior audit history remains valid.
+- Runtime creation/activation/progress logic now enforces max 2 and no Tier 3 unlocks.
+- No historical ledger/commission entries were deleted or rewritten.

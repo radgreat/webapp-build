@@ -675,3 +675,20 @@ Last Updated: 2026-04-26
   - `node --check binary-tree-next-engine-adapter.mjs`
   - `node --check binary-tree-next-app.mjs`
   - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-28 Addendum (Business Center Rule Migration: 3 -> 2)
+
+- Updated Business Center rules to max 2 total centers.
+- Updated unlock mapping:
+  - Tier 4 -> Business Center #1
+  - Tier 5 -> Business Center #2
+- Removed Tier 3 unlock path.
+- Deprecated over-cap historical center nodes (`index > 2`) as legacy placeholders without deleting rows.
+- Updated member dashboard BC panel + tree label fallbacks so `Business Center #3` no longer appears; legacy over-cap labels render as `Legacy Center #N`.
+- Added backend unit tests for BC cap/unlock mapping (`backend/tests/member-business-center.service.test.js`).
+
+### Validation
+- `cmd /c npm run test:business-centers` passed.
+- `cmd /c npm run test:binary-cycle` passed.
+- `cmd /c npm run test:ledger` passed.
+- `cmd /c npm run test:matching-bonus` passed.

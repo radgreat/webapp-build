@@ -27,7 +27,7 @@ import {
 import { createSalesTeamCommissionLedgerEntry } from './ledger.service.js';
 import { processLeadershipMatchingBonusFromSalesTeamCommission } from './leadership-matching.service.js';
 
-const MAX_BUSINESS_CENTER_COUNT = 3;
+const MAX_BUSINESS_CENTER_COUNT = 2;
 const NODE_TYPE_MAIN_CENTER = 'main_center';
 const NODE_TYPE_BUSINESS_CENTER = 'business_center';
 const NODE_TYPE_STAFF_ADMIN = 'staff_admin';
@@ -47,13 +47,18 @@ const LEDGER_DIRECTION_CREDIT = 'credit';
 const LEDGER_REFERENCE_TYPE_BUSINESS_CENTER_COMMISSION = 'business_center_commission';
 
 const DEFAULT_UNLOCK_RULES = Object.freeze([
-  Object.freeze({ businessCenterIndex: 1, requiredTier: 3, centerLabel: 'Business Center #1' }),
-  Object.freeze({ businessCenterIndex: 2, requiredTier: 4, centerLabel: 'Business Center #2' }),
-  Object.freeze({ businessCenterIndex: 3, requiredTier: 5, centerLabel: 'Business Center #3' }),
+  Object.freeze({ businessCenterIndex: 1, requiredTier: 4, centerLabel: 'Business Center #1' }),
+  Object.freeze({ businessCenterIndex: 2, requiredTier: 5, centerLabel: 'Business Center #2' }),
 ]);
 
 let businessCenterSchemaReady = false;
 let businessCenterSchemaPromise = null;
+
+function resolveDefaultRequiredTierForIndex(centerIndexInput) {
+  const centerIndex = toWholeNumber(centerIndexInput, 0);
+  const matchedRule = DEFAULT_UNLOCK_RULES.find((rule) => rule.businessCenterIndex === centerIndex);
+  return toWholeNumber(matchedRule?.requiredTier, centerIndex + 3);
+}
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -188,6 +193,25 @@ function resolveBusinessCenterLabel(index, fallbackLabel = '') {
   }
   const fallback = normalizeText(fallbackLabel);
   return fallback || `Legacy Center #${safeIndex}`;
+}
+
+function resolveSourceCenterLabel(centerIndexInput, providedLabel = '') {
+  const centerIndex = toWholeNumber(centerIndexInput, 0);
+  const trimmedLabel = normalizeText(providedLabel);
+  const fallbackLabel = resolveBusinessCenterLabel(centerIndex);
+
+  if (!trimmedLabel) {
+    return fallbackLabel;
+  }
+
+  if (
+    centerIndex > MAX_BUSINESS_CENTER_COUNT
+    && /^business\s*center\s*#?\s*\d+$/i.test(trimmedLabel)
+  ) {
+    return `Legacy Center #${centerIndex}`;
+  }
+
+  return trimmedLabel;
 }
 
 function resolveQueryExecutor(candidateExecutor) {
@@ -519,7 +543,10 @@ function mapUnlockRuleRow(row = {}) {
   return {
     id: normalizeText(row?.id) || `bc_unlock_rule_${businessCenterIndex}`,
     businessCenterIndex,
-    requiredTier: Math.max(1, toWholeNumber(row?.required_tier ?? row?.requiredTier, businessCenterIndex + 2)),
+    requiredTier: Math.max(1, toWholeNumber(
+      row?.required_tier ?? row?.requiredTier,
+      resolveDefaultRequiredTierForIndex(businessCenterIndex),
+    )),
     centerLabel: normalizeText(row?.center_label ?? row?.centerLabel) || resolveBusinessCenterLabel(businessCenterIndex),
     isActive: row?.is_active !== false,
     createdAt: toIsoStringOrEmpty(row?.created_at || row?.createdAt),
@@ -587,13 +614,19 @@ function normalizeProgressPayload(existingProgress = {}) {
       0,
     ),
     unlockedCenterIndexes: Array.isArray(existingProgress?.unlockedCenterIndexes)
-      ? existingProgress.unlockedCenterIndexes.map((value) => toWholeNumber(value, 0)).filter((value) => value > 0)
+      ? existingProgress.unlockedCenterIndexes
+        .map((value) => toWholeNumber(value, 0))
+        .filter((value) => value > 0 && value <= MAX_BUSINESS_CENTER_COUNT)
       : [],
     activatedCenterIndexes: Array.isArray(existingProgress?.activatedCenterIndexes)
-      ? existingProgress.activatedCenterIndexes.map((value) => toWholeNumber(value, 0)).filter((value) => value > 0)
+      ? existingProgress.activatedCenterIndexes
+        .map((value) => toWholeNumber(value, 0))
+        .filter((value) => value > 0 && value <= MAX_BUSINESS_CENTER_COUNT)
       : [],
     pendingCenterIndexes: Array.isArray(existingProgress?.pendingCenterIndexes)
-      ? existingProgress.pendingCenterIndexes.map((value) => toWholeNumber(value, 0)).filter((value) => value > 0)
+      ? existingProgress.pendingCenterIndexes
+        .map((value) => toWholeNumber(value, 0))
+        .filter((value) => value > 0 && value <= MAX_BUSINESS_CENTER_COUNT)
       : [],
     overflowPending: toWholeNumber(existingProgress?.overflowPending ?? existingProgress?.overflow_pending, 0),
     isAtCap: Boolean(existingProgress?.isAtCap),
@@ -725,7 +758,10 @@ function mapRuleByCenterIndex(unlockRules = []) {
     if (centerIndex > 0 && centerIndex <= MAX_BUSINESS_CENTER_COUNT && !ruleByIndex.has(centerIndex)) {
       ruleByIndex.set(centerIndex, {
         businessCenterIndex: centerIndex,
-        requiredTier: Math.max(1, toWholeNumber(rule?.requiredTier, centerIndex + 2)),
+        requiredTier: Math.max(1, toWholeNumber(
+          rule?.requiredTier,
+          resolveDefaultRequiredTierForIndex(centerIndex),
+        )),
         centerLabel: normalizeText(rule?.centerLabel) || resolveBusinessCenterLabel(centerIndex),
       });
     }
@@ -1365,7 +1401,7 @@ function mapCommissionEventRow(row = {}) {
     sourceNodeId: normalizeText(row?.source_node_id),
     sourceCenterType: normalizeCommissionSourceCenterType(row?.source_center_type, row?.source_center_index),
     sourceCenterIndex: toWholeNumber(row?.source_center_index, 0),
-    sourceCenterLabel: normalizeText(row?.source_center_label) || resolveBusinessCenterLabel(row?.source_center_index),
+    sourceCenterLabel: resolveSourceCenterLabel(row?.source_center_index, row?.source_center_label),
     commissionType: normalizeCommissionType(row?.commission_type, 'sales_team_cycle'),
     amount: roundCurrencyAmount(row?.amount, 0),
     currencyCode: normalizeText(row?.currency_code || 'USD').toUpperCase() || 'USD',
@@ -1393,7 +1429,7 @@ function mapWalletLedgerEntryRow(row = {}) {
     sourceNodeId: normalizeText(row?.source_node_id),
     sourceCenterType: normalizeCommissionSourceCenterType(row?.source_center_type, row?.source_center_index),
     sourceCenterIndex: toWholeNumber(row?.source_center_index, 0),
-    sourceCenterLabel: normalizeText(row?.source_center_label) || resolveBusinessCenterLabel(row?.source_center_index),
+    sourceCenterLabel: resolveSourceCenterLabel(row?.source_center_index, row?.source_center_label),
     commissionType: normalizeCommissionType(row?.commission_type, 'sales_team_cycle'),
     metadata: row?.metadata && typeof row.metadata === 'object' ? row.metadata : {},
     createdAt: toIsoStringOrEmpty(row?.created_at),
@@ -1448,7 +1484,11 @@ async function insertCommissionEventRow(payload = {}, executor = pool) {
   }
 
   const eventId = normalizeText(payload?.id) || createRecordId('bc_event');
-  const sourceCenterIndex = Math.max(0, Math.min(MAX_BUSINESS_CENTER_COUNT, toWholeNumber(payload?.sourceCenterIndex, 0)));
+  const requestedSourceCenterIndex = toWholeNumber(payload?.sourceCenterIndex, 0);
+  if (requestedSourceCenterIndex > MAX_BUSINESS_CENTER_COUNT) {
+    throw new Error(`sourceCenterIndex cannot exceed ${MAX_BUSINESS_CENTER_COUNT}.`);
+  }
+  const sourceCenterIndex = Math.max(0, requestedSourceCenterIndex);
   const sourceCenterType = normalizeCommissionSourceCenterType(payload?.sourceCenterType, sourceCenterIndex);
 
   const result = await executor.query(`
@@ -1501,7 +1541,7 @@ async function insertCommissionEventRow(payload = {}, executor = pool) {
     normalizeText(payload?.sourceNodeId),
     sourceCenterType,
     sourceCenterIndex,
-    normalizeText(payload?.sourceCenterLabel) || resolveBusinessCenterLabel(sourceCenterIndex),
+    resolveSourceCenterLabel(sourceCenterIndex, payload?.sourceCenterLabel),
     normalizeCommissionType(payload?.commissionType, 'sales_team_cycle'),
     roundCurrencyAmount(payload?.amount, 0),
     normalizeText(payload?.currencyCode || 'USD').toUpperCase() || 'USD',
@@ -1519,7 +1559,11 @@ async function insertWalletLedgerEntry(payload = {}, executor = pool) {
   await ensureBusinessCenterRedesignTables();
 
   const ledgerId = normalizeText(payload?.id) || createRecordId('bc_ledger');
-  const sourceCenterIndex = Math.max(0, Math.min(MAX_BUSINESS_CENTER_COUNT, toWholeNumber(payload?.sourceCenterIndex, 0)));
+  const requestedSourceCenterIndex = toWholeNumber(payload?.sourceCenterIndex, 0);
+  if (requestedSourceCenterIndex > MAX_BUSINESS_CENTER_COUNT) {
+    throw new Error(`sourceCenterIndex cannot exceed ${MAX_BUSINESS_CENTER_COUNT}.`);
+  }
+  const sourceCenterIndex = Math.max(0, requestedSourceCenterIndex);
 
   const result = await executor.query(`
     INSERT INTO charge.wallet_ledger_entries (
@@ -1579,7 +1623,7 @@ async function insertWalletLedgerEntry(payload = {}, executor = pool) {
     normalizeText(payload?.sourceNodeId),
     normalizeCommissionSourceCenterType(payload?.sourceCenterType, sourceCenterIndex),
     sourceCenterIndex,
-    normalizeText(payload?.sourceCenterLabel) || resolveBusinessCenterLabel(sourceCenterIndex),
+    resolveSourceCenterLabel(sourceCenterIndex, payload?.sourceCenterLabel),
     normalizeCommissionType(payload?.commissionType, 'sales_team_cycle'),
     JSON.stringify(payload?.metadata && typeof payload.metadata === 'object' ? payload.metadata : {}),
     normalizeText(payload?.createdAt) || new Date().toISOString(),
@@ -1865,9 +1909,9 @@ async function buildBusinessCenterEarningsSummary(ownerIdentity = {}, query = {}
   let totalAmount = 0;
 
   events.forEach((event) => {
-    const centerIndex = Math.max(0, Math.min(MAX_BUSINESS_CENTER_COUNT, toWholeNumber(event?.sourceCenterIndex, 0)));
+    const centerIndex = Math.max(0, toWholeNumber(event?.sourceCenterIndex, 0));
     const centerType = normalizeCommissionSourceCenterType(event?.sourceCenterType, centerIndex);
-    const centerLabel = normalizeText(event?.sourceCenterLabel) || resolveBusinessCenterLabel(centerIndex);
+    const centerLabel = resolveSourceCenterLabel(centerIndex, event?.sourceCenterLabel);
 
     if (!centerBreakdownMap.has(centerIndex)) {
       centerBreakdownMap.set(centerIndex, {
@@ -1930,6 +1974,13 @@ async function buildBusinessCenterEarningsSummary(ownerIdentity = {}, query = {}
     };
   });
 
+  const legacyCenters = Array.from(centerBreakdownMap.values())
+    .filter((entry) => toWholeNumber(entry?.centerIndex, 0) > MAX_BUSINESS_CENTER_COUNT)
+    .map((entry) => ({
+      ...entry,
+      centerLabel: resolveSourceCenterLabel(entry?.centerIndex, entry?.centerLabel),
+    }));
+
   return {
     ownerUserId,
     ownerUsername: normalizeText(ownerIdentity?.username),
@@ -1938,7 +1989,9 @@ async function buildBusinessCenterEarningsSummary(ownerIdentity = {}, query = {}
     currencyCode: 'USD',
     eventCount: events.length,
     commissionTypeTotals,
-    centers: mergedCenters.sort((left, right) => left.centerIndex - right.centerIndex),
+    centers: mergedCenters
+      .concat(legacyCenters)
+      .sort((left, right) => left.centerIndex - right.centerIndex),
     recentEvents: events,
   };
 }
@@ -2048,7 +2101,7 @@ async function buildBusinessCenterWalletSummary(ownerIdentity = {}, query = {}, 
   const centerBreakdown = centerBreakdownResult.rows.map((row) => ({
     sourceCenterIndex: toWholeNumber(row?.source_center_index, 0),
     sourceCenterType: normalizeCommissionSourceCenterType(row?.source_center_type, row?.source_center_index),
-    sourceCenterLabel: normalizeText(row?.source_center_label) || resolveBusinessCenterLabel(row?.source_center_index),
+    sourceCenterLabel: resolveSourceCenterLabel(row?.source_center_index, row?.source_center_label),
     totalAmount: roundCurrencyAmount(row?.total_amount, 0),
     entryCount: toWholeNumber(row?.entry_count, 0),
   }));
@@ -2608,6 +2661,7 @@ export async function recordBusinessCenterCommissionEvent(payload = {}) {
 
   const ownerUserId = normalizeText(payload?.ownerUserId);
   const sourceNodeId = normalizeText(payload?.sourceNodeId);
+  const sourceCenterIndex = toWholeNumber(payload?.sourceCenterIndex, 0);
   const amount = roundCurrencyAmount(payload?.amount, 0);
 
   if (!ownerUserId) {
@@ -2631,6 +2685,14 @@ export async function recordBusinessCenterCommissionEvent(payload = {}) {
       success: false,
       status: 400,
       error: 'Commission event amount must be greater than 0.',
+    };
+  }
+
+  if (sourceCenterIndex > MAX_BUSINESS_CENTER_COUNT) {
+    return {
+      success: false,
+      status: 400,
+      error: `sourceCenterIndex cannot exceed ${MAX_BUSINESS_CENTER_COUNT}.`,
     };
   }
 
@@ -2660,8 +2722,8 @@ export async function recordBusinessCenterCommissionEvent(payload = {}) {
       ownerUsername: normalizeText(payload?.ownerUsername),
       ownerEmail: normalizeText(payload?.ownerEmail),
       sourceNodeId,
-      sourceCenterType: normalizeCommissionSourceCenterType(payload?.sourceCenterType, payload?.sourceCenterIndex),
-      sourceCenterIndex: toWholeNumber(payload?.sourceCenterIndex, 0),
+      sourceCenterType: normalizeCommissionSourceCenterType(payload?.sourceCenterType, sourceCenterIndex),
+      sourceCenterIndex,
       sourceCenterLabel: normalizeText(payload?.sourceCenterLabel),
       commissionType: normalizeCommissionType(payload?.commissionType, 'sales_team_cycle'),
       amount,
@@ -2727,9 +2789,10 @@ export async function settleBusinessCenterCycleCommission(payload = {}) {
 
   const ownerUserId = normalizeText(payload?.ownerUserId);
   const sourceNodeId = normalizeText(payload?.sourceNodeId);
-  const sourceCenterIndex = Math.max(0, Math.min(MAX_BUSINESS_CENTER_COUNT, toWholeNumber(payload?.sourceCenterIndex, 0)));
+  const requestedSourceCenterIndex = toWholeNumber(payload?.sourceCenterIndex, 0);
+  const sourceCenterIndex = Math.max(0, requestedSourceCenterIndex);
   const sourceCenterType = normalizeCommissionSourceCenterType(payload?.sourceCenterType, sourceCenterIndex);
-  const sourceCenterLabel = normalizeText(payload?.sourceCenterLabel) || resolveBusinessCenterLabel(sourceCenterIndex);
+  const sourceCenterLabel = resolveSourceCenterLabel(sourceCenterIndex, payload?.sourceCenterLabel);
   const commissionType = normalizeCommissionType(payload?.commissionType, 'sales_team_cycle');
   const perCycleAmount = roundCurrencyAmount(payload?.perCycleAmount, 0);
 
@@ -2754,6 +2817,14 @@ export async function settleBusinessCenterCycleCommission(payload = {}) {
       success: false,
       status: 400,
       error: 'perCycleAmount must be greater than 0 for cycle settlement.',
+    };
+  }
+
+  if (requestedSourceCenterIndex > MAX_BUSINESS_CENTER_COUNT) {
+    return {
+      success: false,
+      status: 400,
+      error: `sourceCenterIndex cannot exceed ${MAX_BUSINESS_CENTER_COUNT}.`,
     };
   }
 
@@ -3055,6 +3126,81 @@ export async function settleBusinessCenterCycleCommission(payload = {}) {
   }
 }
 
+export function __getBusinessCenterRuleConfigForTests() {
+  return {
+    maxBusinessCenterCount: MAX_BUSINESS_CENTER_COUNT,
+    defaultUnlockRules: DEFAULT_UNLOCK_RULES.map((rule) => ({
+      businessCenterIndex: toWholeNumber(rule?.businessCenterIndex, 0),
+      requiredTier: toWholeNumber(rule?.requiredTier, 0),
+      centerLabel: normalizeText(rule?.centerLabel),
+    })),
+  };
+}
+
+export function __deriveBusinessCenterProgressForTests(payload = {}) {
+  const completedLegacyTierCount = toWholeNumber(payload?.completedLegacyTierCount, 0);
+  const activeCenterIndexes = Array.isArray(payload?.activeCenterIndexes)
+    ? payload.activeCenterIndexes
+      .map((value) => toWholeNumber(value, 0))
+      .filter((value) => value > 0)
+    : [];
+
+  const activeBusinessCenterEntries = activeCenterIndexes.map((centerIndex, index) => ({
+    index: index + 1,
+    member: {
+      businessCenterNodeType: NODE_TYPE_BUSINESS_CENTER,
+      activationStatus: ACTIVATION_STATUS_ACTIVE,
+      businessCenterIndex: centerIndex,
+      businessCenterLabel: resolveBusinessCenterLabel(centerIndex),
+      legacyLeadershipCompletedTierCount: completedLegacyTierCount,
+      createdAt: `2026-01-${String(index + 2).padStart(2, '0')}T00:00:00.000Z`,
+    },
+  }));
+
+  const context = {
+    ownerIdentity: {
+      userId: 'test-owner-id',
+      username: 'test-owner',
+      email: 'test-owner@example.com',
+    },
+    mainCenterEntry: {
+      member: {
+        businessCenterNodeType: NODE_TYPE_MAIN_CENTER,
+        activationStatus: ACTIVATION_STATUS_ACTIVE,
+        businessCenterIndex: 0,
+        businessCenterLabel: 'Main Center',
+        legacyLeadershipCompletedTierCount: completedLegacyTierCount,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    },
+    ownedMemberEntries: [
+      {
+        index: 0,
+        member: {
+          businessCenterNodeType: NODE_TYPE_MAIN_CENTER,
+          activationStatus: ACTIVATION_STATUS_ACTIVE,
+          businessCenterIndex: 0,
+          businessCenterLabel: 'Main Center',
+          legacyLeadershipCompletedTierCount: completedLegacyTierCount,
+          createdAt: '2026-01-01T00:00:00.000Z',
+        },
+      },
+      ...activeBusinessCenterEntries,
+    ],
+    activeBusinessCenterEntries,
+  };
+
+  const unlockRules = Array.isArray(payload?.unlockRules) && payload.unlockRules.length > 0
+    ? payload.unlockRules
+    : DEFAULT_UNLOCK_RULES;
+
+  return buildProgressFromContext(context, unlockRules, {
+    existingProgress: payload?.existingProgress || {},
+    completedLegacyTierCountOverride: completedLegacyTierCount,
+    preserveHigherCompletedTierCount: false,
+  });
+}
+
 export async function ensureBusinessCenterRedesignTables() {
   if (businessCenterSchemaReady) {
     return;
@@ -3131,12 +3277,12 @@ export async function ensureBusinessCenterRedesignTables() {
             ELSE true
           END,
           business_center_label = CASE
-            WHEN business_center_index BETWEEN 1 AND 3 THEN CONCAT('Business Center #', business_center_index)
+            WHEN business_center_index BETWEEN 1 AND ${MAX_BUSINESS_CENTER_COUNT} THEN CONCAT('Business Center #', business_center_index)
             ELSE business_center_label
           END,
           business_center_activated_at = COALESCE(business_center_activated_at, created_at)
       WHERE is_staff_tree_account = false
-        AND business_center_index BETWEEN 1 AND 3
+        AND business_center_index BETWEEN 1 AND ${MAX_BUSINESS_CENTER_COUNT}
         AND LOWER(BTRIM(COALESCE(business_center_node_type, ''))) IN ('business_center', 'legacy_placeholder')
     `);
 
@@ -3146,10 +3292,13 @@ export async function ensureBusinessCenterRedesignTables() {
           activation_status = 'deprecated',
           is_earning_eligible = false,
           business_center_label = CASE
-            WHEN BTRIM(COALESCE(business_center_label, '')) = '' THEN CONCAT('Legacy Center #', business_center_index)
+            WHEN (
+              BTRIM(COALESCE(business_center_label, '')) = ''
+              OR LOWER(BTRIM(COALESCE(business_center_label, ''))) = CONCAT('business center #', business_center_index)
+            ) THEN CONCAT('Legacy Center #', business_center_index)
             ELSE business_center_label
           END
-      WHERE business_center_index > 3
+      WHERE business_center_index > ${MAX_BUSINESS_CENTER_COUNT}
     `);
 
     await pool.query(`
@@ -3171,7 +3320,11 @@ export async function ensureBusinessCenterRedesignTables() {
         is_active boolean NOT NULL DEFAULT true,
         created_at timestamptz NOT NULL DEFAULT NOW(),
         updated_at timestamptz NOT NULL DEFAULT NOW(),
-        CONSTRAINT business_center_unlock_rules_center_index_check CHECK (business_center_index BETWEEN 1 AND 3),
+        CONSTRAINT business_center_unlock_rules_center_index_check CHECK (business_center_index >= 1),
+        CONSTRAINT business_center_unlock_rules_active_index_cap_check CHECK (
+          is_active = FALSE
+          OR business_center_index BETWEEN 1 AND ${MAX_BUSINESS_CENTER_COUNT}
+        ),
         CONSTRAINT business_center_unlock_rules_required_tier_check CHECK (required_tier > 0)
       )
     `);
@@ -3179,6 +3332,36 @@ export async function ensureBusinessCenterRedesignTables() {
     await pool.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS business_center_unlock_rules_center_index_unique_idx
       ON charge.business_center_unlock_rules (business_center_index)
+    `);
+
+    await pool.query(`
+      ALTER TABLE charge.business_center_unlock_rules
+        DROP CONSTRAINT IF EXISTS business_center_unlock_rules_center_index_check,
+        DROP CONSTRAINT IF EXISTS business_center_unlock_rules_active_index_cap_check;
+    `);
+
+    await pool.query(`
+      UPDATE charge.business_center_unlock_rules
+      SET
+        is_active = FALSE,
+        center_label = CASE
+          WHEN LOWER(BTRIM(COALESCE(center_label, ''))) = CONCAT('business center #', business_center_index)
+            THEN CONCAT('Legacy Center #', business_center_index)
+          ELSE center_label
+        END,
+        updated_at = NOW()
+      WHERE business_center_index > ${MAX_BUSINESS_CENTER_COUNT}
+    `);
+
+    await pool.query(`
+      ALTER TABLE charge.business_center_unlock_rules
+        ADD CONSTRAINT business_center_unlock_rules_center_index_check
+          CHECK (business_center_index >= 1),
+        ADD CONSTRAINT business_center_unlock_rules_active_index_cap_check
+          CHECK (
+            is_active = FALSE
+            OR business_center_index BETWEEN 1 AND ${MAX_BUSINESS_CENTER_COUNT}
+          );
     `);
 
     await pool.query(`
@@ -3192,13 +3375,12 @@ export async function ensureBusinessCenterRedesignTables() {
         updated_at
       )
       VALUES
-        ('bc_unlock_rule_1', 1, 3, 'Business Center #1', TRUE, NOW(), NOW()),
-        ('bc_unlock_rule_2', 2, 4, 'Business Center #2', TRUE, NOW(), NOW()),
-        ('bc_unlock_rule_3', 3, 5, 'Business Center #3', TRUE, NOW(), NOW())
-      ON CONFLICT (id) DO UPDATE SET
-        business_center_index = EXCLUDED.business_center_index,
+        ('bc_unlock_rule_1', 1, 4, 'Business Center #1', TRUE, NOW(), NOW()),
+        ('bc_unlock_rule_2', 2, 5, 'Business Center #2', TRUE, NOW(), NOW())
+      ON CONFLICT (business_center_index) DO UPDATE SET
         required_tier = EXCLUDED.required_tier,
         center_label = EXCLUDED.center_label,
+        is_active = TRUE,
         updated_at = NOW()
     `);
 
@@ -3220,10 +3402,97 @@ export async function ensureBusinessCenterRedesignTables() {
         updated_at timestamptz NOT NULL DEFAULT NOW(),
         last_synced_at timestamptz NOT NULL DEFAULT NOW(),
         CONSTRAINT business_center_owner_progress_completed_tier_check CHECK (completed_legacy_tier_count >= 0),
-        CONSTRAINT business_center_owner_progress_unlocked_check CHECK (unlocked_count >= 0 AND unlocked_count <= 3),
-        CONSTRAINT business_center_owner_progress_activated_check CHECK (activated_count >= 0 AND activated_count <= 3),
-        CONSTRAINT business_center_owner_progress_pending_check CHECK (pending_count >= 0 AND pending_count <= 3)
+        CONSTRAINT business_center_owner_progress_unlocked_check CHECK (
+          unlocked_count >= 0
+          AND unlocked_count <= ${MAX_BUSINESS_CENTER_COUNT}
+        ),
+        CONSTRAINT business_center_owner_progress_activated_check CHECK (
+          activated_count >= 0
+          AND activated_count <= ${MAX_BUSINESS_CENTER_COUNT}
+        ),
+        CONSTRAINT business_center_owner_progress_pending_check CHECK (
+          pending_count >= 0
+          AND pending_count <= ${MAX_BUSINESS_CENTER_COUNT}
+        )
       )
+    `);
+
+    await pool.query(`
+      UPDATE charge.business_center_owner_progress
+      SET
+        unlocked_count = LEAST(${MAX_BUSINESS_CENTER_COUNT}, GREATEST(0, COALESCE(unlocked_count, 0))),
+        activated_count = LEAST(${MAX_BUSINESS_CENTER_COUNT}, GREATEST(0, COALESCE(activated_count, 0))),
+        pending_count = LEAST(${MAX_BUSINESS_CENTER_COUNT}, GREATEST(0, COALESCE(pending_count, 0))),
+        unlocked_center_indexes = (
+          SELECT COALESCE(array_agg(index_value ORDER BY index_value), ARRAY[]::integer[])
+          FROM (
+            SELECT DISTINCT index_value
+            FROM unnest(COALESCE(unlocked_center_indexes, ARRAY[]::integer[])) AS index_value
+            WHERE index_value BETWEEN 1 AND ${MAX_BUSINESS_CENTER_COUNT}
+          ) AS normalized
+        ),
+        activated_center_indexes = (
+          SELECT COALESCE(array_agg(index_value ORDER BY index_value), ARRAY[]::integer[])
+          FROM (
+            SELECT DISTINCT index_value
+            FROM unnest(COALESCE(activated_center_indexes, ARRAY[]::integer[])) AS index_value
+            WHERE index_value BETWEEN 1 AND ${MAX_BUSINESS_CENTER_COUNT}
+          ) AS normalized
+        ),
+        pending_center_indexes = (
+          SELECT COALESCE(array_agg(index_value ORDER BY index_value), ARRAY[]::integer[])
+          FROM (
+            SELECT DISTINCT index_value
+            FROM unnest(COALESCE(pending_center_indexes, ARRAY[]::integer[])) AS index_value
+            WHERE index_value BETWEEN 1 AND ${MAX_BUSINESS_CENTER_COUNT}
+          ) AS normalized
+        ),
+        updated_at = NOW()
+      WHERE
+        COALESCE(unlocked_count, 0) > ${MAX_BUSINESS_CENTER_COUNT}
+        OR COALESCE(activated_count, 0) > ${MAX_BUSINESS_CENTER_COUNT}
+        OR COALESCE(pending_count, 0) > ${MAX_BUSINESS_CENTER_COUNT}
+        OR EXISTS (
+          SELECT 1
+          FROM unnest(COALESCE(unlocked_center_indexes, ARRAY[]::integer[])) AS index_value
+          WHERE index_value < 1 OR index_value > ${MAX_BUSINESS_CENTER_COUNT}
+        )
+        OR EXISTS (
+          SELECT 1
+          FROM unnest(COALESCE(activated_center_indexes, ARRAY[]::integer[])) AS index_value
+          WHERE index_value < 1 OR index_value > ${MAX_BUSINESS_CENTER_COUNT}
+        )
+        OR EXISTS (
+          SELECT 1
+          FROM unnest(COALESCE(pending_center_indexes, ARRAY[]::integer[])) AS index_value
+          WHERE index_value < 1 OR index_value > ${MAX_BUSINESS_CENTER_COUNT}
+        )
+    `);
+
+    await pool.query(`
+      ALTER TABLE charge.business_center_owner_progress
+        DROP CONSTRAINT IF EXISTS business_center_owner_progress_unlocked_check,
+        DROP CONSTRAINT IF EXISTS business_center_owner_progress_activated_check,
+        DROP CONSTRAINT IF EXISTS business_center_owner_progress_pending_check;
+    `);
+
+    await pool.query(`
+      ALTER TABLE charge.business_center_owner_progress
+        ADD CONSTRAINT business_center_owner_progress_unlocked_check
+          CHECK (
+            unlocked_count >= 0
+            AND unlocked_count <= ${MAX_BUSINESS_CENTER_COUNT}
+          ),
+        ADD CONSTRAINT business_center_owner_progress_activated_check
+          CHECK (
+            activated_count >= 0
+            AND activated_count <= ${MAX_BUSINESS_CENTER_COUNT}
+          ),
+        ADD CONSTRAINT business_center_owner_progress_pending_check
+          CHECK (
+            pending_count >= 0
+            AND pending_count <= ${MAX_BUSINESS_CENTER_COUNT}
+          );
     `);
 
     await pool.query(`
@@ -3271,6 +3540,7 @@ export async function ensureBusinessCenterRedesignTables() {
       WHERE BTRIM(COALESCE(idempotency_key, '')) <> ''
     `);
 
+    // Keep historical index 3 rows queryable in immutable settlement/ledger tables.
     await pool.query(`
       CREATE TABLE IF NOT EXISTS charge.business_center_cycle_states (
         source_node_id text PRIMARY KEY,
