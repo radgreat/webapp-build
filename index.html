@@ -4007,50 +4007,9 @@
             </div>
           </div>
 
-          <!-- Business Center (standalone dashboard panel) -->
-          <div class="lg:col-span-2 space-y-6 self-start">
-            <div id="business-center-panel" class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-              <section id="business-center-activation-panel" class="rounded-2xl border border-surface-border bg-surface-elevated px-4 py-4 shadow-depth-1">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                  <div>
-                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Business Centers</p>
-                    <p id="business-center-summary-value" class="mt-1 text-body-sm font-medium text-text-primary">Loading Business Center status...</p>
-                    <p id="business-center-summary-detail" class="mt-1 text-caption text-text-tertiary">Main Center and Business Centers #1-#2 are independent earning nodes under one wallet owner.</p>
-                  </div>
-                  <span id="business-center-activation-status-chip" class="inline-flex w-fit items-center gap-1 rounded-full border border-surface-border bg-surface-base px-2 py-0.5 text-caption text-text-secondary">Syncing</span>
-                </div>
-                <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <p class="text-caption text-text-secondary">Pinned legacy network side: <span class="font-medium text-text-primary">LEFT</span> (fixed)</p>
-                  <button
-                    id="business-center-activate-button"
-                    type="button"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-2 text-body-sm font-medium text-text-inverse shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated active:scale-[0.97] transition-transform duration-150 ease-spring disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Activate Business Center
-                  </button>
-                </div>
-                <p id="business-center-activation-feedback" class="mt-2 hidden text-caption"></p>
-                <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div class="rounded-lg border border-surface-border bg-surface-base px-3 py-2">
-                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Unified Wallet</p>
-                    <p id="business-center-wallet-summary-value" class="mt-1 text-body-sm font-medium text-text-primary">$0.00</p>
-                    <p id="business-center-wallet-summary-detail" class="mt-1 text-caption text-text-tertiary">All center commissions credit this single wallet.</p>
-                  </div>
-                  <div class="rounded-lg border border-surface-border bg-surface-base px-3 py-2">
-                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Per-Center Earnings</p>
-                    <div id="business-center-earnings-list" class="mt-1 space-y-1 text-caption text-text-secondary">
-                      <p>Loading earnings breakdown...</p>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </div>
-
-          </div>
-
-          <!-- Right Column: Fast Track + Recent Activity -->
-          <div class="lg:col-span-1 space-y-6 self-start">
-            <div id="fast-track-bonus-card" class="rounded-2xl border border-brand-500/25 bg-gradient-to-br from-brand-500/10 via-surface-base/70 to-surface-base/40 p-5 shadow-depth-1 flex min-h-0 flex-col">
+          <!-- Wide Column: Fast Track Bonus -->
+          <div class="lg:col-span-2 self-start space-y-6">
+            <div id="fast-track-bonus-card" class="rounded-2xl border border-brand-500/25 bg-gradient-to-br from-brand-500/10 via-surface-base/70 to-surface-base/40 p-5 shadow-depth-1 flex min-h-0 h-auto overflow-hidden flex-col">
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex items-start gap-3">
                     <div class="w-10 h-10 rounded-lg bg-brand-500/15 border border-brand-500/25 flex items-center justify-center">
@@ -4093,7 +4052,24 @@
                 <div id="fast-track-commission-audit-list" class="mt-3 hidden min-h-0 flex-1 space-y-2 overflow-y-auto pr-1"></div>
                 </div>
             </div>
+            <div id="recent-activity-panel" class="relative overflow-hidden rounded-2xl border border-surface-border-light bg-surface-elevated/70 shadow-depth-1 flex min-h-0 max-h-[34rem] flex-col">
+              <div class="pointer-events-none absolute -top-12 right-0 h-28 w-28 rounded-full bg-brand-500/12 blur-2xl"></div>
+              <div class="relative flex items-start justify-between gap-3 border-b border-surface-border/80 px-5 py-4">
+                <div>
+                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Recent Activity</p>
+                </div>
+                <button id="recent-activity-view-all-button" type="button" class="hidden inline-flex items-center gap-1 rounded-full bg-semantic-info-bg px-2 py-0.5 text-caption font-medium text-semantic-info hover:bg-semantic-info-bg/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">View All</button>
+              </div>
+              <div id="recent-activity-feed" class="relative min-h-0 flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
+                <div class="px-4 py-3 rounded-lg">
+                  <p class="text-body-sm text-text-secondary">Loading recent activity...</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          <!-- Right Column: Matching Bonus + Business Center -->
+          <div id="dashboard-right-bonus-stack" class="lg:col-span-1 self-start space-y-6">
             <div id="matching-bonus-card" class="rounded-2xl border border-brand-500/20 bg-surface-raised/95 p-5 shadow-depth-1 flex min-h-0 flex-col">
               <div class="flex items-start justify-between gap-3">
                 <div class="flex items-start gap-3">
@@ -4124,20 +4100,78 @@
               </p>
             </div>
 
-            <div id="recent-activity-panel" class="relative overflow-hidden rounded-2xl border border-surface-border-light bg-surface-elevated/70 shadow-depth-1 flex min-h-0 flex-col">
-              <div class="pointer-events-none absolute -top-12 right-0 h-28 w-28 rounded-full bg-brand-500/12 blur-2xl"></div>
-              <div class="relative flex items-start justify-between gap-3 border-b border-surface-border/80 px-5 py-4">
-                <div>
-                  <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Recent Activity</p>
+            <section id="business-center-panel" class="rounded-2xl border border-surface-border bg-surface-raised p-5 shadow-depth-1">
+              <div id="business-center-activation-panel" class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div>
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Business Centers</p>
+                    <p id="business-center-summary-value" class="mt-1 text-body-sm font-medium text-text-primary">Loading Business Center status...</p>
+                    <p id="business-center-summary-detail" class="mt-1 text-caption text-text-tertiary">Business Center #1 and #2 are independent earning containers.</p>
+                  </div>
+                  <span id="business-center-activation-status-chip" class="inline-flex w-fit items-center gap-1 rounded-full border border-surface-border bg-surface-base px-2 py-0.5 text-caption text-text-secondary">Syncing</span>
                 </div>
-                <button id="recent-activity-view-all-button" type="button" class="hidden inline-flex items-center gap-1 rounded-full bg-semantic-info-bg px-2 py-0.5 text-caption font-medium text-semantic-info hover:bg-semantic-info-bg/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">View All</button>
-              </div>
-              <div id="recent-activity-feed" class="relative min-h-0 flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
-                <div class="px-4 py-3 rounded-lg">
-                  <p class="text-body-sm text-text-secondary">Loading recent activity...</p>
+
+                <p id="business-center-activation-feedback" class="hidden text-caption"></p>
+
+                <div class="grid grid-cols-1 gap-3">
+                  <article id="business-center-1-card" class="rounded-xl border border-surface-border bg-surface-elevated/80 px-4 py-4">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Business Center #1</p>
+                        <p id="business-center-1-earnings-value" class="mt-1 font-body font-semibold text-[1.55rem] leading-tight tracking-[-0.02em] text-text-primary">$0.00</p>
+                        <p class="mt-1 text-caption text-text-tertiary">Earnings</p>
+                      </div>
+                      <span id="business-center-1-status-chip" class="inline-flex w-fit items-center gap-1 rounded-full border border-surface-border bg-surface-base px-2 py-0.5 text-caption text-text-secondary">Locked</span>
+                    </div>
+                    <p id="business-center-1-status-detail" class="mt-3 text-caption text-text-secondary">Loading status...</p>
+                    <div class="mt-3">
+                      <button
+                        id="business-center-1-activate-button"
+                        type="button"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-body-sm font-medium text-text-inverse shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated active:scale-[0.97] transition-transform duration-150 ease-spring disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Activate Business Center
+                      </button>
+                      <button
+                        id="business-center-1-transfer-button"
+                        type="button"
+                        class="hidden inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-body-sm font-medium text-text-inverse shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated active:scale-[0.97] transition-transform duration-150 ease-spring disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Transfer to Wallet
+                      </button>
+                    </div>
+                  </article>
+
+                  <article id="business-center-2-card" class="rounded-xl border border-surface-border bg-surface-elevated/80 px-4 py-4">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Business Center #2</p>
+                        <p id="business-center-2-earnings-value" class="mt-1 font-body font-semibold text-[1.55rem] leading-tight tracking-[-0.02em] text-text-primary">$0.00</p>
+                        <p class="mt-1 text-caption text-text-tertiary">Earnings</p>
+                      </div>
+                      <span id="business-center-2-status-chip" class="inline-flex w-fit items-center gap-1 rounded-full border border-surface-border bg-surface-base px-2 py-0.5 text-caption text-text-secondary">Locked</span>
+                    </div>
+                    <p id="business-center-2-status-detail" class="mt-3 text-caption text-text-secondary">Loading status...</p>
+                    <div class="mt-3">
+                      <button
+                        id="business-center-2-activate-button"
+                        type="button"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-body-sm font-medium text-text-inverse shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated active:scale-[0.97] transition-transform duration-150 ease-spring disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Activate Business Center
+                      </button>
+                      <button
+                        id="business-center-2-transfer-button"
+                        type="button"
+                        class="hidden inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-body-sm font-medium text-text-inverse shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated active:scale-[0.97] transition-transform duration-150 ease-spring disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Transfer to Wallet
+                      </button>
+                    </div>
+                  </article>
                 </div>
               </div>
-            </div>
+            </section>
           </div>
         </div>
 
@@ -4178,7 +4212,7 @@
                 >
                   <span class="min-w-0">
                     <span class="block font-medium">Payment and Billing</span>
-                    <span class="mt-0.5 block text-[11px] leading-4 text-text-tertiary">Cards and billing address</span>
+                    <span class="mt-0.5 block text-[11px] leading-4 text-text-tertiary">Auto Ship and Stripe billing</span>
                   </span>
                 </button>
                 <button
@@ -4332,58 +4366,70 @@
                   <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Category</p>
                   <h4 class="mt-1 font-body font-medium text-body text-text-primary">Payment and Billing</h4>
                 </header>
-                <form id="settings-billing-form" class="px-5 py-4 space-y-5">
-                  <section class="rounded-xl border border-surface-border bg-surface-base/50 p-4 space-y-3">
-                    <div>
-                      <h5 class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Card Details</h5>
-                      <p class="mt-2 text-[12px] leading-5 text-text-tertiary">Stripe Payment Element handles card number, expiry, and CVC automatically. Billing details can be controlled with `fields.billingDetails` (`auto`, `if_required`, or `never`), and full billing address capture is best paired with Address Element in billing mode.</p>
+                <form id="settings-billing-form" class="px-5 py-4 space-y-4">
+                  <p class="rounded-xl border border-surface-border bg-surface-base/50 px-4 py-3 text-caption text-text-tertiary">
+                    Payment method and billing address are securely managed through Stripe.
+                  </p>
+
+                  <section id="settings-autoship-card" class="rounded-xl border border-surface-border bg-surface-base/50 p-4 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <h5 class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Auto Ship</h5>
+                        <p class="mt-2 text-[12px] leading-5 text-text-tertiary">Automatically receive one selected product every month and maintain your 30-day active account requirement.</p>
+                      </div>
+                      <span id="settings-autoship-status-badge" class="inline-flex items-center rounded-lg border border-surface-border bg-surface-base px-3 py-1.5 text-caption text-text-tertiary">Inactive</span>
                     </div>
-                    <div id="settings-stripe-card-placeholder" class="rounded-lg border border-dashed border-surface-border bg-surface-base/60 px-3 py-3 text-caption text-text-tertiary">
-                      Stripe card fields mount area (Payment Element)
+
+                    <p id="settings-autoship-warning" class="hidden rounded-lg border border-semantic-warning/40 bg-semantic-warning-bg px-3 py-2 text-caption text-semantic-warning"></p>
+
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <label for="settings-autoship-product-select" class="block md:col-span-2">
+                        <span class="text-body-sm font-medium text-text-primary">Monthly Auto Ship Product</span>
+                        <select id="settings-autoship-product-select" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                          <option value="metacharge">MetaCharge™</option>
+                          <option value="metaroast">MetaRoast™</option>
+                        </select>
+                      </label>
+                      <div class="rounded-lg border border-surface-border bg-surface-base/70 px-3 py-2">
+                        <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Selected Product</p>
+                        <p id="settings-autoship-selected-product-value" class="mt-1 text-body-sm text-text-primary">MetaCharge™</p>
+                      </div>
+                      <div class="rounded-lg border border-surface-border bg-surface-base/70 px-3 py-2">
+                        <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Personal BV per Shipment</p>
+                        <p class="mt-1 text-body-sm text-text-primary">50 BV</p>
+                      </div>
+                      <div class="rounded-lg border border-surface-border bg-surface-base/70 px-3 py-2">
+                        <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Next Billing Date</p>
+                        <p id="settings-autoship-next-billing-date-value" class="mt-1 text-body-sm text-text-primary">--</p>
+                      </div>
+                      <div class="rounded-lg border border-surface-border bg-surface-base/70 px-3 py-2">
+                        <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Monthly Price</p>
+                        <p id="settings-autoship-monthly-price-value" class="mt-1 text-body-sm text-text-primary">--</p>
+                      </div>
+                      <div class="rounded-lg border border-surface-border bg-surface-base/70 px-3 py-2 md:col-span-2">
+                        <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Payment Method</p>
+                        <p id="settings-autoship-payment-method-value" class="mt-1 text-body-sm text-text-primary">Managed securely by Stripe</p>
+                      </div>
                     </div>
-                    <div class="text-[12px] leading-5 text-text-tertiary flex flex-wrap gap-x-3 gap-y-1">
-                      <a href="https://docs.stripe.com/payments/payment-element/control-billing-details-collection" target="_blank" rel="noopener noreferrer" class="text-brand-300 underline hover:text-brand-200">Payment Element billing details</a>
-                      <a href="https://docs.stripe.com/elements/address-element" target="_blank" rel="noopener noreferrer" class="text-brand-300 underline hover:text-brand-200">Address Element docs</a>
+
+                    <div class="flex flex-wrap gap-3">
+                      <button id="settings-autoship-enable-button" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-500/35 bg-brand-500/10 px-4 py-2.5 text-body-sm font-medium text-brand-300 hover:bg-brand-500/15 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                        Enable Auto Ship
+                      </button>
+                      <button id="settings-autoship-change-product-button" type="button" class="hidden inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-light bg-surface-elevated px-4 py-2.5 text-body-sm font-medium text-text-primary hover:bg-surface-floating hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                        Change Product
+                      </button>
+                      <button id="settings-autoship-manage-button" type="button" class="hidden inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border-light bg-surface-elevated px-4 py-2.5 text-body-sm font-medium text-text-primary hover:bg-surface-floating hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                        Manage Billing
+                      </button>
+                      <button id="settings-autoship-cancel-button" type="button" class="hidden inline-flex items-center justify-center gap-2 rounded-xl border border-semantic-danger/45 bg-semantic-danger-bg px-4 py-2.5 text-body-sm font-medium text-semantic-danger hover:bg-semantic-danger/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semantic-danger/60 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                        Cancel Auto Ship
+                      </button>
                     </div>
+
+                    <p id="settings-autoship-feedback" class="hidden text-caption text-text-tertiary"></p>
                   </section>
 
-                  <section class="rounded-xl border border-surface-border bg-surface-base/50 p-4">
-                    <div class="flex items-center justify-between gap-3">
-                      <h5 class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Billing Address</h5>
-                      <label for="settings-billing-same-as-personal-toggle" class="inline-flex items-center gap-2 text-caption text-text-secondary">
-                        <input id="settings-billing-same-as-personal-toggle" type="checkbox" class="h-4 w-4 rounded border-surface-border bg-surface-base accent-brand-500" />
-                        Same as address
-                      </label>
-                    </div>
-                    <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <label for="settings-billing-address-line-input" class="block md:col-span-2">
-                        <span class="text-body-sm font-medium text-text-primary">Billing Address Line</span>
-                        <input id="settings-billing-address-line-input" type="text" maxlength="140" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
-                      </label>
-                      <label for="settings-billing-city-input" class="block">
-                        <span class="text-body-sm font-medium text-text-primary">City</span>
-                        <input id="settings-billing-city-input" type="text" maxlength="80" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
-                      </label>
-                      <label for="settings-billing-region-input" class="block">
-                        <span class="text-body-sm font-medium text-text-primary">Region</span>
-                        <input id="settings-billing-region-input" type="text" maxlength="80" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
-                      </label>
-                      <label for="settings-billing-zip-input" class="block">
-                        <span class="text-body-sm font-medium text-text-primary">Zip</span>
-                        <input id="settings-billing-zip-input" type="text" maxlength="20" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
-                      </label>
-                      <label for="settings-billing-country-input" class="block">
-                        <span class="text-body-sm font-medium text-text-primary">Country</span>
-                        <input id="settings-billing-country-input" type="text" maxlength="80" class="mt-1 w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-body-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50" />
-                      </label>
-                    </div>
-                  </section>
-
-                  <div class="flex flex-wrap gap-3">
-                    <button id="settings-billing-save-button" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-500/35 bg-brand-500/10 px-4 py-2.5 text-body-sm font-medium text-brand-300 hover:bg-brand-500/15 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
-                      Save Billing Details
-                    </button>
-                  </div>
                   <p id="settings-billing-feedback" class="hidden text-caption text-text-tertiary"></p>
                 </form>
               </section>
@@ -6598,6 +6644,19 @@
       const settingsBillingCountryInput = document.getElementById('settings-billing-country-input');
       const settingsBillingSaveButton = document.getElementById('settings-billing-save-button');
       const settingsBillingFeedbackElement = document.getElementById('settings-billing-feedback');
+      const settingsAutoShipCardElement = document.getElementById('settings-autoship-card');
+      const settingsAutoShipStatusBadgeElement = document.getElementById('settings-autoship-status-badge');
+      const settingsAutoShipWarningElement = document.getElementById('settings-autoship-warning');
+      const settingsAutoShipProductSelect = document.getElementById('settings-autoship-product-select');
+      const settingsAutoShipSelectedProductValueElement = document.getElementById('settings-autoship-selected-product-value');
+      const settingsAutoShipNextBillingDateValueElement = document.getElementById('settings-autoship-next-billing-date-value');
+      const settingsAutoShipMonthlyPriceValueElement = document.getElementById('settings-autoship-monthly-price-value');
+      const settingsAutoShipPaymentMethodValueElement = document.getElementById('settings-autoship-payment-method-value');
+      const settingsAutoShipEnableButton = document.getElementById('settings-autoship-enable-button');
+      const settingsAutoShipChangeProductButton = document.getElementById('settings-autoship-change-product-button');
+      const settingsAutoShipManageButton = document.getElementById('settings-autoship-manage-button');
+      const settingsAutoShipCancelButton = document.getElementById('settings-autoship-cancel-button');
+      const settingsAutoShipFeedbackElement = document.getElementById('settings-autoship-feedback');
       const settingsOpenProfileButton = document.getElementById('settings-open-profile-button');
       const settingsLogoutButton = document.getElementById('settings-logout-button');
       const settingsSecurityForgotPasswordButton = document.getElementById('settings-security-forgot-password-button');
@@ -6814,6 +6873,10 @@
       const MEMBER_EMAIL_VERIFICATION_STATUS_API = '/api/member-auth/email-verification-status';
       const MEMBER_EMAIL_VERIFICATION_REQUEST_API = '/api/member-auth/email-verification/request';
       const MEMBER_BILLING_PORTAL_API = '/api/member-auth/billing/portal';
+      const MEMBER_AUTOSHIP_STATUS_API = '/api/member-auth/autoship';
+      const MEMBER_AUTOSHIP_CHECKOUT_API = '/api/member-auth/autoship/checkout-session';
+      const MEMBER_AUTOSHIP_CANCEL_API = '/api/member-auth/autoship/cancel';
+      const MEMBER_AUTOSHIP_CHANGE_PRODUCT_API = '/api/member-auth/autoship/change-product';
       const MEMBER_PAYOUT_ACCOUNT_STATUS_API = '/api/member-auth/payout-account';
       const MEMBER_PAYOUT_ACCOUNT_ONBOARDING_API = '/api/member-auth/payout-account/onboarding-link';
       const MEMBER_PAYOUT_ACCOUNT_DASHBOARD_LINK_API = '/api/member-auth/payout-account/dashboard-link';
@@ -7239,6 +7302,7 @@
         salesteam: 0,
         retailprofit: 0,
         matchingbonus: 0,
+        businesscenter: 0,
       };
       let walletBalanceOverrideValue = resolveSessionWalletBalance(currentSessionUser);
 
@@ -8384,8 +8448,16 @@
         'bg-surface-base/60',
         'text-text-primary',
       ];
+      const SETTINGS_AUTOSHIP_PRODUCT_LABELS = Object.freeze({
+        metacharge: 'MetaCharge™',
+        metaroast: 'MetaRoast™',
+      });
       let activeSettingsCategory = 'account';
       let settingsEmailVerificationRequestSequence = 0;
+      let settingsAutoShipSnapshot = null;
+      let settingsAutoShipLoaded = false;
+      let settingsAutoShipLoading = false;
+      let settingsAutoShipActionLoading = false;
       let notificationCenterRequestSequence = 0;
       let notificationCenterLoading = false;
       let notificationCenterOpen = false;
@@ -8553,12 +8625,18 @@
       const businessCenterSummaryValueElement = document.getElementById('business-center-summary-value');
       const businessCenterSummaryDetailElement = document.getElementById('business-center-summary-detail');
       const businessCenterActivationStatusChipElement = document.getElementById('business-center-activation-status-chip');
-      const businessCenterActivationSideInput = document.getElementById('business-center-activation-side');
-      const businessCenterActivateButtonElement = document.getElementById('business-center-activate-button');
       const businessCenterActivationFeedbackElement = document.getElementById('business-center-activation-feedback');
-      const businessCenterWalletSummaryValueElement = document.getElementById('business-center-wallet-summary-value');
-      const businessCenterWalletSummaryDetailElement = document.getElementById('business-center-wallet-summary-detail');
-      const businessCenterEarningsListElement = document.getElementById('business-center-earnings-list');
+      const businessCenterOneEarningsValueElement = document.getElementById('business-center-1-earnings-value');
+      const businessCenterOneStatusChipElement = document.getElementById('business-center-1-status-chip');
+      const businessCenterOneStatusDetailElement = document.getElementById('business-center-1-status-detail');
+      const businessCenterOneActivateButtonElement = document.getElementById('business-center-1-activate-button');
+      const businessCenterOneTransferButtonElement = document.getElementById('business-center-1-transfer-button');
+      const businessCenterTwoEarningsValueElement = document.getElementById('business-center-2-earnings-value');
+      const businessCenterTwoStatusChipElement = document.getElementById('business-center-2-status-chip');
+      const businessCenterTwoStatusDetailElement = document.getElementById('business-center-2-status-detail');
+      const businessCenterTwoActivateButtonElement = document.getElementById('business-center-2-activate-button');
+      const businessCenterTwoTransferButtonElement = document.getElementById('business-center-2-transfer-button');
+      const dashboardRightBonusStackElement = document.getElementById('dashboard-right-bonus-stack');
       const accountOverviewCardElement = document.getElementById('account-overview-card');
       const accountRankActivityBadgeElement = document.getElementById('account-rank-activity-badge');
       const accountRankIconElement = document.getElementById('account-rank-icon');
@@ -11796,185 +11874,205 @@
         return trimmedLabel;
       }
 
-      function renderBusinessCenterWalletSummarySection() {
-        if (!businessCenterWalletSummaryValueElement || !businessCenterWalletSummaryDetailElement) {
-          return;
+      function resolveBusinessCenterEarningsSummarySnapshot() {
+        if (businessCenterEarningsSnapshot && typeof businessCenterEarningsSnapshot === 'object') {
+          return businessCenterEarningsSnapshot;
         }
-
-        const walletSummary = (
-          businessCenterWalletSummarySnapshot
-          && typeof businessCenterWalletSummarySnapshot === 'object'
-        )
-          ? businessCenterWalletSummarySnapshot
-          : (
-            businessCenterStatus?.walletSummary
-            && typeof businessCenterStatus.walletSummary === 'object'
-            ? businessCenterStatus.walletSummary
-            : null
-          );
-
-        if (businessCenterWalletSummaryLoading && !walletSummary) {
-          businessCenterWalletSummaryValueElement.textContent = 'Loading wallet summary...';
-          businessCenterWalletSummaryDetailElement.textContent = 'Syncing owner wallet ledger attribution...';
-          return;
+        if (businessCenterStatus?.earningsSummary && typeof businessCenterStatus.earningsSummary === 'object') {
+          return businessCenterStatus.earningsSummary;
         }
-
-        if (!walletSummary) {
-          businessCenterWalletSummaryValueElement.textContent = formatCurrency(0);
-          businessCenterWalletSummaryDetailElement.textContent = 'All center commissions credit this single wallet.';
-          return;
-        }
-
-        const walletBalance = Number(walletSummary?.wallet?.balance ?? 0);
-        const totalCreditedAmount = Number(walletSummary?.totalCreditedAmount ?? 0);
-        const ledgerEntryCount = toWholeNumber(walletSummary?.ledgerEntryCount, 0);
-        const centerBreakdown = Array.isArray(walletSummary?.centerBreakdown)
-          ? walletSummary.centerBreakdown
-          : [];
-
-        let topSourceCenter = null;
-        centerBreakdown.forEach((entry) => {
-          if (!entry || typeof entry !== 'object') {
-            return;
-          }
-          if (!topSourceCenter || Number(entry?.totalAmount ?? 0) > Number(topSourceCenter?.totalAmount ?? 0)) {
-            topSourceCenter = entry;
-          }
-        });
-
-        businessCenterWalletSummaryValueElement.textContent = formatCurrency(walletBalance);
-        const detailParts = [];
-        detailParts.push(`Credited ${formatCurrency(totalCreditedAmount)} across ${ledgerEntryCount.toLocaleString()} entries.`);
-        if (topSourceCenter && Number(topSourceCenter?.totalAmount ?? 0) > 0) {
-          const sourceIndex = toWholeNumber(topSourceCenter?.sourceCenterIndex, 0);
-          const sourceLabel = resolveBusinessCenterDisplayLabel(
-            sourceIndex,
-            topSourceCenter?.sourceCenterLabel,
-          );
-          detailParts.push(`Top source: ${sourceLabel} (${formatCurrency(Number(topSourceCenter.totalAmount))}).`);
-        } else {
-          detailParts.push('All center commissions credit this single wallet.');
-        }
-        businessCenterWalletSummaryDetailElement.textContent = detailParts.join(' ');
+        return null;
       }
 
-      function renderBusinessCenterEarningsSection() {
-        if (!businessCenterEarningsListElement) {
-          return;
+      function resolveBusinessCenterTransferNoteIndex(noteInput = '') {
+        const note = String(noteInput || '').trim();
+        if (!note) {
+          return 0;
         }
-
-        const earningsSummary = (
-          businessCenterEarningsSnapshot
-          && typeof businessCenterEarningsSnapshot === 'object'
-        )
-          ? businessCenterEarningsSnapshot
-          : (
-            businessCenterStatus?.earningsSummary
-            && typeof businessCenterStatus.earningsSummary === 'object'
-            ? businessCenterStatus.earningsSummary
-            : null
-          );
-
-        businessCenterEarningsListElement.innerHTML = '';
-
-        if (businessCenterEarningsLoading && !earningsSummary) {
-          const loadingLine = document.createElement('p');
-          loadingLine.textContent = 'Loading earnings breakdown...';
-          businessCenterEarningsListElement.appendChild(loadingLine);
-          return;
+        const match = note.match(/business\s*center\s*#\s*(\d+)/i);
+        if (!match) {
+          return 0;
         }
+        return Math.max(0, toWholeNumber(match[1], 0));
+      }
 
-        const maxConfiguredCenters = resolveBusinessCenterCapFromStatus();
-        const baseCenters = [
-          { centerIndex: 0, centerType: 'main_center', centerLabel: 'Main Center', eventCount: 0, totalAmount: 0 },
-        ];
-        for (let centerIndex = 1; centerIndex <= maxConfiguredCenters; centerIndex += 1) {
-          baseCenters.push({
-            centerIndex,
-            centerType: 'business_center',
-            centerLabel: resolveBusinessCenterDisplayLabel(centerIndex, '', { maxCenters: maxConfiguredCenters }),
-            eventCount: 0,
-            totalAmount: 0,
-          });
-        }
-
-        const centerEntryByIndex = new Map();
+      function resolveBusinessCenterEarningsByIndex(centerIndexInput) {
+        const centerIndex = Math.max(0, toWholeNumber(centerIndexInput, 0));
+        const earningsSummary = resolveBusinessCenterEarningsSummarySnapshot();
         const sourceCenters = Array.isArray(earningsSummary?.centers) ? earningsSummary.centers : [];
-        sourceCenters.forEach((entry) => {
-          const centerIndex = Math.max(0, toWholeNumber(entry?.centerIndex, 0));
-          centerEntryByIndex.set(centerIndex, {
-            centerIndex,
-            centerType: String(entry?.centerType || (centerIndex > 0 ? 'business_center' : 'main_center')),
-            centerLabel: resolveBusinessCenterDisplayLabel(
-              centerIndex,
-              entry?.centerLabel,
-              { maxCenters: maxConfiguredCenters },
-            ),
-            eventCount: toWholeNumber(entry?.eventCount, 0),
-            totalAmount: Number(entry?.totalAmount ?? 0),
-          });
-        });
+        const matchedCenter = sourceCenters.find((entry) => toWholeNumber(entry?.centerIndex, 0) === centerIndex);
+        return {
+          centerIndex,
+          totalAmount: Math.max(0, Number(matchedCenter?.totalAmount ?? 0)),
+          eventCount: Math.max(0, toWholeNumber(matchedCenter?.eventCount, 0)),
+        };
+      }
 
-        const mergedCenters = baseCenters
-          .map((baseCenter) => ({
-            ...baseCenter,
-            ...(centerEntryByIndex.get(baseCenter.centerIndex) || {}),
-          }))
-          .sort((left, right) => left.centerIndex - right.centerIndex);
+      function resolveBusinessCenterTransferredAmountByIndex(centerIndexInput) {
+        const centerIndex = Math.max(0, toWholeNumber(centerIndexInput, 0));
+        if (centerIndex <= 0) {
+          return 0;
+        }
 
-        const legacyCenters = Array.from(centerEntryByIndex.values())
-          .filter((center) => toWholeNumber(center?.centerIndex, 0) > maxConfiguredCenters)
-          .map((center) => ({
-            ...center,
-            centerLabel: resolveBusinessCenterDisplayLabel(
-              center?.centerIndex,
-              center?.centerLabel,
-              { maxCenters: maxConfiguredCenters },
-            ),
-          }));
+        const transfers = Array.isArray(eWalletTransferHistory) ? eWalletTransferHistory : [];
+        return transfers.reduce((sum, transfer) => {
+          if (!transfer || typeof transfer !== 'object') {
+            return sum;
+          }
 
-        const mergedAndLegacyCenters = mergedCenters
-          .concat(legacyCenters)
-          .sort((left, right) => left.centerIndex - right.centerIndex);
+          const noteCenterIndex = resolveBusinessCenterTransferNoteIndex(transfer?.note);
+          if (noteCenterIndex !== centerIndex) {
+            return sum;
+          }
 
-        const totalAmount = Number(
-          earningsSummary?.totalAmount
-          ?? mergedAndLegacyCenters.reduce((sum, center) => sum + Number(center?.totalAmount ?? 0), 0),
+          const direction = normalizeMemberKey(transfer?.direction);
+          if (direction && direction !== 'incoming') {
+            return sum;
+          }
+
+          return sum + Math.max(0, Number(transfer?.amount) || 0);
+        }, 0);
+      }
+
+      function resolveBusinessCenterAvailableAmountByIndex(centerIndexInput) {
+        const centerIndex = Math.max(0, toWholeNumber(centerIndexInput, 0));
+        const earnings = resolveBusinessCenterEarningsByIndex(centerIndex);
+        const transferred = resolveBusinessCenterTransferredAmountByIndex(centerIndex);
+        return Math.max(0, Number(earnings?.totalAmount || 0) - transferred);
+      }
+
+      function resolveBusinessCenterCardElements(centerIndexInput) {
+        const centerIndex = Math.max(0, toWholeNumber(centerIndexInput, 0));
+        if (centerIndex === 1) {
+          return {
+            earningsValueElement: businessCenterOneEarningsValueElement,
+            statusChipElement: businessCenterOneStatusChipElement,
+            statusDetailElement: businessCenterOneStatusDetailElement,
+            activateButtonElement: businessCenterOneActivateButtonElement,
+            transferButtonElement: businessCenterOneTransferButtonElement,
+          };
+        }
+        if (centerIndex === 2) {
+          return {
+            earningsValueElement: businessCenterTwoEarningsValueElement,
+            statusChipElement: businessCenterTwoStatusChipElement,
+            statusDetailElement: businessCenterTwoStatusDetailElement,
+            activateButtonElement: businessCenterTwoActivateButtonElement,
+            transferButtonElement: businessCenterTwoTransferButtonElement,
+          };
+        }
+        return {
+          earningsValueElement: null,
+          statusChipElement: null,
+          statusDetailElement: null,
+          activateButtonElement: null,
+          transferButtonElement: null,
+        };
+      }
+
+      function renderBusinessCenterCard(centerIndexInput, context = {}) {
+        const centerIndex = Math.max(0, toWholeNumber(centerIndexInput, 0));
+        const {
+          unlockedCenterIndexes = [],
+          activatedCenterIndexes = [],
+          pendingCenterIndexes = [],
+          unlockRulesByCenterIndex = new Map(),
+          isPendingReservationAccount = false,
+          isStaffTreeAccount = false,
+          canActivateAny = false,
+          statusLoading = false,
+        } = context && typeof context === 'object' ? context : {};
+
+        const {
+          earningsValueElement,
+          statusChipElement,
+          statusDetailElement,
+          activateButtonElement,
+          transferButtonElement,
+        } = resolveBusinessCenterCardElements(centerIndex);
+        if (!earningsValueElement || !statusChipElement || !statusDetailElement || !activateButtonElement || !transferButtonElement) {
+          return;
+        }
+
+        const earnings = resolveBusinessCenterEarningsByIndex(centerIndex);
+        const transferredAmount = resolveBusinessCenterTransferredAmountByIndex(centerIndex);
+        const availableAmount = resolveBusinessCenterAvailableAmountByIndex(centerIndex);
+        const eventCount = Math.max(0, toWholeNumber(earnings?.eventCount, 0));
+        const isUnlocked = unlockedCenterIndexes.includes(centerIndex);
+        const isActivated = activatedCenterIndexes.includes(centerIndex);
+        const isPendingActivation = pendingCenterIndexes.includes(centerIndex);
+        const requiredTier = Math.max(0, toWholeNumber(unlockRulesByCenterIndex.get(centerIndex), 0));
+
+        earningsValueElement.textContent = formatCurrency(availableAmount);
+
+        const statusChipBaseClassName = 'inline-flex w-fit items-center gap-1 rounded-full border px-2 py-0.5 text-caption';
+        let statusChipClassName = `${statusChipBaseClassName} border-surface-border bg-surface-base text-text-secondary`;
+        let statusChipText = 'Locked';
+        let statusDetailText = requiredTier > 0
+          ? `Unlock requirement: Legacy Tier ${requiredTier}.`
+          : 'Unlock requirement is loading.';
+
+        if (statusLoading && !isUnlocked && !isActivated) {
+          statusChipText = 'Syncing';
+          statusDetailText = 'Loading center status...';
+        } else if (isPendingReservationAccount) {
+          statusChipClassName = `${statusChipBaseClassName} border-semantic-warning/35 bg-semantic-warning-bg text-semantic-warning`;
+          statusChipText = 'Upgrade Required';
+          statusDetailText = getPendingMembershipUpgradeGateMessage();
+        } else if (isStaffTreeAccount) {
+          statusChipText = 'Staff Locked';
+          statusDetailText = 'Business Center controls are disabled for staff/admin tree accounts.';
+        } else if (isActivated) {
+          statusChipClassName = `${statusChipBaseClassName} border-semantic-success/35 bg-semantic-success-bg text-semantic-success`;
+          statusChipText = 'Activated';
+          statusDetailText = `Events: ${eventCount.toLocaleString()} | Available ${formatCurrency(availableAmount)} | Transferred ${formatCurrency(transferredAmount)}.`;
+        } else if (isPendingActivation || isUnlocked) {
+          statusChipClassName = `${statusChipBaseClassName} border-semantic-info/35 bg-semantic-info-bg text-semantic-info`;
+          statusChipText = 'Ready';
+          statusDetailText = 'Ready to activate this Business Center.';
+        }
+
+        statusChipElement.className = statusChipClassName;
+        statusChipElement.textContent = statusChipText;
+        statusDetailElement.textContent = statusDetailText;
+
+        const canActivateThisCenter = (
+          !isActivated
+          && isPendingActivation
+          && canActivateAny
+          && !isPendingReservationAccount
+          && !isStaffTreeAccount
+          && !statusLoading
+          && !businessCenterActivationInFlight
         );
-        const eventCount = toWholeNumber(
-          earningsSummary?.eventCount,
-          mergedAndLegacyCenters.reduce((sum, center) => sum + toWholeNumber(center?.eventCount, 0), 0),
-        );
+        const showTransferButton = isActivated;
+        activateButtonElement.classList.toggle('hidden', showTransferButton);
+        transferButtonElement.classList.toggle('hidden', !showTransferButton);
 
-        const summaryLine = document.createElement('p');
-        summaryLine.className = 'text-text-tertiary';
-        summaryLine.textContent = `Total: ${formatCurrency(totalAmount)} from ${eventCount.toLocaleString()} commission events.`;
-        businessCenterEarningsListElement.appendChild(summaryLine);
-
-        mergedAndLegacyCenters.forEach((center) => {
-          const centerLabel = resolveBusinessCenterDisplayLabel(
-            center?.centerIndex,
-            center?.centerLabel,
-            { maxCenters: maxConfiguredCenters },
-          );
-          const amount = Number(center?.totalAmount ?? 0);
-          const centerEventCount = toWholeNumber(center?.eventCount, 0);
-
-          const row = document.createElement('p');
-          row.className = 'flex items-center justify-between gap-2';
-
-          const labelElement = document.createElement('span');
-          labelElement.className = 'truncate text-text-secondary';
-          labelElement.textContent = `${centerLabel} (${centerEventCount.toLocaleString()})`;
-
-          const amountElement = document.createElement('span');
-          amountElement.className = 'font-medium text-text-primary';
-          amountElement.textContent = formatCurrency(amount);
-
-          row.appendChild(labelElement);
-          row.appendChild(amountElement);
-          businessCenterEarningsListElement.appendChild(row);
-        });
+        if (!showTransferButton) {
+          activateButtonElement.disabled = !canActivateThisCenter;
+          activateButtonElement.textContent = businessCenterActivationInFlight
+            ? 'Activating...'
+            : (isUnlocked ? 'Activate Business Center' : 'Locked');
+          activateButtonElement.dataset.centerIndex = String(centerIndex);
+        } else {
+          const canUseTransferButton = !statusLoading && !isPendingReservationAccount && !isStaffTreeAccount;
+          transferButtonElement.dataset.centerIndex = String(centerIndex);
+          if (!canUseTransferButton) {
+            transferButtonElement.disabled = true;
+            transferButtonElement.classList.add('opacity-40', 'cursor-not-allowed');
+            transferButtonElement.setAttribute('aria-disabled', 'true');
+            transferButtonElement.title = isPendingReservationAccount
+              ? getPendingMembershipUpgradeGateMessage()
+              : 'Business Center transfer is unavailable for this account.';
+          } else {
+            syncCommissionPayoutButtonState(
+              transferButtonElement,
+              `Business Center #${centerIndex}`,
+              availableAmount,
+            );
+          }
+        }
       }
 
       function renderBusinessCenterActivationPanel() {
@@ -12014,9 +12112,22 @@
               businessCenterIndex: toWholeNumber(rule?.businessCenterIndex, 0),
               requiredTier: toWholeNumber(rule?.requiredTier, 0),
             }))
-            .filter((rule) => rule.businessCenterIndex > 0 && rule.requiredTier > 0)
-            .sort((left, right) => left.businessCenterIndex - right.businessCenterIndex)
+              .filter((rule) => rule.businessCenterIndex > 0 && rule.requiredTier > 0)
+              .sort((left, right) => left.businessCenterIndex - right.businessCenterIndex)
           : [];
+        const unlockedCenterIndexes = Array.isArray(businessCenters?.unlockedCenterIndexes)
+          ? businessCenters.unlockedCenterIndexes
+            .map((value) => toWholeNumber(value, 0))
+            .filter((value) => value > 0 && value <= maxCenters)
+          : [];
+        const activatedCenterIndexes = Array.isArray(businessCenters?.activatedCenterIndexes)
+          ? businessCenters.activatedCenterIndexes
+            .map((value) => toWholeNumber(value, 0))
+            .filter((value) => value > 0 && value <= maxCenters)
+          : [];
+        const unlockRulesByCenterIndex = new Map(
+          unlockRules.map((rule) => [rule.businessCenterIndex, rule.requiredTier]),
+        );
         const isAtCap = Boolean(businessCenters?.isAtCap) || activatedCount >= maxCenters;
         const isStaffTreeAccount = Boolean(businessCenters?.isStaffTreeAccount);
 
@@ -12057,7 +12168,7 @@
           if (!businessCenters && !businessCenterStatusLoading) {
             businessCenterSummaryValueElement.textContent = 'Unable to load Business Center status.';
           } else {
-            businessCenterSummaryValueElement.textContent = `Activated ${activatedCount.toLocaleString()} / ${maxCenters.toLocaleString()} | Unlocked ${unlockedCount.toLocaleString()} | Pending ${pendingCount.toLocaleString()}`;
+            businessCenterSummaryValueElement.textContent = `Activated ${activatedCount.toLocaleString()} / ${maxCenters.toLocaleString()} | Pending ${pendingCount.toLocaleString()}`;
           }
         }
 
@@ -12069,42 +12180,31 @@
           } else if (isStaffTreeAccount) {
             businessCenterSummaryDetailElement.textContent = 'This account is flagged as staff/admin and cannot activate Business Centers.';
           } else {
-            const unlockRuleText = unlockRules.length > 0
-              ? unlockRules
-                .map((rule) => `Tier ${rule.requiredTier} -> BC #${rule.businessCenterIndex}`)
-                .join(', ')
-              : 'Tier unlock rules are not available.';
-            const pendingText = pendingCenterIndexes.length > 0
-              ? `Pending activations: ${pendingCenterIndexes.map((value) => `BC #${value}`).join(', ')}.`
-              : 'No pending activations.';
-            const nextUnlockText = (nextUnlockTier > 0 && nextBusinessCenterIndex > 0)
-              ? `Next unlock: Tier ${nextUnlockTier} for BC #${nextBusinessCenterIndex}.`
-              : 'All configured Business Centers are unlocked.';
-            const sourceTierText = sourceQualificationTier > 0
-              ? `Highest qualifying tier: ${sourceQualificationTier}.`
-              : '';
-            businessCenterSummaryDetailElement.textContent = `Completed Legacy tiers: ${completedLegacyTierCount.toLocaleString()}. Unlock rules: ${unlockRuleText}. ${nextUnlockText} ${pendingText} ${sourceTierText}`.trim();
+            businessCenterSummaryDetailElement.textContent = 'Complete Legacy Tier 4 and Tier 5 to unlock Business Centers.';
           }
         }
 
-        const disableControls = businessCenterActivationInFlight
-          || businessCenterStatusLoading
-          || !canActivate
-          || !businessCenters
-          || isPendingReservationAccount;
-
-        if (businessCenterActivationSideInput) {
-          businessCenterActivationSideInput.disabled = disableControls;
-        }
-        if (businessCenterActivateButtonElement) {
-          businessCenterActivateButtonElement.disabled = disableControls;
-          businessCenterActivateButtonElement.textContent = businessCenterActivationInFlight
-            ? 'Activating...'
-            : (isPendingReservationAccount ? 'Upgrade Required' : 'Activate Business Center');
-        }
-
-        renderBusinessCenterWalletSummarySection();
-        renderBusinessCenterEarningsSection();
+        renderBusinessCenterCard(1, {
+          unlockedCenterIndexes,
+          activatedCenterIndexes,
+          pendingCenterIndexes,
+          unlockRulesByCenterIndex,
+          isPendingReservationAccount,
+          isStaffTreeAccount,
+          canActivateAny: canActivate,
+          statusLoading: businessCenterStatusLoading,
+        });
+        renderBusinessCenterCard(2, {
+          unlockedCenterIndexes,
+          activatedCenterIndexes,
+          pendingCenterIndexes,
+          unlockRulesByCenterIndex,
+          isPendingReservationAccount,
+          isStaffTreeAccount,
+          canActivateAny: canActivate,
+          statusLoading: businessCenterStatusLoading,
+        });
+        requestFastTrackPanelHeightSync();
       }
 
       async function loadBusinessCenterEarningsSummary(options = {}) {
@@ -12428,7 +12528,7 @@
         });
       }
 
-      async function activateBusinessCenterFromPanel() {
+      async function activateBusinessCenterFromPanel(centerIndexInput = 0) {
         if (businessCenterActivationInFlight) {
           return;
         }
@@ -12440,6 +12540,22 @@
         const authToken = resolveMemberAuthToken();
         if (!authToken) {
           setBusinessCenterActivationFeedback('You must be signed in to activate Business Centers.', false);
+          return;
+        }
+
+        const centerIndex = Math.max(0, toWholeNumber(centerIndexInput, 0));
+        const activatedCenterIndexes = Array.isArray(businessCenterStatus?.businessCenters?.activatedCenterIndexes)
+          ? businessCenterStatus.businessCenters.activatedCenterIndexes.map((value) => toWholeNumber(value, 0))
+          : [];
+        const pendingCenterIndexes = Array.isArray(businessCenterStatus?.businessCenters?.pendingCenterIndexes)
+          ? businessCenterStatus.businessCenters.pendingCenterIndexes.map((value) => toWholeNumber(value, 0))
+          : [];
+        if (centerIndex > 0 && activatedCenterIndexes.includes(centerIndex)) {
+          setBusinessCenterActivationFeedback(`Business Center #${centerIndex} is already activated.`, true);
+          return;
+        }
+        if (centerIndex > 0 && !pendingCenterIndexes.includes(centerIndex)) {
+          setBusinessCenterActivationFeedback(`Business Center #${centerIndex} is locked. Complete unlock requirements first.`, false);
           return;
         }
 
@@ -12461,6 +12577,7 @@
             body: JSON.stringify({
               side: preferredSide,
               idempotencyKey,
+              requestedCenterIndex: centerIndex > 0 ? centerIndex : undefined,
             }),
           });
           const payload = await response.json().catch(() => null);
@@ -12508,22 +12625,99 @@
         }
       }
 
+      async function requestBusinessCenterTransferToWallet(centerIndexInput = 0) {
+        const centerIndex = Math.max(0, toWholeNumber(centerIndexInput, 0));
+        if (centerIndex <= 0) {
+          return;
+        }
+        if (isPendingMembershipReservationUser(currentSessionUser)) {
+          setBusinessCenterActivationFeedback(getPendingMembershipUpgradeGateMessage(), false);
+          return;
+        }
+
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          setBusinessCenterActivationFeedback('You must be signed in to transfer Business Center earnings.', false);
+          return;
+        }
+
+        const transferButtonElement = centerIndex === 1
+          ? businessCenterOneTransferButtonElement
+          : businessCenterTwoTransferButtonElement;
+        if (transferButtonElement && transferButtonElement.dataset.requestBusy === 'true') {
+          return;
+        }
+
+        const availableAmount = resolveBusinessCenterAvailableAmountByIndex(centerIndex);
+        if (availableAmount < MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD) {
+          setBusinessCenterActivationFeedback(
+            `Business Center #${centerIndex} requires at least ${formatCurrency(MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD)} to transfer.`,
+            false,
+          );
+          renderBusinessCenterActivationPanel();
+          return;
+        }
+
+        if (transferButtonElement) {
+          transferButtonElement.dataset.requestBusy = 'true';
+        }
+        renderBusinessCenterActivationPanel();
+
+        try {
+          const payoutActivityEntry = await createCommissionPayoutRequestForCurrentUser(
+            { key: 'businesscenter', label: 'Business Center' },
+            availableAmount,
+            {
+              note: `Transferred from Business Center #${centerIndex}`,
+              activitySourceLabel: `Business Center #${centerIndex}`,
+            },
+          );
+          appendRecentActivityRuntimeEntry(payoutActivityEntry);
+          recalculateEnrollDerivedMetrics();
+          renderSalesTeamCommissionsCard(currentDashboardTotalCycles, currentSessionUser);
+          setBusinessCenterActivationFeedback(
+            `Business Center #${centerIndex} transferred ${formatCurrency(availableAmount)} to E-Wallet.`,
+            true,
+          );
+        } catch (error) {
+          setBusinessCenterActivationFeedback(
+            error instanceof Error ? error.message : 'Unable to transfer Business Center earnings to E-Wallet.',
+            false,
+          );
+        } finally {
+          if (transferButtonElement) {
+            transferButtonElement.dataset.requestBusy = 'false';
+          }
+          renderBusinessCenterActivationPanel();
+        }
+      }
+
       function bindBusinessCenterActivationControls() {
         renderBusinessCenterActivationPanel();
 
-        if (businessCenterActivateButtonElement && businessCenterActivateButtonElement.dataset.bound !== 'true') {
-          businessCenterActivateButtonElement.dataset.bound = 'true';
-          businessCenterActivateButtonElement.addEventListener('click', () => {
-            void activateBusinessCenterFromPanel();
+        const bindActivateButton = (buttonElement, centerIndex) => {
+          if (!buttonElement || buttonElement.dataset.bound === 'true') {
+            return;
+          }
+          buttonElement.dataset.bound = 'true';
+          buttonElement.addEventListener('click', () => {
+            void activateBusinessCenterFromPanel(centerIndex);
           });
-        }
+        };
+        const bindTransferButton = (buttonElement, centerIndex) => {
+          if (!buttonElement || buttonElement.dataset.bound === 'true') {
+            return;
+          }
+          buttonElement.dataset.bound = 'true';
+          buttonElement.addEventListener('click', () => {
+            void requestBusinessCenterTransferToWallet(centerIndex);
+          });
+        };
 
-        if (businessCenterActivationSideInput && businessCenterActivationSideInput.dataset.bound !== 'true') {
-          businessCenterActivationSideInput.dataset.bound = 'true';
-          businessCenterActivationSideInput.addEventListener('change', () => {
-            clearBusinessCenterActivationFeedback();
-          });
-        }
+        bindActivateButton(businessCenterOneActivateButtonElement, 1);
+        bindActivateButton(businessCenterTwoActivateButtonElement, 2);
+        bindTransferButton(businessCenterOneTransferButtonElement, 1);
+        bindTransferButton(businessCenterTwoTransferButtonElement, 2);
       }
 
       function buildProfileAchievementFallbackSnapshot() {
@@ -14753,6 +14947,7 @@
           salesteam: 0,
           retailprofit: 0,
           matchingbonus: 0,
+          businesscenter: 0,
         };
       }
 
@@ -15558,7 +15753,7 @@
         return [];
       }
 
-      async function createCommissionPayoutRequestForCurrentUser(sourceMeta, amountValue) {
+      async function createCommissionPayoutRequestForCurrentUser(sourceMeta, amountValue, options = {}) {
         const identity = resolveCurrentPayoutRequestIdentityPayload();
         if (!identity.userId && !identity.username && !identity.email) {
           throw new Error('Unable to transfer commission without a valid member identity.');
@@ -15575,6 +15770,8 @@
           Date.now(),
           Math.random().toString(36).slice(2, 10),
         ].join(':');
+        const transferNote = String(options?.note || '').trim();
+        const activitySourceLabel = String(options?.activitySourceLabel || sourceMeta?.label || 'Commission').trim() || 'Commission';
 
         const response = await fetch(E_WALLET_COMMISSION_TRANSFER_API, {
           method: 'POST',
@@ -15588,6 +15785,7 @@
             sourceKey: sourceMeta?.key || 'commission',
             amount: safeAmountValue,
             transactionId,
+            note: transferNote,
             senderSeedBalance: Math.max(0, Number(resolveDashboardTotalBalanceValue()) || 0),
             limit: 50,
           }),
@@ -15609,7 +15807,7 @@
           badgeLabel: 'Transfer',
           categoryLabel: 'Transfer',
           iconLabel: 'TR',
-          title: `${String(sourceMeta?.label || 'Commission')} moved to E-Wallet`,
+          title: `${activitySourceLabel} moved to E-Wallet`,
           detail: transferRecord?.referenceCode
             ? `Reference ${transferRecord.referenceCode}`
             : `Transferred ${formatCurrency(safeAmountValue)} to E-Wallet.`,
@@ -19947,12 +20145,12 @@
           return;
         }
 
-        if (!infinityBuilderBonusPanelElement) {
+        if (!dashboardRightBonusStackElement) {
           fastTrackBonusPanelElement.style.height = '';
           return;
         }
 
-        const targetHeight = Math.ceil(infinityBuilderBonusPanelElement.getBoundingClientRect().height);
+        const targetHeight = Math.ceil(dashboardRightBonusStackElement.getBoundingClientRect().height);
         if (targetHeight > 0) {
           fastTrackBonusPanelElement.style.height = `${targetHeight}px`;
         } else {
@@ -19977,11 +20175,11 @@
         }
         fastTrackBonusPanelElement.dataset.heightSyncBound = 'true';
 
-        if (infinityBuilderBonusPanelElement && typeof window.ResizeObserver === 'function') {
+        if (dashboardRightBonusStackElement && typeof window.ResizeObserver === 'function') {
           fastTrackHeightObserver = new window.ResizeObserver(() => {
             requestFastTrackPanelHeightSync();
           });
-          fastTrackHeightObserver.observe(infinityBuilderBonusPanelElement);
+          fastTrackHeightObserver.observe(dashboardRightBonusStackElement);
         }
 
         window.addEventListener('resize', requestFastTrackPanelHeightSync);
@@ -21161,6 +21359,8 @@
             return { key: 'retailprofit', label: 'Retail Profit' };
           case 'matchingbonus':
             return { key: 'matchingbonus', label: 'Matching Bonus' };
+          case 'businesscenter':
+            return { key: 'businesscenter', label: 'Business Center' };
           default:
             return null;
         }
@@ -21185,6 +21385,10 @@
         }
         if (normalizedKey === 'matchingbonus') {
           return Math.max(0, Number(matchingBonusBalanceValue) || 0);
+        }
+        if (normalizedKey === 'businesscenter') {
+          return Math.max(0, Number(resolveBusinessCenterAvailableAmountByIndex(1)) || 0)
+            + Math.max(0, Number(resolveBusinessCenterAvailableAmountByIndex(2)) || 0);
         }
         return 0;
       }
@@ -21980,6 +22184,7 @@
         if (eWalletSnapshot) {
           syncSessionWalletBalanceFromSnapshot(eWalletSnapshot.balance);
         }
+        renderBusinessCenterActivationPanel();
       }
 
       function renderEWalletSummary() {
@@ -23750,6 +23955,236 @@
         setSettingsFeedback(settingsSecurityFeedbackElement, message, tone);
       }
 
+      function setSettingsAutoShipFeedback(message = '', tone = 'info') {
+        setSettingsFeedback(settingsAutoShipFeedbackElement, message, tone);
+      }
+
+      function formatSettingsAutoShipDateLabel(value) {
+        const rawValue = String(value || '').trim();
+        if (!rawValue) {
+          return '--';
+        }
+
+        const date = new Date(rawValue);
+        if (Number.isNaN(date.getTime())) {
+          return '--';
+        }
+
+        const formatterOptions = {
+          month: 'short',
+          day: '2-digit',
+          year: 'numeric',
+        };
+        if (rawValue.includes('T') || /(?:Z|[+-]\d{2}:?\d{2})$/.test(rawValue)) {
+          formatterOptions.timeZone = 'UTC';
+        }
+
+        return new Intl.DateTimeFormat('en-US', formatterOptions).format(date);
+      }
+
+      function normalizeSettingsAutoShipStatus(value) {
+        const normalized = String(value || '').trim().toLowerCase();
+        if (normalized === 'active') {
+          return 'active';
+        }
+        if (normalized === 'past_due' || normalized === 'past-due' || normalized === 'past due') {
+          return 'past_due';
+        }
+        if (normalized === 'canceled' || normalized === 'cancelled') {
+          return 'canceled';
+        }
+        return 'inactive';
+      }
+
+      function resolveSettingsAutoShipStatusLabel(statusInput = '') {
+        const status = normalizeSettingsAutoShipStatus(statusInput);
+        if (status === 'active') {
+          return 'Active';
+        }
+        if (status === 'past_due') {
+          return 'Past Due';
+        }
+        if (status === 'canceled') {
+          return 'Canceled';
+        }
+        return 'Inactive';
+      }
+
+      function normalizeSettingsAutoShipSnapshot(payload = {}) {
+        const source = payload && typeof payload === 'object' ? payload : {};
+        const status = normalizeSettingsAutoShipStatus(source.status);
+        const selectedProductKey = String(source.selectedProductKey || '').trim().toLowerCase();
+        const selectedProductName = String(source.selectedProductName || SETTINGS_AUTOSHIP_PRODUCT_LABELS[selectedProductKey] || '').trim();
+        const monthlyPrice = Number(source.monthlyPrice || 0);
+        const scheduledBillingAnchorAt = String(
+          source.scheduledBillingAnchorAt
+          || source.scheduled_billing_anchor_at
+          || source?.metadata?.scheduledBillingAnchorAt
+          || source?.metadata?.scheduled_billing_anchor_at
+          || '',
+        ).trim();
+        const currentPeriodStart = String(source.currentPeriodStart || source.current_period_start || '').trim();
+        const currentPeriodEnd = String(source.currentPeriodEnd || source.current_period_end || '').trim();
+        const nextBillingDate = String(
+          source.nextBillingDate
+          || source.next_billing_date
+          || currentPeriodEnd
+          || scheduledBillingAnchorAt
+          || '',
+        ).trim();
+        const failureMessage = String(source.failureMessage || '').trim();
+        const products = Array.isArray(source.products) ? source.products : [];
+
+        return {
+          status,
+          statusLabel: String(source.statusLabel || resolveSettingsAutoShipStatusLabel(status)).trim() || 'Inactive',
+          stripeSubscriptionStatus: String(source.stripeSubscriptionStatus || '').trim(),
+          selectedProductKey: selectedProductKey || 'metacharge',
+          selectedProductName: selectedProductName || SETTINGS_AUTOSHIP_PRODUCT_LABELS.metacharge,
+          monthlyPrice: Number.isFinite(monthlyPrice) ? Math.max(0, monthlyPrice) : 0,
+          nextBillingDate,
+          scheduledBillingAnchorAt,
+          currentPeriodStart,
+          currentPeriodEnd,
+          canceledAt: String(source.canceledAt || '').trim(),
+          failureMessage,
+          personalBvPerShipment: Number(source.personalBvPerShipment || 50) || 50,
+          paymentDetailsManagedBy: String(source.paymentDetailsManagedBy || 'Stripe').trim() || 'Stripe',
+          products,
+          canEnable: source.canEnable === true || status === 'inactive' || status === 'canceled',
+          canManageBilling: source.canManageBilling === true || status === 'active' || status === 'past_due' || status === 'canceled',
+          canCancel: source.canCancel === true || status === 'active' || status === 'past_due',
+          canChangeProduct: source.canChangeProduct === true || status === 'active' || status === 'past_due',
+        };
+      }
+
+      function setSettingsAutoShipActionState(isBusy = false) {
+        const nextBusy = Boolean(isBusy);
+        settingsAutoShipActionLoading = nextBusy;
+        [
+          settingsAutoShipEnableButton,
+          settingsAutoShipChangeProductButton,
+          settingsAutoShipManageButton,
+          settingsAutoShipCancelButton,
+        ].forEach((button) => {
+          if (!button) {
+            return;
+          }
+          button.disabled = nextBusy;
+          button.classList.toggle('opacity-70', nextBusy);
+          button.classList.toggle('cursor-not-allowed', nextBusy);
+        });
+
+        if (settingsAutoShipProductSelect) {
+          const canEditProduct = settingsAutoShipSnapshot?.canEnable === true || settingsAutoShipSnapshot?.canChangeProduct === true;
+          settingsAutoShipProductSelect.disabled = nextBusy || !canEditProduct;
+          settingsAutoShipProductSelect.classList.toggle('opacity-70', settingsAutoShipProductSelect.disabled);
+          settingsAutoShipProductSelect.classList.toggle('cursor-not-allowed', settingsAutoShipProductSelect.disabled);
+        }
+      }
+
+      function renderSettingsAutoShip(snapshotInput = null) {
+        const normalizedSnapshot = normalizeSettingsAutoShipSnapshot(snapshotInput || settingsAutoShipSnapshot || {});
+        settingsAutoShipSnapshot = normalizedSnapshot;
+
+        if (settingsAutoShipStatusBadgeElement) {
+          settingsAutoShipStatusBadgeElement.textContent = normalizedSnapshot.statusLabel || 'Inactive';
+          settingsAutoShipStatusBadgeElement.classList.remove(
+            'border-semantic-success/35',
+            'bg-semantic-success-bg',
+            'text-semantic-success',
+            'border-semantic-warning/35',
+            'bg-semantic-warning-bg',
+            'text-semantic-warning',
+            'border-semantic-danger/35',
+            'bg-semantic-danger-bg',
+            'text-semantic-danger',
+            'border-surface-border',
+            'bg-surface-base',
+            'text-text-tertiary',
+          );
+
+          if (normalizedSnapshot.status === 'active') {
+            settingsAutoShipStatusBadgeElement.classList.add('border-semantic-success/35', 'bg-semantic-success-bg', 'text-semantic-success');
+          } else if (normalizedSnapshot.status === 'past_due') {
+            settingsAutoShipStatusBadgeElement.classList.add('border-semantic-warning/35', 'bg-semantic-warning-bg', 'text-semantic-warning');
+          } else if (normalizedSnapshot.status === 'canceled') {
+            settingsAutoShipStatusBadgeElement.classList.add('border-semantic-danger/35', 'bg-semantic-danger-bg', 'text-semantic-danger');
+          } else {
+            settingsAutoShipStatusBadgeElement.classList.add('border-surface-border', 'bg-surface-base', 'text-text-tertiary');
+          }
+        }
+
+        if (settingsAutoShipProductSelect) {
+          settingsAutoShipProductSelect.value = normalizedSnapshot.selectedProductKey || 'metacharge';
+        }
+        if (settingsAutoShipSelectedProductValueElement) {
+          settingsAutoShipSelectedProductValueElement.textContent = normalizedSnapshot.selectedProductName || '--';
+        }
+        if (settingsAutoShipNextBillingDateValueElement) {
+          settingsAutoShipNextBillingDateValueElement.textContent = normalizedSnapshot.nextBillingDate
+            ? formatSettingsAutoShipDateLabel(normalizedSnapshot.nextBillingDate)
+            : '--';
+        }
+        if (settingsAutoShipMonthlyPriceValueElement) {
+          settingsAutoShipMonthlyPriceValueElement.textContent = normalizedSnapshot.monthlyPrice > 0
+            ? formatCurrency(normalizedSnapshot.monthlyPrice)
+            : '--';
+        }
+        if (settingsAutoShipPaymentMethodValueElement) {
+          settingsAutoShipPaymentMethodValueElement.textContent = `Managed securely by ${normalizedSnapshot.paymentDetailsManagedBy || 'Stripe'}`;
+        }
+
+        if (settingsAutoShipWarningElement) {
+          let warningMessage = '';
+          if (normalizedSnapshot.status === 'past_due') {
+            warningMessage = normalizedSnapshot.failureMessage || 'Auto Ship payment is past due. Update your billing details to keep your account active.';
+          } else if (normalizedSnapshot.status === 'canceled') {
+            warningMessage = 'Auto Ship is canceled. You can enable Auto Ship again at any time.';
+          }
+
+          settingsAutoShipWarningElement.classList.toggle('hidden', !warningMessage);
+          settingsAutoShipWarningElement.textContent = warningMessage;
+        }
+
+        if (settingsAutoShipEnableButton) {
+          settingsAutoShipEnableButton.classList.toggle('hidden', !normalizedSnapshot.canEnable);
+        }
+        if (settingsAutoShipChangeProductButton) {
+          settingsAutoShipChangeProductButton.classList.toggle('hidden', !normalizedSnapshot.canChangeProduct);
+        }
+        if (settingsAutoShipManageButton) {
+          settingsAutoShipManageButton.classList.toggle('hidden', !normalizedSnapshot.canManageBilling);
+        }
+        if (settingsAutoShipCancelButton) {
+          settingsAutoShipCancelButton.classList.toggle('hidden', !normalizedSnapshot.canCancel);
+        }
+
+        setSettingsAutoShipActionState(settingsAutoShipActionLoading || settingsAutoShipLoading);
+      }
+
+      function resolveSelectedSettingsAutoShipProductKey() {
+        const selected = String(settingsAutoShipProductSelect?.value || '').trim().toLowerCase();
+        return selected === 'metaroast' ? 'metaroast' : 'metacharge';
+      }
+
+      function resolveSettingsAutoShipReturnDetails() {
+        const params = new URLSearchParams(window.location.search || '');
+        return {
+          status: String(params.get('autoship') || '').trim().toLowerCase(),
+          source: String(params.get('source') || '').trim().toLowerCase(),
+          sessionId: String(params.get('session_id') || '').trim(),
+        };
+      }
+
+      function clearSettingsAutoShipReturnDetails() {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.delete('autoship');
+        currentUrl.searchParams.delete('source');
+        currentUrl.searchParams.delete('session_id');
+        window.history.replaceState(window.history.state || {}, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+      }
+
       function setSettingsEmailVerificationStatus(message = '', tone = 'info') {
         if (!settingsAccountEmailVerificationStatusElement) {
           return;
@@ -24017,6 +24452,262 @@
         }
       }
 
+      async function requestSettingsAutoShipStatus() {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          return {
+            success: false,
+            error: 'Server authentication token is missing. Sign in again to load Auto Ship status.',
+          };
+        }
+
+        try {
+          const response = await fetch(MEMBER_AUTOSHIP_STATUS_API, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            return {
+              success: false,
+              error: typeof payload?.error === 'string'
+                ? payload.error
+                : 'Unable to load Auto Ship status.',
+            };
+          }
+
+          return {
+            success: true,
+            data: payload && typeof payload === 'object' ? payload : {},
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error && error.message
+              ? error.message
+              : 'Unable to load Auto Ship status.',
+          };
+        }
+      }
+
+      async function requestSettingsAutoShipCheckoutSession(selectedProductKey) {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          return {
+            success: false,
+            error: 'Server authentication token is missing. Sign in again to enable Auto Ship.',
+          };
+        }
+
+        try {
+          const response = await fetch(MEMBER_AUTOSHIP_CHECKOUT_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+              selectedProductKey,
+              returnUrl: window.location.href,
+            }),
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            return {
+              success: false,
+              error: typeof payload?.error === 'string'
+                ? payload.error
+                : 'Unable to start Auto Ship checkout.',
+              data: payload && typeof payload === 'object' ? payload : {},
+            };
+          }
+
+          return {
+            success: true,
+            data: payload && typeof payload === 'object' ? payload : {},
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error && error.message
+              ? error.message
+              : 'Unable to start Auto Ship checkout.',
+          };
+        }
+      }
+
+      async function requestSettingsAutoShipCancel() {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          return {
+            success: false,
+            error: 'Server authentication token is missing. Sign in again to cancel Auto Ship.',
+          };
+        }
+
+        try {
+          const response = await fetch(MEMBER_AUTOSHIP_CANCEL_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+              cancelImmediately: true,
+            }),
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            return {
+              success: false,
+              error: typeof payload?.error === 'string'
+                ? payload.error
+                : 'Unable to cancel Auto Ship.',
+              data: payload && typeof payload === 'object' ? payload : {},
+            };
+          }
+
+          return {
+            success: true,
+            data: payload && typeof payload === 'object' ? payload : {},
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error && error.message
+              ? error.message
+              : 'Unable to cancel Auto Ship.',
+          };
+        }
+      }
+
+      async function requestSettingsAutoShipChangeProduct(selectedProductKey) {
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          return {
+            success: false,
+            error: 'Server authentication token is missing. Sign in again to change Auto Ship product.',
+          };
+        }
+
+        try {
+          const response = await fetch(MEMBER_AUTOSHIP_CHANGE_PRODUCT_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+              selectedProductKey,
+            }),
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            return {
+              success: false,
+              error: typeof payload?.error === 'string'
+                ? payload.error
+                : 'Unable to change Auto Ship product.',
+              data: payload && typeof payload === 'object' ? payload : {},
+            };
+          }
+
+          return {
+            success: true,
+            data: payload && typeof payload === 'object' ? payload : {},
+          };
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error && error.message
+              ? error.message
+              : 'Unable to change Auto Ship product.',
+          };
+        }
+      }
+
+      async function refreshSettingsAutoShipStatus(options = {}) {
+        if (!settingsAutoShipCardElement) {
+          return;
+        }
+
+        const forceRefresh = options?.force === true;
+        if (!forceRefresh && settingsAutoShipLoaded && settingsAutoShipSnapshot) {
+          renderSettingsAutoShip(settingsAutoShipSnapshot);
+          return;
+        }
+        if (settingsAutoShipLoading) {
+          return;
+        }
+
+        settingsAutoShipLoading = true;
+        setSettingsAutoShipActionState(true);
+        if (!forceRefresh) {
+          setSettingsAutoShipFeedback('Loading Auto Ship status...', 'info');
+        }
+
+        const response = await requestSettingsAutoShipStatus();
+        settingsAutoShipLoading = false;
+
+        if (!response.success) {
+          setSettingsAutoShipActionState(false);
+          setSettingsAutoShipFeedback(String(response.error || 'Unable to load Auto Ship status.'), 'error');
+          if (!settingsAutoShipSnapshot) {
+            renderSettingsAutoShip({
+              status: 'inactive',
+              selectedProductKey: resolveSelectedSettingsAutoShipProductKey(),
+              selectedProductName: SETTINGS_AUTOSHIP_PRODUCT_LABELS[resolveSelectedSettingsAutoShipProductKey()] || 'MetaCharge™',
+              monthlyPrice: 0,
+              nextBillingDate: '',
+              canEnable: true,
+              canManageBilling: false,
+              canCancel: false,
+              canChangeProduct: false,
+            });
+          } else {
+            renderSettingsAutoShip(settingsAutoShipSnapshot);
+          }
+          return;
+        }
+
+        const payload = response.data && typeof response.data === 'object'
+          ? response.data
+          : {};
+        const autoShipPayload = payload?.autoShip && typeof payload.autoShip === 'object'
+          ? payload.autoShip
+          : payload;
+        settingsAutoShipLoaded = true;
+        settingsAutoShipSnapshot = normalizeSettingsAutoShipSnapshot(autoShipPayload);
+        setSettingsAutoShipActionState(false);
+        renderSettingsAutoShip(settingsAutoShipSnapshot);
+        if (!options?.preserveFeedback) {
+          setSettingsAutoShipFeedback('', 'info');
+        }
+      }
+
+      async function openSettingsStripeBillingPortal(options = {}) {
+        const portalResult = await requestSettingsBillingPortalSession();
+        if (!portalResult.success || !portalResult.portalUrl) {
+          const errorMessage = String(portalResult.error || 'Unable to open Stripe billing portal.');
+          if (options.forAutoShip === true) {
+            setSettingsAutoShipFeedback(errorMessage, 'error');
+          } else {
+            setSettingsBillingFeedback(errorMessage, 'error');
+          }
+          window.alert(errorMessage);
+          return false;
+        }
+
+        window.location.assign(portalResult.portalUrl);
+        return true;
+      }
+
       function setActiveSettingsCategory(categoryKeyInput = 'account') {
         const safeCategoryKey = ['account', 'payment', 'security', 'appearance'].includes(String(categoryKeyInput || '').trim())
           ? String(categoryKeyInput || '').trim()
@@ -24030,6 +24721,7 @@
         }
         if (safeCategoryKey !== 'payment') {
           setSettingsBillingFeedback('');
+          setSettingsAutoShipFeedback('');
         }
 
         settingsCategoryTabButtons.forEach((button) => {
@@ -24049,6 +24741,10 @@
           const panelCategoryKey = String(panel?.getAttribute('data-settings-category-panel') || '').trim();
           panel.classList.toggle('hidden', panelCategoryKey !== safeCategoryKey);
         });
+
+        if (safeCategoryKey === 'payment') {
+          void refreshSettingsAutoShipStatus();
+        }
       }
 
       function initializeSettingsCategoryNavigation() {
@@ -29716,9 +30412,22 @@
         }
 
         if (pageViewKey === 'settings') {
+          const autoShipReturnDetails = resolveSettingsAutoShipReturnDetails();
+          if (autoShipReturnDetails.status === 'success' || autoShipReturnDetails.status === 'cancel') {
+            activeSettingsCategory = 'payment';
+          }
           syncSettingsPageAccountOverview();
           setActiveSettingsCategory(activeSettingsCategory);
           void refreshSettingsEmailVerificationStatus();
+          if (autoShipReturnDetails.status === 'success') {
+            setSettingsAutoShipFeedback('Auto Ship checkout completed. Verifying subscription status...', 'success');
+            clearSettingsAutoShipReturnDetails();
+            void refreshSettingsAutoShipStatus({ force: true, preserveFeedback: true });
+          } else if (autoShipReturnDetails.status === 'cancel') {
+            setSettingsAutoShipFeedback('Auto Ship setup was canceled before completion.', 'info');
+            clearSettingsAutoShipReturnDetails();
+            void refreshSettingsAutoShipStatus({ force: true, preserveFeedback: true });
+          }
         }
 
         if (pageViewKey === 'binary-tree') {
@@ -30133,11 +30842,30 @@
           const nextBirthdate = formatSettingsDateInputValue(settingsPersonalBirthdateInput?.value || '');
           const nextGender = normalizeSettingsGender(settingsPersonalGenderSelect?.value);
           const nextAddressSnapshot = readSettingsPersonalAddressSnapshot();
-          const billingSameAsAddress = Boolean(settingsBillingSameAsPersonalToggle?.checked);
-          if (billingSameAsAddress) {
+          const hasBillingAddressInputs = Boolean(
+            settingsBillingSameAsPersonalToggle
+            || settingsBillingAddressLineInput
+            || settingsBillingCityInput
+            || settingsBillingRegionInput
+            || settingsBillingZipInput
+            || settingsBillingCountryInput,
+          );
+          const existingBillingSnapshot = {
+            addressLine: sanitizeSettingsText(currentSessionUser?.billingAddressLine, 140),
+            city: sanitizeSettingsText(currentSessionUser?.billingCity, 80),
+            region: sanitizeSettingsText(currentSessionUser?.billingRegion, 80),
+            zip: sanitizeSettingsText(currentSessionUser?.billingZip, 20),
+            country: sanitizeSettingsText(currentSessionUser?.billingCountry, 80),
+          };
+          const billingSameAsAddress = hasBillingAddressInputs
+            ? Boolean(settingsBillingSameAsPersonalToggle?.checked)
+            : Boolean(currentSessionUser?.billingSameAsAddress);
+          if (hasBillingAddressInputs && billingSameAsAddress) {
             applySettingsBillingSnapshot(nextAddressSnapshot);
           }
-          const nextBillingSnapshot = billingSameAsAddress
+          const nextBillingSnapshot = !hasBillingAddressInputs
+            ? existingBillingSnapshot
+            : billingSameAsAddress
             ? nextAddressSnapshot
             : {
               addressLine: sanitizeSettingsText(settingsBillingAddressLineInput?.value, 140),
@@ -30211,6 +30939,18 @@
           event.preventDefault();
           setSettingsBillingFeedback('');
 
+          if (
+            !settingsBillingSameAsPersonalToggle
+            && !settingsBillingAddressLineInput
+            && !settingsBillingCityInput
+            && !settingsBillingRegionInput
+            && !settingsBillingZipInput
+            && !settingsBillingCountryInput
+          ) {
+            setSettingsBillingFeedback('Billing details are managed in Stripe.', 'info');
+            return;
+          }
+
           const sameAsAddress = Boolean(settingsBillingSameAsPersonalToggle?.checked);
           const nextBillingSnapshot = sameAsAddress
             ? readSettingsPersonalAddressSnapshot()
@@ -30238,20 +30978,139 @@
           setSettingsBillingFeedback('Billing details saved.', 'success');
         });
       }
+      if (settingsAutoShipProductSelect) {
+        settingsAutoShipProductSelect.addEventListener('change', () => {
+          const selectedProductKey = resolveSelectedSettingsAutoShipProductKey();
+          if (settingsAutoShipSelectedProductValueElement) {
+            settingsAutoShipSelectedProductValueElement.textContent = SETTINGS_AUTOSHIP_PRODUCT_LABELS[selectedProductKey] || 'MetaCharge™';
+          }
+          setSettingsAutoShipFeedback('');
+        });
+      }
+      if (settingsAutoShipEnableButton) {
+        settingsAutoShipEnableButton.addEventListener('click', async () => {
+          const selectedProductKey = resolveSelectedSettingsAutoShipProductKey();
+          const selectedProductLabel = SETTINGS_AUTOSHIP_PRODUCT_LABELS[selectedProductKey] || 'Selected product';
+          setSettingsAutoShipFeedback(`Preparing Stripe checkout for ${selectedProductLabel}...`, 'info');
+          setSettingsAutoShipActionState(true);
+
+          const checkoutResult = await requestSettingsAutoShipCheckoutSession(selectedProductKey);
+          if (!checkoutResult.success) {
+            setSettingsAutoShipActionState(false);
+            const errorMessage = String(checkoutResult.error || 'Unable to start Auto Ship checkout.');
+            const existingAutoShip = checkoutResult?.data?.autoShip && typeof checkoutResult.data.autoShip === 'object'
+              ? checkoutResult.data.autoShip
+              : null;
+            if (existingAutoShip) {
+              settingsAutoShipSnapshot = normalizeSettingsAutoShipSnapshot(existingAutoShip);
+              renderSettingsAutoShip(settingsAutoShipSnapshot);
+            }
+            setSettingsAutoShipFeedback(errorMessage, 'error');
+            return;
+          }
+
+          const payload = checkoutResult.data && typeof checkoutResult.data === 'object'
+            ? checkoutResult.data
+            : {};
+          const checkoutUrl = String(payload.checkoutUrl || '').trim();
+          const autoShip = payload?.autoShip && typeof payload.autoShip === 'object'
+            ? payload.autoShip
+            : null;
+          if (autoShip) {
+            settingsAutoShipSnapshot = normalizeSettingsAutoShipSnapshot(autoShip);
+            renderSettingsAutoShip(settingsAutoShipSnapshot);
+          }
+
+          if (!checkoutUrl) {
+            setSettingsAutoShipActionState(false);
+            setSettingsAutoShipFeedback('Stripe checkout did not return a redirect URL.', 'error');
+            return;
+          }
+
+          window.location.assign(checkoutUrl);
+        });
+      }
+      if (settingsAutoShipChangeProductButton) {
+        settingsAutoShipChangeProductButton.addEventListener('click', async () => {
+          const selectedProductKey = resolveSelectedSettingsAutoShipProductKey();
+          const selectedProductLabel = SETTINGS_AUTOSHIP_PRODUCT_LABELS[selectedProductKey] || 'selected product';
+          setSettingsAutoShipFeedback(`Updating Auto Ship product to ${selectedProductLabel}...`, 'info');
+          setSettingsAutoShipActionState(true);
+
+          const updateResult = await requestSettingsAutoShipChangeProduct(selectedProductKey);
+          setSettingsAutoShipActionState(false);
+          if (!updateResult.success) {
+            setSettingsAutoShipFeedback(String(updateResult.error || 'Unable to change Auto Ship product.'), 'error');
+            const existingAutoShip = updateResult?.data?.autoShip && typeof updateResult.data.autoShip === 'object'
+              ? updateResult.data.autoShip
+              : null;
+            if (existingAutoShip) {
+              settingsAutoShipSnapshot = normalizeSettingsAutoShipSnapshot(existingAutoShip);
+              renderSettingsAutoShip(settingsAutoShipSnapshot);
+            }
+            return;
+          }
+
+          const autoShip = updateResult?.data?.autoShip && typeof updateResult.data.autoShip === 'object'
+            ? updateResult.data.autoShip
+            : null;
+          if (autoShip) {
+            settingsAutoShipSnapshot = normalizeSettingsAutoShipSnapshot(autoShip);
+            renderSettingsAutoShip(settingsAutoShipSnapshot);
+          }
+          setSettingsAutoShipFeedback('Auto Ship product updated successfully.', 'success');
+          void refreshSettingsAutoShipStatus({ force: true, preserveFeedback: true });
+        });
+      }
+      if (settingsAutoShipManageButton) {
+        settingsAutoShipManageButton.addEventListener('click', async () => {
+          setSettingsAutoShipFeedback('Opening Stripe billing portal...', 'info');
+          setSettingsAutoShipActionState(true);
+          const opened = await openSettingsStripeBillingPortal({ forAutoShip: true });
+          if (!opened) {
+            setSettingsAutoShipActionState(false);
+          }
+        });
+      }
+      if (settingsAutoShipCancelButton) {
+        settingsAutoShipCancelButton.addEventListener('click', async () => {
+          const confirmed = window.confirm('Cancel Auto Ship now? Future recurring shipments will stop immediately.');
+          if (!confirmed) {
+            return;
+          }
+
+          setSettingsAutoShipFeedback('Canceling Auto Ship...', 'info');
+          setSettingsAutoShipActionState(true);
+          const cancelResult = await requestSettingsAutoShipCancel();
+          setSettingsAutoShipActionState(false);
+          if (!cancelResult.success) {
+            setSettingsAutoShipFeedback(String(cancelResult.error || 'Unable to cancel Auto Ship.'), 'error');
+            const existingAutoShip = cancelResult?.data?.autoShip && typeof cancelResult.data.autoShip === 'object'
+              ? cancelResult.data.autoShip
+              : null;
+            if (existingAutoShip) {
+              settingsAutoShipSnapshot = normalizeSettingsAutoShipSnapshot(existingAutoShip);
+              renderSettingsAutoShip(settingsAutoShipSnapshot);
+            }
+            return;
+          }
+
+          const autoShip = cancelResult?.data?.autoShip && typeof cancelResult.data.autoShip === 'object'
+            ? cancelResult.data.autoShip
+            : null;
+          if (autoShip) {
+            settingsAutoShipSnapshot = normalizeSettingsAutoShipSnapshot(autoShip);
+            renderSettingsAutoShip(settingsAutoShipSnapshot);
+          }
+          setSettingsAutoShipFeedback('Auto Ship canceled successfully.', 'success');
+          void refreshSettingsAutoShipStatus({ force: true, preserveFeedback: true });
+        });
+      }
       if (sidebarInvoicePortalLink) {
         sidebarInvoicePortalLink.addEventListener('click', async (event) => {
           event.preventDefault();
           setSettingsBillingFeedback('Opening Stripe billing portal...', 'info');
-
-          const portalResult = await requestSettingsBillingPortalSession();
-          if (!portalResult.success || !portalResult.portalUrl) {
-            const errorMessage = String(portalResult.error || 'Unable to open Stripe billing portal.');
-            setSettingsBillingFeedback(errorMessage, 'error');
-            window.alert(errorMessage);
-            return;
-          }
-
-          window.location.assign(portalResult.portalUrl);
+          void openSettingsStripeBillingPortal();
         });
       }
       if (settingsSecurityForgotPasswordButton) {
@@ -30270,6 +31129,17 @@
           window.location.replace('./login.html');
         });
       }
+      renderSettingsAutoShip({
+        status: 'inactive',
+        selectedProductKey: resolveSelectedSettingsAutoShipProductKey(),
+        selectedProductName: SETTINGS_AUTOSHIP_PRODUCT_LABELS[resolveSelectedSettingsAutoShipProductKey()] || 'MetaCharge™',
+        monthlyPrice: 0,
+        nextBillingDate: '',
+        canEnable: true,
+        canManageBilling: false,
+        canCancel: false,
+        canChangeProduct: false,
+      });
       initializeSettingsCategoryNavigation();
 
       window.addEventListener('binary-tree-ready', () => {
@@ -30373,3 +31243,4 @@
 
 </body>
 </html>
+

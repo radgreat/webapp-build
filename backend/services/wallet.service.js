@@ -31,6 +31,7 @@ const COMMISSION_SOURCE_META = Object.freeze({
   salesteam: { key: 'salesteam', label: 'Sales Team Commissions' },
   retailprofit: { key: 'retailprofit', label: 'Retail Profit' },
   matchingbonus: { key: 'matchingbonus', label: 'Matching Bonus' },
+  businesscenter: { key: 'businesscenter', label: 'Business Center' },
 });
 
 function normalizeText(value) {

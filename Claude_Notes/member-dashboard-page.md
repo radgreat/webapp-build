@@ -1,11 +1,201 @@
 # Member Dashboard Page Notes
 
-Last Updated: 2026-04-28
+Last Updated: 2026-04-29
 
 ## Scope
 
 - Page: `index.html`
 - Purpose: Primary authenticated member dashboard shell and module host.
+
+## Patch Update (2026-04-29) - Auto Ship Mid-Cycle Enablement With Delayed First Charge
+
+### What Was Changed
+
+- Updated backend Auto Ship checkout flow in `backend/services/auto-ship.service.js` to align first recurring charge with member activity-window expiry for active accounts.
+- Added scheduled anchor logic:
+  - if member has future `activityActiveUntilAt`, system schedules first Auto Ship billing for `activityActiveUntilAt + 1 day`.
+  - checkout session now uses Stripe subscription anchor controls for deferred first billing.
+- Added status/trace fields for UI/API consumers:
+  - `billingBehavior`
+  - `scheduledBillingAnchorAt`
+  - `nextBillingDate` fallback to scheduled anchor when period dates are not yet present.
+
+### Outcome
+
+- Members who enable Auto Ship in the middle of an active window are not charged immediately; first charge is deferred to renewal timing.
+
+### Files Affected
+
+- `backend/services/auto-ship.service.js`
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Auto Ship checkout creation test returned scheduled anchor metadata and valid checkout URL.
+
+## Patch Update (2026-04-29) - Auto Ship Checkout Tax Enablement
+
+### What Was Changed
+
+- Updated backend Auto Ship checkout session creation in `backend/services/auto-ship.service.js` to apply Stripe tax behavior:
+  - `automatic_tax.enabled = true`
+  - `billing_address_collection = required`
+  - `customer_update` enabled for address/shipping/name.
+
+### Outcome
+
+- Auto Ship recurring checkout now collects required address data and applies Stripe Tax to eligible transactions/invoices.
+
+### Files Affected
+
+- `backend/services/auto-ship.service.js`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Auto Ship checkout creation test succeeded and returned a valid Stripe-hosted checkout URL.
+
+## Patch Update (2026-04-29) - Auto Ship Paid Invoice Surface In Member Records
+
+### What Was Changed
+
+- Extended backend Auto Ship reconciliation so successful Stripe subscription setup/payment can be surfaced in member-facing records even when webhook timing lags.
+- Auto Ship paid invoice processing now ensures:
+  - invoice/order record creation (`store_invoices`)
+  - activity event write (`user_auto_ship_events`)
+  - ledger audit row write (`ledger_entries`) with idempotent keying and `bv_amount=50`.
+- Added idempotent backfill behavior for existing invoice rows:
+  - if a Stripe invoice is already present locally, missing Auto Ship activity/ledger rows can still be created safely without duplicate invoice or BV credit.
+
+### Files Affected
+
+- `backend/services/auto-ship.service.js`
+- `backend/stores/auto-ship.store.js`
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Verified local records now include Auto Ship invoice + ledger + activity event for the paid Auto Ship invoice.
+- Verified replay/idempotency behavior prevents duplicate rows.
+
+## Patch Update (2026-04-29) - Auto Ship Status Badge Recovery After Stripe Checkout
+
+### What Was Changed
+
+- Added backend reconciliation logic in `backend/services/auto-ship.service.js` so member Settings can display correct Auto Ship status even when webhook delivery is delayed.
+- `GET /api/member-auth/autoship` now attempts Stripe fallback sync using:
+  - local `latestCheckoutSessionId` -> Stripe Checkout Session -> subscription sync
+  - Stripe customer subscription lookup for Auto Ship candidates.
+- Added checkout preflight duplicate guard in `createMemberAutoShipCheckoutSession(...)` to prevent creating a second active Auto Ship subscription when local state is stale.
+- Updated Auto Ship period parsing to support Stripe subscription item period fields; next billing date now renders correctly when top-level period fields are absent.
+
+### Files Affected
+
+- `backend/services/auto-ship.service.js`
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Status endpoint verification showed:
+  - `status: active`
+  - `stripeSubscriptionId` present
+  - `currentPeriodStart/currentPeriodEnd/nextBillingDate` populated.
+
+## Patch Update (2026-04-29) - Auto Ship Controls Unlocked After Status Refresh
+
+### What Was Changed
+
+- Fixed a Settings > Payment and Billing interaction issue in `index.html`.
+- In `refreshSettingsAutoShipStatus(...)`, added an explicit busy-state reset on successful status load:
+  - `setSettingsAutoShipActionState(false);`
+  - then `renderSettingsAutoShip(...)`.
+
+### Root Cause
+
+- Auto Ship status refresh set action state to busy while loading.
+- Success branch did not clear that state, so buttons and selector remained disabled.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Reviewed action/loading state transitions; success path now re-enables controls after data load.
+
+## Patch Update (2026-04-29) - Settings Payment & Billing: Auto Ship Subscription Module
+
+### What Was Changed
+
+- Added a new **Auto Ship** card inside `Settings > Payment and Billing` in `index.html`.
+- Added member controls and status UI for recurring subscription management:
+  - product selector: `MetaCharge™` / `MetaRoast™`
+  - status badge: Active / Inactive / Past Due / Canceled
+  - details rows:
+    - selected product
+    - personal BV per shipment (`50 BV`)
+    - next billing date
+    - monthly price
+    - payment method managed by Stripe
+  - action buttons:
+    - `Enable Auto Ship`
+    - `Change Product`
+    - `Manage Billing`
+    - `Cancel Auto Ship`
+- Added lazy-loading flow:
+  - Auto Ship status fetch now runs when the Payment category is opened (not during full dashboard initial boot).
+- Added checkout-return handling from Stripe:
+  - query-state detection for `autoship=success|cancel`
+  - feedback messaging
+  - forced status refresh
+  - URL query cleanup after handling.
+- Added frontend API bindings for new backend endpoints:
+  - `GET /api/member-auth/autoship`
+  - `POST /api/member-auth/autoship/checkout-session`
+  - `POST /api/member-auth/autoship/change-product`
+  - `POST /api/member-auth/autoship/cancel`
+- Billing portal action reuse:
+  - Auto Ship `Manage Billing` and sidebar `Invoice` action both route through existing Stripe billing portal session flow.
+
+### Files Affected
+
+- `index.html`
+- `backend/services/auto-ship.service.js`
+- `backend/controllers/auto-ship.controller.js`
+- `backend/routes/auto-ship.routes.js`
+- `backend/services/stripe-webhook.service.js`
+- `backend/app.js`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Preserved existing Payment/Billing design language (no new visual system introduced).
+- Kept Auto Ship logic isolated from account/billing address save flow.
+- Reused existing auth token and billing portal helper patterns for consistency and lower regression risk.
+
+### Known Limitations
+
+- End-to-end Stripe hosted checkout and webhook replay behavior still requires environment-integrated test execution.
+
+### Validation
+
+- Extracted `index.html` inline script syntax check passed (`node --check` on extracted inline JS).
 
 ## Patch Update (2026-04-28) - KPI Row Update: Retail Profit Replaces E-Wallet Card
 
@@ -1202,3 +1392,167 @@ Known limitation:
 
 ### Validation
 - Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Update (2026-04-28) - Home Dashboard Component Reorder (Requested Layout)
+
+### Request Applied
+- Swap panel positions so `Fast Track Bonus` becomes the wide panel where `Business Centers` previously rendered.
+- Place `Matching Bonus` beside `Fast Track Bonus` on desktop.
+- Move `Business Centers` below, then place `Recent Activity` beside it.
+
+### Implementation
+- `index.html`
+  - Converted row-2 arrangement into independent grid items to control row pairing.
+  - Desktop layout now resolves to:
+    - Row A: `Fast Track Bonus` (`lg:col-span-2`) + `Matching Bonus` (`lg:col-span-1`)
+    - Row B: `Business Centers` (`lg:col-span-2`) + `Recent Activity` (`lg:col-span-1`)
+  - Preserved all existing IDs (`fast-track-*`, `matching-bonus-*`, `business-center-*`, `recent-activity-*`) so existing JS hooks remain intact.
+
+### Files Affected
+- `index.html`
+
+### Known Limitations
+- Automated screenshot captured login state (authenticated dashboard not visible in headless session), so visual confirmation was done through direct markup inspection.
+
+## Patch Update (2026-04-28) - Home Dashboard Panel Scroll Behavior (Fast Track + Recent Activity)
+
+### Request Applied
+- Ensure list-heavy dashboard components scroll internally so page does not become excessively long.
+
+### Implementation
+- `index.html`
+  - `#fast-track-bonus-card` now includes `max-h-[34rem] overflow-hidden`.
+  - `#recent-activity-panel` now includes `max-h-[34rem]`.
+  - Existing list areas (`#fast-track-commission-audit-list`, `#recent-activity-feed`) remain `overflow-y-auto` so records scroll inside the cards.
+
+### Files Affected
+- `index.html`
+
+### Notes
+- Layout/order from previous panel-swap update is preserved; this patch only adds scroll containment.
+
+## Update (2026-04-28) - Business Center Component Rebuild (BC #1 + BC #2 Card Model)
+
+### Request Applied
+- Remove unified-wallet view and aggregate earnings list from Business Center component.
+- Show only dedicated BC cards for #1 and #2 with per-card earnings and action button.
+- Place Business Center directly under Matching Bonus in right column.
+- Keep Recent Activity below Fast Track Bonus in left/wide area.
+
+### Implementation
+- `index.html`
+  - Reworked row-2 layout so right side stacks `Matching Bonus` + redesigned `Business Centers`.
+  - Moved `Recent Activity` under Fast Track (wide/left track).
+  - Replaced old Business Center activation+wallet summary UI with two center cards.
+  - Added center-specific controls/IDs for:
+    - earnings value
+    - status chip/detail
+    - activate button
+    - transfer button.
+- Transfer logic
+  - Added center transfer helper to call existing commission transfer endpoint using source key `businesscenter` and center-tagged notes.
+  - Card availability now subtracts prior tagged transfer totals from center earnings.
+- Backend
+  - Added `businesscenter` source metadata + sender/source mapping for wallet commission transfers.
+
+### Files Affected
+- `index.html`
+- `backend/services/wallet.service.js`
+- `backend/stores/wallet.store.js`
+
+### Notes
+- Center transfer history attribution depends on transfer note tag format (`Business Center #N`).
+
+## Patch Update (2026-04-28) - Home Layout Polish: Match Vertical Flow
+
+### Request Applied
+- Clean up home layout spacing so the left side does not leave a large empty gap before `Recent Activity`.
+
+### Implementation
+- `index.html`
+  - Converted left side into a single stacked column (`Fast Track` + `Recent Activity`) within one `lg:col-span-2` wrapper.
+  - Kept right side as stacked `Matching Bonus` + `Business Centers`.
+
+### Result
+- `Recent Activity` now follows `Fast Track` directly with consistent spacing and no dead area.
+
+## Patch Update (2026-04-28) - Fast Track Specific Height Applied
+
+### Request Applied
+- Added a specific fixed height to Fast Track Bonus so future list growth does not expand the card.
+
+### Implementation
+- `index.html`
+  - `#fast-track-bonus-card` now uses `h-[34rem]` with existing `overflow-hidden` and internal audit-list scroll.
+
+## Patch Update (2026-04-28) - Fast Track Height Target Changed To Business Center
+
+### Request Applied
+- Match Fast Track Bonus height to Business Center panel height.
+
+### Implementation
+- `index.html`
+  - Fast Track height sync function now measures `#business-center-panel`.
+  - Resize observer now watches Business Center panel.
+  - Fast Track base class changed from fixed height to `h-auto`.
+
+## Patch Update (2026-04-28) - Fast Track Bottom Aligned To Business Center Section Bottom
+
+### Request Applied
+- Align Fast Track bottom to Business Centers section bottom (including matching card above it).
+
+### Implementation
+- `index.html`
+  - Added `id="dashboard-right-bonus-stack"`.
+  - Fast Track height sync now measures this wrapper for desktop alignment.
+
+## Patch Update (2026-04-28) - Business Center Summary Caption Renamed
+
+### Request Applied
+- Changed unlock caption to:
+  - `Complete Legacy Tier 4 and Tier 5 to unlock Business Centers.`
+
+### File Affected
+- `index.html`
+
+## Patch Update (2026-04-29) - Settings Auto Ship Next Billing Date
+
+### Request Applied
+- Make Auto Ship Next Billing Date in Settings match billing schedule accurately.
+
+### Implementation
+- `index.html`
+  - Expanded `normalizeSettingsAutoShipSnapshot(...)` to resolve date from API + metadata fallback fields.
+  - Updated `formatSettingsAutoShipDateLabel(...)` to prevent timestamp timezone drift from showing an incorrect calendar date.
+
+### Result
+- Members now see the accurate expected billing date in Payment and Billing even when data arrives from different sync stages.
+
+## Patch Update (2026-04-29) - Settings Auto Ship False Canceled State Recovery
+
+### Request Applied
+- Fix case where member completed Stripe Auto Ship setup but Settings still displayed canceled state.
+
+### Implementation
+- `backend/services/auto-ship.service.js`
+  - During status refresh, Stripe customer subscriptions are re-evaluated even when a local subscription id already exists.
+  - If a different, healthier Auto Ship subscription exists in Stripe, local setting is synced to that subscription.
+
+### Result
+- Payment and Billing now reflects the real Stripe Auto Ship status and next billing schedule more reliably.
+
+## Patch Update (2026-04-29) - Removed Card/Billing Components From Payment Settings
+
+### Request Applied
+- Remove Card Details and Billing Address components from `Settings > Payment and Billing`.
+
+### Implementation
+- `index.html`
+  - Deleted Card Details UI section.
+  - Deleted Billing Address UI section and address inputs.
+  - Removed billing save button from payment settings.
+  - Updated payment tab subtitle to match Stripe-managed billing flow.
+  - Added safeguard so account/profile save does not erase billing snapshot when billing inputs are absent.
+
+### Result
+- Payment settings now focus on Auto Ship + Stripe-managed billing without redundant local card/address forms.

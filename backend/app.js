@@ -23,6 +23,7 @@ import memberBusinessCenterRoutes from './routes/member-business-center.routes.j
 import preferredAttributionRoutes from './routes/preferred-attribution.routes.js';
 import stripeWebhookRoutes from './routes/stripe-webhook.routes.js';
 import ledgerRoutes from './routes/ledger.routes.js';
+import autoShipRoutes from './routes/auto-ship.routes.js';
 import { warmRegisteredMembersStoreSchema } from './stores/member.store.js';
 import { ensureMemberUserLookupIndexes } from './stores/user.store.js';
 import { warmPreferredAttributionStoreSchema } from './stores/preferred-attribution.store.js';
@@ -51,6 +52,7 @@ app.use('/api/member-auth', memberAchievementRoutes);
 app.use('/api/member-auth', memberGoodLifeRoutes);
 app.use('/api/member-auth', memberNotificationRoutes);
 app.use('/api/member-auth', memberBusinessCenterRoutes);
+app.use('/api/member-auth', autoShipRoutes);
 app.use('/api/admin-auth', adminAuthRoutes);
 app.use('/api', memberRoutes);
 app.use('/api', metricsRoutes);

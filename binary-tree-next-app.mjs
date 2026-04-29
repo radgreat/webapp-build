@@ -726,6 +726,7 @@ const accountOverviewRetailProfitValueElement = document.getElementById('tree-ne
 const accountOverviewFastTrackValueElement = document.getElementById('tree-next-account-overview-fast-track-value');
 const accountOverviewTrackSalesTeamValueElement = document.getElementById('tree-next-account-overview-track-sales-team-value');
 const accountOverviewInfinityBuilderValueElement = document.getElementById('tree-next-account-overview-infinity-builder-value');
+const accountOverviewMatchingBonusValueElement = document.getElementById('tree-next-account-overview-matching-bonus-value');
 const accountOverviewLegacyBuilderValueElement = document.getElementById('tree-next-account-overview-legacy-builder-value');
 const accountOverviewActiveWindowLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewActiveWindowValueElement);
 const accountOverviewTotalBvLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewTotalBvValueElement);
@@ -6211,12 +6212,21 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
     : Number.NaN;
   const ledgerRetailProfit = safeNumber(ledgerByType?.retail_commission?.netAmount, Number.NaN);
   const ledgerSalesTeam = safeNumber(ledgerByType?.sales_team_commission?.netAmount, Number.NaN);
+  const ledgerMatchingBonus = safeNumber(ledgerByType?.leadership_matching_bonus?.netAmount, Number.NaN);
   const walletCommissionOffsets = (
     accountOverviewRemoteSnapshot?.walletCommissionOffsets
     && typeof accountOverviewRemoteSnapshot.walletCommissionOffsets === 'object'
   )
     ? accountOverviewRemoteSnapshot.walletCommissionOffsets
     : {};
+  const matchingBonusOffset = resolveAccountOverviewCommissionValue(
+    walletCommissionOffsets.matchingbonus,
+    walletCommissionOffsets.matchingBonus,
+    0,
+  );
+  const matchingBonusFromLedger = Number.isFinite(ledgerMatchingBonus)
+    ? Math.max(0, ledgerMatchingBonus - matchingBonusOffset)
+    : Number.NaN;
   if (options?.systemTotals === true) {
     const generatedFastTrack = resolveAccountOverviewSystemFastTrackGeneratedTotal();
     return {
@@ -6243,6 +6253,12 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
       infinityBuilder: resolveAccountOverviewCommissionValue(
         commissionContainerBalances.infinitybuilder,
         commissionContainerBalances.infinityBuilder,
+      ),
+      matchingBonus: resolveAccountOverviewCommissionValue(
+        matchingBonusFromLedger,
+        ledgerMatchingBonus,
+        commissionContainerBalances.matchingbonus,
+        commissionContainerBalances.matchingBonus,
       ),
       legacyBuilder: resolveAccountOverviewCommissionValue(
         commissionContainerBalances.legacyleadership,
@@ -6285,6 +6301,16 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
       homeNode?.infinity_builder_bonus_amount,
       session?.infinityBuilderBonusAmount,
       session?.infinity_builder_bonus_amount,
+    ),
+    matchingBonus: resolveAccountOverviewCommissionValue(
+      matchingBonusFromLedger,
+      ledgerMatchingBonus,
+      commissionContainerBalances.matchingbonus,
+      commissionContainerBalances.matchingBonus,
+      homeNode?.matchingBonusAmount,
+      homeNode?.matching_bonus_amount,
+      session?.matchingBonusAmount,
+      session?.matching_bonus_amount,
     ),
     legacyBuilder: resolveAccountOverviewCommissionValue(
       commissionContainerBalances.legacyleadership,
@@ -6523,6 +6549,7 @@ function syncAccountOverviewPanelVisuals() {
     + safeNumber(commissionBalances.fastTrack, 0)
     + safeNumber(commissionBalances.salesTeam, 0)
     + safeNumber(commissionBalances.infinityBuilder, 0)
+    + safeNumber(commissionBalances.matchingBonus, 0)
     + safeNumber(commissionBalances.legacyBuilder, 0)
   ));
   const cycleCapText = systemTotalsMode
@@ -6576,6 +6603,7 @@ function syncAccountOverviewPanelVisuals() {
     formatEnrollCurrency(commissionBalances.fastTrack),
     formatEnrollCurrency(commissionBalances.salesTeam),
     formatEnrollCurrency(commissionBalances.infinityBuilder),
+    formatEnrollCurrency(commissionBalances.matchingBonus),
     formatEnrollCurrency(commissionBalances.legacyBuilder),
     String(accountOverviewRemoteDataVersion),
   ].join('::');
@@ -6606,6 +6634,7 @@ function syncAccountOverviewPanelVisuals() {
   setAccountOverviewText(accountOverviewFastTrackValueElement, formatEnrollCurrency(commissionBalances.fastTrack));
   setAccountOverviewText(accountOverviewTrackSalesTeamValueElement, formatEnrollCurrency(commissionBalances.salesTeam));
   setAccountOverviewText(accountOverviewInfinityBuilderValueElement, formatEnrollCurrency(commissionBalances.infinityBuilder));
+  setAccountOverviewText(accountOverviewMatchingBonusValueElement, formatEnrollCurrency(commissionBalances.matchingBonus));
   setAccountOverviewText(accountOverviewLegacyBuilderValueElement, formatEnrollCurrency(commissionBalances.legacyBuilder));
 
   if (accountOverviewRankIconElement instanceof HTMLImageElement && rankIconPath) {
