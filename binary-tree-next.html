@@ -448,37 +448,81 @@
 
     .tree-next-account-overview-commission {
       width: 100%;
-      min-height: 152px;
-      display: grid;
-      align-content: center;
-      justify-items: center;
-      gap: 28px;
-      padding: 22px 16px;
-      border: 0;
+      min-height: 176px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 20px 16px 16px;
       border-radius: 18px;
       background: #F2F2F6;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      text-align: center;
+    }
+
+    .tree-next-account-overview-commission-trigger {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 14px;
+      cursor: pointer;
       appearance: none;
       -webkit-appearance: none;
       font: inherit;
       color: inherit;
-      cursor: pointer;
       text-align: center;
-      transition: none;
     }
 
-    .tree-next-account-overview-commission:hover {
-      background: #F2F2F6;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
-      transform: none;
-    }
-
-    .tree-next-account-overview-commission:focus-visible {
+    .tree-next-account-overview-commission-trigger:focus-visible {
       outline: 2px solid rgba(69, 143, 236, 0.72);
       outline-offset: 3px;
+      border-radius: 10px;
     }
 
-    .tree-next-account-overview-commission:active {
+    .tree-next-account-overview-commission-transfer {
+      width: 100%;
+      margin: 0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(69, 143, 236, 0.45);
+      background: #458FEC;
+      box-shadow: 0 10px 18px rgba(69, 143, 236, 0.22);
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.2;
+      cursor: pointer;
+      transition: background-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .tree-next-account-overview-commission-transfer:hover {
+      background: #2F7EE2;
+      box-shadow: 0 12px 22px rgba(69, 143, 236, 0.26);
+      transform: translateY(-1px);
+    }
+
+    .tree-next-account-overview-commission-transfer:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 2px;
+    }
+
+    .tree-next-account-overview-commission-transfer:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 16px rgba(69, 143, 236, 0.2);
+    }
+
+    .tree-next-account-overview-commission-transfer:disabled {
+      cursor: not-allowed;
+      opacity: 0.46;
+      background: #8FA4C1;
+      border-color: rgba(97, 118, 145, 0.4);
+      box-shadow: none;
       transform: none;
     }
 
@@ -6061,30 +6105,48 @@
       <section class="tree-next-account-overview-section" aria-labelledby="tree-next-account-overview-commission-title">
         <h3 id="tree-next-account-overview-commission-title" class="tree-next-account-overview-section-title">Track Commissions</h3>
         <div class="tree-next-account-overview-grid">
-          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="retail-profit">
-            <p id="tree-next-account-overview-retail-profit-value" class="tree-next-account-overview-commission-value">$0.00</p>
-            <p class="tree-next-account-overview-commission-label">Retail Profit</p>
-          </button>
-          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="fast-track">
-            <p id="tree-next-account-overview-fast-track-value" class="tree-next-account-overview-commission-value">$0.00</p>
-            <p class="tree-next-account-overview-commission-label">Fast Track Commission</p>
-          </button>
-          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="sales-team">
-            <p id="tree-next-account-overview-track-sales-team-value" class="tree-next-account-overview-commission-value">$0.00</p>
-            <p class="tree-next-account-overview-commission-label">Sales Team Commission</p>
-          </button>
-          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="infinity-builder">
-            <p id="tree-next-account-overview-infinity-builder-value" class="tree-next-account-overview-commission-value">$0.00</p>
-            <p class="tree-next-account-overview-commission-label">Infinity Tier Commission</p>
-          </button>
-          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="matching-bonus">
-            <p id="tree-next-account-overview-matching-bonus-value" class="tree-next-account-overview-commission-value">$0.00</p>
-            <p class="tree-next-account-overview-commission-label">Matching Bonus</p>
-          </button>
-          <button class="tree-next-account-overview-commission" type="button" data-account-overview-commission="legacy-builder">
-            <p id="tree-next-account-overview-legacy-builder-value" class="tree-next-account-overview-commission-value">$0.00</p>
-            <p class="tree-next-account-overview-commission-label">Legacy Builder Bonus</p>
-          </button>
+          <article class="tree-next-account-overview-commission">
+            <button class="tree-next-account-overview-commission-trigger" type="button" data-account-overview-commission="retail-profit">
+              <p id="tree-next-account-overview-retail-profit-value" class="tree-next-account-overview-commission-value">$0.00</p>
+              <p class="tree-next-account-overview-commission-label">Retail Profit</p>
+            </button>
+            <button class="tree-next-account-overview-commission-transfer" type="button" data-account-overview-commission-transfer="retail-profit">Transfer to E-Wallet</button>
+          </article>
+          <article class="tree-next-account-overview-commission">
+            <button class="tree-next-account-overview-commission-trigger" type="button" data-account-overview-commission="fast-track">
+              <p id="tree-next-account-overview-fast-track-value" class="tree-next-account-overview-commission-value">$0.00</p>
+              <p class="tree-next-account-overview-commission-label">Fast Track Commission</p>
+            </button>
+            <button class="tree-next-account-overview-commission-transfer" type="button" data-account-overview-commission-transfer="fast-track">Transfer to E-Wallet</button>
+          </article>
+          <article class="tree-next-account-overview-commission">
+            <button class="tree-next-account-overview-commission-trigger" type="button" data-account-overview-commission="sales-team">
+              <p id="tree-next-account-overview-track-sales-team-value" class="tree-next-account-overview-commission-value">$0.00</p>
+              <p class="tree-next-account-overview-commission-label">Sales Team Commission</p>
+            </button>
+            <button class="tree-next-account-overview-commission-transfer" type="button" data-account-overview-commission-transfer="sales-team">Transfer to E-Wallet</button>
+          </article>
+          <article class="tree-next-account-overview-commission">
+            <button class="tree-next-account-overview-commission-trigger" type="button" data-account-overview-commission="infinity-builder">
+              <p id="tree-next-account-overview-infinity-builder-value" class="tree-next-account-overview-commission-value">$0.00</p>
+              <p class="tree-next-account-overview-commission-label">Infinity Tier Commission</p>
+            </button>
+            <button class="tree-next-account-overview-commission-transfer" type="button" data-account-overview-commission-transfer="infinity-builder">Transfer to E-Wallet</button>
+          </article>
+          <article class="tree-next-account-overview-commission">
+            <button class="tree-next-account-overview-commission-trigger" type="button" data-account-overview-commission="matching-bonus">
+              <p id="tree-next-account-overview-matching-bonus-value" class="tree-next-account-overview-commission-value">$0.00</p>
+              <p class="tree-next-account-overview-commission-label">Matching Bonus</p>
+            </button>
+            <button class="tree-next-account-overview-commission-transfer" type="button" data-account-overview-commission-transfer="matching-bonus">Transfer to E-Wallet</button>
+          </article>
+          <article class="tree-next-account-overview-commission">
+            <button class="tree-next-account-overview-commission-trigger" type="button" data-account-overview-commission="legacy-builder">
+              <p id="tree-next-account-overview-legacy-builder-value" class="tree-next-account-overview-commission-value">$0.00</p>
+              <p class="tree-next-account-overview-commission-label">Legacy Builder Bonus</p>
+            </button>
+            <button class="tree-next-account-overview-commission-transfer" type="button" data-account-overview-commission-transfer="legacy-builder">Transfer to E-Wallet</button>
+          </article>
         </div>
       </section>
     </div>

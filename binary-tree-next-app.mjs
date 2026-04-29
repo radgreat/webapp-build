@@ -231,6 +231,7 @@ const ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API = '/api/sales-team-commissions
 const ACCOUNT_OVERVIEW_MEMBER_SERVER_CUTOFF_METRICS_API = '/api/member/server-cutoff-metrics';
 const ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API = '/api/commission-containers';
 const ACCOUNT_OVERVIEW_E_WALLET_API = '/api/e-wallet';
+const ACCOUNT_OVERVIEW_E_WALLET_COMMISSION_TRANSFER_API = '/api/e-wallet/commission-transfer';
 const ACCOUNT_OVERVIEW_MEMBER_LEDGER_SUMMARY_API = '/api/member-auth/ledger/summary';
 const ACCOUNT_OVERVIEW_ADMIN_LEDGER_SUMMARY_API = '/api/admin/ledger/summary';
 const MEMBER_ACHIEVEMENTS_API = '/api/member-auth/achievements';
@@ -253,6 +254,7 @@ const STORE_INVOICES_API = '/api/store-invoices';
 const STORE_PRODUCTS_API = '/api/store-products';
 const MEMBER_DASHBOARD_HOME_PATH = '/index.html';
 const ADMIN_DASHBOARD_HOME_PATH = '/admin.html';
+const MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD = 0.01;
 const ENROLL_STRIPE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
 const MY_STORE_CHECKOUT_SESSION_API = '/api/store-checkout/session';
 const MY_STORE_CHECKOUT_SESSION_COMPLETE_API = '/api/store-checkout/complete';
@@ -742,6 +744,15 @@ const ACCOUNT_OVERVIEW_DEFAULT_LABELS = Object.freeze({
   eWallet: safeText(accountOverviewEwalletLabelElement?.textContent || 'E-Wallet') || 'E-Wallet',
 });
 const accountOverviewCommissionButtons = Array.from(document.querySelectorAll('[data-account-overview-commission]'));
+const accountOverviewCommissionTransferButtons = Array.from(document.querySelectorAll('[data-account-overview-commission-transfer]'));
+const ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META = Object.freeze({
+  retailprofit: Object.freeze({ key: 'retailprofit', label: 'Retail Profit', balanceKey: 'retailProfit' }),
+  fasttrack: Object.freeze({ key: 'fasttrack', label: 'Fast Track Bonus', balanceKey: 'fastTrack' }),
+  salesteam: Object.freeze({ key: 'salesteam', label: 'Sales Team Commissions', balanceKey: 'salesTeam' }),
+  infinitybuilder: Object.freeze({ key: 'infinitybuilder', label: 'Infinity Tier Commission', balanceKey: 'infinityBuilder' }),
+  matchingbonus: Object.freeze({ key: 'matchingbonus', label: 'Matching Bonus', balanceKey: 'matchingBonus' }),
+  legacyleadership: Object.freeze({ key: 'legacyleadership', label: 'Legacy Leadership Bonus', balanceKey: 'legacyBuilder' }),
+});
 const infinityBuilderPanelElement = document.getElementById('tree-next-infinity-builder-panel');
 const infinityBuilderCloseButtonElement = document.getElementById('tree-next-infinity-builder-close');
 const infinityBuilderBackButtonElement = document.getElementById('tree-next-infinity-builder-back');
@@ -933,6 +944,8 @@ let myStoreStripeCardCvc = null;
 let myStoreStripeInitPromise = null;
 let accountOverviewLastRenderSignature = '';
 let accountOverviewSelectedCommissionKey = '';
+let accountOverviewCommissionTransferBusySourceKeys = new Set();
+let accountOverviewCommissionTransferErrorBySourceKey = new Map();
 let accountOverviewRemoteSnapshot = createEmptyAccountOverviewRemoteSnapshot();
 let accountOverviewRemoteDataVersion = 0;
 let accountOverviewRemoteSyncPromise = null;
@@ -1045,6 +1058,8 @@ const mobileSearchViewportLock = {
   width: 0,
   height: 0,
 };
+let treeNextLiveRegisteredMembersSnapshot = [];
+let treeNextLiveRegisteredMembersSnapshotUpdatedAtMs = 0;
 
 const state = {
   source: 'member',
@@ -6155,6 +6170,125 @@ function resolveAccountOverviewSystemFastTrackGeneratedTotal() {
   return Math.max(0, Math.round(totalFastTrack * 100) / 100);
 }
 
+function resolveAccountOverviewMemberDirectFastTrackFromRegisteredMembers(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const homeUsernameKey = normalizeCredentialValue(
+    safeText(
+      homeNode?.username
+      || homeNode?.memberUsername
+      || session?.username
+      || session?.memberUsername
+      || '',
+    ).replace(/^@+/, ''),
+  );
+  if (!homeUsernameKey) {
+    return Number.NaN;
+  }
+
+  const registeredMembers = Array.isArray(treeNextLiveRegisteredMembersSnapshot)
+    ? treeNextLiveRegisteredMembersSnapshot
+    : [];
+  if (registeredMembers.length === 0) {
+    return Number.NaN;
+  }
+
+  let accruedDirectFastTrack = 0;
+  for (const member of registeredMembers) {
+    if (!member || typeof member !== 'object') {
+      continue;
+    }
+    const sponsorUsernameKey = normalizeCredentialValue(
+      safeText(member?.sponsorUsername || member?.sponsor_username || '').replace(/^@+/, ''),
+    );
+    if (!sponsorUsernameKey || sponsorUsernameKey !== homeUsernameKey) {
+      continue;
+    }
+    accruedDirectFastTrack += Math.max(0, safeNumber(
+      member?.fastTrackBonusAmount ?? member?.fast_track_bonus_amount,
+      0,
+    ));
+  }
+
+  return Math.max(0, Math.round(accruedDirectFastTrack * 100) / 100);
+}
+
+function resolveAccountOverviewMemberFastTrackGrossBalance(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  const homeNodeIdKey = normalizeCredentialValue(safeText(homeNode?.id));
+  const homeGlobalNodeIdKey = normalizeCredentialValue(
+    safeText(homeNode?.globalNodeId || homeNode?.global_node_id || ''),
+  );
+  const homeUsernameKey = normalizeCredentialValue(
+    safeText(
+      homeNode?.username
+      || homeNode?.memberUsername
+      || session?.username
+      || session?.memberUsername
+      || '',
+    ).replace(/^@+/, ''),
+  );
+  const sessionFastTrackBase = resolveAccountOverviewCommissionValue(
+    homeNode?.fastTrackBonusBalance,
+    homeNode?.fast_track_bonus_balance,
+    session?.fastTrackBonusBalance,
+    session?.fast_track_bonus_balance,
+  );
+  const directFastTrackFromRegisteredMembers = resolveAccountOverviewMemberDirectFastTrackFromRegisteredMembers(
+    homeNode,
+  );
+  let accruedDirectFastTrack = Number.isFinite(directFastTrackFromRegisteredMembers)
+    ? Math.max(0, directFastTrackFromRegisteredMembers)
+    : 0;
+  if (!Number.isFinite(directFastTrackFromRegisteredMembers)) {
+    for (const node of safeNodes) {
+      if (!node || isInfinityBuilderPlaceholderNode(node)) {
+        continue;
+      }
+      const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+      if (!nodeIdKey || (homeNodeIdKey && nodeIdKey === homeNodeIdKey)) {
+        continue;
+      }
+      if (homeGlobalNodeIdKey && nodeIdKey === homeGlobalNodeIdKey) {
+        continue;
+      }
+
+      const sponsorIdKey = normalizeCredentialValue(
+        safeText(
+          node?.sponsorId
+          || node?.globalSponsorId
+          || node?.sourceSponsorId
+          || node?.source_sponsor_id
+          || '',
+        ),
+      );
+      const sponsorUsernameKey = normalizeCredentialValue(
+        safeText(node?.sponsorUsername || node?.sponsor_username || '').replace(/^@+/, ''),
+      );
+      const isDirectBySponsorId = Boolean(
+        (homeNodeIdKey && sponsorIdKey && sponsorIdKey === homeNodeIdKey)
+        || (homeGlobalNodeIdKey && sponsorIdKey && sponsorIdKey === homeGlobalNodeIdKey),
+      );
+      const isDirectBySponsorUsername = Boolean(
+        homeUsernameKey
+        && sponsorUsernameKey
+        && sponsorUsernameKey === homeUsernameKey,
+      );
+      if (!isDirectBySponsorId && !isDirectBySponsorUsername) {
+        continue;
+      }
+
+      accruedDirectFastTrack += Math.max(0, safeNumber(
+        node?.fastTrackBonusAmount ?? node?.fast_track_bonus_amount,
+        0,
+      ));
+    }
+  }
+
+  const grossFastTrack = sessionFastTrackBase + accruedDirectFastTrack;
+  return Math.max(0, Math.round(grossFastTrack * 100) / 100);
+}
+
 function resolveAccountOverviewEWalletBalance(homeNode = null, options = {}) {
   if (options?.systemTotals === true) {
     return resolveAccountOverviewSystemSalesRevenueTotal();
@@ -6219,13 +6353,8 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
   )
     ? accountOverviewRemoteSnapshot.walletCommissionOffsets
     : {};
-  const matchingBonusOffset = resolveAccountOverviewCommissionValue(
-    walletCommissionOffsets.matchingbonus,
-    walletCommissionOffsets.matchingBonus,
-    0,
-  );
-  const matchingBonusFromLedger = Number.isFinite(ledgerMatchingBonus)
-    ? Math.max(0, ledgerMatchingBonus - matchingBonusOffset)
+  const memberFastTrackGross = state.source === 'member'
+    ? resolveAccountOverviewMemberFastTrackGrossBalance(homeNode)
     : Number.NaN;
   if (options?.systemTotals === true) {
     const generatedFastTrack = resolveAccountOverviewSystemFastTrackGeneratedTotal();
@@ -6255,7 +6384,6 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
         commissionContainerBalances.infinityBuilder,
       ),
       matchingBonus: resolveAccountOverviewCommissionValue(
-        matchingBonusFromLedger,
         ledgerMatchingBonus,
         commissionContainerBalances.matchingbonus,
         commissionContainerBalances.matchingBonus,
@@ -6277,13 +6405,17 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
       session?.retailProfit,
       session?.retail_profit,
     ),
-    fastTrack: resolveAccountOverviewCommissionValue(
-      commissionContainerBalances.fasttrack,
-      commissionContainerBalances.fastTrack,
-      homeNode?.fastTrackBonusAmount,
-      homeNode?.fast_track_bonus_amount,
-      session?.fastTrackBonusAmount,
-      session?.fast_track_bonus_amount,
+    fastTrack: Math.max(
+      resolveAccountOverviewCommissionValue(
+        memberFastTrackGross,
+        commissionContainerBalances.fasttrack,
+        commissionContainerBalances.fastTrack,
+        homeNode?.fastTrackBonusAmount,
+        homeNode?.fast_track_bonus_amount,
+        session?.fastTrackBonusAmount,
+        session?.fast_track_bonus_amount,
+      ),
+      0,
     ),
     salesTeam: resolveAccountOverviewCommissionValue(
       ledgerSalesTeam,
@@ -6303,7 +6435,6 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
       session?.infinity_builder_bonus_amount,
     ),
     matchingBonus: resolveAccountOverviewCommissionValue(
-      matchingBonusFromLedger,
       ledgerMatchingBonus,
       commissionContainerBalances.matchingbonus,
       commissionContainerBalances.matchingBonus,
@@ -6544,13 +6675,19 @@ function syncAccountOverviewPanelVisuals() {
   const commissionBalances = resolveAccountOverviewCommissionBalances(homeNode, {
     systemTotals: systemTotalsMode,
   });
+  const transferAdjustedCommissionBalances = resolveAccountOverviewTransferAdjustedCommissionBalances(
+    commissionBalances,
+  );
+  const commissionBalancesForDisplay = systemTotalsMode
+    ? commissionBalances
+    : transferAdjustedCommissionBalances;
   const totalCommissionGenerated = Math.max(0, (
-    safeNumber(commissionBalances.retailProfit, 0)
-    + safeNumber(commissionBalances.fastTrack, 0)
-    + safeNumber(commissionBalances.salesTeam, 0)
-    + safeNumber(commissionBalances.infinityBuilder, 0)
-    + safeNumber(commissionBalances.matchingBonus, 0)
-    + safeNumber(commissionBalances.legacyBuilder, 0)
+    safeNumber(commissionBalancesForDisplay.retailProfit, 0)
+    + safeNumber(commissionBalancesForDisplay.fastTrack, 0)
+    + safeNumber(commissionBalancesForDisplay.salesTeam, 0)
+    + safeNumber(commissionBalancesForDisplay.infinityBuilder, 0)
+    + safeNumber(commissionBalancesForDisplay.matchingBonus, 0)
+    + safeNumber(commissionBalancesForDisplay.legacyBuilder, 0)
   ));
   const cycleCapText = systemTotalsMode
     ? formatEnrollCurrency(resolveAccountOverviewSystemSalesRevenueTotal())
@@ -6599,15 +6736,20 @@ function syncAccountOverviewPanelVisuals() {
     eWalletLabelText,
     String(directSponsorCount),
     ewalletDisplayValue,
-    formatEnrollCurrency(commissionBalances.retailProfit),
-    formatEnrollCurrency(commissionBalances.fastTrack),
-    formatEnrollCurrency(commissionBalances.salesTeam),
-    formatEnrollCurrency(commissionBalances.infinityBuilder),
-    formatEnrollCurrency(commissionBalances.matchingBonus),
-    formatEnrollCurrency(commissionBalances.legacyBuilder),
+    formatEnrollCurrency(commissionBalancesForDisplay.retailProfit),
+    formatEnrollCurrency(commissionBalancesForDisplay.fastTrack),
+    formatEnrollCurrency(commissionBalancesForDisplay.salesTeam),
+    formatEnrollCurrency(commissionBalancesForDisplay.infinityBuilder),
+    formatEnrollCurrency(commissionBalancesForDisplay.matchingBonus),
+    formatEnrollCurrency(commissionBalancesForDisplay.legacyBuilder),
     String(accountOverviewRemoteDataVersion),
+    String(treeNextLiveRegisteredMembersSnapshotUpdatedAtMs),
+    Array.from(accountOverviewCommissionTransferBusySourceKeys).sort().join('|'),
   ].join('::');
   if (renderSignature === accountOverviewLastRenderSignature) {
+    syncAccountOverviewCommissionTransferButtonStates(commissionBalances, {
+      systemTotals: systemTotalsMode,
+    });
     return;
   }
   accountOverviewLastRenderSignature = renderSignature;
@@ -6629,13 +6771,16 @@ function syncAccountOverviewPanelVisuals() {
   setAccountOverviewText(accountOverviewDirectSponsorsLabelElement, directSponsorsLabelText);
   setAccountOverviewText(accountOverviewEwalletValueElement, ewalletDisplayValue);
   setAccountOverviewText(accountOverviewEwalletLabelElement, eWalletLabelText);
-  setAccountOverviewText(accountOverviewSalesTeamValueElement, formatEnrollCurrency(commissionBalances.salesTeam));
-  setAccountOverviewText(accountOverviewRetailProfitValueElement, formatEnrollCurrency(commissionBalances.retailProfit));
-  setAccountOverviewText(accountOverviewFastTrackValueElement, formatEnrollCurrency(commissionBalances.fastTrack));
-  setAccountOverviewText(accountOverviewTrackSalesTeamValueElement, formatEnrollCurrency(commissionBalances.salesTeam));
-  setAccountOverviewText(accountOverviewInfinityBuilderValueElement, formatEnrollCurrency(commissionBalances.infinityBuilder));
-  setAccountOverviewText(accountOverviewMatchingBonusValueElement, formatEnrollCurrency(commissionBalances.matchingBonus));
-  setAccountOverviewText(accountOverviewLegacyBuilderValueElement, formatEnrollCurrency(commissionBalances.legacyBuilder));
+  setAccountOverviewText(accountOverviewSalesTeamValueElement, formatEnrollCurrency(commissionBalancesForDisplay.salesTeam));
+  setAccountOverviewText(accountOverviewRetailProfitValueElement, formatEnrollCurrency(commissionBalancesForDisplay.retailProfit));
+  setAccountOverviewText(accountOverviewFastTrackValueElement, formatEnrollCurrency(commissionBalancesForDisplay.fastTrack));
+  setAccountOverviewText(accountOverviewTrackSalesTeamValueElement, formatEnrollCurrency(commissionBalancesForDisplay.salesTeam));
+  setAccountOverviewText(accountOverviewInfinityBuilderValueElement, formatEnrollCurrency(commissionBalancesForDisplay.infinityBuilder));
+  setAccountOverviewText(accountOverviewMatchingBonusValueElement, formatEnrollCurrency(commissionBalancesForDisplay.matchingBonus));
+  setAccountOverviewText(accountOverviewLegacyBuilderValueElement, formatEnrollCurrency(commissionBalancesForDisplay.legacyBuilder));
+  syncAccountOverviewCommissionTransferButtonStates(commissionBalances, {
+    systemTotals: systemTotalsMode,
+  });
 
   if (accountOverviewRankIconElement instanceof HTMLImageElement && rankIconPath) {
     accountOverviewRankIconElement.src = rankIconPath;
@@ -6726,6 +6871,246 @@ function setAccountOverviewPanelVisible(isVisible) {
   }
 }
 
+function resolveAccountOverviewCommissionTransferSourceMeta(commissionKeyInput = '') {
+  const normalizedCommissionKey = normalizeCredentialValue(commissionKeyInput);
+  if (
+    normalizedCommissionKey === 'retail-profit'
+    || normalizedCommissionKey === 'retailprofit'
+    || normalizedCommissionKey === 'retail'
+  ) {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.retailprofit;
+  }
+  if (normalizedCommissionKey === 'fast-track' || normalizedCommissionKey === 'fasttrack') {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.fasttrack;
+  }
+  if (normalizedCommissionKey === 'sales-team' || normalizedCommissionKey === 'salesteam') {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.salesteam;
+  }
+  if (normalizedCommissionKey === 'infinity-builder' || normalizedCommissionKey === 'infinitybuilder') {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.infinitybuilder;
+  }
+  if (normalizedCommissionKey === 'matching-bonus' || normalizedCommissionKey === 'matchingbonus') {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.matchingbonus;
+  }
+  if (
+    normalizedCommissionKey === 'legacy-builder'
+    || normalizedCommissionKey === 'legacy-leadership'
+    || normalizedCommissionKey === 'legacybuilder'
+    || normalizedCommissionKey === 'legacyleadership'
+  ) {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.legacyleadership;
+  }
+  return null;
+}
+
+function resolveAccountOverviewWalletCommissionOffset(sourceKeyInput = '') {
+  const walletOffsets = (
+    accountOverviewRemoteSnapshot?.walletCommissionOffsets
+    && typeof accountOverviewRemoteSnapshot.walletCommissionOffsets === 'object'
+  )
+    ? accountOverviewRemoteSnapshot.walletCommissionOffsets
+    : {};
+  const normalizedSourceKey = normalizeCredentialValue(sourceKeyInput);
+  if (!normalizedSourceKey) {
+    return 0;
+  }
+  return resolveAccountOverviewCommissionValue(walletOffsets[normalizedSourceKey], 0);
+}
+
+function resolveAccountOverviewTransferAdjustedCommissionBalances(commissionBalances = {}) {
+  const safeCommissionBalances = (commissionBalances && typeof commissionBalances === 'object')
+    ? commissionBalances
+    : {};
+  const resolveNetBalance = (sourceKey, grossAmount) => {
+    const safeGrossAmount = Math.max(0, safeNumber(grossAmount, 0));
+    const safeOffsetAmount = Math.min(
+      safeGrossAmount,
+      Math.max(0, safeNumber(resolveAccountOverviewWalletCommissionOffset(sourceKey), 0)),
+    );
+    return Math.max(0, safeGrossAmount - safeOffsetAmount);
+  };
+
+  return {
+    retailProfit: resolveNetBalance('retailprofit', safeCommissionBalances.retailProfit),
+    fastTrack: resolveNetBalance('fasttrack', safeCommissionBalances.fastTrack),
+    salesTeam: resolveNetBalance('salesteam', safeCommissionBalances.salesTeam),
+    infinityBuilder: resolveNetBalance('infinitybuilder', safeCommissionBalances.infinityBuilder),
+    matchingBonus: resolveNetBalance('matchingbonus', safeCommissionBalances.matchingBonus),
+    legacyBuilder: resolveNetBalance('legacyleadership', safeCommissionBalances.legacyBuilder),
+  };
+}
+
+function resolveAccountOverviewTransferAvailableAmount(sourceMeta = null, adjustedBalances = {}) {
+  if (!sourceMeta || !sourceMeta.balanceKey) {
+    return 0;
+  }
+  return Math.max(0, safeNumber(adjustedBalances?.[sourceMeta.balanceKey], 0));
+}
+
+function syncAccountOverviewCommissionTransferButtonStates(commissionBalances = null, options = {}) {
+  const systemTotalsMode = Boolean(options?.systemTotals);
+  const transferAllowedForContext = state.source === 'member' && !systemTotalsMode;
+  const adjustedBalances = resolveAccountOverviewTransferAdjustedCommissionBalances(commissionBalances);
+
+  for (const transferButton of accountOverviewCommissionTransferButtons) {
+    if (!(transferButton instanceof HTMLButtonElement)) {
+      continue;
+    }
+    const sourceMeta = resolveAccountOverviewCommissionTransferSourceMeta(
+      transferButton.dataset.accountOverviewCommissionTransfer || '',
+    );
+    const sourceKey = safeText(sourceMeta?.key);
+    const isBusy = sourceKey ? accountOverviewCommissionTransferBusySourceKeys.has(sourceKey) : false;
+    const availableAmount = resolveAccountOverviewTransferAvailableAmount(sourceMeta, adjustedBalances);
+    const hasMinimumTransfer = availableAmount >= MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD;
+    const canTransfer = Boolean(sourceMeta) && transferAllowedForContext && hasMinimumTransfer && !isBusy;
+    const sourceError = sourceKey ? safeText(accountOverviewCommissionTransferErrorBySourceKey.get(sourceKey)) : '';
+
+    transferButton.disabled = !canTransfer;
+    transferButton.setAttribute('aria-disabled', canTransfer ? 'false' : 'true');
+    transferButton.dataset.sourceKey = sourceKey;
+    transferButton.dataset.availableAmount = String(availableAmount);
+    transferButton.textContent = isBusy ? 'Transferring...' : 'Transfer to E-Wallet';
+
+    if (!sourceMeta) {
+      transferButton.title = 'Commission transfer source is unavailable.';
+      continue;
+    }
+    if (sourceError) {
+      transferButton.title = sourceError;
+      continue;
+    }
+    if (!transferAllowedForContext) {
+      transferButton.title = systemTotalsMode
+        ? 'Transfers are unavailable while viewing system totals.'
+        : 'Transfers are available only for member sessions.';
+      continue;
+    }
+    if (!hasMinimumTransfer) {
+      transferButton.title = `${sourceMeta.label} requires at least ${formatEnrollCurrency(MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD)} to transfer.`;
+      continue;
+    }
+    transferButton.title = `Transfer ${formatEnrollCurrency(availableAmount)} from ${sourceMeta.label} to E-Wallet.`;
+  }
+}
+
+async function requestAccountOverviewCommissionTransfer(commissionKeyInput = '') {
+  const sourceMeta = resolveAccountOverviewCommissionTransferSourceMeta(commissionKeyInput);
+  if (!sourceMeta) {
+    return;
+  }
+  if (accountOverviewCommissionTransferBusySourceKeys.has(sourceMeta.key)) {
+    return;
+  }
+
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  const systemTotalsMode = Boolean(overviewContext?.systemTotals);
+  if (state.source !== 'member' || systemTotalsMode) {
+    accountOverviewLastRenderSignature = '';
+    syncAccountOverviewPanelVisuals();
+    return;
+  }
+
+  const commissionBalances = resolveAccountOverviewCommissionBalances(homeNode, { systemTotals: false });
+  const adjustedBalances = resolveAccountOverviewTransferAdjustedCommissionBalances(commissionBalances);
+  const availableAmount = resolveAccountOverviewTransferAvailableAmount(sourceMeta, adjustedBalances);
+  if (availableAmount < MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD) {
+    accountOverviewLastRenderSignature = '';
+    syncAccountOverviewPanelVisuals();
+    return;
+  }
+
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode, {
+    preferHomeNode: false,
+    allowAnonymous: false,
+  });
+  if (!identityPayload.userId && !identityPayload.username && !identityPayload.email) {
+    accountOverviewCommissionTransferErrorBySourceKey.set(
+      sourceMeta.key,
+      'Unable to transfer commission without a valid member identity.',
+    );
+    accountOverviewLastRenderSignature = '';
+    syncAccountOverviewPanelVisuals();
+    return;
+  }
+
+  accountOverviewCommissionTransferErrorBySourceKey.delete(sourceMeta.key);
+  accountOverviewCommissionTransferBusySourceKeys.add(sourceMeta.key);
+  accountOverviewLastRenderSignature = '';
+  syncAccountOverviewPanelVisuals();
+
+  try {
+    const requestHeaders = buildRankAdvancementRequestHeaders({
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    });
+    const transactionId = [
+      'c2w',
+      normalizeCredentialValue(sourceMeta.key || 'commission') || 'commission',
+      Date.now(),
+      Math.random().toString(36).slice(2, 10),
+    ].join(':');
+    const senderSeedBalance = resolveAccountOverviewEWalletBalance(homeNode, {
+      systemTotals: false,
+    });
+
+    const response = await fetch(ACCOUNT_OVERVIEW_E_WALLET_COMMISSION_TRANSFER_API, {
+      method: 'POST',
+      cache: 'no-store',
+      credentials: 'same-origin',
+      headers: requestHeaders,
+      body: JSON.stringify({
+        userId: safeText(identityPayload.userId),
+        username: safeText(identityPayload.username),
+        email: safeText(identityPayload.email),
+        sourceKey: sourceMeta.key,
+        amount: availableAmount,
+        transactionId,
+        note: '',
+        senderSeedBalance: Math.max(0, safeNumber(senderSeedBalance, 0)),
+        limit: 25,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = safeText(payload?.error) || `Unable to transfer to E-Wallet (${response.status}).`;
+      throw new Error(message);
+    }
+
+    const walletSnapshot = (payload?.wallet && typeof payload.wallet === 'object')
+      ? payload.wallet
+      : null;
+    const walletOffsets = (payload?.commissionOffsets && typeof payload.commissionOffsets === 'object')
+      ? payload.commissionOffsets
+      : null;
+    if (walletSnapshot || walletOffsets) {
+      accountOverviewRemoteSnapshot = {
+        ...accountOverviewRemoteSnapshot,
+        ...(walletSnapshot ? { eWalletSnapshot: walletSnapshot } : {}),
+        ...(walletOffsets ? { walletCommissionOffsets: walletOffsets } : {}),
+        updatedAtMs: Date.now(),
+      };
+      accountOverviewRemoteDataVersion += 1;
+    }
+
+    await refreshAccountOverviewRemoteSnapshot({
+      force: true,
+      homeNode,
+      scope: overviewContext?.scope,
+      preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+    });
+  } catch (error) {
+    const message = safeText(error?.message) || 'Unable to transfer commission to E-Wallet.';
+    accountOverviewCommissionTransferErrorBySourceKey.set(sourceMeta.key, message);
+    console.warn('Unable to transfer account overview commission to E-Wallet:', error);
+  } finally {
+    accountOverviewCommissionTransferBusySourceKeys.delete(sourceMeta.key);
+    accountOverviewLastRenderSignature = '';
+    syncAccountOverviewPanelVisuals();
+  }
+}
+
 function initAccountOverviewPanel() {
   if (!isAccountOverviewPanelAvailable()) {
     return;
@@ -6768,6 +7153,19 @@ function initAccountOverviewPanel() {
         setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
         setInfinityBuilderPanelVisible(true);
       }
+    });
+  }
+  for (const transferButton of accountOverviewCommissionTransferButtons) {
+    if (!(transferButton instanceof HTMLButtonElement)) {
+      continue;
+    }
+    transferButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const commissionKey = normalizeCredentialValue(
+        transferButton.dataset.accountOverviewCommissionTransfer || '',
+      );
+      void requestAccountOverviewCommissionTransfer(commissionKey);
     });
   }
 }
@@ -20643,6 +21041,14 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
   return rebuildTreeNextLiveChildReferences([createTreeNextLiveScopedRootNode(null)]);
 }
 
+function cacheTreeNextLiveRegisteredMembersSnapshot(membersInput = []) {
+  const safeMembers = Array.isArray(membersInput)
+    ? membersInput.filter((member) => member && typeof member === 'object')
+    : [];
+  treeNextLiveRegisteredMembersSnapshot = safeMembers;
+  treeNextLiveRegisteredMembersSnapshotUpdatedAtMs = Date.now();
+}
+
 async function fetchTreeNextLiveRegisteredMembers() {
   const response = await fetch(resolveEnrollRegisteredMembersApi(), {
     method: 'GET',
@@ -20654,7 +21060,13 @@ async function fetchTreeNextLiveRegisteredMembers() {
     const message = safeText(payload?.error) || `Unable to load registered members (${response.status}).`;
     throw new Error(message);
   }
-  return Array.isArray(payload?.members) ? payload.members : [];
+  const members = Array.isArray(payload?.members) ? payload.members : [];
+  cacheTreeNextLiveRegisteredMembersSnapshot(members);
+  if (Boolean(state.ui?.accountOverviewVisible)) {
+    accountOverviewLastRenderSignature = '';
+    syncAccountOverviewPanelVisuals();
+  }
+  return members;
 }
 
 async function loadTreeNextLiveNodes() {
@@ -20696,6 +21108,11 @@ function resolveTreeNextLiveNodeSignature(node = {}) {
       ?? safeNode.monthly_personal_bv,
       0,
     )),
+    Math.round(Math.max(0, safeNumber(
+      safeNode.fastTrackBonusAmount
+      ?? safeNode.fast_track_bonus_amount,
+      0,
+    )) * 100) / 100,
     safeText(safeNode.businessCenterNodeType),
     safeText(safeNode.memberCode),
     safeNode.isSpillover ? '1' : '0',

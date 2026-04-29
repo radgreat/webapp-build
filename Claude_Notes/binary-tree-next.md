@@ -4365,3 +4365,94 @@ ode --check binary-tree-next-app.mjs passed.
 ### Validation
 
 - `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-29) - Track Commissions Transfer To E-Wallet Buttons
+
+### What Changed
+- `binary-tree-next.html`
+  - In `Account Overview > Track Commissions`, each commission card now includes a dedicated `Transfer to E-Wallet` button.
+  - Card structure changed from single button tile to:
+    - commission trigger button (`data-account-overview-commission`)
+    - transfer button (`data-account-overview-commission-transfer`)
+  - Added focused styles for the new trigger/transfer controls while keeping current visual language.
+
+- `binary-tree-next-app.mjs`
+  - Added selector list for transfer buttons.
+  - Added `openAccountOverviewTransferToEWallet(...)` helper.
+  - Bound transfer button click events to redirect users to `/EWallet` with source context for downstream transfer flow.
+
+### Files Affected
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Known Limitation
+- Buttons route to E-Wallet for transfer completion; immediate direct transfer API call from Binary Tree Next is not yet implemented.
+## Update (2026-04-29) - Track Commissions Transfer Buttons Switched To Direct Transfer Action
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Replaced redirect-based transfer button behavior with direct POST to `/api/e-wallet/commission-transfer`.
+  - Added per-source transfer meta mapping (`retailprofit`, `fasttrack`, `salesteam`, `infinitybuilder`, `matchingbonus`, `legacyleadership`).
+  - Added busy-source lock + error cache for transfer buttons.
+  - Added offset-aware net balance adjustment using `walletCommissionOffsets` for transfer availability checks and displayed transferable commission values.
+  - Added forced Account Overview remote snapshot refresh after successful transfer so Binary Tree values track Dashboard values.
+- `binary-tree-next.html`
+  - Added disabled-state style for commission transfer buttons.
+
+### Files Affected
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Limitation
+- Backend source-level idempotency is not hard-enforced server-side for all sources; frontend now prevents rapid repeat actions via busy-lock + offset-aware availability and live refresh.
+## Update (2026-04-29) - Binary Tree Track Commissions Transfer Hotfix
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added hyphen-aware commission source mapping for transfer buttons to correctly resolve retail/fast-track keys from DOM datasets.
+  - Adjusted wallet-offset key handling in Binary Tree transfer calculation to normalized canonical keys only.
+  - Updated member fast-track amount resolution to prioritize the greater of container vs live node/session values.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-29) - Fast Track Value Alignment (Track Commissions)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added `resolveAccountOverviewMemberFastTrackGrossBalance(...)` to compute member fast-track gross balance with dashboard-like semantics (base + direct accrued fast-track from sponsored members in active node graph).
+  - Included this value as a preferred candidate in member fast-track resolution inside `resolveAccountOverviewCommissionBalances(...)`.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-29) - Fast Track 38.40 Stale Amount Fix in Track Commissions
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added registered-member snapshot cache for Binary Tree live data fetches.
+  - Added direct-sponsor fast-track accrual resolver based on registered members (dashboard-parity logic).
+  - Updated member fast-track gross resolver to prefer registered-member accrual and fallback to scoped-node accrual.
+  - Included fast-track amount in live-node sync signature so node updates apply when commission values change without structural tree changes.
+  - Invalidated Account Overview render signature on fresh member snapshot fetch (when panel is visible) for immediate value refresh.
+
+### Files Affected
+- `binary-tree-next-app.mjs`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Known Limitation
+- If API payload omits sponsor identity fields (`sponsorUsername` / `sponsor_username`) for direct lines, fallback path will rely on node-scoped sponsor linkage.
+## Update (2026-04-29) - Matching Bonus Card Data-Parity Fix
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Removed duplicate offset subtraction path for Matching Bonus in `resolveAccountOverviewCommissionBalances(...)`.
+  - Matching Bonus now resolves gross from ledger/container candidates and uses the existing transfer-adjusted net pass for a single offset deduction.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.

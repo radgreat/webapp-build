@@ -34780,3 +34780,124 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - Parsed `index.html` inline scripts successfully (`Parsed 3 inline script blocks successfully.`).
+## Patch Update (2026-04-29) - Binary Tree Track Commissions Added Transfer To E-Wallet Buttons
+
+### What Changed
+- `binary-tree-next.html`
+  - Updated `Account Overview > Track Commissions` cards so each commission container now includes a dedicated `Transfer to E-Wallet` button.
+  - Refactored each commission tile into a container with:
+    - top commission trigger button (existing behavior preserved)
+    - new transfer action button (one per commission type)
+  - Added new styles for `.tree-next-account-overview-commission-trigger` and `.tree-next-account-overview-commission-transfer`.
+- `binary-tree-next-app.mjs`
+  - Added transfer-button selector binding via `[data-account-overview-commission-transfer]`.
+  - Added `openAccountOverviewTransferToEWallet(...)` helper.
+  - Transfer button click now routes to `/EWallet` with context query params:
+    - `source=binary-tree-next`
+    - `transferSource=<commission-key>`
+
+### Why
+- Requested UX update: add `Transfer to E-Wallet` buttons inside each commission system/container in Binary Tree Account Overview `Track Commissions`.
+
+### Files Updated
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+### Known Limitations
+- Transfer buttons currently route users to the E-Wallet page (context-aware), rather than executing an immediate transfer directly inside Binary Tree Next.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Binary Tree Transfer Buttons Now Execute Same Wallet Transfer Flow
+
+### What Changed
+- Upgraded Binary Tree `Track Commissions` transfer buttons from redirect-only behavior to direct transfer execution using the same API contract as Dashboard.
+- `binary-tree-next-app.mjs`
+  - Added direct transfer endpoint constant: `/api/e-wallet/commission-transfer`.
+  - Added source mapping and per-source transfer locking for:
+    - `retailprofit`, `fasttrack`, `salesteam`, `infinitybuilder`, `matchingbonus`, `legacyleadership`.
+  - Added offset-aware available balance handling for transfer logic (`walletCommissionOffsets`) so transferred amounts are deducted before allowing another transfer.
+  - Added `requestAccountOverviewCommissionTransfer(...)` to submit transfer payload with member identity + source key + amount.
+  - Added dynamic button state sync (`syncAccountOverviewCommissionTransferButtonStates(...)`) including busy/disabled/error/title states.
+  - After successful transfer, Account Overview snapshot is refreshed so Binary Tree and Dashboard remain aligned.
+- `binary-tree-next.html`
+  - Added disabled visual state for `.tree-next-account-overview-commission-transfer:disabled`.
+
+### Why
+- Requirement: transfer behavior must remain one function across contexts (inside/outside Binary Tree) and avoid duplicate source transfers.
+
+### Files Updated
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Binary Tree Transfer Button Enablement + Fast Track Value Alignment Hotfix
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Fixed commission transfer source normalization to accept hyphenated keys from DOM attributes:
+    - `retail-profit`, `fast-track`, `sales-team`, `infinity-builder`, `matching-bonus`, `legacy-builder`, `legacy-leadership`.
+  - Tightened wallet offset lookup to use normalized canonical source keys only (removed camelCase alias fallback in Binary Tree transfer-offset resolver).
+  - Updated member fast-track card value resolution to prefer the higher of:
+    - commission container fast-track value
+    - live node/session fast-track values
+  - This reduces stale low-value rendering on Binary Tree Track Commissions.
+
+### Why
+- User reported Transfer buttons disabled in Binary Tree for Retail Profit/Fast Track while dashboard allowed transfer.
+- User also reported Binary Tree Fast Track showing lower stale value versus current expected amount.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Fast Track Track-Commissions Value Parity With Dashboard
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added `resolveAccountOverviewMemberFastTrackGrossBalance(homeNode)` to mirror dashboard-style fast-track gross logic:
+    - base from member/session fast-track balance fields
+    - plus accrued direct-sponsor fast-track bonuses from current tree nodes
+  - Updated `resolveAccountOverviewCommissionBalances(...)` (member context) to include this new computed gross in fast-track source priority.
+
+### Why
+- Binary Tree `Track Commissions` fast-track card was still showing a stale lower amount (`38.40`) while dashboard reflected higher current value (`238.40`).
+- Dashboard computes fast-track from base + direct-sponsor accrual; Binary Tree now mirrors that path.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Binary Tree Fast Track 38.40 Underreport Fix (Dashboard Parity)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added registered-members snapshot cache (`treeNextLiveRegisteredMembersSnapshot`) and timestamp marker for Account Overview renders.
+  - Added `resolveAccountOverviewMemberDirectFastTrackFromRegisteredMembers(homeNode)` so Binary Tree uses the same direct-sponsor fast-track accrual basis as the User Dashboard.
+  - Updated `resolveAccountOverviewMemberFastTrackGrossBalance(...)` to:
+    - use member/session fast-track base balance
+    - prefer direct-sponsor accrual from cached registered members
+    - fallback to scoped node-based accrual when registered-member snapshot is unavailable
+  - Updated live-node signature hashing to include `fastTrackBonusAmount` so sync applies when only fast-track amounts change.
+  - On fresh registered-members fetch, Account Overview re-render is invalidated while panel is open so values refresh immediately.
+
+### Why
+- Binary Tree `Track Commissions > Fast Track` was staying at `38.40` while dashboard reflected `238.40`.
+- Root cause was mismatch in data basis (scoped node fallback only) and stale-sync scenarios where fast-track amount changes did not alter the live-node signature.
+
+### Files Updated
+- `binary-tree-next-app.mjs`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Binary Tree Matching Bonus Double-Offset Fix
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Removed pre-offset subtraction (`matchingBonusFromLedger = ledgerMatchingBonus - walletOffset`) from Account Overview commission resolver.
+  - Matching Bonus now follows dashboard parity:
+    - use ledger/container gross candidate
+    - apply wallet transfer offset once in the shared display/transfer-adjusted stage.
+
+### Why
+- Matching Bonus could underreport in Binary Tree because offset was applied twice (once in balance resolver and once in display-adjustment pass).
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
