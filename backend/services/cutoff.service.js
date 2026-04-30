@@ -5,12 +5,19 @@ import {
 import { readMockBinaryTreeMetricsStore } from '../stores/metrics.store.js';
 import { readMockUsersStore } from '../stores/user.store.js';
 import { readRegisteredMembersStore } from '../stores/member.store.js';
+import {
+  BINARY_CYCLE_STRONG_LEG_BV,
+  BINARY_CYCLE_WEAK_LEG_BV,
+  resolveBinaryCycleComputation,
+} from '../utils/binary-cycle.helpers.js';
 
 const SERVER_CUTOFF_TIME_ZONE = 'America/Los_Angeles';
 const SERVER_CUTOFF_WEEKDAY = 6;
 const SERVER_CUTOFF_HOUR = 23;
 const SERVER_CUTOFF_MINUTE = 59;
 const SERVER_CUTOFF_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
+const CYCLE_RULE_STRONGER_BV = BINARY_CYCLE_STRONG_LEG_BV;
+const CYCLE_RULE_WEAKER_BV = BINARY_CYCLE_WEAK_LEG_BV;
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -26,6 +33,17 @@ function toWholeNumber(value, fallback = 0) {
     return fallback;
   }
   return Math.max(0, Math.floor(numericValue));
+}
+
+function toFirstWholeNumber(candidates = [], fallback = 0) {
+  const safeCandidates = Array.isArray(candidates) ? candidates : [];
+  for (const candidate of safeCandidates) {
+    const parsed = Number(candidate);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, Math.floor(parsed));
+    }
+  }
+  return toWholeNumber(fallback, 0);
 }
 
 function getCutoffZoneOffsetMs(atDate, timeZone) {
@@ -149,7 +167,9 @@ function resolveMetricsIdentityKeys(identityPayload) {
   };
 
   appendKey(identityPayload?.userId);
+  const normalizedUsername = normalizeText(identityPayload?.username).replace(/^@+/, '');
   appendKey(identityPayload?.username);
+  appendKey(normalizedUsername);
   appendKey(identityPayload?.email);
   return keys;
 }
@@ -159,9 +179,12 @@ function doesMetricsRecordBelongToIdentity(record, identityKeys) {
     return false;
   }
 
+  const rawUsername = normalizeText(record?.username);
+  const normalizedUsername = rawUsername.replace(/^@+/, '');
   const candidates = [
     record?.userId,
-    record?.username,
+    rawUsername,
+    normalizedUsername,
     record?.email,
   ];
 
@@ -223,11 +246,26 @@ export async function getMemberServerCutoffMetrics(query = {}) {
 
   const totalLeftLegBv = Math.max(0, toWholeNumber(matchedSnapshot?.leftLegBv, 0));
   const totalRightLegBv = Math.max(0, toWholeNumber(matchedSnapshot?.rightLegBv, 0));
-  const cycleLowerBv = Math.max(1, toWholeNumber(matchedSnapshot?.cycleLowerBv, 500));
-  const cycleHigherBv = Math.max(cycleLowerBv, toWholeNumber(matchedSnapshot?.cycleHigherBv, 1000));
-  const totalPersonalPv = matchedUser
-    ? Math.max(0, toWholeNumber(matchedUser?.starterPersonalPv, toWholeNumber(matchedUser?.enrollmentPackageBv, 0)))
-    : Math.max(0, toWholeNumber(matchedMember?.starterPersonalPv, toWholeNumber(matchedMember?.packageBv, 0)));
+  const cycleLowerBv = CYCLE_RULE_STRONGER_BV;
+  const cycleHigherBv = CYCLE_RULE_WEAKER_BV;
+  const totalPersonalPv = toFirstWholeNumber([
+    matchedUser?.currentPersonalPvBv,
+    matchedUser?.current_personal_pv_bv,
+    matchedUser?.monthlyPersonalBv,
+    matchedUser?.monthly_personal_bv,
+    matchedUser?.starterPersonalPv,
+    matchedUser?.starter_personal_pv,
+    matchedUser?.enrollmentPackageBv,
+    matchedUser?.enrollment_package_bv,
+    matchedMember?.currentPersonalPvBv,
+    matchedMember?.current_personal_pv_bv,
+    matchedMember?.monthlyPersonalBv,
+    matchedMember?.monthly_personal_bv,
+    matchedMember?.starterPersonalPv,
+    matchedMember?.starter_personal_pv,
+    matchedMember?.packageBv,
+    matchedMember?.package_bv,
+  ], 0);
 
   const baselineLeftLegBv = Math.max(0, toWholeNumber(matchedState?.baselineLeftLegBv, 0));
   const baselineRightLegBv = Math.max(0, toWholeNumber(matchedState?.baselineRightLegBv, 0));
@@ -237,13 +275,13 @@ export async function getMemberServerCutoffMetrics(query = {}) {
   const currentWeekLeftLegBv = Math.max(0, totalLeftLegBv - baselineLeftLegBv);
   const currentWeekRightLegBv = Math.max(0, totalRightLegBv - baselineRightLegBv);
   const currentWeekPersonalPv = Math.max(0, totalPersonalPv - baselinePersonalPv);
-  const lowerLegCurrentWeekBv = Math.min(currentWeekLeftLegBv, currentWeekRightLegBv);
-  const higherLegCurrentWeekBv = Math.max(currentWeekLeftLegBv, currentWeekRightLegBv);
-
-  const estimatedCycles = Math.max(0, Math.floor(Math.min(
-    lowerLegCurrentWeekBv / cycleLowerBv,
-    higherLegCurrentWeekBv / cycleHigherBv,
-  )));
+  const estimatedCycleComputation = resolveBinaryCycleComputation({
+    leftVolume: currentWeekLeftLegBv,
+    rightVolume: currentWeekRightLegBv,
+    strongLegCycleBv: cycleLowerBv,
+    weakLegCycleBv: cycleHigherBv,
+  });
+  const estimatedCycles = estimatedCycleComputation.cycleCount;
 
   const latestForcedCutoffAt = normalizeText(history[0]?.forcedAt);
   const { nextCutoffUtcMs, lastClosedCutoffUtcMs } = resolveServerCutoffWindow(new Date());

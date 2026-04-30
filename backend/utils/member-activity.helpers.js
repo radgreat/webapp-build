@@ -1,4 +1,6 @@
 export const ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN = 50;
+export const ACTIVE_MEMBER_RENEWAL_WARNING_DAYS = 7;
+export const ACTIVE_MEMBER_ACTIVITY_WINDOW_DAYS = 30;
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -40,6 +42,16 @@ function parseDate(value) {
   return Number.isFinite(parsed.getTime()) ? parsed : null;
 }
 
+function addDays(date, days = 0) {
+  const safeDate = parseDate(date);
+  if (!safeDate) {
+    return null;
+  }
+
+  const safeDays = Number.isFinite(Number(days)) ? Number(days) : 0;
+  return new Date(safeDate.getTime() + (safeDays * 24 * 60 * 60 * 1000));
+}
+
 function resolveActivityAnchorDate(member = {}, referenceDate = new Date()) {
   return parseDate(
     member?.createdAt
@@ -51,39 +63,29 @@ function resolveActivityAnchorDate(member = {}, referenceDate = new Date()) {
   ) || parseDate(referenceDate) || new Date();
 }
 
-function buildAnchoredMonthlyDate(anchorDate, year, monthIndex) {
-  const safeAnchor = parseDate(anchorDate) || new Date();
-  const lastDayOfMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
-  const anchoredDay = Math.min(safeAnchor.getUTCDate(), lastDayOfMonth);
-  return new Date(Date.UTC(
-    year,
-    monthIndex,
-    anchoredDay,
-    safeAnchor.getUTCHours(),
-    safeAnchor.getUTCMinutes(),
-    safeAnchor.getUTCSeconds(),
-    safeAnchor.getUTCMilliseconds(),
-  ));
+function resolveMemberActivityActiveUntilDate(member = {}) {
+  return parseDate(
+    member?.activityActiveUntilAt
+    || member?.activity_active_until_at
+    || member?.activeUntilAt
+    || member?.active_until_at,
+  );
 }
 
 export function resolveMemberNextMonthlyCutoffDate(member = {}, options = {}) {
   const referenceDate = parseDate(options?.referenceDate) || new Date();
   const anchorDate = resolveActivityAnchorDate(member, referenceDate);
-
-  let nextCutoffDate = buildAnchoredMonthlyDate(
-    anchorDate,
-    referenceDate.getUTCFullYear(),
-    referenceDate.getUTCMonth(),
+  const activityWindowDays = Math.max(
+    1,
+    toWholeNumber(options?.activityWindowDays, ACTIVE_MEMBER_ACTIVITY_WINDOW_DAYS),
   );
-
-  if (nextCutoffDate.getTime() <= referenceDate.getTime()) {
-    const nextMonthIndex = referenceDate.getUTCMonth() + 1;
-    const nextYear = referenceDate.getUTCFullYear() + Math.floor(nextMonthIndex / 12);
-    const normalizedNextMonthIndex = ((nextMonthIndex % 12) + 12) % 12;
-    nextCutoffDate = buildAnchoredMonthlyDate(anchorDate, nextYear, normalizedNextMonthIndex);
-  }
-
-  return nextCutoffDate;
+  const activityWindowMs = activityWindowDays * 24 * 60 * 60 * 1000;
+  const anchorMs = anchorDate.getTime();
+  const referenceMs = referenceDate.getTime();
+  const elapsedMs = Math.max(0, referenceMs - anchorMs);
+  const completedWindowCount = Math.floor(elapsedMs / activityWindowMs);
+  const nextCutoffMs = anchorMs + ((completedWindowCount + 1) * activityWindowMs);
+  return new Date(nextCutoffMs);
 }
 
 export function resolveMemberNextMonthlyCutoffAt(member = {}, options = {}) {
@@ -92,13 +94,11 @@ export function resolveMemberNextMonthlyCutoffAt(member = {}, options = {}) {
 
 function resolveMemberCurrentWindowStartDate(member = {}, options = {}) {
   const nextCutoffDate = resolveMemberNextMonthlyCutoffDate(member, options);
-  const anchorDate = resolveActivityAnchorDate(member, parseDate(options?.referenceDate) || new Date());
-
-  const previousMonthIndex = nextCutoffDate.getUTCMonth() - 1;
-  const previousYear = nextCutoffDate.getUTCFullYear() + Math.floor(previousMonthIndex / 12);
-  const normalizedPreviousMonthIndex = ((previousMonthIndex % 12) + 12) % 12;
-
-  return buildAnchoredMonthlyDate(anchorDate, previousYear, normalizedPreviousMonthIndex);
+  const activityWindowDays = Math.max(
+    1,
+    toWholeNumber(options?.activityWindowDays, ACTIVE_MEMBER_ACTIVITY_WINDOW_DAYS),
+  );
+  return addDays(nextCutoffDate, -activityWindowDays);
 }
 
 function resolveLatestPersonalBvEventDate(member = {}) {
@@ -124,6 +124,17 @@ function resolveLatestPersonalBvEventDate(member = {}) {
 }
 
 function resolvePendingStatus(member = {}) {
+  const explicitStatus = normalizeCredential(
+    member?.accountStatus
+    || member?.status
+    || member?.userAccountStatus
+    || member?.user_account_status
+    || member?.memberAccountStatus
+    || member?.member_account_status,
+  );
+  if (explicitStatus === 'pending') {
+    return 'pending';
+  }
   return member?.passwordSetupRequired === true ? 'pending-password-setup' : '';
 }
 
@@ -186,17 +197,7 @@ function resolveRawMemberCurrentPersonalBv(member = {}) {
     ]),
     enrollmentPackageBv,
   );
-  const baselineStarterPersonalPv = toWholeNumber(
-    resolveFirstFiniteNumber([
-      member?.serverCutoffBaselineStarterPersonalPv,
-      member?.server_cutoff_baseline_starter_personal_pv,
-      member?.personalVolumeBaselineBv,
-      member?.personal_volume_baseline_bv,
-    ]),
-    0,
-  );
-
-  return Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  return Math.max(0, starterPersonalPv);
 }
 
 export function resolveMemberPersonalBvSnapshot(member = {}, options = {}) {
@@ -226,12 +227,39 @@ export function resolveMemberCurrentPersonalBv(member = {}) {
 }
 
 export function resolveMemberActivityStateByPersonalBv(member = {}, options = {}) {
+  const referenceDate = parseDate(options?.referenceDate) || new Date();
   const requiredPersonalBv = Math.max(
     1,
     toWholeNumber(options?.requiredPersonalBv, ACTIVE_MEMBER_MONTHLY_PERSONAL_BV_MIN),
   );
-  const personalBvSnapshot = resolveMemberPersonalBvSnapshot(member, options);
+  const personalBvSnapshot = resolveMemberPersonalBvSnapshot(member, {
+    ...(options && typeof options === 'object' ? options : {}),
+    referenceDate,
+  });
   const currentPersonalPvBv = personalBvSnapshot.currentPersonalPvBv;
+  const nextCutoffDate = parseDate(personalBvSnapshot.nextCutoffAt);
+  const previousActiveUntilDate = resolveMemberActivityActiveUntilDate(member);
+  const isCurrentWindowQualified = currentPersonalPvBv >= requiredPersonalBv;
+  const activeUntilDate = isCurrentWindowQualified
+    ? nextCutoffDate
+    : previousActiveUntilDate;
+  const warningUntilDate = addDays(activeUntilDate, ACTIVE_MEMBER_RENEWAL_WARNING_DAYS);
+  const nowUtcMs = referenceDate.getTime();
+  const activeUntilUtcMs = activeUntilDate ? activeUntilDate.getTime() : NaN;
+  const warningUntilUtcMs = warningUntilDate ? warningUntilDate.getTime() : NaN;
+  const isWithinQualifiedWindow = Number.isFinite(activeUntilUtcMs) && nowUtcMs <= activeUntilUtcMs;
+  const isWithinWarningWindow = !isWithinQualifiedWindow
+    && Number.isFinite(warningUntilUtcMs)
+    && nowUtcMs <= warningUntilUtcMs;
+  const isActive = isCurrentWindowQualified || isWithinQualifiedWindow || isWithinWarningWindow;
+  const activeUntilAt = activeUntilDate ? activeUntilDate.toISOString() : '';
+  const activeCutoffAt = nextCutoffDate ? nextCutoffDate.toISOString() : '';
+  const activityWarningUntilAt = isWithinWarningWindow && warningUntilDate
+    ? warningUntilDate.toISOString()
+    : '';
+  const activityWarningMessage = isWithinWarningWindow
+    ? `Maintain at least ${requiredPersonalBv.toLocaleString()} BV personal volume by ${activityWarningUntilAt} to keep your account active.`
+    : '';
   const inactiveStatusOverride = resolveInactiveStatusOverride(member);
 
   if (inactiveStatusOverride) {
@@ -241,11 +269,16 @@ export function resolveMemberActivityStateByPersonalBv(member = {}, options = {}
       accountStatus: inactiveStatusOverride,
       currentPersonalPvBv,
       requiredPersonalBv,
-      activeUntilAt: personalBvSnapshot.nextCutoffAt,
+      isCurrentWindowQualified,
+      isActivityWarning: false,
+      activityWarningCode: '',
+      activityWarningUntilAt: '',
+      activityWarningMessage: '',
+      activeUntilAt,
+      activeCutoffAt,
     };
   }
 
-  const isActive = currentPersonalPvBv >= requiredPersonalBv;
   const pendingStatus = resolvePendingStatus(member);
   return {
     isActive,
@@ -253,7 +286,13 @@ export function resolveMemberActivityStateByPersonalBv(member = {}, options = {}
     accountStatus: pendingStatus || (isActive ? 'active' : 'inactive'),
     currentPersonalPvBv,
     requiredPersonalBv,
-    activeUntilAt: personalBvSnapshot.nextCutoffAt,
+    isCurrentWindowQualified,
+    isActivityWarning: isWithinWarningWindow,
+    activityWarningCode: isWithinWarningWindow ? 'activity-renewal-required' : '',
+    activityWarningUntilAt,
+    activityWarningMessage,
+    activeUntilAt,
+    activeCutoffAt,
   };
 }
 

@@ -25,6 +25,10 @@ const ADMIN_ROOT_USERNAME = 'administrator';
 const ADMIN_ROOT_TITLE = 'Administrator';
 const ADMIN_ROOT_ROLE = 'Administrator';
 const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
+const MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY = 'membership-placement-reservation';
+const MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_LABEL = 'Membership Placement Reservation';
+const ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE = 'Account upgrade required.';
+const PENDING_RESERVATION_GATE_MESSAGE = 'Your account is currently under Membership Placement Reservation. Upgrade to a full account package to invite, enroll, sponsor, and participate in commissions.';
 const FREE_ACCOUNT_RANK_KEY_SET = new Set([
   'preferred customer',
   'preferred',
@@ -184,6 +188,10 @@ const TREE_NEXT_MOBILE_SIDE_PANEL_SPRING_MIN_DISPLACEMENT = 0.0008;
 const TREE_NEXT_MOBILE_SEARCH_FOCUS_EXPAND_DELAY_MS = 170;
 const TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_THRESHOLD_PX = 8;
 const TREE_NEXT_MOBILE_FAVORITES_AXIS_LOCK_BIAS_PX = 3;
+const TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_THRESHOLD_PX = 8;
+const TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_BIAS_PX = 3;
+const TREE_NEXT_MOBILE_DETAILS_SWIPE_TRIGGER_PX = 44;
+const TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS = 300;
 const TREE_NEXT_MOBILE_SIDE_PANEL_FULL_STAGE_SURFACE_DRAG_REGION_PX = 120;
 const TREE_NEXT_MOBILE_OVERLAY_PANEL_EDGE_INSET_PX = 8;
 const TREE_NEXT_MOBILE_OVERLAY_PANEL_HALF_TOP_INSET_PX = 56;
@@ -211,6 +219,8 @@ const SERVER_CUTOFF_TIMEZONE = 'America/Los_Angeles';
 const SERVER_CUTOFF_WEEKDAY = 6;
 const SERVER_CUTOFF_HOUR = 23;
 const SERVER_CUTOFF_MINUTE = 59;
+const TREE_NEXT_DETAILS_FALLBACK_STRONG_LEG_BV = 1000;
+const TREE_NEXT_DETAILS_FALLBACK_WEAK_LEG_BV = 500;
 const MEMBER_AUTH_SESSION_API = '/api/member-auth/session';
 const MEMBER_REGISTERED_MEMBERS_API = '/api/registered-members';
 const MEMBER_BINARY_TREE_PINNED_NODES_API = '/api/member-auth/binary-tree-next/pinned-nodes';
@@ -218,13 +228,21 @@ const MEMBER_BINARY_TREE_TIER_SORT_DIRECTIONS_API = '/api/member-auth/binary-tre
 const ADMIN_REGISTERED_MEMBERS_API = '/api/admin/registered-members';
 const ACCOUNT_OVERVIEW_BINARY_TREE_METRICS_API = '/api/binary-tree-metrics';
 const ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API = '/api/sales-team-commissions';
+const ACCOUNT_OVERVIEW_MEMBER_SERVER_CUTOFF_METRICS_API = '/api/member/server-cutoff-metrics';
 const ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API = '/api/commission-containers';
 const ACCOUNT_OVERVIEW_E_WALLET_API = '/api/e-wallet';
+const ACCOUNT_OVERVIEW_E_WALLET_COMMISSION_TRANSFER_API = '/api/e-wallet/commission-transfer';
+const ACCOUNT_OVERVIEW_MEMBER_LEDGER_SUMMARY_API = '/api/member-auth/ledger/summary';
+const ACCOUNT_OVERVIEW_ADMIN_LEDGER_SUMMARY_API = '/api/admin/ledger/summary';
 const MEMBER_ACHIEVEMENTS_API = '/api/member-auth/achievements';
 const MEMBER_GOOD_LIFE_MONTHLY_API = '/api/member-auth/good-life/monthly';
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_VISIBLE_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_HIDDEN_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS;
 const ACCOUNT_OVERVIEW_REMOTE_SYNC_RETRY_INTERVAL_MS = 2800;
+const TREE_NEXT_CYCLE_RULE_STRONGER_BV = 1000;
+const TREE_NEXT_CYCLE_RULE_WEAKER_BV = 500;
+const NODE_SERVER_CUTOFF_METRICS_CACHE_TTL_MS = 12000;
+const NODE_SERVER_CUTOFF_METRICS_CACHE_MAX_ENTRIES = 1800;
 const RANK_ADVANCEMENT_REMOTE_SYNC_VISIBLE_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_VISIBLE_INTERVAL_MS;
 const RANK_ADVANCEMENT_REMOTE_SYNC_HIDDEN_INTERVAL_MS = TREE_NEXT_LIVE_SYNC_HIDDEN_INTERVAL_MS;
 const RANK_ADVANCEMENT_REMOTE_SYNC_RETRY_INTERVAL_MS = 2800;
@@ -233,8 +251,10 @@ const ADMIN_REGISTERED_MEMBERS_SESSION_API = '/api/admin/registered-members/sess
 const MEMBER_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/registered-members/session/complete';
 const ADMIN_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/admin/registered-members/session/complete';
 const STORE_INVOICES_API = '/api/store-invoices';
+const STORE_PRODUCTS_API = '/api/store-products';
 const MEMBER_DASHBOARD_HOME_PATH = '/index.html';
 const ADMIN_DASHBOARD_HOME_PATH = '/admin.html';
+const MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD = 0.01;
 const ENROLL_STRIPE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
 const MY_STORE_CHECKOUT_SESSION_API = '/api/store-checkout/session';
 const MY_STORE_CHECKOUT_SESSION_COMPLETE_API = '/api/store-checkout/complete';
@@ -246,9 +266,31 @@ const ENROLL_BILLING_COUNTRY_FALLBACK_OPTIONS = Object.freeze([
   Object.freeze({ code: 'US', label: 'United States' }),
 ]);
 const ENROLL_DEFAULT_PACKAGE_KEY = 'legacy-builder-pack';
+const ENROLL_DEFAULT_PRODUCT_KEY = 'metacharge';
+const ENROLL_SPLIT_PRODUCT_KEY = 'split';
+const ENROLL_PRODUCT_META = Object.freeze({
+  metacharge: Object.freeze({
+    key: 'metacharge',
+    label: 'MetaCharge\u2122',
+  }),
+  metaroast: Object.freeze({
+    key: 'metaroast',
+    label: 'MetaRoast\u2122',
+  }),
+  [ENROLL_SPLIT_PRODUCT_KEY]: Object.freeze({
+    key: ENROLL_SPLIT_PRODUCT_KEY,
+    label: 'Split Products',
+  }),
+});
+const ENROLL_SPLIT_ELIGIBLE_PACKAGE_KEY_SET = new Set([
+  'business-builder-pack',
+  'infinity-builder-pack',
+  'legacy-builder-pack',
+]);
 const STRIPE_TAX_CALCULATED_LABEL = 'Calculated at Stripe checkout';
 const ACCOUNT_OVERVIEW_SALES_TEAM_CYCLE_COMMISSION_PLAN = Object.freeze({
   [FREE_ACCOUNT_PACKAGE_KEY]: { perCycle: 0, weeklyCapCycles: 0 },
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: { perCycle: 0, weeklyCapCycles: 0 },
   'personal-builder-pack': { perCycle: 25, weeklyCapCycles: 50 },
   'business-builder-pack': { perCycle: 37.5, weeklyCapCycles: 250 },
   'infinity-builder-pack': { perCycle: 50, weeklyCapCycles: 500 },
@@ -291,12 +333,28 @@ const ENROLL_PACKAGE_META = Object.freeze({
     price: 1280,
     selectableProducts: 20,
   }),
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: Object.freeze({
+    label: MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_LABEL,
+    bv: 0,
+    price: 49.99,
+    selectableProducts: 0,
+    canEarn: false,
+    canEnroll: false,
+    canSponsor: false,
+    storeLinkEnabled: false,
+    binaryTreeViewOnly: true,
+    isReservationPlan: true,
+  }),
 });
 const ENROLL_PAID_PACKAGE_KEY_SET = new Set([
   'personal-builder-pack',
   'business-builder-pack',
   'infinity-builder-pack',
   'legacy-builder-pack',
+]);
+const ENROLL_SELECTABLE_PACKAGE_KEY_SET = new Set([
+  ...ENROLL_PAID_PACKAGE_KEY_SET,
+  MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY,
 ]);
 const INFINITY_BUILDER_DIRECT_SPONSORS_PER_TIER = 3;
 const INFINITY_BUILDER_TIER_NODE_REQUIREMENT = 3;
@@ -338,6 +396,7 @@ const ENROLL_FAST_TRACK_RATE_BY_TIER = Object.freeze({
 });
 const ENROLL_FAST_TRACK_TIER_BY_PACKAGE = Object.freeze({
   'preferred-customer-pack': 'personal-pack',
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: 'personal-pack',
   'personal-builder-pack': 'personal-pack',
   'business-builder-pack': 'business-pack',
   'infinity-builder-pack': 'achievers-pack',
@@ -428,14 +487,114 @@ const ACCOUNT_OVERVIEW_BADGE_PALETTES = Object.freeze({
 });
 const MY_STORE_FEATURED_PRODUCT = Object.freeze({
   productKey: 'metacharge',
-  label: 'MetaCharge™',
+  label: 'MetaCharge\u2122',
   imageUrl: '/brand_assets/Product%20Images/MetaCharge%20Blue%20Bottle%20-%20NOBG.png',
   price: 64,
-  bv: 38,
+  bv: 50,
   quantity: 1,
 });
 const MY_STORE_UPGRADE_PRODUCT_UNIT_BV = 50;
+const MY_STORE_PAID_MEMBER_PACKAGE_KEY = 'paid-member-pack';
+const MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY = 'personal-builder-pack';
+const MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY = 'business-builder-pack';
+const MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY = 'infinity-builder-pack';
+const MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY = 'legacy-builder-pack';
+const MY_STORE_PRODUCT_PACKAGE_KEYS = Object.freeze([
+  MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+  MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+  MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+  MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+  MY_STORE_PAID_MEMBER_PACKAGE_KEY,
+]);
+const MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS = Object.freeze({
+  [MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
+  [MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze({ retailCommission: 8, bv: 48 }),
+  [MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze({ retailCommission: 12, bv: 44 }),
+  [MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze({ retailCommission: 20, bv: 38 }),
+  [MY_STORE_PAID_MEMBER_PACKAGE_KEY]: Object.freeze({ retailCommission: 0, bv: 50 }),
+});
+const MY_STORE_PRODUCT_PACKAGE_KEY_ALIASES = Object.freeze({
+  [MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze([
+    MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+    'personal_builder_pack',
+    'personalBuilderPack',
+    'personal',
+    'personal-pack',
+    FREE_ACCOUNT_PACKAGE_KEY,
+    MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY,
+    'membership_placement_reservation',
+    'membershipPlacementReservation',
+    'preferred_customer_pack',
+    'preferredCustomerPack',
+    'preferred-customer',
+    'free-account',
+    'freeAccount',
+    'free',
+  ]),
+  [MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze([
+    MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+    'business_builder_pack',
+    'businessBuilderPack',
+    'business',
+    'business-pack',
+  ]),
+  [MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze([
+    MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+    'infinity_builder_pack',
+    'infinityBuilderPack',
+    'infinity',
+    'achievers-pack',
+  ]),
+  [MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze([
+    MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+    'legacy_builder_pack',
+    'legacyBuilderPack',
+    'legacy',
+    'legacy-pack',
+  ]),
+  [MY_STORE_PAID_MEMBER_PACKAGE_KEY]: Object.freeze([
+    MY_STORE_PAID_MEMBER_PACKAGE_KEY,
+    'paid_member_pack',
+    'paidMemberPack',
+    'paid-member',
+    'paid_member',
+    'paid-member-account',
+    'paid',
+    // Backward compatibility for products saved before paid-member bucket.
+    MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+    'personal_builder_pack',
+    'personalBuilderPack',
+    'personal',
+    'personal-pack',
+    MY_STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+    'business_builder_pack',
+    'businessBuilderPack',
+    'business',
+    'business-pack',
+    MY_STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+    'infinity_builder_pack',
+    'infinityBuilderPack',
+    'infinity',
+    'achievers-pack',
+    MY_STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+    'legacy_builder_pack',
+    'legacyBuilderPack',
+    'legacy',
+    'legacy-pack',
+  ]),
+});
 const MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY = 'metacharge';
+const MY_STORE_UPGRADE_DEFAULT_SPLIT_PRODUCT_KEY = 'metaroast';
+const MY_STORE_PACKAGE_PRODUCT_KEY_SPLIT = 'split';
+const MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE = 'all-metacharge';
+const MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST = 'all-metaroast';
+const MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT = 'split';
+const MY_STORE_UPGRADE_DEFAULT_PRODUCT_MODE = MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+const MY_STORE_UPGRADE_SPLIT_ELIGIBLE_PACKAGE_KEY_SET = new Set([
+  'business-builder-pack',
+  'infinity-builder-pack',
+  'legacy-builder-pack',
+]);
 const MY_STORE_UPGRADE_PRODUCT_META = Object.freeze({
   metacharge: Object.freeze({
     productKey: 'metacharge',
@@ -477,6 +636,9 @@ const MY_STORE_PACKAGE_DISPLAY_META = Object.freeze({
   'preferred-customer-pack': Object.freeze({
     label: 'Preferred Customer Account',
   }),
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: Object.freeze({
+    label: MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_LABEL,
+  }),
   'personal-builder-pack': Object.freeze({
     label: 'Personal Builder Package',
   }),
@@ -492,6 +654,12 @@ const MY_STORE_PACKAGE_DISPLAY_META = Object.freeze({
 });
 const MY_STORE_UPGRADE_PACKAGE_KEYS_BY_PACKAGE = Object.freeze({
   'preferred-customer-pack': Object.freeze([
+    'personal-builder-pack',
+    'business-builder-pack',
+    'infinity-builder-pack',
+    'legacy-builder-pack',
+  ]),
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: Object.freeze([
     'personal-builder-pack',
     'business-builder-pack',
     'infinity-builder-pack',
@@ -535,10 +703,13 @@ const bootErrorElement = document.getElementById('boot-error');
 const loadingScreenElement = document.getElementById('binary-tree-loading');
 const firstOpenSplashElement = document.getElementById('binary-tree-first-open-splash');
 const accountOverviewPanelElement = document.getElementById('tree-next-account-overview-panel');
+const accountOverviewScrollElement = accountOverviewPanelElement?.querySelector('.tree-next-account-overview-scroll') || null;
 const accountOverviewRefreshButtonElement = document.getElementById('tree-next-account-overview-refresh');
+const accountOverviewRankBadgeShellElement = document.getElementById('tree-next-account-overview-rank-badge-shell');
 const accountOverviewRankBadgeElement = document.getElementById('tree-next-account-overview-rank-badge');
 const accountOverviewRankIconElement = document.getElementById('tree-next-account-overview-rank-icon');
 const accountOverviewRankLabelElement = document.getElementById('tree-next-account-overview-rank-label');
+const accountOverviewTitleBadgeShellElement = document.getElementById('tree-next-account-overview-title-badge-shell');
 const accountOverviewTitleBadgeElement = document.getElementById('tree-next-account-overview-title-badge');
 const accountOverviewTitleIconElement = document.getElementById('tree-next-account-overview-title-icon');
 const accountOverviewTitleLabelElement = document.getElementById('tree-next-account-overview-title-label');
@@ -560,12 +731,18 @@ const accountOverviewRetailProfitValueElement = document.getElementById('tree-ne
 const accountOverviewFastTrackValueElement = document.getElementById('tree-next-account-overview-fast-track-value');
 const accountOverviewTrackSalesTeamValueElement = document.getElementById('tree-next-account-overview-track-sales-team-value');
 const accountOverviewInfinityBuilderValueElement = document.getElementById('tree-next-account-overview-infinity-builder-value');
+const accountOverviewMatchingBonusValueElement = document.getElementById('tree-next-account-overview-matching-bonus-value');
 const accountOverviewLegacyBuilderValueElement = document.getElementById('tree-next-account-overview-legacy-builder-value');
 const accountOverviewActiveWindowLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewActiveWindowValueElement);
 const accountOverviewTotalBvLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewTotalBvValueElement);
 const accountOverviewPersonalBvLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewPersonalBvValueElement);
 const accountOverviewDirectSponsorsLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewDirectSponsorsValueElement);
 const accountOverviewEwalletLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewEwalletValueElement);
+const accountOverviewBadgeHovercardElement = document.getElementById('tree-next-account-overview-badge-hovercard');
+const accountOverviewBadgeHovercardIconElement = document.getElementById('tree-next-account-overview-badge-hovercard-icon');
+const accountOverviewBadgeHovercardTitleElement = document.getElementById('tree-next-account-overview-badge-hovercard-title');
+const accountOverviewBadgeHovercardSubtitleElement = document.getElementById('tree-next-account-overview-badge-hovercard-subtitle');
+const ACCOUNT_OVERVIEW_BADGE_HOVER_HIDE_DELAY_MS = 140;
 const ACCOUNT_OVERVIEW_DEFAULT_LABELS = Object.freeze({
   activeWindow: safeText(accountOverviewActiveWindowLabelElement?.textContent || 'Account Active Until') || 'Account Active Until',
   totalBv: safeText(accountOverviewTotalBvLabelElement?.textContent || 'Total Organization BV') || 'Total Organization BV',
@@ -575,6 +752,15 @@ const ACCOUNT_OVERVIEW_DEFAULT_LABELS = Object.freeze({
   eWallet: safeText(accountOverviewEwalletLabelElement?.textContent || 'E-Wallet') || 'E-Wallet',
 });
 const accountOverviewCommissionButtons = Array.from(document.querySelectorAll('[data-account-overview-commission]'));
+const accountOverviewCommissionTransferButtons = Array.from(document.querySelectorAll('[data-account-overview-commission-transfer]'));
+const ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META = Object.freeze({
+  retailprofit: Object.freeze({ key: 'retailprofit', label: 'Retail Profit', balanceKey: 'retailProfit' }),
+  fasttrack: Object.freeze({ key: 'fasttrack', label: 'Fast Track Bonus', balanceKey: 'fastTrack' }),
+  salesteam: Object.freeze({ key: 'salesteam', label: 'Sales Team Commissions', balanceKey: 'salesTeam' }),
+  infinitybuilder: Object.freeze({ key: 'infinitybuilder', label: 'Infinity Tier Commission', balanceKey: 'infinityBuilder' }),
+  matchingbonus: Object.freeze({ key: 'matchingbonus', label: 'Matching Bonus', balanceKey: 'matchingBonus' }),
+  legacyleadership: Object.freeze({ key: 'legacyleadership', label: 'Legacy Leadership Bonus', balanceKey: 'legacyBuilder' }),
+});
 const infinityBuilderPanelElement = document.getElementById('tree-next-infinity-builder-panel');
 const infinityBuilderCloseButtonElement = document.getElementById('tree-next-infinity-builder-close');
 const infinityBuilderBackButtonElement = document.getElementById('tree-next-infinity-builder-back');
@@ -640,8 +826,7 @@ const myStoreThankYouViewElement = myStorePanelElement?.querySelector('[data-my-
 const myStoreShareViewElement = myStorePanelElement?.querySelector('[data-my-store-share-block]') || null;
 const myStoreBreadcrumbsElement = document.getElementById('tree-next-my-store-breadcrumbs');
 const myStoreCloseButtonElement = document.getElementById('tree-next-my-store-close');
-const myStoreFeaturedImageElement = document.getElementById('tree-next-my-store-featured-image');
-const myStoreFeaturedLabelElement = document.getElementById('tree-next-my-store-featured-label');
+const myStoreFeaturedProductsElement = document.getElementById('tree-next-my-store-featured-products');
 const myStoreUpgradesSectionElement = document.getElementById('tree-next-my-store-upgrades-section');
 const myStoreUpgradesGridElement = document.getElementById('tree-next-my-store-upgrades-grid');
 const myStoreReviewImageElement = document.getElementById('tree-next-my-store-review-image');
@@ -718,11 +903,13 @@ const treeNextEnrollSpilloverModeFieldGroup = treeNextEnrollSpilloverModeInput i
   : null;
 const treeNextEnrollCountryFlagInput = document.getElementById('tree-next-enroll-country-flag');
 const treeNextEnrollPackageInput = document.getElementById('tree-next-enroll-package');
+const treeNextEnrollProductInput = document.getElementById('tree-next-enroll-product');
 const treeNextEnrollFastTrackTierInput = document.getElementById('tree-next-enroll-fast-track-tier');
 const treeNextEnrollPackageBvElement = document.getElementById('tree-next-enroll-package-bv');
 const treeNextEnrollPackageProductsElement = document.getElementById('tree-next-enroll-package-products');
 const treeNextEnrollPackageFastTrackBonusElement = document.getElementById('tree-next-enroll-package-fast-track-bonus');
 const treeNextEnrollSummaryPackageLabelElement = document.getElementById('tree-next-enroll-summary-package-label');
+const treeNextEnrollSummaryProductLabelElement = document.getElementById('tree-next-enroll-summary-product-label');
 const treeNextEnrollSummarySubtotalElement = document.getElementById('tree-next-enroll-summary-subtotal');
 const treeNextEnrollSummaryDiscountElement = document.getElementById('tree-next-enroll-summary-discount');
 const treeNextEnrollSummaryTaxElement = document.getElementById('tree-next-enroll-summary-tax');
@@ -764,6 +951,8 @@ let myStoreStripeCardCvc = null;
 let myStoreStripeInitPromise = null;
 let accountOverviewLastRenderSignature = '';
 let accountOverviewSelectedCommissionKey = '';
+let accountOverviewCommissionTransferBusySourceKeys = new Set();
+let accountOverviewCommissionTransferErrorBySourceKey = new Map();
 let accountOverviewRemoteSnapshot = createEmptyAccountOverviewRemoteSnapshot();
 let accountOverviewRemoteDataVersion = 0;
 let accountOverviewRemoteSyncPromise = null;
@@ -774,6 +963,11 @@ let accountOverviewRemoteIdentityKey = '';
 let accountOverviewRemoteRequestSequence = 0;
 let accountOverviewCachedLegVolumeSignature = '';
 let accountOverviewCachedLegVolumeMetrics = null;
+let accountOverviewBadgeHoverHideTimerId = 0;
+let activeAccountOverviewBadgeHoverAnchorElement = null;
+let activeAccountOverviewBadgeHoverKey = '';
+let nodeServerCutoffMetricsCache = new Map();
+let nodeServerCutoffMetricsInFlight = new Map();
 let sideNavMemberStatusCachedSignature = '';
 let sideNavMemberStatusCachedSnapshot = null;
 let rankAdvancementLastRenderSignature = '';
@@ -833,6 +1027,8 @@ let preferredAccountsFeedbackTimerId = 0;
 let preferredAccountsRenderErrorLoggedAtMs = 0;
 let renderLoopErrorLoggedAtMs = 0;
 let myStoreLastRenderSignature = '';
+let myStoreProductCatalogHydrationPromise = null;
+let myStoreCatalogProducts = [];
 let isTreeNextEnrollStripeReady = false;
 let isTreeNextEnrollStripeCardComplete = false;
 let isTreeNextEnrollStripeCardExpiryComplete = false;
@@ -872,6 +1068,8 @@ const mobileSearchViewportLock = {
   width: 0,
   height: 0,
 };
+let treeNextLiveRegisteredMembersSnapshot = [];
+let treeNextLiveRegisteredMembersSnapshotUpdatedAtMs = 0;
 
 const state = {
   source: 'member',
@@ -974,6 +1172,28 @@ const state = {
       dragStartY: 0,
       dragStartScrollY: 0,
       dragMoved: false,
+    },
+    sideNavDetailsCarousel: {
+      viewportRect: null,
+      selectedNodeId: '',
+      selectedMonthKey: '',
+      selectedWeekNumber: 0,
+      dragActive: false,
+      dragPointerId: null,
+      dragStartX: 0,
+      dragStartY: 0,
+      dragAxis: '',
+      dragMoved: false,
+      dragDeltaX: 0,
+      tapAction: '',
+      transitionActive: false,
+      transitionStartedAtMs: 0,
+      transitionDurationMs: TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS,
+      transitionDirection: 0,
+      transitionFromMonthKey: '',
+      transitionFromWeekNumber: 0,
+      transitionToMonthKey: '',
+      transitionToWeekNumber: 0,
     },
   },
   enroll: {
@@ -2032,20 +2252,35 @@ function setSelectedNode(nextId, options = {}) {
     if (!animate) {
       state.selectionFxTracks = Object.create(null);
       state.selectedId = '';
+      getSideNavDetailsCarouselState().selectedNodeId = '';
       return;
     }
     startSelectionAnimation(currentId, 0, 'deselect', nowMs);
     state.selectedId = '';
+    getSideNavDetailsCarouselState().selectedNodeId = '';
     return;
   }
 
   if (targetId === currentId) {
+    if (targetId) {
+      const existingNode = resolveNodeById(targetId);
+      if (existingNode) {
+        maybeRefreshNodeServerCutoffMetrics(existingNode);
+      }
+    }
     return;
   }
 
   if (!animate) {
     state.selectionFxTracks = Object.create(null);
     state.selectedId = targetId;
+    getSideNavDetailsCarouselState().selectedNodeId = '';
+    if (targetId) {
+      const selectedNode = resolveNodeById(targetId);
+      if (selectedNode) {
+        maybeRefreshNodeServerCutoffMetrics(selectedNode);
+      }
+    }
     return;
   }
 
@@ -2056,10 +2291,36 @@ function setSelectedNode(nextId, options = {}) {
     startSelectionAnimation(targetId, 1, 'select', nowMs, 0);
   }
   state.selectedId = targetId;
+  getSideNavDetailsCarouselState().selectedNodeId = '';
+  if (targetId) {
+    const selectedNode = resolveNodeById(targetId);
+    if (selectedNode) {
+      maybeRefreshNodeServerCutoffMetrics(selectedNode);
+    }
+  }
 }
 
 function safeText(value) {
   return String(value || '').trim();
+}
+
+function escapeHtml(value) {
+  return safeText(value).replace(/[&<>"']/g, (character) => {
+    switch (character) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case '\'':
+        return '&#39;';
+      default:
+        return character;
+    }
+  });
 }
 
 function safeNumber(value, fallback = 0) {
@@ -2466,18 +2727,6 @@ function resolveNodeCurrentPersonalBvForActivity(nodeInput = null) {
     ?? node?.package_bv,
     0,
   )));
-  const baselinePersonalPv = safeNumber(
-    node?.serverCutoffBaselineStarterPersonalPv
-    ?? node?.server_cutoff_baseline_starter_personal_pv
-    ?? node?.personalVolumeBaselineBv
-    ?? node?.personal_volume_baseline_bv,
-    NaN,
-  );
-  if (Number.isFinite(baselinePersonalPv) && baselinePersonalPv > 0) {
-    return hasExpiredCutoff
-      ? 0
-      : Math.max(0, starterPersonalPv - Math.max(0, Math.floor(baselinePersonalPv)));
-  }
   return hasExpiredCutoff ? 0 : starterPersonalPv;
 }
 
@@ -2530,6 +2779,37 @@ function resolveSessionSponsorUsernameKey(sessionInput = state.session) {
       || '',
     ).replace(/^@+/, ''),
   );
+}
+
+function isMembershipPlacementReservationPackage(packageKey) {
+  return normalizeCredentialValue(packageKey) === MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY;
+}
+
+function resolveAccountStatusKey(record = {}) {
+  return normalizeCredentialValue(
+    record?.accountStatus
+    || record?.status
+    || record?.userAccountStatus
+    || record?.user_account_status
+    || record?.memberAccountStatus
+    || record?.member_account_status,
+  );
+}
+
+function isPendingOrReservationAccountRecord(record = {}) {
+  const statusKey = resolveAccountStatusKey(record);
+  if (statusKey === 'pending') {
+    return true;
+  }
+  return isMembershipPlacementReservationPackage(record?.enrollmentPackage);
+}
+
+function isCurrentSessionPendingOrReservationAccount() {
+  if (isPendingOrReservationAccountRecord(state.session || {})) {
+    return true;
+  }
+  const homeNode = resolveNodeById(resolvePreferredGlobalHomeNodeId()) || resolveNodeById('root');
+  return isPendingOrReservationAccountRecord(homeNode || {});
 }
 
 function isNodePersonallyEnrolledBySession(nodeInput = null) {
@@ -2605,8 +2885,9 @@ function resolveNodeCycleCount(nodeInput = null, volumeMetricsInput = null) {
   const rightLeg = Math.max(0, Math.floor(safeNumber(metrics.rightVolume, 0)));
   const weakerLeg = Math.min(leftLeg, rightLeg);
   const strongerLeg = Math.max(leftLeg, rightLeg);
-  const cyclesFromWeakerLeg = Math.floor(weakerLeg / 500);
-  const cyclesFromStrongerLeg = Math.floor(strongerLeg / 1000);
+  // Dynamic cycle rule: weaker/stronger legs both consume 1000 BV per cycle.
+  const cyclesFromWeakerLeg = Math.floor(weakerLeg / TREE_NEXT_CYCLE_RULE_WEAKER_BV);
+  const cyclesFromStrongerLeg = Math.floor(strongerLeg / TREE_NEXT_CYCLE_RULE_STRONGER_BV);
   return Math.max(0, Math.min(cyclesFromWeakerLeg, cyclesFromStrongerLeg));
 }
 
@@ -2860,6 +3141,10 @@ function resolveNodeChildLegState(nodeId) {
 }
 
 function requestEnrollMemberFromTree(parentId, side) {
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    setTreeNextEnrollFeedback(PENDING_RESERVATION_GATE_MESSAGE, false);
+    return;
+  }
   const safeParentId = safeText(parentId);
   const placementLeg = normalizeBinarySide(side) === 'right' ? 'right' : 'left';
   if (!safeParentId) {
@@ -2930,17 +3215,115 @@ function resolveEnrollFastTrackTierLabel(tierKey) {
   return ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY[normalizedTier] || ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY['personal-pack'];
 }
 
-function isTreeNextEnrollPaidPackage(packageKey) {
+function isTreeNextEnrollSelectablePackage(packageKey) {
   const normalizedPackage = normalizeCredentialValue(packageKey);
-  return ENROLL_PAID_PACKAGE_KEY_SET.has(normalizedPackage);
+  return ENROLL_SELECTABLE_PACKAGE_KEY_SET.has(normalizedPackage);
 }
 
 function resolveTreeNextEnrollPackageKey(packageKey) {
   const normalizedPackage = normalizeCredentialValue(packageKey);
-  if (isTreeNextEnrollPaidPackage(normalizedPackage)) {
+  if (isTreeNextEnrollSelectablePackage(normalizedPackage)) {
     return normalizedPackage;
   }
   return ENROLL_DEFAULT_PACKAGE_KEY;
+}
+
+function resolveTreeNextEnrollProductKey(productKey = '') {
+  const normalizedProduct = normalizeCredentialValue(productKey).replace(/[^a-z0-9]/g, '');
+  if (normalizedProduct.includes('split')) {
+    return ENROLL_SPLIT_PRODUCT_KEY;
+  }
+  if (normalizedProduct.includes('roast')) {
+    return 'metaroast';
+  }
+  if (normalizedProduct.includes('charge')) {
+    return 'metacharge';
+  }
+  return ENROLL_DEFAULT_PRODUCT_KEY;
+}
+
+function resolveTreeNextEnrollProductMeta(productKey = '') {
+  const normalizedProductKey = resolveTreeNextEnrollProductKey(productKey);
+  return ENROLL_PRODUCT_META[normalizedProductKey] || ENROLL_PRODUCT_META[ENROLL_DEFAULT_PRODUCT_KEY];
+}
+
+function isTreeNextEnrollSplitEligiblePackage(packageKey = '') {
+  const normalizedPackageKey = resolveTreeNextEnrollPackageKey(packageKey);
+  return ENROLL_SPLIT_ELIGIBLE_PACKAGE_KEY_SET.has(normalizedPackageKey);
+}
+
+function resolveTreeNextEnrollSplitAllocation(packageKey = '') {
+  const normalizedPackageKey = resolveTreeNextEnrollPackageKey(packageKey);
+  const packageMeta = resolveEnrollPackageMeta(normalizedPackageKey);
+  const selectableProducts = Math.max(0, Math.floor(safeNumber(packageMeta?.selectableProducts, 0)));
+  const metachargeQuantity = Math.ceil(selectableProducts / 2);
+  const metaroastQuantity = Math.max(0, selectableProducts - metachargeQuantity);
+  return {
+    metachargeQuantity,
+    metaroastQuantity,
+  };
+}
+
+function formatTreeNextEnrollSplitSummaryLabel(packageKey = '') {
+  const splitAllocation = resolveTreeNextEnrollSplitAllocation(packageKey);
+  return `MetaCharge\u2122 ${formatInteger(splitAllocation.metachargeQuantity)}x + MetaRoast\u2122 ${formatInteger(splitAllocation.metaroastQuantity)}x`;
+}
+
+function syncTreeNextEnrollProductAvailability(packageKey = '') {
+  if (!(treeNextEnrollProductInput instanceof HTMLSelectElement)) {
+    return resolveTreeNextEnrollProductKey(ENROLL_DEFAULT_PRODUCT_KEY);
+  }
+
+  const normalizedPackageKey = resolveTreeNextEnrollPackageKey(
+    packageKey || treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY,
+  );
+  const splitAllowed = isTreeNextEnrollSplitEligiblePackage(normalizedPackageKey);
+  const currentProductKey = resolveTreeNextEnrollProductKey(treeNextEnrollProductInput.value);
+  let nextProductValue = currentProductKey;
+  let needsMenuRebuild = false;
+
+  for (const option of Array.from(treeNextEnrollProductInput.options || [])) {
+    const optionProductKey = resolveTreeNextEnrollProductKey(option?.value);
+    const shouldHide = optionProductKey === ENROLL_SPLIT_PRODUCT_KEY && !splitAllowed;
+    const shouldDisable = shouldHide;
+    if (option.hidden !== shouldHide) {
+      option.hidden = shouldHide;
+      needsMenuRebuild = true;
+    }
+    if (option.disabled !== shouldDisable) {
+      option.disabled = shouldDisable;
+      needsMenuRebuild = true;
+    }
+  }
+
+  if (currentProductKey === ENROLL_SPLIT_PRODUCT_KEY && !splitAllowed) {
+    nextProductValue = ENROLL_DEFAULT_PRODUCT_KEY;
+  }
+  if (!ENROLL_PRODUCT_META[nextProductValue]) {
+    nextProductValue = ENROLL_DEFAULT_PRODUCT_KEY;
+  }
+
+  const hasNextValue = Array.from(treeNextEnrollProductInput.options || []).some(
+    (option) => !option.disabled && resolveTreeNextEnrollProductKey(option?.value) === nextProductValue,
+  );
+  if (!hasNextValue) {
+    const firstEnabledOption = Array.from(treeNextEnrollProductInput.options || []).find((option) => !option.disabled);
+    nextProductValue = resolveTreeNextEnrollProductKey(firstEnabledOption?.value || ENROLL_DEFAULT_PRODUCT_KEY);
+  }
+
+  if (resolveTreeNextEnrollProductKey(treeNextEnrollProductInput.value) !== nextProductValue) {
+    treeNextEnrollProductInput.value = nextProductValue;
+  }
+
+  const productSelectEntry = treeNextEnrollCustomSelectByNativeId.get('tree-next-enroll-product');
+  if (productSelectEntry && needsMenuRebuild) {
+    buildTreeNextEnrollCustomSelectMenu(productSelectEntry);
+    closeTreeNextEnrollCustomSelect(productSelectEntry);
+  } else {
+    syncTreeNextEnrollCustomSelectById('tree-next-enroll-product');
+  }
+
+  return resolveTreeNextEnrollProductKey(treeNextEnrollProductInput.value || nextProductValue);
 }
 
 function resolveEnrollPackageMeta(packageKey) {
@@ -3336,6 +3719,9 @@ function buildTreeNextEnrollCustomSelectMenu(entry) {
   menu.innerHTML = '';
   entry.optionButtons = [];
   for (const option of Array.from(nativeSelect.options || [])) {
+    if (option.hidden) {
+      continue;
+    }
     const optionValue = safeText(option?.value);
     const optionLabel = safeText(option?.label || option?.textContent || optionValue);
     const optionButton = document.createElement('button');
@@ -3967,7 +4353,12 @@ function syncTreeNextEnrollPackagePreview() {
   ) {
     treeNextEnrollPackageInput.value = selectedPackage;
   }
+  const selectedProductKey = syncTreeNextEnrollProductAvailability(selectedPackage);
   const packageMeta = resolveEnrollPackageMeta(selectedPackage);
+  const productMeta = resolveTreeNextEnrollProductMeta(selectedProductKey);
+  const splitSummaryLabel = selectedProductKey === ENROLL_SPLIT_PRODUCT_KEY
+    ? formatTreeNextEnrollSplitSummaryLabel(selectedPackage)
+    : '';
   const tierFromForm = normalizeCredentialValue(treeNextEnrollFastTrackTierInput?.value || '');
   const tierKey = tierFromForm || resolveEnrollFastTrackTierFromPackage(selectedPackage);
   const packageBv = Math.max(0, Math.floor(safeNumber(packageMeta?.bv, 0)));
@@ -3991,6 +4382,11 @@ function syncTreeNextEnrollPackagePreview() {
   if (treeNextEnrollSummaryPackageLabelElement instanceof HTMLElement) {
     treeNextEnrollSummaryPackageLabelElement.textContent = packageMeta?.label || 'Package';
   }
+  if (treeNextEnrollSummaryProductLabelElement instanceof HTMLElement) {
+    treeNextEnrollSummaryProductLabelElement.textContent = splitSummaryLabel
+      || productMeta?.label
+      || 'MetaCharge\u2122';
+  }
   if (treeNextEnrollSummarySubtotalElement instanceof HTMLElement) {
     treeNextEnrollSummarySubtotalElement.textContent = formatEnrollCurrency(subtotalAmount);
   }
@@ -4004,6 +4400,7 @@ function syncTreeNextEnrollPackagePreview() {
     treeNextEnrollSummaryTotalElement.textContent = formatEnrollCurrency(totalAmount);
   }
   syncTreeNextEnrollCustomSelectById('tree-next-enroll-package');
+  syncTreeNextEnrollCustomSelectById('tree-next-enroll-product');
 }
 
 function resolveTreeNextEnrollPlacementSideFromLock(placementLock = state.enroll?.placementLock) {
@@ -4362,12 +4759,292 @@ function createEmptyAccountOverviewRemoteSnapshot() {
   return {
     binaryTreeMetrics: null,
     salesTeamCommission: null,
+    serverCutoffMetrics: null,
     commissionContainerSnapshot: null,
     eWalletSnapshot: null,
     walletCommissionOffsets: null,
+    ledgerSummary: null,
     retailProfitBalance: 0,
     updatedAtMs: 0,
   };
+}
+
+function resetNodeServerCutoffMetricsCache() {
+  nodeServerCutoffMetricsCache = new Map();
+  nodeServerCutoffMetricsInFlight = new Map();
+}
+
+function resolveNodeServerCutoffMetricsIdentityPayload(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node || isInfinityBuilderPlaceholderNode(node) || shouldApplyTreeNextNodePrivacyMask(node)) {
+    return {
+      userId: '',
+      username: '',
+      email: '',
+    };
+  }
+
+  const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+  const username = safeText(
+    node?.username
+    || node?.memberCode
+    || node?.member_code
+    || node?.memberUsername
+    || node?.member_username
+    || '',
+  ).replace(/^@+/, '');
+  const usernameKey = normalizeCredentialValue(username);
+  const adminUsernameKey = normalizeCredentialValue(ADMIN_ROOT_USERNAME);
+  const globalRootNodeIdKey = normalizeCredentialValue(LIVE_TREE_GLOBAL_ROOT_ID);
+  const isSystemOrAdminNode = (
+    !nodeIdKey
+    || nodeIdKey === 'root'
+    || nodeIdKey === globalRootNodeIdKey
+    || nodeIdKey === adminUsernameKey
+    || usernameKey === adminUsernameKey
+  );
+  if (isSystemOrAdminNode) {
+    return {
+      userId: '',
+      username: '',
+      email: '',
+    };
+  }
+
+  const userIdCandidates = [
+    node?.userId,
+    node?.memberUserId,
+    node?.member_user_id,
+    node?.sourceUserId,
+    node?.source_user_id,
+    node?.id,
+  ];
+  let userId = '';
+  for (const candidate of userIdCandidates) {
+    const value = safeText(candidate);
+    if (value) {
+      userId = value;
+      break;
+    }
+  }
+  const userIdKey = normalizeCredentialValue(userId);
+  if (!userId || userIdKey === 'root' || userIdKey === globalRootNodeIdKey || userIdKey === adminUsernameKey) {
+    userId = '';
+  }
+
+  const emailCandidates = [
+    node?.email,
+    node?.memberEmail,
+    node?.member_email,
+    node?.userEmail,
+    node?.user_email,
+    node?.sourceEmail,
+    node?.source_email,
+  ];
+  let email = '';
+  for (const candidate of emailCandidates) {
+    const value = safeText(candidate);
+    if (value) {
+      email = value;
+      break;
+    }
+  }
+
+  return {
+    userId,
+    username,
+    email,
+  };
+}
+
+function hasNodeServerCutoffMetricsIdentity(identityPayload = {}) {
+  return Boolean(
+    safeText(identityPayload?.userId)
+    || safeText(identityPayload?.username)
+    || safeText(identityPayload?.email),
+  );
+}
+
+function resolveNodeServerCutoffMetricsCacheKeys(identityPayload = {}) {
+  const keys = [];
+  const usernameKey = normalizeCredentialValue(safeText(identityPayload?.username).replace(/^@+/, ''));
+  const userIdKey = normalizeCredentialValue(identityPayload?.userId);
+  const emailKey = normalizeCredentialValue(identityPayload?.email);
+  if (usernameKey) {
+    keys.push(`username:${usernameKey}`);
+  }
+  if (userIdKey) {
+    keys.push(`user:${userIdKey}`);
+  }
+  if (emailKey) {
+    keys.push(`email:${emailKey}`);
+  }
+  return Array.from(new Set(keys));
+}
+
+function resolveNodeServerCutoffMetricsCachePrimaryKey(identityPayload = {}) {
+  const keys = resolveNodeServerCutoffMetricsCacheKeys(identityPayload);
+  return keys[0] || '';
+}
+
+function resolveNodeServerCutoffMetricsCachedEntry(identityPayload = {}) {
+  const keys = resolveNodeServerCutoffMetricsCacheKeys(identityPayload);
+  for (const key of keys) {
+    if (nodeServerCutoffMetricsCache.has(key)) {
+      return nodeServerCutoffMetricsCache.get(key) || null;
+    }
+  }
+  return null;
+}
+
+function isNodeServerCutoffMetricsCacheEntryFresh(entryInput = null, nowMs = Date.now()) {
+  const entry = entryInput && typeof entryInput === 'object' ? entryInput : null;
+  if (!entry) {
+    return false;
+  }
+  const fetchedAtMs = Math.max(0, safeNumber(entry.fetchedAtMs, 0));
+  if (!fetchedAtMs) {
+    return false;
+  }
+  return (nowMs - fetchedAtMs) < NODE_SERVER_CUTOFF_METRICS_CACHE_TTL_MS;
+}
+
+function pruneNodeServerCutoffMetricsCache() {
+  const overflow = nodeServerCutoffMetricsCache.size - NODE_SERVER_CUTOFF_METRICS_CACHE_MAX_ENTRIES;
+  if (overflow <= 0) {
+    return;
+  }
+  let remaining = overflow;
+  for (const key of nodeServerCutoffMetricsCache.keys()) {
+    nodeServerCutoffMetricsCache.delete(key);
+    remaining -= 1;
+    if (remaining <= 0) {
+      break;
+    }
+  }
+}
+
+function cacheNodeServerCutoffMetrics(identityPayload = {}, metricsInput = null, options = {}) {
+  if (!hasNodeServerCutoffMetricsIdentity(identityPayload)) {
+    return;
+  }
+  const cacheKeys = resolveNodeServerCutoffMetricsCacheKeys(identityPayload);
+  if (!cacheKeys.length) {
+    return;
+  }
+  const fetchedAtMs = Math.max(0, safeNumber(options?.fetchedAtMs, Date.now()));
+  const metrics = (
+    metricsInput
+    && typeof metricsInput === 'object'
+  )
+    ? metricsInput
+    : null;
+  const entry = {
+    metrics,
+    fetchedAtMs,
+  };
+  for (const cacheKey of cacheKeys) {
+    nodeServerCutoffMetricsCache.set(cacheKey, entry);
+  }
+  pruneNodeServerCutoffMetricsCache();
+}
+
+async function refreshNodeServerCutoffMetrics(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const force = options?.force === true;
+  const identityPayload = resolveNodeServerCutoffMetricsIdentityPayload(node);
+  if (!hasNodeServerCutoffMetricsIdentity(identityPayload)) {
+    return null;
+  }
+  const primaryKey = resolveNodeServerCutoffMetricsCachePrimaryKey(identityPayload);
+  if (!primaryKey) {
+    return null;
+  }
+
+  const nowMs = Date.now();
+  const cachedEntry = resolveNodeServerCutoffMetricsCachedEntry(identityPayload);
+  if (!force && isNodeServerCutoffMetricsCacheEntryFresh(cachedEntry, nowMs)) {
+    return cachedEntry?.metrics && typeof cachedEntry.metrics === 'object'
+      ? cachedEntry.metrics
+      : null;
+  }
+
+  if (nodeServerCutoffMetricsInFlight.has(primaryKey)) {
+    return nodeServerCutoffMetricsInFlight.get(primaryKey);
+  }
+
+  const requestPromise = (async () => {
+    const identityQuery = new URLSearchParams();
+    appendAccountOverviewIdentityQuery(identityQuery, identityPayload);
+    const payload = await fetchAccountOverviewEndpoint(
+      ACCOUNT_OVERVIEW_MEMBER_SERVER_CUTOFF_METRICS_API,
+      identityQuery,
+    );
+    const metrics = resolveAccountOverviewServerCutoffMetricsRecord(payload);
+    cacheNodeServerCutoffMetrics(identityPayload, metrics, {
+      fetchedAtMs: Date.now(),
+    });
+    return metrics;
+  })().catch(() => {
+    // Avoid immediate retry storms when the endpoint is temporarily unavailable.
+    cacheNodeServerCutoffMetrics(identityPayload, cachedEntry?.metrics || null, {
+      fetchedAtMs: Date.now(),
+    });
+    return cachedEntry?.metrics && typeof cachedEntry.metrics === 'object'
+      ? cachedEntry.metrics
+      : null;
+  }).finally(() => {
+    nodeServerCutoffMetricsInFlight.delete(primaryKey);
+  });
+
+  nodeServerCutoffMetricsInFlight.set(primaryKey, requestPromise);
+  return requestPromise;
+}
+
+function maybeRefreshNodeServerCutoffMetrics(nodeInput = null, options = {}) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return;
+  }
+  const force = options?.force === true;
+  const identityPayload = resolveNodeServerCutoffMetricsIdentityPayload(node);
+  if (!hasNodeServerCutoffMetricsIdentity(identityPayload)) {
+    return;
+  }
+  const primaryKey = resolveNodeServerCutoffMetricsCachePrimaryKey(identityPayload);
+  if (!primaryKey) {
+    return;
+  }
+  const cachedEntry = resolveNodeServerCutoffMetricsCachedEntry(identityPayload);
+  if (!force && isNodeServerCutoffMetricsCacheEntryFresh(cachedEntry)) {
+    return;
+  }
+  if (nodeServerCutoffMetricsInFlight.has(primaryKey)) {
+    return;
+  }
+  void refreshNodeServerCutoffMetrics(node, { force });
+}
+
+function resolveNodeServerCutoffMetrics(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return null;
+  }
+  const identityPayload = resolveNodeServerCutoffMetricsIdentityPayload(node);
+  if (!hasNodeServerCutoffMetricsIdentity(identityPayload)) {
+    return null;
+  }
+  const cachedEntry = resolveNodeServerCutoffMetricsCachedEntry(identityPayload);
+  if (!cachedEntry) {
+    maybeRefreshNodeServerCutoffMetrics(node);
+    return null;
+  }
+  if (!isNodeServerCutoffMetricsCacheEntryFresh(cachedEntry)) {
+    maybeRefreshNodeServerCutoffMetrics(node);
+  }
+  return cachedEntry?.metrics && typeof cachedEntry.metrics === 'object'
+    ? cachedEntry.metrics
+    : null;
 }
 
 function resetAccountOverviewRemoteSnapshot() {
@@ -4381,6 +5058,7 @@ function resetAccountOverviewRemoteSnapshot() {
   accountOverviewRemoteIdentityKey = '';
   accountOverviewCachedLegVolumeSignature = '';
   accountOverviewCachedLegVolumeMetrics = null;
+  resetNodeServerCutoffMetricsCache();
   accountOverviewLastRenderSignature = '';
 }
 
@@ -4581,12 +5259,16 @@ async function fetchAccountOverviewEndpoint(endpoint, query = new URLSearchParam
     ? query.toString()
     : '';
   const requestUrl = queryString ? `${endpoint}?${queryString}` : endpoint;
+  const requestHeaders = buildRankAdvancementRequestHeaders({
+    Accept: 'application/json',
+  });
 
   try {
     const response = await fetch(requestUrl, {
       method: 'GET',
       cache: 'no-store',
       credentials: 'same-origin',
+      headers: requestHeaders,
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -4651,6 +5333,112 @@ function resolveAccountOverviewBinaryTreeMetricsRecord(payload = null) {
   }
   const list = Array.isArray(payload?.snapshots) ? payload.snapshots : [];
   return list.find((entry) => entry && typeof entry === 'object') || null;
+}
+
+function resolveAccountOverviewServerCutoffMetricsRecord(payload = null) {
+  const metrics = (
+    payload?.data?.metrics
+    && typeof payload.data.metrics === 'object'
+  )
+    ? payload.data.metrics
+    : (
+      payload?.metrics
+      && typeof payload.metrics === 'object'
+        ? payload.metrics
+        : null
+    );
+  if (!metrics) {
+    return null;
+  }
+  const cutoffMeta = (
+    payload?.data?.cutoff
+    && typeof payload.data.cutoff === 'object'
+  )
+    ? payload.data.cutoff
+    : (
+      payload?.cutoff
+      && typeof payload.cutoff === 'object'
+        ? payload.cutoff
+        : null
+    );
+  const cycleLowerBv = Math.max(
+    1,
+    Math.floor(safeNumber(metrics.cycleLowerBv, TREE_NEXT_CYCLE_RULE_STRONGER_BV)),
+  );
+  const cycleHigherBv = Math.max(
+    1,
+    Math.floor(safeNumber(metrics.cycleHigherBv, TREE_NEXT_CYCLE_RULE_WEAKER_BV)),
+  );
+  const currentWeekLeftLegBv = Math.max(0, Math.floor(safeNumber(metrics.currentWeekLeftLegBv, 0)));
+  const currentWeekRightLegBv = Math.max(0, Math.floor(safeNumber(metrics.currentWeekRightLegBv, 0)));
+  const lowerLegBv = Math.min(currentWeekLeftLegBv, currentWeekRightLegBv);
+  const higherLegBv = Math.max(currentWeekLeftLegBv, currentWeekRightLegBv);
+  const estimatedCycles = Math.max(0, Math.floor(safeNumber(
+    metrics.estimatedCycles,
+    Math.min(
+      Math.floor(lowerLegBv / cycleHigherBv),
+      Math.floor(higherLegBv / cycleLowerBv),
+    ),
+  )));
+  return {
+    cycleLowerBv,
+    cycleHigherBv,
+    totalLeftLegBv: Math.max(0, Math.floor(safeNumber(metrics.totalLeftLegBv, currentWeekLeftLegBv))),
+    totalRightLegBv: Math.max(0, Math.floor(safeNumber(metrics.totalRightLegBv, currentWeekRightLegBv))),
+    totalPersonalPv: Math.max(0, Math.floor(safeNumber(metrics.totalPersonalPv, metrics.currentWeekPersonalPv))),
+    baselineLeftLegBv: Math.max(0, Math.floor(safeNumber(metrics.baselineLeftLegBv, 0))),
+    baselineRightLegBv: Math.max(0, Math.floor(safeNumber(metrics.baselineRightLegBv, 0))),
+    baselinePersonalPv: Math.max(0, Math.floor(safeNumber(metrics.baselinePersonalPv, 0))),
+    currentWeekLeftLegBv,
+    currentWeekRightLegBv,
+    currentWeekPersonalPv: Math.max(0, Math.floor(safeNumber(metrics.currentWeekPersonalPv, 0))),
+    estimatedCycles,
+    nextCutoffAt: safeText(cutoffMeta?.nextCutoffAt),
+    lastClosedCutoffAt: safeText(cutoffMeta?.lastClosedCutoffAt),
+    latestForcedCutoffAt: safeText(cutoffMeta?.latestForcedCutoffAt),
+    lastAppliedCutoffAt: safeText(cutoffMeta?.lastAppliedCutoffAt),
+  };
+}
+
+function resolveAccountOverviewLedgerSummaryRecord(payload = null) {
+  const summary = (
+    payload?.summary
+    && typeof payload.summary === 'object'
+  )
+    ? payload.summary
+    : (
+      payload?.data?.summary
+      && typeof payload.data.summary === 'object'
+        ? payload.data.summary
+        : null
+    );
+  if (!summary) {
+    return null;
+  }
+
+  const byType = summary.byType && typeof summary.byType === 'object'
+    ? summary.byType
+    : {};
+  const normalizedByType = {};
+  for (const [entryType, entryValue] of Object.entries(byType)) {
+    if (!entryType || !entryValue || typeof entryValue !== 'object') {
+      continue;
+    }
+    normalizedByType[entryType] = {
+      count: Math.max(0, Math.floor(safeNumber(entryValue.count, 0))),
+      netAmount: Math.round(Math.max(0, safeNumber(entryValue.netAmount, 0)) * 100) / 100,
+    };
+  }
+
+  return {
+    totalEarned: Math.round(Math.max(0, safeNumber(summary.totalEarned, 0)) * 100) / 100,
+    pendingBalance: Math.round(Math.max(0, safeNumber(summary.pendingBalance, 0)) * 100) / 100,
+    postedBalance: Math.round(Math.max(0, safeNumber(summary.postedBalance, 0)) * 100) / 100,
+    availableBalance: Math.round(Math.max(0, safeNumber(summary.availableBalance, 0)) * 100) / 100,
+    paidOutAmount: Math.round(Math.max(0, safeNumber(summary.paidOutAmount, 0)) * 100) / 100,
+    reversedAmount: Math.round(Math.max(0, safeNumber(summary.reversedAmount, 0)) * 100) / 100,
+    byType: normalizedByType,
+  };
 }
 
 function summarizeAccountOverviewBinaryTreeMetrics(payload = null) {
@@ -4818,20 +5606,35 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
       walletQuery.set('seedBalance', seedBalance.toFixed(2));
     }
 
+    const ledgerSummaryQuery = new URLSearchParams(identityQuery.toString());
+    ledgerSummaryQuery.set('status', 'pending,posted,paid');
+    const isAdminSource = normalizeCredentialValue(safeText(state.source)) === 'admin';
+    const ledgerSummaryEndpoint = isAdminSource
+      ? ACCOUNT_OVERVIEW_ADMIN_LEDGER_SUMMARY_API
+      : ACCOUNT_OVERVIEW_MEMBER_LEDGER_SUMMARY_API;
+
     const [
       binaryTreeMetricsPayload,
       salesTeamCommissionsPayload,
+      serverCutoffMetricsPayload,
       commissionContainersPayload,
       eWalletPayload,
+      ledgerSummaryPayload,
     ] = await Promise.all([
       fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_BINARY_TREE_METRICS_API, identityQuery),
       fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_SALES_TEAM_COMMISSIONS_API, identityQuery),
+      allowAnonymous
+        ? Promise.resolve(null)
+        : fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_MEMBER_SERVER_CUTOFF_METRICS_API, identityQuery),
       allowAnonymous
         ? Promise.resolve(null)
         : fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_COMMISSION_CONTAINERS_API, identityQuery),
       allowAnonymous
         ? Promise.resolve(null)
         : fetchAccountOverviewEndpoint(ACCOUNT_OVERVIEW_E_WALLET_API, walletQuery),
+      allowAnonymous
+        ? Promise.resolve(null)
+        : fetchAccountOverviewEndpoint(ledgerSummaryEndpoint, ledgerSummaryQuery),
     ]);
 
     const binaryTreeMetrics = normalizedScope === 'system'
@@ -4846,6 +5649,9 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
         || resolveAccountOverviewSalesTeamCommissionRecord(salesTeamCommissionsPayload)
       )
       : resolveAccountOverviewSalesTeamCommissionRecord(salesTeamCommissionsPayload);
+    const serverCutoffMetrics = allowAnonymous
+      ? null
+      : resolveAccountOverviewServerCutoffMetricsRecord(serverCutoffMetricsPayload);
     const commissionContainerSnapshot = (
       commissionContainersPayload?.snapshot
       && typeof commissionContainersPayload.snapshot === 'object'
@@ -4864,19 +5670,36 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
     )
       ? eWalletPayload.commissionOffsets
       : null;
+    const ledgerSummary = allowAnonymous
+      ? null
+      : resolveAccountOverviewLedgerSummaryRecord(ledgerSummaryPayload);
+    const ledgerRetailNetAmount = safeNumber(
+      ledgerSummary?.byType?.retail_commission?.netAmount,
+      Number.NaN,
+    );
 
     const retailProfitBalance = normalizedScope === 'system'
       ? 0
-      : resolveAccountOverviewRetailProfitFallback(homeNode);
+      : resolveAccountOverviewCommissionValue(
+        ledgerRetailNetAmount,
+        resolveAccountOverviewRetailProfitFallback(homeNode),
+      );
+    if (!allowAnonymous && hasNodeServerCutoffMetricsIdentity(identityPayload)) {
+      cacheNodeServerCutoffMetrics(identityPayload, serverCutoffMetrics, {
+        fetchedAtMs: Date.now(),
+      });
+    }
     if (requestSequence !== accountOverviewRemoteRequestSequence) {
       return accountOverviewRemoteSnapshot;
     }
     const nextSnapshot = {
       binaryTreeMetrics,
       salesTeamCommission,
+      serverCutoffMetrics,
       commissionContainerSnapshot,
       eWalletSnapshot,
       walletCommissionOffsets,
+      ledgerSummary,
       retailProfitBalance,
       scope: normalizedScope,
       identity: identityPayload,
@@ -4888,8 +5711,10 @@ async function refreshAccountOverviewRemoteSnapshot(options = {}) {
     if (
       binaryTreeMetrics
       || salesTeamCommission
+      || serverCutoffMetrics
       || commissionContainerSnapshot
       || eWalletSnapshot
+      || ledgerSummary
       || normalizedScope === 'system'
     ) {
       accountOverviewRemoteLastSyncedAtMs = nextSnapshot.updatedAtMs;
@@ -4985,6 +5810,512 @@ function formatAccountOverviewJoinedDate(joinedAtMs) {
   } catch (_) {
     return 'Joined recently';
   }
+}
+
+function formatAccountOverviewBadgeDateLabel(valueInput) {
+  const parsed = typeof valueInput === 'number'
+    ? valueInput
+    : Date.parse(safeText(valueInput));
+  if (!Number.isFinite(parsed)) {
+    return '--';
+  }
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date(parsed));
+  } catch (_) {
+    return '--';
+  }
+}
+
+function resolveAccountOverviewTitleKey(valueInput = '') {
+  return normalizeCredentialValue(valueInput).replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function resolveAccountOverviewTitleSlug(valueInput = '') {
+  return safeText(valueInput)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function resolveAccountOverviewClaimedTitleEntries() {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const sourceCollections = [
+    rankAdvancementCachedAchievementsPayload?.accountTitles,
+    session?.accountTitles,
+  ];
+  const titleCatalogCollections = [
+    rankAdvancementCachedAchievementsPayload?.claimableTitles,
+    session?.claimableTitles,
+  ];
+  const titleCatalogBySlug = new Map();
+  const titleCatalogByKey = new Map();
+  for (const catalogSource of titleCatalogCollections) {
+    const catalogEntries = Array.isArray(catalogSource) ? catalogSource : [];
+    for (const catalogEntry of catalogEntries) {
+      const catalogTitle = safeText(catalogEntry?.title);
+      const catalogSlug = resolveAccountOverviewTitleSlug(
+        catalogEntry?.titleSlug
+        || catalogEntry?.title_slug
+        || catalogTitle,
+      );
+      const catalogTitleKey = resolveAccountOverviewTitleKey(catalogTitle);
+      const normalizedCatalogEntry = {
+        titleSlug: catalogSlug,
+        title: catalogTitle,
+        iconPath: safeText(catalogEntry?.iconPath || catalogEntry?.icon_path || ''),
+        eventName: safeText(catalogEntry?.metadata?.eventName || catalogEntry?.eventName || ''),
+      };
+      if (catalogSlug && !titleCatalogBySlug.has(catalogSlug)) {
+        titleCatalogBySlug.set(catalogSlug, normalizedCatalogEntry);
+      }
+      if (catalogTitleKey && !titleCatalogByKey.has(catalogTitleKey)) {
+        titleCatalogByKey.set(catalogTitleKey, normalizedCatalogEntry);
+      }
+    }
+  }
+  const entriesByKey = new Map();
+
+  for (const source of sourceCollections) {
+    const titleEntries = Array.isArray(source) ? source : [];
+    for (const entry of titleEntries) {
+      const title = safeText(
+        entry?.title
+        || entry?.rewardTitle
+        || entry?.label,
+      );
+      if (!title) {
+        continue;
+      }
+      const titleKey = resolveAccountOverviewTitleKey(title);
+      if (!titleKey) {
+        continue;
+      }
+      const titleSlug = resolveAccountOverviewTitleSlug(
+        entry?.titleSlug
+        || entry?.title_slug
+        || title,
+      );
+      const matchingCatalogEntry = titleCatalogBySlug.get(titleSlug)
+        || titleCatalogByKey.get(titleKey)
+        || null;
+      const normalizedEntry = {
+        title,
+        titleKey,
+        titleSlug,
+        iconPath: safeText(
+          entry?.iconPath
+          || entry?.icon_path
+          || matchingCatalogEntry?.iconPath
+          || '',
+        ),
+        eventName: safeText(
+          entry?.eventName
+          || entry?.metadata?.eventName
+          || matchingCatalogEntry?.eventName
+          || '',
+        ),
+        acquiredAt: safeText(
+          entry?.acquiredAt
+          || entry?.awardedAt
+          || entry?.claimedAt
+          || entry?.createdAt
+          || '',
+        ),
+      };
+      const existingEntry = entriesByKey.get(titleKey);
+      if (!existingEntry) {
+        entriesByKey.set(titleKey, normalizedEntry);
+        continue;
+      }
+      const existingScore = Number(Boolean(existingEntry.eventName)) + Number(Boolean(existingEntry.acquiredAt));
+      const nextScore = Number(Boolean(normalizedEntry.eventName)) + Number(Boolean(normalizedEntry.acquiredAt));
+      if (nextScore >= existingScore) {
+        entriesByKey.set(titleKey, normalizedEntry);
+      }
+    }
+  }
+
+  return Array.from(entriesByKey.values());
+}
+
+function resolveAccountOverviewPrimaryClaimedTitleEntry() {
+  const entries = resolveAccountOverviewClaimedTitleEntries();
+  if (!entries.length) {
+    return null;
+  }
+  const normalized = entries
+    .filter((entry) => entry && typeof entry === 'object' && safeText(entry?.title))
+    .map((entry, index) => {
+      const acquiredAtMs = Date.parse(safeText(entry?.acquiredAt));
+      return {
+        ...entry,
+        _index: index,
+        _acquiredAtMs: Number.isFinite(acquiredAtMs) ? acquiredAtMs : Number.NEGATIVE_INFINITY,
+      };
+    });
+  if (!normalized.length) {
+    return null;
+  }
+  normalized.sort((left, right) => {
+    if (right._acquiredAtMs !== left._acquiredAtMs) {
+      return right._acquiredAtMs - left._acquiredAtMs;
+    }
+    return left._index - right._index;
+  });
+  return normalized[0];
+}
+
+function resolveAccountOverviewEquippedTitleEntry() {
+  const achievementsPayload = (
+    rankAdvancementCachedAchievementsPayload
+    && typeof rankAdvancementCachedAchievementsPayload === 'object'
+  )
+    ? rankAdvancementCachedAchievementsPayload
+    : null;
+  if (!achievementsPayload) {
+    return null;
+  }
+
+  const equippedAchievementId = safeText(achievementsPayload?.equippedProfileBadgeId);
+  if (!equippedAchievementId) {
+    return null;
+  }
+
+  const sourceAchievements = Array.isArray(achievementsPayload?.achievements)
+    ? achievementsPayload.achievements
+    : [];
+  const equippedAchievement = sourceAchievements.find((achievement) => (
+    safeText(achievement?.id) === equippedAchievementId
+  )) || null;
+  if (!equippedAchievement || typeof equippedAchievement !== 'object') {
+    return null;
+  }
+
+  const rewardType = normalizeCredentialValue(equippedAchievement?.rewardType);
+  const title = safeText(
+    rewardType === 'title'
+      ? (equippedAchievement?.rewardTitle || equippedAchievement?.title)
+      : (equippedAchievement?.title || equippedAchievement?.rewardTitle),
+  );
+  if (!title) {
+    return null;
+  }
+
+  const titleSlug = resolveAccountOverviewTitleSlug(
+    equippedAchievement?.rewardTitleSlug
+    || equippedAchievement?.titleSlug
+    || equippedAchievement?.title_slug
+    || equippedAchievement?.rewardTitle
+    || equippedAchievement?.title,
+  );
+  const titleKey = resolveAccountOverviewTitleKey(title);
+  const sourceCatalog = Array.isArray(achievementsPayload?.claimableTitles)
+    ? achievementsPayload.claimableTitles
+    : [];
+  const matchingCatalogEntry = sourceCatalog.find((entry) => {
+    const catalogTitleSlug = resolveAccountOverviewTitleSlug(
+      entry?.titleSlug
+      || entry?.title_slug
+      || entry?.title,
+    );
+    const catalogTitleKey = resolveAccountOverviewTitleKey(entry?.title);
+    return (
+      (titleSlug && catalogTitleSlug && titleSlug === catalogTitleSlug)
+      || (titleKey && catalogTitleKey && titleKey === catalogTitleKey)
+    );
+  }) || null;
+  const iconPath = safeText(
+    equippedAchievement?.iconPath
+    || equippedAchievement?.icon_path
+    || matchingCatalogEntry?.iconPath
+    || matchingCatalogEntry?.icon_path
+    || '',
+  );
+
+  return {
+    achievementId: equippedAchievementId,
+    title,
+    titleSlug,
+    iconPath,
+  };
+}
+
+function resolveAccountOverviewTitleBadgeSubtitle(titleLabel, homeNode = null) {
+  const normalizedTitleKey = resolveAccountOverviewTitleKey(titleLabel);
+  if (!normalizedTitleKey || normalizedTitleKey === 'member title') {
+    return '';
+  }
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const claimedTitleEntries = resolveAccountOverviewClaimedTitleEntries();
+  const matchingEntry = claimedTitleEntries.find((entry) => entry.titleKey === normalizedTitleKey) || null;
+  const fallbackAcquiredDateLabel = formatAccountOverviewBadgeDateLabel(
+    homeNode?.createdAt
+    || homeNode?.created_at
+    || homeNode?.joinedAt
+    || homeNode?.joined_at
+    || homeNode?.enrolledAt
+    || homeNode?.enrolled_at
+    || session?.createdAt
+    || session?.created_at
+    || session?.joinedAt
+    || session?.joined_at
+    || session?.registeredAt
+    || session?.registered_at
+    || '',
+  );
+  const acquiredDateLabel = formatAccountOverviewBadgeDateLabel(matchingEntry?.acquiredAt);
+  const resolvedAcquiredDateLabel = acquiredDateLabel !== '--'
+    ? acquiredDateLabel
+    : (fallbackAcquiredDateLabel !== '--' ? fallbackAcquiredDateLabel : '--');
+  const acquiredLabel = `Acquired ${resolvedAcquiredDateLabel}`;
+  const formatExclusiveEventLabel = (eventLabel) => {
+    const safeEventLabel = safeText(eventLabel);
+    if (!safeEventLabel) {
+      return '';
+    }
+    if (/^exclusive\s+/i.test(safeEventLabel)) {
+      return safeEventLabel;
+    }
+    return `Exclusive ${safeEventLabel}`;
+  };
+
+  const explicitEventLabel = formatExclusiveEventLabel(matchingEntry?.eventName);
+  if (explicitEventLabel) {
+    return `${explicitEventLabel}\n${acquiredLabel}`;
+  }
+
+  const legacyBuilderLeadershipTitleKeySet = new Set([
+    'legacy founder',
+    'legacy director',
+    'legacy ambassador',
+    'presidential circle',
+  ]);
+  if (legacyBuilderLeadershipTitleKeySet.has(normalizedTitleKey)) {
+    return `Exclusive Legacy Builder Leadership Program\n${acquiredLabel}`;
+  }
+  return `Exclusive title reward\n${acquiredLabel}`;
+}
+
+function clearAccountOverviewBadgeHoverHideTimer() {
+  if (!accountOverviewBadgeHoverHideTimerId) {
+    return;
+  }
+  window.clearTimeout(accountOverviewBadgeHoverHideTimerId);
+  accountOverviewBadgeHoverHideTimerId = 0;
+}
+
+function hideAccountOverviewBadgeHovercard(options = {}) {
+  const immediate = options.immediate === true;
+  clearAccountOverviewBadgeHoverHideTimer();
+  if (!accountOverviewBadgeHovercardElement) {
+    return;
+  }
+
+  accountOverviewBadgeHovercardElement.classList.remove('is-visible');
+  accountOverviewBadgeHovercardElement.setAttribute('aria-hidden', 'true');
+  activeAccountOverviewBadgeHoverAnchorElement = null;
+  activeAccountOverviewBadgeHoverKey = '';
+
+  const resetCardPosition = () => {
+    if (!accountOverviewBadgeHovercardElement.classList.contains('is-visible')) {
+      accountOverviewBadgeHovercardElement.style.left = '-9999px';
+      accountOverviewBadgeHovercardElement.style.top = '-9999px';
+    }
+  };
+
+  if (immediate) {
+    resetCardPosition();
+    return;
+  }
+  window.setTimeout(resetCardPosition, 220);
+}
+
+function scheduleAccountOverviewBadgeHovercardHide() {
+  clearAccountOverviewBadgeHoverHideTimer();
+  accountOverviewBadgeHoverHideTimerId = window.setTimeout(() => {
+    hideAccountOverviewBadgeHovercard();
+  }, ACCOUNT_OVERVIEW_BADGE_HOVER_HIDE_DELAY_MS);
+}
+
+function shouldKeepAccountOverviewBadgeHovercardOpen() {
+  if (!accountOverviewBadgeHovercardElement || !accountOverviewBadgeHovercardElement.classList.contains('is-visible')) {
+    return false;
+  }
+  const activeElement = document.activeElement;
+  if (activeElement instanceof Element && accountOverviewBadgeHovercardElement.contains(activeElement)) {
+    return true;
+  }
+  return accountOverviewBadgeHovercardElement.matches(':hover');
+}
+
+function positionAccountOverviewBadgeHovercard(anchorElement) {
+  if (!accountOverviewBadgeHovercardElement || !anchorElement) {
+    return;
+  }
+
+  const anchorRect = anchorElement.getBoundingClientRect();
+  const cardRect = accountOverviewBadgeHovercardElement.getBoundingClientRect();
+  if (!cardRect.width || !cardRect.height) {
+    return;
+  }
+
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+  const viewportPadding = 12;
+  const anchorGap = 14;
+  let left = anchorRect.left + (anchorRect.width / 2) - (cardRect.width / 2);
+  left = Math.max(viewportPadding, Math.min(left, Math.max(viewportPadding, viewportWidth - cardRect.width - viewportPadding)));
+
+  let top = anchorRect.top - cardRect.height - anchorGap;
+  let placement = 'top';
+  if (top < viewportPadding) {
+    top = Math.min(
+      Math.max(viewportPadding, viewportHeight - cardRect.height - viewportPadding),
+      anchorRect.bottom + anchorGap,
+    );
+    placement = 'bottom';
+  }
+
+  accountOverviewBadgeHovercardElement.dataset.placement = placement;
+  accountOverviewBadgeHovercardElement.style.left = `${Math.round(left)}px`;
+  accountOverviewBadgeHovercardElement.style.top = `${Math.round(top)}px`;
+
+  const pointerLeft = Math.max(
+    22,
+    Math.min(cardRect.width - 22, anchorRect.left + (anchorRect.width / 2) - left),
+  );
+  accountOverviewBadgeHovercardElement.style.setProperty(
+    '--tree-next-account-overview-badge-pointer-left',
+    `${Math.round(pointerLeft)}px`,
+  );
+}
+
+function showAccountOverviewBadgeHovercard(badgeEntry, anchorElement) {
+  if (!accountOverviewBadgeHovercardElement || !badgeEntry || !anchorElement) {
+    return;
+  }
+
+  clearAccountOverviewBadgeHoverHideTimer();
+  const nextBadgeKey = safeText(badgeEntry.key);
+  const isSameActiveAnchor = (
+    activeAccountOverviewBadgeHoverAnchorElement === anchorElement
+    && activeAccountOverviewBadgeHoverKey === nextBadgeKey
+    && accountOverviewBadgeHovercardElement.classList.contains('is-visible')
+  );
+  if (isSameActiveAnchor) {
+    return;
+  }
+  activeAccountOverviewBadgeHoverAnchorElement = anchorElement;
+  activeAccountOverviewBadgeHoverKey = nextBadgeKey;
+
+  const fallbackIconPath = '/brand_assets/Icons/Achievements/placeholder-light.svg';
+  if (accountOverviewBadgeHovercardIconElement instanceof HTMLImageElement) {
+    accountOverviewBadgeHovercardIconElement.src = safeText(badgeEntry.iconPath || fallbackIconPath) || fallbackIconPath;
+    accountOverviewBadgeHovercardIconElement.alt = `${safeText(badgeEntry.cardTitle || badgeEntry.slotLabel || 'Badge')} icon`;
+  }
+  if (accountOverviewBadgeHovercardTitleElement instanceof HTMLElement) {
+    accountOverviewBadgeHovercardTitleElement.textContent = safeText(
+      badgeEntry.cardTitle
+      || badgeEntry.slotLabel
+      || 'Badge',
+    ) || 'Badge';
+  }
+  if (accountOverviewBadgeHovercardSubtitleElement instanceof HTMLElement) {
+    accountOverviewBadgeHovercardSubtitleElement.textContent = safeText(badgeEntry.cardSubtitle);
+  }
+
+  accountOverviewBadgeHovercardElement.classList.add('is-visible');
+  accountOverviewBadgeHovercardElement.setAttribute('aria-hidden', 'false');
+  if (!isSameActiveAnchor) {
+    accountOverviewBadgeHovercardElement.style.left = '-9999px';
+    accountOverviewBadgeHovercardElement.style.top = '-9999px';
+  }
+  window.requestAnimationFrame(() => {
+    if (activeAccountOverviewBadgeHoverAnchorElement !== anchorElement) {
+      return;
+    }
+    positionAccountOverviewBadgeHovercard(anchorElement);
+  });
+}
+
+function bindAccountOverviewBadgeHoverInteractions(anchorElement) {
+  if (!(anchorElement instanceof HTMLElement) || anchorElement.dataset.hoverBound === 'true') {
+    return;
+  }
+  anchorElement.dataset.hoverBound = 'true';
+  anchorElement.dataset.hoverEnabled = 'true';
+  anchorElement.tabIndex = 0;
+  anchorElement.setAttribute('role', 'img');
+
+  const resolveBadgeEntry = () => (
+    anchorElement.__accountOverviewBadgeEntry
+    && typeof anchorElement.__accountOverviewBadgeEntry === 'object'
+      ? anchorElement.__accountOverviewBadgeEntry
+      : null
+  );
+
+  anchorElement.addEventListener('mouseenter', () => {
+    const badgeEntry = resolveBadgeEntry();
+    if (!badgeEntry) {
+      return;
+    }
+    anchorElement.dataset.hovered = 'true';
+    showAccountOverviewBadgeHovercard(badgeEntry, anchorElement);
+  });
+  anchorElement.addEventListener('mouseleave', () => {
+    delete anchorElement.dataset.hovered;
+    scheduleAccountOverviewBadgeHovercardHide();
+  });
+  anchorElement.addEventListener('focus', () => {
+    const badgeEntry = resolveBadgeEntry();
+    if (!badgeEntry) {
+      return;
+    }
+    showAccountOverviewBadgeHovercard(badgeEntry, anchorElement);
+  });
+  anchorElement.addEventListener('blur', () => {
+    delete anchorElement.dataset.hovered;
+    if (shouldKeepAccountOverviewBadgeHovercardOpen()) {
+      clearAccountOverviewBadgeHoverHideTimer();
+      return;
+    }
+    scheduleAccountOverviewBadgeHovercardHide();
+  });
+  anchorElement.addEventListener('pointerdown', (event) => {
+    if (event.pointerType !== 'touch' && event.pointerType !== 'pen') {
+      return;
+    }
+    const badgeEntry = resolveBadgeEntry();
+    if (!badgeEntry) {
+      return;
+    }
+    showAccountOverviewBadgeHovercard(badgeEntry, anchorElement);
+  });
+}
+
+function syncAccountOverviewBadgeHoverEntry(anchorElement, badgeEntry) {
+  if (!(anchorElement instanceof HTMLElement) || !badgeEntry || typeof badgeEntry !== 'object') {
+    return;
+  }
+  bindAccountOverviewBadgeHoverInteractions(anchorElement);
+  const fallbackIconPath = '/brand_assets/Icons/Achievements/placeholder-light.svg';
+  const safeEntry = {
+    key: safeText(badgeEntry.key) || 'badge',
+    slotLabel: safeText(badgeEntry.slotLabel) || 'Badge',
+    cardTitle: safeText(badgeEntry.cardTitle) || 'Badge',
+    cardSubtitle: safeText(badgeEntry.cardSubtitle),
+    iconPath: safeText(badgeEntry.iconPath) || fallbackIconPath,
+  };
+  anchorElement.__accountOverviewBadgeEntry = safeEntry;
+  const ariaParts = [`${safeEntry.slotLabel}: ${safeEntry.cardTitle}`];
+  if (safeEntry.cardSubtitle) {
+    ariaParts.push(safeEntry.cardSubtitle.replace(/\s*\n\s*/g, '. '));
+  }
+  anchorElement.setAttribute('aria-label', ariaParts.join('. '));
 }
 
 function resolveAccountOverviewDirectSponsorCount(homeNode = null, options = {}) {
@@ -5174,10 +6505,14 @@ function resolveAccountOverviewLegVolumeMetrics(homeNodeIdInput = 'root') {
 }
 
 function resolveAccountOverviewTotalOrganizationBv(homeNode = null) {
-  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
-  const remoteTotal = safeNumber(remoteMetrics?.totalAccumulatedBv, Number.NaN);
-  if (Number.isFinite(remoteTotal)) {
-    return Math.max(0, Math.floor(remoteTotal));
+  const homeNodeId = safeText(homeNode?.id || resolvePreferredGlobalHomeNodeId()) || 'root';
+  const legVolumeMetrics = resolveAccountOverviewLegVolumeMetrics(homeNodeId);
+  const liveLegTotal = Math.max(
+    0,
+    Math.floor(safeNumber(legVolumeMetrics.leftVolume, 0) + safeNumber(legVolumeMetrics.rightVolume, 0)),
+  );
+  if (liveLegTotal > 0) {
+    return liveLegTotal;
   }
 
   const explicitCandidates = [
@@ -5188,28 +6523,46 @@ function resolveAccountOverviewTotalOrganizationBv(homeNode = null) {
   ];
   for (const candidate of explicitCandidates) {
     const parsed = safeNumber(candidate, Number.NaN);
-    if (Number.isFinite(parsed)) {
+    if (Number.isFinite(parsed) && parsed > 0) {
       return Math.max(0, Math.floor(parsed));
     }
   }
 
-  const homeNodeId = safeText(homeNode?.id || resolvePreferredGlobalHomeNodeId()) || 'root';
-  const legVolumeMetrics = resolveAccountOverviewLegVolumeMetrics(homeNodeId);
-  return Math.max(
-    0,
-    Math.floor(safeNumber(legVolumeMetrics.leftVolume, 0) + safeNumber(legVolumeMetrics.rightVolume, 0)),
-  );
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const remoteTotal = safeNumber(remoteMetrics?.totalAccumulatedBv, Number.NaN);
+  if (Number.isFinite(remoteTotal) && remoteTotal > 0) {
+    return Math.max(0, Math.floor(remoteTotal));
+  }
+
+  const cutoffMetrics = accountOverviewRemoteSnapshot?.serverCutoffMetrics;
+  const currentWeekLeftLegBv = safeNumber(cutoffMetrics?.currentWeekLeftLegBv, Number.NaN);
+  const currentWeekRightLegBv = safeNumber(cutoffMetrics?.currentWeekRightLegBv, Number.NaN);
+  if (
+    Number.isFinite(currentWeekLeftLegBv)
+    && Number.isFinite(currentWeekRightLegBv)
+    && (currentWeekLeftLegBv > 0 || currentWeekRightLegBv > 0)
+  ) {
+    return Math.max(0, Math.floor(currentWeekLeftLegBv + currentWeekRightLegBv));
+  }
+
+  for (const candidate of explicitCandidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed)) {
+      return Math.max(0, Math.floor(parsed));
+    }
+  }
+  if (Number.isFinite(remoteTotal)) {
+    return Math.max(0, Math.floor(remoteTotal));
+  }
+  if (Number.isFinite(currentWeekLeftLegBv) && Number.isFinite(currentWeekRightLegBv)) {
+    return Math.max(0, Math.floor(currentWeekLeftLegBv + currentWeekRightLegBv));
+  }
+  return liveLegTotal;
 }
 
 function resolveAccountOverviewPersonalBv(homeNode = null) {
-  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
-  const remotePersonalBv = safeNumber(remoteMetrics?.accountPersonalPv, Number.NaN);
-  if (Number.isFinite(remotePersonalBv)) {
-    return Math.max(0, Math.floor(remotePersonalBv));
-  }
-
   const session = state.session && typeof state.session === 'object' ? state.session : null;
-  const candidates = [
+  const liveCandidates = [
     homeNode?.currentPersonalPvBv,
     homeNode?.current_personal_pv_bv,
     homeNode?.monthlyPersonalBv,
@@ -5219,14 +6572,54 @@ function resolveAccountOverviewPersonalBv(homeNode = null) {
     session?.monthlyPersonalBv,
     session?.monthly_personal_bv,
   ];
-  for (const candidate of candidates) {
+  for (const candidate of liveCandidates) {
+    const parsed = safeNumber(candidate, Number.NaN);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return Math.max(0, Math.floor(parsed));
+    }
+  }
+
+  const localActivityResolvedPersonalBv = Math.max(
+    0,
+    Math.floor(resolveNodeCurrentPersonalBvForActivity(homeNode)),
+  );
+  if (localActivityResolvedPersonalBv > 0) {
+    return localActivityResolvedPersonalBv;
+  }
+
+  const cutoffMetrics = accountOverviewRemoteSnapshot?.serverCutoffMetrics;
+  const currentWeekPersonalPv = safeNumber(cutoffMetrics?.currentWeekPersonalPv, Number.NaN);
+  if (Number.isFinite(currentWeekPersonalPv) && currentWeekPersonalPv > 0) {
+    return Math.max(0, Math.floor(currentWeekPersonalPv));
+  }
+
+  const cutoffTotalPersonalPv = safeNumber(cutoffMetrics?.totalPersonalPv, Number.NaN);
+  if (Number.isFinite(cutoffTotalPersonalPv) && cutoffTotalPersonalPv > 0) {
+    return Math.max(0, Math.floor(cutoffTotalPersonalPv));
+  }
+
+  const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
+  const remotePersonalBv = safeNumber(remoteMetrics?.accountPersonalPv, Number.NaN);
+  if (Number.isFinite(remotePersonalBv) && remotePersonalBv > 0) {
+    return Math.max(0, Math.floor(remotePersonalBv));
+  }
+
+  for (const candidate of liveCandidates) {
     const parsed = safeNumber(candidate, Number.NaN);
     if (Number.isFinite(parsed)) {
       return Math.max(0, Math.floor(parsed));
     }
   }
-
-  return Math.max(0, Math.floor(resolveNodeCurrentPersonalBvForActivity(homeNode)));
+  if (Number.isFinite(currentWeekPersonalPv)) {
+    return Math.max(0, Math.floor(currentWeekPersonalPv));
+  }
+  if (Number.isFinite(cutoffTotalPersonalPv)) {
+    return Math.max(0, Math.floor(cutoffTotalPersonalPv));
+  }
+  if (Number.isFinite(remotePersonalBv)) {
+    return Math.max(0, Math.floor(remotePersonalBv));
+  }
+  return localActivityResolvedPersonalBv;
 }
 
 function resolveAccountOverviewSalesTeamCycleProfile(packageKeyInput = ENROLL_DEFAULT_PACKAGE_KEY) {
@@ -5240,6 +6633,7 @@ function resolveAccountOverviewCycleCapMetrics(homeNode = null) {
   const session = state.session && typeof state.session === 'object' ? state.session : null;
   const remoteMetrics = accountOverviewRemoteSnapshot?.binaryTreeMetrics;
   const salesTeamCommission = accountOverviewRemoteSnapshot?.salesTeamCommission;
+  const serverCutoffMetrics = accountOverviewRemoteSnapshot?.serverCutoffMetrics;
   const profile = resolveAccountOverviewSalesTeamCycleProfile(
     salesTeamCommission?.accountPackageKey
     || homeNode?.enrollmentPackage
@@ -5250,10 +6644,14 @@ function resolveAccountOverviewCycleCapMetrics(homeNode = null) {
     salesTeamCommission?.weeklyCapCycles,
     profile.weeklyCapCycles,
   )));
-  const totalCycles = Math.max(0, Math.floor(safeNumber(
+  const fallbackTotalCycles = Math.max(0, Math.floor(safeNumber(
     salesTeamCommission?.cappedCycles,
     salesTeamCommission?.totalCycles ?? remoteMetrics?.totalCycles ?? 0,
   )));
+  const estimatedCycles = Math.floor(safeNumber(serverCutoffMetrics?.estimatedCycles, Number.NaN));
+  const totalCycles = Number.isFinite(estimatedCycles)
+    ? Math.max(0, estimatedCycles)
+    : fallbackTotalCycles;
   const cappedCycles = weeklyCapCycles > 0
     ? Math.min(totalCycles, weeklyCapCycles)
     : totalCycles;
@@ -5307,6 +6705,125 @@ function resolveAccountOverviewSystemFastTrackGeneratedTotal() {
   return Math.max(0, Math.round(totalFastTrack * 100) / 100);
 }
 
+function resolveAccountOverviewMemberDirectFastTrackFromRegisteredMembers(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const homeUsernameKey = normalizeCredentialValue(
+    safeText(
+      homeNode?.username
+      || homeNode?.memberUsername
+      || session?.username
+      || session?.memberUsername
+      || '',
+    ).replace(/^@+/, ''),
+  );
+  if (!homeUsernameKey) {
+    return Number.NaN;
+  }
+
+  const registeredMembers = Array.isArray(treeNextLiveRegisteredMembersSnapshot)
+    ? treeNextLiveRegisteredMembersSnapshot
+    : [];
+  if (registeredMembers.length === 0) {
+    return Number.NaN;
+  }
+
+  let accruedDirectFastTrack = 0;
+  for (const member of registeredMembers) {
+    if (!member || typeof member !== 'object') {
+      continue;
+    }
+    const sponsorUsernameKey = normalizeCredentialValue(
+      safeText(member?.sponsorUsername || member?.sponsor_username || '').replace(/^@+/, ''),
+    );
+    if (!sponsorUsernameKey || sponsorUsernameKey !== homeUsernameKey) {
+      continue;
+    }
+    accruedDirectFastTrack += Math.max(0, safeNumber(
+      member?.fastTrackBonusAmount ?? member?.fast_track_bonus_amount,
+      0,
+    ));
+  }
+
+  return Math.max(0, Math.round(accruedDirectFastTrack * 100) / 100);
+}
+
+function resolveAccountOverviewMemberFastTrackGrossBalance(homeNode = null) {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
+  const homeNodeIdKey = normalizeCredentialValue(safeText(homeNode?.id));
+  const homeGlobalNodeIdKey = normalizeCredentialValue(
+    safeText(homeNode?.globalNodeId || homeNode?.global_node_id || ''),
+  );
+  const homeUsernameKey = normalizeCredentialValue(
+    safeText(
+      homeNode?.username
+      || homeNode?.memberUsername
+      || session?.username
+      || session?.memberUsername
+      || '',
+    ).replace(/^@+/, ''),
+  );
+  const sessionFastTrackBase = resolveAccountOverviewCommissionValue(
+    homeNode?.fastTrackBonusBalance,
+    homeNode?.fast_track_bonus_balance,
+    session?.fastTrackBonusBalance,
+    session?.fast_track_bonus_balance,
+  );
+  const directFastTrackFromRegisteredMembers = resolveAccountOverviewMemberDirectFastTrackFromRegisteredMembers(
+    homeNode,
+  );
+  let accruedDirectFastTrack = Number.isFinite(directFastTrackFromRegisteredMembers)
+    ? Math.max(0, directFastTrackFromRegisteredMembers)
+    : 0;
+  if (!Number.isFinite(directFastTrackFromRegisteredMembers)) {
+    for (const node of safeNodes) {
+      if (!node || isInfinityBuilderPlaceholderNode(node)) {
+        continue;
+      }
+      const nodeIdKey = normalizeCredentialValue(safeText(node?.id));
+      if (!nodeIdKey || (homeNodeIdKey && nodeIdKey === homeNodeIdKey)) {
+        continue;
+      }
+      if (homeGlobalNodeIdKey && nodeIdKey === homeGlobalNodeIdKey) {
+        continue;
+      }
+
+      const sponsorIdKey = normalizeCredentialValue(
+        safeText(
+          node?.sponsorId
+          || node?.globalSponsorId
+          || node?.sourceSponsorId
+          || node?.source_sponsor_id
+          || '',
+        ),
+      );
+      const sponsorUsernameKey = normalizeCredentialValue(
+        safeText(node?.sponsorUsername || node?.sponsor_username || '').replace(/^@+/, ''),
+      );
+      const isDirectBySponsorId = Boolean(
+        (homeNodeIdKey && sponsorIdKey && sponsorIdKey === homeNodeIdKey)
+        || (homeGlobalNodeIdKey && sponsorIdKey && sponsorIdKey === homeGlobalNodeIdKey),
+      );
+      const isDirectBySponsorUsername = Boolean(
+        homeUsernameKey
+        && sponsorUsernameKey
+        && sponsorUsernameKey === homeUsernameKey,
+      );
+      if (!isDirectBySponsorId && !isDirectBySponsorUsername) {
+        continue;
+      }
+
+      accruedDirectFastTrack += Math.max(0, safeNumber(
+        node?.fastTrackBonusAmount ?? node?.fast_track_bonus_amount,
+        0,
+      ));
+    }
+  }
+
+  const grossFastTrack = sessionFastTrackBase + accruedDirectFastTrack;
+  return Math.max(0, Math.round(grossFastTrack * 100) / 100);
+}
+
 function resolveAccountOverviewEWalletBalance(homeNode = null, options = {}) {
   if (options?.systemTotals === true) {
     return resolveAccountOverviewSystemSalesRevenueTotal();
@@ -5331,11 +6848,18 @@ function resolveAccountOverviewCommissionValue(...candidates) {
 
 function resolveAccountOverviewCommissionBalances(homeNode = null, options = {}) {
   const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const serverCutoffMetrics = accountOverviewRemoteSnapshot?.serverCutoffMetrics;
   const commissionContainerBalances = (
     accountOverviewRemoteSnapshot?.commissionContainerSnapshot?.balances
     && typeof accountOverviewRemoteSnapshot.commissionContainerSnapshot.balances === 'object'
   )
     ? accountOverviewRemoteSnapshot.commissionContainerSnapshot.balances
+    : {};
+  const ledgerByType = (
+    accountOverviewRemoteSnapshot?.ledgerSummary?.byType
+    && typeof accountOverviewRemoteSnapshot.ledgerSummary.byType === 'object'
+  )
+    ? accountOverviewRemoteSnapshot.ledgerSummary.byType
     : {};
   const salesTeamCommission = accountOverviewRemoteSnapshot?.salesTeamCommission;
   const salesTeamCycleMetrics = resolveAccountOverviewCycleCapMetrics(homeNode);
@@ -5346,16 +6870,32 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
     || ENROLL_DEFAULT_PACKAGE_KEY,
   );
   const fallbackSalesTeamGross = salesTeamCycleMetrics.cappedCycles * Math.max(0, safeNumber(salesTeamProfile?.perCycle, 0));
+  const hasLiveSalesTeamCycleSignal = Number.isFinite(
+    safeNumber(serverCutoffMetrics?.estimatedCycles, Number.NaN),
+  );
+  const liveSalesTeamGross = hasLiveSalesTeamCycleSignal
+    ? Math.round((Math.max(0, salesTeamCycleMetrics.cappedCycles) * Math.max(0, safeNumber(
+      salesTeamCommission?.perCycleAmount,
+      salesTeamProfile?.perCycle,
+    )) + Number.EPSILON) * 100) / 100
+    : Number.NaN;
+  const ledgerRetailProfit = safeNumber(ledgerByType?.retail_commission?.netAmount, Number.NaN);
+  const ledgerSalesTeam = safeNumber(ledgerByType?.sales_team_commission?.netAmount, Number.NaN);
+  const ledgerMatchingBonus = safeNumber(ledgerByType?.leadership_matching_bonus?.netAmount, Number.NaN);
   const walletCommissionOffsets = (
     accountOverviewRemoteSnapshot?.walletCommissionOffsets
     && typeof accountOverviewRemoteSnapshot.walletCommissionOffsets === 'object'
   )
     ? accountOverviewRemoteSnapshot.walletCommissionOffsets
     : {};
+  const memberFastTrackGross = state.source === 'member'
+    ? resolveAccountOverviewMemberFastTrackGrossBalance(homeNode)
+    : Number.NaN;
   if (options?.systemTotals === true) {
     const generatedFastTrack = resolveAccountOverviewSystemFastTrackGeneratedTotal();
     return {
       retailProfit: resolveAccountOverviewCommissionValue(
+        ledgerRetailProfit,
         walletCommissionOffsets.retailprofit,
         walletCommissionOffsets.retail,
         accountOverviewRemoteSnapshot?.retailProfitBalance,
@@ -5366,6 +6906,8 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
         generatedFastTrack,
       ),
       salesTeam: resolveAccountOverviewCommissionValue(
+        ledgerSalesTeam,
+        liveSalesTeamGross,
         commissionContainerBalances.salesteam,
         commissionContainerBalances.salesTeam,
         salesTeamCommission?.netCommissionAmount,
@@ -5376,6 +6918,11 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
         commissionContainerBalances.infinitybuilder,
         commissionContainerBalances.infinityBuilder,
       ),
+      matchingBonus: resolveAccountOverviewCommissionValue(
+        ledgerMatchingBonus,
+        commissionContainerBalances.matchingbonus,
+        commissionContainerBalances.matchingBonus,
+      ),
       legacyBuilder: resolveAccountOverviewCommissionValue(
         commissionContainerBalances.legacyleadership,
         commissionContainerBalances.legacyLeadership,
@@ -5384,6 +6931,7 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
   }
   return {
     retailProfit: resolveAccountOverviewCommissionValue(
+      ledgerRetailProfit,
       walletCommissionOffsets.retailprofit,
       walletCommissionOffsets.retail,
       accountOverviewRemoteSnapshot?.retailProfitBalance,
@@ -5392,15 +6940,21 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
       session?.retailProfit,
       session?.retail_profit,
     ),
-    fastTrack: resolveAccountOverviewCommissionValue(
-      commissionContainerBalances.fasttrack,
-      commissionContainerBalances.fastTrack,
-      homeNode?.fastTrackBonusAmount,
-      homeNode?.fast_track_bonus_amount,
-      session?.fastTrackBonusAmount,
-      session?.fast_track_bonus_amount,
+    fastTrack: Math.max(
+      resolveAccountOverviewCommissionValue(
+        memberFastTrackGross,
+        commissionContainerBalances.fasttrack,
+        commissionContainerBalances.fastTrack,
+        homeNode?.fastTrackBonusAmount,
+        homeNode?.fast_track_bonus_amount,
+        session?.fastTrackBonusAmount,
+        session?.fast_track_bonus_amount,
+      ),
+      0,
     ),
     salesTeam: resolveAccountOverviewCommissionValue(
+      ledgerSalesTeam,
+      liveSalesTeamGross,
       commissionContainerBalances.salesteam,
       commissionContainerBalances.salesTeam,
       salesTeamCommission?.netCommissionAmount,
@@ -5414,6 +6968,15 @@ function resolveAccountOverviewCommissionBalances(homeNode = null, options = {})
       homeNode?.infinity_builder_bonus_amount,
       session?.infinityBuilderBonusAmount,
       session?.infinity_builder_bonus_amount,
+    ),
+    matchingBonus: resolveAccountOverviewCommissionValue(
+      ledgerMatchingBonus,
+      commissionContainerBalances.matchingbonus,
+      commissionContainerBalances.matchingBonus,
+      homeNode?.matchingBonusAmount,
+      homeNode?.matching_bonus_amount,
+      session?.matchingBonusAmount,
+      session?.matching_bonus_amount,
     ),
     legacyBuilder: resolveAccountOverviewCommissionValue(
       commissionContainerBalances.legacyleadership,
@@ -5588,14 +7151,36 @@ function syncAccountOverviewPanelVisuals() {
       || accountOverviewRankLabelElement?.textContent
       || 'Legacy',
     );
-  const fallbackTitleLabel = safeText(accountOverviewTitleLabelElement?.textContent) || rankLabel || 'Member Title';
-  const sessionTitleLabel = resolveNodePrimaryTitleLabel(session, fallbackTitleLabel);
+  const fallbackTitleLabel = safeText(
+    homeNode?.profileAccountTitle
+    || homeNode?.profile_account_title
+    || homeNode?.accountTitle
+    || homeNode?.account_title
+    || homeNode?.title
+    || session?.profileAccountTitle
+    || session?.profile_account_title
+    || session?.accountTitle
+    || session?.account_title
+    || session?.title
+    || '',
+  ) || 'Member Title';
+  const sessionTitleLabel = resolveNodePrimaryTitleLabel(session);
   const sessionTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sessionTitleLabel, rankLabel);
   const homeTitleLabel = resolveNodePrimaryTitleLabel(homeNode);
   const homeTitleIsFallback = isTreeNextRankBuilderFallbackTitle(homeTitleLabel, rankLabel);
+  const equippedTitleEntry = systemTotalsMode
+    ? null
+    : resolveAccountOverviewEquippedTitleEntry();
+  const equippedTitleLabel = safeText(equippedTitleEntry?.title);
+  const primaryClaimedTitleEntry = systemTotalsMode
+    ? null
+    : resolveAccountOverviewPrimaryClaimedTitleEntry();
+  const claimedTitleLabel = safeText(primaryClaimedTitleEntry?.title);
   let titleLabel = systemTotalsMode ? 'System Overview' : fallbackTitleLabel;
   if (systemTotalsMode) {
     titleLabel = 'System Overview';
+  } else if (equippedTitleLabel) {
+    titleLabel = equippedTitleLabel;
   } else if (state.source === 'member') {
     if (sessionTitleLabel && !sessionTitleIsFallback) {
       titleLabel = sessionTitleLabel;
@@ -5609,9 +7194,14 @@ function syncAccountOverviewPanelVisuals() {
   } else {
     titleLabel = sessionTitleLabel || homeTitleLabel || fallbackTitleLabel;
   }
+  const titleLabelIsFallbackBuilder = isTreeNextRankBuilderFallbackTitle(titleLabel, rankLabel);
+  if (!systemTotalsMode && titleLabelIsFallbackBuilder && claimedTitleLabel) {
+    titleLabel = claimedTitleLabel;
+  }
+  const joinedAtMs = resolveAccountOverviewJoinedAtMs(homeNode);
   const joinedText = systemTotalsMode
     ? 'Live system totals'
-    : formatAccountOverviewJoinedDate(resolveAccountOverviewJoinedAtMs(homeNode));
+    : formatAccountOverviewJoinedDate(joinedAtMs);
   const iconSourceNode = {
     ...(homeNode && typeof homeNode === 'object' ? homeNode : {}),
     ...(session && typeof session === 'object' ? session : {}),
@@ -5621,7 +7211,20 @@ function syncAccountOverviewPanelVisuals() {
     accountTitle: titleLabel,
     profileAccountTitle: titleLabel,
   };
-  const [rankIconPath, titleIconPath] = resolveNodeDetailRankAndTitleIcons(iconSourceNode);
+  const [rankIconPath, resolvedNodeTitleIconPath] = resolveNodeDetailRankAndTitleIcons(iconSourceNode);
+  let titleIconPath = resolvedNodeTitleIconPath;
+  const equippedTitleIconPath = safeText(equippedTitleEntry?.iconPath);
+  const claimedTitleIconPath = safeText(primaryClaimedTitleEntry?.iconPath);
+  if (equippedTitleIconPath) {
+    titleIconPath = resolveNodeDetailsIconPath(equippedTitleIconPath, titleLabel);
+  } else if (claimedTitleIconPath) {
+    titleIconPath = resolveNodeDetailsIconPath(claimedTitleIconPath, titleLabel);
+  } else if (
+    !systemTotalsMode
+    && resolveAccountOverviewTitleKey(titleLabel) === 'legacy founder'
+  ) {
+    titleIconPath = resolveTitleIconPathFromValue('legacy-founder-star');
+  }
   const avatarSignature = [
     systemTotalsMode ? 'system' : 'member',
     safeText(homeNode?.id),
@@ -5647,12 +7250,19 @@ function syncAccountOverviewPanelVisuals() {
   const commissionBalances = resolveAccountOverviewCommissionBalances(homeNode, {
     systemTotals: systemTotalsMode,
   });
+  const transferAdjustedCommissionBalances = resolveAccountOverviewTransferAdjustedCommissionBalances(
+    commissionBalances,
+  );
+  const commissionBalancesForDisplay = systemTotalsMode
+    ? commissionBalances
+    : transferAdjustedCommissionBalances;
   const totalCommissionGenerated = Math.max(0, (
-    safeNumber(commissionBalances.retailProfit, 0)
-    + safeNumber(commissionBalances.fastTrack, 0)
-    + safeNumber(commissionBalances.salesTeam, 0)
-    + safeNumber(commissionBalances.infinityBuilder, 0)
-    + safeNumber(commissionBalances.legacyBuilder, 0)
+    safeNumber(commissionBalancesForDisplay.retailProfit, 0)
+    + safeNumber(commissionBalancesForDisplay.fastTrack, 0)
+    + safeNumber(commissionBalancesForDisplay.salesTeam, 0)
+    + safeNumber(commissionBalancesForDisplay.infinityBuilder, 0)
+    + safeNumber(commissionBalancesForDisplay.matchingBonus, 0)
+    + safeNumber(commissionBalancesForDisplay.legacyBuilder, 0)
   ));
   const cycleCapText = systemTotalsMode
     ? formatEnrollCurrency(resolveAccountOverviewSystemSalesRevenueTotal())
@@ -5701,14 +7311,20 @@ function syncAccountOverviewPanelVisuals() {
     eWalletLabelText,
     String(directSponsorCount),
     ewalletDisplayValue,
-    formatEnrollCurrency(commissionBalances.retailProfit),
-    formatEnrollCurrency(commissionBalances.fastTrack),
-    formatEnrollCurrency(commissionBalances.salesTeam),
-    formatEnrollCurrency(commissionBalances.infinityBuilder),
-    formatEnrollCurrency(commissionBalances.legacyBuilder),
+    formatEnrollCurrency(commissionBalancesForDisplay.retailProfit),
+    formatEnrollCurrency(commissionBalancesForDisplay.fastTrack),
+    formatEnrollCurrency(commissionBalancesForDisplay.salesTeam),
+    formatEnrollCurrency(commissionBalancesForDisplay.infinityBuilder),
+    formatEnrollCurrency(commissionBalancesForDisplay.matchingBonus),
+    formatEnrollCurrency(commissionBalancesForDisplay.legacyBuilder),
     String(accountOverviewRemoteDataVersion),
+    String(treeNextLiveRegisteredMembersSnapshotUpdatedAtMs),
+    Array.from(accountOverviewCommissionTransferBusySourceKeys).sort().join('|'),
   ].join('::');
   if (renderSignature === accountOverviewLastRenderSignature) {
+    syncAccountOverviewCommissionTransferButtonStates(commissionBalances, {
+      systemTotals: systemTotalsMode,
+    });
     return;
   }
   accountOverviewLastRenderSignature = renderSignature;
@@ -5730,12 +7346,16 @@ function syncAccountOverviewPanelVisuals() {
   setAccountOverviewText(accountOverviewDirectSponsorsLabelElement, directSponsorsLabelText);
   setAccountOverviewText(accountOverviewEwalletValueElement, ewalletDisplayValue);
   setAccountOverviewText(accountOverviewEwalletLabelElement, eWalletLabelText);
-  setAccountOverviewText(accountOverviewSalesTeamValueElement, formatEnrollCurrency(commissionBalances.salesTeam));
-  setAccountOverviewText(accountOverviewRetailProfitValueElement, formatEnrollCurrency(commissionBalances.retailProfit));
-  setAccountOverviewText(accountOverviewFastTrackValueElement, formatEnrollCurrency(commissionBalances.fastTrack));
-  setAccountOverviewText(accountOverviewTrackSalesTeamValueElement, formatEnrollCurrency(commissionBalances.salesTeam));
-  setAccountOverviewText(accountOverviewInfinityBuilderValueElement, formatEnrollCurrency(commissionBalances.infinityBuilder));
-  setAccountOverviewText(accountOverviewLegacyBuilderValueElement, formatEnrollCurrency(commissionBalances.legacyBuilder));
+  setAccountOverviewText(accountOverviewSalesTeamValueElement, formatEnrollCurrency(commissionBalancesForDisplay.salesTeam));
+  setAccountOverviewText(accountOverviewRetailProfitValueElement, formatEnrollCurrency(commissionBalancesForDisplay.retailProfit));
+  setAccountOverviewText(accountOverviewFastTrackValueElement, formatEnrollCurrency(commissionBalancesForDisplay.fastTrack));
+  setAccountOverviewText(accountOverviewTrackSalesTeamValueElement, formatEnrollCurrency(commissionBalancesForDisplay.salesTeam));
+  setAccountOverviewText(accountOverviewInfinityBuilderValueElement, formatEnrollCurrency(commissionBalancesForDisplay.infinityBuilder));
+  setAccountOverviewText(accountOverviewMatchingBonusValueElement, formatEnrollCurrency(commissionBalancesForDisplay.matchingBonus));
+  setAccountOverviewText(accountOverviewLegacyBuilderValueElement, formatEnrollCurrency(commissionBalancesForDisplay.legacyBuilder));
+  syncAccountOverviewCommissionTransferButtonStates(commissionBalances, {
+    systemTotals: systemTotalsMode,
+  });
 
   if (accountOverviewRankIconElement instanceof HTMLImageElement && rankIconPath) {
     accountOverviewRankIconElement.src = rankIconPath;
@@ -5743,6 +7363,31 @@ function syncAccountOverviewPanelVisuals() {
   if (accountOverviewTitleIconElement instanceof HTMLImageElement && titleIconPath) {
     accountOverviewTitleIconElement.src = titleIconPath;
   }
+  const memberSinceDateLabel = formatAccountOverviewBadgeDateLabel(joinedAtMs);
+  const rankSubtitle = systemTotalsMode
+    ? 'Administrator mode'
+    : (
+      memberSinceDateLabel !== '--'
+        ? `Subscriber since ${memberSinceDateLabel}`
+        : 'Subscriber since --'
+    );
+  const titleSubtitle = systemTotalsMode
+    ? 'System summary badge'
+    : resolveAccountOverviewTitleBadgeSubtitle(titleLabel, homeNode);
+  syncAccountOverviewBadgeHoverEntry(accountOverviewRankBadgeShellElement, {
+    key: 'account-overview-rank',
+    slotLabel: 'Rank',
+    cardTitle: rankLabel,
+    cardSubtitle: rankSubtitle,
+    iconPath: rankIconPath,
+  });
+  syncAccountOverviewBadgeHoverEntry(accountOverviewTitleBadgeShellElement, {
+    key: 'account-overview-title',
+    slotLabel: 'Title',
+    cardTitle: titleLabel,
+    cardSubtitle: titleSubtitle,
+    iconPath: titleIconPath,
+  });
 
   const nodePhotoUrl = resolveNodeAvatarPhotoUrl(homeNode);
   const nodeAvatarPalette = resolveAvatarPaletteFromRecord(homeNode) || resolveSessionAvatarPalette();
@@ -5770,7 +7415,7 @@ function syncAccountOverviewPanelVisuals() {
   }
 
   const rankPalette = resolveAccountOverviewBadgePalette(rankLabel, 'ocean');
-  const titlePalette = resolveAccountOverviewBadgePalette(titleLabel, 'amber');
+  const titlePalette = ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyFounder;
   if (accountOverviewRankBadgeElement instanceof HTMLElement) {
     accountOverviewRankBadgeElement.style.backgroundImage = resolveAccountOverviewGradientBackground(rankPalette, {
       sheenAlpha: 0.22,
@@ -5793,6 +7438,9 @@ function syncAccountOverviewPanelVisibility() {
   const isVisible = Boolean(state.ui?.accountOverviewVisible);
   accountOverviewPanelElement.classList.toggle('is-hidden', !isVisible);
   accountOverviewPanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+  if (!isVisible) {
+    hideAccountOverviewBadgeHovercard({ immediate: true });
+  }
 }
 
 function setAccountOverviewPanelVisible(isVisible) {
@@ -5826,6 +7474,246 @@ function setAccountOverviewPanelVisible(isVisible) {
   }
 }
 
+function resolveAccountOverviewCommissionTransferSourceMeta(commissionKeyInput = '') {
+  const normalizedCommissionKey = normalizeCredentialValue(commissionKeyInput);
+  if (
+    normalizedCommissionKey === 'retail-profit'
+    || normalizedCommissionKey === 'retailprofit'
+    || normalizedCommissionKey === 'retail'
+  ) {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.retailprofit;
+  }
+  if (normalizedCommissionKey === 'fast-track' || normalizedCommissionKey === 'fasttrack') {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.fasttrack;
+  }
+  if (normalizedCommissionKey === 'sales-team' || normalizedCommissionKey === 'salesteam') {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.salesteam;
+  }
+  if (normalizedCommissionKey === 'infinity-builder' || normalizedCommissionKey === 'infinitybuilder') {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.infinitybuilder;
+  }
+  if (normalizedCommissionKey === 'matching-bonus' || normalizedCommissionKey === 'matchingbonus') {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.matchingbonus;
+  }
+  if (
+    normalizedCommissionKey === 'legacy-builder'
+    || normalizedCommissionKey === 'legacy-leadership'
+    || normalizedCommissionKey === 'legacybuilder'
+    || normalizedCommissionKey === 'legacyleadership'
+  ) {
+    return ACCOUNT_OVERVIEW_COMMISSION_TRANSFER_SOURCE_META.legacyleadership;
+  }
+  return null;
+}
+
+function resolveAccountOverviewWalletCommissionOffset(sourceKeyInput = '') {
+  const walletOffsets = (
+    accountOverviewRemoteSnapshot?.walletCommissionOffsets
+    && typeof accountOverviewRemoteSnapshot.walletCommissionOffsets === 'object'
+  )
+    ? accountOverviewRemoteSnapshot.walletCommissionOffsets
+    : {};
+  const normalizedSourceKey = normalizeCredentialValue(sourceKeyInput);
+  if (!normalizedSourceKey) {
+    return 0;
+  }
+  return resolveAccountOverviewCommissionValue(walletOffsets[normalizedSourceKey], 0);
+}
+
+function resolveAccountOverviewTransferAdjustedCommissionBalances(commissionBalances = {}) {
+  const safeCommissionBalances = (commissionBalances && typeof commissionBalances === 'object')
+    ? commissionBalances
+    : {};
+  const resolveNetBalance = (sourceKey, grossAmount) => {
+    const safeGrossAmount = Math.max(0, safeNumber(grossAmount, 0));
+    const safeOffsetAmount = Math.min(
+      safeGrossAmount,
+      Math.max(0, safeNumber(resolveAccountOverviewWalletCommissionOffset(sourceKey), 0)),
+    );
+    return Math.max(0, safeGrossAmount - safeOffsetAmount);
+  };
+
+  return {
+    retailProfit: resolveNetBalance('retailprofit', safeCommissionBalances.retailProfit),
+    fastTrack: resolveNetBalance('fasttrack', safeCommissionBalances.fastTrack),
+    salesTeam: resolveNetBalance('salesteam', safeCommissionBalances.salesTeam),
+    infinityBuilder: resolveNetBalance('infinitybuilder', safeCommissionBalances.infinityBuilder),
+    matchingBonus: resolveNetBalance('matchingbonus', safeCommissionBalances.matchingBonus),
+    legacyBuilder: resolveNetBalance('legacyleadership', safeCommissionBalances.legacyBuilder),
+  };
+}
+
+function resolveAccountOverviewTransferAvailableAmount(sourceMeta = null, adjustedBalances = {}) {
+  if (!sourceMeta || !sourceMeta.balanceKey) {
+    return 0;
+  }
+  return Math.max(0, safeNumber(adjustedBalances?.[sourceMeta.balanceKey], 0));
+}
+
+function syncAccountOverviewCommissionTransferButtonStates(commissionBalances = null, options = {}) {
+  const systemTotalsMode = Boolean(options?.systemTotals);
+  const transferAllowedForContext = state.source === 'member' && !systemTotalsMode;
+  const adjustedBalances = resolveAccountOverviewTransferAdjustedCommissionBalances(commissionBalances);
+
+  for (const transferButton of accountOverviewCommissionTransferButtons) {
+    if (!(transferButton instanceof HTMLButtonElement)) {
+      continue;
+    }
+    const sourceMeta = resolveAccountOverviewCommissionTransferSourceMeta(
+      transferButton.dataset.accountOverviewCommissionTransfer || '',
+    );
+    const sourceKey = safeText(sourceMeta?.key);
+    const isBusy = sourceKey ? accountOverviewCommissionTransferBusySourceKeys.has(sourceKey) : false;
+    const availableAmount = resolveAccountOverviewTransferAvailableAmount(sourceMeta, adjustedBalances);
+    const hasMinimumTransfer = availableAmount >= MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD;
+    const canTransfer = Boolean(sourceMeta) && transferAllowedForContext && hasMinimumTransfer && !isBusy;
+    const sourceError = sourceKey ? safeText(accountOverviewCommissionTransferErrorBySourceKey.get(sourceKey)) : '';
+
+    transferButton.disabled = !canTransfer;
+    transferButton.setAttribute('aria-disabled', canTransfer ? 'false' : 'true');
+    transferButton.dataset.sourceKey = sourceKey;
+    transferButton.dataset.availableAmount = String(availableAmount);
+    transferButton.textContent = isBusy ? 'Transferring...' : 'Transfer to E-Wallet';
+
+    if (!sourceMeta) {
+      transferButton.title = 'Commission transfer source is unavailable.';
+      continue;
+    }
+    if (sourceError) {
+      transferButton.title = sourceError;
+      continue;
+    }
+    if (!transferAllowedForContext) {
+      transferButton.title = systemTotalsMode
+        ? 'Transfers are unavailable while viewing system totals.'
+        : 'Transfers are available only for member sessions.';
+      continue;
+    }
+    if (!hasMinimumTransfer) {
+      transferButton.title = `${sourceMeta.label} requires at least ${formatEnrollCurrency(MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD)} to transfer.`;
+      continue;
+    }
+    transferButton.title = `Transfer ${formatEnrollCurrency(availableAmount)} from ${sourceMeta.label} to E-Wallet.`;
+  }
+}
+
+async function requestAccountOverviewCommissionTransfer(commissionKeyInput = '') {
+  const sourceMeta = resolveAccountOverviewCommissionTransferSourceMeta(commissionKeyInput);
+  if (!sourceMeta) {
+    return;
+  }
+  if (accountOverviewCommissionTransferBusySourceKeys.has(sourceMeta.key)) {
+    return;
+  }
+
+  const overviewContext = resolveAccountOverviewPanelContext();
+  const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+  const systemTotalsMode = Boolean(overviewContext?.systemTotals);
+  if (state.source !== 'member' || systemTotalsMode) {
+    accountOverviewLastRenderSignature = '';
+    syncAccountOverviewPanelVisuals();
+    return;
+  }
+
+  const commissionBalances = resolveAccountOverviewCommissionBalances(homeNode, { systemTotals: false });
+  const adjustedBalances = resolveAccountOverviewTransferAdjustedCommissionBalances(commissionBalances);
+  const availableAmount = resolveAccountOverviewTransferAvailableAmount(sourceMeta, adjustedBalances);
+  if (availableAmount < MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD) {
+    accountOverviewLastRenderSignature = '';
+    syncAccountOverviewPanelVisuals();
+    return;
+  }
+
+  const identityPayload = resolveAccountOverviewIdentityPayload(homeNode, {
+    preferHomeNode: false,
+    allowAnonymous: false,
+  });
+  if (!identityPayload.userId && !identityPayload.username && !identityPayload.email) {
+    accountOverviewCommissionTransferErrorBySourceKey.set(
+      sourceMeta.key,
+      'Unable to transfer commission without a valid member identity.',
+    );
+    accountOverviewLastRenderSignature = '';
+    syncAccountOverviewPanelVisuals();
+    return;
+  }
+
+  accountOverviewCommissionTransferErrorBySourceKey.delete(sourceMeta.key);
+  accountOverviewCommissionTransferBusySourceKeys.add(sourceMeta.key);
+  accountOverviewLastRenderSignature = '';
+  syncAccountOverviewPanelVisuals();
+
+  try {
+    const requestHeaders = buildRankAdvancementRequestHeaders({
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    });
+    const transactionId = [
+      'c2w',
+      normalizeCredentialValue(sourceMeta.key || 'commission') || 'commission',
+      Date.now(),
+      Math.random().toString(36).slice(2, 10),
+    ].join(':');
+    const senderSeedBalance = resolveAccountOverviewEWalletBalance(homeNode, {
+      systemTotals: false,
+    });
+
+    const response = await fetch(ACCOUNT_OVERVIEW_E_WALLET_COMMISSION_TRANSFER_API, {
+      method: 'POST',
+      cache: 'no-store',
+      credentials: 'same-origin',
+      headers: requestHeaders,
+      body: JSON.stringify({
+        userId: safeText(identityPayload.userId),
+        username: safeText(identityPayload.username),
+        email: safeText(identityPayload.email),
+        sourceKey: sourceMeta.key,
+        amount: availableAmount,
+        transactionId,
+        note: '',
+        senderSeedBalance: Math.max(0, safeNumber(senderSeedBalance, 0)),
+        limit: 25,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = safeText(payload?.error) || `Unable to transfer to E-Wallet (${response.status}).`;
+      throw new Error(message);
+    }
+
+    const walletSnapshot = (payload?.wallet && typeof payload.wallet === 'object')
+      ? payload.wallet
+      : null;
+    const walletOffsets = (payload?.commissionOffsets && typeof payload.commissionOffsets === 'object')
+      ? payload.commissionOffsets
+      : null;
+    if (walletSnapshot || walletOffsets) {
+      accountOverviewRemoteSnapshot = {
+        ...accountOverviewRemoteSnapshot,
+        ...(walletSnapshot ? { eWalletSnapshot: walletSnapshot } : {}),
+        ...(walletOffsets ? { walletCommissionOffsets: walletOffsets } : {}),
+        updatedAtMs: Date.now(),
+      };
+      accountOverviewRemoteDataVersion += 1;
+    }
+
+    await refreshAccountOverviewRemoteSnapshot({
+      force: true,
+      homeNode,
+      scope: overviewContext?.scope,
+      preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+    });
+  } catch (error) {
+    const message = safeText(error?.message) || 'Unable to transfer commission to E-Wallet.';
+    accountOverviewCommissionTransferErrorBySourceKey.set(sourceMeta.key, message);
+    console.warn('Unable to transfer account overview commission to E-Wallet:', error);
+  } finally {
+    accountOverviewCommissionTransferBusySourceKeys.delete(sourceMeta.key);
+    accountOverviewLastRenderSignature = '';
+    syncAccountOverviewPanelVisuals();
+  }
+}
+
 function initAccountOverviewPanel() {
   if (!isAccountOverviewPanelAvailable()) {
     return;
@@ -5841,6 +7729,37 @@ function initAccountOverviewPanel() {
     scope: overviewContext?.scope,
     preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
   });
+  bindAccountOverviewBadgeHoverInteractions(accountOverviewRankBadgeShellElement);
+  bindAccountOverviewBadgeHoverInteractions(accountOverviewTitleBadgeShellElement);
+  if (accountOverviewBadgeHovercardElement instanceof HTMLElement && accountOverviewBadgeHovercardElement.dataset.hoverBound !== 'true') {
+    accountOverviewBadgeHovercardElement.dataset.hoverBound = 'true';
+    accountOverviewBadgeHovercardElement.addEventListener('mouseenter', () => {
+      clearAccountOverviewBadgeHoverHideTimer();
+    });
+    accountOverviewBadgeHovercardElement.addEventListener('mouseleave', () => {
+      scheduleAccountOverviewBadgeHovercardHide();
+    });
+  }
+  if (accountOverviewScrollElement instanceof HTMLElement && accountOverviewScrollElement.dataset.badgeHoverScrollBound !== 'true') {
+    accountOverviewScrollElement.dataset.badgeHoverScrollBound = 'true';
+    accountOverviewScrollElement.addEventListener('scroll', () => {
+      if (!activeAccountOverviewBadgeHoverAnchorElement) {
+        return;
+      }
+      positionAccountOverviewBadgeHovercard(activeAccountOverviewBadgeHoverAnchorElement);
+    }, { passive: true });
+  }
+  if (accountOverviewPanelElement instanceof HTMLElement && accountOverviewPanelElement.dataset.badgeHoverViewportBound !== 'true') {
+    accountOverviewPanelElement.dataset.badgeHoverViewportBound = 'true';
+    const syncActiveBadgeHovercardPosition = () => {
+      if (!activeAccountOverviewBadgeHoverAnchorElement) {
+        return;
+      }
+      positionAccountOverviewBadgeHovercard(activeAccountOverviewBadgeHoverAnchorElement);
+    };
+    window.addEventListener('resize', syncActiveBadgeHovercardPosition, { passive: true });
+    window.addEventListener('scroll', syncActiveBadgeHovercardPosition, true);
+  }
 
   if (accountOverviewRefreshButtonElement instanceof HTMLElement) {
     accountOverviewRefreshButtonElement.addEventListener('click', () => {
@@ -5868,6 +7787,19 @@ function initAccountOverviewPanel() {
         setInfinityBuilderPanelMode(INFINITY_BUILDER_PANEL_MODE_LEGACY_LEADERSHIP);
         setInfinityBuilderPanelVisible(true);
       }
+    });
+  }
+  for (const transferButton of accountOverviewCommissionTransferButtons) {
+    if (!(transferButton instanceof HTMLButtonElement)) {
+      continue;
+    }
+    transferButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const commissionKey = normalizeCredentialValue(
+        transferButton.dataset.accountOverviewCommissionTransfer || '',
+      );
+      void requestAccountOverviewCommissionTransfer(commissionKey);
     });
   }
 }
@@ -11543,6 +13475,201 @@ function isMyStorePanelAvailable() {
   return myStorePanelElement instanceof HTMLElement;
 }
 
+function normalizeMyStoreCurrency(value, fallback = 0) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    const fallbackValue = Number(fallback);
+    return Number.isFinite(fallbackValue) ? fallbackValue : 0;
+  }
+  return Math.round(Math.max(0, numericValue) * 100) / 100;
+}
+
+function normalizeMyStoreWholeNumber(value, fallback = 0) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    const fallbackValue = Number(fallback);
+    return Number.isFinite(fallbackValue) ? Math.max(0, Math.round(fallbackValue)) : 0;
+  }
+  return Math.max(0, Math.round(numericValue));
+}
+
+function normalizeMyStorePackageEarningEntry(sourceEntry, fallbackEntry = {}) {
+  const source = sourceEntry && typeof sourceEntry === 'object' ? sourceEntry : {};
+  const fallback = fallbackEntry && typeof fallbackEntry === 'object' ? fallbackEntry : {};
+  return {
+    retailCommission: normalizeMyStoreCurrency(
+      source.retailCommission
+      ?? source.retail
+      ?? source.commission
+      ?? source.usd
+      ?? source.amount,
+      fallback.retailCommission,
+    ),
+    bv: normalizeMyStoreWholeNumber(
+      source.bv
+      ?? source.bp
+      ?? source.personalBv,
+      fallback.bv,
+    ),
+  };
+}
+
+function normalizeMyStoreProductPackageEarnings(rawPackageEarnings = {}) {
+  const source = rawPackageEarnings && typeof rawPackageEarnings === 'object'
+    ? rawPackageEarnings
+    : {};
+  const normalized = {};
+  MY_STORE_PRODUCT_PACKAGE_KEYS.forEach((packageKey) => {
+    const aliases = MY_STORE_PRODUCT_PACKAGE_KEY_ALIASES[packageKey] || [packageKey];
+    const sourceKey = aliases.find((alias) => Object.prototype.hasOwnProperty.call(source, alias));
+    const sourceEntry = sourceKey ? source[sourceKey] : null;
+    const defaultEntry = MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS[packageKey]
+      || { retailCommission: 0, bv: 0 };
+    normalized[packageKey] = normalizeMyStorePackageEarningEntry(sourceEntry, defaultEntry);
+  });
+  return normalized;
+}
+
+function resolveMyStoreBuyerPackageEarningKey(currentPackageKey = '') {
+  const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey);
+  if (
+    normalizedCurrentPackage === FREE_ACCOUNT_PACKAGE_KEY
+    || normalizedCurrentPackage === MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY
+  ) {
+    return MY_STORE_PREFERRED_PERSONAL_PACKAGE_KEY;
+  }
+  return MY_STORE_PAID_MEMBER_PACKAGE_KEY;
+}
+
+function normalizeMyStoreCatalogProduct(rawProduct = {}, index = 0) {
+  const source = rawProduct && typeof rawProduct === 'object' ? rawProduct : {};
+  const fallbackLabel = `Product ${index + 1}`;
+  const label = safeText(source.title || source.name || fallbackLabel) || fallbackLabel;
+  const productKey = safeText(source.id || source.slug || label) || `product-${index + 1}`;
+  const price = Math.round(Math.max(0, safeNumber(source.price, 0)) * 100) / 100;
+  const legacyBv = normalizeMyStoreWholeNumber(source.bp ?? source.bvPoints, 0);
+  const packageEarnings = normalizeMyStoreProductPackageEarnings(source.packageEarnings);
+  const imageUrl = safeText(source.image || source.imageUrl || MY_STORE_FEATURED_PRODUCT.imageUrl);
+  const status = normalizeCredentialValue(source.status);
+  const lookupKey = normalizeMyStoreUpgradeProductKey(productKey) || normalizeMyStoreUpgradeProductKey(label);
+
+  return {
+    productKey,
+    lookupKey,
+    label,
+    imageUrl,
+    price,
+    legacyBv,
+    packageEarnings,
+    status: status === 'archived' ? 'archived' : 'active',
+  };
+}
+
+function resolveMyStoreCatalogProductEntries() {
+  if (!Array.isArray(myStoreCatalogProducts) || myStoreCatalogProducts.length === 0) {
+    return [];
+  }
+  const activeProducts = myStoreCatalogProducts.filter((product) => product?.status !== 'archived');
+  return activeProducts.length > 0 ? activeProducts : myStoreCatalogProducts;
+}
+
+function resolveMyStoreCatalogFeaturedProductEntry(preferredProductKey = '') {
+  const preferredProducts = resolveMyStoreCatalogProductEntries();
+  if (preferredProducts.length === 0) {
+    return null;
+  }
+  const normalizedPreferredProductKey = normalizeMyStoreUpgradeProductKey(preferredProductKey)
+    || normalizeCredentialValue(preferredProductKey);
+  if (normalizedPreferredProductKey) {
+    const preferredProductMatch = preferredProducts.find((product) => {
+      const productKey = normalizeMyStoreUpgradeProductKey(product?.productKey)
+        || normalizeCredentialValue(product?.productKey);
+      const lookupKey = normalizeMyStoreUpgradeProductKey(product?.lookupKey)
+        || normalizeCredentialValue(product?.lookupKey);
+      return normalizedPreferredProductKey === productKey || normalizedPreferredProductKey === lookupKey;
+    });
+    if (preferredProductMatch) {
+      return preferredProductMatch;
+    }
+  }
+  const defaultLookupKey = normalizeMyStoreUpgradeProductKey(MY_STORE_FEATURED_PRODUCT.productKey);
+  const matchByLookupKey = preferredProducts.find((product) => product?.lookupKey === defaultLookupKey);
+  return matchByLookupKey || preferredProducts[0];
+}
+
+function resolveMyStoreFeaturedProduct(currentPackageKey = '', preferredProductKey = '') {
+  const fallback = MY_STORE_FEATURED_PRODUCT;
+  const catalogProduct = resolveMyStoreCatalogFeaturedProductEntry(preferredProductKey);
+  if (!catalogProduct) {
+    const fallbackPackageKey = resolveMyStoreBuyerPackageEarningKey(currentPackageKey);
+    const fallbackPackageEarning = MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS[fallbackPackageKey]
+      || MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS[MY_STORE_PAID_MEMBER_PACKAGE_KEY]
+      || { retailCommission: 0, bv: fallback.bv };
+    return {
+      ...fallback,
+      bv: normalizeMyStoreWholeNumber(fallbackPackageEarning.bv, fallback.bv),
+    };
+  }
+
+  const buyerPackageKey = resolveMyStoreBuyerPackageEarningKey(currentPackageKey);
+  const packageEarning = catalogProduct.packageEarnings?.[buyerPackageKey]
+    || catalogProduct.packageEarnings?.[MY_STORE_PAID_MEMBER_PACKAGE_KEY]
+    || MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS[buyerPackageKey]
+    || MY_STORE_DEFAULT_PRODUCT_PACKAGE_EARNINGS[MY_STORE_PAID_MEMBER_PACKAGE_KEY]
+    || { retailCommission: 0, bv: fallback.bv };
+
+  return {
+    productKey: safeText(catalogProduct.productKey || fallback.productKey) || fallback.productKey,
+    label: safeText(catalogProduct.label || fallback.label) || fallback.label,
+    imageUrl: safeText(catalogProduct.imageUrl || fallback.imageUrl) || fallback.imageUrl,
+    price: Math.max(0, safeNumber(catalogProduct.price, fallback.price)),
+    bv: normalizeMyStoreWholeNumber(
+      packageEarning?.bv,
+      normalizeMyStoreWholeNumber(catalogProduct.legacyBv, fallback.bv),
+    ),
+    quantity: Math.max(1, Math.round(safeNumber(fallback.quantity, 1))),
+  };
+}
+
+async function hydrateMyStoreProductCatalog(options = {}) {
+  const force = options?.force === true;
+  if (!force && Array.isArray(myStoreCatalogProducts) && myStoreCatalogProducts.length > 0) {
+    return myStoreCatalogProducts;
+  }
+  if (myStoreProductCatalogHydrationPromise) {
+    return myStoreProductCatalogHydrationPromise;
+  }
+
+  myStoreProductCatalogHydrationPromise = (async () => {
+    try {
+      const response = await fetch(STORE_PRODUCTS_API, {
+        method: 'GET',
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message = safeText(payload?.error) || `Unable to load store products (${response.status}).`;
+        throw new Error(message);
+      }
+      const products = Array.isArray(payload?.products)
+        ? payload.products.map((product, index) => normalizeMyStoreCatalogProduct(product, index))
+        : [];
+      myStoreCatalogProducts = products;
+      myStoreLastRenderSignature = '';
+      syncMyStorePanelVisuals();
+      return myStoreCatalogProducts;
+    } catch (error) {
+      console.warn('Unable to hydrate My Store product catalog:', error);
+      return myStoreCatalogProducts;
+    } finally {
+      myStoreProductCatalogHydrationPromise = null;
+    }
+  })();
+
+  return myStoreProductCatalogHydrationPromise;
+}
+
 function resolveMyStorePackageKeyFromValue(value) {
   const normalizedValue = normalizeCredentialValue(value);
   if (!normalizedValue) {
@@ -11596,6 +13723,32 @@ function resolveMyStoreCurrentPackageKey(homeNode = null) {
   return 'preferred-customer-pack';
 }
 
+function resolveMyStoreCurrentPackageProductKey(homeNode = null) {
+  const safeHomeNode = homeNode && typeof homeNode === 'object' ? homeNode : null;
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const candidates = [
+    safeHomeNode?.currentPackageProductKey,
+    safeHomeNode?.current_package_product_key,
+    safeHomeNode?.enrollmentProductKey,
+    safeHomeNode?.enrollment_product_key,
+    safeHomeNode?.defaultProductKey,
+    safeHomeNode?.default_product_key,
+    session?.currentPackageProductKey,
+    session?.current_package_product_key,
+    session?.enrollmentProductKey,
+    session?.enrollment_product_key,
+    session?.defaultProductKey,
+    session?.default_product_key,
+  ];
+  for (const candidate of candidates) {
+    const productKey = normalizeMyStoreCurrentPackageProductKey(candidate);
+    if (productKey) {
+      return productKey;
+    }
+  }
+  return MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY;
+}
+
 function resolveMyStoreUpgradePackageKeys(packageKey) {
   const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
   const upgradeKeys = MY_STORE_UPGRADE_PACKAGE_KEYS_BY_PACKAGE[normalizedPackageKey];
@@ -11613,16 +13766,128 @@ function resolveMyStoreUpgradePackageLabel(packageKey) {
 }
 
 function resolveMyStoreUpgradeProductMeta(productKey = '') {
-  const normalizedProductKey = normalizeCredentialValue(productKey);
+  const normalizedProductKey = normalizeMyStoreUpgradeProductKey(productKey);
   if (normalizedProductKey && MY_STORE_UPGRADE_PRODUCT_META[normalizedProductKey]) {
     return MY_STORE_UPGRADE_PRODUCT_META[normalizedProductKey];
   }
   return MY_STORE_UPGRADE_PRODUCT_META[MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY];
 }
 
+function normalizeMyStoreUpgradeProductKey(value = '') {
+  const normalizedValue = normalizeCredentialValue(value).replace(/[^a-z0-9]/g, '');
+  if (!normalizedValue) {
+    return '';
+  }
+  if (normalizedValue.includes('roast')) {
+    return 'metaroast';
+  }
+  if (normalizedValue.includes('charge')) {
+    return 'metacharge';
+  }
+  return '';
+}
+
+function normalizeMyStoreCurrentPackageProductKey(value = '') {
+  const normalizedValue = normalizeCredentialValue(value).replace(/[^a-z0-9]/g, '');
+  if (!normalizedValue) {
+    return '';
+  }
+  if (normalizedValue.includes('split')) {
+    return MY_STORE_PACKAGE_PRODUCT_KEY_SPLIT;
+  }
+  return normalizeMyStoreUpgradeProductKey(normalizedValue);
+}
+
+function isMyStoreUpgradeSplitEligiblePackage(packageKey = '') {
+  const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
+  return MY_STORE_UPGRADE_SPLIT_ELIGIBLE_PACKAGE_KEY_SET.has(normalizedPackageKey);
+}
+
+function normalizeMyStoreUpgradeProductMode(value = '') {
+  const normalizedValue = normalizeCredentialValue(value).replace(/[^a-z0-9]/g, '');
+  if (!normalizedValue) {
+    return '';
+  }
+  if (normalizedValue.includes('split')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT;
+  }
+  if (normalizedValue.includes('roast')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST;
+  }
+  if (normalizedValue.includes('charge')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+  }
+  return '';
+}
+
+function resolveMyStoreUpgradeProductMode(productMode = '', selectedProductKey = '', targetPackageKey = '') {
+  const splitAllowed = isMyStoreUpgradeSplitEligiblePackage(targetPackageKey);
+  const normalizedMode = normalizeMyStoreUpgradeProductMode(productMode);
+  if (normalizedMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT && !splitAllowed) {
+    const fallbackSelectedProductKey = normalizeMyStoreUpgradeProductKey(selectedProductKey);
+    return fallbackSelectedProductKey === 'metaroast'
+      ? MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST
+      : MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+  }
+  if (normalizedMode) {
+    return normalizedMode;
+  }
+  const normalizedSelectedProductKey = normalizeMyStoreUpgradeProductKey(selectedProductKey);
+  if (normalizedSelectedProductKey === 'metaroast') {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST;
+  }
+  if (normalizedSelectedProductKey === 'metacharge') {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+  }
+  return MY_STORE_UPGRADE_DEFAULT_PRODUCT_MODE;
+}
+
+function resolveMyStoreUpgradeProductModeBySelectionKey(selectionKey = '') {
+  const normalizedKey = normalizeCredentialValue(selectionKey).replace(/[^a-z0-9]/g, '');
+  if (!normalizedKey) {
+    return '';
+  }
+  if (normalizedKey.includes('split')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT;
+  }
+  if (normalizedKey.includes('roast')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST;
+  }
+  if (normalizedKey.includes('charge')) {
+    return MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+  }
+  return '';
+}
+
+function resolveMyStoreUpgradeProductKeyByMode(productMode = '', selectedProductKey = '', targetPackageKey = '') {
+  const normalizedMode = resolveMyStoreUpgradeProductMode(
+    productMode,
+    selectedProductKey,
+    targetPackageKey,
+  );
+  if (normalizedMode === MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METAROAST) {
+    return 'metaroast';
+  }
+  if (normalizedMode === MY_STORE_UPGRADE_PRODUCT_MODE_ALL_METACHARGE) {
+    return 'metacharge';
+  }
+  const normalizedSelectedProductKey = normalizeMyStoreUpgradeProductKey(selectedProductKey);
+  if (normalizedSelectedProductKey) {
+    return normalizedSelectedProductKey;
+  }
+  return normalizedMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT
+    ? MY_STORE_UPGRADE_DEFAULT_SPLIT_PRODUCT_KEY
+    : MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY;
+}
+
 function resolveMyStorePackageSelectableProductCount(packageKey) {
   const packageMeta = resolveEnrollPackageMeta(packageKey);
   return Math.max(0, Math.floor(safeNumber(packageMeta?.selectableProducts, 0)));
+}
+
+function resolveMyStoreComplementaryUpgradeProductKey(productKey = '') {
+  const normalizedProductKey = normalizeMyStoreUpgradeProductKey(productKey);
+  return normalizedProductKey === 'metaroast' ? 'metacharge' : 'metaroast';
 }
 
 function resolveMyStoreUpgradeDelta(currentPackageKey, targetPackageKey) {
@@ -11631,7 +13896,8 @@ function resolveMyStoreUpgradeDelta(currentPackageKey, targetPackageKey) {
   const currentPackageProducts = resolveMyStorePackageSelectableProductCount(normalizedCurrentPackage);
   const targetPackageProducts = resolveMyStorePackageSelectableProductCount(normalizedTargetPackage);
   const productGain = Math.max(0, targetPackageProducts - currentPackageProducts);
-  const unitProductPrice = Math.max(0, safeNumber(MY_STORE_FEATURED_PRODUCT.price, 0));
+  const featuredProduct = resolveMyStoreFeaturedProduct(normalizedCurrentPackage);
+  const unitProductPrice = Math.max(0, safeNumber(featuredProduct.price, 0));
   const unitProductBv = Math.max(0, Math.round(safeNumber(MY_STORE_UPGRADE_PRODUCT_UNIT_BV, 50)));
   const priceDue = Math.round((productGain * unitProductPrice) * 100) / 100;
   const bvGain = Math.max(0, Math.round(productGain * unitProductBv));
@@ -11641,6 +13907,73 @@ function resolveMyStoreUpgradeDelta(currentPackageKey, targetPackageKey) {
     productGain,
     priceDue,
     bvGain,
+  };
+}
+
+function resolveMyStoreUpgradeProductAllocation(currentPackageKey, targetPackageKey, options = {}) {
+  const {
+    selectedProductKey = '',
+    selectedProductMode = '',
+    currentPackageProductKey = '',
+  } = options && typeof options === 'object'
+    ? options
+    : {};
+  const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey) || 'preferred-customer-pack';
+  const normalizedTargetPackage = resolveMyStorePackageKeyFromValue(targetPackageKey);
+  const currentPackageProducts = resolveMyStorePackageSelectableProductCount(normalizedCurrentPackage);
+  const targetPackageProducts = Math.max(
+    currentPackageProducts,
+    resolveMyStorePackageSelectableProductCount(normalizedTargetPackage),
+  );
+  const productGain = Math.max(0, targetPackageProducts - currentPackageProducts);
+  const normalizedCurrentPackageProductKey = normalizeMyStoreCurrentPackageProductKey(currentPackageProductKey)
+    || resolveMyStoreCurrentPackageProductKey();
+  const normalizedProductMode = resolveMyStoreUpgradeProductMode(
+    selectedProductMode,
+    selectedProductKey,
+    normalizedTargetPackage,
+  );
+  let resolvedSelectedProductKey = resolveMyStoreUpgradeProductKeyByMode(
+    normalizedProductMode,
+    selectedProductKey || MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY,
+    normalizedTargetPackage,
+  );
+  let selectedProduct = resolveMyStoreUpgradeProductMeta(resolvedSelectedProductKey);
+  let carryoverProduct = resolveMyStoreUpgradeProductMeta(
+    resolveMyStoreComplementaryUpgradeProductKey(selectedProduct.productKey),
+  );
+  let carryoverQuantity = 0;
+  let selectedQuantity = productGain;
+  if (normalizedProductMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT) {
+    const currentPackageIsSplit = normalizedCurrentPackageProductKey === MY_STORE_PACKAGE_PRODUCT_KEY_SPLIT;
+    const resolvedCarryoverProductKey = currentPackageIsSplit
+      ? resolveMyStoreComplementaryUpgradeProductKey(selectedProduct.productKey)
+      : (
+          normalizeMyStoreUpgradeProductKey(normalizedCurrentPackageProductKey)
+          || resolveMyStoreComplementaryUpgradeProductKey(selectedProduct.productKey)
+        );
+    carryoverProduct = resolveMyStoreUpgradeProductMeta(resolvedCarryoverProductKey);
+    resolvedSelectedProductKey = resolveMyStoreComplementaryUpgradeProductKey(carryoverProduct.productKey);
+    selectedProduct = resolveMyStoreUpgradeProductMeta(resolvedSelectedProductKey);
+    const carryoverTargetTotal = Math.ceil(targetPackageProducts / 2);
+    const existingCarryoverProductQuantity = currentPackageIsSplit
+      ? Math.floor(currentPackageProducts / 2)
+      : currentPackageProducts;
+    const carryoverNeeded = Math.max(0, carryoverTargetTotal - existingCarryoverProductQuantity);
+    carryoverQuantity = Math.min(productGain, carryoverNeeded);
+    selectedQuantity = Math.max(0, productGain - carryoverQuantity);
+  }
+
+  return {
+    currentPackageProducts,
+    targetPackageProducts,
+    productGain,
+    currentPackageProductKey: normalizedCurrentPackageProductKey,
+    selectedProductMode: normalizedProductMode,
+    selectedProduct,
+    selectedQuantity,
+    carryoverProduct,
+    carryoverQuantity,
   };
 }
 
@@ -11687,110 +14020,213 @@ function resolveMyStoreStep(stepValue = '') {
   return MY_STORE_VALID_STEPS.has(normalizedStep) ? normalizedStep : MY_STORE_STEP_CATALOG;
 }
 
-function buildMyStoreSelection(action, packageKey = '', currentPackageKey = '') {
+function buildMyStoreSelection(
+  action,
+  packageKey = '',
+  currentPackageKey = '',
+  currentPackageProductKey = '',
+  preferredProductKey = '',
+) {
   const normalizedAction = normalizeCredentialValue(action);
   const normalizedPackageKey = resolveMyStorePackageKeyFromValue(packageKey);
-  const baseQuantity = Math.max(1, Math.round(safeNumber(MY_STORE_FEATURED_PRODUCT.quantity, 1)));
+  const featuredProduct = resolveMyStoreFeaturedProduct(currentPackageKey, preferredProductKey);
+  const baseQuantity = Math.max(1, Math.round(safeNumber(featuredProduct.quantity, 1)));
   const baseSelection = {
     action: 'featured',
-    productKey: safeText(MY_STORE_FEATURED_PRODUCT.productKey || 'metacharge') || 'metacharge',
+    productKey: safeText(featuredProduct.productKey || 'metacharge') || 'metacharge',
     packageKey: '',
-    label: safeText(MY_STORE_FEATURED_PRODUCT.label) || 'MetaCharge',
-    imageUrl: safeText(MY_STORE_FEATURED_PRODUCT.imageUrl),
-    unitPrice: Math.max(0, safeNumber(MY_STORE_FEATURED_PRODUCT.price, 0)),
-    unitBv: Math.max(0, Math.round(safeNumber(MY_STORE_FEATURED_PRODUCT.bv, 0))),
+    label: safeText(featuredProduct.label) || 'MetaCharge\u2122',
+    imageUrl: safeText(featuredProduct.imageUrl),
+    unitPrice: Math.max(0, safeNumber(featuredProduct.price, 0)),
+    unitBv: Math.max(0, Math.round(safeNumber(featuredProduct.bv, 0))),
     quantity: baseQuantity,
+    upgradeProductMode: '',
     upgradeProductKey: '',
     upgradeProductLabel: '',
     upgradeProductImageUrl: '',
     upgradeProductQuantity: 0,
     upgradeProductUnitPrice: 0,
     upgradeProductUnitBv: 0,
+    upgradeCarryoverProductKey: '',
+    upgradeCarryoverProductLabel: '',
+    upgradeCarryoverProductImageUrl: '',
+    upgradeCarryoverProductQuantity: 0,
+    upgradeCarryoverProductUnitPrice: 0,
+    upgradeCarryoverProductUnitBv: 0,
   };
   if (normalizedAction !== 'upgrade' || !normalizedPackageKey) {
     return baseSelection;
   }
-  const upgradeDelta = resolveMyStoreUpgradeDelta(currentPackageKey, normalizedPackageKey);
-  const upgradeProduct = resolveMyStoreUpgradeProductMeta(MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY);
-  const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(upgradeDelta.productGain, 0)));
-  const upgradeProductUnitPrice = Math.max(0, safeNumber(upgradeProduct.unitPrice, 0));
-  const upgradeProductUnitBv = Math.max(0, Math.round(safeNumber(upgradeProduct.unitBv, 0)));
-  const upgradeSubtotal = Math.round((upgradeProductQuantity * upgradeProductUnitPrice) * 100) / 100;
-  const upgradeTotalBv = Math.max(0, Math.round(upgradeProductQuantity * upgradeProductUnitBv));
+  const productAllocation = resolveMyStoreUpgradeProductAllocation(
+    currentPackageKey,
+    normalizedPackageKey,
+    {
+      selectedProductKey: MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY,
+      selectedProductMode: MY_STORE_UPGRADE_DEFAULT_PRODUCT_MODE,
+      currentPackageProductKey,
+    },
+  );
+  const selectedUpgradeProduct = productAllocation.selectedProduct;
+  const carryoverUpgradeProduct = productAllocation.carryoverProduct;
+  const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(productAllocation.selectedQuantity, 0)));
+  const upgradeCarryoverProductQuantity = Math.max(0, Math.round(safeNumber(productAllocation.carryoverQuantity, 0)));
+  const upgradeProductUnitPrice = Math.max(0, safeNumber(selectedUpgradeProduct.unitPrice, 0));
+  const upgradeProductUnitBv = Math.max(0, Math.round(safeNumber(selectedUpgradeProduct.unitBv, 0)));
+  const upgradeCarryoverProductUnitPrice = Math.max(0, safeNumber(carryoverUpgradeProduct.unitPrice, 0));
+  const upgradeCarryoverProductUnitBv = Math.max(0, Math.round(safeNumber(carryoverUpgradeProduct.unitBv, 0)));
+  const upgradeSubtotal = Math.round((
+    (upgradeProductQuantity * upgradeProductUnitPrice)
+    + (upgradeCarryoverProductQuantity * upgradeCarryoverProductUnitPrice)
+  ) * 100) / 100;
+  const upgradeTotalBv = Math.max(0, Math.round(
+    (upgradeProductQuantity * upgradeProductUnitBv)
+    + (upgradeCarryoverProductQuantity * upgradeCarryoverProductUnitBv),
+  ));
   return {
     ...baseSelection,
     action: 'upgrade',
-    productKey: upgradeProduct.productKey,
+    productKey: selectedUpgradeProduct.productKey,
     packageKey: normalizedPackageKey,
     label: resolveMyStoreUpgradePackageLabel(normalizedPackageKey),
-    imageUrl: safeText(upgradeProduct.imageUrl) || baseSelection.imageUrl,
+    imageUrl: safeText(selectedUpgradeProduct.imageUrl) || baseSelection.imageUrl,
     unitPrice: Math.max(0, safeNumber(upgradeSubtotal, 0)),
     unitBv: Math.max(0, Math.round(safeNumber(upgradeTotalBv, 0))),
     quantity: 1,
-    upgradeProductKey: upgradeProduct.productKey,
-    upgradeProductLabel: safeText(upgradeProduct.label) || 'Upgrade Product',
-    upgradeProductImageUrl: safeText(upgradeProduct.imageUrl),
+    upgradeProductMode: productAllocation.selectedProductMode,
+    upgradeProductKey: selectedUpgradeProduct.productKey,
+    upgradeProductLabel: safeText(selectedUpgradeProduct.label) || 'Upgrade Product',
+    upgradeProductImageUrl: safeText(selectedUpgradeProduct.imageUrl),
     upgradeProductQuantity,
     upgradeProductUnitPrice,
     upgradeProductUnitBv,
+    upgradeCarryoverProductKey: carryoverUpgradeProduct.productKey,
+    upgradeCarryoverProductLabel: safeText(carryoverUpgradeProduct.label) || 'Upgrade Product',
+    upgradeCarryoverProductImageUrl: safeText(carryoverUpgradeProduct.imageUrl),
+    upgradeCarryoverProductQuantity,
+    upgradeCarryoverProductUnitPrice,
+    upgradeCarryoverProductUnitBv,
   };
 }
 
-function resolveMyStoreSelection(currentPackageKey = '') {
+function resolveMyStoreSelection(currentPackageKey = '', currentPackageProductKey = '') {
   const selectionInput = state.ui?.myStoreSelection;
   const normalizedCurrentPackage = resolveMyStorePackageKeyFromValue(currentPackageKey) || 'preferred-customer-pack';
   if (!selectionInput || typeof selectionInput !== 'object') {
-    return buildMyStoreSelection('featured', '', normalizedCurrentPackage);
+    return buildMyStoreSelection('featured', '', normalizedCurrentPackage, currentPackageProductKey);
   }
   const normalizedAction = normalizeCredentialValue(selectionInput.action);
   const normalizedPackageKey = resolveMyStorePackageKeyFromValue(selectionInput.packageKey);
   const isUpgrade = normalizedAction === 'upgrade' && Boolean(normalizedPackageKey);
+  const preferredFeaturedProductKey = safeText(
+    selectionInput.productKey
+    || selectionInput.catalogProductKey,
+  );
   const fallbackSelection = isUpgrade
-    ? buildMyStoreSelection('upgrade', normalizedPackageKey, normalizedCurrentPackage)
-    : buildMyStoreSelection('featured', '', normalizedCurrentPackage);
+    ? buildMyStoreSelection('upgrade', normalizedPackageKey, normalizedCurrentPackage, currentPackageProductKey)
+    : buildMyStoreSelection(
+      'featured',
+      '',
+      normalizedCurrentPackage,
+      currentPackageProductKey,
+      preferredFeaturedProductKey,
+    );
   const quantityValue = Math.max(1, Math.round(safeNumber(selectionInput.quantity, fallbackSelection.quantity)));
   const quantity = isUpgrade ? 1 : quantityValue;
+  let label = safeText(selectionInput.label || fallbackSelection.label) || fallbackSelection.label;
   let productKey = safeText(selectionInput.productKey || fallbackSelection.productKey) || fallbackSelection.productKey;
   let imageUrl = safeText(selectionInput.imageUrl || fallbackSelection.imageUrl) || fallbackSelection.imageUrl;
   let unitPrice = Math.max(0, safeNumber(selectionInput.unitPrice, fallbackSelection.unitPrice));
   let unitBv = Math.max(0, Math.round(safeNumber(selectionInput.unitBv, fallbackSelection.unitBv)));
+  let upgradeProductMode = '';
   let upgradeProductKey = '';
   let upgradeProductLabel = '';
   let upgradeProductImageUrl = '';
   let upgradeProductQuantity = 0;
   let upgradeProductUnitPrice = 0;
   let upgradeProductUnitBv = 0;
+  let upgradeCarryoverProductKey = '';
+  let upgradeCarryoverProductLabel = '';
+  let upgradeCarryoverProductImageUrl = '';
+  let upgradeCarryoverProductQuantity = 0;
+  let upgradeCarryoverProductUnitPrice = 0;
+  let upgradeCarryoverProductUnitBv = 0;
   if (isUpgrade) {
-    const upgradeDelta = resolveMyStoreUpgradeDelta(normalizedCurrentPackage, normalizedPackageKey);
-    const selectedUpgradeProduct = resolveMyStoreUpgradeProductMeta(
-      safeText(selectionInput.upgradeProductKey || selectionInput.productKey || fallbackSelection.upgradeProductKey),
+    const productAllocation = resolveMyStoreUpgradeProductAllocation(
+      normalizedCurrentPackage,
+      normalizedPackageKey,
+      {
+        selectedProductKey: safeText(
+          selectionInput.upgradeProductKey
+          || selectionInput.productKey
+          || fallbackSelection.upgradeProductKey,
+        ),
+        selectedProductMode: safeText(
+          selectionInput.upgradeProductMode
+          || fallbackSelection.upgradeProductMode
+          || MY_STORE_UPGRADE_DEFAULT_PRODUCT_MODE,
+        ),
+        currentPackageProductKey,
+      },
     );
-    upgradeProductQuantity = Math.max(0, Math.round(safeNumber(upgradeDelta.productGain, 0)));
+    const selectedUpgradeProduct = productAllocation.selectedProduct;
+    const carryoverUpgradeProduct = productAllocation.carryoverProduct;
+    upgradeProductMode = productAllocation.selectedProductMode;
+    upgradeProductQuantity = Math.max(0, Math.round(safeNumber(productAllocation.selectedQuantity, 0)));
     upgradeProductUnitPrice = Math.max(0, safeNumber(selectedUpgradeProduct.unitPrice, 0));
     upgradeProductUnitBv = Math.max(0, Math.round(safeNumber(selectedUpgradeProduct.unitBv, 0)));
-    unitPrice = Math.round((upgradeProductQuantity * upgradeProductUnitPrice) * 100) / 100;
-    unitBv = Math.max(0, Math.round(upgradeProductQuantity * upgradeProductUnitBv));
+    upgradeCarryoverProductQuantity = Math.max(0, Math.round(safeNumber(productAllocation.carryoverQuantity, 0)));
+    upgradeCarryoverProductUnitPrice = Math.max(0, safeNumber(carryoverUpgradeProduct.unitPrice, 0));
+    upgradeCarryoverProductUnitBv = Math.max(0, Math.round(safeNumber(carryoverUpgradeProduct.unitBv, 0)));
+    unitPrice = Math.round((
+      (upgradeProductQuantity * upgradeProductUnitPrice)
+      + (upgradeCarryoverProductQuantity * upgradeCarryoverProductUnitPrice)
+    ) * 100) / 100;
+    unitBv = Math.max(0, Math.round(
+      (upgradeProductQuantity * upgradeProductUnitBv)
+      + (upgradeCarryoverProductQuantity * upgradeCarryoverProductUnitBv),
+    ));
     productKey = selectedUpgradeProduct.productKey;
     imageUrl = safeText(selectedUpgradeProduct.imageUrl) || fallbackSelection.imageUrl;
     upgradeProductKey = selectedUpgradeProduct.productKey;
     upgradeProductLabel = safeText(selectedUpgradeProduct.label) || 'Upgrade Product';
     upgradeProductImageUrl = safeText(selectedUpgradeProduct.imageUrl);
+    upgradeCarryoverProductKey = carryoverUpgradeProduct.productKey;
+    upgradeCarryoverProductLabel = safeText(carryoverUpgradeProduct.label) || 'Upgrade Product';
+    upgradeCarryoverProductImageUrl = safeText(carryoverUpgradeProduct.imageUrl);
+  } else {
+    // Keep featured pricing/BV aligned with current paid/preferred buyer rules.
+    const featuredProduct = resolveMyStoreFeaturedProduct(
+      normalizedCurrentPackage,
+      preferredFeaturedProductKey,
+    );
+    label = safeText(featuredProduct.label) || fallbackSelection.label;
+    productKey = safeText(featuredProduct.productKey || fallbackSelection.productKey) || fallbackSelection.productKey;
+    imageUrl = safeText(featuredProduct.imageUrl || fallbackSelection.imageUrl) || fallbackSelection.imageUrl;
+    unitPrice = Math.max(0, safeNumber(featuredProduct.price, fallbackSelection.unitPrice));
+    unitBv = Math.max(0, Math.round(safeNumber(featuredProduct.bv, fallbackSelection.unitBv)));
   }
   return {
     action: isUpgrade ? 'upgrade' : 'featured',
     productKey,
     packageKey: isUpgrade ? normalizedPackageKey : '',
-    label: safeText(selectionInput.label || fallbackSelection.label) || fallbackSelection.label,
+    label,
     imageUrl,
     unitPrice,
     unitBv,
     quantity,
+    upgradeProductMode,
     upgradeProductKey,
     upgradeProductLabel,
     upgradeProductImageUrl,
     upgradeProductQuantity,
     upgradeProductUnitPrice,
     upgradeProductUnitBv,
+    upgradeCarryoverProductKey,
+    upgradeCarryoverProductLabel,
+    upgradeCarryoverProductImageUrl,
+    upgradeCarryoverProductQuantity,
+    upgradeCarryoverProductUnitPrice,
+    upgradeCarryoverProductUnitBv,
   };
 }
 
@@ -11820,6 +14256,35 @@ function resolveMyStoreCheckoutAmounts(selectionInput, currentPackageKey) {
     total,
     totalBv,
   };
+}
+
+function formatMyStoreUpgradeSplitLabel(selectionInput = {}) {
+  const selection = selectionInput && typeof selectionInput === 'object'
+    ? selectionInput
+    : {};
+  const carryoverProductLabel = safeText(selection.upgradeCarryoverProductLabel)
+    || resolveMyStoreUpgradeProductMeta(selection.upgradeCarryoverProductKey).label;
+  const carryoverProductQuantity = Math.max(
+    0,
+    Math.round(safeNumber(selection.upgradeCarryoverProductQuantity, 0)),
+  );
+  const selectedProductLabel = safeText(selection.upgradeProductLabel)
+    || resolveMyStoreUpgradeProductMeta(selection.upgradeProductKey).label;
+  const selectedProductQuantity = Math.max(
+    0,
+    Math.round(safeNumber(selection.upgradeProductQuantity, 0)),
+  );
+  const parts = [];
+  if (carryoverProductQuantity > 0) {
+    parts.push(`${carryoverProductLabel} ${formatInteger(carryoverProductQuantity)}x`);
+  }
+  if (selectedProductQuantity > 0) {
+    parts.push(`${selectedProductLabel} ${formatInteger(selectedProductQuantity)}x`);
+  }
+  if (parts.length > 0) {
+    return parts.join(' + ');
+  }
+  return `${selectedProductLabel} ${formatInteger(selectedProductQuantity)}x`;
 }
 
 function renderMyStoreBreadcrumbs(stepValue = MY_STORE_STEP_CATALOG, options = {}) {
@@ -12009,11 +14474,20 @@ function resetMyStoreCheckoutForm() {
   setMyStoreCheckoutFeedback('');
 }
 
-function navigateToMyStoreProduct(action, packageKey = '') {
+function navigateToMyStoreProduct(action, packageKey = '', preferredProductKey = '') {
   const homeNodeId = resolvePreferredGlobalHomeNodeId();
   const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
   const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-  state.ui.myStoreSelection = buildMyStoreSelection(action, packageKey, currentPackageKey);
+  const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+  const normalizedAction = normalizeCredentialValue(action);
+  const nextFeaturedProductKey = normalizedAction === 'featured' ? safeText(preferredProductKey) : '';
+  state.ui.myStoreSelection = buildMyStoreSelection(
+    action,
+    packageKey,
+    currentPackageKey,
+    currentPackageProductKey,
+    nextFeaturedProductKey,
+  );
   setMyStoreStep(MY_STORE_STEP_REVIEW, { clearCheckoutFeedback: true, sync: false });
   syncMyStorePanelVisuals();
 }
@@ -12022,7 +14496,8 @@ function setMyStoreSelectionQuantity(quantityValue) {
   const homeNodeId = resolvePreferredGlobalHomeNodeId();
   const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
   const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-  const currentSelection = resolveMyStoreSelection(currentPackageKey);
+  const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+  const currentSelection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
   if (normalizeCredentialValue(currentSelection.action) === 'upgrade') {
     return;
   }
@@ -12037,21 +14512,56 @@ function setMyStoreSelectionQuantity(quantityValue) {
   syncMyStorePanelVisuals();
 }
 
-function setMyStoreUpgradeSelectionProduct(productKey = '') {
+function setMyStoreUpgradeSelectionProduct(productSelectionKey = '') {
   const homeNodeId = resolvePreferredGlobalHomeNodeId();
   const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
   const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-  const currentSelection = resolveMyStoreSelection(currentPackageKey);
+  const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+  const currentSelection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
   if (normalizeCredentialValue(currentSelection.action) !== 'upgrade') {
     return;
   }
-  const selectedUpgradeProduct = resolveMyStoreUpgradeProductMeta(productKey);
-  if (safeText(currentSelection.upgradeProductKey) === selectedUpgradeProduct.productKey) {
+  const requestedProductMode = resolveMyStoreUpgradeProductModeBySelectionKey(productSelectionKey);
+  if (!requestedProductMode) {
+    return;
+  }
+  const targetPackageKey = resolveMyStorePackageKeyFromValue(currentSelection.packageKey);
+  const splitAllowed = isMyStoreUpgradeSplitEligiblePackage(targetPackageKey);
+  if (requestedProductMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT && !splitAllowed) {
+    return;
+  }
+  let nextProductMode = requestedProductMode;
+  const currentPackageProductState = normalizeMyStoreCurrentPackageProductKey(currentPackageProductKey);
+  let nextProductKey = normalizeMyStoreUpgradeProductKey(currentSelection.upgradeProductKey)
+    || resolveMyStoreUpgradeProductKeyByMode(
+      MY_STORE_UPGRADE_DEFAULT_PRODUCT_MODE,
+      MY_STORE_UPGRADE_DEFAULT_PRODUCT_KEY,
+      targetPackageKey,
+    );
+  if (requestedProductMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT) {
+    nextProductMode = MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT;
+    if (currentPackageProductState === MY_STORE_PACKAGE_PRODUCT_KEY_SPLIT) {
+      nextProductKey = normalizeMyStoreUpgradeProductKey(currentSelection.upgradeProductKey)
+        || MY_STORE_UPGRADE_DEFAULT_SPLIT_PRODUCT_KEY;
+    } else {
+      nextProductKey = resolveMyStoreComplementaryUpgradeProductKey(currentPackageProductState);
+    }
+  } else {
+    nextProductKey = resolveMyStoreUpgradeProductKeyByMode(requestedProductMode, nextProductKey, targetPackageKey);
+  }
+  const currentProductMode = resolveMyStoreUpgradeProductMode(
+    currentSelection.upgradeProductMode,
+    currentSelection.upgradeProductKey,
+    targetPackageKey,
+  );
+  const currentProductKey = normalizeMyStoreUpgradeProductKey(currentSelection.upgradeProductKey);
+  if (currentProductMode === nextProductMode && currentProductKey === nextProductKey) {
     return;
   }
   state.ui.myStoreSelection = {
     ...currentSelection,
-    upgradeProductKey: selectedUpgradeProduct.productKey,
+    upgradeProductMode: nextProductMode,
+    upgradeProductKey: nextProductKey,
   };
   syncMyStorePanelVisuals();
 }
@@ -12377,17 +14887,51 @@ async function submitMyStoreCheckout() {
   }
   setMyStoreCheckoutFeedback('');
   clearMyStoreCheckoutCardError();
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    setMyStoreCheckoutFeedback(PENDING_RESERVATION_GATE_MESSAGE, { isError: true });
+    return;
+  }
 
   const homeNodeId = resolvePreferredGlobalHomeNodeId();
   const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
   const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-  const selection = resolveMyStoreSelection(currentPackageKey);
+  const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+  const selection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
   const checkoutAmounts = resolveMyStoreCheckoutAmounts(selection, currentPackageKey);
-  const checkoutProductId = safeText(selection.productKey || selection.upgradeProductKey || MY_STORE_FEATURED_PRODUCT.productKey);
-  const checkoutQuantity = checkoutAmounts.isUpgradeSelection
-    ? Math.max(1, Math.round(safeNumber(selection.upgradeProductQuantity, 1)))
-    : Math.max(1, Math.round(safeNumber(checkoutAmounts.quantity, 1)));
-  if (!checkoutProductId || checkoutQuantity <= 0) {
+  const checkoutCartLines = [];
+  let checkoutQuantity = 0;
+  if (checkoutAmounts.isUpgradeSelection) {
+    const carryoverProductId = safeText(selection.upgradeCarryoverProductKey);
+    const carryoverQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeCarryoverProductQuantity, 0)));
+    const selectedUpgradeProductId = safeText(selection.upgradeProductKey || selection.productKey);
+    const selectedUpgradeQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeProductQuantity, 0)));
+    if (carryoverProductId && carryoverQuantity > 0) {
+      checkoutCartLines.push({
+        productId: carryoverProductId,
+        quantity: carryoverQuantity,
+      });
+      checkoutQuantity += carryoverQuantity;
+    }
+    if (selectedUpgradeProductId && selectedUpgradeQuantity > 0) {
+      checkoutCartLines.push({
+        productId: selectedUpgradeProductId,
+        quantity: selectedUpgradeQuantity,
+      });
+      checkoutQuantity += selectedUpgradeQuantity;
+    }
+  } else {
+    const featuredProduct = resolveMyStoreFeaturedProduct(currentPackageKey);
+    const checkoutProductId = safeText(selection.productKey || featuredProduct.productKey);
+    const featuredQuantity = Math.max(1, Math.round(safeNumber(checkoutAmounts.quantity, 1)));
+    if (checkoutProductId && featuredQuantity > 0) {
+      checkoutCartLines.push({
+        productId: checkoutProductId,
+        quantity: featuredQuantity,
+      });
+      checkoutQuantity = featuredQuantity;
+    }
+  }
+  if (!Array.isArray(checkoutCartLines) || checkoutCartLines.length === 0 || checkoutQuantity <= 0) {
     setMyStoreCheckoutFeedback('Unable to build cart selection for checkout.', { isError: true });
     return;
   }
@@ -12430,6 +14974,16 @@ async function submitMyStoreCheckout() {
   const accountUpgradeTargetPackage = checkoutAmounts.isUpgradeSelection
     ? resolveMyStorePackageKeyFromValue(selection.packageKey)
     : '';
+  const accountUpgradeSelectedProductKey = checkoutAmounts.isUpgradeSelection
+    ? normalizeMyStoreUpgradeProductKey(selection.upgradeProductKey)
+    : '';
+  const accountUpgradeProductMode = checkoutAmounts.isUpgradeSelection
+    ? resolveMyStoreUpgradeProductMode(
+      selection.upgradeProductMode,
+      selection.upgradeProductKey,
+      accountUpgradeTargetPackage,
+    )
+    : '';
   const checkoutWindow = openTreeNextStripeCheckoutWindow();
   if (!checkoutWindow) {
     const popupMessage = 'Pop-up blocked. Please allow pop-ups to continue with Stripe checkout.';
@@ -12446,12 +15000,7 @@ async function submitMyStoreCheckout() {
   try {
     setMyStoreCheckoutFeedback('Preparing secure payment...');
     const checkoutSessionResult = await createMyStoreCheckoutSession({
-      cartLines: [
-        {
-          productId: checkoutProductId,
-          quantity: checkoutQuantity,
-        },
-      ],
+      cartLines: checkoutCartLines,
       storeCode,
       buyerName: cardholderName || resolveSessionDisplayName(),
       buyerEmail,
@@ -12464,6 +15013,8 @@ async function submitMyStoreCheckout() {
       buyerUserId,
       buyerUsername,
       accountUpgradeTargetPackage,
+      accountUpgradeSelectedProductKey,
+      accountUpgradeProductMode,
       returnPath: buildTreeNextStripeReturnPath(TREE_NEXT_STRIPE_RETURN_FLOW_MY_STORE),
     });
     persistTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_MY_STORE_KEY, {
@@ -12472,7 +15023,7 @@ async function submitMyStoreCheckout() {
       amountPaid: checkoutAmounts.total,
       bv: checkoutAmounts.totalBv,
       productLabel: checkoutAmounts.isUpgradeSelection
-        ? `Upgrade: ${safeText(selection.label) || 'Package Upgrade'}`
+        ? `Upgrade: ${safeText(selection.label) || 'Package Upgrade'} - ${formatMyStoreUpgradeSplitLabel(selection)}`
         : (safeText(selection.label) || safeText(myStoreCheckoutProductLabelElement?.textContent) || 'Product'),
       quantity: checkoutQuantity,
       dateLabel: formatMyStoreCheckoutDate(new Date().toISOString()),
@@ -12524,6 +15075,10 @@ function setMyStoreCopyFeedback(message, options = {}) {
 }
 
 async function copyMyStoreShareLink() {
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    setMyStoreCopyFeedback(ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE, { isError: true });
+    return;
+  }
   const fallbackLink = resolveMyStoreShareLink();
   const shareLink = safeText(myStoreCopyLinkButtonElement?.dataset?.shareLink || fallbackLink);
   if (!shareLink) {
@@ -12752,9 +15307,12 @@ function syncMyStorePanelVisuals() {
   const homeNodeId = resolvePreferredGlobalHomeNodeId();
   const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
   const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+  const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
   const currentStep = resolveMyStoreStep(state.ui?.myStoreStep);
-  const selection = resolveMyStoreSelection(currentPackageKey);
+  const selection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
   const checkoutAmounts = resolveMyStoreCheckoutAmounts(selection, currentPackageKey);
+  const featuredProduct = resolveMyStoreFeaturedProduct(currentPackageKey);
+  const catalogProducts = resolveMyStoreCatalogProductEntries();
   const upgradeKeys = resolveMyStoreUpgradePackageKeys(currentPackageKey);
   const shareLink = resolveMyStoreShareLink(homeNode);
   const completionSummary = resolveMyStoreCheckoutCompletionSummary();
@@ -12762,13 +15320,18 @@ function syncMyStorePanelVisuals() {
     currentStep,
     selection.action,
     selection.packageKey,
+    selection.upgradeProductMode,
     selection.upgradeProductKey,
     selection.upgradeProductQuantity,
+    selection.upgradeCarryoverProductKey,
+    selection.upgradeCarryoverProductQuantity,
+    selection.productKey,
     selection.label,
     selection.unitPrice,
     selection.unitBv,
     selection.quantity,
     currentPackageKey,
+    currentPackageProductKey,
     upgradeKeys.join('|'),
     shareLink,
     completionSummary.message,
@@ -12784,12 +15347,43 @@ function syncMyStorePanelVisuals() {
   }
   myStoreLastRenderSignature = renderSignature;
 
-  if (myStoreFeaturedLabelElement instanceof HTMLElement) {
-    myStoreFeaturedLabelElement.textContent = MY_STORE_FEATURED_PRODUCT.label;
-  }
-  if (myStoreFeaturedImageElement instanceof HTMLImageElement) {
-    myStoreFeaturedImageElement.src = MY_STORE_FEATURED_PRODUCT.imageUrl;
-    myStoreFeaturedImageElement.alt = MY_STORE_FEATURED_PRODUCT.label;
+  if (myStoreFeaturedProductsElement instanceof HTMLElement) {
+    const selectedFeaturedProductKey = normalizeMyStoreUpgradeProductKey(selection.productKey)
+      || normalizeCredentialValue(selection.productKey);
+    const isFeaturedSelection = normalizeCredentialValue(selection.action) !== 'upgrade';
+    const productsToRender = catalogProducts.length > 0
+      ? catalogProducts
+      : [featuredProduct];
+    myStoreFeaturedProductsElement.classList.toggle('is-single', productsToRender.length <= 1);
+    myStoreFeaturedProductsElement.innerHTML = productsToRender.map((product, index) => {
+      const productKey = safeText(product?.productKey || `product-${index + 1}`) || `product-${index + 1}`;
+      const productLabel = safeText(product?.label || `Product ${index + 1}`) || `Product ${index + 1}`;
+      const productImageUrl = safeText(product?.imageUrl || featuredProduct.imageUrl) || featuredProduct.imageUrl;
+      const escapedProductKey = escapeHtml(productKey);
+      const escapedProductLabel = escapeHtml(productLabel);
+      const escapedProductImageUrl = escapeHtml(productImageUrl);
+      const productLookupKey = normalizeMyStoreUpgradeProductKey(productKey)
+        || normalizeMyStoreUpgradeProductKey(productLabel)
+        || normalizeCredentialValue(productKey);
+      const isSelected = isFeaturedSelection
+        && Boolean(selectedFeaturedProductKey)
+        && Boolean(productLookupKey)
+        && productLookupKey === selectedFeaturedProductKey;
+      return `
+        <button
+          class="tree-next-my-store-product-button tree-next-my-store-catalog-product-card${isSelected ? ' is-selected' : ''}"
+          type="button"
+          data-my-store-product-action="featured"
+          data-my-store-product-key="${escapedProductKey}"
+          aria-pressed="${isSelected ? 'true' : 'false'}"
+        >
+          <div class="tree-next-my-store-product-image-shell is-upgrade">
+            <img src="${escapedProductImageUrl}" alt="${escapedProductLabel}" />
+          </div>
+          <p class="tree-next-my-store-catalog-product-label">${escapedProductLabel}</p>
+        </button>
+      `;
+    }).join('');
   }
 
   myStorePanelElement.setAttribute('data-my-store-step', currentStep);
@@ -12801,7 +15395,7 @@ function syncMyStorePanelVisuals() {
   }
 
   if (myStoreReviewImageElement instanceof HTMLImageElement) {
-    myStoreReviewImageElement.src = selection.imageUrl || MY_STORE_FEATURED_PRODUCT.imageUrl;
+    myStoreReviewImageElement.src = selection.imageUrl || featuredProduct.imageUrl;
     myStoreReviewImageElement.alt = checkoutAmounts.isUpgradeSelection
       ? (safeText(selection.upgradeProductLabel) || selection.label)
       : selection.label;
@@ -12811,10 +15405,7 @@ function syncMyStorePanelVisuals() {
   }
   if (myStoreReviewQuantityElement instanceof HTMLElement) {
     if (checkoutAmounts.isUpgradeSelection) {
-      const upgradeProductLabel = safeText(selection.upgradeProductLabel)
-        || resolveMyStoreUpgradeProductMeta(selection.upgradeProductKey).label;
-      const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeProductQuantity, 0)));
-      myStoreReviewQuantityElement.textContent = `${upgradeProductLabel} ${formatInteger(upgradeProductQuantity)}x`;
+      myStoreReviewQuantityElement.textContent = formatMyStoreUpgradeSplitLabel(selection);
     } else {
       myStoreReviewQuantityElement.textContent = `${checkoutAmounts.quantity}x`;
     }
@@ -12826,14 +15417,29 @@ function syncMyStorePanelVisuals() {
   if (myStoreReviewUpgradeProductSelectorElement instanceof HTMLElement) {
     myStoreReviewUpgradeProductSelectorElement.classList.toggle('is-hidden', !checkoutAmounts.isUpgradeSelection);
   }
+  const splitUpgradeAllowed = isMyStoreUpgradeSplitEligiblePackage(selection.packageKey);
   for (const buttonElement of myStoreReviewUpgradeProductButtons) {
     if (!(buttonElement instanceof HTMLButtonElement)) {
       continue;
     }
-    const buttonProductKey = normalizeCredentialValue(buttonElement.dataset.myStoreUpgradeProductKey);
+    const buttonSelectionKey = safeText(buttonElement.dataset.myStoreUpgradeProductKey);
+    const buttonProductMode = resolveMyStoreUpgradeProductModeBySelectionKey(buttonSelectionKey);
+    const isSplitButton = buttonProductMode === MY_STORE_UPGRADE_PRODUCT_MODE_SPLIT;
+    const shouldHide = checkoutAmounts.isUpgradeSelection && isSplitButton && !splitUpgradeAllowed;
+    buttonElement.hidden = shouldHide;
+    const isDisabled = false;
+    buttonElement.disabled = isDisabled;
+    buttonElement.removeAttribute('aria-disabled');
+    buttonElement.removeAttribute('title');
+    const currentProductMode = resolveMyStoreUpgradeProductMode(
+      selection.upgradeProductMode,
+      selection.upgradeProductKey,
+      selection.packageKey,
+    );
     const isSelected = checkoutAmounts.isUpgradeSelection
-      && buttonProductKey
-      && buttonProductKey === normalizeCredentialValue(selection.upgradeProductKey);
+      && buttonProductMode
+      && !shouldHide
+      && buttonProductMode === currentProductMode;
     buttonElement.classList.toggle('is-selected', Boolean(isSelected));
     buttonElement.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
   }
@@ -12869,7 +15475,7 @@ function syncMyStorePanelVisuals() {
             data-my-store-package-key="${packageKey}"
           >
             <div class="tree-next-my-store-product-image-shell is-upgrade">
-              <img src="${MY_STORE_FEATURED_PRODUCT.imageUrl}" alt="${packageLabel}" />
+              <img src="${featuredProduct.imageUrl}" alt="${packageLabel}" />
             </div>
             <p class="tree-next-my-store-upgrade-label">${packageLabel}</p>
           </button>
@@ -12880,10 +15486,7 @@ function syncMyStorePanelVisuals() {
 
   if (myStoreCheckoutProductLabelElement instanceof HTMLElement) {
     if (checkoutAmounts.isUpgradeSelection) {
-      const upgradeProductLabel = safeText(selection.upgradeProductLabel)
-        || resolveMyStoreUpgradeProductMeta(selection.upgradeProductKey).label;
-      const upgradeProductQuantity = Math.max(0, Math.round(safeNumber(selection.upgradeProductQuantity, 0)));
-      myStoreCheckoutProductLabelElement.textContent = `${selection.label} - ${upgradeProductLabel} x${formatInteger(upgradeProductQuantity)}`;
+      myStoreCheckoutProductLabelElement.textContent = `${selection.label} - ${formatMyStoreUpgradeSplitLabel(selection)}`;
     } else {
       myStoreCheckoutProductLabelElement.textContent = selection.label;
     }
@@ -12920,9 +15523,12 @@ function syncMyStorePanelVisuals() {
   }
   if (myStoreCheckoutPayButtonElement instanceof HTMLButtonElement) {
     const isSubmitting = Boolean(state.ui?.myStoreCheckoutSubmitting);
-    myStoreCheckoutPayButtonElement.disabled = isSubmitting;
+    const isPendingReservationAccount = isCurrentSessionPendingOrReservationAccount();
+    myStoreCheckoutPayButtonElement.disabled = isSubmitting || isPendingReservationAccount;
     if (!isSubmitting) {
-      myStoreCheckoutPayButtonElement.textContent = 'Continue to Stripe';
+      myStoreCheckoutPayButtonElement.textContent = isPendingReservationAccount
+        ? 'Upgrade Required'
+        : 'Continue to Stripe';
     }
   }
   if (myStoreCheckoutPreviousButtonElement instanceof HTMLButtonElement) {
@@ -12931,7 +15537,13 @@ function syncMyStorePanelVisuals() {
 
   if (myStoreCopyLinkButtonElement instanceof HTMLButtonElement) {
     myStoreCopyLinkButtonElement.dataset.shareLink = shareLink;
-    myStoreCopyLinkButtonElement.setAttribute('title', shareLink);
+    const isPendingReservationAccount = isCurrentSessionPendingOrReservationAccount();
+    myStoreCopyLinkButtonElement.disabled = isPendingReservationAccount;
+    myStoreCopyLinkButtonElement.toggleAttribute('hidden', isPendingReservationAccount);
+    myStoreCopyLinkButtonElement.setAttribute(
+      'title',
+      isPendingReservationAccount ? ACCOUNT_UPGRADE_REQUIRED_ERROR_MESSAGE : shareLink,
+    );
   }
 }
 
@@ -12960,9 +15572,19 @@ function setMyStorePanelVisible(isVisible) {
     state.ui.myStoreStep = MY_STORE_STEP_CATALOG;
     state.ui.myStoreCheckoutCompletion = null;
     state.ui.myStoreCheckoutSubmitting = false;
+    const homeNodeId = resolvePreferredGlobalHomeNodeId();
+    const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
+    const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
+    const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
     if (!state.ui.myStoreSelection || typeof state.ui.myStoreSelection !== 'object') {
-      state.ui.myStoreSelection = buildMyStoreSelection('featured');
+      state.ui.myStoreSelection = buildMyStoreSelection(
+        'featured',
+        '',
+        currentPackageKey,
+        currentPackageProductKey,
+      );
     }
+    void hydrateMyStoreProductCatalog({ force: true });
     setMyStoreCopyFeedback('');
     resetMyStoreCheckoutForm();
     myStoreLastRenderSignature = '';
@@ -12983,6 +15605,7 @@ function initMyStorePanel() {
   syncMyStorePanelVisibility();
   setMyStoreCopyFeedback('');
   setMyStoreCheckoutFeedback('');
+  void hydrateMyStoreProductCatalog();
 
   if (myStoreCloseButtonElement instanceof HTMLButtonElement) {
     myStoreCloseButtonElement.addEventListener('click', () => {
@@ -13013,7 +15636,8 @@ function initMyStorePanel() {
       const homeNodeId = resolvePreferredGlobalHomeNodeId();
       const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
       const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-      const currentSelection = resolveMyStoreSelection(currentPackageKey);
+      const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+      const currentSelection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
       setMyStoreSelectionQuantity(currentSelection.quantity - 1);
     });
   }
@@ -13023,7 +15647,8 @@ function initMyStorePanel() {
       const homeNodeId = resolvePreferredGlobalHomeNodeId();
       const homeNode = resolveNodeById(homeNodeId) || resolveNodeById('root');
       const currentPackageKey = resolveMyStoreCurrentPackageKey(homeNode);
-      const currentSelection = resolveMyStoreSelection(currentPackageKey);
+      const currentPackageProductKey = resolveMyStoreCurrentPackageProductKey(homeNode);
+      const currentSelection = resolveMyStoreSelection(currentPackageKey, currentPackageProductKey);
       setMyStoreSelectionQuantity(currentSelection.quantity + 1);
     });
   }
@@ -13087,7 +15712,8 @@ function initMyStorePanel() {
     }
     const productAction = safeText(productActionButton.dataset.myStoreProductAction);
     const packageKey = safeText(productActionButton.dataset.myStorePackageKey);
-    navigateToMyStoreProduct(productAction, packageKey);
+    const productKey = safeText(productActionButton.dataset.myStoreProductKey);
+    navigateToMyStoreProduct(productAction, packageKey, productKey);
   });
 }
 
@@ -13132,6 +15758,9 @@ function closeTreeNextEnrollModal(options = {}) {
     if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
       treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
     }
+    if (treeNextEnrollProductInput instanceof HTMLSelectElement) {
+      treeNextEnrollProductInput.value = ENROLL_DEFAULT_PRODUCT_KEY;
+    }
     if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
       treeNextEnrollSpilloverModeInput.value = isTreeNextEnrollAdminPlacementMode()
         ? ENROLL_SPILLOVER_MODE_SPILLOVER
@@ -13169,6 +15798,10 @@ function closeTreeNextEnrollModal(options = {}) {
 
 function openTreeNextEnrollModal(requestDetail = {}) {
   if (!(treeNextEnrollModalForm instanceof HTMLFormElement) || !(treeNextEnrollPlacementLegInput instanceof HTMLInputElement)) {
+    return;
+  }
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    setTreeNextEnrollFeedback(PENDING_RESERVATION_GATE_MESSAGE, false);
     return;
   }
 
@@ -13213,6 +15846,9 @@ function openTreeNextEnrollModal(requestDetail = {}) {
   }
   if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
     treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
+  }
+  if (treeNextEnrollProductInput instanceof HTMLSelectElement) {
+    treeNextEnrollProductInput.value = ENROLL_DEFAULT_PRODUCT_KEY;
   }
   if (treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
     treeNextEnrollSpilloverModeInput.value = isTreeNextEnrollAdminPlacementMode()
@@ -14001,7 +16637,16 @@ function applyTreeNextEnrollmentNode(createdMember, placementLock, packageKey) {
     ?? createdMember?.server_cutoff_baseline_starter_personal_pv,
     0,
   )));
-  const currentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  const explicitCurrentPersonalPvBv = safeNumber(
+    createdMember?.currentPersonalPvBv
+    ?? createdMember?.current_personal_pv_bv
+    ?? createdMember?.monthlyPersonalBv
+    ?? createdMember?.monthly_personal_bv,
+    Number.NaN,
+  );
+  const currentPersonalPvBv = Number.isFinite(explicitCurrentPersonalPvBv)
+    ? Math.max(0, Math.floor(explicitCurrentPersonalPvBv))
+    : starterPersonalPv;
   const isSpilloverPlacement = Boolean(createdMember?.isSpillover)
     || normalizeCredentialValue(createdMember?.placementLeg) === 'spillover';
   const sponsorId = resolveTreeNextEnrollmentSponsorNodeId(createdMember, parentId, isSpilloverPlacement);
@@ -14140,8 +16785,8 @@ function validateTreeNextEnrollStepTwo() {
     }
     return false;
   }
-  if (!isTreeNextEnrollPaidPackage(packageKey)) {
-    setTreeNextEnrollFeedback('Only paid enrollment packages are allowed in this panel.', false);
+  if (!isTreeNextEnrollSelectablePackage(packageKey)) {
+    setTreeNextEnrollFeedback('Select a valid enrollment package.', false);
     if (treeNextEnrollPackageInput instanceof HTMLSelectElement) {
       treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
       treeNextEnrollPackageInput.focus({ preventScroll: true });
@@ -14149,6 +16794,27 @@ function validateTreeNextEnrollStepTwo() {
     syncTreeNextEnrollTierFromPackage();
     syncTreeNextEnrollPackagePreview();
     syncTreeNextEnrollCustomSelectById('tree-next-enroll-package');
+    return false;
+  }
+  const productKey = syncTreeNextEnrollProductAvailability(packageKey);
+  if (productKey === ENROLL_SPLIT_PRODUCT_KEY && !isTreeNextEnrollSplitEligiblePackage(packageKey)) {
+    setTreeNextEnrollFeedback('Split products are available for Business Builder Package and above.', false);
+    if (treeNextEnrollProductInput instanceof HTMLSelectElement) {
+      treeNextEnrollProductInput.value = ENROLL_DEFAULT_PRODUCT_KEY;
+      treeNextEnrollProductInput.focus({ preventScroll: true });
+    }
+    syncTreeNextEnrollPackagePreview();
+    syncTreeNextEnrollCustomSelectById('tree-next-enroll-product');
+    return false;
+  }
+  if (!ENROLL_PRODUCT_META[productKey]) {
+    setTreeNextEnrollFeedback('Select a valid product.', false);
+    if (treeNextEnrollProductInput instanceof HTMLSelectElement) {
+      treeNextEnrollProductInput.value = ENROLL_DEFAULT_PRODUCT_KEY;
+      treeNextEnrollProductInput.focus({ preventScroll: true });
+    }
+    syncTreeNextEnrollPackagePreview();
+    syncTreeNextEnrollCustomSelectById('tree-next-enroll-product');
     return false;
   }
   if (isTreeNextEnrollAdminPlacementMode() && treeNextEnrollSpilloverModeInput instanceof HTMLSelectElement) {
@@ -14167,6 +16833,10 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
     event.preventDefault();
   }
   clearTreeNextEnrollFeedback();
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    setTreeNextEnrollFeedback(PENDING_RESERVATION_GATE_MESSAGE, false);
+    return;
+  }
 
   const currentStep = resolveTreeNextEnrollStep();
   if (currentStep < 2) {
@@ -14204,6 +16874,9 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
   const packageKey = resolveTreeNextEnrollPackageKey(
     treeNextEnrollPackageInput?.value || ENROLL_DEFAULT_PACKAGE_KEY,
   );
+  const enrollmentProductKey = resolveTreeNextEnrollProductKey(
+    treeNextEnrollProductInput?.value || ENROLL_DEFAULT_PRODUCT_KEY,
+  );
   const tierFromForm = normalizeCredentialValue(treeNextEnrollFastTrackTierInput?.value || '');
   const tierKey = tierFromForm || resolveEnrollFastTrackTierFromPackage(packageKey);
   const placementSide = resolveTreeNextEnrollPlacementSideFromLock(placementLock);
@@ -14222,8 +16895,12 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
     setTreeNextEnrollFeedback('Country flag is required.', false);
     return;
   }
-  if (!isTreeNextEnrollPaidPackage(packageKey)) {
-    setTreeNextEnrollFeedback('Only paid enrollment packages are allowed in this panel.', false);
+  if (!isTreeNextEnrollSelectablePackage(packageKey)) {
+    setTreeNextEnrollFeedback('Select a valid enrollment package.', false);
+    return;
+  }
+  if (!ENROLL_PRODUCT_META[enrollmentProductKey]) {
+    setTreeNextEnrollFeedback('Select a valid product.', false);
     return;
   }
   if (!ENROLL_FAST_TRACK_TIER_LABEL_BY_KEY[tierKey]) {
@@ -14232,12 +16909,125 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
   }
 
   const { sponsorUsername, sponsorName } = resolveTreeNextEnrollSponsorIdentityForMode(placementLock);
+  const enrollmentPayload = {
+    fullName,
+    email,
+    memberUsername,
+    phone: '',
+    notes: '',
+    countryFlag,
+    placementLeg,
+    spilloverPlacementSide,
+    spilloverParentMode,
+    spilloverParentReference,
+    enrollmentPackage: packageKey,
+    enrollmentProductKey,
+    fastTrackTier: tierKey,
+    sponsorUsername,
+    sponsorName,
+  };
   const actionButton = currentStep === 2
     ? treeNextEnrollStepTwoNextButton
     : treeNextEnrollModalSubmitButton;
   const submitLabel = actionButton instanceof HTMLButtonElement
-    ? actionButton.textContent || 'Continue to Stripe'
-    : 'Continue to Stripe';
+    ? actionButton.textContent || (isAdminPlacementMode ? 'Register Member' : 'Continue to Stripe')
+    : (isAdminPlacementMode ? 'Register Member' : 'Continue to Stripe');
+
+  if (isAdminPlacementMode) {
+    state.enroll.submitting = true;
+    if (actionButton instanceof HTMLButtonElement) {
+      actionButton.disabled = true;
+      actionButton.textContent = 'Registering...';
+    }
+
+    try {
+      state.enroll.pendingPlacement = null;
+      setTreeNextEnrollFeedback('Registering member...', 'neutral', { loading: true });
+      const createdMember = await submitTreeNextEnrollmentRequest(enrollmentPayload);
+
+      const enrolledName = safeText(createdMember?.fullName || createdMember?.name) || 'Member';
+      const packageLabel = safeText(
+        createdMember?.enrollmentPackageLabel
+        || resolveEnrollPackageMeta(packageKey)?.label
+        || 'Legacy Builder Package',
+      ) || 'Legacy Builder Package';
+      const effectiveTier = normalizeCredentialValue(createdMember?.fastTrackTier || tierKey);
+      const fallbackBonus = resolveEnrollFastTrackBonusAmount(packageKey, effectiveTier);
+      const commissionAmount = Math.max(0, safeNumber(createdMember?.fastTrackBonusAmount, fallbackBonus));
+
+      const placementSideLabel = (placementSide === 'right' ? 'RIGHT' : 'LEFT');
+      const effectivePlacementLeg = normalizeCredentialValue(createdMember?.placementLeg || placementLeg);
+      const completedAsSpillover = Boolean(createdMember?.isSpillover) || SPILLOVER_PLACEMENT_KEY_SET.has(effectivePlacementLeg);
+      const placementSummary = completedAsSpillover
+        ? `SPILLOVER ${placementSideLabel}`
+        : `${placementSideLabel} leg`;
+      const spilloverParentReferenceOutput = safeText(
+        createdMember?.spilloverParentReference
+        || createdMember?.spillover_parent_reference,
+      );
+      const hasManualSpilloverParent = completedAsSpillover && Boolean(spilloverParentReferenceOutput);
+      const parentLabel = safeText(placementLock?.parentName || placementLock?.parentId || 'selected sponsor');
+      const successFeedback = (completedAsSpillover && !hasManualSpilloverParent)
+        ? `${enrolledName} enrolled on ${placementSummary}. Receiving parent will auto-assign after live sync.`
+        : `${enrolledName} enrolled on ${placementSummary} under ${parentLabel}.`;
+
+      state.enroll.pendingPlacement = {
+        createdMember,
+        placementLock: {
+          ...placementLock,
+        },
+        packageKey,
+      };
+
+      void (async () => {
+        try {
+          if (state.source === 'member') {
+            await refreshAuthenticatedMemberSessionSnapshot({ skipAccountOverviewReset: true });
+          }
+          resetAccountOverviewRemoteSnapshot();
+          resetRankAdvancementSnapshot();
+          const overviewContext = resolveAccountOverviewPanelContext();
+          const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+          await refreshAccountOverviewRemoteSnapshot({
+            force: true,
+            homeNode,
+            scope: overviewContext?.scope,
+            preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+          });
+          await refreshRankAdvancementSnapshot({
+            force: true,
+            homeNode,
+          });
+          syncAccountOverviewPanelVisuals();
+          syncRankAdvancementPanelVisuals();
+        } catch {
+          // Enrollment success should not fail when account-overview refresh has transient network issues.
+        }
+      })();
+
+      setTreeNextEnrollFeedback(successFeedback, true);
+      showTreeNextEnrollThankYouStep({
+        enrolledName,
+        packageLabel,
+        commissionAmount,
+        passwordSetupLink: createdMember?.passwordSetupLink,
+      });
+      clearTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY);
+    } catch (error) {
+      const fallbackMessage = error instanceof Error
+        ? error.message
+        : 'Unable to register member right now.';
+      setTreeNextEnrollFeedback(fallbackMessage, false);
+    } finally {
+      state.enroll.submitting = false;
+      if (actionButton instanceof HTMLButtonElement) {
+        actionButton.disabled = false;
+        actionButton.textContent = submitLabel;
+      }
+    }
+    return;
+  }
+
   const checkoutWindow = openTreeNextStripeCheckoutWindow();
   if (!checkoutWindow) {
     setTreeNextEnrollFeedback('Pop-up blocked. Please allow pop-ups to continue with Stripe checkout.', false);
@@ -14254,20 +17044,7 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
     state.enroll.pendingPlacement = null;
     setTreeNextEnrollFeedback('Preparing secure payment...', 'neutral', { loading: true });
     const checkoutSessionResult = await createTreeNextEnrollmentCheckoutSession({
-      fullName,
-      email,
-      memberUsername,
-      phone: '',
-      notes: '',
-      countryFlag,
-      placementLeg,
-      spilloverPlacementSide,
-      spilloverParentMode,
-      spilloverParentReference,
-      enrollmentPackage: packageKey,
-      fastTrackTier: tierKey,
-      sponsorUsername,
-      sponsorName,
+      ...enrollmentPayload,
       billingAddress: '',
       billingCity: '',
       billingState: '',
@@ -14278,6 +17055,7 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
     });
     persistTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY, {
       packageKey,
+      enrollmentProductKey,
       tierKey,
       isSpilloverPlacement,
       spilloverPlacementSide,
@@ -14328,6 +17106,13 @@ function initTreeNextEnrollModal() {
     treeNextEnrollPackageInput.value = ENROLL_DEFAULT_PACKAGE_KEY;
     treeNextEnrollPackageInput.addEventListener('change', () => {
       syncTreeNextEnrollTierFromPackage();
+      syncTreeNextEnrollPackagePreview();
+      clearTreeNextEnrollFeedback();
+    });
+  }
+  if (treeNextEnrollProductInput instanceof HTMLSelectElement) {
+    treeNextEnrollProductInput.value = ENROLL_DEFAULT_PRODUCT_KEY;
+    treeNextEnrollProductInput.addEventListener('change', () => {
       syncTreeNextEnrollPackagePreview();
       clearTreeNextEnrollFeedback();
     });
@@ -14528,6 +17313,118 @@ function resolveNodeLegVolumes(nodeId) {
   };
 }
 
+function shouldUseCutoffLoopMetricsForNode(nodeIdInput = '', nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  const selectedNodeIdKey = normalizeCredentialValue(safeText(nodeIdInput || node?.id));
+  if (!selectedNodeIdKey) {
+    return false;
+  }
+
+  const preferredHomeNodeIdKey = normalizeCredentialValue(resolvePreferredGlobalHomeNodeId() || '');
+  if (preferredHomeNodeIdKey && preferredHomeNodeIdKey !== 'root' && selectedNodeIdKey === preferredHomeNodeIdKey) {
+    return true;
+  }
+
+  const sessionNodeIdSet = resolveSessionAvatarNodeIdSet();
+  sessionNodeIdSet.delete('root');
+  if (sessionNodeIdSet.has(selectedNodeIdKey)) {
+    return true;
+  }
+
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  if (!node || !session) {
+    return false;
+  }
+  const nodeUsernameKey = normalizeCredentialValue(
+    safeText(node.username || node.memberCode || node.member_username || '').replace(/^@+/, ''),
+  );
+  const sessionUsernameKey = normalizeCredentialValue(
+    safeText(session.username || session.memberUsername || '').replace(/^@+/, ''),
+  );
+  return Boolean(nodeUsernameKey && sessionUsernameKey && nodeUsernameKey === sessionUsernameKey);
+}
+
+function resolveNodeLoopDisplayMetrics(nodeIdInput = '', nodeInput = null, baseVolumeMetricsInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object'
+    ? nodeInput
+    : resolveNodeById(nodeIdInput);
+  const baseVolumeMetrics = baseVolumeMetricsInput && typeof baseVolumeMetricsInput === 'object'
+    ? baseVolumeMetricsInput
+    : resolveNodeLegVolumes(nodeIdInput);
+  const fallbackCycleCount = resolveNodeCycleCount(node, baseVolumeMetrics);
+  const fallbackMetrics = {
+    leftVolume: Math.max(0, Math.floor(safeNumber(baseVolumeMetrics?.leftVolume, 0))),
+    rightVolume: Math.max(0, Math.floor(safeNumber(baseVolumeMetrics?.rightVolume, 0))),
+    cycles: Math.max(0, Math.floor(safeNumber(fallbackCycleCount, 0))),
+  };
+  if (isMembershipPlacementReservationPackage(node?.enrollmentPackage || node?.enrollment_package)) {
+    return fallbackMetrics;
+  }
+  const useAccountOverviewCutoffMetrics = shouldUseCutoffLoopMetricsForNode(nodeIdInput, node);
+  const accountOverviewCutoffMetrics = useAccountOverviewCutoffMetrics
+    ? accountOverviewRemoteSnapshot?.serverCutoffMetrics
+    : null;
+  const nodeCutoffMetrics = resolveNodeServerCutoffMetrics(node);
+  const cutoffMetrics = (
+    accountOverviewCutoffMetrics
+    && typeof accountOverviewCutoffMetrics === 'object'
+  )
+    ? accountOverviewCutoffMetrics
+    : nodeCutoffMetrics;
+  if (!cutoffMetrics || typeof cutoffMetrics !== 'object') {
+    if (!useAccountOverviewCutoffMetrics && node) {
+      maybeRefreshNodeServerCutoffMetrics(node);
+    }
+    return fallbackMetrics;
+  }
+
+  const cutoffCurrentLeftRaw = safeNumber(cutoffMetrics.currentWeekLeftLegBv, Number.NaN);
+  const cutoffCurrentRightRaw = safeNumber(cutoffMetrics.currentWeekRightLegBv, Number.NaN);
+  const cutoffCurrentLeftVolume = Number.isFinite(cutoffCurrentLeftRaw)
+    ? Math.max(0, Math.floor(cutoffCurrentLeftRaw))
+    : fallbackMetrics.leftVolume;
+  const cutoffCurrentRightVolume = Number.isFinite(cutoffCurrentRightRaw)
+    ? Math.max(0, Math.floor(cutoffCurrentRightRaw))
+    : fallbackMetrics.rightVolume;
+  const cutoffAppearsStale = (
+    Number.isFinite(cutoffCurrentLeftRaw)
+    && Number.isFinite(cutoffCurrentRightRaw)
+    && cutoffCurrentLeftVolume <= 0
+    && cutoffCurrentRightVolume <= 0
+    && (fallbackMetrics.leftVolume > 0 || fallbackMetrics.rightVolume > 0)
+  );
+  const leftVolume = cutoffAppearsStale
+    ? fallbackMetrics.leftVolume
+    : cutoffCurrentLeftVolume;
+  const rightVolume = cutoffAppearsStale
+    ? fallbackMetrics.rightVolume
+    : cutoffCurrentRightVolume;
+  const cycleLowerBv = Math.max(
+    1,
+    Math.floor(safeNumber(cutoffMetrics.cycleLowerBv, TREE_NEXT_CYCLE_RULE_STRONGER_BV)),
+  );
+  const cycleHigherBv = Math.max(
+    1,
+    Math.floor(safeNumber(cutoffMetrics.cycleHigherBv, TREE_NEXT_CYCLE_RULE_WEAKER_BV)),
+  );
+  const lowerLegBv = Math.min(leftVolume, rightVolume);
+  const higherLegBv = Math.max(leftVolume, rightVolume);
+  const computedCycleCount = Math.floor(Math.min(
+    lowerLegBv / cycleHigherBv,
+    higherLegBv / cycleLowerBv,
+  ));
+  const cycles = Math.max(0, Math.floor(safeNumber(
+    cutoffAppearsStale ? Number.NaN : cutoffMetrics.estimatedCycles,
+    computedCycleCount,
+  )));
+
+  return {
+    leftVolume,
+    rightVolume,
+    cycles,
+  };
+}
+
 function resolveSideNavMemberStatusSnapshot(targetNodeInput = null) {
   const targetNode = targetNodeInput && typeof targetNodeInput === 'object'
     ? targetNodeInput
@@ -14719,6 +17616,836 @@ function resolvePinnedPlaces(limit = 8) {
   favoritesState.placesCacheLimit = safeLimit;
   favoritesState.placesCache = places;
   return places;
+}
+
+function getSideNavDetailsCarouselState() {
+  if (!state.ui || typeof state.ui !== 'object') {
+    state.ui = {};
+  }
+  if (!state.ui.sideNavDetailsCarousel || typeof state.ui.sideNavDetailsCarousel !== 'object') {
+    state.ui.sideNavDetailsCarousel = {
+      viewportRect: null,
+      selectedNodeId: '',
+      selectedMonthKey: '',
+      selectedWeekNumber: 0,
+      dragActive: false,
+      dragPointerId: null,
+      dragStartX: 0,
+      dragStartY: 0,
+      dragAxis: '',
+      dragMoved: false,
+      dragDeltaX: 0,
+      tapAction: '',
+      transitionActive: false,
+      transitionStartedAtMs: 0,
+      transitionDurationMs: TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS,
+      transitionDirection: 0,
+      transitionFromMonthKey: '',
+      transitionFromWeekNumber: 0,
+      transitionToMonthKey: '',
+      transitionToWeekNumber: 0,
+    };
+  }
+  const detailsCarousel = state.ui.sideNavDetailsCarousel;
+  if (typeof detailsCarousel.transitionActive !== 'boolean') {
+    detailsCarousel.transitionActive = false;
+  }
+  if (!Number.isFinite(detailsCarousel.transitionStartedAtMs)) {
+    detailsCarousel.transitionStartedAtMs = 0;
+  }
+  detailsCarousel.transitionDurationMs = Math.max(
+    1,
+    safeNumber(detailsCarousel.transitionDurationMs, TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS),
+  );
+  if (!Number.isFinite(detailsCarousel.transitionDirection)) {
+    detailsCarousel.transitionDirection = 0;
+  }
+  detailsCarousel.transitionFromMonthKey = safeText(detailsCarousel.transitionFromMonthKey);
+  detailsCarousel.transitionToMonthKey = safeText(detailsCarousel.transitionToMonthKey);
+  detailsCarousel.transitionFromWeekNumber = Math.max(0, Math.floor(safeNumber(detailsCarousel.transitionFromWeekNumber, 0)));
+  detailsCarousel.transitionToWeekNumber = Math.max(0, Math.floor(safeNumber(detailsCarousel.transitionToWeekNumber, 0)));
+  return detailsCarousel;
+}
+
+function pointInsideDetailsCarousel(pointX, pointY) {
+  if (!state.ui.sideNavOpen) {
+    return false;
+  }
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  return pointInsideRect(pointX, pointY, detailsCarousel.viewportRect);
+}
+
+function resolveDetailsCarouselMonthKey(yearInput, monthIndexInput) {
+  const year = Math.floor(safeNumber(yearInput, new Date().getFullYear()));
+  const monthIndex = clamp(Math.floor(safeNumber(monthIndexInput, new Date().getMonth())), 0, 11);
+  return `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+}
+
+function parseDetailsCarouselMonthKey(monthKeyInput = '') {
+  const monthKey = safeText(monthKeyInput);
+  const match = /^(\d{4})-(\d{2})$/.exec(monthKey);
+  if (match) {
+    const parsedYear = Number.parseInt(match[1], 10);
+    const parsedMonth = Number.parseInt(match[2], 10);
+    if (Number.isFinite(parsedYear) && Number.isFinite(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12) {
+      return {
+        year: parsedYear,
+        monthIndex: parsedMonth - 1,
+        monthKey: resolveDetailsCarouselMonthKey(parsedYear, parsedMonth - 1),
+      };
+    }
+  }
+  const now = new Date();
+  return {
+    year: now.getFullYear(),
+    monthIndex: now.getMonth(),
+    monthKey: resolveDetailsCarouselMonthKey(now.getFullYear(), now.getMonth()),
+  };
+}
+
+function addDetailsCarouselMonths(monthKeyInput = '', deltaMonthsInput = 0) {
+  const deltaMonths = Math.floor(safeNumber(deltaMonthsInput, 0));
+  const parsed = parseDetailsCarouselMonthKey(monthKeyInput);
+  const shiftedDate = new Date(parsed.year, parsed.monthIndex + deltaMonths, 1);
+  return resolveDetailsCarouselMonthKey(shiftedDate.getFullYear(), shiftedDate.getMonth());
+}
+
+function resolveDetailsCarouselMonthCutoffDates(yearInput, monthIndexInput) {
+  const year = Math.floor(safeNumber(yearInput, new Date().getFullYear()));
+  const monthIndex = clamp(Math.floor(safeNumber(monthIndexInput, new Date().getMonth())), 0, 11);
+  const daysInMonth = Math.max(28, new Date(year, monthIndex + 1, 0).getDate());
+  const cutoffDates = [];
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const candidateCutoff = new Date(year, monthIndex, day, SERVER_CUTOFF_HOUR, SERVER_CUTOFF_MINUTE, 0, 0);
+    if (candidateCutoff.getDay() !== SERVER_CUTOFF_WEEKDAY) {
+      continue;
+    }
+    cutoffDates.push(candidateCutoff);
+  }
+  if (!cutoffDates.length) {
+    cutoffDates.push(new Date(year, monthIndex, daysInMonth, SERVER_CUTOFF_HOUR, SERVER_CUTOFF_MINUTE, 0, 0));
+  }
+  return cutoffDates;
+}
+
+function resolveDetailsCarouselMonthWeekCount(yearInput, monthIndexInput) {
+  return Math.max(1, resolveDetailsCarouselMonthCutoffDates(yearInput, monthIndexInput).length);
+}
+
+function resolveDetailsCarouselMonthWeeks(monthKeyInput = '') {
+  const parsed = parseDetailsCarouselMonthKey(monthKeyInput);
+  const cutoffDates = resolveDetailsCarouselMonthCutoffDates(parsed.year, parsed.monthIndex);
+  const weekCount = Math.max(1, cutoffDates.length);
+  const monthStartDate = new Date(parsed.year, parsed.monthIndex, 1, 0, 0, 0, 0);
+  let monthLabel = monthStartDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  try {
+    monthLabel = new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      year: 'numeric',
+    }).format(monthStartDate);
+  } catch {
+    // Keep locale fallback.
+  }
+  const weeks = [];
+  for (let weekNumber = 1; weekNumber <= weekCount; weekNumber += 1) {
+    const cutoffDate = cutoffDates[weekNumber - 1];
+    const startDate = new Date(cutoffDate);
+    startDate.setDate(startDate.getDate() - 6);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(cutoffDate);
+    endDate.setHours(23, 59, 59, 999);
+    weeks.push({
+      weekNumber,
+      label: `Week ${weekNumber}`,
+      startDate,
+      endDate,
+      cutoffAt: new Date(cutoffDate),
+    });
+  }
+  return {
+    year: parsed.year,
+    monthIndex: parsed.monthIndex,
+    monthKey: parsed.monthKey,
+    monthLabel,
+    weeks,
+  };
+}
+
+function resolveDetailsCarouselWeekNumberForCutoffDate(cutoffDateInput = new Date()) {
+  const cutoffDate = cutoffDateInput instanceof Date ? cutoffDateInput : new Date(cutoffDateInput);
+  const monthKey = resolveDetailsCarouselMonthKey(cutoffDate.getFullYear(), cutoffDate.getMonth());
+  const monthData = resolveDetailsCarouselMonthWeeks(monthKey);
+  const matchingWeekIndex = monthData.weeks.findIndex((week) => {
+    return (
+      week?.endDate instanceof Date
+      && week.endDate.getFullYear() === cutoffDate.getFullYear()
+      && week.endDate.getMonth() === cutoffDate.getMonth()
+      && week.endDate.getDate() === cutoffDate.getDate()
+    );
+  });
+  if (matchingWeekIndex >= 0) {
+    return clamp(matchingWeekIndex + 1, 1, Math.max(1, monthData.weeks.length));
+  }
+  return clamp(Math.max(1, monthData.weeks.length), 1, Math.max(1, monthData.weeks.length));
+}
+
+function resolveDetailsCarouselCurrentAnchor(referenceDate = new Date()) {
+  const now = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
+  const activeCutoffDate = resolveNextServerCutoffDate(now);
+  const monthKey = resolveDetailsCarouselMonthKey(activeCutoffDate.getFullYear(), activeCutoffDate.getMonth());
+  const weekNumber = resolveDetailsCarouselWeekNumberForCutoffDate(activeCutoffDate);
+  return {
+    monthKey,
+    weekNumber,
+  };
+}
+
+function clampDetailsCarouselWeekNumber(monthKeyInput = '', weekNumberInput = 1) {
+  const monthData = resolveDetailsCarouselMonthWeeks(monthKeyInput);
+  const weekCount = Math.max(1, monthData.weeks.length);
+  return clamp(Math.floor(safeNumber(weekNumberInput, 1)), 1, weekCount);
+}
+
+function setDetailsCarouselSelection(monthKeyInput = '', weekNumberInput = 1) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const monthData = resolveDetailsCarouselMonthWeeks(monthKeyInput);
+  detailsCarousel.selectedMonthKey = monthData.monthKey;
+  detailsCarousel.selectedWeekNumber = clampDetailsCarouselWeekNumber(monthData.monthKey, weekNumberInput);
+}
+
+function clearDetailsCarouselTransition(detailsCarouselInput = null) {
+  const detailsCarousel = detailsCarouselInput && typeof detailsCarouselInput === 'object'
+    ? detailsCarouselInput
+    : getSideNavDetailsCarouselState();
+  detailsCarousel.transitionActive = false;
+  detailsCarousel.transitionStartedAtMs = 0;
+  detailsCarousel.transitionDurationMs = TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS;
+  detailsCarousel.transitionDirection = 0;
+  detailsCarousel.transitionFromMonthKey = '';
+  detailsCarousel.transitionFromWeekNumber = 0;
+  detailsCarousel.transitionToMonthKey = '';
+  detailsCarousel.transitionToWeekNumber = 0;
+}
+
+function resolveDetailsCarouselSelectionAnchor(referenceDate = new Date()) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const currentAnchor = resolveDetailsCarouselCurrentAnchor(referenceDate);
+  const monthKey = safeText(detailsCarousel.selectedMonthKey) || currentAnchor.monthKey;
+  const weekNumber = clampDetailsCarouselWeekNumber(monthKey, detailsCarousel.selectedWeekNumber || currentAnchor.weekNumber);
+  if (detailsCarousel.selectedMonthKey !== monthKey || detailsCarousel.selectedWeekNumber !== weekNumber) {
+    detailsCarousel.selectedMonthKey = monthKey;
+    detailsCarousel.selectedWeekNumber = weekNumber;
+  }
+  return {
+    monthKey,
+    weekNumber,
+  };
+}
+
+function resolveDetailsCarouselAdjacentWeek(monthKeyInput = '', weekNumberInput = 1, directionInput = 1) {
+  const direction = safeNumber(directionInput, 0) >= 0 ? 1 : -1;
+  const monthData = resolveDetailsCarouselMonthWeeks(monthKeyInput);
+  const weekNumber = clampDetailsCarouselWeekNumber(monthData.monthKey, weekNumberInput);
+  if (direction >= 0) {
+    if (weekNumber < monthData.weeks.length) {
+      return {
+        monthKey: monthData.monthKey,
+        weekNumber: weekNumber + 1,
+      };
+    }
+    const nextMonthKey = addDetailsCarouselMonths(monthData.monthKey, 1);
+    return {
+      monthKey: nextMonthKey,
+      weekNumber: 1,
+    };
+  }
+  if (weekNumber > 1) {
+    return {
+      monthKey: monthData.monthKey,
+      weekNumber: weekNumber - 1,
+    };
+  }
+  const previousMonthKey = addDetailsCarouselMonths(monthData.monthKey, -1);
+  const previousMonthData = resolveDetailsCarouselMonthWeeks(previousMonthKey);
+  return {
+    monthKey: previousMonthData.monthKey,
+    weekNumber: Math.max(1, previousMonthData.weeks.length),
+  };
+}
+
+function startDetailsCarouselTransition(targetMonthKeyInput = '', targetWeekNumberInput = 1, options = {}) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const referenceDate = options?.referenceDate || new Date();
+  const currentSelection = resolveDetailsCarouselSelectionAnchor(referenceDate);
+  const targetMonthData = resolveDetailsCarouselMonthWeeks(targetMonthKeyInput || currentSelection.monthKey);
+  const targetMonthKey = targetMonthData.monthKey;
+  const targetWeekNumber = clampDetailsCarouselWeekNumber(targetMonthKey, targetWeekNumberInput);
+  if (currentSelection.monthKey === targetMonthKey && currentSelection.weekNumber === targetWeekNumber) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    setDetailsCarouselSelection(targetMonthKey, targetWeekNumber);
+    return false;
+  }
+  const weekDistance = resolveDetailsCarouselWeekDistance(
+    currentSelection.monthKey,
+    currentSelection.weekNumber,
+    targetMonthKey,
+    targetWeekNumber,
+  );
+  const directionHint = safeNumber(options?.directionHint, Number.NaN);
+  const direction = Number.isFinite(directionHint) && directionHint !== 0
+    ? (directionHint > 0 ? 1 : -1)
+    : (weekDistance >= 0 ? 1 : -1);
+  detailsCarousel.transitionActive = true;
+  detailsCarousel.transitionStartedAtMs = safeNumber(options?.startedAtMs, getNowMs());
+  detailsCarousel.transitionDurationMs = Math.max(
+    100,
+    Math.floor(safeNumber(options?.durationMs, TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS)),
+  );
+  detailsCarousel.transitionDirection = direction;
+  detailsCarousel.transitionFromMonthKey = currentSelection.monthKey;
+  detailsCarousel.transitionFromWeekNumber = currentSelection.weekNumber;
+  detailsCarousel.transitionToMonthKey = targetMonthKey;
+  detailsCarousel.transitionToWeekNumber = targetWeekNumber;
+  setDetailsCarouselSelection(targetMonthKey, targetWeekNumber);
+  return true;
+}
+
+function resolveDetailsCarouselTransitionFrame(referenceMsInput = getNowMs()) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  if (!detailsCarousel.transitionActive) {
+    return null;
+  }
+  const fromMonthKey = safeText(detailsCarousel.transitionFromMonthKey);
+  const toMonthKey = safeText(detailsCarousel.transitionToMonthKey);
+  const fromWeekNumber = Math.max(1, Math.floor(safeNumber(detailsCarousel.transitionFromWeekNumber, 1)));
+  const toWeekNumber = Math.max(1, Math.floor(safeNumber(detailsCarousel.transitionToWeekNumber, 1)));
+  if (!fromMonthKey || !toMonthKey) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    return null;
+  }
+  if (fromMonthKey === toMonthKey && fromWeekNumber === toWeekNumber) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    return null;
+  }
+  const durationMs = Math.max(1, Math.floor(safeNumber(
+    detailsCarousel.transitionDurationMs,
+    TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS,
+  )));
+  const startedAtMs = safeNumber(detailsCarousel.transitionStartedAtMs, getNowMs());
+  const nowMs = safeNumber(referenceMsInput, getNowMs());
+  const elapsedMs = Math.max(0, nowMs - startedAtMs);
+  const progress = clamp(elapsedMs / durationMs, 0, 1);
+  if (progress >= 1) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    return null;
+  }
+  const direction = safeNumber(detailsCarousel.transitionDirection, 0) >= 0 ? 1 : -1;
+  return {
+    progress,
+    easedProgress: easeOutCubic(progress),
+    direction,
+    fromMonthKey,
+    fromWeekNumber,
+    toMonthKey,
+    toWeekNumber,
+  };
+}
+
+function selectDetailsCarouselWeek(monthKeyInput = '', weekNumberInput = 1, options = {}) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const animate = options?.animate !== false;
+  const referenceDate = options?.referenceDate || new Date();
+  const currentSelection = resolveDetailsCarouselSelectionAnchor(referenceDate);
+  const monthData = resolveDetailsCarouselMonthWeeks(monthKeyInput || currentSelection.monthKey);
+  const targetMonthKey = monthData.monthKey;
+  const targetWeekNumber = clampDetailsCarouselWeekNumber(targetMonthKey, weekNumberInput);
+  if (!animate) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    setDetailsCarouselSelection(targetMonthKey, targetWeekNumber);
+    return;
+  }
+  const weekDistance = resolveDetailsCarouselWeekDistance(
+    currentSelection.monthKey,
+    currentSelection.weekNumber,
+    targetMonthKey,
+    targetWeekNumber,
+  );
+  const directionHint = weekDistance === 0 ? 0 : (weekDistance > 0 ? 1 : -1);
+  startDetailsCarouselTransition(targetMonthKey, targetWeekNumber, {
+    directionHint,
+    referenceDate,
+    durationMs: options?.durationMs,
+  });
+}
+
+function stepDetailsCarouselWeek(stepInput = 1, options = {}) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const animate = options?.animate !== false;
+  const step = Math.floor(safeNumber(stepInput, 0));
+  if (!step) {
+    return;
+  }
+  const referenceDate = options?.referenceDate || new Date();
+  const currentSelection = resolveDetailsCarouselSelectionAnchor(referenceDate);
+  let monthKey = currentSelection.monthKey;
+  let weekNumber = currentSelection.weekNumber;
+  const direction = step > 0 ? 1 : -1;
+  for (let index = 0; index < Math.abs(step); index += 1) {
+    const nextSelection = resolveDetailsCarouselAdjacentWeek(monthKey, weekNumber, direction);
+    monthKey = nextSelection.monthKey;
+    weekNumber = nextSelection.weekNumber;
+  }
+  if (!animate) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    setDetailsCarouselSelection(monthKey, weekNumber);
+    return;
+  }
+  startDetailsCarouselTransition(monthKey, weekNumber, {
+    directionHint: direction,
+    referenceDate,
+    durationMs: options?.durationMs,
+  });
+}
+
+function stepDetailsCarouselMonth(stepInput = 1, options = {}) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const animate = options?.animate !== false;
+  const step = Math.floor(safeNumber(stepInput, 0));
+  if (!step) {
+    return;
+  }
+  const referenceDate = options?.referenceDate || new Date();
+  const currentSelection = resolveDetailsCarouselSelectionAnchor(referenceDate);
+  const currentMonthKey = currentSelection.monthKey;
+  const shiftedMonthKey = addDetailsCarouselMonths(currentMonthKey, step);
+  const desiredWeekNumber = currentSelection.weekNumber;
+  if (!animate) {
+    clearDetailsCarouselTransition(detailsCarousel);
+    setDetailsCarouselSelection(shiftedMonthKey, desiredWeekNumber);
+    return;
+  }
+  startDetailsCarouselTransition(shiftedMonthKey, desiredWeekNumber, {
+    directionHint: step > 0 ? 1 : -1,
+    referenceDate,
+    durationMs: options?.durationMs,
+  });
+}
+
+function resolveDetailsCarouselWeekDistance(fromMonthKeyInput, fromWeekNumberInput, toMonthKeyInput, toWeekNumberInput) {
+  const fromMonthData = resolveDetailsCarouselMonthWeeks(fromMonthKeyInput);
+  const toMonthData = resolveDetailsCarouselMonthWeeks(toMonthKeyInput);
+  const fromWeekNumber = clampDetailsCarouselWeekNumber(fromMonthData.monthKey, fromWeekNumberInput);
+  const toWeekNumber = clampDetailsCarouselWeekNumber(toMonthData.monthKey, toWeekNumberInput);
+  if (fromMonthData.monthKey === toMonthData.monthKey && fromWeekNumber === toWeekNumber) {
+    return 0;
+  }
+  const fromSerial = (fromMonthData.year * 12) + fromMonthData.monthIndex;
+  const toSerial = (toMonthData.year * 12) + toMonthData.monthIndex;
+  const direction = (toSerial > fromSerial || (toSerial === fromSerial && toWeekNumber > fromWeekNumber))
+    ? 1
+    : -1;
+  let cursorMonthKey = fromMonthData.monthKey;
+  let cursorWeekNumber = fromWeekNumber;
+  let stepCount = 0;
+  const maxSteps = 240;
+  while (stepCount < maxSteps) {
+    const nextSelection = resolveDetailsCarouselAdjacentWeek(cursorMonthKey, cursorWeekNumber, direction);
+    cursorMonthKey = nextSelection.monthKey;
+    cursorWeekNumber = nextSelection.weekNumber;
+    stepCount += 1;
+    if (cursorMonthKey === toMonthData.monthKey && cursorWeekNumber === toWeekNumber) {
+      return direction * stepCount;
+    }
+  }
+  return 0;
+}
+
+function formatDetailsCarouselDateRange(startDateInput, endDateInput) {
+  const startDate = startDateInput instanceof Date ? startDateInput : new Date(startDateInput);
+  const endDate = endDateInput instanceof Date ? endDateInput : new Date(endDateInput);
+  let startLabel = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  let endLabel = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+    startLabel = formatter.format(startDate);
+    endLabel = formatter.format(endDate);
+  } catch {
+    // Keep locale fallback.
+  }
+  return `${startLabel} - ${endLabel}`;
+}
+
+function resolveDetailsCarouselCutoffStatus(startDateInput, endDateInput, nowInput = new Date()) {
+  const startDate = startDateInput instanceof Date ? startDateInput : new Date(startDateInput);
+  const endDate = endDateInput instanceof Date ? endDateInput : new Date(endDateInput);
+  const now = nowInput instanceof Date ? nowInput : new Date(nowInput);
+  if (now >= startDate && now <= endDate) {
+    return {
+      key: 'current',
+      label: 'Current Week',
+      fill: '#E8F7ED',
+      text: '#1D7A36',
+    };
+  }
+  if (now > endDate) {
+    return {
+      key: 'closed',
+      label: 'Closed Cutoff',
+      fill: '#ECEFF5',
+      text: '#576176',
+    };
+  }
+  return {
+    key: 'pending',
+    label: 'Pending',
+    fill: '#FFF4E4',
+    text: '#9A6418',
+  };
+}
+
+function resolveNodeCutoffMetricsForDetails(nodeIdInput = '', nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object'
+    ? nodeInput
+    : resolveNodeById(nodeIdInput);
+  if (isMembershipPlacementReservationPackage(node?.enrollmentPackage || node?.enrollment_package)) {
+    return null;
+  }
+  const useAccountOverviewCutoffMetrics = shouldUseCutoffLoopMetricsForNode(nodeIdInput, node);
+  const accountOverviewCutoffMetrics = useAccountOverviewCutoffMetrics
+    ? accountOverviewRemoteSnapshot?.serverCutoffMetrics
+    : null;
+  const nodeCutoffMetrics = resolveNodeServerCutoffMetrics(node);
+  const cutoffMetrics = (
+    accountOverviewCutoffMetrics
+    && typeof accountOverviewCutoffMetrics === 'object'
+  )
+    ? accountOverviewCutoffMetrics
+    : nodeCutoffMetrics;
+  if (!cutoffMetrics || typeof cutoffMetrics !== 'object') {
+    if (!useAccountOverviewCutoffMetrics && node) {
+      maybeRefreshNodeServerCutoffMetrics(node);
+    }
+    return null;
+  }
+  return cutoffMetrics;
+}
+
+function resolveDetailsCarouselCycleComputation(availableLeftInput = 0, availableRightInput = 0, options = {}) {
+  const availableLeftBV = Math.max(0, Math.floor(safeNumber(availableLeftInput, 0)));
+  const availableRightBV = Math.max(0, Math.floor(safeNumber(availableRightInput, 0)));
+  const strongLegCycleBv = Math.max(
+    1,
+    Math.floor(safeNumber(options?.strongLegCycleBv, TREE_NEXT_DETAILS_FALLBACK_STRONG_LEG_BV)),
+  );
+  const weakLegCycleBv = Math.max(
+    1,
+    Math.floor(safeNumber(options?.weakLegCycleBv, TREE_NEXT_DETAILS_FALLBACK_WEAK_LEG_BV)),
+  );
+  const strongLegKey = availableLeftBV >= availableRightBV ? 'left' : 'right';
+  const weakLegKey = strongLegKey === 'left' ? 'right' : 'left';
+  const strongLegVolume = strongLegKey === 'left' ? availableLeftBV : availableRightBV;
+  const weakLegVolume = weakLegKey === 'left' ? availableLeftBV : availableRightBV;
+  const cycles = Math.max(0, Math.floor(Math.min(
+    strongLegVolume / strongLegCycleBv,
+    weakLegVolume / weakLegCycleBv,
+  )));
+  const consumedStrongLegBV = Math.min(strongLegVolume, cycles * strongLegCycleBv);
+  const consumedWeakLegBV = Math.min(weakLegVolume, cycles * weakLegCycleBv);
+  const consumedLeftBV = strongLegKey === 'left' ? consumedStrongLegBV : consumedWeakLegBV;
+  const consumedRightBV = strongLegKey === 'right' ? consumedStrongLegBV : consumedWeakLegBV;
+  const carryForwardLeftBV = Math.max(0, availableLeftBV - consumedLeftBV);
+  const carryForwardRightBV = Math.max(0, availableRightBV - consumedRightBV);
+  return {
+    strongLegKey,
+    cycles,
+    consumedLeftBV,
+    consumedRightBV,
+    carryForwardLeftBV,
+    carryForwardRightBV,
+  };
+}
+
+function resolveDetailsCarouselNodeJoinedAtMs(nodeInput = null) {
+  const node = nodeInput && typeof nodeInput === 'object' ? nodeInput : null;
+  if (!node) {
+    return Number.NaN;
+  }
+  const numericAddedAt = safeNumber(node?.addedAt ?? node?.added_at, Number.NaN);
+  if (Number.isFinite(numericAddedAt) && numericAddedAt > 0) {
+    return Math.max(0, Math.floor(numericAddedAt));
+  }
+  const candidates = [
+    node?.createdAt,
+    node?.created_at,
+    node?.joinedAt,
+    node?.joined_at,
+    node?.enrolledAt,
+    node?.enrolled_at,
+    node?.registeredAt,
+    node?.registered_at,
+  ];
+  for (const candidate of candidates) {
+    const parsed = Date.parse(safeText(candidate));
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return Number.NaN;
+}
+
+function resolveDetailsCarouselProjectedWeekMetrics(options = {}) {
+  const stepDistance = Math.floor(safeNumber(options?.stepDistance, 0));
+  const activeStatus = options?.activeStatus !== false;
+  const baseAvailableLeftBV = Math.max(0, Math.floor(safeNumber(options?.baseAvailableLeftBV, 0)));
+  const baseAvailableRightBV = Math.max(0, Math.floor(safeNumber(options?.baseAvailableRightBV, 0)));
+  let availableLeftBV = baseAvailableLeftBV;
+  let availableRightBV = baseAvailableRightBV;
+  if (stepDistance > 0) {
+    for (let stepIndex = 0; stepIndex < stepDistance; stepIndex += 1) {
+      const priorComputation = resolveDetailsCarouselCycleComputation(availableLeftBV, availableRightBV, {
+        strongLegCycleBv: options?.strongLegCycleBv,
+        weakLegCycleBv: options?.weakLegCycleBv,
+      });
+      if (!activeStatus) {
+        availableLeftBV = 0;
+        availableRightBV = 0;
+        continue;
+      }
+      availableLeftBV = priorComputation.carryForwardLeftBV;
+      availableRightBV = priorComputation.carryForwardRightBV;
+    }
+  }
+  const liveComputation = resolveDetailsCarouselCycleComputation(availableLeftBV, availableRightBV, {
+    strongLegCycleBv: options?.strongLegCycleBv,
+    weakLegCycleBv: options?.weakLegCycleBv,
+  });
+  if (!activeStatus) {
+    return {
+      availableLeftBV,
+      availableRightBV,
+      cycles: 0,
+      strongLegKey: liveComputation.strongLegKey,
+      consumedLeftBV: 0,
+      consumedRightBV: 0,
+      carryForwardLeftBV: 0,
+      carryForwardRightBV: 0,
+      projectionMode: stepDistance === 0 ? 'live' : (stepDistance > 0 ? 'projected-future' : 'estimated-history'),
+    };
+  }
+  return {
+    availableLeftBV,
+    availableRightBV,
+    cycles: liveComputation.cycles,
+    strongLegKey: liveComputation.strongLegKey,
+    consumedLeftBV: liveComputation.consumedLeftBV,
+    consumedRightBV: liveComputation.consumedRightBV,
+    carryForwardLeftBV: liveComputation.carryForwardLeftBV,
+    carryForwardRightBV: liveComputation.carryForwardRightBV,
+    projectionMode: stepDistance === 0 ? 'live' : (stepDistance > 0 ? 'projected-future' : 'estimated-history'),
+  };
+}
+
+function resolveDetailsCarouselSnapshot(options = {}) {
+  const nodeId = safeText(options?.nodeId);
+  const node = options?.node && typeof options.node === 'object'
+    ? options.node
+    : resolveNodeById(nodeId);
+  const volumeMetrics = options?.volumeMetrics && typeof options.volumeMetrics === 'object'
+    ? options.volumeMetrics
+    : resolveNodeLegVolumes(nodeId);
+  const loopDisplayMetrics = options?.loopDisplayMetrics && typeof options.loopDisplayMetrics === 'object'
+    ? options.loopDisplayMetrics
+    : resolveNodeLoopDisplayMetrics(nodeId, node, volumeMetrics);
+  const cutoffMetrics = options?.cutoffMetrics && typeof options.cutoffMetrics === 'object'
+    ? options.cutoffMetrics
+    : resolveNodeCutoffMetricsForDetails(nodeId, node);
+  const activeStatus = resolveNodeActivityState(node);
+  const cycleLowerBv = Math.max(
+    1,
+    Math.floor(safeNumber(
+      cutoffMetrics?.cycleLowerBv,
+      TREE_NEXT_DETAILS_FALLBACK_STRONG_LEG_BV,
+    )),
+  );
+  const cycleHigherBv = Math.max(
+    1,
+    Math.floor(safeNumber(
+      cutoffMetrics?.cycleHigherBv,
+      TREE_NEXT_DETAILS_FALLBACK_WEAK_LEG_BV,
+    )),
+  );
+  const subtreeLeftBV = Math.max(0, Math.floor(safeNumber(volumeMetrics?.leftVolume, 0)));
+  const subtreeRightBV = Math.max(0, Math.floor(safeNumber(volumeMetrics?.rightVolume, 0)));
+  const loopLeftBV = Math.max(0, Math.floor(safeNumber(
+    loopDisplayMetrics?.leftVolume,
+    subtreeLeftBV,
+  )));
+  const loopRightBV = Math.max(0, Math.floor(safeNumber(
+    loopDisplayMetrics?.rightVolume,
+    subtreeRightBV,
+  )));
+  const fallbackLeftBV = Math.max(loopLeftBV, subtreeLeftBV);
+  const fallbackRightBV = Math.max(loopRightBV, subtreeRightBV);
+  const cutoffTotalLeftRaw = safeNumber(cutoffMetrics?.totalLeftLegBv, Number.NaN);
+  const cutoffTotalRightRaw = safeNumber(cutoffMetrics?.totalRightLegBv, Number.NaN);
+  const cutoffCurrentLeftRaw = safeNumber(cutoffMetrics?.currentWeekLeftLegBv, Number.NaN);
+  const cutoffCurrentRightRaw = safeNumber(cutoffMetrics?.currentWeekRightLegBv, Number.NaN);
+  const cutoffTotalLeftBV = Number.isFinite(cutoffTotalLeftRaw)
+    ? Math.max(0, Math.floor(cutoffTotalLeftRaw))
+    : Number.NaN;
+  const cutoffTotalRightBV = Number.isFinite(cutoffTotalRightRaw)
+    ? Math.max(0, Math.floor(cutoffTotalRightRaw))
+    : Number.NaN;
+  const cutoffCurrentLeftBV = Number.isFinite(cutoffCurrentLeftRaw)
+    ? Math.max(0, Math.floor(cutoffCurrentLeftRaw))
+    : Number.NaN;
+  const cutoffCurrentRightBV = Number.isFinite(cutoffCurrentRightRaw)
+    ? Math.max(0, Math.floor(cutoffCurrentRightRaw))
+    : Number.NaN;
+  const cutoffAppearsStale = (
+    Number.isFinite(cutoffCurrentLeftBV)
+    && Number.isFinite(cutoffCurrentRightBV)
+    && cutoffCurrentLeftBV <= 0
+    && cutoffCurrentRightBV <= 0
+    && (fallbackLeftBV > 0 || fallbackRightBV > 0)
+  );
+  const sourceAvailableLeftBV = cutoffAppearsStale
+    ? fallbackLeftBV
+    : (Number.isFinite(cutoffCurrentLeftBV) ? cutoffCurrentLeftBV : fallbackLeftBV);
+  const sourceAvailableRightBV = cutoffAppearsStale
+    ? fallbackRightBV
+    : (Number.isFinite(cutoffCurrentRightBV) ? cutoffCurrentRightBV : fallbackRightBV);
+  const totalLeftBV = Math.max(
+    0,
+    Number.isFinite(cutoffTotalLeftBV) ? cutoffTotalLeftBV : 0,
+    subtreeLeftBV,
+    fallbackLeftBV,
+    sourceAvailableLeftBV,
+  );
+  const totalRightBV = Math.max(
+    0,
+    Number.isFinite(cutoffTotalRightBV) ? cutoffTotalRightBV : 0,
+    subtreeRightBV,
+    fallbackRightBV,
+    sourceAvailableRightBV,
+  );
+  const baseAvailableLeftBV = clamp(sourceAvailableLeftBV, 0, totalLeftBV);
+  const baseAvailableRightBV = clamp(sourceAvailableRightBV, 0, totalRightBV);
+  const currentAnchor = resolveDetailsCarouselCurrentAnchor(options?.referenceDate || new Date());
+  const selectedMonthKey = safeText(options?.selectedMonthKey) || currentAnchor.monthKey;
+  const selectedWeekNumber = clampDetailsCarouselWeekNumber(
+    selectedMonthKey,
+    options?.selectedWeekNumber || currentAnchor.weekNumber,
+  );
+  const weekDistance = resolveDetailsCarouselWeekDistance(
+    currentAnchor.monthKey,
+    currentAnchor.weekNumber,
+    selectedMonthKey,
+    selectedWeekNumber,
+  );
+  const projectedWeekMetrics = resolveDetailsCarouselProjectedWeekMetrics({
+    stepDistance: weekDistance,
+    activeStatus,
+    baseAvailableLeftBV,
+    baseAvailableRightBV,
+    strongLegCycleBv: cycleLowerBv,
+    weakLegCycleBv: cycleHigherBv,
+  });
+  const monthData = resolveDetailsCarouselMonthWeeks(selectedMonthKey);
+  const selectedWeek = monthData.weeks[Math.max(0, selectedWeekNumber - 1)] || monthData.weeks[0];
+  const dateRangeLabel = formatDetailsCarouselDateRange(selectedWeek.startDate, selectedWeek.endDate);
+  const nodeJoinedAtMs = resolveDetailsCarouselNodeJoinedAtMs(node);
+  const selectedWeekEndMs = selectedWeek?.endDate instanceof Date
+    ? selectedWeek.endDate.getTime()
+    : Number.NaN;
+  const preJoinWeek = (
+    Number.isFinite(nodeJoinedAtMs)
+    && Number.isFinite(selectedWeekEndMs)
+    && selectedWeekEndMs < nodeJoinedAtMs
+  );
+  const cutoffStatus = resolveDetailsCarouselCutoffStatus(
+    selectedWeek.startDate,
+    selectedWeek.endDate,
+    options?.referenceDate || new Date(),
+  );
+  const effectiveWeekMetrics = preJoinWeek
+    ? {
+      availableLeftBV: 0,
+      availableRightBV: 0,
+      cycles: 0,
+      strongLegKey: 'left',
+      consumedLeftBV: 0,
+      consumedRightBV: 0,
+      carryForwardLeftBV: 0,
+      carryForwardRightBV: 0,
+      projectionMode: 'pre-join',
+    }
+    : projectedWeekMetrics;
+  const effectiveTotalLeftBV = preJoinWeek ? 0 : totalLeftBV;
+  const effectiveTotalRightBV = preJoinWeek ? 0 : totalRightBV;
+  const availableLeftBV = clamp(effectiveWeekMetrics.availableLeftBV, 0, effectiveTotalLeftBV);
+  const availableRightBV = clamp(effectiveWeekMetrics.availableRightBV, 0, effectiveTotalRightBV);
+  const consumedLeftBV = Math.max(0, effectiveTotalLeftBV - availableLeftBV);
+  const consumedRightBV = Math.max(0, effectiveTotalRightBV - availableRightBV);
+  const teamGeneratedBV = preJoinWeek
+    ? 0
+    : Math.max(0, Math.floor(safeNumber(volumeMetrics.totalVolume, totalLeftBV + totalRightBV)));
+  const personalBV = preJoinWeek
+    ? 0
+    : Math.max(0, Math.floor(safeNumber(
+      cutoffMetrics?.currentWeekPersonalPv,
+      volumeMetrics.personalVolume,
+    )));
+  const strongLegLabel = effectiveWeekMetrics.strongLegKey === 'right'
+    ? 'Right'
+    : 'Left';
+  return {
+    monthKey: monthData.monthKey,
+    monthLabel: monthData.monthLabel,
+    weekNumber: selectedWeekNumber,
+    weekLabel: `Week ${selectedWeekNumber}`,
+    weeks: monthData.weeks,
+    dateRangeLabel,
+    cutoffStatus,
+    totalLeftBV: effectiveTotalLeftBV,
+    totalRightBV: effectiveTotalRightBV,
+    consumedLeftBV,
+    consumedRightBV,
+    availableLeftBV,
+    availableRightBV,
+    cycles: effectiveWeekMetrics.cycles,
+    strongLegLabel,
+    cycleConsumedLeftBV: effectiveWeekMetrics.consumedLeftBV,
+    cycleConsumedRightBV: effectiveWeekMetrics.consumedRightBV,
+    carryForwardLeftBV: effectiveWeekMetrics.carryForwardLeftBV,
+    carryForwardRightBV: effectiveWeekMetrics.carryForwardRightBV,
+    carryForwardStatus: preJoinWeek ? 'preserved' : (activeStatus ? 'preserved' : 'flushed'),
+    personalBV,
+    activeStatus: preJoinWeek ? false : activeStatus,
+    teamGeneratedBV,
+    projectionMode: effectiveWeekMetrics.projectionMode,
+  };
+}
+
+function syncDetailsCarouselSelectionForNode(nodeIdInput = '', referenceDate = new Date()) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  const nodeId = safeText(nodeIdInput);
+  const currentAnchor = resolveDetailsCarouselCurrentAnchor(referenceDate);
+  if (detailsCarousel.selectedNodeId !== nodeId) {
+    detailsCarousel.selectedNodeId = nodeId;
+    detailsCarousel.selectedMonthKey = currentAnchor.monthKey;
+    detailsCarousel.selectedWeekNumber = currentAnchor.weekNumber;
+    detailsCarousel.dragDeltaX = 0;
+    clearDetailsCarouselTransition(detailsCarousel);
+  }
+  if (!detailsCarousel.selectedMonthKey) {
+    detailsCarousel.selectedMonthKey = currentAnchor.monthKey;
+  }
+  detailsCarousel.selectedWeekNumber = clampDetailsCarouselWeekNumber(
+    detailsCarousel.selectedMonthKey,
+    detailsCarousel.selectedWeekNumber || currentAnchor.weekNumber,
+  );
+  return currentAnchor;
 }
 
 function formatCutoffHourMinute(hour24, minute) {
@@ -15462,6 +19189,7 @@ function getUniverseOptions(overrides = {}) {
   return {
     universeRootId: getUniverseRootId(),
     universeDepthCap: getUniverseDepthCap(),
+    centerSingleChildRoot: state.source === 'admin',
     ...overrides,
   };
 }
@@ -15470,6 +19198,7 @@ function getGlobalUniverseOptions(overrides = {}) {
   return {
     universeRootId: 'root',
     universeDepthCap: Number.MAX_SAFE_INTEGER,
+    centerSingleChildRoot: state.source === 'admin',
     ...overrides,
   };
 }
@@ -16129,6 +19858,20 @@ function writeCookieValue(key, value) {
   }
 }
 
+function clearCookieValue(key) {
+  if (!key) {
+    return false;
+  }
+  try {
+    const encodedKey = encodeURIComponent(key);
+    document.cookie = `${encodedKey}=; path=/; Max-Age=0; SameSite=Lax`;
+    document.cookie = `${encodedKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function persistSessionSnapshot(storageKey, cookieKey, sessionValue) {
   if (!storageKey || !cookieKey || !sessionValue || typeof sessionValue !== 'object') {
     return false;
@@ -16151,6 +19894,37 @@ function persistCurrentSourceSessionSnapshot(sessionValue = state.session) {
     ? ADMIN_AUTH_COOKIE_KEY
     : MEMBER_AUTH_COOKIE_KEY;
   return persistSessionSnapshot(storageKey, cookieKey, sessionValue);
+}
+
+function clearSessionSnapshot(storageKey, cookieKey) {
+  const removedLocal = safeStorageRemove(window.localStorage, storageKey);
+  const removedSession = safeStorageRemove(window.sessionStorage, storageKey);
+  const removedCookie = clearCookieValue(cookieKey);
+  return removedLocal || removedSession || removedCookie;
+}
+
+function clearCurrentSourceSessionSnapshot() {
+  const storageKey = state.source === 'admin'
+    ? ADMIN_AUTH_STORAGE_KEY
+    : MEMBER_AUTH_STORAGE_KEY;
+  const cookieKey = state.source === 'admin'
+    ? ADMIN_AUTH_COOKIE_KEY
+    : MEMBER_AUTH_COOKIE_KEY;
+  return clearSessionSnapshot(storageKey, cookieKey);
+}
+
+function resolveSourceLoginPath(sourceInput = state.source) {
+  return sourceInput === 'admin'
+    ? '/admin-login.html'
+    : '/login.html';
+}
+
+function logoutCurrentSourceSession() {
+  state.ui.sideNavBrandMenuOpen = false;
+  closeSearchDropdown();
+  clearCurrentSourceSessionSnapshot();
+  state.session = null;
+  redirectTo(resolveSourceLoginPath(state.source));
 }
 
 async function refreshAuthenticatedMemberSessionSnapshot(options = {}) {
@@ -17231,6 +21005,14 @@ function resolveTreeNextLiveMemberRank(member = {}) {
 
 function resolveTreeNextLiveMemberPersonalVolumeSnapshot(member = {}) {
   const packageKey = normalizeCredentialValue(member?.enrollmentPackage);
+  if (isMembershipPlacementReservationPackage(packageKey)) {
+    return {
+      packageBv: 0,
+      starterPersonalPv: 0,
+      baselineStarterPersonalPv: 0,
+      currentPersonalPvBv: 0,
+    };
+  }
   const packageMeta = ENROLL_PACKAGE_META[packageKey];
   const packageBv = Math.max(0, Math.floor(safeNumber(member?.packageBv, safeNumber(packageMeta?.bv, 0))));
   const starterPersonalPv = Math.max(0, Math.floor(safeNumber(member?.starterPersonalPv, packageBv)));
@@ -17248,7 +21030,7 @@ function resolveTreeNextLiveMemberPersonalVolumeSnapshot(member = {}) {
     ?? member?.current_week_personal_pv,
     Number.NaN,
   );
-  const derivedCurrentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  const derivedCurrentPersonalPvBv = Math.max(0, starterPersonalPv);
   const currentPersonalPvBv = Number.isFinite(explicitCurrentPersonalPvBv)
     ? Math.max(0, Math.floor(explicitCurrentPersonalPvBv))
     : derivedCurrentPersonalPvBv;
@@ -17314,6 +21096,9 @@ function createTreeNextLiveNodeIdForMember(member = {}, index = 0, usedNodeIds =
 function createTreeNextLiveScopedRootNode(sourceNode = null) {
   const source = sourceNode && typeof sourceNode === 'object' ? sourceNode : null;
   const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const reservationPlan = isMembershipPlacementReservationPackage(
+    safeText(source?.enrollmentPackage || session?.enrollmentPackage),
+  );
   const isAdminSource = state.source === 'admin';
   const sessionDisplayName = safeText(resolveSessionDisplayName());
   const sourceDisplayName = safeText(source?.name);
@@ -17372,14 +21157,37 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
   const badges = isAdminSource
     ? [ADMIN_ROOT_DISPLAY_NAME]
     : (sourceBadges.length ? sourceBadges : [rank]);
-  const volume = Math.max(0, Math.floor(safeNumber(source?.volume, 0)));
-  const starterPersonalPv = Math.max(0, Math.floor(safeNumber(source?.starterPersonalPv, volume)));
-  const baselineStarterPersonalPv = Math.max(0, Math.floor(safeNumber(
-    source?.serverCutoffBaselineStarterPersonalPv
-    ?? source?.server_cutoff_baseline_starter_personal_pv,
-    0,
-  )));
-  const currentPersonalPvBv = Math.max(0, starterPersonalPv - baselineStarterPersonalPv);
+  const volume = reservationPlan
+    ? 0
+    : Math.max(0, Math.floor(safeNumber(source?.volume, 0)));
+  const starterPersonalPv = reservationPlan
+    ? 0
+    : Math.max(0, Math.floor(safeNumber(source?.starterPersonalPv, volume)));
+  const baselineStarterPersonalPv = reservationPlan
+    ? 0
+    : Math.max(0, Math.floor(safeNumber(
+      source?.serverCutoffBaselineStarterPersonalPv
+      ?? source?.server_cutoff_baseline_starter_personal_pv,
+      0,
+    )));
+  const explicitCurrentPersonalPvBv = safeNumber(
+    source?.currentPersonalPvBv
+    ?? source?.current_personal_pv_bv
+    ?? source?.monthlyPersonalBv
+    ?? source?.monthly_personal_bv
+    ?? session?.currentPersonalPvBv
+    ?? session?.current_personal_pv_bv
+    ?? session?.monthlyPersonalBv
+    ?? session?.monthly_personal_bv,
+    Number.NaN,
+  );
+  const currentPersonalPvBv = reservationPlan
+    ? 0
+    : (
+      Number.isFinite(explicitCurrentPersonalPvBv)
+        ? Math.max(0, Math.floor(explicitCurrentPersonalPvBv))
+        : starterPersonalPv
+    );
   const sourceAvatarPalette = resolveAvatarPaletteFromRecord(source)
     || resolveAvatarPaletteFromRecord(session);
   const sourceAvatarColorTriplet = resolveAvatarColorTripletFromRecord(source)
@@ -17411,6 +21219,26 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     || session?.profile_image_url,
   );
   const sourceAvatarSeed = resolveNodeAvatarSeed(source, resolveSessionAvatarSeed(session));
+  const resolvedCreatedAt = safeText(
+    source?.createdAt
+    || source?.created_at
+    || source?.joinedAt
+    || source?.joined_at
+    || source?.enrolledAt
+    || source?.enrolled_at
+    || session?.createdAt
+    || session?.created_at
+    || session?.joinedAt
+    || session?.joined_at
+    || session?.registeredAt
+    || session?.registered_at,
+  );
+  const resolvedUpdatedAt = safeText(
+    source?.updatedAt
+    || source?.updated_at
+    || session?.updatedAt
+    || session?.updated_at,
+  );
 
   return {
     id: 'root',
@@ -17470,6 +21298,10 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     avatarColorRgb: sourceAvatarColorTriplet ? [...sourceAvatarColorTriplet] : null,
     avatarPalette: sourceAvatarPalette,
     avatarUrl: sourceAvatarPhotoUrl,
+    createdAt: resolvedCreatedAt,
+    joinedAt: resolvedCreatedAt,
+    enrolledAt: resolvedCreatedAt,
+    updatedAt: resolvedUpdatedAt,
   };
 }
 
@@ -18040,6 +21872,14 @@ function buildTreeNextNodesFromRegisteredMembers(membersInput = []) {
   return rebuildTreeNextLiveChildReferences([createTreeNextLiveScopedRootNode(null)]);
 }
 
+function cacheTreeNextLiveRegisteredMembersSnapshot(membersInput = []) {
+  const safeMembers = Array.isArray(membersInput)
+    ? membersInput.filter((member) => member && typeof member === 'object')
+    : [];
+  treeNextLiveRegisteredMembersSnapshot = safeMembers;
+  treeNextLiveRegisteredMembersSnapshotUpdatedAtMs = Date.now();
+}
+
 async function fetchTreeNextLiveRegisteredMembers() {
   const response = await fetch(resolveEnrollRegisteredMembersApi(), {
     method: 'GET',
@@ -18051,7 +21891,13 @@ async function fetchTreeNextLiveRegisteredMembers() {
     const message = safeText(payload?.error) || `Unable to load registered members (${response.status}).`;
     throw new Error(message);
   }
-  return Array.isArray(payload?.members) ? payload.members : [];
+  const members = Array.isArray(payload?.members) ? payload.members : [];
+  cacheTreeNextLiveRegisteredMembersSnapshot(members);
+  if (Boolean(state.ui?.accountOverviewVisible)) {
+    accountOverviewLastRenderSignature = '';
+    syncAccountOverviewPanelVisuals();
+  }
+  return members;
 }
 
 async function loadTreeNextLiveNodes() {
@@ -18093,6 +21939,11 @@ function resolveTreeNextLiveNodeSignature(node = {}) {
       ?? safeNode.monthly_personal_bv,
       0,
     )),
+    Math.round(Math.max(0, safeNumber(
+      safeNode.fastTrackBonusAmount
+      ?? safeNode.fast_track_bonus_amount,
+      0,
+    )) * 100) / 100,
     safeText(safeNode.businessCenterNodeType),
     safeText(safeNode.memberCode),
     safeNode.isSpillover ? '1' : '0',
@@ -19338,8 +23189,12 @@ function maybeBeginMobileSideNavContentScroll(pointerId, pointerX, pointerY, poi
     return false;
   }
   const ignoreFavoritesRegion = options?.ignoreFavoritesRegion === true;
+  const ignoreDetailsRegion = options?.ignoreDetailsRegion === true;
   const ignoreButtonGuard = options?.ignoreButtonGuard === true;
   if (!ignoreFavoritesRegion && pointInsideFavoritesCarousel(pointerX, pointerY)) {
+    return false;
+  }
+  if (!ignoreDetailsRegion && pointInsideDetailsCarousel(pointerX, pointerY)) {
     return false;
   }
   if (pointInsideRect(pointerX, pointerY, resolveSideNavSearchInputInteractiveRect())) {
@@ -19573,6 +23428,129 @@ function resolveFavoritesCarouselReleaseAction(pointerId) {
   }
   const action = favorites.dragMoved ? '' : safeText(favorites.tapAction);
   stopFavoritesCarouselDrag(pointerId);
+  return action;
+}
+
+function beginDetailsCarouselDrag(pointerId, pointerX, pointerY = 0, tapAction = '') {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  detailsCarousel.dragActive = true;
+  detailsCarousel.dragPointerId = pointerId;
+  detailsCarousel.dragStartX = safeNumber(pointerX, 0);
+  detailsCarousel.dragStartY = safeNumber(pointerY, 0);
+  detailsCarousel.dragAxis = 'pending';
+  detailsCarousel.dragMoved = false;
+  detailsCarousel.dragDeltaX = 0;
+  detailsCarousel.tapAction = safeText(tapAction);
+}
+
+function updateDetailsCarouselDrag(pointerId, pointerX, pointerY = 0, pointerType = 'mouse') {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  if (!detailsCarousel.dragActive || pointerId !== detailsCarousel.dragPointerId) {
+    return false;
+  }
+  const currentX = safeNumber(pointerX, safeNumber(detailsCarousel.dragStartX, 0));
+  const currentY = safeNumber(pointerY, safeNumber(detailsCarousel.dragStartY, 0));
+  const deltaX = currentX - safeNumber(detailsCarousel.dragStartX, 0);
+  const deltaY = currentY - safeNumber(detailsCarousel.dragStartY, 0);
+  const absDeltaX = Math.abs(deltaX);
+  const absDeltaY = Math.abs(deltaY);
+  const currentAxis = safeText(detailsCarousel.dragAxis || 'pending').toLowerCase();
+
+  if (currentAxis !== 'horizontal') {
+    if (
+      absDeltaX < TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaY < TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_THRESHOLD_PX
+    ) {
+      return true;
+    }
+    const horizontalIntent = (
+      absDeltaX >= TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaX > (absDeltaY + TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_BIAS_PX)
+    );
+    const verticalIntent = (
+      absDeltaY >= TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_THRESHOLD_PX
+      && absDeltaY > (absDeltaX + TREE_NEXT_MOBILE_DETAILS_AXIS_LOCK_BIAS_PX)
+    );
+    if (horizontalIntent) {
+      detailsCarousel.dragAxis = 'horizontal';
+      detailsCarousel.dragMoved = true;
+    } else if (verticalIntent && pointerType === 'touch') {
+      stopDetailsCarouselDrag(pointerId);
+      const handedOffToContentScroll = maybeBeginMobileSideNavContentScroll(
+        pointerId,
+        currentX,
+        currentY,
+        pointerType,
+        {
+          ignoreDetailsRegion: true,
+          ignoreButtonGuard: true,
+        },
+      );
+      if (handedOffToContentScroll) {
+        canvas.classList.add('dragging');
+        return updateMobileSideNavContentScrollDrag(pointerId, currentY);
+      }
+      const handedOffToPanelDrag = maybeBeginMobileSideNavStageDrag(pointerId, currentX, currentY, {
+        allowSurfaceDrag: true,
+        forceSurfaceDrag: true,
+        ignoreButtonGuard: true,
+      });
+      if (handedOffToPanelDrag) {
+        canvas.classList.add('dragging');
+        return updateMobileSideNavStageDrag(pointerId, currentY);
+      }
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  if (safeText(detailsCarousel.dragAxis).toLowerCase() !== 'horizontal') {
+    return false;
+  }
+  detailsCarousel.dragDeltaX = clamp(deltaX, -220, 220);
+  if (!detailsCarousel.dragMoved && (absDeltaX >= 6 || absDeltaY >= 6)) {
+    detailsCarousel.dragMoved = true;
+  }
+  return true;
+}
+
+function stopDetailsCarouselDrag(pointerId = null) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  if (!detailsCarousel.dragActive) {
+    return;
+  }
+  if (pointerId !== null && pointerId !== detailsCarousel.dragPointerId) {
+    return;
+  }
+  detailsCarousel.dragActive = false;
+  detailsCarousel.dragPointerId = null;
+  detailsCarousel.dragStartX = 0;
+  detailsCarousel.dragStartY = 0;
+  detailsCarousel.dragAxis = '';
+  detailsCarousel.dragMoved = false;
+  detailsCarousel.dragDeltaX = 0;
+  detailsCarousel.tapAction = '';
+  const mobileDragActive = getTreeNextMobileSidePanelDragState().active;
+  const sideNavContentScrollActive = getSideNavContentScrollState().dragActive;
+  if (!state.drag.active && !getSideNavFavoritesState().dragActive && !mobileDragActive && !sideNavContentScrollActive) {
+    canvas.classList.remove('dragging');
+  }
+}
+
+function resolveDetailsCarouselReleaseAction(pointerId) {
+  const detailsCarousel = getSideNavDetailsCarouselState();
+  if (!detailsCarousel.dragActive || pointerId !== detailsCarousel.dragPointerId) {
+    return '';
+  }
+  let action = '';
+  const swipeDeltaX = safeNumber(detailsCarousel.dragDeltaX, 0);
+  if (Math.abs(swipeDeltaX) >= TREE_NEXT_MOBILE_DETAILS_SWIPE_TRIGGER_PX) {
+    action = swipeDeltaX < 0 ? 'details-carousel:week:next' : 'details-carousel:week:prev';
+  } else if (!detailsCarousel.dragMoved) {
+    action = safeText(detailsCarousel.tapAction);
+  }
+  stopDetailsCarouselDrag(pointerId);
   return action;
 }
 
@@ -21111,6 +25089,474 @@ function drawUniverseBreadcrumbLinks(startX, startY, maxWidth) {
   }
 }
 
+function drawSideNavDetailsCarouselCard(options = {}) {
+  const slotX = safeNumber(options?.slotX, 0);
+  const slotWidth = Math.max(0, safeNumber(options?.slotWidth, 0));
+  const cardY = safeNumber(options?.y, 0);
+  const cardHeight = Math.max(0, safeNumber(options?.detailsCardHeight, 0));
+  const detailInsetX = safeNumber(options?.detailInsetX, slotX + 16);
+  const detailContentWidth = Math.max(0, safeNumber(options?.detailContentWidth, slotWidth - 32));
+  const detailCenterX = safeNumber(options?.detailCenterX, slotX + (slotWidth / 2));
+  const detailRightX = safeNumber(options?.detailRightX, slotX + slotWidth - 16);
+  const detailVerticalScale = clamp(safeNumber(options?.detailVerticalScale, 0), 0, 1);
+  const buttonYOffset = safeNumber(options?.buttonYOffset, 0);
+  const selectedNodeId = safeText(options?.selectedNodeId);
+  const selectedNode = options?.selectedNode && typeof options.selectedNode === 'object'
+    ? options.selectedNode
+    : resolveNodeById(selectedNodeId);
+  const detailsCarousel = getSideNavDetailsCarouselState();
+
+  detailsCarousel.viewportRect = {
+    x: slotX,
+    y: cardY + buttonYOffset,
+    width: slotWidth,
+    height: cardHeight,
+  };
+
+  fillRoundedRect(context, slotX, cardY, slotWidth, cardHeight, 28, '#FFFFFF');
+  strokeRoundedRect(context, slotX + 0.5, cardY + 0.5, slotWidth - 1, cardHeight - 1, 28, '#E2E2E2');
+
+  const contentTopInset = Math.round(14 + (6 * detailVerticalScale));
+  const contentBottomInset = Math.round(14 + (4 * detailVerticalScale));
+  const contentTopY = cardY + contentTopInset;
+  const contentBottomY = cardY + cardHeight - contentBottomInset;
+
+  if (!selectedNode) {
+    drawText('Select a node to view details.', detailCenterX, cardY + (cardHeight / 2), {
+      size: 12,
+      weight: 500,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#888888',
+      align: 'center',
+      maxWidth: detailContentWidth,
+    });
+    return;
+  }
+
+  const selectedIdentity = resolveTreeNextNodePublicIdentity(selectedNode, {
+    fallbackName: safeText(selectedNode.id || selectedNodeId || 'Member'),
+  });
+  const selectedName = truncateTextToWidth(
+    safeText(selectedIdentity.name || selectedNode.name || selectedNode.id || selectedNodeId),
+    Math.max(130, detailContentWidth * 0.72),
+    {
+      size: 13,
+      weight: 600,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+    },
+  );
+  const selectedUsernameLine = selectedIdentity.isMasked
+    ? TREE_NEXT_PRIVACY_HIDDEN_LABEL
+    : `@${truncateText(safeText(selectedIdentity.username || selectedNode.username || selectedNode.id || selectedNodeId), 24)}`;
+  const selectedJoinedAtMs = resolveDetailsCarouselNodeJoinedAtMs(selectedNode);
+  const selectedJoinedDateLine = selectedIdentity.isMasked
+    ? 'Joined date hidden'
+    : formatAccountOverviewJoinedDate(selectedJoinedAtMs);
+  const selectedAvatarNodeId = safeText(selectedNode.id || selectedNodeId || selectedName || 'member');
+  const selectedInitials = safeText(
+    selectedIdentity.initials || resolveInitials(selectedName || selectedAvatarNodeId),
+  ).slice(0, 2).toUpperCase();
+
+  syncDetailsCarouselSelectionForNode(selectedNodeId, new Date());
+  const snapshot = resolveDetailsCarouselSnapshot({
+    nodeId: selectedNodeId,
+    node: selectedNode,
+    selectedMonthKey: detailsCarousel.selectedMonthKey,
+    selectedWeekNumber: detailsCarousel.selectedWeekNumber,
+    referenceDate: new Date(),
+  });
+  setDetailsCarouselSelection(snapshot.monthKey, snapshot.weekNumber);
+
+  const dragOffsetX = detailsCarousel.dragActive
+    ? safeNumber(detailsCarousel.dragDeltaX, 0) * 0.24
+    : 0;
+  const transitionFrame = detailsCarousel.dragActive
+    ? null
+    : resolveDetailsCarouselTransitionFrame(getNowMs());
+  const snapshotReferenceDate = new Date();
+  const outgoingSnapshot = transitionFrame
+    ? resolveDetailsCarouselSnapshot({
+      nodeId: selectedNodeId,
+      node: selectedNode,
+      selectedMonthKey: transitionFrame.fromMonthKey,
+      selectedWeekNumber: transitionFrame.fromWeekNumber,
+      referenceDate: snapshotReferenceDate,
+    })
+    : null;
+
+  const drawSnapshotContent = (snapshotData, optionsInput = {}) => {
+    const allowInteractions = optionsInput?.allowInteractions !== false;
+    const avatarRadius = Math.round(32 + (8 * detailVerticalScale));
+    const avatarCenterY = contentTopY + avatarRadius + Math.round(6 + (3 * detailVerticalScale));
+    const avatarRender = drawResolvedAvatarCircle(detailCenterX, avatarCenterY, avatarRadius, selectedAvatarNodeId, {
+      node: selectedNode,
+      alpha: 0.98,
+      sheenAlpha: 0.16,
+    });
+    if (!avatarRender.usedPhoto) {
+      drawText(selectedInitials, detailCenterX, avatarCenterY + 0.5, {
+        size: Math.round(clamp(avatarRadius * 0.54, 14, 22)),
+        weight: 700,
+        color: '#F5F9FF',
+        align: 'center',
+      });
+    }
+
+    const activityDotColor = snapshotData.activeStatus ? '#2FB949' : '#A6ADB9';
+    const statusOuterRadius = Math.max(6, Math.floor(avatarRadius * 0.22));
+    const statusInnerRadius = Math.max(5, statusOuterRadius - 2);
+    const statusCenterX = detailCenterX + Math.floor(avatarRadius * 0.72);
+    const statusCenterY = avatarCenterY + Math.floor(avatarRadius * 0.66);
+    context.beginPath();
+    context.arc(statusCenterX, statusCenterY, statusOuterRadius, 0, Math.PI * 2);
+    context.fillStyle = '#FFFFFF';
+    context.fill();
+    context.beginPath();
+    context.arc(statusCenterX, statusCenterY, statusInnerRadius, 0, Math.PI * 2);
+    context.fillStyle = activityDotColor;
+    context.fill();
+
+    const nameY = avatarCenterY + avatarRadius + Math.round(16 + (4 * detailVerticalScale));
+    drawText(selectedName, detailCenterX, nameY, {
+      size: 16,
+      weight: 600,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#111111',
+      align: 'center',
+      maxWidth: detailContentWidth,
+    });
+    const usernameY = nameY + Math.round(18 + (3 * detailVerticalScale));
+    drawText(selectedUsernameLine, detailCenterX, usernameY, {
+      size: 12,
+      weight: 500,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#7A7A7A',
+      align: 'center',
+      maxWidth: detailContentWidth,
+    });
+    const joinedDateY = usernameY + Math.round(15 + (2 * detailVerticalScale));
+    drawText(selectedJoinedDateLine, detailCenterX, joinedDateY, {
+      size: 11,
+      weight: 500,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#8C95A3',
+      align: 'center',
+      maxWidth: detailContentWidth,
+    });
+
+    const monthNavY = joinedDateY + Math.round(16 + (3 * detailVerticalScale));
+    const monthNavButtonSize = Math.round(22 + (2 * detailVerticalScale));
+    const monthPrevButtonX = detailInsetX;
+    const monthNextButtonX = detailRightX - monthNavButtonSize;
+    const monthNavCenterX = detailInsetX + (detailContentWidth / 2);
+    fillRoundedRect(context, monthPrevButtonX, monthNavY, monthNavButtonSize, monthNavButtonSize, 11, '#EEF0F4');
+    fillRoundedRect(context, monthNextButtonX, monthNavY, monthNavButtonSize, monthNavButtonSize, 11, '#EEF0F4');
+    drawText('<', monthPrevButtonX + (monthNavButtonSize / 2), monthNavY + (monthNavButtonSize / 2) + 0.5, {
+      size: 14,
+      weight: 700,
+      color: '#1F2633',
+      align: 'center',
+    });
+    drawText('>', monthNextButtonX + (monthNavButtonSize / 2), monthNavY + (monthNavButtonSize / 2) + 0.5, {
+      size: 14,
+      weight: 700,
+      color: '#1F2633',
+      align: 'center',
+    });
+    drawText(snapshotData.monthLabel, monthNavCenterX, monthNavY + (monthNavButtonSize / 2) + 0.5, {
+      size: 13,
+      weight: 700,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#151B26',
+      align: 'center',
+      maxWidth: Math.max(60, detailContentWidth - 70),
+    });
+    if (allowInteractions) {
+      registerButton({
+        id: 'side-nav-details-carousel-month-prev',
+        x: monthPrevButtonX,
+        y: monthNavY + buttonYOffset,
+        width: monthNavButtonSize,
+        height: monthNavButtonSize,
+        action: 'details-carousel:month:prev',
+      });
+      registerButton({
+        id: 'side-nav-details-carousel-month-next',
+        x: monthNextButtonX,
+        y: monthNavY + buttonYOffset,
+        width: monthNavButtonSize,
+        height: monthNavButtonSize,
+        action: 'details-carousel:month:next',
+      });
+    }
+
+    const dateRangeY = monthNavY + monthNavButtonSize + Math.round(11 + detailVerticalScale);
+    drawText(snapshotData.dateRangeLabel, monthNavCenterX, dateRangeY, {
+      size: 12,
+      weight: 500,
+      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      color: '#7A8292',
+      align: 'center',
+      maxWidth: detailContentWidth,
+    });
+
+    const weekTabsY = dateRangeY + Math.round(10 + (2 * detailVerticalScale));
+    const weekTabs = Array.isArray(snapshotData.weeks) ? snapshotData.weeks : [];
+    const activeAnchor = resolveDetailsCarouselCurrentAnchor(new Date());
+    const activeMonthKey = safeText(activeAnchor.monthKey);
+    const activeWeekNumber = Math.max(1, Math.floor(safeNumber(activeAnchor.weekNumber, 1)));
+    const weekTabCount = Math.max(1, weekTabs.length);
+    let weekTabGap = weekTabCount >= 5 ? 4 : 8;
+    const weekTabHeight = Math.round(24 + (4 * detailVerticalScale));
+    const weekRowInset = 2;
+    const weekRowWidth = Math.max(80, detailContentWidth - (weekRowInset * 2));
+    let weekTabWidth = Math.floor((weekRowWidth - ((weekTabCount - 1) * weekTabGap)) / weekTabCount);
+    if (weekTabWidth < 48 && weekTabCount >= 5) {
+      weekTabGap = 3;
+      weekTabWidth = Math.floor((weekRowWidth - ((weekTabCount - 1) * weekTabGap)) / weekTabCount);
+    }
+    weekTabWidth = Math.max(42, weekTabWidth);
+    const weekTabsTotalWidth = (weekTabWidth * weekTabCount) + (Math.max(0, weekTabCount - 1) * weekTabGap);
+    const weekTabsStartX = detailInsetX + weekRowInset + Math.max(0, Math.floor((weekRowWidth - weekTabsTotalWidth) / 2));
+
+    weekTabs.forEach((weekEntry, index) => {
+      const weekTabX = weekTabsStartX + (index * (weekTabWidth + weekTabGap));
+      const isSelectedWeek = weekEntry.weekNumber === snapshotData.weekNumber;
+      const isActiveWeek = (
+        safeText(snapshotData.monthKey) === activeMonthKey
+        && Math.max(1, Math.floor(safeNumber(weekEntry.weekNumber, 1))) === activeWeekNumber
+      );
+      let weekTabFill = '#E6E8ED';
+      let weekTabStroke = '#E1E4EA';
+      let weekTabTextColor = '#111821';
+      if (isSelectedWeek && isActiveWeek) {
+        weekTabFill = '#3296F6';
+        weekTabStroke = '#3296F6';
+        weekTabTextColor = '#FFFFFF';
+      } else if (isSelectedWeek) {
+        weekTabFill = '#D5DAE3';
+        weekTabStroke = '#C2C9D6';
+        weekTabTextColor = '#1F2838';
+      } else if (isActiveWeek) {
+        weekTabFill = '#E8F7ED';
+        weekTabStroke = '#7ACB90';
+        weekTabTextColor = '#1D7A36';
+      }
+      fillRoundedRect(context, weekTabX, weekTabsY, weekTabWidth, weekTabHeight, 13, weekTabFill);
+      strokeRoundedRect(context, weekTabX + 0.5, weekTabsY + 0.5, weekTabWidth - 1, weekTabHeight - 1, 13, weekTabStroke, 1);
+      drawText(weekEntry.label || `Week ${weekEntry.weekNumber}`, weekTabX + (weekTabWidth / 2), weekTabsY + (weekTabHeight / 2) + 0.5, {
+        size: weekTabCount > 4 ? 9 : 10.5,
+        weight: isSelectedWeek ? 700 : (isActiveWeek ? 700 : 600),
+        color: weekTabTextColor,
+        align: 'center',
+      });
+      if (allowInteractions) {
+        registerButton({
+          id: `side-nav-details-carousel-week-${weekEntry.weekNumber}`,
+          x: weekTabX,
+          y: weekTabsY + buttonYOffset,
+          width: weekTabWidth,
+          height: weekTabHeight,
+          action: `details-carousel:week-select:${snapshotData.monthKey}|${weekEntry.weekNumber}`,
+        });
+      }
+    });
+
+    const primaryCardY = weekTabsY + weekTabHeight + Math.round(12 + (2 * detailVerticalScale));
+    const primaryCardGap = 8;
+    const primaryCardHeight = Math.round(56 + (14 * detailVerticalScale));
+    const primaryCardWidth = Math.max(70, Math.floor((detailContentWidth - primaryCardGap) / 2));
+    const primaryLeftCardX = detailInsetX;
+    const primaryRightCardX = detailRightX - primaryCardWidth;
+    const primaryCardBottomY = primaryCardY + primaryCardHeight;
+    const primaryCardLabelSize = primaryCardHeight >= 62 ? 10 : 9;
+    const primaryCardValueSize = primaryCardHeight >= 62 ? 15 : 13;
+
+    const drawPrimaryVolumeCard = (cardX, cardLabel, cardValue) => {
+      const cardCenterX = cardX + (primaryCardWidth / 2);
+      const cardCenterY = primaryCardY + (primaryCardHeight / 2);
+      const labelYOffset = Math.max(9, Math.round(primaryCardValueSize * 0.72));
+      const valueYOffset = Math.max(8, Math.round(primaryCardValueSize * 0.6));
+      const labelY = Math.round(cardCenterY - labelYOffset);
+      const valueY = Math.round(cardCenterY + valueYOffset);
+      fillRoundedRect(context, cardX, primaryCardY, primaryCardWidth, primaryCardHeight, 16, '#DFE3E9');
+      drawText(cardLabel, cardCenterX, labelY, {
+        size: primaryCardLabelSize,
+        weight: 600,
+        color: '#111821',
+        align: 'center',
+        maxWidth: primaryCardWidth - 18,
+      });
+      drawText(cardValue, cardCenterX, valueY, {
+        size: primaryCardValueSize,
+        weight: 700,
+        color: '#111821',
+        align: 'center',
+        maxWidth: primaryCardWidth - 18,
+      });
+    };
+
+    drawPrimaryVolumeCard(primaryLeftCardX, 'Available Left Leg BV', formatExactVolumeValue(snapshotData.availableLeftBV));
+    drawPrimaryVolumeCard(primaryRightCardX, 'Available Right Leg BV', formatExactVolumeValue(snapshotData.availableRightBV));
+
+    const relationButtonHeight = Math.round(40 + (8 * detailVerticalScale));
+    const relationButtonGap = Math.round(10 + (2 * detailVerticalScale));
+    const relationButtonsTotalHeight = (relationButtonHeight * 2) + relationButtonGap;
+    const relationButtonsStartY = contentBottomY - relationButtonsTotalHeight;
+
+    const compactRowsTopY = primaryCardBottomY + Math.round(10 + detailVerticalScale);
+    const compactRowsBottomY = relationButtonsStartY - Math.round(10 + detailVerticalScale);
+    const compactRows = [
+      { label: 'Cycles Earned', value: formatInteger(snapshotData.cycles, 0), emphasis: true },
+      {
+        label: 'Consumed BV (Left / Right)',
+        value: `${formatExactVolumeValue(snapshotData.cycleConsumedLeftBV)} / ${formatExactVolumeValue(snapshotData.cycleConsumedRightBV)}`,
+      },
+      {
+        label: 'Carry Forward BV (Left / Right)',
+        value: `${formatExactVolumeValue(snapshotData.carryForwardLeftBV)} / ${formatExactVolumeValue(snapshotData.carryForwardRightBV)}`,
+      },
+      { label: 'Personal BV', value: formatExactVolumeValue(snapshotData.personalBV) },
+      { label: 'Activity Status', value: snapshotData.activeStatus ? 'Active' : 'Inactive' },
+      { label: 'Team Generated BV', value: formatExactVolumeValue(snapshotData.teamGeneratedBV) },
+    ];
+    const compactRowsHeight = Math.max(48, compactRowsBottomY - compactRowsTopY);
+    const compactRowHeight = clamp(Math.floor(compactRowsHeight / Math.max(1, compactRows.length)), 13, 20);
+    const compactRowFontSize = clamp(Math.round(compactRowHeight * 0.5), 10, 12);
+
+    compactRows.forEach((row, index) => {
+      const rowY = compactRowsTopY + (index * compactRowHeight);
+      if (rowY + 8 > compactRowsBottomY) {
+        return;
+      }
+      const rowTextY = rowY + Math.floor(compactRowHeight * 0.56);
+      drawText(row.label, detailInsetX, rowTextY, {
+        size: compactRowFontSize,
+        weight: row.emphasis ? 700 : 500,
+        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        color: row.emphasis ? '#1E3D66' : '#66748E',
+        maxWidth: detailContentWidth * 0.68,
+      });
+      drawText(row.value, detailRightX, rowTextY, {
+        size: compactRowFontSize,
+        weight: row.emphasis ? 700 : 600,
+        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        color: '#18253B',
+        align: 'right',
+        maxWidth: detailContentWidth * 0.34,
+      });
+      const dividerY = rowY + compactRowHeight - 1;
+      if (index < compactRows.length - 1 && dividerY < compactRowsBottomY) {
+        line(context, detailInsetX, dividerY, detailInsetX + detailContentWidth, dividerY, '#D4D9E2', 1);
+      }
+    });
+
+    const parentId = safeText(selectedNode.parent);
+    const preferredSponsorId = safeText(selectedNode.sponsorId);
+    const sponsorId = resolveNodeById(preferredSponsorId) ? preferredSponsorId : parentId;
+    const relationButtons = [
+      {
+        id: 'parent',
+        nodeId: parentId,
+        iconPath: resolveDetailsRelationIconPath('parent', 'light'),
+        fallbackGlyph: drawFallbackFamilyHistoryGlyph,
+      },
+      {
+        id: 'sponsor',
+        nodeId: sponsorId,
+        iconPath: resolveDetailsRelationIconPath('sponsor', 'light'),
+        fallbackGlyph: drawFallbackPersonAddGlyph,
+      },
+    ];
+
+    relationButtons.forEach((entry, index) => {
+      const buttonY = relationButtonsStartY + (index * (relationButtonHeight + relationButtonGap));
+      const nodeId = safeText(entry.nodeId);
+      const relationNode = resolveNodeById(nodeId);
+      const relationIdentity = resolveTreeNextNodePublicIdentity(relationNode, { fallbackName: nodeId || '-' });
+      const relationLabelMasked = relationIdentity.isMasked;
+      const relationLabel = relationLabelMasked
+        ? TREE_NEXT_PRIVACY_ANONYMOUS_LABEL
+        : truncateText(safeText(relationIdentity.name || relationNode?.name || relationNode?.id || '-'), 24);
+      const buttonEnabled = Boolean(nodeId);
+      const buttonFill = buttonEnabled ? '#D0E6FF' : '#E1EBF8';
+      const buttonTextColor = buttonEnabled ? '#077AFF' : '#7D9BC2';
+      const iconSize = Math.round(clamp(relationButtonHeight * 0.58, 18, 26));
+      const iconCenterX = detailInsetX + Math.round(22 + (relationButtonHeight * 0.3));
+      const iconCenterY = buttonY + (relationButtonHeight / 2) + 0.5;
+
+      fillRoundedRect(context, detailInsetX, buttonY, detailContentWidth, relationButtonHeight, 23, buttonFill);
+      const drawn = drawImageAssetRect(
+        iconCenterX - (iconSize / 2),
+        iconCenterY - (iconSize / 2),
+        iconSize,
+        iconSize,
+        safeText(entry.iconPath),
+      );
+      if (!drawn) {
+        drawMaterialButtonIcon(
+          entry.id === 'parent' ? 'family_history' : 'person_add',
+          iconCenterX,
+          iconCenterY,
+          {
+            size: iconSize,
+            weight: 600,
+            color: buttonTextColor,
+            fallbackGlyph: entry.fallbackGlyph,
+            fill: 1,
+          },
+        );
+      }
+      drawText(relationLabel, detailCenterX, buttonY + (relationButtonHeight / 2) + 0.5, {
+        size: 14,
+        weight: 600,
+        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        color: buttonTextColor,
+        align: 'center',
+        maxWidth: detailContentWidth - 84,
+      });
+
+      if (allowInteractions && buttonEnabled && !relationLabelMasked) {
+        registerButton({
+          id: `side-nav-relation-${entry.id}`,
+          x: detailInsetX,
+          y: buttonY + buttonYOffset,
+          width: detailContentWidth,
+          height: relationButtonHeight,
+          action: `node:focus:${nodeId}`,
+        });
+      }
+    });
+  };
+
+  context.save();
+  roundedRectPath(context, slotX + 1, cardY + 1, Math.max(0, slotWidth - 2), Math.max(0, cardHeight - 2), 28);
+  context.clip();
+  if (transitionFrame && outgoingSnapshot) {
+    const easedProgress = clamp(safeNumber(transitionFrame.easedProgress, 0), 0, 1);
+    const outgoingAlpha = clamp(1 - easedProgress, 0, 1);
+    const incomingAlpha = clamp(easedProgress, 0, 1);
+
+    context.save();
+    context.globalAlpha *= outgoingAlpha;
+    context.translate(dragOffsetX, 0);
+    drawSnapshotContent(outgoingSnapshot, { allowInteractions: false });
+    context.restore();
+
+    context.save();
+    context.globalAlpha *= incomingAlpha;
+    context.translate(dragOffsetX, 0);
+    drawSnapshotContent(snapshot, { allowInteractions: true });
+    context.restore();
+  } else {
+    context.save();
+    context.translate(dragOffsetX, 0);
+    drawSnapshotContent(snapshot, { allowInteractions: true });
+    context.restore();
+  }
+  context.restore();
+}
+
 function drawSideNav(layout) {
   const panelReveal = resolveStartupRevealForPanel(STARTUP_SIDE_PANEL_DELAY_MS);
   if (panelReveal.progress <= 0) {
@@ -21124,6 +25570,9 @@ function drawSideNav(layout) {
     const favorites = getSideNavFavoritesState();
     favorites.viewportRect = null;
     stopFavoritesCarouselDrag(null);
+    const detailsCarousel = getSideNavDetailsCarouselState();
+    detailsCarousel.viewportRect = null;
+    stopDetailsCarouselDrag(null);
     const contentScroll = getSideNavContentScrollState();
     contentScroll.viewportRect = null;
     contentScroll.maxScrollY = 0;
@@ -21267,6 +25716,9 @@ function drawSideNav(layout) {
       const favorites = getSideNavFavoritesState();
       favorites.viewportRect = null;
       stopFavoritesCarouselDrag(null);
+      const detailsCarousel = getSideNavDetailsCarouselState();
+      detailsCarousel.viewportRect = null;
+      stopDetailsCarouselDrag(null);
       const contentScroll = getSideNavContentScrollState();
       contentScroll.viewportRect = null;
       contentScroll.maxScrollY = 0;
@@ -21385,6 +25837,9 @@ function drawSideNav(layout) {
       const favorites = getSideNavFavoritesState();
       favorites.viewportRect = null;
       stopFavoritesCarouselDrag(null);
+      const detailsCarousel = getSideNavDetailsCarouselState();
+      detailsCarousel.viewportRect = null;
+      stopDetailsCarouselDrag(null);
       const contentScroll = getSideNavContentScrollState();
       contentScroll.viewportRect = null;
       contentScroll.maxScrollY = 0;
@@ -21482,47 +25937,51 @@ function drawSideNav(layout) {
       controlCursorX = sideNavToggleX - searchAvatarGap;
     }
 
-    const profileButtonId = 'side-nav-search-profile';
-    const profileButtonSize = searchPillHeight;
-    const profileX = Math.round(controlCursorX - profileButtonSize);
-    const profileY = searchPillY;
-    const profileCenterX = profileX + (profileButtonSize / 2);
-    const profileCenterY = profileY + (profileButtonSize / 2);
-    const profileInitials = resolveInitials(resolveSessionDisplayName());
-    const sessionAvatarRender = drawResolvedAvatarCircle(
-      profileCenterX,
-      profileCenterY,
-      profileButtonSize / 2,
-      resolveSessionUserId(),
-      {
-        alpha: 0.98,
-        sheenAlpha: 0.2,
-      },
-    );
-    if (!sessionAvatarRender.usedPhoto) {
-      drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
-        size: Math.round(clamp(profileButtonSize * 0.33, 11, 14)),
-        weight: 700,
-        color: '#F5F9FF',
-        align: 'center',
+    const showSearchRowProfileButton = isMobileSideNav;
+    if (showSearchRowProfileButton) {
+      const profileButtonId = 'side-nav-search-profile';
+      const profileButtonSize = searchPillHeight;
+      const profileX = Math.round(controlCursorX - profileButtonSize);
+      const profileY = searchPillY;
+      const profileCenterX = profileX + (profileButtonSize / 2);
+      const profileCenterY = profileY + (profileButtonSize / 2);
+      const profileInitials = resolveInitials(resolveSessionDisplayName());
+      const sessionAvatarRender = drawResolvedAvatarCircle(
+        profileCenterX,
+        profileCenterY,
+        profileButtonSize / 2,
+        resolveSessionUserId(),
+        {
+          alpha: 0.98,
+          sheenAlpha: 0.2,
+        },
+      );
+      if (!sessionAvatarRender.usedPhoto) {
+        drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
+          size: Math.round(clamp(profileButtonSize * 0.33, 11, 14)),
+          weight: 700,
+          color: '#F5F9FF',
+          align: 'center',
+        });
+      }
+      registerButton({
+        id: profileButtonId,
+        x: profileX,
+        y: profileY + buttonYOffset,
+        width: profileButtonSize,
+        height: profileButtonSize,
+        action: 'brand-menu:toggle',
       });
+      state.ui.sideNavBrandMenuAnchorRect = {
+        x: profileX,
+        y: profileY + buttonYOffset,
+        width: profileButtonSize,
+        height: profileButtonSize,
+      };
+      controlCursorX = profileX - searchAvatarGap;
+    } else {
+      state.ui.sideNavBrandMenuAnchorRect = null;
     }
-    registerButton({
-      id: profileButtonId,
-      x: profileX,
-      y: profileY + buttonYOffset,
-      width: profileButtonSize,
-      height: profileButtonSize,
-      action: 'brand-menu:toggle',
-    });
-    state.ui.sideNavBrandMenuAnchorRect = {
-      x: profileX,
-      y: profileY + buttonYOffset,
-      width: profileButtonSize,
-      height: profileButtonSize,
-    };
-
-    controlCursorX = profileX - searchAvatarGap;
     const searchPillWidth = Math.max(150, Math.round(controlCursorX - searchPillX));
     fillRoundedRect(context, searchPillX, searchPillY, searchPillWidth, searchPillHeight, 18, '#FFFFFF');
     drawSearchGlyph(searchPillX + 18, searchPillY + (searchPillHeight / 2) + 0.5, {
@@ -21701,364 +26160,22 @@ function drawSideNav(layout) {
     const detailCenterX = slotX + (slotWidth / 2);
     const detailRightX = slotX + slotWidth - 16;
     const detailVerticalScale = clamp((detailsCardHeight - 380) / 240, 0, 1);
-    const detailsHeadingSize = Math.round(22 + (2 * detailVerticalScale));
-    const detailPrimaryTextSize = Math.round(22 + (2 * detailVerticalScale));
-    const detailSecondaryTextSize = Math.round(11 + detailVerticalScale);
-    const detailRankTextSize = detailSecondaryTextSize;
-    const detailMetricTextSize = detailSecondaryTextSize;
-    const detailRelationLabelSize = Math.round(13 + detailVerticalScale);
-
-    fillRoundedRect(context, slotX, y, slotWidth, detailsCardHeight, 28, '#FFFFFF');
-    strokeRoundedRect(context, slotX + 0.5, y + 0.5, slotWidth - 1, detailsCardHeight - 1, 28, '#E2E2E2');
-
     const selectedNodeId = safeText(state.selectedId);
     const selectedNode = resolveNodeById(selectedNodeId);
-    const detailsHeadingY = y + Math.round(34 + (2 * detailVerticalScale));
-    drawText('Details', detailCenterX, detailsHeadingY, {
-      size: detailsHeadingSize,
-      weight: 600,
-      family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-      color: '#111111',
-      align: 'center',
+    drawSideNavDetailsCarouselCard({
+      slotX,
+      slotWidth,
+      y,
+      detailsCardHeight,
+      detailInsetX,
+      detailContentWidth,
+      detailCenterX,
+      detailRightX,
+      detailVerticalScale,
+      buttonYOffset,
+      selectedNodeId,
+      selectedNode,
     });
-
-    if (!selectedNode) {
-      drawText('Select a node to view details.', detailCenterX, detailsHeadingY + 38, {
-        size: Math.max(12, detailSecondaryTextSize),
-        weight: 500,
-        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-        color: '#888888',
-        align: 'center',
-        maxWidth: detailContentWidth,
-      });
-    } else {
-      const volumeMetrics = resolveNodeLegVolumes(selectedNodeId);
-      const selectedIdentity = resolveTreeNextNodePublicIdentity(selectedNode, {
-        fallbackName: safeText(selectedNode.id || selectedNodeId || 'Member'),
-      });
-      const shouldMaskSelectedNodeDetails = selectedIdentity.isMasked;
-      const displayName = truncateText(
-        safeText(selectedIdentity.name || selectedNode.name || selectedNode.id),
-        24,
-      );
-      const usernameHandle = truncateText(
-        safeText(
-          shouldMaskSelectedNodeDetails
-            ? TREE_NEXT_PRIVACY_HIDDEN_LABEL
-            : (selectedIdentity.username || selectedNode.username || selectedNode.id),
-        ),
-        24,
-      );
-      const usernameLine = shouldMaskSelectedNodeDetails
-        ? TREE_NEXT_PRIVACY_HIDDEN_LABEL
-        : `@${usernameHandle}`;
-      const nodeInitials = safeText(
-        selectedIdentity.initials || resolveInitials(safeText(selectedNode.name || selectedNode.id)),
-      );
-      const selectedAvatarNodeId = safeText(selectedNode.id || selectedNodeId);
-      const selectedBaseAvatarVariant = isSessionAvatarNodeId(selectedAvatarNodeId)
-        ? 'auto'
-        : (selectedAvatarNodeId.toLowerCase() === 'root' ? 'root' : 'auto');
-      const isDirectSponsorNode = isNodePersonallyEnrolledBySession(selectedNode);
-      const selectedAvatarVariant = isDirectSponsorNode ? 'direct' : selectedBaseAvatarVariant;
-      const rankValue = shouldMaskSelectedNodeDetails
-        ? '-'
-        : (truncateText(safeText(selectedNode.rank || '-'), 16) || '-');
-      const isActiveAccount = resolveNodeActivityState(selectedNode);
-      const activityDotColor = isActiveAccount ? '#30C655' : '#B5B5B5';
-      const selectedAvatarRenderOptions = isActiveAccount
-        ? (isDirectSponsorNode
-          ? {
-            variant: selectedAvatarVariant,
-            disablePhoto: true,
-            ignoreSourcePalette: true,
-          }
-          : {
-            variant: selectedAvatarVariant,
-          })
-        : {
-          variant: isDirectSponsorNode ? 'directInactive' : 'inactive',
-          disablePhoto: true,
-          ignoreSourcePalette: true,
-        };
-      const rankAndTitleIconPaths = shouldMaskSelectedNodeDetails
-        ? []
-        : resolveNodeDetailRankAndTitleIcons(selectedNode).slice(0, 2);
-
-      const avatarRadius = Math.round(34 + (20 * detailVerticalScale));
-      // Keep head space under "Details", but compress aggressively on shorter laptop heights.
-      const compactHeaderToAvatarTopGap = 12;
-      const preferredHeaderToAvatarTopGap = 64;
-      const headerToAvatarTopGap = Math.round(
-        compactHeaderToAvatarTopGap
-        + ((preferredHeaderToAvatarTopGap - compactHeaderToAvatarTopGap) * detailVerticalScale),
-      );
-      const avatarCenterY = detailsHeadingY + headerToAvatarTopGap + avatarRadius;
-      const nodePhotoUrl = (selectedAvatarRenderOptions.disablePhoto === true || shouldMaskSelectedNodeDetails)
-        ? ''
-        : resolveNodeAvatarPhotoUrl(selectedNode);
-      let usedPhotoAvatar = false;
-      context.beginPath();
-      context.arc(detailCenterX, avatarCenterY, avatarRadius + 1.5, 0, Math.PI * 2);
-      context.fillStyle = '#FFFFFF';
-      context.fill();
-      if (nodePhotoUrl) {
-        usedPhotoAvatar = drawImageAvatarCircle(detailCenterX, avatarCenterY, avatarRadius, nodePhotoUrl);
-      }
-      if (!usedPhotoAvatar) {
-        drawResolvedAvatarCircle(detailCenterX, avatarCenterY, avatarRadius, selectedAvatarNodeId, {
-          node: selectedNode,
-          ...selectedAvatarRenderOptions,
-          alpha: 0.98,
-          sheenAlpha: 0.16,
-        });
-        const avatarInitialsSize = Math.round(clamp(avatarRadius * 0.63, 24, 34));
-        drawText(nodeInitials, detailCenterX, avatarCenterY + 0.5, {
-          size: avatarInitialsSize,
-          weight: 700,
-          family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-          color: '#FFFFFF',
-          align: 'center',
-        });
-      }
-
-      const statusDotCenterX = detailCenterX + (avatarRadius * 0.62);
-      const statusDotCenterY = avatarCenterY + (avatarRadius * 0.68);
-      const statusDotOuterRadius = clamp(Math.round(avatarRadius * 0.19), 7, 10);
-      const statusDotInnerRadius = Math.max(5, statusDotOuterRadius - 2);
-      context.beginPath();
-      context.arc(statusDotCenterX, statusDotCenterY, statusDotOuterRadius, 0, Math.PI * 2);
-      context.fillStyle = '#FFFFFF';
-      context.fill();
-      context.beginPath();
-      context.arc(statusDotCenterX, statusDotCenterY, statusDotInnerRadius, 0, Math.PI * 2);
-      context.fillStyle = activityDotColor;
-      context.fill();
-
-      const avatarToNameGap = Math.round(44 + (36 * detailVerticalScale));
-      const nameToUsernameGap = Math.round(16 + (10 * detailVerticalScale));
-      const usernameToRankGap = Math.round(14 + (10 * detailVerticalScale));
-      const displayNameY = avatarCenterY + avatarToNameGap;
-      const usernameY = displayNameY + nameToUsernameGap;
-      const rankY = usernameY + usernameToRankGap;
-      drawText(displayName, detailCenterX, displayNameY, {
-        size: detailPrimaryTextSize,
-        weight: 600,
-        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-        color: '#111111',
-        align: 'center',
-        maxWidth: detailContentWidth,
-      });
-      drawText(usernameLine, detailCenterX, usernameY, {
-        size: detailSecondaryTextSize,
-        weight: 500,
-        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-        color: '#888888',
-        align: 'center',
-        maxWidth: detailContentWidth,
-      });
-
-      const rankIconSize = Math.round(14 + (2 * detailVerticalScale));
-      const rankIconGap = 4;
-      const rankTextWidth = measureTextWidth(rankValue, {
-        size: detailRankTextSize,
-        weight: 500,
-        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-      });
-      const iconBlockWidth = rankAndTitleIconPaths.length
-        ? (10 + (rankAndTitleIconPaths.length * rankIconSize) + ((rankAndTitleIconPaths.length - 1) * rankIconGap))
-        : 0;
-      const rankRowWidth = rankTextWidth + iconBlockWidth;
-      let rankCursorX = detailCenterX - (rankRowWidth / 2);
-      drawText(rankValue, rankCursorX, rankY, {
-        size: detailRankTextSize,
-        weight: 500,
-        family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-        color: '#888888',
-      });
-      rankCursorX += rankTextWidth + 10;
-      for (let index = 0; index < rankAndTitleIconPaths.length; index += 1) {
-        const iconPath = rankAndTitleIconPaths[index];
-        const iconX = rankCursorX + (index * (rankIconSize + rankIconGap));
-        const iconY = rankY - (rankIconSize / 2);
-        const drawn = drawImageAssetRect(iconX, iconY, rankIconSize, rankIconSize, iconPath);
-        if (!drawn) {
-          fillRoundedRect(context, iconX, iconY, rankIconSize, rankIconSize, 4, '#DADADA');
-        }
-      }
-
-      const cyclesCount = resolveNodeCycleCount(selectedNode, volumeMetrics);
-      const relationButtonHeight = Math.round(32 + (14 * detailVerticalScale));
-      const relationButtonGap = Math.round(4 + (8 * detailVerticalScale));
-      const metricsToButtonsGap = Math.round(6 + (10 * detailVerticalScale));
-      const detailsBottomPad = Math.round(8 + (10 * detailVerticalScale));
-      const minMetricRowHeight = Math.round(12 + (10 * detailVerticalScale));
-      const maxMetricRowHeight = Math.round(50 + (8 * detailVerticalScale));
-      const rankToMetricsGap = Math.round(10 + (26 * detailVerticalScale));
-      const parentId = safeText(selectedNode.parent);
-      const preferredSponsorId = safeText(selectedNode.sponsorId);
-      const sponsorId = resolveNodeById(preferredSponsorId) ? preferredSponsorId : parentId;
-      const detailsPanelMode = 'light';
-      const relationButtons = [
-        {
-          id: 'parent',
-          style: 'filled',
-          iconName: 'family_history',
-          iconPath: resolveDetailsRelationIconPath('parent', detailsPanelMode),
-          nodeId: parentId,
-          fallbackGlyph: drawFallbackFamilyHistoryGlyph,
-        },
-        {
-          id: 'sponsor',
-          style: 'filled',
-          iconName: 'person_add',
-          iconPath: resolveDetailsRelationIconPath('sponsor', detailsPanelMode),
-          nodeId: sponsorId,
-          fallbackGlyph: drawFallbackPersonAddGlyph,
-        },
-      ];
-      const relationBlockHeight = (
-        relationButtons.length * relationButtonHeight
-      ) + (Math.max(0, relationButtons.length - 1) * relationButtonGap);
-      const metricRows = [
-        { label: 'Total Organizational BV', value: formatExactVolumeValue(volumeMetrics.totalVolume) },
-        { label: 'Personal BV', value: formatExactVolumeValue(volumeMetrics.personalVolume) },
-        { label: 'Left Leg', value: formatExactVolumeValue(volumeMetrics.leftVolume) },
-        { label: 'Right Leg', value: formatExactVolumeValue(volumeMetrics.rightVolume) },
-        { label: 'Cycles', value: String(cyclesCount) },
-      ];
-      const maxRelationStartY = detailsBottomY - relationBlockHeight - detailsBottomPad;
-      const desiredMetricsStartY = rankY + rankToMetricsGap;
-      const maxMetricsStartY = maxRelationStartY - metricsToButtonsGap - (metricRows.length * minMetricRowHeight);
-      const metricsStartY = Math.min(desiredMetricsStartY, maxMetricsStartY);
-      const availableMetricHeight = Math.max(
-        0,
-        detailsBottomY
-          - metricsStartY
-          - relationBlockHeight
-          - metricsToButtonsGap
-          - detailsBottomPad,
-      );
-      const metricRowHeight = clamp(
-        Math.floor(availableMetricHeight / Math.max(1, metricRows.length)),
-        minMetricRowHeight,
-        maxMetricRowHeight,
-      );
-      metricRows.forEach((row, rowIndex) => {
-        const rowTopY = metricsStartY + (rowIndex * metricRowHeight);
-        const metricRowTextY = rowTopY + clamp(metricRowHeight * 0.5, 11, 20);
-        const metricDividerInset = Math.max(2, Math.round(metricRowHeight * 0.12));
-        drawText(row.label, detailInsetX + 2, metricRowTextY, {
-          size: detailMetricTextSize,
-          weight: 500,
-          family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-          color: '#888888',
-          maxWidth: detailContentWidth * 0.6,
-        });
-        drawText(row.value, detailRightX, metricRowTextY, {
-          size: detailMetricTextSize,
-          weight: 400,
-          family: '"Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-          color: '#171717',
-          align: 'right',
-        });
-        line(
-          context,
-          detailInsetX,
-          rowTopY + metricRowHeight - metricDividerInset,
-          detailInsetX + detailContentWidth,
-          rowTopY + metricRowHeight - metricDividerInset,
-          '#E2E2E2',
-          1,
-        );
-      });
-
-      const relationStartY = maxRelationStartY;
-      const relationButtonLabelFamily = '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
-      const relationButtonLabelWeight = 600;
-
-      relationButtons.forEach((entry, index) => {
-        const buttonY = relationStartY + (index * (relationButtonHeight + relationButtonGap));
-        if (buttonY + relationButtonHeight > detailsBottomY - 8) {
-          return;
-        }
-        const isOutlineButton = safeText(entry.style).toLowerCase() === 'outline';
-        const nodeId = safeText(entry.nodeId);
-        const relationNode = resolveNodeById(nodeId);
-        const relationIdentity = resolveTreeNextNodePublicIdentity(relationNode, { fallbackName: nodeId || '-' });
-        const relationLabelMasked = shouldMaskSelectedNodeDetails || relationIdentity.isMasked;
-        const buttonEnabled = Boolean(nodeId) && !relationLabelMasked;
-        const customLabel = safeText(entry.label);
-        const buttonLabel = relationLabelMasked
-          ? (nodeId ? TREE_NEXT_PRIVACY_ANONYMOUS_LABEL : '-')
-          : (customLabel || (buttonEnabled
-            ? truncateText(safeText(relationIdentity.name || relationNode?.name || relationNode?.id || nodeId), 24)
-            : '-'));
-        const buttonFill = isOutlineButton
-          ? '#FFFFFF'
-          : (buttonEnabled ? '#D0E6FF' : '#E1EBF8');
-        const buttonTextColor = isOutlineButton
-          ? '#077AFF'
-          : (buttonEnabled ? '#077AFF' : '#7D9BC2');
-        const iconSize = Math.round(clamp(
-          relationButtonHeight * (isOutlineButton ? 0.62 : 0.58),
-          18,
-          isOutlineButton ? 28 : 26,
-        ));
-        const iconCenterX = detailInsetX + Math.round(22 + (relationButtonHeight * 0.3));
-        const iconCenterY = buttonY + (relationButtonHeight / 2) + 0.5;
-        fillRoundedRect(context, detailInsetX, buttonY, detailContentWidth, relationButtonHeight, 23, buttonFill);
-        if (isOutlineButton) {
-          strokeRoundedRect(
-            context,
-            detailInsetX + 0.5,
-            buttonY + 0.5,
-            detailContentWidth - 1,
-            relationButtonHeight - 1,
-            23,
-            '#077AFF',
-            1,
-          );
-        }
-        const renderedSvg = drawImageAssetRect(
-          iconCenterX - (iconSize / 2),
-          iconCenterY - (iconSize / 2),
-          iconSize,
-          iconSize,
-          safeText(entry.iconPath),
-        );
-        if (!renderedSvg) {
-          drawMaterialButtonIcon(entry.iconName, iconCenterX, iconCenterY, {
-            size: iconSize,
-            weight: isOutlineButton ? 500 : 600,
-            color: buttonTextColor,
-            fallbackGlyph: entry.fallbackGlyph,
-            fill: isOutlineButton ? 0 : 1,
-          });
-        }
-        drawText(buttonLabel, detailCenterX, buttonY + (relationButtonHeight / 2) + 0.5, {
-          size: detailRelationLabelSize,
-          weight: relationButtonLabelWeight,
-          family: relationButtonLabelFamily,
-          color: buttonTextColor,
-          align: 'center',
-          maxWidth: detailContentWidth - 84,
-        });
-        const buttonAction = buttonEnabled
-          ? (safeText(entry.action) || (nodeId ? `node:focus:${nodeId}` : ''))
-          : '';
-        if (buttonEnabled && buttonAction) {
-          registerButton({
-            id: `side-nav-relation-${entry.id}`,
-            x: detailInsetX,
-            y: buttonY + buttonYOffset,
-            width: detailContentWidth,
-            height: relationButtonHeight,
-            action: buttonAction,
-          });
-        }
-      });
-    }
 
     if (memberStatusCardHeight > 0) {
       fillRoundedRect(context, slotX, memberStatusCardY, slotWidth, memberStatusCardHeight, 18, '#FFFFFF');
@@ -22690,6 +26807,56 @@ function drawBottomToolBar(layout) {
     Math.round((workspace.x + workspace.width) - floatingProfileSize - 8),
   );
   const profileY = panel.y;
+  const desktopProfileButtonId = 'desktop-floating-profile';
+  const profileHovered = state.hoveredButtonId === desktopProfileButtonId;
+  const profileCenterX = profileX + (floatingProfileSize / 2);
+  const profileCenterY = profileY + (floatingProfileSize / 2);
+  if (profileHovered) {
+    context.beginPath();
+    context.arc(profileCenterX, profileCenterY, (floatingProfileSize / 2) + 1.5, 0, Math.PI * 2);
+    context.fillStyle = '#E8EAF0';
+    context.fill();
+  }
+  const floatingProfileAvatar = drawResolvedAvatarCircle(
+    profileCenterX,
+    profileCenterY,
+    floatingProfileSize / 2,
+    resolveSessionUserId(),
+    {
+      alpha: 0.98,
+      sheenAlpha: 0.2,
+    },
+  );
+  if (!floatingProfileAvatar.usedPhoto) {
+    const profileInitials = resolveInitials(resolveSessionDisplayName());
+    drawText(profileInitials, profileCenterX, profileCenterY + 0.5, {
+      size: Math.round(clamp(floatingProfileSize * 0.33, 12, 16)),
+      weight: 700,
+      color: '#F5F9FF',
+      align: 'center',
+    });
+  }
+  if (profileHovered) {
+    context.beginPath();
+    context.arc(profileCenterX, profileCenterY, (floatingProfileSize / 2) - 0.5, 0, Math.PI * 2);
+    context.lineWidth = 1;
+    context.strokeStyle = '#D3D8E4';
+    context.stroke();
+  }
+  registerButton({
+    id: desktopProfileButtonId,
+    x: profileX,
+    y: profileY + buttonYOffset,
+    width: floatingProfileSize,
+    height: floatingProfileSize,
+    action: 'brand-menu:toggle',
+  });
+  state.ui.sideNavBrandMenuAnchorRect = {
+    x: profileX,
+    y: profileY + buttonYOffset,
+    width: floatingProfileSize,
+    height: floatingProfileSize,
+  };
   const profileLeftDockButtons = [
     {
       id: 'profile-left-dock-account-overview',
@@ -23010,6 +27177,9 @@ function beginStartupReveal(reveal) {
 }
 
 function resolveAnticipationSlots(frame, frameOptions) {
+  if (isCurrentSessionPendingOrReservationAccount()) {
+    return [];
+  }
   if (resolvePendingPlacementRevealNodeId()) {
     return [];
   }
@@ -23045,80 +27215,90 @@ function resolveAnticipationSlots(frame, frameOptions) {
   );
   const pendingReservation = resolvePendingPlacementRevealReservation();
   if (state.source === 'admin') {
-    const candidateSides = ['left', 'right'];
-    let placementSide = '';
-    for (const side of candidateSides) {
-      if (childLegs[side]) {
-        continue;
+    const isRootSelection = selectedNodeId === 'root';
+    const rootHasSeedNode = Boolean(childLegs.left || childLegs.right);
+    const shouldUseRootCenterSeedSlot = isRootSelection && !rootHasSeedNode;
+    if (isRootSelection && rootHasSeedNode) {
+      // Admin tree shape: root gets exactly one centered seed node.
+      // After that, growth continues from the seed node via left/right branches.
+      return [];
+    }
+    if (shouldUseRootCenterSeedSlot) {
+      const candidateSides = ['left', 'right'];
+      let placementSide = '';
+      for (const side of candidateSides) {
+        if (childLegs[side]) {
+          continue;
+        }
+        if (
+          pendingReservation
+          && pendingReservation.parentId === selectedNodeId
+          && pendingReservation.placementLeg === side
+        ) {
+          continue;
+        }
+        placementSide = side;
+        break;
       }
-      if (
-        pendingReservation
-        && pendingReservation.parentId === selectedNodeId
-        && pendingReservation.placementLeg === side
-      ) {
-        continue;
+      if (!placementSide) {
+        return [];
       }
-      placementSide = side;
-      break;
-    }
-    if (!placementSide) {
-      return [];
-    }
 
-    const slotGlobalDepth = selectedGlobalDepth + 1;
-    const leftSlotLocalPath = `${baseLocalPath}L`;
-    const rightSlotLocalPath = `${baseLocalPath}R`;
-    const leftProjectedSlot = leftSlotLocalPath.length <= universeDepthCap
-      ? state.adapter.projectLocalPath(leftSlotLocalPath, frameOptions)
-      : null;
-    const rightProjectedSlot = rightSlotLocalPath.length <= universeDepthCap
-      ? state.adapter.projectLocalPath(rightSlotLocalPath, frameOptions)
-      : null;
-    const anchorProjectedSlot = placementSide === 'right'
-      ? (rightProjectedSlot || leftProjectedSlot)
-      : (leftProjectedSlot || rightProjectedSlot);
-    if (!anchorProjectedSlot) {
-      return [];
-    }
+      const slotGlobalDepth = selectedGlobalDepth + 1;
+      const leftSlotLocalPath = `${baseLocalPath}L`;
+      const rightSlotLocalPath = `${baseLocalPath}R`;
+      const leftProjectedSlot = leftSlotLocalPath.length <= universeDepthCap
+        ? state.adapter.projectLocalPath(leftSlotLocalPath, frameOptions)
+        : null;
+      const rightProjectedSlot = rightSlotLocalPath.length <= universeDepthCap
+        ? state.adapter.projectLocalPath(rightSlotLocalPath, frameOptions)
+        : null;
+      const anchorProjectedSlot = placementSide === 'right'
+        ? (rightProjectedSlot || leftProjectedSlot)
+        : (leftProjectedSlot || rightProjectedSlot);
+      if (!anchorProjectedSlot) {
+        return [];
+      }
 
-    const radius = clamp(safeNumber(anchorProjectedSlot.r, 0) * 0.88, 6.5, 32);
-    if (radius <= 0.2) {
-      return [];
-    }
+      const radius = clamp(safeNumber(anchorProjectedSlot.r, 0) * 0.88, 6.5, 32);
+      if (radius <= 0.2) {
+        return [];
+      }
 
-    const hasBothProjectedSlots = Boolean(leftProjectedSlot && rightProjectedSlot);
-    const centerX = hasBothProjectedSlots
-      ? (
-        safeNumber(leftProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
-        + safeNumber(rightProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
-      ) / 2
-      : safeNumber(selectedProjected.x, safeNumber(anchorProjectedSlot.x, 0));
-    const centerY = hasBothProjectedSlots
-      ? (
-        safeNumber(leftProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
-        + safeNumber(rightProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
-      ) / 2
-      : safeNumber(anchorProjectedSlot.y, 0);
-    const slotLocalDepth = Math.max(
-      0,
-      Math.floor(safeNumber(anchorProjectedSlot.localDepth, baseLocalPath.length + 1)),
-    );
-    const encodedParentId = encodeURIComponent(selectedNodeId);
-    return [
-      {
-        key: `${selectedNodeId}:center:${placementSide}`,
-        buttonId: `${ANTICIPATION_BUTTON_ID_PREFIX}${encodedParentId}-center`,
-        action: `anticipation:${encodedParentId}|${placementSide}`,
-        parentNodeId: selectedNodeId,
-        side: placementSide,
-        hideSideLabel: true,
-        x: centerX,
-        y: centerY,
-        r: radius,
-        localDepth: slotLocalDepth,
-        globalDepth: slotGlobalDepth,
-      },
-    ];
+      const hasBothProjectedSlots = Boolean(leftProjectedSlot && rightProjectedSlot);
+      const centerX = hasBothProjectedSlots
+        ? (
+          safeNumber(leftProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
+          + safeNumber(rightProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
+        ) / 2
+        : safeNumber(selectedProjected.x, safeNumber(anchorProjectedSlot.x, 0));
+      const centerY = hasBothProjectedSlots
+        ? (
+          safeNumber(leftProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
+          + safeNumber(rightProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
+        ) / 2
+        : safeNumber(anchorProjectedSlot.y, 0);
+      const slotLocalDepth = Math.max(
+        0,
+        Math.floor(safeNumber(anchorProjectedSlot.localDepth, baseLocalPath.length + 1)),
+      );
+      const encodedParentId = encodeURIComponent(selectedNodeId);
+      return [
+        {
+          key: `${selectedNodeId}:center:${placementSide}`,
+          buttonId: `${ANTICIPATION_BUTTON_ID_PREFIX}${encodedParentId}-center`,
+          action: `anticipation:${encodedParentId}|${placementSide}`,
+          parentNodeId: selectedNodeId,
+          side: placementSide,
+          hideSideLabel: true,
+          x: centerX,
+          y: centerY,
+          r: radius,
+          localDepth: slotLocalDepth,
+          globalDepth: slotGlobalDepth,
+        },
+      ];
+    }
   }
   const sides = ['left', 'right'];
   const slots = [];
@@ -25079,6 +29259,7 @@ function updateTouchPanInertia(deltaSecondsInput = 0.016) {
     state.drag.active
     || getTreeNextMobileSidePanelDragState().active
     || getSideNavFavoritesState().dragActive
+    || getSideNavDetailsCarouselState().dragActive
     || getSideNavContentScrollState().dragActive
     || touchGestureState.pinchActive
     || touchGestureState.activePointers.size > 0
@@ -25316,6 +29497,31 @@ function triggerAction(action) {
     }
     return;
   }
+  if (safeAction === 'details-carousel:month:prev') {
+    stepDetailsCarouselMonth(-1);
+    return;
+  }
+  if (safeAction === 'details-carousel:month:next') {
+    stepDetailsCarouselMonth(1);
+    return;
+  }
+  if (safeAction === 'details-carousel:week:prev') {
+    stepDetailsCarouselWeek(-1);
+    return;
+  }
+  if (safeAction === 'details-carousel:week:next') {
+    stepDetailsCarouselWeek(1);
+    return;
+  }
+  if (safeAction.startsWith('details-carousel:week-select:')) {
+    const payload = safeAction.slice('details-carousel:week-select:'.length);
+    const separatorIndex = payload.lastIndexOf('|');
+    const monthKey = separatorIndex >= 0 ? payload.slice(0, separatorIndex) : payload;
+    const weekNumberRaw = separatorIndex >= 0 ? payload.slice(separatorIndex + 1) : '';
+    const weekNumber = Math.max(1, Math.floor(safeNumber(weekNumberRaw, 1)));
+    selectDetailsCarouselWeek(monthKey, weekNumber);
+    return;
+  }
   if (safeAction === 'mobile:top-controls:toggle') {
     state.ui.mobileTopControlsHidden = !Boolean(state.ui?.mobileTopControlsHidden);
     return;
@@ -25378,7 +29584,7 @@ function triggerAction(action) {
     return;
   }
   if (safeAction === 'brand-menu:action:logout') {
-    state.ui.sideNavBrandMenuOpen = false;
+    logoutCurrentSourceSession();
     return;
   }
   if (safeAction === 'camera:home') {
@@ -25528,6 +29734,7 @@ function onPointerDown(event) {
     trackTouchPointer(event.pointerId, pointerX, pointerY);
     if (touchGestureState.activePointers.size >= 2) {
       stopFavoritesCarouselDrag(null);
+      stopDetailsCarouselDrag(null);
       stopDragging(null);
       clearTreeNextMobileSidePanelDrag();
       beginTouchPinchGesture();
@@ -25544,6 +29751,7 @@ function onPointerDown(event) {
   closeSearchDropdown();
   updateHoverState(pointerX, pointerY);
   const pointerInsideFavorites = pointInsideFavoritesCarousel(pointerX, pointerY);
+  const pointerInsideDetails = pointInsideDetailsCarousel(pointerX, pointerY);
   const brandMenuOpen = Boolean(state.ui.sideNavBrandMenuOpen);
   const button = buttonUnderPointer(pointerX, pointerY);
   const buttonAction = safeText(button?.action);
@@ -25594,6 +29802,16 @@ function onPointerDown(event) {
       }
       return;
     }
+    if (pointerInsideDetails && button.id.startsWith('side-nav-details-carousel-')) {
+      beginDetailsCarouselDrag(event.pointerId, pointerX, pointerY, button.action);
+      canvas.classList.add('dragging');
+      try {
+        canvas.setPointerCapture(event.pointerId);
+      } catch {
+        // Ignore pointer capture failures.
+      }
+      return;
+    }
     triggerAction(button.action);
     return;
   }
@@ -25603,6 +29821,20 @@ function onPointerDown(event) {
       state.ui.sideNavBrandMenuOpen = false;
     }
     beginFavoritesCarouselDrag(event.pointerId, pointerX, pointerY);
+    canvas.classList.add('dragging');
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore pointer capture failures.
+    }
+    return;
+  }
+
+  if (pointerInsideDetails) {
+    if (brandMenuOpen) {
+      state.ui.sideNavBrandMenuOpen = false;
+    }
+    beginDetailsCarouselDrag(event.pointerId, pointerX, pointerY);
     canvas.classList.add('dragging');
     try {
       canvas.setPointerCapture(event.pointerId);
@@ -25686,6 +29918,13 @@ function onPointerMove(event) {
     return;
   }
 
+  if (updateDetailsCarouselDrag(event.pointerId, event.clientX, event.clientY, event.pointerType)) {
+    if (event.pointerType === 'touch' && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    return;
+  }
+
   if (state.drag.active && event.pointerId === state.drag.pointerId) {
     const deltaX = event.clientX - state.drag.lastX;
     const deltaY = event.clientY - state.drag.lastY;
@@ -25737,7 +29976,8 @@ function stopDragging(pointerId) {
   }
   const mobileDragActive = getTreeNextMobileSidePanelDragState().active;
   const sideNavContentScrollActive = getSideNavContentScrollState().dragActive;
-  if (!getSideNavFavoritesState().dragActive && !mobileDragActive && !sideNavContentScrollActive) {
+  const sideNavDetailsDragActive = getSideNavDetailsCarouselState().dragActive;
+  if (!getSideNavFavoritesState().dragActive && !sideNavDetailsDragActive && !mobileDragActive && !sideNavContentScrollActive) {
     canvas.classList.remove('dragging');
   }
 }
@@ -25753,6 +29993,7 @@ function onPointerUp(event) {
   const mobileContentScrollResult = finalizeMobileSideNavContentScrollDrag(event.pointerId);
   if (mobileContentScrollResult.consumed) {
     stopFavoritesCarouselDrag(event.pointerId);
+    stopDetailsCarouselDrag(event.pointerId);
     stopDragging(event.pointerId);
     try {
       canvas.releasePointerCapture(event.pointerId);
@@ -25765,6 +30006,7 @@ function onPointerUp(event) {
   const mobileDragResult = finalizeMobileSideNavStageDrag(event.pointerId);
   if (mobileDragResult.consumed || wasPinching) {
     stopFavoritesCarouselDrag(event.pointerId);
+    stopDetailsCarouselDrag(event.pointerId);
     stopDragging(event.pointerId);
     try {
       canvas.releasePointerCapture(event.pointerId);
@@ -25777,6 +30019,10 @@ function onPointerUp(event) {
   const releaseAction = resolveFavoritesCarouselReleaseAction(event.pointerId);
   if (releaseAction) {
     triggerAction(releaseAction);
+  }
+  const detailsReleaseAction = resolveDetailsCarouselReleaseAction(event.pointerId);
+  if (detailsReleaseAction) {
+    triggerAction(detailsReleaseAction);
   }
   const shouldStartTouchPanInertia = (event.type === 'pointerup' || event.type === 'pointercancel')
     && maybeStartTouchPanInertia(event.pointerId, event.pointerType);
@@ -25804,6 +30050,7 @@ function onPointerLeave(event) {
     state.drag.active
     || getTreeNextMobileSidePanelDragState().active
     || getSideNavFavoritesState().dragActive
+    || getSideNavDetailsCarouselState().dragActive
     || getSideNavContentScrollState().dragActive
     || touchGestureState.activePointers.size > 0
     || touchGestureState.pinchActive
@@ -25814,6 +30061,7 @@ function onPointerLeave(event) {
   state.pointer.inside = false;
   state.hoveredButtonId = '';
   stopFavoritesCarouselDrag(null);
+  stopDetailsCarouselDrag(null);
   stopDragging(null);
 }
 
@@ -26109,6 +30357,7 @@ function bindTouchNavigationGuard() {
     const canvasGestureActive = (
       state.drag.active
       || getSideNavFavoritesState().dragActive
+      || getSideNavDetailsCarouselState().dragActive
       || getSideNavContentScrollState().dragActive
       || touchGestureState.activePointers.size > 0
       || getTreeNextMobileSidePanelDragState().active
@@ -26299,6 +30548,7 @@ bootstrap().catch((error) => {
   hideFirstOpenSplashImmediately();
   showBootError(error instanceof Error ? error.message : String(error));
 });
+
 
 
 

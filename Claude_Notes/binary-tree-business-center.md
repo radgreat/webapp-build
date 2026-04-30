@@ -1,6 +1,6 @@
 # Binary Tree Business Center Notes
 
-Last Updated: 2026-04-23
+Last Updated: 2026-04-26
 
 ## Scope
 
@@ -9,6 +9,16 @@ Last Updated: 2026-04-23
 
 ## What Changed
 
+- 2026-04-26 follow-up (cycle-direction alignment with member cutoff rule):
+  - updated `resolveCycleSplitComputation(...)` in `backend/services/member-business-center.service.js`
+  - removed balancing-based weaker-side selection behavior
+  - Business Center cycle settlement now enforces:
+    - weaker leg consumes `cycleHigherBv` (default `1000`)
+    - stronger leg consumes `cycleLowerBv` (default `500`)
+  - tie handling is deterministic (`left` treated as weaker when equal)
+  - validated scenarios:
+    - `L=1000`, `R=1192` => `1` cycle, carry `L=0`, `R=692`
+    - `L=1192`, `R=1000` => `1` cycle, carry `L=692`, `R=0`
 - 2026-04-23 redesign pass (production compensation model migration):
   - replaced placeholder-only behavior with independent earning-node behavior per center under one owner identity
   - enforced max 3 business centers with configurable unlock rules:
@@ -665,3 +675,20 @@ Last Updated: 2026-04-23
   - `node --check binary-tree-next-engine-adapter.mjs`
   - `node --check binary-tree-next-app.mjs`
   - `/binary-tree-next` route smoke status 200.
+
+## 2026-04-28 Addendum (Business Center Rule Migration: 3 -> 2)
+
+- Updated Business Center rules to max 2 total centers.
+- Updated unlock mapping:
+  - Tier 4 -> Business Center #1
+  - Tier 5 -> Business Center #2
+- Removed Tier 3 unlock path.
+- Deprecated over-cap historical center nodes (`index > 2`) as legacy placeholders without deleting rows.
+- Updated member dashboard BC panel + tree label fallbacks so `Business Center #3` no longer appears; legacy over-cap labels render as `Legacy Center #N`.
+- Added backend unit tests for BC cap/unlock mapping (`backend/tests/member-business-center.service.test.js`).
+
+### Validation
+- `cmd /c npm run test:business-centers` passed.
+- `cmd /c npm run test:binary-cycle` passed.
+- `cmd /c npm run test:ledger` passed.
+- `cmd /c npm run test:matching-bonus` passed.

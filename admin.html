@@ -3264,6 +3264,124 @@
                   </div>
                 </div>
               </div>
+
+              <div class="rounded-xl border border-surface-border bg-surface-base/30 p-4 space-y-4">
+                <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h4 class="font-body font-medium text-body text-text-primary">Ledger Explorer</h4>
+                    <p class="mt-1 text-caption text-text-secondary">Global audit feed for retail, fast-track, sales-team, leadership matching, payout, adjustment, and reversal entries.</p>
+                  </div>
+                  <span id="admin-ledger-count-pill" class="inline-flex items-center rounded-full border border-brand-500/25 bg-brand-500/10 px-2.5 py-1 text-caption text-brand-300">0 entries</span>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Total Earned</p>
+                    <p id="admin-ledger-total-earned" class="mt-2 font-body font-semibold text-mono-data text-text-primary">$0.00</p>
+                  </div>
+                  <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Pending</p>
+                    <p id="admin-ledger-pending-balance" class="mt-2 font-body font-semibold text-mono-data text-semantic-warning">$0.00</p>
+                  </div>
+                  <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Available</p>
+                    <p id="admin-ledger-available-balance" class="mt-2 font-body font-semibold text-mono-data text-semantic-success">$0.00</p>
+                  </div>
+                  <div class="rounded-xl border border-surface-border bg-surface-base/45 px-4 py-3">
+                    <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Paid Out</p>
+                    <p id="admin-ledger-paid-out" class="mt-2 font-body font-semibold text-mono-data text-semantic-info">$0.00</p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                  <div class="relative">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A6.5 6.5 0 105.8 5.8a6.5 6.5 0 0010.85 10.85z"/></svg>
+                    <input id="admin-ledger-user-search-input" type="text" placeholder="User (id, username, email)" class="w-full bg-surface-base border border-surface-border rounded-lg pl-9 pr-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  </div>
+                  <div class="relative">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A6.5 6.5 0 105.8 5.8a6.5 6.5 0 0010.85 10.85z"/></svg>
+                    <input id="admin-ledger-search-input" type="text" placeholder="Search source, reference, or description" class="w-full bg-surface-base border border-surface-border rounded-lg pl-9 pr-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  </div>
+                  <select id="admin-ledger-type-filter" class="bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                    <option value="all">All types</option>
+                    <option value="retail_commission">Retail Commission</option>
+                    <option value="fast_track_commission">Fast Track Commission</option>
+                    <option value="sales_team_commission">Sales Team Commission</option>
+                    <option value="leadership_matching_bonus">Leadership Matching Bonus</option>
+                    <option value="matching_bonus_transfer_to_wallet">Matching Bonus Transfer to Wallet</option>
+                    <option value="payout">Payout</option>
+                    <option value="adjustment">Adjustment</option>
+                    <option value="reversal">Reversal</option>
+                  </select>
+                  <select id="admin-ledger-status-filter" class="bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                    <option value="all">All statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="posted">Posted</option>
+                    <option value="paid">Paid</option>
+                    <option value="reversed">Reversed</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  <select id="admin-ledger-source-filter" class="bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                    <option value="all">All sources</option>
+                    <option value="order">Order</option>
+                    <option value="enrollment">Enrollment</option>
+                    <option value="binary_cycle">Binary Cycle</option>
+                    <option value="sales_team_commission">Sales Team Commission</option>
+                    <option value="commission_transfer">Commission Transfer</option>
+                    <option value="payout">Payout</option>
+                    <option value="admin_adjustment">Admin Adjustment</option>
+                  </select>
+                  <input id="admin-ledger-from-date" type="date" class="bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  <input id="admin-ledger-to-date" type="date" class="bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  <div class="flex items-center gap-2">
+                    <button id="admin-ledger-apply-filter-button" type="button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Apply
+                    </button>
+                    <button id="admin-ledger-refresh-button" type="button" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-surface-border bg-surface-base text-text-secondary hover:text-text-primary hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                      Refresh
+                    </button>
+                  </div>
+                </div>
+
+                <form id="admin-ledger-adjustment-form" class="grid grid-cols-1 gap-2 rounded-xl border border-surface-border bg-surface-base/45 p-3 md:grid-cols-6">
+                  <input id="admin-ledger-adjustment-user-input" name="identifier" type="text" required placeholder="Member username/email/userId" class="md:col-span-2 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  <select id="admin-ledger-adjustment-direction-input" name="direction" class="w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                    <option value="credit">Credit</option>
+                    <option value="debit">Debit</option>
+                  </select>
+                  <input id="admin-ledger-adjustment-amount-input" name="amount" type="number" min="0.01" step="0.01" required placeholder="Amount USD" class="w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  <input id="admin-ledger-adjustment-bv-input" name="bvAmount" type="number" min="0" step="1" placeholder="BV (optional)" class="w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
+                  <button id="admin-ledger-adjustment-submit-button" type="submit" class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-brand-500 text-text-inverse text-body-sm font-medium hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97] transition-transform duration-150 ease-spring disabled:opacity-40 disabled:cursor-not-allowed">
+                    Add Adjustment
+                  </button>
+                  <textarea id="admin-ledger-adjustment-description-input" name="description" rows="2" maxlength="240" placeholder="Adjustment reason / audit note" class="md:col-span-6 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150"></textarea>
+                </form>
+
+                <p id="admin-ledger-feedback" class="hidden text-body-sm"></p>
+
+                <div class="rounded-xl border border-surface-border bg-surface-raised overflow-hidden">
+                  <div class="overflow-x-auto">
+                    <table class="min-w-[1100px] w-full text-left">
+                      <thead class="bg-surface-base/85 border-b border-surface-border">
+                        <tr class="text-caption uppercase tracking-[0.08em] text-text-tertiary">
+                          <th class="px-4 py-3 font-medium">Member</th>
+                          <th class="px-4 py-3 font-medium">Type</th>
+                          <th class="px-4 py-3 font-medium">Amount</th>
+                          <th class="px-4 py-3 font-medium">BV</th>
+                          <th class="px-4 py-3 font-medium">Status</th>
+                          <th class="px-4 py-3 font-medium">Source</th>
+                          <th class="px-4 py-3 font-medium">Details</th>
+                          <th class="px-4 py-3 font-medium text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="admin-ledger-table-body" class="divide-y divide-surface-border"></tbody>
+                    </table>
+                  </div>
+                  <div id="admin-ledger-empty-state" class="hidden border-t border-surface-border px-4 py-4 text-body-sm text-text-secondary">
+                    No ledger entries found.
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -3428,7 +3546,7 @@
                 </div>
                 <div class="flex items-center justify-between gap-3">
                   <span class="text-caption text-text-tertiary">Package BV</span>
-                  <span id="enroll-preview-package-bv" class="font-body font-semibold text-body text-text-primary">192 BV</span>
+                  <span id="enroll-preview-package-bv" class="font-body font-semibold text-body text-text-primary">150 BV</span>
                 </div>
                 <div class="flex items-center justify-between gap-3">
                   <span class="text-caption text-text-tertiary">Fast Track Bonus (Admin)</span>
@@ -4342,27 +4460,31 @@
                         </label>
                         <div class="rounded-xl border border-surface-border bg-surface-base/60 p-3">
                           <p class="text-caption font-medium uppercase tracking-[0.08em] text-text-tertiary">Package Earnings</p>
-                          <p class="mt-1 text-[11px] text-text-tertiary">Set retail commission and buyer BV per package.</p>
+                          <p class="mt-1 text-[11px] text-text-tertiary">Preferred checkout uses package-tier earnings. Paid member checkout uses one BV value and no retail commission.</p>
                           <div class="mt-3 grid grid-cols-1 gap-2">
                             <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2">
-                              <p class="text-caption text-text-secondary">Personal Builder</p>
-                              <input id="admin-product-personal-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                              <input id="admin-product-personal-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <p class="text-caption text-text-secondary">Preferred Personal</p>
+                              <input id="admin-product-preferred-personal-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <input id="admin-product-preferred-personal-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
                             </div>
                             <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2">
-                              <p class="text-caption text-text-secondary">Business Builder</p>
-                              <input id="admin-product-business-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                              <input id="admin-product-business-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <p class="text-caption text-text-secondary">Preferred Business</p>
+                              <input id="admin-product-preferred-business-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <input id="admin-product-preferred-business-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
                             </div>
                             <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2">
-                              <p class="text-caption text-text-secondary">Infinity Builder</p>
-                              <input id="admin-product-infinity-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                              <input id="admin-product-infinity-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <p class="text-caption text-text-secondary">Preferred Infinity</p>
+                              <input id="admin-product-preferred-infinity-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <input id="admin-product-preferred-infinity-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
                             </div>
                             <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2">
-                              <p class="text-caption text-text-secondary">Legacy Builder</p>
-                              <input id="admin-product-legacy-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
-                              <input id="admin-product-legacy-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <p class="text-caption text-text-secondary">Preferred Legacy</p>
+                              <input id="admin-product-preferred-legacy-retail-input" type="number" min="0" step="0.01" required placeholder="Retail USD" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                              <input id="admin-product-preferred-legacy-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
+                            </div>
+                            <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,2fr)] items-center gap-2">
+                              <p class="text-caption text-text-secondary">Paid Member</p>
+                              <input id="admin-product-paid-bv-input" type="number" min="0" step="1" required placeholder="BV" class="w-full rounded-lg border border-surface-border bg-surface-base px-2.5 py-2 text-caption text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50">
                             </div>
                           </div>
                         </div>
@@ -5292,6 +5414,30 @@
       const commissionOrderDetailFeedback = document.getElementById('commission-order-detail-feedback');
       const commissionOrderDetailEmptyState = document.getElementById('commission-order-detail-empty');
       const commissionOrderDetailContent = document.getElementById('commission-order-detail-content');
+      const adminLedgerCountPillElement = document.getElementById('admin-ledger-count-pill');
+      const adminLedgerTotalEarnedElement = document.getElementById('admin-ledger-total-earned');
+      const adminLedgerPendingBalanceElement = document.getElementById('admin-ledger-pending-balance');
+      const adminLedgerAvailableBalanceElement = document.getElementById('admin-ledger-available-balance');
+      const adminLedgerPaidOutElement = document.getElementById('admin-ledger-paid-out');
+      const adminLedgerUserSearchInput = document.getElementById('admin-ledger-user-search-input');
+      const adminLedgerSearchInput = document.getElementById('admin-ledger-search-input');
+      const adminLedgerTypeFilter = document.getElementById('admin-ledger-type-filter');
+      const adminLedgerStatusFilter = document.getElementById('admin-ledger-status-filter');
+      const adminLedgerSourceFilter = document.getElementById('admin-ledger-source-filter');
+      const adminLedgerFromDateInput = document.getElementById('admin-ledger-from-date');
+      const adminLedgerToDateInput = document.getElementById('admin-ledger-to-date');
+      const adminLedgerApplyFilterButton = document.getElementById('admin-ledger-apply-filter-button');
+      const adminLedgerRefreshButton = document.getElementById('admin-ledger-refresh-button');
+      const adminLedgerTableBody = document.getElementById('admin-ledger-table-body');
+      const adminLedgerEmptyState = document.getElementById('admin-ledger-empty-state');
+      const adminLedgerFeedback = document.getElementById('admin-ledger-feedback');
+      const adminLedgerAdjustmentForm = document.getElementById('admin-ledger-adjustment-form');
+      const adminLedgerAdjustmentUserInput = document.getElementById('admin-ledger-adjustment-user-input');
+      const adminLedgerAdjustmentDirectionInput = document.getElementById('admin-ledger-adjustment-direction-input');
+      const adminLedgerAdjustmentAmountInput = document.getElementById('admin-ledger-adjustment-amount-input');
+      const adminLedgerAdjustmentBvInput = document.getElementById('admin-ledger-adjustment-bv-input');
+      const adminLedgerAdjustmentDescriptionInput = document.getElementById('admin-ledger-adjustment-description-input');
+      const adminLedgerAdjustmentSubmitButton = document.getElementById('admin-ledger-adjustment-submit-button');
 
       const REGISTERED_MEMBERS_API = '/api/admin/registered-members';
       const MEMBER_RANKS_API = '/api/member-ranks';
@@ -5301,10 +5447,14 @@
       const ADMIN_PAYOUT_REQUESTS_API = '/api/admin/payout-requests';
       const ADMIN_PAYOUT_REQUESTS_FULFILL_BASE_API = '/api/admin/payout-requests/fulfill';
       const ADMIN_PAYOUT_REQUESTS_STATUS_API = '/api/admin/payout-requests/status';
+      const ADMIN_LEDGER_API = '/api/admin/ledger';
+      const ADMIN_LEDGER_SUMMARY_API = '/api/admin/ledger/summary';
+      const ADMIN_LEDGER_ADJUSTMENTS_API = '/api/admin/ledger/adjustments';
       const IS_ADMIN_ENROLLMENT_MODE = true;
       const ACCOUNT_ACTIVITY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
       const DEFAULT_COUNTRY_FLAG = 'un';
       const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
+      const MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY = 'membership-placement-reservation';
       const FREE_ACCOUNT_RANK_LABEL = 'Preferred Customer';
       const PLACEMENT_LEG_LEFT = 'left';
       const PLACEMENT_LEG_RIGHT = 'right';
@@ -5333,7 +5483,7 @@
         '🏳': 'un',
       });
       const FAST_TRACK_PACKAGE_META = {
-        'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
+        'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 150 },
         'business-builder-pack': { label: 'Business Builder Pack', price: 384, bv: 300 },
         'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
         'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 1280, bv: 1000 },
@@ -5400,6 +5550,21 @@
       let commissionOrdersSearchTerm = '';
       let commissionOrdersStatusFilterValue = 'all';
       let commissionOrdersSourceFilterValue = 'all';
+      let adminLedgerEntries = [];
+      let adminLedgerSummary = null;
+      let adminLedgerTotalCount = 0;
+      let adminLedgerLoading = false;
+      let adminLedgerRefreshQueued = false;
+      let adminLedgerRefreshTimerId = null;
+      const adminLedgerFilters = {
+        userSearch: '',
+        search: '',
+        type: 'all',
+        status: 'all',
+        sourceType: 'all',
+        fromDate: '',
+        toDate: '',
+      };
       if (IS_ADMIN_ENROLLMENT_MODE && fastTrackBonusValueElement) {
         fastTrackBonusValueElement.textContent = '$0.00';
       }
@@ -5726,7 +5891,7 @@
       let treeEnrollLastTriggerElement = null;
       let treeSettingsLastTriggerElement = null;
       const DEFAULT_TREE_TRACKPAD_ZOOM_SENSITIVITY = 0.3;
-      const CYCLE_RULE_LOWER_BV = 500;
+      const CYCLE_RULE_LOWER_BV = 1000;
       const CYCLE_RULE_HIGHER_BV = 1000;
       const ACCOUNT_OVERVIEW_TREND_STORAGE_KEY = 'charge-admin-account-overview-trend-v1';
       const accountOverviewTrendPositiveClasses = ['bg-semantic-success-bg', 'text-semantic-success'];
@@ -5921,6 +6086,11 @@
       function isPreferredCustomerPackageKey(packageKey) {
         const normalizedPackageKey = normalizeMemberKey(packageKey);
         return normalizedPackageKey === normalizeMemberKey(FREE_ACCOUNT_PACKAGE_KEY);
+      }
+
+      function isMembershipPlacementReservationPackageKey(packageKey) {
+        const normalizedPackageKey = normalizeMemberKey(packageKey);
+        return normalizedPackageKey === normalizeMemberKey(MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY);
       }
 
       function isPreferredCustomerRank(rankValue) {
@@ -6378,6 +6548,9 @@
       }
 
       function resolveMemberBinaryVolume(member) {
+        if (isMembershipPlacementReservationPackageKey(member?.enrollmentPackage)) {
+          return 0;
+        }
         const packageBv = toWholeNumber(member?.packageBv, getFastTrackPackageBv(member?.enrollmentPackage));
         const starterPersonalPvRaw = toWholeNumber(member?.starterPersonalPv, 0);
         const starterPersonalPv = starterPersonalPvRaw > 0 ? starterPersonalPvRaw : packageBv;
@@ -6394,6 +6567,9 @@
       }
 
       function resolveMemberLifetimeBinaryVolume(member) {
+        if (isMembershipPlacementReservationPackageKey(member?.enrollmentPackage)) {
+          return 0;
+        }
         const packageBv = toWholeNumber(member?.packageBv, getFastTrackPackageBv(member?.enrollmentPackage));
         const starterPersonalPvRaw = toWholeNumber(member?.starterPersonalPv, 0);
         return Math.max(0, starterPersonalPvRaw > 0 ? starterPersonalPvRaw : packageBv);
@@ -8270,6 +8446,690 @@
         });
       }
 
+      const ADMIN_LEDGER_TYPE_LABELS = Object.freeze({
+        retail_commission: 'Retail Commission',
+        fast_track_commission: 'Fast Track Commission',
+        sales_team_commission: 'Sales Team Commission',
+        leadership_matching_bonus: 'Leadership Matching Bonus',
+        matching_bonus_transfer_to_wallet: 'Matching Bonus Transfer to Wallet',
+        payout: 'Payout',
+        adjustment: 'Adjustment',
+        reversal: 'Reversal',
+      });
+      const ADMIN_LEDGER_SOURCE_LABELS = Object.freeze({
+        order: 'Order',
+        enrollment: 'Enrollment',
+        binary_cycle: 'Binary Cycle',
+        sales_team_commission: 'Sales Team Commission',
+        commission_transfer: 'Commission Transfer',
+        payout: 'Payout',
+        admin_adjustment: 'Admin Adjustment',
+      });
+      const ADMIN_LEDGER_STATUS_BADGE_CLASS_BY_KEY = Object.freeze({
+        pending: 'border-semantic-warning/35 bg-semantic-warning-bg text-semantic-warning',
+        posted: 'border-semantic-success/35 bg-semantic-success-bg text-semantic-success',
+        paid: 'border-semantic-info/35 bg-semantic-info-bg text-semantic-info',
+        reversed: 'border-semantic-danger/35 bg-semantic-danger-bg text-semantic-danger',
+        failed: 'border-semantic-danger/35 bg-semantic-danger-bg text-semantic-danger',
+      });
+
+      function normalizeAdminLedgerTypeValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (Object.prototype.hasOwnProperty.call(ADMIN_LEDGER_TYPE_LABELS, normalized)) {
+          return normalized;
+        }
+        return '';
+      }
+
+      function normalizeAdminLedgerStatusValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (
+          normalized === 'pending'
+          || normalized === 'posted'
+          || normalized === 'paid'
+          || normalized === 'reversed'
+          || normalized === 'failed'
+        ) {
+          return normalized;
+        }
+        return '';
+      }
+
+      function normalizeAdminLedgerSourceTypeValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (Object.prototype.hasOwnProperty.call(ADMIN_LEDGER_SOURCE_LABELS, normalized)) {
+          return normalized;
+        }
+        return '';
+      }
+
+      function normalizeAdminLedgerDirectionValue(value) {
+        const normalized = normalizeMemberKey(value);
+        if (normalized === 'debit') {
+          return 'debit';
+        }
+        return 'credit';
+      }
+
+      function resolveAdminLedgerTypeLabel(typeValue) {
+        const normalized = normalizeAdminLedgerTypeValue(typeValue);
+        return ADMIN_LEDGER_TYPE_LABELS[normalized] || 'Ledger Entry';
+      }
+
+      function resolveAdminLedgerStatusLabel(statusValue) {
+        const normalized = normalizeAdminLedgerStatusValue(statusValue) || 'posted';
+        return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+      }
+
+      function resolveAdminLedgerStatusBadgeClass(statusValue) {
+        const normalized = normalizeAdminLedgerStatusValue(statusValue) || 'posted';
+        return ADMIN_LEDGER_STATUS_BADGE_CLASS_BY_KEY[normalized] || 'border-surface-border bg-surface-base text-text-secondary';
+      }
+
+      function resolveAdminLedgerSourceLabel(sourceTypeValue) {
+        const normalized = normalizeAdminLedgerSourceTypeValue(sourceTypeValue);
+        return ADMIN_LEDGER_SOURCE_LABELS[normalized] || 'Ledger Source';
+      }
+
+      function safeSerializeAdminLedgerMetadata(metadataInput) {
+        const safeMetadata = metadataInput && typeof metadataInput === 'object' && !Array.isArray(metadataInput)
+          ? metadataInput
+          : {};
+        if (Object.keys(safeMetadata).length === 0) {
+          return '';
+        }
+        try {
+          return JSON.stringify(safeMetadata, null, 2);
+        } catch {
+          return '';
+        }
+      }
+
+      function sanitizeAdminLedgerEntryRecord(entryInput = {}) {
+        if (!entryInput || typeof entryInput !== 'object') {
+          return null;
+        }
+
+        const id = String(entryInput.id || '').trim();
+        if (!id) {
+          return null;
+        }
+
+        const amountRaw = Number(entryInput.amount ?? entryInput.amountUsd ?? 0);
+        const amount = Number.isFinite(amountRaw) ? Math.max(0, amountRaw) : 0;
+        const bvAmount = Math.max(0, Number(entryInput.bvAmount) || 0);
+        const type = normalizeAdminLedgerTypeValue(entryInput.type) || 'adjustment';
+        const direction = normalizeAdminLedgerDirectionValue(entryInput.direction);
+        const status = normalizeAdminLedgerStatusValue(entryInput.status) || 'posted';
+        const sourceType = normalizeAdminLedgerSourceTypeValue(entryInput.sourceType);
+        const sourceId = String(entryInput.sourceId || '').trim();
+        const sourceRef = String(entryInput.sourceRef || '').trim();
+        const description = String(entryInput.description || '').trim();
+        const username = String(entryInput.username || '').trim();
+        const email = String(entryInput.email || '').trim();
+        const userId = String(entryInput.userId || '').trim();
+        const createdAt = String(entryInput.createdAt || '').trim();
+        const postedAt = String(entryInput.postedAt || '').trim();
+        const reversedAt = String(entryInput.reversedAt || '').trim();
+        const metadata = entryInput.metadata && typeof entryInput.metadata === 'object' && !Array.isArray(entryInput.metadata)
+          ? entryInput.metadata
+          : {};
+        const metadataText = safeSerializeAdminLedgerMetadata(metadata);
+        const occurredAtMsRaw = Date.parse(postedAt || createdAt || '');
+        const occurredAtMs = Number.isFinite(occurredAtMsRaw) ? occurredAtMsRaw : 0;
+        const memberLabel = username || email || userId || 'Member';
+
+        return {
+          id,
+          userId,
+          username,
+          email,
+          memberLabel,
+          type,
+          direction,
+          status,
+          sourceType,
+          sourceId,
+          sourceRef,
+          description,
+          amount,
+          bvAmount,
+          metadata,
+          metadataText,
+          createdAt,
+          postedAt,
+          reversedAt,
+          occurredAtMs,
+          typeLabel: resolveAdminLedgerTypeLabel(type),
+          statusLabel: resolveAdminLedgerStatusLabel(status),
+          sourceLabel: resolveAdminLedgerSourceLabel(sourceType),
+        };
+      }
+
+      function sanitizeAdminLedgerSummaryRecord(summaryInput = {}) {
+        const source = summaryInput && typeof summaryInput === 'object' ? summaryInput : {};
+        return {
+          totalEarned: Math.max(0, Number(source.totalEarned) || 0),
+          pendingBalance: Math.max(0, Number(source.pendingBalance) || 0),
+          postedBalance: Math.max(0, Number(source.postedBalance) || 0),
+          availableBalance: Math.max(0, Number(source.availableBalance) || 0),
+          paidOutAmount: Math.max(0, Number(source.paidOutAmount) || 0),
+          reversedAmount: Math.max(0, Number(source.reversedAmount) || 0),
+        };
+      }
+
+      function setAdminLedgerFeedback(message, tone = 'info') {
+        if (!adminLedgerFeedback) {
+          return;
+        }
+
+        const safeMessage = String(message || '').trim();
+        if (!safeMessage) {
+          adminLedgerFeedback.textContent = '';
+          adminLedgerFeedback.classList.add('hidden');
+          adminLedgerFeedback.classList.remove('text-semantic-success', 'text-semantic-danger', 'text-text-secondary');
+          return;
+        }
+
+        const toneKey = normalizeMemberKey(tone);
+        adminLedgerFeedback.textContent = safeMessage;
+        adminLedgerFeedback.classList.remove('hidden', 'text-semantic-success', 'text-semantic-danger', 'text-text-secondary');
+        if (toneKey === 'success') {
+          adminLedgerFeedback.classList.add('text-semantic-success');
+        } else if (toneKey === 'error' || toneKey === 'danger' || toneKey === 'failed') {
+          adminLedgerFeedback.classList.add('text-semantic-danger');
+        } else {
+          adminLedgerFeedback.classList.add('text-text-secondary');
+        }
+      }
+
+      function renderAdminLedgerSummary() {
+        const summary = sanitizeAdminLedgerSummaryRecord(adminLedgerSummary);
+        if (adminLedgerTotalEarnedElement) {
+          adminLedgerTotalEarnedElement.textContent = formatCurrency(summary.totalEarned);
+        }
+        if (adminLedgerPendingBalanceElement) {
+          adminLedgerPendingBalanceElement.textContent = formatCurrency(summary.pendingBalance);
+        }
+        if (adminLedgerAvailableBalanceElement) {
+          adminLedgerAvailableBalanceElement.textContent = formatCurrency(summary.availableBalance);
+        }
+        if (adminLedgerPaidOutElement) {
+          adminLedgerPaidOutElement.textContent = formatCurrency(summary.paidOutAmount);
+        }
+      }
+
+      function renderAdminLedgerTable() {
+        if (!adminLedgerTableBody || !adminLedgerEmptyState) {
+          return;
+        }
+
+        const safeEntries = Array.isArray(adminLedgerEntries) ? adminLedgerEntries : [];
+        if (adminLedgerCountPillElement) {
+          adminLedgerCountPillElement.textContent = `${Math.max(0, Number(adminLedgerTotalCount) || safeEntries.length).toLocaleString()} entries`;
+        }
+
+        if (safeEntries.length === 0) {
+          adminLedgerTableBody.innerHTML = '';
+          adminLedgerEmptyState.classList.remove('hidden');
+          adminLedgerEmptyState.textContent = adminLedgerLoading
+            ? 'Loading ledger entries...'
+            : 'No ledger entries match your filters.';
+          return;
+        }
+
+        adminLedgerEmptyState.classList.add('hidden');
+        adminLedgerTableBody.innerHTML = safeEntries.map((entry) => {
+          const safeEntry = sanitizeAdminLedgerEntryRecord(entry);
+          if (!safeEntry) {
+            return '';
+          }
+
+          const amountLabelBase = formatCurrency(safeEntry.amount);
+          const amountIsCredit = safeEntry.direction === 'credit';
+          const amountClassName = amountIsCredit ? 'text-semantic-success' : 'text-semantic-danger';
+          const amountLabel = `${amountIsCredit ? '+' : '-'}${amountLabelBase}`;
+          const statusClassName = resolveAdminLedgerStatusBadgeClass(safeEntry.status);
+          const createdLabel = formatPayoutQueueTimestamp(safeEntry.createdAt);
+          const postedLabel = safeEntry.postedAt ? formatPayoutQueueTimestamp(safeEntry.postedAt) : '--';
+          const reversedLabel = safeEntry.reversedAt ? formatPayoutQueueTimestamp(safeEntry.reversedAt) : '--';
+          const sourceRefLabel = safeEntry.sourceRef || safeEntry.sourceId || '--';
+          const canReverse = safeEntry.status !== 'reversed' && safeEntry.type !== 'reversal' && safeEntry.amount > 0;
+          const metadataDetails = safeEntry.metadataText
+            ? `
+                <details class="mt-2 rounded-lg border border-surface-border bg-surface-base/55 p-2">
+                  <summary class="cursor-pointer text-caption text-text-secondary hover:text-text-primary">Metadata</summary>
+                  <pre class="mt-2 max-h-44 overflow-auto rounded bg-surface-base p-2 text-[11px] leading-4 text-text-secondary">${escapeHtml(safeEntry.metadataText)}</pre>
+                </details>
+              `
+            : '';
+          const reverseActionMarkup = canReverse
+            ? `
+                <button
+                  type="button"
+                  data-admin-ledger-reverse="${escapeHtml(safeEntry.id)}"
+                  class="inline-flex items-center justify-center gap-2 rounded-lg border border-surface-border bg-surface-base px-3 py-1.5 text-body-sm text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]"
+                >
+                  Reverse
+                </button>
+              `
+            : '<span class="text-caption text-text-tertiary">--</span>';
+
+          return `
+            <tr class="bg-transparent hover:bg-surface-base/45 transition-colors duration-150">
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm font-medium text-text-primary">${escapeHtml(safeEntry.memberLabel)}</p>
+                <p class="mt-1 font-mono text-[10px] text-text-tertiary">${escapeHtml(safeEntry.email || safeEntry.userId || '--')}</p>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm font-medium text-text-primary">${escapeHtml(safeEntry.typeLabel)}</p>
+                <p class="mt-1 text-caption text-text-tertiary">${escapeHtml(safeEntry.sourceLabel)}</p>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm font-semibold ${amountClassName}">${escapeHtml(amountLabel)}</p>
+              </td>
+              <td class="px-4 py-3 align-top text-body-sm text-text-primary">${escapeHtml(String(Math.max(0, Number(safeEntry.bvAmount) || 0)))}</td>
+              <td class="px-4 py-3 align-top">
+                <span class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-caption ${statusClassName}">${escapeHtml(safeEntry.statusLabel)}</span>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="font-mono text-[11px] text-text-primary">${escapeHtml(sourceRefLabel)}</p>
+                <p class="mt-1 font-mono text-[10px] text-text-tertiary">${escapeHtml(safeEntry.sourceId || '--')}</p>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="text-body-sm text-text-primary">${escapeHtml(safeEntry.description || 'Ledger event')}</p>
+                <p class="mt-1 text-caption text-text-tertiary">Entry: <span class="font-mono">${escapeHtml(safeEntry.id)}</span></p>
+                <p class="mt-1 text-caption text-text-tertiary">Created ${escapeHtml(createdLabel)} · Posted ${escapeHtml(postedLabel)} · Reversed ${escapeHtml(reversedLabel)}</p>
+                ${metadataDetails}
+              </td>
+              <td class="px-4 py-3 align-top text-right">
+                ${reverseActionMarkup}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      function syncAdminLedgerFilterUi() {
+        if (adminLedgerUserSearchInput) {
+          adminLedgerUserSearchInput.value = adminLedgerFilters.userSearch;
+        }
+        if (adminLedgerSearchInput) {
+          adminLedgerSearchInput.value = adminLedgerFilters.search;
+        }
+        if (adminLedgerTypeFilter) {
+          adminLedgerTypeFilter.value = adminLedgerFilters.type;
+        }
+        if (adminLedgerStatusFilter) {
+          adminLedgerStatusFilter.value = adminLedgerFilters.status;
+        }
+        if (adminLedgerSourceFilter) {
+          adminLedgerSourceFilter.value = adminLedgerFilters.sourceType;
+        }
+        if (adminLedgerFromDateInput) {
+          adminLedgerFromDateInput.value = adminLedgerFilters.fromDate;
+        }
+        if (adminLedgerToDateInput) {
+          adminLedgerToDateInput.value = adminLedgerFilters.toDate;
+        }
+      }
+
+      function applyAdminLedgerFilterStateFromUi() {
+        adminLedgerFilters.userSearch = String(adminLedgerUserSearchInput?.value || '').trim();
+        adminLedgerFilters.search = String(adminLedgerSearchInput?.value || '').trim();
+        adminLedgerFilters.type = normalizeAdminLedgerTypeValue(adminLedgerTypeFilter?.value) || 'all';
+        adminLedgerFilters.status = normalizeAdminLedgerStatusValue(adminLedgerStatusFilter?.value) || 'all';
+        adminLedgerFilters.sourceType = normalizeAdminLedgerSourceTypeValue(adminLedgerSourceFilter?.value) || 'all';
+        adminLedgerFilters.fromDate = String(adminLedgerFromDateInput?.value || '').trim();
+        adminLedgerFilters.toDate = String(adminLedgerToDateInput?.value || '').trim();
+      }
+
+      function buildAdminLedgerQueryParams(filters = {}) {
+        const query = new URLSearchParams();
+        const safeUserSearch = String(filters.userSearch || '').trim();
+        const safeSearch = String(filters.search || '').trim();
+        const safeType = normalizeAdminLedgerTypeValue(filters.type);
+        const safeStatus = normalizeAdminLedgerStatusValue(filters.status);
+        const safeSourceType = normalizeAdminLedgerSourceTypeValue(filters.sourceType);
+        const safeFromDate = String(filters.fromDate || '').trim();
+        const safeToDate = String(filters.toDate || '').trim();
+
+        if (safeUserSearch) {
+          query.set('userSearch', safeUserSearch);
+        }
+        if (safeSearch) {
+          query.set('search', safeSearch);
+        }
+        if (safeType) {
+          query.set('type', safeType);
+        }
+        if (safeStatus) {
+          query.set('status', safeStatus);
+        }
+        if (safeSourceType) {
+          query.set('sourceType', safeSourceType);
+        }
+        if (safeFromDate) {
+          query.set('fromDate', safeFromDate);
+        }
+        if (safeToDate) {
+          query.set('toDate', safeToDate);
+        }
+        query.set('limit', '120');
+        query.set('offset', '0');
+        return query;
+      }
+
+      async function loadAdminLedgerSummary() {
+        const query = buildAdminLedgerQueryParams(adminLedgerFilters);
+        const response = await fetch(`${ADMIN_LEDGER_SUMMARY_API}?${query.toString()}`, {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof payload?.error === 'string'
+            ? payload.error
+            : `Unable to load admin ledger summary (${response.status}).`;
+          throw new Error(message);
+        }
+
+        adminLedgerSummary = sanitizeAdminLedgerSummaryRecord(payload?.summary);
+        renderAdminLedgerSummary();
+        return adminLedgerSummary;
+      }
+
+      async function loadAdminLedgerEntries() {
+        const query = buildAdminLedgerQueryParams(adminLedgerFilters);
+        const response = await fetch(`${ADMIN_LEDGER_API}?${query.toString()}`, {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof payload?.error === 'string'
+            ? payload.error
+            : `Unable to load admin ledger entries (${response.status}).`;
+          throw new Error(message);
+        }
+
+        const rawEntries = Array.isArray(payload?.entries) ? payload.entries : [];
+        adminLedgerEntries = rawEntries
+          .map((entry) => sanitizeAdminLedgerEntryRecord(entry))
+          .filter(Boolean)
+          .sort((left, right) => (right.occurredAtMs || 0) - (left.occurredAtMs || 0));
+        adminLedgerTotalCount = Math.max(0, Number(payload?.totalCount) || adminLedgerEntries.length);
+        renderAdminLedgerTable();
+        return adminLedgerEntries;
+      }
+
+      async function refreshAdminLedger(options = {}) {
+        if (adminLedgerLoading) {
+          if (options.force !== true) {
+            adminLedgerRefreshQueued = true;
+            return;
+          }
+        }
+
+        adminLedgerLoading = true;
+        if (!options.silent) {
+          setAdminLedgerFeedback('Refreshing ledger...', 'info');
+        }
+        renderAdminLedgerTable();
+
+        try {
+          await Promise.all([
+            loadAdminLedgerSummary(),
+            loadAdminLedgerEntries(),
+          ]);
+          if (!options.silent) {
+            setAdminLedgerFeedback('Ledger updated.', 'success');
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to refresh admin ledger.';
+          if (!options.silent) {
+            setAdminLedgerFeedback(message, 'error');
+          }
+        } finally {
+          adminLedgerLoading = false;
+          renderAdminLedgerTable();
+          if (adminLedgerRefreshQueued) {
+            adminLedgerRefreshQueued = false;
+            if (adminLedgerRefreshTimerId !== null) {
+              window.clearTimeout(adminLedgerRefreshTimerId);
+            }
+            adminLedgerRefreshTimerId = window.setTimeout(() => {
+              adminLedgerRefreshTimerId = null;
+              void refreshAdminLedger({ force: true, silent: true });
+            }, 250);
+          }
+        }
+      }
+
+      async function createAdminLedgerAdjustmentFromUi() {
+        const identifier = String(adminLedgerAdjustmentUserInput?.value || '').trim();
+        const amountValue = Number(adminLedgerAdjustmentAmountInput?.value || 0);
+        const direction = normalizeAdminLedgerDirectionValue(adminLedgerAdjustmentDirectionInput?.value || 'credit');
+        const description = String(adminLedgerAdjustmentDescriptionInput?.value || '').trim();
+        const bvValueRaw = String(adminLedgerAdjustmentBvInput?.value || '').trim();
+        const bvAmount = bvValueRaw ? Math.max(0, Math.floor(Number(bvValueRaw) || 0)) : 0;
+        const amount = Number.isFinite(amountValue) ? Math.max(0, amountValue) : 0;
+
+        if (!identifier) {
+          throw new Error('Member identifier is required for adjustment.');
+        }
+        if (amount <= 0) {
+          throw new Error('Adjustment amount must be greater than 0.');
+        }
+
+        const response = await fetch(ADMIN_LEDGER_ADJUSTMENTS_API, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            identifier,
+            direction,
+            amount,
+            bvAmount,
+            description,
+            adminActor: currentSessionUser?.username || currentSessionUser?.name || 'admin',
+            metadata: {
+              createdFrom: 'admin-ledger-ui',
+            },
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof payload?.error === 'string'
+            ? payload.error
+            : `Unable to create adjustment (${response.status}).`;
+          throw new Error(message);
+        }
+
+        const entry = sanitizeAdminLedgerEntryRecord(payload?.entry);
+        if (!entry) {
+          throw new Error('Adjustment was saved but entry payload was invalid.');
+        }
+
+        return {
+          idempotent: Boolean(payload?.idempotent),
+          entry,
+        };
+      }
+
+      async function reverseAdminLedgerEntryById(entryId) {
+        const safeEntryId = String(entryId || '').trim();
+        if (!safeEntryId) {
+          return;
+        }
+
+        const reason = window.prompt(
+          'Provide a reversal reason for audit trail:',
+          'Admin correction.',
+        );
+        if (reason === null) {
+          return;
+        }
+
+        const response = await fetch(`${ADMIN_LEDGER_API}/${encodeURIComponent(safeEntryId)}/reverse`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reason: String(reason || '').trim() || 'Admin correction.',
+            description: String(reason || '').trim() || 'Admin correction.',
+            metadata: {
+              reversedFrom: 'admin-ledger-ui',
+              adminActor: currentSessionUser?.username || currentSessionUser?.name || 'admin',
+            },
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = typeof payload?.error === 'string'
+            ? payload.error
+            : `Unable to reverse ledger entry (${response.status}).`;
+          throw new Error(message);
+        }
+
+        return {
+          idempotent: Boolean(payload?.idempotent),
+          originalEntry: sanitizeAdminLedgerEntryRecord(payload?.originalEntry),
+          reversalEntry: sanitizeAdminLedgerEntryRecord(payload?.reversalEntry),
+        };
+      }
+
+      function initializeAdminLedgerModule() {
+        syncAdminLedgerFilterUi();
+        renderAdminLedgerSummary();
+        renderAdminLedgerTable();
+
+        if (adminLedgerApplyFilterButton && adminLedgerApplyFilterButton.dataset.bound !== 'true') {
+          adminLedgerApplyFilterButton.dataset.bound = 'true';
+          adminLedgerApplyFilterButton.addEventListener('click', () => {
+            applyAdminLedgerFilterStateFromUi();
+            void refreshAdminLedger({ force: true });
+          });
+        }
+
+        if (adminLedgerRefreshButton && adminLedgerRefreshButton.dataset.bound !== 'true') {
+          adminLedgerRefreshButton.dataset.bound = 'true';
+          adminLedgerRefreshButton.addEventListener('click', () => {
+            applyAdminLedgerFilterStateFromUi();
+            void refreshAdminLedger({ force: true });
+          });
+        }
+
+        if (adminLedgerSearchInput && adminLedgerSearchInput.dataset.bound !== 'true') {
+          adminLedgerSearchInput.dataset.bound = 'true';
+          adminLedgerSearchInput.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter') {
+              return;
+            }
+            event.preventDefault();
+            applyAdminLedgerFilterStateFromUi();
+            void refreshAdminLedger({ force: true });
+          });
+        }
+
+        if (adminLedgerUserSearchInput && adminLedgerUserSearchInput.dataset.bound !== 'true') {
+          adminLedgerUserSearchInput.dataset.bound = 'true';
+          adminLedgerUserSearchInput.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter') {
+              return;
+            }
+            event.preventDefault();
+            applyAdminLedgerFilterStateFromUi();
+            void refreshAdminLedger({ force: true });
+          });
+        }
+
+        if (adminLedgerAdjustmentForm && adminLedgerAdjustmentForm.dataset.bound !== 'true') {
+          adminLedgerAdjustmentForm.dataset.bound = 'true';
+          adminLedgerAdjustmentForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            if (typeof adminLedgerAdjustmentForm.reportValidity === 'function' && !adminLedgerAdjustmentForm.reportValidity()) {
+              return;
+            }
+
+            setAdminLedgerFeedback('');
+            if (adminLedgerAdjustmentSubmitButton) {
+              adminLedgerAdjustmentSubmitButton.disabled = true;
+            }
+
+            createAdminLedgerAdjustmentFromUi()
+              .then((result) => {
+                setAdminLedgerFeedback(
+                  result.idempotent
+                    ? `Adjustment already exists for entry ${result.entry.id}.`
+                    : `Adjustment added for ${result.entry.memberLabel}.`,
+                  'success',
+                );
+                if (adminLedgerAdjustmentAmountInput) {
+                  adminLedgerAdjustmentAmountInput.value = '';
+                }
+                if (adminLedgerAdjustmentBvInput) {
+                  adminLedgerAdjustmentBvInput.value = '';
+                }
+                if (adminLedgerAdjustmentDescriptionInput) {
+                  adminLedgerAdjustmentDescriptionInput.value = '';
+                }
+                void refreshAdminLedger({ force: true, silent: true });
+              })
+              .catch((error) => {
+                const message = error instanceof Error ? error.message : 'Unable to create ledger adjustment.';
+                setAdminLedgerFeedback(message, 'error');
+              })
+              .finally(() => {
+                if (adminLedgerAdjustmentSubmitButton) {
+                  adminLedgerAdjustmentSubmitButton.disabled = false;
+                }
+              });
+          });
+        }
+
+        if (adminLedgerTableBody && adminLedgerTableBody.dataset.bound !== 'true') {
+          adminLedgerTableBody.dataset.bound = 'true';
+          adminLedgerTableBody.addEventListener('click', (event) => {
+            const reverseButton = event.target.closest('[data-admin-ledger-reverse]');
+            if (!reverseButton) {
+              return;
+            }
+
+            const entryId = String(reverseButton.dataset.adminLedgerReverse || '').trim();
+            if (!entryId) {
+              return;
+            }
+
+            reverseButton.disabled = true;
+            setAdminLedgerFeedback('');
+            reverseAdminLedgerEntryById(entryId)
+              .then((result) => {
+                setAdminLedgerFeedback(
+                  result.idempotent
+                    ? `Entry ${entryId} was already reversed.`
+                    : `Entry ${entryId} reversed successfully.`,
+                  'success',
+                );
+                void refreshAdminLedger({ force: true, silent: true });
+              })
+              .catch((error) => {
+                const message = error instanceof Error ? error.message : 'Unable to reverse ledger entry.';
+                setAdminLedgerFeedback(message, 'error');
+              })
+              .finally(() => {
+                reverseButton.disabled = false;
+              });
+          });
+        }
+      }
+
       function resolvePayoutSourceLabel(sourceKeyInput) {
         const sourceKey = normalizeMemberKey(sourceKeyInput);
         if (sourceKey === 'fasttrack') {
@@ -9612,6 +10472,8 @@
         clearCommissionOrdersFeedback();
         renderCommissionOrdersFeed();
         renderCommissionOrderDetailPanel();
+        setAdminLedgerFeedback('');
+        initializeAdminLedgerModule();
 
         if (commissionOrdersRefreshButton) {
           commissionOrdersRefreshButton.addEventListener('click', () => {
@@ -11328,14 +12190,15 @@
       const adminProductImagePreviewElement = document.getElementById('admin-product-image-preview');
       const adminProductPriceInput = document.getElementById('admin-product-price-input');
       const adminProductStockInput = document.getElementById('admin-product-stock-input');
-      const adminProductPersonalRetailInput = document.getElementById('admin-product-personal-retail-input');
-      const adminProductPersonalBvInput = document.getElementById('admin-product-personal-bv-input');
-      const adminProductBusinessRetailInput = document.getElementById('admin-product-business-retail-input');
-      const adminProductBusinessBvInput = document.getElementById('admin-product-business-bv-input');
-      const adminProductInfinityRetailInput = document.getElementById('admin-product-infinity-retail-input');
-      const adminProductInfinityBvInput = document.getElementById('admin-product-infinity-bv-input');
-      const adminProductLegacyRetailInput = document.getElementById('admin-product-legacy-retail-input');
-      const adminProductLegacyBvInput = document.getElementById('admin-product-legacy-bv-input');
+      const adminProductPreferredPersonalRetailInput = document.getElementById('admin-product-preferred-personal-retail-input');
+      const adminProductPreferredPersonalBvInput = document.getElementById('admin-product-preferred-personal-bv-input');
+      const adminProductPreferredBusinessRetailInput = document.getElementById('admin-product-preferred-business-retail-input');
+      const adminProductPreferredBusinessBvInput = document.getElementById('admin-product-preferred-business-bv-input');
+      const adminProductPreferredInfinityRetailInput = document.getElementById('admin-product-preferred-infinity-retail-input');
+      const adminProductPreferredInfinityBvInput = document.getElementById('admin-product-preferred-infinity-bv-input');
+      const adminProductPreferredLegacyRetailInput = document.getElementById('admin-product-preferred-legacy-retail-input');
+      const adminProductPreferredLegacyBvInput = document.getElementById('admin-product-preferred-legacy-bv-input');
+      const adminProductPaidBvInput = document.getElementById('admin-product-paid-bv-input');
       const adminProductStatusInput = document.getElementById('admin-product-status-input');
       const adminProductDescriptionInput = document.getElementById('admin-product-description-input');
       const adminProductExtraImagesInput = document.getElementById('admin-product-extra-images-input');
@@ -11372,17 +12235,99 @@
       const publicStoreCodeByUser = {
         alexm: 'CHG-7X42',
       };
+      const STORE_FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
+      const STORE_MEMBERSHIP_RESERVATION_PACKAGE_KEY = 'membership-placement-reservation';
+      const STORE_PREFERRED_PERSONAL_PACKAGE_KEY = 'personal-builder-pack';
+      const STORE_PREFERRED_BUSINESS_PACKAGE_KEY = 'business-builder-pack';
+      const STORE_PREFERRED_INFINITY_PACKAGE_KEY = 'infinity-builder-pack';
+      const STORE_PREFERRED_LEGACY_PACKAGE_KEY = 'legacy-builder-pack';
+      const STORE_PREFERRED_PACKAGE_KEYS = Object.freeze([
+        STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+        STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+        STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+        STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+      ]);
+      const STORE_PAID_MEMBER_PACKAGE_KEY = 'paid-member-pack';
       const STORE_PRODUCT_PACKAGE_KEYS = Object.freeze([
-        'personal-builder-pack',
-        'business-builder-pack',
-        'infinity-builder-pack',
-        'legacy-builder-pack',
+        ...STORE_PREFERRED_PACKAGE_KEYS,
+        STORE_PAID_MEMBER_PACKAGE_KEY,
       ]);
       const DEFAULT_STORE_PACKAGE_EARNINGS = Object.freeze({
-        'personal-builder-pack': Object.freeze({ retailCommission: 4, bv: 50 }),
-        'business-builder-pack': Object.freeze({ retailCommission: 8, bv: 48 }),
-        'infinity-builder-pack': Object.freeze({ retailCommission: 12, bv: 44 }),
-        'legacy-builder-pack': Object.freeze({ retailCommission: 20, bv: 38 }),
+        [STORE_PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
+        [STORE_PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze({ retailCommission: 8, bv: 48 }),
+        [STORE_PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze({ retailCommission: 12, bv: 44 }),
+        [STORE_PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze({ retailCommission: 20, bv: 38 }),
+        [STORE_PAID_MEMBER_PACKAGE_KEY]: Object.freeze({ retailCommission: 0, bv: 50 }),
+      });
+      const STORE_PRODUCT_PACKAGE_KEY_ALIASES = Object.freeze({
+        [STORE_PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze([
+          STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+          'personal_builder_pack',
+          'personalBuilderPack',
+          'personal',
+          'personal-pack',
+          STORE_FREE_ACCOUNT_PACKAGE_KEY,
+          STORE_MEMBERSHIP_RESERVATION_PACKAGE_KEY,
+          'membership_placement_reservation',
+          'membershipPlacementReservation',
+          'preferred_customer_pack',
+          'preferredCustomerPack',
+          'preferred-customer',
+          'free-account',
+          'freeAccount',
+          'free',
+        ]),
+        [STORE_PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze([
+          STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+          'business_builder_pack',
+          'businessBuilderPack',
+          'business',
+          'business-pack',
+        ]),
+        [STORE_PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze([
+          STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+          'infinity_builder_pack',
+          'infinityBuilderPack',
+          'infinity',
+          'achievers-pack',
+        ]),
+        [STORE_PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze([
+          STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+          'legacy_builder_pack',
+          'legacyBuilderPack',
+          'legacy',
+          'legacy-pack',
+        ]),
+        [STORE_PAID_MEMBER_PACKAGE_KEY]: Object.freeze([
+          STORE_PAID_MEMBER_PACKAGE_KEY,
+          'paid_member_pack',
+          'paidMemberPack',
+          'paid-member',
+          'paid_member',
+          'paid-member-account',
+          'paid',
+          // Backward compatibility for products saved before paid-member bucket.
+          STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+          'personal_builder_pack',
+          'personalBuilderPack',
+          'personal',
+          'personal-pack',
+          STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+          'business_builder_pack',
+          'businessBuilderPack',
+          'business',
+          'business-pack',
+          STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+          'infinity_builder_pack',
+          'infinityBuilderPack',
+          'infinity',
+          'achievers-pack',
+          STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+          'legacy_builder_pack',
+          'legacyBuilderPack',
+          'legacy',
+          'legacy-pack',
+        ]),
       });
 
       let storeProducts = [];
@@ -11494,6 +12439,20 @@
         return String(value || '').trim().toLowerCase().replace(/[_\s]+/g, '-');
       }
 
+      function normalizeStorePackageKey(value) {
+        const normalizedPackageKey = normalizePackageKey(value);
+        if (!normalizedPackageKey) {
+          return '';
+        }
+
+        const matchedPackageKey = STORE_PRODUCT_PACKAGE_KEYS.find((packageKey) => {
+          const aliases = STORE_PRODUCT_PACKAGE_KEY_ALIASES[packageKey] || [];
+          return aliases.includes(normalizedPackageKey);
+        });
+
+        return matchedPackageKey || normalizedPackageKey;
+      }
+
       function cloneDefaultPackageEarnings() {
         return STORE_PRODUCT_PACKAGE_KEYS.reduce((acc, packageKey) => {
           const defaults = DEFAULT_STORE_PACKAGE_EARNINGS[packageKey] || { retailCommission: 0, bv: 0 };
@@ -11531,21 +12490,12 @@
         const source = rawPackageEarnings && typeof rawPackageEarnings === 'object'
           ? rawPackageEarnings
           : {};
-        const legacyFallbackBv = toWholeNumber(fallbackBp, defaults['legacy-builder-pack']?.bv || 0);
 
         STORE_PRODUCT_PACKAGE_KEYS.forEach((packageKey) => {
-          const normalizedPackageKey = normalizePackageKey(packageKey);
-          const aliasKeys = [
-            packageKey,
-            normalizedPackageKey,
-            normalizedPackageKey.replace(/-/g, '_'),
-            normalizedPackageKey.replace(/-([a-z])/g, (_, character) => character.toUpperCase()),
-          ];
+          const aliasKeys = STORE_PRODUCT_PACKAGE_KEY_ALIASES[packageKey] || [packageKey];
           const sourceEntryKey = aliasKeys.find((aliasKey) => Object.prototype.hasOwnProperty.call(source, aliasKey));
           const sourceEntry = sourceEntryKey ? source[sourceEntryKey] : null;
-          const fallbackEntry = packageKey === 'legacy-builder-pack'
-            ? { ...defaults[packageKey], bv: legacyFallbackBv || defaults[packageKey].bv }
-            : defaults[packageKey];
+          const fallbackEntry = defaults[packageKey];
           defaults[packageKey] = normalizePackageEarningEntry(sourceEntry, fallbackEntry);
         });
 
@@ -11553,13 +12503,13 @@
       }
 
       function resolveProductPackageEarning(product, packageKey, fallbackBp = 0) {
-        const normalizedPackageKey = normalizePackageKey(packageKey);
+        const normalizedPackageKey = normalizeStorePackageKey(packageKey);
         const normalizedPackageEarnings = normalizeStoreProductPackageEarnings(
           product?.packageEarnings,
           fallbackBp,
         );
         return normalizedPackageEarnings[normalizedPackageKey]
-          || normalizedPackageEarnings['legacy-builder-pack']
+          || normalizedPackageEarnings[STORE_PAID_MEMBER_PACKAGE_KEY]
           || { retailCommission: 0, bv: toWholeNumber(fallbackBp, 0) };
       }
 
@@ -11643,7 +12593,7 @@
           bp,
         );
         const legacyBv = toWholeNumber(
-          packageEarnings?.['legacy-builder-pack']?.bv,
+          packageEarnings?.[STORE_PAID_MEMBER_PACKAGE_KEY]?.bv,
           bp,
         );
         const numericStock = Number(rawProduct?.stock);
@@ -11651,7 +12601,7 @@
         const description = String(rawProduct?.description || rawProduct?.summary || `${title} product description.`).trim();
         const details = parseStoreProductDetails(
           rawProduct?.details,
-          toWholeNumber(packageEarnings?.['personal-builder-pack']?.bv, legacyBv),
+          toWholeNumber(packageEarnings?.[STORE_PAID_MEMBER_PACKAGE_KEY]?.bv, legacyBv),
         );
         const image = String(rawProduct?.image || rawProduct?.imageUrl || 'https://placehold.co/1000x1250?text=Product').trim() || 'https://placehold.co/1000x1250?text=Product';
         const images = normalizeStoreProductImages(rawProduct?.images, image);
@@ -11924,29 +12874,32 @@
           adminProductStatusInput.value = 'active';
         }
         const defaultPackageEarnings = cloneDefaultPackageEarnings();
-        if (adminProductPersonalRetailInput) {
-          adminProductPersonalRetailInput.value = String(defaultPackageEarnings['personal-builder-pack'].retailCommission);
+        if (adminProductPreferredPersonalRetailInput) {
+          adminProductPreferredPersonalRetailInput.value = String(defaultPackageEarnings[STORE_PREFERRED_PERSONAL_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductPersonalBvInput) {
-          adminProductPersonalBvInput.value = String(defaultPackageEarnings['personal-builder-pack'].bv);
+        if (adminProductPreferredPersonalBvInput) {
+          adminProductPreferredPersonalBvInput.value = String(defaultPackageEarnings[STORE_PREFERRED_PERSONAL_PACKAGE_KEY].bv);
         }
-        if (adminProductBusinessRetailInput) {
-          adminProductBusinessRetailInput.value = String(defaultPackageEarnings['business-builder-pack'].retailCommission);
+        if (adminProductPreferredBusinessRetailInput) {
+          adminProductPreferredBusinessRetailInput.value = String(defaultPackageEarnings[STORE_PREFERRED_BUSINESS_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductBusinessBvInput) {
-          adminProductBusinessBvInput.value = String(defaultPackageEarnings['business-builder-pack'].bv);
+        if (adminProductPreferredBusinessBvInput) {
+          adminProductPreferredBusinessBvInput.value = String(defaultPackageEarnings[STORE_PREFERRED_BUSINESS_PACKAGE_KEY].bv);
         }
-        if (adminProductInfinityRetailInput) {
-          adminProductInfinityRetailInput.value = String(defaultPackageEarnings['infinity-builder-pack'].retailCommission);
+        if (adminProductPreferredInfinityRetailInput) {
+          adminProductPreferredInfinityRetailInput.value = String(defaultPackageEarnings[STORE_PREFERRED_INFINITY_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductInfinityBvInput) {
-          adminProductInfinityBvInput.value = String(defaultPackageEarnings['infinity-builder-pack'].bv);
+        if (adminProductPreferredInfinityBvInput) {
+          adminProductPreferredInfinityBvInput.value = String(defaultPackageEarnings[STORE_PREFERRED_INFINITY_PACKAGE_KEY].bv);
         }
-        if (adminProductLegacyRetailInput) {
-          adminProductLegacyRetailInput.value = String(defaultPackageEarnings['legacy-builder-pack'].retailCommission);
+        if (adminProductPreferredLegacyRetailInput) {
+          adminProductPreferredLegacyRetailInput.value = String(defaultPackageEarnings[STORE_PREFERRED_LEGACY_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductLegacyBvInput) {
-          adminProductLegacyBvInput.value = String(defaultPackageEarnings['legacy-builder-pack'].bv);
+        if (adminProductPreferredLegacyBvInput) {
+          adminProductPreferredLegacyBvInput.value = String(defaultPackageEarnings[STORE_PREFERRED_LEGACY_PACKAGE_KEY].bv);
+        }
+        if (adminProductPaidBvInput) {
+          adminProductPaidBvInput.value = String(defaultPackageEarnings[STORE_PAID_MEMBER_PACKAGE_KEY].bv);
         }
         setAdminProductImagePreview('');
         setAdminProductImageUploadStatus('');
@@ -11983,29 +12936,32 @@
           product?.packageEarnings,
           product?.bp,
         );
-        if (adminProductPersonalRetailInput) {
-          adminProductPersonalRetailInput.value = String(packageEarnings['personal-builder-pack'].retailCommission);
+        if (adminProductPreferredPersonalRetailInput) {
+          adminProductPreferredPersonalRetailInput.value = String(packageEarnings[STORE_PREFERRED_PERSONAL_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductPersonalBvInput) {
-          adminProductPersonalBvInput.value = String(packageEarnings['personal-builder-pack'].bv);
+        if (adminProductPreferredPersonalBvInput) {
+          adminProductPreferredPersonalBvInput.value = String(packageEarnings[STORE_PREFERRED_PERSONAL_PACKAGE_KEY].bv);
         }
-        if (adminProductBusinessRetailInput) {
-          adminProductBusinessRetailInput.value = String(packageEarnings['business-builder-pack'].retailCommission);
+        if (adminProductPreferredBusinessRetailInput) {
+          adminProductPreferredBusinessRetailInput.value = String(packageEarnings[STORE_PREFERRED_BUSINESS_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductBusinessBvInput) {
-          adminProductBusinessBvInput.value = String(packageEarnings['business-builder-pack'].bv);
+        if (adminProductPreferredBusinessBvInput) {
+          adminProductPreferredBusinessBvInput.value = String(packageEarnings[STORE_PREFERRED_BUSINESS_PACKAGE_KEY].bv);
         }
-        if (adminProductInfinityRetailInput) {
-          adminProductInfinityRetailInput.value = String(packageEarnings['infinity-builder-pack'].retailCommission);
+        if (adminProductPreferredInfinityRetailInput) {
+          adminProductPreferredInfinityRetailInput.value = String(packageEarnings[STORE_PREFERRED_INFINITY_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductInfinityBvInput) {
-          adminProductInfinityBvInput.value = String(packageEarnings['infinity-builder-pack'].bv);
+        if (adminProductPreferredInfinityBvInput) {
+          adminProductPreferredInfinityBvInput.value = String(packageEarnings[STORE_PREFERRED_INFINITY_PACKAGE_KEY].bv);
         }
-        if (adminProductLegacyRetailInput) {
-          adminProductLegacyRetailInput.value = String(packageEarnings['legacy-builder-pack'].retailCommission);
+        if (adminProductPreferredLegacyRetailInput) {
+          adminProductPreferredLegacyRetailInput.value = String(packageEarnings[STORE_PREFERRED_LEGACY_PACKAGE_KEY].retailCommission);
         }
-        if (adminProductLegacyBvInput) {
-          adminProductLegacyBvInput.value = String(packageEarnings['legacy-builder-pack'].bv);
+        if (adminProductPreferredLegacyBvInput) {
+          adminProductPreferredLegacyBvInput.value = String(packageEarnings[STORE_PREFERRED_LEGACY_PACKAGE_KEY].bv);
+        }
+        if (adminProductPaidBvInput) {
+          adminProductPaidBvInput.value = String(packageEarnings[STORE_PAID_MEMBER_PACKAGE_KEY].bv);
         }
         if (adminProductDescriptionInput) {
           adminProductDescriptionInput.value = product.description;
@@ -12067,40 +13023,54 @@
 
         const packageInputMap = [
           {
-            key: 'personal-builder-pack',
-            label: 'Personal Builder',
-            retailInput: adminProductPersonalRetailInput,
-            bvInput: adminProductPersonalBvInput,
+            key: STORE_PREFERRED_PERSONAL_PACKAGE_KEY,
+            label: 'Preferred Personal',
+            retailInput: adminProductPreferredPersonalRetailInput,
+            bvInput: adminProductPreferredPersonalBvInput,
+            includeRetailCommission: true,
           },
           {
-            key: 'business-builder-pack',
-            label: 'Business Builder',
-            retailInput: adminProductBusinessRetailInput,
-            bvInput: adminProductBusinessBvInput,
+            key: STORE_PREFERRED_BUSINESS_PACKAGE_KEY,
+            label: 'Preferred Business',
+            retailInput: adminProductPreferredBusinessRetailInput,
+            bvInput: adminProductPreferredBusinessBvInput,
+            includeRetailCommission: true,
           },
           {
-            key: 'infinity-builder-pack',
-            label: 'Infinity Builder',
-            retailInput: adminProductInfinityRetailInput,
-            bvInput: adminProductInfinityBvInput,
+            key: STORE_PREFERRED_INFINITY_PACKAGE_KEY,
+            label: 'Preferred Infinity',
+            retailInput: adminProductPreferredInfinityRetailInput,
+            bvInput: adminProductPreferredInfinityBvInput,
+            includeRetailCommission: true,
           },
           {
-            key: 'legacy-builder-pack',
-            label: 'Legacy Builder',
-            retailInput: adminProductLegacyRetailInput,
-            bvInput: adminProductLegacyBvInput,
+            key: STORE_PREFERRED_LEGACY_PACKAGE_KEY,
+            label: 'Preferred Legacy',
+            retailInput: adminProductPreferredLegacyRetailInput,
+            bvInput: adminProductPreferredLegacyBvInput,
+            includeRetailCommission: true,
+          },
+          {
+            key: STORE_PAID_MEMBER_PACKAGE_KEY,
+            label: 'Paid Member',
+            bvInput: adminProductPaidBvInput,
+            includeRetailCommission: false,
           },
         ];
 
         const packageEarnings = {};
         for (const packageInputEntry of packageInputMap) {
-          const numericRetail = Number(packageInputEntry.retailInput?.value);
           const numericBv = Number(packageInputEntry.bvInput?.value);
-          if (!Number.isFinite(numericRetail) || numericRetail < 0) {
-            return {
-              ok: false,
-              message: `${packageInputEntry.label} retail commission must be a valid non-negative number.`,
-            };
+          const numericRetail = packageInputEntry.includeRetailCommission
+            ? Number(packageInputEntry.retailInput?.value)
+            : 0;
+          if (packageInputEntry.includeRetailCommission) {
+            if (!Number.isFinite(numericRetail) || numericRetail < 0) {
+              return {
+                ok: false,
+                message: `${packageInputEntry.label} retail commission must be a valid non-negative number.`,
+              };
+            }
           }
           if (!Number.isFinite(numericBv) || numericBv < 0) {
             return {
@@ -12109,12 +13079,22 @@
             };
           }
           packageEarnings[packageInputEntry.key] = {
-            retailCommission: roundCurrency(numericRetail),
+            retailCommission: packageInputEntry.includeRetailCommission
+              ? roundCurrency(numericRetail)
+              : 0,
             bv: Math.floor(numericBv),
           };
         }
 
-        const legacyBv = toWholeNumber(packageEarnings['legacy-builder-pack']?.bv, 0);
+        const paidEarning = packageEarnings[STORE_PAID_MEMBER_PACKAGE_KEY] || { retailCommission: 0, bv: 0 };
+        const preferredPersonalEarning = packageEarnings[STORE_PREFERRED_PERSONAL_PACKAGE_KEY]
+          || { retailCommission: 0, bv: 0 };
+        packageEarnings[STORE_FREE_ACCOUNT_PACKAGE_KEY] = { ...preferredPersonalEarning };
+        packageEarnings[STORE_MEMBERSHIP_RESERVATION_PACKAGE_KEY] = { ...preferredPersonalEarning };
+        packageEarnings['paid_member_pack'] = { ...paidEarning };
+        packageEarnings['paid-member'] = { ...paidEarning };
+
+        const legacyBv = toWholeNumber(packageEarnings[STORE_PAID_MEMBER_PACKAGE_KEY]?.bv, 0);
         const images = normalizeStoreProductImages(extraImagesRaw, image);
 
         return {
@@ -12254,15 +13234,19 @@
           product?.packageEarnings,
           product?.bp,
         );
-        const personalBv = toWholeNumber(packageEarnings?.['personal-builder-pack']?.bv, 0);
-        const businessBv = toWholeNumber(packageEarnings?.['business-builder-pack']?.bv, 0);
-        const infinityBv = toWholeNumber(packageEarnings?.['infinity-builder-pack']?.bv, 0);
-        const legacyBv = toWholeNumber(packageEarnings?.['legacy-builder-pack']?.bv, 0);
-        const legacyRetail = roundCurrency(packageEarnings?.['legacy-builder-pack']?.retailCommission);
+        const personalBv = toWholeNumber(packageEarnings?.[STORE_PREFERRED_PERSONAL_PACKAGE_KEY]?.bv, 0);
+        const businessBv = toWholeNumber(packageEarnings?.[STORE_PREFERRED_BUSINESS_PACKAGE_KEY]?.bv, 0);
+        const infinityBv = toWholeNumber(packageEarnings?.[STORE_PREFERRED_INFINITY_PACKAGE_KEY]?.bv, 0);
+        const legacyBv = toWholeNumber(packageEarnings?.[STORE_PREFERRED_LEGACY_PACKAGE_KEY]?.bv, 0);
+        const paidBv = toWholeNumber(packageEarnings?.[STORE_PAID_MEMBER_PACKAGE_KEY]?.bv, 0);
+        const personalRetail = roundCurrency(packageEarnings?.[STORE_PREFERRED_PERSONAL_PACKAGE_KEY]?.retailCommission);
+        const businessRetail = roundCurrency(packageEarnings?.[STORE_PREFERRED_BUSINESS_PACKAGE_KEY]?.retailCommission);
+        const infinityRetail = roundCurrency(packageEarnings?.[STORE_PREFERRED_INFINITY_PACKAGE_KEY]?.retailCommission);
+        const legacyRetail = roundCurrency(packageEarnings?.[STORE_PREFERRED_LEGACY_PACKAGE_KEY]?.retailCommission);
 
         return {
-          bvLine: `BV P/B/I/L: ${formatInteger(personalBv)}/${formatInteger(businessBv)}/${formatInteger(infinityBv)}/${formatInteger(legacyBv)}`,
-          retailLine: `Legacy Retail: ${formatCurrency(legacyRetail)}`,
+          bvLine: `BV Preferred P/B/I/L: ${formatInteger(personalBv)}/${formatInteger(businessBv)}/${formatInteger(infinityBv)}/${formatInteger(legacyBv)} · Paid: ${formatInteger(paidBv)}`,
+          retailLine: `Retail Preferred P/B/I/L: ${formatCurrency(personalRetail)}/${formatCurrency(businessRetail)}/${formatCurrency(infinityRetail)}/${formatCurrency(legacyRetail)}`,
         };
       }
 
@@ -12719,7 +13703,7 @@
         let leftLegBv = totalLeftLegBv;
         let rightLegBv = totalRightLegBv;
         const cycleLowerBv = Math.max(
-          1,
+          CYCLE_RULE_LOWER_BV,
           toWholeNumber(Number.parseInt(card.dataset.cycleBvLower || card.dataset.cycleBv || String(CYCLE_RULE_LOWER_BV), 10), CYCLE_RULE_LOWER_BV),
         );
         const cycleHigherBv = Math.max(
@@ -12793,8 +13777,8 @@
           const lowerLegBv = Math.min(leftLegBv, rightLegBv);
           const higherLegBv = Math.max(leftLegBv, rightLegBv);
           const estimatedCycles = Math.floor(Math.min(
-            lowerLegBv / cycleLowerBv,
-            higherLegBv / cycleHigherBv,
+            lowerLegBv / cycleHigherBv,
+            higherLegBv / cycleLowerBv,
           ));
           if (leftLegValue) {
             leftLegValue.textContent = leftLegBv.toLocaleString();
@@ -13156,6 +14140,11 @@
             const message = error instanceof Error ? error.message : 'Unable to load commissions.';
             setCommissionOrdersFeedback(message, false);
           });
+        }
+
+        if (nextPage === 'commissions') {
+          applyAdminLedgerFilterStateFromUi();
+          void refreshAdminLedger({ force: true, silent: true });
         }
 
         if (nextPage === 'commission-order') {

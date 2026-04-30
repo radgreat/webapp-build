@@ -1,5 +1,4 @@
-import { readRegisteredMembersStore, writeRegisteredMembersStore } from '../stores/member.store.js';
-import { readMockUsersStore, writeMockUsersStore } from '../stores/user.store.js';
+import { readMockUsersStore } from '../stores/user.store.js';
 import { readPasswordSetupTokensStore, writePasswordSetupTokensStore } from '../stores/token.store.js';
 import { readMockEmailOutboxStore, writeMockEmailOutboxStore } from '../stores/email.store.js';
 import { readMockStoreInvoicesStore, writeMockStoreInvoicesStore } from '../stores/invoice.store.js';
@@ -18,6 +17,13 @@ import {
   writeMemberServerCutoffStateStore,
 } from '../stores/cutoff.store.js';
 import adminPool from '../db/admin-db.js';
+import { resolveMemberActivityStateByPersonalBv } from '../utils/member-activity.helpers.js';
+import {
+  BINARY_CYCLE_STRONG_LEG_BV,
+  BINARY_CYCLE_WEAK_LEG_BV,
+  resolveBinaryCycleComputation,
+  resolveServerCutoffCarryForwardState,
+} from '../utils/binary-cycle.helpers.js';
 
 const SQL_IDENTIFIER_PATTERN = /^[a-z_][a-z0-9_]*$/i;
 
@@ -152,13 +158,8 @@ const SALES_TEAM_CYCLE_COMMISSION_PLAN = Object.freeze({
   'legacy-builder-pack': Object.freeze({ multiplier: 0.125, perCycle: 62.5, weeklyCapCycles: 1000 }),
 });
 
-const FAST_TRACK_PACKAGE_META = {
-  'preferred-customer-pack': { label: 'Free Account', price: 0, bv: 0 },
-  'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
-  'business-builder-pack': { label: 'Business Builder Pack', price: 384, bv: 300 },
-  'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
-  'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 1280, bv: 1000 },
-};
+const CYCLE_RULE_STRONGER_BV = BINARY_CYCLE_STRONG_LEG_BV;
+const CYCLE_RULE_WEAKER_BV = BINARY_CYCLE_WEAK_LEG_BV;
 
 function buildUserIdentityLookup(users) {
   const lookup = new Map();
@@ -281,6 +282,63 @@ function resolveSalesTeamPayoutOffsetAmount(identityKeys, payoutRequests) {
   }, 0);
 }
 
+function isMemberActiveForServerCutoff(activityState) {
+  if (!activityState || typeof activityState !== 'object') {
+    return true;
+  }
+
+  const currentPersonalPvBv = Math.max(0, toWholeNumber(
+    activityState?.currentPersonalPvBv,
+    activityState?.currentPersonalBv,
+  ));
+  const requiredPersonalBv = Math.max(1, toWholeNumber(
+    activityState?.requiredPersonalBv,
+    50,
+  ));
+
+  if (Number.isFinite(currentPersonalPvBv) && Number.isFinite(requiredPersonalBv)) {
+    return currentPersonalPvBv >= requiredPersonalBv;
+  }
+
+  return activityState.isActive === true;
+}
+
+function resolveNextCutoffCarryForwardBaselines(snapshot, existingState, options = {}) {
+  const isActiveAtCutoff = options?.isActiveAtCutoff !== false;
+
+  if (!snapshot || typeof snapshot !== 'object') {
+    return {
+      baselineLeftLegBv: Math.max(0, toWholeNumber(existingState?.baselineLeftLegBv, 0)),
+      baselineRightLegBv: Math.max(0, toWholeNumber(existingState?.baselineRightLegBv, 0)),
+      currentWeekLeftLegBv: 0,
+      currentWeekRightLegBv: 0,
+      consumedLeftLegBv: 0,
+      consumedRightLegBv: 0,
+      carryForwardLeftLegBv: 0,
+      carryForwardRightLegBv: 0,
+      cyclesToApply: 0,
+      wasFlushedForInactivity: false,
+      strongLegSide: 'left',
+    };
+  }
+
+  const totalLeftLegBv = Math.max(0, toWholeNumber(snapshot?.leftLegBv, 0));
+  const totalRightLegBv = Math.max(0, toWholeNumber(snapshot?.rightLegBv, 0));
+  const carryForwardState = resolveServerCutoffCarryForwardState({
+    totalLeftLegBv,
+    totalRightLegBv,
+    baselineLeftLegBv: Math.max(0, toWholeNumber(existingState?.baselineLeftLegBv, 0)),
+    baselineRightLegBv: Math.max(0, toWholeNumber(existingState?.baselineRightLegBv, 0)),
+    isActiveAtCutoff,
+    strongLegCycleBv: CYCLE_RULE_STRONGER_BV,
+    weakLegCycleBv: CYCLE_RULE_WEAKER_BV,
+  });
+
+  return {
+    ...carryForwardState,
+  };
+}
+
 export async function resetAllMockData(payload = {}) {
   const clearedBy = normalizeText(payload.updatedBy || payload.clearedBy || 'admin');
   const cleared = Object.keys(FLUSH_TRUNCATE_TABLES_BY_KEY).reduce((accumulator, key) => {
@@ -359,11 +417,10 @@ export async function getForceServerCutoffHistory(query = {}) {
 }
 
 export async function forceServerCutoff(payload = {}) {
-  const [snapshots, commissions, users, members, payoutRequests, existingCutoffStates, existingHistory] = await Promise.all([
+  const [snapshots, commissions, users, payoutRequests, existingCutoffStates, existingHistory] = await Promise.all([
     readMockBinaryTreeMetricsStore(),
     readMockSalesTeamCommissionsStore(),
     readMockUsersStore(),
-    readRegisteredMembersStore(),
     readMockPayoutRequestsStore(),
     readMemberServerCutoffStateStore(),
     readForceServerCutoffHistoryStore(),
@@ -372,46 +429,11 @@ export async function forceServerCutoff(payload = {}) {
   const snapshotRecords = Array.isArray(snapshots) ? snapshots : [];
   const existingCommissions = Array.isArray(commissions) ? commissions : [];
   const normalizedUsers = Array.isArray(users) ? users : [];
-  const normalizedMembers = Array.isArray(members) ? members : [];
   const userIdentityLookup = buildUserIdentityLookup(normalizedUsers);
   const matchedCommissionIndexes = new Set();
   const nextSnapshots = [];
   const nextCommissions = [];
   const nowIso = new Date().toISOString();
-
-  const resolveEnrollmentPackageBv = (packageKey) => {
-    const normalizedPackageKey = normalizeCredential(packageKey);
-    const packageBvRaw = Number(FAST_TRACK_PACKAGE_META?.[normalizedPackageKey]?.bv);
-    return Number.isFinite(packageBvRaw) ? Math.max(0, Math.floor(packageBvRaw)) : 0;
-  };
-
-  const nextUsers = normalizedUsers.map((user) => {
-    const enrollmentPackageBv = Math.max(
-      0,
-      toWholeNumber(user?.enrollmentPackageBv, resolveEnrollmentPackageBv(user?.enrollmentPackage))
-    );
-    const starterPersonalPv = Math.max(0, toWholeNumber(user?.starterPersonalPv, enrollmentPackageBv));
-
-    return {
-      ...user,
-      serverCutoffBaselineStarterPersonalPv: starterPersonalPv,
-      serverCutoffBaselineSetAt: nowIso,
-    };
-  });
-
-  const nextMembers = normalizedMembers.map((member) => {
-    const enrollmentPackageBv = Math.max(
-      0,
-      toWholeNumber(member?.packageBv, resolveEnrollmentPackageBv(member?.enrollmentPackage))
-    );
-    const starterPersonalPv = Math.max(0, toWholeNumber(member?.starterPersonalPv, enrollmentPackageBv));
-
-    return {
-      ...member,
-      serverCutoffBaselineStarterPersonalPv: starterPersonalPv,
-      serverCutoffBaselineSetAt: nowIso,
-    };
-  });
 
   let totalCyclesApplied = 0;
   let totalCappedCycles = 0;
@@ -419,17 +441,39 @@ export async function forceServerCutoff(payload = {}) {
   let totalGrossCommissionAmount = 0;
   let totalPayoutOffsetAmount = 0;
   let totalNetCommissionAmount = 0;
+  let carryForwardEntriesLogged = 0;
+  let cycleConsumptionEntriesLogged = 0;
+  let inactivityFlushEntriesLogged = 0;
 
   snapshotRecords.forEach((snapshot, snapshotIndex) => {
     const leftLegBv = Math.max(0, toWholeNumber(snapshot?.leftLegBv, 0));
     const rightLegBv = Math.max(0, toWholeNumber(snapshot?.rightLegBv, 0));
-    const cycleLowerBv = Math.max(1, toWholeNumber(snapshot?.cycleLowerBv, 500));
-    const cycleHigherBv = Math.max(cycleLowerBv, toWholeNumber(snapshot?.cycleHigherBv, 1000));
-
-    const totalCycles = Math.floor(Math.min(
-      leftLegBv / cycleLowerBv,
-      rightLegBv / cycleHigherBv,
-    ));
+    const cycleLowerBv = CYCLE_RULE_STRONGER_BV;
+    const cycleHigherBv = CYCLE_RULE_WEAKER_BV;
+    const identityKeys = resolveMetricsIdentityKeys(snapshot);
+    const matchedUser = resolveFirstLookupMatch(identityKeys, userIdentityLookup);
+    const existingState = existingCutoffStates.find((entry) => doesMetricsRecordBelongToIdentity(entry, identityKeys)) || null;
+    const activityState = matchedUser
+      ? resolveMemberActivityStateByPersonalBv(matchedUser)
+      : null;
+    const isEarningEligible = isMemberActiveForServerCutoff(activityState);
+    const existingBaselineLeftLegBv = Math.min(
+      leftLegBv,
+      Math.max(0, toWholeNumber(existingState?.baselineLeftLegBv, 0)),
+    );
+    const existingBaselineRightLegBv = Math.min(
+      rightLegBv,
+      Math.max(0, toWholeNumber(existingState?.baselineRightLegBv, 0)),
+    );
+    const currentWeekLeftLegBv = Math.max(0, leftLegBv - existingBaselineLeftLegBv);
+    const currentWeekRightLegBv = Math.max(0, rightLegBv - existingBaselineRightLegBv);
+    const cycleComputation = resolveBinaryCycleComputation({
+      leftVolume: currentWeekLeftLegBv,
+      rightVolume: currentWeekRightLegBv,
+      strongLegCycleBv: cycleLowerBv,
+      weakLegCycleBv: cycleHigherBv,
+    });
+    const totalCycles = isEarningEligible ? cycleComputation.cycleCount : 0;
 
     totalCyclesApplied += totalCycles;
 
@@ -444,9 +488,6 @@ export async function forceServerCutoff(payload = {}) {
       updatedAt: nowIso,
       createdAt: snapshot?.createdAt || nowIso,
     });
-
-    const identityKeys = resolveMetricsIdentityKeys(snapshot);
-    const matchedUser = resolveFirstLookupMatch(identityKeys, userIdentityLookup);
 
     const existingCommissionIndex = existingCommissions.findIndex((commission, commissionIndex) => {
       if (matchedCommissionIndexes.has(commissionIndex)) {
@@ -514,7 +555,7 @@ export async function forceServerCutoff(payload = {}) {
   const nextCutoffStates = [];
   let memberServerCutoffStatesUpdated = 0;
 
-  nextUsers.forEach((user, index) => {
+  normalizedUsers.forEach((user, index) => {
     const identityKeys = resolveMetricsIdentityKeys({
       userId: user?.id,
       username: user?.username,
@@ -523,6 +564,50 @@ export async function forceServerCutoff(payload = {}) {
 
     const matchedSnapshot = nextSnapshots.find((entry) => doesMetricsRecordBelongToIdentity(entry, identityKeys)) || null;
     const existingState = existingCutoffStates.find((entry) => doesMetricsRecordBelongToIdentity(entry, identityKeys)) || null;
+    const activityState = resolveMemberActivityStateByPersonalBv(user);
+    const isActiveAtCutoff = isMemberActiveForServerCutoff(activityState);
+    const nextCarryForwardBaselines = resolveNextCutoffCarryForwardBaselines(
+      matchedSnapshot,
+      existingState,
+      { isActiveAtCutoff },
+    );
+    const auditIdentity = normalizeText(
+      user?.username
+      || user?.email
+      || user?.id
+      || matchedSnapshot?.username
+      || matchedSnapshot?.email
+      || matchedSnapshot?.userId
+      || `member_${index + 1}`,
+    );
+
+    if (nextCarryForwardBaselines.wasFlushedForInactivity) {
+      inactivityFlushEntriesLogged += 1;
+      console.info(`[force-server-cutoff] BV flushed due to inactivity (${auditIdentity})`, {
+        activeAtCutoff: isActiveAtCutoff,
+        currentWeekLeftLegBv: nextCarryForwardBaselines.currentWeekLeftLegBv,
+        currentWeekRightLegBv: nextCarryForwardBaselines.currentWeekRightLegBv,
+      });
+    } else {
+      if (nextCarryForwardBaselines.cyclesToApply > 0) {
+        cycleConsumptionEntriesLogged += 1;
+        console.info(`[force-server-cutoff] BV consumed for cycle payout (${auditIdentity})`, {
+          activeAtCutoff: isActiveAtCutoff,
+          cyclesToApply: nextCarryForwardBaselines.cyclesToApply,
+          strongLegSide: nextCarryForwardBaselines.strongLegSide,
+          consumedLeftLegBv: nextCarryForwardBaselines.consumedLeftLegBv,
+          consumedRightLegBv: nextCarryForwardBaselines.consumedRightLegBv,
+        });
+      }
+      if (nextCarryForwardBaselines.carryForwardLeftLegBv > 0 || nextCarryForwardBaselines.carryForwardRightLegBv > 0) {
+        carryForwardEntriesLogged += 1;
+        console.info(`[force-server-cutoff] BV carried forward (${auditIdentity})`, {
+          activeAtCutoff: isActiveAtCutoff,
+          carryForwardLeftLegBv: nextCarryForwardBaselines.carryForwardLeftLegBv,
+          carryForwardRightLegBv: nextCarryForwardBaselines.carryForwardRightLegBv,
+        });
+      }
+    }
 
     const nextState = {
       ...(existingState || {}),
@@ -530,8 +615,8 @@ export async function forceServerCutoff(payload = {}) {
       userId: normalizeText(existingState?.userId || user?.id || matchedSnapshot?.userId),
       username: normalizeText(existingState?.username || user?.username || matchedSnapshot?.username),
       email: normalizeText(existingState?.email || user?.email || matchedSnapshot?.email),
-      baselineLeftLegBv: matchedSnapshot ? Math.max(0, toWholeNumber(matchedSnapshot?.leftLegBv, 0)) : 0,
-      baselineRightLegBv: matchedSnapshot ? Math.max(0, toWholeNumber(matchedSnapshot?.rightLegBv, 0)) : 0,
+      baselineLeftLegBv: nextCarryForwardBaselines.baselineLeftLegBv,
+      baselineRightLegBv: nextCarryForwardBaselines.baselineRightLegBv,
       lastAppliedCutoffUtcMs: Math.max(0, Math.floor(Date.parse(nowIso) || 0)),
       createdAt: existingState?.createdAt || nowIso,
       updatedAt: nowIso,
@@ -545,7 +630,7 @@ export async function forceServerCutoff(payload = {}) {
     snapshotsUpdated: nextSnapshots.length,
     commissionsUpdated: nextCommissions.length,
     commissionsUnchanged: untouchedCommissions.length,
-    memberServerCutoffStatesTargeted: nextUsers.length,
+    memberServerCutoffStatesTargeted: normalizedUsers.length,
     memberServerCutoffStatesUpdated,
     totalCyclesApplied,
     totalCappedCycles,
@@ -553,6 +638,9 @@ export async function forceServerCutoff(payload = {}) {
     totalGrossCommissionAmount,
     totalPayoutOffsetAmount,
     totalNetCommissionAmount,
+    carryForwardEntriesLogged,
+    cycleConsumptionEntriesLogged,
+    inactivityFlushEntriesLogged,
   };
 
   const historyEntry = {
@@ -564,10 +652,7 @@ export async function forceServerCutoff(payload = {}) {
 
   const nextHistory = [historyEntry, ...(Array.isArray(existingHistory) ? existingHistory : [])];
 
-  // Writes are ordered to avoid deadlocks across related tables (users/members
-  // and dependent snapshots/cutoff state writes).
-  await writeMockUsersStore(nextUsers);
-  await writeRegisteredMembersStore(nextMembers);
+  // Writes are ordered to avoid deadlocks across related snapshot/state tables.
   await writeMockBinaryTreeMetricsStore(nextSnapshots);
   await writeMockSalesTeamCommissionsStore([...nextCommissions, ...untouchedCommissions]);
   await writeMemberServerCutoffStateStore(nextCutoffStates);

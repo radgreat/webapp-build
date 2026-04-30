@@ -11,7 +11,15 @@ import {
   readWalletCommissionOffsetMapForUserId,
   resolveWalletCommissionTransferSenderId,
 } from '../stores/wallet.store.js';
+import { getLedgerSummary } from '../stores/ledger.store.js';
 import { createPayoutRequest } from './payout.service.js';
+import { createMatchingBonusTransferToWalletLedgerEntry } from './ledger.service.js';
+import {
+  buildAccountUpgradeRequiredResult,
+  isPendingOrReservationMember,
+} from '../utils/member-capability.helpers.js';
+import { resolveMemberActivityStateByPersonalBv } from '../utils/member-activity.helpers.js';
+import { LEDGER_ENTRY_TYPES } from '../utils/ledger.helpers.js';
 
 const DEFAULT_CURRENCY_CODE = 'USD';
 const EWALLET_PAYOUT_SOURCE_KEY = 'ewallet';
@@ -21,6 +29,9 @@ const COMMISSION_SOURCE_META = Object.freeze({
   infinitybuilder: { key: 'infinitybuilder', label: 'Infinity Tier Commission' },
   legacyleadership: { key: 'legacyleadership', label: 'Legacy Leadership Bonus' },
   salesteam: { key: 'salesteam', label: 'Sales Team Commissions' },
+  retailprofit: { key: 'retailprofit', label: 'Retail Profit' },
+  matchingbonus: { key: 'matchingbonus', label: 'Matching Bonus' },
+  businesscenter: { key: 'businesscenter', label: 'Business Center' },
 });
 
 function normalizeText(value) {
@@ -65,6 +76,35 @@ function resolveCommissionSourceMeta(sourceKey) {
     return null;
   }
   return COMMISSION_SOURCE_META[normalizedSourceKey] || null;
+}
+
+async function resolveMatchingBonusAvailableBalanceForUserId(userIdInput, executor = pool) {
+  const userId = normalizeText(userIdInput);
+  if (!userId) {
+    return {
+      grossAmount: 0,
+      transferredAmount: 0,
+      availableAmount: 0,
+    };
+  }
+
+  const summary = await getLedgerSummary({
+    userId,
+    type: LEDGER_ENTRY_TYPES.LEADERSHIP_MATCHING_BONUS,
+    status: 'posted,paid',
+  }, executor);
+  const grossAmount = roundCurrencyAmount(
+    summary?.byType?.[LEDGER_ENTRY_TYPES.LEADERSHIP_MATCHING_BONUS]?.netAmount,
+  );
+  const offsetMap = await readWalletCommissionOffsetMapForUserId(userId, executor);
+  const transferredAmount = roundCurrencyAmount(offsetMap?.matchingbonus);
+  const availableAmount = roundCurrencyAmount(Math.max(0, grossAmount - transferredAmount));
+
+  return {
+    grossAmount,
+    transferredAmount,
+    availableAmount,
+  };
 }
 
 async function resolveMemberUserFromIdentity(identityPayload = {}) {
@@ -193,6 +233,8 @@ async function buildWalletSnapshotForUser(user, options = {}) {
         infinitybuilder: 0,
         legacyleadership: 0,
         salesteam: 0,
+        retailprofit: 0,
+        matchingbonus: 0,
       },
     };
   }
@@ -466,6 +508,19 @@ export async function createEWalletCommissionTransfer(payload = {}) {
       error: 'Member account was not found for commission transfer.',
     };
   }
+  if (isPendingOrReservationMember(memberUser)) {
+    return buildAccountUpgradeRequiredResult();
+  }
+  if (sourceMeta.key === 'salesteam') {
+    const activityState = resolveMemberActivityStateByPersonalBv(memberUser);
+    if (!activityState?.isActive) {
+      return {
+        success: false,
+        status: 403,
+        error: 'Account must be Active to transfer Sales Team commissions.',
+      };
+    }
+  }
 
   const amountRaw = Number(payload?.amount);
   if (!Number.isFinite(amountRaw) || amountRaw <= 0) {
@@ -489,6 +544,7 @@ export async function createEWalletCommissionTransfer(payload = {}) {
   const transferId = `ewtx_${Date.now()}_${randomUUID().slice(0, 8)}`;
   const referenceCode = buildTransferReferenceCode('C2W');
   const note = sanitizeTransferNote(payload?.note || `Transferred from ${sourceMeta.label}`);
+  const transactionId = normalizeText(payload?.transactionId || payload?.transferTransactionId || payload?.idempotencyKey).slice(0, 180);
   const senderSystemId = resolveWalletCommissionTransferSenderId(sourceMeta.key);
   if (!senderSystemId) {
     return {
@@ -525,7 +581,27 @@ export async function createEWalletCommissionTransfer(payload = {}) {
       };
     }
 
-    const nextBalance = roundCurrencyAmount(roundCurrencyAmount(memberWalletAccount.balance) + amount);
+    const previousWalletBalance = roundCurrencyAmount(memberWalletAccount.balance);
+    let matchingBonusBalanceContext = {
+      grossAmount: 0,
+      transferredAmount: 0,
+      availableAmount: 0,
+    };
+
+    if (sourceMeta.key === 'matchingbonus') {
+      matchingBonusBalanceContext = await resolveMatchingBonusAvailableBalanceForUserId(memberUser.id, client);
+      if (amount > matchingBonusBalanceContext.availableAmount) {
+        await client.query('ROLLBACK');
+        transactionClosed = true;
+        return {
+          success: false,
+          status: 400,
+          error: `Matching Bonus available balance is ${matchingBonusBalanceContext.availableAmount.toFixed(2)} USD.`,
+        };
+      }
+    }
+
+    const nextBalance = roundCurrencyAmount(previousWalletBalance + amount);
     const updatedWalletAccount = await updateWalletAccountBalanceByUserId(memberUser.id, nextBalance, client);
 
     const transfer = await insertWalletPeerTransfer({
@@ -551,6 +627,44 @@ export async function createEWalletCommissionTransfer(payload = {}) {
         status: 500,
         error: 'Unable to transfer commission to E-Wallet.',
       };
+    }
+
+    if (sourceMeta.key === 'matchingbonus') {
+      const previousMatchingBonusBalance = matchingBonusBalanceContext.availableAmount;
+      const newMatchingBonusBalance = roundCurrencyAmount(
+        Math.max(0, previousMatchingBonusBalance - amount),
+      );
+      const ledgerTransferResult = await createMatchingBonusTransferToWalletLedgerEntry({
+        userId: memberUser.id,
+        username: memberUser.username,
+        email: memberUser.email,
+        amountUsd: amount,
+        status: 'posted',
+        sourceId: normalizeText(transfer.id || transferId),
+        transferId: normalizeText(transfer.id || transferId),
+        transactionId: transactionId || normalizeText(referenceCode),
+        sourceRef: normalizeText(transfer.referenceCode || referenceCode),
+        previousMatchingBonusBalance,
+        newMatchingBonusBalance,
+        previousWalletBalance,
+        newWalletBalance: roundCurrencyAmount(updatedWalletAccount?.balance ?? nextBalance),
+        idempotencyKey: transactionId
+          ? `matching_bonus_transfer:${transactionId}:${normalizeText(memberUser.id)}`
+          : `matching_bonus_transfer:${normalizeText(transfer.id || transferId)}:${normalizeText(memberUser.id)}`,
+        description: `Matching Bonus transferred to wallet (${normalizeText(transfer.referenceCode || referenceCode)})`,
+      }, {
+        executor: client,
+      });
+
+      if (!ledgerTransferResult?.entry) {
+        await client.query('ROLLBACK');
+        transactionClosed = true;
+        return {
+          success: false,
+          status: 500,
+          error: 'Unable to create Matching Bonus transfer ledger entry.',
+        };
+      }
     }
 
     await client.query('COMMIT');
@@ -592,6 +706,9 @@ export async function createEWalletPayoutRequest(payload = {}) {
       status: 404,
       error: 'Member account was not found for E-Wallet payout request.',
     };
+  }
+  if (isPendingOrReservationMember(memberUser)) {
+    return buildAccountUpgradeRequiredResult();
   }
 
   const amount = roundCurrencyAmount(payload?.amount);

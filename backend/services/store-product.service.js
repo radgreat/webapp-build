@@ -147,7 +147,10 @@ function normalizeStoreProduct(rawProduct = {}, index = 0) {
     packageEarnings,
     bp,
   });
-  const detailFallbackBp = toWholeNumber(packageEarnings?.['personal-builder-pack']?.bv, legacyBp);
+  const detailFallbackBp = toWholeNumber(
+    packageEarnings?.['paid-member-pack']?.bv,
+    legacyBp,
+  );
   const stock = toWholeNumber(rawProduct?.stock, 0);
   const description = normalizeText(rawProduct?.description || rawProduct?.summary || `${title} product description.`);
   const details = parseStoreProductDetails(rawProduct?.details, detailFallbackBp);

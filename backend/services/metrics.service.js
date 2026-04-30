@@ -5,6 +5,10 @@ import {
   readMockSalesTeamCommissionsStore,
   writeMockSalesTeamCommissionsStore,
 } from '../stores/metrics.store.js';
+import {
+  BINARY_CYCLE_STRONG_LEG_BV,
+  BINARY_CYCLE_WEAK_LEG_BV,
+} from '../utils/binary-cycle.helpers.js';
 
 function normalizeText(value) {
   return String(value || '').trim();
@@ -59,8 +63,8 @@ function sanitizeBinaryTreeMetricsRecord(record, fallbackId = '') {
 
   const leftLegBv = Math.max(0, Math.floor(Number(record.leftLegBv) || 0));
   const rightLegBv = Math.max(0, Math.floor(Number(record.rightLegBv) || 0));
-  const cycleLowerBv = Math.max(1, Math.floor(Number(record.cycleLowerBv) || 500));
-  const cycleHigherBv = Math.max(cycleLowerBv, Math.floor(Number(record.cycleHigherBv) || 1000));
+  const cycleLowerBv = BINARY_CYCLE_STRONG_LEG_BV;
+  const cycleHigherBv = BINARY_CYCLE_WEAK_LEG_BV;
   const fallbackTotalAccumulatedBv = leftLegBv + rightLegBv;
   const totalAccumulatedBv = Math.max(
     0,

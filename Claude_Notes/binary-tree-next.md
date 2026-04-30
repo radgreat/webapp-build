@@ -1,5 +1,42 @@
 # Binary Tree Next Notes
 
+## Update (2026-04-24) - Profile Menu Logout Action Wired
+
+### What Changed
+
+- Fixed profile-menu logout action in binary-tree-next-app.mjs so it performs full sign-out.
+- Added helpers to clear current-source auth storage + cookie and resolve source login path.
+- Updated triggerAction for brand-menu:action:logout to:
+  - close menu/dropdowns
+  - clear current auth snapshot
+  - clear in-memory session
+  - redirect to /login.html (member) or /admin-login.html (admin).
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
+## Update (2026-04-24) - Desktop Profile Icon Placement Scoped Correctly
+
+### What Changed
+
+- Updated drawSideNav so the search-row profile icon renders only on mobile.
+- Desktop search row no longer places the profile icon inside the left panel.
+- Added desktop floating profile avatar button rendering in drawBottomToolBar on the right side of the screen.
+- Wired desktop floating profile avatar as the profile menu anchor while preserving mobile in-panel profile behavior.
+
+### Files Affected
+
+- binary-tree-next-app.mjs
+
+### Validation
+
+- node --check binary-tree-next-app.mjs passed.
+
 ## Update (2026-04-24) - Search Overlay Clipping Fix While Mobile Panel Scrolls
 
 ### What Changed
@@ -3841,3 +3878,731 @@ Known limitations:
 ### Validation
 
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-25) - Reservation Plan Gating In Tree Next
+
+### What Changed
+
+- Added reservation package constants/metadata to tree-next runtime.
+- Added pending/reservation account detection helpers used by tree-next actions.
+- Enrollment package selection validation now accepts the reservation package in the tree-next modal.
+- Added pending account guards so tree-next enrollment mutation paths are blocked with upgrade-required messaging:
+  - `requestEnrollMemberFromTree(...)`
+  - `openTreeNextEnrollModal(...)`
+  - `handleTreeNextEnrollModalSubmit(...)`
+- Tree anticipation slots are now suppressed for pending/reservation accounts.
+- Tree-next My Store controls now enforce pending restrictions:
+  - share-link copy disabled/hidden
+  - checkout action disabled and relabeled to `Upgrade Required`
+- Added `Membership Placement Reservation - $49.99` option to `#tree-next-enroll-package` in `binary-tree-next.html`.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+### Design Decisions
+
+- Preserved visual tree participation while gating mutation/control actions for pending members.
+- Used a single user-facing restriction message to keep UX consistent with dashboard/store gates.
+
+### Known Limitations
+
+- This pass focused on runtime guardrails and selector availability; no separate admin-only tree-next package-management UI was introduced.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-25) - My Store Upgrade Split Product Checkout
+
+### What Changed
+
+- Added split allocation logic for My Store package upgrades in `binary-tree-next-app.mjs`.
+- Upgrade checkout now sends split product lines (`carryover + selected`) instead of a single product line.
+- Added checkout payload field `accountUpgradeSelectedProductKey` for backend upgrade finalization metadata.
+- Updated review and checkout labels to display both product quantities (e.g., `MetaCharge 7x + MetaRoast 10x`).
+- Updated copy in `binary-tree-next.html` to reflect split-product selection.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-25) - My Store Upgrade Modes (All / All / Split)
+
+### What Changed
+
+- `binary-tree-next.html`
+  - upgrade selector now presents 3 explicit options:
+    - `All MetaCharge`
+    - `All MetaRoast`
+    - `Split Products`
+  - checkout subtitle copy updated to neutral `product allocation` language.
+
+- `binary-tree-next-app.mjs`
+  - added mode-based upgrade allocation state:
+    - `all-metacharge`
+    - `all-metaroast`
+    - `split`
+  - replaced forced split allocation helper with mode-aware allocation resolver.
+  - selector click handling now sets mode + key together.
+  - checkout payload now includes `accountUpgradeProductMode` and selected product key metadata.
+  - UI selected-state logic now follows selected mode.
+
+### Design Decisions
+
+- Preserved split allocation math for split mode (carryover-to-half + remainder).
+- Kept selected product key as split anchor so split direction remains configurable.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-26) - My Store Review Button Overlap Layout Fix
+
+### What Changed
+
+- `binary-tree-next.html`
+  - converted `.tree-next-my-store-review-card` from fixed grid columns to a wrap-safe flex layout.
+  - made `.tree-next-my-store-review-main` the flexible primary content region.
+  - constrained `.tree-next-my-store-review-side` as an action column that wraps below content when needed.
+  - adjusted checkout button minimum width handling to avoid overflow in tight widths.
+  - updated container/media behavior so wrapped side actions center and remain visually clean.
+
+### Design Decisions
+
+- Solved the issue with layout mechanics (flow/wrap) instead of increasing breakpoints only, because the panel can be narrow even on wide viewports.
+- Kept the same desktop visual intent while preventing the review controls from overlapping.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-27) - Details Panel Loop Metrics Now Node-Scoped (Cutoff Carry-Over)
+
+### What Changed
+
+- `binary-tree-next-app.mjs`
+  - added node-scoped cutoff metrics lookup for selected nodes via `/api/member/server-cutoff-metrics`.
+  - added cache/in-flight dedupe so repeated selection/render does not spam endpoint calls.
+  - `resolveNodeLoopDisplayMetrics(...)` now resolves `Left Leg` / `Right Leg` / `Cycles` from cutoff metrics per selected node when identity can be resolved.
+  - removed Details row `Total Organizational BV` (lifetime total hidden for now).
+
+### Design Decisions
+
+- Preserved fallback to branch totals whenever node identity is unavailable or cutoff API response is missing.
+- Excluded root/admin/system nodes from cutoff lookup to keep admin reward-exception behavior intact.
+
+### Known Limitations
+
+- Newly selected nodes can show fallback values briefly until first cutoff response completes.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-27) - Details Panel Total BV Restored + Tree Cycle Rule 1000/1000
+
+### What Changed
+
+- `binary-tree-next-app.mjs`
+  - added Tree Next cycle constants and normalized loop computations to `1000/1000` thresholds.
+  - updated node fallback cycle computation from `1000/500` to `1000/1000`.
+  - normalized cutoff-derived cycle threshold parsing to enforce minimum `1000` values.
+  - restored left Details metric row `Total Organizational BV`.
+
+### Design Decisions
+
+- Kept weak/strong role detection by lower/higher current leg volume while applying equal thresholds (`1000` each).
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-27) - Details Card Refactor to Monthly Weekly Carousel (Commission-Based UI)
+
+### What Changed
+
+- Replaced the previous Details-card identity/row layout in `binary-tree-next-app.mjs` with a month/week commission carousel presentation.
+- Added carousel state + gesture handling:
+  - week tabs
+  - month arrows
+  - horizontal swipe on Details card
+  - vertical handoff back to side-panel content scroll for touch
+- Updated Details card rows to explicit BV labels:
+  - `Available Left Leg BV`
+  - `Available Right Leg BV`
+  - cycle result (`Cycles Earned`, `Strong Leg`, consumed rows)
+  - carry-forward (`Left/Right Carry Forward BV`, `Preserved` / `Flushed`)
+  - personal activity and `Team Generated BV`
+- Added helper text clarifying available vs consumed BV usage.
+
+### Data / Logic Notes
+
+- Uses existing cutoff + tree metrics data paths (no backend settlement rewrite).
+- Extends cutoff metrics parsing to include total/baseline/current-week fields when available.
+- Weekly snapshots are generated in UI from current cutoff metrics + deterministic carry-forward projection when historical weekly records are not present.
+- Current week auto-selection resets on node change.
+
+### Known Limitations
+
+- Historical weekly values are estimated continuity views when per-week persisted snapshot history is unavailable from API.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Monthly Weekly Carousel Follow-up
+
+### What Changed
+
+- `binary-tree-next-app.mjs`
+  - normalized Details-carousel fallback weak-leg threshold to `1000` so fallback cycle math is consistent with tree-wide `1000/1000` configuration.
+  - week tabs now render explicit labels (`Week 1`, `Week 2`, etc.) to match monthly reset UX language.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Card Clean Layout Pass
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - redesigned Details card renderer for cleaner readability and reduced clutter.
+  - week tabs now use centered equal-width spacing logic to remove visible gap inconsistency.
+  - promoted Available BV to two primary cards and compacted the remaining commission fields into a concise row list.
+
+### Keep / Remove Decisions
+- Kept:
+  - month navigation, week tabs, weekly status chip, swipe behavior
+  - Available BV, cycle result, carry-forward, activity, team volume labels
+  - helper explanation text for Available vs Consumed BV
+- Removed from card body:
+  - selected username line (extra visual noise)
+  - duplicated split consumed/carry rows as separate lines (now compact left/right combined rows)
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Card Visual Reference Alignment
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - replaced Details card interior layout to visually align with provided design reference.
+  - restored avatar-centered identity header and bottom relation buttons.
+  - simplified commission rows to a clean, compact table-style list.
+  - updated week-tab spacing/centering algorithm to remove visible gap inconsistency.
+
+### Keep / Remove Decisions (This Pass)
+- Kept:
+  - month/week carousel interactions and swipe logic
+  - explicit BV labeling
+  - parent/sponsor focus buttons
+- Removed:
+  - extra header/status chip clutter
+  - helper text block in final visual card body
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Relation Buttons Style Reverted
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - reverted only the two bottom Details relation buttons to the old/original design style (fills, text colors, icon balance, centered label treatment).
+
+### Scope
+- No changes to carousel behavior, metrics computation, swipe handling, or panel structure.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details User Profile Header Revert
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - reverted user profile header visuals to older design style:
+    - blue gradient avatar circle
+    - activity status dot
+    - centered name and username text styling/spacing
+
+### Scope
+- Limited to profile-header visuals only.
+- Bottom relation buttons and carousel behavior remain as previously adjusted.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Profile Node Legacy Render Logic Re-Applied
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - restored old profile node header render behavior:
+    - uses `drawResolvedAvatarCircle(...)`
+    - initials are shown again when avatar photo is unavailable
+
+### Scope
+- Visual rollback limited to profile node rendering logic.
+- Positioning from current weekly-layout pass retained.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Available BV Source Reliability Guard
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - enhanced `resolveDetailsCarouselSnapshot(...)` with stale-cutoff guard and resilient source selection for available BV fields.
+  - total BV clamping bounds now include both cutoff and fallback sources to prevent accidental zeroing.
+
+### Why
+- Some selected-node cutoff payloads can return `0/0` while loop/tree metrics still have positive BV, causing tiles to incorrectly render `0 BV`.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Stale Cutoff Override Guard (Available BV)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - updated `resolveNodeLoopDisplayMetrics(...)` to preserve subtree fallback leg volumes when cutoff returns stale `currentWeekLeftLegBv=0` and `currentWeekRightLegBv=0`.
+  - updated `resolveDetailsCarouselSnapshot(...)` fallback source selection so available BV cannot be zeroed when subtree leg volume is present.
+
+### Why
+- Real-world case showed node cutoff payloads at `0/0` while subtree leg volume remained positive (`zerofour` left leg `192 BV`).
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Primary BV Card Typography Alignment
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - adjusted `drawPrimaryVolumeCard(...)` to use centered X alignment and balanced Y offsets for label/value stack.
+  - improved inner spacing consistency between left and right BV cards.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Weekly Tabs Simplified To 4 Weeks
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - removed variable 5-week month generation.
+  - enforced a fixed 4-week tab model and merged end-of-month overflow days into Week 4.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Snapshot Pre-Join Zeroing
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added node join timestamp resolver for Details carousel.
+  - pre-join weeks now return zero available/consumed/carry/team/personal values to avoid false early-week volume display.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Scoped Root Timestamp Mapping
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added created/joined/enrolled timestamps to `createTreeNextLiveScopedRootNode(...)` output.
+  - ensures Details pre-join week zeroing logic applies to root (`id: root`) user selections.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Joined Date Display In Details Profile Header
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - injected joined-date text row under username in `drawSideNavDetailsCarouselCard(...)`.
+  - used node join/create timestamp resolver to keep date source aligned with pre-join week gating logic.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Active Week Marker + Week Preview Color State
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - week tabs now support independent active-vs-selected styling.
+  - added active dot marker and green active state while preserving gray preview state for selected historical/future week.
+  - increased profile-header vertical spacing under joined-date row.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Server Cutoff Week Window Mapping
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added cutoff-date month resolver for Details week tabs.
+  - week rows now correspond to cutoff-cycle windows and current-week anchor is tied to next cutoff date.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Active Dot Removed From Week Tabs
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - removed active week dot rendering block inside week tab loop.
+  - active week remains identifiable via tab fill/text color state only.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Carousel Fade/Slide Week Transition
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added Details carousel transition state fields and helper functions for animated selection changes.
+  - updated week/month selection actions to use transition-aware navigation.
+  - refactored `drawSideNavDetailsCarouselCard(...)` content rendering to draw outgoing + incoming snapshots during animation.
+  - animation behavior:
+    - outgoing snapshot fades/slides out
+    - incoming snapshot fades/slides in
+    - swipe drag remains direct and does not stack transition interpolation while finger drag is active.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Weekly Transition Changed To Fade-Only
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - removed x-axis slide interpolation in `drawSideNavDetailsCarouselCard(...)` transition path.
+  - retained crossfade blending and all existing week navigation logic.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Fade Duration Increased
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - updated Details weekly crossfade constant from `220ms` to `300ms`.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-27) - Binary Tree My Store Paid BV Resolution
+
+### What Changed
+- inary-tree-next-app.mjs
+  - Added My Store package-earning alias map with paid-member compatibility fallback.
+  - Added /api/store-products hydration for featured-product metadata.
+  - Featured selection now resolves BV by buyer type:
+    - paid account -> paid-member bucket
+    - preferred/reservation -> preferred-personal bucket fallback
+  - Removed hard dependency on legacy static featured BV during selection/render.
+- inary-tree-next.html
+  - Updated review card fallback text from 38 BV to 50 BV.
+
+### Validation
+- 
+ode --check binary-tree-next-app.mjs passed.
+
+## Patch Update (2026-04-27) - Consumed/Carry Forward Rule Correction (1000/500)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - fixed weak-leg fallback from `1000` to `500`.
+  - removed `cycleHigherBv` coercion to `>= cycleLowerBv` in frontend cutoff parsing.
+  - resulting Details cycle math now follows strong-leg `1000` and weak-leg `500` expectations.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-28) - Account Overview Live Metrics Source Priority Fix
+
+### What Changed
+
+- Updated `binary-tree-next-app.mjs` Account Overview metric resolvers so live values are preferred over stale snapshot/container fallbacks.
+- `Total Organization BV` now prefers current in-memory tree leg totals from `resolveAccountOverviewLegVolumeMetrics(...)`.
+- `Personal BV` now prefers live current-PV fields (`currentPersonalPvBv` / monthly PV) and activity-resolved PV before cutoff/snapshot fallback values.
+- `Sales Team Commission` card now prefers ledger summary type net amount before older commission-container fallback values.
+- `Retail Profit` remains ledger-first through the new account-overview ledger summary snapshot path.
+
+### Backend Alignment
+
+- Updated `backend/services/cutoff.service.js`:
+  - `getMemberServerCutoffMetrics(...)` now resolves `totalPersonalPv` using current/live personal PV fields first (with starter/package fallback only when needed).
+  - added helper `toFirstWholeNumber(...)` for deterministic field priority parsing.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `backend/services/cutoff.service.js`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check backend/services/cutoff.service.js` passed.
+- `npm.cmd run test:binary-cycle` passed (`11/11`).
+- `npm.cmd run test:ledger` passed (`6/6`).
+
+## Update (2026-04-28) - Track Commissions Retail Profit Member-Auth Header Fix
+
+### What Changed
+
+- Updated `binary-tree-next-app.mjs` account-overview remote fetch helper:
+  - `fetchAccountOverviewEndpoint(...)` now uses `buildRankAdvancementRequestHeaders(...)`.
+  - member-source requests now include bearer authorization headers.
+
+### Root Cause
+
+- Track Commissions was requesting `/api/member-auth/ledger/summary` without auth headers.
+- Ledger summary response normalized to `null`, which forced Retail Profit fallback to `0`.
+
+### Outcome
+
+- Retail Profit card in Track Commissions can now resolve ledger-backed retail net amount for authenticated members.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-29) - Track Commissions Transfer To E-Wallet Buttons
+
+### What Changed
+- `binary-tree-next.html`
+  - In `Account Overview > Track Commissions`, each commission card now includes a dedicated `Transfer to E-Wallet` button.
+  - Card structure changed from single button tile to:
+    - commission trigger button (`data-account-overview-commission`)
+    - transfer button (`data-account-overview-commission-transfer`)
+  - Added focused styles for the new trigger/transfer controls while keeping current visual language.
+
+- `binary-tree-next-app.mjs`
+  - Added selector list for transfer buttons.
+  - Added `openAccountOverviewTransferToEWallet(...)` helper.
+  - Bound transfer button click events to redirect users to `/EWallet` with source context for downstream transfer flow.
+
+### Files Affected
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Known Limitation
+- Buttons route to E-Wallet for transfer completion; immediate direct transfer API call from Binary Tree Next is not yet implemented.
+## Update (2026-04-29) - Track Commissions Transfer Buttons Switched To Direct Transfer Action
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Replaced redirect-based transfer button behavior with direct POST to `/api/e-wallet/commission-transfer`.
+  - Added per-source transfer meta mapping (`retailprofit`, `fasttrack`, `salesteam`, `infinitybuilder`, `matchingbonus`, `legacyleadership`).
+  - Added busy-source lock + error cache for transfer buttons.
+  - Added offset-aware net balance adjustment using `walletCommissionOffsets` for transfer availability checks and displayed transferable commission values.
+  - Added forced Account Overview remote snapshot refresh after successful transfer so Binary Tree values track Dashboard values.
+- `binary-tree-next.html`
+  - Added disabled-state style for commission transfer buttons.
+
+### Files Affected
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Limitation
+- Backend source-level idempotency is not hard-enforced server-side for all sources; frontend now prevents rapid repeat actions via busy-lock + offset-aware availability and live refresh.
+## Update (2026-04-29) - Binary Tree Track Commissions Transfer Hotfix
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added hyphen-aware commission source mapping for transfer buttons to correctly resolve retail/fast-track keys from DOM datasets.
+  - Adjusted wallet-offset key handling in Binary Tree transfer calculation to normalized canonical keys only.
+  - Updated member fast-track amount resolution to prioritize the greater of container vs live node/session values.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-29) - Fast Track Value Alignment (Track Commissions)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added `resolveAccountOverviewMemberFastTrackGrossBalance(...)` to compute member fast-track gross balance with dashboard-like semantics (base + direct accrued fast-track from sponsored members in active node graph).
+  - Included this value as a preferred candidate in member fast-track resolution inside `resolveAccountOverviewCommissionBalances(...)`.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Update (2026-04-29) - Fast Track 38.40 Stale Amount Fix in Track Commissions
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added registered-member snapshot cache for Binary Tree live data fetches.
+  - Added direct-sponsor fast-track accrual resolver based on registered members (dashboard-parity logic).
+  - Updated member fast-track gross resolver to prefer registered-member accrual and fallback to scoped-node accrual.
+  - Included fast-track amount in live-node sync signature so node updates apply when commission values change without structural tree changes.
+  - Invalidated Account Overview render signature on fresh member snapshot fetch (when panel is visible) for immediate value refresh.
+
+### Files Affected
+- `binary-tree-next-app.mjs`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Known Limitation
+- If API payload omits sponsor identity fields (`sponsorUsername` / `sponsor_username`) for direct lines, fallback path will rely on node-scoped sponsor linkage.
+## Update (2026-04-29) - Matching Bonus Card Data-Parity Fix
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Removed duplicate offset subtraction path for Matching Bonus in `resolveAccountOverviewCommissionBalances(...)`.
+  - Matching Bonus now resolves gross from ledger/container candidates and uses the existing transfer-adjusted net pass for a single offset deduction.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - My Store Catalog Now Renders Live Product List
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added `resolveMyStoreCatalogProductEntries()` and product-key-aware featured resolution so My Store can target any live catalog product.
+  - Updated My Store selection flow to preserve chosen catalog product key through Review/Checkout state transitions.
+  - Updated catalog click routing to pass `data-my-store-product-key` into `navigateToMyStoreProduct(...)`.
+  - Updated panel visuals renderer to output all live catalog products (active-first) as selectable cards.
+- `binary-tree-next.html`
+  - Replaced single-card featured container with a product-grid host (`#tree-next-my-store-featured-products`).
+  - Added catalog card selected-state style and responsive grid behavior.
+
+### Why
+- Binary Tree `Profile > My Store` previously hydrated `/api/store-products` only to pick one featured product, so new admin products (e.g. `MetaRoastTM`) did not appear there even when visible on the dashboard store page.
+
+### Files Affected
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Account Overview Badge Hovercards + Title Fallback Cleanup
+
+### What Changed
+- `binary-tree-next.html`
+  - Added Account Overview badge hovercard markup (`#tree-next-account-overview-badge-hovercard`).
+  - Added ids for rank/title badge shells:
+    - `#tree-next-account-overview-rank-badge-shell`
+    - `#tree-next-account-overview-title-badge-shell`
+  - Replaced hardcoded title defaults (`Legacy Founder` + legacy-founder icon) with neutral defaults (`Member Title` + placeholder icon).
+  - Added hover/focus visual state styles for interactive rank/title badges.
+
+- `binary-tree-next-app.mjs`
+  - Added hovercard state + interaction handlers for Account Overview hero badges.
+  - Added dynamic hover entry synchronization for rank/title badges on each visual sync.
+  - Added title subtitle resolver for hovercard copy with event label + acquired date fallback.
+  - Added panel-close hovercard cleanup and scroll/resize reposition support.
+  - Updated title fallback source to avoid stale DOM title defaults.
+
+### Why
+- Binary Tree Account Overview needed parity with profile/dashboard badge hover behavior and needed to stop defaulting to a hardcoded legacy founder label when live title data is unavailable.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Title Badge Amber Theme Restored
+
+### What Changed
+- `binary-tree-next.html`
+  - Restored `.tree-next-account-overview-badge.is-title .tree-next-account-overview-badge-icon` gradient to the original amber/orange palette.
+  - Restored title badge default icon to `/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg`.
+- `binary-tree-next-app.mjs`
+  - Restored founder/title palette mapping in `resolveAccountOverviewBadgePalette(...)` to `ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyFounder`.
+  - Restored title palette fallback in Account Overview hero sync to `amber`.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Title Badge Runtime Amber Lock
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - In `syncAccountOverviewPanelVisuals()`, title badge palette now uses:
+    - `const titlePalette = ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyFounder;`
+  - This bypasses label-based palette drift (e.g. `Legacy Builder` mapping to blue).
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Account Overview Title/Icon Backend Catalog Parity
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Enhanced `resolveAccountOverviewClaimedTitleEntries()` to merge awarded titles with `claimableTitles` catalog metadata (including `iconPath`).
+  - Added `resolveAccountOverviewPrimaryClaimedTitleEntry()` for deterministic primary title selection.
+  - In `syncAccountOverviewPanelVisuals()`:
+    - prefer claimed backend title when computed label is only `rank + Builder` fallback
+    - convert `Legacy Builder` fallback label to `Legacy Founder` for title-display consistency with backend title catalog
+    - use backend catalog `iconPath` for title badge icon when available
+
+### Backend Check
+- Title catalog seed confirms titles are `Legacy Founder`, `Legacy Director`, `Legacy Ambassador`, `Presidential Circle`; no `Legacy Builder` title record.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Admin Tree Seed Node Structure + Stripe Bypass Enrollment
+
+### What Changed
+- binary-tree-next-app.mjs
+  - updated resolveAnticipationSlots(...) admin path to enforce seed-node structure:
+    - root shows a centered anticipation slot only for the very first enrollment.
+    - once root has a child, root no longer offers anticipation slots.
+    - for non-root admin nodes, anticipation rendering falls back to standard left/right slots.
+  - updated handleTreeNextEnrollModalSubmit(...):
+    - admin-source enrollments now submit directly through submitTreeNextEnrollmentRequest(...) (no Stripe checkout window/session).
+    - retained existing post-success UX:
+      - success feedback
+      - thank-you step
+      - password setup link
+      - pending placement lock for reveal/apply flow
+      - account overview + rank refresh routines.
+
+### Files Affected
+- binary-tree-next-app.mjs
+
+### Validation
+- node --check binary-tree-next-app.mjs passed.
+
+### Known Limitation
+- After seed creation, root is non-enrollable from anticipation UI by design; placement continues from the seed node and deeper descendants.
+
+## Follow-up Update (2026-04-30) - Existing Admin Root/Seed Center Alignment
+
+### What Changed
+- binary-tree-next-engine-adapter.mjs
+  - added single-child root projection offset mode (centerSingleChildRoot).
+  - when universe root is "root" and exactly one depth-1 node exists, all non-root X positions are shifted so seed node aligns directly below Admin.
+  - applied in both computeFrame(...) and projectLocalPath(...) so node render/connectors and anticipation slots stay aligned.
+- binary-tree-next-app.mjs
+  - enabled centerSingleChildRoot for admin source in getUniverseOptions(...) and getGlobalUniverseOptions(...).
+
+### Result
+- Existing admin trees now render as Admin -> seed node centered vertically.
+- Left/right branching starts from the seed node as requested.
+
+### Validation
+- node --check binary-tree-next-engine-adapter.mjs passed.
+- node --check binary-tree-next-app.mjs passed.
+
+## Follow-up Update (2026-04-30) - Admin New Account PV Ghost Point Fix
+
+### What Changed
+- index.html
+  - switched trend storage user keys from sponsor-scoped identity to signed-in account identity for:
+    - Personal Volume chart
+    - E-wallet balance chart
+    - Account Overview trend snapshots
+    - Account Overview BV chart
+- backend/services/member.service.js
+  - in createRegisteredMember(...), admin placement enrollments now seed with zero PV (starterPersonalPv and currentPersonalPvBv) because the flow bypasses Stripe/payment.
+
+### Result
+- New admin-created accounts no longer show stale historical PV points from other accounts sharing the same sponsor.
+- Admin no-payment enrollment no longer initializes Personal Volume with package BV.
+
+### Validation
+- node --check backend/services/member.service.js passed.
+

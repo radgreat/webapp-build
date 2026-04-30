@@ -24,21 +24,97 @@
   const AUTH_STORAGE_KEY = 'vault-auth-user';
   const AUTH_COOKIE_KEY = 'vault-auth-user-cookie';
   const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
+  const MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY = 'membership-placement-reservation';
+  const PAID_MEMBER_PACKAGE_KEY = 'paid-member-pack';
+  const PREFERRED_PERSONAL_PACKAGE_KEY = 'personal-builder-pack';
+  const PREFERRED_BUSINESS_PACKAGE_KEY = 'business-builder-pack';
+  const PREFERRED_INFINITY_PACKAGE_KEY = 'infinity-builder-pack';
+  const PREFERRED_LEGACY_PACKAGE_KEY = 'legacy-builder-pack';
   const FREE_ACCOUNT_RANK_KEY_SET = new Set(['preferred customer', 'free account', 'free']);
-  const DEFAULT_BUILDER_PACKAGE_KEY = 'personal-builder-pack';
+  const DEFAULT_BUILDER_PACKAGE_KEY = PAID_MEMBER_PACKAGE_KEY;
   const STORE_PRODUCT_PACKAGE_KEYS = Object.freeze([
-    FREE_ACCOUNT_PACKAGE_KEY,
-    'personal-builder-pack',
-    'business-builder-pack',
-    'infinity-builder-pack',
-    'legacy-builder-pack',
+    PREFERRED_PERSONAL_PACKAGE_KEY,
+    PREFERRED_BUSINESS_PACKAGE_KEY,
+    PREFERRED_INFINITY_PACKAGE_KEY,
+    PREFERRED_LEGACY_PACKAGE_KEY,
+    PAID_MEMBER_PACKAGE_KEY,
   ]);
   const DEFAULT_STORE_PACKAGE_EARNINGS = Object.freeze({
-    [FREE_ACCOUNT_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
-    'personal-builder-pack': Object.freeze({ retailCommission: 4, bv: 50 }),
-    'business-builder-pack': Object.freeze({ retailCommission: 8, bv: 48 }),
-    'infinity-builder-pack': Object.freeze({ retailCommission: 12, bv: 44 }),
-    'legacy-builder-pack': Object.freeze({ retailCommission: 20, bv: 38 }),
+    [PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze({ retailCommission: 4, bv: 50 }),
+    [PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze({ retailCommission: 8, bv: 48 }),
+    [PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze({ retailCommission: 12, bv: 44 }),
+    [PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze({ retailCommission: 20, bv: 38 }),
+    [PAID_MEMBER_PACKAGE_KEY]: Object.freeze({ retailCommission: 0, bv: 50 }),
+  });
+  const PACKAGE_KEY_ALIASES = Object.freeze({
+    [PREFERRED_PERSONAL_PACKAGE_KEY]: Object.freeze([
+      PREFERRED_PERSONAL_PACKAGE_KEY,
+      'personal_builder_pack',
+      'personalBuilderPack',
+      'personal',
+      'personal-pack',
+      FREE_ACCOUNT_PACKAGE_KEY,
+      MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY,
+      'membership_placement_reservation',
+      'membershipPlacementReservation',
+      'preferred_customer_pack',
+      'preferredCustomerPack',
+      'preferred-customer',
+      'free-account',
+      'freeAccount',
+      'free',
+    ]),
+    [PREFERRED_BUSINESS_PACKAGE_KEY]: Object.freeze([
+      PREFERRED_BUSINESS_PACKAGE_KEY,
+      'business_builder_pack',
+      'businessBuilderPack',
+      'business',
+      'business-pack',
+    ]),
+    [PREFERRED_INFINITY_PACKAGE_KEY]: Object.freeze([
+      PREFERRED_INFINITY_PACKAGE_KEY,
+      'infinity_builder_pack',
+      'infinityBuilderPack',
+      'infinity',
+      'achievers-pack',
+    ]),
+    [PREFERRED_LEGACY_PACKAGE_KEY]: Object.freeze([
+      PREFERRED_LEGACY_PACKAGE_KEY,
+      'legacy_builder_pack',
+      'legacyBuilderPack',
+      'legacy',
+      'legacy-pack',
+    ]),
+    [PAID_MEMBER_PACKAGE_KEY]: Object.freeze([
+      PAID_MEMBER_PACKAGE_KEY,
+      'paid_member_pack',
+      'paidMemberPack',
+      'paid-member',
+      'paid_member',
+      'paid-member-account',
+      'paid',
+      // Backward compatibility for products saved before paid-member bucket.
+      PREFERRED_PERSONAL_PACKAGE_KEY,
+      'personal_builder_pack',
+      'personalBuilderPack',
+      'personal',
+      'personal-pack',
+      PREFERRED_BUSINESS_PACKAGE_KEY,
+      'business_builder_pack',
+      'businessBuilderPack',
+      'business',
+      'business-pack',
+      PREFERRED_INFINITY_PACKAGE_KEY,
+      'infinity_builder_pack',
+      'infinityBuilderPack',
+      'infinity',
+      'achievers-pack',
+      PREFERRED_LEGACY_PACKAGE_KEY,
+      'legacy_builder_pack',
+      'legacyBuilderPack',
+      'legacy',
+      'legacy-pack',
+    ]),
   });
 
   const STORAGE_KEYS = Object.freeze({
@@ -76,6 +152,19 @@
     return normalizeMemberKey(value).replace(/[_\s]+/g, '-');
   }
 
+  function normalizeStorePackageKey(value) {
+    const normalizedValue = normalizePackageKey(value);
+    if (!normalizedValue) {
+      return '';
+    }
+
+    const matchedPackageKey = STORE_PRODUCT_PACKAGE_KEYS.find((packageKey) => {
+      const aliases = PACKAGE_KEY_ALIASES[packageKey] || [];
+      return aliases.includes(normalizedValue);
+    });
+    return matchedPackageKey || normalizedValue;
+  }
+
   function normalizePackageEarningEntry(entry, fallback = {}) {
     const source = entry && typeof entry === 'object' ? entry : {};
     const fallbackEntry = fallback && typeof fallback === 'object' ? fallback : {};
@@ -105,20 +194,12 @@
     const normalized = {};
 
     STORE_PRODUCT_PACKAGE_KEYS.forEach((packageKey) => {
-      const normalizedPackageKey = normalizePackageKey(packageKey);
-      const aliases = [
-        packageKey,
-        normalizedPackageKey,
-        normalizedPackageKey.replace(/-/g, '_'),
-        normalizedPackageKey.replace(/-([a-z])/g, (_, character) => character.toUpperCase()),
-      ];
+      const aliases = PACKAGE_KEY_ALIASES[packageKey] || [packageKey];
       const sourceKey = aliases.find((alias) => Object.prototype.hasOwnProperty.call(source, alias));
       const sourceEntry = sourceKey ? source[sourceKey] : null;
       const defaultEntry = DEFAULT_STORE_PACKAGE_EARNINGS[packageKey]
         || { retailCommission: 0, bv: 0 };
-      const fallbackEntry = packageKey === 'legacy-builder-pack'
-        ? { ...defaultEntry, bv: toWholeNumber(fallbackBp, defaultEntry.bv) }
-        : defaultEntry;
+      const fallbackEntry = defaultEntry;
       normalized[packageKey] = normalizePackageEarningEntry(sourceEntry, fallbackEntry);
     });
 
@@ -126,7 +207,7 @@
   }
 
   function resolveProductPackageEarning(product = {}, packageKey = '') {
-    const normalizedPackageKey = normalizePackageKey(packageKey);
+    const normalizedPackageKey = normalizeStorePackageKey(packageKey);
     const packageEarnings = normalizePackageEarnings(product?.packageEarnings, product?.bp);
     const resolvedPackageKey = STORE_PRODUCT_PACKAGE_KEYS.includes(normalizedPackageKey)
       ? normalizedPackageKey
@@ -436,7 +517,10 @@
     }
 
     const packageKey = normalizeMemberKey(user?.enrollmentPackage);
-    if (packageKey === FREE_ACCOUNT_PACKAGE_KEY) {
+    if (
+      packageKey === FREE_ACCOUNT_PACKAGE_KEY
+      || packageKey === MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY
+    ) {
       return true;
     }
 
@@ -446,11 +530,9 @@
 
   function resolveSessionBuyerPackageKey() {
     const sessionUser = readUserSession();
-    const packageKey = normalizePackageKey(sessionUser?.enrollmentPackage);
-    if (STORE_PRODUCT_PACKAGE_KEYS.includes(packageKey)) {
-      return packageKey;
+    if (isFreeAccountUser(sessionUser)) {
+      return FREE_ACCOUNT_PACKAGE_KEY;
     }
-
     return DEFAULT_BUILDER_PACKAGE_KEY;
   }
 
@@ -502,7 +584,7 @@
     const price = roundCurrency(rawProduct?.price);
     const bp = toWholeNumber(rawProduct?.bp, 0);
     const packageEarnings = normalizePackageEarnings(rawProduct?.packageEarnings, bp);
-    const legacyBv = toWholeNumber(packageEarnings?.['legacy-builder-pack']?.bv, bp);
+    const legacyBv = toWholeNumber(packageEarnings?.[PAID_MEMBER_PACKAGE_KEY]?.bv, bp);
     const stock = toWholeNumber(rawProduct?.stock, 0);
 
     const normalizedProduct = {
@@ -810,7 +892,7 @@
       options?.discountPercent,
       PUBLIC_DISCOUNT_PERCENT,
     );
-    const packageKey = normalizePackageKey(options?.packageKey) || resolveSessionBuyerPackageKey();
+    const packageKey = normalizeStorePackageKey(options?.packageKey) || resolveSessionBuyerPackageKey();
     const discountRate = discountPercent / 100;
 
     const subtotal = roundCurrency(safeLines.reduce((sum, line) => {

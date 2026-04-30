@@ -87,6 +87,9 @@ export function sanitizeUserForAuthResponse(user) {
     publicStoreCode: typeof user?.publicStoreCode === 'string' ? user.publicStoreCode : '',
     storeCode: typeof user?.storeCode === 'string' ? user.storeCode : '',
     enrollmentPackage: user?.enrollmentPackage || '',
+    currentPackageProductKey: typeof user?.currentPackageProductKey === 'string'
+      ? user.currentPackageProductKey
+      : '',
     enrollmentPackageLabel: user?.enrollmentPackageLabel || '',
     enrollmentPackagePrice: Number.isFinite(Number(user?.enrollmentPackagePrice))
       ? Number(user.enrollmentPackagePrice)
@@ -99,6 +102,16 @@ export function sanitizeUserForAuthResponse(user) {
       : 0,
     currentPersonalPvBv: activityState.currentPersonalPvBv,
     monthlyPersonalBv: activityState.currentPersonalPvBv,
+    isActivityWarning: activityState.isActivityWarning === true,
+    activityWarningCode: typeof activityState?.activityWarningCode === 'string'
+      ? activityState.activityWarningCode
+      : '',
+    activityWarningUntilAt: typeof activityState?.activityWarningUntilAt === 'string'
+      ? activityState.activityWarningUntilAt
+      : '',
+    activityWarningMessage: typeof activityState?.activityWarningMessage === 'string'
+      ? activityState.activityWarningMessage
+      : '',
     starterTotalCycles: Number.isFinite(Number(user?.starterTotalCycles))
       ? Number(user.starterTotalCycles)
       : 0,

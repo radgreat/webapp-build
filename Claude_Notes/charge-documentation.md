@@ -1,10 +1,10 @@
-# Vault Finance Dashboard ?????????????????????????????????????? Build Notes
+﻿# Vault Finance Dashboard ?????????????????????????????????????? Build Notes
 
 **Created:** 2026-02-20
 
 **Status:** Pre-production (On going) -Lead developer
 
-**Times Updated:** 324
+**Times Updated:** 334
 
 ## Overview
 
@@ -14,6 +14,1101 @@
 Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch. Single-page application using Tailwind CSS via CDN, no frameworks. Designed from scratch with no reference image ?????????????????????????????????????? high-craft approach following all CLAUDE.md guardrails.
 
 ---
+
+## Patch Update (2026-04-29) - Auto Ship First Charge Anchored After Active Window Ends
+
+### What Changed
+
+- Updated Auto Ship setup flow in `backend/services/auto-ship.service.js` to support deferred first billing for already-active accounts.
+- On checkout-session creation, backend now computes a scheduled billing anchor from member activity window:
+  - `scheduledBillingAnchorAt = activity_active_until_at + 1 day`
+  - if anchor is still in the future, Auto Ship checkout creates subscription with:
+    - `subscription_data.billing_cycle_anchor`
+    - `subscription_data.proration_behavior = 'none'`
+- Kept immediate billing behavior for members without a valid future active-window anchor.
+- Added metadata and response payload fields for visibility/tracing:
+  - `billingBehavior` (`anchor-after-active-window` or `immediate`)
+  - `scheduledBillingAnchorAt`
+- Response payload now falls back `nextBillingDate` to scheduled anchor when Stripe next period is not yet available.
+
+### Outcome
+
+- Members can enable Auto Ship mid-cycle without immediate charge.
+- First recurring charge is aligned to post-active-window renewal timing (example: active window ends Feb 4 -> first charge Feb 5).
+
+### Files Affected
+
+- `backend/services/auto-ship.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- `node --check backend/services/auto-ship.service.js` passed.
+- checkout-session smoke test returned:
+  - `billingBehavior: anchor-after-active-window`
+  - `scheduledBillingAnchorAt` populated
+  - valid Stripe checkout URL returned.
+
+## Patch Update (2026-04-29) - Auto Ship Recurring Tax Enabled
+
+### What Changed
+
+- Updated Stripe Checkout Session creation for Auto Ship in `backend/services/auto-ship.service.js`:
+  - enabled Stripe Automatic Tax
+  - required billing address collection
+  - enabled customer address/name/shipping updates on checkout.
+
+### Configuration Applied
+
+- Added to Auto Ship checkout session payload:
+  - `automatic_tax: { enabled: true }`
+  - `billing_address_collection: 'required'`
+  - `customer_update: { address: 'auto', shipping: 'auto', name: 'auto' }`
+
+### Outcome
+
+- New Auto Ship subscriptions now calculate and apply Stripe tax during checkout and recurring invoice generation according to Stripe Tax rules and account configuration.
+
+### Files Affected
+
+- `backend/services/auto-ship.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- `node --check backend/services/auto-ship.service.js` passed.
+- Auto Ship checkout session creation smoke test returned success with checkout URL.
+
+## Patch Update (2026-04-29) - Auto Ship Paid-Invoice Reconciliation + Invoice/Activity/Ledger Backfill
+
+### What Changed
+
+- Extended Auto Ship status reconciliation in `backend/services/auto-ship.service.js`:
+  - when local webhook processing is missing, status sync can now reconcile a paid Stripe invoice and execute the same Auto Ship credit pipeline.
+- Added paid-invoice fallback processing in member status path:
+  - resolves latest subscription invoice object
+  - if paid and not yet recorded locally, runs Auto Ship payment success handling.
+- Added ledger audit write for Auto Ship purchase success:
+  - inserts an idempotent ledger entry (`type=adjustment`, `source_type=order`) with `bv_amount=50` and `amount=0` to avoid changing commission totals while preserving audit visibility.
+- Added idempotent backfill behavior when invoice already exists:
+  - if invoice record already exists but ledger/event is missing, Auto Ship handler backfills ledger/event safely.
+- Fixed Auto Ship event storage idempotency in `backend/stores/auto-ship.store.js`:
+  - replaced invalid `ON CONFLICT (stripe_event_id)` path (not compatible with partial index inference)
+  - switched to deterministic event IDs + `ON CONFLICT (id)` for safe dedupe across replays and no-stripe-event fallback flows.
+
+### Operational Outcome
+
+- Auto Ship payment now writes/backs up across:
+  - invoice record (`charge.store_invoices`)
+  - recent activity source (`charge.user_auto_ship_events`)
+  - ledger audit trail (`charge.ledger_entries`)
+  - personal BV/account-activity credit via existing `recordMemberPurchase(...)`.
+
+### Files Affected
+
+- `backend/services/auto-ship.service.js`
+- `backend/stores/auto-ship.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- `node --check backend/services/auto-ship.service.js` passed.
+- `node --check backend/stores/auto-ship.store.js` passed.
+- Replayed paid invoice handler idempotently:
+  - no duplicate invoice rows
+  - no duplicate ledger rows (idempotency key held)
+  - no duplicate Auto Ship `payment_succeeded` event rows.
+
+## Patch Update (2026-04-29) - Auto Ship Stripe Fallback Sync + Duplicate-Setup Guard
+
+### What Changed
+
+- Updated `backend/services/auto-ship.service.js` to recover Auto Ship state directly from Stripe when local webhook sync is missing/delayed.
+- Added Stripe sync fallback helpers:
+  - checkout-session retrieval fallback by `latest_checkout_session_id`
+  - customer subscription discovery fallback for Auto Ship candidate subscriptions
+- Enhanced `getMemberAutoShipStatus(...)`:
+  - if local `stripe_subscription_id` is missing, it now attempts Stripe checkout-session/customer subscription resolution and upserts local status.
+- Enhanced `createMemberAutoShipCheckoutSession(...)`:
+  - added preflight Stripe subscription sync before creating a new session.
+  - prevents duplicate active Auto Ship subscriptions when local status is stale.
+- Improved recurring period parsing:
+  - reads subscription period from `items.data[0].current_period_start/end` when top-level period fields are absent.
+  - `currentPeriodStart`, `currentPeriodEnd`, and `nextBillingDate` now populate correctly in status payloads.
+
+### Root Cause
+
+- Stripe subscription was created successfully (`active`) but local setting remained `inactive` because webhook delivery/sync had not populated `stripe_subscription_id`.
+- Prior status endpoint only refreshed from Stripe when local `stripe_subscription_id` already existed.
+
+### Files Affected
+
+- `backend/services/auto-ship.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- `node --check backend/services/auto-ship.service.js` passed.
+- Manual status-sync verification confirmed:
+  - local setting updated from inactive -> active
+  - `stripe_subscription_id` populated
+  - next billing date/period fields populated.
+
+## Patch Update (2026-04-29) - Auto Ship Settings Controls Stayed Disabled After Status Load
+
+### What Changed
+
+- Fixed Auto Ship interaction lock in `index.html` inside `refreshSettingsAutoShipStatus(...)`.
+- After successful Auto Ship status fetch, the UI now explicitly clears action-loading state before rendering:
+  - added `setSettingsAutoShipActionState(false);` before `renderSettingsAutoShip(...)`.
+
+### Root Cause
+
+- `refreshSettingsAutoShipStatus(...)` set the card to busy mode with `setSettingsAutoShipActionState(true)` while loading status.
+- On success path, busy state was never reset, so `settingsAutoShipActionLoading` remained `true`.
+- That kept Auto Ship controls disabled (`Enable`, product selector, and other action buttons).
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- Verified UI state logic: success path now exits loading with controls re-enabled.
+
+## Patch Update (2026-04-29) - Stripe Auto Ship (Recurring Monthly Active-Window Purchase)
+
+### What Changed
+
+- Implemented a new Stripe recurring subscription system named **Auto Ship** for member settings:
+  - UI location: `User Dashboard > Settings > Payment and Billing`.
+  - Product choices:
+    - `MetaCharge™`
+    - `MetaRoast™`
+  - recurring expectation:
+    - 1 monthly shipment
+    - 50 BV per successful shipment
+    - reuses existing member active-window purchase logic.
+- Added secure member-auth Auto Ship APIs:
+  - `GET /api/member-auth/autoship`
+  - `POST /api/member-auth/autoship/checkout-session`
+  - `POST /api/member-auth/autoship/change-product`
+  - `POST /api/member-auth/autoship/cancel`
+- Added Auto Ship persistence + audit tables:
+  - `charge.user_auto_ship_settings`
+  - `charge.user_auto_ship_events`
+- Added Stripe webhook event persistence for idempotency:
+  - `charge.stripe_webhook_events`
+- Extended Stripe webhook dispatcher with subscription/billing events:
+  - `checkout.session.completed` (Auto Ship-aware)
+  - `customer.subscription.created`
+  - `customer.subscription.updated`
+  - `customer.subscription.deleted`
+  - `invoice.payment_succeeded`
+  - `invoice.payment_failed`
+- Implemented Auto Ship payment success behavior:
+  - creates store invoice/order-style record
+  - credits exactly `50` Personal BV
+  - reuses existing account active-window logic through `recordMemberPurchase(...)`.
+
+### Files Affected
+
+- `backend/services/auto-ship.service.js` (new)
+- `backend/controllers/auto-ship.controller.js` (new)
+- `backend/routes/auto-ship.routes.js` (new)
+- `backend/stores/auto-ship.store.js` (new)
+- `backend/stores/stripe-webhook-event.store.js` (new)
+- `backend/services/stripe-webhook.service.js`
+- `backend/app.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Design Decisions
+
+- Reused existing Stripe customer linkage and billing-portal behavior; no card data is stored locally.
+- Reused existing member purchase activity pipeline (`recordMemberPurchase`) for active/inactive/grace requalification behavior.
+- Added webhook-level idempotency tracking table and persistent Auto Ship event audit records for replay safety/audit searchability.
+- Kept Payment and Billing performance lightweight by lazy-loading Auto Ship status only when the `payment` settings category is opened.
+
+### Known Limitations
+
+- Stripe test/live verification still requires real webhook delivery tests in the target environment.
+- `Context-Router.md` was requested but not present in repo path during implementation.
+
+### Validation
+
+- `node --check backend/services/auto-ship.service.js` passed.
+- `node --check backend/services/stripe-webhook.service.js` passed.
+- `node --check backend/controllers/auto-ship.controller.js` passed.
+- `node --check backend/routes/auto-ship.routes.js` passed.
+- `index.html` inline-script parse check passed (`node --check .tmp-index-inline.js` on extracted script).
+
+## Patch Update (2026-04-28) - User Dashboard KPI: Retail Profit Card + Transfer To Wallet
+
+### What Changed
+
+- Updated dashboard KPI card layout in `index.html`:
+  - replaced `E-Wallet Balance` card with `Retail Profit` card.
+  - removed member-facing wallet mini-graph from KPI row.
+  - added new KPI CTA button: `Transfer to Wallet`.
+- Added new Retail Profit dashboard bindings in `index.html`:
+  - `dashboard-retail-profit-value`
+  - `dashboard-retail-profit-request-payout-button`
+  - runtime retail-profit balance state and render helpers using ledger summary data.
+- Added commission transfer source support for Retail Profit:
+  - frontend payout source maps now include `retailprofit`.
+  - backend wallet source meta now accepts `retailprofit`.
+  - wallet sender-id/source-key mapping now includes `commission-retailprofit` for offset tracking.
+  - wallet commission offset map defaults now include `retailprofit`.
+
+### Data Behavior
+
+- Retail Profit KPI value is ledger-driven:
+  - reads member ledger summary `byType.retail_commission.netAmount`
+  - subtracts prior wallet transfer offsets for `retailprofit` (when hydrated)
+  - result is the available amount shown on the KPI card and used by transfer CTA.
+- Transfer button behavior:
+  - uses existing `/api/e-wallet/commission-transfer` flow
+  - now posts `sourceKey=retailprofit` for Retail Profit transfers.
+
+### Files Affected
+
+- `index.html`
+- `backend/services/wallet.service.js`
+- `backend/stores/wallet.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- `node --check backend/services/wallet.service.js` passed.
+- `node --check backend/stores/wallet.store.js` passed.
+- `npm.cmd run test:ledger` passed (`6/6`).
+- `index.html` inline script parse check passed (`Parsed inline scripts: 3`).
+
+## Patch Update (2026-04-28) - Binary Tree Track Commissions Retail Profit Fetch Authorization
+
+### What Changed
+
+- Updated `binary-tree-next-app.mjs`:
+  - `fetchAccountOverviewEndpoint(...)` now attaches request headers via `buildRankAdvancementRequestHeaders(...)`.
+  - member-source requests now include `Authorization: Bearer <authToken>` for Account Overview remote sync calls.
+
+### Root Cause
+
+- Account Overview sync path was calling member-auth ledger summary endpoint (`/api/member-auth/ledger/summary`) without bearer auth headers.
+- Response was rejected and normalized to `null`, so Retail Profit fell back to non-ledger values and displayed `0` in Track Commissions.
+
+### Impact
+
+- Member-auth summary requests in Account Overview now authenticate correctly.
+- Retail Profit card can resolve the live ledger retail net amount instead of stale zero fallback behavior.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-28) - Binary Tree Account Overview Live Data Alignment
+
+### What Changed
+
+- Updated Binary Tree Next Account Overview data resolution in:
+  - `binary-tree-next-app.mjs`
+- Updated backend cutoff personal metric sourcing in:
+  - `backend/services/cutoff.service.js`
+- Account Overview resolver changes:
+  - `resolveAccountOverviewTotalOrganizationBv(...)`
+    - now prioritizes live subtree leg totals derived from current in-memory tree state (`resolveAccountOverviewLegVolumeMetrics`) before remote snapshot/cutoff fallbacks.
+  - `resolveAccountOverviewPersonalBv(...)`
+    - now prioritizes live current-PV candidates (`currentPersonalPvBv`/monthly PV on home node + session) and local activity-resolved PV before cutoff/snapshot fallbacks.
+  - `resolveAccountOverviewCommissionBalances(...)`
+    - `Sales Team Commission` card now prefers ledger `byType.sales_team_commission.netAmount` before commission-container fallback values.
+    - `Retail Profit` remained ledger-first behavior through ledger summary path.
+- Backend cutoff service update:
+  - replaced `totalPersonalPv` starter-only fallback behavior with current/live PV-first field resolution using `toFirstWholeNumber(...)`.
+
+### Why
+
+- Reported issue: Account Overview values were showing stale/older data on Binary Tree for:
+  - Total Organization BV
+  - Personal BV
+  - Retail Profit
+  - Sales Team Commission
+- Root cause pattern:
+  - fallback order favored older snapshot/starter/container values even when fresher runtime tree/ledger data existed.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check backend/services/cutoff.service.js` passed.
+- `npm.cmd run test:binary-cycle` passed (`11/11`).
+- `npm.cmd run test:ledger` passed (`6/6`).
+
+## Patch Update (2026-04-28) - Member Ledger Metadata Hidden In Commissions UI
+
+### What Changed
+
+- Updated member dashboard ledger renderer in:
+  - `index.html`
+- Removed the metadata details block from each row in the **User Dashboard > Commissions** ledger table.
+
+### Behavior
+
+- Ledger metadata is still stored in backend records for audit/debugging.
+- Metadata is no longer displayed to members in the ledger UI.
+- Entry description, source refs, IDs, amounts, BV, status, and timestamps remain visible.
+
+### Validation
+
+- Inline script parse check passed for `index.html` (`Parsed inline scripts: 3`).
+
+## Patch Update (2026-04-28) - Ledger Historical Backfill Executed (`zeroone`)
+
+### What Changed
+
+- Added a dedicated ledger backfill script:
+  - `backend/scripts/backfill-ledger-entries.mjs`
+- Added npm runner:
+  - `package.json` -> `backfill:ledger`
+- Backfill sources wired through existing services/stores (no direct ledger SQL writes):
+  - retail commission candidates from `store_invoices`
+  - fast-track candidates from `registered_members`
+  - sales-team candidates from `sales_team_commission_snapshots`
+  - payout audit/debit candidates from `payout_requests`
+- Backfill was executed for target member `zeroone`:
+  - dry-run first
+  - live run second
+  - rerun validation third (idempotency check)
+
+### Execution Result (`zeroone`)
+
+- Created ledger entries: `9`
+  - `1` retail commission (preferred-customer qualified invoice only)
+  - `3` fast-track commissions
+  - `5` payout entries (`2` paid + `3` failed audit entries)
+- Idempotency validation:
+  - second live run returned all eligible events as `idempotent` and created `0` new rows.
+
+### Design Decisions
+
+- Retail backfill is intentionally conservative:
+  - only invoices with preferred-retail signals are eligible to avoid over-crediting legacy rows where `retail_commission` historically mirrored invoice total.
+- Payout idempotency keys:
+  - kept runtime-compatible `payout:{requestId}:{userId}` for `PAID`
+  - used status-scoped keys for non-paid payout events (`FAILED`/`PENDING`) to avoid blocking future paid posting if a request lifecycle changes.
+
+### Validation
+
+- `node --check backend/scripts/backfill-ledger-entries.mjs` passed.
+- `npm.cmd run backfill:ledger -- --dry-run --username=zeroone` completed with expected counts.
+- `npm.cmd run backfill:ledger -- --username=zeroone` created entries successfully.
+- Re-run of same command showed fully idempotent behavior.
+- Direct service check:
+  - `getUserLedgerSummary` for `zeroone` returned `200` with populated values.
+- `npm.cmd run test:ledger` passed (`6/6`).
+
+### Known Limitations
+
+- Sales Team snapshot backfill is event-safe but currently no positive historical snapshot rows existed, so no Sales Team entries were created in this run.
+- Existing summary serialization currently clamps negative net values to `0` in `byStatus/byType` output (legacy helper behavior); payout debit visibility still exists through entry list and `paidOutAmount`.
+
+## Update (2026-04-28) - Dedicated Ledger System (Member + Admin + Backend Integrations)
+
+### What Was Changed
+
+- Added a dedicated ledger data model/service layer and API routes:
+  - new table bootstrap + indexes for `charge.ledger_entries`
+  - immutable-friendly entry flow (reversal entries instead of mutating historical amounts)
+  - idempotency-key support to prevent duplicate commission posting
+  - member ledger endpoints:
+    - `GET /api/member-auth/ledger`
+    - `GET /api/member-auth/ledger/summary`
+  - admin ledger endpoints:
+    - `GET /api/admin/ledger`
+    - `GET /api/admin/ledger/summary`
+    - `POST /api/admin/ledger/adjustments`
+    - `POST /api/admin/ledger/:entryId/reverse`
+- Integrated ledger writes into existing earning flows:
+  - retail commission write on store checkout commission settlement
+  - fast-track commission write on enrollment
+  - sales-team commission write on cycle settlement
+  - payout debit ledger write during admin payout fulfillment
+- Added a dedicated member Commissions ledger page in `index.html`:
+  - summary cards (total, pending, posted, available, paid out)
+  - type/status/date/search filters
+  - detailed ledger table with status/source/type and metadata drill-down
+  - Recent Activity now reads from ledger entries when available (fallback preserved)
+- Added admin ledger explorer in `admin.html`:
+  - global ledger search/filter by user/type/status/source/date
+  - summary cards + entry list with metadata
+  - manual admin adjustment form
+  - reverse action per eligible ledger row
+- Added isolated ledger service tests with dependency-injected mocks for:
+  - retail/fast-track/sales-team entry creation
+  - idempotency duplicate prevention
+  - pending vs available summary behavior contract
+  - reversal direction + original-entry status transition
+
+### Files Affected
+
+- `backend/app.js`
+- `backend/routes/ledger.routes.js`
+- `backend/controllers/ledger.controller.js`
+- `backend/services/ledger.service.js`
+- `backend/stores/ledger.store.js`
+- `backend/utils/ledger.helpers.js`
+- `backend/services/store-checkout.service.js`
+- `backend/services/member.service.js`
+- `backend/services/member-business-center.service.js`
+- `backend/services/payout.service.js`
+- `backend/tests/ledger.service.test.js`
+- `package.json`
+- `index.html`
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/BackEnd-Notes.md`
+
+### Design Decisions
+
+- Kept data immutable-oriented by introducing explicit reversal records and linking them to originals.
+- Kept existing commission and payout logic intact; ledger is integrated as an auditable sidecar source-of-truth layer.
+- Reused existing coding/style patterns in both dashboards, and avoided replacing unrelated modules.
+- Added test dependency hooks in `ledger.service.js` only for isolation-safe unit tests without DB coupling.
+
+### Known Limitations
+
+- New ledger tests validate service behavior with mocked store dependencies; they do not run against a live database in this suite.
+- Existing historical activity cards still support fallback non-ledger sources when ledger data is absent.
+
+### Validation
+
+- `node --check` passed for all touched backend ledger files.
+- Inline script parse checks passed for:
+  - `index.html`
+  - `admin.html`
+- Tests passed:
+  - `npm.cmd run test:ledger` (`6/6`)
+  - `npm.cmd run test:binary-cycle` (`11/11`)
+
+## Patch Update (2026-04-28) - Zeroone Ledger Summary Load Failure Fix (DB Bootstrap Fallback)
+
+### Issue
+
+- Member ledger summary for `zeroone` failed with:
+  - `Unable to load member ledger summary.`
+- Root cause was ledger table bootstrap depending on admin DB credentials when table installation was needed.
+
+### What Was Changed
+
+- Updated `backend/stores/ledger.store.js` bootstrap path:
+  - added primary DB install attempt first (`DB_USER`/`DB_PASSWORD` pool)
+  - admin install attempt now runs only as fallback when admin credentials are configured
+  - improved combined error reporting when both install paths fail
+- This prevents member-summary failures caused solely by admin credential auth issues.
+
+### Files Affected
+
+- `backend/stores/ledger.store.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/BackEnd-Notes.md`
+
+### Validation
+
+- Direct service verification for `zeroone`:
+  - `getUserLedgerSummary(...)` now returns `status: 200` with summary payload.
+- `node --check backend/stores/ledger.store.js` passed.
+- `npm.cmd run test:ledger` passed (`6/6`).
+- `npm.cmd run test:binary-cycle` passed (`11/11`).
+
+## Update (2026-04-26) - Member Cutoff Metrics Identity Sync Hardening (Dashboard + API)
+
+### What Was Changed
+
+- Updated dashboard cutoff metrics query identity resolution in `index.html`:
+  - replaced one-time static identity snapshot with per-sync dynamic identity resolution.
+  - added fallback identity fields:
+    - `id`, `userId`, `memberId`
+    - `username`, `memberUsername`
+    - `email`, `userEmail`, `login`
+  - normalized username by stripping leading `@` before API query.
+- Updated `hydrateCurrentSessionUserFromServer(...)` in `index.html` to trigger cutoff metrics refresh after session hydration so panel values update immediately.
+- Hardened backend identity matching in `backend/services/cutoff.service.js`:
+  - query-side username now matches both raw and `@`-stripped forms.
+  - record-side username comparison now also includes `@`-stripped variant.
+
+### Files Affected
+
+- `index.html`
+- `backend/services/cutoff.service.js`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept cutoff rendering logic unchanged and targeted only identity resolution/sync timing so existing cutoff math behavior is preserved.
+- Added normalization at both UI and API layers to prevent silent mismatch when session usernames include `@`.
+
+### Known Limitations
+
+- Current DB shows no recorded forced cutoff history/state yet in this environment (`force_server_cutoff_history` and `member_server_cutoff_states` are empty), so loop carry-forward remains unconsumed until a cutoff is actually applied.
+
+### Validation
+
+- `node --check backend/services/cutoff.service.js` passed.
+- Inline script parse check for `index.html`: `INLINE_SCRIPT_PARSE_OK blocks=3`.
+- Service verification:
+  - `getMemberServerCutoffMetrics({ username: '@zeroone' })` now resolves the same member metrics successfully.
+
+## Update (2026-04-26) - Business Center Cycle Rule Aligned to Dynamic Weaker/Stronger Logic
+
+### What Was Changed
+
+- Updated `resolveCycleSplitComputation(...)` in `backend/services/member-business-center.service.js`.
+- Removed the prior balancing heuristic and enforced the same dynamic cycle rule used in member cutoff logic:
+  - weaker leg consumes `cycleHigherBv` (default `1000`)
+  - stronger leg consumes `cycleLowerBv` (default `500`)
+- Added deterministic tie handling: when left/right are equal, left is treated as weaker for that cycle step.
+
+### Files Affected
+
+- `backend/services/member-business-center.service.js`
+- `Claude_Notes/binary-tree-business-center.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept `admin.html` unchanged by request (admin view is management-only and not used for reward commission settlement).
+- Scoped the patch to member-facing Business Center settlement logic so cycle behavior is consistent across member reward paths.
+
+### Known Limitations
+
+- Historical Business Center cycle events settled before this patch are not recalculated retroactively.
+
+### Validation
+
+- `node --check backend/services/member-business-center.service.js` passed.
+- Scenario verification:
+  - `L=1000`, `R=1192` => `cycles=1`, carry `L=0`, `R=692`
+  - `L=1192`, `R=1000` => `cycles=1`, carry `L=692`, `R=0`
+
+## Update (2026-04-26) - Monthly Active Window + 7-Day Renewal Warning Window
+
+### What Was Changed
+
+- Updated account activity state resolution in `backend/utils/member-activity.helpers.js` to support:
+  - monthly qualification threshold (`50 BV`) as the active basis
+  - continued `Active` state for up to 7 days after `activityActiveUntilAt`
+  - automatic `Inactive` transition after the 7-day renewal warning window
+  - warning metadata (`isActivityWarning`, `activityWarningCode`, `activityWarningUntilAt`, `activityWarningMessage`) without exposing a separate public "grace" status.
+- Updated purchase and account-upgrade activity writes in `backend/services/member.service.js`:
+  - `activityActiveUntilAt` now extends only when the user qualifies in the current cycle
+  - non-qualifying BV additions no longer auto-extend active window
+  - closes the monthly refresh loophole where small BV updates could keep extending activity.
+- Updated mapped user/member payloads to expose warning-state metadata:
+  - `backend/stores/user.store.js`
+  - `backend/stores/member.store.js`
+  - `backend/utils/auth.helpers.js`.
+
+### Files Affected
+
+- `backend/utils/member-activity.helpers.js`
+- `backend/services/member.service.js`
+- `backend/stores/user.store.js`
+- `backend/stores/member.store.js`
+- `backend/utils/auth.helpers.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept public account status vocabulary stable (`active` / `inactive`) and implemented warning-window behavior through eligibility logic + warning metadata.
+- Reused existing `activityActiveUntilAt` as the qualified-until anchor to keep schema impact minimal.
+- Applied transition logic centrally in activity helper and reused that helper in purchase/upgrade mutation flows.
+
+### Known Limitations
+
+- Existing historical `activityActiveUntilAt` values created before this update remain as-is; behavior is corrected forward by new mutation logic.
+- Warning messaging is now available in backend payloads but frontend warning presentation is still dependent on UI wiring.
+
+### Validation
+
+- `node --check backend/utils/member-activity.helpers.js` passed.
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/stores/user.store.js` passed.
+- `node --check backend/stores/member.store.js` passed.
+- `node --check backend/utils/auth.helpers.js` passed.
+- Manual scenario simulation confirmed:
+  - active through due date
+  - active + warning during 7-day renewal window
+  - inactive after warning window
+  - immediate re-qualification when 50 BV is met within a cycle.
+
+## Update (2026-04-26) - Inactive Earnings Enforcement (Sales Team + Rank/Good Life)
+
+### What Was Changed
+
+- Updated `backend/services/admin.service.js` cutoff processing so inactive accounts no longer receive cycle counts/commission amounts in generated Sales Team snapshots.
+- Kept BV carry-forward baseline consumption logic intact, so BV can still be consumed at cutoff while inactive and only remainder carries forward.
+- Updated `backend/services/wallet.service.js` to block Sales Team commission-to-wallet transfer when account is inactive.
+- Updated `backend/services/member-achievement.service.js` so inactive accounts resolve cycle count as `0` for achievement/rank progression, and rank active-requirement is no longer bypassed by monthly recorded rank state.
+- Updated `backend/services/member-good-life.service.js` so Good Life claimability now requires active status and claim endpoint rejects inactive accounts.
+
+### Files Affected
+
+- `backend/services/admin.service.js`
+- `backend/services/wallet.service.js`
+- `backend/services/member-achievement.service.js`
+- `backend/services/member-good-life.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Scoped enforcement to earning-critical backend paths only (cutoff earning output, Sales Team transfer, rank/good-life eligibility) to avoid broad behavior changes outside requested scope.
+- Preserved existing BV carry-forward mechanics while decoupling inactive accounts from payout/cycle credit.
+- Applied Sales Team-specific transfer block in wallet flow instead of globally blocking all wallet operations.
+
+### Known Limitations
+
+- Existing previously transferred wallet balances are not retroactively altered.
+- This pass does not yet redesign the full account-activity lifecycle model (next phase requested separately).
+
+### Validation
+
+- `node --check backend/services/admin.service.js` passed.
+- `node --check backend/services/wallet.service.js` passed.
+- `node --check backend/services/member-achievement.service.js` passed.
+- `node --check backend/services/member-good-life.service.js` passed.
+
+## Update (2026-04-26) - Server Cutoff Carry-Forward Baseline Fix (Sales Team Cycle Weekly Window)
+
+### What Was Changed
+
+- Updated `backend/services/admin.service.js` cutoff baseline handling so weekly server-cutoff baselines no longer reset to full leg totals.
+- Added `resolveNextCutoffCarryForwardBaselines(...)` to compute next baseline using:
+  - existing baseline
+  - current-week BV since baseline
+  - the active cycle rule thresholds (`cycleLowerBv` / `cycleHigherBv`)
+  - consumed BV from cycles applied in the current weekly window.
+- Updated `forceServerCutoff(...)` state write path to use computed carry-forward baselines for:
+  - `baselineLeftLegBv`
+  - `baselineRightLegBv`.
+
+### Files Affected
+
+- `backend/services/admin.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Scoped change to cutoff state baseline write logic only to avoid touching payout, dashboard rendering, or broader commission flows.
+- Preserved existing data model and existing API response shape while changing only how baseline values are computed.
+- Baseline inputs are clamped against current totals to stay safe if historical data is partially reset.
+
+### Known Limitations
+
+- This update addresses carry-forward baseline behavior only; it does not redesign broader cycle payout policy or package cap policy.
+
+### Validation
+
+- `node --check backend/services/admin.service.js` passed.
+- Manual scenario check (Week 1 then Week 2 increment) confirms leftover BV remains in weekly window instead of being wiped at cutoff.
+
+## Update (2026-04-26) - Enrollment Split Option + Personal Split Guardrails + Dynamic Product Labels
+
+### What Was Changed
+
+- Updated Binary Tree enrollment product selector in `binary-tree-next.html`:
+  - product option labels now use exact naming:
+    - `MetaCharge™`
+    - `MetaRoast™`
+  - added explicit third option: `Split Products`.
+- Updated enrollment product summary behavior in `binary-tree-next-app.mjs`:
+  - split product selection is now package-gated and interactive via custom select plumbing.
+  - split is only available for:
+    - `Business Builder Pack`
+    - `Infinity Builder Pack`
+    - `Legacy Builder Pack`
+  - split selection is now hidden (removed from view) for `Personal Builder Pack` and non-split-eligible packages.
+  - checkout summary product line now renders dynamic split allocation text when split is selected (e.g., `MetaCharge™ 10x + MetaRoast™ 10x`).
+- Reinforced upgrade split rules in `binary-tree-next-app.mjs`:
+  - kept all three upgrade product modes available:
+    - `All MetaCharge™`
+    - `All MetaRoast™`
+    - `Split Products`
+  - split mode is now hidden from the Binary Tree review selector for personal-target upgrades and only shown for Business+ targets.
+  - added upgrade split eligibility checks to keep UI and computed allocation in sync.
+
+### Follow-up (2026-04-26) - Personal Split Option Hidden Everywhere in Binary Tree
+
+- Updated custom select rendering in `binary-tree-next-app.mjs` so hidden native options are not rendered in the custom dropdown menu.
+- Updated enrollment product availability sync to toggle `hidden` on the split option for non-eligible packages (not only disabled state).
+- Updated My Store upgrade review product selector to hide the `Split Products` button when the selected upgrade package is not split-eligible.
+- Result:
+  - `Personal Builder Pack` no longer shows split option in Binary Tree enrollment product dropdown.
+  - personal-target upgrade review no longer shows split option button.
+- Extended backend product-mode handling in `backend/services/member.service.js`:
+  - enrollment product normalization now supports `split` with package eligibility checks.
+  - account-upgrade mode normalization now enforces split eligibility by target package.
+  - current package product state now supports `split` for carry-forward logic.
+  - split upgrades now persist package product state as `split` so future upgrades can derive balanced carryover behavior.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `backend/services/member.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Kept split as a true third option (not forced mode) so users can still choose full single-product allocations.
+- Enforced Business+ gating in both frontend and backend to avoid UI/API mismatch.
+- Used explicit product-state normalization to support future upgrade math when a package is already split.
+
+### Known Limitations
+
+- Existing historical accounts created before split-state persistence may still carry legacy single-product state and may need migration/backfill if strict historical split accuracy is required.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-26) - Sales Team KPI UI Rework (Cycle Cap Moved to Server Cutoff)
+
+### Request Applied
+
+- Removed Sales Team KPI card progress visuals and waiting text.
+- Moved weekly cycle-cap display from Sales Team card into Server Cutoff `Estimated Cycles` section.
+
+### What Was Changed
+
+- `index.html`
+  - removed Sales Team card cycle-summary text node and progress bar markup.
+  - added `#server-cutoff-cycle-cap-summary` below Server Cutoff `Estimated Cycles`.
+  - updated Sales Team render logic:
+    - no longer writes `Awaiting server cutoff...` on Sales Team card.
+    - now writes `Weekly cycle cap: X / Y` (plus overflow when present) into Server Cutoff panel.
+
+### Design Decisions
+
+- Kept payout gating behavior unchanged (still cutoff-settled), while simplifying KPI visual noise.
+- Kept cycle-cap values sourced from settled Sales Team calculation so displayed cap usage remains reward-accurate.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- inline script parse check passed for `index.html` (`INLINE_SCRIPT_PARSE_OK blocks=3`).
+
+## Addendum (2026-04-26) - Server Cutoff First-Load Volume Sync Optimization
+
+### Request Applied
+
+- Fixed first-load case where Server Cutoff panel volumes could render as empty/zero until manual page reload.
+
+### What Was Changed
+
+- `index.html`
+  - in `queueBinaryTreeMetricsSnapshotSync(...)`, added a post-success call to `updateServerCutoffMetrics()` after binary metrics snapshot persistence completes.
+  - reduced `cutoffMetricsSyncDelayAfterSummaryMs` from `700ms` to `200ms` to shorten visible delay for cutoff volume updates.
+
+### Design Decisions
+
+- Triggering cutoff re-sync only after successful snapshot persistence ensures cutoff metrics endpoint reads fresh snapshot data instead of stale pre-persist state.
+- Keeping the periodic interval sync intact preserves existing fallback behavior.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- inline script parse check passed for `index.html` (`INLINE_SCRIPT_PARSE_OK blocks=3`).
+
+## Addendum (2026-04-26) - Sales Team Commissions Now Post-Cutoff Only on Member Dashboard
+
+### Request Applied
+
+- Ensured Sales Team commission cycles are shown/claimable only from settled server cutoff data.
+- Removed member-runtime behavior that pushed live pre-cutoff Sales Team snapshots.
+
+### What Was Changed
+
+- `index.html`
+  - added settled Sales Team commission loader (`GET /api/sales-team-commissions`) scoped to the current member identity.
+  - added cutoff-aware rendering gate in `renderSalesTeamCommissionsCard(...)`:
+    - if `lastAppliedCutoffAt` is missing, card now displays waiting state and value remains `0`.
+    - cycle/commission values now come from settled snapshot data after cutoff.
+  - disabled member-side Sales Team snapshot POST sync (`queueSalesTeamCommissionSnapshotSync`) to prevent pre-cutoff cycle leaks.
+  - wired settled snapshot refresh when cutoff settlement timestamp changes.
+  - switched bootstrap commission initialization to `initializeCommissionRuntimeState(...)` so offsets/container/settled Sales Team state initialize together.
+  - refreshes settled Sales Team snapshot after session-user patches to keep identity-aligned data.
+
+### Design Decisions
+
+- Sales Team KPI now treats cutoff settlement as the single source of truth for rewards visibility.
+- Live binary loop counts remain visible in loop cards, but no longer drive Sales Team reward balance or payout eligibility.
+
+### Known Limitations
+
+- If cutoff metrics endpoint temporarily fails, Sales Team card stays in conservative `0 / awaiting cutoff` state until cutoff data is available again.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- inline script parse check passed for `index.html` (`INLINE_SCRIPT_PARSE_OK blocks=3`).
+
+## Addendum (2026-04-26) - Activity Window + Inactive Payout + Pending Capability Alignment
+
+### Request Applied
+
+- Implemented the three review findings in targeted backend files only:
+  - strict rolling 30-day activity windows (instead of month-anchored windows),
+  - inactive-account enforcement for payout request workflows,
+  - treating `pending-password-setup` as pending in capability gates.
+
+### What Was Changed
+
+- `backend/utils/member-activity.helpers.js`
+  - added `ACTIVE_MEMBER_ACTIVITY_WINDOW_DAYS = 30`.
+  - replaced anchored-month window math with fixed-length rolling window math:
+    - `nextCutoff = anchor + N * 30 days`
+    - `currentWindowStart = nextCutoff - 30 days`
+  - kept existing function names to avoid broad refactors in callers.
+
+- `backend/services/payout.service.js`
+  - imported `resolveMemberActivityStateByPersonalBv`.
+  - added local active-account guard helpers:
+    - `buildActiveAccountRequiredResult(...)`
+    - `isInactiveMemberForPayout(...)`
+  - enforced active status in payout flows:
+    - `createPayoutRequest(...)` now rejects inactive members.
+    - `fulfillAdminPayoutRequest(...)` now rejects inactive members.
+  - existing pending/reservation gate remains unchanged.
+
+- `backend/utils/member-capability.helpers.js`
+  - updated `isPendingMemberAccount(...)` to treat the following as pending:
+    - `pending`
+    - `pending-password-setup`
+    - status keys prefixed with `pending-` / `pending_`
+
+### Design Decisions
+
+- Scoped to the exact review findings and avoided cross-module refactors.
+- Preserved public helper names and caller contracts so existing service/store callsites continue to work unchanged.
+- Kept payout inactive enforcement local to payout service (where the finding was identified) to avoid touching unrelated request/commission modules.
+
+### Known Limitations
+
+- Helper names still include “Monthly” for compatibility, but their internals now operate on strict rolling 30-day windows.
+- Existing persisted `activity_active_until_at` timestamps are not bulk-migrated; they are recalculated naturally as activity events occur.
+
+### Files Affected
+
+- `backend/utils/member-activity.helpers.js`
+- `backend/services/payout.service.js`
+- `backend/utils/member-capability.helpers.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check backend/utils/member-activity.helpers.js` passed.
+- `node --check backend/services/payout.service.js` passed.
+- `node --check backend/utils/member-capability.helpers.js` passed.
+
+## Addendum (2026-04-26) - Cutoff-Consumed Loop Metrics on Dashboard + Binary Tree
+
+### Request Applied
+
+- Updated loop-facing UI values to use cutoff-consumed/current-week metrics instead of raw lifetime leg totals.
+- Preserved historical/lifetime values for tracking cards and data history.
+
+### What Was Changed
+
+- `index.html`
+  - added a dedicated loop-metrics resolver that prefers latest `/api/member/server-cutoff-metrics` values for:
+    - Dashboard cycle KPI
+    - Tree summary estimated cycles
+    - Tree summary left/right leg BV
+    - Fullscreen tree leg/cycle summary fields
+  - kept binary-tree snapshot persistence payload on raw leg totals and raw computed cycles so backend carry-forward/cutoff state logic is not changed.
+  - wired cutoff payload updates to immediately refresh loop-facing UI once server metrics arrive.
+
+- `binary-tree-next-app.mjs`
+  - added account-overview remote fetch for `/api/member/server-cutoff-metrics`.
+  - stored normalized cutoff metrics in `accountOverviewRemoteSnapshot.serverCutoffMetrics`.
+  - updated selected-node detail panel (`Left Leg`, `Right Leg`, `Cycles`) to use cutoff-consumed metrics when the selected node matches the signed-in member identity.
+  - left `Total Organizational BV` and `Personal BV` unchanged (historical/total tracking context).
+
+### Design Decisions
+
+- Loop mechanic displays now follow server cutoff state, while persistence and historical totals remain raw to avoid breaking backend cutoff carry-forward behavior.
+- Member-only cutoff override in Binary Tree details avoids incorrectly applying one member’s weekly metrics to unrelated nodes.
+
+### Known Limitations
+
+- For non-member nodes in Binary Tree detail view, left/right/cycles still show node-computed totals (no per-node cutoff API exists yet).
+- Live account verification for `username: zeroone` was not executed in this pass (logic-level + parse validations only).
+
+### Files Affected
+
+- `index.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 3`.
+
+## Addendum (2026-04-26) - Dynamic Cycle Cut + Sales Team KPI Balance Preservation
+
+### Request Applied
+
+- Enforced dynamic cycle consumption rule:
+  - weaker leg consumes `1000 BV`
+  - stronger leg consumes `500 BV`
+- Kept loop-facing displays aligned with carry-only/current-week values.
+- Prevented Sales Team KPI from dropping earned balance/cycle display when current loop cycles reset post-cutoff.
+
+### What Was Changed
+
+- `backend/services/admin.service.js`
+  - updated carry-forward baseline consumption logic to dynamic cut direction.
+  - updated cutoff cycle computation to use weaker/stronger dynamic threshold pairing.
+
+- `backend/services/cutoff.service.js`
+  - updated `estimatedCycles` calculation to dynamic rule:
+    - weaker leg ÷ higher threshold
+    - stronger leg ÷ lower threshold
+
+- `index.html`
+  - updated all loop cycle fallback calculations to dynamic rule.
+  - updated cycle rule labels to explicit weaker/stronger wording.
+  - added commission-container balance resolver.
+  - updated `renderSalesTeamCommissionsCard(...)` so persisted Sales Team balance (e.g., previously earned `$62.50`) is preserved in KPI display and not clobbered by a temporary `0` current-loop cycle state.
+  - added sync guard to avoid overwriting sales-team commission snapshots with reduced loop-derived values when persisted container balance is higher.
+
+- `binary-tree-next-app.mjs`
+  - updated node cycle calculations and cutoff-derived loop cycle fallbacks to dynamic rule.
+
+### Design Decisions
+
+- Dynamic rule is implemented consistently across:
+  - cutoff/baseline consumption
+  - server cutoff metric estimation
+  - user dashboard loop cycle calculations
+  - binary tree loop cycle calculations
+- Sales Team KPI uses persisted commission-container balance as authoritative floor to avoid accidental payout-state loss in UI after cutoff/carry transitions.
+
+### Known Limitations
+
+- Existing historical sales-team snapshot rows that were already overwritten before this fix are not auto-reconstructed; future renders now preserve persisted container balance from being wiped.
+- Admin-only display formulas in `admin.html` were not changed in this pass.
+
+### Files Affected
+
+- `backend/services/admin.service.js`
+- `backend/services/cutoff.service.js`
+- `index.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check backend/services/admin.service.js` passed.
+- `node --check backend/services/cutoff.service.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- Inline script parse check for `index.html`: `All inline scripts parsed successfully. Blocks: 3`.
+
+## Addendum (2026-04-26) - User Dashboard My Store: Account Upgrades Checkout Added
+
+### Request Applied
+
+- Added Account Upgrades directly inside User Dashboard `My Store` (`index.html`) so upgrades can be selected and checked out from the same store surface.
+
+### What Was Changed
+
+- `index.html`
+  - added new `My Store` section UI block:
+    - package upgrade cards (available tiers above current package)
+    - product mode options:
+      - `All MetaCharge™`
+      - `All MetaRoast™`
+      - `Split Products`
+    - upgrade quote + product allocation preview
+    - dedicated `Checkout Upgrade in Stripe` button
+  - added frontend upgrade state + allocation logic for My Store:
+    - mode normalization (`all-metacharge`, `all-metaroast`, `split`)
+    - split eligibility gating by target package (Business and above only)
+    - ownership-aware split preview based on current owned product key
+  - added hosted Stripe checkout submit flow for upgrades using existing store checkout API metadata:
+    - `accountUpgradeTargetPackage`
+    - `accountUpgradeSelectedProductKey`
+    - `accountUpgradeProductMode`
+  - updated hosted checkout completion sync to apply `accountUpgrade.user` session patch when returned.
+  - added success/warning feedback handling for upgrade result messages after Stripe return finalization.
+
+### Design Decisions
+
+- Reused existing store checkout session/complete endpoints so My Store upgrades stay in one payment pipeline.
+- Kept regular cart checkout and upgrade checkout as separate actions to avoid mixed checkout ambiguity.
+- Mirrored backend split behavior in frontend preview to keep allocation labels consistent pre- and post-payment.
+
+### Known Limitations
+
+- Upgrade checkout requires active `MetaCharge` / `MetaRoast` catalog products with sufficient stock; if missing/insufficient, upgrade checkout is blocked with guidance in UI.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+- `node --check backend/services/member.service.js` passed.
 
 ## Update (2026-04-24) - Mobile Outside Button Groups Smooth Half->Full Animation
 
@@ -55,50 +1150,6 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
 
 - `node --check binary-tree-next-app.mjs` passed.
 
-## Patch Update (2026-04-30) - Admin Flush Scope Expanded to All User-Linked Data (Products Preserved)
-
-### What Changed
-- `backend/services/admin.service.js`
-  - expanded `FLUSH_TRUNCATE_TABLES_BY_KEY` to include newer user-linked tables:
-    - `member_profile_badge_selection`
-    - `user_auto_ship_settings`
-    - `user_auto_ship_events`
-    - `ledger_entries`
-    - `wallet_ledger_entries`
-    - `business_center_owner_progress`
-    - `business_center_activation_audit`
-    - `business_center_cycle_states`
-    - `business_center_commission_events`
-    - `stripe_webhook_events`
-  - removed `member_title_catalog` from flush truncation targets (catalog/config preserved).
-  - removed runtime-settings reset block from flush execution so runtime configuration is preserved.
-- `admin.html`
-  - updated flush danger-zone copy to clarify flush is user/member-data-only.
-  - updated confirmation dialog copy to explicitly preserve admin account, runtime settings, title catalog, and store products.
-  - updated flush summary list keys to match backend payload (added auto-ship/ledger/business-center/badge/webhook counts, removed runtime/title-catalog reset counters).
-
-### Files Affected
-- `backend/services/admin.service.js`
-- `admin.html`
-- `Claude_Notes/charge-documentation.md`
-- `Claude_Notes/Current Project Status.md`
-- `Claude_Notes/admin-dashboard-page.md`
-
-### Design Decision
-- Flush now strictly targets users/members and their derived records only.
-- Global/admin configuration and product/catalog data remain intact by default:
-  - preserved: `store_products`, `admin_users`, `runtime_settings`, `business_center_unlock_rules`, `member_title_catalog`.
-
-### Known Limitation
-- If new user-linked DB tables are added later and not included in `FLUSH_TRUNCATE_TABLES_BY_KEY`, they will not be cleared until explicitly mapped.
-
-### Validation
-- `node --check backend/services/admin.service.js` passed.
-- `node --test backend/tests/binary-cycle-cutoff.test.js` passed.
-- `node --test backend/tests/ledger.service.test.js` passed.
-- `node --test backend/tests/leadership-matching.service.test.js` passed.
-- `node --test backend/tests/member-business-center.service.test.js` passed.
-
 ### Addendum (2026-04-24) - Search Input Overlay Clipped to Panel Content Viewport
 
 - Fixed a mobile UX bug where the DOM-based search input text/placeholder could remain visible above the sheet handle while the canvas search bar was scrolling underneath.
@@ -111,6 +1162,28 @@ Built a dark, sleek finance/budgeting dashboard called **"Charge"** from scratch
   - panel hidden/not open
   - closed state search row
   - expanded scrollable content state.
+
+### Addendum (2026-04-24) - Desktop Profile Icon Restored to Right Side (Mobile-Only In-Panel Profile)
+
+- Updated `drawSideNav(...)` so the search-row profile icon is now mobile-only.
+- Desktop search row no longer renders the profile icon inside the left panel.
+- Updated desktop toolbar rendering in `drawBottomToolBar(...)` to render/register a floating profile avatar button on the right side of the screen and use it as the profile menu anchor.
+- Preserved mobile behavior where the profile icon remains inside the center/left panel search row.
+
+### Addendum (2026-04-24) - Profile Menu Logout Wiring Fixed
+
+- Fixed unwired logout action in `binary-tree-next-app.mjs` profile menu flow.
+- Added session-clear helpers for Binary Tree Next shell:
+  - `clearCookieValue(...)`
+  - `clearSessionSnapshot(...)`
+  - `clearCurrentSourceSessionSnapshot(...)`
+  - `resolveSourceLoginPath(...)`
+  - `logoutCurrentSourceSession(...)`
+- Updated `triggerAction('brand-menu:action:logout')` to execute full logout behavior instead of only closing the menu:
+  - close profile menu/search dropdown
+  - clear current source auth snapshot from localStorage/sessionStorage/cookie
+  - null session in memory
+  - redirect to source-appropriate login (`/login.html` member, `/admin-login.html` admin).
 
 ## Update (2026-04-24) - Binary Tree Next Mobile UX Pass (Apple Maps Style Sheet + Touch Controls)
 
@@ -31752,3 +32825,3074 @@ Known limitation:
 ### Validation
 
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-24) - User Enroll Member Package UI Removes Free Account Option
+
+### Request Applied
+
+- On user dashboard Enroll Member page, remove the free account option from Enrollment Package selection.
+
+### Fix Implemented
+
+- Updated `index.html` Enrollment Package dropdown options on user-facing enrollment flows:
+  - removed `<option value="preferred-customer-pack">Free Account - $0</option>` from `#enroll-member-package`
+  - removed `<option value="preferred-customer-pack">Free Account - $0</option>` from `#tree-enroll-package`
+- Left free-account constants/package metadata untouched to avoid regressions for existing preferred/free account records and supporting logic paths.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Design Decisions
+
+- Scoped the change to member-facing UI selectors only, matching the request without broad rank/package logic refactors.
+
+### Known Limitations
+
+- Backend and internal logic still include `preferred-customer-pack`; only the user-side selection list has changed.
+
+### Validation
+
+- Confirmed both user enrollment package selects now show only paid package entries.
+
+## Addendum (2026-04-25) - Membership Placement Reservation Plan + Pending Account Enforcement
+
+### Request Applied
+
+- Implement a new enrollment plan: `Membership Placement Reservation` (`$49.99`) that reserves binary-tree placement while keeping the account in a non-earning, non-enrolling `Pending` state until upgrade.
+
+### Core Backend Changes
+
+- Added capability helper: `backend/utils/member-capability.helpers.js`
+  - constants for reservation package + standardized upgrade-required error
+  - shared checks: pending state / reservation plan / pending-or-reservation
+- Updated enrollment + upgrade flow in `backend/services/member.service.js`
+  - added reservation package metadata (`price`, `bv`, feature flags)
+  - reservation account creation now sets account status to `pending`
+  - reservation member records are created with `isEarningEligible=false` and inactive activation status
+  - pending/reservation members are blocked from member-enrollment routes (except admin-placement mode)
+  - pending/reservation users cannot receive purchase PV via `recordMemberPurchase`
+  - upgrade path treats reservation tier as free-tier origin and defaults next upgrade target to `personal-builder-pack`
+  - on successful upgrade, earning + activation fields are re-enabled
+  - fixed post-upgrade status derivation so legacy `pending` state does not persist after package upgrade
+- Added server-side restriction checks for pending/reservation users in:
+  - `backend/services/store-checkout.service.js`
+  - `backend/services/invoice.service.js`
+  - `backend/services/preferred-attribution.service.js`
+  - `backend/services/payout.service.js`
+  - `backend/services/wallet.service.js`
+  - `backend/services/member-business-center.service.js`
+- Restricted flows now return `Account upgrade required.` with `403` when applicable.
+
+### Frontend Changes
+
+- `index.html`
+  - added reservation package option to member enrollment selectors
+  - introduced pending/reservation state helpers and upgrade-gate messaging
+  - pending users now see dashboard + tree access but are blocked from enrollment/sponsor/invite actions
+  - binary-tree enroll controls and preferred customer enrollment are blocked for pending members
+  - store-link copy/access and store attribution usage are disabled for pending users
+  - My Store checkout actions are disabled for pending users with upgrade-required messaging
+  - account status badges + upgrade CTA now reflect `Pending`
+  - business-center panel/actions are blocked with upgrade prompt for pending users
+- `binary-tree-next-app.mjs`
+  - added reservation package metadata/constants and pending gate message
+  - added pending/reservation helper checks across tree-next enrollment/anticipation actions
+  - pending users are blocked from tree-next enroll modal/actions and anticipation slot interactions
+  - tree-next My Store share-link and checkout actions are disabled for pending users
+- `binary-tree-next.html`
+  - added reservation package option to `#tree-next-enroll-package` select
+
+### Files Affected
+
+- `backend/utils/member-capability.helpers.js`
+- `backend/utils/member-activity.helpers.js`
+- `backend/services/member.service.js`
+- `backend/services/store-checkout.service.js`
+- `backend/services/invoice.service.js`
+- `backend/services/preferred-attribution.service.js`
+- `backend/services/payout.service.js`
+- `backend/services/wallet.service.js`
+- `backend/services/member-business-center.service.js`
+- `index.html`
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+### Design Decisions
+
+- Reservation package is placement-only and non-earning by default; commission and payout surfaces are blocked server-side.
+- Reservation package is treated as free-tier origin for upgrade progression to avoid introducing a parallel upgrade ladder.
+- Access model is view-first: pending users keep dashboard + tree visibility while all growth/earning mutations are gated.
+
+### Known Limitations
+
+- No dedicated database migration file was introduced in this pass because package/state handling is currently driven by existing record fields and runtime logic.
+- Admin-side package catalogs outside the touched member/tree flows may require a follow-up if reservation plan must appear everywhere in admin tooling.
+
+### Validation
+
+- `node --check backend/services/member.service.js`
+- `node --check backend/services/store-checkout.service.js`
+- `node --check backend/services/invoice.service.js`
+- `node --check backend/services/preferred-attribution.service.js`
+- `node --check backend/services/payout.service.js`
+- `node --check backend/services/wallet.service.js`
+- `node --check backend/services/member-business-center.service.js`
+- `node --check backend/utils/member-capability.helpers.js`
+- `node --check backend/utils/member-activity.helpers.js`
+- `node --check binary-tree-next-app.mjs`
+
+## Addendum (2026-04-25) - Pending Reservation UI: Rank Suppression + Upgrade Toast On Restricted Navigation
+
+### Request Applied
+
+- For Membership Placement Reservation (`Pending`) users:
+  - do not show a normal account rank under the dashboard `Account Active Until` KPI.
+  - when clicking `Enroll Member` or `Preferred Customers`, show toast: `Account Upgrade Required.`
+
+### What Was Changed
+
+- Updated `index.html` dashboard KPI rendering:
+  - in `renderDashboardAccountOverviewKpi(...)`, pending users now render `Rank: --` instead of inherited paid-rank labels.
+- Added lightweight toast utility in `index.html`:
+  - `ensureAccountUpgradeToastElement(...)`
+  - `showAccountUpgradeRequiredToast(...)`
+  - message constant `ACCOUNT_UPGRADE_REQUIRED_TOAST_MESSAGE = 'Account Upgrade Required.'`
+- Updated page gating logic in `setPage(...)`:
+  - when pending users attempt `enroll-member` or `preferred-customer`, existing redirect-to-dashboard remains in place.
+  - if request is user-click initiated (`showUpgradeToast: true`), toast now appears.
+- Updated click handlers:
+  - sidebar nav clicks now pass `showUpgradeToast: true` into `setPage(...)`.
+  - quick action `Enroll Member` button now triggers the same toast when blocked.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Design Decisions
+
+- Kept existing backend/front-end restriction flow unchanged; added toast as UX feedback layer.
+- Scoped rank suppression to the `Account Active Until` dashboard KPI to avoid unintended side effects in commission/rank internals.
+
+### Validation
+
+- Parsed all inline scripts in `index.html` via Node function compilation check.
+
+## Addendum (2026-04-25) - Upgrade-Required Toast Position + Theme Adjustment
+
+### Request Applied
+
+- Moved `Account Upgrade Required` toast to a below-center / bottom-center position.
+- Switched toast styling to a stronger red warning treatment.
+
+### What Was Changed
+
+- Updated toast class list in `ensureAccountUpgradeToastElement(...)`:
+  - position changed from top-right to horizontal center near lower viewport (`left-1/2`, `-translate-x-1/2`, `bottom-14`).
+  - width constrained for mobile/desktop balance (`w-[min(92vw,26rem)]`).
+  - visual style changed to red warning:
+    - `border-semantic-danger/45`
+    - `bg-semantic-danger-bg/95`
+    - `text-semantic-danger`
+    - centered text + slightly stronger weight.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Upgrade Toast Text Contrast Adjustment
+
+### Request Applied
+
+- Changed pending upgrade-required toast font color to white for stronger readability.
+
+### What Was Changed
+
+- In `index.html` (`ensureAccountUpgradeToastElement(...)`), updated toast class from `text-semantic-danger` to `text-white`.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Upgrade Toast Duration Increased
+
+### Request Applied
+
+- Increased upgrade-required toast visible duration so it stays on screen a little longer.
+
+### What Was Changed
+
+- In `index.html` (`showAccountUpgradeRequiredToast(...)`), changed visible timeout from `2200ms` to `3200ms` before fade-out.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Restricted Nav UX Fix (No Forced Home Redirect)
+
+### Issue
+
+- Pending reservation users clicking `Enroll Member` / `Preferred Customers` from non-dashboard pages were being redirected to Home before seeing the toast.
+
+### Fix Applied
+
+- Updated `setPage(...)` restriction branch in `index.html`:
+  - keeps existing feedback + toast behavior.
+  - when `preserveCurrentPageOnRestricted: true`, function now returns early and does **not** change active page.
+- Updated sidebar nav click calls to pass:
+  - `showUpgradeToast: true`
+  - `preserveCurrentPageOnRestricted: true`
+- Updated quick action Enroll handler:
+  - removed forced `setPage('dashboard')` redirect when restricted.
+
+### Outcome
+
+- Pending users now get `Account Upgrade Required.` toast on the page they are currently viewing.
+- No unwanted jump back to Home during blocked navigation attempts.
+
+### Files Affected
+
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Reservation Account: Hide Account-Until Badge Strip
+
+### Request Applied
+
+- In Dashboard `Account Active Until` section, remove/hide the badge strip for reservation (`Pending`) users.
+
+### What Was Changed
+
+- Updated `renderDashboardAccountKpiBadges(...)` in `index.html`:
+  - added early guard using `isPendingMembershipReservationUser(currentSessionUser)`.
+  - when true, badge strip is cleared + hidden and hovercard is force-closed.
+
+### Outcome
+
+- Reservation/Pending accounts no longer show account-status badge icons in the `Account Active Until` card.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Reservation Dashboard Visibility: Hide Business Centers + Fast Track Panel
+
+### Request Applied
+
+- For reservation/pending users on the dashboard:
+  - hide `Business Centers`
+  - hide `Fast Track Bonus` panel
+
+### What Was Changed
+
+- In `index.html`:
+  - added dashboard reference `businessCenterPanelElement` for `#business-center-panel`.
+  - updated `renderDashboardAccountOverviewKpi(...)` to toggle visibility by pending state:
+    - `businessCenterPanelElement.classList.toggle('hidden', isPending)`
+    - `fastTrackBonusPanelElement.classList.toggle('hidden', isPending)`
+
+### Outcome
+
+- Reservation/pending accounts no longer see Business Centers or Fast Track Bonus card on dashboard.
+- Visibility auto-restores for non-pending users (including after upgrade) because toggle runs during KPI re-render.
+
+### Validation
+
+- Inline script parse check passed for `index.html`.
+
+## Addendum (2026-04-25) - Fast Track Upgrade Path Rule Alignment (Preferred + Reservation Entry Plans)
+
+### Review Scope
+
+- Reviewed upgrade paths for:
+  1. `preferred-customer-pack` -> paid package
+  2. `membership-placement-reservation` -> paid package
+  3. paid package -> higher paid package
+
+### Finding
+
+- `membership-placement-reservation` -> paid upgrade path did not qualify for sponsor Fast Track credit in `upgradeMemberAccount(...)`.
+- Existing condition only allowed first-upgrade Fast Track when current package was `preferred-customer-pack`.
+
+### Fix Applied
+
+- Updated Fast Track eligibility condition in `backend/services/member.service.js`:
+  - first paid upgrade now includes both entry plans:
+    - `preferred-customer-pack`
+    - `membership-placement-reservation`
+  - paid->paid upgrades remain excluded.
+- Updated Fast Track upgrade status messages to be route-neutral (`First paid upgrade...`) rather than `Preferred`-only wording.
+
+### Resulting Rules Enforced
+
+- Preferred -> paid: sponsor Fast Track applies.
+- Reservation -> paid: sponsor Fast Track applies.
+- Paid -> higher paid: no Fast Track applies.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+
+## Follow-up Addendum (2026-04-25) - Fast Track Upgrade Sponsor Resolution Fallback (Attribution Owner)
+
+### Additional Rule Alignment
+
+- Expanded first-paid-upgrade Fast Track sponsor resolution to honor attribution owner when direct sponsor username is missing.
+
+### What Was Changed
+
+- In `backend/services/member.service.js` (`upgradeMemberAccount`):
+  - added `resolveSponsorUsernameFromAttributionCode(...)`.
+  - sponsor lookup now resolves in order:
+    1. direct sponsor username
+    2. store attribution owner username (from member/user attribution code)
+  - Fast Track success message now reflects whether payout used direct sponsor or attribution owner.
+
+### Outcome
+
+- First paid upgrades for preferred/reservation accounts can credit Fast Track to direct sponsor or attributed owner (when available).
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+
+## Addendum (2026-04-25) - Account Upgrade Split Product Allocation (MetaCharge + MetaRoast)
+
+### Request Applied
+
+- Expanded account-upgrade product handling from single-product quantity to split-product allocation.
+- Target behavior: during package upgrade, product gain can be split between `MetaCharge` and `MetaRoast` while preserving full package product totals.
+- Example target behavior implemented: `Personal (3) -> Legacy (20)` yields `+17` gain, with split logic producing `+7` carryover product and `+10` selected split product.
+
+### What Was Changed
+
+- `binary-tree-next-app.mjs`
+  - added split allocator for My Store upgrade flow:
+    - computes `carryover` quantity against half-target threshold
+    - computes remaining quantity for selected split product
+  - checkout now submits two `cartLines` for upgrade checkouts when split applies.
+  - review/checkout labels now show split summary (e.g., `MetaCharge 7x + MetaRoast 10x`).
+  - checkout payload now sends `accountUpgradeSelectedProductKey` metadata for backend upgrade application.
+
+- `binary-tree-next.html`
+  - updated My Store upgrade copy to reflect split-product selection semantics.
+
+- `store-dashboard.html`
+  - replaced single-product upgrade quote builder with split-quote logic.
+  - checkout now sends split cart lines (`carryover + selected`) instead of one line.
+  - upgrade payload now includes `accountUpgradeSelectedProductKey`.
+  - pending checkout summary now persists split product label text.
+  - product picker copy updated to reflect split behavior.
+
+- `backend/services/store-checkout.service.js`
+  - added upgrade product-key normalization helpers for checkout metadata.
+  - persisted `account_upgrade_selected_product_key` into Stripe metadata (payment intent + hosted session).
+  - account-upgrade finalization now reads this key from metadata and forwards it to `upgradeMemberAccount`.
+
+- `backend/services/member.service.js`
+  - added backend split-allocation resolver (`selected + carryover`) tied to package product counts.
+  - `upgradeMemberAccount(...)` now accepts split selected-product keys and returns:
+    - `upgrade.productAllocation`
+    - split labels/quantities for both products.
+
+- `index.html`
+  - account upgrade success feedback now surfaces backend split summary when available (`upgrade.productAllocation.splitLabel`).
+
+### Design Decisions
+
+- Used a deterministic half-target balancing rule:
+  - carryover product receives quantity needed to reach half of target package total.
+  - selected split product receives the remainder of upgrade gain.
+- Kept checkout as source-of-truth for purchasable upgrade product lines by sending split `cartLines`.
+- Kept direct `POST /api/member-auth/upgrade-account` backward compatible; split selection is optional.
+
+### Known Limitations
+
+- Direct dashboard upgrade (`index.html`) currently does not expose a split-product picker UI; backend will still return split allocation using default fallback when no product key is provided.
+- Historical per-member starter product ownership is not persisted in dedicated columns yet; carryover identity in direct API-only flow relies on selected/default split input rather than stored product history.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+- `store-dashboard.html`
+- `backend/services/store-checkout.service.js`
+- `backend/services/member.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/preferred-dashboard-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/BackEnd-Notes.md`
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- Inline script parse check passed for:
+  - `store-dashboard.html`
+  - `index.html`
+
+## Addendum (2026-04-25) - Reservation My Store Checkout + Personal BV Credit
+
+### Request Applied
+
+- Reserved/Pending members can now complete product checkout from `My Store` and receive personal BV credit from those purchases.
+
+### What Was Changed
+
+- `index.html`
+  - removed reservation-only checkout block in `renderCart()` so checkout button stays available when cart + attribution are valid.
+  - removed reservation early-return gates in:
+    - `checkoutCart()`
+    - `createInvoiceFromLines(...)`
+  - updated store routing helpers to keep attribution routing available for reservation users:
+    - `resolveRegisteredAttributionCode()`
+    - `resolveCheckoutStoreRouting()`
+  - updated `shouldBuyerReceiveStorePurchaseBv(...)` so reservation buyers are no longer excluded from buyer BV credit logic.
+
+- `backend/services/member.service.js`
+  - `recordMemberPurchase(...)` now supports scoped option `allowPendingPersonalBvCredit`.
+  - when this scoped option is used for reservation/pending members:
+    - personal BV fields are still updated
+    - account status is explicitly preserved as `pending` (no auto-activation).
+
+- `backend/services/store-checkout.service.js`
+  - buyer BV credit call now passes `allowPendingPersonalBvCredit: true` when recording buyer store-purchase BV.
+  - owner/attribution pending restrictions remain unchanged.
+
+### Design Decisions
+
+- Kept reservation store-link restrictions intact (copy/store-link sharing still blocked) while allowing direct buyer checkout from dashboard store.
+- Scoped pending BV exception narrowly to checkout buyer-credit path instead of globally allowing pending purchase-record APIs.
+- Preserved `Pending` status after reservation BV credit to avoid accidental eligibility/activation changes.
+
+### Known Limitations
+
+- Checkout still requires a resolved attribution mapping (`storeAppliedUplineCode`); if mapping is missing, checkout remains blocked with existing attribution error messaging.
+
+### Files Affected
+
+- `index.html`
+- `backend/services/member.service.js`
+- `backend/services/store-checkout.service.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/public-store-page.md`
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- Inline script parse check passed for `index.html` (`3` inline blocks).
+
+## Addendum (2026-04-25) - Upgrade Product Selection Modes (All MetaCharge / All MetaRoast / Split)
+
+### Request Applied
+
+- Converted forced split behavior into explicit selectable modes for account upgrades.
+- Users can now choose:
+  - All `MetaCharge`
+  - All `MetaRoast`
+  - `Split Products`
+
+### What Was Changed
+
+- `binary-tree-next.html`
+  - kept/updated 3-option upgrade selector labels (`All MetaCharge`, `All MetaRoast`, `Split Products`).
+  - checkout subtitle copy now uses neutral `product allocation` wording.
+
+- `binary-tree-next-app.mjs`
+  - added upgrade product mode model and normalization helpers.
+  - replaced forced-split resolver with mode-aware allocation resolver.
+  - selection state now persists `upgradeProductMode` and `upgradeProductKey`.
+  - selector button active state now maps to mode (not only product key).
+  - checkout payload now sends:
+    - `accountUpgradeSelectedProductKey`
+    - `accountUpgradeProductMode`
+
+- `store-dashboard.html`
+  - added mode constants and mode-aware quote/allocation logic.
+  - upgrade picker now supports 3 options in markup and runtime (`All MetaCharge`, `All MetaRoast`, `Split Products`).
+  - checkout payload now sends:
+    - `accountUpgradeSelectedProductKey`
+    - `accountUpgradeProductMode`
+
+- `backend/services/store-checkout.service.js`
+  - added upgrade mode normalization and metadata resolver.
+  - persisted `account_upgrade_product_mode` in Stripe metadata (payment-intent + hosted-session paths).
+  - account-upgrade finalization now forwards both selected key + mode to `upgradeMemberAccount(...)`.
+  - compatibility fallback: legacy payloads with selected key but no mode are interpreted as `split`.
+
+- `backend/services/member.service.js`
+  - added mode constants and mode normalization.
+  - `resolveAccountUpgradeProductAllocation(...)` is now mode-aware:
+    - `all-metacharge`
+    - `all-metaroast`
+    - `split`
+  - `upgradeMemberAccount(...)` now accepts/normalizes `upgradeSplitProductMode` and related aliases.
+  - `upgrade.productAllocation` now includes selected mode in response.
+
+- `index.html`
+  - account-upgrade success feedback label changed from `Product split` to neutral `Product allocation`.
+
+### Design Decisions
+
+- Kept split algorithm unchanged for split mode (carryover to half-target, remainder to selected product).
+- Kept selected product key in split mode so users can still anchor split direction.
+- Added backward compatibility at backend mode normalization to avoid incorrect allocation for in-flight legacy checkouts.
+
+### Known Limitations
+
+- Split direction UI is still anchored through selected product key; there is no separate secondary control dedicated only to split-direction labeling.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `store-dashboard.html`
+- `backend/services/store-checkout.service.js`
+- `backend/services/member.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/preferred-dashboard-page.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/BackEnd-Notes.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/services/member.service.js` passed.
+- inline script parse checks passed for:
+  - `store-dashboard.html`
+  - `index.html`
+
+## Addendum (2026-04-26) - Interactive Split Uses Owned Product + Binary Tree Enrollment Product Field
+
+### Request Applied
+
+- Made split allocation truly ownership-aware for account upgrades.
+- Added explicit product selection in Binary Tree enrollment checkout flow.
+- Preserved all three upgrade modes:
+  - `All MetaCharge`
+  - `All MetaRoast`
+  - `Split Products`
+
+### What Was Changed
+
+- `binary-tree-next.html`
+  - added a new Step 2 `Product` field (`MetaCharge` / `MetaRoast`) in enrollment.
+  - added checkout summary row in Step 3 to explicitly show selected product.
+
+- `binary-tree-next-app.mjs`
+  - added enrollment product constants, resolver, validation, and summary sync.
+  - enrollment submit payload now includes `enrollmentProductKey`.
+  - wired product select reset/init behavior with existing custom-select flow.
+  - My Store upgrade split now resolves carryover side from the member’s current owned product key.
+  - split button behavior now maps to ownership-aware allocation.
+
+- `backend/services/member.service.js`
+  - enrollment checkout + payment-intent metadata now persist `enrollment_product_key`.
+  - enrollment completion now reads and stores product ownership as `currentPackageProductKey`.
+  - `createRegisteredMember(...)` now persists `currentPackageProductKey` to user/member records.
+  - `upgradeMemberAccount(...)` split allocation now uses stored owned-product key for lesser/carryover side.
+  - upgrade persistence now updates `currentPackageProductKey` after each upgrade path.
+
+- `backend/stores/user.store.js`
+  - added persistence and schema ensure support for `member_users.current_package_product_key`.
+  - read/write/upsert/find/update queries now map `currentPackageProductKey`.
+
+- `backend/stores/member.store.js`
+  - added persistence and schema ensure support for `registered_members.current_package_product_key`.
+  - read/write/upsert mappings include `currentPackageProductKey`.
+
+- `backend/utils/auth.helpers.js`
+  - auth/session response now includes `currentPackageProductKey`.
+
+### Design Decisions
+
+- For split mode, carryover product is now anchored to previously owned product key (historical ownership), not inferred as complement of newly selected product.
+- For all-single-product modes, current package product key is updated to selected product.
+- For split mode persistence, current package product key remains aligned with carryover/owned side.
+
+### Known Limitations
+
+- Existing historical accounts without stored product ownership default to `MetaCharge` until they perform an enrollment/upgrade path that persists product ownership data.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+- `backend/services/member.service.js`
+- `backend/stores/user.store.js`
+- `backend/stores/member.store.js`
+- `backend/utils/auth.helpers.js`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+- `node --check backend/services/member.service.js` passed.
+- `node --check backend/stores/user.store.js` passed.
+- `node --check backend/stores/member.store.js` passed.
+- `node --check backend/utils/auth.helpers.js` passed.
+
+## Addendum (2026-04-26) - Binary Tree My Store Review Layout Overlap Fix
+
+### Request Applied
+
+- Fixed Binary Tree My Store review-card layout where upgrade option buttons and the `Checkout` button could overlap in narrower panel widths.
+
+### What Was Changed
+
+- `binary-tree-next.html`
+  - refactored `.tree-next-my-store-review-card` from rigid two-column grid to wrap-safe flex layout.
+  - set `.tree-next-my-store-review-main` as flexible primary column with responsive minimum width constraints.
+  - set `.tree-next-my-store-review-side` to a fixed-action column that wraps to its own row when space is insufficient.
+  - tightened `.tree-next-my-store-review-checkout` sizing (`min-width: min(220px, 100%)`) to prevent overflow.
+  - updated responsive/container rules so side actions center cleanly when wrapped.
+
+### Design Decisions
+
+- Used width-adaptive wrapping instead of viewport-only breakpoints so the layout responds to the actual modal/panel width.
+- Preserved desktop visual hierarchy (details left, price/actions right) while preventing collisions at intermediate widths.
+
+### Known Limitations
+
+- This pass addressed overlap/layout flow only; no checkout logic or product-allocation business rules were changed.
+
+### Files Affected
+
+- `binary-tree-next.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-27) - Binary Tree Details Dynamic Cutoff Metrics + Lifetime Row Removal
+
+### Request Applied
+
+- Verified Binary Tree left Details metrics were lifetime-derived for most selected nodes.
+- Updated selected-node loop metrics to use server-cutoff current-week values (post-consumption carry-over) when identity is available.
+- Removed lifetime `Total Organizational BV` from the Details panel for now.
+
+### What Was Changed
+
+- `binary-tree-next-app.mjs`
+  - added node-scoped server-cutoff metrics cache + in-flight request dedupe for `/api/member/server-cutoff-metrics`.
+  - added selected-node identity resolver (`userId`/`username`/`email`) with root/admin/masked-node exclusions.
+  - added refresh hooks on node selection and lazy refresh during render for missing/stale cache entries.
+  - updated `resolveNodeLoopDisplayMetrics(...)` to prefer node-scoped cutoff metrics (or account-overview cutoff metrics for home/session identity), with fallback to branch totals when unavailable.
+  - removed Details metric row: `Total Organizational BV`.
+
+### Design Decisions
+
+- Kept admin/system totals excluded from cutoff reward lookup.
+- Kept fallback rendering so panel remains populated even if cutoff endpoint is temporarily unavailable.
+- Used short-lived cache (`12s`) to balance responsiveness and request load.
+
+### Known Limitations
+
+- First render after selecting a new node can briefly show fallback values until cutoff metrics return.
+- Nodes without resolvable identity continue using fallback branch totals.
+
+### Files Affected
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Addendum (2026-04-27) - Cutoff Personal BV Reset Fix + 1000/1000 Cycle Rule Alignment
+
+### Request Applied
+
+- Kept Personal BV reset behavior tied to account activity duration (30-day window/expiry) instead of weekly force-cutoff runs.
+- Restored `Total Organizational BV` row on Binary Tree left Details panel.
+- Updated cycle consumption rule so strong leg no longer consumes `500`; both weak/strong legs consume `1000` per cycle.
+
+### What Was Changed
+
+- `backend/services/admin.service.js`
+  - removed user/member personal baseline rewrites from `forceServerCutoff(...)` (no more cutoff-time personal PV flush side-effect).
+  - cycle thresholds now enforce `1000/1000` minimum.
+  - force-cutoff cycle settlement now calculates commission cycles from **current-week** volumes (`total - baseline`) instead of lifetime totals.
+- `backend/services/cutoff.service.js`
+  - normalized returned cycle thresholds to `>=1000` for both legs.
+- `backend/services/metrics.service.js`
+  - binary snapshot sanitizer now normalizes `cycleLowerBv/cycleHigherBv` to `>=1000`.
+- `backend/services/member-business-center.service.js`
+  - business-center cycle split thresholds normalized to `1000/1000`.
+- `index.html`
+  - dashboard cycle constants updated to `1000/1000`.
+  - cutoff/dashboard cycle math now respects updated threshold floors.
+- `admin.html`
+  - admin cycle constants updated to `1000/1000`.
+  - admin cutoff card estimated-cycle formula aligned with weak/high + strong/low pattern.
+- `binary-tree-next-app.mjs`
+  - Tree Next cycle constants added and normalized to `1000/1000`.
+  - node loop cycle fallback logic updated from `1000/500` to `1000/1000`.
+  - re-added Details row `Total Organizational BV`.
+
+### Design Decisions
+
+- Personal BV lifecycle remains account-duration based (`activityActiveUntilAt`), while weekly cutoff only consumes/carries leg BV.
+- Enforced threshold floors in API normalization paths so old snapshots with `500` do not reintroduce legacy behavior.
+
+### Known Limitations
+
+- Existing historical snapshot/state data created before this patch may still contain prior baseline/threshold values until refreshed by new writes/cutoff runs.
+
+### Files Affected
+
+- `backend/services/admin.service.js`
+- `backend/services/cutoff.service.js`
+- `backend/services/metrics.service.js`
+- `backend/services/member-business-center.service.js`
+- `index.html`
+- `admin.html`
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+- `Claude_Notes/member-dashboard-page.md`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/BackEnd-Notes.md`
+
+### Validation
+
+- `node --check backend/services/admin.service.js` passed.
+- `node --check backend/services/cutoff.service.js` passed.
+- `node --check backend/services/metrics.service.js` passed.
+- `node --check backend/services/member-business-center.service.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+- inline script parse checks passed for `index.html` and `admin.html`.
+
+### Patch Note (2026-04-27)
+- Added force-cutoff baseline safety guard: when a member has no matching binary snapshot, cutoff baseline state now keeps existing baseline values instead of resetting to `0`.
+- File: `backend/services/admin.service.js`
+- Validation: `node --check backend/services/admin.service.js` passed.
+
+## Update (2026-04-27) - Binary Weekly Cutoff Carry Forward/Flush Rule Hardening (1000/500, Strong-Leg Tie-Left)
+
+### What changed
+- Implemented deterministic binary cycle math for weekly cutoff with these rules:
+  - Strong leg consumes `1000 BV` per cycle.
+  - Weaker leg consumes `500 BV` per cycle.
+  - Strong leg is whichever side has higher BV at cutoff.
+  - Tie-breaker is deterministic: if left BV equals right BV, `Left` is always treated as strong.
+- Added reusable helper module to centralize cycle math and cutoff carry-forward state transitions:
+  - `backend/utils/binary-cycle.helpers.js`
+  - Includes `resolveBinaryCycleComputation(...)` and `resolveServerCutoffCarryForwardState(...)`.
+- Updated force cutoff settlement logic in `backend/services/admin.service.js`:
+  - Cycle payout computation now uses the shared helper and strict strong/weak deduction.
+  - Carry-forward baseline update now flushes carry-forward to `0/0` (by advancing baselines to total leg BV) when member is inactive at cutoff.
+  - Carry-forward baseline update remains idempotent across repeated cutoffs.
+  - Added cutoff-time audit logging entries for:
+    - BV consumed for cycle payout
+    - BV carried forward
+    - BV flushed due to inactivity
+- Updated member cutoff metrics service (`backend/services/cutoff.service.js`) to use same cycle model for estimated cycles.
+- Updated snapshot sanitization/storage defaults:
+  - `backend/services/metrics.service.js`
+  - `backend/stores/metrics.store.js`
+  - Normalized cycle fields to strong=`1000`, weak=`500` to avoid drifting rule values.
+- Updated business-center cycle settlement path (`backend/services/member-business-center.service.js`) to reuse deterministic strong-leg cycle helper and 1000/500 deduction semantics.
+
+### Active/inactive cutoff rule handling
+- Cutoff activity gate now evaluates cutoff eligibility using personal BV threshold semantics for cutoff processing (strict threshold check from resolved activity state fields), instead of only relying on broader activity-window/warning behavior.
+- Inactive at cutoff:
+  - No cycle payout is applied.
+  - Carry-forward is flushed (`left/right carry => 0/0` through baseline alignment to total).
+- Active at cutoff:
+  - Unused weekly BV carries forward.
+
+### Files affected
+- `backend/utils/binary-cycle.helpers.js` (new)
+- `backend/services/admin.service.js`
+- `backend/services/cutoff.service.js`
+- `backend/services/metrics.service.js`
+- `backend/stores/metrics.store.js`
+- `backend/services/member-business-center.service.js`
+- `backend/tests/binary-cycle-cutoff.test.js` (new)
+- `package.json`
+
+### Test coverage added
+- Added Node built-in tests for requested carry-forward/cycle/flush scenarios:
+  - active 900/400 => carry-forward unchanged
+  - active 1000/500 => one cycle, zero carry
+  - active 2500/1200 and mirrored 1200/2500 => expected cycles and remainders
+  - inactive cutoff flushes carry-forward to 0/0
+  - reactivation after flush does not resurrect old flushed BV
+  - one-leg-only active carries forward
+  - one-leg-only inactive flushes to 0/0
+  - repeated cutoffs remain idempotent
+  - new weekly BV not double-counted against prior carry
+  - non-negative safeguards
+  - explicit tie-breaker validation (left strong on equal BV)
+
+### Validation
+- `node --check backend/utils/binary-cycle.helpers.js`
+- `node --check backend/services/admin.service.js`
+- `node --check backend/services/cutoff.service.js`
+- `node --check backend/services/metrics.service.js`
+- `node --check backend/stores/metrics.store.js`
+- `node --check backend/services/member-business-center.service.js`
+- `node --check backend/tests/binary-cycle-cutoff.test.js`
+- `npm.cmd run test:binary-cycle` (11/11 pass)
+
+### Known limitations / follow-ups
+- Existing UI layers may still contain hardcoded display assumptions from prior cycle-rule variants; cutoff backend is now authoritative and deterministic for payout/carry-forward behavior.
+
+## Update (2026-04-27) - Personal BV Zero Fallback Fix (Zeroone Restore)
+
+### Problem
+- `zeroone` still showed `0` Personal BV in some UI contexts even though DB records retained Personal BV.
+- Root cause: several fallback paths derived Personal BV as `starterPersonalPv - serverCutoffBaselineStarterPersonalPv`.
+- When baseline equals starter (common after cutoff baseline snapshots), fallback incorrectly resolved to `0`.
+
+### What changed
+- Reworked Personal BV fallback logic to avoid server-cutoff baseline subtraction for account activity/current Personal BV contexts.
+- Personal BV now resolves as:
+  - explicit current personal BV fields first (`currentPersonalPvBv` / `monthlyPersonalBv`)
+  - fallback to `starterPersonalPv`
+  - activity-window expiry still gates display to `0` when account window is actually expired
+- Applied in:
+  - backend activity snapshot helper
+  - member dashboard personal BV resolver
+  - Binary Tree node + root personal BV resolvers
+  - Binary Tree enrollment placement immediate node hydration
+
+### Files updated
+- `backend/utils/member-activity.helpers.js`
+- `index.html`
+- `binary-tree-next-app.mjs`
+
+### Verification
+- Live DB check for `zeroone`:
+  - `charge.member_users.current_personal_pv_bv = 1304`
+  - `charge.member_users.starter_personal_pv = 1304`
+  - `charge.registered_members.starter_personal_pv = 1304`
+- Service-level checks:
+  - `resolveMemberPersonalBvSnapshot(...)` now returns `currentPersonalPvBv: 1304` for baseline-equals-starter scenario.
+  - `getRegisteredMembers()` returns `zeroone.currentPersonalPvBv: 1304`.
+  - `getBinaryTreeMetrics({ username: 'zeroone' })` snapshot remains `accountPersonalPv: 1304`.
+- Parse checks:
+  - `node --check backend/utils/member-activity.helpers.js` passed.
+  - `node --check binary-tree-next-app.mjs` passed.
+
+### Notes
+- This is a logic hardening fix; no destructive data resets were applied.
+- Personal BV reset behavior remains governed by activity window/expiry timing, not weekly server-cutoff baseline deltas.
+
+## Update (2026-04-27) - Binary Tree Details Refactor to Monthly Weekly Carousel (Commission UX)
+
+### What Changed
+
+- Refactored only the left-panel `Details` card in `binary-tree-next-app.mjs` into a monthly weekly carousel model.
+- Kept Search, Favorites, side-panel shell framing, and member-status card behavior intact.
+- Added month/week carousel state and interactions:
+  - month navigation arrows
+  - week tabs (`Week 1` ... `Week 5` when applicable)
+  - horizontal swipe support on the Details card (mobile + pointer)
+- Added Details-carousel gesture routing so horizontal swipes stay inside the card while vertical touch drags hand off to panel scrolling.
+- Added browser-touch guard participation for Details drag state to reduce back-swipe/page-pan conflicts while swiping inside the card.
+
+### Weekly Card Data Model in UI
+
+- Introduced a UI snapshot model derived from existing metrics (no backend cycle logic rewrite):
+  - `totalLeftBV`
+  - `totalRightBV`
+  - `consumedLeftBV`
+  - `consumedRightBV`
+  - `availableLeftBV = totalLeftBV - consumedLeftBV`
+  - `availableRightBV = totalRightBV - consumedRightBV`
+  - cycle/strong-leg/consumed-per-week/carry-forward fields
+  - personal activity + team-generated totals
+- Updated cutoff metrics parsing (`resolveAccountOverviewServerCutoffMetricsRecord`) so the Details card can use returned total/baseline/current-week fields directly when present.
+
+### Details Card Content Now Shown
+
+- Header:
+  - `Month + Week`
+  - date range
+  - status chip: `Current Week`, `Closed Cutoff`, or `Pending`
+- Primary volume rows:
+  - `Available Left Leg BV`
+  - `Available Right Leg BV`
+- Cycle result rows:
+  - `Cycles Earned`
+  - `Strong Leg`
+  - `Left Consumed BV`
+  - `Right Consumed BV`
+- Carry-forward rows:
+  - `Left Carry Forward BV`
+  - `Right Carry Forward BV`
+  - `Carry Forward Status` (`Preserved` / `Flushed`)
+- Personal activity rows:
+  - `Personal BV`
+  - `Active Status`
+- Secondary team row:
+  - `Team Generated BV`
+- Helper text added:
+  - `Available BV is the Business Volume still usable for your next cycle.`
+  - `Consumed BV was already used for paid cycles.`
+
+### Current Week Detection
+
+- Current week is resolved from local date at render time:
+  - current month key: `YYYY-MM`
+  - week number in month: `floor((dayOfMonth - 1) / 7) + 1`
+- On node selection change, carousel defaults back to the current month + current week.
+
+### Carry Forward Across Months
+
+- Snapshot projection is continuous across week navigation (including month boundaries):
+  - future week availability starts from prior week carry-forward
+  - inactive status flushes carry-forward (`0/0`)
+- This keeps continuity behavior intact at the UI model layer, so moving from prior-month final week to next-month week 1 preserves carry-forward flow semantics.
+
+### Files Updated
+
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Known Limitations / Assumptions
+
+- Weekly historical snapshots are derived from currently available cutoff metrics + deterministic projection, because historical per-week records are not yet returned by current APIs.
+- Past weeks therefore render as estimated continuity views when direct historical weekly snapshots are unavailable.
+- Tried to run screenshot workflow via `screenshot.mjs` against `http://127.0.0.1:5500`, but no active local server contract was available in this workspace (`serve.mjs` missing), so visual screenshot verification could not be completed in this pass.
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Carousel Cycle Fallback + Week Label Compliance
+
+- Adjusted Details-carousel fallback cycle thresholds to remain consistent with current tree cycle rule (`1000/1000`):
+  - `TREE_NEXT_DETAILS_FALLBACK_WEAK_LEG_BV` changed from `500` to `1000`.
+- Updated week tab text from compact `W#` to explicit `Week #` labels for monthly reset clarity.
+- Parse validation: `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Card Simplification (Clean Readability Pass)
+
+### What Changed
+- Reworked `drawSideNavDetailsCarouselCard(...)` for a cleaner information hierarchy and reduced visual noise.
+- Removed per-row username clutter from the Details body and replaced it with a compact active/inactive chip near member name.
+- Redesigned weekly tabs with centered, equal-width layout math to eliminate uneven spacing/gap drift:
+  - deterministic `weekTabsStartX`
+  - adaptive tab gap for 5-week months
+  - explicit tab stroke for clearer hit targets
+- Converted primary BV into two emphasized cards:
+  - `Available Left Leg BV`
+  - `Available Right Leg BV`
+- Reduced metrics density into a compact readable list:
+  - `Cycles Earned`
+  - `Strong Leg`
+  - `Consumed BV (Left / Right)`
+  - `Carry Forward BV (Left / Right)`
+  - `Carry Forward Status`
+  - `Personal BV`
+  - `Activity Status`
+  - `Team Generated BV`
+- Kept helper clarification text for Available vs Consumed BV semantics.
+
+### Design Intent
+- Make the card feel close to the previous clean state while retaining commission-week context.
+- Prioritize scanability on laptop/mobile by reducing duplicated rows and improving alignment consistency.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Card Matched to Provided Reference Style
+
+### Applied UI Match Changes
+- Reworked Details card to mirror the provided visual structure:
+  - centered avatar with active-dot overlay
+  - centered member name + username
+  - centered month with left/right chevrons and centered date range
+  - rounded week pills with blue selected state and neutral unselected state
+  - two rounded primary BV tiles (`Available Left Leg BV`, `Available Right Leg BV`)
+  - compact 6-row metrics list with horizontal dividers
+  - two bottom blue relation buttons (parent/sponsor focus actions)
+- Removed non-reference visual clutter:
+  - removed top "Details" heading from card body
+  - removed extra status chip near header
+  - removed helper copy block from bottom to keep clean visual hierarchy
+- Kept backend/logic behavior intact (carousel selection, swipe actions, BV snapshot semantics).
+
+### Week Spacing Fix
+- Week tabs now use centered equal-width layout with deterministic start offset (`weekTabsStartX`) and adaptive gap logic for 4/5-week months to avoid uneven edge gaps.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Restored Original Bottom Relation Button Style
+
+- Reverted bottom relation buttons in Details card to prior/original visual style treatment:
+  - fill colors: enabled `#D0E6FF`, disabled `#E1EBF8`
+  - text colors: enabled `#077AFF`, disabled `#7D9BC2`
+  - old icon sizing/left-anchor balance and centered label alignment
+  - rounded radius restored to previous style (`23`)
+- Kept current overall card layout and data rows intact; only bottom button styling/behavior was adjusted.
+- Validation: `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - User Profile Header Rolled Back To Older Design
+
+- Updated Details card user profile area to match older design treatment:
+  - static blue gradient avatar circle (`#8BBBF5 -> #3296F6`)
+  - clean active/inactive status dot overlay
+  - centered name/username typography and spacing aligned to original design intent
+- Kept month/week carousel behavior and bottom-button rollback unchanged.
+- Validation: `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Profile Node Initials + Old Avatar Behavior Restored
+
+- Restored old user-profile node behavior in Details header:
+  - avatar now uses legacy `drawResolvedAvatarCircle(...)` path
+  - initials render inside avatar again when no photo is present
+- Kept the newer position/layout placement (header location unchanged).
+- Validation: `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Available Left/Right BV Zero Fallback Fix
+
+- Fixed Details snapshot resolver where `Available Left/Right BV` could be forced to `0` due to stale/zero cutoff totals.
+- Added reliability guard in `resolveDetailsCarouselSnapshot(...)`:
+  - if cutoff current-week BV reads `0/0` while loop/tree fallback has positive BV, use fallback available BV source instead of stale cutoff values.
+- Normalized total BV bounds to include max of cutoff totals, volume metrics, fallback loop metrics, and resolved available values before clamping.
+- Result: Available BV tiles now surface real data when cutoff payload is stale/zeroed for selected nodes.
+- Validation: `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Stale Cutoff Override Removed For Available BV
+
+### What Changed
+
+- `binary-tree-next-app.mjs`
+  - updated `resolveNodeLoopDisplayMetrics(...)` so a cutoff payload reporting `currentWeekLeftLegBv = 0` and `currentWeekRightLegBv = 0` no longer overwrites positive subtree fallback volumes.
+  - updated `resolveDetailsCarouselSnapshot(...)` to treat subtree-derived leg volume as a hard fallback floor when resolving available BV and stale cutoff detection.
+
+### Why
+
+- Some members (for example `zerofour`) can have real subtree leg volume (e.g. left-leg `192 BV`) while cutoff metrics endpoint still returns `0/0`.
+- Prior resolver ordering accepted cutoff zeros as authoritative, causing Details tiles to render `0 BV`.
+
+### Scope / Logic Notes
+
+- Backend logic remains unchanged.
+- This patch is UI-source selection only:
+  - prefers cutoff values when valid,
+  - auto-falls back to subtree leg volumes when cutoff appears stale (`0/0` while subtree > 0).
+
+### Validation
+
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Available BV Tile Text Alignment Cleanup
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - refined `drawPrimaryVolumeCard(...)` text layout using center-based offsets instead of fixed top/bottom hardcoded Y positions.
+  - centered both label and value text horizontally in each tile.
+  - lifted BV value baseline upward to remove the low-sitting appearance and keep equal visual padding.
+
+### Result
+- `Available Left Leg BV` and `Available Right Leg BV` tiles now have matching internal spacing and cleaner vertical balance.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Removed Week 5 (Fixed 4-Week Monthly Carousel)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - `resolveDetailsCarouselMonthWeekCount(...)` now always returns `4`.
+  - `resolveDetailsCarouselMonthWeeks(...)` now merges overflow month days into `Week 4` by setting week-4 end date to month end.
+
+### Result
+- Carousel tabs are now always: `Week 1`, `Week 2`, `Week 3`, `Week 4`.
+- Months with 29/30/31 days no longer render `Week 5`; extra days are included in Week 4 date range.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Pre-Join Week Data Accuracy Guard
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added `resolveDetailsCarouselNodeJoinedAtMs(...)` to resolve each node's actual join/create timestamp from node metadata.
+  - updated `resolveDetailsCarouselSnapshot(...)` with a pre-join week guard:
+    - if selected week ends before node join date, week data is zeroed for BV/cycles/carry-forward/team/personal metrics.
+    - active status is set to inactive for those pre-join weeks.
+
+### Why
+- Newly created members (example: `zeroone` around April 20, 2026) should not show commission BV in earlier April weeks.
+
+### Result
+- Weeks before account creation now render clean historical zeros instead of projected current values.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Root Node Join Timestamp Propagation Fix
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - updated `createTreeNextLiveScopedRootNode(...)` to propagate join/create timestamps onto scoped root node:
+    - `createdAt`
+    - `joinedAt`
+    - `enrolledAt`
+    - `updatedAt`
+
+### Why
+- Pre-join week zeroing relied on node join timestamp. The scoped `root` node (viewer account like `zeroone`) did not include these fields, so week gating could not apply and old weeks still showed data.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Joined Date Added Under Username (Details Header)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added joined-date line directly below username in the Details card header.
+  - joined date is resolved from node metadata and rendered using existing `formatAccountOverviewJoinedDate(...)` formatter.
+  - adjusted month-navigation Y offset to preserve vertical rhythm after adding the new line.
+
+### UX Intent
+- Surface account creation anchor clearly for 30-day activity window tracking.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Header Spacing + Persistent Active Week Indicator
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - increased vertical spacing in Details header after adding Joined date line:
+    - name -> username gap
+    - username -> joined date gap
+    - joined date -> month navigation gap
+  - week-tab styling now preserves Active Week identity even when previewing another week:
+    - Active Week (not selected): green tab
+    - Selected preview week (not active): gray tab
+    - Selected + Active: blue tab
+  - added active-week dot marker on the week tab for explicit identification.
+
+### UX Result
+- Header no longer feels cramped after adding joined date.
+- Active Week remains visually identifiable while browsing other weeks.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Weekly Tabs Aligned To Server Cutoff Windows
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - replaced fixed calendar-bucket week generation with cutoff-based week generation using server cutoff weekday/time constants.
+  - each month now builds week tabs from cutoff dates occurring in that month.
+  - each week range now represents one server-cutoff cycle window (`start = cutoff day - 6`, `end = cutoff day`).
+  - current/active week anchor is now derived from `resolveNextServerCutoffDate(...)` and mapped to the matching cutoff week tab.
+
+### Behavioral Effect
+- Week tabs/date ranges now reflect actual weekly server cutoff cycles instead of static day-of-month segmentation.
+- month may show 4 or 5 week tabs depending on how many cutoff dates fall in that month.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Active Week Dot Marker Removed
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - removed the active-week corner dot marker from week tabs.
+  - retained active week color states:
+    - active-only: green
+    - selected preview-only: gray
+    - selected+active: blue
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+### Follow-up (2026-04-30) - Existing Admin Tree Root/Seed Visual Center Alignment
+- `binary-tree-next-engine-adapter.mjs`
+  - added `centerSingleChildRoot` projection mode with single-child root offset normalization.
+  - when root is `root` and exactly one depth-1 node exists, all non-root projected X coordinates are shifted so the seed node sits directly under Admin.
+  - projection alignment is now applied consistently in both:
+    - `computeFrame(...)` node/connectors render projection
+    - `projectLocalPath(...)` anticipation slot projection
+- `binary-tree-next-app.mjs`
+  - enabled `centerSingleChildRoot` for admin source in:
+    - `getUniverseOptions(...)`
+    - `getGlobalUniverseOptions(...)`
+
+Result:
+- Admin (`AD`) no longer appears as if it has left/right branching when only one seed node exists.
+- Existing trees now visually render as `Admin -> SF` centered vertical chain, then normal left/right branching from `SF`.
+
+Validation:
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-29) - Profile Hero Subtext Changed From Node ID To Joined Date
+
+### What Changed
+- `index.html`
+  - Replaced profile account overview subtext from `Node: ...` to `Joined ...`.
+  - Added `resolveProfileAccountOverviewJoinedLabel(...)` to derive joined text from session fields:
+    - `createdAt` / `created_at`
+    - `enrolledAt` / `enrolled_at`
+    - `registeredAt` / `registered_at`
+  - Updated DOM id binding from `profile-account-overview-node` to `profile-account-overview-joined`.
+
+### Why
+- User-facing profile hero should show membership joined date under username, not internal node/member identifier.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Non-Rank Icon Uniformity + Legacy Backfill Eligibility
+
+### What Changed
+- Unified icon rendering for all non-rank achievements to the Founding Ambassador medal (`legacy-founder-star`).
+- Added backend member-profile hydration for achievement evaluation:
+  - when requests only include auth session basics (`id`, `username`), service now loads the full member record from DB before eligibility checks.
+- Added legacy backfill-aware package ownership handling:
+  - if account resolves as Legacy ownership (including legacy rank fallback), package ownership checks now include `legacy-builder-pack`.
+
+### Backend Implementation
+- `backend/services/member-achievement.service.js`
+  - Imported `findUserById` and added `resolveMemberProgressSource(...)` to hydrate member context from `charge.member_users`.
+  - Applied hydration in:
+    - `buildCatalogForMemberWithLatestState(...)`
+    - `resolveRankAdvancementRunSnapshotForMember(...)`
+    - `claimProfileAchievementForMember(...)`
+  - Updated `evaluateAchievementEligibility(...)`:
+    - legacy-rank fallback contributes to legacy ownership detection
+    - owned package set now force-includes `legacy-builder-pack` when legacy ownership is true.
+  - Unified non-rank achievement icon output:
+    - `DEFAULT_MEMBER_TITLE_CATALOG_SEED` icons forced to Founding Ambassador icon path
+    - `PROFILE_ACHIEVEMENTS` non-rank entries forced to Founding Ambassador icon paths (rank icons unchanged).
+
+### Frontend Implementation
+- `index.html`
+  - In `buildProfileAchievementFallbackSnapshot()`:
+    - all non-rank fallback achievements and claimable title entries now normalize to Founding Ambassador icon paths.
+  - In `resolveProfileAchievementIconPath(...)`:
+    - non-rank/non-good-life fallback icon now defaults to Founding Ambassador icon.
+
+### Validation
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+- Live service check against legacy user returned expected eligibility and icon normalization:
+  - `premiere-life-founding-ambassador`: eligible
+  - `premiere-life-infinity-builder`: eligible
+  - `premiere-life-legacy-builder`: eligible
+  - all with Founding Ambassador icon path.
+
+## Patch Update (2026-04-29) - Profile Hero Divider Width Fix
+
+### What Changed
+- `index.html`
+  - Updated `.profile-account-overview-hero` desktop sizing from constrained `max-width` layout to full-width (`width: 100%`).
+  - This allows the hero `border-bottom` divider to span the card width instead of appearing short under the joined-date line.
+
+### Why
+- User reported the separator below joined date did not reach the card borders.
+
+## Patch Update (2026-04-29) - Profile Sales and Business Volumes Uses Exact 6-Card Set
+
+### What Changed
+- `index.html`
+  - Replaced the profile `Sales and Business Volumes` card list with the exact 6 cards:
+    1. Account Active Until
+    2. Total Organization BV
+    3. Personal BV
+    4. Weekly Cycle Cap
+    5. Direct Sponsors
+    6. E-Wallet
+  - Updated card ids and bindings:
+    - `profile-account-overview-total-bv-value`
+    - `profile-account-overview-personal-bv-value`
+    - `profile-account-overview-cycle-cap-value`
+    - `profile-account-overview-ewallet-value`
+  - Updated profile grid to 3-column desktop layout so the 6-card set renders as two even rows.
+  - Expanded `renderProfileLifetimeCards(...)` to populate:
+    - total/personal BV values
+    - weekly cycle cap (`cappedCycles / weeklyCapCycles`)
+    - direct sponsors
+    - E-Wallet balance (metrics -> snapshot -> session fallback chain)
+  - Wired E-Wallet refresh to profile cards by invoking profile card render from `renderEWalletSummary(...)`.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+## Patch Update (2026-04-29) - Profile Page Account Overview Reuse + Binary Tree Avatar Parity
+
+### What Changed
+- `index.html`
+  - Replaced the profile page body content to keep the `Achievement` section and place a new `Account Overview` block above it.
+  - Wired profile hero data to show Node, Name, Username, Rank, and Title in the reused overview section.
+  - Updated profile overview hero CSS to mirror Binary Tree account overview avatar/badge sizing, spacing, typography, and gradients.
+  - Removed avatar clipping by dropping `overflow: hidden` from the profile avatar so the active green status dot is fully visible.
+  - Added `resolveProfileAccountOverviewInitials(...)` and switched hero initials rendering to this local resolver.
+  - Updated node label resolution priority to use member/node identifiers before generic user identifiers.
+
+### Design Decisions
+- Kept Node text in the hero while matching Binary Tree name/handle text treatment for visual parity.
+- Preserved the existing rank/title badge icon wiring so profile badge state stays synced with achievement selections.
+
+### Known Limitations
+- Visual screenshot verification of the profile route is currently gated by authenticated session state in the local screenshot flow.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-27) - Details Week Preview Transition Animation
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - added dedicated Details carousel transition state (`transitionActive`, direction, from/to month-week, duration, start timestamp).
+  - added transition helpers:
+    - `clearDetailsCarouselTransition(...)`
+    - `resolveDetailsCarouselSelectionAnchor(...)`
+    - `startDetailsCarouselTransition(...)`
+    - `resolveDetailsCarouselTransitionFrame(...)`
+    - `selectDetailsCarouselWeek(...)`
+  - routed month/week navigation actions and week-tab selection through animation-aware selection flow.
+  - refactored Details card content render path to support dual-snapshot drawing:
+    - outgoing week snapshot fades/slides out
+    - incoming week snapshot fades/slides in
+  - kept swipe drag behavior intact; transitions are suppressed while drag is active to avoid gesture conflicts.
+
+### UX Result
+- Week preview changes now animate smoothly for both button navigation and swipe next/prev.
+- Data logic, server-cutoff week modeling, and BV computation remain unchanged.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Transition Simplified To Pure Fade
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - removed horizontal slide movement from the weekly preview transition.
+  - kept only a simple crossfade (`outgoing alpha down`, `incoming alpha up`) for week changes and swipe-triggered next/prev.
+
+### UX Result
+- Transition is now calmer and easier to read with no lateral motion.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Details Crossfade Duration Slightly Slower
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - increased `TREE_NEXT_DETAILS_CAROUSEL_TRANSITION_MS` from `220` to `300`.
+
+### UX Result
+- Weekly preview fade is smoother/slower while remaining simple (no slide motion).
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-27) - Account Package BV Sync Across Enrollment + Backend
+
+### What Changed
+- `index.html`
+  - updated `FAST_TRACK_PACKAGE_META['personal-builder-pack'].bv` from `192` to `150`.
+  - updated Enroll Member preview default text from `192 BV` to `150 BV`.
+- `admin.html`
+  - updated `FAST_TRACK_PACKAGE_META['personal-builder-pack'].bv` from `192` to `150`.
+  - updated Enroll Member preview default text from `192 BV` to `150 BV`.
+- `login.html`
+  - updated `FAST_TRACK_PACKAGE_META['personal-builder-pack'].bv` from `192` to `150`.
+- `backend/services/member.service.js`
+  - updated server-side enrollment package map (`FAST_TRACK_PACKAGE_META`) for Personal package BV from `192` to `150`.
+- `backend/scripts/simulate-zeroone-live-test.mjs`
+  - updated Personal package BV fixture from `192` to `150` so simulation data matches live package rules.
+
+### Design Decisions
+- Kept Personal package price at `$192`; only BV was changed.
+- Aligned all enrollment/account-package BV maps to match Binary Tree Next package BV (`150/300/500/1000`).
+
+### Known Limitations
+- Existing accounts already stored with legacy Personal `192` BV are not auto-migrated by this patch; this change ensures new enrollment and package-meta-driven flows use `150`.
+
+### Validation
+- repo-wide scan for legacy package mappings (`bv: 192` and `192 BV`) returned no remaining code matches.
+- `cmd /c npm run test:binary-cycle` passed (`11/11` tests).
+
+## Data Fix (2026-04-27) - `zerofive` Personal BV Corrected From 192 to 150
+
+### What Changed
+- Applied a direct DB transactional correction for `zerofive` (`personal-builder-pack`) so account package BV aligns with the updated Personal package rule (`150 BV`).
+- Updated rows:
+  - `charge.member_users`
+    - `enrollment_package_bv`: `192` -> `150`
+    - `starter_personal_pv`: `192` -> `150`
+    - `current_personal_pv_bv`: `192` -> `150` (only because it exactly matched legacy starter value)
+  - `charge.registered_members`
+    - `package_bv`: `192` -> `150`
+    - `starter_personal_pv`: `192` -> `150`
+
+### Safety / Scope
+- Targeted only `username/member_username = zerofive`.
+- Guarded updates by package type (`personal-builder-pack`) and legacy value checks for starter/current fields.
+
+### Validation
+- Post-update readback confirms both records now store `150` BV values for package/starter/current fields.
+
+## Patch Update (2026-04-27) - My Store Package Earnings Split (Preferred vs Paid)
+
+### What Changed
+- `admin.html`
+  - Updated **Admin > My Store > Product Management > Package Earning** UI from tier-based rows to two rows:
+    - `Preferred Account`
+    - `Paid Member`
+  - Rewired input bindings and form parsing to use only these two package buckets.
+  - Save payload now writes canonical keys:
+    - `preferred-customer-pack`
+    - `paid-member-pack`
+  - Added backward-compatible mirrors so legacy readers still resolve values:
+    - paid value mirrored to `personal/business/infinity/legacy-builder-pack`
+    - preferred value mirrored to `membership-placement-reservation`
+  - Updated list summary line to show `BV Preferred/Paid` and `Paid Retail`.
+
+- `index.html`
+  - Unified storefront package earning resolver to a two-bucket model (`Preferred` + `Paid`).
+  - Added alias normalization so legacy package keys map into the new paid bucket.
+  - Removed legacy tier-specific store default BV/commission table (`50/48/44/38`) from storefront package-earning defaults.
+  - Paid-member settlement path now consistently resolves from one paid bucket fallback (`paid-member-pack`).
+
+### Design Decisions
+- Kept legacy alias support to avoid breaking existing stored product payloads.
+- Treated Membership Placement Reservation as Preferred for store package-earning resolution.
+- Preserved package tier logic for enrollment/rank/commission plans outside store-product package earnings.
+
+### Validation
+- Inline script syntax checks passed:
+  - `index.html` (all inline scripts)
+  - `admin.html` (all inline scripts)
+- JS syntax checks passed:
+  - `node --check backend/utils/store-product-earnings.helpers.js`
+  - `node --check backend/services/store-checkout.service.js`
+  - `node --check backend/services/store-product.service.js`
+- Scan confirms no remaining store package-earning defaults using legacy `48/44/38` BV values in the updated store resolver surfaces.
+
+## Patch Update (2026-04-27) - Preferred Tier Matrix Restored + Paid Retail Disabled
+
+### Request Clarification Applied
+- Preferred checkout should keep package-tier options:
+  - Personal: `50 BV`
+  - Business: `48 BV`
+  - Infinity: `44 BV`
+  - Legacy: `38 BV`
+- Paid member checkout should use a single BV value and **no retail commission**.
+- Retail commission is now applied only when the buyer is a preferred/free account checkout.
+
+### What Changed
+- `admin.html`
+  - Reworked Package Earnings panel to:
+    - Preferred Personal (Retail + BV)
+    - Preferred Business (Retail + BV)
+    - Preferred Infinity (Retail + BV)
+    - Preferred Legacy (Retail + BV)
+    - Paid Member (BV only)
+  - Save parser now enforces `paid-member-pack.retailCommission = 0`.
+  - Backward compatibility retained via alias mirror writes:
+    - `preferred-customer-pack` and `membership-placement-reservation` mirror Preferred Personal
+    - paid aliases (`paid_member_pack`, `paid-member`) mirror paid bucket.
+- `backend/utils/store-product-earnings.helpers.js`
+  - Canonical store earnings keys now include preferred tier package keys plus `paid-member-pack`.
+  - Defaults restored for preferred tier matrix (`50/48/44/38`) and paid default set to `retailCommission: 0, bv: 50`.
+- `backend/services/store-checkout.service.js`
+  - Preferred-buyer settlement now resolves earnings package from attribution owner package tier.
+  - Paid-buyer settlement always resolves to `paid-member-pack`.
+  - `includeRetailCommission` now true only for preferred-buyer settlement with attribution owner.
+- `index.html` and `storefront-shared.js`
+  - Updated package earning defaults/aliases to match preferred tier matrix + paid bucket model.
+  - Paid bucket defaults now carry zero retail commission.
+
+### Validation
+- `node --check backend/utils/store-product-earnings.helpers.js` passed.
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check storefront-shared.js` passed.
+- Inline script syntax checks passed:
+  - `admin.html`
+  - `index.html`
+
+## Patch Update (2026-04-27) - My Store Stripe Attribution Mismatch + Paid BV Surface Sync
+
+### Issue Observed
+- User dashboard My Store checkout could fail after Stripe with:
+  - Store code does not match store link. Please verify attribution details.
+
+### Root Cause
+- Checkout session payload was mixing different store identifiers:
+  - storeCode used checkoutStoreRouting.attributionKey
+  - memberStoreLink used checkoutStoreRouting.storeLink (public store code)
+- Invoice service validates that memberStoreCode and memberStoreLink store query resolve to the same code; mixed codes triggered hard reject.
+
+### Changes Applied
+- index.html
+  - Updated esolveCheckoutStoreRouting() to compute a canonical checkout store code and build link from that same code.
+  - Updated My Store Stripe payloads (regular purchase + account upgrade) to send:
+    - storeCode: checkoutStoreRouting.storeCode
+    - link remains based on same canonical code.
+- inary-tree-next-app.mjs
+  - Added paid/preferred package-earning compatibility model for featured My Store product BV display.
+  - Added /api/store-products hydration for Binary Tree My Store featured product to resolve BV from package earnings.
+  - For paid members, featured product BV now resolves from paid-member bucket (not legacy package tier fallback).
+  - Safeguard default featured BV changed to 50.
+- inary-tree-next.html
+  - Updated static review fallback label from 38 BV to 50 BV.
+
+### Validation
+- 
+ode --check binary-tree-next-app.mjs passed.
+- 
+ode --check storefront-shared.js passed.
+- 
+ode --check backend/utils/store-product-earnings.helpers.js passed.
+- 
+ode --check backend/services/store-checkout.service.js passed.
+
+## Update (2026-04-28) - Dashboard My Store Stripe Popup Return + Receipt Modal
+
+### Completed
+- `index.html`
+  - Changed My Store checkout flow (cart and account-upgrade) to open Stripe checkout in a popup window instead of redirecting the current tab.
+  - Added hosted-checkout return signaling from popup to opener tab using both:
+    - `window.opener.postMessage(...)`
+    - localStorage signal key (`member-dashboard-store-stripe-return-signal-v1`)
+  - Added receipt modal on My Store page to summarize completed purchases:
+    - invoice id, status, amount paid, BV, and date.
+  - Added popup-return handling that auto-closes the Stripe return window when it can forward completion back to the opener tab.
+  - Added signal dedupe window to prevent duplicate finalization calls when both `postMessage` and storage events fire.
+  - Updated signal-forward success logic so popup close path still proceeds if `postMessage` succeeds even when localStorage write fails.
+
+### Why
+- Keeps the member on `User Dashboard > My Store` while payment is completed in Stripe.
+- Removes confusion from full-tab redirect back to dashboard home.
+- Gives immediate transaction confirmation in the original tab via receipt-style popup.
+
+### Validation
+- Inline script parse check passed for `index.html` (`Parsed 6 inline scripts successfully.`).
+- `node --check storefront-shared.js` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-28) - My Store Receipt Modal Immediate Loading State
+
+### Completed
+- `index.html`
+  - Added a loading indicator block inside the My Store receipt modal header.
+  - When Stripe returns with checkout success, the receipt modal now opens immediately in `Processing` state before completion API polling finishes.
+  - Receipt modal now transitions from loading placeholders to finalized invoice data after successful completion.
+  - If completion fails, modal loading is removed and status/message are updated to a visible attention state.
+
+### Why
+- Users now get immediate visual confirmation that post-Stripe processing is in progress, instead of waiting with no modal feedback.
+
+### Validation
+- Inline script parse check passed for `index.html` (`Parsed 6 inline scripts successfully.`).
+
+## Patch Update (2026-04-27) - Cycle Threshold Fix (1000/500) For Details Calculations
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - corrected weak-leg defaults to `500`:
+    - `TREE_NEXT_DETAILS_FALLBACK_WEAK_LEG_BV = 500`
+    - `TREE_NEXT_CYCLE_RULE_WEAKER_BV = 500`
+  - removed frontend normalization that forced `cycleHigherBv >= cycleLowerBv` in cutoff metric parsing and loop display metric parsing.
+  - cycle thresholds are now read as provided (`cycleLowerBv` for strong leg, `cycleHigherBv` for weak leg) with safe minimum `1` only.
+
+### Why
+- Previous clamp caused weak-leg threshold to become `1000`, producing consumed values like `1000 / 1000` instead of expected `500 / 1000` (when right is strong).
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Update (2026-04-28) - Leadership Matching Bonus (Finalized Sales Team Source Only)
+
+### Scope Completed
+- Implemented Leadership Matching Bonus computation from finalized Sales Team commission ledger events created during cycle settlement.
+- Matching traversal now uses sponsor/enrollment lineage (`registered_members.sponsor_username`) only, up to 9 levels.
+- Added rank-depth percentage handling for:
+  - Ruby, Emerald, Sapphire, Diamond, Blue Diamond, Black Diamond, Crown, Double Crown, Royal Crown.
+- Added idempotent duplicate prevention per earning event using:
+  - source Sales Team commission id
+  - recipient user id
+  - sponsor level
+  - bonus type key.
+
+### Backend Changes
+- `backend/services/leadership-matching.service.js` (new)
+  - Introduced sponsor-upline traversal and per-level matching bonus calculation.
+  - Enforced finalized source status and sales-team source type gate.
+  - Added test dependency hooks for deterministic unit coverage.
+- `backend/services/member-business-center.service.js`
+  - Hooked matching-bonus processing immediately after Sales Team ledger entry creation in cycle settlement.
+  - Matching payload now captures source commission/cycle/cutoff context for auditing.
+- `backend/services/ledger.service.js`
+  - Added ledger creators:
+    - `createLeadershipMatchingBonusLedgerEntry`
+    - `createMatchingBonusTransferToWalletLedgerEntry`
+  - Added structured metadata payloads for earning and transfer audit trails.
+- `backend/utils/ledger.helpers.js`
+  - Added ledger types:
+    - `leadership_matching_bonus`
+    - `matching_bonus_transfer_to_wallet`
+  - Added source types:
+    - `sales_team_commission`
+    - `commission_transfer`
+- `backend/stores/ledger.store.js`
+  - Expanded table constraints for new ledger types/source types.
+  - Added runtime constraint refresh step for existing installations.
+  - Included `leadership_matching_bonus` in total-earned summary computation.
+
+### Wallet / Transfer Integration
+- `backend/stores/wallet.store.js`
+  - Added `matchingbonus` commission-source sender mapping (`commission-matchingbonus`).
+  - Added matching-bonus offset aggregation in commission offset map.
+- `backend/services/wallet.service.js`
+  - Added `matchingbonus` commission source metadata.
+  - Added available-balance validation for matching-bonus transfers using posted/paid leadership-matching ledger totals minus historical transfer offsets.
+  - Added transfer ledger write (`matching_bonus_transfer_to_wallet`) with pre/post balance metadata.
+  - Added optional transfer transaction id ingestion for transfer idempotency keying.
+
+### Dashboard / UI (No KPI-Grid Card Added)
+- Per request, did **not** add Matching Bonus to the top KPI row.
+- Added Matching Bonus card to the right dashboard column (alongside existing bonus/action panels) in `index.html`:
+  - Available matching-bonus balance
+  - Transfer to Wallet button
+  - Zero/available state messaging
+  - Disabled transfer button when balance is below minimum transfer amount.
+- Reused existing commission transfer flow (`/api/e-wallet/commission-transfer`) with source key `matchingbonus`.
+- Updated frontend commission-offset maps, transfer source routing, and button binding to include `matchingbonus`.
+
+### Ledger / Reporting UI Updates
+- `index.html` ledger filter options + labels now include:
+  - Leadership Matching Bonus
+  - Matching Bonus Transfer to Wallet
+  - Commission Transfer source type.
+- `admin.html` ledger explorer filters/labels now include the same categories/source types.
+
+### Tests Added / Updated
+- `backend/tests/leadership-matching.service.test.js` (new)
+  - finalized-only gating
+  - exclusion for retail/fast-track/raw-bv/carry-over sources
+  - rank-depth coverage (Ruby through Royal Crown)
+  - level-9 traversal cap
+  - safe stop on missing sponsor
+  - duplicate/idempotent processing behavior
+  - ledger payload audit field assertions.
+- `backend/tests/ledger.service.test.js`
+  - added unit coverage for:
+    - leadership matching earning ledger creation
+    - matching bonus transfer-to-wallet ledger creation.
+
+### Validation Run
+- `cmd /c npm run test:ledger` passed.
+- `cmd /c npm run test:matching-bonus` passed.
+- `cmd /c npm run test:binary-cycle` passed.
+- `node --check` passed for modified backend service/store/test files.
+- Inline script parse checks passed for:
+  - `index.html`
+  - `admin.html`
+
+### Known Notes
+- Matching bonus transfer safety now enforces server-side available balance checks for `matchingbonus` source before wallet credit.
+- Existing non-matching commission transfer sources retain their prior behavior/pattern.
+
+## Update (2026-04-28) - Weekly Total Organization BV Sync With Binary Tree Team Volume
+
+### What Changed
+- `index.html`
+  - Updated `applyBinaryTreeDashboardSummary` to compute `Weekly Total Organization BV` from `resolveDashboardLoopDisplayMetrics(...)` output instead of raw summary leg values only.
+  - `queueBinaryTreeMetricsSnapshotSync(...)` now sends the resolved weekly leg values used by the KPI display.
+  - `applyServerCutoffMetricsPayload(...)` now immediately refreshes:
+    - `Weekly Total Organization BV`
+    - Account Overview BV comparison graph
+    - Account Overview trend badges
+    using the same resolved loop metrics flow used by the binary-tree weekly leg logic.
+
+### Files Affected
+- `index.html`
+
+### Design Decisions
+- Kept one metric source-of-truth path by using `resolveDashboardLoopDisplayMetrics(...)`, because it already merges tree summary values with live cutoff metrics.
+- Avoided re-calling the full binary-tree summary renderer from cutoff sync to prevent unnecessary render side effects and potential repeated forced cutoff refreshes.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Patch Update (2026-04-28) - Weekly BV Zero Regression (Cutoff Override + Volume Source Alignment)
+
+### Root Cause
+- `resolveDashboardLoopDisplayMetrics(...)` always prioritized cutoff payload leg values when cutoff state existed, even when those values were `0` and tree-summary legs were non-zero.
+- Dashboard tree-volume inputs (`resolveMemberBinaryVolume`) were baseline-subtracted, while Binary Tree Details `Team Generated BV` uses the non-baseline node volume model.
+
+### Fix Applied
+- `index.html`
+  - `resolveDashboardLoopDisplayMetrics(...)`
+    - now resolves each leg/cycle as `max(rawSummaryValue, cutoffValue)` so zero cutoff payloads no longer erase non-zero tree values.
+  - `resolveMemberBinaryVolume(...)`
+    - aligned to the Binary Tree details volume model by using starter/package volume without cutoff-baseline subtraction.
+
+### Result
+- Weekly Total Organization BV no longer gets pinned to `0` by zero cutoff snapshots when tree data is non-zero.
+- Server Cutoff refresh and dashboard metrics now stay consistent with tree-side generated volume semantics.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Patch Update (2026-04-28) - Account Overview BV Comparison Formula Alignment (Total vs Personal)
+
+### Requested Semantics Applied
+- `Total BV` now follows: `Team Generated BV + Personal BV`.
+- `Personal BV` series in the comparison graph now follows: `Team Generated BV (excluding personal add-on)`.
+
+### Implementation
+- `index.html`
+  - `resolveMemberBinaryVolume(...)` now uses starter/package volume directly so dashboard team-volume math aligns with tree-side generated volume model.
+  - `resolveDashboardLoopDisplayMetrics(...)` now keeps non-zero raw tree legs/cycles when cutoff snapshots return zeros.
+  - Account Overview chart now uses:
+    - series 1 = `weeklyTotalOrganizationBv = weeklyTeamGeneratedBv + weeklyPersonalBv`
+    - series 2 = `weeklyTeamGeneratedBv`
+  - Account Overview secondary caption text now uses `Weekly Personal BV: <team-generated-without-personal> BV`.
+  - Server Cutoff left/right legs now keep non-zero summary fallbacks when cutoff payload legs are zero.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+- Local data sanity check produced non-zero split model output (`team`, `personal`, `total`).
+
+## Patch Update (2026-04-28) - Server Cutoff Seed-Value Override Fix
+
+### Root Cause
+- `server-cutoff-card` markup still carried legacy seed values (`data-left-leg-bv="12480"`, `data-right-leg-bv="9730"`, `data-cycle-bv="500"`).
+- `initializeServerCutoffCard()` then kept those values alive through `Math.max(...)` fallback logic, causing left/right cutoff display drift even when tree-side values were lower and correct.
+
+### Fix Applied
+- `index.html`
+  - Updated `server-cutoff-card` seed attributes to neutral values:
+    - `data-left-leg-bv="0"`
+    - `data-right-leg-bv="0"`
+    - `data-cycle-bv="1000"`
+  - Updated server cutoff runtime initialization:
+    - `leftLegBv` and `rightLegBv` now initialize to `0` (not seeded from markup attributes).
+
+### Expected Outcome for `zeroone`
+- Server Cut Off card can now resolve to live tree/cutoff values (e.g., `Left 1000 / Right 1150`) instead of retaining stale seeded values.
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Update (2026-04-28) - Business Center Rule Migration (Max 2, Tier 4/5 Unlock)
+
+### What Changed
+- Updated Business Center capability from a 3-center model to a strict 2-center model.
+- New unlock mapping is now:
+  - Legacy Leadership Tier 4 -> Business Center #1
+  - Legacy Leadership Tier 5 -> Business Center #2
+- Removed Tier 3 unlock behavior for Business Centers.
+- Deprecated Business Center #3 paths in runtime/UI while preserving historical records.
+
+### Backend Rule + Migration Implementation
+- `backend/services/member-business-center.service.js`
+  - Changed `MAX_BUSINESS_CENTER_COUNT` from `3` to `2`.
+  - Updated default unlock rules to only two entries (`#1 -> tier 4`, `#2 -> tier 5`).
+  - Added default-tier resolver logic so rule fallback no longer assumes Tier 3 for BC #1.
+  - Added source-label normalization so legacy index `>2` entries are displayed as `Legacy Center #N` instead of `Business Center #N`.
+  - Tightened event write validation so `sourceCenterIndex > 2` is rejected instead of silently clamped.
+  - Kept settlement/ledger historical index-3 compatibility for immutable historical tables.
+
+### Schema/Backfill Safety Changes
+- `ensureBusinessCenterRedesignTables()` now:
+  - migrates `registered_members.business_center_index > 2` to `legacy_placeholder` + `deprecated` activation status (no hard delete);
+  - relabels legacy over-cap labels from `Business Center #N` to `Legacy Center #N` where applicable;
+  - updates unlock rule records so only indexes 1 and 2 are active (`tier 4/5`);
+  - deactivates unlock rules where `business_center_index > 2`;
+  - clamps owner progress counts and center-index arrays to max 2;
+  - reapplies owner-progress check constraints using max 2.
+
+### UI + Tree + Label Updates
+- `index.html`
+  - Updated Business Center summary copy from `#1-#3` to `#1-#2`.
+  - Added shared label resolver that:
+    - keeps active labels to max 2,
+    - converts over-cap historical center labels to `Legacy Center #N`.
+  - Updated earnings rendering to:
+    - show only `Main + BC #1 + BC #2` as active base rows,
+    - include legacy over-cap rows (if present) as legacy labels,
+    - never show `Business Center #3` text.
+  - Updated activation panel cap fallback from `3` to strict UI cap `2`.
+  - Updated tree-node auxiliary display naming to use the new center-label resolver.
+
+### Tests Added / Updated
+- Added `backend/tests/member-business-center.service.test.js` covering:
+  - max center config = 2,
+  - unlock mapping (tier 4/5),
+  - Tier 3 no-unlock behavior,
+  - dropping legacy index 3 from active/unlocked progress snapshots.
+- Added script in `package.json`:
+  - `test:business-centers`
+
+### Validation
+- `cmd /c npm run test:business-centers` passed.
+- `cmd /c npm run test:binary-cycle` passed.
+- `cmd /c npm run test:ledger` passed.
+- `cmd /c npm run test:matching-bonus` passed.
+- `node --check backend/services/member-business-center.service.js` passed.
+
+### Known Limitations / Notes
+- Historical immutable settlement/ledger tables still allow index 3 rows so prior audit history remains valid.
+- Runtime creation/activation/progress logic now enforces max 2 and no Tier 3 unlocks.
+- No historical ledger/commission entries were deleted or rewritten.
+
+## Update (2026-04-28) - User Dashboard Home Layout Reorder (Fast Track / Matching / Business Center / Recent Activity)
+
+### What Changed
+- Reordered the row-2 dashboard grid so panel placement now follows requested sequence:
+  - Row 1: `Fast Track Bonus` (wide, `lg:col-span-2`) + `Matching Bonus` (right column)
+  - Row 2: `Business Centers` (wide, `lg:col-span-2`) + `Recent Activity` (right column)
+- Kept all existing component IDs, button IDs, and internal panel content unchanged.
+
+### File Updated
+- `index.html`
+
+### Design/Implementation Notes
+- Split the previous right-column stack so `Matching Bonus` and `Recent Activity` are independent grid items.
+- Moved `Fast Track Bonus` into the wide slot previously used by `Business Centers`.
+- Moved `Business Centers` into a lower wide slot so it sits beside `Recent Activity`.
+
+### Known Limitation
+- Automated screenshot opened the login view on `http://localhost:3000` (session-auth gate), so visual verification of the dashboard panel arrangement was performed via markup structure audit in `index.html`.
+
+## Patch Update (2026-04-28) - Internal Scroll Caps for Fast Track Bonus + Recent Activity
+
+### What Changed
+- `index.html`
+  - Added height cap + clipping to `#fast-track-bonus-card`:
+    - `max-h-[34rem] overflow-hidden`
+  - Added height cap to `#recent-activity-panel`:
+    - `max-h-[34rem]`
+  - Existing inner scroll containers remain active:
+    - `#fast-track-commission-audit-list` (`overflow-y-auto`)
+    - `#recent-activity-feed` (`overflow-y-auto`)
+
+### Why
+- Prevent long item lists from stretching overall dashboard page height.
+- Keep high-volume activity and commission audit content scrollable inside their own cards.
+
+### Files Updated
+- `index.html`
+
+### Known Limitation
+- Fixed cap (`34rem`) is static; if future design asks for per-breakpoint custom card heights, this value may need responsive overrides.
+
+## Update (2026-04-28) - Business Center UI Redesign + Per-Center Actions + Layout Reflow
+
+### What Changed
+- Reworked Home dashboard layout to requested structure:
+  - Left/wide: `Fast Track Bonus` (top) -> `Recent Activity` (below)
+  - Right column: `Matching Bonus` (upper) -> `Business Centers` (lower)
+- Redesigned Business Center panel to remove unified-wallet/aggregate breakdown UI.
+- Business Center now shows two dedicated cards only:
+  - `Business Center #1`
+  - `Business Center #2`
+- Each center card now includes:
+  - earnings value
+  - status chip + status detail
+  - `Activate Business Center` button when pending/unlocked and not yet active
+  - `Transfer to Wallet` button when activated
+
+### Transfer Behavior
+- Added Business Center commission-transfer source support (`businesscenter`) in:
+  - frontend payout source metadata
+  - backend wallet service source metadata
+  - backend wallet transfer sender/source mapping + offset map
+- Per-center transfer amount is computed from center earnings minus prior Business Center transfers tagged in transfer `note` with `Business Center #N`.
+- Transfer requests now pass optional custom `note` and activity label through `createCommissionPayoutRequestForCurrentUser(...)`.
+
+### Files Updated
+- `index.html`
+- `backend/services/wallet.service.js`
+- `backend/stores/wallet.store.js`
+
+### Validation
+- `node --check backend/services/wallet.service.js` passed.
+- `node --check backend/stores/wallet.store.js` passed.
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+### Known Limitations
+- Per-center transfer deduction uses E-Wallet transfer history note tagging (`Business Center #1/#2`).
+- Historical transfers that were not tagged by center note are not attributed to a specific center.
+
+## Patch Update (2026-04-28) - Left Column Gap Cleanup (Fast Track + Recent Activity Stack)
+
+### What Changed
+- Refined Home dashboard layout to remove vertical gap between `Fast Track Bonus` and `Recent Activity`.
+- Left side is now a single stacked container (`lg:col-span-2 space-y-6`) containing:
+  - `Fast Track Bonus`
+  - `Recent Activity`
+- Right side remains stacked (`Matching Bonus` above `Business Centers`).
+
+### Why
+- Previous 3-item grid flow caused row-height mismatch when right column stack was taller, leaving an empty area before `Recent Activity`.
+- Stacking left content in one container keeps spacing visually clean and consistent.
+
+### File Updated
+- `index.html`
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Patch Update (2026-04-28) - Fast Track Bonus Fixed Height
+
+### What Changed
+- Updated `#fast-track-bonus-card` from max-height to fixed height:
+  - `max-h-[34rem]` -> `h-[34rem]`
+- Internal overflow behavior remains in place so the commission audit list scrolls inside the card when records grow.
+
+### Why
+- Locks Fast Track panel size to a predictable height as audit records increase.
+
+### File Updated
+- `index.html`
+
+## Patch Update (2026-04-28) - Fast Track Height Synced To Business Center Panel
+
+### What Changed
+- `#fast-track-bonus-card` no longer uses fixed `h-[34rem]`; now uses `h-auto` as base.
+- Fast Track desktop height sync now targets `#business-center-panel` instead of Infinity Builder panel.
+- Added post-render sync trigger in `renderBusinessCenterActivationPanel()` so Fast Track re-matches when BC content/state changes.
+
+### File Updated
+- `index.html`
+
+### Validation
+- Inline script syntax check passed for `index.html` (3 inline script blocks).
+
+## Patch Update (2026-04-28) - Fast Track Bottom Alignment To Full Right Stack
+
+### What Changed
+- Updated Fast Track desktop height sync target from single Business Center card to full right stack wrapper:
+  - `#dashboard-right-bonus-stack` (`Matching Bonus` + `Business Centers`)
+- Added right-stack wrapper id and moved observer/measurement target to this wrapper.
+
+### Why
+- Ensures Fast Track card bottom aligns with the bottom of Business Centers section (through the full right-side stack depth), so Recent Activity can sit cleanly under Fast Track.
+
+### File Updated
+- `index.html`
+
+## Patch Update (2026-04-28) - Binary Tree Track Commissions Matching Bonus Card Added
+
+### What Changed
+- Added a new `Matching Bonus` card in Binary Tree Next Account Overview > `Track Commissions`, positioned directly next to `Infinity Tier Commission` in the card list.
+- Wired new card value element:
+  - `#tree-next-account-overview-matching-bonus-value`
+- Extended Account Overview commission balance resolution in `binary-tree-next-app.mjs` to include matching-bonus value sourcing:
+  - ledger summary source key: `leadership_matching_bonus.netAmount`
+  - transfer offset deduction support via `walletCommissionOffsets.matchingbonus` / `matchingBonus`
+  - fallback support from existing commission-container/session fields
+- Included `matchingBonus` in Account Overview totals and render signature so it updates with the same refresh cadence as other commission cards.
+
+### Why
+- Requested UX change: show `Matching Bonus` in Binary Tree `Track Commissions` alongside existing commission cards, specifically adjacent to `Infinity Tier Commission`.
+- Kept implementation aligned to existing Account Overview card and ledger-driven balance patterns (no parallel accounting path).
+
+### Files Updated
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-28) - Business Center Unlock Caption Rename
+
+### What Changed
+- Updated dashboard Business Center summary caption copy from dynamic unlock-rule sentence to fixed copy:
+  - `Complete Legacy Tier 4 and Tier 5 to unlock Business Centers.`
+
+### File Updated
+- `index.html`
+
+## Patch Update (2026-04-29) - Auto Ship Next Billing Date Accuracy In Settings
+
+### What Changed
+- Updated Auto Ship date normalization in `index.html` so Next Billing Date now resolves from the most reliable available source in order:
+  1. `nextBillingDate`
+  2. `next_billing_date`
+  3. `currentPeriodEnd`
+  4. `scheduledBillingAnchorAt` (including metadata fallback)
+- Updated Auto Ship date label formatting to keep Stripe ISO/timestamp dates stable by rendering timestamp-based values in UTC date context, preventing local timezone drift from showing the wrong calendar day.
+
+### Why
+- Some Auto Ship records can surface date fields under different keys depending on sync timing (checkout pre-state vs subscription-sync state).
+- Local timezone rendering could shift midnight UTC anchors to the previous calendar day in Settings.
+
+### File Updated
+- `index.html`
+
+### Known Limitations
+- Display remains date-only (no time-of-day), by design, to keep Payment and Billing UX simple.
+
+## Patch Update (2026-04-29) - Auto Ship Status Sync Prefers Active Stripe Subscription
+
+### What Changed
+- Updated `getMemberAutoShipStatus(...)` in `backend/services/auto-ship.service.js` to avoid stale canceled-state lock-in when a user has a newer active Auto Ship subscription in Stripe.
+- Status sync now resolves Stripe customer context more defensively (from setting, subscription, or checkout session customer).
+- Added customer-level reconciliation path even when a stored subscription id exists.
+- If stored subscription is terminal (`canceled`/`incomplete_expired`) and Stripe has a different preferred Auto Ship subscription (`active`/`trialing`/`paused`/`past_due`/`incomplete`/`unpaid`), local setting now switches to the preferred Stripe subscription.
+- Improved `findLatestAutoShipSubscriptionForCustomer(...)` selection behavior:
+  - evaluate all Auto Ship candidate subscriptions
+  - rank by status health first
+  - tie-break by most recent `created` timestamp.
+
+### Why
+- Accounts could show `Auto Ship is canceled` in Settings if local row still pointed to an older canceled Stripe subscription id, even when Stripe had a newer active Auto Ship schedule.
+
+### File Updated
+- `backend/services/auto-ship.service.js`
+
+### Validation
+- `node --check backend/services/auto-ship.service.js` passed.
+
+## Patch Update (2026-04-29) - Removed Settings Card Details + Billing Address Components
+
+### What Changed
+- Removed the `Card Details` block from `Settings > Payment and Billing`.
+- Removed the `Billing Address` block (including same-as-address toggle and all billing address fields) from `Settings > Payment and Billing`.
+- Removed `Save Billing Details` action button from the payment settings panel.
+- Updated payment category subtitle from `Cards and billing address` to `Auto Ship and Stripe billing`.
+- Added a concise Stripe-managed note in the payment panel: `Payment method and billing address are securely managed through Stripe.`
+
+### Logic Safety Updates
+- Updated account-save logic so when billing address inputs are absent, existing billing snapshot values are preserved instead of being overwritten with empty strings.
+- Updated billing form submit handler to return early with an informational message when billing inputs are not present.
+
+### File Updated
+- `index.html`
+
+### Validation
+- Parsed `index.html` inline scripts successfully (`Parsed 3 inline script blocks successfully.`).
+## Patch Update (2026-04-29) - Binary Tree Track Commissions Added Transfer To E-Wallet Buttons
+
+### What Changed
+- `binary-tree-next.html`
+  - Updated `Account Overview > Track Commissions` cards so each commission container now includes a dedicated `Transfer to E-Wallet` button.
+  - Refactored each commission tile into a container with:
+    - top commission trigger button (existing behavior preserved)
+    - new transfer action button (one per commission type)
+  - Added new styles for `.tree-next-account-overview-commission-trigger` and `.tree-next-account-overview-commission-transfer`.
+- `binary-tree-next-app.mjs`
+  - Added transfer-button selector binding via `[data-account-overview-commission-transfer]`.
+  - Added `openAccountOverviewTransferToEWallet(...)` helper.
+  - Transfer button click now routes to `/EWallet` with context query params:
+    - `source=binary-tree-next`
+    - `transferSource=<commission-key>`
+
+### Why
+- Requested UX update: add `Transfer to E-Wallet` buttons inside each commission system/container in Binary Tree Account Overview `Track Commissions`.
+
+### Files Updated
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+### Known Limitations
+- Transfer buttons currently route users to the E-Wallet page (context-aware), rather than executing an immediate transfer directly inside Binary Tree Next.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Binary Tree Transfer Buttons Now Execute Same Wallet Transfer Flow
+
+### What Changed
+- Upgraded Binary Tree `Track Commissions` transfer buttons from redirect-only behavior to direct transfer execution using the same API contract as Dashboard.
+- `binary-tree-next-app.mjs`
+  - Added direct transfer endpoint constant: `/api/e-wallet/commission-transfer`.
+  - Added source mapping and per-source transfer locking for:
+    - `retailprofit`, `fasttrack`, `salesteam`, `infinitybuilder`, `matchingbonus`, `legacyleadership`.
+  - Added offset-aware available balance handling for transfer logic (`walletCommissionOffsets`) so transferred amounts are deducted before allowing another transfer.
+  - Added `requestAccountOverviewCommissionTransfer(...)` to submit transfer payload with member identity + source key + amount.
+  - Added dynamic button state sync (`syncAccountOverviewCommissionTransferButtonStates(...)`) including busy/disabled/error/title states.
+  - After successful transfer, Account Overview snapshot is refreshed so Binary Tree and Dashboard remain aligned.
+- `binary-tree-next.html`
+  - Added disabled visual state for `.tree-next-account-overview-commission-transfer:disabled`.
+
+### Why
+- Requirement: transfer behavior must remain one function across contexts (inside/outside Binary Tree) and avoid duplicate source transfers.
+
+### Files Updated
+- `binary-tree-next-app.mjs`
+- `binary-tree-next.html`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Binary Tree Transfer Button Enablement + Fast Track Value Alignment Hotfix
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Fixed commission transfer source normalization to accept hyphenated keys from DOM attributes:
+    - `retail-profit`, `fast-track`, `sales-team`, `infinity-builder`, `matching-bonus`, `legacy-builder`, `legacy-leadership`.
+  - Tightened wallet offset lookup to use normalized canonical source keys only (removed camelCase alias fallback in Binary Tree transfer-offset resolver).
+  - Updated member fast-track card value resolution to prefer the higher of:
+    - commission container fast-track value
+    - live node/session fast-track values
+  - This reduces stale low-value rendering on Binary Tree Track Commissions.
+
+### Why
+- User reported Transfer buttons disabled in Binary Tree for Retail Profit/Fast Track while dashboard allowed transfer.
+- User also reported Binary Tree Fast Track showing lower stale value versus current expected amount.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Fast Track Track-Commissions Value Parity With Dashboard
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added `resolveAccountOverviewMemberFastTrackGrossBalance(homeNode)` to mirror dashboard-style fast-track gross logic:
+    - base from member/session fast-track balance fields
+    - plus accrued direct-sponsor fast-track bonuses from current tree nodes
+  - Updated `resolveAccountOverviewCommissionBalances(...)` (member context) to include this new computed gross in fast-track source priority.
+
+### Why
+- Binary Tree `Track Commissions` fast-track card was still showing a stale lower amount (`38.40`) while dashboard reflected higher current value (`238.40`).
+- Dashboard computes fast-track from base + direct-sponsor accrual; Binary Tree now mirrors that path.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Binary Tree Fast Track 38.40 Underreport Fix (Dashboard Parity)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added registered-members snapshot cache (`treeNextLiveRegisteredMembersSnapshot`) and timestamp marker for Account Overview renders.
+  - Added `resolveAccountOverviewMemberDirectFastTrackFromRegisteredMembers(homeNode)` so Binary Tree uses the same direct-sponsor fast-track accrual basis as the User Dashboard.
+  - Updated `resolveAccountOverviewMemberFastTrackGrossBalance(...)` to:
+    - use member/session fast-track base balance
+    - prefer direct-sponsor accrual from cached registered members
+    - fallback to scoped node-based accrual when registered-member snapshot is unavailable
+  - Updated live-node signature hashing to include `fastTrackBonusAmount` so sync applies when only fast-track amounts change.
+  - On fresh registered-members fetch, Account Overview re-render is invalidated while panel is open so values refresh immediately.
+
+### Why
+- Binary Tree `Track Commissions > Fast Track` was staying at `38.40` while dashboard reflected `238.40`.
+- Root cause was mismatch in data basis (scoped node fallback only) and stale-sync scenarios where fast-track amount changes did not alter the live-node signature.
+
+### Files Updated
+- `binary-tree-next-app.mjs`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Binary Tree Matching Bonus Double-Offset Fix
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Removed pre-offset subtraction (`matchingBonusFromLedger = ledgerMatchingBonus - walletOffset`) from Account Overview commission resolver.
+  - Matching Bonus now follows dashboard parity:
+    - use ledger/container gross candidate
+    - apply wallet transfer offset once in the shared display/transfer-adjusted stage.
+
+### Why
+- Matching Bonus could underreport in Binary Tree because offset was applied twice (once in balance resolver and once in display-adjustment pass).
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Binary Tree My Store Live Catalog Rendering
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - My Store catalog now renders from live `/api/store-products` entries (active products first) instead of displaying only a single static featured product card.
+  - Added preferred product-key resolution so the selected catalog product is preserved through Review/Checkout state updates.
+  - Updated My Store catalog click handling to pass the selected product key from button datasets.
+- `binary-tree-next.html`
+  - Converted the featured section into a live product-grid container (`#tree-next-my-store-featured-products`).
+  - Added catalog card selected-state styling and responsive grid behavior for tablet/mobile.
+
+### Why
+- Admin-added products (for example `MetaRoastTM`) were not appearing in `Binary Tree > Profile > My Store` even though they appeared in the dashboard store view.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-29) - Profile BV Cards No Longer Reset To Zero After E-Wallet Refresh
+
+### What Changed
+- `index.html`
+  - Removed the profile card full re-render call from `renderEWalletSummary(...)` that passed only `eWalletBalance`.
+  - Updated the E-Wallet summary flow to update only `#profile-account-overview-ewallet-value` directly.
+
+### Why
+- The prior call re-ran `renderProfileLifetimeCards({ eWalletBalance })`, which did not include BV metrics and caused `Total Organization BV` / `Personal BV` to fall back to `0` after initial correct render.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-29) - Profile Header Text Cleanup
+
+### What Changed
+- `index.html`
+  - Removed the profile overview header text block containing:
+    - `Account Overview`
+    - `My Profile`
+    - `Binary Tree summary profile`
+  - Kept the hero and card sections unchanged.
+
+## Patch Update (2026-04-29) - Legacy Leader Title Removed (Backend Catalog Alignment)
+
+### What Changed
+- `index.html`
+  - Updated rank-to-title fallback map:
+    - `legacy` now resolves to `Legacy Founder` (was `Legacy Leader`).
+  - Updated title achievement id aliasing:
+    - `legacy leader` now maps to `time-limited-event-legacy-founder` for icon/compatibility fallback.
+  - Added explicit normalization in title resolver:
+    - if explicit legacy title value equals `Legacy Leader`, it is converted to `Legacy Founder`.
+
+### Why
+- Backend title catalog seed supports `Legacy Founder`, `Legacy Director`, `Legacy Ambassador`, and `Presidential Circle`.
+- `Legacy Leader` is not a backend catalog title and should not be shown in profile title badge.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-29) - Profile Hero Rank/Title Hovercard Support
+
+### What Changed
+- `index.html`
+  - Added hover/focus/touch hovercard interactions to Profile hero `Rank` and `Title` badges.
+  - Reused existing profile badge hovercard renderer/positioning behavior for consistency with KPI badge detail popups.
+  - Added interactive badge shell ids:
+    - `#profile-account-overview-rank-badge-shell`
+    - `#profile-account-overview-title-badge-shell`
+  - Added badge-entry sync binding so hovercard details stay current with dynamic rank/title updates.
+  - Added focus-visible style and pointer affordance for interactive hero badges.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-29) - Profile Hovercard Container Restored
+
+### What Changed
+- `index.html`
+  - Added back the missing `#profile-handle-badge-hovercard` tooltip container and its icon/title/subtitle child elements.
+
+### Root Cause
+- Profile rank/title hover logic was wired, but the profile hovercard DOM element did not exist, so popups could not render.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-29) - Legacy Founder Subtitle Date Fallback
+
+### What Changed
+- `index.html`
+  - Updated `resolveProfileTitleBadgeSubtitle(...)` so `Acquired` date now falls back to member session dates when title-award date is missing:
+    - `createdAt`
+    - `enrolledAt`
+    - `registeredAt`
+
+### Why
+- Legacy Founder subtitle previously rendered `Acquired --` when no matched title-award entry was present.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Binary Tree Account Overview Title Fallback + Badge Hovercards
+
+### What Changed
+- `binary-tree-next.html`
+  - Removed hardcoded Account Overview title defaults that forced `Legacy Founder` in the hero before live data loads.
+  - Updated default title badge content to neutral fallback (`Member Title` + placeholder icon).
+  - Added badge-shell ids for interactive rank/title hero badges.
+  - Added a dedicated account-overview badge hovercard container (icon/title/subtitle).
+  - Added hover/focus visual affordance styles for interactive hero badges.
+
+- `binary-tree-next-app.mjs`
+  - Added Account Overview badge-hover interaction system (hover, focus, touch/pen, delayed hide, viewport-aware positioning).
+  - Added hovercard sync binding for rank and title badges in Account Overview hero.
+  - Added rank hover subtitle (`Subscriber since ...`) using member joined-date fallback.
+  - Added title hover subtitle resolver with event-aware copy and acquired-date fallback:
+    - uses claimed title entry date when available
+    - falls back to member created/joined/registered date
+  - Updated Account Overview title fallback resolution to stop inheriting stale DOM defaults.
+  - Panel visibility now force-hides active badge hovercard when Account Overview closes.
+
+### Why
+- Binary Tree Account Overview was still using a hardcoded `Legacy Founder` fallback and did not support the new badge hover detail behavior present on dashboard/profile.
+
+### Files Affected
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Title Badge Theme Set To Amber (User Preference)
+
+### What Changed
+- `binary-tree-next.html`
+  - Restored Account Overview title badge shell gradient to amber/orange theme.
+  - Set default title badge icon back to legacy founder title icon asset for the amber visual treatment.
+- `binary-tree-next-app.mjs`
+  - Restored runtime title badge palette routing for founder/title labels to `legacyFounder` (amber).
+  - Restored title badge fallback variant from `ocean` back to `amber`.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Account Overview Title Badge Forced Amber
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Account Overview hero title badge palette is now forced to `ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyFounder` (amber) regardless of title label text.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Title Icon Now Uses Backend Title Catalog Data
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Updated Account Overview title resolution to prefer backend-awarded titles before `rank + Builder` fallback.
+  - Added claimable-title catalog merge (`claimableTitles`) when building claimed title entries, so title icon paths can be sourced from backend title storage.
+  - Added fallback normalization: if panel would resolve `Legacy Builder` as title text, it is converted to `Legacy Founder` (backend catalog title) for title badge/icon rendering.
+  - Added title icon override from backend catalog icon path when available.
+
+### Backend Verification
+- Checked backend title storage seed/catalog (`member-achievement.service.js` + title-catalog store):
+  - Present titles: `Legacy Founder`, `Legacy Director`, `Legacy Ambassador`, `Presidential Circle`
+  - No `Legacy Builder` title entry exists in catalog.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Profile Title/Badge Inventory + Equipped Badge Persistence
+
+### What Changed
+- Backend
+  - Added new store: `backend/stores/member-profile-badge-selection.store.js`
+    - New table support: `charge.member_profile_badge_selection` (`user_id`, `achievement_id`, `created_at`, `updated_at`)
+    - Added read/upsert helpers for per-user equipped profile badge selection.
+  - Updated `backend/services/member-achievement.service.js`
+    - Catalog payload now includes:
+      - `equippedProfileBadgeId`
+      - `earnedAchievementIds`
+      - `earnedAchievementClaims`
+    - Added equipped-badge resolver helpers that validate equipped ids against earned/claimed achievements.
+    - Added `equipProfileAchievementBadgeForMember(member, achievementId)` service:
+      - enforces earned-only equip
+      - persists equipped badge id
+      - returns refreshed catalog payload.
+  - Updated `backend/controllers/member-achievement.controller.js`
+    - Added `equipMemberProfileAchievementBadge(...)`.
+  - Updated `backend/routes/member-achievement.routes.js`
+    - Added `POST /api/member-auth/achievements/:achievementId/equip`.
+
+- Frontend (`index.html`)
+  - Added right-badge-triggered inventory overlay:
+    - desktop modal/floating panel behavior
+    - mobile bottom-sheet style panel behavior
+  - Added inventory card grid renderer with:
+    - icon
+    - title
+    - detail/unlock text
+    - status chips (`Equipped`, `Earned`, `Locked`)
+    - action buttons (`Equip`, `Equipped`, `Locked`)
+  - Added equip interaction flow:
+    - click right profile badge to open inventory
+    - equip earned badge via new equip endpoint
+    - instant profile header title/icon update after successful equip
+    - equipped state highlighted in inventory
+  - Added keyboard/accessibility interactions:
+    - Enter/Space opens inventory from right profile badge
+    - Escape closes inventory (priority) then profile edit modal
+    - overlay click closes inventory
+    - `aria-expanded` sync on profile title badge trigger.
+  - Updated achievement payload application to persist and hydrate:
+    - equipped badge id
+    - earned ids/claim map
+    - session sync for equipped badge id.
+
+### Why
+- User requested a premium progression-style badge stash/inventory that lets members switch their active right-side profile badge and persist the selection across refresh/login.
+
+### Files Affected
+- `index.html`
+- `backend/stores/member-profile-badge-selection.store.js`
+- `backend/services/member-achievement.service.js`
+- `backend/controllers/member-achievement.controller.js`
+- `backend/routes/member-achievement.routes.js`
+
+### Validation
+- `node --check backend/stores/member-profile-badge-selection.store.js` passed.
+- `node --check backend/services/member-achievement.service.js` passed.
+- `node --check backend/controllers/member-achievement.controller.js` passed.
+- `node --check backend/routes/member-achievement.routes.js` passed.
+
+### Notes
+- User requested to skip screenshot validation in this session.
+
+## Patch Update (2026-04-30) - Title/Badge Inventory Earned-Only Filter + Rank Exclusions
+
+### What Changed
+- `index.html`
+  - Updated inventory source filtering to show only acquired/earned achievements.
+  - Removed locked/unearned cards from inventory rendering.
+  - Excluded rank ladder achievements from `Ruby` through `Royal Crown` from inventory list:
+    - `rank-ruby`
+    - `rank-emerald`
+    - `rank-sapphire`
+    - `rank-diamond`
+    - `rank-blue-diamond`
+    - `rank-black-diamond`
+    - `rank-crown`
+    - `rank-double-crown`
+    - `rank-royal-crown`
+  - Updated empty-state copy to reflect earned-only inventory behavior.
+
+### Why
+- User requested the inventory stash to hide rank ladder badges and display only already-acquired badges/titles.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Badge Inventory Naming + Binary Tree Color Alignment
+
+### What Changed
+- `index.html`
+  - Renamed panel title text:
+    - `Title / Badge Inventory` -> `Badge Inventory`.
+  - Updated inventory modal visual styling to align with Binary Tree title-badge amber palette:
+    - header gradient and panel border tone now use the legacy-founder amber family.
+    - close button colors/focus ring updated to matching amber-toned surface.
+  - Updated Equipped state styling in inventory cards:
+    - equipped card background/border
+    - equipped status chip (top-right)
+    - equipped action button
+    all now use the Binary Tree amber gradient treatment instead of prior blue accent.
+
+### Why
+- User requested exact naming simplification and color parity with Binary Tree design, specifically calling out the Equipped badge color mismatch.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Badge Inventory Text Contrast (White Text Pass)
+
+### What Changed
+- `index.html`
+  - Updated Badge Inventory modal header/support text to white variants for stronger contrast.
+  - Updated close button text color to white.
+  - Updated inventory card text to white variants:
+    - title
+    - subtitle
+    - description/detail line
+    - status chip text
+    - action button text (including Equipped state).
+  - Updated inventory empty-state copy color to white.
+  - Updated inventory feedback default/info text class to white variant.
+
+### Why
+- User reported modal text readability issues and requested white text treatment.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Badge Inventory Icon Container Amber Match
+
+### What Changed
+- `index.html`
+  - Updated Badge Inventory card icon-shell container to amber gradient styling so it matches the modal/card amber palette.
+  - Added conditional icon-shell style classes:
+    - stronger amber gradient for Equipped entries
+    - softer amber gradient for other earned entries
+  - Replaced prior gray icon-shell background in the inventory cards.
+
+### Why
+- User identified the icon container as the one remaining out-of-place color element in the Badge Inventory.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Achievement Catalog Rebuild (25 Total: Titles + Ranks)
+
+### What Changed
+- `backend/services/member-achievement.service.js`
+  - Rebuilt `DEFAULT_MEMBER_TITLE_CATALOG_SEED` to the new title system:
+    - Founding Ambassador
+    - Infinity Builder
+    - Legacy Builder
+    - Leadership Race (Club/Squad/Commander)
+    - Legacy Builder Leadership Program (Executive/Regional/National/Global Ambassador)
+    - Legacy Matrix Builder (Presidential Ambassador Sovereign / Round Table / Elite / Presidential Grand Ambassador Royale)
+  - Rebuilt `PROFILE_ACHIEVEMENT_CATEGORIES`:
+    - `premiere-life-milestones` (new)
+    - `leadership-race` (new)
+    - `legacy-matrix-builder` (new)
+    - retained `legacy-builder-leadership-program` and `premiere-journey`
+  - Rebuilt `PROFILE_ACHIEVEMENTS` to 25 total entries:
+    - 16 non-rank achievements (14 requested title tracks + 2 Premiere Journey milestones)
+    - 9 rank achievements (`Ruby` through `Royal Crown`)
+  - Added new eligibility capabilities:
+    - `requiredAnyOwnedPackageKeys` (self package ownership OR set)
+    - rank range checks via `requiredRankMin` + `requiredRankMax`
+    - `requiredLegacyLeadershipCompletedTierCount` for matrix tier completion gates
+  - Extended progress context with:
+    - `lastUpgradedEnrollmentPackageKey`
+    - `legacyLeadershipCompletedTierCount`
+  - Updated lock-reason and requirements rendering logic to cover new package/range/tier checks.
+
+- `index.html`
+  - Updated profile achievement icon map for all new achievement ids.
+  - Updated title-to-achievement mapping to new title names/slugs while keeping legacy aliases.
+  - Replaced fallback achievement snapshot builder with a 25-entry catalog mirror (matching backend structure).
+  - Updated static profile title badge fallback label to `Founding Ambassador`.
+  - Updated legacy title normalization/event subtitle support to include new ambassador naming.
+
+### Design Decisions
+- Preserved existing time-limited leadership program achievement ids (`time-limited-event-legacy-*` + `time-limited-event-presidential-circle`) and remapped their labels/rules to the new ambassador titles to avoid breaking prior claim history tied to ids.
+- Kept rank monthly reward track (`Ruby` to `Royal Crown`) unchanged for payout behavior while adding Leadership Race title achievements as a separate title layer.
+- Added a second Premiere Journey milestone (`Build Your First 3 Members`) so the catalog totals 25 as requested.
+
+### Files Affected
+- `backend/services/member-achievement.service.js`
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+- `node --check backend/services/member-achievement.service.js` passed.
+
+### Known Limitations
+- Legacy Matrix Builder achievements currently evaluate using completed legacy-tier count fields available in member progress (`legacyLeadershipCompletedTierCount` / `sourceQualificationTier`) rather than an explicit per-tier node counter object.
+- Frontend fallback data remains static and locked until live API payload is loaded.
+
+## Patch Update (2026-04-30) - Profile Achievement Categories Persist After Reload
+
+### What Changed
+- Updated profile achievement snapshot merge logic so empty catalog arrays from API responses no longer wipe the UI catalog.
+- Added defensive fallback behavior for:
+  - category resolution per tab
+  - achievement item resolution per active category
+- Preserved prior known `claimableTitles` and `accountTitles` when responses omit those arrays.
+
+### Files Affected
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Design Decision
+- Treated empty `tabs`, `categories`, and `achievements` arrays as partial/incomplete payloads for profile rendering, and now prefer previous snapshot data, then static fallback catalog.
+- This prevents the temporary “categories show, then disappear” state during silent refresh cycles.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+### Known Limitations
+- If backend intentionally sends an empty catalog to hide the achievements catalog, frontend now retains previous/fallback catalog for continuity.
+
+## Patch Update (2026-04-30) - Legacy Achievement Payload Compatibility Normalization
+
+### What Changed
+- Added canonical achievement-definition merge in profile achievement payload handling.
+- Runtime now aligns payload entries to the updated fallback catalog by `achievementId`, overriding static definition fields (`title`, `description`, `tabId`, `categoryId`, reward/title metadata, event metadata, icon paths).
+- Missing catalog entries are appended from fallback so categories and updated tracks stay visible even when server payload is partial or stale.
+- Tabs and categories for profile achievements now resolve from the updated fallback catalog to keep the expected two-tab + multi-category structure consistent.
+- Claim success message now resolves the claimed item from normalized snapshot data instead of raw payload data.
+
+### Why
+- Some runtime payloads continued returning legacy titles (`Legacy Founder`, `Legacy Director`, `Legacy Ambassador`, `Presidential Circle`) and narrower category sets, causing the Profile Achievement Center to show outdated content after load.
+- Normalization ensures the UI renders the updated catalog:
+  - Executive Ambassador
+  - Regional Ambassador
+  - National Ambassador
+  - Global Ambassador
+  under `Time-Limited Event` -> `Legacy Builder Leadership Program`.
+
+### Files Affected
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Equipped Title Badge Priority + Non-Rank Medal Enforcement
+
+### Issue
+- Profile header title badge could still show `Legacy Builder` text/icon after equipping another badge.
+- Some non-rank badges could still resolve to legacy/rank icon variants.
+
+### Root Cause
+- Header hero resolver allowed fallback to profile/account title when title-strip entry was absent, which could bypass equipped badge rendering.
+- Non-rank icon resolver still allowed explicit/mapped legacy icon paths before fallback.
+
+### Fix
+- `index.html`
+  - `resolveProfileAchievementIconPath(...)` now returns Founding Ambassador icon immediately for all non-rank/non-good-life achievements.
+  - `syncProfileAccountOverviewHero(...)` now prioritizes `resolveProfileEquippedBadgeEntry()` for title label, icon, and subtitle.
+  - Title hovercard slot label now reflects `Equipped Badge` when equipped entry is active.
+
+### Result
+- Equipping a badge updates the right-side profile header title immediately and consistently.
+- Non-rank title badges render the Founding Ambassador medal family instead of legacy rank icon variants.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Equipped Badge Header Not Refreshing After Equip
+
+### Issue
+- Equipping a new badge updated inventory state, but the profile header title badge (next to avatar) could remain on `Legacy Builder`.
+
+### Root Cause
+- `applyProfileAchievementPayload(...)` refreshed badge strips/inventory but did not trigger the full header identity sync path that updates the profile hero title text/icon.
+
+### Fix
+- In `index.html`, replaced post-payload call from:
+  - `syncProfileBadgeDisplays(resolveEffectiveMemberProfile())`
+  to:
+  - `syncHeaderProfileIdentity(effectiveProfile)`
+- This ensures the header title badge label/icon/subtitle are recalculated immediately from equipped badge state.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Profile Header Title Text Clipping Fix
+
+### Issue
+- Equipped title label under profile header badge clipped with ellipsis (e.g., `Executive Amb...`).
+
+### Fix
+- Updated title-badge-only CSS in `index.html`:
+  - enabled multiline wrapping
+  - removed single-line ellipsis behavior
+  - widened title label max width
+  - added minimum two-line height for stable layout
+
+### Result
+- Long title labels now render fully on the profile header title badge.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - KPI Badge Strip Limited To Rank + Equipped Title
+
+### Request
+- Remove the 3rd badge on the Account Active Until KPI card.
+- Show only Account Rank and the equipped profile title badge.
+
+### Fix
+- Updated `resolveDashboardAccountKpiBadgeEntries(...)` in `index.html` to only allow badge keys:
+  - `rank`
+  - `title`
+- Excludes `extra` (Title 2) from KPI strip rendering.
+
+### Result
+- KPI badge strip no longer shows the third badge.
+- Card now reflects only rank + equipped title badge state from profile.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Binary Tree Account Overview Uses Equipped Title
+
+### Request
+- When a new title is equipped in Profile, apply it to Binary Tree Account Overview title badge as well.
+
+### Root Cause
+- Binary Tree Account Overview title logic prioritized fallback/session title fields and claimed-title ordering, which could keep showing `Legacy Builder`.
+- Root node payload in `index.html` still sourced `profileAccountTitle` from profile customization title instead of equipped badge entry.
+
+### Fix
+- `index.html`
+  - in binary tree root node payload build, set:
+    - `profileAccountTitle` from current root title badge entry (`rootTitleBadgeEntry.cardTitle`) first
+    - `profileAccountTitleSecondary` from root extra badge entry first
+- `binary-tree-next-app.mjs`
+  - added `resolveAccountOverviewEquippedTitleEntry()` to resolve equipped title from cached achievements payload (`equippedProfileBadgeId` + achievements/catalog metadata)
+  - account overview title resolver now prioritizes equipped title label when available
+  - account overview title icon resolver now prioritizes equipped title icon path when available
+  - removed forced conversion of `Legacy Builder` to `Legacy Founder` in account overview title logic
+
+### Result
+- Binary Tree Account Overview title badge now follows the currently equipped profile title badge.
+- Equipped title/icon changes propagate consistently across Profile header, KPI strip, and Binary Tree account overview.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Binary Tree Account Overview Title Label Wrap Fix
+
+### Summary
+- Fixed text clipping on the Binary Tree `Account Overview` title badge label.
+- Removed single-line ellipsis behavior so equipped title names (for example, `Founding Ambassador`) render fully.
+
+### Files Updated
+- `binary-tree-next.html`
+
+### Style Changes
+- Updated `.tree-next-account-overview-badge-label` to:
+  - allow multiline wrapping (`white-space: normal`)
+  - break long words safely (`word-break: break-word`, `overflow-wrap: anywhere`)
+  - disable ellipsis truncation (`text-overflow: clip`)
+
+### Validation
+- Manual code review of account overview badge label styles completed.
+
+## Patch Update (2026-04-30) - Membership Placement Accounts No Longer Generate Tree BV
+
+### Issue
+- Membership placement reservation accounts were still contributing personal starter BV in tree aggregation paths.
+- This caused leg totals to exceed visible child-node BV sums (example drift: `+42 BV`).
+
+### Root Cause
+- Legacy and next-gen tree builders both used `starterPersonalPv` fallbacks for all non-free accounts.
+- Reservation-plan records can carry historical `starterPersonalPv` values, even though they are position-only and should contribute `0 BV`.
+
+### Fix
+- `index.html`
+  - updated `resolveMemberBinaryVolume(...)` to return `0` for `membership-placement-reservation`.
+  - updated `resolveMemberLifetimeBinaryVolume(...)` to return `0` for `membership-placement-reservation`.
+- `admin.html`
+  - added `MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY` + `isMembershipPlacementReservationPackageKey(...)`.
+  - updated admin `resolveMemberBinaryVolume(...)` to return `0` for reservation accounts.
+  - updated admin `resolveMemberLifetimeBinaryVolume(...)` to return `0` for reservation accounts.
+- `binary-tree-next-app.mjs`
+  - updated `resolveTreeNextLiveMemberPersonalVolumeSnapshot(...)` to force `packageBv/starter/current/baseline` to `0` for reservation accounts.
+  - updated `createTreeNextLiveScopedRootNode(...)` to enforce `0` volume and personal PV fields when root/source is reservation-plan.
+
+### Result
+- Membership placement accounts remain as structural nodes only.
+- Left/right leg BV now aligns with actual child BV sums and no longer leaks stale starter PV.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+- Inline script parse check passed (`INLINE_SCRIPT_PARSE_OK index.html blocks=3`).
+- Inline script parse check passed (`INLINE_SCRIPT_PARSE_OK admin.html blocks=2`).
+
+### Follow-up (Details Carousel Availability Parity)
+- `binary-tree-next-app.mjs`
+  - updated `resolveNodeLoopDisplayMetrics(...)` to bypass server cutoff leg metrics for reservation accounts and return computed subtree fallback metrics.
+  - updated `resolveNodeCutoffMetricsForDetails(...)` to return `null` for reservation accounts so details carousel relies on subtree-derived leg totals.
+- Outcome:
+  - `Available Left/Right Leg BV` now matches reservation-node subtree values instead of stale cutoff snapshots.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Achievement Header Meta Text Removed
+
+### Summary
+- Removed the `Enrolled members: X | Active` status text from the Profile Achievement section header.
+- The status element is now hidden in markup and stays hidden during runtime rendering.
+
+### Files Updated
+- `index.html`
+
+### Validation
+- Verified no remaining `Enrolled members:` text in `index.html`.
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Preferred Customers BV Label Terminology Fix
+
+### Summary
+- Updated Preferred Customers dashboard user-facing labels from `BP` to `BV`.
+- This is a display terminology patch only; underlying data fields and calculations remain unchanged.
+
+### Files Updated
+- `index.html`
+
+### Updated UI Copy
+- Preferred Customer planner selected summary: `0 BP` -> `0 BV`
+- Preferred Customer planner list chips: `... BP` -> `... BV`
+- Store owner KPI card text: `... BP` -> `... BV`
+- Store analytics/support copy and sample invoice lines: `BP` -> `BV`
+- Settlement labels: `Posted BP`/`Pending BP` -> `Posted BV`/`Pending BV`
+
+### Validation
+- Verified no remaining standalone `BP` labels in `index.html`.
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Enroll Member Dashboard Page Removed (Binary Tree Enrollment Only)
+
+### Summary
+- Removed the standalone `Enroll Member` page from the user dashboard experience.
+- Enrollment flow now routes to Binary Tree only.
+
+### Changes Implemented
+- `index.html`
+  - removed sidebar nav link for `Enroll Member`.
+  - removed the full `page-enroll-member` section markup from dashboard page views.
+  - removed `enroll-member` page metadata and route mapping (`/EnrollMember`) from SPA page routing tables.
+  - updated quick action enroll behavior to open Binary Tree page directly:
+    - `window.location.href = '/binary-tree-next.html'`.
+  - added legacy-path redirect guard:
+    - visiting `/EnrollMember` or `/enroll-member` now redirects to `/binary-tree-next.html`.
+  - removed remaining `setPage` branch handling for `enroll-member` page view.
+
+### Validation
+- Verified no remaining active `enroll-member` page-view/nav-route hooks in `index.html`.
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Personal BV Graph Caption Switched To Date Range
+
+### Summary
+- Removed the misleading Personal BV graph footer totals/delta copy from the User Dashboard KPI card.
+- Replaced it with a pure timeframe caption so users see the chart window only, not an accumulated PV number.
+
+### Files Updated
+- `index.html`
+
+### UX Copy Change
+- Previous caption examples:
+  - `Last 30 days: +X PV (Y total)`
+  - `Last 30 days total: Y PV`
+- New caption:
+  - `From <Month Day, Year> to <Month Day, Year>`
+
+### Design Decision
+- Personal BV value and PV trend bars remain unchanged.
+- Footer text now communicates date range only to avoid implying the graph is summing real personal PV holdings.
+
+### Known Limitation
+- Date range reflects the displayed 30-day chart window, not a custom user-selected filter.
+
+### Validation
+- Manual code review completed for caption generator logic and fallback behavior.
+
+## Patch Update (2026-04-30) - Admin Binary Tree Anticipation Structure + Direct Enrollment
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - updated `resolveAnticipationSlots(...)` admin logic:
+    - centered anticipation is now limited to first root enrollment only.
+    - root stops showing anticipation slots after the seed node is created.
+    - admin placements on non-root nodes now render normal left/right anticipation slots.
+  - updated `handleTreeNextEnrollModalSubmit(...)`:
+    - added admin-path direct enrollment payload flow using `submitTreeNextEnrollmentRequest(...)`.
+    - bypasses Stripe checkout window/session creation when `state.source === 'admin'`.
+    - preserves existing success handling (thank-you state, password setup link, pending placement lock, account overview/rank refresh).
+
+### Files Affected
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Design Decision
+- Enforced requested admin tree shape at UI placement level:
+  - one centered seed node under root
+  - subsequent growth under that seed via left/right branches.
+- Kept member (`state.source === 'member'`) enrollment Stripe flow unchanged.
+
+### Known Limitation
+- Root is intentionally locked from additional anticipation slots after the first seed node exists; continuing enrollment requires selecting the seed/descendant nodes.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Admin Enrollment PV Seed + Per-Account Trend Isolation
+
+### What Changed
+- index.html
+  - fixed dashboard trend storage identity keys so they now scope to the current signed-in member identity (username/id), not sponsor username.
+  - updated all related trend key resolvers:
+    - getDashboardPersonalVolumeTrendUserKey(...)
+    - getDashboardEwalletBalanceTrendUserKey(...)
+    - getAccountOverviewTrendUserKey(...)
+    - getAccountOverviewBvTrendUserKey(...)
+- backend/services/member.service.js
+  - updated createRegisteredMember(...) enrollment seed PV behavior:
+    - admin-created enrollments (isAdminPlacement) now initialize with starterPersonalPv = 0 and currentPersonalPvBv = 0.
+    - reservation-plan enrollments also initialize with zero seed PV.
+    - paid/member enrollment path still seeds from package BV as before.
+
+### Files Affected
+- index.html
+- backend/services/member.service.js
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+- Claude_Notes/binary-tree-next.md
+
+### Design Decision
+- Admin no-payment registration should not award personal PV at account creation.
+- Trend history must be account-scoped to prevent chart bleed when multiple accounts share the same sponsor.
+
+### Known Limitation
+- Existing browser-local trend entries previously saved under sponsor-scoped keys remain in localStorage but are no longer read by the updated account-scoped resolvers.
+
+### Validation
+- node --check backend/services/member.service.js passed.
+- Manual diff review confirmed only targeted trend-key and admin-seed-PV logic changed.
+
+## One-Time Data Cleanup (2026-04-30) - usertesting1 Admin No-Payment PV Reset
+
+### Context
+- Account `usertesting1` was created through admin direct-enrollment (no Stripe payment), but persisted seed PV fields were still `150`.
+- Resulting dashboard visuals showed historical PV/BV bars for a just-created account.
+
+### Action Performed
+- Ran a one-time transactional DB cleanup scoped to `usertesting1` only.
+- Safety check passed before update: `store_invoices` count for this account/email = `0`.
+- Updated `charge.member_users`:
+  - `starter_personal_pv` -> `0`
+  - `current_personal_pv_bv` -> `0`
+  - `server_cutoff_baseline_starter_personal_pv` -> `0`
+  - `activity_active_until_at` -> `NULL`
+  - purchase/upgrade timestamps -> `NULL`
+- Updated `charge.registered_members`:
+  - `starter_personal_pv` -> `0`
+  - `server_cutoff_baseline_starter_personal_pv` -> `0`
+  - `activity_active_until_at` -> `NULL`
+  - purchase/upgrade timestamps -> `NULL`
+
+### Verification
+- Post-update verification confirmed:
+  - `member_users.starter_personal_pv = 0`
+  - `member_users.current_personal_pv_bv = 0`
+  - `registered_members.starter_personal_pv = 0`
+- Rows affected:
+  - `charge.member_users`: `1`
+  - `charge.registered_members`: `1`
+
+### Notes
+- This was a one-time corrective cleanup for existing legacy seeded data.
+- Code-level prevention patch remains in place for future admin no-payment enrollments.
+
+## One-Time Data Update (2026-04-30) - Restore usertesting1 PV to 150 (Today Timestamp)
+
+### Request
+- Revert prior cleanup and restore usertesting1 personal volume to 150.
+- Ensure chart anchor uses today (not April 27).
+
+### Action Performed
+- Updated charge.member_users for usertesting1:
+  - starter_personal_pv = 150
+  - current_personal_pv_bv = 150
+  - last_product_purchase_at = 2026-04-30T09:34:45.200Z
+  - last_purchase_at = 2026-04-30T09:34:45.200Z
+- Updated charge.registered_members for usertesting1:
+  - starter_personal_pv = 150
+  - last_product_purchase_at = 2026-04-30T09:34:45.200Z
+  - last_purchase_at = 2026-04-30T09:34:45.200Z
+
+### Verification
+- member_users row count updated: 1
+- registered_members row count updated: 1
+- Post-update values confirm 150 PV fields with today timestamp.
+
+### Note
+- If old chart point still appears in browser, clear local dashboard trend cache and reload.
+
+## Patch Update (2026-04-30) - Trend Timestamp Floor Guard (Pre-Creation Backfill Block)
+
+### What Changed
+- index.html
+  - Added resolveCurrentSessionTrendMinimumTimestampMs() to derive an account-scoped minimum chart timestamp from the signed-in account createdAt/joinedAt/enrolledAt.
+  - Added sanitizeTrendTimestampMsForCurrentSession(...) to clamp or reject timestamps that fall before account creation.
+  - Applied timestamp-floor filtering to stored trend-entry sanitizers:
+    - sanitizeDashboardPersonalVolumeTrendEntries(...)
+    - sanitizeDashboardEwalletBalanceTrendEntries(...)
+    - sanitizeAccountOverviewBvTrendEntries(...)
+  - Applied timestamp-floor clamping to observedAt/fallback flow paths:
+    - appendDashboardPersonalVolumeTrendPoint(...)
+    - updateDashboardPersonalVolumeKpi(...)
+    - buildDashboardPersonalVolumeDailySeries(...)
+    - appendDashboardEwalletBalanceTrendPoint(...)
+    - updateDashboardEwalletBalanceKpi(...)
+    - buildDashboardEwalletBalanceDailySeries(...)
+    - appendAccountOverviewBvTrendPoint(...)
+    - updateAccountOverviewBvComparisonGraph(...)
+    - buildAccountOverviewBvDailySeries(...)
+
+### Why
+- Prevent stale local trend cache points (or stale observedAt values) from rendering dates older than the member account itself.
+- This specifically addresses reports where a newly created account displayed historical graph points (for example 4/27) that predate account creation.
+
+### Validation
+- Inline script parse check passed: INLINE_SCRIPT_PARSE_OK index.html blocks=6.
+
+## Patch Update (2026-04-30) - Admin Flush Scope Expanded to All User-Linked Data (Products Preserved)
+
+### What Changed
+- `backend/services/admin.service.js`
+  - expanded `FLUSH_TRUNCATE_TABLES_BY_KEY` to include newer user-linked tables:
+    - `member_profile_badge_selection`
+    - `user_auto_ship_settings`
+    - `user_auto_ship_events`
+    - `ledger_entries`
+    - `wallet_ledger_entries`
+    - `business_center_owner_progress`
+    - `business_center_activation_audit`
+    - `business_center_cycle_states`
+    - `business_center_commission_events`
+    - `stripe_webhook_events`
+  - removed `member_title_catalog` from flush truncation targets (catalog/config preserved).
+  - removed runtime-settings reset block from flush execution so runtime configuration is preserved.
+- `admin.html`
+  - updated flush danger-zone copy to clarify flush is user/member-data-only.
+  - updated confirmation dialog copy to explicitly preserve admin account, runtime settings, title catalog, and store products.
+  - updated flush summary list keys to match backend payload (added auto-ship/ledger/business-center/badge/webhook counts, removed runtime/title-catalog reset counters).
+
+### Files Affected
+- `backend/services/admin.service.js`
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/admin-dashboard-page.md`
+
+### Design Decision
+- Flush now strictly targets users/members and their derived records only.
+- Global/admin configuration and product/catalog data remain intact by default:
+  - preserved: `store_products`, `admin_users`, `runtime_settings`, `business_center_unlock_rules`, `member_title_catalog`.
+
+### Known Limitation
+- If new user-linked DB tables are added later and not included in `FLUSH_TRUNCATE_TABLES_BY_KEY`, they will not be cleared until explicitly mapped.
+
+### Validation
+- `node --check backend/services/admin.service.js` passed.
+- `node --test backend/tests/binary-cycle-cutoff.test.js` passed.
+- `node --test backend/tests/ledger.service.test.js` passed.
+- `node --test backend/tests/leadership-matching.service.test.js` passed.
+- `node --test backend/tests/member-business-center.service.test.js` passed.

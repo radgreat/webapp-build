@@ -460,3 +460,45 @@
 ### Validation
 - node --check backend/services/member.service.js passed.
 
+
+## Update (2026-04-25) - Preferred Upgrade Split Product Checkout
+
+### What Changed
+
+- In `store-dashboard.html`, replaced single upgrade product quantity build with split allocation.
+- Upgrade checkout now posts split `cartLines`:
+  - carryover product quantity
+  - selected split product quantity
+- Added `accountUpgradeSelectedProductKey` to checkout payload for backend metadata propagation.
+- Persisted split product label text in pending checkout summary.
+- Updated picker copy to reflect split selection behavior.
+
+### Validation
+
+- Inline script parse check passed for `store-dashboard.html`.
+
+## Update (2026-04-25) - Preferred Upgrade Product Modes (All MetaCharge / All MetaRoast / Split)
+
+### Scope
+
+- `store-dashboard.html` builder-upgrade modal and checkout payload.
+
+### Changes
+
+- Added explicit 3-option upgrade picker behavior:
+  - `All MetaCharge`
+  - `All MetaRoast`
+  - `Split Products`
+- Converted quote builder from forced split to mode-aware allocation.
+- Added mode-aware payload metadata:
+  - `accountUpgradeSelectedProductKey`
+  - `accountUpgradeProductMode`
+- Updated picker copy to match optional split behavior.
+
+### Result
+
+- Preferred users can choose full single-product allocation or split allocation per upgrade checkout.
+
+### Validation
+
+- Inline script parse check passed for `store-dashboard.html`.

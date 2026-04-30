@@ -2,6 +2,7 @@ import {
   completeStoreCheckoutPaymentIntent,
   completeStoreCheckoutSession,
 } from './store-checkout.service.js';
+import pool from '../db/db.js';
 import {
   completeRegisteredMemberCheckoutSession,
   completeRegisteredMemberPaymentIntent,
@@ -29,6 +30,19 @@ import {
   linkStripeCustomerToUserIdentity,
   resolveStripeCustomerId,
 } from './stripe-client.service.js';
+import {
+  ensureStripeWebhookEventTable,
+  insertStripeWebhookEvent,
+  readStripeWebhookEventByEventId,
+} from '../stores/stripe-webhook-event.store.js';
+import {
+  handleAutoShipCheckoutSessionCompleted,
+  handleAutoShipInvoicePaymentFailed,
+  handleAutoShipInvoicePaymentSucceeded,
+  handleAutoShipSubscriptionDeleted,
+  handleAutoShipSubscriptionUpdated,
+  isAutoShipStripeMetadataCandidate,
+} from './auto-ship.service.js';
 import { retryEligibleFailedStripePayoutRequests } from './payout.service.js';
 
 function normalizeText(value) {
@@ -434,6 +448,68 @@ function isEnrollmentFlowMetadata(metadata = {}) {
   return Boolean(normalizeText(metadata.enrollment_package));
 }
 
+function isAutoShipCheckoutSession(session = null, metadata = {}) {
+  if (isAutoShipStripeMetadataCandidate(metadata)) {
+    return true;
+  }
+  const mode = normalizeText(session?.mode).toLowerCase();
+  if (mode !== 'subscription') {
+    return false;
+  }
+  const autoShipProductKey = normalizeText(
+    metadata?.autoship_product_key
+    || metadata?.selected_product_key
+    || '',
+  ).toLowerCase();
+  return autoShipProductKey === 'metacharge' || autoShipProductKey === 'metaroast';
+}
+
+function buildWebhookSummaryPayload(event = {}, result = {}) {
+  const summary = {};
+  const resultObject = result && typeof result === 'object' ? result : {};
+
+  const stripeObjectId = normalizeText(event?.data?.object?.id);
+  if (stripeObjectId) {
+    summary.objectId = stripeObjectId;
+  }
+
+  const userId = normalizeText(resultObject?.userId);
+  if (userId) {
+    summary.userId = userId;
+  }
+
+  const stripeInvoiceId = normalizeText(resultObject?.stripeInvoiceId);
+  if (stripeInvoiceId) {
+    summary.stripeInvoiceId = stripeInvoiceId;
+  }
+
+  const stripeSubscriptionId = normalizeText(resultObject?.stripeSubscriptionId);
+  if (stripeSubscriptionId) {
+    summary.stripeSubscriptionId = stripeSubscriptionId;
+  }
+
+  const settingStatus = normalizeText(resultObject?.settingStatus || resultObject?.status);
+  if (settingStatus) {
+    summary.status = settingStatus;
+  }
+
+  if (resultObject?.idempotent === true) {
+    summary.idempotent = true;
+  }
+
+  if (resultObject?.retrySummary && typeof resultObject.retrySummary === 'object') {
+    summary.retrySummary = {
+      processedCount: Number(resultObject.retrySummary.processedCount || 0),
+      paidCount: Number(resultObject.retrySummary.paidCount || 0),
+      failedCount: Number(resultObject.retrySummary.failedCount || 0),
+      skipped: resultObject.retrySummary.skipped === true,
+      reason: normalizeText(resultObject.retrySummary.reason),
+    };
+  }
+
+  return summary;
+}
+
 async function syncStoreInvoiceFromPaymentIntent(paymentIntent = null) {
   const metadata = resolveMetadataFromObject(paymentIntent);
   const syncResult = await syncStoreInvoiceStripeDetails({
@@ -450,15 +526,26 @@ async function syncStoreInvoiceFromPaymentIntent(paymentIntent = null) {
   return syncResult;
 }
 
-async function handleCheckoutSessionCompleted(checkoutSession = null) {
+async function handleCheckoutSessionCompleted(checkoutSession = null, event = null) {
   const session = checkoutSession && typeof checkoutSession === 'object'
     ? checkoutSession
     : null;
   if (!session?.id) {
-    return;
+    return {
+      handled: false,
+      reason: 'empty-checkout-session',
+    };
   }
 
   const metadata = resolveMetadataFromObject(session);
+  if (isAutoShipCheckoutSession(session, metadata)) {
+    const autoShipResult = await handleAutoShipCheckoutSessionCompleted(session, event);
+    return autoShipResult || {
+      handled: false,
+      reason: 'autoship-checkout-unhandled',
+    };
+  }
+
   if (isEnrollmentFlowMetadata(metadata)) {
     await completeRegisteredMemberCheckoutSession({
       sessionId: normalizeText(session.id),
@@ -490,6 +577,11 @@ async function handleCheckoutSessionCompleted(checkoutSession = null) {
     stripeInvoiceId: resolveStripeCustomerId(session.invoice),
     stripePaymentStatus: normalizeText(session.payment_status),
   }).catch(() => {});
+
+  return {
+    handled: true,
+    category: 'checkout-session',
+  };
 }
 
 async function handlePaymentIntentSucceeded(paymentIntent = null) {
@@ -538,7 +630,10 @@ async function handlePaymentIntentStatusUpdate(paymentIntent = null) {
 async function handleInvoiceEvent(invoice = null) {
   const payload = resolveInvoiceSyncPayloadFromInvoiceObject(invoice);
   if (!payload) {
-    return;
+    return {
+      handled: false,
+      reason: 'empty-invoice',
+    };
   }
 
   await syncStoreInvoiceStripeDetails(payload).catch(() => {});
@@ -550,9 +645,44 @@ async function handleInvoiceEvent(invoice = null) {
     username: normalizeText(metadata.buyer_username || metadata.member_username),
     email: normalizeEmail(metadata.buyer_email || metadata.email || invoice?.customer_email),
   }).catch(() => {});
+
+  return {
+    handled: true,
+    category: 'invoice',
+  };
 }
 
-export async function handleStripeWebhookEvent(event = {}) {
+async function handleInvoicePaymentSucceeded(invoice = null, event = null) {
+  const autoShipResult = await handleAutoShipInvoicePaymentSucceeded(invoice, event).catch(() => ({
+    handled: false,
+  }));
+  const invoiceSyncResult = await handleInvoiceEvent(invoice);
+  if (autoShipResult?.handled) {
+    return {
+      handled: true,
+      category: autoShipResult?.category || 'autoship-invoice',
+      ...autoShipResult,
+    };
+  }
+  return invoiceSyncResult;
+}
+
+async function handleInvoicePaymentFailed(invoice = null, event = null) {
+  const autoShipResult = await handleAutoShipInvoicePaymentFailed(invoice, event).catch(() => ({
+    handled: false,
+  }));
+  const invoiceSyncResult = await handleInvoiceEvent(invoice);
+  if (autoShipResult?.handled) {
+    return {
+      handled: true,
+      category: autoShipResult?.category || 'autoship-invoice-failed',
+      ...autoShipResult,
+    };
+  }
+  return invoiceSyncResult;
+}
+
+async function dispatchStripeWebhookEvent(event = {}) {
   const eventType = normalizeText(event?.type);
   const eventObject = event?.data?.object || null;
   if (!eventType || !eventObject) {
@@ -564,11 +694,7 @@ export async function handleStripeWebhookEvent(event = {}) {
 
   switch (eventType) {
     case 'checkout.session.completed':
-      await handleCheckoutSessionCompleted(eventObject);
-      return {
-        handled: true,
-        category: 'checkout-session',
-      };
+      return handleCheckoutSessionCompleted(eventObject, event);
     case 'payment_intent.succeeded':
       await handlePaymentIntentSucceeded(eventObject);
       return {
@@ -582,17 +708,21 @@ export async function handleStripeWebhookEvent(event = {}) {
         handled: true,
         category: 'payment-intent-status',
       };
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated':
+      return handleAutoShipSubscriptionUpdated(eventObject, event);
+    case 'customer.subscription.deleted':
+      return handleAutoShipSubscriptionDeleted(eventObject, event);
+    case 'invoice.payment_succeeded':
+      return handleInvoicePaymentSucceeded(eventObject, event);
+    case 'invoice.payment_failed':
+      return handleInvoicePaymentFailed(eventObject, event);
     case 'invoice.created':
     case 'invoice.finalized':
     case 'invoice.paid':
-    case 'invoice.payment_failed':
     case 'invoice.voided':
     case 'invoice.marked_uncollectible':
-      await handleInvoiceEvent(eventObject);
-      return {
-        handled: true,
-        category: 'invoice',
-      };
+      return handleInvoiceEvent(eventObject);
     case 'account.updated':
       await handleConnectAccountUpdated(eventObject);
       return {
@@ -632,5 +762,65 @@ export async function handleStripeWebhookEvent(event = {}) {
         handled: false,
         reason: 'ignored-event',
       };
+  }
+}
+
+export async function handleStripeWebhookEvent(event = {}) {
+  const eventId = normalizeText(event?.id);
+  const eventType = normalizeText(event?.type);
+  const eventObject = event?.data?.object || null;
+  if (!eventType || !eventObject) {
+    return {
+      handled: false,
+      reason: 'empty-event',
+    };
+  }
+
+  if (!eventId) {
+    return dispatchStripeWebhookEvent(event);
+  }
+
+  await ensureStripeWebhookEventTable();
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(`
+      SELECT pg_advisory_xact_lock(hashtext($1))
+    `, [`stripe-webhook:${eventId}`]);
+
+    const existingEvent = await readStripeWebhookEventByEventId(eventId, client, { forUpdate: true });
+    if (existingEvent) {
+      await client.query('COMMIT');
+      return {
+        handled: existingEvent.handled,
+        category: normalizeText(existingEvent.category),
+        reason: normalizeText(existingEvent.reason) || 'already-processed',
+        idempotent: true,
+      };
+    }
+
+    const dispatchResult = await dispatchStripeWebhookEvent(event);
+    const handled = dispatchResult?.handled === true;
+    const category = normalizeText(dispatchResult?.category);
+    const reason = normalizeText(dispatchResult?.reason);
+    const summary = buildWebhookSummaryPayload(event, dispatchResult);
+
+    await insertStripeWebhookEvent({
+      eventId,
+      eventType,
+      handled,
+      category,
+      reason,
+      summary,
+      processedAt: new Date().toISOString(),
+    }, client);
+
+    await client.query('COMMIT');
+    return dispatchResult;
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally {
+    client.release();
   }
 }

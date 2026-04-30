@@ -38,13 +38,21 @@ import {
   resolveAuthAccountAudience,
 } from '../utils/auth.helpers.js';
 import {
-  resolveMemberAccountStatusByPersonalBv,
+  resolveMemberActivityStateByPersonalBv,
   resolveMemberPersonalBvSnapshot,
 } from '../utils/member-activity.helpers.js';
+import {
+  MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY,
+  MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_LABEL,
+  isMembershipPlacementReservationPackage,
+  isPendingOrReservationMember,
+  buildAccountUpgradeRequiredResult,
+} from '../utils/member-capability.helpers.js';
 import {
   readCommissionContainerByUserId,
   upsertCommissionContainerByUserId,
 } from '../stores/commission-container.store.js';
+import { createFastTrackCommissionLedgerEntry } from './ledger.service.js';
 
 const DEFAULT_ATTRIBUTION_STORE_CODE = 'REGISTRATION_LOCKED';
 const DEFAULT_ENROLLMENT_RETURN_PATH = '/binary-tree-next.html';
@@ -68,7 +76,18 @@ const BUSINESS_CENTER_NODE_TYPE_LEGACY_PLACEHOLDER = 'legacy_placeholder';
 
 const FAST_TRACK_PACKAGE_META = {
   [FREE_ACCOUNT_PACKAGE_KEY]: { label: 'Free Account', price: 0, bv: 0 },
-  'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 192 },
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: {
+    label: MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_LABEL,
+    price: 49.99,
+    bv: 0,
+    canEarn: false,
+    canEnroll: false,
+    canSponsor: false,
+    storeLinkEnabled: false,
+    binaryTreeViewOnly: true,
+    isReservationPlan: true,
+  },
+  'personal-builder-pack': { label: 'Personal Builder Pack', price: 192, bv: 150 },
   'business-builder-pack': { label: 'Business Builder Pack', price: 384, bv: 300 },
   'infinity-builder-pack': { label: 'Infinity Builder Pack', price: 640, bv: 500 },
   'legacy-builder-pack': { label: 'Legacy Builder Pack', price: 1280, bv: 1000 },
@@ -77,11 +96,34 @@ const PACKAGE_PRODUCT_BV = 50;
 const PACKAGE_PRODUCT_PRICE_USD = 64;
 const PACKAGE_PRODUCT_COUNT_BY_KEY = {
   [FREE_ACCOUNT_PACKAGE_KEY]: 0,
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: 0,
   'personal-builder-pack': 3,
   'business-builder-pack': 6,
   'infinity-builder-pack': 10,
   'legacy-builder-pack': 20,
 };
+const ACCOUNT_UPGRADE_SPLIT_PRODUCT_META = Object.freeze({
+  metacharge: Object.freeze({
+    key: 'metacharge',
+    label: 'MetaCharge',
+  }),
+  metaroast: Object.freeze({
+    key: 'metaroast',
+    label: 'MetaRoast',
+  }),
+});
+const ACCOUNT_UPGRADE_DEFAULT_SPLIT_SELECTED_PRODUCT_KEY = 'metaroast';
+const ACCOUNT_PACKAGE_PRODUCT_KEY_SPLIT = 'split';
+const ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METACHARGE = 'all-metacharge';
+const ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METAROAST = 'all-metaroast';
+const ACCOUNT_UPGRADE_PRODUCT_MODE_SPLIT = 'split';
+const ACCOUNT_UPGRADE_DEFAULT_PRODUCT_MODE = ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+const ENROLLMENT_DEFAULT_PRODUCT_KEY = 'metacharge';
+const ACCOUNT_UPGRADE_SPLIT_ELIGIBLE_PACKAGE_KEY_SET = new Set([
+  'business-builder-pack',
+  'infinity-builder-pack',
+  'legacy-builder-pack',
+]);
 
 const FAST_TRACK_TIER_META = {
   'personal-pack': { label: 'Personal Pack' },
@@ -92,6 +134,7 @@ const FAST_TRACK_TIER_META = {
 
 const STARTING_RANK_BY_PACKAGE = {
   [FREE_ACCOUNT_PACKAGE_KEY]: FREE_ACCOUNT_RANK_LABEL,
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: 'Personal',
   'personal-builder-pack': 'Personal',
   'business-builder-pack': 'Business',
   'infinity-builder-pack': 'Infinity',
@@ -107,6 +150,7 @@ const FAST_TRACK_RATE_BY_TIER = {
 
 const FAST_TRACK_TIER_BY_PACKAGE = {
   [FREE_ACCOUNT_PACKAGE_KEY]: 'personal-pack',
+  [MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY]: 'personal-pack',
   'personal-builder-pack': 'personal-pack',
   'business-builder-pack': 'business-pack',
   'infinity-builder-pack': 'achievers-pack',
@@ -118,6 +162,16 @@ const FREE_ACCOUNT_RANK_KEY_SET = new Set([
   'free account',
   'free',
 ]);
+
+function resolvePendingEnrollmentRestrictionResult(isAdminPlacement, authenticatedMember) {
+  if (isAdminPlacement) {
+    return null;
+  }
+  if (!isPendingOrReservationMember(authenticatedMember)) {
+    return null;
+  }
+  return buildAccountUpgradeRequiredResult(403);
+}
 
 function toWholeNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -867,6 +921,206 @@ function resolvePackageProductCount(packageKey) {
   return Math.max(0, Math.floor(packageBv / PACKAGE_PRODUCT_BV));
 }
 
+function normalizeAccountUpgradeSplitProductKey(value = '') {
+  const normalized = normalizeCredential(value).replace(/[^a-z0-9]/g, '');
+  if (!normalized) {
+    return '';
+  }
+  if (normalized.includes('roast')) {
+    return 'metaroast';
+  }
+  if (normalized.includes('charge')) {
+    return 'metacharge';
+  }
+  return '';
+}
+
+function normalizeAccountPackageProductKey(value = '') {
+  const normalized = normalizeCredential(value).replace(/[^a-z0-9]/g, '');
+  if (!normalized) {
+    return '';
+  }
+  if (normalized.includes('split')) {
+    return ACCOUNT_PACKAGE_PRODUCT_KEY_SPLIT;
+  }
+  return normalizeAccountUpgradeSplitProductKey(normalized);
+}
+
+function isAccountUpgradeSplitEligiblePackage(packageKey = '') {
+  const normalizedPackageKey = normalizeCredential(packageKey);
+  return ACCOUNT_UPGRADE_SPLIT_ELIGIBLE_PACKAGE_KEY_SET.has(normalizedPackageKey);
+}
+
+function resolveEnrollmentProductKey(value = '', packageKey = '') {
+  const normalizedProductKey = normalizeAccountPackageProductKey(value);
+  if (normalizedProductKey === ACCOUNT_PACKAGE_PRODUCT_KEY_SPLIT) {
+    return isAccountUpgradeSplitEligiblePackage(packageKey)
+      ? ACCOUNT_PACKAGE_PRODUCT_KEY_SPLIT
+      : ENROLLMENT_DEFAULT_PRODUCT_KEY;
+  }
+  return normalizedProductKey || ENROLLMENT_DEFAULT_PRODUCT_KEY;
+}
+
+function resolveCurrentPackageProductKeyFromSource(source = null) {
+  const safeSource = source && typeof source === 'object' ? source : {};
+  const candidates = [
+    safeSource.currentPackageProductKey,
+    safeSource.current_package_product_key,
+    safeSource.enrollmentProductKey,
+    safeSource.enrollment_product_key,
+    safeSource.defaultProductKey,
+    safeSource.default_product_key,
+  ];
+  for (const candidate of candidates) {
+    const normalizedProductKey = normalizeAccountPackageProductKey(candidate);
+    if (normalizedProductKey) {
+      return normalizedProductKey;
+    }
+  }
+  return '';
+}
+
+function normalizeAccountUpgradeProductMode(value = '', selectedProductKey = '', targetPackageKey = '') {
+  const splitAllowed = isAccountUpgradeSplitEligiblePackage(targetPackageKey);
+  const normalized = normalizeCredential(value).replace(/[^a-z0-9]/g, '');
+  if (normalized.includes('split') && splitAllowed) {
+    return ACCOUNT_UPGRADE_PRODUCT_MODE_SPLIT;
+  }
+  if (normalized.includes('roast')) {
+    return ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METAROAST;
+  }
+  if (normalized.includes('charge')) {
+    return ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+  }
+
+  const normalizedSelectedProductKey = normalizeAccountUpgradeSplitProductKey(selectedProductKey);
+  if (normalizedSelectedProductKey === 'metaroast') {
+    return ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METAROAST;
+  }
+  if (normalizedSelectedProductKey === 'metacharge') {
+    return ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METACHARGE;
+  }
+  return ACCOUNT_UPGRADE_DEFAULT_PRODUCT_MODE;
+}
+
+function resolveAccountUpgradeProductKeyByMode(productMode = '', selectedProductKey = '', targetPackageKey = '') {
+  const normalizedMode = normalizeAccountUpgradeProductMode(
+    productMode,
+    selectedProductKey,
+    targetPackageKey,
+  );
+  if (normalizedMode === ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METAROAST) {
+    return 'metaroast';
+  }
+  if (normalizedMode === ACCOUNT_UPGRADE_PRODUCT_MODE_ALL_METACHARGE) {
+    return 'metacharge';
+  }
+  const normalizedSelectedProductKey = normalizeAccountUpgradeSplitProductKey(selectedProductKey);
+  if (normalizedSelectedProductKey) {
+    return normalizedSelectedProductKey;
+  }
+  return ACCOUNT_UPGRADE_DEFAULT_SPLIT_SELECTED_PRODUCT_KEY;
+}
+
+function resolveComplementaryAccountUpgradeSplitProductKey(productKey = '') {
+  const normalizedProductKey = normalizeAccountUpgradeSplitProductKey(productKey);
+  return normalizedProductKey === 'metaroast' ? 'metacharge' : 'metaroast';
+}
+
+function resolveAccountUpgradeSplitProductMeta(productKey = '') {
+  const normalizedProductKey = normalizeAccountUpgradeSplitProductKey(productKey);
+  if (normalizedProductKey && ACCOUNT_UPGRADE_SPLIT_PRODUCT_META[normalizedProductKey]) {
+    return ACCOUNT_UPGRADE_SPLIT_PRODUCT_META[normalizedProductKey];
+  }
+  return ACCOUNT_UPGRADE_SPLIT_PRODUCT_META[ACCOUNT_UPGRADE_DEFAULT_SPLIT_SELECTED_PRODUCT_KEY];
+}
+
+function resolveAccountUpgradeProductAllocation({
+  currentPackageKey = '',
+  targetPackageKey = '',
+  selectedProductKey = '',
+  selectedProductMode = '',
+  currentPackageProductKey = '',
+} = {}) {
+  const currentPackageProducts = Math.max(0, resolvePackageProductCount(currentPackageKey));
+  const normalizedTargetPackageKey = normalizeCredential(targetPackageKey);
+  const targetPackageProducts = Math.max(
+    currentPackageProducts,
+    resolvePackageProductCount(normalizedTargetPackageKey),
+  );
+  const productCount = Math.max(0, targetPackageProducts - currentPackageProducts);
+  const normalizedCurrentPackageProductKey = normalizeAccountPackageProductKey(currentPackageProductKey)
+    || ENROLLMENT_DEFAULT_PRODUCT_KEY;
+  const normalizedProductMode = normalizeAccountUpgradeProductMode(
+    selectedProductMode,
+    selectedProductKey,
+    normalizedTargetPackageKey,
+  );
+  let resolvedSelectedProductKey = resolveAccountUpgradeProductKeyByMode(
+    normalizedProductMode,
+    selectedProductKey || ACCOUNT_UPGRADE_DEFAULT_SPLIT_SELECTED_PRODUCT_KEY,
+    normalizedTargetPackageKey,
+  );
+  let selectedProduct = resolveAccountUpgradeSplitProductMeta(
+    resolvedSelectedProductKey,
+  );
+  let carryoverProduct = resolveAccountUpgradeSplitProductMeta(
+    resolveComplementaryAccountUpgradeSplitProductKey(selectedProduct.key),
+  );
+  let carryoverQuantity = 0;
+  let selectedQuantity = productCount;
+  if (normalizedProductMode === ACCOUNT_UPGRADE_PRODUCT_MODE_SPLIT) {
+    const currentPackageIsSplit = normalizedCurrentPackageProductKey === ACCOUNT_PACKAGE_PRODUCT_KEY_SPLIT;
+    const resolvedCarryoverProductKey = currentPackageIsSplit
+      ? resolveComplementaryAccountUpgradeSplitProductKey(selectedProduct.key)
+      : (
+          normalizeAccountUpgradeSplitProductKey(normalizedCurrentPackageProductKey)
+          || resolveComplementaryAccountUpgradeSplitProductKey(selectedProduct.key)
+        );
+    carryoverProduct = resolveAccountUpgradeSplitProductMeta(resolvedCarryoverProductKey);
+    resolvedSelectedProductKey = resolveComplementaryAccountUpgradeSplitProductKey(carryoverProduct.key);
+    selectedProduct = resolveAccountUpgradeSplitProductMeta(resolvedSelectedProductKey);
+    const carryoverTargetTotal = Math.ceil(targetPackageProducts / 2);
+    const existingCarryoverProductQuantity = currentPackageIsSplit
+      ? Math.floor(currentPackageProducts / 2)
+      : currentPackageProducts;
+    const carryoverNeeded = Math.max(0, carryoverTargetTotal - existingCarryoverProductQuantity);
+    carryoverQuantity = Math.min(productCount, carryoverNeeded);
+    selectedQuantity = Math.max(0, productCount - carryoverQuantity);
+  }
+  const lines = [];
+  if (carryoverQuantity > 0) {
+    lines.push({
+      productKey: carryoverProduct.key,
+      productLabel: carryoverProduct.label,
+      quantity: carryoverQuantity,
+    });
+  }
+  if (selectedQuantity > 0) {
+    lines.push({
+      productKey: selectedProduct.key,
+      productLabel: selectedProduct.label,
+      quantity: selectedQuantity,
+    });
+  }
+  const splitLabel = lines.length > 0
+    ? lines.map((line) => `${line.productLabel} ${line.quantity}x`).join(' + ')
+    : `${selectedProduct.label} 0x`;
+
+  return {
+    currentPackageProductKey: normalizedCurrentPackageProductKey,
+    selectedProductMode: normalizedProductMode,
+    selectedProductKey: selectedProduct.key,
+    selectedProductLabel: selectedProduct.label,
+    selectedProductQuantity: selectedQuantity,
+    carryoverProductKey: carryoverProduct.key,
+    carryoverProductLabel: carryoverProduct.label,
+    carryoverProductQuantity: carryoverQuantity,
+    splitLabel,
+    lines,
+  };
+}
+
 function resolveFastTrackBonusAmount({ enrollmentPackage, sponsorFastTrackTier, isAdminPlacement }) {
   if (isAdminPlacement) {
     return 0;
@@ -906,6 +1160,9 @@ async function creditSponsorFastTrackCommissionContainer({
   const sponsor = sponsorUser && typeof sponsorUser === 'object' ? sponsorUser : null;
   const dbExecutor = executor || client || pool;
   if (!sponsor || safeBonusAmount <= 0) {
+    return null;
+  }
+  if (isPendingOrReservationMember(sponsor)) {
     return null;
   }
 
@@ -981,6 +1238,15 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
   const spilloverParentModeInput = requestedSpilloverParentMode === 'manual' ? 'manual' : 'auto';
   const spilloverParentReferenceInput = normalizeText(payload?.spilloverParentReference);
   const enrollmentPackage = normalizeCredential(payload?.enrollmentPackage);
+  const enrollmentProductKey = resolveEnrollmentProductKey(
+    payload?.enrollmentProductKey
+    || payload?.enrollment_product_key
+    || payload?.enrollmentProduct
+    || payload?.enrollment_product
+    || payload?.productKey
+    || payload?.product_key,
+    enrollmentPackage,
+  );
   const requestedFastTrackTier = normalizeCredential(
     payload?.fastTrackTier || FAST_TRACK_TIER_BY_PACKAGE[enrollmentPackage]
   );
@@ -993,6 +1259,13 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
   const authenticatedMember = payload?.authenticatedMember && typeof payload.authenticatedMember === 'object'
     ? payload.authenticatedMember
     : null;
+  const pendingEnrollmentRestriction = resolvePendingEnrollmentRestrictionResult(
+    isAdminPlacement,
+    authenticatedMember,
+  );
+  if (pendingEnrollmentRestriction) {
+    return pendingEnrollmentRestriction;
+  }
   const authenticatedMemberDisplayName = normalizeText(
     authenticatedMember?.name
     || authenticatedMember?.fullName
@@ -1145,6 +1418,7 @@ export async function createRegisteredMemberPaymentIntent(payload = {}) {
     spillover_parent_mode: sanitizeStripeMetadataValue(spilloverParentMode),
     spillover_parent_reference: sanitizeStripeMetadataValue(effectiveSpilloverParentReference),
     enrollment_package: sanitizeStripeMetadataValue(enrollmentPackage),
+    enrollment_product_key: sanitizeStripeMetadataValue(enrollmentProductKey),
     fast_track_tier: sanitizeStripeMetadataValue(requestedFastTrackTier),
     sponsor_username: sanitizeStripeMetadataValue(sponsorUsername),
     sponsor_name: sanitizeStripeMetadataValue(sponsorName || sponsorUsername),
@@ -1412,6 +1686,13 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
     ? spilloverParentReference
     : '';
   const enrollmentPackage = normalizeCredential(metadata.enrollment_package);
+  const enrollmentProductKey = resolveEnrollmentProductKey(
+    metadata.enrollment_product_key
+    || metadata.enrollmentProductKey
+    || metadata.product_key
+    || metadata.productKey,
+    enrollmentPackage,
+  );
   const requestedFastTrackTier = normalizeCredential(metadata.fast_track_tier);
   const billingAddress = normalizeText(metadata.billing_address);
   const billingCity = normalizeText(metadata.billing_city);
@@ -1465,6 +1746,7 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
       spilloverParentMode,
       spilloverParentReference: effectiveSpilloverParentReference,
       enrollmentPackage,
+      enrollmentProductKey,
       fastTrackTier: requestedFastTrackTier,
       sponsorUsername: sponsorUsernameFromPaymentMetadata,
       sponsorName: sponsorNameFromPaymentMetadata || sponsorUsernameFromPaymentMetadata,
@@ -1477,6 +1759,11 @@ export async function completeRegisteredMemberPaymentIntent(payload = {}) {
       isAdminPlacement,
       enrollmentContext: isAdminPlacement ? 'admin' : 'member',
       authenticatedMember: payload?.authenticatedMember || null,
+      enrollmentSourceId: normalizeText(paymentIntent?.id || paymentIntentId || metadata.invoice_id),
+      enrollmentOrderReference: normalizeText(metadata.invoice_id || ''),
+      paymentReference: normalizeText(paymentIntent?.id || paymentIntentId || ''),
+      paymentIntentId: normalizeText(paymentIntent?.id || paymentIntentId || ''),
+      paymentStatus: normalizeText(paymentIntent?.status || ''),
     });
 
     if (!registrationResult.success) {
@@ -1684,11 +1971,27 @@ export async function createRegisteredMember(payload) {
   const spilloverParentModeInput = requestedSpilloverParentMode === 'manual' ? 'manual' : 'auto';
   const spilloverParentReferenceInput = normalizeText(payload?.spilloverParentReference);
   const enrollmentPackage = normalizeCredential(payload?.enrollmentPackage);
+  const enrollmentProductKey = resolveEnrollmentProductKey(
+    payload?.enrollmentProductKey
+    || payload?.enrollment_product_key
+    || payload?.enrollmentProduct
+    || payload?.enrollment_product
+    || payload?.productKey
+    || payload?.product_key,
+    enrollmentPackage,
+  );
   const requestedFastTrackTier = normalizeCredential(payload?.fastTrackTier);
   const isStaffTreeAccount = Boolean(payload?.isStaffTreeAccount);
   const authenticatedMember = payload?.authenticatedMember && typeof payload.authenticatedMember === 'object'
     ? payload.authenticatedMember
     : null;
+  const pendingEnrollmentRestriction = resolvePendingEnrollmentRestrictionResult(
+    isAdminPlacement,
+    authenticatedMember,
+  );
+  if (pendingEnrollmentRestriction) {
+    return pendingEnrollmentRestriction;
+  }
   const authenticatedMemberDisplayName = normalizeText(
     authenticatedMember?.name
     || authenticatedMember?.fullName
@@ -1844,6 +2147,10 @@ export async function createRegisteredMember(payload) {
     const packagePrice = Number(packageMeta.price);
     const packageBv = Number(packageMeta.bv);
     const startingRank = STARTING_RANK_BY_PACKAGE[enrollmentPackage] || 'Personal';
+    const isReservationPlan = isMembershipPlacementReservationPackage(enrollmentPackage);
+    const enrollmentSeedPersonalPv = (isAdminPlacement || isReservationPlan)
+      ? 0
+      : packageBv;
     const fastTrackBonusAmount = resolveFastTrackBonusAmount({
       enrollmentPackage,
       sponsorFastTrackTier: resolvedSponsorFastTrackTier,
@@ -1852,19 +2159,18 @@ export async function createRegisteredMember(payload) {
 
     const createdAtDate = new Date();
     const createdAt = createdAtDate.toISOString();
-    const enrollmentPersonalBvSnapshot = resolveMemberPersonalBvSnapshot({
+    const enrollmentActivityState = resolveMemberActivityStateByPersonalBv({
+      passwordSetupRequired: true,
       createdAt,
-      currentPersonalPvBv: packageBv,
+      currentPersonalPvBv: enrollmentSeedPersonalPv,
     }, {
       referenceDate: createdAtDate,
     });
-    const activityActiveUntilAt = enrollmentPersonalBvSnapshot.nextCutoffAt;
-    const currentPersonalPvBv = enrollmentPersonalBvSnapshot.currentPersonalPvBv;
-    const accountStatus = resolveMemberAccountStatusByPersonalBv({
-      passwordSetupRequired: true,
-      createdAt,
-      currentPersonalPvBv,
-    });
+    const activityActiveUntilAt = normalizeText(enrollmentActivityState?.activeUntilAt);
+    const currentPersonalPvBv = Math.max(0, Math.floor(Number(enrollmentActivityState?.currentPersonalPvBv) || 0));
+    const accountStatus = isReservationPlan
+      ? 'pending'
+      : normalizeText(enrollmentActivityState?.accountStatus) || 'inactive';
     const userId = `usr_${Date.now()}_${randomUUID().slice(0, 8)}`;
 
     const newUser = {
@@ -1880,10 +2186,11 @@ export async function createRegisteredMember(payload) {
       publicStoreCode,
       storeCode,
       enrollmentPackage,
+      currentPackageProductKey: enrollmentProductKey,
       enrollmentPackageLabel: packageMeta.label,
       enrollmentPackagePrice: packagePrice,
       enrollmentPackageBv: packageBv,
-      starterPersonalPv: packageBv,
+      starterPersonalPv: enrollmentSeedPersonalPv,
       currentPersonalPvBv,
       starterTotalCycles: 0,
       rank: startingRank,
@@ -1928,15 +2235,18 @@ export async function createRegisteredMember(payload) {
       spilloverParentMode: placementLeg === PLACEMENT_LEG_SPILLOVER ? spilloverParentMode : '',
       spilloverParentReference: placementLeg === PLACEMENT_LEG_SPILLOVER ? effectiveSpilloverParentReference : '',
       enrollmentPackage,
+      currentPackageProductKey: enrollmentProductKey,
       enrollmentPackageLabel: packageMeta.label,
       fastTrackTier: resolvedSponsorFastTrackTier,
       fastTrackTierLabel: FAST_TRACK_TIER_META[resolvedSponsorFastTrackTier].label,
       packagePrice,
       packageBv,
-      starterPersonalPv: packageBv,
+      starterPersonalPv: enrollmentSeedPersonalPv,
       currentPersonalPvBv,
       rank: startingRank,
       accountRank: startingRank,
+      accountStatus,
+      status: accountStatus,
       activityActiveUntilAt,
       lastProductPurchaseAt: '',
       lastPurchaseAt: '',
@@ -1955,8 +2265,8 @@ export async function createRegisteredMember(payload) {
       businessCenterLabel: 'Main Center',
       businessCenterActivatedAt: '',
       businessCenterPinnedSide: '',
-      isEarningEligible: !isStaffTreeAccount,
-      activationStatus: 'active',
+      isEarningEligible: !isStaffTreeAccount && !isReservationPlan,
+      activationStatus: isReservationPlan ? 'inactive' : 'active',
       sourceQualificationTier: 0,
       legacyLeadershipCompletedTierCount: 0,
       businessCentersEarnedLifetime: 0,
@@ -1975,11 +2285,50 @@ export async function createRegisteredMember(payload) {
     }
     await upsertMockUserRecord(newUser, { client, preferInsert: true });
     await upsertRegisteredMemberRecord(createdMember, { client, preferInsert: true });
-    await creditSponsorFastTrackCommissionContainer({
+    const sponsorFastTrackCreditResult = await creditSponsorFastTrackCommissionContainer({
       sponsorUser: matchedSponsorUser,
       fastTrackBonusAmount,
       client,
     });
+    if (fastTrackBonusAmount > 0 && matchedSponsorUser) {
+      try {
+        const sponsorLedgerUserId = normalizeText(matchedSponsorUser?.id || matchedSponsorUser?.userId);
+        await createFastTrackCommissionLedgerEntry({
+          userId: sponsorLedgerUserId,
+          username: normalizeText(matchedSponsorUser?.username),
+          email: normalizeText(matchedSponsorUser?.email),
+          sponsorUserId: sponsorLedgerUserId,
+          sponsorUsername: normalizeText(matchedSponsorUser?.username),
+          sponsorEmail: normalizeText(matchedSponsorUser?.email),
+          sponsorFastTrackTier: resolvedSponsorFastTrackTier,
+          enrolledUserId: normalizeText(createdMember?.userId || newUser?.id),
+          enrolledUsername: normalizeText(createdMember?.memberUsername || newUser?.username),
+          enrolledEmail: normalizeText(createdMember?.email || newUser?.email),
+          enrolledName: normalizeText(createdMember?.fullName || newUser?.name),
+          enrollmentId: normalizeText(payload?.enrollmentSourceId || createdMember?.id),
+          orderReference: normalizeText(payload?.enrollmentOrderReference || payload?.invoiceId || payload?.invoice_id),
+          paymentReference: normalizeText(payload?.paymentReference || payload?.paymentIntentId || payload?.checkoutSessionId),
+          packageKey: enrollmentPackage,
+          packageLabel: packageMeta?.label,
+          amountUsd: fastTrackBonusAmount,
+          status: sponsorFastTrackCreditResult ? 'posted' : 'failed',
+          sourceId: normalizeText(payload?.enrollmentSourceId || createdMember?.id),
+          sourceRef: normalizeText(payload?.enrollmentOrderReference || payload?.invoiceId || payload?.paymentIntentId || createdMember?.id),
+          idempotencyKey: `fast_track:${normalizeText(payload?.enrollmentSourceId || createdMember?.id)}:${sponsorLedgerUserId}`,
+          description: `Fast Track commission from enrollment ${normalizeText(createdMember?.memberUsername || createdMember?.id)}`,
+          debug: {
+            isAdminPlacement,
+            creditApplied: Boolean(sponsorFastTrackCreditResult),
+            enrollmentContext,
+          },
+        }, {
+          executor: client,
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error || 'Unknown ledger error.');
+        console.warn(`[MemberEnrollment] Unable to persist Fast Track ledger entry for ${normalizeText(createdMember?.id)}: ${errorMessage}`);
+      }
+    }
     await upsertPasswordSetupTokenRecord(tokenRecord, { client, preferInsert: true });
     await insertMockEmailOutboxRecord(emailLogRecord, { client, preferInsert: true });
     await client.query('COMMIT');
@@ -2008,6 +2357,13 @@ export async function updateRegisteredMemberPlacement(payload = {}) {
   const authenticatedMember = payload?.authenticatedMember && typeof payload.authenticatedMember === 'object'
     ? payload.authenticatedMember
     : null;
+  const pendingEnrollmentRestriction = resolvePendingEnrollmentRestrictionResult(
+    isAdminPlacement,
+    authenticatedMember,
+  );
+  if (pendingEnrollmentRestriction) {
+    return pendingEnrollmentRestriction;
+  }
   const memberActorUsername = normalizeCredential(
     authenticatedMember?.username
     || authenticatedMember?.memberUsername
@@ -2229,6 +2585,7 @@ export async function recordMemberPurchase(payload, options = {}) {
   const pvGain = Math.max(0, Math.floor(Number(payload?.pvGain) || 0));
   const persistMode = normalizeCredential(options?.persistMode || 'rewrite');
   const useTargetedPersistence = persistMode === 'upsert';
+  const allowPendingPersonalBvCredit = options?.allowPendingPersonalBvCredit === true;
 
   if (!userId && !username && !email) {
     return {
@@ -2272,6 +2629,10 @@ export async function recordMemberPurchase(payload, options = {}) {
   const nowIso = now.toISOString();
 
   const existingUser = users[userIndex];
+  const isPendingReservationMember = isPendingOrReservationMember(existingUser);
+  if (isPendingReservationMember && !allowPendingPersonalBvCredit) {
+    return buildAccountUpgradeRequiredResult();
+  }
   const userPackageKey = normalizeCredential(existingUser?.enrollmentPackage);
   const userRankKey = normalizeCredential(
     normalizeRankLabelForDisplay(existingUser?.accountRank || existingUser?.rank)
@@ -2279,7 +2640,6 @@ export async function recordMemberPurchase(payload, options = {}) {
   const isFreeAccountUser = userPackageKey === FREE_ACCOUNT_PACKAGE_KEY || userRankKey === normalizeCredential(FREE_ACCOUNT_RANK_LABEL);
   const effectivePvGain = isFreeAccountUser ? 0 : pvGain;
   const personalBvSnapshot = resolveMemberPersonalBvSnapshot(existingUser, { referenceDate: now });
-  const nextActivityActiveUntilAt = personalBvSnapshot.nextCutoffAt;
 
   const enrollmentPackageBv = Math.max(0, Math.floor(Number(existingUser?.enrollmentPackageBv) || 0));
   const currentStarterPersonalPv = Math.max(
@@ -2291,14 +2651,25 @@ export async function recordMemberPurchase(payload, options = {}) {
     0,
     personalBvSnapshot.currentPersonalPvBv + effectivePvGain,
   );
-  const nextAccountStatus = resolveMemberAccountStatusByPersonalBv({
-    ...existingUser,
-    starterPersonalPv: nextStarterPersonalPvSafe,
-    currentPersonalPvBv: nextCurrentPersonalPvBv,
-    activityActiveUntilAt: nextActivityActiveUntilAt,
-    lastProductPurchaseAt: nowIso,
-    lastPurchaseAt: nowIso,
-  });
+  const nextActivityState = isPendingReservationMember
+    ? null
+    : resolveMemberActivityStateByPersonalBv({
+        ...existingUser,
+        starterPersonalPv: nextStarterPersonalPvSafe,
+        currentPersonalPvBv: nextCurrentPersonalPvBv,
+        lastProductPurchaseAt: nowIso,
+        lastPurchaseAt: nowIso,
+      }, {
+        referenceDate: now,
+      });
+  const nextActivityActiveUntilAt = normalizeText(
+    nextActivityState?.activeUntilAt
+    || existingUser?.activityActiveUntilAt
+    || '',
+  );
+  const nextAccountStatus = isPendingReservationMember
+    ? 'pending'
+    : normalizeText(nextActivityState?.accountStatus) || 'inactive';
 
   users[userIndex] = {
     ...existingUser,
@@ -2410,6 +2781,15 @@ export async function createRegisteredMemberCheckoutSession(payload = {}, contex
   const spilloverParentModeInput = requestedSpilloverParentMode === 'manual' ? 'manual' : 'auto';
   const spilloverParentReferenceInput = normalizeText(payload?.spilloverParentReference);
   const enrollmentPackage = normalizeCredential(payload?.enrollmentPackage);
+  const enrollmentProductKey = resolveEnrollmentProductKey(
+    payload?.enrollmentProductKey
+    || payload?.enrollment_product_key
+    || payload?.enrollmentProduct
+    || payload?.enrollment_product
+    || payload?.productKey
+    || payload?.product_key,
+    enrollmentPackage,
+  );
   const requestedFastTrackTier = normalizeCredential(
     payload?.fastTrackTier || FAST_TRACK_TIER_BY_PACKAGE[enrollmentPackage]
   );
@@ -2422,6 +2802,13 @@ export async function createRegisteredMemberCheckoutSession(payload = {}, contex
   const authenticatedMember = payload?.authenticatedMember && typeof payload.authenticatedMember === 'object'
     ? payload.authenticatedMember
     : null;
+  const pendingEnrollmentRestriction = resolvePendingEnrollmentRestrictionResult(
+    isAdminPlacement,
+    authenticatedMember,
+  );
+  if (pendingEnrollmentRestriction) {
+    return pendingEnrollmentRestriction;
+  }
   const authenticatedMemberDisplayName = normalizeText(
     authenticatedMember?.name
     || authenticatedMember?.fullName
@@ -2568,6 +2955,7 @@ export async function createRegisteredMemberCheckoutSession(payload = {}, contex
     spillover_parent_mode: sanitizeStripeMetadataValue(spilloverParentMode),
     spillover_parent_reference: sanitizeStripeMetadataValue(effectiveSpilloverParentReference),
     enrollment_package: sanitizeStripeMetadataValue(enrollmentPackage),
+    enrollment_product_key: sanitizeStripeMetadataValue(enrollmentProductKey),
     fast_track_tier: sanitizeStripeMetadataValue(requestedFastTrackTier),
     sponsor_username: sanitizeStripeMetadataValue(sponsorUsername),
     sponsor_name: sanitizeStripeMetadataValue(sponsorName || sponsorUsername),
@@ -2592,6 +2980,7 @@ export async function createRegisteredMemberCheckoutSession(payload = {}, contex
     enrollment_context: paymentIntentMetadata.enrollment_context,
     sponsor_username: paymentIntentMetadata.sponsor_username,
     enrollment_package: paymentIntentMetadata.enrollment_package,
+    enrollment_product_key: paymentIntentMetadata.enrollment_product_key,
     package_label: paymentIntentMetadata.package_label,
     package_bv: paymentIntentMetadata.package_bv,
     total_amount: paymentIntentMetadata.total_amount,
@@ -2819,6 +3208,23 @@ export async function upgradeMemberAccount(payload, options = {}) {
   const username = normalizeCredential(payload?.username);
   const email = normalizeCredential(payload?.email);
   const targetPackageInput = normalizeCredential(payload?.targetPackage);
+  const requestedSplitSelectedProductKey = normalizeAccountUpgradeSplitProductKey(
+    payload?.upgradeSplitSelectedProductKey
+    || payload?.upgradeSplitProductKey
+    || payload?.accountUpgradeSelectedProductKey
+    || payload?.upgradeProductKey
+    || payload?.selectedProductKey,
+  );
+  const requestedSplitProductMode = normalizeAccountUpgradeProductMode(
+    payload?.upgradeSplitProductMode
+    || payload?.accountUpgradeProductMode
+    || payload?.account_upgrade_product_mode
+    || payload?.upgradeProductMode
+    || payload?.selectedProductMode
+    || '',
+    requestedSplitSelectedProductKey,
+    targetPackageInput,
+  );
   const persistMode = normalizeCredential(options?.persistMode || 'rewrite');
   const useTargetedPersistence = persistMode === 'upsert';
 
@@ -2839,10 +3245,17 @@ export async function upgradeMemberAccount(payload, options = {}) {
   }
 
   function resolveAccountPackageTierIndex(packageKey) {
-    return ACCOUNT_UPGRADE_PACKAGE_ORDER.indexOf(normalizeCredential(packageKey));
+    const normalizedPackageKey = normalizeCredential(packageKey);
+    if (normalizedPackageKey === MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY) {
+      return ACCOUNT_UPGRADE_PACKAGE_ORDER.indexOf(FREE_ACCOUNT_PACKAGE_KEY);
+    }
+    return ACCOUNT_UPGRADE_PACKAGE_ORDER.indexOf(normalizedPackageKey);
   }
 
   function resolveNextPackageKeyForUpgrade(currentPackageKey) {
+    if (isMembershipPlacementReservationPackage(currentPackageKey)) {
+      return 'personal-builder-pack';
+    }
     const currentIndex = resolveAccountPackageTierIndex(currentPackageKey);
     if (currentIndex < 0) {
       return '';
@@ -2891,6 +3304,21 @@ export async function upgradeMemberAccount(payload, options = {}) {
   const now = new Date();
   const nowIso = now.toISOString();
   const existingUser = users[userIndex];
+  const existingIdentity = {
+    userId: normalizeText(existingUser?.id),
+    username: normalizeCredential(existingUser?.username),
+    email: normalizeCredential(existingUser?.email),
+  };
+  const existingPrimaryMemberIndexForUpgrade = resolvePrimaryMemberIndexForIdentity(
+    members,
+    existingIdentity,
+  );
+  const existingPrimaryMemberRecordForUpgrade = existingPrimaryMemberIndexForUpgrade >= 0
+    ? members[existingPrimaryMemberIndexForUpgrade]
+    : null;
+  const currentPackageProductKey = resolveCurrentPackageProductKeyFromSource(existingUser)
+    || resolveCurrentPackageProductKeyFromSource(existingPrimaryMemberRecordForUpgrade)
+    || ENROLLMENT_DEFAULT_PRODUCT_KEY;
 
   const currentPackageKey = resolveCurrentPackageKeyForUpgrade(existingUser);
   if (!currentPackageKey || !FAST_TRACK_PACKAGE_META[currentPackageKey]) {
@@ -2951,6 +3379,19 @@ export async function upgradeMemberAccount(payload, options = {}) {
   const currentPackageProducts = resolvePackageProductCount(currentPackageKey);
   const nextPackageProducts = Math.max(currentPackageProducts, resolvePackageProductCount(targetPackageKey));
   const upgradeProductCount = Math.max(0, nextPackageProducts - currentPackageProducts);
+  const productAllocation = resolveAccountUpgradeProductAllocation({
+    currentPackageKey,
+    targetPackageKey,
+    selectedProductKey: requestedSplitSelectedProductKey,
+    selectedProductMode: requestedSplitProductMode,
+    currentPackageProductKey,
+  });
+  const nextCurrentPackageProductKey = productAllocation.selectedProductMode === ACCOUNT_UPGRADE_PRODUCT_MODE_SPLIT
+    ? ACCOUNT_PACKAGE_PRODUCT_KEY_SPLIT
+    : (
+        normalizeAccountUpgradeSplitProductKey(productAllocation.selectedProductKey)
+        || currentPackageProductKey
+      );
   const upgradeBvGain = Math.max(0, nextPackageBv - currentPackageBv);
   const upgradePriceDue = roundCurrencyAmount(upgradeProductCount * PACKAGE_PRODUCT_PRICE_USD);
   const currentStarterPersonalPv = Math.max(
@@ -2964,12 +3405,11 @@ export async function upgradeMemberAccount(payload, options = {}) {
     || 'Personal';
 
   const personalBvSnapshot = resolveMemberPersonalBvSnapshot(existingUser, { referenceDate: now });
-  const nextActivityActiveUntilAt = personalBvSnapshot.nextCutoffAt;
   const nextCurrentPersonalPvBv = Math.max(
     0,
     personalBvSnapshot.currentPersonalPvBv + upgradeBvGain,
   );
-  const nextAccountStatus = resolveMemberAccountStatusByPersonalBv({
+  const nextActivityState = resolveMemberActivityStateByPersonalBv({
     ...existingUser,
     enrollmentPackage: targetPackageKey,
     enrollmentPackageBv: nextPackageBv,
@@ -2977,15 +3417,25 @@ export async function upgradeMemberAccount(payload, options = {}) {
     currentPersonalPvBv: nextCurrentPersonalPvBv,
     rank: nextRank,
     accountRank: nextRank,
-    activityActiveUntilAt: nextActivityActiveUntilAt,
     lastProductPurchaseAt: nowIso,
     lastPurchaseAt: nowIso,
     lastAccountUpgradeAt: nowIso,
+    accountStatus: '',
+    status: '',
+  }, {
+    referenceDate: now,
   });
+  const nextActivityActiveUntilAt = normalizeText(
+    nextActivityState?.activeUntilAt
+    || existingUser?.activityActiveUntilAt
+    || '',
+  );
+  const nextAccountStatus = normalizeText(nextActivityState?.accountStatus) || 'inactive';
 
   users[userIndex] = {
     ...existingUser,
     enrollmentPackage: targetPackageKey,
+    currentPackageProductKey: nextCurrentPackageProductKey,
     enrollmentPackageLabel: nextPackageMeta.label,
     enrollmentPackagePrice: nextPackagePrice,
     enrollmentPackageBv: nextPackageBv,
@@ -2994,6 +3444,7 @@ export async function upgradeMemberAccount(payload, options = {}) {
     rank: nextRank,
     accountRank: nextRank,
     accountStatus: nextAccountStatus,
+    status: nextAccountStatus,
     activityActiveUntilAt: nextActivityActiveUntilAt,
     lastProductPurchaseAt: nowIso,
     lastPurchaseAt: nowIso,
@@ -3011,19 +3462,58 @@ export async function upgradeMemberAccount(payload, options = {}) {
   };
   const primaryMemberIndex = resolvePrimaryMemberIndexForIdentity(members, identity);
   const sourceMemberRecord = primaryMemberIndex >= 0 ? members[primaryMemberIndex] : null;
-  const sponsorUsernameForFastTrackUpgrade = normalizeCredential(
-    sourceMemberRecord?.sponsorUsername || sourceMemberRecord?.sponsor_username,
+
+  function resolveSponsorUsernameFromAttributionCode(candidateCode = '') {
+    const normalizedCandidateCode = normalizeCredential(candidateCode);
+    if (!normalizedCandidateCode) {
+      return '';
+    }
+
+    const matchedOwner = users.find((user) => {
+      const ownerStoreCode = normalizeCredential(user?.storeCode);
+      const ownerPublicStoreCode = normalizeCredential(user?.publicStoreCode);
+      return ownerStoreCode === normalizedCandidateCode
+        || ownerPublicStoreCode === normalizedCandidateCode;
+    });
+
+    return normalizeCredential(matchedOwner?.username);
+  }
+
+  const directSponsorUsernameForFastTrackUpgrade = normalizeCredential(
+    sourceMemberRecord?.sponsorUsername
+    || sourceMemberRecord?.sponsor_username
+    || matchedUser?.sponsorUsername
+    || matchedUser?.sponsor_username,
   );
-  const isPreferredToPaidUpgrade = (
-    currentPackageKey === FREE_ACCOUNT_PACKAGE_KEY
+  const attributionStoreCodeForFastTrackUpgrade = normalizeCredential(
+    sourceMemberRecord?.attributionStoreCode
+    || sourceMemberRecord?.attribution_store_code
+    || matchedUser?.attributionStoreCode
+    || matchedUser?.attribution_store_code,
+  );
+  const attributedSponsorUsernameForFastTrackUpgrade = resolveSponsorUsernameFromAttributionCode(
+    attributionStoreCodeForFastTrackUpgrade,
+  );
+  const sponsorUsernameForFastTrackUpgrade = directSponsorUsernameForFastTrackUpgrade
+    || attributedSponsorUsernameForFastTrackUpgrade;
+  const sponsorResolutionSourceLabel = directSponsorUsernameForFastTrackUpgrade
+    ? 'direct sponsor'
+    : (attributedSponsorUsernameForFastTrackUpgrade ? 'store attribution owner' : 'unresolved');
+
+  const isFirstPaidUpgradeFromEntryPlan = (
+    (
+      currentPackageKey === FREE_ACCOUNT_PACKAGE_KEY
+      || currentPackageKey === MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY
+    )
     && targetPackageKey !== FREE_ACCOUNT_PACKAGE_KEY
+    && targetPackageKey !== MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY
   );
   let fastTrackUpgradeBonusAmount = 0;
   let fastTrackUpgradeBonusApplied = false;
   let fastTrackUpgradeSponsorUsername = '';
   let fastTrackUpgradeSponsorTier = '';
-  let fastTrackUpgradeBonusMessage = isPreferredToPaidUpgrade
-    ? 'Preferred upgrade detected. Fast Track sponsor credit is pending.'
+  let fastTrackUpgradeBonusMessage = isFirstPaidUpgradeFromEntryPlan
+    ? 'First paid upgrade detected. Fast Track sponsor credit is pending.'
     : 'Fast Track bonus is disabled for paid-to-paid upgrades.';
 
   let updatedMemberRecord = null;
@@ -3036,6 +3526,7 @@ export async function upgradeMemberAccount(payload, options = {}) {
     const upgradedMember = {
       ...member,
       enrollmentPackage: targetPackageKey,
+      currentPackageProductKey: nextCurrentPackageProductKey,
       enrollmentPackageLabel: nextPackageMeta.label,
       packagePrice: nextPackagePrice,
       packageBv: nextPackageBv,
@@ -3052,6 +3543,8 @@ export async function upgradeMemberAccount(payload, options = {}) {
       lastAccountUpgradeFromPackage: currentPackageKey,
       lastAccountUpgradeToPackage: targetPackageKey,
       lastAccountUpgradePvGain: upgradeBvGain,
+      isEarningEligible: true,
+      activationStatus: 'active',
     };
 
     updatedMemberRecord = upgradedMember;
@@ -3068,16 +3561,16 @@ export async function upgradeMemberAccount(payload, options = {}) {
     await writeRegisteredMembersStore(updatedMembers);
   }
 
-  if (isPreferredToPaidUpgrade) {
+  if (isFirstPaidUpgradeFromEntryPlan) {
     if (!sponsorUsernameForFastTrackUpgrade) {
-      fastTrackUpgradeBonusMessage = 'Preferred upgrade completed, but sponsor was missing so Fast Track was skipped.';
+      fastTrackUpgradeBonusMessage = 'First paid upgrade completed, but sponsor was missing so Fast Track was skipped.';
     } else {
       const matchedSponsorUser = users.find((user) => (
         normalizeCredential(user?.username) === sponsorUsernameForFastTrackUpgrade
       )) || await findUserByUsername(sponsorUsernameForFastTrackUpgrade);
 
       if (!matchedSponsorUser) {
-        fastTrackUpgradeBonusMessage = 'Preferred upgrade completed, but sponsor account was not found so Fast Track was skipped.';
+        fastTrackUpgradeBonusMessage = 'First paid upgrade completed, but sponsor account was not found so Fast Track was skipped.';
       } else {
         const resolvedSponsorFastTrackTier = resolveFastTrackTierFromSponsorUser(matchedSponsorUser);
         fastTrackUpgradeSponsorUsername = normalizeText(
@@ -3086,7 +3579,7 @@ export async function upgradeMemberAccount(payload, options = {}) {
         fastTrackUpgradeSponsorTier = resolvedSponsorFastTrackTier;
 
         if (!FAST_TRACK_TIER_META[resolvedSponsorFastTrackTier]) {
-          fastTrackUpgradeBonusMessage = 'Preferred upgrade completed, but sponsor Fast Track tier was invalid.';
+          fastTrackUpgradeBonusMessage = 'First paid upgrade completed, but sponsor Fast Track tier was invalid.';
         } else {
           fastTrackUpgradeBonusAmount = resolveFastTrackBonusAmount({
             enrollmentPackage: targetPackageKey,
@@ -3100,11 +3593,46 @@ export async function upgradeMemberAccount(payload, options = {}) {
               fastTrackBonusAmount: fastTrackUpgradeBonusAmount,
             });
             fastTrackUpgradeBonusApplied = Boolean(fastTrackCreditResult);
+            try {
+              const sponsorLedgerUserId = normalizeText(matchedSponsorUser?.id || matchedSponsorUser?.userId);
+              await createFastTrackCommissionLedgerEntry({
+                userId: sponsorLedgerUserId,
+                username: normalizeText(matchedSponsorUser?.username),
+                email: normalizeText(matchedSponsorUser?.email),
+                sponsorUserId: sponsorLedgerUserId,
+                sponsorUsername: normalizeText(matchedSponsorUser?.username),
+                sponsorEmail: normalizeText(matchedSponsorUser?.email),
+                sponsorFastTrackTier: resolvedSponsorFastTrackTier,
+                enrolledUserId: normalizeText(matchedUser?.id),
+                enrolledUsername: normalizeText(matchedUser?.username),
+                enrolledEmail: normalizeText(matchedUser?.email),
+                enrolledName: normalizeText(matchedUser?.name),
+                enrollmentId: `upgrade:${normalizeText(matchedUser?.id)}:${targetPackageKey}`,
+                orderReference: normalizeText(payload?.orderReference || payload?.invoiceId || payload?.invoice_id),
+                paymentReference: normalizeText(payload?.paymentReference || payload?.paymentIntentId || payload?.checkoutSessionId),
+                packageKey: targetPackageKey,
+                packageLabel: nextPackageMeta?.label,
+                amountUsd: fastTrackUpgradeBonusAmount,
+                status: fastTrackUpgradeBonusApplied ? 'posted' : 'failed',
+                sourceId: `upgrade:${normalizeText(matchedUser?.id)}:${targetPackageKey}`,
+                sourceRef: normalizeText(payload?.orderReference || payload?.invoiceId || targetPackageKey),
+                idempotencyKey: `fast_track:upgrade:${normalizeText(matchedUser?.id)}:${targetPackageKey}:${sponsorLedgerUserId}`,
+                description: `Fast Track commission from first paid upgrade (${targetPackageKey})`,
+                debug: {
+                  source: 'account-upgrade',
+                  sponsorResolutionSource: sponsorResolutionSourceLabel,
+                  creditApplied: fastTrackUpgradeBonusApplied,
+                },
+              });
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error || 'Unknown ledger error.');
+              console.warn(`[AccountUpgrade] Unable to persist Fast Track ledger entry for ${normalizeText(matchedUser?.id)}: ${errorMessage}`);
+            }
             fastTrackUpgradeBonusMessage = fastTrackUpgradeBonusApplied
-              ? 'Fast Track bonus credited to sponsor from Preferred upgrade.'
-              : 'Preferred upgrade completed, but Fast Track commission wallet write failed.';
+              ? `Fast Track bonus credited to ${sponsorResolutionSourceLabel} from first paid upgrade.`
+              : 'First paid upgrade completed, but Fast Track commission wallet write failed.';
           } else {
-            fastTrackUpgradeBonusMessage = 'Preferred upgrade completed with zero Fast Track bonus amount.';
+            fastTrackUpgradeBonusMessage = 'First paid upgrade completed with zero Fast Track bonus amount.';
           }
         }
       }
@@ -3119,6 +3647,7 @@ export async function upgradeMemberAccount(payload, options = {}) {
       username: users[userIndex]?.username || '',
       email: users[userIndex]?.email || '',
       enrollmentPackage: targetPackageKey,
+      currentPackageProductKey: nextCurrentPackageProductKey,
       enrollmentPackageLabel: nextPackageMeta.label,
       enrollmentPackagePrice: nextPackagePrice,
       enrollmentPackageBv: nextPackageBv,
@@ -3133,7 +3662,9 @@ export async function upgradeMemberAccount(payload, options = {}) {
     member: updatedMemberRecord,
     upgrade: {
       fromPackage: currentPackageKey,
+      fromPackageProductKey: currentPackageProductKey,
       toPackage: targetPackageKey,
+      toPackageProductKey: nextCurrentPackageProductKey,
       currentPackagePrice,
       currentPackageBv,
       currentPackageProducts,
@@ -3147,6 +3678,7 @@ export async function upgradeMemberAccount(payload, options = {}) {
       pvGain: upgradeBvGain,
       productCount: upgradeProductCount,
       productBv: upgradeProductCount * PACKAGE_PRODUCT_BV,
+      productAllocation,
       fastTrackBonusApplied: fastTrackUpgradeBonusApplied,
       fastTrackBonusAmount: fastTrackUpgradeBonusAmount,
       fastTrackBonusSponsorUsername: fastTrackUpgradeSponsorUsername,

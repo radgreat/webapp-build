@@ -49,7 +49,7 @@ const ACCOUNT_PACKAGE_ORDER = [
 ];
 
 const FAST_TRACK_PACKAGE_META = Object.freeze({
-  [PERSONAL_PACKAGE_KEY]: { label: 'Personal Builder Pack', price: 192, bv: 192, rank: 'Personal' },
+  [PERSONAL_PACKAGE_KEY]: { label: 'Personal Builder Pack', price: 192, bv: 150, rank: 'Personal' },
   [BUSINESS_PACKAGE_KEY]: { label: 'Business Builder Pack', price: 384, bv: 300, rank: 'Business' },
   [INFINITY_PACKAGE_KEY]: { label: 'Infinity Builder Pack', price: 640, bv: 500, rank: 'Infinity' },
   [LEGACY_PACKAGE_KEY]: { label: 'Legacy Builder Pack', price: 1280, bv: 1000, rank: 'Legacy' },

@@ -2,6 +2,29 @@
 
 ## Update Log
 
+### 2026-04-28 - Admin Ledger Explorer (Global Audit + Manual Adjustments + Reversal Actions)
+
+| Area | Change |
+|---|---|
+| Ledger Explorer UI | Added a dedicated ledger explorer block inside `admin.html` Commissions page with summary cards, count pill, filters, table, and metadata drill-down. |
+| Filtering | Added user search + text search + type/status/source/date filters wired to `/api/admin/ledger` and `/api/admin/ledger/summary`. |
+| Manual Financial Action | Added manual ledger adjustment form wired to `POST /api/admin/ledger/adjustments` (credit/debit + amount + optional BV + description). |
+| Reversal Flow | Added per-row reverse action wired to `POST /api/admin/ledger/:entryId/reverse` with audit reason prompt. |
+| Routing Integration | Added Commissions-page lifecycle refresh hook so admin ledger reloads when navigating into `Commissions`. |
+
+#### Files Updated This Pass
+- `admin.html`
+- `backend/routes/ledger.routes.js`
+- `backend/controllers/ledger.controller.js`
+- `backend/services/ledger.service.js`
+- `Claude_Notes/admin-dashboard-page.md`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+
+#### Notes
+- Existing payout-request fulfillment UI remains intact and now co-exists with the dedicated ledger explorer.
+- Reversal actions are designed for immutable-ledger behavior (new reversing entries instead of overwriting original amounts).
+
 ### 2026-04-17 - Admin Dashboard Modernization to User-Dashboard Theme System
 
 | Area | Change |
@@ -95,6 +118,49 @@
 
 #### Notes
 - Legacy admin binary tree panel markup remains in file, but route/nav access is now retired from admin dashboard routing and sidebar navigation.
+
+## Update (2026-04-27) - Admin Cutoff Card + Force Cutoff Rule Alignment
+
+### What Changed
+
+- `admin.html`
+  - updated admin cycle constants to `1000/1000`.
+  - aligned admin cutoff-card estimated cycle formula with weak/high and strong/low threshold division.
+- `backend/services/admin.service.js`
+  - force-cutoff now settles cycles from current-week leg volumes.
+  - removed personal BV baseline rewrites from force-cutoff execution.
+
+### Validation
+
+- inline script parse check passed for `admin.html`.
+- `node --check backend/services/admin.service.js` passed.
+
+## Update (2026-04-27) - My Store Package Earnings UI Rule Alignment
+
+### Changes
+- Product Management > Package Earnings now supports:
+  - Preferred Personal (Retail + BV)
+  - Preferred Business (Retail + BV)
+  - Preferred Infinity (Retail + BV)
+  - Preferred Legacy (Retail + BV)
+  - Paid Member (BV only)
+- Paid Member retail commission input removed by design.
+
+### Behavior
+- Form save enforces `paid-member-pack.retailCommission = 0`.
+- Preferred tiers persist as separate package-key earnings entries.
+
+## Patch Update (2026-04-30) - Admin Binary Tree Reservation BV Guard
+
+### Summary
+- Added reservation-package guard for admin binary tree volume resolvers.
+- `membership-placement-reservation` nodes now contribute `0 BV` in both current and lifetime volume calculations.
+
+### Files Updated
+- `admin.html`
+
+### Validation
+- Inline script parse check passed (`INLINE_SCRIPT_PARSE_OK admin.html blocks=2`).
 
 ## Patch Update (2026-04-30) - Flush All Data Scope Alignment (Users + User Data Only)
 

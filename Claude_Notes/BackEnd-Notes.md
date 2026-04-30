@@ -7,6 +7,95 @@ Updated: 2026-03-04
 
 This document tracks backend/database migration preparation from JSON mock storage to PostgreSQL.
 
+## Update (2026-04-28) - Ledger Subsystem Added (Audit + Commission + Payout Compatibility)
+
+### What Changed
+
+- Added ledger helper/store/service/controller/route stack:
+  - `backend/utils/ledger.helpers.js`
+  - `backend/stores/ledger.store.js`
+  - `backend/services/ledger.service.js`
+  - `backend/controllers/ledger.controller.js`
+  - `backend/routes/ledger.routes.js`
+- Mounted ledger routes through `backend/app.js`.
+- Ledger table bootstrap/ensure logic now manages `charge.ledger_entries` with:
+  - commission/payout/adjustment/reversal enums
+  - direction/status/source enums
+  - idempotency unique index (partial)
+  - user/status/type/source/date lookup indexes
+- Integrated event writers into existing commission flows:
+  - retail commission events
+  - fast-track enrollment events
+  - sales-team cycle events
+  - payout debit events during admin fulfillment
+- Added service-level tests with dependency injection to verify entry generation, idempotency handling, summary contract, and reversal semantics:
+  - `backend/tests/ledger.service.test.js`
+
+### Validation
+
+- `node --check` passed for touched ledger backend files.
+- `npm.cmd run test:ledger` passed (`6/6`).
+- `npm.cmd run test:binary-cycle` passed (`11/11`).
+
+## Patch (2026-04-28) - Ledger Bootstrap Credential Fallback Fix
+
+### What Changed
+
+- Updated `backend/stores/ledger.store.js` bootstrap flow so ledger table install does not rely exclusively on admin DB credentials:
+  - primary pool install attempt now runs first
+  - admin pool install attempt runs as fallback only when admin credentials are explicitly configured
+  - combined, clearer error message returned when both install paths fail
+
+### Why
+
+- Prevents member-ledger summary failures when admin DB credentials are invalid but primary DB credentials are valid.
+
+### Validation
+
+- Direct service check for `zeroone` ledger summary returned success (`200`).
+- `node --check backend/stores/ledger.store.js` passed.
+- `npm.cmd run test:ledger` passed.
+
+## Patch (2026-04-28) - Ledger Historical Backfill Script + Execution (`zeroone`)
+
+### What Changed
+
+- Added reusable ledger backfill utility:
+  - `backend/scripts/backfill-ledger-entries.mjs`
+- Added npm command:
+  - `backfill:ledger` in `package.json`
+- Script integrates via existing service APIs (no direct ledger SQL mutation), including:
+  - `createRetailCommissionLedgerEntry(...)`
+  - `createFastTrackCommissionLedgerEntry(...)`
+  - `createSalesTeamCommissionLedgerEntry(...)`
+  - `createPayoutLedgerEntry(...)`
+
+### Backfill Scope Decisions
+
+- Retail commission backfill is conservative to avoid legacy false-positives:
+  - only preferred-retail-signaled invoices are eligible.
+- Fast-track source is reconstructed from `registered_members.fast_track_bonus_amount`.
+- Payout history includes paid and failed audit-relevant entries.
+- Sales-team snapshot support included, but current dataset had no positive net rows.
+
+### Live Execution Result (`--username=zeroone`)
+
+- Created entries: `9`
+  - retail commission: `1`
+  - fast-track commission: `3`
+  - payout: `5` (`2 paid`, `3 failed`)
+  - sales-team commission: `0`
+- Re-run idempotency check:
+  - no duplicate rows created; all eligible events returned `idempotent`.
+
+### Validation
+
+- `node --check backend/scripts/backfill-ledger-entries.mjs` passed.
+- `npm.cmd run backfill:ledger -- --dry-run --username=zeroone` passed.
+- `npm.cmd run backfill:ledger -- --username=zeroone` passed.
+- repeated live run confirmed idempotent behavior.
+- `npm.cmd run test:ledger` passed (`6/6`).
+
 ## Migration Files Added
 
 | Order | File | Purpose | Status |
@@ -110,3 +199,147 @@ No member/business rows are seeded.
 - Replace plain admin password flow with hashed password verification.
 - Wire backend API layer to Postgres queries.
 - Remove JSON read/write dependencies from production path.
+
+## Addendum (2026-04-25) - Upgrade Fast Track Entry-Plan Eligibility
+
+### What Changed
+
+- In `backend/services/member.service.js` (`upgradeMemberAccount`):
+  - first-paid-upgrade Fast Track eligibility now includes both entry plans:
+    - `preferred-customer-pack`
+    - `membership-placement-reservation`
+  - paid-to-paid upgrades still do not trigger Fast Track.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+
+## Follow-up Addendum (2026-04-25) - Upgrade Fast Track Sponsor Resolution
+
+### What Changed
+
+- Added attribution-owner fallback logic to `upgradeMemberAccount` in `backend/services/member.service.js` when direct sponsor username is unavailable.
+
+### Validation
+
+- `node --check backend/services/member.service.js` passed.
+
+## Addendum (2026-04-25) - Account Upgrade Split Product Allocation Metadata + Response
+
+### What Changed
+
+- `backend/services/store-checkout.service.js`
+  - added checkout metadata persistence for `account_upgrade_selected_product_key`.
+  - upgrade finalization now reads selected split product key from metadata and forwards to `upgradeMemberAccount`.
+
+- `backend/services/member.service.js`
+  - added split allocation resolver for account upgrades (`selected` + `carryover`).
+  - `upgradeMemberAccount(...)` now accepts split selected-product input and returns `upgrade.productAllocation` with:
+    - selected product key/label/quantity
+    - carryover product key/label/quantity
+    - split label summary.
+
+### Validation
+
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/services/member.service.js` passed.
+
+## Addendum (2026-04-25) - Account Upgrade Product Mode Support
+
+### What Changed
+
+- `backend/services/store-checkout.service.js`
+  - added upgrade mode normalization/resolution for checkout metadata.
+  - persisted `account_upgrade_product_mode` in Stripe metadata for both checkout flows.
+  - account-upgrade finalization now forwards both:
+    - selected product key
+    - selected product mode
+
+- `backend/services/member.service.js`
+  - account-upgrade allocation resolver is now mode-aware:
+    - `all-metacharge`
+    - `all-metaroast`
+    - `split`
+  - `upgradeMemberAccount(...)` now accepts normalized mode aliases and returns mode in `upgrade.productAllocation`.
+
+### Compatibility
+
+- If legacy checkout payloads provide selected product key but no mode, backend infers `split` to preserve legacy forced-split behavior for in-flight sessions.
+
+### Validation
+
+- `node --check backend/services/store-checkout.service.js` passed.
+- `node --check backend/services/member.service.js` passed.
+
+## Update (2026-04-27) - Cutoff/Cycle Backend Rule Update (1000/1000 + Personal Baseline Guard)
+
+### What Changed
+
+- `backend/services/admin.service.js`
+  - cycle thresholds normalized to `1000/1000` minimum.
+  - force-cutoff commission cycles now use baseline-adjusted current-week leg volumes.
+  - removed force-cutoff writes that reset `serverCutoffBaselineStarterPersonalPv` on user/member records.
+- `backend/services/cutoff.service.js`
+  - API cycle thresholds normalized to `>=1000` for compatibility with updated rule.
+- `backend/services/metrics.service.js`
+  - binary metrics snapshot sanitizer normalizes stored cycle thresholds to `>=1000`.
+- `backend/services/member-business-center.service.js`
+  - business-center cycle split thresholds normalized to `1000/1000`.
+
+### Validation
+
+- `node --check backend/services/admin.service.js` passed.
+- `node --check backend/services/cutoff.service.js` passed.
+- `node --check backend/services/metrics.service.js` passed.
+- `node --check backend/services/member-business-center.service.js` passed.
+
+### Patch Note (2026-04-27)
+- Added force-cutoff baseline safety guard: when a member has no matching binary snapshot, cutoff baseline state now keeps existing baseline values instead of resetting to `0`.
+- File: `backend/services/admin.service.js`
+- Validation: `node --check backend/services/admin.service.js` passed.
+
+## Update (2026-04-27) - Server Cutoff Binary Carry Forward/Flush Rule Fix (1000/500 + Tie-Left)
+
+### Scope
+- Audited and updated weekly server cutoff binary cycle settlement and carry-forward baseline progression.
+- Goal: enforce deterministic strong-leg logic, active-only carry-forward, and inactivity flush at cutoff.
+
+### Business-rule alignment implemented
+- Strong leg at cutoff = side with higher BV.
+- Tie-breaker = Left side is always strong when equal.
+- Per-cycle deduction:
+  - strong leg: `1000 BV`
+  - weak leg: `500 BV`
+- Active members carry forward unused BV.
+- Inactive members flush carry-forward at cutoff (`0/0` carry).
+
+### Backend implementation details
+- Added `backend/utils/binary-cycle.helpers.js`:
+  - `resolveBinaryCycleComputation(...)`
+  - `resolveServerCutoffCarryForwardState(...)`
+- Updated `backend/services/admin.service.js`:
+  - `forceServerCutoff(...)` now uses shared helper for deterministic cycle math.
+  - `resolveNextCutoffCarryForwardBaselines(...)` now flushes baselines to total leg BV when inactive.
+  - activity gate for cutoff settlement now uses threshold-oriented cutoff-active check.
+  - added cutoff audit `console.info(...)` events for carry/consume/flush actions.
+- Updated `backend/services/cutoff.service.js` to return estimated cycles from the same deterministic cycle computation.
+- Updated `backend/services/metrics.service.js` and `backend/stores/metrics.store.js` to normalize persisted cycle values to strong=`1000`, weak=`500`.
+- Updated `backend/services/member-business-center.service.js` to use deterministic strong-leg cycle computation and 1000/500 defaults.
+
+### Tests added
+- `backend/tests/binary-cycle-cutoff.test.js` (Node built-in test runner)
+- Covers:
+  - active carry-forward
+  - exact-cycle settlement
+  - multi-cycle remainder correctness
+  - inactivity flush
+  - reactivation after flush
+  - one-leg scenarios
+  - repeated-cutoff idempotency
+  - no double-count with new BV
+  - tie-breaker deterministic behavior
+  - non-negative safeguards
+
+### Validation
+- `npm.cmd run test:binary-cycle` => pass (11 tests)
+- `node --check` pass on all edited backend files.
