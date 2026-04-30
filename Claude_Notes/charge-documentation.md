@@ -34049,6 +34049,20 @@ Known limitation:
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
 
+## Patch Update (2026-04-30) - Hide Binary Tree Asterisk Dock Button
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Kept `dock-placeholder` (asterisk) button in the dock config but added `hidden: true`.
+  - Updated dock render loop to draw/register only non-hidden dock buttons.
+
+### Result
+- Asterisk button is now hidden from the Binary Tree right-side dock.
+- Button code remains in place for future re-enable if needed.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
 ### Follow-up (2026-04-30) - Existing Admin Tree Root/Seed Visual Center Alignment
 - `binary-tree-next-engine-adapter.mjs`
   - added `centerSingleChildRoot` projection mode with single-child root offset normalization.
@@ -35896,3 +35910,32 @@ ode --check backend/services/store-checkout.service.js passed.
 - `node --test backend/tests/ledger.service.test.js` passed.
 - `node --test backend/tests/leadership-matching.service.test.js` passed.
 - `node --test backend/tests/member-business-center.service.test.js` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Profile Menu Routing (Profile + Settings)
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Added explicit member dashboard route constants:
+    - `MEMBER_DASHBOARD_PROFILE_PATH = '/Profile'`
+    - `MEMBER_DASHBOARD_SETTINGS_PATH = '/Settings'`
+  - Added explicit admin settings route constant:
+    - `ADMIN_DASHBOARD_SETTINGS_PATH = '/admin/Settings'`
+  - Updated `brand-menu:page:*` action handling so the top-right profile popup now routes:
+    - `Profile` -> member `/Profile` (admin fallback -> `/admin.html`)
+    - `Settings` -> member `/Settings` (admin -> `/admin/Settings`)
+    - existing `Home` and `My Store` behavior preserved.
+
+### Files Affected
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Design Decision
+- Kept routing source-aware (`member` vs `admin`) to avoid breaking admin launch context while ensuring member-profile popup links navigate to user dashboard pages as requested.
+
+### Known Limitation
+- Admin source still has no dedicated profile page route in Binary Tree Next; `Profile` currently falls back to admin home (`/admin.html`).
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.

@@ -253,7 +253,10 @@ const ADMIN_REGISTERED_MEMBERS_SESSION_COMPLETE_API = '/api/admin/registered-mem
 const STORE_INVOICES_API = '/api/store-invoices';
 const STORE_PRODUCTS_API = '/api/store-products';
 const MEMBER_DASHBOARD_HOME_PATH = '/index.html';
+const MEMBER_DASHBOARD_PROFILE_PATH = '/Profile';
+const MEMBER_DASHBOARD_SETTINGS_PATH = '/Settings';
 const ADMIN_DASHBOARD_HOME_PATH = '/admin.html';
+const ADMIN_DASHBOARD_SETTINGS_PATH = '/admin/Settings';
 const MINIMUM_COMMISSION_TRANSFER_TO_WALLET_USD = 0.01;
 const ENROLL_STRIPE_CHECKOUT_CONFIG_API = '/api/store-checkout/config';
 const MY_STORE_CHECKOUT_SESSION_API = '/api/store-checkout/session';
@@ -26970,6 +26973,7 @@ function drawBottomToolBar(layout) {
       iconGlyph: String.fromCodePoint(0xF525),
       iconLigature: 'asterisk',
       action: 'dock:placeholder',
+      hidden: true,
     },
     {
       id: 'dock-deep',
@@ -26997,8 +27001,9 @@ function drawBottomToolBar(layout) {
     },
   ];
 
-  for (let index = 0; index < dockButtons.length; index += 1) {
-    const button = dockButtons[index];
+  const visibleDockButtons = dockButtons.filter((button) => button?.hidden !== true);
+  for (let index = 0; index < visibleDockButtons.length; index += 1) {
+    const button = visibleDockButtons[index];
     const hovered = state.hoveredButtonId === button.id;
     const isAccountOverviewToggle = button.action === 'panel:account-overview:toggle';
     const isRankAdvancementToggle = button.action === 'panel:rank-advancement:toggle';
@@ -29575,11 +29580,20 @@ function triggerAction(action) {
       setMyStorePanelVisible(true);
       return;
     }
-    if (targetPage === 'dashboard') {
-      const dashboardPath = state.source === 'admin'
-        ? ADMIN_DASHBOARD_HOME_PATH
-        : MEMBER_DASHBOARD_HOME_PATH;
-      redirectTo(dashboardPath);
+    const routeByPage = state.source === 'admin'
+      ? {
+        dashboard: ADMIN_DASHBOARD_HOME_PATH,
+        profile: ADMIN_DASHBOARD_HOME_PATH,
+        settings: ADMIN_DASHBOARD_SETTINGS_PATH,
+      }
+      : {
+        dashboard: MEMBER_DASHBOARD_HOME_PATH,
+        profile: MEMBER_DASHBOARD_PROFILE_PATH,
+        settings: MEMBER_DASHBOARD_SETTINGS_PATH,
+      };
+    const targetRoute = routeByPage[targetPage];
+    if (targetRoute) {
+      redirectTo(targetRoute);
     }
     return;
   }

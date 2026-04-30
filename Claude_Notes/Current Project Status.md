@@ -20407,3 +20407,46 @@ ode --check backend/services/store-checkout.service.js passed.
   - `node --test backend/tests/ledger.service.test.js` passed.
   - `node --test backend/tests/leadership-matching.service.test.js` passed.
   - `node --test backend/tests/member-business-center.service.test.js` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Top-Right Profile Menu Link Wiring
+
+- Completed:
+  - updated Binary Tree Next profile popup menu routing in `binary-tree-next-app.mjs` for missing actions:
+    - `Profile` now routes to member dashboard profile page (`/Profile`).
+    - `Settings` now routes to member dashboard settings page (`/Settings`).
+  - preserved existing routing behavior for:
+    - `Home` (`/index.html` for member, `/admin.html` for admin)
+    - `My Store` (opens existing in-app My Store panel)
+  - added source-aware admin settings route (`/admin/Settings`) so admin context remains intact.
+
+- Outcome:
+  - clicking `Profile` or `Settings` from the top-right popup in Binary Tree Next no longer no-ops.
+  - member users are redirected to the expected dashboard pages.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Asterisk Button Hidden
+
+- Completed:
+  - hid the Binary Tree right-dock asterisk button (`dock-placeholder`) in `binary-tree-next-app.mjs` without deleting its definition.
+  - added a hidden flag on the button config and updated dock render loop to skip hidden items.
+
+- Outcome:
+  - the asterisk button no longer appears or receives pointer interaction.
+  - implementation remains reversible because the button config is still present.
+
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.

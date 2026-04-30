@@ -4606,3 +4606,39 @@ ode --check binary-tree-next-app.mjs passed.
 ### Validation
 - node --check backend/services/member.service.js passed.
 
+
+## Follow-up Update (2026-04-30) - Top-Right Profile Popup Route Completion
+
+### What Changed
+- binary-tree-next-app.mjs
+  - Added member route constants used by brand/profile popup navigation:
+    - /Profile for Profile
+    - /Settings for Settings
+  - Added admin settings route constant:
+    - /admin/Settings
+  - Completed brand-menu:page:* handler logic so popup items now route as expected:
+    - Profile -> member profile dashboard page
+    - Settings -> member settings dashboard page
+    - retained existing Home and My Store behaviors.
+
+### Result
+- Profile popup items no longer silently fail when selecting Profile or Settings from Binary Tree Next.
+- Member routing now matches dashboard route expectations.
+
+### Validation
+- node --check binary-tree-next-app.mjs passed.
+
+## Follow-up Update (2026-04-30) - Hide Asterisk Dock Button
+
+### What Changed
+- binary-tree-next-app.mjs
+  - Kept the asterisk dock entry (`dock-placeholder`) in the dock button array.
+  - Added `hidden: true` on that button entry.
+  - Updated dock rendering to use only non-hidden entries so hidden buttons are not drawn or clickable.
+
+### Result
+- The asterisk button is hidden from the Binary Tree right dock.
+- The button definition is preserved in code for future use.
+
+### Validation
+- node --check binary-tree-next-app.mjs passed.
