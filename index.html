@@ -7806,25 +7806,22 @@
       }
 
       function buildDashboardPersonalVolumeGraphCaption(dailySeries) {
-        if (!Array.isArray(dailySeries) || dailySeries.length < 2) {
-          return 'No server PV history in the last 30 days';
+        if (!Array.isArray(dailySeries) || dailySeries.length === 0) {
+          return 'From -- to --';
         }
 
-        const firstValue = dailySeries[0].value;
-        const lastValue = dailySeries[dailySeries.length - 1].value;
-        const delta = lastValue - firstValue;
-        const totalValue = dailySeries.reduce((sum, entry) => sum + entry.value, 0);
-        if (totalValue <= 0) {
-          return 'No server PV history in the last 30 days';
+        const rangeStartMs = dailySeries[0]?.timestampMs;
+        const rangeEndMs = dailySeries[dailySeries.length - 1]?.timestampMs;
+        if (!Number.isFinite(rangeStartMs) || !Number.isFinite(rangeEndMs)) {
+          return 'From -- to --';
         }
 
-        if (delta > 0) {
-          return `Last 30 days: +${delta.toLocaleString()} PV (${totalValue.toLocaleString()} total)`;
-        }
-        if (delta < 0) {
-          return `Last 30 days: -${Math.abs(delta).toLocaleString()} PV (${totalValue.toLocaleString()} total)`;
-        }
-        return `Last 30 days total: ${totalValue.toLocaleString()} PV`;
+        const dateFormatter = new Intl.DateTimeFormat('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
+        return `From ${dateFormatter.format(rangeStartMs)} to ${dateFormatter.format(rangeEndMs)}`;
       }
 
       function hideDashboardPersonalVolumeTooltip() {

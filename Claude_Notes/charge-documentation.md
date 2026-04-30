@@ -35654,3 +35654,29 @@ ode --check backend/services/store-checkout.service.js passed.
 ### Validation
 - Verified no remaining active `enroll-member` page-view/nav-route hooks in `index.html`.
 - Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Personal BV Graph Caption Switched To Date Range
+
+### Summary
+- Removed the misleading Personal BV graph footer totals/delta copy from the User Dashboard KPI card.
+- Replaced it with a pure timeframe caption so users see the chart window only, not an accumulated PV number.
+
+### Files Updated
+- `index.html`
+
+### UX Copy Change
+- Previous caption examples:
+  - `Last 30 days: +X PV (Y total)`
+  - `Last 30 days total: Y PV`
+- New caption:
+  - `From <Month Day, Year> to <Month Day, Year>`
+
+### Design Decision
+- Personal BV value and PV trend bars remain unchanged.
+- Footer text now communicates date range only to avoid implying the graph is summing real personal PV holdings.
+
+### Known Limitation
+- Date range reflects the displayed 30-day chart window, not a custom user-selected filter.
+
+### Validation
+- Manual code review completed for caption generator logic and fallback behavior.

@@ -2113,3 +2113,19 @@ Known limitation:
 ### Validation
 - Verified no remaining active `enroll-member` page-view/nav-route hooks in `index.html`.
 - Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Personal BV KPI Graph Footer Uses Date Window
+
+### Summary
+- Updated the Personal BV KPI graph footer on the User Dashboard.
+- Removed footer text that summed/compared 30-day PV values and replaced it with a date range caption.
+
+### File Updated
+- `index.html`
+
+### New Footer Behavior
+- Caption now renders as `From <Month Day, Year> to <Month Day, Year>` using the chart start/end timestamps.
+- Prevents confusion where users interpreted graph-total text as their actual current Personal BV.
+
+### Validation
+- Manual logic review completed for zero/invalid series fallback and normal 30-day rendering path.

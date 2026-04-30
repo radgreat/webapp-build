@@ -20271,3 +20271,19 @@ ode --check backend/services/store-checkout.service.js passed.
 ### Validation
 - Verified no remaining active `enroll-member` page-view/nav-route hooks in `index.html`.
 - Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Personal BV KPI Footer Date Range Clarification
+
+- Completed:
+  - removed Personal BV KPI footer copy that displayed rolling 30-day delta/total values.
+  - replaced footer text with an explicit date window (`From ... to ...`) based on the rendered chart range.
+- Outcome:
+  - dashboard no longer suggests summed graph bars represent actual personal PV holdings.
+  - Personal BV KPI footer now communicates timeframe context only.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - manual code review completed for updated caption logic and invalid-range fallback.
