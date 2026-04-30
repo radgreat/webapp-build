@@ -4851,13 +4851,13 @@
                 <div class="flex items-start justify-between gap-3">
                   <div>
                     <h4 class="font-body font-medium text-body text-semantic-danger">Danger Zone: Flush All Data</h4>
-                    <p class="text-caption text-text-secondary mt-1">This action deletes all mock enrollment/member data and resets dashboard rollups to zero baseline.</p>
+                    <p class="text-caption text-text-secondary mt-1">This action deletes all member/user data and resets dashboard rollups to zero baseline while keeping products and admin/runtime configuration.</p>
                   </div>
                   <span class="inline-flex items-center gap-1 rounded-full border border-semantic-danger/35 px-2 py-0.5 text-caption text-semantic-danger">Irreversible</span>
                 </div>
 
                 <ul class="text-caption text-text-secondary space-y-2">
-                  <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Clears `registered-members.json`, `mock-users.json`, `password-setup-tokens.json`, `mock-email-outbox.json`, `mock-store-invoices.json`, `mock-payout-requests.json`, `mock-binary-tree-metrics.json`, `mock-sales-team-commissions.json`, `mock-force-server-cutoff-history.json`, and `mock-member-server-cutoff-state.json`.</li>
+                  <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Clears members/users plus linked sessions, tokens, invoices/payouts, attribution, notifications, wallet/ledger, business-center state, auto-ship, and webhook event history.</li>
                   <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Resets Dashboard totals, Server Cut-Off leg BV values, and Account Overview organization counters.</li>
                   <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Clears member-side browser state on this device (`vault-auth-user`, dashboard view state, binary tree UI state).</li>
                 </ul>
@@ -10282,7 +10282,7 @@
       }
 
       async function flushAllAdminData() {
-        const confirmationMessage = 'Flush all user/test data now? This keeps admin and store products, and clears members/users, sessions, tokens, payouts, metrics, attribution locks, notifications, title/achievement records, and runtime customizations.';
+        const confirmationMessage = 'Flush all user/test data now? This keeps admin account, runtime settings, title catalog, and store products while clearing members/users plus their sessions, tokens, payouts, metrics, attribution, notifications, wallet/ledger, business center data, auto-ship, and webhook history.';
         if (!window.confirm(confirmationMessage)) {
           return;
         }
@@ -10354,7 +10354,7 @@
             ['memberRankAdvancementMonthlyProgress', 'Rank Monthly Progress'],
             ['memberAchievementClaims', 'Achievement Claims'],
             ['memberTitleAwards', 'Title Awards'],
-            ['memberTitleCatalog', 'Title Catalog Entries'],
+            ['memberProfileBadgeSelection', 'Profile Badge Selections'],
             ['preferredAttributionClaims', 'Preferred Attribution Claims'],
             ['preferredAttributionLocks', 'Preferred Attribution Locks'],
             ['memberNotifications', 'Notifications'],
@@ -10362,7 +10362,15 @@
             ['memberBinaryTreeIntroState', 'Binary Tree Intro States'],
             ['forceServerCutoffHistory', 'Force Cut-Off History'],
             ['memberServerCutoffStates', 'Member Cut-Off States'],
-            ['runtimeSettings', 'Runtime Settings Rows Reset'],
+            ['userAutoShipSettings', 'Auto-Ship Settings'],
+            ['userAutoShipEvents', 'Auto-Ship Events'],
+            ['ledgerEntries', 'Ledger Entries'],
+            ['walletLedgerEntries', 'Wallet Ledger Entries'],
+            ['businessCenterOwnerProgress', 'Business Center Owner Progress'],
+            ['businessCenterActivationAudit', 'Business Center Activation Audits'],
+            ['businessCenterCycleStates', 'Business Center Cycle States'],
+            ['businessCenterCommissionEvents', 'Business Center Commission Events'],
+            ['stripeWebhookEvents', 'Stripe Webhook Events'],
           ];
           const flushSummary = flushSummaryItems
             .map(([key, label]) => `${label} ${toWholeNumber(cleared[key], 0)}`)
@@ -10384,7 +10392,7 @@
             ? ` Warnings: ${warnings.join(' ')}`
             : '';
           setSettingsFlushAllDataFeedback(
-            `All data flushed. ${flushSummary}. Admin account and store products were preserved. User-side browser cache/session was also cleared on this device.${missingTableNote}${warningNote}`,
+            `All user data flushed. ${flushSummary}. Admin account, runtime settings, title catalog, and store products were preserved. User-side browser cache/session was also cleared on this device.${missingTableNote}${warningNote}`,
             true,
           );
         } catch (error) {

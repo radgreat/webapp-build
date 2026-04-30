@@ -20381,3 +20381,29 @@ ode --check backend/services/store-checkout.service.js passed.
   - Claude_Notes/Current Project Status.md
 - Validation:
   - INLINE_SCRIPT_PARSE_OK index.html blocks=6.
+
+## Patch Update (2026-04-30) - Admin Flush Reliability for New User-Linked Tables
+
+- Completed:
+  - expanded admin flush truncation coverage in `backend/services/admin.service.js` to include newly added user-linked tables:
+    - profile badge selection
+    - auto-ship settings/events
+    - ledger entries + wallet ledger entries
+    - business center owner/cycle/commission/audit tables
+    - stripe webhook event history
+  - changed flush scope to preserve non-user global data:
+    - runtime settings are no longer reset
+    - title catalog is no longer truncated
+    - products remain preserved (unchanged)
+  - updated admin settings flush copy/summary in `admin.html` so UI now matches backend behavior.
+
+- Outcome:
+  - Flush button now clears users/members and their related records more completely after newer schema additions.
+  - Admin account, runtime configuration, title catalog, and store products remain intact after flush.
+
+- Validation:
+  - `node --check backend/services/admin.service.js` passed.
+  - `node --test backend/tests/binary-cycle-cutoff.test.js` passed.
+  - `node --test backend/tests/ledger.service.test.js` passed.
+  - `node --test backend/tests/leadership-matching.service.test.js` passed.
+  - `node --test backend/tests/member-business-center.service.test.js` passed.

@@ -25,7 +25,6 @@ import {
   resolveServerCutoffCarryForwardState,
 } from '../utils/binary-cycle.helpers.js';
 
-const RUNTIME_SETTINGS_TABLE_NAME = 'runtime_settings';
 const SQL_IDENTIFIER_PATTERN = /^[a-z_][a-z0-9_]*$/i;
 
 const FLUSH_TRUNCATE_TABLES_BY_KEY = Object.freeze({
@@ -49,11 +48,20 @@ const FLUSH_TRUNCATE_TABLES_BY_KEY = Object.freeze({
   memberRankAdvancementMonthlyProgress: 'member_rank_advancement_monthly_progress',
   memberAchievementClaims: 'member_achievement_claims',
   memberTitleAwards: 'member_title_awards',
-  memberTitleCatalog: 'member_title_catalog',
+  memberProfileBadgeSelection: 'member_profile_badge_selection',
   preferredAttributionClaims: 'preferred_attribution_claims',
   preferredAttributionLocks: 'preferred_account_attribution_locks',
+  userAutoShipSettings: 'user_auto_ship_settings',
+  userAutoShipEvents: 'user_auto_ship_events',
   ewalletAccounts: 'ewallet_accounts',
   ewalletPeerTransfers: 'ewallet_peer_transfers',
+  ledgerEntries: 'ledger_entries',
+  walletLedgerEntries: 'wallet_ledger_entries',
+  businessCenterOwnerProgress: 'business_center_owner_progress',
+  businessCenterActivationAudit: 'business_center_activation_audit',
+  businessCenterCycleStates: 'business_center_cycle_states',
+  businessCenterCommissionEvents: 'business_center_commission_events',
+  stripeWebhookEvents: 'stripe_webhook_events',
 });
 
 function normalizeText(value) {
@@ -336,9 +344,7 @@ export async function resetAllMockData(payload = {}) {
   const cleared = Object.keys(FLUSH_TRUNCATE_TABLES_BY_KEY).reduce((accumulator, key) => {
     accumulator[key] = 0;
     return accumulator;
-  }, {
-    runtimeSettings: 0,
-  });
+  }, {});
   const missingTables = [];
   const warnings = [];
   const { client, warning: connectionWarning, connectionRole } = await connectResetClientWithFallback();
@@ -366,59 +372,6 @@ export async function resetAllMockData(payload = {}) {
         .map((tableName) => buildQualifiedChargeTableName(tableName))
         .join(', ');
       await client.query(`TRUNCATE TABLE ${qualifiedTableList}`);
-    }
-
-    const runtimeSettingsExists = await doesChargeTableExist(client, RUNTIME_SETTINGS_TABLE_NAME);
-    if (runtimeSettingsExists) {
-      await client.query(`
-        ALTER TABLE charge.runtime_settings
-          ADD COLUMN IF NOT EXISTS dashboard_mockup_mode_enabled boolean NOT NULL DEFAULT FALSE,
-          ADD COLUMN IF NOT EXISTS tier_claim_mock_mode_enabled boolean NOT NULL DEFAULT FALSE,
-          ADD COLUMN IF NOT EXISTS legal_terms_of_service TEXT,
-          ADD COLUMN IF NOT EXISTS legal_agreement TEXT,
-          ADD COLUMN IF NOT EXISTS legal_shipping_policy TEXT,
-          ADD COLUMN IF NOT EXISTS legal_refund_policy TEXT,
-          ADD COLUMN IF NOT EXISTS unattributed_free_account_fallback_sponsor_username TEXT,
-          ADD COLUMN IF NOT EXISTS updated_by TEXT,
-          ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT NOW()
-      `);
-
-      cleared.runtimeSettings = await countRowsInChargeTable(client, RUNTIME_SETTINGS_TABLE_NAME);
-
-      await client.query(`
-        DELETE FROM charge.runtime_settings
-        WHERE id <> 1
-      `);
-
-      await client.query(`
-        INSERT INTO charge.runtime_settings (
-          id,
-          dashboard_mockup_mode_enabled,
-          tier_claim_mock_mode_enabled,
-          legal_terms_of_service,
-          legal_agreement,
-          legal_shipping_policy,
-          legal_refund_policy,
-          unattributed_free_account_fallback_sponsor_username,
-          updated_by,
-          updated_at
-        )
-        VALUES (1, FALSE, FALSE, '', '', '', '', '', $1, NOW())
-        ON CONFLICT (id)
-        DO UPDATE
-        SET
-          dashboard_mockup_mode_enabled = EXCLUDED.dashboard_mockup_mode_enabled,
-          tier_claim_mock_mode_enabled = EXCLUDED.tier_claim_mock_mode_enabled,
-          legal_terms_of_service = EXCLUDED.legal_terms_of_service,
-          legal_agreement = EXCLUDED.legal_agreement,
-          legal_shipping_policy = EXCLUDED.legal_shipping_policy,
-          legal_refund_policy = EXCLUDED.legal_refund_policy,
-          unattributed_free_account_fallback_sponsor_username = EXCLUDED.unattributed_free_account_fallback_sponsor_username,
-          updated_by = EXCLUDED.updated_by,
-          updated_at = NOW()
-      `, [clearedBy]);
-    } else {
-      missingTables.push(RUNTIME_SETTINGS_TABLE_NAME);
     }
 
     await client.query('COMMIT');

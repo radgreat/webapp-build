@@ -35852,3 +35852,47 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - Inline script parse check passed: INLINE_SCRIPT_PARSE_OK index.html blocks=6.
+
+## Patch Update (2026-04-30) - Admin Flush Scope Expanded to All User-Linked Data (Products Preserved)
+
+### What Changed
+- `backend/services/admin.service.js`
+  - expanded `FLUSH_TRUNCATE_TABLES_BY_KEY` to include newer user-linked tables:
+    - `member_profile_badge_selection`
+    - `user_auto_ship_settings`
+    - `user_auto_ship_events`
+    - `ledger_entries`
+    - `wallet_ledger_entries`
+    - `business_center_owner_progress`
+    - `business_center_activation_audit`
+    - `business_center_cycle_states`
+    - `business_center_commission_events`
+    - `stripe_webhook_events`
+  - removed `member_title_catalog` from flush truncation targets (catalog/config preserved).
+  - removed runtime-settings reset block from flush execution so runtime configuration is preserved.
+- `admin.html`
+  - updated flush danger-zone copy to clarify flush is user/member-data-only.
+  - updated confirmation dialog copy to explicitly preserve admin account, runtime settings, title catalog, and store products.
+  - updated flush summary list keys to match backend payload (added auto-ship/ledger/business-center/badge/webhook counts, removed runtime/title-catalog reset counters).
+
+### Files Affected
+- `backend/services/admin.service.js`
+- `admin.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/admin-dashboard-page.md`
+
+### Design Decision
+- Flush now strictly targets users/members and their derived records only.
+- Global/admin configuration and product/catalog data remain intact by default:
+  - preserved: `store_products`, `admin_users`, `runtime_settings`, `business_center_unlock_rules`, `member_title_catalog`.
+
+### Known Limitation
+- If new user-linked DB tables are added later and not included in `FLUSH_TRUNCATE_TABLES_BY_KEY`, they will not be cleared until explicitly mapped.
+
+### Validation
+- `node --check backend/services/admin.service.js` passed.
+- `node --test backend/tests/binary-cycle-cutoff.test.js` passed.
+- `node --test backend/tests/ledger.service.test.js` passed.
+- `node --test backend/tests/leadership-matching.service.test.js` passed.
+- `node --test backend/tests/member-business-center.service.test.js` passed.
