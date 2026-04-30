@@ -2129,3 +2129,9 @@ Known limitation:
 
 ### Validation
 - Manual logic review completed for zero/invalid series fallback and normal 30-day rendering path.
+
+## Update (2026-04-30) - Pre-Creation Trend Date Guard
+
+- Added account-createdAt date floor in index.html trend rendering pipeline so dashboard charts do not render points older than the signed-in account creation date.
+- Applied to Personal Volume, E-wallet, and Weekly Total Organization BV trend-entry sanitization plus observedAt fallback paths.
+- Validation: inline script parse check passed for index.html.

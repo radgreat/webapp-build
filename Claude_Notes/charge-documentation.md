@@ -1,4 +1,4 @@
-# Vault Finance Dashboard ?????????????????????????????????????? Build Notes
+﻿# Vault Finance Dashboard ?????????????????????????????????????? Build Notes
 
 **Created:** 2026-02-20
 
@@ -34049,6 +34049,26 @@ Known limitation:
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
 
+### Follow-up (2026-04-30) - Existing Admin Tree Root/Seed Visual Center Alignment
+- `binary-tree-next-engine-adapter.mjs`
+  - added `centerSingleChildRoot` projection mode with single-child root offset normalization.
+  - when root is `root` and exactly one depth-1 node exists, all non-root projected X coordinates are shifted so the seed node sits directly under Admin.
+  - projection alignment is now applied consistently in both:
+    - `computeFrame(...)` node/connectors render projection
+    - `projectLocalPath(...)` anticipation slot projection
+- `binary-tree-next-app.mjs`
+  - enabled `centerSingleChildRoot` for admin source in:
+    - `getUniverseOptions(...)`
+    - `getGlobalUniverseOptions(...)`
+
+Result:
+- Admin (`AD`) no longer appears as if it has left/right branching when only one seed node exists.
+- Existing trees now visually render as `Admin -> SF` centered vertical chain, then normal left/right branching from `SF`.
+
+Validation:
+- `node --check binary-tree-next-engine-adapter.mjs` passed.
+- `node --check binary-tree-next-app.mjs` passed.
+
 ## Patch Update (2026-04-29) - Profile Hero Subtext Changed From Node ID To Joined Date
 
 ### What Changed
@@ -35680,3 +35700,155 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - Manual code review completed for caption generator logic and fallback behavior.
+
+## Patch Update (2026-04-30) - Admin Binary Tree Anticipation Structure + Direct Enrollment
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - updated `resolveAnticipationSlots(...)` admin logic:
+    - centered anticipation is now limited to first root enrollment only.
+    - root stops showing anticipation slots after the seed node is created.
+    - admin placements on non-root nodes now render normal left/right anticipation slots.
+  - updated `handleTreeNextEnrollModalSubmit(...)`:
+    - added admin-path direct enrollment payload flow using `submitTreeNextEnrollmentRequest(...)`.
+    - bypasses Stripe checkout window/session creation when `state.source === 'admin'`.
+    - preserves existing success handling (thank-you state, password setup link, pending placement lock, account overview/rank refresh).
+
+### Files Affected
+- `binary-tree-next-app.mjs`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/binary-tree-next.md`
+
+### Design Decision
+- Enforced requested admin tree shape at UI placement level:
+  - one centered seed node under root
+  - subsequent growth under that seed via left/right branches.
+- Kept member (`state.source === 'member'`) enrollment Stripe flow unchanged.
+
+### Known Limitation
+- Root is intentionally locked from additional anticipation slots after the first seed node exists; continuing enrollment requires selecting the seed/descendant nodes.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Admin Enrollment PV Seed + Per-Account Trend Isolation
+
+### What Changed
+- index.html
+  - fixed dashboard trend storage identity keys so they now scope to the current signed-in member identity (username/id), not sponsor username.
+  - updated all related trend key resolvers:
+    - getDashboardPersonalVolumeTrendUserKey(...)
+    - getDashboardEwalletBalanceTrendUserKey(...)
+    - getAccountOverviewTrendUserKey(...)
+    - getAccountOverviewBvTrendUserKey(...)
+- backend/services/member.service.js
+  - updated createRegisteredMember(...) enrollment seed PV behavior:
+    - admin-created enrollments (isAdminPlacement) now initialize with starterPersonalPv = 0 and currentPersonalPvBv = 0.
+    - reservation-plan enrollments also initialize with zero seed PV.
+    - paid/member enrollment path still seeds from package BV as before.
+
+### Files Affected
+- index.html
+- backend/services/member.service.js
+- Claude_Notes/charge-documentation.md
+- Claude_Notes/Current Project Status.md
+- Claude_Notes/binary-tree-next.md
+
+### Design Decision
+- Admin no-payment registration should not award personal PV at account creation.
+- Trend history must be account-scoped to prevent chart bleed when multiple accounts share the same sponsor.
+
+### Known Limitation
+- Existing browser-local trend entries previously saved under sponsor-scoped keys remain in localStorage but are no longer read by the updated account-scoped resolvers.
+
+### Validation
+- node --check backend/services/member.service.js passed.
+- Manual diff review confirmed only targeted trend-key and admin-seed-PV logic changed.
+
+## One-Time Data Cleanup (2026-04-30) - usertesting1 Admin No-Payment PV Reset
+
+### Context
+- Account `usertesting1` was created through admin direct-enrollment (no Stripe payment), but persisted seed PV fields were still `150`.
+- Resulting dashboard visuals showed historical PV/BV bars for a just-created account.
+
+### Action Performed
+- Ran a one-time transactional DB cleanup scoped to `usertesting1` only.
+- Safety check passed before update: `store_invoices` count for this account/email = `0`.
+- Updated `charge.member_users`:
+  - `starter_personal_pv` -> `0`
+  - `current_personal_pv_bv` -> `0`
+  - `server_cutoff_baseline_starter_personal_pv` -> `0`
+  - `activity_active_until_at` -> `NULL`
+  - purchase/upgrade timestamps -> `NULL`
+- Updated `charge.registered_members`:
+  - `starter_personal_pv` -> `0`
+  - `server_cutoff_baseline_starter_personal_pv` -> `0`
+  - `activity_active_until_at` -> `NULL`
+  - purchase/upgrade timestamps -> `NULL`
+
+### Verification
+- Post-update verification confirmed:
+  - `member_users.starter_personal_pv = 0`
+  - `member_users.current_personal_pv_bv = 0`
+  - `registered_members.starter_personal_pv = 0`
+- Rows affected:
+  - `charge.member_users`: `1`
+  - `charge.registered_members`: `1`
+
+### Notes
+- This was a one-time corrective cleanup for existing legacy seeded data.
+- Code-level prevention patch remains in place for future admin no-payment enrollments.
+
+## One-Time Data Update (2026-04-30) - Restore usertesting1 PV to 150 (Today Timestamp)
+
+### Request
+- Revert prior cleanup and restore usertesting1 personal volume to 150.
+- Ensure chart anchor uses today (not April 27).
+
+### Action Performed
+- Updated charge.member_users for usertesting1:
+  - starter_personal_pv = 150
+  - current_personal_pv_bv = 150
+  - last_product_purchase_at = 2026-04-30T09:34:45.200Z
+  - last_purchase_at = 2026-04-30T09:34:45.200Z
+- Updated charge.registered_members for usertesting1:
+  - starter_personal_pv = 150
+  - last_product_purchase_at = 2026-04-30T09:34:45.200Z
+  - last_purchase_at = 2026-04-30T09:34:45.200Z
+
+### Verification
+- member_users row count updated: 1
+- registered_members row count updated: 1
+- Post-update values confirm 150 PV fields with today timestamp.
+
+### Note
+- If old chart point still appears in browser, clear local dashboard trend cache and reload.
+
+## Patch Update (2026-04-30) - Trend Timestamp Floor Guard (Pre-Creation Backfill Block)
+
+### What Changed
+- index.html
+  - Added resolveCurrentSessionTrendMinimumTimestampMs() to derive an account-scoped minimum chart timestamp from the signed-in account createdAt/joinedAt/enrolledAt.
+  - Added sanitizeTrendTimestampMsForCurrentSession(...) to clamp or reject timestamps that fall before account creation.
+  - Applied timestamp-floor filtering to stored trend-entry sanitizers:
+    - sanitizeDashboardPersonalVolumeTrendEntries(...)
+    - sanitizeDashboardEwalletBalanceTrendEntries(...)
+    - sanitizeAccountOverviewBvTrendEntries(...)
+  - Applied timestamp-floor clamping to observedAt/fallback flow paths:
+    - appendDashboardPersonalVolumeTrendPoint(...)
+    - updateDashboardPersonalVolumeKpi(...)
+    - buildDashboardPersonalVolumeDailySeries(...)
+    - appendDashboardEwalletBalanceTrendPoint(...)
+    - updateDashboardEwalletBalanceKpi(...)
+    - buildDashboardEwalletBalanceDailySeries(...)
+    - appendAccountOverviewBvTrendPoint(...)
+    - updateAccountOverviewBvComparisonGraph(...)
+    - buildAccountOverviewBvDailySeries(...)
+
+### Why
+- Prevent stale local trend cache points (or stale observedAt values) from rendering dates older than the member account itself.
+- This specifically addresses reports where a newly created account displayed historical graph points (for example 4/27) that predate account creation.
+
+### Validation
+- Inline script parse check passed: INLINE_SCRIPT_PARSE_OK index.html blocks=6.

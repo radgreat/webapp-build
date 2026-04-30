@@ -4542,3 +4542,67 @@ ode --check binary-tree-next-app.mjs passed.
 
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Admin Tree Seed Node Structure + Stripe Bypass Enrollment
+
+### What Changed
+- binary-tree-next-app.mjs
+  - updated resolveAnticipationSlots(...) admin path to enforce seed-node structure:
+    - root shows a centered anticipation slot only for the very first enrollment.
+    - once root has a child, root no longer offers anticipation slots.
+    - for non-root admin nodes, anticipation rendering falls back to standard left/right slots.
+  - updated handleTreeNextEnrollModalSubmit(...):
+    - admin-source enrollments now submit directly through submitTreeNextEnrollmentRequest(...) (no Stripe checkout window/session).
+    - retained existing post-success UX:
+      - success feedback
+      - thank-you step
+      - password setup link
+      - pending placement lock for reveal/apply flow
+      - account overview + rank refresh routines.
+
+### Files Affected
+- binary-tree-next-app.mjs
+
+### Validation
+- node --check binary-tree-next-app.mjs passed.
+
+### Known Limitation
+- After seed creation, root is non-enrollable from anticipation UI by design; placement continues from the seed node and deeper descendants.
+
+## Follow-up Update (2026-04-30) - Existing Admin Root/Seed Center Alignment
+
+### What Changed
+- binary-tree-next-engine-adapter.mjs
+  - added single-child root projection offset mode (centerSingleChildRoot).
+  - when universe root is "root" and exactly one depth-1 node exists, all non-root X positions are shifted so seed node aligns directly below Admin.
+  - applied in both computeFrame(...) and projectLocalPath(...) so node render/connectors and anticipation slots stay aligned.
+- binary-tree-next-app.mjs
+  - enabled centerSingleChildRoot for admin source in getUniverseOptions(...) and getGlobalUniverseOptions(...).
+
+### Result
+- Existing admin trees now render as Admin -> seed node centered vertically.
+- Left/right branching starts from the seed node as requested.
+
+### Validation
+- node --check binary-tree-next-engine-adapter.mjs passed.
+- node --check binary-tree-next-app.mjs passed.
+
+## Follow-up Update (2026-04-30) - Admin New Account PV Ghost Point Fix
+
+### What Changed
+- index.html
+  - switched trend storage user keys from sponsor-scoped identity to signed-in account identity for:
+    - Personal Volume chart
+    - E-wallet balance chart
+    - Account Overview trend snapshots
+    - Account Overview BV chart
+- backend/services/member.service.js
+  - in createRegisteredMember(...), admin placement enrollments now seed with zero PV (starterPersonalPv and currentPersonalPvBv) because the flow bypasses Stripe/payment.
+
+### Result
+- New admin-created accounts no longer show stale historical PV points from other accounts sharing the same sponsor.
+- Admin no-payment enrollment no longer initializes Personal Volume with package BV.
+
+### Validation
+- node --check backend/services/member.service.js passed.
+

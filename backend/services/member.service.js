@@ -2148,6 +2148,9 @@ export async function createRegisteredMember(payload) {
     const packageBv = Number(packageMeta.bv);
     const startingRank = STARTING_RANK_BY_PACKAGE[enrollmentPackage] || 'Personal';
     const isReservationPlan = isMembershipPlacementReservationPackage(enrollmentPackage);
+    const enrollmentSeedPersonalPv = (isAdminPlacement || isReservationPlan)
+      ? 0
+      : packageBv;
     const fastTrackBonusAmount = resolveFastTrackBonusAmount({
       enrollmentPackage,
       sponsorFastTrackTier: resolvedSponsorFastTrackTier,
@@ -2159,7 +2162,7 @@ export async function createRegisteredMember(payload) {
     const enrollmentActivityState = resolveMemberActivityStateByPersonalBv({
       passwordSetupRequired: true,
       createdAt,
-      currentPersonalPvBv: packageBv,
+      currentPersonalPvBv: enrollmentSeedPersonalPv,
     }, {
       referenceDate: createdAtDate,
     });
@@ -2187,7 +2190,7 @@ export async function createRegisteredMember(payload) {
       enrollmentPackageLabel: packageMeta.label,
       enrollmentPackagePrice: packagePrice,
       enrollmentPackageBv: packageBv,
-      starterPersonalPv: packageBv,
+      starterPersonalPv: enrollmentSeedPersonalPv,
       currentPersonalPvBv,
       starterTotalCycles: 0,
       rank: startingRank,
@@ -2238,7 +2241,7 @@ export async function createRegisteredMember(payload) {
       fastTrackTierLabel: FAST_TRACK_TIER_META[resolvedSponsorFastTrackTier].label,
       packagePrice,
       packageBv,
-      starterPersonalPv: packageBv,
+      starterPersonalPv: enrollmentSeedPersonalPv,
       currentPersonalPvBv,
       rank: startingRank,
       accountRank: startingRank,

@@ -94,6 +94,23 @@ function resolveWorldRadius(depth) {
   );
 }
 
+function resolveSingleChildRootWorldXOffset(entries = [], universe = {}, options = {}) {
+  if (options.centerSingleChildRoot !== true) {
+    return 0;
+  }
+  const universeRootId = normalizeText(universe?.rootId);
+  if (universeRootId !== 'root') {
+    return 0;
+  }
+  const depthOneEntries = (Array.isArray(entries) ? entries : [])
+    .filter((entry) => Number.isFinite(entry?.localDepth) && entry.localDepth === 1);
+  if (depthOneEntries.length !== 1) {
+    return 0;
+  }
+  const offsetX = -(Number(depthOneEntries[0]?.localWorldX) || 0);
+  return Number.isFinite(offsetX) ? offsetX : 0;
+}
+
 export async function detectBinaryTreeNextEngineMode() {
   if (typeof WebAssembly !== 'object') {
     return {
@@ -316,12 +333,24 @@ export function createBinaryTreeNextEngineAdapter() {
     });
 
     entries.sort((left, right) => left.localDepth - right.localDepth || left.meta.index - right.meta.index);
+    const rootSingleChildWorldOffsetX = resolveSingleChildRootWorldXOffset(entries, {
+      rootId: rootMeta.id,
+    }, options);
+    if (Math.abs(rootSingleChildWorldOffsetX) > 0.0000001) {
+      entries.forEach((entry) => {
+        if (!entry || entry.localDepth <= 0) {
+          return;
+        }
+        entry.localWorldX += rootSingleChildWorldOffsetX;
+      });
+    }
     return {
       universe: {
         rootId: rootMeta.id,
         rootMeta,
         rootPath,
         depthCap: rawDepthCap,
+        rootSingleChildWorldOffsetX,
       },
       entries,
       entryById,
@@ -484,16 +513,21 @@ export function createBinaryTreeNextEngineAdapter() {
 
     const localDepth = safeLocalPath.length;
     const localWorld = resolveWorldPositionFromPath(safeLocalPath);
+    const { universe } = resolveUniverseEntries(options);
+    const rootSingleChildWorldOffsetX = Number.isFinite(universe?.rootSingleChildWorldOffsetX)
+      ? universe.rootSingleChildWorldOffsetX
+      : 0;
+    const adjustedLocalWorldX = localWorld.worldX + (localDepth > 0 ? rootSingleChildWorldOffsetX : 0);
     const localWorldRadius = resolveWorldRadius(localDepth);
     const radiusScale = localWorldRadius / NODE_WORLD_RADIUS_BASE;
 
     return {
       localPath: safeLocalPath,
       localDepth,
-      localWorldX: localWorld.worldX,
+      localWorldX: adjustedLocalWorldX,
       localWorldY: localWorld.worldY,
       localWorldRadius,
-      x: (localWorld.worldX * viewScale) + viewportCenterX + viewX,
+      x: (adjustedLocalWorldX * viewScale) + viewportCenterX + viewX,
       y: (localWorld.worldY * viewScale) + baseY + viewY,
       r: nodeRadiusBase * radiusScale * viewScale,
     };

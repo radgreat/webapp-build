@@ -7563,7 +7563,7 @@
 
       function getDashboardPersonalVolumeTrendUserKey() {
         const fallbackIdentity = currentSessionUser?.username || currentSessionUser?.id || 'member';
-        return normalizeMemberKey(currentSponsorUsername || fallbackIdentity || 'member');
+        return normalizeMemberKey(fallbackIdentity || 'member');
       }
 
       function resolveTimestampMsFromRaw(rawValue) {
@@ -7603,12 +7603,42 @@
         return Number.NaN;
       }
 
+      function resolveCurrentSessionTrendMinimumTimestampMs() {
+        const accountCreatedAtMs = resolveTimestampMsFromRaw(
+          currentSessionUser?.createdAt
+          ?? currentSessionUser?.joinedAt
+          ?? currentSessionUser?.enrolledAt
+          ?? Number.NaN,
+        );
+        if (!Number.isFinite(accountCreatedAtMs)) {
+          return Number.NaN;
+        }
+        const createdAtDate = new Date(accountCreatedAtMs);
+        createdAtDate.setHours(0, 0, 0, 0);
+        return createdAtDate.getTime();
+      }
+
+      function sanitizeTrendTimestampMsForCurrentSession(rawTimestamp, options = {}) {
+        const timestampMs = resolveTimestampMsFromRaw(rawTimestamp);
+        if (!Number.isFinite(timestampMs)) {
+          return Number.NaN;
+        }
+        const minTimestampMs = resolveCurrentSessionTrendMinimumTimestampMs();
+        if (Number.isFinite(minTimestampMs) && timestampMs < minTimestampMs) {
+          return options?.clampToMinimum === true
+            ? minTimestampMs
+            : Number.NaN;
+        }
+        return timestampMs;
+      }
+
       function sanitizeDashboardPersonalVolumeTrendEntries(rawEntries) {
         if (!Array.isArray(rawEntries)) {
           return [];
         }
 
         const sanitizedEntries = [];
+        const minTimestampMs = resolveCurrentSessionTrendMinimumTimestampMs();
         for (const rawEntry of rawEntries) {
           if (!rawEntry || typeof rawEntry !== 'object') {
             continue;
@@ -7629,6 +7659,9 @@
 
           const timestampMs = resolveTimestampMsFromRaw(rawTimestamp);
           if (!Number.isFinite(timestampMs)) {
+            continue;
+          }
+          if (Number.isFinite(minTimestampMs) && timestampMs < minTimestampMs) {
             continue;
           }
 
@@ -7710,7 +7743,9 @@
 
       function appendDashboardPersonalVolumeTrendPoint(personalVolumeRaw, observedAtRaw) {
         const nextPointValue = Math.max(0, toWholeNumber(personalVolumeRaw, 0));
-        const observedAtMs = resolveTimestampMsFromRaw(observedAtRaw);
+        const observedAtMs = sanitizeTrendTimestampMsForCurrentSession(observedAtRaw, {
+          clampToMinimum: true,
+        });
         if (!Number.isFinite(observedAtMs)) {
           return resolveDashboardPersonalVolumeTrendEntries(nextPointValue);
         }
@@ -7793,7 +7828,9 @@
         }
 
         if (series.every((entry) => entry.value === 0)) {
-          const fallbackObservedAtMs = resolveTimestampMsFromRaw(fallbackObservedAtRaw);
+          const fallbackObservedAtMs = sanitizeTrendTimestampMsForCurrentSession(fallbackObservedAtRaw, {
+            clampToMinimum: true,
+          });
           if (Number.isFinite(fallbackObservedAtMs)) {
             const fallbackDayBucket = dayBucketFormatter.format(fallbackObservedAtMs);
             const matchedIndex = series.findIndex((entry) => dayBucketFormatter.format(entry.timestampMs) === fallbackDayBucket);
@@ -8101,7 +8138,10 @@
       function updateDashboardPersonalVolumeKpi(personalVolumeRaw, options = {}) {
         const nextPersonalVolume = Math.max(0, toWholeNumber(personalVolumeRaw, 0));
         const shouldTrackTrend = options.trackTrend === true;
-        const observedAtMs = resolveTimestampMsFromRaw(options.observedAtMs ?? options.observedAt ?? options.timestampMs ?? options.timestamp);
+        const observedAtMs = sanitizeTrendTimestampMsForCurrentSession(
+          options.observedAtMs ?? options.observedAt ?? options.timestampMs ?? options.timestamp,
+          { clampToMinimum: true },
+        );
         const isServerConfirmed = options.serverConfirmed === true;
         const forceRender = options.forceRender === true;
 
@@ -8136,7 +8176,7 @@
 
       function getDashboardEwalletBalanceTrendUserKey() {
         const fallbackIdentity = currentSessionUser?.username || currentSessionUser?.id || 'member';
-        return normalizeMemberKey(currentSponsorUsername || fallbackIdentity || 'member');
+        return normalizeMemberKey(fallbackIdentity || 'member');
       }
 
       function sanitizeDashboardEwalletBalanceTrendEntries(rawEntries) {
@@ -8145,6 +8185,7 @@
         }
 
         const sanitizedEntries = [];
+        const minTimestampMs = resolveCurrentSessionTrendMinimumTimestampMs();
         for (const rawEntry of rawEntries) {
           if (!rawEntry || typeof rawEntry !== 'object') {
             continue;
@@ -8165,6 +8206,9 @@
 
           const timestampMs = resolveTimestampMsFromRaw(rawTimestamp);
           if (!Number.isFinite(timestampMs)) {
+            continue;
+          }
+          if (Number.isFinite(minTimestampMs) && timestampMs < minTimestampMs) {
             continue;
           }
 
@@ -8247,7 +8291,9 @@
 
       function appendDashboardEwalletBalanceTrendPoint(balanceRaw, observedAtRaw) {
         const nextPointValue = toCurrencyNumber(balanceRaw, 0);
-        const observedAtMs = resolveTimestampMsFromRaw(observedAtRaw);
+        const observedAtMs = sanitizeTrendTimestampMsForCurrentSession(observedAtRaw, {
+          clampToMinimum: true,
+        });
         if (!Number.isFinite(observedAtMs)) {
           return resolveDashboardEwalletBalanceTrendEntries();
         }
@@ -8331,7 +8377,9 @@
         }
 
         if (series.every((entry) => entry.value === 0)) {
-          const fallbackObservedAtMs = resolveTimestampMsFromRaw(fallbackObservedAtRaw);
+          const fallbackObservedAtMs = sanitizeTrendTimestampMsForCurrentSession(fallbackObservedAtRaw, {
+            clampToMinimum: true,
+          });
           if (Number.isFinite(fallbackObservedAtMs)) {
             const fallbackDayBucket = dayBucketFormatter.format(fallbackObservedAtMs);
             const matchedIndex = series.findIndex((entry) => dayBucketFormatter.format(entry.timestampMs) === fallbackDayBucket);
@@ -8473,7 +8521,10 @@
       function updateDashboardEwalletBalanceKpi(balanceRaw, options = {}) {
         const nextBalance = toCurrencyNumber(balanceRaw, 0);
         const shouldTrackTrend = options.trackTrend === true;
-        const observedAtMs = resolveTimestampMsFromRaw(options.observedAtMs ?? options.observedAt ?? options.timestampMs ?? options.timestamp);
+        const observedAtMs = sanitizeTrendTimestampMsForCurrentSession(
+          options.observedAtMs ?? options.observedAt ?? options.timestampMs ?? options.timestamp,
+          { clampToMinimum: true },
+        );
         const trendEntries = shouldTrackTrend
           ? appendDashboardEwalletBalanceTrendPoint(nextBalance, observedAtMs)
           : resolveDashboardEwalletBalanceTrendEntries();
@@ -18023,7 +18074,7 @@
 
       function getAccountOverviewTrendUserKey() {
         const fallbackIdentity = currentSessionUser?.username || currentSessionUser?.id || 'member';
-        return normalizeMemberKey(currentSponsorUsername || fallbackIdentity || 'member');
+        return normalizeMemberKey(fallbackIdentity || 'member');
       }
 
       function sanitizeAccountOverviewTrendSnapshot(rawSnapshot) {
@@ -18194,7 +18245,7 @@
 
       function getAccountOverviewBvTrendUserKey() {
         const fallbackIdentity = currentSessionUser?.username || currentSessionUser?.id || 'member';
-        return normalizeMemberKey(currentSponsorUsername || fallbackIdentity || 'member');
+        return normalizeMemberKey(fallbackIdentity || 'member');
       }
 
       function sanitizeAccountOverviewBvTrendEntries(rawEntries) {
@@ -18203,6 +18254,7 @@
         }
 
         const sanitizedEntries = [];
+        const minTimestampMs = resolveCurrentSessionTrendMinimumTimestampMs();
         for (const rawEntry of rawEntries) {
           if (!rawEntry || typeof rawEntry !== 'object') {
             continue;
@@ -18216,6 +18268,9 @@
           const rawTimestamp = rawEntry.timestamp ?? rawEntry.timestampMs ?? rawEntry.observedAt ?? rawEntry.occurredAt ?? rawEntry.date;
           const timestampMs = resolveTimestampMsFromRaw(rawTimestamp);
           if (!Number.isFinite(timestampMs)) {
+            continue;
+          }
+          if (Number.isFinite(minTimestampMs) && timestampMs < minTimestampMs) {
             continue;
           }
 
@@ -18300,7 +18355,9 @@
       function appendAccountOverviewBvTrendPoint(totalOrganizationBvRaw, personalOrganizationBvRaw, observedAtRaw) {
         const nextTotalOrganizationBv = toWholeNumber(totalOrganizationBvRaw, 0);
         const nextPersonalOrganizationBv = toWholeNumber(personalOrganizationBvRaw, 0);
-        const observedAtMs = resolveTimestampMsFromRaw(observedAtRaw);
+        const observedAtMs = sanitizeTrendTimestampMsForCurrentSession(observedAtRaw, {
+          clampToMinimum: true,
+        });
         if (!Number.isFinite(observedAtMs)) {
           return resolveAccountOverviewBvTrendEntries();
         }
@@ -18395,9 +18452,11 @@
         }
 
         if (series.every((entry) => entry.totalOrganizationBv === 0 && entry.personalOrganizationBv === 0)) {
-          const fallbackObservedAtMs = resolveTimestampMsFromRaw(fallbackObservedAtRaw);
-          if (Number.isFinite(fallbackObservedAtMs)) {
-            const fallbackDayBucket = dayBucketFormatter.format(fallbackObservedAtMs);
+        const fallbackObservedAtMs = sanitizeTrendTimestampMsForCurrentSession(fallbackObservedAtRaw, {
+          clampToMinimum: true,
+        });
+        if (Number.isFinite(fallbackObservedAtMs)) {
+          const fallbackDayBucket = dayBucketFormatter.format(fallbackObservedAtMs);
             const matchedIndex = series.findIndex((entry) => dayBucketFormatter.format(entry.timestampMs) === fallbackDayBucket);
             if (matchedIndex >= 0) {
               series[matchedIndex].totalOrganizationBv = toWholeNumber(fallbackTotalRaw, 0);
@@ -18585,7 +18644,10 @@
         const nextTotalOrganizationBv = toWholeNumber(totalOrganizationBvRaw, 0);
         const nextPersonalOrganizationBv = toWholeNumber(personalOrganizationBvRaw, 0);
         const shouldTrackTrend = options.trackTrend === true;
-        const observedAtMs = resolveTimestampMsFromRaw(options.observedAtMs ?? options.observedAt ?? options.timestampMs ?? options.timestamp);
+        const observedAtMs = sanitizeTrendTimestampMsForCurrentSession(
+          options.observedAtMs ?? options.observedAt ?? options.timestampMs ?? options.timestamp,
+          { clampToMinimum: true },
+        );
         const fallbackObservedAtMs = Number.isFinite(observedAtMs) ? observedAtMs : Date.now();
         const trendEntries = shouldTrackTrend
           ? appendAccountOverviewBvTrendPoint(nextTotalOrganizationBv, nextPersonalOrganizationBv, fallbackObservedAtMs)

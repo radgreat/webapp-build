@@ -1,6 +1,6 @@
 # Current Project Status
 
-Last Updated: 2026-04-29
+Last Updated: 2026-04-30
 
 ## Purpose
 
@@ -19955,6 +19955,13 @@ ode --check backend/services/store-checkout.service.js passed.
 - Validation:
   - `node --check binary-tree-next-app.mjs` passed.
 
+- Follow-up completed (existing-tree visual alignment):
+  - added admin single-child root centering mode in `binary-tree-next-engine-adapter.mjs`.
+  - enabled centering mode from app universe options in `binary-tree-next-app.mjs`.
+  - existing admin trees now render `Admin` directly above seed node (`SF/zeroone`) instead of offset left/right.
+- Additional validation:
+  - `node --check binary-tree-next-engine-adapter.mjs` passed.
+
 ## Patch Update (2026-04-30) - Profile Title/Badge Inventory (Equip + Persistence)
 
 - Completed:
@@ -20287,3 +20294,90 @@ ode --check backend/services/store-checkout.service.js passed.
   - `Claude_Notes/member-dashboard-page.md`
 - Validation:
   - manual code review completed for updated caption logic and invalid-range fallback.
+
+## Patch Update (2026-04-30) - Admin Binary Tree Seed Structure + Stripe Bypass
+
+- Completed:
+  - updated admin anticipation-slot behavior in `binary-tree-next-app.mjs`:
+    - root now allows exactly one centered seed-slot enrollment.
+    - once a root child exists, root no longer exposes anticipation slots.
+    - non-root admin placement returns to normal left/right anticipation slots.
+  - updated admin tree enrollment submit flow in `binary-tree-next-app.mjs`:
+    - bypasses Stripe checkout entirely for admin-source enrollment.
+    - submits directly through `/api/admin/registered-members` via existing direct enrollment API path.
+    - preserves post-enroll thank-you flow, password setup link output, pending placement handling, and overview/rank refresh behavior.
+- Outcome:
+  - admin tree now follows the requested structure:
+    - `Admin` -> centered first child seed node
+    - seed node -> standard left/right growth
+  - admin tree enrollments can be completed without opening Stripe billing.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Known limitation:
+  - after the seed node exists, root itself is intentionally non-enrollable from anticipation UI; enrollments continue by selecting the seed node or descendants.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Admin Enrollment PV Graph Backfill Bug
+
+- Completed:
+  - fixed dashboard trend key scoping in index.html so trend histories are keyed by the current signed-in account identity (username/id), not sponsor username.
+  - this prevents cross-account chart history bleed (example: newly created account showing old PV point from another account under same sponsor).
+  - updated backend enrollment seed logic in backend/services/member.service.js:
+    - admin no-payment registrations now start with starterPersonalPv: 0.
+    - admin no-payment registrations now start with currentPersonalPvBv: 0.
+    - reservation-plan enrollments also start at zero seed PV.
+- Outcome:
+  - newly admin-created accounts no longer inherit stale sponsor-scoped graph points.
+  - admin direct enroll path remains Stripe-free and now keeps initial PV aligned with no-payment behavior.
+- Files updated:
+  - index.html
+  - backend/services/member.service.js
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+  - Claude_Notes/binary-tree-next.md
+- Validation:
+  - node --check backend/services/member.service.js passed.
+
+## One-Time Data Cleanup (2026-04-30) - usertesting1 PV Backfill Correction
+
+- Completed:
+  - executed targeted DB cleanup for usertesting1 to remove legacy seeded PV from admin no-payment enrollment.
+  - verified account had zero invoices before update (safety guard).
+  - reset user/member PV seed fields and activity window to zero/null.
+- Outcome:
+  - usertesting1 now resolves with starterPersonalPv=0 and currentPersonalPvBv=0.
+  - historical ghost PV/BV bars tied to seeded account state are removed after refresh/relogin.
+- Tables touched:
+  - charge.member_users (1 row)
+  - charge.registered_members (1 row)
+
+## One-Time Data Update (2026-04-30) - usertesting1 PV Restored
+
+- Completed:
+  - restored usertesting1 personal volume fields to 150.
+  - stamped purchase-anchor timestamps to today (2026-04-30) for dashboard chart placement.
+- Tables touched:
+  - charge.member_users (1 row)
+  - charge.registered_members (1 row)
+- Outcome:
+  - account now resolves at 150 PV with today-based activity timestamp.
+
+## Patch Update (2026-04-30) - Deep Fix for Pre-Creation Graph Backfill
+
+- Completed:
+  - added account-createdAt timestamp floor guard in dashboard trend pipeline.
+  - trend points older than account creation are now dropped from PV, e-wallet, and Weekly Total Organization BV chart trend sources.
+  - observedAt fallback values are clamped to account-createdAt floor to prevent reintroducing pre-creation bars.
+- Outcome:
+  - newly created accounts cannot render legacy graph points on dates before account creation.
+  - resolves April 27 ghost 150 BV/PV bars for accounts created later.
+- Files updated:
+  - index.html
+  - Claude_Notes/charge-documentation.md
+  - Claude_Notes/Current Project Status.md
+- Validation:
+  - INLINE_SCRIPT_PARSE_OK index.html blocks=6.

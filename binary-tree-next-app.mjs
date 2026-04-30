@@ -16909,12 +16909,125 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
   }
 
   const { sponsorUsername, sponsorName } = resolveTreeNextEnrollSponsorIdentityForMode(placementLock);
+  const enrollmentPayload = {
+    fullName,
+    email,
+    memberUsername,
+    phone: '',
+    notes: '',
+    countryFlag,
+    placementLeg,
+    spilloverPlacementSide,
+    spilloverParentMode,
+    spilloverParentReference,
+    enrollmentPackage: packageKey,
+    enrollmentProductKey,
+    fastTrackTier: tierKey,
+    sponsorUsername,
+    sponsorName,
+  };
   const actionButton = currentStep === 2
     ? treeNextEnrollStepTwoNextButton
     : treeNextEnrollModalSubmitButton;
   const submitLabel = actionButton instanceof HTMLButtonElement
-    ? actionButton.textContent || 'Continue to Stripe'
-    : 'Continue to Stripe';
+    ? actionButton.textContent || (isAdminPlacementMode ? 'Register Member' : 'Continue to Stripe')
+    : (isAdminPlacementMode ? 'Register Member' : 'Continue to Stripe');
+
+  if (isAdminPlacementMode) {
+    state.enroll.submitting = true;
+    if (actionButton instanceof HTMLButtonElement) {
+      actionButton.disabled = true;
+      actionButton.textContent = 'Registering...';
+    }
+
+    try {
+      state.enroll.pendingPlacement = null;
+      setTreeNextEnrollFeedback('Registering member...', 'neutral', { loading: true });
+      const createdMember = await submitTreeNextEnrollmentRequest(enrollmentPayload);
+
+      const enrolledName = safeText(createdMember?.fullName || createdMember?.name) || 'Member';
+      const packageLabel = safeText(
+        createdMember?.enrollmentPackageLabel
+        || resolveEnrollPackageMeta(packageKey)?.label
+        || 'Legacy Builder Package',
+      ) || 'Legacy Builder Package';
+      const effectiveTier = normalizeCredentialValue(createdMember?.fastTrackTier || tierKey);
+      const fallbackBonus = resolveEnrollFastTrackBonusAmount(packageKey, effectiveTier);
+      const commissionAmount = Math.max(0, safeNumber(createdMember?.fastTrackBonusAmount, fallbackBonus));
+
+      const placementSideLabel = (placementSide === 'right' ? 'RIGHT' : 'LEFT');
+      const effectivePlacementLeg = normalizeCredentialValue(createdMember?.placementLeg || placementLeg);
+      const completedAsSpillover = Boolean(createdMember?.isSpillover) || SPILLOVER_PLACEMENT_KEY_SET.has(effectivePlacementLeg);
+      const placementSummary = completedAsSpillover
+        ? `SPILLOVER ${placementSideLabel}`
+        : `${placementSideLabel} leg`;
+      const spilloverParentReferenceOutput = safeText(
+        createdMember?.spilloverParentReference
+        || createdMember?.spillover_parent_reference,
+      );
+      const hasManualSpilloverParent = completedAsSpillover && Boolean(spilloverParentReferenceOutput);
+      const parentLabel = safeText(placementLock?.parentName || placementLock?.parentId || 'selected sponsor');
+      const successFeedback = (completedAsSpillover && !hasManualSpilloverParent)
+        ? `${enrolledName} enrolled on ${placementSummary}. Receiving parent will auto-assign after live sync.`
+        : `${enrolledName} enrolled on ${placementSummary} under ${parentLabel}.`;
+
+      state.enroll.pendingPlacement = {
+        createdMember,
+        placementLock: {
+          ...placementLock,
+        },
+        packageKey,
+      };
+
+      void (async () => {
+        try {
+          if (state.source === 'member') {
+            await refreshAuthenticatedMemberSessionSnapshot({ skipAccountOverviewReset: true });
+          }
+          resetAccountOverviewRemoteSnapshot();
+          resetRankAdvancementSnapshot();
+          const overviewContext = resolveAccountOverviewPanelContext();
+          const homeNode = overviewContext?.homeNode || resolveNodeById('root');
+          await refreshAccountOverviewRemoteSnapshot({
+            force: true,
+            homeNode,
+            scope: overviewContext?.scope,
+            preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
+          });
+          await refreshRankAdvancementSnapshot({
+            force: true,
+            homeNode,
+          });
+          syncAccountOverviewPanelVisuals();
+          syncRankAdvancementPanelVisuals();
+        } catch {
+          // Enrollment success should not fail when account-overview refresh has transient network issues.
+        }
+      })();
+
+      setTreeNextEnrollFeedback(successFeedback, true);
+      showTreeNextEnrollThankYouStep({
+        enrolledName,
+        packageLabel,
+        commissionAmount,
+        passwordSetupLink: createdMember?.passwordSetupLink,
+      });
+      clearTreeNextPendingCheckoutState(TREE_NEXT_PENDING_CHECKOUT_ENROLL_KEY);
+    } catch (error) {
+      const fallbackMessage = error instanceof Error
+        ? error.message
+        : 'Unable to register member right now.';
+      setTreeNextEnrollFeedback(fallbackMessage, false);
+    } finally {
+      state.enroll.submitting = false;
+      if (actionButton instanceof HTMLButtonElement) {
+        actionButton.disabled = false;
+        actionButton.textContent = submitLabel;
+      }
+    }
+    return;
+  }
+
   const checkoutWindow = openTreeNextStripeCheckoutWindow();
   if (!checkoutWindow) {
     setTreeNextEnrollFeedback('Pop-up blocked. Please allow pop-ups to continue with Stripe checkout.', false);
@@ -16931,21 +17044,7 @@ async function handleTreeNextEnrollModalSubmit(event = null) {
     state.enroll.pendingPlacement = null;
     setTreeNextEnrollFeedback('Preparing secure payment...', 'neutral', { loading: true });
     const checkoutSessionResult = await createTreeNextEnrollmentCheckoutSession({
-      fullName,
-      email,
-      memberUsername,
-      phone: '',
-      notes: '',
-      countryFlag,
-      placementLeg,
-      spilloverPlacementSide,
-      spilloverParentMode,
-      spilloverParentReference,
-      enrollmentPackage: packageKey,
-      enrollmentProductKey,
-      fastTrackTier: tierKey,
-      sponsorUsername,
-      sponsorName,
+      ...enrollmentPayload,
       billingAddress: '',
       billingCity: '',
       billingState: '',
@@ -19090,6 +19189,7 @@ function getUniverseOptions(overrides = {}) {
   return {
     universeRootId: getUniverseRootId(),
     universeDepthCap: getUniverseDepthCap(),
+    centerSingleChildRoot: state.source === 'admin',
     ...overrides,
   };
 }
@@ -19098,6 +19198,7 @@ function getGlobalUniverseOptions(overrides = {}) {
   return {
     universeRootId: 'root',
     universeDepthCap: Number.MAX_SAFE_INTEGER,
+    centerSingleChildRoot: state.source === 'admin',
     ...overrides,
   };
 }
@@ -27114,80 +27215,90 @@ function resolveAnticipationSlots(frame, frameOptions) {
   );
   const pendingReservation = resolvePendingPlacementRevealReservation();
   if (state.source === 'admin') {
-    const candidateSides = ['left', 'right'];
-    let placementSide = '';
-    for (const side of candidateSides) {
-      if (childLegs[side]) {
-        continue;
+    const isRootSelection = selectedNodeId === 'root';
+    const rootHasSeedNode = Boolean(childLegs.left || childLegs.right);
+    const shouldUseRootCenterSeedSlot = isRootSelection && !rootHasSeedNode;
+    if (isRootSelection && rootHasSeedNode) {
+      // Admin tree shape: root gets exactly one centered seed node.
+      // After that, growth continues from the seed node via left/right branches.
+      return [];
+    }
+    if (shouldUseRootCenterSeedSlot) {
+      const candidateSides = ['left', 'right'];
+      let placementSide = '';
+      for (const side of candidateSides) {
+        if (childLegs[side]) {
+          continue;
+        }
+        if (
+          pendingReservation
+          && pendingReservation.parentId === selectedNodeId
+          && pendingReservation.placementLeg === side
+        ) {
+          continue;
+        }
+        placementSide = side;
+        break;
       }
-      if (
-        pendingReservation
-        && pendingReservation.parentId === selectedNodeId
-        && pendingReservation.placementLeg === side
-      ) {
-        continue;
+      if (!placementSide) {
+        return [];
       }
-      placementSide = side;
-      break;
-    }
-    if (!placementSide) {
-      return [];
-    }
 
-    const slotGlobalDepth = selectedGlobalDepth + 1;
-    const leftSlotLocalPath = `${baseLocalPath}L`;
-    const rightSlotLocalPath = `${baseLocalPath}R`;
-    const leftProjectedSlot = leftSlotLocalPath.length <= universeDepthCap
-      ? state.adapter.projectLocalPath(leftSlotLocalPath, frameOptions)
-      : null;
-    const rightProjectedSlot = rightSlotLocalPath.length <= universeDepthCap
-      ? state.adapter.projectLocalPath(rightSlotLocalPath, frameOptions)
-      : null;
-    const anchorProjectedSlot = placementSide === 'right'
-      ? (rightProjectedSlot || leftProjectedSlot)
-      : (leftProjectedSlot || rightProjectedSlot);
-    if (!anchorProjectedSlot) {
-      return [];
-    }
+      const slotGlobalDepth = selectedGlobalDepth + 1;
+      const leftSlotLocalPath = `${baseLocalPath}L`;
+      const rightSlotLocalPath = `${baseLocalPath}R`;
+      const leftProjectedSlot = leftSlotLocalPath.length <= universeDepthCap
+        ? state.adapter.projectLocalPath(leftSlotLocalPath, frameOptions)
+        : null;
+      const rightProjectedSlot = rightSlotLocalPath.length <= universeDepthCap
+        ? state.adapter.projectLocalPath(rightSlotLocalPath, frameOptions)
+        : null;
+      const anchorProjectedSlot = placementSide === 'right'
+        ? (rightProjectedSlot || leftProjectedSlot)
+        : (leftProjectedSlot || rightProjectedSlot);
+      if (!anchorProjectedSlot) {
+        return [];
+      }
 
-    const radius = clamp(safeNumber(anchorProjectedSlot.r, 0) * 0.88, 6.5, 32);
-    if (radius <= 0.2) {
-      return [];
-    }
+      const radius = clamp(safeNumber(anchorProjectedSlot.r, 0) * 0.88, 6.5, 32);
+      if (radius <= 0.2) {
+        return [];
+      }
 
-    const hasBothProjectedSlots = Boolean(leftProjectedSlot && rightProjectedSlot);
-    const centerX = hasBothProjectedSlots
-      ? (
-        safeNumber(leftProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
-        + safeNumber(rightProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
-      ) / 2
-      : safeNumber(selectedProjected.x, safeNumber(anchorProjectedSlot.x, 0));
-    const centerY = hasBothProjectedSlots
-      ? (
-        safeNumber(leftProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
-        + safeNumber(rightProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
-      ) / 2
-      : safeNumber(anchorProjectedSlot.y, 0);
-    const slotLocalDepth = Math.max(
-      0,
-      Math.floor(safeNumber(anchorProjectedSlot.localDepth, baseLocalPath.length + 1)),
-    );
-    const encodedParentId = encodeURIComponent(selectedNodeId);
-    return [
-      {
-        key: `${selectedNodeId}:center:${placementSide}`,
-        buttonId: `${ANTICIPATION_BUTTON_ID_PREFIX}${encodedParentId}-center`,
-        action: `anticipation:${encodedParentId}|${placementSide}`,
-        parentNodeId: selectedNodeId,
-        side: placementSide,
-        hideSideLabel: true,
-        x: centerX,
-        y: centerY,
-        r: radius,
-        localDepth: slotLocalDepth,
-        globalDepth: slotGlobalDepth,
-      },
-    ];
+      const hasBothProjectedSlots = Boolean(leftProjectedSlot && rightProjectedSlot);
+      const centerX = hasBothProjectedSlots
+        ? (
+          safeNumber(leftProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
+          + safeNumber(rightProjectedSlot?.x, safeNumber(anchorProjectedSlot.x, 0))
+        ) / 2
+        : safeNumber(selectedProjected.x, safeNumber(anchorProjectedSlot.x, 0));
+      const centerY = hasBothProjectedSlots
+        ? (
+          safeNumber(leftProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
+          + safeNumber(rightProjectedSlot?.y, safeNumber(anchorProjectedSlot.y, 0))
+        ) / 2
+        : safeNumber(anchorProjectedSlot.y, 0);
+      const slotLocalDepth = Math.max(
+        0,
+        Math.floor(safeNumber(anchorProjectedSlot.localDepth, baseLocalPath.length + 1)),
+      );
+      const encodedParentId = encodeURIComponent(selectedNodeId);
+      return [
+        {
+          key: `${selectedNodeId}:center:${placementSide}`,
+          buttonId: `${ANTICIPATION_BUTTON_ID_PREFIX}${encodedParentId}-center`,
+          action: `anticipation:${encodedParentId}|${placementSide}`,
+          parentNodeId: selectedNodeId,
+          side: placementSide,
+          hideSideLabel: true,
+          x: centerX,
+          y: centerY,
+          r: radius,
+          localDepth: slotLocalDepth,
+          globalDepth: slotGlobalDepth,
+        },
+      ];
+    }
   }
   const sides = ['left', 'right'];
   const slots = [];
