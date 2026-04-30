@@ -149,3 +149,15 @@
 ### Behavior
 - Form save enforces `paid-member-pack.retailCommission = 0`.
 - Preferred tiers persist as separate package-key earnings entries.
+
+## Patch Update (2026-04-30) - Admin Binary Tree Reservation BV Guard
+
+### Summary
+- Added reservation-package guard for admin binary tree volume resolvers.
+- `membership-placement-reservation` nodes now contribute `0 BV` in both current and lifetime volume calculations.
+
+### Files Updated
+- `admin.html`
+
+### Validation
+- Inline script parse check passed (`INLINE_SCRIPT_PARSE_OK admin.html blocks=2`).

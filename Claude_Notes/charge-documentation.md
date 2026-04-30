@@ -35560,3 +35560,97 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - Manual code review of account overview badge label styles completed.
+
+## Patch Update (2026-04-30) - Membership Placement Accounts No Longer Generate Tree BV
+
+### Issue
+- Membership placement reservation accounts were still contributing personal starter BV in tree aggregation paths.
+- This caused leg totals to exceed visible child-node BV sums (example drift: `+42 BV`).
+
+### Root Cause
+- Legacy and next-gen tree builders both used `starterPersonalPv` fallbacks for all non-free accounts.
+- Reservation-plan records can carry historical `starterPersonalPv` values, even though they are position-only and should contribute `0 BV`.
+
+### Fix
+- `index.html`
+  - updated `resolveMemberBinaryVolume(...)` to return `0` for `membership-placement-reservation`.
+  - updated `resolveMemberLifetimeBinaryVolume(...)` to return `0` for `membership-placement-reservation`.
+- `admin.html`
+  - added `MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY` + `isMembershipPlacementReservationPackageKey(...)`.
+  - updated admin `resolveMemberBinaryVolume(...)` to return `0` for reservation accounts.
+  - updated admin `resolveMemberLifetimeBinaryVolume(...)` to return `0` for reservation accounts.
+- `binary-tree-next-app.mjs`
+  - updated `resolveTreeNextLiveMemberPersonalVolumeSnapshot(...)` to force `packageBv/starter/current/baseline` to `0` for reservation accounts.
+  - updated `createTreeNextLiveScopedRootNode(...)` to enforce `0` volume and personal PV fields when root/source is reservation-plan.
+
+### Result
+- Membership placement accounts remain as structural nodes only.
+- Left/right leg BV now aligns with actual child BV sums and no longer leaks stale starter PV.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+- Inline script parse check passed (`INLINE_SCRIPT_PARSE_OK index.html blocks=3`).
+- Inline script parse check passed (`INLINE_SCRIPT_PARSE_OK admin.html blocks=2`).
+
+### Follow-up (Details Carousel Availability Parity)
+- `binary-tree-next-app.mjs`
+  - updated `resolveNodeLoopDisplayMetrics(...)` to bypass server cutoff leg metrics for reservation accounts and return computed subtree fallback metrics.
+  - updated `resolveNodeCutoffMetricsForDetails(...)` to return `null` for reservation accounts so details carousel relies on subtree-derived leg totals.
+- Outcome:
+  - `Available Left/Right Leg BV` now matches reservation-node subtree values instead of stale cutoff snapshots.
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Achievement Header Meta Text Removed
+
+### Summary
+- Removed the `Enrolled members: X | Active` status text from the Profile Achievement section header.
+- The status element is now hidden in markup and stays hidden during runtime rendering.
+
+### Files Updated
+- `index.html`
+
+### Validation
+- Verified no remaining `Enrolled members:` text in `index.html`.
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Preferred Customers BV Label Terminology Fix
+
+### Summary
+- Updated Preferred Customers dashboard user-facing labels from `BP` to `BV`.
+- This is a display terminology patch only; underlying data fields and calculations remain unchanged.
+
+### Files Updated
+- `index.html`
+
+### Updated UI Copy
+- Preferred Customer planner selected summary: `0 BP` -> `0 BV`
+- Preferred Customer planner list chips: `... BP` -> `... BV`
+- Store owner KPI card text: `... BP` -> `... BV`
+- Store analytics/support copy and sample invoice lines: `BP` -> `BV`
+- Settlement labels: `Posted BP`/`Pending BP` -> `Posted BV`/`Pending BV`
+
+### Validation
+- Verified no remaining standalone `BP` labels in `index.html`.
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Enroll Member Dashboard Page Removed (Binary Tree Enrollment Only)
+
+### Summary
+- Removed the standalone `Enroll Member` page from the user dashboard experience.
+- Enrollment flow now routes to Binary Tree only.
+
+### Changes Implemented
+- `index.html`
+  - removed sidebar nav link for `Enroll Member`.
+  - removed the full `page-enroll-member` section markup from dashboard page views.
+  - removed `enroll-member` page metadata and route mapping (`/EnrollMember`) from SPA page routing tables.
+  - updated quick action enroll behavior to open Binary Tree page directly:
+    - `window.location.href = '/binary-tree-next.html'`.
+  - added legacy-path redirect guard:
+    - visiting `/EnrollMember` or `/enroll-member` now redirects to `/binary-tree-next.html`.
+  - removed remaining `setPage` branch handling for `enroll-member` page view.
+
+### Validation
+- Verified no remaining active `enroll-member` page-view/nav-route hooks in `index.html`.
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).

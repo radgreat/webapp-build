@@ -5454,6 +5454,7 @@
       const ACCOUNT_ACTIVITY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
       const DEFAULT_COUNTRY_FLAG = 'un';
       const FREE_ACCOUNT_PACKAGE_KEY = 'preferred-customer-pack';
+      const MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY = 'membership-placement-reservation';
       const FREE_ACCOUNT_RANK_LABEL = 'Preferred Customer';
       const PLACEMENT_LEG_LEFT = 'left';
       const PLACEMENT_LEG_RIGHT = 'right';
@@ -6087,6 +6088,11 @@
         return normalizedPackageKey === normalizeMemberKey(FREE_ACCOUNT_PACKAGE_KEY);
       }
 
+      function isMembershipPlacementReservationPackageKey(packageKey) {
+        const normalizedPackageKey = normalizeMemberKey(packageKey);
+        return normalizedPackageKey === normalizeMemberKey(MEMBERSHIP_PLACEMENT_RESERVATION_PACKAGE_KEY);
+      }
+
       function isPreferredCustomerRank(rankValue) {
         const normalizedRank = normalizeMemberKey(normalizeRankLabel(rankValue));
         return normalizedRank === normalizeMemberKey(FREE_ACCOUNT_RANK_LABEL)
@@ -6542,6 +6548,9 @@
       }
 
       function resolveMemberBinaryVolume(member) {
+        if (isMembershipPlacementReservationPackageKey(member?.enrollmentPackage)) {
+          return 0;
+        }
         const packageBv = toWholeNumber(member?.packageBv, getFastTrackPackageBv(member?.enrollmentPackage));
         const starterPersonalPvRaw = toWholeNumber(member?.starterPersonalPv, 0);
         const starterPersonalPv = starterPersonalPvRaw > 0 ? starterPersonalPvRaw : packageBv;
@@ -6558,6 +6567,9 @@
       }
 
       function resolveMemberLifetimeBinaryVolume(member) {
+        if (isMembershipPlacementReservationPackageKey(member?.enrollmentPackage)) {
+          return 0;
+        }
         const packageBv = toWholeNumber(member?.packageBv, getFastTrackPackageBv(member?.enrollmentPackage));
         const starterPersonalPvRaw = toWholeNumber(member?.starterPersonalPv, 0);
         return Math.max(0, starterPersonalPvRaw > 0 ? starterPersonalPvRaw : packageBv);

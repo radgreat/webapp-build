@@ -3751,11 +3751,6 @@
           Binary Tree
         </a>
 
-        <a href="/EnrollMember" data-nav-link data-page="enroll-member" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
-          <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
-          Enroll Member
-        </a>
-
         <a href="/PreferredCustomer" data-nav-link data-page="preferred-customer" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary transition-transform duration-150 ease-spring hover:bg-surface-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 active:scale-[0.97]">
           <span class="material-symbols-outlined" aria-hidden="true">groups_2</span>
           Preferred Customers
@@ -5210,7 +5205,7 @@
               <div class="rounded-xl border border-surface-border bg-surface-base/35 p-3 sm:p-4">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <p id="profile-achievement-active-category-label" class="font-body font-medium text-body text-text-primary">Premiere Journey</p>
-                  <p id="profile-achievement-rank-status" class="text-caption text-text-tertiary">Progress: --</p>
+                  <p id="profile-achievement-rank-status" class="hidden text-caption text-text-tertiary" aria-hidden="true"></p>
                 </div>
                 <div id="profile-achievement-list" class="mt-3 space-y-3"></div>
                 <p id="profile-achievement-feedback" class="mt-3 hidden text-caption"></p>
@@ -5385,174 +5380,6 @@
             </section>
           </div>
         </section>
-        <section id="page-enroll-member" data-page-view="enroll-member" class="hidden space-y-6">
-          <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div class="xl:col-span-2 bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-              <div class="flex items-start justify-between gap-3">
-                <div>
-                  <h3 class="font-body font-medium text-display-sm text-text-primary">Enroll Member</h3>
-                  <p class="text-body-sm text-text-secondary mt-1">Register a personally sponsored member and apply Fast Track bonus credit.</p>
-                </div>
-                <span class="inline-flex items-center gap-1 text-caption px-2 py-1 rounded-md bg-semantic-success-bg text-semantic-success">
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                  Fast Track Enabled
-                </span>
-              </div>
-
-              <form id="enroll-member-form" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="md:col-span-1">
-                  <label for="enroll-member-full-name" class="block text-caption text-text-tertiary">Full Name</label>
-                  <input id="enroll-member-full-name" name="fullName" type="text" autocomplete="name" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="Juan Dela Cruz"/>
-                </div>
-                <div class="md:col-span-1">
-                  <label for="enroll-member-email" class="block text-caption text-text-tertiary">Email Address</label>
-                  <input id="enroll-member-email" name="email" type="email" autocomplete="email" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="member@email.com"/>
-                </div>
-                <div class="md:col-span-1">
-                  <label for="enroll-member-username" class="block text-caption text-text-tertiary">Member Username</label>
-                  <input id="enroll-member-username" name="memberUsername" type="text" autocomplete="username" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="newmember01"/>
-                </div>
-                <div class="md:col-span-1">
-                  <label for="enroll-member-phone" class="block text-caption text-text-tertiary">Phone Number</label>
-                  <input id="enroll-member-phone" name="phone" type="tel" autocomplete="tel" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="+1 (555) 000-0000"/>
-                </div>
-                <div class="md:col-span-1">
-                  <label for="enroll-member-country-flag" class="block text-caption text-text-tertiary">Country Flag</label>
-                  <select id="enroll-member-country-flag" name="countryFlag" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
-                    <option value="">Select country</option>
-                    <option value="us">United States</option>
-                    <option value="ph">Philippines</option>
-                    <option value="ca">Canada</option>
-                    <option value="mx">Mexico</option>
-                    <option value="gb">United Kingdom</option>
-                    <option value="au">Australia</option>
-                    <option value="nz">New Zealand</option>
-                    <option value="sg">Singapore</option>
-                    <option value="my">Malaysia</option>
-                    <option value="id">Indonesia</option>
-                    <option value="th">Thailand</option>
-                    <option value="vn">Vietnam</option>
-                    <option value="jp">Japan</option>
-                    <option value="kr">South Korea</option>
-                    <option value="ae">United Arab Emirates</option>
-                  </select>
-                </div>
-                <div class="md:col-span-1">
-                  <label for="enroll-member-package" class="block text-caption text-text-tertiary">Enrollment Package</label>
-                  <select id="enroll-member-package" name="enrollmentPackage" required class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
-                    <option value="personal-builder-pack">Personal Builder Pack - $192</option>
-                    <option value="business-builder-pack">Business Builder Pack - $384</option>
-                    <option value="infinity-builder-pack">Infinity Builder Pack - $640</option>
-                    <option value="legacy-builder-pack">Legacy Builder Pack - $1280</option>
-                    <option value="membership-placement-reservation">Membership Placement Reservation - $49.99</option>
-                  </select>
-                </div>
-                <div class="md:col-span-1">
-                  <label for="enroll-member-fast-track-tier-label" class="block text-caption text-text-tertiary">Your Fast Track Tier</label>
-                  <input id="enroll-member-fast-track-tier-label" type="text" readonly class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-secondary focus:outline-none" value="Personal Pack"/>
-                  <input id="enroll-member-fast-track-tier" name="fastTrackTier" type="hidden" value="personal-pack"/>
-                  <p id="enroll-member-fast-track-tier-note" class="text-caption text-text-tertiary mt-1">Auto-applied based on your current rank.</p>
-                </div>
-                <div class="md:col-span-1">
-                  <label for="enroll-member-placement" class="block text-caption text-text-tertiary">Placement Leg</label>
-                  <select id="enroll-member-placement" name="placementLeg" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
-                    <option value="left">Left</option>
-                    <option value="right">Right</option>
-                    <option value="spillover-left">Spill Over Left</option>
-                    <option value="spillover-right">Spill Over Right</option>
-                    <option value="extreme-left">Spillover Extreme Left</option>
-                    <option value="extreme-right">Spillover Extreme Right</option>
-                  </select>
-                </div>
-                <div class="md:col-span-1">
-                  <label for="enroll-member-sponsor" class="block text-caption text-text-tertiary">Default Sponsor Username</label>
-                  <input id="enroll-member-sponsor" name="sponsorUsername" type="text" readonly class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-secondary"/>
-                </div>
-                <div id="enroll-member-spillover-side-wrap" class="md:col-span-1 hidden">
-                  <label for="enroll-member-spillover-side" class="block text-caption text-text-tertiary">Spillover Side</label>
-                  <select id="enroll-member-spillover-side" name="spilloverPlacementSide" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
-                    <option value="left">Spillover Left</option>
-                    <option value="right">Spillover Right</option>
-                  </select>
-                </div>
-                <div id="enroll-member-spillover-parent-mode-wrap" class="md:col-span-1 hidden">
-                  <label for="enroll-member-spillover-parent-mode" class="block text-caption text-text-tertiary">Spillover Parent Assignment</label>
-                  <select id="enroll-member-spillover-parent-mode" name="spilloverParentMode" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150">
-                    <option value="auto">Auto Assign Parent</option>
-                    <option value="manual">Assign Specific Parent</option>
-                  </select>
-                  <p class="text-caption text-text-tertiary mt-1">Auto uses the next available slot on your selected spillover side.</p>
-                </div>
-                <div id="enroll-member-spillover-parent-wrap" class="md:col-span-1 hidden">
-                  <label for="enroll-member-spillover-parent" class="block text-caption text-text-tertiary">Assigned Parent ID or Username</label>
-                  <input id="enroll-member-spillover-parent" name="spilloverParentReference" type="text" autocomplete="off" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="Type existing child member ID or sponsor username"/>
-                  <div id="enroll-member-spillover-parent-results-shell" class="mt-2 hidden rounded-lg border border-surface-border bg-surface-base/60 p-2">
-                    <p id="enroll-member-spillover-parent-results-count" class="text-caption text-text-secondary">Showing 0 matches.</p>
-                    <div id="enroll-member-spillover-parent-results" class="mt-2 space-y-1 max-h-48 overflow-y-auto pr-1"></div>
-                  </div>
-                  <p id="enroll-member-spillover-parent-hint" class="text-caption text-text-tertiary mt-1">Pick from your existing direct child list.</p>
-                </div>
-                <div class="md:col-span-2">
-                  <label for="enroll-member-notes" class="block text-caption text-text-tertiary">Registration Notes</label>
-                  <textarea id="enroll-member-notes" name="notes" rows="3" class="mt-1 w-full bg-surface-base border border-surface-border rounded-lg px-3 py-2 text-body-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-150" placeholder="Optional internal notes for onboarding."></textarea>
-                </div>
-                <div class="md:col-span-2 pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div class="space-y-1">
-                    <p id="enroll-member-submit-feedback" class="hidden text-body-sm"></p>
-                    <a id="enroll-member-password-setup-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden text-caption text-semantic-info underline break-all">
-                      Open password setup link
-                    </a>
-                  </div>
-                  <button id="enroll-member-submit-button" type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500 text-text-inverse font-medium text-body-sm shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised active:scale-[0.97] transition-transform duration-150 ease-spring">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/></svg>
-                    Register Member
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <div class="bg-surface-raised border border-surface-border rounded-xl p-5 shadow-depth-1 space-y-4">
-              <div>
-                <h4 class="font-body font-medium text-body text-text-primary">Fast Track Preview</h4>
-                <p class="text-caption text-text-tertiary mt-1">Estimated credit from this registration.</p>
-              </div>
-              <div class="rounded-xl bg-surface-elevated border border-surface-border-light p-4 space-y-3">
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-caption text-text-tertiary">Package Price</span>
-                  <span id="enroll-preview-package-price" class="font-body font-semibold text-body text-text-primary">$192.00</span>
-                </div>
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-caption text-text-tertiary">Package BV</span>
-                  <span id="enroll-preview-package-bv" class="font-body font-semibold text-body text-text-primary">150 BV</span>
-                </div>
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-caption text-text-tertiary">Fast Track Bonus</span>
-                  <span id="enroll-preview-fast-track-bonus" class="font-body font-semibold text-body text-semantic-success">$14.40</span>
-                </div>
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-caption text-text-tertiary">Tier Applied</span>
-                  <span id="enroll-preview-tier-label" class="text-body-sm text-text-primary">Personal Pack</span>
-                </div>
-              </div>
-              <ul class="text-caption text-text-tertiary space-y-2">
-                <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Fast Track values follow the package and tier table from the current MLM business logic blueprint.</li>
-                <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Successful registration appends a new record to `registered-members.json` via local API mock.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
-            <div class="flex items-center justify-between gap-3">
-              <div>
-                <h3 class="font-body font-medium text-display-sm text-text-primary">Recent Registrations</h3>
-                <p class="text-body-sm text-text-secondary mt-1">Newest enrolled members under your sponsor line.</p>
-              </div>
-              <span id="enroll-member-record-count" class="text-caption px-2 py-1 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">0 records</span>
-            </div>
-            <div id="enroll-member-records-feed" class="mt-4 space-y-3"></div>
-            <p id="enroll-member-empty-state" class="mt-3 text-body-sm text-text-tertiary">No enrolled members yet. Submit the form above to create the first record.</p>
-          </div>
-        </section>
         <section id="page-preferred-customer" data-page-view="preferred-customer" class="hidden space-y-6">
           <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div class="xl:col-span-2 bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
@@ -5580,7 +5407,7 @@
                 <p id="preferred-customer-selected-contact" class="text-caption text-text-tertiary">--</p>
                 <div class="grid grid-cols-2 gap-2 text-caption">
                   <p class="text-text-tertiary">Purchased: <span id="preferred-customer-selected-total" class="text-text-primary">$0.00</span></p>
-                  <p class="text-text-tertiary">BV: <span id="preferred-customer-selected-bp" class="text-text-primary">0 BP</span></p>
+                  <p class="text-text-tertiary">BV: <span id="preferred-customer-selected-bp" class="text-text-primary">0 BV</span></p>
                   <p class="text-text-tertiary">Invoices: <span id="preferred-customer-selected-invoices" class="text-text-primary">0</span></p>
                   <p class="text-text-tertiary">Last Purchase: <span id="preferred-customer-selected-last" class="text-text-primary">--</span></p>
                 </div>
@@ -6383,7 +6210,7 @@
 
                   <div class="rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
                     <p class="text-caption text-text-tertiary">Step 4</p>
-                    <p class="text-body-sm text-text-primary mt-1">System credits revenue and BP through the sponsor line so binary points can roll up.</p>
+                    <p class="text-body-sm text-text-primary mt-1">System credits revenue and BV through the sponsor line so binary points can roll up.</p>
                   </div>
                 </div>
               </div>
@@ -6436,17 +6263,17 @@
                   <div class="rounded-lg border border-surface-border bg-surface-base/40 p-3">
                     <p class="text-caption text-text-tertiary">INV-240921</p>
                     <p class="text-body-sm text-text-primary mt-1">Buyer: A. Rivera - Sponsor Line Applied</p>
-                    <p class="text-caption text-semantic-success mt-2">Posted - $184 - 96 BP</p>
+                    <p class="text-caption text-semantic-success mt-2">Posted - $184 - 96 BV</p>
                   </div>
                   <div class="rounded-lg border border-surface-border bg-surface-base/40 p-3">
                     <p class="text-caption text-text-tertiary">INV-240918</p>
                     <p class="text-body-sm text-text-primary mt-1">Buyer: J. Thomas - Sponsor Line Applied</p>
-                    <p class="text-caption text-semantic-warning mt-2">Pending - $72 - 40 BP</p>
+                    <p class="text-caption text-semantic-warning mt-2">Pending - $72 - 40 BV</p>
                   </div>
                   <div class="rounded-lg border border-surface-border bg-surface-base/40 p-3">
                     <p class="text-caption text-text-tertiary">INV-240915</p>
                     <p class="text-body-sm text-text-primary mt-1">Buyer: M. Chen - Sponsor Line Applied</p>
-                    <p class="text-caption text-semantic-success mt-2">Posted - $265 - 132 BP</p>
+                    <p class="text-caption text-semantic-success mt-2">Posted - $265 - 132 BV</p>
                   </div>
                 </div>
               </div>
@@ -6455,7 +6282,7 @@
             <div class="lg:col-span-1 space-y-6">
               <div class="bg-surface-raised border border-surface-border rounded-xl p-6 shadow-depth-1">
                 <h3 class="font-body font-medium text-display-sm text-text-primary">Settlement Snapshot</h3>
-                <p class="text-caption text-text-tertiary mt-1 mb-5">Sponsor-line revenue and BP credits</p>
+                <p class="text-caption text-text-tertiary mt-1 mb-5">Sponsor-line revenue and BV credits</p>
                 <div class="space-y-3">
                   <div class="flex items-center justify-between rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
                     <span class="text-body-sm text-text-secondary">Posted Revenue</span>
@@ -6466,11 +6293,11 @@
                     <span id="store-settlement-pending-revenue" class="text-body-sm text-semantic-warning">$542</span>
                   </div>
                   <div class="flex items-center justify-between rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
-                    <span class="text-body-sm text-text-secondary">Posted BP</span>
+                    <span class="text-body-sm text-text-secondary">Posted BV</span>
                     <span id="store-settlement-posted-bp" class="text-body-sm text-semantic-info">1,620</span>
                   </div>
                   <div class="flex items-center justify-between rounded-lg border border-surface-border bg-surface-base/40 px-3 py-2">
-                    <span class="text-body-sm text-text-secondary">Pending BP</span>
+                    <span class="text-body-sm text-text-secondary">Pending BV</span>
                     <span id="store-settlement-pending-bp" class="text-body-sm text-text-primary">300</span>
                   </div>
                 </div>
@@ -6482,7 +6309,7 @@
                 <ul class="space-y-2 text-body-sm text-text-secondary">
                   <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Most attributed invoices are clearing as Posted in under 24h.</li>
                   <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Pending revenue concentration is mainly from larger baskets.</li>
-                  <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">BP growth tracks directly with invoice volume in this draft view.</li>
+                  <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">BV growth tracks directly with invoice volume in this draft view.</li>
                 </ul>
               </div>
             </div>
@@ -6538,7 +6365,7 @@
                   <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Sponsor mapping is fixed when member registration is completed.</li>
                   <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Public store code/link can be shared with anonymous and guest users.</li>
                   <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Members cannot view or edit internal store code routing values in cart/checkout.</li>
-                  <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Discount and BP attribution are applied automatically to the assigned sponsor line.</li>
+                  <li class="rounded-md border border-surface-border bg-surface-base/40 px-3 py-2">Discount and BV attribution are applied automatically to the assigned sponsor line.</li>
                 </ul>
               </div>
             </div>
@@ -8677,10 +8504,6 @@
           title: 'Commissions',
           searchPlaceholder: 'Search ledger entries...',
         },
-        'enroll-member': {
-          title: 'Enroll Member',
-          searchPlaceholder: 'Search enrolled members...',
-        },
         'preferred-customer': {
           title: 'Preferred Customers',
           searchPlaceholder: 'Search pending preferred customers...',
@@ -8697,7 +8520,6 @@
         'my-store': '/MyStore',
         'e-wallet': '/EWallet',
         commissions: '/Commissions',
-        'enroll-member': '/EnrollMember',
         'preferred-customer': '/PreferredCustomer',
         settings: '/Settings',
       };
@@ -8848,6 +8670,11 @@
         } catch (error) {
           return null;
         }
+      }
+
+      const initialRoutePath = normalizeRoutePath(window.location.pathname).toLowerCase();
+      if (initialRoutePath === '/enrollmember' || initialRoutePath === '/enroll-member') {
+        window.location.replace('/binary-tree-next.html');
       }
 
       const persistedViewState = readViewState();
@@ -15166,16 +14993,9 @@
         renderProfileBadgeInventory();
 
         if (profileAchievementRankStatusElement) {
-          const activityStatusLabel = resolveProfileAchievementActivityStatusLabel();
-          const directSponsorPair = resolveProfileAchievementDirectSponsorPair();
-          const totalDirectSponsors = Math.max(
-            0,
-            toWholeNumber(
-              profileAchievementsSnapshot?.totalDirectSponsors,
-              directSponsorPair.left + directSponsorPair.right,
-            ),
-          );
-          profileAchievementRankStatusElement.textContent = `Enrolled members: ${totalDirectSponsors.toLocaleString()} | ${activityStatusLabel}`;
+          profileAchievementRankStatusElement.textContent = '';
+          profileAchievementRankStatusElement.classList.add('hidden');
+          profileAchievementRankStatusElement.setAttribute('aria-hidden', 'true');
         }
       }
 
@@ -18915,6 +18735,9 @@
         if (isBusinessCenterPlaceholderMember(member)) {
           return 0;
         }
+        if (isMembershipPlacementReservationPackageKey(member?.enrollmentPackage)) {
+          return 0;
+        }
         const packageBv = toWholeNumber(member?.packageBv, getFastTrackPackageBv(member?.enrollmentPackage));
         const starterPersonalPvRaw = toWholeNumber(member?.starterPersonalPv, 0);
         const starterPersonalPv = starterPersonalPvRaw > 0 ? starterPersonalPvRaw : packageBv;
@@ -18933,6 +18756,9 @@
 
       function resolveMemberLifetimeBinaryVolume(member) {
         if (isBusinessCenterPlaceholderMember(member)) {
+          return 0;
+        }
+        if (isMembershipPlacementReservationPackageKey(member?.enrollmentPackage)) {
           return 0;
         }
         const packageBv = toWholeNumber(member?.packageBv, getFastTrackPackageBv(member?.enrollmentPackage));
@@ -24338,8 +24164,8 @@
         }
         if (preferredCustomerSelectedBpElement) {
           preferredCustomerSelectedBpElement.textContent = hasSelection
-            ? `${formatInteger(selectedRow.totalBp)} BP`
-            : '0 BP';
+            ? `${formatInteger(selectedRow.totalBp)} BV`
+            : '0 BV';
         }
         if (preferredCustomerSelectedInvoicesElement) {
           preferredCustomerSelectedInvoicesElement.textContent = hasSelection
@@ -24519,7 +24345,7 @@
                 <span class="text-body-sm font-semibold text-semantic-success">${formatCurrency(row.totalPurchased)}</span>
               </div>
               <div class="mt-3 flex flex-wrap items-center gap-2">
-                <span class="text-caption px-2 py-0.5 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">${formatInteger(row.totalBp)} BP</span>
+                <span class="text-caption px-2 py-0.5 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">${formatInteger(row.totalBp)} BV</span>
                 <span class="text-caption px-2 py-0.5 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">${formatInteger(row.invoiceCount)} invoices</span>
                 <span class="text-caption px-2 py-0.5 rounded-md bg-semantic-warning-bg border border-semantic-warning/30 text-semantic-warning">Pending Upgrade Plan</span>
                 <span class="text-caption px-2 py-0.5 rounded-md bg-surface-elevated border border-surface-border text-text-secondary">${placementBadge}</span>
@@ -26719,7 +26545,7 @@
               showAccountUpgradeRequiredToast();
               return;
             }
-            setPage('enroll-member', { routeMode: 'push' });
+            window.location.href = '/binary-tree-next.html';
           });
         }
         if (quickActionTransferWalletButton) {
@@ -29814,7 +29640,7 @@
         }
 
         if (storeKpiOwnerBp) {
-          storeKpiOwnerBp.textContent = `${formatInteger(totalBp)} BP`;
+          storeKpiOwnerBp.textContent = `${formatInteger(totalBp)} BV`;
         }
 
         if (storeSettlementPostedRevenue) {
@@ -31597,7 +31423,7 @@
       function setPage(pageName, options = {}) {
         const requestedPage = pageMeta[pageName] ? pageName : 'dashboard';
         let nextPage = resolvePreferredCustomerAccessiblePage(requestedPage);
-        const requestedRestrictedEnrollmentPage = nextPage === 'enroll-member' || nextPage === 'preferred-customer';
+        const requestedRestrictedEnrollmentPage = nextPage === 'preferred-customer';
         if (
           isEnrollmentRestrictedForCurrentSession(currentSessionUser)
           && requestedRestrictedEnrollmentPage
@@ -31650,10 +31476,6 @@
 
         if (pageViewKey === 'my-store') {
           setStoreTab(activeStoreTab, { persist: false });
-        }
-
-        if (pageViewKey === 'enroll-member') {
-          renderRegisteredMembersFeed();
         }
 
         if (pageViewKey === 'preferred-customer') {

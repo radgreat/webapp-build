@@ -17258,6 +17258,9 @@ function resolveNodeLoopDisplayMetrics(nodeIdInput = '', nodeInput = null, baseV
     rightVolume: Math.max(0, Math.floor(safeNumber(baseVolumeMetrics?.rightVolume, 0))),
     cycles: Math.max(0, Math.floor(safeNumber(fallbackCycleCount, 0))),
   };
+  if (isMembershipPlacementReservationPackage(node?.enrollmentPackage || node?.enrollment_package)) {
+    return fallbackMetrics;
+  }
   const useAccountOverviewCutoffMetrics = shouldUseCutoffLoopMetricsForNode(nodeIdInput, node);
   const accountOverviewCutoffMetrics = useAccountOverviewCutoffMetrics
     ? accountOverviewRemoteSnapshot?.serverCutoffMetrics
@@ -18005,6 +18008,9 @@ function resolveNodeCutoffMetricsForDetails(nodeIdInput = '', nodeInput = null) 
   const node = nodeInput && typeof nodeInput === 'object'
     ? nodeInput
     : resolveNodeById(nodeIdInput);
+  if (isMembershipPlacementReservationPackage(node?.enrollmentPackage || node?.enrollment_package)) {
+    return null;
+  }
   const useAccountOverviewCutoffMetrics = shouldUseCutoffLoopMetricsForNode(nodeIdInput, node);
   const accountOverviewCutoffMetrics = useAccountOverviewCutoffMetrics
     ? accountOverviewRemoteSnapshot?.serverCutoffMetrics
@@ -20898,6 +20904,14 @@ function resolveTreeNextLiveMemberRank(member = {}) {
 
 function resolveTreeNextLiveMemberPersonalVolumeSnapshot(member = {}) {
   const packageKey = normalizeCredentialValue(member?.enrollmentPackage);
+  if (isMembershipPlacementReservationPackage(packageKey)) {
+    return {
+      packageBv: 0,
+      starterPersonalPv: 0,
+      baselineStarterPersonalPv: 0,
+      currentPersonalPvBv: 0,
+    };
+  }
   const packageMeta = ENROLL_PACKAGE_META[packageKey];
   const packageBv = Math.max(0, Math.floor(safeNumber(member?.packageBv, safeNumber(packageMeta?.bv, 0))));
   const starterPersonalPv = Math.max(0, Math.floor(safeNumber(member?.starterPersonalPv, packageBv)));
@@ -20981,6 +20995,9 @@ function createTreeNextLiveNodeIdForMember(member = {}, index = 0, usedNodeIds =
 function createTreeNextLiveScopedRootNode(sourceNode = null) {
   const source = sourceNode && typeof sourceNode === 'object' ? sourceNode : null;
   const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const reservationPlan = isMembershipPlacementReservationPackage(
+    safeText(source?.enrollmentPackage || session?.enrollmentPackage),
+  );
   const isAdminSource = state.source === 'admin';
   const sessionDisplayName = safeText(resolveSessionDisplayName());
   const sourceDisplayName = safeText(source?.name);
@@ -21039,13 +21056,19 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
   const badges = isAdminSource
     ? [ADMIN_ROOT_DISPLAY_NAME]
     : (sourceBadges.length ? sourceBadges : [rank]);
-  const volume = Math.max(0, Math.floor(safeNumber(source?.volume, 0)));
-  const starterPersonalPv = Math.max(0, Math.floor(safeNumber(source?.starterPersonalPv, volume)));
-  const baselineStarterPersonalPv = Math.max(0, Math.floor(safeNumber(
-    source?.serverCutoffBaselineStarterPersonalPv
-    ?? source?.server_cutoff_baseline_starter_personal_pv,
-    0,
-  )));
+  const volume = reservationPlan
+    ? 0
+    : Math.max(0, Math.floor(safeNumber(source?.volume, 0)));
+  const starterPersonalPv = reservationPlan
+    ? 0
+    : Math.max(0, Math.floor(safeNumber(source?.starterPersonalPv, volume)));
+  const baselineStarterPersonalPv = reservationPlan
+    ? 0
+    : Math.max(0, Math.floor(safeNumber(
+      source?.serverCutoffBaselineStarterPersonalPv
+      ?? source?.server_cutoff_baseline_starter_personal_pv,
+      0,
+    )));
   const explicitCurrentPersonalPvBv = safeNumber(
     source?.currentPersonalPvBv
     ?? source?.current_personal_pv_bv
@@ -21057,9 +21080,13 @@ function createTreeNextLiveScopedRootNode(sourceNode = null) {
     ?? session?.monthly_personal_bv,
     Number.NaN,
   );
-  const currentPersonalPvBv = Number.isFinite(explicitCurrentPersonalPvBv)
-    ? Math.max(0, Math.floor(explicitCurrentPersonalPvBv))
-    : starterPersonalPv;
+  const currentPersonalPvBv = reservationPlan
+    ? 0
+    : (
+      Number.isFinite(explicitCurrentPersonalPvBv)
+        ? Math.max(0, Math.floor(explicitCurrentPersonalPvBv))
+        : starterPersonalPv
+    );
   const sourceAvatarPalette = resolveAvatarPaletteFromRecord(source)
     || resolveAvatarPaletteFromRecord(session);
   const sourceAvatarColorTriplet = resolveAvatarColorTripletFromRecord(source)
