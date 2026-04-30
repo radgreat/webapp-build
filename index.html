@@ -375,6 +375,15 @@
       white-space: nowrap;
     }
 
+    .profile-account-overview-badge.is-title .profile-account-overview-badge-label {
+      max-width: 144px;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      overflow-wrap: anywhere;
+      min-height: 2.4em;
+    }
+
     .profile-account-overview-user {
       display: grid;
       justify-items: center;
@@ -5116,11 +5125,19 @@
                 <p id="profile-account-overview-joined" class="profile-account-overview-node">Joined --</p>
               </div>
 
-              <div id="profile-account-overview-title-badge-shell" class="profile-account-overview-badge is-title">
+              <div
+                id="profile-account-overview-title-badge-shell"
+                class="profile-account-overview-badge is-title cursor-pointer"
+                role="button"
+                tabindex="0"
+                aria-haspopup="dialog"
+                aria-controls="profile-badge-inventory-overlay"
+                aria-expanded="false"
+              >
                 <div class="profile-account-overview-badge-icon" aria-hidden="true">
                   <img id="profile-account-overview-title-icon" src="/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg" alt="" />
                 </div>
-                <p id="profile-account-overview-title-label" class="profile-account-overview-badge-label">Legacy Founder</p>
+                <p id="profile-account-overview-title-label" class="profile-account-overview-badge-label">Founding Ambassador</p>
               </div>
             </section>
 
@@ -5200,6 +5217,34 @@
               </div>
             </div>
           </section>
+
+          <div id="profile-badge-inventory-overlay" class="fixed inset-0 z-50 hidden bg-surface-base/72 backdrop-blur-sm px-0 py-0 sm:px-6 sm:py-8" aria-hidden="true">
+            <section
+              id="profile-badge-inventory-panel"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="profile-badge-inventory-title"
+              class="ml-auto mt-auto flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl border border-[#7A5A23]/55 bg-[linear-gradient(154deg,rgba(17,13,8,0.98)_0%,rgba(14,10,6,0.98)_55%,rgba(12,9,6,0.99)_100%)] shadow-depth-3 sm:mx-auto sm:mt-0 sm:max-h-[86vh] sm:max-w-6xl sm:rounded-2xl"
+            >
+              <div class="relative overflow-hidden border-b border-[#7A5A23]/55 bg-[linear-gradient(140deg,rgba(212,169,72,0.26)_0%,rgba(164,122,34,0.22)_58%,rgba(118,85,22,0.20)_100%)] px-4 py-4 sm:px-6">
+                <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(255,241,213,0.18)_0%,rgba(255,241,213,0)_48%),radial-gradient(circle_at_82%_18%,rgba(227,185,104,0.18)_0%,rgba(227,185,104,0)_44%)]"></div>
+                <div class="relative flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-caption uppercase tracking-[0.08em] text-white/85">Profile Progression</p>
+                    <h3 id="profile-badge-inventory-title" class="mt-1 font-body font-medium text-display-sm text-white">Badge Inventory</h3>
+                    <p class="mt-2 text-body-sm text-white/90">Equip an earned badge to display beside your profile avatar.</p>
+                  </div>
+                  <button id="profile-badge-inventory-close-button" type="button" class="inline-flex items-center gap-1 rounded-full border border-[#9A7331]/70 bg-[#2A2117]/75 px-2.5 py-1 text-caption text-white hover:text-white hover:bg-[#3A2C1D]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4A948]/55 active:scale-[0.97] transition-transform duration-150 ease-spring">
+                    Close
+                  </button>
+                </div>
+                <p id="profile-badge-inventory-feedback" class="relative mt-3 hidden text-caption"></p>
+              </div>
+              <div class="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+                <div id="profile-badge-inventory-list" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"></div>
+              </div>
+            </section>
+          </div>
 
           <div id="profile-edit-modal-overlay" class="fixed inset-0 z-50 hidden bg-surface-base/70 backdrop-blur-sm px-4 py-5 sm:px-6 sm:py-8" aria-hidden="true">
             <section id="profile-edit-modal" role="dialog" aria-modal="true" aria-labelledby="profile-edit-modal-title" class="mx-auto flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-surface-border bg-surface-raised shadow-depth-3">
@@ -7024,6 +7069,10 @@
       const profileAchievementRankStatusElement = document.getElementById('profile-achievement-rank-status');
       const profileAchievementListElement = document.getElementById('profile-achievement-list');
       const profileAchievementFeedbackElement = document.getElementById('profile-achievement-feedback');
+      const profileBadgeInventoryOverlayElement = document.getElementById('profile-badge-inventory-overlay');
+      const profileBadgeInventoryCloseButtonElement = document.getElementById('profile-badge-inventory-close-button');
+      const profileBadgeInventoryListElement = document.getElementById('profile-badge-inventory-list');
+      const profileBadgeInventoryFeedbackElement = document.getElementById('profile-badge-inventory-feedback');
       const profileRankLadderPanelElement = document.getElementById('profile-rank-ladder-panel');
       const profileRankLadderOverviewElement = document.getElementById('profile-rank-ladder-overview');
       const profileRankLadderListElement = document.getElementById('profile-rank-ladder-list');
@@ -7137,6 +7186,34 @@
           dark: '/brand_assets/Icons/Achievements/placeholder.svg',
           light: '/brand_assets/Icons/Achievements/placeholder-light.svg',
         }),
+        'premiere-journey-enroll-three-members': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/placeholder.svg',
+          light: '/brand_assets/Icons/Achievements/placeholder-light.svg',
+        }),
+        'premiere-life-founding-ambassador': Object.freeze({
+          dark: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+          light: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
+        }),
+        'premiere-life-infinity-builder': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/infinity.svg',
+          light: '/brand_assets/Icons/Achievements/infinity-light.svg',
+        }),
+        'premiere-life-legacy-builder': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/legacy.svg',
+          light: '/brand_assets/Icons/Achievements/legacy-light.svg',
+        }),
+        'premiere-life-leadership-race-club': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/ruby.svg',
+          light: '/brand_assets/Icons/Achievements/ruby-light.svg',
+        }),
+        'premiere-life-leadership-race-squad': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/diamond.svg',
+          light: '/brand_assets/Icons/Achievements/diamond-light.svg',
+        }),
+        'premiere-life-leadership-race-commander': Object.freeze({
+          dark: '/brand_assets/Icons/Achievements/crown.svg',
+          light: '/brand_assets/Icons/Achievements/crown-light.svg',
+        }),
         'time-limited-event-legacy-founder': Object.freeze({
           dark: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
           light: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
@@ -7150,6 +7227,22 @@
           light: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg',
         }),
         'time-limited-event-presidential-circle': Object.freeze({
+          dark: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
+          light: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg',
+        }),
+        'time-limited-event-presidential-ambassador-sovereign': Object.freeze({
+          dark: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+          light: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
+        }),
+        'time-limited-event-presidential-ambassador-round-table': Object.freeze({
+          dark: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg',
+          light: '/brand_assets/Icons/Title-Icons/legacy-director-star-light.svg',
+        }),
+        'time-limited-event-presidential-ambassador-elite': Object.freeze({
+          dark: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg',
+          light: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg',
+        }),
+        'time-limited-event-presidential-grand-ambassador-royale': Object.freeze({
           dark: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
           light: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg',
         }),
@@ -7231,14 +7324,31 @@
         crown: 'Crown Director',
         'double crown': 'Double Crown Director',
         'royal crown': 'Royal Crown Director',
-        legacy: 'Legacy Founder',
-        infinity: 'Infinity Leader',
+        legacy: 'Legacy Builder',
+        infinity: 'Infinity Builder',
         business: 'Business Builder',
         personal: 'Personal Builder',
         'preferred customer': 'Preferred Customer',
       });
       const PROFILE_TITLE_ACHIEVEMENT_ID_BY_KEY = Object.freeze({
-        'legacy founder': 'time-limited-event-legacy-founder',
+        'founding ambassador': 'premiere-life-founding-ambassador',
+        'infinity builder': 'premiere-life-infinity-builder',
+        'legacy builder': 'premiere-life-legacy-builder',
+        'executive ambassador': 'time-limited-event-legacy-founder',
+        'regional ambassador': 'time-limited-event-legacy-director',
+        'national ambassador': 'time-limited-event-legacy-ambassador',
+        'global ambassador': 'time-limited-event-presidential-circle',
+        'presidential ambassador sovereign': 'time-limited-event-presidential-ambassador-sovereign',
+        'presidential ambassador round table': 'time-limited-event-presidential-ambassador-round-table',
+        'presidential ambassador elite': 'time-limited-event-presidential-ambassador-elite',
+        'presidential grand ambassador royale': 'time-limited-event-presidential-grand-ambassador-royale',
+        'leadership race - club': 'premiere-life-leadership-race-club',
+        'leadership race - squad': 'premiere-life-leadership-race-squad',
+        'leadership race - commander': 'premiere-life-leadership-race-commander',
+        'leadership race club': 'premiere-life-leadership-race-club',
+        'leadership race squad': 'premiere-life-leadership-race-squad',
+        'leadership race commander': 'premiere-life-leadership-race-commander',
+        'legacy founder': 'premiere-life-founding-ambassador',
         'legacy director': 'time-limited-event-legacy-director',
         'legacy ambassador': 'time-limited-event-legacy-ambassador',
         'presidential circle': 'time-limited-event-presidential-circle',
@@ -7251,7 +7361,7 @@
         'crown director': 'rank-crown',
         'double crown director': 'rank-double-crown',
         'royal crown director': 'rank-royal-crown',
-        'legacy leader': 'time-limited-event-legacy-founder',
+        'legacy leader': 'premiere-life-legacy-builder',
         'infinity leader': 'rank-infinity',
         'business builder': 'rank-business',
         'personal builder': 'rank-personal',
@@ -7465,6 +7575,8 @@
       let spilloverParentSuggestionKeys = new Set();
       let spilloverParentSuggestionItems = [];
       let profileEditLastTriggerElement = null;
+      let profileBadgeInventoryLastTriggerElement = null;
+      let profileBadgeInventoryBusy = false;
       let profileAchievementsSnapshot = null;
       let profileAchievementsLoading = false;
       let profileGoodLifeSnapshot = null;
@@ -10724,6 +10836,125 @@
         return entries;
       }
 
+      function resolveProfileAchievementEntryById(achievementId) {
+        const safeAchievementId = String(achievementId || '').trim();
+        if (!safeAchievementId) {
+          return null;
+        }
+        const sourceAchievements = Array.isArray(profileAchievementsSnapshot?.achievements)
+          ? profileAchievementsSnapshot.achievements
+          : [];
+        return sourceAchievements.find((achievement) => (
+          String(achievement?.id || '').trim() === safeAchievementId
+        )) || null;
+      }
+
+      function resolveProfileEarnedAchievementClaimsMap() {
+        const claimMap = new Map();
+
+        const sourceClaimMap = profileAchievementsSnapshot?.earnedAchievementClaims
+          && typeof profileAchievementsSnapshot.earnedAchievementClaims === 'object'
+            ? profileAchievementsSnapshot.earnedAchievementClaims
+            : {};
+        Object.entries(sourceClaimMap).forEach(([achievementId, claim]) => {
+          const safeAchievementId = String(achievementId || '').trim();
+          if (!safeAchievementId) {
+            return;
+          }
+          const safeClaim = claim && typeof claim === 'object' ? claim : {};
+          claimMap.set(safeAchievementId, {
+            claimId: String(safeClaim?.claimId || '').trim(),
+            claimPeriod: String(safeClaim?.claimPeriod || '').trim(),
+            claimedAt: String(safeClaim?.claimedAt || '').trim(),
+          });
+        });
+
+        const sourceAchievements = Array.isArray(profileAchievementsSnapshot?.achievements)
+          ? profileAchievementsSnapshot.achievements
+          : [];
+        sourceAchievements.forEach((achievement) => {
+          const safeAchievementId = String(achievement?.id || '').trim();
+          if (!safeAchievementId || claimMap.has(safeAchievementId)) {
+            return;
+          }
+          const status = String(achievement?.status || '').trim().toLowerCase();
+          if (status !== 'claimed') {
+            return;
+          }
+          claimMap.set(safeAchievementId, {
+            claimId: String(achievement?.claimId || '').trim(),
+            claimPeriod: String(achievement?.claimPeriod || '').trim(),
+            claimedAt: String(achievement?.claimedAt || '').trim(),
+          });
+        });
+
+        return claimMap;
+      }
+
+      function isProfileAchievementEarned(achievementId) {
+        const safeAchievementId = String(achievementId || '').trim();
+        if (!safeAchievementId) {
+          return false;
+        }
+        return resolveProfileEarnedAchievementClaimsMap().has(safeAchievementId);
+      }
+
+      function resolveEquippedProfileBadgeId() {
+        const snapshotBadgeId = String(profileAchievementsSnapshot?.equippedProfileBadgeId || '').trim();
+        if (snapshotBadgeId) {
+          return snapshotBadgeId;
+        }
+        return String(currentSessionUser?.equippedProfileBadgeId || '').trim();
+      }
+
+      function setCurrentSessionEquippedProfileBadgeId(nextBadgeId = '') {
+        if (!currentSessionUser || typeof currentSessionUser !== 'object') {
+          return;
+        }
+        const normalizedNext = String(nextBadgeId || '').trim();
+        const normalizedCurrent = String(currentSessionUser?.equippedProfileBadgeId || '').trim();
+        if (normalizedCurrent === normalizedNext) {
+          return;
+        }
+        currentSessionUser.equippedProfileBadgeId = normalizedNext;
+        persistUserSessionSnapshot(currentSessionUser);
+      }
+
+      function resolveProfileEquippedBadgeEntry() {
+        const equippedBadgeId = resolveEquippedProfileBadgeId();
+        if (!equippedBadgeId || !isProfileAchievementEarned(equippedBadgeId)) {
+          return null;
+        }
+
+        const achievement = resolveProfileAchievementEntryById(equippedBadgeId);
+        if (!achievement) {
+          return null;
+        }
+
+        const rewardType = String(achievement?.rewardType || '').trim().toLowerCase();
+        const resolvedTitle = String(
+          (rewardType === 'title' ? achievement?.rewardTitle : achievement?.title)
+          || achievement?.title
+          || 'Badge',
+        ).trim() || 'Badge';
+        const resolvedIconPath = resolveProfileAchievementIconPath(achievement);
+        const earnedClaim = resolveProfileEarnedAchievementClaimsMap().get(equippedBadgeId) || {};
+        const claimDateLabel = formatProfileTitleAcquiredDateLabel(
+          String(earnedClaim?.claimedAt || achievement?.claimedAt || '').trim(),
+        );
+        const resolvedSubtitle = rewardType === 'title'
+          ? resolveProfileTitleBadgeSubtitle(resolvedTitle)
+          : (claimDateLabel !== '--' ? `Earned ${claimDateLabel}` : 'Earned achievement');
+
+        return {
+          achievementId: equippedBadgeId,
+          rewardType,
+          title: resolvedTitle,
+          subtitle: resolvedSubtitle,
+          iconPath: resolvedIconPath,
+        };
+      }
+
       function sanitizeProfileAccountTitle(value, fallback = '', options = {}) {
         const clampedValue = normalizeProfileAccountTitleLabel(value);
         const fallbackValue = normalizeProfileAccountTitleLabel(fallback);
@@ -11062,7 +11293,7 @@
         );
         if (explicitTitle) {
           if (normalizeMemberKey(explicitTitle) === 'legacy leader') {
-            return 'Legacy Founder';
+            return 'Legacy Builder';
           }
           return explicitTitle;
         }
@@ -11128,6 +11359,10 @@
         }
 
         const legacyBuilderLeadershipTitleKeySet = new Set([
+          'executive ambassador',
+          'regional ambassador',
+          'national ambassador',
+          'global ambassador',
           'legacy founder',
           'legacy director',
           'legacy ambassador',
@@ -11144,6 +11379,8 @@
         const badgeVisibility = sanitizeProfileBadgeVisibility(safeProfileState.badgeVisibility);
         const claimedTitleEntries = resolveProfileClaimedTitleEntries();
         const hasClaimedTitles = claimedTitleEntries.length > 0;
+        const equippedBadgeEntry = resolveProfileEquippedBadgeEntry();
+        const hasEquippedBadge = Boolean(equippedBadgeEntry);
         const activeRankLabel = normalizeRankLabel(
           resolveSessionAccountRank(currentSessionUser)
           || currentAccountRank
@@ -11177,13 +11414,13 @@
             iconPath: resolveProfileBadgeIconPathByAchievementId(rankAchievementId),
           });
         }
-        if (badgeVisibility.title && hasClaimedTitles) {
+        if (badgeVisibility.title && (hasClaimedTitles || hasEquippedBadge)) {
           entries.push({
             key: 'title',
-            slotLabel: 'Title 1',
-            cardTitle: accountTitleLabel,
-            cardSubtitle: accountTitleSubtitle,
-            iconPath: accountTitleIconPath,
+            slotLabel: hasEquippedBadge ? 'Equipped Badge' : 'Title 1',
+            cardTitle: hasEquippedBadge ? equippedBadgeEntry.title : accountTitleLabel,
+            cardSubtitle: hasEquippedBadge ? equippedBadgeEntry.subtitle : accountTitleSubtitle,
+            iconPath: hasEquippedBadge ? equippedBadgeEntry.iconPath : accountTitleIconPath,
           });
         }
         if (badgeVisibility.extra && hasClaimedTitles && accountTitleSecondaryLabel) {
@@ -11518,8 +11755,15 @@
         }
         anchorElement.dataset.hoverBound = 'true';
         anchorElement.dataset.hoverEnabled = 'true';
-        anchorElement.tabIndex = 0;
-        anchorElement.setAttribute('role', 'img');
+        const hasButtonRole = String(anchorElement.getAttribute('role') || '').toLowerCase() === 'button';
+        if (hasButtonRole) {
+          if (anchorElement.tabIndex < 0) {
+            anchorElement.tabIndex = 0;
+          }
+        } else {
+          anchorElement.tabIndex = 0;
+          anchorElement.setAttribute('role', 'img');
+        }
 
         const resolveBadgeEntry = () => (
           anchorElement.__profileAccountOverviewBadgeEntry
@@ -11626,9 +11870,14 @@
         const safeProfileState = sanitizeMemberProfileCustomization(profileState);
         const profileBadgeEntries = resolveProfileHandleBadgeEntries(safeProfileState);
         const placeholderIconPath = resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID);
+        const allowedBadgeKeys = new Set(['rank', 'title']);
 
         return profileBadgeEntries
-          .filter((entry) => entry && typeof entry === 'object')
+          .filter((entry) => (
+            entry
+            && typeof entry === 'object'
+            && allowedBadgeKeys.has(String(entry?.key || '').trim())
+          ))
           .map((entry, index) => {
             const slotLabel = String(entry.slotLabel || 'Badge').trim() || 'Badge';
             const cardTitle = String(entry.cardTitle || '').trim() || slotLabel;
@@ -11775,6 +12024,8 @@
         const titleEntry = badgeEntries.find((entry) => String(entry?.key || '').trim() === 'title')
           || badgeEntries.find((entry) => String(entry?.key || '').trim() === 'extra')
           || null;
+        const equippedBadgeEntry = resolveProfileEquippedBadgeEntry();
+        const hasEquippedBadgeEntry = Boolean(equippedBadgeEntry);
 
         const resolvedRankLabel = String(rankEntry?.cardTitle || activeRankLabel || 'Legacy').trim() || 'Legacy';
         const resolvedRankIconPath = String(
@@ -11786,18 +12037,21 @@
         ).trim() || resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID);
 
         const resolvedTitleLabel = String(
-          titleEntry?.cardTitle
+          equippedBadgeEntry?.title
+          || titleEntry?.cardTitle
           || resolveProfileAccountTitleLabel(resolvedRankLabel, safeProfileState)
           || 'Member Title',
         ).trim() || 'Member Title';
         const resolvedTitleIconPath = String(
-          titleEntry?.iconPath
+          equippedBadgeEntry?.iconPath
+          || titleEntry?.iconPath
           || resolveProfileAccountTitleIconPath(resolvedTitleLabel, resolvedRankLabel)
           || resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID),
         ).trim() || resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID);
         const resolvedRankSubtitle = String(rankEntry?.cardSubtitle || '').trim();
         const resolvedTitleSubtitle = String(
-          titleEntry?.cardSubtitle
+          equippedBadgeEntry?.subtitle
+          || titleEntry?.cardSubtitle
           || resolveProfileTitleBadgeSubtitle(resolvedTitleLabel),
         ).trim();
         const displayName = safeProfileState.displayName || currentSessionUser?.name || currentSessionUser?.username || 'User';
@@ -11826,7 +12080,7 @@
         });
         syncProfileAccountOverviewBadgeHoverEntry(profileAccountOverviewTitleBadgeShellElement, {
           key: 'profile-account-overview-title',
-          slotLabel: 'Title',
+          slotLabel: hasEquippedBadgeEntry ? 'Equipped Badge' : 'Title',
           cardTitle: resolvedTitleLabel,
           cardSubtitle: resolvedTitleSubtitle,
           iconPath: resolvedTitleIconPath,
@@ -12140,6 +12394,252 @@
           profileEditLastTriggerElement.focus({ preventScroll: true });
         }
         profileEditLastTriggerElement = null;
+      }
+
+      function isProfileBadgeInventoryOpen() {
+        return Boolean(
+          profileBadgeInventoryOverlayElement
+          && !profileBadgeInventoryOverlayElement.classList.contains('hidden'),
+        );
+      }
+
+      function setProfileBadgeInventoryFeedback(message, tone = 'info') {
+        if (!profileBadgeInventoryFeedbackElement) {
+          return;
+        }
+        const safeMessage = String(message || '').trim();
+        profileBadgeInventoryFeedbackElement.classList.remove(
+          'hidden',
+          'text-semantic-success',
+          'text-semantic-danger',
+          'text-semantic-warning',
+          'text-white/85',
+        );
+
+        if (!safeMessage) {
+          profileBadgeInventoryFeedbackElement.textContent = '';
+          profileBadgeInventoryFeedbackElement.classList.add('hidden');
+          return;
+        }
+
+        profileBadgeInventoryFeedbackElement.textContent = safeMessage;
+        if (tone === 'success') {
+          profileBadgeInventoryFeedbackElement.classList.add('text-semantic-success');
+          return;
+        }
+        if (tone === 'error') {
+          profileBadgeInventoryFeedbackElement.classList.add('text-semantic-danger');
+          return;
+        }
+        if (tone === 'warning') {
+          profileBadgeInventoryFeedbackElement.classList.add('text-semantic-warning');
+          return;
+        }
+        profileBadgeInventoryFeedbackElement.classList.add('text-white/85');
+      }
+
+      function resolveProfileBadgeInventoryEntries() {
+        const sourceAchievements = Array.isArray(profileAchievementsSnapshot?.achievements)
+          ? profileAchievementsSnapshot.achievements
+          : [];
+        const earnedClaimsMap = resolveProfileEarnedAchievementClaimsMap();
+        const equippedBadgeId = resolveEquippedProfileBadgeId();
+        const excludedAchievementIds = new Set([
+          'rank-ruby',
+          'rank-emerald',
+          'rank-sapphire',
+          'rank-diamond',
+          'rank-blue-diamond',
+          'rank-black-diamond',
+          'rank-crown',
+          'rank-double-crown',
+          'rank-royal-crown',
+        ]);
+        const tabOrderById = new Map(
+          (Array.isArray(profileAchievementsSnapshot?.tabs) ? profileAchievementsSnapshot.tabs : [])
+            .map((tab, index) => [String(tab?.id || '').trim(), index]),
+        );
+
+        return sourceAchievements
+          .map((achievement, index) => {
+            const achievementId = String(achievement?.id || '').trim();
+            if (!achievementId || excludedAchievementIds.has(achievementId)) {
+              return null;
+            }
+            const rewardType = String(achievement?.rewardType || '').trim().toLowerCase();
+            const rewardTitle = String(achievement?.rewardTitle || '').trim();
+            const baseTitle = String(achievement?.title || '').trim() || 'Achievement';
+            const displayTitle = rewardType === 'title' && rewardTitle
+              ? rewardTitle
+              : baseTitle;
+            const requirementSummary = (Array.isArray(achievement?.requirements) ? achievement.requirements : [])
+              .map((entry) => String(entry?.label || '').trim())
+              .filter(Boolean)
+              .join(' | ');
+            const fallbackDescription = String(achievement?.description || '').trim();
+            const isEarned = Boolean(achievementId && earnedClaimsMap.has(achievementId));
+            if (!isEarned) {
+              return null;
+            }
+            const isEquipped = Boolean(isEarned && achievementId && achievementId === equippedBadgeId);
+            const claimRecord = earnedClaimsMap.get(achievementId) || {};
+            const claimedAtLabel = formatProfileAchievementClaimDate(
+              claimRecord?.claimedAt || achievement?.claimedAt || '',
+            );
+            const statusLabel = isEquipped ? 'Equipped' : 'Earned';
+            const detailLine = claimedAtLabel !== '--'
+              ? `Claimed ${claimedAtLabel}`
+              : (requirementSummary || fallbackDescription || 'Earned profile achievement');
+            const actionLabel = isEquipped ? 'Equipped' : 'Equip';
+            const tabId = String(achievement?.tabId || '').trim();
+            const sortWeight = isEquipped ? 0 : (isEarned ? 1 : 2);
+
+            return {
+              achievementId,
+              title: displayTitle,
+              subtitle: baseTitle !== displayTitle ? baseTitle : '',
+              detailLine,
+              rewardType,
+              statusLabel,
+              isEarned,
+              isEquipped,
+              actionLabel,
+              iconPath: resolveProfileAchievementIconPath(achievement),
+              sortWeight,
+              tabOrder: tabOrderById.has(tabId) ? tabOrderById.get(tabId) : 99,
+              index,
+            };
+          })
+          .filter((entry) => Boolean(entry))
+          .sort((leftEntry, rightEntry) => {
+            if (leftEntry.sortWeight !== rightEntry.sortWeight) {
+              return leftEntry.sortWeight - rightEntry.sortWeight;
+            }
+            if (leftEntry.tabOrder !== rightEntry.tabOrder) {
+              return leftEntry.tabOrder - rightEntry.tabOrder;
+            }
+            if (leftEntry.title !== rightEntry.title) {
+              return leftEntry.title.localeCompare(rightEntry.title);
+            }
+            return leftEntry.index - rightEntry.index;
+          });
+      }
+
+      function renderProfileBadgeInventory() {
+        if (!profileBadgeInventoryListElement) {
+          return;
+        }
+        const entries = resolveProfileBadgeInventoryEntries();
+        if (entries.length === 0) {
+          profileBadgeInventoryListElement.innerHTML = `
+            <article class="rounded-xl border border-dashed border-surface-border bg-surface-base/35 px-4 py-4 sm:col-span-2 xl:col-span-3">
+              <p class="text-body-sm text-white/90">No earned title or badge is available yet.</p>
+            </article>
+          `;
+          return;
+        }
+
+        profileBadgeInventoryListElement.innerHTML = entries.map((entry) => {
+          const safeId = escapeHtml(entry.achievementId);
+          const safeTitle = escapeHtml(entry.title || 'Achievement');
+          const safeSubtitle = escapeHtml(entry.subtitle || '');
+          const safeDetailLine = escapeHtml(entry.detailLine || '--');
+          const safeStatusLabel = escapeHtml(entry.statusLabel);
+          const safeActionLabel = escapeHtml(entry.actionLabel);
+          const safeIconPath = escapeHtml(entry.iconPath || resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID));
+          const safeIconAlt = escapeHtml(`${entry.title || 'Achievement'} icon`);
+          const cardClasses = entry.isEquipped
+            ? 'border-[#D4A948]/65 bg-[linear-gradient(138deg,rgba(212,169,72,0.22)_0%,rgba(164,122,34,0.16)_58%,rgba(118,85,22,0.14)_100%)]'
+            : 'border-semantic-success/35 bg-semantic-success-bg';
+          const statusChipClasses = entry.isEquipped
+            ? 'border-[#D4A948]/70 bg-[linear-gradient(140deg,rgba(212,169,72,0.38)_0%,rgba(164,122,34,0.30)_58%,rgba(118,85,22,0.28)_100%)] text-white'
+            : 'border-semantic-success/45 bg-semantic-success-bg text-white';
+          const actionButtonClasses = entry.isEquipped
+            ? 'border-[#D4A948]/60 bg-[linear-gradient(140deg,rgba(212,169,72,0.34)_0%,rgba(164,122,34,0.28)_58%,rgba(118,85,22,0.24)_100%)] text-white cursor-default'
+            : 'border-brand-500/35 bg-brand-500 text-white hover:bg-brand-400 hover:-translate-y-0.5';
+          const iconShellClasses = entry.isEquipped
+            ? 'border-[#D4A948]/75 bg-[linear-gradient(140deg,rgba(212,169,72,0.34)_0%,rgba(164,122,34,0.30)_58%,rgba(118,85,22,0.26)_100%)]'
+            : 'border-[#A9833E]/55 bg-[linear-gradient(140deg,rgba(212,169,72,0.22)_0%,rgba(164,122,34,0.18)_58%,rgba(118,85,22,0.14)_100%)]';
+          const actionDisabled = profileBadgeInventoryBusy || entry.isEquipped;
+
+          return `
+            <article class="rounded-2xl border p-3 sm:p-4 shadow-depth-1 transition-transform duration-150 ease-spring ${cardClasses}">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0 flex items-start gap-3">
+                  <div class="h-12 w-12 shrink-0 rounded-xl border p-1.5 shadow-inner ${iconShellClasses}">
+                    <img src="${safeIconPath}" alt="${safeIconAlt}" loading="lazy" decoding="async" class="achievement-icon-image"/>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-body-sm font-medium text-white">${safeTitle}</p>
+                    ${safeSubtitle ? `<p class="mt-1 text-caption text-white/80">${safeSubtitle}</p>` : ''}
+                    <p class="mt-1 text-caption text-white/85">${safeDetailLine}</p>
+                  </div>
+                </div>
+                <span class="inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-caption font-medium ${statusChipClasses}">
+                  ${safeStatusLabel}
+                </span>
+              </div>
+              <div class="mt-3">
+                <button
+                  type="button"
+                  data-profile-badge-equip-id="${safeId}"
+                  ${actionDisabled ? 'disabled' : ''}
+                  class="inline-flex w-full items-center justify-center rounded-lg border px-3.5 py-2 text-body-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.97] transition-transform duration-150 ease-spring ${actionButtonClasses}"
+                >
+                  ${safeActionLabel}
+                </button>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      function setProfileBadgeInventoryOpen(isOpen) {
+        if (!profileBadgeInventoryOverlayElement) {
+          return;
+        }
+        const nextOpen = Boolean(isOpen);
+        profileBadgeInventoryOverlayElement.classList.toggle('hidden', !nextOpen);
+        profileBadgeInventoryOverlayElement.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
+        if (profileAccountOverviewTitleBadgeShellElement) {
+          profileAccountOverviewTitleBadgeShellElement.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+        }
+      }
+
+      function openProfileBadgeInventory(triggerElement = null) {
+        if (!profileBadgeInventoryOverlayElement) {
+          return;
+        }
+        profileBadgeInventoryLastTriggerElement = triggerElement instanceof HTMLElement
+          ? triggerElement
+          : (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+        setProfileBadgeInventoryFeedback('');
+        renderProfileBadgeInventory();
+        hideProfileHandleBadgeHovercard({ immediate: true });
+        setProfileBadgeInventoryOpen(true);
+        window.requestAnimationFrame(() => {
+          profileBadgeInventoryCloseButtonElement?.focus({ preventScroll: true });
+        });
+      }
+
+      function closeProfileBadgeInventory(options = {}) {
+        if (!isProfileBadgeInventoryOpen()) {
+          return;
+        }
+        setProfileBadgeInventoryOpen(false);
+        if (options.clearFeedback !== false) {
+          setProfileBadgeInventoryFeedback('');
+        }
+
+        const shouldRestoreFocus = options.restoreFocus !== false;
+        if (
+          shouldRestoreFocus
+          && profileBadgeInventoryLastTriggerElement
+          && typeof profileBadgeInventoryLastTriggerElement.focus === 'function'
+        ) {
+          profileBadgeInventoryLastTriggerElement.focus({ preventScroll: true });
+        }
+        profileBadgeInventoryLastTriggerElement = null;
       }
 
       function renderProfileLifetimeCards(metrics = {}) {
@@ -13209,6 +13709,329 @@
       }
 
       function buildProfileAchievementFallbackSnapshot() {
+        const legacyEventId = 'legacy-builder-leadership-program-q2-2026';
+        const legacyEventStartAt = '2026-04-01T00:00:00.000Z';
+        const legacyEventEndAt = '2026-06-30T23:59:59.999Z';
+        const foundingAmbassadorIconPath = '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg';
+        const foundingAmbassadorIconLightPath = '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg';
+        const buildLockedEntry = (entry) => ({
+          ...entry,
+          eligible: false,
+          status: 'locked',
+          lockReason: '',
+          claimId: '',
+          claimedAt: '',
+        });
+        const applyFoundingAmbassadorIcon = (entry = {}) => ({
+          ...entry,
+          iconPath: foundingAmbassadorIconPath,
+          iconLightPath: foundingAmbassadorIconLightPath,
+        });
+
+        const titleAchievements = [
+          buildLockedEntry({
+            id: 'premiere-life-founding-ambassador',
+            tabId: 'premiere-life',
+            categoryId: 'premiere-life-milestones',
+            title: 'Founding Ambassador',
+            description: 'Purchase or upgrade to any package from Personal through Legacy.',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'founding-ambassador',
+            rewardTitle: 'Founding Ambassador',
+            rewardLabel: 'Title: Founding Ambassador',
+            iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+            iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'premiere-life-infinity-builder',
+            tabId: 'premiere-life',
+            categoryId: 'premiere-life-milestones',
+            title: 'Infinity Builder',
+            description: 'Purchase or upgrade to Infinity Builder package. Legacy Builder package owners are also eligible.',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'infinity-builder',
+            rewardTitle: 'Infinity Builder',
+            rewardLabel: 'Title: Infinity Builder',
+            iconPath: '/brand_assets/Icons/Achievements/infinity.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/infinity-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'premiere-life-legacy-builder',
+            tabId: 'premiere-life',
+            categoryId: 'premiere-life-milestones',
+            title: 'Legacy Builder',
+            description: 'Purchase or upgrade to Legacy Builder package.',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'legacy-builder',
+            rewardTitle: 'Legacy Builder',
+            rewardLabel: 'Title: Legacy Builder',
+            iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/legacy-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'premiere-life-leadership-race-club',
+            tabId: 'premiere-life',
+            categoryId: 'leadership-race',
+            title: 'Leadership Race - Club',
+            description: 'Unlocked for ranks Ruby through Sapphire.',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'leadership-race-club',
+            rewardTitle: 'Leadership Race - Club',
+            rewardLabel: 'Title: Leadership Race - Club',
+            iconPath: '/brand_assets/Icons/Achievements/ruby.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/ruby-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'premiere-life-leadership-race-squad',
+            tabId: 'premiere-life',
+            categoryId: 'leadership-race',
+            title: 'Leadership Race - Squad',
+            description: 'Unlocked for ranks Diamond through Black Diamond.',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'leadership-race-squad',
+            rewardTitle: 'Leadership Race - Squad',
+            rewardLabel: 'Title: Leadership Race - Squad',
+            iconPath: '/brand_assets/Icons/Achievements/diamond.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/diamond-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'premiere-life-leadership-race-commander',
+            tabId: 'premiere-life',
+            categoryId: 'leadership-race',
+            title: 'Leadership Race - Commander',
+            description: 'Unlocked for ranks Crown through Royal Crown.',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'leadership-race-commander',
+            rewardTitle: 'Leadership Race - Commander',
+            rewardLabel: 'Title: Leadership Race - Commander',
+            iconPath: '/brand_assets/Icons/Achievements/crown.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/crown-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'time-limited-event-legacy-founder',
+            tabId: 'time-limited-event',
+            categoryId: 'legacy-builder-leadership-program',
+            title: 'Executive Ambassador',
+            description: 'Upgrade or purchase a Legacy Builder package to unlock the Legacy Leadership bonus.',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'executive-ambassador',
+            rewardTitle: 'Executive Ambassador',
+            rewardLabel: 'Title: Executive Ambassador',
+            eventId: legacyEventId,
+            eventName: 'Legacy Builder Leadership Program',
+            eventStartAt: legacyEventStartAt,
+            eventEndAt: legacyEventEndAt,
+            iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+            iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'time-limited-event-legacy-director',
+            tabId: 'time-limited-event',
+            categoryId: 'legacy-builder-leadership-program',
+            title: 'Regional Ambassador',
+            description: 'Fill your first three nodes on Legacy Leadership Bonus Tier 1.',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'regional-ambassador',
+            rewardTitle: 'Regional Ambassador',
+            rewardLabel: 'Title: Regional Ambassador',
+            eventId: legacyEventId,
+            eventName: 'Legacy Builder Leadership Program',
+            eventStartAt: legacyEventStartAt,
+            eventEndAt: legacyEventEndAt,
+            iconPath: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg',
+            iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-director-star-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'time-limited-event-legacy-ambassador',
+            tabId: 'time-limited-event',
+            categoryId: 'legacy-builder-leadership-program',
+            title: 'National Ambassador',
+            description: 'Have your first 3 Tier 1 nodes each enroll three nodes (3 x 3 = 9).',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'national-ambassador',
+            rewardTitle: 'National Ambassador',
+            rewardLabel: 'Title: National Ambassador',
+            eventId: legacyEventId,
+            eventName: 'Legacy Builder Leadership Program',
+            eventStartAt: legacyEventStartAt,
+            eventEndAt: legacyEventEndAt,
+            iconPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg',
+            iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'time-limited-event-presidential-circle',
+            tabId: 'time-limited-event',
+            categoryId: 'legacy-builder-leadership-program',
+            title: 'Global Ambassador',
+            description: 'Have your 9 Tier 1 nodes each enroll three nodes (9 x 3 = 27).',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'global-ambassador',
+            rewardTitle: 'Global Ambassador',
+            rewardLabel: 'Title: Global Ambassador',
+            eventId: legacyEventId,
+            eventName: 'Legacy Builder Leadership Program',
+            eventStartAt: legacyEventStartAt,
+            eventEndAt: legacyEventEndAt,
+            iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
+            iconLightPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'time-limited-event-presidential-ambassador-sovereign',
+            tabId: 'time-limited-event',
+            categoryId: 'legacy-matrix-builder',
+            title: 'Presidential Ambassador Sovereign',
+            description: 'Complete Legacy Tier 1 (40 nodes).',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'presidential-ambassador-sovereign',
+            rewardTitle: 'Presidential Ambassador Sovereign',
+            rewardLabel: 'Title: Presidential Ambassador Sovereign',
+            eventId: legacyEventId,
+            eventName: 'Legacy Matrix Builder',
+            eventStartAt: legacyEventStartAt,
+            eventEndAt: legacyEventEndAt,
+            iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+            iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'time-limited-event-presidential-ambassador-round-table',
+            tabId: 'time-limited-event',
+            categoryId: 'legacy-matrix-builder',
+            title: 'Presidential Ambassador Round Table',
+            description: 'Complete Legacy Tier 2 (40 nodes).',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'presidential-ambassador-round-table',
+            rewardTitle: 'Presidential Ambassador Round Table',
+            rewardLabel: 'Title: Presidential Ambassador Round Table',
+            eventId: legacyEventId,
+            eventName: 'Legacy Matrix Builder',
+            eventStartAt: legacyEventStartAt,
+            eventEndAt: legacyEventEndAt,
+            iconPath: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg',
+            iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-director-star-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'time-limited-event-presidential-ambassador-elite',
+            tabId: 'time-limited-event',
+            categoryId: 'legacy-matrix-builder',
+            title: 'Presidential Ambassador Elite',
+            description: 'Complete Legacy Tier 3 (40 nodes). Business Center #1 unlocks at completion.',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'presidential-ambassador-elite',
+            rewardTitle: 'Presidential Ambassador Elite',
+            rewardLabel: 'Title: Presidential Ambassador Elite',
+            eventId: legacyEventId,
+            eventName: 'Legacy Matrix Builder',
+            eventStartAt: legacyEventStartAt,
+            eventEndAt: legacyEventEndAt,
+            iconPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg',
+            iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'time-limited-event-presidential-grand-ambassador-royale',
+            tabId: 'time-limited-event',
+            categoryId: 'legacy-matrix-builder',
+            title: 'Presidential Grand Ambassador Royale',
+            description: 'Complete Legacy Tier 4 (40 nodes). Business Center #2 unlocks at completion.',
+            rewardUsd: 0,
+            rewardType: 'title',
+            rewardTitleSlug: 'presidential-grand-ambassador-royale',
+            rewardTitle: 'Presidential Grand Ambassador Royale',
+            rewardLabel: 'Title: Presidential Grand Ambassador Royale',
+            eventId: legacyEventId,
+            eventName: 'Legacy Matrix Builder',
+            eventStartAt: legacyEventStartAt,
+            eventEndAt: legacyEventEndAt,
+            iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
+            iconLightPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg',
+          }),
+        ].map((entry) => applyFoundingAmbassadorIcon(entry));
+
+        const journeyAchievements = [
+          buildLockedEntry({
+            id: 'premiere-journey-enroll-member',
+            tabId: 'premiere-life',
+            categoryId: 'premiere-journey',
+            title: 'Enroll a Member',
+            description: 'Enroll 1 member',
+            requiredDirectSponsorsTotal: 1,
+            rewardUsd: 0,
+            rewardLabel: 'Merch',
+            payoutSchedule: 'Claim merch',
+            requiresActive: false,
+            requiresSystemVerification: false,
+            iconPath: '/brand_assets/Icons/Achievements/placeholder.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/placeholder-light.svg',
+          }),
+          buildLockedEntry({
+            id: 'premiere-journey-enroll-three-members',
+            tabId: 'premiere-life',
+            categoryId: 'premiere-journey',
+            title: 'Build Your First 3 Members',
+            description: 'Enroll 3 members',
+            requiredDirectSponsorsTotal: 3,
+            rewardUsd: 0,
+            rewardLabel: 'Milestone',
+            payoutSchedule: 'Claim milestone',
+            requiresActive: false,
+            requiresSystemVerification: false,
+            iconPath: '/brand_assets/Icons/Achievements/placeholder.svg',
+            iconLightPath: '/brand_assets/Icons/Achievements/placeholder-light.svg',
+          }),
+        ].map((entry) => applyFoundingAmbassadorIcon(entry));
+
+        const rankAchievements = [
+          { id: 'rank-ruby', title: 'Ruby', requiredDirectSponsorsPerSide: 1, requiredCycles: 5, rewardUsd: 62.5, iconPath: '/brand_assets/Icons/Achievements/ruby.svg', iconLightPath: '/brand_assets/Icons/Achievements/ruby-light.svg' },
+          { id: 'rank-emerald', title: 'Emerald', requiredDirectSponsorsPerSide: 1, requiredCycles: 10, rewardUsd: 125, iconPath: '/brand_assets/Icons/Achievements/emerald.svg', iconLightPath: '/brand_assets/Icons/Achievements/emerald-light.svg' },
+          { id: 'rank-sapphire', title: 'Sapphire', requiredDirectSponsorsPerSide: 1, requiredCycles: 20, rewardUsd: 250, iconPath: '/brand_assets/Icons/Achievements/sapphire.svg', iconLightPath: '/brand_assets/Icons/Achievements/sapphire-light.svg' },
+          { id: 'rank-diamond', title: 'Diamond', requiredDirectSponsorsPerSide: 2, requiredCycles: 40, rewardUsd: 500, iconPath: '/brand_assets/Icons/Achievements/diamond.svg', iconLightPath: '/brand_assets/Icons/Achievements/diamond-light.svg' },
+          { id: 'rank-blue-diamond', title: 'Blue Diamond', requiredDirectSponsorsPerSide: 2, requiredCycles: 80, rewardUsd: 1000, iconPath: '/brand_assets/Icons/Achievements/blue-diamond.svg', iconLightPath: '/brand_assets/Icons/Achievements/blue-diamond-light.svg' },
+          { id: 'rank-black-diamond', title: 'Black Diamond', requiredDirectSponsorsPerSide: 2, requiredCycles: 160, rewardUsd: 2000, iconPath: '/brand_assets/Icons/Achievements/black-diamond.svg', iconLightPath: '/brand_assets/Icons/Achievements/black-diamond-light.svg' },
+          { id: 'rank-crown', title: 'Crown', requiredDirectSponsorsPerSide: 3, requiredCycles: 320, rewardUsd: 4000, iconPath: '/brand_assets/Icons/Achievements/crown.svg', iconLightPath: '/brand_assets/Icons/Achievements/crown-light.svg' },
+          { id: 'rank-double-crown', title: 'Double Crown', requiredDirectSponsorsPerSide: 3, requiredCycles: 640, rewardUsd: 8000, iconPath: '/brand_assets/Icons/Achievements/double-crown.svg', iconLightPath: '/brand_assets/Icons/Achievements/double-crown-light.svg' },
+          { id: 'rank-royal-crown', title: 'Royal Crown', requiredDirectSponsorsPerSide: 3, requiredCycles: 1000, rewardUsd: 12500, iconPath: '/brand_assets/Icons/Achievements/royal-crown.svg', iconLightPath: '/brand_assets/Icons/Achievements/royal-crown-light.svg' },
+        ].map((entry) => buildLockedEntry({
+          ...entry,
+          tabId: 'rank',
+          categoryId: 'rank-track',
+          description: 'Monthly rank run reward',
+          requiredRank: entry.title,
+          requiresRank: false,
+          deductionPerBottleUsd: 0.4,
+          payoutSchedule: 'Paid monthly after verification',
+          requiresActive: true,
+          requiresSystemVerification: true,
+        }));
+
+        const claimableTitles = [
+          { titleSlug: 'founding-ambassador', title: 'Founding Ambassador', iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg', iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg' },
+          { titleSlug: 'infinity-builder', title: 'Infinity Builder', iconPath: '/brand_assets/Icons/Achievements/infinity.svg', iconLightPath: '/brand_assets/Icons/Achievements/infinity-light.svg' },
+          { titleSlug: 'legacy-builder', title: 'Legacy Builder', iconPath: '/brand_assets/Icons/Achievements/legacy.svg', iconLightPath: '/brand_assets/Icons/Achievements/legacy-light.svg' },
+          { titleSlug: 'leadership-race-club', title: 'Leadership Race - Club', iconPath: '/brand_assets/Icons/Achievements/ruby.svg', iconLightPath: '/brand_assets/Icons/Achievements/ruby-light.svg' },
+          { titleSlug: 'leadership-race-squad', title: 'Leadership Race - Squad', iconPath: '/brand_assets/Icons/Achievements/diamond.svg', iconLightPath: '/brand_assets/Icons/Achievements/diamond-light.svg' },
+          { titleSlug: 'leadership-race-commander', title: 'Leadership Race - Commander', iconPath: '/brand_assets/Icons/Achievements/crown.svg', iconLightPath: '/brand_assets/Icons/Achievements/crown-light.svg' },
+          { titleSlug: 'executive-ambassador', title: 'Executive Ambassador', iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg', iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg' },
+          { titleSlug: 'regional-ambassador', title: 'Regional Ambassador', iconPath: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg', iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-director-star-light.svg' },
+          { titleSlug: 'national-ambassador', title: 'National Ambassador', iconPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg', iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg' },
+          { titleSlug: 'global-ambassador', title: 'Global Ambassador', iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg', iconLightPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg' },
+          { titleSlug: 'presidential-ambassador-sovereign', title: 'Presidential Ambassador Sovereign', iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg', iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg' },
+          { titleSlug: 'presidential-ambassador-round-table', title: 'Presidential Ambassador Round Table', iconPath: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg', iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-director-star-light.svg' },
+          { titleSlug: 'presidential-ambassador-elite', title: 'Presidential Ambassador Elite', iconPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg', iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg' },
+          { titleSlug: 'presidential-grand-ambassador-royale', title: 'Presidential Grand Ambassador Royale', iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg', iconLightPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg' },
+        ].map((entry) => applyFoundingAmbassadorIcon(entry));
+
         return {
           tabs: [
             { id: 'time-limited-event', label: 'Time-Limited Event' },
@@ -13219,7 +14042,25 @@
               id: 'legacy-builder-leadership-program',
               tabId: 'time-limited-event',
               label: 'Legacy Builder Leadership Program',
-              description: 'Limited-time account title reward track.',
+              description: 'Limited-time ambassador progression track.',
+            },
+            {
+              id: 'legacy-matrix-builder',
+              tabId: 'time-limited-event',
+              label: 'Legacy Matrix Builder',
+              description: 'Legacy Matrix tier-completion title progression.',
+            },
+            {
+              id: 'premiere-life-milestones',
+              tabId: 'premiere-life',
+              label: 'Premiere Life',
+              description: 'Core package and account upgrade title milestones.',
+            },
+            {
+              id: 'leadership-race',
+              tabId: 'premiere-life',
+              label: 'Leadership Race',
+              description: 'League titles unlocked by qualifying rank ranges.',
             },
             {
               id: 'premiere-journey',
@@ -13229,369 +14070,9 @@
             },
           ],
           achievements: [
-            {
-              id: 'time-limited-event-legacy-founder',
-              tabId: 'time-limited-event',
-              categoryId: 'legacy-builder-leadership-program',
-              title: 'Foundation Level: Legacy Founder',
-              description: 'Enroll or upgrade to Legacy Package',
-              rewardUsd: 0,
-              rewardType: 'title',
-              rewardTitleSlug: 'legacy-founder',
-              rewardTitle: 'Legacy Founder',
-              rewardLabel: 'Title: Legacy Founder',
-              requiresActive: false,
-              requiresSystemVerification: false,
-              eventId: 'legacy-builder-leadership-program-q2-2026',
-              eventName: 'Legacy Builder Leadership Program',
-              eventStartAt: '2026-04-01T00:00:00.000Z',
-              eventEndAt: '2026-06-30T23:59:59.999Z',
-              iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
-              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
-              requirements: [
-                {
-                  id: 'legacy-package-ownership',
-                  label: 'Enroll or upgrade to Legacy Package',
-                  met: false,
-                  packageKey: 'legacy-package',
-                },
-              ],
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'time-limited-event-legacy-director',
-              tabId: 'time-limited-event',
-              categoryId: 'legacy-builder-leadership-program',
-              title: 'Level 2: Legacy Director',
-              description: 'Enroll 3 Legacy Builder Package members',
-              rewardUsd: 0,
-              rewardType: 'title',
-              rewardTitleSlug: 'legacy-director',
-              rewardTitle: 'Legacy Director',
-              rewardLabel: 'Title: Legacy Director',
-              requiresActive: false,
-              requiresSystemVerification: false,
-              eventId: 'legacy-builder-leadership-program-q2-2026',
-              eventName: 'Legacy Builder Leadership Program',
-              eventStartAt: '2026-04-01T00:00:00.000Z',
-              eventEndAt: '2026-06-30T23:59:59.999Z',
-              iconPath: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg',
-              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-director-star-light.svg',
-              requirements: [
-                {
-                  id: 'legacy-builder-direct',
-                  label: 'Enroll 3 Legacy Builder Package members',
-                  met: false,
-                  current: 0,
-                  required: 3,
-                },
-              ],
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'time-limited-event-legacy-ambassador',
-              tabId: 'time-limited-event',
-              categoryId: 'legacy-builder-leadership-program',
-              title: 'Level 3: Legacy Ambassador',
-              description: 'Build 9 second-level Legacy Package members (3 personally enrolled Legacy Builder members each enroll 3 Legacy Package members).',
-              rewardUsd: 0,
-              rewardType: 'title',
-              rewardTitleSlug: 'legacy-ambassador',
-              rewardTitle: 'Legacy Ambassador',
-              rewardLabel: 'Title: Legacy Ambassador',
-              requiresActive: false,
-              requiresSystemVerification: false,
-              eventId: 'legacy-builder-leadership-program-q2-2026',
-              eventName: 'Legacy Builder Leadership Program',
-              eventStartAt: '2026-04-01T00:00:00.000Z',
-              eventEndAt: '2026-06-30T23:59:59.999Z',
-              iconPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg',
-              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg',
-              requirements: [
-                {
-                  id: 'second-level-legacy-builder-enrollments',
-                  label: 'Build 9 second-level Legacy Package members (3 personally enrolled Legacy Builder members each enroll 3 Legacy Package members).',
-                  met: false,
-                  current: 0,
-                  required: 9,
-                },
-              ],
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'time-limited-event-presidential-circle',
-              tabId: 'time-limited-event',
-              categoryId: 'legacy-builder-leadership-program',
-              title: 'Top Level: Presidential Circle',
-              description: 'Complete the Legacy Leadership Tier Card or build 27 third-level Legacy Package members (9x3 structure).',
-              rewardUsd: 0,
-              rewardType: 'title',
-              rewardTitleSlug: 'presidential-circle',
-              rewardTitle: 'Presidential Circle',
-              rewardLabel: 'Title: Presidential Circle',
-              requiresActive: false,
-              requiresSystemVerification: false,
-              eventId: 'legacy-builder-leadership-program-q2-2026',
-              eventName: 'Legacy Builder Leadership Program',
-              eventStartAt: '2026-04-01T00:00:00.000Z',
-              eventEndAt: '2026-06-30T23:59:59.999Z',
-              iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
-              iconLightPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg',
-              requirements: [
-                {
-                  id: 'third-level-legacy-builder-enrollments',
-                  label: 'Complete Legacy Leadership Tier Card or build 27 third-level Legacy Package members (9x3 structure).',
-                  met: false,
-                  current: 0,
-                  required: 27,
-                  alternateMet: false,
-                },
-              ],
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'premiere-journey-enroll-member',
-              tabId: 'premiere-life',
-              categoryId: 'premiere-journey',
-              title: 'Enroll a Member',
-              description: 'Enroll 1 member',
-              requiredDirectSponsorsTotal: 1,
-              rewardUsd: 0,
-              rewardLabel: 'Merch',
-              payoutSchedule: 'Claim merch',
-              requiresActive: false,
-              requiresSystemVerification: false,
-              iconPath: '/brand_assets/Icons/Achievements/placeholder.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/placeholder-light.svg',
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'rank-ruby',
-              tabId: 'rank',
-              categoryId: 'rank-track',
-              title: 'Ruby',
-              description: 'Monthly rank run reward',
-              requiredRank: 'Ruby',
-              requiresRank: false,
-              requiredDirectSponsorsPerSide: 1,
-              requiredCycles: 5,
-              rewardUsd: 62.5,
-              deductionPerBottleUsd: 0.4,
-              payoutSchedule: 'Paid monthly after verification',
-              requiresActive: true,
-              requiresSystemVerification: true,
-              iconPath: '/brand_assets/Icons/Achievements/ruby.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/ruby-light.svg',
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'rank-emerald',
-              tabId: 'rank',
-              categoryId: 'rank-track',
-              title: 'Emerald',
-              description: 'Monthly rank run reward',
-              requiredRank: 'Emerald',
-              requiresRank: false,
-              requiredDirectSponsorsPerSide: 1,
-              requiredCycles: 10,
-              rewardUsd: 125,
-              deductionPerBottleUsd: 0.4,
-              payoutSchedule: 'Paid monthly after verification',
-              requiresActive: true,
-              requiresSystemVerification: true,
-              iconPath: '/brand_assets/Icons/Achievements/emerald.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/emerald-light.svg',
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'rank-sapphire',
-              tabId: 'rank',
-              categoryId: 'rank-track',
-              title: 'Sapphire',
-              description: 'Monthly rank run reward',
-              requiredRank: 'Sapphire',
-              requiresRank: false,
-              requiredDirectSponsorsPerSide: 1,
-              requiredCycles: 20,
-              rewardUsd: 250,
-              deductionPerBottleUsd: 0.4,
-              payoutSchedule: 'Paid monthly after verification',
-              requiresActive: true,
-              requiresSystemVerification: true,
-              iconPath: '/brand_assets/Icons/Achievements/sapphire.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/sapphire-light.svg',
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'rank-diamond',
-              tabId: 'rank',
-              categoryId: 'rank-track',
-              title: 'Diamond',
-              description: 'Monthly rank run reward',
-              requiredRank: 'Diamond',
-              requiresRank: false,
-              requiredDirectSponsorsPerSide: 2,
-              requiredCycles: 40,
-              rewardUsd: 500,
-              deductionPerBottleUsd: 0.4,
-              payoutSchedule: 'Paid monthly after verification',
-              requiresActive: true,
-              requiresSystemVerification: true,
-              iconPath: '/brand_assets/Icons/Achievements/diamond.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/diamond-light.svg',
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'rank-blue-diamond',
-              tabId: 'rank',
-              categoryId: 'rank-track',
-              title: 'Blue Diamond',
-              description: 'Monthly rank run reward',
-              requiredRank: 'Blue Diamond',
-              requiresRank: false,
-              requiredDirectSponsorsPerSide: 2,
-              requiredCycles: 80,
-              rewardUsd: 1000,
-              deductionPerBottleUsd: 0.4,
-              payoutSchedule: 'Paid monthly after verification',
-              requiresActive: true,
-              requiresSystemVerification: true,
-              iconPath: '/brand_assets/Icons/Achievements/blue-diamond.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/blue-diamond-light.svg',
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'rank-black-diamond',
-              tabId: 'rank',
-              categoryId: 'rank-track',
-              title: 'Black Diamond',
-              description: 'Monthly rank run reward',
-              requiredRank: 'Black Diamond',
-              requiresRank: false,
-              requiredDirectSponsorsPerSide: 2,
-              requiredCycles: 160,
-              rewardUsd: 2000,
-              deductionPerBottleUsd: 0.4,
-              payoutSchedule: 'Paid monthly after verification',
-              requiresActive: true,
-              requiresSystemVerification: true,
-              iconPath: '/brand_assets/Icons/Achievements/black-diamond.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/black-diamond-light.svg',
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'rank-crown',
-              tabId: 'rank',
-              categoryId: 'rank-track',
-              title: 'Crown',
-              description: 'Monthly rank run reward',
-              requiredRank: 'Crown',
-              requiresRank: false,
-              requiredDirectSponsorsPerSide: 3,
-              requiredCycles: 320,
-              rewardUsd: 4000,
-              deductionPerBottleUsd: 0.4,
-              payoutSchedule: 'Paid monthly after verification',
-              requiresActive: true,
-              requiresSystemVerification: true,
-              iconPath: '/brand_assets/Icons/Achievements/crown.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/crown-light.svg',
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'rank-double-crown',
-              tabId: 'rank',
-              categoryId: 'rank-track',
-              title: 'Double Crown',
-              description: 'Monthly rank run reward',
-              requiredRank: 'Double Crown',
-              requiresRank: false,
-              requiredDirectSponsorsPerSide: 3,
-              requiredCycles: 640,
-              rewardUsd: 8000,
-              deductionPerBottleUsd: 0.4,
-              payoutSchedule: 'Paid monthly after verification',
-              requiresActive: true,
-              requiresSystemVerification: true,
-              iconPath: '/brand_assets/Icons/Achievements/double-crown.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/double-crown-light.svg',
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
-            {
-              id: 'rank-royal-crown',
-              tabId: 'rank',
-              categoryId: 'rank-track',
-              title: 'Royal Crown',
-              description: 'Monthly rank run reward',
-              requiredRank: 'Royal Crown',
-              requiresRank: false,
-              requiredDirectSponsorsPerSide: 3,
-              requiredCycles: 1000,
-              rewardUsd: 12500,
-              deductionPerBottleUsd: 0.4,
-              payoutSchedule: 'Paid monthly after verification',
-              requiresActive: true,
-              requiresSystemVerification: true,
-              iconPath: '/brand_assets/Icons/Achievements/royal-crown.svg',
-              iconLightPath: '/brand_assets/Icons/Achievements/royal-crown-light.svg',
-              eligible: false,
-              status: 'locked',
-              lockReason: '',
-              claimId: '',
-              claimedAt: '',
-            },
+            ...titleAchievements,
+            ...journeyAchievements,
+            ...rankAchievements,
           ],
           currentRank: '',
           leftDirectSponsors: 0,
@@ -13600,33 +14081,11 @@
           currentCycles: 0,
           directLegacyBuilderEnrollments: 0,
           packageEnrollmentsByKey: {},
-          claimableTitles: [
-            {
-              titleSlug: 'legacy-founder',
-              title: 'Legacy Founder',
-              iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
-              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
-            },
-            {
-              titleSlug: 'legacy-director',
-              title: 'Legacy Director',
-              iconPath: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg',
-              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-director-star-light.svg',
-            },
-            {
-              titleSlug: 'legacy-ambassador',
-              title: 'Legacy Ambassador',
-              iconPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg',
-              iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg',
-            },
-            {
-              titleSlug: 'presidential-circle',
-              title: 'Presidential Circle',
-              iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
-              iconLightPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg',
-            },
-          ],
+          claimableTitles,
           accountTitles: [],
+          equippedProfileBadgeId: '',
+          earnedAchievementIds: [],
+          earnedAchievementClaims: {},
           rankClaimPeriod: '',
           rankClaimPeriodLabel: '',
           rankClaimedAchievementId: '',
@@ -13888,7 +14347,12 @@
         const sourceCategories = Array.isArray(profileAchievementsSnapshot?.categories)
           ? profileAchievementsSnapshot.categories
           : [];
-        return sourceCategories.filter((category) => String(category?.tabId || '').trim() === safeTabId);
+        const resolvedCategories = sourceCategories.filter((category) => String(category?.tabId || '').trim() === safeTabId);
+        if (resolvedCategories.length > 0) {
+          return resolvedCategories;
+        }
+        const fallbackCategories = buildProfileAchievementFallbackSnapshot().categories;
+        return fallbackCategories.filter((category) => String(category?.tabId || '').trim() === safeTabId);
       }
 
       function resolveDefaultProfileAchievementTabId() {
@@ -14041,8 +14505,9 @@
       function resolveProfileAchievementItemsForActiveView() {
         const activeCategoryId = String(activeProfileAchievementCategoryByTab[activeProfileAchievementTabId] || '').trim();
         const sourceAchievements = Array.isArray(profileAchievementsSnapshot?.achievements)
+          && profileAchievementsSnapshot.achievements.length > 0
           ? profileAchievementsSnapshot.achievements
-          : [];
+          : buildProfileAchievementFallbackSnapshot().achievements;
 
         return sourceAchievements.filter((achievement) => (
           String(achievement?.tabId || '').trim() === activeProfileAchievementTabId
@@ -14572,6 +15037,13 @@
         const safeAchievementId = String(achievement?.id || '').trim();
         const mappedPaths = PROFILE_ACHIEVEMENT_ICON_PATHS_BY_ID[safeAchievementId] || {};
         const isLightTheme = appTheme === 'light';
+        const isRankAchievement = safeAchievementId.startsWith('rank-');
+        const isGoodLifeMilestone = safeAchievementId.startsWith('good-life-');
+        const foundingAmbassadorDarkPath = '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg';
+        const foundingAmbassadorLightPath = '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg';
+        if (!isRankAchievement && !isGoodLifeMilestone) {
+          return isLightTheme ? foundingAmbassadorLightPath : foundingAmbassadorDarkPath;
+        }
         const explicitDarkPath = String(achievement?.iconPath || '').trim();
         const explicitLightPath = String(achievement?.iconLightPath || '').trim();
         const mappedDarkPath = String(mappedPaths?.dark || '').trim();
@@ -14691,6 +15163,7 @@
         renderProfileAchievementCategories();
         renderProfileAchievementList();
         renderProfileRankAdvancementLadder();
+        renderProfileBadgeInventory();
 
         if (profileAchievementRankStatusElement) {
           const activityStatusLabel = resolveProfileAchievementActivityStatusLabel();
@@ -14708,10 +15181,160 @@
 
       function applyProfileAchievementPayload(payload = {}) {
         const fallback = buildProfileAchievementFallbackSnapshot();
+        const previousSnapshot = profileAchievementsSnapshot && typeof profileAchievementsSnapshot === 'object'
+          ? profileAchievementsSnapshot
+          : null;
+        const sanitizeTabEntries = (entries) => (
+          Array.isArray(entries)
+            ? entries.filter((entry) => (
+              entry
+              && typeof entry === 'object'
+              && String(entry?.id || '').trim()
+            ))
+            : []
+        );
+        const sanitizeCategoryEntries = (entries) => (
+          Array.isArray(entries)
+            ? entries.filter((entry) => (
+              entry
+              && typeof entry === 'object'
+              && String(entry?.id || '').trim()
+              && String(entry?.tabId || '').trim()
+            ))
+            : []
+        );
+        const sanitizeAchievementEntries = (entries) => (
+          Array.isArray(entries)
+            ? entries.filter((entry) => (
+              entry
+              && typeof entry === 'object'
+              && String(entry?.id || '').trim()
+            ))
+            : []
+        );
+        const resolveCatalogArray = (payloadValue, previousValue, fallbackValue) => {
+          if (Array.isArray(payloadValue) && payloadValue.length > 0) {
+            return payloadValue;
+          }
+          if (Array.isArray(previousValue) && previousValue.length > 0) {
+            return previousValue;
+          }
+          return Array.isArray(fallbackValue) ? fallbackValue : [];
+        };
+        const sourceTabs = sanitizeTabEntries(fallback.tabs);
+        const sourceCategories = sanitizeCategoryEntries(fallback.categories);
+        const sourceAchievementsRaw = resolveCatalogArray(
+          sanitizeAchievementEntries(payload?.achievements),
+          sanitizeAchievementEntries(previousSnapshot?.achievements),
+          fallback.achievements,
+        );
+        const staticDefinitionFields = [
+          'tabId',
+          'categoryId',
+          'title',
+          'description',
+          'rewardType',
+          'rewardTitleSlug',
+          'rewardTitle',
+          'rewardLabel',
+          'iconPath',
+          'iconLightPath',
+          'eventId',
+          'eventName',
+          'eventStartAt',
+          'eventEndAt',
+        ];
+        const fallbackAchievements = sanitizeAchievementEntries(fallback.achievements);
+        const fallbackAchievementById = new Map(
+          fallbackAchievements.map((achievement) => [String(achievement.id).trim(), achievement]),
+        );
+        const normalizedAchievementById = new Map();
+        sourceAchievementsRaw.forEach((achievement) => {
+          const achievementId = String(achievement?.id || '').trim();
+          if (!achievementId) {
+            return;
+          }
+          const fallbackAchievement = fallbackAchievementById.get(achievementId) || null;
+          if (!fallbackAchievement) {
+            normalizedAchievementById.set(achievementId, achievement);
+            return;
+          }
+          const normalizedAchievement = {
+            ...fallbackAchievement,
+            ...achievement,
+          };
+          staticDefinitionFields.forEach((fieldName) => {
+            if (fallbackAchievement[fieldName] !== undefined) {
+              normalizedAchievement[fieldName] = fallbackAchievement[fieldName];
+            }
+          });
+          normalizedAchievementById.set(achievementId, normalizedAchievement);
+        });
+        const sourceAchievements = [];
+        fallbackAchievements.forEach((achievement) => {
+          const achievementId = String(achievement?.id || '').trim();
+          if (!achievementId) {
+            return;
+          }
+          sourceAchievements.push(normalizedAchievementById.get(achievementId) || achievement);
+          normalizedAchievementById.delete(achievementId);
+        });
+        normalizedAchievementById.forEach((achievement) => {
+          sourceAchievements.push(achievement);
+        });
+        const sourceEarnedAchievementIds = Array.isArray(payload?.earnedAchievementIds)
+          ? payload.earnedAchievementIds
+          : fallback.earnedAchievementIds;
+        const earnedAchievementIds = Array.from(new Set(
+          sourceEarnedAchievementIds
+            .map((achievementId) => String(achievementId || '').trim())
+            .filter(Boolean),
+        ));
+        const sourceClaimMap = payload?.earnedAchievementClaims
+          && typeof payload.earnedAchievementClaims === 'object'
+            ? payload.earnedAchievementClaims
+            : fallback.earnedAchievementClaims;
+        const earnedAchievementClaims = {};
+        Object.entries(sourceClaimMap || {}).forEach(([achievementId, claim]) => {
+          const safeAchievementId = String(achievementId || '').trim();
+          if (!safeAchievementId) {
+            return;
+          }
+          const safeClaim = claim && typeof claim === 'object' ? claim : {};
+          earnedAchievementClaims[safeAchievementId] = {
+            claimId: String(safeClaim?.claimId || '').trim(),
+            claimPeriod: String(safeClaim?.claimPeriod || '').trim(),
+            claimedAt: String(safeClaim?.claimedAt || '').trim(),
+          };
+        });
+
+        sourceAchievements.forEach((achievement) => {
+          const safeAchievementId = String(achievement?.id || '').trim();
+          if (!safeAchievementId) {
+            return;
+          }
+          const status = String(achievement?.status || '').trim().toLowerCase();
+          if (status !== 'claimed' || earnedAchievementClaims[safeAchievementId]) {
+            return;
+          }
+          earnedAchievementClaims[safeAchievementId] = {
+            claimId: String(achievement?.claimId || '').trim(),
+            claimPeriod: String(achievement?.claimPeriod || '').trim(),
+            claimedAt: String(achievement?.claimedAt || '').trim(),
+          };
+        });
+
+        Object.keys(earnedAchievementClaims).forEach((achievementId) => {
+          if (!earnedAchievementIds.includes(achievementId)) {
+            earnedAchievementIds.push(achievementId);
+          }
+        });
+
+        const equippedProfileBadgeId = String(payload?.equippedProfileBadgeId || '').trim();
         profileAchievementsSnapshot = {
-          tabs: Array.isArray(payload?.tabs) ? payload.tabs : fallback.tabs,
-          categories: Array.isArray(payload?.categories) ? payload.categories : fallback.categories,
-          achievements: Array.isArray(payload?.achievements) ? payload.achievements : [],
+          tabs: sourceTabs,
+          categories: sourceCategories,
+          achievements: sourceAchievements,
           currentRank: String(payload?.currentRank || '').trim(),
           leftDirectSponsors: toWholeNumber(payload?.leftDirectSponsors, 0),
           rightDirectSponsors: toWholeNumber(payload?.rightDirectSponsors, 0),
@@ -14721,8 +15344,17 @@
           packageEnrollmentsByKey: payload?.packageEnrollmentsByKey && typeof payload.packageEnrollmentsByKey === 'object'
             ? payload.packageEnrollmentsByKey
             : {},
-          claimableTitles: Array.isArray(payload?.claimableTitles) ? payload.claimableTitles : [],
-          accountTitles: Array.isArray(payload?.accountTitles) ? payload.accountTitles : [],
+          claimableTitles: Array.isArray(payload?.claimableTitles)
+            ? payload.claimableTitles
+            : (Array.isArray(previousSnapshot?.claimableTitles)
+              ? previousSnapshot.claimableTitles
+              : fallback.claimableTitles),
+          accountTitles: Array.isArray(payload?.accountTitles)
+            ? payload.accountTitles
+            : (Array.isArray(previousSnapshot?.accountTitles) ? previousSnapshot.accountTitles : []),
+          equippedProfileBadgeId,
+          earnedAchievementIds,
+          earnedAchievementClaims,
           rankClaimPeriod: String(payload?.rankClaimPeriod || '').trim(),
           rankClaimPeriodLabel: String(payload?.rankClaimPeriodLabel || '').trim(),
           rankClaimedAchievementId: String(payload?.rankClaimedAchievementId || '').trim(),
@@ -14731,6 +15363,7 @@
           activityStatus: String(payload?.activityStatus || '').trim(),
           activityActiveUntilAt: String(payload?.activityActiveUntilAt || '').trim(),
         };
+        setCurrentSessionEquippedProfileBadgeId(equippedProfileBadgeId);
         const effectiveProfile = resolveEffectiveMemberProfile();
         syncProfileAccountTitleOptions(
           profileAccountTitleInput?.value || effectiveProfile.accountTitle || '',
@@ -14738,7 +15371,8 @@
           profileAccountTitleSecondaryInput?.value || effectiveProfile.accountTitleSecondary || '',
           '',
         );
-        syncProfileBadgeDisplays(resolveEffectiveMemberProfile());
+        syncHeaderProfileIdentity(effectiveProfile);
+        renderProfileBadgeInventory();
       }
 
       async function loadProfileGoodLifeMonthly(options = {}) {
@@ -14941,8 +15575,7 @@
           }
 
           applyProfileAchievementPayload(payload);
-          const claimedAchievement = (Array.isArray(payload?.achievements) ? payload.achievements : [])
-            .find((entry) => String(entry?.id || '').trim() === safeAchievementId);
+          const claimedAchievement = resolveProfileAchievementEntryById(safeAchievementId);
           const claimDateLabel = formatProfileAchievementClaimDate(claimedAchievement?.claimedAt);
           const claimTitle = String(claimedAchievement?.title || 'Achievement').trim() || 'Achievement';
           writeFeedback(`${claimTitle} claimed on ${claimDateLabel}.`, 'success');
@@ -14952,6 +15585,72 @@
         } finally {
           profileAchievementsLoading = false;
           renderProfileAchievementsPanel();
+        }
+      }
+
+      async function equipProfileAchievementBadgeById(achievementId) {
+        const safeAchievementId = String(achievementId || '').trim();
+        if (!safeAchievementId || profileBadgeInventoryBusy) {
+          return;
+        }
+
+        if (!isProfileAchievementEarned(safeAchievementId)) {
+          setProfileBadgeInventoryFeedback('Only earned badges can be equipped.', 'warning');
+          return;
+        }
+
+        const authToken = resolveMemberAuthToken();
+        if (!authToken) {
+          setProfileBadgeInventoryFeedback('Sign in again before equipping profile badges.', 'error');
+          return;
+        }
+
+        profileBadgeInventoryBusy = true;
+        setProfileBadgeInventoryFeedback('Equipping badge...', 'info');
+        renderProfileBadgeInventory();
+
+        try {
+          const response = await fetch(
+            `${MEMBER_ACHIEVEMENTS_API}/${encodeURIComponent(safeAchievementId)}/equip`,
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+            },
+          );
+          const payload = await response.json().catch(() => ({}));
+          const hasCatalogPayload = payload
+            && typeof payload === 'object'
+            && Array.isArray(payload?.achievements);
+          if (hasCatalogPayload) {
+            applyProfileAchievementPayload(payload);
+          }
+
+          if (!response.ok) {
+            const message = typeof payload?.error === 'string'
+              ? payload.error
+              : `Unable to equip badge (${response.status}).`;
+            throw new Error(message);
+          }
+
+          if (!hasCatalogPayload && payload && typeof payload === 'object') {
+            applyProfileAchievementPayload(payload);
+          }
+          const equippedAchievement = resolveProfileAchievementEntryById(safeAchievementId);
+          const rewardType = String(equippedAchievement?.rewardType || '').trim().toLowerCase();
+          const equippedTitle = String(
+            (rewardType === 'title' ? equippedAchievement?.rewardTitle : equippedAchievement?.title)
+            || equippedAchievement?.title
+            || 'Badge',
+          ).trim() || 'Badge';
+          setProfileBadgeInventoryFeedback(`${equippedTitle} is now equipped.`, 'success');
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to equip this badge.';
+          setProfileBadgeInventoryFeedback(message, 'error');
+        } finally {
+          profileBadgeInventoryBusy = false;
+          renderProfileBadgeInventory();
         }
       }
 
@@ -15025,12 +15724,14 @@
         clearProfileEditFeedback();
         renderProfileLifetimeCards();
         setProfileEditModalOpen(false);
+        setProfileBadgeInventoryOpen(false);
         profileAchievementsSnapshot = buildProfileAchievementFallbackSnapshot();
         profileGoodLifeSnapshot = buildProfileGoodLifeFallbackSnapshot();
         renderProfileAchievementsPanel();
         renderProfileGoodLifePanel();
         setProfileAchievementFeedback('');
         setProfileGoodLifeFeedback('');
+        setProfileBadgeInventoryFeedback('');
 
         if (profileHandleBadgeHovercardElement && profileHandleBadgeHovercardElement.dataset.bound !== 'true') {
           profileHandleBadgeHovercardElement.dataset.bound = 'true';
@@ -15133,6 +15834,42 @@
             openProfileEditModal(event.currentTarget instanceof HTMLElement ? event.currentTarget : null);
           });
         }
+        if (profileAccountOverviewTitleBadgeShellElement) {
+          profileAccountOverviewTitleBadgeShellElement.addEventListener('click', (event) => {
+            if (event.defaultPrevented) {
+              return;
+            }
+            openProfileBadgeInventory(
+              event.currentTarget instanceof HTMLElement
+                ? event.currentTarget
+                : profileAccountOverviewTitleBadgeShellElement,
+            );
+          });
+          profileAccountOverviewTitleBadgeShellElement.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+              return;
+            }
+            event.preventDefault();
+            openProfileBadgeInventory(
+              event.currentTarget instanceof HTMLElement
+                ? event.currentTarget
+                : profileAccountOverviewTitleBadgeShellElement,
+            );
+          });
+        }
+        if (profileBadgeInventoryCloseButtonElement) {
+          profileBadgeInventoryCloseButtonElement.addEventListener('click', () => {
+            closeProfileBadgeInventory({ restoreFocus: true });
+          });
+        }
+        if (profileBadgeInventoryOverlayElement) {
+          profileBadgeInventoryOverlayElement.addEventListener('pointerdown', (event) => {
+            if (event.target !== profileBadgeInventoryOverlayElement) {
+              return;
+            }
+            closeProfileBadgeInventory({ restoreFocus: true });
+          });
+        }
         if (profileEditModalCloseButton) {
           profileEditModalCloseButton.addEventListener('click', () => {
             closeProfileEditModal({ restoreFocus: true });
@@ -15147,10 +15884,16 @@
           });
         }
         document.addEventListener('keydown', (event) => {
-          if (event.key !== 'Escape' || !isProfileEditModalOpen()) {
+          if (event.key !== 'Escape') {
             return;
           }
-          closeProfileEditModal({ restoreFocus: true });
+          if (isProfileBadgeInventoryOpen()) {
+            closeProfileBadgeInventory({ restoreFocus: true });
+            return;
+          }
+          if (isProfileEditModalOpen()) {
+            closeProfileEditModal({ restoreFocus: true });
+          }
         });
 
         if (profileBioInput) {
@@ -15328,6 +16071,29 @@
               return;
             }
             void claimProfileAchievementById(achievementId);
+          });
+        }
+
+        if (profileBadgeInventoryListElement && profileBadgeInventoryListElement.dataset.bound !== 'true') {
+          profileBadgeInventoryListElement.dataset.bound = 'true';
+          profileBadgeInventoryListElement.addEventListener('click', (event) => {
+            const target = event.target instanceof Element
+              ? event.target.closest('[data-profile-badge-equip-id]')
+              : null;
+            if (!target || !profileBadgeInventoryListElement.contains(target)) {
+              return;
+            }
+
+            const equipButton = target instanceof HTMLButtonElement ? target : null;
+            if (equipButton && equipButton.disabled) {
+              return;
+            }
+
+            const achievementId = String(target.getAttribute('data-profile-badge-equip-id') || '').trim();
+            if (!achievementId) {
+              return;
+            }
+            void equipProfileAchievementBadgeById(achievementId);
           });
         }
 
@@ -16887,7 +17653,7 @@
         return {
           rankEligible,
           directRequirementMet,
-          // Legacy Founder unlocks with Legacy package/rank; direct enrollments
+          // Legacy Builder access unlocks with Legacy package/rank; direct enrollments
           // drive tier progress/completion instead of top-level access gating.
           isEligible: rankEligible,
           rankLabel: normalizedRankLabel || 'Unranked',
@@ -20105,6 +20871,18 @@
         const rootRankBadgeEntry = rootBadgeEntries.find((entry) => entry.key === 'rank') || null;
         const rootTitleBadgeEntry = rootBadgeEntries.find((entry) => entry.key === 'title') || null;
         const rootExtraBadgeEntry = rootBadgeEntries.find((entry) => entry.key === 'extra') || null;
+        const rootResolvedPrimaryTitle = String(
+          rootTitleBadgeEntry?.cardTitle
+          || effectiveProfile?.accountTitle
+          || currentSessionUser?.profileAccountTitle
+          || '',
+        ).trim();
+        const rootResolvedSecondaryTitle = String(
+          rootExtraBadgeEntry?.cardTitle
+          || effectiveProfile?.accountTitleSecondary
+          || currentSessionUser?.profileAccountTitleSecondary
+          || '',
+        ).trim();
         scopedNodes[rootId] = {
           id: rootId,
           memberCode: rootUsername,
@@ -20116,8 +20894,8 @@
           rank: resolveRootNodeRank(),
           countryFlag: normalizeCountryFlag(currentSessionUser?.countryFlag),
           profileCoverUrl: String(effectiveProfile?.coverDataUrl || currentSessionUser?.profileCoverUrl || '').trim(),
-          profileAccountTitle: String(effectiveProfile?.accountTitle || currentSessionUser?.profileAccountTitle || '').trim(),
-          profileAccountTitleSecondary: String(effectiveProfile?.accountTitleSecondary || currentSessionUser?.profileAccountTitleSecondary || '').trim(),
+          profileAccountTitle: rootResolvedPrimaryTitle,
+          profileAccountTitleSecondary: rootResolvedSecondaryTitle,
           profileBadgeVisibility: sanitizeProfileBadgeVisibility(
             effectiveProfile?.badgeVisibility || currentSessionUser?.profileBadgeVisibility || {},
           ),

@@ -1716,3 +1716,329 @@ Known limitation:
 
 ### Result
 - Legacy Founder popup now displays a date in the acquired line when direct award date is absent.
+
+## Patch Update (2026-04-30) - Profile Title/Badge Inventory Equip System
+
+### Request Applied
+- Add a profile stash/inventory opened from the right-side profile badge so members can equip earned title/badge entries and persist the selected active badge.
+
+### Implementation
+- `index.html`
+  - Added interactive behavior on `#profile-account-overview-title-badge-shell` to open inventory.
+  - Added inventory overlay + mobile bottom-sheet panel:
+    - `#profile-badge-inventory-overlay`
+    - `#profile-badge-inventory-panel`
+    - `#profile-badge-inventory-list`
+    - `#profile-badge-inventory-feedback`
+  - Added inventory render system with status/action states and equipped-highlight behavior.
+  - Added equip API action integration:
+    - `POST /api/member-auth/achievements/:achievementId/equip`
+  - Added payload/session sync for:
+    - `equippedProfileBadgeId`
+    - `earnedAchievementIds`
+    - `earnedAchievementClaims`
+  - Added escape/overlay close handling and `aria-expanded` sync for accessibility.
+
+- Backend wiring for inventory persistence:
+  - `backend/stores/member-profile-badge-selection.store.js` (new)
+  - `backend/services/member-achievement.service.js`
+  - `backend/controllers/member-achievement.controller.js`
+  - `backend/routes/member-achievement.routes.js`
+
+### Result
+- Profile right-side badge now acts as the inventory entry point.
+- Members can equip earned badge/title entries and see immediate header update.
+- Equipped badge persists via backend and is returned in achievement payload.
+
+## Patch Update (2026-04-30) - Inventory Filter Change (Earned Only + Rank Exclusions)
+
+### Request Applied
+- Exclude rank achievements (`Ruby` to `Royal Crown`) from Title/Badge Inventory.
+- Show only acquired/earned entries.
+
+### Implementation
+- `index.html`
+  - Inventory entry resolver now filters out non-earned achievements.
+  - Added explicit exclusion set for:
+    - `rank-ruby`
+    - `rank-emerald`
+    - `rank-sapphire`
+    - `rank-diamond`
+    - `rank-blue-diamond`
+    - `rank-black-diamond`
+    - `rank-crown`
+    - `rank-double-crown`
+    - `rank-royal-crown`
+  - Updated empty state to earned-only wording.
+
+### Result
+- Inventory now displays only acquired title/badge entries and no longer shows rank ladder cards from Ruby through Royal Crown.
+
+## Patch Update (2026-04-30) - Inventory Title Rename + Binary Tree Amber Styling
+
+### Request Applied
+- Rename inventory heading from `Title / Badge Inventory` to `Badge Inventory`.
+- Align modal and Equipped badge visual colors to Binary Tree design.
+
+### Implementation
+- `index.html`
+  - changed inventory header title string to `Badge Inventory`.
+  - updated inventory modal panel/header styling to amber gradient tones based on Binary Tree legacy-founder palette.
+  - updated Equipped visual state styles:
+    - card shell
+    - top-right Equipped status chip
+    - Equipped action button
+  - all Equipped accents now use amber-family gradients instead of blue-brand accents.
+
+### Result
+- Inventory naming now matches requested label.
+- Modal and Equipped badge visuals now follow Binary Tree amber color direction.
+
+## Patch Update (2026-04-30) - Inventory Text Color Readability
+
+### Request Applied
+- Make Badge Inventory text white because current text colors are hard to read.
+
+### Implementation
+- `index.html`
+  - changed Badge Inventory header, description, and close-button label to white text variants.
+  - changed inventory card textual content to white variants.
+  - changed status chip text to white (Equipped/Earned).
+  - changed action button text to white (including Equipped state).
+  - changed empty-state and default feedback text to white variants.
+
+### Result
+- Badge Inventory text is now high-contrast and readable against the amber/dark modal backgrounds.
+
+## Patch Update (2026-04-30) - Inventory Icon Container Amber Alignment
+
+### Request Applied
+- Match the small badge icon container color to the amber inventory palette (remove gray/off-tone look).
+
+### Implementation
+- `index.html`
+  - added `iconShellClasses` in Badge Inventory card renderer.
+  - equipped cards now use a stronger amber gradient icon-shell background/border.
+  - earned cards use a softer amber gradient icon-shell background/border.
+  - replaced previous `bg-surface-elevated` icon container styling.
+
+### Result
+- The icon container now visually matches the amber modal/card theme and no longer appears out of place.
+
+## Patch Update (2026-04-30) - Profile Achievement Title System Update (25 Catalog Entries)
+
+### Request Applied
+- Update Profile `Achievements` data model/titles to the new Premiere Life + Time Limited Event definitions, including rank-aware leadership tracks and total catalog expansion.
+
+### Implementation
+- `backend/services/member-achievement.service.js`
+  - Reworked seeded claimable titles to new names:
+    - Founding Ambassador
+    - Infinity Builder
+    - Legacy Builder
+    - Leadership Race (Club/Squad/Commander)
+    - Executive/Regional/National/Global Ambassador
+    - Presidential Ambassador Sovereign / Round Table / Elite / Presidential Grand Ambassador Royale
+  - Reworked achievement categories:
+    - `premiere-life-milestones` (new)
+    - `leadership-race` (new)
+    - `legacy-matrix-builder` (new)
+    - plus existing `legacy-builder-leadership-program`, `premiere-journey`
+  - Expanded and updated `PROFILE_ACHIEVEMENTS` to 25 entries total:
+    - 16 non-rank
+    - 9 rank (`Ruby` to `Royal Crown`)
+  - Added eligibility support for:
+    - package ownership sets (`requiredAnyOwnedPackageKeys`)
+    - rank ranges (`requiredRankMin` / `requiredRankMax`)
+    - completed legacy-tier count (`requiredLegacyLeadershipCompletedTierCount`)
+  - Extended progress context to include:
+    - `lastUpgradedEnrollmentPackageKey`
+    - `legacyLeadershipCompletedTierCount`
+
+- `index.html`
+  - Updated profile achievement icon map and title-to-achievement id aliases for new names.
+  - Replaced achievement fallback snapshot with a matching 25-entry catalog.
+  - Updated profile title static fallback label to `Founding Ambassador`.
+  - Updated legacy-title subtitle classification list to include new ambassador naming.
+
+### Design Decisions
+- Preserved existing time-limited event achievement ids for leadership-program progression so existing claims remain aligned by id while labels/rules are upgraded.
+- Added a second Premiere Journey fallback milestone (`Build Your First 3 Members`) to satisfy requested 25 total without changing rank payout track behavior.
+
+### Known Limitations
+- Matrix Builder milestones use available completed-tier progress fields rather than explicit per-tier node counters in this patch.
+
+### Validation
+- `node --check backend/services/member-achievement.service.js` passed.
+
+## Patch Update (2026-04-30) - Profile Achievement Category Stability
+
+### Issue
+- After profile reload, achievement categories initially rendered then disappeared, preventing category switching and preview.
+
+### Root Cause
+- `applyProfileAchievementPayload` accepted empty `tabs` and `categories` arrays from subsequent API responses and replaced the in-memory snapshot catalog with those empty arrays.
+
+### Fix
+- Added defensive catalog merge logic in `index.html`:
+  - prefer non-empty payload arrays
+  - fallback to previous snapshot arrays
+  - fallback to static catalog snapshot as last resort
+- Added fallback in category and active achievement item resolvers when runtime snapshot arrays are empty.
+- Preserved `claimableTitles` and `accountTitles` from previous snapshot when omitted in payload.
+
+### Files Updated
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Legacy-Aware Backfill + Uniform Non-Rank Medal
+
+### Request
+- Use Founding Ambassador medal for all non-rank achievements.
+- Ensure legacy members can backfill-claim eligible package-based rewards.
+
+### Root Cause
+- Achievement evaluation could run with partial auth session member data (missing package fields), which incorrectly locked package-dependent non-rank rewards for existing legacy users.
+
+### Fix
+- Backend (`backend/services/member-achievement.service.js`):
+  - added `resolveMemberProgressSource(...)` to hydrate member context from `charge.member_users` by `userId`.
+  - integrated hydration into list/build/claim run paths for achievements.
+  - enhanced legacy package ownership evaluation to backfill `legacy-builder-pack` into owned package checks when legacy ownership is detected.
+  - normalized all non-rank achievement/title catalog icons to Founding Ambassador icon path.
+- Frontend (`index.html`):
+  - normalized non-rank fallback achievement and claimable-title icons to Founding Ambassador icon path.
+  - updated icon resolver fallback so non-rank achievements default to Founding Ambassador icon.
+
+### Result
+- Legacy members now resolve as eligible for package-based non-rank achievements in backfill scenarios.
+- Non-rank achievements now render one consistent medal icon family.
+
+### Validation
+- `node --check backend/services/member-achievement.service.js` passed.
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+- Live service verification for legacy account showed:
+  - `premiere-life-founding-ambassador`: eligible
+  - `premiere-life-infinity-builder`: eligible
+  - `premiere-life-legacy-builder`: eligible
+  - all with Founding Ambassador icon path.
+
+## Patch Update (2026-04-30) - Legacy Builder Leadership Program Runtime Normalization
+
+### Issue
+- Profile Achievement Center still displayed legacy title names and reduced category coverage after full load, despite catalog updates in source.
+
+### Root Cause
+- Live payload could contain legacy/static achievement definitions that overrode current UI definitions at runtime.
+- Partial payload category coverage caused category list to collapse to stale subset.
+
+### Fix
+- In `index.html`, updated `applyProfileAchievementPayload` to:
+  - normalize/sanitize payload achievement entries by `id`
+  - merge live progress/claim state with canonical fallback definitions
+  - force definition fields to current catalog values (title/description/tab/category/reward/icon/event metadata)
+  - append missing catalog entries from fallback snapshot
+  - use fallback tabs/categories as canonical track/category structure
+- Updated claim success messaging to read title from normalized snapshot entry.
+
+### Result
+- `Time-Limited Event` -> `Legacy Builder Leadership Program` now reflects updated titles:
+  - Executive Ambassador
+  - Regional Ambassador
+  - National Ambassador
+  - Global Ambassador
+- Missing categories/achievements are restored even when the server payload is stale or partial.
+
+### Files Updated
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Profile Header Badge Equip Render Correction
+
+### Summary
+- Fixed profile header right-side badge so it reflects the currently equipped achievement badge instead of falling back to `Legacy Builder` account title.
+- Unified non-rank achievement icon resolution to Founding Ambassador medal icon family.
+
+### Files Updated
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Profile Header Title Badge Sync on Equip
+
+### Summary
+- Fixed profile header title badge not updating after equip by routing achievement payload application through header identity sync.
+
+### File Updated
+- `index.html`
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Title Badge Label Wrapping
+
+### Summary
+- Updated profile header title badge label style to prevent clipping and ellipsis on longer titles.
+
+### File Updated
+- `index.html`
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - KPI Badge Count Alignment
+
+### Summary
+- Updated dashboard KPI badge resolver to exclude `extra` title badge so only rank + primary title/equipped badge are shown.
+
+### File Updated
+- `index.html`
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Binary Tree Overview Title Badge Follow Equip
+
+### Summary
+- Updated Binary Tree account overview title badge resolution to follow equipped profile title selection.
+- Added equipped-title resolution from achievements payload and applied it to title label/icon selection.
+
+### Files Updated
+- `binary-tree-next-app.mjs`
+- `index.html`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Binary Tree Account Overview Title Label Wrap Fix
+
+### Summary
+- Fixed text clipping on the Binary Tree `Account Overview` title badge label.
+- Removed single-line ellipsis behavior so equipped title names (for example, `Founding Ambassador`) render fully.
+
+### Files Updated
+- `binary-tree-next.html`
+
+### Style Changes
+- Updated `.tree-next-account-overview-badge-label` to:
+  - allow multiline wrapping (`white-space: normal`)
+  - break long words safely (`word-break: break-word`, `overflow-wrap: anywhere`)
+  - disable ellipsis truncation (`text-overflow: clip`)
+
+### Validation
+- Manual code review of account overview badge label styles completed.

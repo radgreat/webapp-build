@@ -19,12 +19,16 @@ import {
   findActiveMemberTitleCatalogEntryBySlug,
   upsertMemberTitleCatalogEntry,
 } from '../stores/member-title-catalog.store.js';
+import {
+  readMemberProfileBadgeSelectionByUserId,
+  upsertMemberProfileBadgeSelection,
+} from '../stores/member-profile-badge-selection.store.js';
 import { getBinaryTreeMetrics } from './metrics.service.js';
 import {
   readRegisteredMembersStore,
   upsertRegisteredMemberRecord,
 } from '../stores/member.store.js';
-import { updateUserById } from '../stores/user.store.js';
+import { findUserById, updateUserById } from '../stores/user.store.js';
 import {
   resolveMemberActivityStateByPersonalBv,
   resolveMemberCurrentPersonalBv,
@@ -39,11 +43,115 @@ const LEGACY_BUILDER_PACKAGE_KEY_SET = new Set([
   'legacy-pack',
   'legacy-package',
 ]);
+const FOUNDING_AMBASSADOR_PACKAGE_KEY_SET = new Set([
+  'personal-builder-pack',
+  'business-builder-pack',
+  'infinity-builder-pack',
+  'legacy-builder-pack',
+]);
+const FOUNDING_AMBASSADOR_ICON_PATH = '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg';
+const FOUNDING_AMBASSADOR_ICON_LIGHT_PATH = '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg';
 const DEFAULT_MEMBER_TITLE_CATALOG_SEED = Object.freeze([
   Object.freeze({
-    titleSlug: 'legacy-founder',
-    title: 'Legacy Founder',
-    description: 'Foundation title rewarded for enrolling or upgrading to Legacy Package.',
+    titleSlug: 'founding-ambassador',
+    title: 'Founding Ambassador',
+    description: 'Awarded to members who purchase or upgrade to a package from Personal through Legacy.',
+    iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+    sourceAchievementId: 'premiere-life-founding-ambassador',
+    sourceEventId: '',
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Premiere Life',
+      rewardType: 'title',
+      level: 1,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'infinity-builder',
+    title: 'Infinity Builder',
+    description: 'Awarded to members who purchase or upgrade to the Infinity Builder package.',
+    iconPath: '/brand_assets/Icons/Achievements/infinity.svg',
+    sourceAchievementId: 'premiere-life-infinity-builder',
+    sourceEventId: '',
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Premiere Life',
+      rewardType: 'title',
+      level: 2,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'legacy-builder',
+    title: 'Legacy Builder',
+    description: 'Awarded to members who purchase or upgrade to the Legacy Builder package.',
+    iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
+    sourceAchievementId: 'premiere-life-legacy-builder',
+    sourceEventId: '',
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Premiere Life',
+      rewardType: 'title',
+      level: 3,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'leadership-race-club',
+    title: 'Leadership Race - Club',
+    description: 'Awarded when rank is within Ruby through Sapphire leagues.',
+    iconPath: '/brand_assets/Icons/Achievements/ruby.svg',
+    sourceAchievementId: 'premiere-life-leadership-race-club',
+    sourceEventId: '',
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Leadership Race',
+      rewardType: 'title',
+      level: 4,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'leadership-race-squad',
+    title: 'Leadership Race - Squad',
+    description: 'Awarded when rank is within Diamond through Black Diamond leagues.',
+    iconPath: '/brand_assets/Icons/Achievements/diamond.svg',
+    sourceAchievementId: 'premiere-life-leadership-race-squad',
+    sourceEventId: '',
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Leadership Race',
+      rewardType: 'title',
+      level: 5,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'leadership-race-commander',
+    title: 'Leadership Race - Commander',
+    description: 'Awarded when rank is within Crown through Royal Crown leagues.',
+    iconPath: '/brand_assets/Icons/Achievements/crown.svg',
+    sourceAchievementId: 'premiere-life-leadership-race-commander',
+    sourceEventId: '',
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Leadership Race',
+      rewardType: 'title',
+      level: 6,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'executive-ambassador',
+    title: 'Executive Ambassador',
+    description: 'Awarded when purchasing or upgrading to Legacy Builder package for Legacy Leadership bonus access.',
     iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
     sourceAchievementId: 'time-limited-event-legacy-founder',
     sourceEventId: LEGACY_BUILDER_EVENT_ID,
@@ -52,14 +160,14 @@ const DEFAULT_MEMBER_TITLE_CATALOG_SEED = Object.freeze([
     metadata: Object.freeze({
       eventName: 'Legacy Builder Leadership Program',
       rewardType: 'title',
-      level: 1,
+      level: 7,
       managedBy: 'system-seed',
     }),
   }),
   Object.freeze({
-    titleSlug: 'legacy-director',
-    title: 'Legacy Director',
-    description: 'Level 2 title rewarded for enrolling 3 Legacy Builder Package members.',
+    titleSlug: 'regional-ambassador',
+    title: 'Regional Ambassador',
+    description: 'Awarded when first three Legacy Tier 1 nodes are filled.',
     iconPath: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg',
     sourceAchievementId: 'time-limited-event-legacy-director',
     sourceEventId: LEGACY_BUILDER_EVENT_ID,
@@ -68,14 +176,14 @@ const DEFAULT_MEMBER_TITLE_CATALOG_SEED = Object.freeze([
     metadata: Object.freeze({
       eventName: 'Legacy Builder Leadership Program',
       rewardType: 'title',
-      level: 2,
+      level: 8,
       managedBy: 'system-seed',
     }),
   }),
   Object.freeze({
-    titleSlug: 'legacy-ambassador',
-    title: 'Legacy Ambassador',
-    description: 'Level 3 title rewarded for building 9 second-level Legacy Package members.',
+    titleSlug: 'national-ambassador',
+    title: 'National Ambassador',
+    description: 'Awarded when first-level three nodes each enroll three nodes (3x3 = 9).',
     iconPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg',
     sourceAchievementId: 'time-limited-event-legacy-ambassador',
     sourceEventId: LEGACY_BUILDER_EVENT_ID,
@@ -84,14 +192,14 @@ const DEFAULT_MEMBER_TITLE_CATALOG_SEED = Object.freeze([
     metadata: Object.freeze({
       eventName: 'Legacy Builder Leadership Program',
       rewardType: 'title',
-      level: 3,
+      level: 9,
       managedBy: 'system-seed',
     }),
   }),
   Object.freeze({
-    titleSlug: 'presidential-circle',
-    title: 'Presidential Circle',
-    description: 'Top title rewarded for completing the Legacy Leadership Tier Card or building 27 third-level Legacy Package members.',
+    titleSlug: 'global-ambassador',
+    title: 'Global Ambassador',
+    description: 'Awarded when nine first-level nodes each enroll three nodes (9x3 = 27).',
     iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
     sourceAchievementId: 'time-limited-event-presidential-circle',
     sourceEventId: LEGACY_BUILDER_EVENT_ID,
@@ -100,11 +208,78 @@ const DEFAULT_MEMBER_TITLE_CATALOG_SEED = Object.freeze([
     metadata: Object.freeze({
       eventName: 'Legacy Builder Leadership Program',
       rewardType: 'title',
-      level: 4,
+      level: 10,
       managedBy: 'system-seed',
     }),
   }),
-]);
+  Object.freeze({
+    titleSlug: 'presidential-ambassador-sovereign',
+    title: 'Presidential Ambassador Sovereign',
+    description: 'Awarded when Legacy Tier 1 is completed (40 nodes).',
+    iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+    sourceAchievementId: 'time-limited-event-presidential-ambassador-sovereign',
+    sourceEventId: LEGACY_BUILDER_EVENT_ID,
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Legacy Matrix Builder',
+      rewardType: 'title',
+      level: 11,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'presidential-ambassador-round-table',
+    title: 'Presidential Ambassador Round Table',
+    description: 'Awarded when Legacy Tier 2 is completed (40 nodes).',
+    iconPath: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg',
+    sourceAchievementId: 'time-limited-event-presidential-ambassador-round-table',
+    sourceEventId: LEGACY_BUILDER_EVENT_ID,
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Legacy Matrix Builder',
+      rewardType: 'title',
+      level: 12,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'presidential-ambassador-elite',
+    title: 'Presidential Ambassador Elite',
+    description: 'Awarded when Legacy Tier 3 is completed (40 nodes) and Business Center #1 unlocks.',
+    iconPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg',
+    sourceAchievementId: 'time-limited-event-presidential-ambassador-elite',
+    sourceEventId: LEGACY_BUILDER_EVENT_ID,
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Legacy Matrix Builder',
+      rewardType: 'title',
+      level: 13,
+      managedBy: 'system-seed',
+    }),
+  }),
+  Object.freeze({
+    titleSlug: 'presidential-grand-ambassador-royale',
+    title: 'Presidential Grand Ambassador Royale',
+    description: 'Awarded when Legacy Tier 4 is completed (40 nodes) and Business Center #2 unlocks.',
+    iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
+    sourceAchievementId: 'time-limited-event-presidential-grand-ambassador-royale',
+    sourceEventId: LEGACY_BUILDER_EVENT_ID,
+    claimRule: 'achievement',
+    isActive: true,
+    metadata: Object.freeze({
+      eventName: 'Legacy Matrix Builder',
+      rewardType: 'title',
+      level: 14,
+      managedBy: 'system-seed',
+    }),
+  }),
+].map((entry) => Object.freeze({
+  ...entry,
+  iconPath: FOUNDING_AMBASSADOR_ICON_PATH,
+})));
 
 const PROFILE_ACHIEVEMENT_TABS = Object.freeze([
   Object.freeze({ id: 'time-limited-event', label: 'Time-Limited Event' }),
@@ -116,7 +291,25 @@ const PROFILE_ACHIEVEMENT_CATEGORIES = Object.freeze([
     id: 'legacy-builder-leadership-program',
     tabId: 'time-limited-event',
     label: 'Legacy Builder Leadership Program',
-    description: 'Limited-time account title reward track.',
+    description: 'Limited-time ambassador progression track.',
+  }),
+  Object.freeze({
+    id: 'legacy-matrix-builder',
+    tabId: 'time-limited-event',
+    label: 'Legacy Matrix Builder',
+    description: 'Legacy Matrix tier-completion title progression.',
+  }),
+  Object.freeze({
+    id: 'premiere-life-milestones',
+    tabId: 'premiere-life',
+    label: 'Premiere Life',
+    description: 'Core package and account upgrade title milestones.',
+  }),
+  Object.freeze({
+    id: 'leadership-race',
+    tabId: 'premiere-life',
+    label: 'Leadership Race',
+    description: 'League titles unlocked by qualifying rank ranges.',
   }),
   Object.freeze({
     id: 'premiere-journey',
@@ -128,17 +321,139 @@ const PROFILE_ACHIEVEMENT_CATEGORIES = Object.freeze([
 
 const PROFILE_ACHIEVEMENTS = Object.freeze([
   Object.freeze({
-    id: 'time-limited-event-legacy-founder',
-    tabId: 'time-limited-event',
-    categoryId: 'legacy-builder-leadership-program',
-    title: 'Foundation Level: Legacy Founder',
-    description: 'Enroll or upgrade to Legacy Package',
+    id: 'premiere-life-founding-ambassador',
+    tabId: 'premiere-life',
+    categoryId: 'premiere-life-milestones',
+    title: 'Founding Ambassador',
+    description: 'Purchase or upgrade to any package from Personal through Legacy.',
+    requiredAnyOwnedPackageKeys: Array.from(FOUNDING_AMBASSADOR_PACKAGE_KEY_SET).map((packageKey) => Object.freeze({
+      packageKey,
+      label: (
+        packageKey === 'personal-builder-pack' ? 'Personal Builder Package'
+          : packageKey === 'business-builder-pack' ? 'Business Builder Package'
+            : packageKey === 'infinity-builder-pack' ? 'Infinity Builder Package'
+              : 'Legacy Builder Package'
+      ),
+    })),
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'founding-ambassador',
+    rewardTitle: 'Founding Ambassador',
+    rewardLabel: 'Title: Founding Ambassador',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+    iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
+  }),
+  Object.freeze({
+    id: 'premiere-life-infinity-builder',
+    tabId: 'premiere-life',
+    categoryId: 'premiere-life-milestones',
+    title: 'Infinity Builder',
+    description: 'Purchase or upgrade to Infinity Builder package. Legacy Builder package owners are also eligible.',
+    requiredAnyOwnedPackageKeys: [
+      Object.freeze({
+        packageKey: 'infinity-builder-pack',
+        label: 'Infinity Builder Package',
+      }),
+      Object.freeze({
+        packageKey: 'legacy-builder-pack',
+        label: 'Legacy Builder Package',
+      }),
+    ],
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'infinity-builder',
+    rewardTitle: 'Infinity Builder',
+    rewardLabel: 'Title: Infinity Builder',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    iconPath: '/brand_assets/Icons/Achievements/infinity.svg',
+    iconLightPath: '/brand_assets/Icons/Achievements/infinity-light.svg',
+  }),
+  Object.freeze({
+    id: 'premiere-life-legacy-builder',
+    tabId: 'premiere-life',
+    categoryId: 'premiere-life-milestones',
+    title: 'Legacy Builder',
+    description: 'Purchase or upgrade to Legacy Builder package.',
     requiresLegacyPackageOwnership: true,
     rewardUsd: 0,
     rewardType: 'title',
-    rewardTitleSlug: 'legacy-founder',
-    rewardTitle: 'Legacy Founder',
-    rewardLabel: 'Title: Legacy Founder',
+    rewardTitleSlug: 'legacy-builder',
+    rewardTitle: 'Legacy Builder',
+    rewardLabel: 'Title: Legacy Builder',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    iconPath: '/brand_assets/Icons/Achievements/legacy.svg',
+    iconLightPath: '/brand_assets/Icons/Achievements/legacy-light.svg',
+  }),
+  Object.freeze({
+    id: 'premiere-life-leadership-race-club',
+    tabId: 'premiere-life',
+    categoryId: 'leadership-race',
+    title: 'Leadership Race - Club',
+    description: 'Unlocked for ranks Ruby through Sapphire.',
+    requiredRankMin: 'Ruby',
+    requiredRankMax: 'Sapphire',
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'leadership-race-club',
+    rewardTitle: 'Leadership Race - Club',
+    rewardLabel: 'Title: Leadership Race - Club',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    iconPath: '/brand_assets/Icons/Achievements/ruby.svg',
+    iconLightPath: '/brand_assets/Icons/Achievements/ruby-light.svg',
+  }),
+  Object.freeze({
+    id: 'premiere-life-leadership-race-squad',
+    tabId: 'premiere-life',
+    categoryId: 'leadership-race',
+    title: 'Leadership Race - Squad',
+    description: 'Unlocked for ranks Diamond through Black Diamond.',
+    requiredRankMin: 'Diamond',
+    requiredRankMax: 'Black Diamond',
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'leadership-race-squad',
+    rewardTitle: 'Leadership Race - Squad',
+    rewardLabel: 'Title: Leadership Race - Squad',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    iconPath: '/brand_assets/Icons/Achievements/diamond.svg',
+    iconLightPath: '/brand_assets/Icons/Achievements/diamond-light.svg',
+  }),
+  Object.freeze({
+    id: 'premiere-life-leadership-race-commander',
+    tabId: 'premiere-life',
+    categoryId: 'leadership-race',
+    title: 'Leadership Race - Commander',
+    description: 'Unlocked for ranks Crown through Royal Crown.',
+    requiredRankMin: 'Crown',
+    requiredRankMax: 'Royal Crown',
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'leadership-race-commander',
+    rewardTitle: 'Leadership Race - Commander',
+    rewardLabel: 'Title: Leadership Race - Commander',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    iconPath: '/brand_assets/Icons/Achievements/crown.svg',
+    iconLightPath: '/brand_assets/Icons/Achievements/crown-light.svg',
+  }),
+  Object.freeze({
+    id: 'time-limited-event-legacy-founder',
+    tabId: 'time-limited-event',
+    categoryId: 'legacy-builder-leadership-program',
+    title: 'Executive Ambassador',
+    description: 'Upgrade or purchase a Legacy Builder package to unlock the Legacy Leadership bonus.',
+    requiresLegacyPackageOwnership: true,
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'executive-ambassador',
+    rewardTitle: 'Executive Ambassador',
+    rewardLabel: 'Title: Executive Ambassador',
     requiresActive: false,
     requiresSystemVerification: false,
     eventId: LEGACY_BUILDER_EVENT_ID,
@@ -152,14 +467,14 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     id: 'time-limited-event-legacy-director',
     tabId: 'time-limited-event',
     categoryId: 'legacy-builder-leadership-program',
-    title: 'Level 2: Legacy Director',
-    description: 'Enroll 3 Legacy Builder Package members',
+    title: 'Regional Ambassador',
+    description: 'Fill your first three nodes on Legacy Leadership Bonus Tier 1.',
     requiredLegacyBuilderDirectEnrollments: 3,
     rewardUsd: 0,
     rewardType: 'title',
-    rewardTitleSlug: 'legacy-director',
-    rewardTitle: 'Legacy Director',
-    rewardLabel: 'Title: Legacy Director',
+    rewardTitleSlug: 'regional-ambassador',
+    rewardTitle: 'Regional Ambassador',
+    rewardLabel: 'Title: Regional Ambassador',
     requiresActive: false,
     requiresSystemVerification: false,
     eventId: LEGACY_BUILDER_EVENT_ID,
@@ -173,14 +488,14 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     id: 'time-limited-event-legacy-ambassador',
     tabId: 'time-limited-event',
     categoryId: 'legacy-builder-leadership-program',
-    title: 'Level 3: Legacy Ambassador',
-    description: 'Build 9 second-level Legacy Package members (3 personally enrolled Legacy Builder members each enroll 3 Legacy Package members).',
+    title: 'National Ambassador',
+    description: 'Have your first 3 Tier 1 nodes each enroll three nodes (3 x 3 = 9).',
     requiredLegacyBuilderSecondLevelEnrollments: 9,
     rewardUsd: 0,
     rewardType: 'title',
-    rewardTitleSlug: 'legacy-ambassador',
-    rewardTitle: 'Legacy Ambassador',
-    rewardLabel: 'Title: Legacy Ambassador',
+    rewardTitleSlug: 'national-ambassador',
+    rewardTitle: 'National Ambassador',
+    rewardLabel: 'Title: National Ambassador',
     requiresActive: false,
     requiresSystemVerification: false,
     eventId: LEGACY_BUILDER_EVENT_ID,
@@ -194,19 +509,102 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     id: 'time-limited-event-presidential-circle',
     tabId: 'time-limited-event',
     categoryId: 'legacy-builder-leadership-program',
-    title: 'Top Level: Presidential Circle',
-    description: 'Complete the Legacy Leadership Tier Card or build 27 third-level Legacy Package members (9x3 structure).',
+    title: 'Global Ambassador',
+    description: 'Have your 9 Tier 1 nodes each enroll three nodes (9 x 3 = 27).',
     requiredLegacyBuilderThirdLevelEnrollments: 27,
-    allowLegacyLeadershipTierCardCompletion: true,
     rewardUsd: 0,
     rewardType: 'title',
-    rewardTitleSlug: 'presidential-circle',
-    rewardTitle: 'Presidential Circle',
-    rewardLabel: 'Title: Presidential Circle',
+    rewardTitleSlug: 'global-ambassador',
+    rewardTitle: 'Global Ambassador',
+    rewardLabel: 'Title: Global Ambassador',
     requiresActive: false,
     requiresSystemVerification: false,
     eventId: LEGACY_BUILDER_EVENT_ID,
     eventName: 'Legacy Builder Leadership Program',
+    eventStartAt: LEGACY_BUILDER_EVENT_START_AT,
+    eventEndAt: LEGACY_BUILDER_EVENT_END_AT,
+    iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
+    iconLightPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star-light.svg',
+  }),
+  Object.freeze({
+    id: 'time-limited-event-presidential-ambassador-sovereign',
+    tabId: 'time-limited-event',
+    categoryId: 'legacy-matrix-builder',
+    title: 'Presidential Ambassador Sovereign',
+    description: 'Complete Legacy Tier 1 (40 nodes).',
+    requiredLegacyLeadershipCompletedTierCount: 1,
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'presidential-ambassador-sovereign',
+    rewardTitle: 'Presidential Ambassador Sovereign',
+    rewardLabel: 'Title: Presidential Ambassador Sovereign',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    eventId: LEGACY_BUILDER_EVENT_ID,
+    eventName: 'Legacy Matrix Builder',
+    eventStartAt: LEGACY_BUILDER_EVENT_START_AT,
+    eventEndAt: LEGACY_BUILDER_EVENT_END_AT,
+    iconPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star.svg',
+    iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg',
+  }),
+  Object.freeze({
+    id: 'time-limited-event-presidential-ambassador-round-table',
+    tabId: 'time-limited-event',
+    categoryId: 'legacy-matrix-builder',
+    title: 'Presidential Ambassador Round Table',
+    description: 'Complete Legacy Tier 2 (40 nodes).',
+    requiredLegacyLeadershipCompletedTierCount: 2,
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'presidential-ambassador-round-table',
+    rewardTitle: 'Presidential Ambassador Round Table',
+    rewardLabel: 'Title: Presidential Ambassador Round Table',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    eventId: LEGACY_BUILDER_EVENT_ID,
+    eventName: 'Legacy Matrix Builder',
+    eventStartAt: LEGACY_BUILDER_EVENT_START_AT,
+    eventEndAt: LEGACY_BUILDER_EVENT_END_AT,
+    iconPath: '/brand_assets/Icons/Title-Icons/legacy-director-star.svg',
+    iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-director-star-light.svg',
+  }),
+  Object.freeze({
+    id: 'time-limited-event-presidential-ambassador-elite',
+    tabId: 'time-limited-event',
+    categoryId: 'legacy-matrix-builder',
+    title: 'Presidential Ambassador Elite',
+    description: 'Complete Legacy Tier 3 (40 nodes). Business Center #1 unlocks at completion.',
+    requiredLegacyLeadershipCompletedTierCount: 3,
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'presidential-ambassador-elite',
+    rewardTitle: 'Presidential Ambassador Elite',
+    rewardLabel: 'Title: Presidential Ambassador Elite',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    eventId: LEGACY_BUILDER_EVENT_ID,
+    eventName: 'Legacy Matrix Builder',
+    eventStartAt: LEGACY_BUILDER_EVENT_START_AT,
+    eventEndAt: LEGACY_BUILDER_EVENT_END_AT,
+    iconPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star.svg',
+    iconLightPath: '/brand_assets/Icons/Title-Icons/legacy-ambassador-star-light.svg',
+  }),
+  Object.freeze({
+    id: 'time-limited-event-presidential-grand-ambassador-royale',
+    tabId: 'time-limited-event',
+    categoryId: 'legacy-matrix-builder',
+    title: 'Presidential Grand Ambassador Royale',
+    description: 'Complete Legacy Tier 4 (40 nodes). Business Center #2 unlocks at completion.',
+    requiredLegacyLeadershipCompletedTierCount: 4,
+    rewardUsd: 0,
+    rewardType: 'title',
+    rewardTitleSlug: 'presidential-grand-ambassador-royale',
+    rewardTitle: 'Presidential Grand Ambassador Royale',
+    rewardLabel: 'Title: Presidential Grand Ambassador Royale',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    eventId: LEGACY_BUILDER_EVENT_ID,
+    eventName: 'Legacy Matrix Builder',
     eventStartAt: LEGACY_BUILDER_EVENT_START_AT,
     eventEndAt: LEGACY_BUILDER_EVENT_END_AT,
     iconPath: '/brand_assets/Icons/Title-Icons/presidential-circle-star.svg',
@@ -222,6 +620,21 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     rewardUsd: 0,
     rewardLabel: 'Merch',
     payoutSchedule: 'Claim merch',
+    requiresActive: false,
+    requiresSystemVerification: false,
+    iconPath: '/brand_assets/Icons/Achievements/placeholder.svg',
+    iconLightPath: '/brand_assets/Icons/Achievements/placeholder-light.svg',
+  }),
+  Object.freeze({
+    id: 'premiere-journey-enroll-three-members',
+    tabId: 'premiere-life',
+    categoryId: 'premiere-journey',
+    title: 'Build Your First 3 Members',
+    description: 'Enroll 3 members',
+    requiredDirectSponsorsTotal: 3,
+    rewardUsd: 0,
+    rewardLabel: 'Milestone',
+    payoutSchedule: 'Claim milestone',
     requiresActive: false,
     requiresSystemVerification: false,
     iconPath: '/brand_assets/Icons/Achievements/placeholder.svg',
@@ -407,7 +820,16 @@ const PROFILE_ACHIEVEMENTS = Object.freeze([
     iconPath: '/brand_assets/Icons/Achievements/royal-crown.svg',
     iconLightPath: '/brand_assets/Icons/Achievements/royal-crown-light.svg',
   }),
-]);
+].map((achievement) => {
+  if (normalizeCredential(achievement?.tabId) === 'rank') {
+    return Object.freeze(achievement);
+  }
+  return Object.freeze({
+    ...achievement,
+    iconPath: FOUNDING_AMBASSADOR_ICON_PATH,
+    iconLightPath: FOUNDING_AMBASSADOR_ICON_LIGHT_PATH,
+  });
+}));
 
 const PROFILE_ACHIEVEMENT_BY_ID = new Map(
   PROFILE_ACHIEVEMENTS.map((achievement) => [achievement.id, achievement]),
@@ -1062,6 +1484,28 @@ async function resolveCurrentMemberCycleCount(member = {}) {
   }
 }
 
+async function resolveMemberProgressSource(member = {}, userIdInput = '') {
+  const userId = normalizeText(userIdInput || member?.id);
+  const sourceMember = member && typeof member === 'object' ? member : {};
+  if (!userId) {
+    return sourceMember;
+  }
+
+  try {
+    const storedMember = await findUserById(userId);
+    if (!storedMember || typeof storedMember !== 'object') {
+      return sourceMember;
+    }
+    return {
+      ...sourceMember,
+      ...storedMember,
+      id: userId,
+    };
+  } catch {
+    return sourceMember;
+  }
+}
+
 async function resolveCurrentMemberProgressContext(member = {}) {
   const currentRank = resolveCurrentMemberRank(member);
   const [currentCycles, directSponsorSummary] = await Promise.all([
@@ -1075,16 +1519,31 @@ async function resolveCurrentMemberProgressContext(member = {}) {
     || member?.enrollmentPackageKey
     || member?.accountPackage,
   );
-  const upgradedToLegacyPackageKey = normalizePackageKey(member?.lastAccountUpgradeToPackage);
+  const lastUpgradedEnrollmentPackageKey = normalizePackageKey(
+    member?.lastAccountUpgradeToPackage
+    || member?.last_upgrade_to_package
+    || member?.upgradedToPackage,
+  );
   const hasLegacyPackageOwnership = (
     LEGACY_BUILDER_PACKAGE_KEY_SET.has(currentEnrollmentPackageKey)
-    || LEGACY_BUILDER_PACKAGE_KEY_SET.has(upgradedToLegacyPackageKey)
+    || LEGACY_BUILDER_PACKAGE_KEY_SET.has(lastUpgradedEnrollmentPackageKey)
   );
   const legacyLeadershipTierCardCompleted = Boolean(
     member?.legacyLeadershipTierCardCompleted
     || member?.legacyLeadershipTierCompleted
     || normalizeCredential(member?.legacyLeadershipTierCardStatus) === 'completed'
     || normalizeCredential(member?.legacyLeadershipTierStatus) === 'completed',
+  );
+  const legacyLeadershipCompletedTierCount = Math.max(
+    0,
+    toWholeNumber(
+      member?.legacyLeadershipCompletedTierCount
+      ?? member?.legacy_leadership_completed_tier_count
+      ?? member?.sourceQualificationTier
+      ?? member?.source_qualification_tier
+      ?? member?.legacyLeadershipTierCompletedCount,
+      0,
+    ),
   );
 
   return {
@@ -1093,8 +1552,10 @@ async function resolveCurrentMemberProgressContext(member = {}) {
     currentPersonalPvBv,
     ...directSponsorSummary,
     currentEnrollmentPackageKey,
+    lastUpgradedEnrollmentPackageKey,
     hasLegacyPackageOwnership,
     legacyLeadershipTierCardCompleted,
+    legacyLeadershipCompletedTierCount,
     activityState,
   };
 }
@@ -1127,6 +1588,39 @@ function mapClaimsByAchievementId(claims = [], options = {}) {
   });
 
   return claimMap;
+}
+
+function resolvePreferredTitleAchievementIdFromAwards(titleAwards = [], claimMap = new Map()) {
+  const sourceAwards = Array.isArray(titleAwards) ? titleAwards : [];
+  for (const award of sourceAwards) {
+    const sourceAchievementId = normalizeText(award?.sourceAchievementId);
+    if (sourceAchievementId && claimMap.has(sourceAchievementId)) {
+      return sourceAchievementId;
+    }
+  }
+  return '';
+}
+
+function resolveDefaultEquippedProfileBadgeAchievementId(claims = [], titleAwards = []) {
+  const claimMap = mapClaimsByAchievementId(claims);
+  const preferredTitleAchievementId = resolvePreferredTitleAchievementIdFromAwards(titleAwards, claimMap);
+  if (preferredTitleAchievementId) {
+    return preferredTitleAchievementId;
+  }
+
+  const firstClaimWithAchievement = (Array.isArray(claims) ? claims : []).find((claim) => (
+    Boolean(normalizeText(claim?.achievementId))
+  ));
+  return normalizeText(firstClaimWithAchievement?.achievementId);
+}
+
+function resolveEquippedProfileBadgeAchievementId(equippedIdInput = '', claims = [], titleAwards = []) {
+  const equippedId = normalizeText(equippedIdInput);
+  const claimMap = mapClaimsByAchievementId(claims);
+  if (equippedId && claimMap.has(equippedId)) {
+    return equippedId;
+  }
+  return resolveDefaultEquippedProfileBadgeAchievementId(claims, titleAwards);
 }
 
 function resolveCurrentPeriodRankClaim(claims = [], rankClaimPeriod = '') {
@@ -1446,8 +1940,13 @@ function resolveRankMonthlyClaimContext(
 }
 
 function evaluateAchievementEligibility(achievement = {}, progressContext = {}, claim = null, options = {}) {
-  const requiredRank = normalizeRankLabelForAchievement(achievement?.requiredRank);
-  const requiresRank = Boolean(requiredRank) && achievement?.requiresRank !== false;
+  const requiredRankMin = normalizeRankLabelForAchievement(
+    achievement?.requiredRankMin
+    || achievement?.requiredRank,
+  );
+  const requiredRankMax = normalizeRankLabelForAchievement(achievement?.requiredRankMax);
+  const hasRankRequirement = Boolean(requiredRankMin || requiredRankMax);
+  const requiresRank = hasRankRequirement && achievement?.requiresRank !== false;
   const requiredDirectSponsorsTotal = toWholeNumber(achievement?.requiredDirectSponsorsTotal, 0);
   const requiredDirectSponsorsPerSide = toWholeNumber(achievement?.requiredDirectSponsorsPerSide, 0);
   const requiredCycles = toWholeNumber(achievement?.requiredCycles, 0);
@@ -1481,6 +1980,22 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
       };
     })
     .filter((entry) => entry.packageKey && entry.required > 0);
+  const requiredAnyOwnedPackageKeys = (Array.isArray(achievement?.requiredAnyOwnedPackageKeys)
+    ? achievement.requiredAnyOwnedPackageKeys
+    : [])
+    .map((entry) => {
+      const packageKey = normalizePackageKey(entry?.packageKey || entry?.id || entry);
+      const packageLabel = normalizeText(entry?.label || entry?.packageLabel || packageKey || 'Package');
+      return {
+        packageKey,
+        packageLabel,
+      };
+    })
+    .filter((entry) => entry.packageKey);
+  const requiredLegacyLeadershipCompletedTierCount = toWholeNumber(
+    achievement?.requiredLegacyLeadershipCompletedTierCount,
+    0,
+  );
   const requiresActive = achievement?.requiresActive === true;
   const requiresSystemVerification = achievement?.requiresSystemVerification === true;
   const isRankTrack = isRankAdvancementAchievement(achievement);
@@ -1536,10 +2051,21 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   const packageEnrollmentsByKey = progressContext?.packageEnrollmentsByKey && typeof progressContext.packageEnrollmentsByKey === 'object'
     ? progressContext.packageEnrollmentsByKey
     : {};
+  const currentEnrollmentPackageKey = normalizePackageKey(progressContext?.currentEnrollmentPackageKey);
+  const lastUpgradedEnrollmentPackageKey = normalizePackageKey(progressContext?.lastUpgradedEnrollmentPackageKey);
+  const currentRankKey = normalizeCredential(currentRank);
+  const currentOwnedPackageKeys = new Set(
+    [currentEnrollmentPackageKey, lastUpgradedEnrollmentPackageKey].filter(Boolean),
+  );
   const hasLegacyPackageOwnership = (
     Boolean(progressContext?.hasLegacyPackageOwnership)
-    || LEGACY_BUILDER_PACKAGE_KEY_SET.has(normalizePackageKey(progressContext?.currentEnrollmentPackageKey))
+    || LEGACY_BUILDER_PACKAGE_KEY_SET.has(currentEnrollmentPackageKey)
+    || LEGACY_BUILDER_PACKAGE_KEY_SET.has(lastUpgradedEnrollmentPackageKey)
+    || currentRankKey === 'legacy'
   );
+  if (hasLegacyPackageOwnership) {
+    currentOwnedPackageKeys.add('legacy-builder-pack');
+  }
   const currentLegacyBuilderDirectEnrollments = Math.max(
     0,
     toWholeNumber(
@@ -1556,6 +2082,13 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     toWholeNumber(progressContext?.thirdLevelLegacyBuilderEnrollments, 0),
   );
   const legacyLeadershipTierCardCompleted = Boolean(progressContext?.legacyLeadershipTierCardCompleted);
+  const currentLegacyLeadershipCompletedTierCount = Math.max(
+    0,
+    toWholeNumber(
+      progressContext?.legacyLeadershipCompletedTierCount,
+      progressContext?.sourceQualificationTier,
+    ),
+  );
   const achievementRankIndex = resolveRankIndex(achievement?.title || achievement?.requiredRank);
   const meetsMonthlyRecordedRankRun = (
     isRankTrack
@@ -1565,7 +2098,17 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
 
   const alreadyClaimed = Boolean(claim?.claimedAt);
   const meetsRankRequirement = requiresRank
-    ? isRankEligibleForAchievement(currentRank, requiredRank)
+    ? (() => {
+      const currentRankIndex = resolveRankIndex(currentRank);
+      if (currentRankIndex < 0) {
+        return false;
+      }
+      const minimumRankIndex = requiredRankMin ? resolveRankIndex(requiredRankMin) : -1;
+      const maximumRankIndex = requiredRankMax ? resolveRankIndex(requiredRankMax) : -1;
+      const meetsMinimum = minimumRankIndex >= 0 ? currentRankIndex >= minimumRankIndex : true;
+      const meetsMaximum = maximumRankIndex >= 0 ? currentRankIndex <= maximumRankIndex : true;
+      return meetsMinimum && meetsMaximum;
+    })()
     : true;
   const meetsDirectSponsorTotalRequirementNow = requiredDirectSponsorsTotal > 0
     ? currentDirectSponsorsTotal >= requiredDirectSponsorsTotal
@@ -1602,6 +2145,14 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   const meetsLegacyPackageOwnershipRequirementNow = requiresLegacyPackageOwnership
     ? hasLegacyPackageOwnership
     : true;
+  const ownedPackageRequirementSnapshot = requiredAnyOwnedPackageKeys.map((entry) => ({
+    packageKey: entry.packageKey,
+    packageLabel: entry.packageLabel,
+    met: currentOwnedPackageKeys.has(entry.packageKey),
+  }));
+  const meetsAnyOwnedPackageRequirementNow = ownedPackageRequirementSnapshot.length > 0
+    ? ownedPackageRequirementSnapshot.some((entry) => entry.met)
+    : true;
   const meetsLegacyBuilderDirectRequirementNow = requiredLegacyBuilderDirectEnrollments > 0
     ? currentLegacyBuilderDirectEnrollments >= requiredLegacyBuilderDirectEnrollments
     : true;
@@ -1617,6 +2168,9 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
         ? (legacyLeadershipTierCardCompleted || meetsLegacyBuilderThirdThresholdNow)
         : meetsLegacyBuilderThirdThresholdNow
     )
+    : true;
+  const meetsLegacyLeadershipCompletedTierRequirementNow = requiredLegacyLeadershipCompletedTierCount > 0
+    ? currentLegacyLeadershipCompletedTierCount >= requiredLegacyLeadershipCompletedTierCount
     : true;
   const meetsActiveRequirementNow = requiresActive
     ? Boolean(activityState.isActive)
@@ -1651,6 +2205,12 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   const meetsLegacyBuilderThirdLevelRequirement = meetsMonthlyRecordedRankRun
     ? true
     : meetsLegacyBuilderThirdLevelRequirementNow;
+  const meetsAnyOwnedPackageRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsAnyOwnedPackageRequirementNow;
+  const meetsLegacyLeadershipCompletedTierRequirement = meetsMonthlyRecordedRankRun
+    ? true
+    : meetsLegacyLeadershipCompletedTierRequirementNow;
   const meetsActiveRequirement = meetsActiveRequirementNow;
 
   const baseRequirementsMet = (
@@ -1661,10 +2221,12 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     && meetsPersonalPvRequirement
     && meetsLegPersonalPvRequirement
     && meetsPackageEnrollmentRequirement
+    && meetsAnyOwnedPackageRequirement
     && meetsLegacyPackageOwnershipRequirement
     && meetsLegacyBuilderDirectRequirement
     && meetsLegacyBuilderSecondLevelRequirement
     && meetsLegacyBuilderThirdLevelRequirement
+    && meetsLegacyLeadershipCompletedTierRequirement
     && meetsActiveRequirement
   );
   const systemVerified = alreadyClaimed
@@ -1683,12 +2245,20 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
 
   const requirements = [];
   if (requiresRank) {
+    const rankRequirementLabel = (requiredRankMin && requiredRankMax)
+      ? `Reach ${requiredRankMin} to ${requiredRankMax} rank range`
+      : (requiredRankMin
+        ? `Reach ${requiredRankMin} rank`
+        : `Reach up to ${requiredRankMax} rank`);
     requirements.push({
       id: 'rank',
-      label: `Reach ${requiredRank} rank`,
+      label: rankRequirementLabel,
       met: meetsRankRequirement,
       current: currentRank,
-      required: requiredRank,
+      required: {
+        min: requiredRankMin,
+        max: requiredRankMax,
+      },
     });
   }
   if (requiredDirectSponsorsPerSide > 0) {
@@ -1759,6 +2329,20 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
       required: entry.required,
     });
   });
+  if (ownedPackageRequirementSnapshot.length > 0) {
+    const packageLabels = ownedPackageRequirementSnapshot.map((entry) => entry.packageLabel);
+    const joinedPackageLabels = packageLabels.join(' / ');
+    requirements.push({
+      id: 'owned-package-any',
+      label: `Own any package from: ${joinedPackageLabels}`,
+      met: meetsAnyOwnedPackageRequirement,
+      current: {
+        currentEnrollmentPackageKey,
+        lastUpgradedEnrollmentPackageKey,
+      },
+      required: ownedPackageRequirementSnapshot,
+    });
+  }
   if (requiresLegacyPackageOwnership) {
     requirements.push({
       id: 'legacy-package-self',
@@ -1796,6 +2380,15 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
       current: currentLegacyBuilderThirdLevelEnrollments,
       required: requiredLegacyBuilderThirdLevelEnrollments,
       alternateMet: allowLegacyLeadershipTierCardCompletion ? legacyLeadershipTierCardCompleted : false,
+    });
+  }
+  if (requiredLegacyLeadershipCompletedTierCount > 0) {
+    requirements.push({
+      id: 'legacy-leadership-completed-tier',
+      label: `Complete Legacy Tier ${requiredLegacyLeadershipCompletedTierCount.toLocaleString()} (40 nodes)`,
+      met: meetsLegacyLeadershipCompletedTierRequirement,
+      current: currentLegacyLeadershipCompletedTierCount,
+      required: requiredLegacyLeadershipCompletedTierCount,
     });
   }
 
@@ -1843,7 +2436,13 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   } else if (!alreadyClaimed && isRankTrack && claimWindowExpired) {
     lockReason = `Rank reward claim window expired for ${currentPeriodLabel}.`;
   } else if (!alreadyClaimed && requiresRank && !meetsRankRequirement) {
-    lockReason = `Reach ${requiredRank} rank to unlock this bonus.`;
+    if (requiredRankMin && requiredRankMax) {
+      lockReason = `Reach a rank within ${requiredRankMin} to ${requiredRankMax} to unlock this bonus.`;
+    } else if (requiredRankMin) {
+      lockReason = `Reach ${requiredRankMin} rank to unlock this bonus.`;
+    } else {
+      lockReason = `Reach up to ${requiredRankMax} rank to unlock this bonus.`;
+    }
   } else if (!alreadyClaimed && requiredDirectSponsorsTotal > 0 && !meetsDirectSponsorTotalRequirement) {
     lockReason = `Enroll ${requiredDirectSponsorsTotal.toLocaleString()} member${requiredDirectSponsorsTotal === 1 ? '' : 's'} (${currentDirectSponsorsTotal.toLocaleString()}/${requiredDirectSponsorsTotal.toLocaleString()}).`;
   } else if (!alreadyClaimed && requiredDirectSponsorsPerSide > 0 && !meetsDirectSponsorRequirement) {
@@ -1861,15 +2460,20 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
   } else if (!alreadyClaimed && requiresLegacyPackageOwnership && !meetsLegacyPackageOwnershipRequirement) {
     lockReason = 'Enroll or upgrade to Legacy Package to unlock this title.';
   } else if (!alreadyClaimed && requiredLegacyBuilderDirectEnrollments > 0 && !meetsLegacyBuilderDirectRequirement) {
-    lockReason = normalizeText(achievement?.id) === 'time-limited-event-legacy-director'
-      ? ''
-      : `Enroll ${requiredLegacyBuilderDirectEnrollments.toLocaleString()} Legacy Builder Package member${requiredLegacyBuilderDirectEnrollments === 1 ? '' : 's'} (${currentLegacyBuilderDirectEnrollments.toLocaleString()}/${requiredLegacyBuilderDirectEnrollments.toLocaleString()}).`;
+    lockReason = `Enroll ${requiredLegacyBuilderDirectEnrollments.toLocaleString()} Legacy Builder Package member${requiredLegacyBuilderDirectEnrollments === 1 ? '' : 's'} (${currentLegacyBuilderDirectEnrollments.toLocaleString()}/${requiredLegacyBuilderDirectEnrollments.toLocaleString()}).`;
   } else if (!alreadyClaimed && requiredLegacyBuilderSecondLevelEnrollments > 0 && !meetsLegacyBuilderSecondLevelRequirement) {
     lockReason = `Build ${requiredLegacyBuilderSecondLevelEnrollments.toLocaleString()} second-level Legacy Package members (${currentLegacyBuilderSecondLevelEnrollments.toLocaleString()}/${requiredLegacyBuilderSecondLevelEnrollments.toLocaleString()}).`;
   } else if (!alreadyClaimed && requiredLegacyBuilderThirdLevelEnrollments > 0 && !meetsLegacyBuilderThirdLevelRequirement) {
     lockReason = allowLegacyLeadershipTierCardCompletion
       ? `Complete Legacy Leadership Tier Card or build ${requiredLegacyBuilderThirdLevelEnrollments.toLocaleString()} third-level Legacy Package members (${currentLegacyBuilderThirdLevelEnrollments.toLocaleString()}/${requiredLegacyBuilderThirdLevelEnrollments.toLocaleString()}).`
       : `Build ${requiredLegacyBuilderThirdLevelEnrollments.toLocaleString()} third-level Legacy Package members (${currentLegacyBuilderThirdLevelEnrollments.toLocaleString()}/${requiredLegacyBuilderThirdLevelEnrollments.toLocaleString()}).`;
+  } else if (!alreadyClaimed && ownedPackageRequirementSnapshot.length > 0 && !meetsAnyOwnedPackageRequirement) {
+    const packageLabelList = ownedPackageRequirementSnapshot
+      .map((entry) => entry.packageLabel)
+      .join(', ');
+    lockReason = `Purchase or upgrade to any of these packages: ${packageLabelList}.`;
+  } else if (!alreadyClaimed && requiredLegacyLeadershipCompletedTierCount > 0 && !meetsLegacyLeadershipCompletedTierRequirement) {
+    lockReason = `Complete Legacy Tier ${requiredLegacyLeadershipCompletedTierCount.toLocaleString()} (40 nodes) (${currentLegacyLeadershipCompletedTierCount.toLocaleString()}/${requiredLegacyLeadershipCompletedTierCount.toLocaleString()}).`;
   } else if (!alreadyClaimed && unmetPackageRequirement) {
     lockReason = `Enroll ${unmetPackageRequirement.required.toLocaleString()} ${unmetPackageRequirement.packageLabel} (${unmetPackageRequirement.current.toLocaleString()}/${unmetPackageRequirement.required.toLocaleString()}).`;
   } else if (!alreadyClaimed && requiresActive && !meetsActiveRequirement) {
@@ -1935,6 +2539,11 @@ function evaluateAchievementEligibility(achievement = {}, progressContext = {}, 
     currentLegacyBuilderThirdLevelEnrollments,
     allowLegacyLeadershipTierCardCompletion,
     legacyLeadershipTierCardCompleted,
+    requiredLegacyLeadershipCompletedTierCount,
+    currentLegacyLeadershipCompletedTierCount,
+    requiredAnyOwnedPackageKeys: ownedPackageRequirementSnapshot,
+    currentEnrollmentPackageKey,
+    lastUpgradedEnrollmentPackageKey,
     requiredPackageEnrollments: packageEnrollmentSnapshot,
     packageEnrollmentsByKey,
     requiresActive,
@@ -2025,6 +2634,12 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     rankClaimWindow,
   });
   const claimMap = mapClaimsByAchievementId(claims, { rankClaimPeriod });
+  const claimMapAllPeriods = mapClaimsByAchievementId(claims);
+  const equippedProfileBadgeId = resolveEquippedProfileBadgeAchievementId(
+    options?.equippedProfileBadgeId,
+    claims,
+    titleAwards,
+  );
   const achievementProgressContext = {
     ...progressContext,
     currentRank,
@@ -2060,8 +2675,23 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
       categoryId: achievement.categoryId,
       title: achievement.title,
       description: achievement.description,
-      requiredRank: normalizeRankLabelForAchievement(achievement.requiredRank),
-      requiresRank: achievement?.requiresRank !== false,
+      requiredRank: normalizeRankLabelForAchievement(
+        achievement?.requiredRank
+        || achievement?.requiredRankMin,
+      ),
+      requiredRankMin: normalizeRankLabelForAchievement(
+        achievement?.requiredRankMin
+        || achievement?.requiredRank,
+      ),
+      requiredRankMax: normalizeRankLabelForAchievement(achievement?.requiredRankMax),
+      requiresRank: (
+        achievement?.requiresRank !== false
+        && Boolean(
+          achievement?.requiredRank
+          || achievement?.requiredRankMin
+          || achievement?.requiredRankMax,
+        )
+      ),
       requiredDirectSponsorsTotal: eligibility.requiredDirectSponsorsTotal,
       requiredDirectSponsorsPerSide: eligibility.requiredDirectSponsorsPerSide,
       currentLeftDirectSponsors: eligibility.currentLeftDirectSponsors,
@@ -2083,6 +2713,11 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
       currentLegacyBuilderThirdLevelEnrollments: eligibility.currentLegacyBuilderThirdLevelEnrollments,
       allowLegacyLeadershipTierCardCompletion: eligibility.allowLegacyLeadershipTierCardCompletion,
       legacyLeadershipTierCardCompleted: eligibility.legacyLeadershipTierCardCompleted,
+      requiredLegacyLeadershipCompletedTierCount: eligibility.requiredLegacyLeadershipCompletedTierCount,
+      currentLegacyLeadershipCompletedTierCount: eligibility.currentLegacyLeadershipCompletedTierCount,
+      requiredAnyOwnedPackageKeys: eligibility.requiredAnyOwnedPackageKeys,
+      currentEnrollmentPackageKey: eligibility.currentEnrollmentPackageKey,
+      lastUpgradedEnrollmentPackageKey: eligibility.lastUpgradedEnrollmentPackageKey,
       requiredPackageEnrollments: eligibility.requiredPackageEnrollments,
       rewardUsd: roundCurrencyAmount(achievement.rewardUsd),
       rewardType: normalizeText(achievement.rewardType),
@@ -2127,6 +2762,9 @@ function buildAchievementCatalogForMember(member, claims = [], progressContext =
     packageEnrollmentsByKey,
     accountTitles: titleAwards,
     claimableTitles: titleCatalog,
+    equippedProfileBadgeId,
+    earnedAchievementIds: Array.from(claimMapAllPeriods.keys()),
+    earnedAchievementClaims: Object.fromEntries(claimMapAllPeriods.entries()),
     rankClaimPeriod,
     rankClaimPeriodLabel: rankMonthlyContext.currentPeriodLabel,
     rankRunPeriod: normalizeText(rankClaimWindow?.currentRunPeriodKey),
@@ -2154,7 +2792,8 @@ async function buildCatalogForMemberWithLatestState(member = {}, userId = '', op
   const nowMs = Number.isFinite(Number(options?.nowMs))
     ? Math.floor(Number(options.nowMs))
     : Date.now();
-  const effectiveMember = await maybeApplyMonthlyRankPromotion(member, { nowMs });
+  const sourceMember = await resolveMemberProgressSource(member, userId);
+  const effectiveMember = await maybeApplyMonthlyRankPromotion(sourceMember, { nowMs });
   const rankClaimWindow = resolveRankClaimWindowContext(nowMs);
   const rankRunPeriod = normalizeText(options?.rankRunPeriod)
     || normalizeText(rankClaimWindow?.currentRunPeriodKey)
@@ -2162,12 +2801,18 @@ async function buildCatalogForMemberWithLatestState(member = {}, userId = '', op
   const rankClaimPeriod = normalizeText(options?.rankClaimPeriod)
     || normalizeText(rankClaimWindow?.claimPeriodKey);
   await ensureMemberTitleCatalogSeed();
-  const [claims, progressContext, titleAwards, titleCatalog] = await Promise.all([
+  const [claims, progressContext, titleAwards, titleCatalog, equippedSelection] = await Promise.all([
     listMemberAchievementClaimsByUserId(userId),
     resolveCurrentMemberProgressContext(effectiveMember),
     listActiveMemberTitleAwardsByUserId(userId),
     listActiveMemberTitleCatalogEntries(),
+    readMemberProfileBadgeSelectionByUserId(userId),
   ]);
+  const equippedProfileBadgeId = resolveEquippedProfileBadgeAchievementId(
+    equippedSelection?.achievementId,
+    claims,
+    titleAwards,
+  );
   const [rankRunProgress, rankClaimProgress] = await Promise.all([
     resolveRankMonthlyRunProgress(effectiveMember, progressContext, rankRunPeriod),
     resolveRankClaimProgressForPeriod(userId, rankClaimPeriod),
@@ -2180,12 +2825,14 @@ async function buildCatalogForMemberWithLatestState(member = {}, userId = '', op
     rankClaimWindow,
     titleAwards,
     titleCatalog,
+    equippedProfileBadgeId,
   });
 }
 
 export async function resolveRankAdvancementRunSnapshotForMember(member = {}) {
   const nowMs = Date.now();
-  const effectiveMember = await maybeApplyMonthlyRankPromotion(member, { nowMs });
+  const sourceMember = await resolveMemberProgressSource(member, normalizeText(member?.id));
+  const effectiveMember = await maybeApplyMonthlyRankPromotion(sourceMember, { nowMs });
   const progressContext = await resolveCurrentMemberProgressContext(effectiveMember);
   const rankClaimWindow = resolveRankClaimWindowContext(nowMs);
   const rankRunPeriod = normalizeText(rankClaimWindow?.currentRunPeriodKey)
@@ -2260,7 +2907,8 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
   await ensureMemberTitleCatalogSeed();
 
   const claimAttemptMs = Date.now();
-  const effectiveMember = await maybeApplyMonthlyRankPromotion(member, { nowMs: claimAttemptMs });
+  const sourceMember = await resolveMemberProgressSource(member, userId);
+  const effectiveMember = await maybeApplyMonthlyRankPromotion(sourceMember, { nowMs: claimAttemptMs });
   const rankClaimWindow = resolveRankClaimWindowContext(claimAttemptMs);
   const rankRunPeriod = normalizeText(rankClaimWindow?.currentRunPeriodKey)
     || resolveClaimPeriodKeyFromDate(claimAttemptMs);
@@ -2336,12 +2984,18 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
     };
   }
 
-  const [allClaims, progressContext, titleAwards, titleCatalog] = await Promise.all([
+  const [allClaims, progressContext, titleAwards, titleCatalog, equippedSelection] = await Promise.all([
     listMemberAchievementClaimsByUserId(userId),
     resolveCurrentMemberProgressContext(effectiveMember),
     listActiveMemberTitleAwardsByUserId(userId),
     listActiveMemberTitleCatalogEntries(),
+    readMemberProfileBadgeSelectionByUserId(userId),
   ]);
+  const equippedProfileBadgeId = resolveEquippedProfileBadgeAchievementId(
+    equippedSelection?.achievementId,
+    allClaims,
+    titleAwards,
+  );
   const [rankRunProgress, rankClaimProgress] = await Promise.all([
     resolveRankMonthlyRunProgress(effectiveMember, progressContext, rankRunPeriod),
     resolveRankClaimProgressForPeriod(userId, rankClaimPeriod),
@@ -2367,6 +3021,7 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
       rankClaimWindow,
       titleAwards,
       titleCatalog,
+      equippedProfileBadgeId,
     },
   );
   const rewardTitleSlug = resolveAchievementRewardTitleSlug(achievement);
@@ -2538,6 +3193,61 @@ export async function claimProfileAchievementForMember(member = {}, achievementI
     data: {
       success: true,
       claim: claimRecord,
+      ...catalog,
+    },
+  };
+}
+
+export async function equipProfileAchievementBadgeForMember(member = {}, achievementIdInput = '') {
+  const userId = normalizeText(member?.id);
+  if (!userId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Authenticated member user id is required.',
+    };
+  }
+
+  const achievementId = normalizeText(achievementIdInput);
+  if (!achievementId) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Achievement id is required to equip a profile badge.',
+    };
+  }
+
+  const achievement = PROFILE_ACHIEVEMENT_BY_ID.get(achievementId) || null;
+  if (!achievement) {
+    return {
+      success: false,
+      status: 404,
+      error: 'Achievement was not found.',
+    };
+  }
+
+  const claims = await listMemberAchievementClaimsByUserId(userId);
+  const claimMap = mapClaimsByAchievementId(claims);
+  if (!claimMap.has(achievementId)) {
+    return {
+      success: false,
+      status: 403,
+      error: 'Only earned badges can be equipped.',
+    };
+  }
+
+  await upsertMemberProfileBadgeSelection({
+    userId,
+    achievementId,
+  });
+
+  const catalog = await buildCatalogForMemberWithLatestState(member, userId);
+  return {
+    success: true,
+    status: 200,
+    data: {
+      success: true,
+      equippedProfileBadgeId: normalizeText(catalog?.equippedProfileBadgeId),
       ...catalog,
     },
   };

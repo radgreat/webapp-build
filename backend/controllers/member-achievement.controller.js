@@ -1,6 +1,7 @@
 import {
   listProfileAchievementsForMember,
   claimProfileAchievementForMember,
+  equipProfileAchievementBadgeForMember,
 } from '../services/member-achievement.service.js';
 
 export async function listMemberProfileAchievements(req, res) {
@@ -41,6 +42,29 @@ export async function claimMemberProfileAchievement(req, res) {
     console.error(error);
     return res.status(500).json({
       error: 'Unable to claim member achievement.',
+    });
+  }
+}
+
+export async function equipMemberProfileAchievementBadge(req, res) {
+  try {
+    const result = await equipProfileAchievementBadgeForMember(
+      req.authenticatedMember || {},
+      req.params?.achievementId,
+    );
+
+    if (!result.success) {
+      return res.status(result.status).json({
+        error: result.error,
+        ...(result.data ? result.data : {}),
+      });
+    }
+
+    return res.status(result.status).json(result.data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: 'Unable to equip member achievement badge.',
     });
   }
 }

@@ -338,13 +338,16 @@
     .tree-next-account-overview-badge-label {
       margin: 0;
       max-width: 118px;
-      overflow: hidden;
+      display: block;
+      overflow: visible;
       color: #13161B;
       font-size: 14px;
       font-weight: 700;
       line-height: 1.2;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      text-overflow: clip;
     }
 
     .tree-next-account-overview-user {

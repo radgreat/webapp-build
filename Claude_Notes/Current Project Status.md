@@ -19954,3 +19954,236 @@ ode --check backend/services/store-checkout.service.js passed.
   - `Claude_Notes/binary-tree-next.md`
 - Validation:
   - `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Profile Title/Badge Inventory (Equip + Persistence)
+
+- Completed:
+  - added right-profile-badge inventory overlay/drawer for title/badge equip flow.
+  - added backend equipped-badge persistence and equip endpoint:
+    - `POST /api/member-auth/achievements/:achievementId/equip`
+    - per-user equipped badge storage in `charge.member_profile_badge_selection`.
+  - profile header now updates instantly after equip and keeps equipped badge across refresh/login via server payload sync.
+  - inventory now shows earned/acquired entries only.
+  - excluded rank achievements `Ruby` through `Royal Crown` from inventory display.
+- Files updated:
+  - `index.html`
+  - `backend/stores/member-profile-badge-selection.store.js`
+  - `backend/services/member-achievement.service.js`
+  - `backend/controllers/member-achievement.controller.js`
+  - `backend/routes/member-achievement.routes.js`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - `node --check backend/stores/member-profile-badge-selection.store.js` passed.
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - `node --check backend/controllers/member-achievement.controller.js` passed.
+  - `node --check backend/routes/member-achievement.routes.js` passed.
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Badge Inventory Name + Amber Theme Parity
+
+- Completed:
+  - changed profile stash title label to `Badge Inventory`.
+  - aligned inventory modal to Binary Tree amber theme palette.
+  - corrected Equipped card/chip/button colors to amber gradient styling (replacing prior blue accent mismatch).
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Legacy Backfill Eligibility + Icon Uniformity
+
+- Completed:
+  - made all non-rank achievement/title icons use the Founding Ambassador medal visual.
+  - added backend achievement-context hydration from DB user records so legacy package/rank checks are evaluated with full member data even when auth session payload is partial.
+  - added legacy-aware ownership backfill handling in eligibility checks to include `legacy-builder-pack` when legacy ownership is resolved.
+- Outcome:
+  - Legacy users are now correctly eligible for package-based non-rank rewards (Founding Ambassador, Infinity Builder, Legacy Builder) without requiring fresh package writes in session payload.
+  - Non-rank achievement cards and title badges use a single consistent icon family (Founding Ambassador icon).
+- Files updated:
+  - `backend/services/member-achievement.service.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - `node --check backend/services/member-achievement.service.js` passed.
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Legacy Achievement Labels Forced To Updated Catalog
+
+- Completed:
+  - added profile achievement payload normalization so stale server labels are remapped by `achievementId` to updated catalog definitions.
+  - enforced updated tabs/categories from fallback catalog to keep `Time-Limited Event` and `Premiere Life` structure stable.
+  - appended missing achievements from fallback catalog when payload is partial.
+  - updated claim feedback to read normalized snapshot titles.
+- Outcome:
+  - Legacy Builder Leadership Program now renders updated title names:
+    - Executive Ambassador
+    - Regional Ambassador
+    - National Ambassador
+    - Global Ambassador
+  - Missing categories/achievements caused by stale or partial payload are restored in UI.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Badge Inventory Text Readability Fix
+
+- Completed:
+  - switched Badge Inventory modal and card text treatment to white for higher contrast/readability.
+  - updated Equipped/Earned status chip and action button text to white.
+  - updated inventory feedback and empty-state text to white variants.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Badge Inventory Icon Container Color Fix
+
+- Completed:
+  - changed the Badge Inventory icon container background from gray to amber gradient.
+  - matched icon-shell styling to the Binary Tree amber visual family, including a stronger equipped variant.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Title/Achievement Catalog Expanded To 25
+
+- Completed:
+  - rebuilt profile achievement catalog model to 25 achievements total.
+  - applied new title tracks and rules:
+    - Premiere Life: Founding Ambassador, Infinity Builder, Legacy Builder
+    - Premiere Life / Leadership Race: Club, Squad, Commander
+    - Time-Limited Event / Legacy Builder Leadership Program: Executive, Regional, National, Global Ambassador
+    - Time-Limited Event / Legacy Matrix Builder: Sovereign, Round Table, Elite, Presidential Grand Ambassador Royale
+  - retained and aligned rank rewards (`Ruby` -> `Royal Crown`) with existing monthly claim logic.
+  - added two Premiere Journey milestones in fallback/server model to satisfy requested total count.
+  - updated profile fallback snapshot + title mapping/icon lookup to the new naming set.
+- Outcome:
+  - Profile Achievement payload now exposes a 25-entry catalog with updated title semantics and eligibility.
+  - Badge Inventory and profile title resolution can now consume the new title labels without stale legacy naming drift.
+- Files updated:
+  - `backend/services/member-achievement.service.js`
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - `node --check backend/services/member-achievement.service.js` passed.
+
+## Patch Update (2026-04-30) - Achievement Categories No Longer Disappear
+
+- Completed:
+  - fixed profile achievement payload apply logic so empty `tabs/categories/achievements` arrays do not clear the active UI catalog after refresh.
+  - added category/item resolver fallback to static achievement snapshot when live snapshot arrays are empty.
+  - retained previously loaded `claimableTitles` and `accountTitles` when the API payload omits those arrays.
+- Outcome:
+  - On profile reload, achievement categories remain visible and accessible instead of disappearing after silent refresh.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Header Equipped Badge Display Fix
+
+- Completed:
+  - forced profile header title badge to use equipped badge entry first (title, icon, subtitle).
+  - forced non-rank icon resolver to Founding Ambassador medal for consistency.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Equip Title Immediate Header Refresh
+
+- Completed:
+  - switched profile achievement payload apply flow to run full header sync after equip/load.
+  - header title badge now refreshes immediately when equipping non-Legacy titles.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Profile Title Clipping Fix
+
+- Completed:
+  - fixed profile header title badge text clipping by allowing wrapped multi-line labels for title badges.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - KPI Card 3rd Badge Removed
+
+- Completed:
+  - dashboard KPI badge strip now renders only rank and title badge entries.
+  - removed Title 2/extra badge from Account Active Until card.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Binary Tree Account Overview Equipped Title Sync
+
+- Completed:
+  - binary tree account overview now prioritizes equipped title data from achievements payload.
+  - root node payload now maps profile account title fields from active badge entries.
+  - removed legacy title coercion (`Legacy Builder` -> `Legacy Founder`) in binary tree overview title logic.
+- Files updated:
+  - `index.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+  - inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Binary Tree Account Overview Title Label Wrap Fix
+
+### Summary
+- Fixed text clipping on the Binary Tree `Account Overview` title badge label.
+- Removed single-line ellipsis behavior so equipped title names (for example, `Founding Ambassador`) render fully.
+
+### Files Updated
+- `binary-tree-next.html`
+
+### Style Changes
+- Updated `.tree-next-account-overview-badge-label` to:
+  - allow multiline wrapping (`white-space: normal`)
+  - break long words safely (`word-break: break-word`, `overflow-wrap: anywhere`)
+  - disable ellipsis truncation (`text-overflow: clip`)
+
+### Validation
+- Manual code review of account overview badge label styles completed.

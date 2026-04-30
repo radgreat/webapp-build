@@ -5969,6 +5969,81 @@ function resolveAccountOverviewPrimaryClaimedTitleEntry() {
   return normalized[0];
 }
 
+function resolveAccountOverviewEquippedTitleEntry() {
+  const achievementsPayload = (
+    rankAdvancementCachedAchievementsPayload
+    && typeof rankAdvancementCachedAchievementsPayload === 'object'
+  )
+    ? rankAdvancementCachedAchievementsPayload
+    : null;
+  if (!achievementsPayload) {
+    return null;
+  }
+
+  const equippedAchievementId = safeText(achievementsPayload?.equippedProfileBadgeId);
+  if (!equippedAchievementId) {
+    return null;
+  }
+
+  const sourceAchievements = Array.isArray(achievementsPayload?.achievements)
+    ? achievementsPayload.achievements
+    : [];
+  const equippedAchievement = sourceAchievements.find((achievement) => (
+    safeText(achievement?.id) === equippedAchievementId
+  )) || null;
+  if (!equippedAchievement || typeof equippedAchievement !== 'object') {
+    return null;
+  }
+
+  const rewardType = normalizeCredentialValue(equippedAchievement?.rewardType);
+  const title = safeText(
+    rewardType === 'title'
+      ? (equippedAchievement?.rewardTitle || equippedAchievement?.title)
+      : (equippedAchievement?.title || equippedAchievement?.rewardTitle),
+  );
+  if (!title) {
+    return null;
+  }
+
+  const titleSlug = resolveAccountOverviewTitleSlug(
+    equippedAchievement?.rewardTitleSlug
+    || equippedAchievement?.titleSlug
+    || equippedAchievement?.title_slug
+    || equippedAchievement?.rewardTitle
+    || equippedAchievement?.title,
+  );
+  const titleKey = resolveAccountOverviewTitleKey(title);
+  const sourceCatalog = Array.isArray(achievementsPayload?.claimableTitles)
+    ? achievementsPayload.claimableTitles
+    : [];
+  const matchingCatalogEntry = sourceCatalog.find((entry) => {
+    const catalogTitleSlug = resolveAccountOverviewTitleSlug(
+      entry?.titleSlug
+      || entry?.title_slug
+      || entry?.title,
+    );
+    const catalogTitleKey = resolveAccountOverviewTitleKey(entry?.title);
+    return (
+      (titleSlug && catalogTitleSlug && titleSlug === catalogTitleSlug)
+      || (titleKey && catalogTitleKey && titleKey === catalogTitleKey)
+    );
+  }) || null;
+  const iconPath = safeText(
+    equippedAchievement?.iconPath
+    || equippedAchievement?.icon_path
+    || matchingCatalogEntry?.iconPath
+    || matchingCatalogEntry?.icon_path
+    || '',
+  );
+
+  return {
+    achievementId: equippedAchievementId,
+    title,
+    titleSlug,
+    iconPath,
+  };
+}
+
 function resolveAccountOverviewTitleBadgeSubtitle(titleLabel, homeNode = null) {
   const normalizedTitleKey = resolveAccountOverviewTitleKey(titleLabel);
   if (!normalizedTitleKey || normalizedTitleKey === 'member title') {
@@ -7093,6 +7168,10 @@ function syncAccountOverviewPanelVisuals() {
   const sessionTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sessionTitleLabel, rankLabel);
   const homeTitleLabel = resolveNodePrimaryTitleLabel(homeNode);
   const homeTitleIsFallback = isTreeNextRankBuilderFallbackTitle(homeTitleLabel, rankLabel);
+  const equippedTitleEntry = systemTotalsMode
+    ? null
+    : resolveAccountOverviewEquippedTitleEntry();
+  const equippedTitleLabel = safeText(equippedTitleEntry?.title);
   const primaryClaimedTitleEntry = systemTotalsMode
     ? null
     : resolveAccountOverviewPrimaryClaimedTitleEntry();
@@ -7100,6 +7179,8 @@ function syncAccountOverviewPanelVisuals() {
   let titleLabel = systemTotalsMode ? 'System Overview' : fallbackTitleLabel;
   if (systemTotalsMode) {
     titleLabel = 'System Overview';
+  } else if (equippedTitleLabel) {
+    titleLabel = equippedTitleLabel;
   } else if (state.source === 'member') {
     if (sessionTitleLabel && !sessionTitleIsFallback) {
       titleLabel = sessionTitleLabel;
@@ -7116,12 +7197,6 @@ function syncAccountOverviewPanelVisuals() {
   const titleLabelIsFallbackBuilder = isTreeNextRankBuilderFallbackTitle(titleLabel, rankLabel);
   if (!systemTotalsMode && titleLabelIsFallbackBuilder && claimedTitleLabel) {
     titleLabel = claimedTitleLabel;
-  } else if (
-    !systemTotalsMode
-    && resolveAccountOverviewTitleKey(titleLabel) === 'legacy builder'
-  ) {
-    // "Legacy Builder" is a package label; backend title catalog uses "Legacy Founder".
-    titleLabel = 'Legacy Founder';
   }
   const joinedAtMs = resolveAccountOverviewJoinedAtMs(homeNode);
   const joinedText = systemTotalsMode
@@ -7138,8 +7213,11 @@ function syncAccountOverviewPanelVisuals() {
   };
   const [rankIconPath, resolvedNodeTitleIconPath] = resolveNodeDetailRankAndTitleIcons(iconSourceNode);
   let titleIconPath = resolvedNodeTitleIconPath;
+  const equippedTitleIconPath = safeText(equippedTitleEntry?.iconPath);
   const claimedTitleIconPath = safeText(primaryClaimedTitleEntry?.iconPath);
-  if (claimedTitleIconPath) {
+  if (equippedTitleIconPath) {
+    titleIconPath = resolveNodeDetailsIconPath(equippedTitleIconPath, titleLabel);
+  } else if (claimedTitleIconPath) {
     titleIconPath = resolveNodeDetailsIconPath(claimedTitleIconPath, titleLabel);
   } else if (
     !systemTotalsMode
