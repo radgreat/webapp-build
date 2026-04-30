@@ -95,3 +95,39 @@
 
 #### Notes
 - Legacy admin binary tree panel markup remains in file, but route/nav access is now retired from admin dashboard routing and sidebar navigation.
+
+## Patch Update (2026-04-30) - Flush All Data Scope Alignment (Users + User Data Only)
+
+### Summary
+- Updated admin flush behavior to clear users/members and their related records comprehensively while preserving products and admin/global configuration data.
+
+### Admin UI Changes
+- Updated Danger Zone copy and confirmation dialog text in `admin.html` to reflect:
+  - preserved: admin account, runtime settings, title catalog, store products.
+  - cleared: users/members and linked sessions/tokens/invoices/payouts/metrics/attribution/notifications/wallet/ledger/business-center/auto-ship/webhook history.
+- Updated flush result summary mappings to include new backend clear counters (badge selection, auto-ship, ledger, business-center, webhook).
+
+### Backend Flush Mapping Updates
+- `backend/services/admin.service.js`
+  - added truncation targets:
+    - `member_profile_badge_selection`
+    - `user_auto_ship_settings`
+    - `user_auto_ship_events`
+    - `ledger_entries`
+    - `wallet_ledger_entries`
+    - `business_center_owner_progress`
+    - `business_center_activation_audit`
+    - `business_center_cycle_states`
+    - `business_center_commission_events`
+    - `stripe_webhook_events`
+  - removed truncation/reset behavior for:
+    - `member_title_catalog`
+    - `runtime_settings`
+
+### Validation
+- `node --check backend/services/admin.service.js` passed.
+- Backend tests passed:
+  - `backend/tests/binary-cycle-cutoff.test.js`
+  - `backend/tests/ledger.service.test.js`
+  - `backend/tests/leadership-matching.service.test.js`
+  - `backend/tests/member-business-center.service.test.js`
