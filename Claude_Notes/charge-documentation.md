@@ -34049,6 +34049,80 @@ Known limitation:
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
 
+## Patch Update (2026-04-29) - Profile Hero Subtext Changed From Node ID To Joined Date
+
+### What Changed
+- `index.html`
+  - Replaced profile account overview subtext from `Node: ...` to `Joined ...`.
+  - Added `resolveProfileAccountOverviewJoinedLabel(...)` to derive joined text from session fields:
+    - `createdAt` / `created_at`
+    - `enrolledAt` / `enrolled_at`
+    - `registeredAt` / `registered_at`
+  - Updated DOM id binding from `profile-account-overview-node` to `profile-account-overview-joined`.
+
+### Why
+- User-facing profile hero should show membership joined date under username, not internal node/member identifier.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-29) - Profile Hero Divider Width Fix
+
+### What Changed
+- `index.html`
+  - Updated `.profile-account-overview-hero` desktop sizing from constrained `max-width` layout to full-width (`width: 100%`).
+  - This allows the hero `border-bottom` divider to span the card width instead of appearing short under the joined-date line.
+
+### Why
+- User reported the separator below joined date did not reach the card borders.
+
+## Patch Update (2026-04-29) - Profile Sales and Business Volumes Uses Exact 6-Card Set
+
+### What Changed
+- `index.html`
+  - Replaced the profile `Sales and Business Volumes` card list with the exact 6 cards:
+    1. Account Active Until
+    2. Total Organization BV
+    3. Personal BV
+    4. Weekly Cycle Cap
+    5. Direct Sponsors
+    6. E-Wallet
+  - Updated card ids and bindings:
+    - `profile-account-overview-total-bv-value`
+    - `profile-account-overview-personal-bv-value`
+    - `profile-account-overview-cycle-cap-value`
+    - `profile-account-overview-ewallet-value`
+  - Updated profile grid to 3-column desktop layout so the 6-card set renders as two even rows.
+  - Expanded `renderProfileLifetimeCards(...)` to populate:
+    - total/personal BV values
+    - weekly cycle cap (`cappedCycles / weeklyCapCycles`)
+    - direct sponsors
+    - E-Wallet balance (metrics -> snapshot -> session fallback chain)
+  - Wired E-Wallet refresh to profile cards by invoking profile card render from `renderEWalletSummary(...)`.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+## Patch Update (2026-04-29) - Profile Page Account Overview Reuse + Binary Tree Avatar Parity
+
+### What Changed
+- `index.html`
+  - Replaced the profile page body content to keep the `Achievement` section and place a new `Account Overview` block above it.
+  - Wired profile hero data to show Node, Name, Username, Rank, and Title in the reused overview section.
+  - Updated profile overview hero CSS to mirror Binary Tree account overview avatar/badge sizing, spacing, typography, and gradients.
+  - Removed avatar clipping by dropping `overflow: hidden` from the profile avatar so the active green status dot is fully visible.
+  - Added `resolveProfileAccountOverviewInitials(...)` and switched hero initials rendering to this local resolver.
+  - Updated node label resolution priority to use member/node identifiers before generic user identifiers.
+
+### Design Decisions
+- Kept Node text in the hero while matching Binary Tree name/handle text treatment for visual parity.
+- Preserved the existing rank/title badge icon wiring so profile badge state stays synced with achievement selections.
+
+### Known Limitations
+- Visual screenshot verification of the profile route is currently gated by authenticated session state in the local screenshot flow.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
 ## Patch Update (2026-04-27) - Details Week Preview Transition Animation
 
 ### What Changed
@@ -34914,6 +34988,158 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Why
 - Admin-added products (for example `MetaRoastTM`) were not appearing in `Binary Tree > Profile > My Store` even though they appeared in the dashboard store view.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-29) - Profile BV Cards No Longer Reset To Zero After E-Wallet Refresh
+
+### What Changed
+- `index.html`
+  - Removed the profile card full re-render call from `renderEWalletSummary(...)` that passed only `eWalletBalance`.
+  - Updated the E-Wallet summary flow to update only `#profile-account-overview-ewallet-value` directly.
+
+### Why
+- The prior call re-ran `renderProfileLifetimeCards({ eWalletBalance })`, which did not include BV metrics and caused `Total Organization BV` / `Personal BV` to fall back to `0` after initial correct render.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-29) - Profile Header Text Cleanup
+
+### What Changed
+- `index.html`
+  - Removed the profile overview header text block containing:
+    - `Account Overview`
+    - `My Profile`
+    - `Binary Tree summary profile`
+  - Kept the hero and card sections unchanged.
+
+## Patch Update (2026-04-29) - Legacy Leader Title Removed (Backend Catalog Alignment)
+
+### What Changed
+- `index.html`
+  - Updated rank-to-title fallback map:
+    - `legacy` now resolves to `Legacy Founder` (was `Legacy Leader`).
+  - Updated title achievement id aliasing:
+    - `legacy leader` now maps to `time-limited-event-legacy-founder` for icon/compatibility fallback.
+  - Added explicit normalization in title resolver:
+    - if explicit legacy title value equals `Legacy Leader`, it is converted to `Legacy Founder`.
+
+### Why
+- Backend title catalog seed supports `Legacy Founder`, `Legacy Director`, `Legacy Ambassador`, and `Presidential Circle`.
+- `Legacy Leader` is not a backend catalog title and should not be shown in profile title badge.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-29) - Profile Hero Rank/Title Hovercard Support
+
+### What Changed
+- `index.html`
+  - Added hover/focus/touch hovercard interactions to Profile hero `Rank` and `Title` badges.
+  - Reused existing profile badge hovercard renderer/positioning behavior for consistency with KPI badge detail popups.
+  - Added interactive badge shell ids:
+    - `#profile-account-overview-rank-badge-shell`
+    - `#profile-account-overview-title-badge-shell`
+  - Added badge-entry sync binding so hovercard details stay current with dynamic rank/title updates.
+  - Added focus-visible style and pointer affordance for interactive hero badges.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-29) - Profile Hovercard Container Restored
+
+### What Changed
+- `index.html`
+  - Added back the missing `#profile-handle-badge-hovercard` tooltip container and its icon/title/subtitle child elements.
+
+### Root Cause
+- Profile rank/title hover logic was wired, but the profile hovercard DOM element did not exist, so popups could not render.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-29) - Legacy Founder Subtitle Date Fallback
+
+### What Changed
+- `index.html`
+  - Updated `resolveProfileTitleBadgeSubtitle(...)` so `Acquired` date now falls back to member session dates when title-award date is missing:
+    - `createdAt`
+    - `enrolledAt`
+    - `registeredAt`
+
+### Why
+- Legacy Founder subtitle previously rendered `Acquired --` when no matched title-award entry was present.
+
+### Validation
+- Inline script parse check passed (`Parsed 3 inline script blocks successfully.`).
+
+## Patch Update (2026-04-30) - Binary Tree Account Overview Title Fallback + Badge Hovercards
+
+### What Changed
+- `binary-tree-next.html`
+  - Removed hardcoded Account Overview title defaults that forced `Legacy Founder` in the hero before live data loads.
+  - Updated default title badge content to neutral fallback (`Member Title` + placeholder icon).
+  - Added badge-shell ids for interactive rank/title hero badges.
+  - Added a dedicated account-overview badge hovercard container (icon/title/subtitle).
+  - Added hover/focus visual affordance styles for interactive hero badges.
+
+- `binary-tree-next-app.mjs`
+  - Added Account Overview badge-hover interaction system (hover, focus, touch/pen, delayed hide, viewport-aware positioning).
+  - Added hovercard sync binding for rank and title badges in Account Overview hero.
+  - Added rank hover subtitle (`Subscriber since ...`) using member joined-date fallback.
+  - Added title hover subtitle resolver with event-aware copy and acquired-date fallback:
+    - uses claimed title entry date when available
+    - falls back to member created/joined/registered date
+  - Updated Account Overview title fallback resolution to stop inheriting stale DOM defaults.
+  - Panel visibility now force-hides active badge hovercard when Account Overview closes.
+
+### Why
+- Binary Tree Account Overview was still using a hardcoded `Legacy Founder` fallback and did not support the new badge hover detail behavior present on dashboard/profile.
+
+### Files Affected
+- `binary-tree-next.html`
+- `binary-tree-next-app.mjs`
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Title Badge Theme Set To Amber (User Preference)
+
+### What Changed
+- `binary-tree-next.html`
+  - Restored Account Overview title badge shell gradient to amber/orange theme.
+  - Set default title badge icon back to legacy founder title icon asset for the amber visual treatment.
+- `binary-tree-next-app.mjs`
+  - Restored runtime title badge palette routing for founder/title labels to `legacyFounder` (amber).
+  - Restored title badge fallback variant from `ocean` back to `amber`.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Account Overview Title Badge Forced Amber
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Account Overview hero title badge palette is now forced to `ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyFounder` (amber) regardless of title label text.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Title Icon Now Uses Backend Title Catalog Data
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Updated Account Overview title resolution to prefer backend-awarded titles before `rank + Builder` fallback.
+  - Added claimable-title catalog merge (`claimableTitles`) when building claimed title entries, so title icon paths can be sourced from backend title storage.
+  - Added fallback normalization: if panel would resolve `Legacy Builder` as title text, it is converted to `Legacy Founder` (backend catalog title) for title badge/icon rendering.
+  - Added title icon override from backend catalog icon path when available.
+
+### Backend Verification
+- Checked backend title storage seed/catalog (`member-achievement.service.js` + title-catalog store):
+  - Present titles: `Legacy Founder`, `Legacy Director`, `Legacy Ambassador`, `Presidential Circle`
+  - No `Legacy Builder` title entry exists in catalog.
 
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.

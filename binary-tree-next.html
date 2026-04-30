@@ -291,6 +291,19 @@
       min-width: 0;
     }
 
+    .tree-next-account-overview-badge[data-hover-enabled="true"] {
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    .tree-next-account-overview-badge[data-hover-enabled="true"]:focus-visible {
+      outline: 2px solid rgba(69, 143, 236, 0.72);
+      outline-offset: 4px;
+      border-radius: 14px;
+    }
+
     .tree-next-account-overview-badge-icon {
       width: 82px;
       height: 82px;
@@ -299,10 +312,20 @@
       border-radius: 50%;
       background: linear-gradient(140deg, #48809C 0%, #2C5673 58%, #18324A 100%);
       box-shadow: none;
+      transition:
+        transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 160ms cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .tree-next-account-overview-badge.is-title .tree-next-account-overview-badge-icon {
       background: linear-gradient(140deg, #D4A948 0%, #A47A22 58%, #765516 100%);
+    }
+
+    .tree-next-account-overview-badge[data-hover-enabled="true"]:hover .tree-next-account-overview-badge-icon,
+    .tree-next-account-overview-badge[data-hover-enabled="true"]:focus-visible .tree-next-account-overview-badge-icon,
+    .tree-next-account-overview-badge[data-hovered="true"] .tree-next-account-overview-badge-icon {
+      transform: translateY(-1px) scale(1.02);
+      filter: brightness(1.04);
     }
 
     .tree-next-account-overview-badge-icon img {
@@ -544,6 +567,104 @@
       font-size: 12px;
       font-weight: 500;
       line-height: 1.35;
+    }
+
+    .tree-next-account-overview-badge-hovercard {
+      position: fixed;
+      left: -9999px;
+      top: -9999px;
+      z-index: 1600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 250px;
+      max-width: min(320px, calc(100vw - 24px));
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(164, 176, 201, 0.34);
+      background: linear-gradient(150deg, rgba(18, 27, 44, 0.96), rgba(34, 48, 75, 0.92));
+      box-shadow:
+        0 22px 44px rgba(9, 16, 31, 0.34),
+        0 8px 18px rgba(12, 19, 36, 0.24);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(6px) scale(0.985);
+      transition:
+        opacity 170ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 170ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tree-next-account-overview-badge-hovercard.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    .tree-next-account-overview-badge-hovercard[data-placement='bottom'] {
+      transform-origin: top center;
+    }
+
+    .tree-next-account-overview-badge-hovercard::after {
+      content: '';
+      position: absolute;
+      left: var(--tree-next-account-overview-badge-pointer-left, 48px);
+      transform: translateX(-50%);
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+    }
+
+    .tree-next-account-overview-badge-hovercard[data-placement='top']::after {
+      top: 100%;
+      border-top: 7px solid rgba(28, 39, 62, 0.96);
+    }
+
+    .tree-next-account-overview-badge-hovercard[data-placement='bottom']::after {
+      bottom: 100%;
+      border-bottom: 7px solid rgba(22, 33, 54, 0.96);
+    }
+
+    .tree-next-account-overview-badge-hovercard-icon-shell {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(138deg, rgba(182, 198, 229, 0.34), rgba(132, 157, 202, 0.26));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      flex: 0 0 auto;
+    }
+
+    .tree-next-account-overview-badge-hovercard-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      filter: drop-shadow(0 3px 6px rgba(6, 11, 21, 0.36));
+    }
+
+    .tree-next-account-overview-badge-hovercard-copy {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+    }
+
+    .tree-next-account-overview-badge-hovercard-title {
+      margin: 0;
+      color: #F3F7FF;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+      overflow-wrap: anywhere;
+    }
+
+    .tree-next-account-overview-badge-hovercard-subtitle {
+      margin: 0;
+      color: rgba(224, 232, 248, 0.88);
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.5;
+      white-space: pre-line;
+      overflow-wrap: anywhere;
     }
 
     @media (max-width: 980px) {
@@ -6068,7 +6189,7 @@
       </header>
 
       <section class="tree-next-account-overview-hero" aria-label="Member profile summary">
-        <div class="tree-next-account-overview-badge is-rank">
+        <div id="tree-next-account-overview-rank-badge-shell" class="tree-next-account-overview-badge is-rank">
           <div id="tree-next-account-overview-rank-badge" class="tree-next-account-overview-badge-icon" aria-hidden="true">
             <img id="tree-next-account-overview-rank-icon" src="/brand_assets/Icons/Achievements/legacy-light.svg" alt="" />
           </div>
@@ -6085,11 +6206,11 @@
           <p id="tree-next-account-overview-joined">Joined</p>
         </div>
 
-        <div class="tree-next-account-overview-badge is-title">
+        <div id="tree-next-account-overview-title-badge-shell" class="tree-next-account-overview-badge is-title">
           <div id="tree-next-account-overview-title-badge" class="tree-next-account-overview-badge-icon" aria-hidden="true">
             <img id="tree-next-account-overview-title-icon" src="/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg" alt="" />
           </div>
-          <p id="tree-next-account-overview-title-label" class="tree-next-account-overview-badge-label">Legacy Founder</p>
+          <p id="tree-next-account-overview-title-label" class="tree-next-account-overview-badge-label">Member Title</p>
         </div>
       </section>
 
@@ -6612,6 +6733,29 @@
       </section>
     </div>
   </aside>
+  <div
+    id="tree-next-account-overview-badge-hovercard"
+    class="tree-next-account-overview-badge-hovercard"
+    role="status"
+    aria-live="polite"
+    aria-hidden="true"
+    data-placement="top"
+  >
+    <div class="tree-next-account-overview-badge-hovercard-icon-shell">
+      <img
+        id="tree-next-account-overview-badge-hovercard-icon"
+        class="tree-next-account-overview-badge-hovercard-icon"
+        src="/brand_assets/Icons/Achievements/placeholder-light.svg"
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+    <div class="tree-next-account-overview-badge-hovercard-copy">
+      <p id="tree-next-account-overview-badge-hovercard-title" class="tree-next-account-overview-badge-hovercard-title">Badge</p>
+      <p id="tree-next-account-overview-badge-hovercard-subtitle" class="tree-next-account-overview-badge-hovercard-subtitle">--</p>
+    </div>
+  </div>
   <div id="binary-tree-loading" role="status" aria-live="polite">
     <div class="binary-tree-loading-card">
       <p class="binary-tree-loading-title">Loading Binary Tree</p>

@@ -19604,6 +19604,73 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
+## Patch Update (2026-04-29) - Profile Page Account Overview + Avatar/Initials Parity Fix
+
+- Completed:
+  - profile page now keeps achievements and uses the Binary Tree-style `Account Overview` hero above it.
+  - profile avatar style now matches Binary Tree values for gradient, size, and typography.
+  - fixed active-status green dot clipping by removing avatar overflow clipping in profile hero CSS.
+  - fixed profile hero initials rendering by adding a dedicated initials resolver and syncing initials from display name.
+  - tightened node label resolution order to prioritize member/node identity fields.
+- Outcome:
+  - profile hero now visually matches Binary Tree account overview behavior more closely, including readable initials and unclipped active indicator.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed for `index.html` (3 script blocks).
+
+## Patch Update (2026-04-29) - Profile Joined Label Fix
+
+- Completed:
+  - replaced profile hero subtext `Node: <id>` with `Joined <date>`.
+  - joined value now resolves from member session date fields (`createdAt/enrolledAt/registeredAt` with snake_case fallbacks).
+- Outcome:
+  - profile page now shows the expected joined date under username instead of an internal node id.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed for `index.html`.
+
+## Patch Update (2026-04-29) - Profile Divider Full-Width Adjustment
+
+- Completed:
+  - removed desktop max-width constraint from profile account-overview hero.
+  - kept hero content centered via grid `justify-content` while allowing divider line to span full panel width.
+- Outcome:
+  - separator under joined date now reaches the account-overview card borders.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+
+## Patch Update (2026-04-29) - Profile Volume Cards Standardized To 6-Card Account Overview Set
+
+- Completed:
+  - profile `Sales and Business Volumes` now uses the exact six cards requested:
+    - Account Active Until
+    - Total Organization BV
+    - Personal BV
+    - Weekly Cycle Cap
+    - Direct Sponsors
+    - E-Wallet
+  - upgraded profile card data rendering to include weekly cycle-cap and E-Wallet value updates.
+  - connected E-Wallet summary refresh path so profile card E-Wallet value stays in sync.
+- Outcome:
+  - profile section now mirrors the expected account-overview card set and ordering with live values.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+- Validation:
+  - inline script parse check passed for `index.html`.
 
 ## Patch Update (2026-04-28) - Business Center Caption Copy Update
 
@@ -19752,3 +19819,138 @@ ode --check backend/services/store-checkout.service.js passed.
 
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-29) - Profile BV Reset Regression Fix
+
+- Completed:
+  - removed the E-Wallet-triggered profile full-card render that was overwriting BV fields.
+  - E-Wallet refresh now updates only the E-Wallet card value in profile account overview.
+- Outcome:
+  - `Total Organization BV` and `Personal BV` keep their correct values and no longer drop to `0` after E-Wallet sync.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+
+## Patch Update (2026-04-29) - Profile Header Labels Removed
+
+- Completed:
+  - removed `Account Overview`, `My Profile`, and `Binary Tree summary profile` text from the profile account overview panel.
+- Outcome:
+  - profile panel now starts directly with the hero section.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+
+## Patch Update (2026-04-29) - Profile Title Correctness (No Legacy Leader)
+
+- Completed:
+  - removed `Legacy Leader` as a generated profile title fallback.
+  - legacy rank fallback now uses `Legacy Founder`.
+  - added compatibility conversion so stale explicit `Legacy Leader` values render as `Legacy Founder`.
+- Outcome:
+  - profile title badge is aligned with backend title storage/catalog for legacy-level titles.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+
+## Patch Update (2026-04-29) - Profile Badge Hover Detail Parity
+
+- Completed:
+  - enabled hover detail popup interactions on Profile hero rank/title badges.
+  - reused existing profile hovercard system (same behavior class as dashboard KPI hover details).
+  - added keyboard focus support and touch/pen trigger support for profile hero badge popups.
+- Outcome:
+  - Profile rank/title badges now show detail popups on hover like dashboard KPI badges.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+
+## Patch Update (2026-04-29) - Profile Hover Popup Visibility Fix
+
+- Completed:
+  - restored missing profile hovercard DOM node used by rank/title hover handlers.
+- Outcome:
+  - profile rank/title badge hover popups now have a render target and can display.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+
+## Patch Update (2026-04-29) - Title Popup Date Fallback Fix
+
+- Completed:
+  - added fallback acquired-date resolution in profile title subtitle logic.
+- Outcome:
+  - legacy founder title popup now shows a real acquired date fallback instead of `--` when award timestamp is unavailable.
+- Files updated:
+  - `index.html`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/member-dashboard-page.md`
+
+## Patch Update (2026-04-30) - Binary Tree Account Overview Title/Hover Parity
+
+- Completed:
+  - removed hardcoded `Legacy Founder` visual fallback in Binary Tree Account Overview hero title badge.
+  - switched title badge default to neutral `Member Title` + placeholder icon until live title data resolves.
+  - enabled hover detail popup behavior on Binary Tree Account Overview rank/title badges.
+  - added title popup acquired-date fallback logic so legacy-program badges do not show missing-date copy when claim timestamp is absent.
+- Outcome:
+  - Binary Tree Account Overview now follows profile/dashboard behavior for rank/title badge details and no longer defaults to stale founder text.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Title Badge Color Preference
+
+- Completed:
+  - applied user-requested amber/orange theme for Binary Tree Account Overview title badge.
+  - restored runtime amber palette mapping for founder/title labels.
+- Files updated:
+  - `binary-tree-next.html`
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Title Badge Amber Enforcement
+
+- Completed:
+  - forced Binary Tree Account Overview title badge runtime palette to amber/orange in all title-label states.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Binary Tree Title Icon Aligned To Backend Title Storage
+
+- Completed:
+  - verified backend title storage does not define `Legacy Builder` as a title.
+  - updated Binary Tree Account Overview title/icon resolution to prefer backend title awards + title catalog icon paths.
+  - added compatibility normalization from `Legacy Builder` fallback text to backend title `Legacy Founder` for title badge/icon rendering.
+- Files updated:
+  - `binary-tree-next-app.mjs`
+  - `Claude_Notes/charge-documentation.md`
+  - `Claude_Notes/Current Project Status.md`
+  - `Claude_Notes/binary-tree-next.md`
+- Validation:
+  - `node --check binary-tree-next-app.mjs` passed.

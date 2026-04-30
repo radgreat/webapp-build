@@ -703,10 +703,13 @@ const bootErrorElement = document.getElementById('boot-error');
 const loadingScreenElement = document.getElementById('binary-tree-loading');
 const firstOpenSplashElement = document.getElementById('binary-tree-first-open-splash');
 const accountOverviewPanelElement = document.getElementById('tree-next-account-overview-panel');
+const accountOverviewScrollElement = accountOverviewPanelElement?.querySelector('.tree-next-account-overview-scroll') || null;
 const accountOverviewRefreshButtonElement = document.getElementById('tree-next-account-overview-refresh');
+const accountOverviewRankBadgeShellElement = document.getElementById('tree-next-account-overview-rank-badge-shell');
 const accountOverviewRankBadgeElement = document.getElementById('tree-next-account-overview-rank-badge');
 const accountOverviewRankIconElement = document.getElementById('tree-next-account-overview-rank-icon');
 const accountOverviewRankLabelElement = document.getElementById('tree-next-account-overview-rank-label');
+const accountOverviewTitleBadgeShellElement = document.getElementById('tree-next-account-overview-title-badge-shell');
 const accountOverviewTitleBadgeElement = document.getElementById('tree-next-account-overview-title-badge');
 const accountOverviewTitleIconElement = document.getElementById('tree-next-account-overview-title-icon');
 const accountOverviewTitleLabelElement = document.getElementById('tree-next-account-overview-title-label');
@@ -735,6 +738,11 @@ const accountOverviewTotalBvLabelElement = resolveAccountOverviewTileLabelElemen
 const accountOverviewPersonalBvLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewPersonalBvValueElement);
 const accountOverviewDirectSponsorsLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewDirectSponsorsValueElement);
 const accountOverviewEwalletLabelElement = resolveAccountOverviewTileLabelElement(accountOverviewEwalletValueElement);
+const accountOverviewBadgeHovercardElement = document.getElementById('tree-next-account-overview-badge-hovercard');
+const accountOverviewBadgeHovercardIconElement = document.getElementById('tree-next-account-overview-badge-hovercard-icon');
+const accountOverviewBadgeHovercardTitleElement = document.getElementById('tree-next-account-overview-badge-hovercard-title');
+const accountOverviewBadgeHovercardSubtitleElement = document.getElementById('tree-next-account-overview-badge-hovercard-subtitle');
+const ACCOUNT_OVERVIEW_BADGE_HOVER_HIDE_DELAY_MS = 140;
 const ACCOUNT_OVERVIEW_DEFAULT_LABELS = Object.freeze({
   activeWindow: safeText(accountOverviewActiveWindowLabelElement?.textContent || 'Account Active Until') || 'Account Active Until',
   totalBv: safeText(accountOverviewTotalBvLabelElement?.textContent || 'Total Organization BV') || 'Total Organization BV',
@@ -955,6 +963,9 @@ let accountOverviewRemoteIdentityKey = '';
 let accountOverviewRemoteRequestSequence = 0;
 let accountOverviewCachedLegVolumeSignature = '';
 let accountOverviewCachedLegVolumeMetrics = null;
+let accountOverviewBadgeHoverHideTimerId = 0;
+let activeAccountOverviewBadgeHoverAnchorElement = null;
+let activeAccountOverviewBadgeHoverKey = '';
 let nodeServerCutoffMetricsCache = new Map();
 let nodeServerCutoffMetricsInFlight = new Map();
 let sideNavMemberStatusCachedSignature = '';
@@ -5801,6 +5812,437 @@ function formatAccountOverviewJoinedDate(joinedAtMs) {
   }
 }
 
+function formatAccountOverviewBadgeDateLabel(valueInput) {
+  const parsed = typeof valueInput === 'number'
+    ? valueInput
+    : Date.parse(safeText(valueInput));
+  if (!Number.isFinite(parsed)) {
+    return '--';
+  }
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date(parsed));
+  } catch (_) {
+    return '--';
+  }
+}
+
+function resolveAccountOverviewTitleKey(valueInput = '') {
+  return normalizeCredentialValue(valueInput).replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function resolveAccountOverviewTitleSlug(valueInput = '') {
+  return safeText(valueInput)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function resolveAccountOverviewClaimedTitleEntries() {
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const sourceCollections = [
+    rankAdvancementCachedAchievementsPayload?.accountTitles,
+    session?.accountTitles,
+  ];
+  const titleCatalogCollections = [
+    rankAdvancementCachedAchievementsPayload?.claimableTitles,
+    session?.claimableTitles,
+  ];
+  const titleCatalogBySlug = new Map();
+  const titleCatalogByKey = new Map();
+  for (const catalogSource of titleCatalogCollections) {
+    const catalogEntries = Array.isArray(catalogSource) ? catalogSource : [];
+    for (const catalogEntry of catalogEntries) {
+      const catalogTitle = safeText(catalogEntry?.title);
+      const catalogSlug = resolveAccountOverviewTitleSlug(
+        catalogEntry?.titleSlug
+        || catalogEntry?.title_slug
+        || catalogTitle,
+      );
+      const catalogTitleKey = resolveAccountOverviewTitleKey(catalogTitle);
+      const normalizedCatalogEntry = {
+        titleSlug: catalogSlug,
+        title: catalogTitle,
+        iconPath: safeText(catalogEntry?.iconPath || catalogEntry?.icon_path || ''),
+        eventName: safeText(catalogEntry?.metadata?.eventName || catalogEntry?.eventName || ''),
+      };
+      if (catalogSlug && !titleCatalogBySlug.has(catalogSlug)) {
+        titleCatalogBySlug.set(catalogSlug, normalizedCatalogEntry);
+      }
+      if (catalogTitleKey && !titleCatalogByKey.has(catalogTitleKey)) {
+        titleCatalogByKey.set(catalogTitleKey, normalizedCatalogEntry);
+      }
+    }
+  }
+  const entriesByKey = new Map();
+
+  for (const source of sourceCollections) {
+    const titleEntries = Array.isArray(source) ? source : [];
+    for (const entry of titleEntries) {
+      const title = safeText(
+        entry?.title
+        || entry?.rewardTitle
+        || entry?.label,
+      );
+      if (!title) {
+        continue;
+      }
+      const titleKey = resolveAccountOverviewTitleKey(title);
+      if (!titleKey) {
+        continue;
+      }
+      const titleSlug = resolveAccountOverviewTitleSlug(
+        entry?.titleSlug
+        || entry?.title_slug
+        || title,
+      );
+      const matchingCatalogEntry = titleCatalogBySlug.get(titleSlug)
+        || titleCatalogByKey.get(titleKey)
+        || null;
+      const normalizedEntry = {
+        title,
+        titleKey,
+        titleSlug,
+        iconPath: safeText(
+          entry?.iconPath
+          || entry?.icon_path
+          || matchingCatalogEntry?.iconPath
+          || '',
+        ),
+        eventName: safeText(
+          entry?.eventName
+          || entry?.metadata?.eventName
+          || matchingCatalogEntry?.eventName
+          || '',
+        ),
+        acquiredAt: safeText(
+          entry?.acquiredAt
+          || entry?.awardedAt
+          || entry?.claimedAt
+          || entry?.createdAt
+          || '',
+        ),
+      };
+      const existingEntry = entriesByKey.get(titleKey);
+      if (!existingEntry) {
+        entriesByKey.set(titleKey, normalizedEntry);
+        continue;
+      }
+      const existingScore = Number(Boolean(existingEntry.eventName)) + Number(Boolean(existingEntry.acquiredAt));
+      const nextScore = Number(Boolean(normalizedEntry.eventName)) + Number(Boolean(normalizedEntry.acquiredAt));
+      if (nextScore >= existingScore) {
+        entriesByKey.set(titleKey, normalizedEntry);
+      }
+    }
+  }
+
+  return Array.from(entriesByKey.values());
+}
+
+function resolveAccountOverviewPrimaryClaimedTitleEntry() {
+  const entries = resolveAccountOverviewClaimedTitleEntries();
+  if (!entries.length) {
+    return null;
+  }
+  const normalized = entries
+    .filter((entry) => entry && typeof entry === 'object' && safeText(entry?.title))
+    .map((entry, index) => {
+      const acquiredAtMs = Date.parse(safeText(entry?.acquiredAt));
+      return {
+        ...entry,
+        _index: index,
+        _acquiredAtMs: Number.isFinite(acquiredAtMs) ? acquiredAtMs : Number.NEGATIVE_INFINITY,
+      };
+    });
+  if (!normalized.length) {
+    return null;
+  }
+  normalized.sort((left, right) => {
+    if (right._acquiredAtMs !== left._acquiredAtMs) {
+      return right._acquiredAtMs - left._acquiredAtMs;
+    }
+    return left._index - right._index;
+  });
+  return normalized[0];
+}
+
+function resolveAccountOverviewTitleBadgeSubtitle(titleLabel, homeNode = null) {
+  const normalizedTitleKey = resolveAccountOverviewTitleKey(titleLabel);
+  if (!normalizedTitleKey || normalizedTitleKey === 'member title') {
+    return '';
+  }
+  const session = state.session && typeof state.session === 'object' ? state.session : null;
+  const claimedTitleEntries = resolveAccountOverviewClaimedTitleEntries();
+  const matchingEntry = claimedTitleEntries.find((entry) => entry.titleKey === normalizedTitleKey) || null;
+  const fallbackAcquiredDateLabel = formatAccountOverviewBadgeDateLabel(
+    homeNode?.createdAt
+    || homeNode?.created_at
+    || homeNode?.joinedAt
+    || homeNode?.joined_at
+    || homeNode?.enrolledAt
+    || homeNode?.enrolled_at
+    || session?.createdAt
+    || session?.created_at
+    || session?.joinedAt
+    || session?.joined_at
+    || session?.registeredAt
+    || session?.registered_at
+    || '',
+  );
+  const acquiredDateLabel = formatAccountOverviewBadgeDateLabel(matchingEntry?.acquiredAt);
+  const resolvedAcquiredDateLabel = acquiredDateLabel !== '--'
+    ? acquiredDateLabel
+    : (fallbackAcquiredDateLabel !== '--' ? fallbackAcquiredDateLabel : '--');
+  const acquiredLabel = `Acquired ${resolvedAcquiredDateLabel}`;
+  const formatExclusiveEventLabel = (eventLabel) => {
+    const safeEventLabel = safeText(eventLabel);
+    if (!safeEventLabel) {
+      return '';
+    }
+    if (/^exclusive\s+/i.test(safeEventLabel)) {
+      return safeEventLabel;
+    }
+    return `Exclusive ${safeEventLabel}`;
+  };
+
+  const explicitEventLabel = formatExclusiveEventLabel(matchingEntry?.eventName);
+  if (explicitEventLabel) {
+    return `${explicitEventLabel}\n${acquiredLabel}`;
+  }
+
+  const legacyBuilderLeadershipTitleKeySet = new Set([
+    'legacy founder',
+    'legacy director',
+    'legacy ambassador',
+    'presidential circle',
+  ]);
+  if (legacyBuilderLeadershipTitleKeySet.has(normalizedTitleKey)) {
+    return `Exclusive Legacy Builder Leadership Program\n${acquiredLabel}`;
+  }
+  return `Exclusive title reward\n${acquiredLabel}`;
+}
+
+function clearAccountOverviewBadgeHoverHideTimer() {
+  if (!accountOverviewBadgeHoverHideTimerId) {
+    return;
+  }
+  window.clearTimeout(accountOverviewBadgeHoverHideTimerId);
+  accountOverviewBadgeHoverHideTimerId = 0;
+}
+
+function hideAccountOverviewBadgeHovercard(options = {}) {
+  const immediate = options.immediate === true;
+  clearAccountOverviewBadgeHoverHideTimer();
+  if (!accountOverviewBadgeHovercardElement) {
+    return;
+  }
+
+  accountOverviewBadgeHovercardElement.classList.remove('is-visible');
+  accountOverviewBadgeHovercardElement.setAttribute('aria-hidden', 'true');
+  activeAccountOverviewBadgeHoverAnchorElement = null;
+  activeAccountOverviewBadgeHoverKey = '';
+
+  const resetCardPosition = () => {
+    if (!accountOverviewBadgeHovercardElement.classList.contains('is-visible')) {
+      accountOverviewBadgeHovercardElement.style.left = '-9999px';
+      accountOverviewBadgeHovercardElement.style.top = '-9999px';
+    }
+  };
+
+  if (immediate) {
+    resetCardPosition();
+    return;
+  }
+  window.setTimeout(resetCardPosition, 220);
+}
+
+function scheduleAccountOverviewBadgeHovercardHide() {
+  clearAccountOverviewBadgeHoverHideTimer();
+  accountOverviewBadgeHoverHideTimerId = window.setTimeout(() => {
+    hideAccountOverviewBadgeHovercard();
+  }, ACCOUNT_OVERVIEW_BADGE_HOVER_HIDE_DELAY_MS);
+}
+
+function shouldKeepAccountOverviewBadgeHovercardOpen() {
+  if (!accountOverviewBadgeHovercardElement || !accountOverviewBadgeHovercardElement.classList.contains('is-visible')) {
+    return false;
+  }
+  const activeElement = document.activeElement;
+  if (activeElement instanceof Element && accountOverviewBadgeHovercardElement.contains(activeElement)) {
+    return true;
+  }
+  return accountOverviewBadgeHovercardElement.matches(':hover');
+}
+
+function positionAccountOverviewBadgeHovercard(anchorElement) {
+  if (!accountOverviewBadgeHovercardElement || !anchorElement) {
+    return;
+  }
+
+  const anchorRect = anchorElement.getBoundingClientRect();
+  const cardRect = accountOverviewBadgeHovercardElement.getBoundingClientRect();
+  if (!cardRect.width || !cardRect.height) {
+    return;
+  }
+
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+  const viewportPadding = 12;
+  const anchorGap = 14;
+  let left = anchorRect.left + (anchorRect.width / 2) - (cardRect.width / 2);
+  left = Math.max(viewportPadding, Math.min(left, Math.max(viewportPadding, viewportWidth - cardRect.width - viewportPadding)));
+
+  let top = anchorRect.top - cardRect.height - anchorGap;
+  let placement = 'top';
+  if (top < viewportPadding) {
+    top = Math.min(
+      Math.max(viewportPadding, viewportHeight - cardRect.height - viewportPadding),
+      anchorRect.bottom + anchorGap,
+    );
+    placement = 'bottom';
+  }
+
+  accountOverviewBadgeHovercardElement.dataset.placement = placement;
+  accountOverviewBadgeHovercardElement.style.left = `${Math.round(left)}px`;
+  accountOverviewBadgeHovercardElement.style.top = `${Math.round(top)}px`;
+
+  const pointerLeft = Math.max(
+    22,
+    Math.min(cardRect.width - 22, anchorRect.left + (anchorRect.width / 2) - left),
+  );
+  accountOverviewBadgeHovercardElement.style.setProperty(
+    '--tree-next-account-overview-badge-pointer-left',
+    `${Math.round(pointerLeft)}px`,
+  );
+}
+
+function showAccountOverviewBadgeHovercard(badgeEntry, anchorElement) {
+  if (!accountOverviewBadgeHovercardElement || !badgeEntry || !anchorElement) {
+    return;
+  }
+
+  clearAccountOverviewBadgeHoverHideTimer();
+  const nextBadgeKey = safeText(badgeEntry.key);
+  const isSameActiveAnchor = (
+    activeAccountOverviewBadgeHoverAnchorElement === anchorElement
+    && activeAccountOverviewBadgeHoverKey === nextBadgeKey
+    && accountOverviewBadgeHovercardElement.classList.contains('is-visible')
+  );
+  if (isSameActiveAnchor) {
+    return;
+  }
+  activeAccountOverviewBadgeHoverAnchorElement = anchorElement;
+  activeAccountOverviewBadgeHoverKey = nextBadgeKey;
+
+  const fallbackIconPath = '/brand_assets/Icons/Achievements/placeholder-light.svg';
+  if (accountOverviewBadgeHovercardIconElement instanceof HTMLImageElement) {
+    accountOverviewBadgeHovercardIconElement.src = safeText(badgeEntry.iconPath || fallbackIconPath) || fallbackIconPath;
+    accountOverviewBadgeHovercardIconElement.alt = `${safeText(badgeEntry.cardTitle || badgeEntry.slotLabel || 'Badge')} icon`;
+  }
+  if (accountOverviewBadgeHovercardTitleElement instanceof HTMLElement) {
+    accountOverviewBadgeHovercardTitleElement.textContent = safeText(
+      badgeEntry.cardTitle
+      || badgeEntry.slotLabel
+      || 'Badge',
+    ) || 'Badge';
+  }
+  if (accountOverviewBadgeHovercardSubtitleElement instanceof HTMLElement) {
+    accountOverviewBadgeHovercardSubtitleElement.textContent = safeText(badgeEntry.cardSubtitle);
+  }
+
+  accountOverviewBadgeHovercardElement.classList.add('is-visible');
+  accountOverviewBadgeHovercardElement.setAttribute('aria-hidden', 'false');
+  if (!isSameActiveAnchor) {
+    accountOverviewBadgeHovercardElement.style.left = '-9999px';
+    accountOverviewBadgeHovercardElement.style.top = '-9999px';
+  }
+  window.requestAnimationFrame(() => {
+    if (activeAccountOverviewBadgeHoverAnchorElement !== anchorElement) {
+      return;
+    }
+    positionAccountOverviewBadgeHovercard(anchorElement);
+  });
+}
+
+function bindAccountOverviewBadgeHoverInteractions(anchorElement) {
+  if (!(anchorElement instanceof HTMLElement) || anchorElement.dataset.hoverBound === 'true') {
+    return;
+  }
+  anchorElement.dataset.hoverBound = 'true';
+  anchorElement.dataset.hoverEnabled = 'true';
+  anchorElement.tabIndex = 0;
+  anchorElement.setAttribute('role', 'img');
+
+  const resolveBadgeEntry = () => (
+    anchorElement.__accountOverviewBadgeEntry
+    && typeof anchorElement.__accountOverviewBadgeEntry === 'object'
+      ? anchorElement.__accountOverviewBadgeEntry
+      : null
+  );
+
+  anchorElement.addEventListener('mouseenter', () => {
+    const badgeEntry = resolveBadgeEntry();
+    if (!badgeEntry) {
+      return;
+    }
+    anchorElement.dataset.hovered = 'true';
+    showAccountOverviewBadgeHovercard(badgeEntry, anchorElement);
+  });
+  anchorElement.addEventListener('mouseleave', () => {
+    delete anchorElement.dataset.hovered;
+    scheduleAccountOverviewBadgeHovercardHide();
+  });
+  anchorElement.addEventListener('focus', () => {
+    const badgeEntry = resolveBadgeEntry();
+    if (!badgeEntry) {
+      return;
+    }
+    showAccountOverviewBadgeHovercard(badgeEntry, anchorElement);
+  });
+  anchorElement.addEventListener('blur', () => {
+    delete anchorElement.dataset.hovered;
+    if (shouldKeepAccountOverviewBadgeHovercardOpen()) {
+      clearAccountOverviewBadgeHoverHideTimer();
+      return;
+    }
+    scheduleAccountOverviewBadgeHovercardHide();
+  });
+  anchorElement.addEventListener('pointerdown', (event) => {
+    if (event.pointerType !== 'touch' && event.pointerType !== 'pen') {
+      return;
+    }
+    const badgeEntry = resolveBadgeEntry();
+    if (!badgeEntry) {
+      return;
+    }
+    showAccountOverviewBadgeHovercard(badgeEntry, anchorElement);
+  });
+}
+
+function syncAccountOverviewBadgeHoverEntry(anchorElement, badgeEntry) {
+  if (!(anchorElement instanceof HTMLElement) || !badgeEntry || typeof badgeEntry !== 'object') {
+    return;
+  }
+  bindAccountOverviewBadgeHoverInteractions(anchorElement);
+  const fallbackIconPath = '/brand_assets/Icons/Achievements/placeholder-light.svg';
+  const safeEntry = {
+    key: safeText(badgeEntry.key) || 'badge',
+    slotLabel: safeText(badgeEntry.slotLabel) || 'Badge',
+    cardTitle: safeText(badgeEntry.cardTitle) || 'Badge',
+    cardSubtitle: safeText(badgeEntry.cardSubtitle),
+    iconPath: safeText(badgeEntry.iconPath) || fallbackIconPath,
+  };
+  anchorElement.__accountOverviewBadgeEntry = safeEntry;
+  const ariaParts = [`${safeEntry.slotLabel}: ${safeEntry.cardTitle}`];
+  if (safeEntry.cardSubtitle) {
+    ariaParts.push(safeEntry.cardSubtitle.replace(/\s*\n\s*/g, '. '));
+  }
+  anchorElement.setAttribute('aria-label', ariaParts.join('. '));
+}
+
 function resolveAccountOverviewDirectSponsorCount(homeNode = null, options = {}) {
   const safeNodes = Array.isArray(state.nodes) ? state.nodes : [];
   if (!safeNodes.length) {
@@ -6634,11 +7076,27 @@ function syncAccountOverviewPanelVisuals() {
       || accountOverviewRankLabelElement?.textContent
       || 'Legacy',
     );
-  const fallbackTitleLabel = safeText(accountOverviewTitleLabelElement?.textContent) || rankLabel || 'Member Title';
-  const sessionTitleLabel = resolveNodePrimaryTitleLabel(session, fallbackTitleLabel);
+  const fallbackTitleLabel = safeText(
+    homeNode?.profileAccountTitle
+    || homeNode?.profile_account_title
+    || homeNode?.accountTitle
+    || homeNode?.account_title
+    || homeNode?.title
+    || session?.profileAccountTitle
+    || session?.profile_account_title
+    || session?.accountTitle
+    || session?.account_title
+    || session?.title
+    || '',
+  ) || 'Member Title';
+  const sessionTitleLabel = resolveNodePrimaryTitleLabel(session);
   const sessionTitleIsFallback = isTreeNextRankBuilderFallbackTitle(sessionTitleLabel, rankLabel);
   const homeTitleLabel = resolveNodePrimaryTitleLabel(homeNode);
   const homeTitleIsFallback = isTreeNextRankBuilderFallbackTitle(homeTitleLabel, rankLabel);
+  const primaryClaimedTitleEntry = systemTotalsMode
+    ? null
+    : resolveAccountOverviewPrimaryClaimedTitleEntry();
+  const claimedTitleLabel = safeText(primaryClaimedTitleEntry?.title);
   let titleLabel = systemTotalsMode ? 'System Overview' : fallbackTitleLabel;
   if (systemTotalsMode) {
     titleLabel = 'System Overview';
@@ -6655,9 +7113,20 @@ function syncAccountOverviewPanelVisuals() {
   } else {
     titleLabel = sessionTitleLabel || homeTitleLabel || fallbackTitleLabel;
   }
+  const titleLabelIsFallbackBuilder = isTreeNextRankBuilderFallbackTitle(titleLabel, rankLabel);
+  if (!systemTotalsMode && titleLabelIsFallbackBuilder && claimedTitleLabel) {
+    titleLabel = claimedTitleLabel;
+  } else if (
+    !systemTotalsMode
+    && resolveAccountOverviewTitleKey(titleLabel) === 'legacy builder'
+  ) {
+    // "Legacy Builder" is a package label; backend title catalog uses "Legacy Founder".
+    titleLabel = 'Legacy Founder';
+  }
+  const joinedAtMs = resolveAccountOverviewJoinedAtMs(homeNode);
   const joinedText = systemTotalsMode
     ? 'Live system totals'
-    : formatAccountOverviewJoinedDate(resolveAccountOverviewJoinedAtMs(homeNode));
+    : formatAccountOverviewJoinedDate(joinedAtMs);
   const iconSourceNode = {
     ...(homeNode && typeof homeNode === 'object' ? homeNode : {}),
     ...(session && typeof session === 'object' ? session : {}),
@@ -6667,7 +7136,17 @@ function syncAccountOverviewPanelVisuals() {
     accountTitle: titleLabel,
     profileAccountTitle: titleLabel,
   };
-  const [rankIconPath, titleIconPath] = resolveNodeDetailRankAndTitleIcons(iconSourceNode);
+  const [rankIconPath, resolvedNodeTitleIconPath] = resolveNodeDetailRankAndTitleIcons(iconSourceNode);
+  let titleIconPath = resolvedNodeTitleIconPath;
+  const claimedTitleIconPath = safeText(primaryClaimedTitleEntry?.iconPath);
+  if (claimedTitleIconPath) {
+    titleIconPath = resolveNodeDetailsIconPath(claimedTitleIconPath, titleLabel);
+  } else if (
+    !systemTotalsMode
+    && resolveAccountOverviewTitleKey(titleLabel) === 'legacy founder'
+  ) {
+    titleIconPath = resolveTitleIconPathFromValue('legacy-founder-star');
+  }
   const avatarSignature = [
     systemTotalsMode ? 'system' : 'member',
     safeText(homeNode?.id),
@@ -6806,6 +7285,31 @@ function syncAccountOverviewPanelVisuals() {
   if (accountOverviewTitleIconElement instanceof HTMLImageElement && titleIconPath) {
     accountOverviewTitleIconElement.src = titleIconPath;
   }
+  const memberSinceDateLabel = formatAccountOverviewBadgeDateLabel(joinedAtMs);
+  const rankSubtitle = systemTotalsMode
+    ? 'Administrator mode'
+    : (
+      memberSinceDateLabel !== '--'
+        ? `Subscriber since ${memberSinceDateLabel}`
+        : 'Subscriber since --'
+    );
+  const titleSubtitle = systemTotalsMode
+    ? 'System summary badge'
+    : resolveAccountOverviewTitleBadgeSubtitle(titleLabel, homeNode);
+  syncAccountOverviewBadgeHoverEntry(accountOverviewRankBadgeShellElement, {
+    key: 'account-overview-rank',
+    slotLabel: 'Rank',
+    cardTitle: rankLabel,
+    cardSubtitle: rankSubtitle,
+    iconPath: rankIconPath,
+  });
+  syncAccountOverviewBadgeHoverEntry(accountOverviewTitleBadgeShellElement, {
+    key: 'account-overview-title',
+    slotLabel: 'Title',
+    cardTitle: titleLabel,
+    cardSubtitle: titleSubtitle,
+    iconPath: titleIconPath,
+  });
 
   const nodePhotoUrl = resolveNodeAvatarPhotoUrl(homeNode);
   const nodeAvatarPalette = resolveAvatarPaletteFromRecord(homeNode) || resolveSessionAvatarPalette();
@@ -6833,7 +7337,7 @@ function syncAccountOverviewPanelVisuals() {
   }
 
   const rankPalette = resolveAccountOverviewBadgePalette(rankLabel, 'ocean');
-  const titlePalette = resolveAccountOverviewBadgePalette(titleLabel, 'amber');
+  const titlePalette = ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyFounder;
   if (accountOverviewRankBadgeElement instanceof HTMLElement) {
     accountOverviewRankBadgeElement.style.backgroundImage = resolveAccountOverviewGradientBackground(rankPalette, {
       sheenAlpha: 0.22,
@@ -6856,6 +7360,9 @@ function syncAccountOverviewPanelVisibility() {
   const isVisible = Boolean(state.ui?.accountOverviewVisible);
   accountOverviewPanelElement.classList.toggle('is-hidden', !isVisible);
   accountOverviewPanelElement.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+  if (!isVisible) {
+    hideAccountOverviewBadgeHovercard({ immediate: true });
+  }
 }
 
 function setAccountOverviewPanelVisible(isVisible) {
@@ -7144,6 +7651,37 @@ function initAccountOverviewPanel() {
     scope: overviewContext?.scope,
     preferHomeNodeIdentity: overviewContext?.preferHomeNodeIdentity,
   });
+  bindAccountOverviewBadgeHoverInteractions(accountOverviewRankBadgeShellElement);
+  bindAccountOverviewBadgeHoverInteractions(accountOverviewTitleBadgeShellElement);
+  if (accountOverviewBadgeHovercardElement instanceof HTMLElement && accountOverviewBadgeHovercardElement.dataset.hoverBound !== 'true') {
+    accountOverviewBadgeHovercardElement.dataset.hoverBound = 'true';
+    accountOverviewBadgeHovercardElement.addEventListener('mouseenter', () => {
+      clearAccountOverviewBadgeHoverHideTimer();
+    });
+    accountOverviewBadgeHovercardElement.addEventListener('mouseleave', () => {
+      scheduleAccountOverviewBadgeHovercardHide();
+    });
+  }
+  if (accountOverviewScrollElement instanceof HTMLElement && accountOverviewScrollElement.dataset.badgeHoverScrollBound !== 'true') {
+    accountOverviewScrollElement.dataset.badgeHoverScrollBound = 'true';
+    accountOverviewScrollElement.addEventListener('scroll', () => {
+      if (!activeAccountOverviewBadgeHoverAnchorElement) {
+        return;
+      }
+      positionAccountOverviewBadgeHovercard(activeAccountOverviewBadgeHoverAnchorElement);
+    }, { passive: true });
+  }
+  if (accountOverviewPanelElement instanceof HTMLElement && accountOverviewPanelElement.dataset.badgeHoverViewportBound !== 'true') {
+    accountOverviewPanelElement.dataset.badgeHoverViewportBound = 'true';
+    const syncActiveBadgeHovercardPosition = () => {
+      if (!activeAccountOverviewBadgeHoverAnchorElement) {
+        return;
+      }
+      positionAccountOverviewBadgeHovercard(activeAccountOverviewBadgeHoverAnchorElement);
+    };
+    window.addEventListener('resize', syncActiveBadgeHovercardPosition, { passive: true });
+    window.addEventListener('scroll', syncActiveBadgeHovercardPosition, true);
+  }
 
   if (accountOverviewRefreshButtonElement instanceof HTMLElement) {
     accountOverviewRefreshButtonElement.addEventListener('click', () => {

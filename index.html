@@ -310,6 +310,222 @@
       min-height: 1.72rem;
     }
 
+    .profile-account-overview-hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(96px, 120px) minmax(220px, 280px) minmax(96px, 120px);
+      justify-content: center;
+      justify-items: center;
+      align-items: center;
+      gap: 34px;
+      width: 100%;
+      padding: 56px 16px 30px;
+      border-bottom: 1px solid #E5E5E7;
+      text-align: center;
+    }
+
+    .profile-account-overview-badge {
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .profile-account-overview-badge[data-hover-enabled='true'] {
+      cursor: pointer;
+    }
+
+    .profile-account-overview-badge[data-hover-enabled='true']:focus-visible {
+      outline: 2px solid rgb(var(--brand-500) / 0.58);
+      outline-offset: 6px;
+      border-radius: 12px;
+    }
+
+    .profile-account-overview-badge-icon {
+      width: 82px;
+      height: 82px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(140deg, #48809C 0%, #2C5673 58%, #18324A 100%);
+      box-shadow: none;
+    }
+
+    .profile-account-overview-badge.is-title .profile-account-overview-badge-icon {
+      background: linear-gradient(140deg, #D4A948 0%, #A47A22 58%, #765516 100%);
+    }
+
+    .profile-account-overview-badge-icon img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 7px rgba(11, 18, 30, 0.36)) !important;
+    }
+
+    .profile-account-overview-badge-label {
+      margin: 0;
+      max-width: 118px;
+      overflow: hidden;
+      color: #13161B;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .profile-account-overview-user {
+      display: grid;
+      justify-items: center;
+      min-width: 0;
+    }
+
+    .profile-account-overview-avatar {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(140deg, #8FC1FF 0%, #68A9F6 56%, #4D89D0 100%);
+      background-position: center;
+      background-size: cover;
+      box-shadow: none;
+      color: #FFFFFF;
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .profile-account-overview-avatar-initials {
+      pointer-events: none;
+    }
+
+    #profile-account-overview-avatar[data-avatar-photo="true"] .profile-account-overview-avatar-initials {
+      display: none;
+    }
+
+    #profile-account-overview-status-dot {
+      position: absolute;
+      right: 9px;
+      bottom: 10px;
+      width: 36px;
+      height: 36px;
+      border: 5px solid #FFFFFF;
+      border-radius: 50%;
+      background: #2FCF45;
+      box-shadow: none;
+    }
+
+    #profile-account-overview-status-dot.is-inactive {
+      background: #A5A7AD;
+    }
+
+    .profile-account-overview-name {
+      margin: 24px 0 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #0E1116;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.22;
+    }
+
+    .profile-account-overview-handle,
+    .profile-account-overview-node {
+      margin: 4px 0 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: #777C86;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .profile-account-overview-section {
+      padding-top: 1.5rem;
+    }
+
+    .profile-account-overview-section-title {
+      margin: 0 0 1.15rem;
+      color: rgb(var(--text-primary));
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .profile-account-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.9rem;
+    }
+
+    .profile-account-overview-tile {
+      min-height: 132px;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 1rem;
+      padding: 1.05rem 0.8rem;
+      border: 1px solid rgb(var(--surface-border) / 0.72);
+      border-radius: 1rem;
+      background: rgb(var(--surface-elevated) / 0.86);
+      text-align: center;
+      box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.62);
+    }
+
+    .profile-account-overview-tile-value {
+      margin: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: rgb(var(--text-primary));
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+    }
+
+    .profile-account-overview-tile-label {
+      margin: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      color: rgb(var(--text-secondary));
+      font-size: 0.74rem;
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    @media (max-width: 980px) {
+      .profile-account-overview-hero {
+        grid-template-columns: 1fr;
+        justify-content: stretch;
+        justify-items: center;
+        max-width: none;
+        gap: 22px;
+        padding: 34px 10px 24px;
+      }
+
+      .profile-account-overview-user {
+        order: -1;
+      }
+
+      .profile-account-overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .profile-account-overview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-account-overview-avatar {
+        width: 124px;
+        height: 124px;
+      }
+    }
+
     .dashboard-account-kpi-badge-strip {
       display: inline-flex;
       align-items: center;
@@ -4881,94 +5097,62 @@
           </article>
         </section>
         <section id="page-profile" data-page-view="profile" class="hidden space-y-6">
-          <div class="bg-surface-raised border border-surface-border rounded-2xl shadow-depth-1 overflow-hidden">
-            <div id="profile-cover-shell" class="relative h-44 sm:h-52 lg:h-60 bg-gradient-to-br from-brand-500/35 via-semantic-info/20 to-surface-base">
-              <img id="profile-cover-image" src="" alt="Profile cover" class="hidden absolute inset-0 h-full w-full object-cover"/>
-              <div class="absolute inset-0 bg-gradient-to-t from-surface-base/70 via-surface-base/25 to-transparent"></div>
-            </div>
-            <div class="px-5 sm:px-6 pb-6">
-              <div class="relative -mt-12 sm:-mt-14 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-                <div class="flex items-end gap-4">
-                  <div class="relative">
-                    <img id="profile-avatar-image" src="https://placehold.co/144x144" alt="Profile avatar" class="h-24 w-24 sm:h-28 sm:w-28 rounded-full border-4 border-surface-raised object-cover shadow-depth-2 bg-surface-elevated"/>
-                  </div>
-                  <div class="pb-1">
-                    <h3 id="profile-name-heading" class="font-body font-semibold text-display text-text-primary">Member Profile</h3>
-                    <div class="profile-handle-row">
-                      <p id="profile-handle-heading" class="text-body-sm text-text-secondary">@member</p>
-                      <div id="profile-handle-badge-strip" class="profile-handle-badge-strip" aria-label="Profile badges"></div>
-                    </div>
-                    <p id="profile-location-display" class="text-body-sm text-text-tertiary mt-1">Set your location</p>
-                  </div>
+          <section id="profile-account-overview-panel" class="bg-surface-raised border border-surface-border rounded-2xl p-4 sm:p-5 lg:p-6 shadow-depth-1">
+            <section class="profile-account-overview-hero" aria-label="Member profile summary">
+              <div id="profile-account-overview-rank-badge-shell" class="profile-account-overview-badge is-rank">
+                <div class="profile-account-overview-badge-icon" aria-hidden="true">
+                  <img id="profile-account-overview-rank-icon" src="/brand_assets/Icons/Achievements/legacy-light.svg" alt="" />
                 </div>
-                <p class="text-caption text-text-tertiary">Milestones below use lifetime organization totals.</p>
+                <p id="profile-account-overview-rank-label" class="profile-account-overview-badge-label">Legacy</p>
               </div>
-              <div
-                id="profile-handle-badge-hovercard"
-                class="profile-handle-badge-hovercard"
-                role="tooltip"
-                aria-hidden="true"
-                data-placement="top"
-              >
-                <div class="profile-handle-badge-hovercard-icon-shell">
-                  <img
-                    id="profile-handle-badge-hovercard-icon"
-                    src="/brand_assets/Icons/Achievements/diamond.svg"
-                    alt=""
-                    class="profile-handle-badge-hovercard-icon"
-                    loading="lazy"
-                    decoding="async"
-                  />
+
+              <div class="profile-account-overview-user">
+                <div id="profile-account-overview-avatar" class="profile-account-overview-avatar" aria-hidden="true">
+                  <span id="profile-account-overview-avatar-initials" class="profile-account-overview-avatar-initials">MP</span>
+                  <span id="profile-account-overview-status-dot" aria-hidden="true"></span>
                 </div>
-                <p id="profile-handle-badge-hovercard-title" class="profile-handle-badge-hovercard-title">RANK</p>
-                <p id="profile-handle-badge-hovercard-subtitle" class="profile-handle-badge-hovercard-subtitle">Subscriber since --</p>
+                <h3 id="profile-name-heading" class="profile-account-overview-name">Member Profile</h3>
+                <p id="profile-handle-heading" class="profile-account-overview-handle">@member</p>
+                <p id="profile-account-overview-joined" class="profile-account-overview-node">Joined --</p>
               </div>
-              <p id="profile-bio-display" class="mt-4 text-body-sm text-text-secondary leading-relaxed">Add a short bio to tell your team who you are.</p>
-              <div class="mt-4">
-                <button id="profile-edit-open-button" type="button" class="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-body-sm font-medium text-text-inverse shadow-glow hover:bg-brand-400 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised active:scale-[0.97] transition-transform duration-150 ease-spring">
-                  Edit Profile
-                </button>
+
+              <div id="profile-account-overview-title-badge-shell" class="profile-account-overview-badge is-title">
+                <div class="profile-account-overview-badge-icon" aria-hidden="true">
+                  <img id="profile-account-overview-title-icon" src="/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg" alt="" />
+                </div>
+                <p id="profile-account-overview-title-label" class="profile-account-overview-badge-label">Legacy Founder</p>
               </div>
-            </div>
-          </div>
+            </section>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <article class="bg-surface-raised border border-surface-border rounded-xl p-5 shadow-depth-1">
-              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Lifetime Total Organization BV</p>
-              <p id="profile-lifetime-total-organization-bv" class="mt-2 font-body font-semibold text-mono-data text-text-primary">0 BV</p>
-              <p class="mt-2 text-caption text-text-tertiary">All-time organization volume across your entire network.</p>
-            </article>
-            <article class="bg-surface-raised border border-surface-border rounded-xl p-5 shadow-depth-1">
-              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Lifetime Personal Organization BV</p>
-              <p id="profile-lifetime-personal-organization-bv" class="mt-2 font-body font-semibold text-mono-data text-text-primary">0 BV</p>
-              <p class="mt-2 text-caption text-text-tertiary">All-time volume from your personally sponsored organization.</p>
-            </article>
-          </div>
-
-          <section id="profile-rank-ladder-panel" class="relative overflow-hidden bg-surface-raised border border-surface-border rounded-2xl p-4 sm:p-5 lg:p-6 shadow-depth-1">
-            <div class="pointer-events-none absolute -top-20 -right-14 h-56 w-56 rounded-full bg-brand-500/12 blur-3xl"></div>
-            <div class="pointer-events-none absolute -bottom-24 -left-14 h-56 w-56 rounded-full bg-semantic-info/10 blur-3xl"></div>
-            <div class="relative flex flex-col gap-2">
-              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Rank Advancement</p>
-              <h3 class="font-body font-medium text-display-sm text-text-primary">Rank Advancement Bonus</h3>
-              <p class="text-body-sm text-text-secondary">Track your monthly rank run. You can claim only one reward per month, and it must be the highest eligible rank you reached.</p>
-              <p id="profile-rank-ladder-overview" class="text-caption text-text-tertiary">Current status: --</p>
-            </div>
-            <div id="profile-rank-ladder-list" class="relative mt-4 space-y-0"></div>
-            <p id="profile-rank-ladder-feedback" class="mt-3 hidden text-caption"></p>
-          </section>
-
-          <section id="profile-good-life-panel" class="relative overflow-hidden bg-surface-raised border border-surface-border rounded-2xl p-4 sm:p-5 lg:p-6 shadow-depth-1">
-            <div class="pointer-events-none absolute -top-20 -left-14 h-56 w-56 rounded-full bg-brand-500/10 blur-3xl"></div>
-            <div class="pointer-events-none absolute -bottom-24 -right-14 h-56 w-56 rounded-full bg-semantic-info/10 blur-3xl"></div>
-            <div class="relative flex flex-col gap-2">
-              <p class="text-caption uppercase tracking-[0.08em] text-text-tertiary">Good Life Bonus</p>
-              <h3 class="font-body font-medium text-display-sm text-text-primary">Good Life Monthly Progression</h3>
-              <p class="text-body-sm text-text-secondary">The highest rank you reach this month becomes your only claimable reward.</p>
-              <p id="profile-good-life-overview" class="text-caption text-text-tertiary">Current status: --</p>
-            </div>
-            <div id="profile-good-life-content" class="relative mt-4"></div>
-            <p id="profile-good-life-feedback" class="mt-3 hidden text-caption"></p>
+            <section class="profile-account-overview-section" aria-labelledby="profile-account-overview-volume-title">
+              <h4 id="profile-account-overview-volume-title" class="profile-account-overview-section-title">Sales and Business Volumes</h4>
+              <div class="profile-account-overview-grid">
+                <article class="profile-account-overview-tile">
+                  <p id="profile-account-overview-active-window-value" class="profile-account-overview-tile-value">--</p>
+                  <p class="profile-account-overview-tile-label">Account Active Until</p>
+                </article>
+                <article class="profile-account-overview-tile">
+                  <p id="profile-account-overview-total-bv-value" class="profile-account-overview-tile-value">0 BV</p>
+                  <p class="profile-account-overview-tile-label">Total Organization BV</p>
+                </article>
+                <article class="profile-account-overview-tile">
+                  <p id="profile-account-overview-personal-bv-value" class="profile-account-overview-tile-value">0 BV</p>
+                  <p class="profile-account-overview-tile-label">Personal BV</p>
+                </article>
+                <article class="profile-account-overview-tile">
+                  <p id="profile-account-overview-cycle-cap-value" class="profile-account-overview-tile-value">0 / 0</p>
+                  <p class="profile-account-overview-tile-label">Weekly Cycle Cap</p>
+                </article>
+                <article class="profile-account-overview-tile">
+                  <p id="profile-account-overview-direct-sponsors-value" class="profile-account-overview-tile-value">0</p>
+                  <p class="profile-account-overview-tile-label">Direct Sponsors</p>
+                </article>
+                <article class="profile-account-overview-tile">
+                  <p id="profile-account-overview-ewallet-value" class="profile-account-overview-tile-value">$0.00</p>
+                  <p class="profile-account-overview-tile-label">E-Wallet</p>
+                </article>
+              </div>
+            </section>
           </section>
 
           <section id="profile-achievement-panel" class="bg-surface-raised border border-surface-border rounded-2xl p-4 sm:p-5 lg:p-6 shadow-depth-1">
@@ -6319,6 +6503,27 @@
       </main>
 
       <div
+        id="profile-handle-badge-hovercard"
+        class="profile-handle-badge-hovercard"
+        role="tooltip"
+        aria-hidden="true"
+        data-placement="top"
+      >
+        <div class="profile-handle-badge-hovercard-icon-shell">
+          <img
+            id="profile-handle-badge-hovercard-icon"
+            src="/brand_assets/Icons/Achievements/placeholder.svg"
+            alt=""
+            class="profile-handle-badge-hovercard-icon"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <p id="profile-handle-badge-hovercard-title" class="profile-handle-badge-hovercard-title">Badge</p>
+        <p id="profile-handle-badge-hovercard-subtitle" class="profile-handle-badge-hovercard-subtitle">--</p>
+      </div>
+
+      <div
         id="dashboard-account-kpi-badge-hovercard"
         class="profile-handle-badge-hovercard"
         role="tooltip"
@@ -6759,6 +6964,22 @@
       const eWalletPayoutHistoryListElement = document.getElementById('ewallet-payout-history-list');
       const profileNameHeadingElement = document.getElementById('profile-name-heading');
       const profileHandleHeadingElement = document.getElementById('profile-handle-heading');
+      const profileAccountOverviewJoinedElement = document.getElementById('profile-account-overview-joined');
+      const profileAccountOverviewRankIconElement = document.getElementById('profile-account-overview-rank-icon');
+      const profileAccountOverviewRankLabelElement = document.getElementById('profile-account-overview-rank-label');
+      const profileAccountOverviewRankBadgeShellElement = document.getElementById('profile-account-overview-rank-badge-shell');
+      const profileAccountOverviewTitleIconElement = document.getElementById('profile-account-overview-title-icon');
+      const profileAccountOverviewTitleLabelElement = document.getElementById('profile-account-overview-title-label');
+      const profileAccountOverviewTitleBadgeShellElement = document.getElementById('profile-account-overview-title-badge-shell');
+      const profileAccountOverviewAvatarElement = document.getElementById('profile-account-overview-avatar');
+      const profileAccountOverviewAvatarInitialsElement = document.getElementById('profile-account-overview-avatar-initials');
+      const profileAccountOverviewStatusDotElement = document.getElementById('profile-account-overview-status-dot');
+      const profileAccountOverviewActiveWindowValueElement = document.getElementById('profile-account-overview-active-window-value');
+      const profileAccountOverviewTotalBvValueElement = document.getElementById('profile-account-overview-total-bv-value');
+      const profileAccountOverviewPersonalBvValueElement = document.getElementById('profile-account-overview-personal-bv-value');
+      const profileAccountOverviewCycleCapValueElement = document.getElementById('profile-account-overview-cycle-cap-value');
+      const profileAccountOverviewDirectSponsorsValueElement = document.getElementById('profile-account-overview-direct-sponsors-value');
+      const profileAccountOverviewEwalletValueElement = document.getElementById('profile-account-overview-ewallet-value');
       const profileHandleBadgeStripElement = document.getElementById('profile-handle-badge-strip');
       const profileHandleBadgeHovercardElement = document.getElementById('profile-handle-badge-hovercard');
       const profileHandleBadgeHovercardIconElement = document.getElementById('profile-handle-badge-hovercard-icon');
@@ -6771,8 +6992,6 @@
       const profileLocationDisplayElement = document.getElementById('profile-location-display');
       const profileBioDisplayElement = document.getElementById('profile-bio-display');
       const profileEditOpenButton = document.getElementById('profile-edit-open-button');
-      const profileLifetimeTotalOrganizationBvElement = document.getElementById('profile-lifetime-total-organization-bv');
-      const profileLifetimePersonalOrganizationBvElement = document.getElementById('profile-lifetime-personal-organization-bv');
       const profileCoverImageElement = document.getElementById('profile-cover-image');
       const profileAvatarImageElement = document.getElementById('profile-avatar-image');
       const profileEditCoverPreviewImageElement = document.getElementById('profile-edit-cover-preview-image');
@@ -7012,7 +7231,7 @@
         crown: 'Crown Director',
         'double crown': 'Double Crown Director',
         'royal crown': 'Royal Crown Director',
-        legacy: 'Legacy Leader',
+        legacy: 'Legacy Founder',
         infinity: 'Infinity Leader',
         business: 'Business Builder',
         personal: 'Personal Builder',
@@ -7032,7 +7251,7 @@
         'crown director': 'rank-crown',
         'double crown director': 'rank-double-crown',
         'royal crown director': 'rank-royal-crown',
-        'legacy leader': 'rank-legacy',
+        'legacy leader': 'time-limited-event-legacy-founder',
         'infinity leader': 'rank-infinity',
         'business builder': 'rank-business',
         'personal builder': 'rank-personal',
@@ -10842,6 +11061,9 @@
             || '',
         );
         if (explicitTitle) {
+          if (normalizeMemberKey(explicitTitle) === 'legacy leader') {
+            return 'Legacy Founder';
+          }
           return explicitTitle;
         }
 
@@ -10878,8 +11100,17 @@
         const normalizedTitleKey = normalizeMemberKey(titleLabel).replace(/\s+/g, ' ');
         const claimedTitleEntries = resolveProfileClaimedTitleEntries();
         const matchingEntry = claimedTitleEntries.find((entry) => entry.titleKey === normalizedTitleKey) || null;
+        const fallbackAcquiredDateLabel = formatProfileTitleAcquiredDateLabel(
+          currentSessionUser?.createdAt
+            || currentSessionUser?.enrolledAt
+            || currentSessionUser?.registeredAt
+            || '',
+        );
         const acquiredDateLabel = formatProfileTitleAcquiredDateLabel(matchingEntry?.acquiredAt);
-        const acquiredLabel = `Acquired ${acquiredDateLabel}`;
+        const resolvedAcquiredDateLabel = acquiredDateLabel !== '--'
+          ? acquiredDateLabel
+          : (fallbackAcquiredDateLabel !== '--' ? fallbackAcquiredDateLabel : '--');
+        const acquiredLabel = `Acquired ${resolvedAcquiredDateLabel}`;
         const formatExclusiveEventLabel = (eventLabel) => {
           const safeEventLabel = String(eventLabel || '').trim();
           if (!safeEventLabel) {
@@ -11281,6 +11512,84 @@
         return buttonElement;
       }
 
+      function bindProfileAccountOverviewBadgeHoverInteractions(anchorElement) {
+        if (!anchorElement || anchorElement.dataset.hoverBound === 'true') {
+          return;
+        }
+        anchorElement.dataset.hoverBound = 'true';
+        anchorElement.dataset.hoverEnabled = 'true';
+        anchorElement.tabIndex = 0;
+        anchorElement.setAttribute('role', 'img');
+
+        const resolveBadgeEntry = () => (
+          anchorElement.__profileAccountOverviewBadgeEntry
+          && typeof anchorElement.__profileAccountOverviewBadgeEntry === 'object'
+            ? anchorElement.__profileAccountOverviewBadgeEntry
+            : null
+        );
+
+        anchorElement.addEventListener('mouseenter', () => {
+          const badgeEntry = resolveBadgeEntry();
+          if (!badgeEntry) {
+            return;
+          }
+          anchorElement.dataset.hovered = 'true';
+          showProfileHandleBadgeHovercard(badgeEntry, anchorElement);
+        });
+        anchorElement.addEventListener('mouseleave', () => {
+          delete anchorElement.dataset.hovered;
+          scheduleProfileHandleBadgeHovercardHide();
+        });
+        anchorElement.addEventListener('focus', () => {
+          const badgeEntry = resolveBadgeEntry();
+          if (!badgeEntry) {
+            return;
+          }
+          showProfileHandleBadgeHovercard(badgeEntry, anchorElement);
+        });
+        anchorElement.addEventListener('blur', () => {
+          delete anchorElement.dataset.hovered;
+          if (shouldKeepProfileHandleBadgeHovercardOpen()) {
+            clearProfileHandleBadgeHoverHideTimer();
+            return;
+          }
+          scheduleProfileHandleBadgeHovercardHide();
+        });
+        anchorElement.addEventListener('pointerdown', (event) => {
+          if (event.pointerType !== 'touch' && event.pointerType !== 'pen') {
+            return;
+          }
+          const badgeEntry = resolveBadgeEntry();
+          if (!badgeEntry) {
+            return;
+          }
+          showProfileHandleBadgeHovercard(badgeEntry, anchorElement);
+        });
+      }
+
+      function syncProfileAccountOverviewBadgeHoverEntry(anchorElement, badgeEntry) {
+        if (!anchorElement || !badgeEntry || typeof badgeEntry !== 'object') {
+          return;
+        }
+        bindProfileAccountOverviewBadgeHoverInteractions(anchorElement);
+        const safeEntry = {
+          key: String(badgeEntry.key || '').trim() || 'badge',
+          slotLabel: String(badgeEntry.slotLabel || 'Badge').trim() || 'Badge',
+          cardTitle: String(badgeEntry.cardTitle || 'Badge').trim() || 'Badge',
+          cardSubtitle: String(badgeEntry.cardSubtitle || '').trim(),
+          iconPath: String(
+            badgeEntry.iconPath
+            || resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID),
+          ).trim() || resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID),
+        };
+        anchorElement.__profileAccountOverviewBadgeEntry = safeEntry;
+        const ariaParts = [`${safeEntry.slotLabel}: ${safeEntry.cardTitle}`];
+        if (safeEntry.cardSubtitle) {
+          ariaParts.push(safeEntry.cardSubtitle);
+        }
+        anchorElement.setAttribute('aria-label', ariaParts.join('. '));
+      }
+
       function renderProfileHandleBadges(profileState) {
         if (!profileHandleBadgeStripElement) {
           return;
@@ -11422,6 +11731,122 @@
         renderDashboardAccountKpiBadges(safeProfileState);
       }
 
+      function resolveProfileAccountOverviewJoinedLabel(user = currentSessionUser) {
+        const safeUser = user && typeof user === 'object' ? user : {};
+        const joinedDateValue = (
+          safeUser.createdAt
+          || safeUser.created_at
+          || safeUser.enrolledAt
+          || safeUser.enrolled_at
+          || safeUser.registeredAt
+          || safeUser.registered_at
+          || ''
+        );
+        const joinedDateLabel = formatProfileBadgeSinceDateLabel(joinedDateValue);
+        return joinedDateLabel ? `Joined ${joinedDateLabel}` : 'Joined --';
+      }
+
+      function resolveProfileAccountOverviewInitials(name) {
+        const safeName = String(name || '').trim();
+        if (!safeName) {
+          return '?';
+        }
+        const parts = safeName.split(/\s+/).filter(Boolean);
+        if (parts.length === 1) {
+          return parts[0].slice(0, 2).toUpperCase();
+        }
+        return `${parts[0].slice(0, 1)}${parts[1].slice(0, 1)}`.toUpperCase();
+      }
+
+      function syncProfileAccountOverviewHero(profileState = resolveEffectiveMemberProfile()) {
+        const safeProfileState = sanitizeMemberProfileCustomization(
+          profileState && typeof profileState === 'object'
+            ? profileState
+            : resolveEffectiveMemberProfile(),
+        );
+        const activeRankLabel = normalizeRankLabel(
+          resolveSessionAccountRank(currentSessionUser)
+          || currentAccountRank
+          || profileAchievementsSnapshot?.currentRank
+          || '',
+        ) || 'Legacy';
+        const badgeEntries = resolveProfileHandleBadgeEntries(safeProfileState);
+        const rankEntry = badgeEntries.find((entry) => String(entry?.key || '').trim() === 'rank') || null;
+        const titleEntry = badgeEntries.find((entry) => String(entry?.key || '').trim() === 'title')
+          || badgeEntries.find((entry) => String(entry?.key || '').trim() === 'extra')
+          || null;
+
+        const resolvedRankLabel = String(rankEntry?.cardTitle || activeRankLabel || 'Legacy').trim() || 'Legacy';
+        const resolvedRankIconPath = String(
+          rankEntry?.iconPath
+          || resolveProfileBadgeIconPathByAchievementId(
+            resolveProfileBadgeRankAchievementId(resolvedRankLabel),
+            PROFILE_BADGE_PLACEHOLDER_ID,
+          ),
+        ).trim() || resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID);
+
+        const resolvedTitleLabel = String(
+          titleEntry?.cardTitle
+          || resolveProfileAccountTitleLabel(resolvedRankLabel, safeProfileState)
+          || 'Member Title',
+        ).trim() || 'Member Title';
+        const resolvedTitleIconPath = String(
+          titleEntry?.iconPath
+          || resolveProfileAccountTitleIconPath(resolvedTitleLabel, resolvedRankLabel)
+          || resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID),
+        ).trim() || resolveProfileBadgeIconPathByAchievementId(PROFILE_BADGE_PLACEHOLDER_ID);
+        const resolvedRankSubtitle = String(rankEntry?.cardSubtitle || '').trim();
+        const resolvedTitleSubtitle = String(
+          titleEntry?.cardSubtitle
+          || resolveProfileTitleBadgeSubtitle(resolvedTitleLabel),
+        ).trim();
+        const displayName = safeProfileState.displayName || currentSessionUser?.name || currentSessionUser?.username || 'User';
+
+        if (profileAccountOverviewJoinedElement) {
+          profileAccountOverviewJoinedElement.textContent = resolveProfileAccountOverviewJoinedLabel(currentSessionUser);
+        }
+        if (profileAccountOverviewRankLabelElement) {
+          profileAccountOverviewRankLabelElement.textContent = resolvedRankLabel;
+        }
+        if (profileAccountOverviewTitleLabelElement) {
+          profileAccountOverviewTitleLabelElement.textContent = resolvedTitleLabel;
+        }
+        if (profileAccountOverviewRankIconElement instanceof HTMLImageElement) {
+          profileAccountOverviewRankIconElement.src = resolvedRankIconPath;
+        }
+        if (profileAccountOverviewTitleIconElement instanceof HTMLImageElement) {
+          profileAccountOverviewTitleIconElement.src = resolvedTitleIconPath;
+        }
+        syncProfileAccountOverviewBadgeHoverEntry(profileAccountOverviewRankBadgeShellElement, {
+          key: 'profile-account-overview-rank',
+          slotLabel: 'Rank',
+          cardTitle: resolvedRankLabel,
+          cardSubtitle: resolvedRankSubtitle,
+          iconPath: resolvedRankIconPath,
+        });
+        syncProfileAccountOverviewBadgeHoverEntry(profileAccountOverviewTitleBadgeShellElement, {
+          key: 'profile-account-overview-title',
+          slotLabel: 'Title',
+          cardTitle: resolvedTitleLabel,
+          cardSubtitle: resolvedTitleSubtitle,
+          iconPath: resolvedTitleIconPath,
+        });
+        if (profileAccountOverviewAvatarElement) {
+          profileAccountOverviewAvatarElement.dataset.avatarPhoto = 'false';
+        }
+        if (profileAccountOverviewAvatarInitialsElement) {
+          profileAccountOverviewAvatarInitialsElement.textContent = resolveProfileAccountOverviewInitials(displayName);
+        }
+
+        const accountActivityState = resolveAccountRankActivityState(currentSessionUser);
+        if (profileAccountOverviewStatusDotElement) {
+          profileAccountOverviewStatusDotElement.classList.toggle(
+            'is-inactive',
+            !accountActivityState.isActive || accountActivityState.isPending,
+          );
+        }
+      }
+
       function syncHeaderProfileIdentity(profileState) {
         const safeProfileState = sanitizeMemberProfileCustomization(profileState);
         const displayName = safeProfileState.displayName || currentSessionUser?.name || currentSessionUser?.username || 'User';
@@ -11446,6 +11871,7 @@
         if (profileBioDisplayElement) {
           profileBioDisplayElement.textContent = safeProfileState.bio || 'Add a short bio to tell your team who you are.';
         }
+        syncProfileAccountOverviewHero(safeProfileState);
       }
 
       function syncHeaderAndProfileImages(profileState) {
@@ -11717,14 +12143,76 @@
       }
 
       function renderProfileLifetimeCards(metrics = {}) {
-        const lifetimeTotalOrganizationBv = Math.max(0, toWholeNumber(metrics?.lifetimeTotalOrganizationBv, 0));
-        const lifetimePersonalOrganizationBv = Math.max(0, toWholeNumber(metrics?.lifetimePersonalOrganizationBv, 0));
-        if (profileLifetimeTotalOrganizationBvElement) {
-          profileLifetimeTotalOrganizationBvElement.textContent = `${lifetimeTotalOrganizationBv.toLocaleString()} BV`;
+        const totalOrganizationBv = Math.max(
+          0,
+          toWholeNumber(
+            metrics?.totalOrganizationBv,
+            metrics?.lifetimeTotalOrganizationBv,
+          ),
+        );
+        const personalBv = Math.max(
+          0,
+          toWholeNumber(
+            metrics?.personalBv,
+            metrics?.lifetimePersonalOrganizationBv,
+          ),
+        );
+        const directSponsorsValue = Math.max(
+          0,
+          toWholeNumber(
+            metrics?.directSponsors,
+            profileAchievementsSnapshot?.totalDirectSponsors,
+          ),
+        );
+        const salesCycleProfile = resolveSalesTeamCycleCommissionProfile(currentSessionUser);
+        const weeklyCapCycles = Math.max(
+          0,
+          toWholeNumber(
+            metrics?.weeklyCapCycles,
+            salesCycleProfile?.weeklyCapCycles,
+          ),
+        );
+        const totalCycles = Math.max(
+          0,
+          toWholeNumber(
+            metrics?.totalCycles,
+            currentDashboardTotalCycles,
+          ),
+        );
+        const cappedCycles = weeklyCapCycles > 0 ? Math.min(totalCycles, weeklyCapCycles) : totalCycles;
+        const cycleCapText = `${cappedCycles.toLocaleString()} / ${weeklyCapCycles.toLocaleString()}`;
+        const metricWalletBalance = Number(metrics?.eWalletBalance);
+        const snapshotWalletBalance = Number(eWalletSnapshot?.balance);
+        const sessionWalletBalance = resolveSessionWalletBalance(currentSessionUser);
+        const resolvedEwalletBalance = Number.isFinite(metricWalletBalance)
+          ? metricWalletBalance
+          : (Number.isFinite(snapshotWalletBalance)
+            ? snapshotWalletBalance
+            : (Number.isFinite(sessionWalletBalance) ? sessionWalletBalance : 0));
+        const eWalletBalance = Math.max(0, resolvedEwalletBalance);
+        const accountActivityState = resolveAccountRankActivityState(currentSessionUser);
+        const activeWindowText = accountActivityState.isPending
+          ? 'Upgrade Required'
+          : resolveAccountActivityUntilLabel(currentSessionUser).text;
+        if (profileAccountOverviewTotalBvValueElement) {
+          profileAccountOverviewTotalBvValueElement.textContent = `${totalOrganizationBv.toLocaleString()} BV`;
         }
-        if (profileLifetimePersonalOrganizationBvElement) {
-          profileLifetimePersonalOrganizationBvElement.textContent = `${lifetimePersonalOrganizationBv.toLocaleString()} BV`;
+        if (profileAccountOverviewPersonalBvValueElement) {
+          profileAccountOverviewPersonalBvValueElement.textContent = `${personalBv.toLocaleString()} BV`;
         }
+        if (profileAccountOverviewCycleCapValueElement) {
+          profileAccountOverviewCycleCapValueElement.textContent = cycleCapText;
+        }
+        if (profileAccountOverviewDirectSponsorsValueElement) {
+          profileAccountOverviewDirectSponsorsValueElement.textContent = directSponsorsValue.toLocaleString();
+        }
+        if (profileAccountOverviewEwalletValueElement) {
+          profileAccountOverviewEwalletValueElement.textContent = formatCurrency(eWalletBalance);
+        }
+        if (profileAccountOverviewActiveWindowValueElement) {
+          profileAccountOverviewActiveWindowValueElement.textContent = activeWindowText;
+        }
+        syncProfileAccountOverviewHero(resolveEffectiveMemberProfile());
       }
 
       function resolveMemberAuthToken() {
@@ -22234,6 +22722,9 @@
           trackTrend: Boolean(eWalletSnapshot),
           observedAtMs: Number.isFinite(observedAtMsRaw) ? observedAtMsRaw : Date.now(),
         });
+        if (profileAccountOverviewEwalletValueElement) {
+          profileAccountOverviewEwalletValueElement.textContent = formatCurrency(availableBalance);
+        }
 
         if (eWalletTransferSubmitButtonElement) {
           const enteredAmount = Math.max(0, parseCurrencyAmount(eWalletTransferAmountInputElement?.value, 0));
@@ -25820,8 +26311,11 @@
         });
         const lifetimePersonalOrganizationBv = toWholeNumber(organizationRollups?.lifetimePersonalOrganizationBv, 0);
         renderProfileLifetimeCards({
-          lifetimeTotalOrganizationBv,
-          lifetimePersonalOrganizationBv,
+          totalOrganizationBv: weeklyTotalOrganizationBv,
+          personalBv: weeklyTeamGeneratedBv,
+          directSponsors: totalDirectSponsors,
+          totalCycles: currentDashboardTotalCycles,
+          weeklyCapCycles: resolveSalesTeamCycleCommissionProfile(currentSessionUser).weeklyCapCycles,
         });
         if (treeFullscreenSummaryLifetimeTotalOrganizationBvValueElement) {
           treeFullscreenSummaryLifetimeTotalOrganizationBvValueElement.textContent = `${lifetimeTotalOrganizationBv.toLocaleString()} BV`;

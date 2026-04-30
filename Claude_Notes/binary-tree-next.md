@@ -4477,3 +4477,68 @@ ode --check binary-tree-next-app.mjs passed.
 
 ### Validation
 - `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Account Overview Badge Hovercards + Title Fallback Cleanup
+
+### What Changed
+- `binary-tree-next.html`
+  - Added Account Overview badge hovercard markup (`#tree-next-account-overview-badge-hovercard`).
+  - Added ids for rank/title badge shells:
+    - `#tree-next-account-overview-rank-badge-shell`
+    - `#tree-next-account-overview-title-badge-shell`
+  - Replaced hardcoded title defaults (`Legacy Founder` + legacy-founder icon) with neutral defaults (`Member Title` + placeholder icon).
+  - Added hover/focus visual state styles for interactive rank/title badges.
+
+- `binary-tree-next-app.mjs`
+  - Added hovercard state + interaction handlers for Account Overview hero badges.
+  - Added dynamic hover entry synchronization for rank/title badges on each visual sync.
+  - Added title subtitle resolver for hovercard copy with event label + acquired date fallback.
+  - Added panel-close hovercard cleanup and scroll/resize reposition support.
+  - Updated title fallback source to avoid stale DOM title defaults.
+
+### Why
+- Binary Tree Account Overview needed parity with profile/dashboard badge hover behavior and needed to stop defaulting to a hardcoded legacy founder label when live title data is unavailable.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Title Badge Amber Theme Restored
+
+### What Changed
+- `binary-tree-next.html`
+  - Restored `.tree-next-account-overview-badge.is-title .tree-next-account-overview-badge-icon` gradient to the original amber/orange palette.
+  - Restored title badge default icon to `/brand_assets/Icons/Title-Icons/legacy-founder-star-light.svg`.
+- `binary-tree-next-app.mjs`
+  - Restored founder/title palette mapping in `resolveAccountOverviewBadgePalette(...)` to `ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyFounder`.
+  - Restored title palette fallback in Account Overview hero sync to `amber`.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Title Badge Runtime Amber Lock
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - In `syncAccountOverviewPanelVisuals()`, title badge palette now uses:
+    - `const titlePalette = ACCOUNT_OVERVIEW_BADGE_PALETTES.legacyFounder;`
+  - This bypasses label-based palette drift (e.g. `Legacy Builder` mapping to blue).
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.
+
+## Patch Update (2026-04-30) - Account Overview Title/Icon Backend Catalog Parity
+
+### What Changed
+- `binary-tree-next-app.mjs`
+  - Enhanced `resolveAccountOverviewClaimedTitleEntries()` to merge awarded titles with `claimableTitles` catalog metadata (including `iconPath`).
+  - Added `resolveAccountOverviewPrimaryClaimedTitleEntry()` for deterministic primary title selection.
+  - In `syncAccountOverviewPanelVisuals()`:
+    - prefer claimed backend title when computed label is only `rank + Builder` fallback
+    - convert `Legacy Builder` fallback label to `Legacy Founder` for title-display consistency with backend title catalog
+    - use backend catalog `iconPath` for title badge icon when available
+
+### Backend Check
+- Title catalog seed confirms titles are `Legacy Founder`, `Legacy Director`, `Legacy Ambassador`, `Presidential Circle`; no `Legacy Builder` title record.
+
+### Validation
+- `node --check binary-tree-next-app.mjs` passed.

@@ -1556,3 +1556,163 @@ Known limitation:
 
 ### Result
 - Payment settings now focus on Auto Ship + Stripe-managed billing without redundant local card/address forms.
+## Patch Update (2026-04-29) - Profile Page Uses Binary Tree Account Overview Hero
+
+### Request Applied
+- Rebuild `My Profile` so the page keeps achievements and uses the Binary Tree account-overview style section as the profile header/details block.
+- Ensure avatar presentation matches Binary Tree (gradient initials style + active indicator).
+
+### Implementation
+- `index.html`
+  - Profile page content updated to:
+    - keep `Achievement` section
+    - add `#profile-account-overview-panel` above achievements
+    - remove prior visible profile-only blocks from the profile page layout.
+  - Reused account-overview data points (rank/title, active window, direct sponsors, BV totals) and sync hooks.
+  - Updated hero avatar CSS to Binary Tree parity values:
+    - 140px circular gradient avatar
+    - 36px active-status dot with white ring
+    - no overflow clipping so active indicator renders fully.
+  - Added local initials resolver for profile account overview and bound initials output to the hero avatar.
+  - Updated node label candidate priority to prefer member/node identifiers.
+
+### Files Affected
+- `index.html`
+- `Claude_Notes/charge-documentation.md`
+- `Claude_Notes/Current Project Status.md`
+- `Claude_Notes/member-dashboard-page.md`
+
+### Known Limitation
+- Screenshot automation currently lands on login unless an authenticated dashboard session is active in the capture context.
+
+## Patch Update (2026-04-29) - Profile Hero Joined Date Display
+
+### Request Applied
+- Replace the profile hero subtext under username so it shows joined date (not node id).
+
+### Implementation
+- `index.html`
+  - Updated profile hero markup id to `#profile-account-overview-joined`.
+  - Replaced node-label resolver with `resolveProfileAccountOverviewJoinedLabel(...)`.
+  - Joined label now reads from `createdAt`, `enrolledAt`, or `registeredAt` (including snake_case variants), formatted through existing date formatter.
+
+### Result
+- Subtext now shows `Joined <date>` and no longer exposes internal node/member id string.
+
+## Patch Update (2026-04-29) - Profile Hero Separator Width
+
+### Request Applied
+- Make the divider under joined date reach the card borders.
+
+### Implementation
+- `index.html`
+  - Updated `.profile-account-overview-hero` to use full-width layout on desktop (`width: 100%`) instead of capped max width.
+  - Retained centered hero content using existing grid centering behavior.
+
+### Result
+- Divider line now spans the full account-overview panel width (inside panel padding) instead of appearing short.
+
+## Patch Update (2026-04-29) - Profile Sales and Business Volume Cards (Exact 6)
+
+### Request Applied
+- Use the exact account-overview card set in profile `Sales and Business Volumes`:
+  1. Account Active Until
+  2. Total Organization BV
+  3. Personal BV
+  4. Weekly Cycle Cap
+  5. Direct Sponsors
+  6. E-Wallet
+
+### Implementation
+- `index.html`
+  - Replaced previous 4-card profile list with 6-card markup and new value ids.
+  - Updated profile account-overview grid to 3 desktop columns for clean 2-row rendering.
+  - Extended profile card renderer to populate:
+    - BV totals
+    - weekly cycle cap (`current capped cycles / weekly cap cycles`)
+    - direct sponsors
+    - E-Wallet balance.
+  - Added profile card refresh call from E-Wallet summary render so E-Wallet value stays synced.
+
+### Result
+- Profile page now shows the exact requested 6-card set and keeps values updated with current dashboard/E-Wallet data.
+
+## Patch Update (2026-04-29) - Profile BV Flicker To Zero Fix
+
+### Request Applied
+- Fix profile volume cards where `Total Organization BV` and `Personal BV` showed correctly, then reset to `0`.
+
+### Implementation
+- `index.html`
+  - Removed `renderProfileLifetimeCards({ eWalletBalance: ... })` from `renderEWalletSummary(...)`.
+  - Replaced it with a direct update of the E-Wallet tile value element.
+
+### Result
+- Profile BV cards remain stable after load; E-Wallet still refreshes live without overwriting BV metrics.
+
+## Patch Update (2026-04-29) - Removed Profile Header Copy
+
+### Request Applied
+- Remove profile panel texts:
+  - `Account Overview`
+  - `My Profile`
+  - `Binary Tree summary profile`
+
+### Implementation
+- `index.html`
+  - Deleted the header wrapper above the profile hero section.
+
+### Result
+- Those labels are no longer shown in the Profile page account overview block.
+
+## Patch Update (2026-04-29) - Legacy Title Label Fix
+
+### Request Applied
+- Fix incorrect profile title label (`Legacy Leader`) and align with backend title storage.
+
+### Implementation
+- `index.html`
+  - changed legacy rank fallback title to `Legacy Founder`.
+  - added compatibility alias so any stale `Legacy Leader` explicit title resolves to `Legacy Founder`.
+  - updated title->achievement mapping alias for `legacy leader` to point to legacy-founder achievement id.
+
+### Result
+- `Legacy Leader` is no longer shown in profile title badge; legacy title output now aligns to supported backend catalog naming.
+
+## Patch Update (2026-04-29) - Profile Rank/Title Hover Popup Support
+
+### Request Applied
+- Add hover popup details for Profile page rank/title badges, matching dashboard KPI hover behavior.
+
+### Implementation
+- `index.html`
+  - attached hover/focus/touch listeners to profile hero rank/title badge shells.
+  - reused existing profile hovercard show/hide/position logic.
+  - synced hovercard badge-entry payloads from dynamic hero rank/title values.
+
+### Result
+- Hovering Profile rank or title badge now opens the detail popup window with corresponding badge icon/title/subtitle details.
+
+## Patch Update (2026-04-29) - Profile Badge Hover Popup Not Showing (Resolved)
+
+### Request Applied
+- Fix profile rank/title hover popups not appearing.
+
+### Implementation
+- `index.html`
+  - reintroduced `#profile-handle-badge-hovercard` markup near root overlays.
+
+### Result
+- Profile rank/title hover popup is now able to show because the tooltip container exists again.
+
+## Patch Update (2026-04-29) - Legacy Founder Popup Acquired Date
+
+### Request Applied
+- Fix `Legacy Founder` popup subtitle showing `Acquired --`.
+
+### Implementation
+- `index.html`
+  - in `resolveProfileTitleBadgeSubtitle(...)`, if title-award acquired date is missing, use session date fallback (`createdAt/enrolledAt/registeredAt`).
+
+### Result
+- Legacy Founder popup now displays a date in the acquired line when direct award date is absent.
